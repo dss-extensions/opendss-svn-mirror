@@ -1,0 +1,17 @@
+; klusolve.def : Declares the module parameters for the DLL.
+
+LIBRARY      "KLUSolve"
+DESCRIPTION  'KLUSolve Windows Dynamic Link Library'
+
+EXPORTS
+    ; Explicit exports can go here
+ NewSparseSet		  @1
+ SetActiveSparseSet	  @2
+ ZeroSparseSet		  @3
+ FactorSparseMatrix	  @4
+ SolveSparseSet		  @5
+ DeleteSparseSet	  @6
+ AddMatrixElement	  @7
+ SetMatrixElement	  @8
+ GetMatrixElement	  @9
+

@@ -1,0 +1,803 @@
+unit Reactor;
+
+{   10-26-00  Created from Capacitor  object
+    3-2-06 Added Parallel Option and corrected frequency adjustments
+           RMATRIX, Xmatrix untested
+
+}
+{Basic  Reactor
+
+  Uses same rules as Capacitor and Fault for connections
+
+  Implemented as a two-terminal constant impedance (Power Delivery Element)
+  Defaults to a Shunt Reactor but can be connected as a two-terminal series reactor
+
+  If Parallel=Yes, then the R and X components are treated as being in parallel
+
+  Bus2 connection defaults to 0 node of Bus1 (if Bus2 has the default bus connection
+  at the time Bus1 is defined.  Therefore, if only Bus1 is specified, a shunt Reactor results.
+  If delta connected, Bus2 is set to node zero of Bus1 and nothing is returned in the lower
+  half of YPrim - all zeroes.
+
+  If an ungrounded wye is desired, explicitly set Bus2= and set all nodes the same,
+    e.g. Bus1.4.4.4   (uses 4th node of Bus1 as neutral point)
+        or BusNew.1.1.1  (makes a new bus for the neutral point)
+  You must specify the nodes or you will get a series Reactor!
+
+  A series Reactor is specified simply by setting bus2 and declaring the connection
+  to be Wye.  If the connection is specified as delta, nothing will be connected to Bus2.
+  In fact the number of terminals is set to 1.
+
+  Reactance may be specified as:
+
+     1.  kvar and kv ratings at base frequency.  impedance.  Specify kvar as total for
+         all phases. For 1-phase, kV = Reactor coil kV rating.
+         For 2 or 3-phase, kV is line-line three phase. For more than 3 phases, specify
+         kV as actual coil voltage.
+     2.  Resistance and Reactance in ohns at base frequency to be used in each phase.  If specified in this manner,
+         the given value is always used whether wye or delta.
+     3.  A R and X  matrices .
+         If conn=wye then 2-terminal through device
+         If conn=delta then 1-terminal.
+         Ohms at base frequency
+         R may be in parallel with X
+
+}
+interface
+USES
+   Command, DSSClass, PDClass, PDElement, UcMatrix, ArrayDef;
+
+TYPE
+
+   TReactor = class(TPDClass)
+     private
+        Procedure Domatrix(Var Matrix:pDoubleArray);
+
+        Procedure InterpretConnection(const S:String);
+        Procedure ReactorSetbus1( const s:String);
+     Protected
+        Function  MakeLike(Const ReactorName:String):Integer;Override;
+        Procedure DefineProperties;  // Add Properties of this class to propName
+     public
+        constructor Create;
+        destructor  Destroy; override;
+
+        Function Edit:Integer; override;     // uses global parser
+        Function Init(Handle:Integer):Integer; override;
+        Function NewObject(const ObjName:String):Integer; override;
+   end;
+
+   TReactorObj = class(TPDElement)
+      Private
+        R, G,
+        X, B,
+        kvarrating,
+        kvrating :Double;
+        Rmatrix, Gmatrix,
+        XMatrix, Bmatrix :pDoubleArray;  // If not nil then overrides C
+
+        Connection :Integer;   // 0 or 1 for wye (default) or delta, respectively
+        SpecType   :Integer; // 1=kvar, 2=R+jX, 3=R and X matrices
+
+        IsParallel :Boolean;
+
+
+      Public
+
+        constructor Create(ParClass:TDSSClass; const ReactorName:String);
+        destructor  Destroy; override;
+
+        PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
+        
+        Procedure RecalcElementData;Override;
+        Procedure CalcYPrim;        Override;
+        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
+        Procedure DumpProperties(Var F:TextFile;Complete:Boolean);Override;
+
+   end;
+
+VAR
+   ActiveReactorObj:TReactorObj;
+
+implementation
+
+USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Mathutil, Utilities;
+
+Const NumPropsThisClass = 11;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+constructor TReactor.Create;  // Creates superstructure for all Reactor objects
+BEGIN
+     Inherited Create;
+     Class_Name := 'Reactor';
+     DSSClassType := DSSClassType + REACTOR_ELEMENT;
+
+     ActiveElement := 0;
+
+     DefineProperties;
+
+     CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+     CommandList.Abbrev := TRUE;
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Destructor TReactor.Destroy;
+
+BEGIN
+    // ElementList and  CommandList freed in inherited destroy
+    Inherited Destroy;
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactor.DefineProperties;
+Begin
+
+     Numproperties := NumPropsThisClass;
+     CountProperties;   // Get inherited property count
+     AllocatePropertyArrays;
+
+
+     // Define Property names
+     PropertyName^[1] := 'bus1';
+     PropertyName^[2] := 'bus2';
+     PropertyName^[3] := 'phases';
+     PropertyName^[4] := 'kvar';
+     PropertyName^[5] := 'kv';
+     PropertyName^[6] := 'conn';
+     PropertyName^[7] := 'Rmatrix';
+     PropertyName^[8] := 'Xmatrix';
+     PropertyName^[9] := 'R';
+     PropertyName^[10] :='X';
+     PropertyName^[11] :='parallel';
+
+     // define Property help values
+
+     PropertyHelp^[1] := 'Name of first bus. Examples:'+CRLF+
+                     'bus1=busname'+CRLF+
+                     'bus1=busname.1.2.3';
+     PropertyHelp^[2] := 'Name of 2nd bus. Defaults to all phases connected '+
+                     'to first bus, node 0. (Shunt Wye Connection)'+CRLF+
+                     'Not necessary to specify for delta (LL) connection';
+     PropertyHelp^[3] := 'Number of phases.';
+     PropertyHelp^[4] := 'Total kvar, all phases.  Evenly divided among phases. Only determines X. Specify R separately';
+     PropertyHelp^[5] := 'For 2, 3-phase, kV phase-phase. Otherwise specify actual coil rating.';
+     PropertyHelp^[6] := '={wye | delta |LN |LL}  Default is wye, which is equivalent to LN. If Delta, then only one terminal.';
+     PropertyHelp^[7] := 'Resistance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. ';
+     PropertyHelp^[8] := 'Reactance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. ';
+     PropertyHelp^[9] := 'Resistance, each phase, ohms.';
+     PropertyHelp^[10] := 'Reactance, each phase, ohms at base frequency.';
+     PropertyHelp^[11] := '={Yes | No*} Default=no. Signifies R and X are to be interpreted as being in parallel.';
+
+     ActiveProperty := NumPropsThisClass;
+     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
+
+End;
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Function TReactor.NewObject(const ObjName:String):Integer;
+BEGIN
+   // create a new object of this class and add to list
+    With ActiveCircuit Do
+    Begin
+      ActiveCktElement := TReactorObj.Create(Self, ObjName);
+      Result := AddObjectToList(ActiveDSSObject);
+    End;
+END;
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactor.Domatrix(Var Matrix:pDoubleArray);
+VAR
+    OrderFound, j:Integer;
+    MatBuffer:pDoubleArray;
+
+BEGIN
+   WITH ActiveReactorObj DO BEGIN
+     MatBuffer := Allocmem(Sizeof(double)*Fnphases*Fnphases);
+     OrderFound := Parser.ParseAsSymMatrix(Fnphases, MatBuffer);
+
+     If OrderFound>0 THEN    // Parse was successful Else don't change Matrix
+     BEGIN    {X}
+        Reallocmem(Matrix,Sizeof(Matrix^[1]) * Fnphases * Fnphases);
+        FOR j := 1 to Fnphases*Fnphases DO Matrix^[j] :=  MatBuffer^[j];
+     END;
+
+     ReallocMem(MatBuffer,0);
+   END;
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactor.InterpretConnection(const S:String);
+
+// Accepts
+//    delta or LL           (Case insensitive)
+//    Y, wye, or LN
+VAR
+    TestS:String;
+
+BEGIN
+        WITH ActiveReactorObj DO BEGIN
+            TestS := lowercase(S);
+            CASE TestS[1] OF
+              'y','w': Connection := 0;  {Wye}
+              'd': Connection := 1;  {Delta or line-Line}
+              'l': CASE Tests[2] OF
+                   'n': Connection := 0;
+                   'l': Connection := 1;
+                   END;
+
+            END;
+          CASE Connection of
+            1: Nterms := 1;  // Force reallocation of terminals
+            0: IF Fnterms<>2 THEN Nterms := 2;
+          END;
+        END;
+
+        
+
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactor.ReactorSetbus1( const s:String);
+
+Var
+   s2:String;
+   i, dotpos:Integer;
+
+   // Special handling for Bus 1
+   // Set Bus2 = Bus1.0.0.0
+
+BEGIN
+   WITH ActiveReactorObj DO BEGIN
+     SetBus(1, S);
+
+     // Default Bus2 to zero node of Bus1. (Wye Grounded connection)
+
+     // Strip node designations from S
+     dotpos := Pos('.',S);
+     IF dotpos>0 THEN S2 := Copy(S,1,dotpos-1)
+     ELSE S2 := Copy(S,1,Length(S));  // copy up to Dot
+     FOR i := 1 to Fnphases DO S2 := S2 + '.0';
+
+     SetBus(2,S2);
+     IsShunt := True;
+   END;
+END;
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Function TReactor.Edit:Integer;
+
+VAR
+   ParamPointer:Integer;
+   ParamName:String;
+   Param:String;
+
+BEGIN
+  Result := 0;
+  // continue parsing with contents of Parser
+  ActiveReactorObj := ElementList.Active;
+  ActiveCircuit.ActiveCktElement := ActiveReactorObj;  // use property to set this value
+
+
+  WITH ActiveReactorObj DO BEGIN
+
+     ParamPointer := 0;
+     ParamName := Parser.NextParam;
+     Param := Parser.StrValue;
+     WHILE Length(Param)>0 DO BEGIN
+         IF Length(ParamName) = 0 THEN Inc(ParamPointer)
+         ELSE ParamPointer := CommandList.GetCommand(ParamName);
+
+         If (ParamPointer>0) and (ParamPointer<=NumProperties) Then PropertyValue[ParamPointer]:= Param;
+
+         CASE ParamPointer OF
+            0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 230);
+            1: ReactorSetbus1(param);
+            2: Setbus(2, param);
+            3:{ Numphases := Parser.IntValue};  // see below
+            4: kvarRating := Parser.Dblvalue;
+            5: kvRating := Parser.Dblvalue;
+            6: InterpretConnection(Param);
+            7: DoMatrix(RMatrix);
+            8: DoMatrix(XMatrix);
+            9: R := Parser.Dblvalue;
+           10: X := Parser.Dblvalue;
+           11: IsParallel := InterpretYesNo(Param);
+         ELSE
+            // Inherited Property Edits
+            ClassEdit(ActiveReactorObj, ParamPointer - NumPropsThisClass)
+         END;
+
+         // Some specials ...
+         CASE ParamPointer OF
+            1:Begin
+                PropertyValue[2]     := GetBus(2);   // this gets modified
+                PrpSequence^[2] := 0;       // Reset this for save function
+              End;
+            2:If CompareText(StripExtension(GetBus(1)), StripExtension(GetBus(2))) <> 0
+              Then IsShunt := False;
+            3: IF Fnphases <> Parser.IntValue
+               THEN BEGIN
+                 Nphases := Parser.IntValue ;
+                 NConds := Fnphases;  // Force Reallocation of terminal info
+                 Yorder := Fnterms*Fnconds;
+               END;
+            4:   SpecType := 1;
+            7,8: SpecType := 3;
+            9,10:SpecType := 2;
+         ELSE
+         END;
+
+         //YPrim invalidation on anything that changes impedance values
+         CASE ParamPointer OF
+             3..10: YprimInvalid := True;
+         ELSE
+         END;
+
+
+         ParamName := Parser.NextParam;
+         Param := Parser.StrValue;
+     END;
+
+     RecalcElementData;
+  END;
+
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Function TReactor.MakeLike(Const ReactorName:String):Integer;
+VAR
+   OtherReactor:TReactorObj;
+   i:Integer;
+BEGIN
+   Result := 0;
+   {See if we can find this Reactor name in the present collection}
+   OtherReactor := Find(ReactorName);
+   IF OtherReactor<>Nil THEN
+   WITH ActiveReactorObj DO
+   BEGIN
+
+       IF Fnphases <> OtherReactor.Fnphases THEN
+       BEGIN
+         NPhases := OtherReactor.Fnphases;
+         NConds := Fnphases; // force reallocation of terminals and conductors
+
+         Yorder := Fnconds*Fnterms;
+         YPrimInvalid := True;
+
+       END;
+
+       R := OtherReactor.R;
+       X := OtherReactor.X;
+       G := OtherReactor.G;
+       B := OtherReactor.B;
+       IsParallel := OtherReactor.IsParallel;
+
+       kvarrating := OtherReactor.kvarrating;
+       kvrating := OtherReactor.kvrating;
+       Connection := OtherReactor.Connection;
+       SpecType := OtherReactor.SpecType;
+
+       If OtherReactor.Rmatrix=Nil Then  Reallocmem(Rmatrix, 0)
+       ELSE  BEGIN
+           Reallocmem(Rmatrix, SizeOf(Rmatrix^[1])*Fnphases*Fnphases);
+           For i := 1 to Fnphases*Fnphases DO Rmatrix^[i] := OtherReactor.Rmatrix^[i];
+       END;
+
+       If OtherReactor.Xmatrix=Nil Then  Reallocmem(Xmatrix, 0)
+       ELSE  BEGIN
+           Reallocmem(Xmatrix, SizeOf(Xmatrix^[1])*Fnphases*Fnphases);
+           For i := 1 to Fnphases*Fnphases DO Xmatrix^[i] := OtherReactor.Xmatrix^[i];
+       END;
+
+       ClassMakeLike(OtherReactor);  // Take care of inherited class properties
+
+       For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherReactor.PropertyValue[i];
+       Result := 1;
+   END
+   ELSE  DoSimpleMsg('Error in Reactor MakeLike: "' + ReactorName + '" Not Found.', 231);
+
+
+
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Function TReactor.Init(Handle:Integer):Integer;
+
+BEGIN
+   DoSimpleMsg('Need to implement TReactor.Init', -1);
+   REsult := 0;
+END;
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//      TReactor Obj
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+constructor TReactorObj.Create(ParClass:TDSSClass; const ReactorName:String);
+
+BEGIN
+     Inherited Create(ParClass);
+     Name := LowerCase(ReactorName);
+     DSSObjType := ParClass.DSSClassType;
+     
+     NPhases := 3;  // Directly set conds and phases
+     Fnconds := 3;
+     Nterms := 2;  // Force allocation of terminals and conductors
+
+     Setbus(2, (GetBus(1) + '.0.0.0'));  // Default to grounded wye
+
+     IsShunt := True;
+
+     Rmatrix := nil;
+     Xmatrix := nil;
+     Gmatrix := nil;
+     Bmatrix := nil;
+
+     kvarrating := 100.0;
+     kvrating := 12.47;
+     X := SQR(kvrating)*1000.0/kvarrating;
+     R := 0.0;
+     IsParallel := FALSE;
+
+     Connection:=0;   // 0 or 1 for wye (default) or delta, respectively
+     SpecType := 1; // 1=kvar, 2=Cuf, 3=Cmatrix
+
+     NormAmps  := kvarRating * 1.732/kvrating;
+     EmergAmps := NormAmps * 1.35;
+     FaultRate := 0.0005;
+     PctPerm:=   100.0;
+     HrsToRepair := 3.0;
+     Yorder := Fnterms * Fnconds;
+     RecalcElementData;
+
+     InitPropertyValues(0);
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+destructor TReactorObj.Destroy;
+BEGIN
+    ReallocMem(Rmatrix,0);
+    ReallocMem(Xmatrix,0);
+    ReallocMem(Gmatrix,0);
+    ReallocMem(Bmatrix,0);
+    Inherited destroy;
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactorObj.RecalcElementData;
+VAR
+   KvarPerPhase, PhasekV: double;
+   i, CheckError:Integer;
+
+BEGIN
+
+     CASE SpecType OF
+
+     1:BEGIN // kvar
+          kvarPerPhase := kvarRating/Fnphases;
+          Case Connection OF
+            1:  BEGIN  // Line-to-Line
+                    PhasekV := kVRating;
+                END;
+          ELSE BEGIN  //  line-to-neutral
+                 CASE Fnphases of
+                 2,3:PhasekV := kVRating / 1.732;  // Assume three phase system
+                 ELSE
+                    PhasekV := kVRating;
+                 END;
+               END;
+          END;
+          X := SQR(PhasekV)*1000.0/kvarPerPhase;
+          {Leave R as specified}
+          NormAmps := kvarPerPhase/PhasekV;
+          EmergAmps := NormAmps * 1.35;
+       END;
+     2:BEGIN // R + j X
+          // Nothing to do
+       END;
+     3:BEGIN // Matrices
+
+       END;
+     END;
+     If IsParallel Then
+     CASE Spectype of
+
+       1,2: Begin
+                If R <> 0.0 Then G := 1.0/R  Else G := 1.0E50;   // Nearly a short
+                If X <> 0.0 Then B := -1.0/X  Else B := 1.0E50;
+            End;
+
+       3:  Begin
+                 ReAllocmem(Gmatrix, SizeOf(Gmatrix^[1])*Fnphases*Fnphases);
+                 ReAllocmem(Bmatrix, SizeOf(Bmatrix^[1])*Fnphases*Fnphases);
+
+                 {Copy Rmatrix to Gmatrix and Invert}
+                 For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := RMatrix^[i];
+                 ETKInvert(Rmatrix, Fnphases, CheckError);
+                 If CheckError>0 Then Begin
+                     DoSimpleMsg('Error inverting R Matrix for Reactor.'+name+' - G is zeroed.', 232);
+                     For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
+                 End;
+
+                 {Copy Xmatrix to Bmatrix and Invert}
+                 For i := 1 to  Fnphases*Fnphases  Do Bmatrix^[i] := -XMatrix^[i];
+                 ETKInvert(Bmatrix, Fnphases, CheckError);
+                 If CheckError>0 Then Begin
+                     DoSimpleMsg('Error inverting X Matrix for Reactor.'+name+' - B is zeroed.', 233);
+                     For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
+                 End;
+           End;
+
+     ELSE
+         {nada}
+     End;
+
+END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Procedure TReactorObj.CalcYPrim;
+
+VAR
+   Value, Value2:Complex;
+   i,j, idx :Integer;
+   FreqMultiplier:Double;
+   ZValues :pComplexArray;
+   YPrimTemp,
+   ZMatrix   :TCMatrix;
+
+BEGIN
+
+// Normally build only Yprim Shunt, but if there are 2 terminals and
+// Bus1 <> Bus 2
+
+
+    If YPrimInvalid
+    THEN Begin    // Reallocate YPrim if something has invalidated old allocation
+       IF YPrim_Shunt <> nil THEN  YPrim_Shunt.Free;
+       YPrim_Shunt := TcMatrix.CreateMatrix(Yorder);
+       IF Yprim_Series <> nil THEN  Yprim_Series.Free;
+       Yprim_Series := TcMatrix.CreateMatrix(Yorder);
+       IF YPrim <> nil THEN  YPrim.Free;
+       YPrim := TcMatrix.CreateMatrix(Yorder);
+    END
+    ELSE Begin
+         YPrim_Series.Clear; // zero out YPrim
+         YPrim_Shunt.Clear; // zero out YPrim
+         Yprim.Clear;
+    End;
+
+    IF   IsShunt
+    THEN YPrimTemp := YPrim_Shunt
+    ELSE YPrimTemp := Yprim_Series;
+
+    WITH YPrimTemp DO
+    BEGIN
+
+     FYprimFreq := ActiveCircuit.Solution.Frequency ;
+     FreqMultiplier := FYprimFreq/BaseFrequency;
+
+    { Now, Put in Yprim matrix }
+
+     Case SpecType OF
+
+       1, 2: BEGIN
+               // Adjust for frequency
+               If IsParallel Then  Value := Cmplx(G, B / FreqMultiplier)
+               ELSE Value := Cinv(Cmplx(R, X * FreqMultiplier));
+               CASE Connection of
+                   1: BEGIN   // Line-Line
+                        Value2 := CmulReal(Value, 2.0);
+                        Value := cnegate(Value);
+                        FOR i := 1 to Fnphases Do BEGIN
+                            SetElement(i, i, Value2);
+                            FOR j := 1 to i-1 DO SetElemSym(i, j, Value);
+                        END;
+                        // Remainder of the matrix is all zero
+                      END;
+               ELSE BEGIN // Wye
+                      Value2 := cnegate(Value);
+                      FOR i := 1 to Fnphases Do BEGIN
+                          SetElement(i, i, Value);     // Elements are only on the diagonals
+                          SetElement(i+Fnphases, i+Fnphases, Value);
+                          SetElemSym(i, i+Fnphases, Value2);
+                      END;
+                    END;
+               END;
+
+          END;
+       3: BEGIN    // Z matrix specified
+            {Compute Z matrix}
+             
+
+             { Put in Parallel R & L }
+             If IsParallel Then Begin  {Build Z as a Y Matrix}
+
+                FOR i := 1 to Fnphases Do  BEGIN
+                    FOR j := 1 to Fnphases Do  BEGIN
+                       idx := (j-1)*Fnphases + i ;
+                       Value := Cmplx(Gmatrix^[idx], Bmatrix^[idx] / FreqMultiplier);
+                       SetElement(i,j,Value);
+                       SetElement(i+Fnphases, j+Fnphases, Value);
+                       Value := cnegate(Value);
+                       SetElemSym(i, j+Fnphases, Value);
+                     END;
+                 END;
+
+             END
+             ELSE Begin   {For Series R and X}
+                 Zmatrix := TcMatrix.CreateMatrix(Fnphases);
+                 ZValues := Zmatrix.GetValuesArrayPtr(Fnphases);  // So we can stuff array fast
+                 { Put in Series R & L }
+                 FOR i := 1 to Fnphases * Fnphases Do Begin
+                   // Correct the impedances for frequency
+                   ZValues^[i] := Cmplx(RMatrix^[i], Xmatrix^[i] * FreqMultiplier);
+                 End;
+
+                 ZMatrix.Invert;  {Invert in place - is now Ymatrix}
+                 If ZMatrix.InvertError>0 Then Begin       {If error, put in tiny series conductance}
+                    DoErrorMsg('TReactorObj.CalcYPrim', 'Matrix Inversion Error for Reactor "' + Name + '"',
+                               'Invalid impedance specified. Replaced with tiny conductance.', 234);
+                    ZMatrix.Clear;
+                    For i := 1 to Fnphases Do ZMatrix.SetElement(i, i, Cmplx(epsilon, 0.0));
+                 End;
+
+
+                 FOR i := 1 to Fnphases Do  BEGIN
+                    FOR j := 1 to Fnphases Do  BEGIN
+                       Value := Zmatrix.GetElement(i,j);
+                       SetElement(i,j,Value);
+                       SetElement(i+Fnphases, j+Fnphases, Value);
+                       Value := cnegate(Value);
+                       SetElemSym(i, j+Fnphases, Value);
+                     END;
+                 END;
+
+                 Zmatrix.Free;
+              END;
+          END;
+      END;
+
+    END; {With YPRIM}
+
+
+    // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages doesn't fail
+    If IsShunt Then For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
+
+    Yprim.Copyfrom(YPrimTemp);
+
+    {Don't Free YPrimTemp - It's just a pointer to an existing complex matrix}
+
+    Inherited CalcYPrim;
+
+    YprimInvalid := False;
+END;
+
+Procedure TReactorObj.DumpProperties(Var F:TextFile; Complete:Boolean);
+
+VAR
+   i, j, k :Integer;
+
+BEGIN
+    Inherited DumpProperties(F, Complete);
+
+    With ParentClass Do
+       For k := 1 to NumProperties Do
+       Begin
+          CASE k of  // was 'CASE i of' - good example of reason to remove all warnings 
+              7:  IF Rmatrix<>Nil THEN BEGIN
+                     Write(F, PropertyName^[k],'= (');
+                     For i := 1 to Fnphases DO BEGIN
+                        FOR j := 1 to i DO Write(F, Format('%-.5g',[RMatrix^[(i-1)*Fnphases + j]]),' ');
+                        IF i<>Fnphases THEN Write(F, '|');
+                     END;
+                     Writeln(F,')');
+                  END;
+              8:  IF Xmatrix<>Nil THEN BEGIN
+                     Write(F, PropertyName^[k],'= (');
+                     For i := 1 to Fnphases DO BEGIN
+                        FOR j := 1 to i DO Write(F, Format('%-.5g',[XMatrix^[(i-1)*Fnphases + j]]),' ');
+                        IF i<>Fnphases THEN Write(F, '|');
+                     END;
+                     Writeln(F,')');
+                  END;
+          ELSE
+              Writeln(F,'~ ',PropertyName^[k],'=',PropertyValue[k]);
+          END;
+       End;
+
+END;
+
+procedure TReactorObj.InitPropertyValues(ArrayOffset: Integer);
+begin
+
+     PropertyValue[1] := GetBus(1);
+     PropertyValue[2] := GetBus(2);
+     PropertyValue[3] := '3';
+     PropertyValue[4] := '1200';
+     PropertyValue[5] := '12.47';
+     PropertyValue[6] := 'wye';
+     PropertyValue[7] := '';
+     PropertyValue[8] := '';
+     PropertyValue[9] := '0';
+     PropertyValue[10] := Format('%-.6g',[X]);
+     PropertyValue[11] := 'NO';
+
+     inherited  InitPropertyValues(NumPropsThisClass);
+
+     //  Override Inherited properties
+     PropertyValue[NumPropsThisClass + 1] := Str_Real(Normamps, 0   );
+     PropertyValue[NumPropsThisClass + 2] := Str_Real(Emergamps, 0    );
+     PropertyValue[NumPropsThisClass + 3] := Str_Real(FaultRate, 0    );
+     PropertyValue[NumPropsThisClass + 4] := Str_Real(PctPerm, 0      );
+     PropertyValue[NumPropsThisClass + 5] := Str_Real(HrsToRepair, 0 );
+
+     ClearPropSeqArray;
+
+end;
+
+
+
+procedure TReactorObj.MakePosSequence;
+Var
+        S:String;
+        kvarperphase,phasekV, Rs, Rm:Double;
+        i,j:Integer;
+
+begin
+    If FnPhases>1 Then
+    Begin
+        CASE SpecType OF
+
+         1:BEGIN // kvar
+              kvarPerPhase := kvarRating/Fnphases;
+              If (FnPhases>1) or ( Connection<>0) Then  PhasekV := kVRating / 1.732
+              Else PhasekV := kVRating;
+
+              S := 'Phases=1 ' + Format(' kV=%-.5g kvar=%-.5g',[PhasekV, kvarPerPhase]);
+              {Leave R as specified}
+
+           END;
+         2:BEGIN // R + j X
+              S := 'Phases=1 ';
+           END;
+         3:BEGIN // Matrices
+              S := 'Phases=1 ';
+              // R1
+              Rs := 0.0;   // Avg Self
+              For i := 1 to FnPhases Do Rs := Rs + Rmatrix^[(i-1)*Fnphases + i];
+              Rs := Rs/FnPhases;
+              Rm := 0.0;     //Avg mutual
+              For i := 2 to FnPhases Do
+              For j := i to FnPhases Do Rm := Rm + Rmatrix^[(i-1)*Fnphases + j];
+              Rm := Rm/(FnPhases*(Fnphases-1.0)/2.0);
+
+              S := S + Format(' R=%-.5g',[(Rs-Rm)]);
+
+              // X1
+              Rs := 0.0;   // Avg Self
+              For i := 1 to FnPhases Do Rs := Rs + Xmatrix^[(i-1)*Fnphases + i];
+              Rs := Rs/FnPhases;
+              Rm := 0.0;     //Avg mutual
+              For i := 2 to FnPhases Do
+              For j := i to FnPhases Do Rm := Rm + Xmatrix^[(i-1)*Fnphases + j];
+              Rm := Rm/(FnPhases*(Fnphases-1.0)/2.0);
+
+              S := S + Format(' X=%-.5g',[(Rs-Rm)]);
+
+           END;
+         END;
+
+       Parser.CmdString := S;
+       Edit;
+
+    End;
+
+
+  inherited;
+
+end;
+
+end.

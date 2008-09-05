@@ -1,0 +1,80 @@
+<html>
+<head>
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=Windows-1252">
+</head>
+<body>
+<pre>
+<table width=100% bgcolor=#CFCFE5><tr> <td> <font face=arial size=+3>
+Build Log
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+<h3>------- Build started: Project: KLUSolve, Configuration: Release|Win32 -------
+</h3>
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Command Lines
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Creating temporary file "c:\OpenDSS\Source\KLUSolve\KLUSolve\Release\RSP00002B.rsp" with contents
+[
+/O2 /I "..\Include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_USRDLL" /D "KLUSOLVE_EXPORTS" /D "_MBCS" /D "_WINDLL" /FD /EHsc /MT /GS /Yu"stdafx.h" /Fp"Release/KLUSolve.pch" /Fo"Release/" /Fd"Release/vc70.pdb" /W3 /c /Wp64 /Zi /TP
+.\KLUSolve.cpp
+]
+Creating command line "cl.exe @c:\OpenDSS\Source\KLUSolve\KLUSolve\Release\RSP00002B.rsp /nologo"
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Output Window
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Compiling...
+KLUSolve.cpp
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: 'complex' : undeclared identifier
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: '_acxX' : undeclared identifier
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: '_acxB' : undeclared identifier
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : warning C4229: anachronism used : modifiers on data are ignored
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2078: too many initializers
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(23) : error C2061: syntax error : identifier 'complex'
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(24) : error C2061: syntax error : identifier 'complex'
+c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(25) : error C2061: syntax error : identifier 'complex'
+KLUSolve.cpp(17) : error C2146: syntax error : missing ';' before identifier 'NewSparseSet'
+KLUSolve.cpp(17) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(18) : error C2373: 'NewSparseSet' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(11) : see declaration of 'NewSparseSet'
+KLUSolve.cpp(23) : error C2146: syntax error : missing ';' before identifier 'SetActiveSparseSet'
+KLUSolve.cpp(23) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(24) : error C2373: 'SetActiveSparseSet' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(12) : see declaration of 'SetActiveSparseSet'
+KLUSolve.cpp(29) : error C2146: syntax error : missing ';' before identifier 'ZeroSparseSet'
+KLUSolve.cpp(29) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(30) : error C2373: 'ZeroSparseSet' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(13) : see declaration of 'ZeroSparseSet'
+KLUSolve.cpp(35) : error C2146: syntax error : missing ';' before identifier 'FactorSparseMatrix'
+KLUSolve.cpp(35) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(36) : error C2373: 'FactorSparseMatrix' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(14) : see declaration of 'FactorSparseMatrix'
+KLUSolve.cpp(46) : error C2146: syntax error : missing ';' before identifier 'SolveSparseSet'
+KLUSolve.cpp(46) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(46) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
+KLUSolve.cpp(46) : error C3861: '_acxX': identifier not found, even with argument-dependent lookup
+KLUSolve.cpp(46) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
+KLUSolve.cpp(46) : error C3861: '_acxB': identifier not found, even with argument-dependent lookup
+KLUSolve.cpp(47) : error C2448: 'SolveSparseSet' : function-style initializer appears to be a function definition
+KLUSolve.cpp(52) : error C2146: syntax error : missing ';' before identifier 'DeleteSparseSet'
+KLUSolve.cpp(52) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(53) : error C2373: 'DeleteSparseSet' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(21) : see declaration of 'DeleteSparseSet'
+KLUSolve.cpp(59) : error C2146: syntax error : missing ';' before identifier 'AddMatrixElement'
+KLUSolve.cpp(59) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(59) : error C2061: syntax error : identifier 'complex'
+KLUSolve.cpp(60) : error C2373: 'AddMatrixElement' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(23) : see declaration of 'AddMatrixElement'
+KLUSolve.cpp(65) : error C2146: syntax error : missing ';' before identifier 'SetMatrixElement'
+KLUSolve.cpp(65) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(65) : error C2061: syntax error : identifier 'complex'
+KLUSolve.cpp(66) : error C2373: 'SetMatrixElement' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(24) : see declaration of 'SetMatrixElement'
+KLUSolve.cpp(71) : error C2146: syntax error : missing ';' before identifier 'GetMatrixElement'
+KLUSolve.cpp(71) : warning C4229: anachronism used : modifiers on data are ignored
+KLUSolve.cpp(71) : error C2061: syntax error : identifier 'complex'
+KLUSolve.cpp(72) : error C2373: 'GetMatrixElement' : redefinition; different type modifiers
+        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(25) : see declaration of 'GetMatrixElement'
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Results
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+Build log was saved at "file://c:\OpenDSS\Source\KLUSolve\KLUSolve\Release\BuildLog.htm"
+KLUSolve - 33 error(s), 10 warning(s)</pre></table><table   width=100% height=20 bgcolor=#CFCFE5><tr><td><font face=arial size=+2>
+</font></table></body></html>

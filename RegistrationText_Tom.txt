@@ -1,0 +1,23 @@
+Public Description
+
+The OpenDSS is an electric power Distribution System Simulator (DSS) for supporting distributed resource integration and grid modernization efforts.
+
+
+
+Registration Description
+
+The OpenDSS is a simulator specifically designed to represent electric power distribution circuits. OpenDSS is designed to support most types of power distribution planning analysis associated with the interconnection of distributed generation (DG) to utility systems. It also supports many other types of frequency-domain circuit simulations commonly performed on utility electric power distribution systems. It represents unbalanced conditions, stochastic processes, and other aspects of electrical power distribution systems and equipment in far greater detail than many other tools, including commercial products. Through COM and scripting interfaces, other programs can drive OpenDSS in highly customized simulations, Monte Carlo analysis, etc. Users can define their own models through dynamic linking, scripting, or automation.
+
+Electric Power Research Institute, Inc. (www.epri.com) uses OpenDSS in its research and services work, and continues to enhance the software. Earlier proprietary versions were used in dozens of studies for electric utility clients, and in a Web-based wind power simulator at www.uwig.org/distwind. There are several goals in making OpenDSS an open-source project at this time:
+
+1 - Enhance the modeling capabilities available to government laboratories, universities, and other researchers engaged in grid modernization work.
+
+2 - Encourage interfaces between OpenDSS and complementary tools, such as communication system simulators or model compilers.
+
+3 - Encourage the adoption of items 1 and 2 into commercial products used by electric utilities.
+
+4 - Encourage collaborative efforts between industry, government, and university researchers in power distribution system analysis for grid modernization efforts.
+
+5 - Provide a capable testing platform for data and object modeling efforts currently underway in the electric utility industry, at cimug.ucaiug.org and www.multispeak.org.
+
+OpenDSS runs on 32-bit Windows, and the programming language is Delphi (www.codegear.com).  Some of the supporting modules may require a C++ compiler to build from source.

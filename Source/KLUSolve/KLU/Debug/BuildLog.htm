@@ -1,0 +1,100 @@
+<html>
+<head>
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=Windows-1252">
+</head>
+<body>
+<pre>
+<table width=100% bgcolor=#CFCFE5><tr> <td> <font face=arial size=+3>
+Build Log
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+<h3>------- Build started: Project: KLU, Configuration: Debug|Win32 -------
+</h3>
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Command Lines
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Creating temporary file "c:\OpenDSS\Source\KLUSolve\Klu\Debug\RSP000003.rsp" with contents
+[
+/Od /I "Include" /I "../Include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Gm /EHsc /RTC1 /MLd /Fo"Debug/" /Fd"Debug/vc70.pdb" /W3 /c /Wp64 /ZI /TC
+.\Source\klu_z_stuff.c
+.\Source\klu_tsolve.c
+.\Source\klu_sort.c
+.\Source\klu_solve.c
+.\Source\klu_scale.c
+.\Source\klu_refactor.c
+.\Source\klu_memory.c
+.\Source\klu_kernel.c
+.\Source\klu_free_symbolic.c
+.\Source\klu_free_numeric.c
+.\Source\klu_factor.c
+.\Source\klu_extract.c
+.\Source\klu_dump.c
+.\Source\klu_diagnostics.c
+.\Source\klu_defaults.c
+.\Source\klu_analyze_given.c
+.\Source\klu_analyze.c
+.\Source\klu.c
+]
+Creating command line "cl.exe @c:\OpenDSS\Source\KLUSolve\Klu\Debug\RSP000003.rsp /nologo"
+Creating temporary file "c:\OpenDSS\Source\KLUSolve\Klu\Debug\RSP000004.rsp" with contents
+[
+/OUT:"..\Lib/KLUd.lib" /NOLOGO
+.\Debug\klu.obj
+.\Debug\klu_analyze.obj
+.\Debug\klu_analyze_given.obj
+.\Debug\klu_defaults.obj
+.\Debug\klu_diagnostics.obj
+.\Debug\klu_dump.obj
+.\Debug\klu_extract.obj
+.\Debug\klu_factor.obj
+.\Debug\klu_free_numeric.obj
+.\Debug\klu_free_symbolic.obj
+.\Debug\klu_kernel.obj
+.\Debug\klu_memory.obj
+.\Debug\klu_refactor.obj
+.\Debug\klu_scale.obj
+.\Debug\klu_solve.obj
+.\Debug\klu_sort.obj
+.\Debug\klu_tsolve.obj
+.\Debug\klu_z_stuff.obj
+]
+Creating command line "lib.exe @c:\OpenDSS\Source\KLUSolve\Klu\Debug\RSP000004.rsp"
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Output Window
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Compiling...
+klu_z_stuff.c
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(119) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(123) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(133) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(134) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu_kernel.c(771) : warning C4244: '=' : conversion from 'double' to 'size_t', possible loss of data
+klu_tsolve.c
+klu_sort.c
+klu_solve.c
+klu_scale.c
+klu_refactor.c
+klu_memory.c
+klu_kernel.c
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu_kernel.c(771) : warning C4244: '=' : conversion from 'double' to 'size_t', possible loss of data
+klu_free_symbolic.c
+klu_free_numeric.c
+klu_factor.c
+klu_extract.c
+klu_dump.c
+klu_diagnostics.c
+klu_defaults.c
+klu_analyze_given.c
+klu_analyze.c
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu_analyze.c(159) : warning C4244: '=' : conversion from 'double' to 'size_t', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu_analyze.c(294) : warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+klu.c
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(119) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(123) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(133) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+c:\OpenDSS\Source\KLUSolve\KLU\Source\klu.c(134) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+Generating Code...
+Creating library...
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Results
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+Build log was saved at "file://c:\OpenDSS\Source\KLUSolve\Klu\Debug\BuildLog.htm"
+KLU - 0 error(s), 12 warning(s)</pre></table><table   width=100% height=20 bgcolor=#CFCFE5><tr><td><font face=arial size=+2>
+</font></table></body></html>

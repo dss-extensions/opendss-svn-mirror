@@ -1,0 +1,126 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{8fb87521-c07a-4468-bf77-b4498c169a82}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="AMD\AMD.cbproj" />
+    <Projects Include="BTF\BTF.cbproj" />
+    <Projects Include="COLAMD\COLAMD.cbproj" />
+    <Projects Include="CSparse\CSparse.cbproj" />
+    <Projects Include="CZSparse\CZSparse.cbproj" />
+    <Projects Include="KLU\KLDemo.cbproj" />
+    <Projects Include="KLU\KLDemoD.cbproj">
+      <Dependencies>AMD\AMD.cbproj;BTF\BTF.cbproj;COLAMD\COLAMD.cbproj;CSparse\CSparse.cbproj;CZSparse\CZSparse.cbproj;KLU\kLU.cbproj</Dependencies>
+    </Projects>
+    <Projects Include="KLU\KLTest.cbproj" />
+    <Projects Include="KLU\KLTestD.cbproj" />
+    <Projects Include="KLU\kLU.cbproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject xmlns=""><Default.Personality></Default.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="AMD">
+    <MSBuild Projects="AMD\AMD.cbproj" Targets="" />
+  </Target>
+  <Target Name="AMD:Clean">
+    <MSBuild Projects="AMD\AMD.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="AMD:Make">
+    <MSBuild Projects="AMD\AMD.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="BTF">
+    <MSBuild Projects="BTF\BTF.cbproj" Targets="" />
+  </Target>
+  <Target Name="BTF:Clean">
+    <MSBuild Projects="BTF\BTF.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="BTF:Make">
+    <MSBuild Projects="BTF\BTF.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="COLAMD">
+    <MSBuild Projects="COLAMD\COLAMD.cbproj" Targets="" />
+  </Target>
+  <Target Name="COLAMD:Clean">
+    <MSBuild Projects="COLAMD\COLAMD.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="COLAMD:Make">
+    <MSBuild Projects="COLAMD\COLAMD.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="CSparse">
+    <MSBuild Projects="CSparse\CSparse.cbproj" Targets="" />
+  </Target>
+  <Target Name="CSparse:Clean">
+    <MSBuild Projects="CSparse\CSparse.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="CSparse:Make">
+    <MSBuild Projects="CSparse\CSparse.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="CZSparse">
+    <MSBuild Projects="CZSparse\CZSparse.cbproj" Targets="" />
+  </Target>
+  <Target Name="CZSparse:Clean">
+    <MSBuild Projects="CZSparse\CZSparse.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="CZSparse:Make">
+    <MSBuild Projects="CZSparse\CZSparse.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="kLU">
+    <MSBuild Projects="KLU\kLU.cbproj" Targets="" />
+  </Target>
+  <Target Name="kLU:Clean">
+    <MSBuild Projects="KLU\kLU.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="kLU:Make">
+    <MSBuild Projects="KLU\kLU.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="KLDemoD" DependsOnTargets="AMD;BTF;COLAMD;CSparse;CZSparse;kLU">
+    <MSBuild Projects="KLU\KLDemoD.cbproj" Targets="" />
+  </Target>
+  <Target Name="KLDemoD:Clean" DependsOnTargets="AMD:Clean;BTF:Clean;COLAMD:Clean;CSparse:Clean;CZSparse:Clean;kLU:Clean">
+    <MSBuild Projects="KLU\KLDemoD.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="KLDemoD:Make" DependsOnTargets="AMD:Make;BTF:Make;COLAMD:Make;CSparse:Make;CZSparse:Make;kLU:Make">
+    <MSBuild Projects="KLU\KLDemoD.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="KLDemo">
+    <MSBuild Projects="KLU\KLDemo.cbproj" Targets="" />
+  </Target>
+  <Target Name="KLDemo:Clean">
+    <MSBuild Projects="KLU\KLDemo.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="KLDemo:Make">
+    <MSBuild Projects="KLU\KLDemo.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="KLTest">
+    <MSBuild Projects="KLU\KLTest.cbproj" Targets="" />
+  </Target>
+  <Target Name="KLTest:Clean">
+    <MSBuild Projects="KLU\KLTest.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="KLTest:Make">
+    <MSBuild Projects="KLU\KLTest.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="KLTestD">
+    <MSBuild Projects="KLU\KLTestD.cbproj" Targets="" />
+  </Target>
+  <Target Name="KLTestD:Clean">
+    <MSBuild Projects="KLU\KLTestD.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="KLTestD:Make">
+    <MSBuild Projects="KLU\KLTestD.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="AMD;BTF;COLAMD;CSparse;CZSparse;kLU;KLDemoD;KLDemo;KLTest;KLTestD" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="AMD:Clean;BTF:Clean;COLAMD:Clean;CSparse:Clean;CZSparse:Clean;kLU:Clean;KLDemoD:Clean;KLDemo:Clean;KLTest:Clean;KLTestD:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="AMD:Make;BTF:Make;COLAMD:Make;CSparse:Make;CZSparse:Make;kLU:Make;KLDemoD:Make;KLDemo:Make;KLTest:Make;KLTestD:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

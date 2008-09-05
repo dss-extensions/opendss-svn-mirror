@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2008/09/03 16:55:40.312.cbproj,C:\Documents and Settings\Tom\My Documents\RAD Studio\Projects\Project1.cbproj=C:\Documents and Settings\Tom\My Documents\RAD Studio\Projects\AMD.cbproj</Transaction>
+    <Transaction>2008/09/03 16:56:17.828.cbproj,C:\Documents and Settings\Tom\My Documents\RAD Studio\Projects\AMD.cbproj=C:\OpenDSS\Source\KLUSolve\AMD\AMD.cbproj</Transaction>
+    <Transaction>2008/09/04 08:25:54.078.pdf,C:\OpenDSS\Source\KLUSolve\AMD\Doc\AMD_UserGuide.pdf=</Transaction>
+    <Transaction>2008/09/04 08:26:02.296,C:\OpenDSS\Source\KLUSolve\AMD\Doc\License=</Transaction>
+    <Transaction>2008/09/04 08:26:05.312.txt,C:\OpenDSS\Source\KLUSolve\AMD\Doc\lesser.txt=</Transaction>
+  </Transactions>
+</BorlandProject>
