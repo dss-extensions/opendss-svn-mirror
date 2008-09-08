@@ -127,6 +127,9 @@
 				RelativePath=".\klusolve.def">
 			</File>
 			<File
+				RelativePath=".\KLUSystem.cpp">
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -150,10 +153,16 @@
 				RelativePath="..\Include\cs.h">
 			</File>
 			<File
+				RelativePath="..\Include\csz.h">
+			</File>
+			<File
 				RelativePath="..\Include\klu.h">
 			</File>
 			<File
 				RelativePath=".\klusolve.h">
+			</File>
+			<File
+				RelativePath=".\KLUSystem.h">
 			</File>
 			<File
 				RelativePath=".\stdafx.h">
