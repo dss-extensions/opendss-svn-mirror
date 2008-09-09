@@ -69,7 +69,7 @@ PROCEDURE DoResetKeepList;
 FUNCTION GetNodeNum(NodeRef:Integer):Integer;
 PROCEDURE InitStringToNull(Var S:String);
 FUNCTION CmulReal_im(const a:Complex; const Mult:Double):Complex;  // Multiply only imaginary part by a real
-FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
+//FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
 
 {Save Function Helper}
 Function WriteClassFile(Const DSS_Class:TDSSClass; FileName:String; IsCktElement:Boolean):Boolean;
@@ -2238,6 +2238,7 @@ Begin
 
 End;
 
+(*
 FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
 
 Var
@@ -2253,7 +2254,7 @@ Begin
          Result := FALSE;
      End;
 End;
-
+*)
 Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 {To help avoid collisions of neutral numbers, this function returns a node number that is not being used,
  Starting at the StartNode value}
