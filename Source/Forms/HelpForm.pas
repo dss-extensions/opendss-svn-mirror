@@ -13,12 +13,15 @@ type
     Button1: TButton;
     Button2: TButton;
     SaveDialog1: TSaveDialog;
-    Button3: TButton;
+    rdoAlphabetical: TRadioButton;
+    rdoNumerical: TRadioButton;
+    Label1: TLabel;
     PROCEDURE TreeView1Change(Sender: TObject; Node: TTreeNode);
     PROCEDURE Button1Click(Sender: TObject);
     PROCEDURE Button2Click(Sender: TObject);
     PROCEDURE BuildTreeViewList;
-    procedure Button3Click(Sender: TObject);
+    procedure rdoAlphabeticalClick(Sender: TObject);
+    procedure rdoNumericalClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -151,9 +154,17 @@ end;
 
 PROCEDURE THelpForm1.Button2Click(Sender: TObject);
 begin
-
      Close;
+end;
 
+procedure THelpForm1.rdoAlphabeticalClick(Sender: TObject);
+begin
+  BuildTreeViewList;
+end;
+
+procedure THelpForm1.rdoNumericalClick(Sender: TObject);
+begin
+  BuildTreeViewList;
 end;
 
 procedure THelpForm1.BuildTreeViewList;
@@ -199,20 +210,21 @@ begin
         for i := 1 to HelpList.Count do begin
           pDSSClass := HelpList.Items[i-1];
           Node1 := AddObject(Node1,pDSSClass.name,nil);
-          FOR j := 1 to pDSSClass.NumProperties DO
-             AddChildObject(Node1, pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
-          Node1.AlphaSort();
+          if rdoAlphabetical.Checked = true then begin
+            FOR j := 1 to pDSSClass.NumProperties DO
+               AddChildObject(Node1, pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
+            Node1.AlphaSort();
+          end
+          else begin
+            FOR j := 1 to pDSSClass.NumProperties DO
+               AddChildObject(Node1, '(' + IntToStr(j)  + ') ' + pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
+          end;
         End;
         HelpList.Free;
 
      End;
      Caption := 'DSS Commands & Properties';
 
-end;
-
-procedure THelpForm1.Button3Click(Sender: TObject);
-begin
-      BuildTreeViewList;
 end;
 
 end.
