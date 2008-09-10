@@ -34,13 +34,13 @@ unit Reactor;
          all phases. For 1-phase, kV = Reactor coil kV rating.
          For 2 or 3-phase, kV is line-line three phase. For more than 3 phases, specify
          kV as actual coil voltage.
-     2.  Resistance and Reactance in ohns at base frequency to be used in each phase.  If specified in this manner,
+     2.  Series Resistance and Reactance in ohns at base frequency to be used in each phase.  If specified in this manner,
          the given value is always used whether wye or delta.
      3.  A R and X  matrices .
          If conn=wye then 2-terminal through device
          If conn=delta then 1-terminal.
          Ohms at base frequency
-         R may be in parallel with X
+         Note that Rmatix may be in parallel with Xmatric (set parallel = Yes)
 
 }
 interface
@@ -69,18 +69,18 @@ TYPE
 
    TReactorObj = class(TPDElement)
       Private
-        R, G,
-        X, B,
+        R, Rp, Gp,
+        X,
         kvarrating,
         kvrating :Double;
         Rmatrix, Gmatrix,
         XMatrix, Bmatrix :pDoubleArray;  // If not nil then overrides C
 
         Connection :Integer;   // 0 or 1 for wye (default) or delta, respectively
-        SpecType   :Integer; // 1=kvar, 2=R+jX, 3=R and X matrices
+        SpecType   :Integer;   // 1=kvar, 2=R+jX, 3=R and X matrices
 
-        IsParallel :Boolean;
-
+        IsParallel  :Boolean;
+        RpSpecified :Boolean;
 
       Public
 
@@ -103,7 +103,7 @@ implementation
 
 USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Mathutil, Utilities;
 
-Const NumPropsThisClass = 11;
+Const NumPropsThisClass = 12;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TReactor.Create;  // Creates superstructure for all Reactor objects
@@ -146,27 +146,32 @@ Begin
      PropertyName^[6] := 'conn';
      PropertyName^[7] := 'Rmatrix';
      PropertyName^[8] := 'Xmatrix';
-     PropertyName^[9] := 'R';
-     PropertyName^[10] :='X';
-     PropertyName^[11] :='parallel';
+     PropertyName^[9] := 'Parallel';
+     PropertyName^[10] := 'R';
+     PropertyName^[11] :='X';
+     PropertyName^[12] :='Rp';
 
      // define Property help values
 
      PropertyHelp^[1] := 'Name of first bus. Examples:'+CRLF+
-                     'bus1=busname'+CRLF+
-                     'bus1=busname.1.2.3';
+                         'bus1=busname'+CRLF+
+                         'bus1=busname.1.2.3';
      PropertyHelp^[2] := 'Name of 2nd bus. Defaults to all phases connected '+
-                     'to first bus, node 0. (Shunt Wye Connection)'+CRLF+
-                     'Not necessary to specify for delta (LL) connection';
+                         'to first bus, node 0. (Shunt Wye Connection)'+CRLF+
+                         'Not necessary to specify for delta (LL) connection';
      PropertyHelp^[3] := 'Number of phases.';
      PropertyHelp^[4] := 'Total kvar, all phases.  Evenly divided among phases. Only determines X. Specify R separately';
      PropertyHelp^[5] := 'For 2, 3-phase, kV phase-phase. Otherwise specify actual coil rating.';
      PropertyHelp^[6] := '={wye | delta |LN |LL}  Default is wye, which is equivalent to LN. If Delta, then only one terminal.';
-     PropertyHelp^[7] := 'Resistance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. ';
-     PropertyHelp^[8] := 'Reactance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. ';
-     PropertyHelp^[9] := 'Resistance, each phase, ohms.';
-     PropertyHelp^[10] := 'Reactance, each phase, ohms at base frequency.';
-     PropertyHelp^[11] := '={Yes | No*} Default=no. Signifies R and X are to be interpreted as being in parallel.';
+     PropertyHelp^[7] := 'Resistance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. '+
+                         'Mutually exclusive to specifying parameters by kvar or X.';
+     PropertyHelp^[8] := 'Reactance matrix, lower triangle, ohms at base frequency. Order of the matrix is the number of phases. ' +
+                         'Mutually exclusive to specifying parameters by kvar or X.';
+     PropertyHelp^[9] := '{Yes | No}  Default=No. Indicates whether Rmatrix and Xmatrix are to be considered in parallel. ' +
+                         'Default is series. For other models, specify R and Rp.';
+     PropertyHelp^[10] := 'Resistance (is series with reactance), each phase, ohms.';
+     PropertyHelp^[11] := 'Reactance, each phase, ohms at base frequency.';
+     PropertyHelp^[12] := 'Resistance in parallel with R and X (the entire branch). Assumed infinite if not specified.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -181,7 +186,7 @@ BEGIN
     With ActiveCircuit Do
     Begin
       ActiveCktElement := TReactorObj.Create(Self, ObjName);
-      Result := AddObjectToList(ActiveDSSObject);
+      Result           := AddObjectToList(ActiveDSSObject);
     End;
 END;
 
@@ -194,7 +199,7 @@ VAR
 
 BEGIN
    WITH ActiveReactorObj DO BEGIN
-     MatBuffer := Allocmem(Sizeof(double)*Fnphases*Fnphases);
+     MatBuffer  := Allocmem(Sizeof(double)*Fnphases*Fnphases);
      OrderFound := Parser.ParseAsSymMatrix(Fnphases, MatBuffer);
 
      If OrderFound>0 THEN    // Parse was successful Else don't change Matrix
@@ -233,9 +238,6 @@ BEGIN
             0: IF Fnterms<>2 THEN Nterms := 2;
           END;
         END;
-
-        
-
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -302,9 +304,10 @@ BEGIN
             6: InterpretConnection(Param);
             7: DoMatrix(RMatrix);
             8: DoMatrix(XMatrix);
-            9: R := Parser.Dblvalue;
-           10: X := Parser.Dblvalue;
-           11: IsParallel := InterpretYesNo(Param);
+            9: IsParallel := InterpretYesNo(Param);
+           10: R := Parser.Dblvalue;
+           11: X := Parser.Dblvalue;
+           12: Rp := Parser.Dblvalue;
          ELSE
             // Inherited Property Edits
             ClassEdit(ActiveReactorObj, ParamPointer - NumPropsThisClass)
@@ -324,21 +327,21 @@ BEGIN
                  NConds := Fnphases;  // Force Reallocation of terminal info
                  Yorder := Fnterms*Fnconds;
                END;
-            4:   SpecType := 1;
+            4:   SpecType := 1;   // X specified by kvar, kV
             7,8: SpecType := 3;
-            9,10:SpecType := 2;
+            11:  SpecType := 2;   // X specified directly
+            12:  RpSpecified := TRUE;
          ELSE
          END;
 
          //YPrim invalidation on anything that changes impedance values
          CASE ParamPointer OF
-             3..10: YprimInvalid := True;
+             3..12: YprimInvalid := True;
          ELSE
          END;
 
-
-         ParamName := Parser.NextParam;
-         Param := Parser.StrValue;
+       ParamName := Parser.NextParam;
+       Param := Parser.StrValue;
      END;
 
      RecalcElementData;
@@ -371,8 +374,8 @@ BEGIN
 
        R := OtherReactor.R;
        X := OtherReactor.X;
-       G := OtherReactor.G;
-       B := OtherReactor.B;
+       Rp := OtherReactor.Rp;
+       RpSpecified := OtherReactor.RpSpecified;
        IsParallel := OtherReactor.IsParallel;
 
        kvarrating := OtherReactor.kvarrating;
@@ -437,20 +440,20 @@ BEGIN
      Bmatrix := nil;
 
      kvarrating := 100.0;
-     kvrating := 12.47;
-     X := SQR(kvrating)*1000.0/kvarrating;
-     R := 0.0;
-     IsParallel := FALSE;
-
-     Connection:=0;   // 0 or 1 for wye (default) or delta, respectively
-     SpecType := 1; // 1=kvar, 2=Cuf, 3=Cmatrix
-
-     NormAmps  := kvarRating * 1.732/kvrating;
-     EmergAmps := NormAmps * 1.35;
-     FaultRate := 0.0005;
-     PctPerm:=   100.0;
+     kvrating   := 12.47;
+     X          := SQR(kvrating)*1000.0/kvarrating;
+     R          := 0.0;
+     Rp         := 0.0;  // Indicates it has not been set to a proper value
+     IsParallel  := FALSE;
+     RpSpecified := FALSE;
+     Connection  :=0;   // 0 or 1 for wye (default) or delta, respectively
+     SpecType    := 1; // 1=kvar, 2=Cuf, 3=Cmatrix
+     NormAmps    := kvarRating * 1.732/kvrating;
+     EmergAmps   := NormAmps * 1.35;
+     FaultRate   := 0.0005;
+     PctPerm     := 100.0;
      HrsToRepair := 3.0;
-     Yorder := Fnterms * Fnconds;
+     Yorder      := Fnterms * Fnconds;
      RecalcElementData;
 
      InitPropertyValues(0);
@@ -486,13 +489,13 @@ BEGIN
                  CASE Fnphases of
                  2,3:PhasekV := kVRating / 1.732;  // Assume three phase system
                  ELSE
-                    PhasekV := kVRating;
+                     PhasekV := kVRating;
                  END;
                END;
           END;
           X := SQR(PhasekV)*1000.0/kvarPerPhase;
           {Leave R as specified}
-          NormAmps := kvarPerPhase/PhasekV;
+          NormAmps  := kvarPerPhase/PhasekV;
           EmergAmps := NormAmps * 1.35;
        END;
      2:BEGIN // R + j X
@@ -502,38 +505,31 @@ BEGIN
 
        END;
      END;
-     If IsParallel Then
-     CASE Spectype of
 
-       1,2: Begin
-                If R <> 0.0 Then G := 1.0/R  Else G := 1.0E50;   // Nearly a short
-                If X <> 0.0 Then B := -1.0/X  Else B := 1.0E50;
-            End;
+     if RpSpecified and (Rp <> 0.0)then Gp := 1.0/Rp Else Gp := 0.0; // default to 0,0 if Rp=0;
+     
+     If IsParallel and (SpecType = 3) Then  Begin
 
-       3:  Begin
-                 ReAllocmem(Gmatrix, SizeOf(Gmatrix^[1])*Fnphases*Fnphases);
-                 ReAllocmem(Bmatrix, SizeOf(Bmatrix^[1])*Fnphases*Fnphases);
+         ReAllocmem(Gmatrix, SizeOf(Gmatrix^[1])*Fnphases*Fnphases);
+         ReAllocmem(Bmatrix, SizeOf(Bmatrix^[1])*Fnphases*Fnphases);
 
-                 {Copy Rmatrix to Gmatrix and Invert}
-                 For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := RMatrix^[i];
-                 ETKInvert(Rmatrix, Fnphases, CheckError);
-                 If CheckError>0 Then Begin
-                     DoSimpleMsg('Error inverting R Matrix for Reactor.'+name+' - G is zeroed.', 232);
-                     For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
-                 End;
+         {Copy Rmatrix to Gmatrix and Invert}
+         For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := RMatrix^[i];
+         ETKInvert(Rmatrix, Fnphases, CheckError);
+         If CheckError>0 Then Begin
+             DoSimpleMsg('Error inverting R Matrix for Reactor.'+name+' - G is zeroed.', 232);
+             For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
+         End;
 
-                 {Copy Xmatrix to Bmatrix and Invert}
-                 For i := 1 to  Fnphases*Fnphases  Do Bmatrix^[i] := -XMatrix^[i];
-                 ETKInvert(Bmatrix, Fnphases, CheckError);
-                 If CheckError>0 Then Begin
-                     DoSimpleMsg('Error inverting X Matrix for Reactor.'+name+' - B is zeroed.', 233);
-                     For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
-                 End;
-           End;
-
-     ELSE
-         {nada}
+         {Copy Xmatrix to Bmatrix and Invert}
+         For i := 1 to  Fnphases*Fnphases  Do Bmatrix^[i] := -XMatrix^[i];
+         ETKInvert(Bmatrix, Fnphases, CheckError);
+         If CheckError>0 Then Begin
+             DoSimpleMsg('Error inverting X Matrix for Reactor.'+name+' - B is zeroed.', 233);
+             For i := 1 to  Fnphases*Fnphases  Do Gmatrix^[i] := 0.0;
+         End;
      End;
+
 
 END;
 
@@ -583,10 +579,12 @@ BEGIN
 
      Case SpecType OF
 
-       1, 2: BEGIN
+       1, 2: BEGIN   {Some form of R and X specified}
                // Adjust for frequency
-               If IsParallel Then  Value := Cmplx(G, B / FreqMultiplier)
-               ELSE Value := Cinv(Cmplx(R, X * FreqMultiplier));
+               Value := Cinv(Cmplx(R, X * FreqMultiplier));
+               // Add in Rp Value if specified
+               if RpSpecified then  Caccum(Value, Cmplx(Gp, 0.0));
+
                CASE Connection of
                    1: BEGIN   // Line-Line
                         Value2 := CmulReal(Value, 2.0);
@@ -608,6 +606,7 @@ BEGIN
                END;
 
           END;
+
        3: BEGIN    // Z matrix specified
             {Compute Z matrix}
              
