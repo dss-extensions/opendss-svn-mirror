@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Menus, ToolWin, ImgList,Scriptform, jpeg, ExtCtrls;
+  StdCtrls, ComCtrls, Menus, ToolWin, ImgList,Scriptform, jpeg, ExtCtrls, PsAPI;
 
 type
   TControlPanel = class(TForm)
@@ -960,8 +960,19 @@ begin
 end;
 
 procedure TControlPanel.UpdateStatus;
+var
+  pmc: PPROCESS_MEMORY_COUNTERS;
+  cb: Integer;
 begin
-     StatusBar1.Panels[0].Text := Format('Memory: %dK',[AllocMemSize div 1024]);
+     cb := sizeof(_PROCESS_MEMORY_COUNTERS);
+     GetMem(pmc, cb);
+     pmc^.cb := cb;
+     IF GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb)
+     then
+      StatusBar1.Panels[0].Text := Format('Memory: %dK',[pmc^.WorkingSetSize div 1024])
+     else
+      StatusBar1.Panels[0].Text := 'Memory: ?';
+     FreeMem(pmc);
 //     StatusBar1.Panels[1].Text := Format('Blocks: %d',[AllocMemCount]);
      If ActiveCircuit <> Nil Then With ActiveCircuit Do StatusBar1.Panels[1].Text := 'Bus: ' + busList.Get(ActiveBusIndex)
      Else StatusBar1.Panels[1].Text := 'Bus:';
