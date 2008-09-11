@@ -720,9 +720,10 @@ begin
      PropertyValue[6] := 'wye';
      PropertyValue[7] := '';
      PropertyValue[8] := '';
-     PropertyValue[9] := '0';
-     PropertyValue[10] := Format('%-.6g',[X]);
-     PropertyValue[11] := 'NO';
+     PropertyValue[9] := 'NO';  // Parallel
+     PropertyValue[10] := '0';  // R series
+     PropertyValue[11] := Format('%-.6g',[X]);  //X
+     PropertyValue[12] := '0';  //Rp
 
      inherited  InitPropertyValues(NumPropsThisClass);
 
