@@ -74,7 +74,7 @@ TYPE
        FUNCTION OK_for_Dynamics(const Value:Integer):Boolean;
        FUNCTION OK_for_Harmonics(const Value:Integer):Boolean;
        Function SolveSystem(V:pNodeVArray):Integer;
-       
+
        PROCEDURE AddInAuxCurrents(SolveType:Integer);
        PROCEDURE CheckControlActions;
        PROCEDURE CheckFaultStatus;
@@ -111,8 +111,9 @@ TYPE
        HarmonicList  :pDoubleArray;
        HarmonicListSize :Integer;
        Hour :Integer;
-       hY :Integer;   {Handle for sparse Y Matrices}
-       hYseries :Integer;   {Handle for sparse Y Matrices}
+       hYsystem :LongWord;   {Handle for main (system) Y matrix}
+       hYseries :LongWord;   {Handle for series Y matrix}
+       hY :LongWord;         {either hYsystem or hYseries}
        IntervalHrs:Double;   // Solution interval since last solution, hrs.
        IsDynamicModel :Boolean;
        IsHarmonicModel :Boolean;
@@ -306,7 +307,8 @@ Begin
     DefaultLoadModel := LoadModel;
 
     hYseries := 0;
-    hY       := 0;
+    hYsystem := 0;
+    hY := 0;
 
     NodeV      := nil;
     dV         := nil;
@@ -346,8 +348,8 @@ Begin
       Reallocmem(NodeVbase, 0);
       Reallocmem(VMagSaved, 0);
       
-      If hY          <> 0 THEN   DeleteSparseSet(hY);
-      If hYseries    <> 0 THEN   DeleteSparseSet(hYseries);
+      If hYsystem <> 0 THEN   DeleteSparseSet(hYsystem);
+      If hYseries <> 0 THEN   DeleteSparseSet(hYseries);
 
       Reallocmem(HarmonicList,0);
 
@@ -827,19 +829,17 @@ Begin
     GetSourceInjCurrents;    // Vsource and Isource only
 
     {Make the series Y matrix the active matrix}
-    IF   SetActiveSparseSet(hYseries) = 0 THEN
-        Raise EEsolv32Problem.Create('Error Setting Active System Y Matrix in SolveZeroLoadSnapshot. Problem with Sparse matrix solver.');
+    IF  hYseries = 0 THEN
+        Raise EEsolv32Problem.Create('Series Y matrix not built yet in SolveZeroLoadSnapshot.');
+    hY := hYseries;
 
     If ActiveCircuit.LogEvents Then LogThisEvent('Solve Sparse Set ZeroLoadSnapshot ...');
 
     SolveSystem(NodeV);  // also sets voltages in radial part of the circuit if radial solution
 
     { Reset the main system Y as the solution matrix}
-    IF   (hY > 0) and Not SolutionAbort  THEN
-    IF   SetActiveSparseSet(hY) = 0      // Restore
-    THEN Raise EEsolv32Problem.Create('Error Setting Active System Y Matrix in SolveZeroLoadSnapshot. Problem with Sparse matrix solver.');
-
-
+    IF   (hYsystem > 0) and Not SolutionAbort THEN
+      hY := hYsystem;
 End;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1106,7 +1106,7 @@ Begin
     NumNodesToDump := NumNodes;
     FOR i := 1 to NumNodesToDump Do Begin
       FOR j := 1 to i Do Begin
-         GetMatrixElement(i,j, @c);
+         GetMatrixElement(Solution.hY, i, j, @c);
          Write(F, C.re:0:4,' ');
       End;
       Writeln(F);
@@ -1114,7 +1114,7 @@ Begin
     Writeln(F, 'SystemY (B Matrix) = ');
     FOR i := 1 to NumNodesToDump Do Begin
       FOR j := 1 to i Do Begin
-         GetMatrixElement(i,j, @c);
+         GetMatrixElement(Solution.hY, i,j, @c);
          Write(F, C.im:0:4,' ');
       End;
       Writeln(F);
@@ -1545,7 +1545,7 @@ BEGIN
  {Note: NodeV[0] = 0 + j0 always.  Therefore, pass the address of the element 1 of the array.
  }
   Try
-    RetCode :=  SolveSparseSet(@V^[1], @Currents^[1]);  // Solve for present InjCurr
+    RetCode :=  SolveSparseSet(hY, @V^[1], @Currents^[1]);  // Solve for present InjCurr
   Except
     On E:Exception Do Raise  EEsolv32Problem.Create('Error Solving System Y Matrix.  Sparse matrix solver reports numerical error: '
                    +E.Message);

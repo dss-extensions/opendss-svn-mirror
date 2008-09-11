@@ -2929,7 +2929,7 @@ Var
 Begin
 
   If ActiveCircuit=Nil then Exit;
-  If ActiveCircuit.Solution.hY >0 Then SetActiveSparseSet(ActiveCircuit.Solution.hY) Else Begin
+  If  ActiveCircuit.Solution.hY <= 0 then Begin
      DoSimpleMsg('Y Matrix not Built.', 222);
      Exit;
   End;
@@ -2947,7 +2947,7 @@ Begin
 
          For i := 1 to ActiveCircuit.NumNodes Do Begin
            For j := 1 to i Do  Begin
-               GetMatrixElement(i,j, @cTemp);
+               GetMatrixElement(ActiveCircuit.Solution.hY, i, j, @cTemp);
                Write(F, Format('%10.5g ', [cTemp.re]));
            End;
            Writeln(F);
@@ -2959,7 +2959,7 @@ Begin
 
          For i := 1 to ActiveCircuit.NumNodes Do Begin
            For j := 1 to i Do  Begin
-               GetMatrixElement(i,j, @cTemp);
+               GetMatrixElement(ActiveCircuit.Solution.hY,i,j, @cTemp);
                Write(F, Format('%10.5g ', [cTemp.im]));
            End;
            Writeln(F);

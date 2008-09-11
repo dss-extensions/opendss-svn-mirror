@@ -706,30 +706,27 @@ Var
    ref1 :Integer;
 
 Begin
-  WITH ActiveCircuit, ActiveCircuit.Solution Do
-  WITH Buses^[iB] Do
-  Begin
-    Zsc.Clear;
-    FOR i := 1 to NumNodesThisBus Do
-    Begin
-      ref1 := GetRef(i);
-       IF ref1>0 Then
-       Begin
-        Currents^[ref1] := cONE;
-        {SparseSet expects 1st element of voltage array, not 0-th element}
-        IF   SolveSparseSet(@NodeV^[1], @Currents^[1]) > 0
-        THEN Raise EEsolv32Problem.Create('Error Solving System Y Matrix in ComputeYsc. Problem with Sparse matrix solver.');
-        {Extract Voltage Vector = column of Zsc}
-        FOR j := 1 to NumNodesThisBus Do
-        Begin
-           Zsc.SetElement(j ,i, NodeV^[GetRef(j)]);
-        End;
-        Currents^[Ref1] :=cZERO;
-       End; {IF ref...}
+  WITH ActiveCircuit, ActiveCircuit.Solution Do begin
+    WITH Buses^[iB] Do Begin
+      Zsc.Clear;
+      FOR i := 1 to NumNodesThisBus Do Begin
+        ref1 := GetRef(i);
+        IF ref1>0 Then Begin
+          Currents^[ref1] := cONE;
+          {SparseSet expects 1st element of voltage array, not 0-th element}
+          IF   SolveSparseSet(hYsystem, @NodeV^[1], @Currents^[1]) < 1
+          THEN Raise EEsolv32Problem.Create('Error Solving System Y Matrix in ComputeYsc. Problem with Sparse matrix solver.');
+          {Extract Voltage Vector = column of Zsc}
+          FOR j := 1 to NumNodesThisBus Do Begin
+            Zsc.SetElement(j ,i, NodeV^[GetRef(j)]);
+          End;
+          Currents^[Ref1] :=cZERO;
+        End; {IF ref...}
+      End;
+      Ysc.CopyFrom (Zsc);
+      Ysc.invert; {Save as admittance}
     End;
-    Ysc.CopyFrom (Zsc);
-    Ysc.invert; {Save as admittance}
-  End;
+  end;
 End;
 
 

@@ -34,7 +34,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="KLUd.lib AMDd.lib BTFd.lib COLAMDd.lib CSparsed.lib CZSparsed.lib"
 				OutputFile="$(OutDir)/klDemoD.exe"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../Lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/Demo.pdb"

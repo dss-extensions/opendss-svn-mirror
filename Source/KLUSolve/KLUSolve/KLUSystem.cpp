@@ -16,7 +16,7 @@ KLUSystem::KLUSystem()
 KLUSystem::KLUSystem (unsigned nBus, unsigned nV, unsigned nI)
 {
 	InitDefaults ();
-    initialize (nBus, nV, nI);
+    Initialize (nBus, nV, nI);
 }
 
 KLUSystem::~KLUSystem()
@@ -42,7 +42,7 @@ void KLUSystem::null_pointers ()
 
 void KLUSystem::InitDefaults ()
 {
-    nBus = 0;
+    m_nBus = 0;
     bFactored = false;
 	acx = NULL;
 	zero_indices ();
@@ -69,7 +69,7 @@ void KLUSystem::clear()
 	null_pointers ();
 }
 
-void KLUSystem::initialize (unsigned nBus, unsigned nV, unsigned nI)
+int KLUSystem::Initialize (unsigned nBus, unsigned nV, unsigned nI)
 {
 	clear ();
 
@@ -78,13 +78,8 @@ void KLUSystem::initialize (unsigned nBus, unsigned nV, unsigned nI)
 	if (m_nX > 0) {
 		T22 = csz_spalloc (m_nX, m_nX, 2 * m_nX, 1, 1);
 	}
-}
-
-int KLUSystem::Initialize (unsigned n, unsigned _nV, unsigned _nI)
-{
-	nBus = n;
 	if (acx) delete [] acx;
-	acx = new complex [nBus + 1];
+	acx = new complex [m_nBus + 1];
 	return 0;
 }
 
@@ -107,13 +102,13 @@ int KLUSystem::SolveSystem (complex *_acxX, complex *_acxB)
 	unsigned i;
 
 	acx[0] = czero;
-	for (i = 0; i < nBus; i++) {
+	for (i = 0; i < m_nBus; i++) {
 		acx[i+1] = _acxB[i];
 	}
 
 	Solve (acx);
 
-	for (i = 0; i < nBus; i++) {
+	for (i = 0; i < m_nBus; i++) {
 		_acxX[i] = acx[i+1];
 	}
 
@@ -361,7 +356,7 @@ UINT KLUSystem::FindIslands(UINT ***paaidBus)
 // added for ESolv32
 void KLUSystem::zero()
 {
-	initialize (m_nBus, 0, m_nBus);
+	Initialize (m_nBus, 0, m_nBus);
 }
 
 void KLUSystem::AddElement (unsigned iRow, unsigned iCol, complex &cpxVal, 

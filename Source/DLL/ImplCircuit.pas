@@ -682,14 +682,13 @@ begin
    ELSE If ActiveCircuit.Solution.hY = 0 Then Result := VarArrayCreate([0, 0], varDouble)
    ELSE
    With ActiveCircuit Do Begin
-      SetActiveSparseSet(ActiveCircuit.Solution.hY);
       NValues := SQR(NumNodes);
       Result := VarArrayCreate( [0, 2*NValues -1], varDouble);  // Make variant array for complex
 
       iV := 0;
       For i := 1 to NumNodes Do
       For j := 1 to NumNodes Do  Begin
-           GetMatrixElement(i,j, @cTemp);
+           GetMatrixElement(Solution.hY,i,j, @cTemp);
            Result[iV] := cTemp.re;
            Inc(iV);
            Result[iV] := cTemp.im;

@@ -1327,7 +1327,7 @@ Var
 Begin
 
   If ActiveCircuit=Nil then Exit;
-  If ActiveCircuit.Solution.hY >0 Then SetActiveSparseSet(ActiveCircuit.Solution.hY) Else Begin
+  If ActiveCircuit.Solution.hYsystem <= 0 Then Begin
      DoSimpleMsg('Y Matrix not Built.', 222);
      Exit;
   End;
@@ -1350,7 +1350,7 @@ Begin
            j :=  MapNodeToBus^[i].BusRef;
            Write(F, Format('%s.%-d, ',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
            For j := 1 to NumNodes Do  Begin
-               GetMatrixElement(i,j, @cTemp);
+               GetMatrixElement(Solution.hYsystem, i, j, @cTemp);
                Write(F, Format('%-.7g, %-.7g,', [cTemp.re, cTemp.im]));
            End;
            Writeln(F);

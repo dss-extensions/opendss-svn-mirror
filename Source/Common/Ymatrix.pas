@@ -21,15 +21,15 @@ TYPE
 
 
 PROCEDURE BuildYMatrix(BuildOption :Integer; AllocateVI:Boolean);
-PROCEDURE ResetSparseMatrix(var hY:Integer; size:integer);
+PROCEDURE ResetSparseMatrix(var hY:LongWord; size:integer);
 PROCEDURE InitializeNodeVbase;
 
 Function CheckYMatrixforZeroes:String;
 
-{Declare FUNCTIONs in ETKSolve DLL}
+{Declare FUNCTIONs in KLUSolve DLL}
 
-{$INCLUDE Esolv32Declarations.pas}
-
+{ $INCLUDE Esolv32Declarations.pas}
+{$INCLUDE KLUSolveDeclarations.pas}
 
 
 implementation
@@ -83,13 +83,13 @@ End;
 
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-PROCEDURE ResetSparseMatrix(var hY:Integer; size:integer);
+PROCEDURE ResetSparseMatrix(var hY:LongWord; size:integer);
 
 
 Begin
 
      IF hY<>0 THEN Begin
-         IF DeleteSparseSet(hY) > 0  {Get rid of existing one beFore making a new one}
+         IF DeleteSparseSet(hY) < 1  {Get rid of existing one beFore making a new one}
          THEN Raise EEsolv32Problem.Create('Error Deleting System Y Matrix in ResetSparseMatrix. Problem with Sparse matrix solver.');
 
          hY := 0;
@@ -151,8 +151,14 @@ Begin
      YMatrixSize := NumNodes;
 
      Case BuildOption of
-         WHOLEMATRIX: ResetSparseMatrix(hY, YMatrixSize);
-         SERIESONLY: ResetSparseMatrix(hYSeries, YMatrixSize);
+         WHOLEMATRIX: begin
+           ResetSparseMatrix (hYsystem, YMatrixSize);
+           hY := hYsystem;
+         end;
+         SERIESONLY: begin
+           ResetSparseMatrix (hYseries, YMatrixSize);
+           hY := hYSeries;
+         end;
      End;
 
      // tune up the Yprims if necessary
@@ -191,7 +197,7 @@ Begin
                          IF (Cvalue.re <> 0.0) OR (Cvalue.im <> 0.0)  THEN
                           Begin
                              //{****} Writeln(Ftrace, pElem.Name, iNode:4, jNode:4, Cvalue.re:12, Cvalue.im:12);
-                             IF   AddMatrixElement(iNode, jNode, @Cvalue) > 0  THEN
+                             IF   AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
                                   Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
                           End;
                   End; // If iNode
@@ -218,10 +224,10 @@ Begin
                               Begin
                                  //{****} Writeln(Ftrace, pElem.Name, iNode:4, jNode:4, Cvalue.re:12, Cvalue.im:12);
                                  {AddMatrixElement automatically gets the symmetrical off-diagonal}
-                                 IF AddMatrixElement(iNode, jNode, @Cvalue) > 0  THEN
+                                 IF AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
                                       Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
                                  IF iNode = jNode Then  // Do it again if on the diagonal of the target Y matrix
-                                      IF AddMatrixElement(iNode, jNode, @Cvalue) > 0  THEN
+                                      IF AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
                                            Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
                               End;
                            End;
@@ -278,13 +284,14 @@ Var i:Integer;
 Begin
 
   Result := '';
-  With ActiveCircuit Do
-   For i := 1 to Numnodes Do Begin
-       GetMatrixElement(i, i, @c);
+  With ActiveCircuit Do begin
+    For i := 1 to Numnodes Do Begin
+       GetMatrixElement(Solution.hY, i, i, @c);
        If Cabs(C)=0.0 Then With MapNodeToBus^[i] Do Begin
            Result := Result + Format('%sZero diagonal for bus %s, node %d',[CRLF, BusList.Get(Busref), NodeNum]);
        End;
-   End;
+    End;
+  End;
 
 End;
 

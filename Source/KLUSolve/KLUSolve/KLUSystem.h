@@ -26,7 +26,6 @@ KLU arrays are zero-based
 class KLUSystem
 {
 private:
-    unsigned	nBus;  // Kron reduction not exposed in the interface
 	complex		*acx;
 	
 	// admittance matrix blocks in compressed-column storage, like Matlab
@@ -62,10 +61,9 @@ public:
 
     int FactorSystem ();
     int SolveSystem (complex *_acxX, complex *_acxB);
-    int Initialize (unsigned n, unsigned _nV, unsigned _nI);
-	unsigned GetSize () {return nBus;}
 	// this resets and reinitializes the sparse matrix, nI = nBus
-    void initialize (unsigned nBus, unsigned nV = 0, unsigned nI = 0);
+    int Initialize (unsigned nBus, unsigned nV = 0, unsigned nI = 0);
+	unsigned GetSize () {return m_nBus;}
 
 	unsigned GetnSparse () {return m_NZpost;}
 	unsigned GetidxFillin () {return m_NZpre;}

@@ -3,14 +3,35 @@
 
 #include "stdafx.h"
 
-#define KLU_API extern "C" __declspec(dllexport)
+#define KLU_API extern "C" __declspec(dllexport) unsigned int __stdcall
 #include "klusolve.h"
 #include "klusystem.h"
 
-#define MAXSET 10
+#define SYMMETRIC_MATRIX
 
-KLUSystem   *apSys[MAXSET];
-unsigned    idCurrentSet;
+#undef LOG_FILE
+
+#ifdef LOG_FILE
+
+static FILE *lfp = NULL;
+
+static void write_lfp (char *fmt, ...)
+{
+	va_list args;
+	va_start (args, fmt);
+
+	if (lfp == NULL) {
+		lfp = fopen ("KLUSolve.log", "w");
+	}
+	if (lfp) {
+		vfprintf (lfp, fmt, args);
+		fflush (lfp);
+	}
+
+	va_end (args);
+}
+
+#endif
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -19,15 +40,8 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 {
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH:
-			for (unsigned i = 0; i < MAXSET; i++) {
-				apSys[i] = NULL;
-			}
 			break;
 		case DLL_PROCESS_DETACH:
-			for (unsigned i = 0; i < MAXSET; i++) {
-				if (apSys[i]) delete apSys[i];
-				apSys[i] = NULL;
-			}
 			break;
 		case DLL_THREAD_ATTACH:
 			break;
@@ -39,48 +53,31 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
 // exported function definitions
 
-KLUSystem *GetKLU() {
-	if (idCurrentSet) return apSys [idCurrentSet - 1];
-	return NULL;
-}
-
-KLU_API int NewSparseSet(int nBus)
+KLU_API NewSparseSet (unsigned int nBus)
 {
-    int rc = 0;
+    unsigned int rc = 0;
 
-	for (unsigned i=0; i<MAXSET; i++) {
-        if (apSys[i] == 0) {
-            apSys[i] = new KLUSystem();
-            KLUSystem *pSys = apSys[i];
-            if (pSys) {
-                pSys->Initialize(nBus, 0, nBus);
-                rc = i+1;
-                idCurrentSet = rc;
-                break;
-             }
-        }
+#ifdef LOG_FILE
+	write_lfp ("NewSparseSet %u\n", nBus);
+#endif
+
+    KLUSystem *pSys = new KLUSystem ();
+    if (pSys) {
+        pSys->Initialize(nBus, 0, nBus);
+        rc = reinterpret_cast<unsigned int> (pSys);
     }
 	return rc;
 }
 
-KLU_API int SetActiveSparseSet(int nID)
+KLU_API ZeroSparseSet (unsigned int hSparse)
 {
-    int rc = 0;
+    unsigned long rc = 0;
 
-	if (nID > 0 && nID <= MAXSET) {
-        if (apSys[nID-1]) {
-            idCurrentSet = nID;
-            rc = nID;
-        }
-    }
+#ifdef LOG_FILE
+	write_lfp ("ZeroSparseSet\n");
+#endif
 
-	return rc;
-}
-
-KLU_API int ZeroSparseSet()
-{
-    int rc = 0;
-	KLUSystem *pSys = GetKLU();
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (rc);
 	if (pSys) {
 		pSys->zero();
 		pSys->bFactored = false;
@@ -89,10 +86,15 @@ KLU_API int ZeroSparseSet()
 	return rc;
 }
 
-KLU_API int FactorSparseMatrix()
+KLU_API FactorSparseMatrix (unsigned int hSparse)
 {
-    int rc = 0;
-	KLUSystem *pSys = GetKLU();
+    unsigned int rc = 0;
+
+#ifdef LOG_FILE
+	write_lfp ("FactorSparseMatrix\n");
+#endif
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		if (pSys->FactorSystem() == 0) { // success
 			rc = 1;
@@ -108,10 +110,15 @@ KLU_API int FactorSparseMatrix()
   output: node voltages in zero-based _acxX
   no provision for voltage sources
 */
-KLU_API int SolveSparseSet(complex *_acxX, complex *_acxB)
+KLU_API SolveSparseSet(unsigned int hSparse, complex *_acxX, complex *_acxB)
 {
-    int rc = 0;
-	KLUSystem *pSys = GetKLU();
+    unsigned int rc = 0;
+
+#ifdef LOG_FILE
+	write_lfp ("SolveSparseSet\n");
+#endif
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		if (pSys->bFactored == false) {
 			pSys->FactorSystem();
@@ -126,27 +133,33 @@ KLU_API int SolveSparseSet(complex *_acxX, complex *_acxB)
 	return rc;
 }
 
-KLU_API int DeleteSparseSet(int nID)
+KLU_API DeleteSparseSet(unsigned int hSparse)
 {
-    int rc = 0;
+    unsigned int rc = 0;
 
-	if (nID > 0 && nID <= MAXSET) {
-        if (apSys[nID-1]) {
-			delete apSys[nID-1];
-			apSys[nID-1] = NULL;
-            idCurrentSet = 0;
-            rc = 1;
-        }
+#ifdef LOG_FILE
+	write_lfp ("DeleteSparseSet %u\n", hSparse);
+#endif
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		delete pSys;
+		rc = 1;
     }
 
 	return rc;
 }
 
 /* i and j are 1-based for these */
-KLU_API int AddMatrixElement(int i, int j, complex *pcxVal)
+KLU_API AddMatrixElement(unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal)
 {
-    int rc = 0;
-	KLUSystem *pSys = GetKLU();
+    unsigned int rc = 0;
+
+#ifdef LOG_FILE
+	write_lfp ("AddMatrixElement [%u,%u] = %G + j%G\n", i, j, pcxVal->x, pcxVal->y);
+#endif
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		pSys->AddElement (i, j, *pcxVal, TRUE);
 #ifdef SYMMETRIC_MATRIX
@@ -158,16 +171,15 @@ KLU_API int AddMatrixElement(int i, int j, complex *pcxVal)
 	return rc;
 }
 
-// TODO - not really implemented
-KLU_API int SetMatrixElement(int i, int j, complex *pcxVal)
+KLU_API GetMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal)
 {
-	return AddMatrixElement (i, j, pcxVal);
-}
+    unsigned int rc = 0;
 
-KLU_API int GetMatrixElement(int i, int j, complex *pcxVal)
-{
-    int rc = 0;
-	KLUSystem *pSys = GetKLU();
+#ifdef LOG_FILE
+	write_lfp ("GetMatrixElement [%u,%u]\n", i, j);
+#endif
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		pSys->GetElement (i, j, *pcxVal);
 		rc = 1;

@@ -11,70 +11,23 @@ Build Log
 </h3>
 </pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
 Command Lines
-</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Creating temporary file "c:\OpenDSS\Source\KLUSolve\KLUSolve\Debug\RSP00002C.rsp" with contents
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Creating temporary file "c:\OpenDSS\Source\KLUSolve\KLUSolve\Debug\RSP000001.rsp" with contents
 [
-/Od /I "..\Include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_USRDLL" /D "KLUSOLVE_EXPORTS" /D "_MBCS" /D "_WINDLL" /Gm /EHsc /RTC1 /MTd /Yu"stdafx.h" /Fp"Debug/KLUSolveD.pch" /Fo"Debug/" /Fd"Debug/vc70.pdb" /W3 /c /Wp64 /ZI /TP
-.\KLUSolve.cpp
+/OUT:"..\../KLUSolveD.dll" /INCREMENTAL /NOLOGO /LIBPATH:"../Lib" /DLL /NODEFAULTLIB:"libcd" /DEF:"KLUSolve.def" /DEBUG /PDB:"..\../KLUSolve.pdb" /SUBSYSTEM:WINDOWS /IMPLIB:"..\../KLUSolveD.lib" /MACHINE:X86 amdd.lib btfd.lib colamdd.lib csparsed.lib czsparsed.lib klud.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+.\Debug\KLUSolve.obj
+.\Debug\KLUSystem.obj
+.\Debug\stdafx.obj
 ]
-Creating command line "cl.exe @c:\OpenDSS\Source\KLUSolve\KLUSolve\Debug\RSP00002C.rsp /nologo"
+Creating command line "link.exe @c:\OpenDSS\Source\KLUSolve\KLUSolve\Debug\RSP000001.rsp"
 </pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
 Output Window
-</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Compiling...
-KLUSolve.cpp
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: 'complex' : undeclared identifier
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: '_acxX' : undeclared identifier
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2065: '_acxB' : undeclared identifier
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(20) : error C2078: too many initializers
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(23) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(24) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(25) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(17) : error C2146: syntax error : missing ';' before identifier 'NewSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(17) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(18) : error C2373: 'NewSparseSet' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(11) : see declaration of 'NewSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(23) : error C2146: syntax error : missing ';' before identifier 'SetActiveSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(23) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(24) : error C2373: 'SetActiveSparseSet' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(12) : see declaration of 'SetActiveSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(29) : error C2146: syntax error : missing ';' before identifier 'ZeroSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(29) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(30) : error C2373: 'ZeroSparseSet' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(13) : see declaration of 'ZeroSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(35) : error C2146: syntax error : missing ';' before identifier 'FactorSparseMatrix'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(35) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(36) : error C2373: 'FactorSparseMatrix' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(14) : see declaration of 'FactorSparseMatrix'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : error C2146: syntax error : missing ';' before identifier 'SolveSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : error C3861: '_acxX': identifier not found, even with argument-dependent lookup
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : error C3861: 'complex': identifier not found, even with argument-dependent lookup
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(46) : error C3861: '_acxB': identifier not found, even with argument-dependent lookup
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(47) : error C2448: 'SolveSparseSet' : function-style initializer appears to be a function definition
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(52) : error C2146: syntax error : missing ';' before identifier 'DeleteSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(52) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(53) : error C2373: 'DeleteSparseSet' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(21) : see declaration of 'DeleteSparseSet'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(59) : error C2146: syntax error : missing ';' before identifier 'AddMatrixElement'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(59) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(59) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(60) : error C2373: 'AddMatrixElement' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(23) : see declaration of 'AddMatrixElement'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(65) : error C2146: syntax error : missing ';' before identifier 'SetMatrixElement'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(65) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(65) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(66) : error C2373: 'SetMatrixElement' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(24) : see declaration of 'SetMatrixElement'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(71) : error C2146: syntax error : missing ';' before identifier 'GetMatrixElement'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(71) : warning C4229: anachronism used : modifiers on data are ignored
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(71) : error C2061: syntax error : identifier 'complex'
-c:\OpenDSS\Source\KLUSolve\KLUSolve\KLUSolve.cpp(72) : error C2373: 'GetMatrixElement' : redefinition; different type modifiers
-        c:\OpenDSS\Source\KLUSolve\KLUSolve\klusolve.h(25) : see declaration of 'GetMatrixElement'
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Linking...
+LINK : LNK6004: ..\../KLUSolveD.dll not found or not built by the last incremental link; performing full link
+   Creating library ..\../KLUSolveD.lib and object ..\../KLUSolveD.exp
+KLUSolveD.exp : warning LNK4070: /OUT:KLUSolve.dll directive in .EXP differs from output filename '..\../KLUSolveD.dll'; ignoring directive
 </pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
 Results
 </font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
 Build log was saved at "file://c:\OpenDSS\Source\KLUSolve\KLUSolve\Debug\BuildLog.htm"
-KLUSolve - 33 error(s), 10 warning(s)</pre></table><table   width=100% height=20 bgcolor=#CFCFE5><tr><td><font face=arial size=+2>
+KLUSolve - 0 error(s), 1 warning(s)</pre></table><table   width=100% height=20 bgcolor=#CFCFE5><tr><td><font face=arial size=+2>
 </font></table></body></html>

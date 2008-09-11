@@ -5,12 +5,12 @@
 			<Option Name="Personality">Delphi.Personality</Option>
 			<Option Name="ProjectType">VCLApplication</Option>
 			<Option Name="Version">1.0</Option>
-			<Option Name="GUID">{788E44DA-813A-404B-A7EE-86A5FC1EDAE3}</Option>
+			<Option Name="GUID">{CA46454C-C834-4B8C-BE5E-5AE63B17EBA8}</Option>
 		</Option>
 	</PersonalityInfo>
 	<Delphi.Personality>
 		<Source>
-			<Source Name="MainSource">OpenDSS.dpr</Source>
+			<Source Name="MainSource">OpenDSSengine.dpr</Source>
 		</Source>
 		<FileVersion>
 			<FileVersion Name="Version">7.0</FileVersion>
@@ -32,7 +32,7 @@
 			<Compiler Name="N">1</Compiler>
 			<Compiler Name="O">1</Compiler>
 			<Compiler Name="P">1</Compiler>
-			<Compiler Name="Q">1</Compiler>
+			<Compiler Name="Q">0</Compiler>
 			<Compiler Name="R">0</Compiler>
 			<Compiler Name="S">0</Compiler>
 			<Compiler Name="T">0</Compiler>
@@ -40,7 +40,7 @@
 			<Compiler Name="V">1</Compiler>
 			<Compiler Name="W">0</Compiler>
 			<Compiler Name="X">1</Compiler>
-			<Compiler Name="Y">2</Compiler>
+			<Compiler Name="Y">1</Compiler>
 			<Compiler Name="Z">1</Compiler>
 			<Compiler Name="ShowHints">True</Compiler>
 			<Compiler Name="ShowWarnings">True</Compiler>
@@ -123,10 +123,10 @@
 			<Directories Name="UnitOutputDir"></Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(DELPHI)\Lib\Debug</Directories>
-			<Directories Name="Packages">VCL50;VCLX50;VCLSMP50;VCLDB50;VCLBDE50;ibevnt50;VCLDBX50;TEEUI50;TEEDB50;TEE50;TEEQR50;VCLIB50;VCLIE50;INETDB50;INET50;NMFAST50;dclocx50;dclaxserver50;sdlbasepack_72D5;sdlchartpack_72D5;sdlmathpack_72D5;sdlgeopack_72D5;sdlguipack_72D5;sdlchempack_72D5</Directories>
+			<Directories Name="SearchPath"></Directories>
+			<Directories Name="Packages">Vcl50;Vclx50;VclSmp50;ibevnt50;Vclbde50;Vcldb50;vcldbx50;TeeUI50;TeeDB50;Tee50;TeeQR50;VCLIB50;vclie50;Inetdb50;Inet50;NMFast50;dclocx50;dclaxserver50;sdlbasepack_72D5;sdlchartpack_72D5;sdlmathpack_72D5;sdlguipack_72D5;sdlchempack_72D5;sdlgeopack_72D5;Qrpt50</Directories>
 			<Directories Name="Conditionals"></Directories>
-			<Directories Name="DebugSourceDirs">C:\OpenDSS\Source\Common\</Directories>
+			<Directories Name="DebugSourceDirs"></Directories>
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>
@@ -146,30 +146,29 @@
 		</Language>
 		<VersionInfo>
 			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-			<VersionInfo Name="AutoIncBuild">True</VersionInfo>
+			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 			<VersionInfo Name="MajorVer">6</VersionInfo>
 			<VersionInfo Name="MinorVer">1</VersionInfo>
 			<VersionInfo Name="Release">1</VersionInfo>
-			<VersionInfo Name="Build">199</VersionInfo>
+			<VersionInfo Name="Build">162</VersionInfo>
 			<VersionInfo Name="Debug">False</VersionInfo>
 			<VersionInfo Name="PreRelease">False</VersionInfo>
 			<VersionInfo Name="Special">False</VersionInfo>
 			<VersionInfo Name="Private">False</VersionInfo>
-			<VersionInfo Name="DLL">False</VersionInfo>
+			<VersionInfo Name="DLL">True</VersionInfo>
 			<VersionInfo Name="Locale">1033</VersionInfo>
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
-			<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">6.1.1.199</VersionInfoKeys>
-			<VersionInfoKeys Name="InternalName">DSS</VersionInfoKeys>
-			<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008 EPRI, All Rights Reserved.</VersionInfoKeys>
+			<VersionInfoKeys Name="FileDescription">DSS Engine</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">6.1.1.162</VersionInfoKeys>
+			<VersionInfoKeys Name="InternalName">OpenDSSEngine</VersionInfoKeys>
+			<VersionInfoKeys Name="LegalCopyright">Copyright 2008 EPRI</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-			<VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
-			<VersionInfoKeys Name="ProductName">DSS</VersionInfoKeys>
-			<VersionInfoKeys Name="ProductVersion">7.1.0</VersionInfoKeys>
-			<VersionInfoKeys Name="Comments"></VersionInfoKeys>
+			<VersionInfoKeys Name="OriginalFilename">OpenDSSEngine.DLL</VersionInfoKeys>
+			<VersionInfoKeys Name="ProductName">OpenDSS</VersionInfoKeys>
+			<VersionInfoKeys Name="ProductVersion">6.1.1</VersionInfoKeys>
 		</VersionInfoKeys>
 	</Delphi.Personality>
 </BorlandProject>

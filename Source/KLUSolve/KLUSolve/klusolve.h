@@ -8,37 +8,40 @@ typedef struct _complex {double x, y;} complex;
 
 #ifndef KLU_API
 // import definitions
-#define KLU_API __declspec(dllimport)
+#define KLU_API __declspec(dllimport) unsigned int __stdcall
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// return ID of new sparse set, 0 if error
-KLU_API int NewSparseSet(int nBus);
-// return ID of active sparse set, 0 if error
-KLU_API int SetActiveSparseSet(int nID);
+// return handle of new sparse set, 0 if error
+// be sure to DeleteSparseSet using the returned handle
+KLU_API NewSparseSet (unsigned int nBus);
+
 // return 1 if successful, 0 if not
-KLU_API int ZeroSparseSet();
-// return 1 if successful, -1 if singular, 0 if no solver
-KLU_API int FactorSparseMatrix();
+KLU_API ZeroSparseSet (unsigned int hSparse);
+
+// return 1 if successful, 2 if singular, 0 if other error
+KLU_API FactorSparseMatrix (unsigned int hSparse);
+
 /* 
   input: current injections in zero-based _acxB
   output: node voltages in zero-based _acxX
   no provision for voltage sources
 */
-// return 1 if successful, -1 if singular, 0 if no solver
-KLU_API int SolveSparseSet(complex *_acxX, complex *_acxB);
+// return 1 if successful, 2 if singular, 0 if other error
+KLU_API SolveSparseSet (unsigned int hSparse, complex *_acxX, complex *_acxB);
+
 // return 1 if successful, 0 if not
-KLU_API int DeleteSparseSet(int nID);
+KLU_API DeleteSparseSet (unsigned int hSparse);
+
 /* i and j are 1-based for these */
 // return 1 if successful, 0 if not
-KLU_API int AddMatrixElement(int i, int j, complex *pcxVal);
+KLU_API AddMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal);
+
 // return 1 if successful, 0 if not
-KLU_API int SetMatrixElement(int i, int j, complex *pcxVal);
-// return 1 if successful, 0 if not
-KLU_API int GetMatrixElement(int i, int j, complex *pcxVal);
+KLU_API GetMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal);
 
 #ifdef __cplusplus
 }
