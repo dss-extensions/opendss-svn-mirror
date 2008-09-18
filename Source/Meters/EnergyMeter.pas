@@ -60,7 +60,9 @@ unit EnergyMeter;
         Changed to use zone loads and gens even if local only. If you only want the local
         measurements, specify a null zone manually.
 8/2/01  Fixed hole in Local only options.
-4/29/03  Added ReduceZone Function
+4/29/03 Added ReduceZone Function
+2/7/07  Fixed overload formulas
+9/18/08 Added 4 load loss and no load loss registers
 }
 
 {$WARN UNIT_PLATFORM OFF}
@@ -71,7 +73,7 @@ Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 20;    // Number of energy meter registers
+Const  NumEMRegisters = 24;    // Number of energy meter registers
 
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -93,6 +95,10 @@ Const  NumEMRegisters = 20;    // Number of energy meter registers
      Reg_Genkvarh          = 18;
      Reg_GenMaxkW          = 19;
      Reg_GenMaxkVA         = 20;
+     Reg_LoadLosseskWh     = 21;
+     Reg_NoLoadLosseskWh   = 22;
+     Reg_MaxLoadLosses     = 23;
+     Reg_MaxNoLoadLosses   = 24;
 
 
 Type
@@ -147,13 +153,13 @@ Type
         Procedure ClearDI_Totals;
         Procedure WriteTotalsFile;
         Procedure InterpretRegisterMaskArray(Var Mask:TRegisterArray);
-    procedure Set_DI_Verbose(const Value: Boolean);
+        procedure Set_DI_Verbose(const Value: Boolean);
      Protected
         Procedure DefineProperties;
         Function MakeLike(Const EnergyMeterName:String):Integer;   Override;
         procedure  SetHasMeterFlag;
      public
-       RegisterNames:Array[1..NumEMregisters] of String;
+       RegisterNames      :Array[1..NumEMregisters] of String;
        DI_RegisterTotals  :TRegisterArray;
 
        DI_Dir        :String;
@@ -266,7 +272,7 @@ VAR
 
 
 implementation
-USES  ParserDel,  DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
+USES  ParserDel, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
       Utilities, PCElement,  StackDef, Circuit, Line,
       Classes, FileCtrl, ReduceAlgs, Windows;
 
@@ -325,6 +331,10 @@ Begin
      RegisterNames[18] := 'Gen kvarh';
      RegisterNames[19] := 'Gen Max kW';
      RegisterNames[20] := 'Gen Max kVA';
+     RegisterNames[21] := 'Load Losses kWh';
+     RegisterNames[22] := 'No Load Losses kWh';
+     RegisterNames[23] := 'Max kW Load Losses';
+     RegisterNames[24] := 'Max kW No Load Losses';
 
      GeneratorClass := DSSClassList.Get(ClassNames.Find('generator'));
 
@@ -856,10 +866,18 @@ VAR
 Begin
    FOR i := 1 to NumEMregisters Do Registers[i]   := 0.0;
    FOR i := 1 to NumEMregisters Do Derivatives[i] := 0.0;
-   {Specials}
-   Registers[Reg_MaxkW] := -1.0e50;  // Big Negative Number
-   Registers[Reg_ZoneMaxkW] := -1.0e50;  // Big Negative Number
-   Registers[Reg_GenMaxkW] := -1.0e50;  // Big Negative Number
+   {Initialize DragHand registers to some big negative number}
+   Registers[Reg_MaxkW]           := -1.0e50;
+   Registers[Reg_MaxkVA]          := -1.0e50;
+   Registers[Reg_ZoneMaxkW]       := -1.0e50;
+   Registers[Reg_ZoneMaxkVA]      := -1.0e50;
+   Registers[Reg_MaxLoadLosses]   := -1.0e50;
+   Registers[Reg_MaxNoLoadLosses] := -1.0e50;
+   Registers[Reg_LossesMaxkW]     := -1.0e50;
+   Registers[Reg_LossesMaxkvar]   := -1.0e50;
+
+   Registers[Reg_GenMaxkW]        := -1.0e50;
+   Registers[Reg_GenMaxkVA]       := -1.0e50;
 
    FirstSampleAfterReset := True;  // initialize for trapezoidal integration
    // Removed .. open in solution loop See Solve Yearly If EnergyMeterClass.SaveDemandInterval Then OpenDemandIntervalFile;
@@ -871,10 +889,10 @@ End;
 Procedure TEnergyMeterObj.CalcYPrim;
 
 Begin
- // YPrim is all zero.  Just leave as NIL so it is ignored.
- // Yprim is zeroed when created.  Leave it as is.
- //   IF YPrimShunt = NIL Then YPrimShunt := TcMatrix.CreateMatrix(Yorder);
- End;
+
+ // YPrim is all zeros.  Just leave as NIL so it is ignored.
+
+End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TEnergyMeterObj.SaveRegisters;
@@ -887,7 +905,7 @@ VAR
 Begin
 
   Try
-       CSVName := {ActiveCircuit.CurrentDirectory + }'MTR_' + Name + '.CSV';
+       CSVName := 'MTR_' + Name + '.CSV';
        AssignFile(F, DSSDataDirectory + CSVName);
        Rewrite(F);
        GlobalResult := CSVName;
@@ -914,8 +932,7 @@ END;
 Procedure TEnergyMeterObj.Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
 
 Begin
-     IF ActiveCircuit.TrapezoidalIntegration THEN
-      Begin
+     IF ActiveCircuit.TrapezoidalIntegration THEN Begin
         {Trapezoidal Rule Integration}
         If Not FirstSampleAfterReset Then Registers[Reg] := Registers[Reg] + 0.5 * Interval * (Deriv + Derivatives[Reg]);
       End
@@ -928,23 +945,30 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TEnergyMeterObj.TakeSample;
-// Update Energy from metered zone
+// Update registers from metered zone
+// Assumes one time period has taken place since last sample.
 
 VAR
-   S,  S_Local,
+   S_Local,
+   S_Totallosses,
+   S_LoadLosses,
+   S_NoLoadLosses,
+   TotalLoadLosses,
+   TotalNoLoadLosses,
    TotalLosses :Complex;
    CktElem,
    ParenElem :TPDElement;
-   PCelem  :TPCElement;
-   pLoad  :TLoadobj;
-   pGen   :TGeneratorObj;
+   PCelem    :TPCElement;
+   pLoad     :TLoadobj;
+   pGen      :TGeneratorObj;
+   // doubles
    MaxExcesskWNorm ,
    MaxExcesskWEmerg,
    EEN,
    UE,
    ZonekW,
    TotalZonekw,
-   TotalZonekvar :Double;
+   TotalZonekvar,
    TotalGenkw,
    TotalGenkvar,
    LoadkVA,
@@ -953,22 +977,24 @@ VAR
 
 Begin
 
-// Compute energy in local branch
+// Compute energy in branch  to which meter is connected
 
      MeteredElement.ActiveTerminalIdx := MeteredTerminal;
-     S_Local := CmulReal(MeteredElement.Power, 0.001);
+     S_Local     := CmulReal(MeteredElement.Power, 0.001);
      S_Local_kVA := Cabs(S_Local);
-     Delta_Hrs := ActiveCircuit.Solution.IntervalHrs;
+     Delta_Hrs   := ActiveCircuit.Solution.IntervalHrs;
      Integrate(Reg_kWh,   S_Local.re, Delta_Hrs);   // Accumulate the power
      Integrate(Reg_kvarh, S_Local.im, Delta_Hrs);
-     SetDragHandRegister( Reg_MaxkW, S_Local.re);   // 3-10-04 removed abs()
+     SetDragHandRegister( Reg_MaxkW,  S_Local.re);   // 3-10-04 removed abs()
      SetDragHandRegister( Reg_MaxkVA, cabs(S_Local));
 
 // Compute Maximum overload energy in all branches in zone
 // and mark all load downline from an overloaded branch as unserved
 // If localonly, check only metered element
 
-     TotalLosses := CZERO;
+     TotalLosses       := CZERO;     // Initialize loss accumulators
+     TotalLoadLosses   := CZERO;
+     TotalNoLoadLosses := CZERO;
      CktElem     := BranchList.First;
      MaxExcesskWNorm  := 0.0;
      MaxExcesskWEmerg := 0.0;
@@ -1029,8 +1055,8 @@ Begin
      // Get the Losses, and unserved bus energies
      TotalZonekw   := 0.0;
      TotalZonekvar := 0.0;
-     TotalGenkw   := 0.0;
-     TotalGenkvar := 0.0;
+     TotalGenkw    := 0.0;
+     TotalGenkvar  := 0.0;
 
      CktElem := BranchList.First;
      WHILE (CktElem <> NIL) Do
@@ -1052,32 +1078,45 @@ Begin
           PCElem := BranchList.NextObject
          End;
 
-         S := CmulReal(CktElem.Losses, 0.001);
-         Integrate(Reg_LosseskWh,   S.re, Delta_Hrs);
-         Integrate(Reg_Losseskvarh, S.im, Delta_Hrs);
-         Caccum(TotalLosses, S);
+         {Get losses from the present circuit element}
+         CktElem.GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses);  // returns watts, vars
+         {Add losses into appropriate registers; convert to kW, kvar}
+         Integrate(Reg_LosseskWh,         S_TotalLosses.re  * 0.001, Delta_Hrs);
+         Integrate(Reg_Losseskvarh,       S_TotalLosses.im  * 0.001, Delta_Hrs);
+         Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re   * 0.001, Delta_Hrs);
+         Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re * 0.001, Delta_Hrs);
+         {Update accumulators}
+         Caccum(TotalLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+         Caccum(TotalLoadLosses,   S_LoadLosses);  // Accumulate total load losses in meter zone
+         Caccum(TotalNoLoadLosses, S_NoLoadLosses); // Accumulate total no load losses in meter zone
 
      CktElem := BranchList.GoForward;
      End;
 
      {So that Demand interval Data will be stored OK}
-     Derivatives[Reg_LosseskWh]  := TotalLosses.Re;
-     Derivatives[Reg_Losseskvarh]  := TotalLosses.im;
-     Derivatives[Reg_GenkWh]  := TotalGenkW;
-     GenkVA := Sqrt(Sqr(TotalGenkvar) + Sqr(TotalGenkW));
-     Derivatives[Reg_Genkvarh]  := TotalGenkvar;
+     Derivatives[Reg_LosseskWh]       := TotalLosses.Re;
+     Derivatives[Reg_Losseskvarh]     := TotalLosses.im;
+     Derivatives[Reg_LoadLosseskWh]   := TotalLoadLosses.Re;
+     Derivatives[Reg_NoLoadLosseskWh] := TotalNoLoadLosses.Re;
 
-     SetDragHandRegister(Reg_LossesMaxkW,  Abs(TotalLosses.Re));
+     SetDragHandRegister(Reg_LossesMaxkW,    Abs(TotalLosses.Re));
      SetDragHandRegister(Reg_LossesMaxkvar,  Abs(TotalLosses.im));
-     SetDragHandRegister(Reg_ZoneMaxkW,  TotalZonekW ); // Removed abs()  3-10-04
+     SetDragHandRegister(Reg_MaxLoadLosses,  Abs(TotalLoadLosses.Re));
+     SetDragHandRegister(Reg_MaxNoLoadLosses,Abs(TotalNoLoadLosses.Re));
+     SetDragHandRegister(Reg_ZoneMaxkW,      TotalZonekW ); // Removed abs()  3-10-04
+
+     Derivatives[Reg_GenkWh]          := TotalGenkW;
+     GenkVA := Sqrt(Sqr(TotalGenkvar) + Sqr(TotalGenkW));
+     Derivatives[Reg_Genkvarh]        := TotalGenkvar;
+
      LoadkVA :=  Sqrt(Sqr(TotalZonekvar) + Sqr(TotalZonekW));
-     SetDragHandRegister(Reg_ZoneMaxkVA , LoadkVA  );
+     SetDragHandRegister(Reg_ZoneMaxkVA ,    LoadkVA  );
 
      Integrate(Reg_ZonekWh,   TotalZonekW,   Delta_Hrs);
      Integrate(Reg_Zonekvarh, TotalZonekvar, Delta_Hrs);
 
      {Max total generator registers}
-     SetDragHandRegister( Reg_GenMaxkW, TotalGenkW); // Removed abs()  3-10-04
+     SetDragHandRegister(Reg_GenMaxkW,   TotalGenkW); // Removed abs()  3-10-04
      SetDragHandRegister(Reg_GenMaxkVA , GenkVA  );
 
      {Overload energy for the entire zone}
@@ -1896,8 +1935,8 @@ end;
 
 procedure TEnergyMeterObj.SetDragHandRegister(Reg: Integer;  const Value: Double);
 begin
-    If  Value>Registers[reg] Then Begin
-       Registers[reg] := Value;
+    If  Value > Registers[reg] Then Begin
+       Registers[reg]   := Value;
        Derivatives[reg] := Value;  // Use this for   demand interval data;
     End;
 end;
