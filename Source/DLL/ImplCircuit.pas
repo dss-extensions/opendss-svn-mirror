@@ -665,15 +665,19 @@ Begin
     ELSE Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
+// this calls the compressed column function from KLUSolve, but
+// still returns the full square matrix (including zeros) through COM
 function TCircuit.Get_SystemY: OleVariant;
 
 {Return System Y matrix, complex form}
 
 Var
-   iV      : Integer;
-   i,j     : Integer;
-   NValues : Integer;
-   Ctemp   : Complex;
+   iV               :LongWord;
+   i,j,p            :LongWord;
+   NValues          :LongWord;
+   hY, nBus, nNZ    :LongWord;
+   ColPtr, RowIdx   :array of LongWord;
+   cVals            :array of Complex;
 
 begin
 
@@ -682,18 +686,32 @@ begin
    ELSE If ActiveCircuit.Solution.hY = 0 Then Result := VarArrayCreate([0, 0], varDouble)
    ELSE
    With ActiveCircuit Do Begin
+      hY := ActiveCircuit.Solution.hY;
+
+      // get the compressed columns out of KLU
+      FactorSparseMatrix (hY); // no extra work if already done
+      GetNNZ (hY, @nNZ);
+      GetSize (hY, @nBus);
+      SetLength (ColPtr, nBus + 1);
+      SetLength (RowIdx, nNZ);
+      SetLength (cVals, nNZ);
+      GetCompressedMatrix (hY, nBus + 1, nNZ, @ColPtr[0], @RowIdx[0], @cVals[0]);
+
+      // allocate a square matrix
       NValues := SQR(NumNodes);
       Result := VarArrayCreate( [0, 2*NValues -1], varDouble);  // Make variant array for complex
 
-      iV := 0;
-      For i := 1 to NumNodes Do
-      For j := 1 to NumNodes Do  Begin
-           GetMatrixElement(Solution.hY,i,j, @cTemp);
-           Result[iV] := cTemp.re;
-           Inc(iV);
-           Result[iV] := cTemp.im;
-           Inc(iV);
-      End;
+      // the new way, first set all elements to zero
+      for iV := 0 to 2*NValues - 1 do Result[iV] := 0.0;
+      // then back-fill the non-zero values
+      for j := 0 to nBus - 1 do begin /// the zero-based column
+        for p := ColPtr[j] to ColPtr[j+1] - 1 do begin
+          i := RowIdx[p];  // the zero-based row
+          iV := i * nBus + j; // the zero-based, row-wise, complex result index
+          Result[iV*2] := cVals[p].re;
+          Result[iV*2+1] := cVals[p].im;
+        end;
+      end;
    END;
 
 end;
