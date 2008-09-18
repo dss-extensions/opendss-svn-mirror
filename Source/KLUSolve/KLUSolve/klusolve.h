@@ -39,9 +39,28 @@ KLU_API DeleteSparseSet (unsigned int hSparse);
 /* i and j are 1-based for these */
 // return 1 if successful, 0 if not
 KLU_API AddMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal);
-
-// return 1 if successful, 0 if not
 KLU_API GetMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal);
+
+// new functions
+KLU_API GetSize (unsigned int hSparse, unsigned int *pResult);
+KLU_API GetNNZ (unsigned int hSparse, unsigned int *pResult);
+KLU_API GetSparseNNZ (unsigned int hSparse, unsigned int *pResult);
+KLU_API GetRCond (unsigned int hSparse, double *pResult);
+KLU_API GetRGrowth (unsigned int hSparse, double *pResult);
+KLU_API GetCondEst (unsigned int hSparse, double *pResult);
+KLU_API GetSingularCol (unsigned int hSparse, unsigned int *pResult);
+
+KLU_API AddPrimitiveMatrix (unsigned int hSparse, unsigned int nOrder,
+							unsigned int *pNodes, complex *pcY);
+KLU_API GetCompressedMatrix (unsigned int hSparse, unsigned int nColP, 
+							 unsigned int nNZ, unsigned int *pColP, 
+							 unsigned int *pRowIdx, complex *pcY);
+KLU_API GetTripletMatrix (unsigned int hSparse, unsigned int nNZ,
+						  unsigned int *pRows, unsigned int *pCols, complex *pcY);
+KLU_API FindIslands (unsigned int hSparse, unsigned int nOrder, unsigned int *pNodes);
+
+// iAction = 0 to close, 1 to rewrite, 2 to append
+KLU_API SetLogFile (char *path, unsigned int iAction);
 
 #ifdef __cplusplus
 }

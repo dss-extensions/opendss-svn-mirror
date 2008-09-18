@@ -37,11 +37,11 @@ private:
 	klu_symbolic *Symbolic;
 	klu_numeric *Numeric;
 
-	unsigned m_nBus;    // number of nodes
-	unsigned m_nX;      // number of unknown voltages, hardwired to m_nBus
-	unsigned m_NZpre;   // number of non-zero entries before factoring
-	unsigned m_NZpost;  // number of non-zero entries after factoring
-	unsigned m_fltBus;  // row number of a bus causing singularity
+	unsigned int m_nBus;    // number of nodes
+	unsigned int m_nX;      // number of unknown voltages, hardwired to m_nBus
+	unsigned int m_NZpre;   // number of non-zero entries before factoring
+	unsigned int m_NZpost;  // number of non-zero entries after factoring
+	unsigned int m_fltBus;  // row number of a bus causing singularity
 
 	void InitDefaults ();
     void clear ();
@@ -63,10 +63,16 @@ public:
     int SolveSystem (complex *_acxX, complex *_acxB);
 	// this resets and reinitializes the sparse matrix, nI = nBus
     int Initialize (unsigned nBus, unsigned nV = 0, unsigned nI = 0);
-	unsigned GetSize () {return m_nBus;}
+	unsigned int GetSize () {return m_nBus;}
 
-	unsigned GetnSparse () {return m_NZpost;}
-	unsigned GetidxFillin () {return m_NZpre;}
+	// metrics
+	unsigned int GetSparseNNZ () {return m_NZpost;}
+	unsigned int GetNNZ () {return m_NZpre;}
+	double GetRCond ();
+	double GetRGrowth ();
+	double GetCondEst ();
+	double GetFlops ();
+	unsigned int GetSingularCol () {return m_fltBus;}
 
 	// bSum is ignored
     void AddMatrix (unsigned far *aidBus, matrix_complex *pcxm, int bSum);
@@ -82,8 +88,8 @@ public:
 
 	// returns the number of connected components (cliques) in the whole system graph
 	//  (i.e., considers Y11, Y12, and Y21 in addition to Y22)
-	// if more than 1, store lists of each clique's connected buses in paaidBus
-	unsigned FindIslands (unsigned ***paaidBus);
+	// store the island number (1-based) for each node in idClique
+	unsigned FindIslands (unsigned *idClique);
 	
 	// returns the row > 0 if a zero appears on the diagonal
 	// calls Factor if necessary
@@ -97,6 +103,12 @@ public:
     void AddElement(unsigned iRow, unsigned iCol, complex &cpxVal, int bSum);
 	// return the sum of elements at 1-based [iRow, iCol]
     void GetElement(unsigned iRow, unsigned iCol, complex &cpxVal);
+	// for OpenDSS, return 1 for success
+	unsigned AddPrimitiveMatrix (unsigned nOrder, unsigned *pNodes, complex *pMat);
+	// return in compressed triplet form, return 1 for success, 0 for a size mismatch
+	unsigned GetCompressedMatrix (unsigned nColP, unsigned nNZ, unsigned *pColP, 
+		unsigned *pRowIdx, complex *pMat);
+	unsigned GetTripletMatrix (unsigned nNZ, unsigned *pRows, unsigned *pCols, complex *pMat);
 };
 
 #endif // klusystem_included

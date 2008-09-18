@@ -115,6 +115,38 @@ int KLUSystem::SolveSystem (complex *_acxX, complex *_acxB)
     return rc;
 }
 
+unsigned KLUSystem::AddPrimitiveMatrix (unsigned nOrder, unsigned *pNodes, complex *pMat)
+{
+	unsigned i, j, idRow, idCol, idVal;
+	double re, im;
+
+	// check the node numbers
+	for (i = 0; i < nOrder; i++) {
+		if (pNodes[i] > m_nBus) return 0;
+	}
+
+	// add the matrix transposed
+	for (i = 0; i < nOrder; i++) {
+		if (pNodes[i] < 1) continue; // skip ground
+		idVal = i;
+		idRow = pNodes[i] - 1;  // convert to zero-based
+		for (j = 0; j < nOrder; j++) {
+			if (pNodes[j]) {
+				idCol = pNodes[j] - 1;
+				re = pMat[idVal].x;
+				im = pMat[idVal].y;
+				if (re != 0.0 || im != 0.0)	{
+					// stuff this value into the correct partition, transposed
+					csz_entry (T22, idCol, idRow, re, im);
+				}
+			}
+			// always step through values, even if we don't use them
+			idVal += nOrder;
+		}
+	}
+	return 1;
+}
+
 void KLUSystem::AddMatrix (unsigned *aidBus, matrix_complex *pcxm, int)
 {
     unsigned    i, j;
@@ -247,6 +279,32 @@ void KLUSystem::Solve (complex *acxVbus)
 	cs_free (rhs);
 }
 
+double KLUSystem::GetRCond ()
+{
+	klu_z_rcond (Symbolic, Numeric, &Common);
+	return Common.rcond;
+}
+
+double KLUSystem::GetRGrowth ()
+{
+	if (Y22 == NULL) return 0.0;
+	klu_z_rgrowth (Y22->p, Y22->i, Y22->x, Symbolic, Numeric, &Common);
+	return Common.rgrowth;
+}
+
+double KLUSystem::GetCondEst ()
+{
+	if (Y22 == NULL) return 0.0;
+	if (Y22->n > 1) klu_z_condest (Y22->p, Y22->x, Symbolic, Numeric, &Common);
+	return Common.condest;
+}
+
+double KLUSystem::GetFlops ()
+{
+	klu_z_flops (Symbolic, Numeric, &Common);
+	return Common.flops;
+}
+
 UINT KLUSystem::FindDisconnectedSubnetwork()
 {
 	Factor ();
@@ -304,14 +362,14 @@ static void mark_dfs (unsigned j, int cnt, int *Ap, int *Ai, int *clique)
 //   performs a new DFS on the compressed non-zero pattern
 // This function could behave differently than before, 
 //   since the compression process removes numerical zero elements
-UINT KLUSystem::FindIslands(UINT ***paaidBus)
+UINT KLUSystem::FindIslands(UINT *idClique)
 {
 	Factor ();
 
 	int *clique = (int *) cs_malloc (m_nBus, sizeof (int));
 	int *Ap = Y22->p;
 	int *Ai = Y22->i;
-	unsigned i, j, p;
+	unsigned j;
 
 	// DFS down the columns
 	int cnt = 0;
@@ -324,7 +382,11 @@ UINT KLUSystem::FindIslands(UINT ***paaidBus)
 		}
 	}
 
+	for (j = 0; j < m_nBus; j++) idClique[j] = clique[j];
+
 	// if there is more than one clique, stuff the row numbers (+1) into island lists
+	// unsigned i, p;
+	/* used to return allocated lists of nodes in each island
 	if (cnt > 1) {
         *paaidBus = new unsigned * [cnt];
         unsigned **aaidBus = *paaidBus;
@@ -346,6 +408,7 @@ UINT KLUSystem::FindIslands(UINT ***paaidBus)
 	} else {
 		paaidBus = NULL;
 	}
+	*/
 
 	cs_free (clique);
 
@@ -363,8 +426,9 @@ void KLUSystem::AddElement (unsigned iRow, unsigned iCol, complex &cpxVal,
 							   int bSum) // bSum ignored
 {
 	if (iRow > m_nBus || iCol > m_nBus) return;
-	if (--iRow < 0) return;
-	if (--iCol < 0) return;
+	if (iRow <= 0 || iCol <= 0) return;
+	--iRow;
+	--iCol;
 
 	double re = cpxVal.x;
 	double im = cpxVal.y;
@@ -411,3 +475,43 @@ void KLUSystem::GetElement (unsigned iRow, unsigned iCol, complex &cpxVal)
 		}
 	}
 }
+
+// return in compressed column form, return m_NZpre for success, 0 for a failure
+unsigned KLUSystem::GetCompressedMatrix (unsigned nColP, unsigned nNZ, unsigned *pColP, unsigned *pRowIdx, complex *pMat)
+{
+	unsigned int rc = 0;
+
+	if (T22) Factor();
+	if (Y22 && nNZ >= m_NZpre && nColP > m_nBus) {
+		rc = m_NZpre;
+		if (rc > 0) {
+			memcpy (pMat, Y22->x, m_NZpre * sizeof (complex));
+			memcpy (pColP, Y22->p, (m_nBus + 1) * sizeof (unsigned));
+			memcpy (pRowIdx, Y22->i, m_NZpre * sizeof (unsigned));
+		}
+	}
+	return rc;
+}
+
+unsigned KLUSystem::GetTripletMatrix (unsigned nNZ, unsigned *pRows, unsigned *pCols, complex *pMat)
+{
+	unsigned int rc = 0;
+
+	if (T22) Factor();
+	if (Y22 && nNZ >= m_NZpre) {
+		rc = m_NZpre;
+		if (rc > 0) {
+			memcpy (pMat, Y22->x, m_NZpre * sizeof (complex));
+			int *Ap = Y22->p;
+			int *Ai = Y22->i;
+			for (unsigned j = 0; j < m_nBus; j++) {
+				for (int p = Ap[j]; p < Ap[j+1]; p++) {
+					pRows[p] = Ai[p];
+					pCols[p] = j;
+				}
+			}
+		}
+	}
+	return rc;
+}
+

@@ -9,10 +9,6 @@
 
 #define SYMMETRIC_MATRIX
 
-#undef LOG_FILE
-
-#ifdef LOG_FILE
-
 static FILE *lfp = NULL;
 
 static void write_lfp (char *fmt, ...)
@@ -20,9 +16,6 @@ static void write_lfp (char *fmt, ...)
 	va_list args;
 	va_start (args, fmt);
 
-	if (lfp == NULL) {
-		lfp = fopen ("KLUSolve.log", "w");
-	}
 	if (lfp) {
 		vfprintf (lfp, fmt, args);
 		fflush (lfp);
@@ -31,7 +24,25 @@ static void write_lfp (char *fmt, ...)
 	va_end (args);
 }
 
-#endif
+// iAction = 0 to close, 1 to rewrite, 2 to append
+KLU_API SetLogFile (char *path, unsigned int iAction)
+{
+	unsigned int rc = 1;
+	if (iAction == 0) {
+		if (lfp) fclose (lfp);
+	} else if (iAction == 1) {
+		if (lfp) fclose (lfp);
+		lfp = fopen (path, "w");
+		if (!lfp) rc = 0;
+	} else if (iAction == 2) {
+		if (lfp) fclose (lfp);
+		lfp = fopen (path, "a");
+		if (!lfp) rc = 0;
+	} else {
+		rc = 0;
+	}
+	return rc;
+}
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -57,9 +68,7 @@ KLU_API NewSparseSet (unsigned int nBus)
 {
     unsigned int rc = 0;
 
-#ifdef LOG_FILE
 	write_lfp ("NewSparseSet %u\n", nBus);
-#endif
 
     KLUSystem *pSys = new KLUSystem ();
     if (pSys) {
@@ -73,9 +82,7 @@ KLU_API ZeroSparseSet (unsigned int hSparse)
 {
     unsigned long rc = 0;
 
-#ifdef LOG_FILE
 	write_lfp ("ZeroSparseSet\n");
-#endif
 
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (rc);
 	if (pSys) {
@@ -90,16 +97,14 @@ KLU_API FactorSparseMatrix (unsigned int hSparse)
 {
     unsigned int rc = 0;
 
-#ifdef LOG_FILE
 	write_lfp ("FactorSparseMatrix\n");
-#endif
 
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		if (pSys->FactorSystem() == 0) { // success
 			rc = 1;
 		} else { // singular
-			rc = -1;
+			rc = 2;
 		}
 	}
 	return rc;
@@ -114,10 +119,6 @@ KLU_API SolveSparseSet(unsigned int hSparse, complex *_acxX, complex *_acxB)
 {
     unsigned int rc = 0;
 
-#ifdef LOG_FILE
-	write_lfp ("SolveSparseSet\n");
-#endif
-
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		if (pSys->bFactored == false) {
@@ -127,9 +128,11 @@ KLU_API SolveSparseSet(unsigned int hSparse, complex *_acxX, complex *_acxB)
 			pSys->SolveSystem (_acxX, _acxB);
 			rc = 1;
 		} else {
-			rc = -1;
+			rc = 2;
 		}
 	}
+	write_lfp ("SolveSparseSet returning %u\n", rc);
+
 	return rc;
 }
 
@@ -137,9 +140,7 @@ KLU_API DeleteSparseSet(unsigned int hSparse)
 {
     unsigned int rc = 0;
 
-#ifdef LOG_FILE
 	write_lfp ("DeleteSparseSet %u\n", hSparse);
-#endif
 
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
@@ -155,9 +156,7 @@ KLU_API AddMatrixElement(unsigned int hSparse, unsigned int i, unsigned int j, c
 {
     unsigned int rc = 0;
 
-#ifdef LOG_FILE
 	write_lfp ("AddMatrixElement [%u,%u] = %G + j%G\n", i, j, pcxVal->x, pcxVal->y);
-#endif
 
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
@@ -171,18 +170,176 @@ KLU_API AddMatrixElement(unsigned int hSparse, unsigned int i, unsigned int j, c
 	return rc;
 }
 
-KLU_API GetMatrixElement (unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal)
+KLU_API GetMatrixElement(unsigned int hSparse, unsigned int i, unsigned int j, complex *pcxVal)
 {
     unsigned int rc = 0;
-
-#ifdef LOG_FILE
-	write_lfp ("GetMatrixElement [%u,%u]\n", i, j);
-#endif
 
 	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
 	if (pSys) {
 		pSys->GetElement (i, j, *pcxVal);
 		rc = 1;
+	}
+	return rc;
+}
+
+// new functions
+KLU_API GetSize (unsigned int hSparse, unsigned int *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetSize();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetNNZ (unsigned int hSparse, unsigned int *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetNNZ();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetSparseNNZ (unsigned int hSparse, unsigned int *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetSparseNNZ();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetRCond (unsigned int hSparse, double *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0.0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetRCond();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetRGrowth (unsigned int hSparse, double *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0.0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetRGrowth();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetCondEst (unsigned int hSparse, double *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0.0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetCondEst();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetFlops (unsigned int hSparse, double *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0.0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetFlops();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API GetSingularCol (unsigned int hSparse, unsigned int *pResult)
+{
+    unsigned int rc = 0;
+	*pResult = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		*pResult = pSys->GetSingularCol();
+		rc = 1;
+	}
+	return rc;
+}
+
+KLU_API AddPrimitiveMatrix (unsigned int hSparse, unsigned int nOrder,
+							unsigned int *pNodes, complex *pcY)
+{
+    unsigned int rc = 0;
+
+	if (lfp) {
+		write_lfp ("AddPrimitiveMatrix, nOrder = %u\n", nOrder);
+		for (unsigned i = 0; i < nOrder; i++) {
+			unsigned idx = i;
+			for (unsigned j = 0; j < nOrder; j++) {
+				write_lfp ("\tLocal [%u,%u] System [%u,%u] Val(%u) = %G + j%G\n", 
+					i, j, pNodes[i], pNodes[j], idx, pcY[idx].x, pcY[idx].y);
+				idx += nOrder;
+			}
+		}
+	}
+
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		rc = pSys->AddPrimitiveMatrix (nOrder, pNodes, pcY);
+		pSys->bFactored = false;
+	}
+	return rc;
+}
+
+KLU_API GetCompressedMatrix (unsigned int hSparse, unsigned int nColP, unsigned int nNZ,
+				   unsigned int *pColP, unsigned int *pRowIdx, complex *pcY)
+{
+    unsigned int rc = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		if (pSys->GetCompressedMatrix (nColP, nNZ, pColP, pRowIdx, pcY)) {
+			rc = 1;
+		} else { // probably a size mismatch
+			rc = 2;
+		}
+	}
+	return rc;
+}
+
+KLU_API GetTripletMatrix (unsigned int hSparse, unsigned int nNZ,
+						  unsigned int *pRows, unsigned int *pCols, complex *pcY)
+{
+    unsigned int rc = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys) {
+		if (pSys->GetTripletMatrix (nNZ, pRows, pCols, pcY)) {
+			rc = 1;
+		} else { // probably a size mismatch
+			rc = 2;
+		}
+	}
+	return rc;
+}
+
+KLU_API FindIslands (unsigned int hSparse, unsigned int nOrder, unsigned int *pNodes)
+{
+    unsigned int rc = 0;
+	KLUSystem *pSys = reinterpret_cast<KLUSystem *> (hSparse);
+	if (pSys && nOrder >= pSys->GetSize()) {
+		rc = pSys->FindIslands (pNodes);
 	}
 	return rc;
 }
