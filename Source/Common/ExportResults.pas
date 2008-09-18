@@ -1314,27 +1314,40 @@ Begin
 
 End;
 
-
+// illustrate retrieval of System Y using compressed column format
 Procedure ExportY(FileNm:String);
 
 {Exports System Y Matrix in Node Order}
 
 Var
-    F       :TextFile;
-    i,j     :Integer;
-    cTemp   :Complex;
+    F                :TextFile;
+    i,j,p            :LongWord;
+    hY, nBus, nNZ    :LongWord;
+    ColPtr, RowIdx   :array of LongWord;
+    cVals            :array of Complex;
+    re, im           :Double;
 
 Begin
 
   If ActiveCircuit=Nil then Exit;
-  If ActiveCircuit.Solution.hYsystem <= 0 Then Begin
+  hY := ActiveCircuit.Solution.hY;
+  If hY <= 0 Then Begin
      DoSimpleMsg('Y Matrix not Built.', 222);
      Exit;
   End;
+  // this compresses the entries if necessary - no extra work if already solved
+  FactorSparseMatrix (hY);
+  GetNNZ (hY, @nNZ);
+  GetSize (hY, @nBus); // we should already know this
 
   Try
      Assignfile(F,FileNm);
      ReWrite(F);
+
+     SetLength (ColPtr, nBus + 1);
+     SetLength (RowIdx, nNZ);
+     SetLength (cVals, nNZ);
+     GetCompressedMatrix (hY, nBus + 1, nNZ, @ColPtr[0], @RowIdx[0], @cVals[0]);
 
      {Write out fully qualified Bus Names}
       With ActiveCircuit Do Begin
@@ -1345,13 +1358,21 @@ Begin
         END;
         Writeln(F);
 
-
         For i := 1 to NumNodes Do Begin
            j :=  MapNodeToBus^[i].BusRef;
            Write(F, Format('%s.%-d, ',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
-           For j := 1 to NumNodes Do  Begin
-               GetMatrixElement(Solution.hYsystem, i, j, @cTemp);
-               Write(F, Format('%-.7g, %-.7g,', [cTemp.re, cTemp.im]));
+           For j := 1 to NumNodes Do Begin
+              re := 0.0;
+              im := 0.0;
+              // search for a non-zero element [i,j]
+              //  DSS indices are 1-based, KLU indices are 0-based
+              for p := ColPtr[j-1] to ColPtr[j] - 1 do begin
+                if RowIdx[p] + 1 = i then begin
+                  re := cVals[p].re;
+                  im := cVals[p].im;
+                end;
+              end;
+              Write(F, Format('%-.7g, %-.7g,', [re, im]));
            End;
            Writeln(F);
         End;

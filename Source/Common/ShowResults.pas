@@ -2919,57 +2919,60 @@ Begin
 
 End;
 
+// shows how to retrieve the System Y in Triplet form
 Procedure ShowY(FileNm:String);
 
 Var
-    F            :TextFile;
-    i,j          :Integer;
-    cTemp        :Complex;
+    F                :TextFile;
+    hY, nNZ, nBus    :LongWord;
+    i, row, col      :LongWord;
+    re, im           :Double;
+    ColIdx, RowIdx   :array of LongWord;
+    cVals            :array of Complex;
 
 Begin
 
   If ActiveCircuit=Nil then Exit;
-  If  ActiveCircuit.Solution.hY <= 0 then Begin
+  hY := ActiveCircuit.Solution.hY;
+  If hY <= 0 then Begin
      DoSimpleMsg('Y Matrix not Built.', 222);
      Exit;
   End;
+  // print lower triangle of G and B using new functions
+  // this compresses the entries if necessary - no extra work if already solved
+  FactorSparseMatrix (hY);
+  GetNNZ (hY, @nNZ);
+  GetSize (hY, @nBus); // we should already know this
 
-      Try
-         Assignfile(F,FileNm);
-         ReWrite(F);
+  Try
+    SetLength (ColIdx, nNZ);
+    SetLength (RowIdx, nNZ);
+    SetLength (cVals, nNZ);
+    GetTripletMatrix (hY, nNZ, @RowIdx[0], @ColIdx[0], @cVals[0]);
 
-         Writeln(F,'System Y Matrix  (Lower Triangle)');
-         Writeln(F);
+    Assignfile(F,FileNm);
+    ReWrite(F);
 
-         Writeln(F);
-         Writeln(F, 'G matrix (conductance), S');
-         Writeln(F);
+    Writeln(F,'System Y Matrix (Lower Triangle by Columns)');
+    Writeln(F);
+    Writeln(F,'  Row  Col               G               B');
+    Writeln(F);
 
-         For i := 1 to ActiveCircuit.NumNodes Do Begin
-           For j := 1 to i Do  Begin
-               GetMatrixElement(ActiveCircuit.Solution.hY, i, j, @cTemp);
-               Write(F, Format('%10.5g ', [cTemp.re]));
-           End;
-           Writeln(F);
-         End;
+    // shows how to easily traverse the triplet format
+    for i := 0 to nNZ - 1 do begin
+      col := ColIdx[i] + 1;
+      row := RowIdx[i] + 1;
+      if row >= col then begin
+        re := cVals[i].re;
+        im := cVals[i].im;
+        Writeln (F, Format('[%4d,%4d] = %12.5g + j%12.5g', [row, col, re, im]));
+      end;
+    end;
 
-         Writeln(F);
-         Writeln(F, 'jB matrix (susceptance), S');
-         Writeln(F);
-
-         For i := 1 to ActiveCircuit.NumNodes Do Begin
-           For j := 1 to i Do  Begin
-               GetMatrixElement(ActiveCircuit.Solution.hY,i,j, @cTemp);
-               Write(F, Format('%10.5g ', [cTemp.im]));
-           End;
-           Writeln(F);
-         End;
-         
-      Finally
-
-         CloseFile(F);
-         FireOffEditor(FileNm);
-      End;
+  Finally
+    CloseFile(F);
+    FireOffEditor(FileNm);
+  End;
 
 End;
 

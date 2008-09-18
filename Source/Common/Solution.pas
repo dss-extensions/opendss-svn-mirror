@@ -1011,8 +1011,13 @@ End;
 PROCEDURE TSolutionObj.DumpProperties(Var F:TextFile; complete:Boolean);
 
 VAR
-   c:Complex;
-   i,j, NumNodesToDump:Integer;
+   i,j              :Integer;
+
+   // for dumping the matrix in compressed columns
+   p                :LongWord;
+   hY, nBus, nNZ    :LongWord;
+   ColPtr, RowIdx   :array of LongWord;
+   cVals            :array of Complex;
 Begin
 
   Writeln(F, '! OPTIONS');
@@ -1098,30 +1103,32 @@ Begin
      Writeln(F, 'Set maxcontroliter=',  MaxControlIterations:0);
      Writeln(F);
 
-
- 
   If Complete THEN With ActiveCircuit Do Begin
 
-    Writeln(F, 'SystemY (G Matrix) = ');
-    NumNodesToDump := NumNodes;
-    FOR i := 1 to NumNodesToDump Do Begin
-      FOR j := 1 to i Do Begin
-         GetMatrixElement(Solution.hY, i, j, @c);
-         Write(F, C.re:0:4,' ');
-      End;
+      hY := Solution.hY;
+
+      // get the compressed columns out of KLU
+      FactorSparseMatrix (hY); // no extra work if already done
+      GetNNZ (hY, @nNZ);
+      GetSize (hY, @nBus);
+      SetLength (ColPtr, nBus + 1);
+      SetLength (RowIdx, nNZ);
+      SetLength (cVals, nNZ);
+      GetCompressedMatrix (hY, nBus + 1, nNZ, @ColPtr[0], @RowIdx[0], @cVals[0]);
+
+      Writeln(F,'System Y Matrix (Lower Triangle by Columns)');
       Writeln(F);
-    End;
-    Writeln(F, 'SystemY (B Matrix) = ');
-    FOR i := 1 to NumNodesToDump Do Begin
-      FOR j := 1 to i Do Begin
-         GetMatrixElement(Solution.hY, i,j, @c);
-         Write(F, C.im:0:4,' ');
-      End;
+      Writeln(F,'  Row  Col               G               B');
       Writeln(F);
-    End;
+
+      // traverse the compressed column format
+      for j := 0 to nBus - 1 do begin /// the zero-based column
+        for p := ColPtr[j] to ColPtr[j+1] - 1 do begin
+          i := RowIdx[p];  // the zero-based row
+          Writeln (F, Format('[%4d,%4d] = %12.5g + j%12.5g', [i+1, j+1, cVals[p].re, cVals[p].im]));
+        end;
+      end;
   End;
-
-
 End;
 
 FUNCTION TSolutionObj.VDiff(i,j:Integer):Complex;
@@ -1539,13 +1546,26 @@ FUNCTION TSolutionObj.SolveSystem(V:pNodeVArray): Integer;
 
 Var
   RetCode:Integer;
+  iRes: LongWord;
+  dRes: Double;
 
 BEGIN
 
  {Note: NodeV[0] = 0 + j0 always.  Therefore, pass the address of the element 1 of the array.
  }
   Try
+    // new function to log KLUSolve.DLL function calls
+    // SetLogFile ('KLU_Log.txt', 1);
     RetCode :=  SolveSparseSet(hY, @V^[1], @Currents^[1]);  // Solve for present InjCurr
+    // new information functions
+    // GetFlops (hY, @dRes);
+    // GetRGrowth (hY, @dRes);
+    GetRCond (hY, @dRes);
+    // GetCondEst (hY, @dRes); // this can be expensive
+    // GetSize (hY, @iRes);
+    GetNNZ (hY, @iRes);
+    GetSparseNNZ (hY, @iRes);
+    // GetSingularCol (hY, @iRes);
   Except
     On E:Exception Do Raise  EEsolv32Problem.Create('Error Solving System Y Matrix.  Sparse matrix solver reports numerical error: '
                    +E.Message);

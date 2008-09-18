@@ -125,8 +125,6 @@ PROCEDURE BuildYMatrix(BuildOption :Integer; AllocateVI:Boolean);
 {Builds designated Y matrix for system and allocates solution arrays}
 
 VAR
-   Cvalue:Complex;
-   i,j,k,iNode, jNode,
    YMatrixsize:Integer;
    CmatArray:pComplexArray;
    pElem:TCktElement;
@@ -140,6 +138,8 @@ Begin
   //{****} Rewrite(FTrace);
 
    CmatArray := Nil;
+   // new function to log KLUSolve.DLL function calls
+   // SetLogFile ('KLU_Log.txt', 1);
    WITH ActiveCircuit, ActiveCircuit.Solution  Do Begin
 
      If PreserveNodeVoltages Then UpdateVBus; // Update voltage values stored with Bus object
@@ -176,67 +176,16 @@ Begin
      WHILE pElem <> Nil Do
        Begin
          WITH pElem Do
-         IF  (Enabled) THEN           // Add stuff only if enabled
-          Begin
+         IF  (Enabled) THEN Begin          // Add stuff only if enabled
            Case BuildOption of
               WHOLEMATRIX : CmatArray := GetYPrimValues(ALL_YPRIM);
               SERIESONLY:   CmatArray := GetYPrimValues(SERIES)
            End;
-           // Here's where everything gets stuffed into the Y matrix
-           // Diagonals
-           k := 1;
-           If (CmatArray <> Nil) THEN
-            FOR i := 1 to Yorder  Do
-              Begin
-                iNode := NodeRef^[i];
-
-                If   (iNode > 0)  THEN
-                  Begin
-                         jNode := iNode;
-                         Cvalue :=  CmatArray^[k];
-                         IF (Cvalue.re <> 0.0) OR (Cvalue.im <> 0.0)  THEN
-                          Begin
-                             //{****} Writeln(Ftrace, pElem.Name, iNode:4, jNode:4, Cvalue.re:12, Cvalue.im:12);
-                             IF   AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
-                                  Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
-                          End;
-                  End; // If iNode
-                Inc(k, Yorder+1);
-              End; // For i
-
-
-           // Off Diagonals
-           If (CmatArray <> Nil) THEN
-            FOR i := 1 to Yorder  Do
-              Begin
-                iNode := NodeRef^[i];
-                If   (iNode > 0)  THEN
-                  Begin
-                     k := i;
-                     FOR j := 1 to i-1 Do
-                       Begin
-                         jNode := NodeRef^[j];
-                         If   (jNode > 0) THEN
-                           Begin
-                             // Cvalue :=  CmatArray^[(j-1) * Yorder + i];
-                             Cvalue :=  CmatArray^[k];
-                             IF (Cvalue.re <> 0.0) OR (Cvalue.im <> 0.0)  THEN
-                              Begin
-                                 //{****} Writeln(Ftrace, pElem.Name, iNode:4, jNode:4, Cvalue.re:12, Cvalue.im:12);
-                                 {AddMatrixElement automatically gets the symmetrical off-diagonal}
-                                 IF AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
-                                      Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
-                                 IF iNode = jNode Then  // Do it again if on the diagonal of the target Y matrix
-                                      IF AddMatrixElement(hY, iNode, jNode, @Cvalue) < 1  THEN
-                                           Raise EEsolv32Problem.Create('Error Adding to System Y Matrix. Problem with Sparse matrix solver.');
-                              End;
-                           End;
-                         Inc(k, Yorder);
-                       End; // For j
-                  End; // If NodeRef[i]
-              End; // For i
-
-           End;   // If Enabled
+           // new function adding primitive Y matrix to KLU system Y matrix
+           if CMatArray <> Nil then
+              if AddPrimitiveMatrix (hY, Yorder, @NodeRef[1], @CMatArray[1]) < 1 then
+                 Raise EEsolv32Problem.Create('Node index out of range adding to System Y Matrix')
+         End;   // If Enabled
          pElem := CktElements.Next;
        End;
 
@@ -277,20 +226,52 @@ Begin
    End;
 End;
 
+// leave the call to GetMatrixElement, but add more diagnostics
 Function CheckYMatrixforZeroes:String;
 
-Var i:Integer;
-    c:Complex;
+Var
+    i                           :LongWord;
+    c                           :Complex;
+    hY                          :LongWord;
+    sCol                        :LongWord;
+    nIslands, iCount, iFirst, p :LongWord;
+    Cliques                     :array of LongWord;
 Begin
 
   Result := '';
   With ActiveCircuit Do begin
+    hY := Solution.hY;
     For i := 1 to Numnodes Do Begin
-       GetMatrixElement(Solution.hY, i, i, @c);
+       GetMatrixElement(hY, i, i, @c);
        If Cabs(C)=0.0 Then With MapNodeToBus^[i] Do Begin
            Result := Result + Format('%sZero diagonal for bus %s, node %d',[CRLF, BusList.Get(Busref), NodeNum]);
        End;
     End;
+
+    // new diagnostics
+    GetSingularCol (hY, @sCol); // returns a 1-based node number
+    if sCol > 0 then With MapNodeToBus^[sCol] Do Begin
+      Result := Result + Format('%sMatrix singularity at bus %s, node %d',[CRLF, BusList.Get(Busref), sCol]);
+    end;
+
+    SetLength (Cliques, NumNodes);
+    nIslands := FindIslands (hY, NumNodes, @Cliques[0]);
+    if nIslands > 1 then begin
+      Result := Result + Format('%sFound %d electrical islands:', [CRLF, nIslands]);
+      for i:= 1 to nIslands do begin
+        iCount := 0;
+        iFirst := 0;
+        for p := 0 to NumNodes - 1 do begin
+          if Cliques[p] = i then begin
+            Inc (iCount, 1);
+            if iFirst = 0 then iFirst := p+1;
+          end;
+        end;
+        With MapNodeToBus^[iFirst] Do Begin
+          Result := Result + Format('%s  #%d has %d nodes, including bus %s (node %d)',[CRLF, i, iCount, BusList.Get(Busref), iFirst]);
+        end;
+      end;
+    end;
   End;
 
 End;
