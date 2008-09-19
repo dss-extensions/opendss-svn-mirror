@@ -405,7 +405,6 @@ end;
 
 procedure TMainEditForm.ExtendSelection;
 Var
-
     i, LineIdx, Slen:Integer;
     Pos:TPoint;
 begin

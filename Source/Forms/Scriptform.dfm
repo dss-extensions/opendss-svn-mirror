@@ -1,9 +1,9 @@
 object MainEditForm: TMainEditForm
   Left = 266
   Top = 205
-  Width = 593
-  Height = 408
   Caption = 'Main Script Window'
+  ClientHeight = 374
+  ClientWidth = 585
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -98,8 +98,6 @@ object MainEditForm: TMainEditForm
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    MinFontSize = 0
-    MaxFontSize = 0
     OnApply = FontDialog1Apply
     Left = 336
     Top = 112

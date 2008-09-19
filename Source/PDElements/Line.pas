@@ -7,7 +7,7 @@ unit Line;
 interface
 
 USES
-   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode, LineGeometry, PDClass;
+   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode, LineGeometry, PDClass, Ucomplex;
 
 
 TYPE
@@ -72,6 +72,7 @@ TYPE
         SymComponentsModel   :Boolean;
         IsSwitch             :Boolean;
 
+        PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); Override;
 
         constructor Create(ParClass:TDSSClass; const LineName:String);
         destructor Destroy; override;
@@ -100,7 +101,7 @@ VAR
 
 IMPLEMENTATION
 
-USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
+USES  ParserDel,  DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
 
 Const NumPropsThisClass = 20;
       MaxPhases = 20; // for fixed buffers
@@ -872,6 +873,15 @@ Begin
 End;
 
 
+{*********** Placeholder for Line module No Load Loss procedure *********}
+procedure TLineObj.GetLosses(var TotalLosses, LoadLosses,  NoLoadLosses: Complex);
+begin
+
+  {For Now, we'll just to the default behavior until we implement shunt losses}
+
+  inherited;
+
+end;
 
 FUNCTION TLineObj.GetPropertyValue(Index: Integer): String;
 VAR

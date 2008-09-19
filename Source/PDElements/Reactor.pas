@@ -45,7 +45,7 @@ unit Reactor;
 }
 interface
 USES
-   Command, DSSClass, PDClass, PDElement, UcMatrix, ArrayDef;
+   Command, DSSClass, PDClass, PDElement, uComplex, UcMatrix, ArrayDef;
 
 TYPE
 
@@ -87,12 +87,14 @@ TYPE
         constructor Create(ParClass:TDSSClass; const ReactorName:String);
         destructor  Destroy; override;
 
-        PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
-        
-        Procedure RecalcElementData;Override;
-        Procedure CalcYPrim;        Override;
-        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
-        Procedure DumpProperties(Var F:TextFile;Complete:Boolean);Override;
+        PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); Override;
+
+        PROCEDURE MakePosSequence;   Override;  // Make a positive Sequence Model
+
+        Procedure RecalcElementData; Override;
+        Procedure CalcYPrim;         Override;
+        PROCEDURE InitPropertyValues(ArrayOffset:Integer);         Override;
+        Procedure DumpProperties(Var F:TextFile;Complete:Boolean); Override;
 
    end;
 
@@ -101,7 +103,7 @@ VAR
 
 implementation
 
-USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Mathutil, Utilities;
+USES  ParserDel,  DSSGlobals, Sysutils,  Mathutil, Utilities;
 
 Const NumPropsThisClass = 12;
 
@@ -708,6 +710,33 @@ BEGIN
        End;
 
 END;
+
+procedure TReactorObj.GetLosses(var TotalLosses, LoadLosses, NoLoadLosses: Complex);
+var
+   i    :integer;
+begin
+
+  {Only report No Load Losses if Rp defined and Reactor is a shunt device;
+   Else do default behavior.}
+
+   if (RpSpecified and IsShunt and (Rp <> 0.0)) then  Begin
+
+     TotalLosses := Losses;  // Side effect: computes Iterminal and Vterminal
+     {Compute losses in Rp Branch from voltages across shunt element -- node to ground}
+     NoLoadLosses := CZERO;
+     With ActiveCircuit.Solution Do
+       for i  := 1 to FNphases do
+         With NodeV^[NodeRef^[i]] Do
+           Caccum(NoLoadLosses, cmplx((SQR(re) + SQR(im))/Rp, 0.0));  // V^2/Rp
+
+     IF   ActiveCircuit.PositiveSequence then CmulReal(NoLoadLosses, 3.0);
+     LoadLosses := Csub(TotalLosses , NoLoadLosses);  // Subtract no load losses from total losses
+
+   End
+
+  Else inherited;   {do the default Cktelement behavios}
+
+end;
 
 procedure TReactorObj.InitPropertyValues(ArrayOffset: Integer);
 begin
