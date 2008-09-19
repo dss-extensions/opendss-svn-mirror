@@ -105,6 +105,7 @@ TYPE
       PROCEDURE GetTermVoltages(iTerm:Integer; VBuffer:PComplexArray);
       PROCEDURE GetPhasePower(PowerBuffer:pComplexArray); Virtual;
       PROCEDURE GetPhaseLosses(Var Num_Phases:Integer; LossBuffer:pComplexArray); Virtual;
+      PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); Virtual;
 
       FUNCTION  GetPropertyValue(Index:Integer):String;Override;
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
@@ -120,8 +121,8 @@ TYPE
       Property NextBus:String         read Get_NextBus;    // null string if no more values
       Property Losses:Complex         read Get_Losses;
       Property Power:Complex          read Get_Power;  // Total power in active terminal
-      Property ActiveTerminalIdx:Integer       read FActiveTerminal write Set_ActiveTerminal;
-      Property Closed[Index:Integer]:Boolean read Get_ConductorClosed  write Set_ConductorClosed;
+      Property ActiveTerminalIdx:Integer       read FActiveTerminal      write Set_ActiveTerminal;
+      Property Closed[Index:Integer]:Boolean   read Get_ConductorClosed  write Set_ConductorClosed;
       PROCEDURE SumCurrents;
 
   End;
@@ -443,6 +444,18 @@ Begin
 
 End;
 
+procedure TCktElement.GetLosses(var TotalLosses, LoadLosses,
+  NoLoadLosses: Complex);
+begin
+  {For no override, Default behavior is:
+    Just return total losses and set LoadLosses=total losses and noload losses =0}
+
+  TotalLosses := Losses;
+  LoadLosses  := TotalLosses;
+  NoLoadLosses := CZERO;
+
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FUNCTION TCktElement.InjCurrents:Integer;  // Applies to PC Elements
 
@@ -668,7 +681,8 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TCktElement.GetPhaseLosses(Var Num_Phases:Integer; LossBuffer:pComplexArray);
-// Get the losses in each phase (complex losses);
+// Get the losses in each phase (complex losses);  Power difference coming out
+// each phase. Note: This can be misleading if the nodev voltage is greatly unbalanced.
 // neutral conductors are ignored by this routine
 VAR
    i,j,k,n:Integer;
@@ -695,8 +709,8 @@ Begin
              LossBuffer^[i] := cLoss;
          End;
 
-      End
-      Else
+     End
+     Else
           For i := 1 to Num_Phases Do LossBuffer^[i] := cZero;
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
