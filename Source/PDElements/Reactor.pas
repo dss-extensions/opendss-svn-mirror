@@ -725,7 +725,7 @@ begin
      {Compute losses in Rp Branch from voltages across shunt element -- node to ground}
      NoLoadLosses := CZERO;
      With ActiveCircuit.Solution Do
-       for i  := 1 to FNphases do
+       For i  := 1 to FNphases do
          With NodeV^[NodeRef^[i]] Do
            Caccum(NoLoadLosses, cmplx((SQR(re) + SQR(im))/Rp, 0.0));  // V^2/Rp
 
@@ -734,7 +734,7 @@ begin
 
    End
 
-  Else inherited;   {do the default Cktelement behavios}
+  Else inherited;   {do the default Cktelement behaviors}
 
 end;
 

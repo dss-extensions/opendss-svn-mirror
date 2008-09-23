@@ -92,6 +92,9 @@ TYPE
 
         PROCEDURE CalcY_Terminal(FreqMult:Double);
 
+        PROCEDURE BuildYPrimComponent(YPrim_Component, Y_Terminal:TCMatrix);
+        PROCEDURE AddNeutralToY(FreqMultiplier: Double);
+
       Protected
         ActiveWinding   :Integer;
         NumWindings     :Integer;
@@ -104,8 +107,10 @@ TYPE
         VABase          :Double;    // FOR impedances
 
         ZB              :TCMatrix;
-        Y_OneVolt       :TCMatrix;
-        Y_Terminal      :TCMatrix;
+        Y_1Volt         :TCMatrix;
+        Y_Term          :TCMatrix;
+        Y_1Volt_NL      :TCMatrix;   // No Load Y's
+        Y_Term_NL       :TCMatrix;
 
         Y_Terminal_Freqmult:Double;
 
@@ -116,8 +121,8 @@ TYPE
         m_thermal         :Double;  {Exponents}
         FLrise            :Double;
         HSrise            :Double;
-        LoadLosskW        :Double;
-        NoLoadLosskW      :Double;
+        pctLoadLoss       :Double;
+        pctNoLoadLoss     :Double;
 
         XHLChanged        :Boolean;
 
@@ -232,8 +237,8 @@ Begin
      PropertyName[23] := 'm';
      PropertyName[24] := 'flrise';
      PropertyName[25] := 'hsrise';
-     PropertyName[26] := 'loadloss';
-     PropertyName[27] := 'noloadloss';
+     PropertyName[26] := '%loadloss';
+     PropertyName[27] := '%noloadloss';
      PropertyName[28] := 'normhkVA';
      PropertyName[29] := 'emerghkVA';
      PropertyName[30] := 'sub';  // =y/n
@@ -293,8 +298,8 @@ Begin
      PropertyHelp[23] := 'm Exponent for thermal properties in IEEE C57.  Typically 0.9 - 1.0';
      PropertyHelp[24] := 'Temperature rise, deg C, for full load.  Default is 65.';
      PropertyHelp[25] := 'Hot spot temperature rise, deg C.  Default is 15.';
-     PropertyHelp[26] := 'LoadLoss at full load, kW.';
-     PropertyHelp[27] := 'No load losses, kW.';
+     PropertyHelp[26] := 'Percent load loss at full load. The %R of the High and Low windings (1 and 2) are adjusted to agree at rated kVA loading.';
+     PropertyHelp[27] := 'Percent no load losses at rated excitatation voltage. Default is 0. Converts to a resistance in parallel with the magnetizing impedance in each winding.';
      PropertyHelp[28] := 'Normal maximum kVA rating of H winding (winding 1).  Usually 100% - 110% of'+
                          'maximum nameplate rating, depending on load shape. Defaults to 110% of kVA rating of Winding 1.';
      PropertyHelp[29] := 'Emergency (contingency)  kVA rating of H winding (winding 1).  Usually 140% - 150% of'+
@@ -306,7 +311,7 @@ Begin
      PropertyHelp[32] := 'Min per unit tap for the active winding.  Default is 0.90';
      PropertyHelp[33] := 'Total number of taps between min and max tap.  Default is 32.';
      PropertyHelp[34] := 'Substation Name. Optional. Default is null. If specified, printed on plots';
-     PropertyHelp[35] := '% magnetizing current. Default=0.0. Magnetizing branch is in parallale with windings in each phase. Also, see "ppm_antifloat".';
+     PropertyHelp[35] := 'Percent magnetizing current. Default=0.0. Magnetizing branch is in parallel with windings in each phase. Also, see "ppm_antifloat".';
      PropertyHelp[36] := 'Default=1 ppm.  Parts per million by which the reactive term is increased to protect against accidentally floating a winding. ' +
                          'If positive then the effect is adding a small reactor to ground.  If negative, then a capacitor.';
 
@@ -320,8 +325,10 @@ FUNCTION TTransf.NewObject(const ObjName:String):Integer;
 Begin
    // create a new object of this class and add to list
    WITH ActiveCircuit Do Begin
+
       ActiveCktElement := TTransfObj.Create(Self, ObjName);
       Result           := AddObjectToList(ActiveDSSObject);  // Return index of transformer in transformer list
+
    End;
 
 End;
@@ -363,7 +370,7 @@ Begin
             1: Nphases   := Parser.IntValue;
             2: SetNumWindings(Parser.IntValue); // Reallocate stuff if bigger
             3: SetActiveWinding(Parser.IntValue);
-            4: Setbus(ActiveWinding,param);
+            4: Setbus(ActiveWinding, param);
             5: InterpretConnection(Param);
             6: Winding^[ActiveWinding].kvll  := parser.Dblvalue;
             7: Winding^[ActiveWinding].kva   := parser.Dblvalue;
@@ -385,8 +392,8 @@ Begin
            23: m_thermal        := Parser.DblValue;
            24: FLrise           := Parser.DblValue;
            25: HSRise           := Parser.DblValue;
-           26: LoadLosskW       := Parser.DblValue;
-           27: noLoadLosskW     := Parser.DblValue;
+           26: pctLoadLoss      := Parser.DblValue;
+           27: pctNoLoadLoss    := Parser.DblValue;
            28: NormMaxHkVA      := Parser.Dblvalue;
            29: EmergMaxHkVA     := Parser.Dblvalue;
            30: IsSubstation     := InterpretYesNo(Param);
@@ -395,7 +402,7 @@ Begin
            33: Winding^[ActiveWinding].NumTaps := Parser.IntValue;
            34: SubstationName   := Param;
            35: pctImag          := Parser.DblValue;
-           36: ppm_FloatFactorPlusOne := Parser.DblValue*1.0e-6 + 1.0;
+           36: ppm_FloatFactorPlusOne := Parser.DblValue * 1.0e-6 + 1.0;
          ELSE
            // Inherited properties
               ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -405,24 +412,33 @@ Begin
          CASE ParamPointer OF
            1: NConds := Fnphases+1;  // Force redefinition of number of conductors and reallocation of matrices
           // default all winding kvas to first winding so latter Donot have to be specified
-           7:IF (ActiveWinding = 1) THEN
-              Begin
+           7:IF (ActiveWinding = 1) THEN Begin
                  FOR i := 2 to NumWindings Do Winding^[i].kVA := Winding^[1].kVA;
-                 NormMaxHkVA  := 1.1 * Winding^[1].kVA;    // Defaults for new winding rating.
-                 EmergMaxHkVA := 1.5 * Winding^[1].kVA;
+                 NormMaxHkVA     := 1.1 * Winding^[1].kVA;    // Defaults for new winding rating.
+                 EmergMaxHkVA    := 1.5 * Winding^[1].kVA;
+                 Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
+                 Winding^[2].Rpu := Winding^[1].Rpu;
               End;
+           // Update LoadLosskW if winding %r changed. Using only windings 1 and 2
+           9: pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0;
           15:Begin
                NormMaxHkVA  := 1.1 * Winding^[1].kVA;    // Defaults for new winding rating.
                EmergMaxHkVA := 1.5 * Winding^[1].kVA;
              End;
           17..19: XHLChanged := True;
           20: For i := 1 to ((NumWindings - 1) * NumWindings div 2) Do Xsc^[i] := Xsc^[i]*0.01;  // Convert to per unit
+          // Assume load loss is split evenly  between windings 1 and 2
+          26: Begin
+                 Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
+                 Winding^[2].Rpu := Winding^[1].Rpu;
+              End;
          ELSE
          End;
 
          //YPrim invalidation on anything that changes impedance values
          CASE ParamPointer OF
            5..19  : YprimInvalid := True;
+           26, 27, 35  : YprimInvalid := True;
          ELSE
          End;
 
@@ -445,15 +461,15 @@ VAR i          :Integer;
 
 Begin
 
-    IF N>1 THEN 
+    IF N>1 THEN
     WITH ActiveTransfObj Do  Begin
-        FOR i := 1 to NumWindings Do Winding^[i].Free;
+        FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
         OldWdgSize := (NumWindings-1) * NumWindings div 2;
         NumWindings := N;
         MaxWindings := N;
-        FNconds :=Fnphases + 1;
-        Nterms := NumWindings;
-        reAllocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);
+        FNconds := Fnphases + 1;
+        Nterms  := NumWindings;
+        Reallocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);  // Reallocate collector array
         FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
 
      // array of short circuit measurements between pairs of windings
@@ -463,13 +479,19 @@ Begin
               XSC^[i] := 0.30;   // default to something
           End;
         Reallocmem(TermRef, SizeOf(TermRef^[1]) * 2 * NumWindings*Fnphases);
-        ZB.Free;
-        Y_OneVolt.Free;
-        Y_Terminal.Free;
 
-        ZB := TCMatrix.CreateMatrix(NumWindings - 1);
-        Y_OneVolt := TCMatrix.CreateMatrix(NumWindings);
-        Y_Terminal := TCMatrix.CreateMatrix(2 * NumWindings);
+        {Reallocate impedance matrices}
+        ZB.Free;
+        Y_1Volt.Free;
+        Y_1Volt_NL.Free;
+        Y_Term.Free;
+        Y_Term_NL.Free;
+
+        ZB         := TCMatrix.CreateMatrix(NumWindings - 1);
+        Y_1Volt    := TCMatrix.CreateMatrix(NumWindings);
+        Y_1Volt_NL := TCMatrix.CreateMatrix(NumWindings);
+        Y_Term     := TCMatrix.CreateMatrix(2 * NumWindings);
+        Y_Term_NL  := TCMatrix.CreateMatrix(2 * NumWindings);
       End
 
     Else
@@ -481,7 +503,7 @@ End;
 PROCEDURE TTransf.SetActiveWinding(w:Integer);
 
 Begin
-   WITH ActiveTRansfObj DO
+   WITH ActiveTransfObj DO
     IF   (w > 0) And (w <= NumWindings) THEN ActiveWinding := w
     ELSE DoSimpleMsg('Wdg parameter invalid for "' + ActiveTransfObj.Name + '"', 112);
 End;
@@ -667,15 +689,17 @@ Begin
        FOR i := 1 to (NumWindings*(NumWindings-1) div 2) DO XSc^[i] := OtherTransf.XSC^[i];
 
        ZB.CopyFrom(OtherTransf.ZB);
-       Y_OneVolt.CopyFrom(OtherTransf.Y_OneVolt);
-       Y_Terminal.CopyFrom(OtherTransf.Y_Terminal);
+       Y_1Volt.CopyFrom(OtherTransf.Y_1Volt);
+       Y_Term.CopyFrom(OtherTransf.Y_Term);
+       Y_1Volt_NL.CopyFrom(OtherTransf.Y_1Volt_NL);
+       Y_Term_NL.CopyFrom(OtherTransf.Y_Term_NL);
        ThermalTimeConst := OtherTransf.ThermalTimeConst;
        n_thermal        := OtherTransf.n_thermal;
        m_thermal        := OtherTransf.m_thermal;
        FLrise           := OtherTransf.FLrise;
        HSrise           := OtherTransf.HSrise;
-       LoadLosskW       := OtherTransf.LoadLosskW;
-       NoLoadLosskW     := OtherTransf.NoLoadLosskW;
+       pctLoadLoss      := OtherTransf.pctLoadLoss;
+       pctNoLoadLoss    := OtherTransf.pctNoLoadLoss;
        NormMaxHkVA      := OtherTransf.NormMaxHkVA;
        EmergMaxHkVA     := OtherTransf.EmergMaxHkVA;
 
@@ -746,9 +770,10 @@ Begin
       HSrise           := 15.0;  // Hot spot rise
       NormMaxHkVA      := 1.1 * Winding^[1].kVA;
       EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
-      LoadLosskW       := 2.0 * Winding^[1].Rpu * NormMaxHkVA; // kwatts; assume two windings
-      NoLoadLosskW     := 0.002 * NormMaxHkVA; // kwatts
+      pctLoadLoss      := 2.0 * Winding^[1].Rpu; //  assume two windings
       ppm_FloatFactorPlusOne  := 1.000001;
+      {Default the no load properties to zero}
+      pctNoLoadLoss    := 0.0;
       pctImag          := 0.0;
 
       {Basefrequency := 60.0;   set in base class to circuit fundamental freq; Do not reset here}
@@ -756,9 +781,11 @@ Begin
       IsSubstation  := False;
 
       {Make some temp complex matrices required to build Yprim}
-      ZB         := TCMatrix.CreateMatrix(NumWindings-1);
-      Y_OneVolt  := TCMatrix.CreateMatrix(NumWindings);
-      Y_Terminal := TCMatrix.CreateMatrix(2*NumWindings);
+      ZB          := TCMatrix.CreateMatrix(NumWindings-1);
+      Y_1Volt     := TCMatrix.CreateMatrix(NumWindings);
+      Y_Term      := TCMatrix.CreateMatrix(2*NumWindings);
+      Y_1Volt_NL  := TCMatrix.CreateMatrix(NumWindings);  // No Load elements
+      Y_Term_NL   := TCMatrix.CreateMatrix(2*NumWindings);
 
       Y_Terminal_FreqMult := 0.0;
 
@@ -779,8 +806,10 @@ Begin
     Reallocmem(XSC, 0);
     Reallocmem(TermRef, 0);
     ZB.Free;
-    Y_OneVolt.Free;
-    Y_terminal.Free;
+    Y_1Volt.Free;
+    Y_1Volt_NL.Free;
+    Y_Term.Free;
+    Y_Term_NL.Free;
     Inherited Destroy;
 End;
 
@@ -906,71 +935,40 @@ End;
 PROCEDURE TTransfObj.CalcYPrim;
 
 VAR
-   Value          :Complex;
-   i, j, k        :Integer;
-   NW2            :Integer;
    FreqMultiplier :Double;
 
 Begin
 
-     // Build only YPrimSeries for Transformers
     IF   YPrimInvalid THEN Begin
-         // Reallocate YPrim IF something has invalidated old allocation
+         // Reallocate YPrim if something has invalidated old allocation
          IF YPrim_Series<>nil THEN  YPrim_Series.Free;
+         IF YPrim_Shunt<>nil  THEN  YPrim_Shunt.Free;
          IF YPrim<>nil        THEN  YPrim.Free;
 
          YPrim_Series := TcMatrix.CreateMatrix(Yorder);
+         YPrim_Shunt  := TcMatrix.CreateMatrix(Yorder);
          YPrim        := TcMatrix.CreateMatrix(Yorder);
     End
     ELSE Begin  {Same size as last time; just zero out to start over}
          YPrim_Series.Clear; // zero out YPrim
+         YPrim_Shunt.Clear; // zero out YPrim
          Yprim.Clear;
     End;
 
-    WITH YPrim_Series Do Begin
-       // Set frequency multipliers for this calculation
-       FYprimFreq     := ActiveCircuit.Solution.Frequency ;
-       FreqMultiplier := FYprimFreq / BaseFrequency;
+    // Set frequency multipliers for this calculation
+    FYprimFreq     := ActiveCircuit.Solution.Frequency ;
+    FreqMultiplier := FYprimFreq / BaseFrequency;
+    // Check for rebuilding Y_Terminal; Only rebuild if freq is different than last time
+    If   FreqMultiplier <> Y_Terminal_Freqmult Then CalcY_Terminal(FreqMultiplier);
 
-       // Check for rebuilding Y_Terminal; Only rebuild if freq is different than last time
-       If   FreqMultiplier <> Y_Terminal_Freqmult Then CalcY_Terminal(FreqMultiplier);
+    BuildYPrimComponent(YPrim_Series, Y_Term);
+    BuildYPrimComponent(YPrim_Shunt,  Y_Term_NL);
 
-       { Now, Put in Yprim matrix }
-       {have to add every element of Y_terminal into Yprim somewhere}
+    AddNeutralToY(FreqMultiplier);
 
-       NW2 := 2 * NumWindings;
-       FOR i := 1 to NW2 Do Begin
-             FOR j := 1 to i Do Begin
-                   Value := Y_Terminal.GetElement(i,j);
-                   // This value goes in Yprim nphases times
-                   FOR k := 0 to Fnphases - 1  Do AddElemSym(TermRef^[i + k*NW2], TermRef^[j + k*NW2], Value );
-             End;
-       End;
-
-       {Account for neutral impedances}
-       FOR i := 1 to NumWindings Do Begin
-             WITH Winding^[i] Do Begin
-                   IF Connection=0 THEN  Begin // handle wye, but ignore delta  (and open wye)
-                        IF Rneut >= 0.0 THEN  Begin// <0 is flag for open neutral  (Ignore)
-                            IF (Rneut=0.0) and (Xneut=0.0) THEN // Solidly Grounded
-                               Value := Cmplx(1.0e6, 0.0)  // 1 microohm resistor
-                            ELSE
-                               Value := Cinv(Cmplx(Rneut, XNeut * FreqMultiplier));
-                            j := i * fNconds;
-                            AddElement(j, j, Value);
-                        End
-                        ELSE  Begin
-                             // Bump up neutral admittance a bit in case neutral is floating
-                             j := i * fNconds;
-                             If ppm_FloatFactorPlusOne <> 1.0 Then SetElement(j, j, CmulReal_im(GetElement(j,j), ppm_FloatFactorPlusOne));
-                        End;
-                   End;
-             End;  {WITH}
-       End;
-
-    End; {With YPRIM}
-
+    {Combine the two Yprim components into Yprim}
     YPrim.CopyFrom(YPrim_Series);
+    Yprim.AddFrom(Yprim_Shunt);
 
     {Now Account for Open Conductors}
     {For any conductor that is open, zero out row and column}
@@ -1022,8 +1020,8 @@ Begin
     Writeln(F,'~ ','m=',m_thermal:0:1);
     Writeln(F,'~ ','flrise=',flrise:0:0);
     Writeln(F,'~ ','hsrise=',hsrise:0:0);
-    Writeln(F,'~ ','loadloss=',loadlosskW:0:0);
-    Writeln(F,'~ ','noloadloss=',noloadlosskW:0:0);
+    Writeln(F,'~ ','%loadloss=',pctLoadLoss:0:0);
+    Writeln(F,'~ ','%noloadloss=',pctNoLoadLoss:0:0);
 
     For i := 28 to NumPropsThisClass Do
        Writeln(F,'~ ', ParentClass.PropertyName^[i],'=',PropertyValue[i]);
@@ -1049,7 +1047,7 @@ Begin
 
         Writeln(F);
         Writeln(F,'Y_OneVolt');
-        WITH Y_OneVolt Do Begin
+        WITH Y_1Volt Do Begin
            FOR i := 1 to NumWindings Do Begin
                FOR j := 1 to i Do Write(F, GetElement(i,j).re:0:4,' ');
                Writeln(F);
@@ -1062,7 +1060,7 @@ Begin
 
         Writeln(F);
         Writeln(F,'Y_Terminal');
-        WITH Y_Terminal Do Begin
+        WITH Y_Term Do Begin
            FOR i := 1 to 2*NumWindings Do Begin
                FOR j := 1 to i Do Write(F, GetElement(i,j).re:0:4,' ');
                Writeln(F);
@@ -1209,11 +1207,29 @@ begin
      ELSE Result := Winding^[i].vbase;
 end;
 
+{============================== GetLosses Override ===============================}
 
-{========== Placeholder for GetLosses Override ===========}
 procedure TTransfObj.GetLosses(var TotalLosses, LoadLosses,   NoLoadLosses: Complex);
+VAR
+   cTempIterminal  :pComplexArray;
+   i               :Integer;
 begin
-  inherited;
+  {inherited;}
+
+  {Calculates losses in watts, vars}
+  TotalLosses := Losses;   // Side effect: computes Iterminal
+
+  {Compute No load losses in Yprim_Shunt}
+  cTempIterminal := AllocMem(Sizeof(cTempIterminal^[1])* Yorder);
+  ComputeVterminal;
+  Yprim_Shunt.MVmult(cTempIterminal, Vterminal) ;
+  {No Load Losses are sum of all powers coming into YPrim_Shunt from each terminal}
+  NoLoadLosses := CZERO;
+  for i := 1 to Yorder do Caccum(NoLoadLosses, Cmul(VTerminal^[i], conjg(cTempIterminal^[i])));
+
+  LoadLosses :=CSub(TotalLosses, NoLoadLosses);
+
+  Reallocmem(cTempIterminal, 0);
 
 end;
 
@@ -1239,12 +1255,12 @@ begin
                    1: Result := 'delta ';
                ELSE
                END;
-            6: Result := Format('%-g',[Winding^[ActiveWinding].kvll]);
-            7: Result := Format('%-g',[Winding^[ActiveWinding].kva]);
-            8: Result := Format('%-g',[Winding^[ActiveWinding].puTap]);
-            9: Result := Format('%-g',[Winding^[ActiveWinding].Rpu * 100.0]);   // %R
-           10: Result := Format('%-g',[Winding^[ActiveWinding].Rneut]);
-           11: Result := Format('%-g',[Winding^[ActiveWinding].Xneut]);
+            6: Result := Format('%.7g',[Winding^[ActiveWinding].kvll]);
+            7: Result := Format('%.7g',[Winding^[ActiveWinding].kva]);
+            8: Result := Format('%.7g',[Winding^[ActiveWinding].puTap]);
+            9: Result := Format('%.7g',[Winding^[ActiveWinding].Rpu * 100.0]);   // %R
+           10: Result := Format('%.7g',[Winding^[ActiveWinding].Rneut]);
+           11: Result := Format('%.7g',[Winding^[ActiveWinding].Xneut]);
 
            12: FOR i := 1 to NumWindings Do Result := Result + GetBus(i) + ', ';
            13: FOR i := 1 to NumWindings Do
@@ -1253,12 +1269,14 @@ begin
                      1: Result := Result + 'delta, ';
                  ELSE
                  END;
-           14: FOR i := 1 to NumWindings Do Result := Result + Format('%-g',[Winding^[i].kvll]) + ', ';
-           15: FOR i := 1 to NumWindings Do Result := Result + Format('%-g',[Winding^[i].kVA]) + ', ';
-           16: FOR i := 1 to NumWindings Do Result := Result + Format('%-g',[Winding^[i].puTap]) + ', ';// InterpretAllTaps(Param);
+           14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].kvll]) + ', ';
+           15: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].kVA]) + ', ';
+           16: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].puTap]) + ', ';// InterpretAllTaps(Param);
            20: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g.',[ Xsc^[i]*100.0]);// Parser.ParseAsVector(((NumWindings - 1)*NumWindings div 2), Xsc);
-           31: Result := Format('%-g',[Winding^[ActiveWinding].MaxTap]);
-           32: Result := Format('%-g',[Winding^[ActiveWinding].MinTap]);
+           26: Result := Format('%.7g',[pctLoadLoss]);
+           27: Result := Format('%.7g',[pctNoLoadLoss]);
+           31: Result := Format('%.7g',[Winding^[ActiveWinding].MaxTap]);
+           32: Result := Format('%.7g',[Winding^[ActiveWinding].MinTap]);
            33: Result := Format('%-d',[Winding^[ActiveWinding].NumTaps]);
 
 
@@ -1310,8 +1328,8 @@ begin
      PropertyValue[23] := '.8';
      PropertyValue[24] := '65';
      PropertyValue[25] := '15';
-     PropertyValue[26] := '';
-     PropertyValue[27] := '';
+     PropertyValue[26] := Format('%.7g',[pctLoadLoss]);
+     PropertyValue[27] := Format('%.7g',[pctNoLoadLoss]);    // Defaults to zero
      PropertyValue[28] := '';
      PropertyValue[29] := '';
      PropertyValue[30] := 'n';  // =y/n
@@ -1352,7 +1370,8 @@ end;
 
 procedure TTransfObj.MakePosSequence;
 {
-  Converts default 3-phase transformer model into equivalent positive-sequen
+  Converts default 3-phase transformer model into equivalent positive-sequence
+  using scripting
 }
 Var
         iW,
@@ -1408,6 +1427,65 @@ begin
 
 end;
 
+procedure TTransfObj.AddNeutralToY(FreqMultiplier: Double);
+var
+  i: Integer;
+  Value: complex;
+  j: Integer;
+begin
+  {Account for neutral impedances}
+  with YPrim_Series do  begin
+    for i := 1 to NumWindings do begin
+      with Winding^[i] do begin
+        if Connection = 0 then begin
+          // handle wye, but ignore delta  (and open wye)
+          if Rneut >= 0 then begin
+            // <0 is flag for open neutral  (Ignore)
+            if (Rneut = 0) and (Xneut = 0) then
+              // Solidly Grounded
+              Value := Cmplx(1000000, 0)
+            else
+              // 1 microohm resistor
+              Value := Cinv(Cmplx(Rneut, XNeut * FreqMultiplier));
+            j := i * fNconds;
+            AddElement(j, j, Value);
+          end
+          else begin
+            // Bump up neutral admittance a bit in case neutral is floating
+            j := i * fNconds;
+            if ppm_FloatFactorPlusOne <> 1 then
+              SetElement(j, j, CmulReal_im(GetElement(j, j), ppm_FloatFactorPlusOne));
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TTransfObj.BuildYPrimComponent(YPrim_Component, Y_Terminal:TCMatrix);
+var
+  NW2: Integer;
+  i: Integer;
+  k: Integer;
+  Value: complex;
+  j: Integer;
+
+begin
+  with YPrim_Component do begin
+    { Now, Put in Yprim matrix }
+    {have to add every element of Y_terminal into Yprim somewhere}
+    NW2 := 2 * NumWindings;
+    for i := 1 to NW2 do  begin
+      for j := 1 to i do begin
+        Value := Y_Terminal.GetElement(i, j);
+        // This value goes in Yprim nphases times
+        for k := 0 to Fnphases - 1 do
+          AddElemSym(TermRef^[i + k * NW2], TermRef^[j + k * NW2], Value);
+      end;
+    end;
+  end;
+end;
+
 
 
 
@@ -1423,7 +1501,8 @@ Var
     j,
     k          :Integer;
     A          :pComplexArray;
-    ctempArray :pComplexArray;
+    ctempArray1,
+    ctempArray2 :pComplexArray;
     cMinusOne  :Complex;
     AT         :TcMatrix;
 
@@ -1485,29 +1564,35 @@ begin
                           0  1 ..
  }
 
-   Y_OneVolt.Clear;
+   Y_1Volt.Clear;
+   Y_1Volt_NL.Clear;
 
- {Zb.invert * A}
-   ctemparray := AllocMem(SizeOF(ctemparray^[1]) * NumWindings * 2);
+   {Allocate temp complex arrays}
+   ctempArray1 := AllocMem(SizeOF(ctempArray1^[1]) * NumWindings * 2);
+   ctempArray2 := AllocMem(SizeOF(ctempArray2^[1]) * NumWindings * 2);
+
+   
    A          := AllocMem(SizeOF(A^[1]) * NumWindings * 2);
-   cMinusOne := cmplx(-1.0, 0.0);
-   AT        := TcMatrix.Creatematrix(NumWindings);
+   cMinusOne  := cmplx(-1.0, 0.0);
+   AT         := TcMatrix.Creatematrix(NumWindings);
    FOR i := 1 to NumWindings-1 Do AT.SetElement(i+1, i, cONE);
    FOR i := 1 to NumWindings-1 Do AT.SetElement(1,   i, cMinusOne);
-   ctemparray^[NumWindings] := cZero;
+   ctemparray1^[NumWindings] := CZERO;
    FOR i := 1 TO Numwindings Do Begin
      IF i=1 THEN FOR k := 1 to NumWindings-1 Do A^[k] := cMinusOne
             ELSE FOR k := 1 to NumWindings-1 Do IF k=(i-1) THEN A^[k] := cONE
                                                            ELSE A^[k] := cZERO;
-
-     ZB.MVmult(ctemparray, A);
-     AT.MVmult(A, ctemparray); {AT * Result}
-     FOR j := 1 to NumWindings Do Y_OneVolt.SetElement(j, i, A^[j]);
+     ZB.MVmult(ctemparray1, A); {Zb.invert * A}
+     AT.MVmult(ctempArray2, ctemparray1); {AT * Result}
+     FOR j := 1 to NumWindings Do Y_1Volt.SetElement(j, i, ctempArray2^[j]);
    End;
 
 
- {Add magnetizing Reactance to last winding, assuming it is closest to the core}
-  Y_OneVolt.AddElement(NumWindings, NumWindings, Cmplx(0.0, -pctImag/100.0/Zbase));
+ {Add magnetizing Reactance to 2nd winding, assuming it is closest to the core
+  Add both resistive element representing core losses and a reactive element representing
+  magnetizing current
+ }
+  Y_1Volt_NL.AddElement(2, 2, Cmplx((pctNoLoadLoss/100.0/Zbase), -pctImag/100.0/Zbase));
 
 {******************************DEBUG******************************************************}
 {$IFDEF TRANSDEBUG}
@@ -1522,23 +1607,29 @@ begin
 
    AT.Free;
 
-   Y_Terminal.Clear;
+   Y_Term.Clear;
+   Y_Term_NL.Clear;
    AT := TcMatrix.Creatematrix(NumWindings * 2);
 
    FOR i := 1 to   NumWindings Do AT.SetElement(2*i-1, i, Cmplx( 1.0/(Winding^[i].VBase*Winding^[i].puTap), 0.0));
    FOR i := 1 to   NumWindings Do AT.SetElement(2*i,   i, Cmplx(-1.0/(Winding^[i].VBase*Winding^[i].puTap), 0.0));
-   FOR i := 1 to 2*Numwindings Do ctemparray^[i] := cZero;
+   FOR i := 1 to 2*Numwindings Do ctemparray1^[i] := CZERO;
 
    FOR i := 1 TO 2*Numwindings Do Begin
-       FOR k := 1 to NumWindings Do Begin
-           IF i=(2*k-1)  THEN A^[k] := Cmplx(( 1.0/(Winding^[k].VBase*Winding^[k].puTap)), 0.0)
-           ELSE IF i=2*k THEN A^[k] := Cmplx((-1.0/(Winding^[k].VBase*Winding^[k].puTap)), 0.0)
-                         ELSE A^[k] := cZERO;
-       End;
-       Y_OneVolt.MVmult(ctemparray, A);
-       AT.MVmult(A, ctemparray);    {AT * Result}
-       FOR j := 1 to 2 * NumWindings Do Y_Terminal.SetElement(j, i, A^[j]);
+     FOR k := 1 to NumWindings Do Begin
+         IF i=(2*k-1)  THEN A^[k] := Cmplx(( 1.0/(Winding^[k].VBase*Winding^[k].puTap)), 0.0)
+         ELSE IF i=2*k THEN A^[k] := Cmplx((-1.0/(Winding^[k].VBase*Winding^[k].puTap)), 0.0)
+                       ELSE A^[k] := cZERO;
      End;
+     {Main Transformer part}
+     Y_1Volt.MVmult(ctemparray1, A);
+     AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
+     FOR j := 1 to 2 * NumWindings Do Y_Term.SetElement(j, i, ctemparray2^[j]);
+     {No Load part}
+     Y_1Volt_NL.MVmult(ctemparray1, A);
+     AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
+     FOR j := 1 to 2 * NumWindings Do Y_Term_NL.SetElement(j, i, ctemparray2^[j]);
+   End;
 
 {******************************DEBUG******************************************************}
 {$IFDEF TRANSDEBUG}
@@ -1551,7 +1642,7 @@ begin
     the matrix will always invert even if the user neglects to define a voltage
     reference on all sides}
    If ppm_FloatFactorPlusOne <> 1.0 Then
-     WITH Y_Terminal DO
+     WITH Y_Term DO
        FOR i := 1 to NumWindings Do Begin
            j := 2 * i - 1;
            SetElement(j, j, CmulReal_im(GetElement(j, j) , ppm_FloatFactorPlusOne));
@@ -1567,7 +1658,8 @@ begin
 
    AT.Free;
    Reallocmem(A, 0);
-   Reallocmem(ctemparray, 0);
+   Reallocmem(ctemparray1, 0);
+   Reallocmem(ctemparray2, 0);
 
    Y_Terminal_FreqMult := Freqmult;
 

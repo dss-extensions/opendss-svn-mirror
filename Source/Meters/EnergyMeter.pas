@@ -62,7 +62,7 @@ unit EnergyMeter;
 8/2/01  Fixed hole in Local only options.
 4/29/03 Added ReduceZone Function
 2/7/07  Fixed overload formulas
-9/18/08 Added 4 load loss and no load loss registers
+9/18/08 Added load loss and no load loss registers
 }
 
 {$WARN UNIT_PLATFORM OFF}
@@ -73,7 +73,7 @@ Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 24;    // Number of energy meter registers
+Const  NumEMRegisters = 26;    // Number of energy meter registers
 
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -91,14 +91,16 @@ Const  NumEMRegisters = 24;    // Number of energy meter registers
      Reg_Losseskvarh       = 14;
      Reg_LossesMaxkW       = 15;
      Reg_LossesMaxkvar     = 16;
-     Reg_GenkWh            = 17;
-     Reg_Genkvarh          = 18;
-     Reg_GenMaxkW          = 19;
-     Reg_GenMaxkVA         = 20;
-     Reg_LoadLosseskWh     = 21;
-     Reg_NoLoadLosseskWh   = 22;
-     Reg_MaxLoadLosses     = 23;
-     Reg_MaxNoLoadLosses   = 24;
+     Reg_LoadLosseskWh     = 17;
+     Reg_LoadLosseskvarh   = 18;
+     Reg_NoLoadLosseskWh   = 19;
+     Reg_NoLoadLosseskvarh = 20;
+     Reg_MaxLoadLosses     = 21;
+     Reg_MaxNoLoadLosses   = 22;
+     Reg_GenkWh            = 23;
+     Reg_Genkvarh          = 24;
+     Reg_GenMaxkW          = 25;
+     Reg_GenMaxkVA         = 26;
 
 
 Type
@@ -310,7 +312,7 @@ Begin
      CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
      CommandList.Abbrev := TRUE;
 
-     // Set Register names
+     // Set Register names  that correspond to the register quantities
      RegisterNames[1]  := 'kWh';
      RegisterNames[2]  := 'kvarh';
      RegisterNames[3]  := 'Max kW';
@@ -327,14 +329,16 @@ Begin
      RegisterNames[14] := 'Zone Losses kvarh';
      RegisterNames[15] := 'Zone Max kW Losses';
      RegisterNames[16] := 'Zone Max kvar Losses';
-     RegisterNames[17] := 'Gen kWh';
-     RegisterNames[18] := 'Gen kvarh';
-     RegisterNames[19] := 'Gen Max kW';
-     RegisterNames[20] := 'Gen Max kVA';
-     RegisterNames[21] := 'Load Losses kWh';
-     RegisterNames[22] := 'No Load Losses kWh';
-     RegisterNames[23] := 'Max kW Load Losses';
-     RegisterNames[24] := 'Max kW No Load Losses';
+     RegisterNames[17] := 'Load Losses kWh';
+     RegisterNames[18] := 'Load Losses kvarh';
+     RegisterNames[19] := 'No Load Losses kWh';
+     RegisterNames[20] := 'No Load Losses kvarh';
+     RegisterNames[21] := 'Max kW Load Losses';
+     RegisterNames[22] := 'Max kW No Load Losses';
+     RegisterNames[23] := 'Gen kWh';
+     RegisterNames[24] := 'Gen kvarh';
+     RegisterNames[25] := 'Gen Max kW';
+     RegisterNames[26] := 'Gen Max kVA';
 
      GeneratorClass := DSSClassList.Get(ClassNames.Find('generator'));
 
@@ -1080,11 +1084,17 @@ Begin
 
          {Get losses from the present circuit element}
          CktElem.GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses);  // returns watts, vars
+         {Convert to kW}
+          CmulRealAccum(S_TotalLosses,  0.001);
+          CmulRealAccum(S_LoadLosses,   0.001);
+          CmulRealAccum(S_NoLoadLosses, 0.001);
          {Add losses into appropriate registers; convert to kW, kvar}
-         Integrate(Reg_LosseskWh,         S_TotalLosses.re  * 0.001, Delta_Hrs);
-         Integrate(Reg_Losseskvarh,       S_TotalLosses.im  * 0.001, Delta_Hrs);
-         Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re   * 0.001, Delta_Hrs);
-         Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re * 0.001, Delta_Hrs);
+         Integrate(Reg_LosseskWh,         S_TotalLosses.re,  Delta_Hrs);
+         Integrate(Reg_Losseskvarh,       S_TotalLosses.im,  Delta_Hrs);
+         Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re,   Delta_Hrs);
+         Integrate(Reg_LoadLosseskvarh,   S_LoadLosses.im,   Delta_Hrs);
+         Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re, Delta_Hrs);
+         Integrate(Reg_NoLoadLosseskvarh, S_NoLoadLosses.im, Delta_Hrs);
          {Update accumulators}
          Caccum(TotalLosses,       S_TotalLosses); // Accumulate total losses in meter zone
          Caccum(TotalLoadLosses,   S_LoadLosses);  // Accumulate total load losses in meter zone
@@ -1097,7 +1107,9 @@ Begin
      Derivatives[Reg_LosseskWh]       := TotalLosses.Re;
      Derivatives[Reg_Losseskvarh]     := TotalLosses.im;
      Derivatives[Reg_LoadLosseskWh]   := TotalLoadLosses.Re;
+     Derivatives[Reg_LoadLosseskvarh] := TotalLoadLosses.im;
      Derivatives[Reg_NoLoadLosseskWh] := TotalNoLoadLosses.Re;
+     Derivatives[Reg_NoLoadLosseskvarh] := TotalNoLoadLosses.im;
 
      SetDragHandRegister(Reg_LossesMaxkW,    Abs(TotalLosses.Re));
      SetDragHandRegister(Reg_LossesMaxkvar,  Abs(TotalLosses.im));
@@ -1505,13 +1517,12 @@ begin
     iOffset := (MeteredTerminal-1) * MeteredElement.NConds;
     AvgFactor := 0.0;
     FOR i := 1 to Fnphases Do
-       Begin
-         Mag := Cabs(MeteredCurrent^[i + iOffset]);
-         IF   Mag > 0.0
-         THEN PhaseAllocationFactor^[i] := PeakCurrent^[i] / Mag
-         ELSE PhaseAllocationFactor^[i] := 1.0; // No change
-         AvgFactor := AvgFactor + PhaseAllocationFactor^[i];
-       End;
+     Begin
+       Mag := Cabs(MeteredCurrent^[i + iOffset]);
+       IF   Mag > 0.0 THEN PhaseAllocationFactor^[i] := PeakCurrent^[i] / Mag
+                      ELSE PhaseAllocationFactor^[i] := 1.0; // No change
+       AvgFactor := AvgFactor + PhaseAllocationFactor^[i];
+     End;
     AvgFactor := AvgFactor / Fnphases;   // Factor for 2- and 3-phase loads
 
     // Now go through the zone and adjust the loads.
@@ -1534,7 +1545,7 @@ begin
              End;  {CASE}
              LoadElem := BranchList.NextObject
          End;   {While Loadelem}
-     CktElem := BranchList.GoForward;
+       CktElem := BranchList.GoForward;
      End;  {While CktElem}
 
 end;

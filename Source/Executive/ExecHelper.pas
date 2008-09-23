@@ -2420,15 +2420,15 @@ begin
          Solution.Solve;
 
          FOR iCount := 1 to 2 Do
-         Begin
-           pMeter := EnergyMeters.First;
-           WHILE pMeter <> NIL Do
            Begin
-              pMeter.AllocateLoad;
-              pMeter := EnergyMeters.Next;
+             pMeter := EnergyMeters.First;
+             WHILE pMeter <> NIL Do
+             Begin
+                pMeter.AllocateLoad;
+                pMeter := EnergyMeters.Next;
+             End;
+           Solution.Solve;
            End;
-         Solution.Solve;
-         End;
     End;
 end;
 
