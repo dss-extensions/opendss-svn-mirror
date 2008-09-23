@@ -450,7 +450,7 @@ begin
   {For no override, Default behavior is:
     Just return total losses and set LoadLosses=total losses and noload losses =0}
 
-  TotalLosses := Losses;
+  TotalLosses := Losses;  // Watts, vars
   LoadLosses  := TotalLosses;
   NoLoadLosses := CZERO;
 
@@ -633,12 +633,11 @@ Begin
 
      ComputeIterminal;
 
-  // Method: Sum complex power going into all conductors or all terminals
+  // Method: Sum complex power going into all conductors of all terminals
      WITH ActiveCircuit.Solution DO
        FOR k := 1 to Yorder Do Begin
           n := NodeRef^[k];
-          IF  n > 0
-          THEN Begin
+          IF  n > 0 THEN Begin
              IF   ActiveCircuit.PositiveSequence
              THEN  Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
              ELSE  Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));

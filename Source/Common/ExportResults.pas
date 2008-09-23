@@ -904,10 +904,8 @@ Procedure ExportMeters(FileNm:String);
 Begin
 
 
-  If Lowercase(Copy(FileNm,1,2)) = '/m'
-  THEN WriteMultipleMeterFiles
-  ELSE WriteSingleMeterFile(FileNM);
-
+  If Lowercase(Copy(FileNm,1,2)) = '/m' THEN WriteMultipleMeterFiles
+                                        ELSE WriteSingleMeterFile(FileNM);
 End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
