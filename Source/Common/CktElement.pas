@@ -85,7 +85,7 @@ TYPE
 
       FUNCTION  GetYPrim(Var Ymatrix:TCmatrix; Opt:Integer) :Integer; Virtual;  //returns values of array
       FUNCTION  GetYPrimValues(Opt:Integer):pComplexArray; Virtual;
-      FUNCTION  MaxIterminalMag:Double;
+      FUNCTION  MaxTerminalOneIMag:Double;   // Max of Iterminal 1 phase currents
       PROCEDURE ComputeIterminal; Virtual;   // Computes Iterminal for this device
       PROCEDURE ComputeVterminal;
       PROCEDURE ZeroITerminal;
@@ -130,7 +130,7 @@ TYPE
 
 implementation
 
-USES DSSGlobals, SysUtils, Utilities;
+USES DSSGlobals, SysUtils, Utilities, Math;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TCktElement.Create(ParClass:TDSSClass);
@@ -567,18 +567,18 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.MaxIterminalMag:Double;
+FUNCTION TCktElement.MaxTerminalOneIMag:Double;
+
+{ Get max of phase currents on the first terminal; Requires computing Iterminal
+}
 VAR
    i:Integer;
-   Test:Double;
 
 Begin
      Result := 0.0;
      If FEnabled Then
-         For i := 1 to Fnphases DO Begin
-           Test := Cabs(Iterminal^[i]);
-           If Test > Result Then Result := Test;
-         End;
+         For i := 1 to Fnphases DO With Iterminal^[i] Do Result := Max(Result, SQR(re) + SQR(im));
+     Result := Sqrt(Result);  // just do the sqrt once and save a little time
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

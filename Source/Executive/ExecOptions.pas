@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 67;
+        NumExecOptions = 68;
 
 VAR
          ExecOption,
@@ -20,7 +20,7 @@ FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circ
 implementation
 
 Uses DSSGlobals, ParserDel, Math, Executive, ExecHelper,
-     LoadShape, Utilities, sysutils, solution;
+     LoadShape, Utilities, sysutils, solution, energymeter;
 
 
 
@@ -96,6 +96,7 @@ Begin
      ExecOption[65] := 'nodewidth';
      ExecOption[66] := 'log';
      ExecOption[67] := 'recorder';
+     ExecOption[68] := 'overloadreport';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -283,6 +284,7 @@ Begin
      OptionHelp[67] := '{YES/TRUE | NO/FALSE} Default = FALSE. Opens DSSRecorder.DSS in DSS install folder and enables recording of all commands that come through ' +
                        'the text command interface. Closed by either setting to NO/FALSE or exiting the program. ' +
                        'When closed by this command, the file name can be found in the Result. Does not require a circuit defined.';
+     OptionHelp[68] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets overload reports on/off. DemandInterval must be set to true for this to have effect.';
 End;
 //----------------------------------------------------------------------------
 FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circuit
@@ -338,6 +340,7 @@ VAR
    ParamName:String;
    Param:String;
    TestLoadShapeObj :TLoadShapeObj;
+
 
 Begin
 
@@ -446,12 +449,13 @@ Begin
                  ActiveCircuit.PctNormalFactor := Parser.DblValue;
                  DoSetNormal(ActiveCircuit.PctNormalFactor);
                End;
-           62: EnergyMeterClass.DI_Verbose := InterpretYesNo(Param);
-           63: ActiveCircuit.CaseName := Parser.StrValue;
-           64: ActiveCircuit.NodeMarkerCode := Parser.IntValue;
+           62: EnergyMeterClass.DI_Verbose   := InterpretYesNo(Param);
+           63: ActiveCircuit.CaseName        := Parser.StrValue;
+           64: ActiveCircuit.NodeMarkerCode  := Parser.IntValue;
            65: ActiveCircuit.NodeMarkerWidth := Parser.IntValue;
-           66: ActiveCircuit.LogEvents := InterpretYesNo(Param);
-           67: DSSExecutive.RecorderOn := InterpretYesNo(Param);
+           66: ActiveCircuit.LogEvents       := InterpretYesNo(Param);
+           67: DSSExecutive.RecorderOn       := InterpretYesNo(Param);
+           68: EnergyMeterClass.Do_OverloadReport := InterpretYesNo(Param);
          ELSE
            // Ignore excess parameters
          End;

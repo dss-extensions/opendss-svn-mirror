@@ -126,6 +126,7 @@ Type
         Procedure WriteRegisterNames(Var F:TextFile);
 
      protected
+
         Procedure OpenDemandIntervalFile;
         Procedure WriteDemandIntervalData;
         Procedure CloseDemandIntervalFile;
@@ -145,21 +146,25 @@ Type
 
    TEnergyMeter = class(TMeterClass)    // derive strait from base class
      private
-        GeneratorClass:TGenerator;
-        FSaveDemandInterval: Boolean;
-        FDI_Verbose: Boolean;
+        GeneratorClass      :TGenerator;
+        FSaveDemandInterval :Boolean;
+        FDI_Verbose         :Boolean;
+        FOverLoadFile       :Textfile;
         PROCEDURE ProcessOptions(Const Opts:String);
         procedure Set_SaveDemandInterval(const Value: Boolean);
         Procedure CreateMeterTotals;
         Procedure CreateFDI_Totals;
         Procedure ClearDI_Totals;
         Procedure WriteTotalsFile;
+        Procedure OpenOverloadReportFile;
+        Procedure WriteOverloadReport;
         Procedure InterpretRegisterMaskArray(Var Mask:TRegisterArray);
         procedure Set_DI_Verbose(const Value: Boolean);
+
      Protected
         Procedure DefineProperties;
-        Function MakeLike(Const EnergyMeterName:String):Integer;   Override;
-        procedure  SetHasMeterFlag;
+        Function  MakeLike(Const EnergyMeterName:String):Integer;   Override;
+        procedure SetHasMeterFlag;
      public
        RegisterNames      :Array[1..NumEMregisters] of String;
        DI_RegisterTotals  :TRegisterArray;
@@ -168,6 +173,8 @@ Type
        FDI_Totals    :TextFile;
        FMeterTotals  :TextFile;
        SystemMeter   :TSystemMeter;
+       Do_OverloadReport   :Boolean;
+       OverLoadFileIsOpen :Boolean;
 
        constructor Create;
        destructor Destroy; override;
@@ -302,8 +309,11 @@ Begin
 
      ActiveElement := 0;
 
+     {Initialice demand interval options to off}
      FSaveDemandInterval := FALSE;
-     FDI_Verbose := FALSE;
+     FDI_Verbose         := FALSE;
+     Do_OverloadReport   := FALSE;  // FSaveDemandInterval must be true for this to have an effect
+     OverLoadFileIsOpen  := FALSE;
      
      DI_Dir := '';
      
@@ -712,6 +722,8 @@ Begin
         For i := 1 to NumEMRegisters Do Write(FDI_Totals, Format('%-.6g, ',[DI_RegisterTotals[i]]));
         Writeln(FDI_Totals);
         ClearDI_Totals;
+        if OverLoadFileIsOpen then WriteOverloadReport;
+
       End;
 
       // Sample Generator Objects, too
@@ -1998,9 +2010,9 @@ Var i:Integer;
 
 begin
       If EnergyMeterClass.FDI_Verbose and This_Meter_DIFileIsOpen Then Begin
-        With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g, ',[(Hour + dynavars.t/3600.0)]));
-        For i := 1 to NumEMRegisters Do Write(DI_File, Format('%-.6g, ',[Derivatives[i]]));
-        Writeln(DI_File);
+          With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g, ',[(Hour + dynavars.t/3600.0)]));
+          For i := 1 to NumEMRegisters Do Write(DI_File, Format('%-.6g, ',[Derivatives[i]]));
+          Writeln(DI_File);
       End;
 
       {Add to Class demand interval registers}
@@ -2021,18 +2033,23 @@ Begin
             On E:Exception Do DoSimpleMsg('Error on Rewrite of totals file: '+E.Message, 536);
         End;
 
+        {Close all the DI file for each meter}
         mtr := ActiveCircuit.EnergyMeters.First;
-        WHILE mtr<>NIL DO
-        Begin
+        WHILE mtr<>NIL DO Begin
             IF mtr.enabled Then mtr.CloseDemandIntervalFile;
             mtr := ActiveCircuit.EnergyMeters.Next;
         End;
+
         WriteTotalsFile;  // Sum all energymeter registers to "Totals.CSV"
         SystemMeter.CloseDemandIntervalFile;
         SystemMeter.Save;
         CloseFile(FMeterTotals);
         CloseFile(FDI_Totals);
         DIFilesAreOpen := FALSE;
+        if OverloadFileIsOpen then Begin
+            CloseFile(FOverloadFile);
+            OverloadFileIsOpen := FALSE;
+        End;
       End;
 end;
 
@@ -2104,6 +2121,44 @@ procedure TEnergyMeter.Set_SaveDemandInterval(const Value: Boolean);
 begin
   FSaveDemandInterval := Value;
   ResetAll;
+end;
+
+procedure TEnergyMeter.WriteOverloadReport;
+Var
+   PDelem  :TPDelement;
+   Cmax    :double;
+
+begin
+{ Scans the active circuit for overloaded PD elements and writes each to a file
+  This is called only if in Demand Interval (DI) mode and the file is open.
+}
+
+ { CHECK PDELEMENTS ONLY}
+     PDelem := ActiveCircuit.PDElements.First;
+     WHILE PDelem<>nil DO Begin
+       IF (PDelem.Enabled)and (Not PDelem.IsShunt)  THEN Begin   // Ignore shunts
+
+          IF (PdElem.Normamps > 0.0) OR (PdElem.Emergamps>0.0) THEN Begin
+             PDelem.ComputeIterminal;
+             Cmax := PDelem.MaxTerminalOneImag; // For now, check only terminal 1 for overloads
+             IF (Cmax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps) THEN Begin
+                 With ActiveCircuit.Solution Do
+                   Write(FOverLoadFile, Format('%-.6g,',[(Hour + dynavars.t/3600.0)]));
+                 Write(FOverLoadFile, Format(' %s, %-.g, %-.g,',[FullName(PDelem), PDElem.NormAmps, pdelem.EmergAmps ]));
+                 IF PDElem.Normamps > 0.0  THEN Write(FOverLoadFile, Format(' %-.g,',[Cmax/PDElem.Normamps*100.0]))
+                                           ELSE Write(FOverLoadFile,' 0.0,');
+                 IF PDElem.Emergamps > 0.0 THEN Write(FOverLoadFile, Format(' %-.g,',[Cmax/PDElem.Emergamps*100.0 ]))
+                                           ELSE Write(FOverLoadFile,' 0.0,');
+                 With ActiveCircuit Do {Find bus of first terminal}
+                   Write(FoverLoadFile, Format(' %-.g ', [Buses^[MapNodeToBus^[PDElem.NodeRef^[1]].BusRef].kVBase ]));
+
+                 Writeln(FOverLoadFile);
+             END;
+
+          End; { }
+       End;
+        PDelem := ActiveCircuit.PDElements.Next;
+     End;
 end;
 
 procedure TEnergyMeter.ClearDI_Totals;
@@ -2311,7 +2366,6 @@ begin
    Write(SystemDIFile, Format(', %-g', [cLosses.im]));
    Write(SystemDIFile, Format(', %-g', [PeakLosseskW]));
    Writeln(SystemDIFile);
-
 end;
 
 procedure TSystemMeter.WriteRegisterNames(var F: TextFile);
@@ -2432,6 +2486,8 @@ begin
 
           SystemMeter.OpenDemandIntervalFile;
 
+          if Do_OverloadReport then OpenOverloadReportFile;
+
           {Open FDI_Totals}
           Try
              CreateFDI_Totals;
@@ -2444,6 +2500,21 @@ begin
 
       End;{IF}
 
+
+end;
+
+procedure TEnergyMeter.OpenOverloadReportFile;
+begin
+  Try
+      IF OverloadFileIsOpen Then CloseFile(FOverLoadFile);
+
+      AssignFile(FOverLoadFile, EnergyMeterClass.DI_Dir+'\DI_Overloads.CSV');
+      Rewrite(FOverLoadFile);
+      OverloadFileIsOpen := TRUE;
+      Writeln(FOverLoadFile,'"Hour", "Element", "Normal Amps", "Emerg Amps", "% Normal", "% Emerg", "kVBase"');
+  Except
+      On E:Exception Do DosimpleMsg('Error opening demand interval file "DI_SystemMeter.CSV"  for writing.'+CRLF+E.Message, 541);
+  End;
 
 end;
 

@@ -21,6 +21,8 @@ Function PadTrunc(Const S:String; Width:Integer):String;
 Function IntArrayToString( iarray:pIntegerArray; count:integer):String;
 Function EncloseQuotes(Const s:String):String;
 Procedure ShowMessageBeep(Const s:String);
+Function FullName(pElem :TCktElement):String;
+
 
 {Parsing Utilities}
 PROCEDURE ParseObjectClassandName(const FullObjName :String; Var ClassName, ObjName :String);
@@ -170,6 +172,12 @@ Function PadTrunc(Const S:String; Width:Integer):String;
 BEGIN
      Result := Copy(Pad(S, Width), 1, Width);
 END;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Function FullName(pElem :TCktElement):String;
+Begin
+    Result := EncloseQuotes(pElem.DSSClassName + '.' + pElem.Name);
+End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Function StripExtension(const S:String):String;

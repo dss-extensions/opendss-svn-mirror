@@ -39,11 +39,6 @@ VAR
    MaxBusNameLength :Integer;
    MaxDeviceNameLength :Integer;
 
-Function FullName(pElem :TCktElement):String;
-Begin
-    Result := EncloseQuotes(pElem.DSSClassName + '.' + pElem.Name);
-End;
-
 
 Procedure SetMaxBusNameLength;
  Var

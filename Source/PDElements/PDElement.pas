@@ -102,7 +102,7 @@ Begin
      End;
 
      kVA    := CmulReal(Power, 0.001);  // Also forces computation of Current into Itemp
-     Factor := (MaxIterminalMag/NormAmps - 1.0);
+     Factor := (MaxTerminalOneIMag/NormAmps - 1.0);
      IF    (Factor > 0.0) THEN  Begin
         OverLoad_EEN := Factor;
         Factor := 1.0 - 1.0/(Factor + 1.0);   // To get factor
@@ -132,8 +132,7 @@ Begin
 
      kVA := CmulReal(Power, 0.001);  // Also forces computation of Current into Itemp
 
-    // MaxItempMag is a FUNCTION that returns the biggest value in Itemp
-     Factor := (MaxIterminalMag/EmergAmps-1.0);
+     Factor := (MaxTerminalOneIMag/EmergAmps-1.0);
      IF    Factor > 0.0
      THEN  Begin
         Overload_UE := Factor;
