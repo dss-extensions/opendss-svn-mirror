@@ -171,7 +171,7 @@ Begin
                          'Mutually exclusive to specifying parameters by kvar or X.';
      PropertyHelp^[9] := '{Yes | No}  Default=No. Indicates whether Rmatrix and Xmatrix are to be considered in parallel. ' +
                          'Default is series. For other models, specify R and Rp.';
-     PropertyHelp^[10] := 'Resistance (is series with reactance), each phase, ohms.';
+     PropertyHelp^[10] := 'Resistance (in series with reactance), each phase, ohms.';
      PropertyHelp^[11] := 'Reactance, each phase, ohms at base frequency.';
      PropertyHelp^[12] := 'Resistance in parallel with R and X (the entire branch). Assumed infinite if not specified.';
 
@@ -567,9 +567,9 @@ BEGIN
          Yprim.Clear;
     End;
 
-    IF   IsShunt
-    THEN YPrimTemp := YPrim_Shunt
-    ELSE YPrimTemp := Yprim_Series;
+    IF  IsShunt  THEN YPrimTemp := YPrim_Shunt
+                 ELSE YPrimTemp := Yprim_Series;
+
 
     WITH YPrimTemp DO
     BEGIN
@@ -649,7 +649,7 @@ BEGIN
                  FOR i := 1 to Fnphases Do  BEGIN
                     FOR j := 1 to Fnphases Do  BEGIN
                        Value := Zmatrix.GetElement(i,j);
-                       SetElement(i,j,Value);
+                       SetElement(i, j, Value);
                        SetElement(i+Fnphases, j+Fnphases, Value);
                        Value := cnegate(Value);
                        SetElemSym(i, j+Fnphases, Value);
@@ -663,12 +663,15 @@ BEGIN
 
     END; {With YPRIM}
 
-
     // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages doesn't fail
-    If IsShunt Then For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
+    If IsShunt Then Begin
+       if (Nphases=1) and (not ActiveCircuit.PositiveSequence) then  // assume a neutral or grounding reactor; Leave diagonal in the circuit
+          For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, Yprim_Shunt.Getelement(i, i))
+       Else
+          For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
+    End;
 
     Yprim.Copyfrom(YPrimTemp);
-
     {Don't Free YPrimTemp - It's just a pointer to an existing complex matrix}
 
     Inherited CalcYPrim;

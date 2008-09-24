@@ -24,6 +24,7 @@ unit Load;
     5-17-01 Moved Spectrum definition back to PCElement
     2-18-03 Changed Rneut default to -1
             Created a Y_Series with small conductances on the diagonal so that calcV doesn't fail
+    9-23-08 Added CVR Factors
 }
 
 interface
@@ -58,6 +59,8 @@ TYPE
         Fixed                   :Boolean;   // IF Fixed, always at base value
         FpuMean                 :Double;
         FpuStdDev               :Double;
+        FCVRwattFactor          :Double;
+        FCVRvarFactor           :Double;
         HarmAng                 :pDoubleArray;  // References for Harmonics mode
         HarmMag                 :pDoubleArray;
         LastGrowthFactor        :Double;
@@ -98,15 +101,13 @@ TYPE
         PROCEDURE DoFixedQ;
         PROCEDURE DoFixedQZ;
         PROCEDURE DoHarmonicMode;
-        PROCEDURE DoLinearPLoad;
+        PROCEDURE DoCVRModel;
         PROCEDURE DoMotorTypeLoad;
         FUNCTION  GrowthFactor(Year:Integer):Double;
         PROCEDURE StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
 
-        //FUNCTION Get_PresentkW:Double;
-        //FUNCTION Get_Presentkvar:Double;
-        FUNCTION Get_Unserved:Boolean;
-        FUNCTION Get_ExceedsNormal:Boolean;
+        FUNCTION  Get_Unserved:Boolean;
+        FUNCTION  Get_ExceedsNormal:Boolean;
         PROCEDURE Set_AllocationFactor(const Value: Double);
         PROCEDURE Set_ConnectedkVA(const Value: Double);
         PROCEDURE ComputeAllocatedLoad;
@@ -117,73 +118,63 @@ TYPE
 
       public
 
-        BaseFrequency           :double ;
-        Connection              :Integer;  {0 = line-neutral; 1=Delta}
-        DailyShape              :String;  // Daily (24 HR) load shape
-        DailyShapeObj           :TLoadShapeObj;  // Daily load Shape FOR this load
-        DutyShape               :String;  // Duty cycle load shape FOR changes typically less than one hour
-        DutyShapeObj            :TLoadShapeObj;  // Shape for this load
-        EEN_Factor              :Double;  // is overloaded  Factor is the amount of overload
-        GrowthShape             :String;  // (year, Multiplier from previous year)
-        GrowthShapeObj          :TGrowthShapeObj;  // Shape for this Growth  Curve
-        HasBeenAllocated        :Boolean;
-        kWBase                  :Double;
-        kVABase                 :Double;
-        kvarBase                :Double;
-        kVLoadBase              :Double;
-        LoadClass               :Integer;
-        LoadSpecType            :Integer;  // 0=kW, PF;  1= kw, kvar;  2=kva, PF
-        PFNominal               :Double;
-        Rneut                   :Double;
-        UE_Factor               :Double;  // These are set to > 0 IF a line in the critical path
-        Xneut                   :Double;  // Neutral impedance
-        YearlyShape             :String;  // ='fixed' means no variation  exempt from variation
-        YearlyShapeObj          :TLoadShapeObj;  // Shape for this load
+        BaseFrequency      :double ;
+        Connection         :Integer;  {     0 = line-neutral; 1=Delta}
+        DailyShape         :String;         // Daily (24 HR) load shape
+        DailyShapeObj      :TLoadShapeObj;  // Daily load Shape FOR this load
+        DutyShape          :String;         // Duty cycle load shape FOR changes typically less than one hour
+        DutyShapeObj       :TLoadShapeObj;  // Shape for this load
+        EEN_Factor         :Double;         // is overloaded  Factor is the amount of overload
+        GrowthShape        :String;         // (year, Multiplier from previous year)
+        GrowthShapeObj     :TGrowthShapeObj;  // Shape for this Growth  Curve
+        HasBeenAllocated   :Boolean;
+        kWBase             :Double;
+        kVABase            :Double;
+        kvarBase           :Double;
+        kVLoadBase         :Double;
+        LoadClass          :Integer;
+        LoadSpecType       :Integer;  // 0=kW, PF;  1= kw, kvar;  2=kva, PF
+        PFNominal          :Double;
+        Rneut              :Double;
+        UE_Factor          :Double;  // These are set to > 0 IF a line in the critical path
+        Xneut              :Double;  // Neutral impedance
+        YearlyShape        :String;  // ='fixed' means no variation  exempt from variation
+        YearlyShapeObj     :TLoadShapeObj;  // Shape for this load
 
         FLoadModel:Integer;   // Variation with voltage
           {  1 = Constant kVA (P,Q always in same ratio)
              2 = Constant impedance
              3 = Constant P, Quadratic Q (Mostly motor)
-             4 = Linear P, Quadratic Q  (Mixed motor/resistive
+             4 = Linear P, Quadratic Q  (Mixed motor/resistive Use this for CVR studies
              5 = Constant |I|
              6 = Constant P (Variable); Q is fixed value (not variable)
              7 = Constant P (Variable); Q is fixed Z (not variable)
           }
-
-
 
         constructor Create(ParClass :TDSSClass; const SourceName :String);
         destructor  Destroy; override;
 
         PROCEDURE RecalcElementData; Override;
         PROCEDURE CalcYPrim; Override;
-
         FUNCTION  InjCurrents:Integer; Override;
         PROCEDURE GetInjCurrents(Curr:pComplexArray); Override;
-
         PROCEDURE InitHarmonics;
-
         PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
-        
         PROCEDURE SetNominalLoad;
         PROCEDURE Randomize(Opt:Integer);
-        // 0 = reset to 1.0
-        // 1 = Gaussian around mean and std Dev
-        // 2 = uniform
+                  // 0 = reset to 1.0
+                  // 1 = Gaussian around mean and std Dev
+                  // 2 = uniform
 
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-       // Property PresentkW    :Double  Read Get_PresentkW;
-       // Property Presentkvar  :Double  Read Get_Presentkvar;
         Property Unserved     :Boolean Read Get_Unserved;
         Property ExceedsNormal:Boolean Read Get_ExceedsNormal;
 
-       
-
         Property AllocationFactor :Double Read FAllocationFactor Write Set_AllocationFactor;
-        Property ConnectedkVA :Double Read FConnectedkVA Write Set_ConnectedkVA;
+        Property ConnectedkVA     :Double Read FConnectedkVA     Write Set_ConnectedkVA;
    End;
 
 Var
@@ -195,7 +186,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSGlobals, Dynamics, Sysutils, Command, Math, MathUtil, Utilities;
 
-Const  NumPropsThisClass = 25;
+Const  NumPropsThisClass = 27;
 
 Var  CDOUBLEONE:Complex;
 
@@ -260,59 +251,61 @@ Begin
      PropertyName[23] := 'kVA';  // specify load in kVA and PF
      PropertyName[24] := '%mean';  // per cent default mean
      PropertyName[25] := '%stddev';  // per cent default standard deviation
+     PropertyName[26] := 'CVRwatts';  // Percent watts reduction per 1% reduction in voltage from nominal
+     PropertyName[27] := 'CVRvars';  // Percent vars reduction per 1% reduction in voltage from nominal
 
 
      // define Property help values
      PropertyHelp[1] := 'Number of Phases, this load.  Load is evenly divided among phases.';
      PropertyHelp[2] := 'Bus to which the load is connected.  May include specific node specification.';
      PropertyHelp[3] := 'Nominal rated (1.0 per unit) voltage, kV, for load. For 2- and 3-phase loads, specify phase-phase kV. '+
-                    'Otherwise, specify actual kV across each branch of the load. '+
-                    'If wye (star), specify phase-neutral kV. '+
-                    'If delta or phase-phase connected, specify phase-phase kV.';  // line-neutral voltage
+                        'Otherwise, specify actual kV across each branch of the load. '+
+                        'If wye (star), specify phase-neutral kV. '+
+                        'If delta or phase-phase connected, specify phase-phase kV.';  // line-neutral voltage
      PropertyHelp[4] := 'Total base kW for the load.  Normally, you would enter the maximum kW for the load for the first year '+
-                    'and allow it to be adjusted by the load shapes, growth shapes, and global load multiplier.'+CRLF+CRLF+
-                    'Legal ways to define base load:'+CRLF+
-                    'kW, PF'+CRLF+
-                    'kW, kvar'+CRLF+
-                    'kVA, PF';
+                        'and allow it to be adjusted by the load shapes, growth shapes, and global load multiplier.'+CRLF+CRLF+
+                        'Legal ways to define base load:'+CRLF+
+                        'kW, PF'+CRLF+
+                        'kW, kvar'+CRLF+
+                        'kVA, PF';
      PropertyHelp[5] := 'Load power factor.  Enter negative for leading powerfactor (when kW and kvar have opposite signs.)';
      PropertyHelp[6] := 'Integer code for the model to use for load variation with voltage. '+
-                    'Valid values are:' +CRLF+CRLF+
-                    '1:Standard constant P+jQ load. (Default)'+CRLF+
-                    '2:Constant impedance load. '+CRLF+
-                    '3:Const P, Quadratic Q (like a motor).'+CRLF+
-                    '4:Linear P, Quadratic Q (feeder mix)'+CRLF+
-                    '5:Constant Current Magnitude'+CRLF+
-                    '6:Const P, Fixed Q'+CRLF+
-                    '7:Const P, Fixed Impedance Q'+CRLF+CRLF+
-                    'For Types 6 and 7, only the P is modified by load multipliers.';
+                        'Valid values are:' +CRLF+CRLF+
+                        '1:Standard constant P+jQ load. (Default)'+CRLF+
+                        '2:Constant impedance load. '+CRLF+
+                        '3:Const P, Quadratic Q (like a motor).'+CRLF+
+                        '4:Nominal Linear P, Quadratic Q (feeder mix). Use this with CVRfactor.'+CRLF+
+                        '5:Constant Current Magnitude'+CRLF+
+                        '6:Const P, Fixed Q'+CRLF+
+                        '7:Const P, Fixed Impedance Q'+CRLF+CRLF+
+                        'For Types 6 and 7, only the P is modified by load multipliers.';
      PropertyHelp[7] := 'Load shape to use for yearly simulations.  Must be previously defined '+
-                    'as a Loadshape object. Defaults to Daily load shape ' +
-                    ' when Daily is defined.  The daily load shape is repeated in this case. '+
-                    'Otherwise, the default is no variation.';
+                        'as a Loadshape object. Defaults to Daily load shape ' +
+                        ' when Daily is defined.  The daily load shape is repeated in this case. '+
+                        'Otherwise, the default is no variation.';
      PropertyHelp[8] := 'Load shape to use for daily simulations.  Must be previously defined '+
-                    'as a Loadshape object of 24 hrs, typically. ' +
-                    'Default is no variation (constant) if not defined. ' +
-                    'Side effect: Sets Yearly load shape if not already defined.';
+                        'as a Loadshape object of 24 hrs, typically. ' +
+                        'Default is no variation (constant) if not defined. ' +
+                        'Side effect: Sets Yearly load shape if not already defined.';
      PropertyHelp[9] := 'Load shape to use for duty cycle simulations.  Must be previously defined '+
-                    'as a Loadshape object.  Typically would have time intervals less than 1 hr. '+
-                    'Designate the number of points to solve using the Set Number=xxxx command. '+
-                    'If there are fewer points in the actual shape, the shape is assumed to repeat.'+
-                    ' Defaults to Daily curve If not specified.';
+                        'as a Loadshape object.  Typically would have time intervals less than 1 hr. '+
+                        'Designate the number of points to solve using the Set Number=xxxx command. '+
+                        'If there are fewer points in the actual shape, the shape is assumed to repeat.'+
+                        ' Defaults to Daily curve If not specified.';
      PropertyHelp[10] := 'Characteristic  to use for growth factors by years.  Must be previously defined '+
-                    'as a Growthshape object. Defaults to circuit default growth factor (see Set Growth command).';
+                         'as a Growthshape object. Defaults to circuit default growth factor (see Set Growth command).';
      PropertyHelp[11] := '={wye or LN | delta or LL}.  Default is wye.';
      PropertyHelp[12] := 'Specify the base kvar for specifying load as kW & kvar.  Assumes kW has been already defined.  Alternative to specifying the power factor.  Side effect: '+
-                     ' the power factor and kVA is altered to agree.';
+                         ' the power factor and kVA is altered to agree.';
      PropertyHelp[13] := 'Neutral resistance of wye (star)-connected load in actual ohms.' +
-                     'If entered as a negative value, the neutral is assumed to be open, or floating.';
+                         'If entered as a negative value, the neutral is assumed to be open, or floating.';
      PropertyHelp[14] := 'Neutral reactance of wye(star)-connected load in actual ohms.  May be + or -.';
      PropertyHelp[15] := '={Variable | Fixed | Exempt}.  Default is variable. If Fixed, no load multipliers apply;  however, growth '+
-                     'multipliers do apply.  All multipliers apply to Variable loads.  Exempt loads are not '+
-                     'modified by the global load multiplier, such as in load duration curves, etc.  Daily multipliers '+
-                     'do apply, so this is a good way to represent industrial load that stays the same for the period study.';  // fixed or variable
+                         'multipliers do apply.  All multipliers apply to Variable loads.  Exempt loads are not '+
+                         'modified by the global load multiplier, such as in load duration curves, etc.  Daily multipliers '+
+                         'do apply, so this is a good way to represent industrial load that stays the same for the period study.';  // fixed or variable
      PropertyHelp[16] := 'An arbitrary integer number representing the class of load so that load values may '+
-                     'be segregated by load value. Default is 1; not used internally.';
+                         'be segregated by load value. Default is 1; not used internally.';
      PropertyHelp[17] := 'Default = 0.95.  Minimum per unit voltage for which the MODEL is assumed to apply. ' +
                          'Below this value, the load model reverts to a constant impedance model.';
      PropertyHelp[18] := 'Default = 1.05.  Maximum per unit voltage for which the MODEL is assumed to apply. ' +
@@ -336,7 +329,12 @@ Begin
                           'kVA, PF';
      PropertyHelp[24] := 'Percent mean value for load to use for monte carlo studies if no loadshape is assigned to this load. Default is 50.';
      PropertyHelp[25] := 'Percent Std deviation value for load to use for monte carlo studies if no loadshape is assigned to this load. Default is 10.';
-
+     PropertyHelp[26] := 'Percent reduction in active power (watts) per 1% reduction in voltage from 100% rated. Default=1. ' +CRLF +
+                         ' Typical values range from 0.4 to 0.8. Applies to Model=4 only.' + CRLF +
+                         ' Intended to represent conservation voltage reduction or voltage optimization measures.';
+     PropertyHelp[27] := 'Percent reduction in reactive power (vars) per 1% reduction in voltage from 100% rated. Default=2. ' +CRLF +
+                         ' Typical values range from 2 to 3. Applies to Model=4 only.' + CRLF +
+                         ' Intended to represent conservation voltage reduction or voltage optimization measures.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -348,10 +346,9 @@ End;
 FUNCTION TLoad.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new load object and add it to Load class list
-    WITH ActiveCircuit Do
-    Begin
+    WITH ActiveCircuit Do Begin
       ActiveCktElement := TLoadObj.Create(Self, ObjName);
-      Result := AddObjectToList(ActiveDSSObject);
+      Result           := AddObjectToList(ActiveDSSObject);
     End;
 End;
 
@@ -359,15 +356,15 @@ End;
 PROCEDURE TLoad.SetNcondsForConnection;
 
 Begin
-  WITH ActiveLoadObj DO
-  Begin
+  WITH ActiveLoadObj DO Begin
    CASE Connection OF
      0: NConds  := Fnphases +1;
      1: CASE Fnphases OF
          1,2: NConds := Fnphases +1; // L-L and Open-delta
         ELSE
-         NConds := Fnphases;
+              NConds := Fnphases;
         End;
+   ELSE  {nada}
    End;
   End;
 End;
@@ -375,19 +372,19 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TLoad.InterpretConnection(const S:String);
 
-// Accepts
+// Accepts     (checks only min number of chars required}
 //    delta or LL           (Case insensitive)
 //    Y, wye, or LN
 Var
     TestS:String;
 
 Begin
-        WITH ActiveLoadObj DO 
+        WITH ActiveLoadObj DO
         Begin
             TestS := lowercase(S);
             CASE TestS[1] OF
               'y','w': Connection := 0;  {Wye}
-              'd': Connection := 1;  {Delta or line-Line}
+                  'd': Connection := 1;  {Delta or line-Line}
               'l': CASE Tests[2] OF
                    'n': Connection := 0;
                    'l': Connection := 1;
@@ -414,7 +411,6 @@ Begin
 
 End;
 
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FUNCTION TLoad.Edit:Integer;
 Var
@@ -429,27 +425,24 @@ Begin
 
   Result := 0;
 
-  WITH ActiveLoadObj
-  DO Begin
-
+  WITH ActiveLoadObj  DO Begin
      ParamPointer := 0;
      ParamName := Parser.NextParam;
      Param := Parser.StrValue;
-     WHILE   (Length(Param) > 0)
-     DO Begin
-         IF   (Length(ParamName) = 0) THEN Inc(ParamPointer)
+     WHILE   (Length(Param) > 0) DO Begin
+         IF  (Length(ParamName) = 0) THEN Inc(ParamPointer)
          ELSE ParamPointer := CommandList.GetCommand(ParamName);
 
          IF (ParamPointer>0) and (ParamPointer<=NumProperties) THEN PropertyValue[ParamPointer]:= Param;
 
          CASE ParamPointer OF
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 580);
-            1: Nphases    := Parser.Intvalue; // num phases
+            1: Nphases      := Parser.Intvalue; // num phases
             2: SetBus(1, param);
             3: kVLoadBase   := Parser.DblValue;
             4: kWBase       := Parser.DblValue;
             5: PFNominal    := Parser.DblValue;
-            6: FLoadModel    := Parser.IntValue;
+            6: FLoadModel   := Parser.IntValue;
             7: YearlyShape  := Param;
             8: DailyShape   := Param;
             9: DutyShape    := Param;
@@ -459,11 +452,10 @@ Begin
            13: Rneut        := Parser.DblValue;
            14: Xneut        := Parser.DblValue;
            15: CASE Param[1] OF
-                  'f':Begin Fixed := TRUE; ExemptFromLDCurve := FALSE; End;
+                  'f':Begin Fixed := TRUE;  ExemptFromLDCurve := FALSE; End;
                   'e':Begin Fixed := FALSE; ExemptFromLDCurve := TRUE;  End;
                ELSE
-                    Fixed := FALSE;
-                    ExemptFromLDCurve := FALSE;
+                            Fixed := FALSE; ExemptFromLDCurve := FALSE;
                END;
            16: LoadClass     := Parser.IntValue;
            17: VMinPu        := Parser.DblValue;
@@ -475,6 +467,8 @@ Begin
            23: kVABase       := Parser.DblValue;
            24: FpuMean       := Parser.DblValue/100.0;
            25: FpuStdDev     := Parser.DblValue/100.0;
+           26: FCVRwattFactor:= Parser.DblValue;
+           27: FCVRvarFactor := Parser.DblValue;
          ELSE
            // Inherited edits
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
@@ -486,12 +480,12 @@ Begin
             3: Begin
                   CASE Connection OF
                     1: VBase := kVLoadBase * 1000.0 ;
-                    ELSE
-                        Case Fnphases Of
-                         2,3: VBase := kVLoadBase * 577.4;
-                         ELSE
-                             VBase := kVLoadBase * 1000.0 ;
-                         End;
+                  ELSE  {wye}
+                    Case Fnphases Of
+                     2,3: VBase := kVLoadBase * 577.4;
+                     ELSE
+                          VBase := kVLoadBase * 1000.0 ; {1-phase or unknown}
+                     End;
                   End;
                End;
             4: LoadSpecType := 0;
@@ -529,15 +523,13 @@ Begin
    {See IF we can find this line name in the present collection}
    OtherLoad := Find(OtherLoadName);
    IF OtherLoad<>Nil THEN
-   WITH ActiveLoadObj DO Begin
+     WITH ActiveLoadObj DO Begin
 
        IF Fnphases <> OtherLoad.Fnphases THEN Begin
          Nphases := OtherLoad.Fnphases;
          NConds  := Fnphases;  // Forces reallocation of terminal stuff
-
-         Yorder := Fnconds*Fnterms;
-         YPrimInvalid := True;
-
+         Yorder  := Fnconds*Fnterms;
+         YPrimInvalid := TRUE;
        End;
 
        kVLoadBase     := OtherLoad.kVLoadBase;
@@ -569,9 +561,11 @@ Begin
        LoadClass      := OtherLoad.LoadClass;
        FLoadModel     := OtherLoad.FLoadModel;
        Fixed          := OtherLoad.Fixed;
-       ExemptFromLDCurve   := OtherLoad.ExemptFromLDCurve;
-       FAllocationFactor   := OtherLoad.FAllocationFactor;
-       FConnectedkVA       := OtherLoad.FConnectedkVA;
+       ExemptFromLDCurve := OtherLoad.ExemptFromLDCurve;
+       FAllocationFactor := OtherLoad.FAllocationFactor;
+       FConnectedkVA     := OtherLoad.FConnectedkVA;
+       FCVRwattFactor    := OtherLoad.FCVRwattFactor;
+       FCVRvarFactor     := OtherLoad.FCVRvarFactor;
 
        ClassMakeLike(OtherLoad);  // Take care of inherited class properties
 
@@ -579,8 +573,8 @@ Begin
        FOR i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherLoad.PropertyValue[i];
 
        Result := 1;
-   End
-   ELSE  DoSimpleMsg('Error in Load MakeLike: "' + OtherLoadName + '" Not Found.', 581);
+     End
+     ELSE  DoSimpleMsg('Error in Load MakeLike: "' + OtherLoadName + '" Not Found.', 581);
 
 End;
 
@@ -591,22 +585,20 @@ Var
 
 Begin
 
-   IF Handle = 0
-   THEN Begin  // init all
+   IF Handle = 0 THEN Begin  // init all load objects
      p := elementList.First;
-     WHILE p<>nil DO
-     Begin
+     WHILE p<>nil DO Begin
         p.Randomize(0);
         p := elementlist.Next;
      End;
    End
    ELSE Begin
      Active := Handle;
-     p := GetActiveObj;
+     p      := GetActiveObj;
      p.Randomize(0);
    End;
 
-   DoSimpleMsg('Need to implement TLoad.Init', -1);
+   DoSimpleMsg('Need to finish implementation TLoad.Init', -1);
    Result := 0;
 End;
 
@@ -618,40 +610,43 @@ Begin
      DSSObjType := ParClass.DSSClassType ;
 
      Fnphases      := 3;
-     Fnconds       := 4;  // defaults to wye
-     Yorder       := 0;  // To trigger an initial allocation
-     Nterms := 1;  // forces allocations
-     kWBase       := 10.0;
-     kvarBase     := 5.0;
-     PFNominal    := 0.88;
-     kVABase      := kWBase / PFNominal;
-     LoadSpecType := 0;
-     Rneut        := -1.0;
-     Xneut        := 0.0;
-     YearlyShape  := '';
+     Fnconds       := 4;  // defaults to wye  so it has a 4th conductor
+     Yorder        := 0;  // To trigger an initial allocation
+     Nterms        := 1;  // forces allocations
+     kWBase        := 10.0;
+     kvarBase      := 5.0;
+     PFNominal     := 0.88;
+     kVABase       := kWBase / PFNominal;
+     LoadSpecType  := 0;
+     Rneut         := -1.0;  // signify neutral is open
+     Xneut         := 0.0;
+
+     YearlyShape    := '';
      YearlyShapeObj := nil;  // IF YearlyShapeobj = nil THEN the load alway stays nominal * global multipliers
      DailyShape     := '';
-     DailyShapeObj := nil;  // IF DaillyShapeobj = nil THEN the load alway stays nominal * global multipliers
-     DutyShape     := '';
-     DutyShapeObj  := nil;  // IF DutyShapeobj = nil THEN the load alway stays nominal * global multipliers
-     Growthshape   := '';
+     DailyShapeObj  := nil;  // IF DaillyShapeobj = nil THEN the load alway stays nominal * global multipliers
+     DutyShape      := '';
+     DutyShapeObj   := nil;  // IF DutyShapeobj = nil THEN the load alway stays nominal * global multipliers
+     Growthshape    := '';
      GrowthShapeObj := nil;  // IF grwothshapeobj = nil THEN the load alway stays nominal * global multipliers
      Connection     := 0;    // Wye (star)
      FLoadModel     := 1;  // changed from 2 RCD {easiest to solve}
      LoadClass      := 1;
-     LastYear       :=0;
-     LastGrowthFactor:=1.0;
-     FAllocationFactor := 0.5;
-     HasBeenAllocated := FALSE;
-     FConnectedkVA := 0.0;
+     LastYear       := 0;
+     FCVRwattFactor := 1.0;
+     FCVRvarFactor  := 2.0;
 
-     LoadSolutionCount     := -1;  // FOR keep track of the present solution in Injcurrent calcs
+     LastGrowthFactor  :=1.0;
+     FAllocationFactor := 0.5;
+     HasBeenAllocated  := FALSE;
+
+     LoadSolutionCount     := -1;  // for keeping track of the present solution in Injcurrent calcs
      OpenLoadSolutionCount := -1;
      YPrimOpenCond         := nil;
 
-     VminNormal            := 0.0;    // indicates FOR program to use Circuit quantities
-     VminEmerg             := 0.0;
-
+     FConnectedkVA  := 0.0;
+     VminNormal     := 0.0;    // indicates for program to use Circuit quantities
+     VminEmerg      := 0.0;
      Basefrequency  := 60.0;
      kVLoadBase     := 12.47;
      VBase          := 7200.0;
@@ -664,16 +659,13 @@ Begin
      Fixed          := FALSE;
      ExemptFromLDCurve := FALSE;
 
-     FpuMean   := 0.5;
-     FpuStdDev := 0.1;
-
+     FpuMean    := 0.5;
+     FpuStdDev  := 0.1;
      UE_Factor  := 0.0;
      EEN_Factor := 0.0;
-
-     Spectrum := 'defaultload';  // override base class definition
-
-     HarmMag := NIL;
-     HarmAng := NIL;
+     Spectrum   := 'defaultload';  // override base class definition
+     HarmMag    := NIL;
+     HarmAng    := NIL;
 
      InitPropertyValues(0);
 
@@ -696,11 +688,15 @@ PROCEDURE TLoadObj.Randomize(Opt:Integer);
 Begin
    CASE Opt OF
        0: RandomMult := 1.0;
-       GAUSSIAN: If Assigned(YearlyShapeObj) Then RandomMult := Gauss(YearlyShapeObj.Mean, YearlyShapeObj.StdDev)
-                 Else RandomMult := Gauss(FpuMean, FpuStdDev);
-       UNIFORM: RandomMult := Random;  // number between 0 and 1.0
-       LOGNORMAL: If Assigned(YearlyShapeObj) Then RandomMult := QuasiLognormal(YearlyShapeObj.Mean)
-                  Else RandomMult := QuasiLognormal(FpuMean);
+       GAUSSIAN:
+           If Assigned(YearlyShapeObj) Then RandomMult := Gauss(YearlyShapeObj.Mean, YearlyShapeObj.StdDev)
+                                       Else RandomMult := Gauss(FpuMean, FpuStdDev);
+       UNIFORM:   RandomMult := Random;  // number between 0 and 1.0
+       LOGNORMAL:
+           If Assigned(YearlyShapeObj) Then RandomMult := QuasiLognormal(YearlyShapeObj.Mean)
+                                       Else RandomMult := QuasiLognormal(FpuMean);
+   ELSE
+       {nada}
    End;
 End;
 
@@ -726,8 +722,7 @@ Var
    Hr:Double;
 
 Begin
-     IF DutyShapeObj <> Nil
-     THEN Begin
+     IF DutyShapeObj <> Nil THEN Begin
        Hr := Hour + Sec/3600.0;    // Convert to hours
        ShapeFactor := DutyShapeObj.GetMult(Hr);
      End
@@ -739,9 +734,9 @@ Procedure TLoadObj.CalcYearlyMult(Hour:Integer);
 
 Begin
 {Yearly curve is assumed to be hourly only}
- IF   YearlyShapeObj<>Nil
- THEN ShapeFactor := YearlyShapeObj.GetMult((Hour))
- ELSE ShapeFactor := Cmplx(1.0, 1.0);  // Defaults to no variation
+ IF   YearlyShapeObj<>Nil THEN ShapeFactor := YearlyShapeObj.GetMult((Hour))
+                          ELSE ShapeFactor := Cmplx(1.0, 1.0);
+                          // Defaults to no variation
 
 End;
 
@@ -750,16 +745,14 @@ FUNCTION TLoadObj.GrowthFactor(Year:Integer):Double;
 
 Begin
     IF Year = 0 Then
-       LastGrowthFactor := 1.0      // default all to 1 in year 0
-                                    // use base values
+       LastGrowthFactor := 1.0  // default all to 1 in year 0 ; use base values
     ELSE
-    Begin
-      IF GrowthShapeObj=Nil THEN
-        //  LastGrowthFactor := IntPower(Activecircuit.DefaultGrowthRate, (Year-1))
-        LastGrowthFactor := Activecircuit.DefaultGrowthFactor
-      ELSE IF Year <> LastYear THEN    // Search growthcurve
-        LastGrowthFactor := GrowthShapeObj.GetMult(Year);
-    end;
+      Begin
+        IF GrowthShapeObj=Nil THEN
+            LastGrowthFactor := Activecircuit.DefaultGrowthFactor
+        ELSE IF Year <> LastYear THEN    // Search growthcurve
+            LastGrowthFactor := GrowthShapeObj.GetMult(Year);
+      end;
 
     Result := LastGrowthFactor;  // for Now
 End;
@@ -771,8 +764,8 @@ Var
    Factor:Double;
 
 Begin
-    ShapeFactor := CDOUBLEONE;
-    WITH ActiveCircuit.Solution DO
+  ShapeFactor := CDOUBLEONE;
+  WITH ActiveCircuit.Solution DO
     IF Fixed THEN Begin
        Factor := GrowthFactor(Year);   // FOR fixed loads, consider only growth factor
     End
@@ -780,18 +773,20 @@ Begin
        CASE Mode OF
          SNAPSHOT,
          HARMONICMODE,
-         DYNAMICMODE: IF   ExemptFromLDCurve
-                      THEN Factor := GrowthFactor(Year)
-                      ELSE Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
-         DAILYMODE:   IF   ExemptFromLDCurve
-                      THEN Begin Factor :=  GrowthFactor(Year); CalcDailyMult(Hour, Dynavars.t); End
-                      ELSE Begin Factor := ActiveCircuit.LoadMultiplier  * GrowthFactor(Year); CalcDailyMult(Hour, Dynavars.t); End;
+         DYNAMICMODE: IF   ExemptFromLDCurve THEN Factor := GrowthFactor(Year)
+                                             ELSE Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
+         DAILYMODE:   IF   ExemptFromLDCurve THEN Begin
+                                                    Factor := GrowthFactor(Year);
+                                                    CalcDailyMult(Hour, Dynavars.t);
+                                             End ELSE Begin
+                                                    Factor := ActiveCircuit.LoadMultiplier  * GrowthFactor(Year);
+                                                    CalcDailyMult(Hour, Dynavars.t);
+                                             End;
          YEARLYMODE:  Begin Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year); CalcYearlyMult(Hour); End;
          MONTECARLO1: Begin
                         Randomize(RandomType);
-                        IF   ExemptFromLDCurve
-                        THEN Factor := RandomMult * GrowthFactor(Year)
-                        ELSE Factor := ActiveCircuit.LoadMultiplier * RandomMult * GrowthFactor(Year);
+                        IF   ExemptFromLDCurve THEN Factor := RandomMult * GrowthFactor(Year)
+                                               ELSE Factor := ActiveCircuit.LoadMultiplier * RandomMult * GrowthFactor(Year);
                       End;
          MONTECARLO2,
          MONTECARLO3,
@@ -811,14 +806,12 @@ Begin
     WNominal   := 1000.0 * kWBase   * Factor * ShapeFactor.re / Fnphases ;
     varNominal := 1000.0 * kvarBase * Factor * ShapeFactor.im / Fnphases;
 
-    Yeq     := CDivReal(Cmplx(WNominal, -VarNominal), Sqr(Vbase));
-    IF   (Vminpu <> 0.0)
-    THEN Yeq95 := CDivReal(Yeq, sqr(Vminpu))   // at 95% voltage
-    ELSE Yeq95 := CZERO;
+    Yeq := CDivReal(Cmplx(WNominal, -VarNominal), Sqr(Vbase));
+    IF   (Vminpu <> 0.0) THEN Yeq95 := CDivReal(Yeq, sqr(Vminpu))   // at 95% voltage
+                         ELSE Yeq95 := CZERO;
 
-    IF   (Vmaxpu <> 0.0 )
-    THEN Yeq105 := CDivReal(Yeq, sqr(Vmaxpu))   // at 105% voltage
-    ELSE Yeq105 := Yeq;
+    IF   (Vmaxpu <> 0.0 ) THEN Yeq105 := CDivReal(Yeq, sqr(Vmaxpu))   // at 105% voltage
+                          ELSE Yeq105 := Yeq;
 
 
 End;
@@ -843,7 +836,7 @@ Begin
           {Don't need to do anything}
         End;
       2:Begin  {kVA, PF}
-          kWbase := kVABase * Abs(PFNominal);
+          kWbase   := kVABase * Abs(PFNominal);
           kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
           IF PFNominal < 0.0 THEN kvarBase := -kvarBase;
         End;
@@ -867,11 +860,11 @@ Begin
     If SpectrumObj=Nil Then DoSimpleMsg('ERROR! Spectrum "'+Spectrum+'" Not Found.', 587);
 
     IF Rneut<0.0 THEN  // flag FOR open neutral
-       YNeut := Cmplx(0.0, 0.0)
+         YNeut := Cmplx(0.0, 0.0)
     ELSE IF (Rneut=0.0) and (Xneut=0.0) THEN // Solidly Grounded
-       YNeut := Cmplx(1.0e6, 0.0)  // 1 microohm resistor
+         YNeut := Cmplx(1.0e6, 0.0)  // 1 microohm resistor
     ELSE
-       YNeut := Cinv(Cmplx(Rneut, XNeut));
+         YNeut := Cinv(Cmplx(Rneut, XNeut));
 
     varBase := 1000.0*kvarBase/Fnphases;
     YQFixed := -varBase/ Sqr(VBase);
@@ -890,11 +883,11 @@ Var
 
 Begin
 
-     FYprimFreq := ActiveCircuit.Solution.Frequency;
+     FYprimFreq     := ActiveCircuit.Solution.Frequency;
      FreqMultiplier := FYprimFreq/BaseFrequency;
-     Y := Yeq;
-     Y.im := Y.im / FreqMultiplier;
-     Yij := Cnegate(Y);
+     Y    := Yeq;
+     Y.im := Y.im / FreqMultiplier;  {Correct reactive part for frequency}
+     Yij  := Cnegate(Y);
 
        CASE Connection OF
 
@@ -905,12 +898,11 @@ Begin
                  Ymatrix.SetElemsym(i,Fnconds,Yij);
                End;
                Ymatrix.AddElement(Fnconds, Fnconds, YNeut);  // Neutral
-               // If neutral is floating, make sure there is some small connection to ground
+
+               { If neutral is floating, make sure there is some small
+                 connection to ground  by increasing the last diagonal slightly }
                If Rneut<0.0 then
-                 Begin
-                     Y := Ymatrix.GetElement(Fnconds, Fnconds);
-                     Ymatrix.SetElement(Fnconds, Fnconds, Cmulreal(Y, 1.000001));
-                 End;
+                   Ymatrix.SetElement(Fnconds, Fnconds, Cmulreal(Ymatrix.GetElement(Fnconds, Fnconds), 1.000001));
             End;
          1: Begin  // Delta  or L-L
                 FOR i := 1 to Fnphases DO Begin
@@ -939,14 +931,14 @@ Begin
 
 // Build only YPrim Shunt for a Load  then Copy to YPrim
 // Build a dummy Yprim Series so that CalcV does not fail
-     IF YPrimInvalid
-     THEN Begin
-         IF YPrim_Shunt <> nil THEN Yprim_Shunt.Free;
-         YPrim_Shunt := TcMatrix.CreateMatrix(Yorder);
+     IF YPrimInvalid THEN Begin
+         IF YPrim_Shunt <> nil  THEN Yprim_Shunt.Free;
          IF YPrim_Series <> nil THEN Yprim_Series.Free;
+         IF YPrim <> nil        THEN Yprim.Free;
+
          YPrim_Series := TcMatrix.CreateMatrix(Yorder);
-         IF YPrim <> nil THEN Yprim.Free;
-         YPrim := TcMatrix.CreateMatrix(Yorder);
+         YPrim_Shunt  := TcMatrix.CreateMatrix(Yorder);
+         YPrim        := TcMatrix.CreateMatrix(Yorder);
      End
      ELSE Begin
          YPrim_Shunt.Clear;
@@ -954,22 +946,13 @@ Begin
          YPrim.Clear;
      End;
 
+     IF ActiveCircuit.Solution.LoadModel=POWERFLOW  THEN Begin
 
-     IF ActiveCircuit.Solution.LoadModel=POWERFLOW
-     THEN Begin
-
-         // Put in only YNeut IF wye connected load ELSE leave as zero
-        // IF Connection=0 THEN
-        //    YPrim_Shunt.SetElement(NConds, NConds, YNeut);
-
-        // 12-7-99 Test to see IF this give better convergence FOR Newton
-         SetNominalLoad;
+         SetNominalLoad;         // same as admittance model
          CalcYPrimMatrix(YPrim_Shunt);
-         
-     End
-     ELSE Begin
 
-         // ADMITTANCE model wanted
+     End
+     ELSE Begin   // ADMITTANCE model wanted
 
          SetNominalLoad;
          CalcYPrimMatrix(YPrim_Shunt);
@@ -981,7 +964,7 @@ Begin
 
      YPrim.CopyFrom(YPrim_Shunt);
 
-     // Account FOR Open Conductors
+     // Account for Open Conductors
      Inherited CalcYPrim;
 
 End;
@@ -996,14 +979,13 @@ Begin
     CASE Connection OF
 
          0: Begin  //Wye
-                 Caccum(TermArray^[i], Cnegate(Curr) );
-                 Caccum(TermArray^[Fnconds], Curr ); // Neutral
+                 Caccum(TermArray^[i],       Cnegate(Curr) );
+                 Caccum(TermArray^[Fnconds], Curr          ); // Neutral
             End;
 
          1: Begin //DELTA
                  Caccum(TermArray^[i], Cnegate(Curr) );
-                 j := i+1;
-                 IF j>Fnconds THEN j := 1;
+                 j := i+1; IF j>Fnconds THEN j := 1;  // rotate the phases
                  Caccum(TermArray^[j], Curr );
             End;
     End;
@@ -1014,7 +996,7 @@ PROCEDURE TLoadObj.DoConstantPQLoad;
 
 Var
    i    :Integer;
-   Curr,
+   Curr :Complex;
    V    :Complex;
    Vmag :Double;
 
@@ -1024,16 +1006,13 @@ Begin
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
 
-    FOR i := 1 to Fnphases DO
-    Begin
-        V    := Vterminal^[i];
-        VMag := Cabs(V);
+    FOR i := 1 to Fnphases DO Begin
+      V    := Vterminal^[i];
+      VMag := Cabs(V);
 
-        IF   VMag <= VBase95
-        THEN Curr := Cmul(Yeq95, V)  // Below 95% use an impedance model
-        ELSE IF VMag > VBase105
-        THEN Curr := Cmul(Yeq105, V)  // above 105% use an impedance model
-        ELSE Curr := Conjg(Cdiv(Cmplx(WNominal,varNominal), V));  // Above 95%, constant PQ
+      IF      VMag <= VBase95 THEN Curr := Cmul(Yeq95,  V)  // Below 95% use an impedance model
+      ELSE IF VMag > VBase105 THEN Curr := Cmul(Yeq105, V)  // above 105% use an impedance model
+      ELSE Curr := Conjg(Cdiv(Cmplx(WNominal,varNominal), V));  // Above 95%, constant PQ
 
       StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
       IterminalUpdated := TRUE;
@@ -1058,9 +1037,9 @@ Begin
 
      FOR i := 1 to Fnphases DO Begin
         Curr := Cmul(Yeq, Vterminal^[i]);
-      StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
-      IterminalUpdated := TRUE;
-      StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
+        StickCurrInTerminalArray(ITerminal,  Cnegate(Curr), i);  // Put into Terminal array taking into account connection
+        IterminalUpdated := TRUE;
+        StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
      End;
 
 End;
@@ -1070,7 +1049,7 @@ PROCEDURE TLoadObj.DoMotorTypeLoad;
 // Constant P, quadratic Q
 Var
    i      :Integer;
-   Curr,
+   Curr   :Complex;
    V      :Complex;
    VMag   :Double;
 
@@ -1102,9 +1081,9 @@ PROCEDURE TLoadObj.DoConstantILoad;
 // Constant Current Load
 
 Var
-   i:Integer;
-
-   V, Curr:Complex;
+   i    :Integer;
+   V    :Complex;
+   Curr :Complex;
 
 Begin
 
@@ -1135,13 +1114,18 @@ End;
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-PROCEDURE TLoadObj.DoLinearPLoad;
+PROCEDURE TLoadObj.DoCVRModel;
 // Linear P, quadratic Q
 
 Var
-   i:Integer;
-   Y, V, Curr:Complex;
-   Factor:Double;
+   i    :Integer;
+   Y    :Complex;
+   V    :Complex;
+   Curr :Complex;
+   Cvar :Complex;  // var current
+   WattFactor :Double;
+   VarFactor  :Double;
+   Vmag       :Double;
 
 Begin
 
@@ -1149,14 +1133,28 @@ Begin
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
 
-    Y := Cmplx(0.0, Yeq.im);
+    Y := Cmplx(0.0, Yeq.im);  // Working variable
 
     FOR i := 1 to Fnphases DO Begin
-        V := Vterminal^[i];
-        Factor := Cabs(V)/VBase;   // vbase is l-n FOR wye and l-l FOR delta
-        If Factor>0.0 Then Curr := Conjg(Cdiv(Cmplx(WNominal * Factor, 0.0), V))
-        Else               Curr := CZERO; // P component of current
-        Caccum(Curr, Cmul(Y, V));  // add in Q component of current
+        V    := Vterminal^[i];
+        Vmag := Cabs(V);
+        WattFactor := (1.0 +(Vmag - VBase)/VBase*FCVRwattFactor);   // vbase is l-n FOR wye and l-l FOR delta
+        If WattFactor > 0.0 Then Curr := Conjg(Cdiv(Cmplx(WNominal * WattFactor, 0.0), V))
+                            Else Curr := CZERO; // P component of current
+
+        {Compute Q component of current}
+        If FCVRvarFactor = 2.0 Then    {Check for easy, quick ones first}
+             Cvar := Cmul(Y, V) // 2 is same as Constant impedance
+        Else If FCVRvarFactor = 3.0 Then Begin
+             VarFactor := math.intpower((Vmag/Vbase), 3);
+             Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
+        End Else Begin
+            {Other Var factor code here if not squared or cubed}
+             VarFactor := math.power((Vmag/Vbase), FCVRvarFactor);
+             Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
+        End;
+        Caccum(Curr, Cvar);  // add in Q component of current
+
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
         IterminalUpdated := TRUE;
         StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
@@ -1182,13 +1180,11 @@ Begin
     FOR i := 1 to Fnphases DO Begin
         V    := Vterminal^[i];
         VMag := Cabs(V);
-        IF   VMag <= VBase95
-        THEN Curr := Cmul(Cmplx(Yeq95.re, YQfixed), V)  // Below 95% use an impedance model
-        ELSE IF VMag > VBase105
-        THEN Curr := Cmul(Cmplx(Yeq105.re, YQfixed), V)  // above 105% use an impedance model
+        IF      VMag <= VBase95 THEN Curr := Cmul(Cmplx(Yeq95.re,  YQfixed), V)  // Below 95% use an impedance model
+        ELSE IF VMag > VBase105 THEN Curr := Cmul(Cmplx(Yeq105.re, YQfixed), V)  // above 105% use an impedance model
         ELSE Begin
-          Curr := Conjg(Cdiv(Cmplx(WNominal, varBase), V));
-        End;
+                Curr := Conjg(Cdiv(Cmplx(WNominal, varBase), V));
+             End;
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
         IterminalUpdated := TRUE;
         StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
@@ -1206,23 +1202,19 @@ Var
 
 Begin
 
-
     CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
 
-
     FOR i := 1 to Fnphases DO Begin
         V:=Vterminal^[i];
         Vmag := Cabs(V);
-        IF   Vmag <= VBase95
-        THEN Curr := Cmul(Cmplx(Yeq95.re, YQfixed), V)  // Below 95% use an impedance model
-        ELSE IF VMag > VBase105
-        THEN Curr := Cmul(Cmplx(Yeq105.re, YQfixed), V)
+        IF      Vmag <= VBase95  THEN Curr := Cmul(Cmplx(Yeq95.re,  YQfixed), V)  // Below 95% use an impedance model
+        ELSE IF VMag >  VBase105 THEN Curr := Cmul(Cmplx(Yeq105.re, YQfixed), V)
         ELSE Begin
               Curr := Conjg(Cdiv(Cmplx(WNominal, 0.0), V)); // P component of current
               Caccum(Curr, Cmul(Cmplx(0.0, YQFixed ), V));  // add in Q component of current
-        End;
+             End;
 
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
         IterminalUpdated := TRUE;
@@ -1267,11 +1259,11 @@ Var i,j:Integer;
 Begin
       Result := True;
       FOR i := 1 to Nterms Do
-      FOR j := 1 to NConds Do
-       IF Not Terminals^[i].Conductors^[j].Closed THEN Begin
-           Result := False;
-           Exit;
-      End;
+        FOR j := 1 to NConds Do
+         IF Not Terminals^[i].Conductors^[j].Closed THEN Begin
+             Result := False;
+             Exit;
+         End;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
@@ -1287,19 +1279,16 @@ Begin
      0:Begin
          WITH ActiveCircuit.Solution DO
           FOR i := 1 to Fnphases DO
-          Begin
              Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds]);
-         End;
        End;
 
      1:Begin
          WITH ActiveCircuit.Solution DO
-          FOR i := 1 to Fnphases DO
-          Begin
-             j := i+1;
-             IF j>Fnconds THEN j:=1;
-             Vterminal^[i] := VDiff( NodeRef^[i] , NodeRef^[j]);
-         End;
+            FOR i := 1 to Fnphases DO   Begin
+               j := i+1;
+               IF j>Fnconds THEN j:=1;
+               Vterminal^[i] := VDiff( NodeRef^[i] , NodeRef^[j]);
+            End;
        End;
 
    End;
@@ -1326,12 +1315,12 @@ Begin
               1: DoConstantPQLoad; // normal load-flow type load
               2: DoConstantZLoad;
               3: DoMotorTypeLoad;  // Constant P, Quadratic Q;
-              4: DoLinearPLoad;   // Approx 50/50 mixed motor/resistive load
+              4: DoCVRModel;       // mixed motor/resistive load   with CVR factors
               5: DoConstantILoad;
-              6: DoFixedQ;             // Fixed Q
-              7: DoFixedQZ;            // Fixed, constant Z Q
+              6: DoFixedQ;         // Fixed Q
+              7: DoFixedQZ;        // Fixed, constant Z Q
            ELSE
-              DoConstantZLoad;  // FOR now, until we implement the other models.
+              DoConstantZLoad;     // FOR now, until we implement the other models.
            End;
 
    End;
@@ -1360,7 +1349,7 @@ Begin
 
    ELSE Begin
 
-   /// THIS MAY NOT WORK !!!
+   /// THIS MAY NOT WORK !!! WATCH FOR BAD RESULTS
 
    // some terminals not closed  use admittance model FOR injection
       IF OpenLoadSolutionCount <> ActiveCircuit.Solution.SolutionCount THEN Begin
@@ -1424,20 +1413,15 @@ FUNCTION TLoadObj.InjCurrents:Integer;
 
 // Get the injection currents and add them directly into the Currents array
 
-
 Begin
 
-    Result := 0;
+   Result := 0;
    IF Enabled THEN
-     WITH ActiveCircuit.Solution DO
-     Begin
-       If LoadsNeedUpdating then SetNominalLoad; // Set the nominal kW, etc. for the type of solution being done
-
-       CalcInjCurrentArray;
-
-       Result := Inherited Injcurrents;  // Add into Global Currents Array
-
-    End;
+     WITH ActiveCircuit.Solution DO Begin
+         If LoadsNeedUpdating then SetNominalLoad; // Set the nominal kW, etc. for the type of solution being done
+         CalcInjCurrentArray;
+         Result := Inherited Injcurrents;  // Add into Global Currents Array
+       End;
 
 End;
 
@@ -1445,7 +1429,6 @@ End;
 PROCEDURE TLoadObj.GetInjCurrents(Curr:pComplexArray);
 
 // Gets the injection  currents for the last solution performed
-
 // Do not call SetNominalLoad, as that may change the load values
 
 Var
@@ -1454,38 +1437,20 @@ Var
 Begin
 
    TRY
-
-   IF Enabled THEN Begin
-        CalcInjCurrentArray;
-
-     // Copy into buffer array
-        FOR i := 1 TO Yorder DO Curr^[i] := InjCurrent^[i];
-
-   End
-   ELSE FOR i := 1 TO Yorder DO Curr^[i] := cZero;
-
+     IF Enabled THEN Begin
+          CalcInjCurrentArray;
+       // Copy into buffer array
+          FOR i := 1 TO Yorder DO Curr^[i] := InjCurrent^[i];
+     End
+     ELSE FOR i := 1 TO Yorder DO Curr^[i] := cZero;
    EXCEPT
      ON E: Exception DO
         DoErrorMsg('Load Object: "' + Name + '" in GetInjCurrents FUNCTION.',
                     E.Message,
-                   'Current buffer not big enough.', 588);
+                   'Current buffer may not big enough.', 588);
    End;
 
 End;
-
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-(*      Removed 5-30-00     because nobody's using these values
-FUNCTION TLoadObj.Get_PresentkW:Double;
-Begin
-     Result := Wnominal * 0.001 * Fnphases;
-End;
-
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-FUNCTION TLoadObj.Get_Presentkvar:Double;
-Begin
-     Result := varNominal * 0.001 * Fnphases;
-End;
-*)
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 FUNCTION TLoadObj.Get_Unserved:Boolean;
@@ -1611,7 +1576,7 @@ Begin
           CASE i of
                4: Writeln(F,'~ ',PropertyName^[i],'=', kWBase:8:1);
                5: Writeln(F,'~ ',PropertyName^[i],'=', PFNominal:5:3);
-               12: Writeln(F,'~ ',PropertyName^[i],'=', kvarBase:8:1);
+              12: Writeln(F,'~ ',PropertyName^[i],'=', kvarBase:8:1);
               22: Writeln(F,'~ ',PropertyName^[i],'=', FAllocationFactor:5:3);
               23: Writeln(F,'~ ',PropertyName^[i],'=', kVABase:8:1);
           ELSE
@@ -1649,30 +1614,29 @@ end;
 
 PROCEDURE TLoadObj.InitHarmonics;
 {
-   Get the present terminal currents and store for harmonics reference;
-
+   Get the present terminal currents and store for harmonics base reference;
 }
 Var
      Currents:pComplexArray;
      i  :Integer;
 begin
-
+     {Make Sure there's enuff memory}
      ReallocMem(HarmMag, Sizeof(HarmMag^[1]) * FNphases);
      ReallocMem(HarmAng, Sizeof(HarmAng^[1]) * FNphases);
-     Currents := AllocMem(Sizeof(Currents^[1])*Yorder);
+     Currents := AllocMem(Sizeof(Currents^[1])*Yorder);   // to hold currents
 
      LoadFundamental := ActiveCircuit.Solution.Frequency;
 
      GetCurrents(Currents);
-
+     {Store the currents at fundamental frequency.
+      The spectrum is applied to these.
+     }
      FOR i := 1 to Fnphases Do Begin
          HarmMag^[i] := Cabs(Currents^[i]);
          HarmAng^[i] := Cdang(Currents^[i]);
      End;
 
-     ReallocMem(Currents, 0);
-
-
+     ReallocMem(Currents, 0);  // get rid of temp space
 end;
 
 
@@ -1706,6 +1670,8 @@ begin
      PropertyValue[23] := '11.3636';
      PropertyValue[24] := '50';
      PropertyValue[25] := '10';
+     PropertyValue[26] := '1';  // CVR watt factor
+     PropertyValue[27] := '2';  // CVR var factor
 
 
 
