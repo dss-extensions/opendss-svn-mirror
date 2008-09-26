@@ -15,10 +15,11 @@ interface
  }
 
 USES
-   Arraydef, Command, DSSClass, DSSObject, uCMatrix, OHLineConstants, WireData;
+   Sysutils, Arraydef, Command, DSSClass, DSSObject, uCMatrix, OHLineConstants, WireData;
 
 
 TYPE
+   ELineGeometryProblem = class(Exception);
 
    TLineGeometry = class(TDSSClass)
      private
@@ -68,6 +69,8 @@ TYPE
         function  Get_RhoEarth:Double;
         procedure Set_RhoEarth(const Value: Double);
         function  get_Nconds: Integer;
+        Procedure UpdateLineGeometryData(f:Double);   // call this before using the line data
+
 
       public
 
@@ -77,21 +80,16 @@ TYPE
         constructor Create(ParClass:TDSSClass; const LineGeometryName:String);
         destructor Destroy; override;
 
-        Property Nconds:Integer     read get_Nconds  write set_Nconds;
-        Property Nphases:Integer    read FNphases    write set_Nphases;
-        Property ActiveCond:Integer read FActiveCond write set_ActiveCond;
-
-        Property Zmatrix [f, Lngth:double; Units:Integer]:Tcmatrix read Get_Zmatrix;
-        Property YCmatrix[f, Lngth:double; Units:Integer]:Tcmatrix read Get_YCmatrix;
-
-        Property RhoEarth:Double           Read Get_RhoEarth Write Set_RhoEarth;
-
-        Procedure UpdateLineGeometryData(f:Double);   // call this before using the line data
-
         FUNCTION  GetPropertyValue(Index:Integer):String; Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
+        Property Nconds:Integer     read get_Nconds  write set_Nconds;
+        Property Nphases:Integer    read FNphases    write set_Nphases;
+        Property ActiveCond:Integer read FActiveCond write set_ActiveCond;
+        Property Zmatrix [f, Lngth:double; Units:Integer]:Tcmatrix read Get_Zmatrix;
+        Property YCmatrix[f, Lngth:double; Units:Integer]:Tcmatrix read Get_YCmatrix;
+        Property RhoEarth:Double    Read Get_RhoEarth Write Set_RhoEarth;
    end;
 
 VAR
@@ -99,7 +97,7 @@ VAR
 
 implementation
 
-USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Utilities,  LineUNits;
+USES  ParserDel,  DSSGlobals,  Ucomplex, Utilities,  LineUNits;
 
 Const      NumPropsThisClass = 10;
 
@@ -266,7 +264,7 @@ BEGIN
        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherLineGeometry.PropertyValue[i];
        Result := 1;
    END
-   ELSE  DoSimpleMsg('Error in Line MakeLike: "' + LineName + '" Not Found.', 102);
+   ELSE  DoSimpleMsg('Error in LineGeometry MakeLike: "' + LineName + '" Not Found.', 102);
 
 
 END;
@@ -313,6 +311,8 @@ END;
 //      TLineGeometry Obj
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+
 constructor TLineGeometryObj.Create(ParClass:TDSSClass; const LineGeometryName:String);
 
 BEGIN
@@ -329,7 +329,7 @@ BEGIN
       Funits      := nil;
       FLineData   := Nil;
 
-      Nconds      := 3;  // Allocates
+      Nconds      := 3;  // Allocates terminals
       FNphases    := 3;
       ActiveCond  := 1;
       FLastUnit   := UNITS_FT;
@@ -418,15 +418,17 @@ end;
 function TLineGeometryObj.Get_YCmatrix(f, Lngth: double;
   Units: Integer): Tcmatrix;
 begin
+    Result := Nil;
     If DataChanged Then UpdateLineGeometryData(f);
-    Result := FLineData.YCMatrix[f, Lngth, Units];
+    If Not SolutionAbort Then Result := FLineData.YCMatrix[f, Lngth, Units];
 end;
 
 function TLineGeometryObj.Get_Zmatrix(f, Lngth: double;
   Units: Integer): Tcmatrix;
 begin
+   Result := Nil;
    If DataChanged Then UpdateLineGeometryData(f);
-   Result := FLineData.ZMatrix[F, Lngth, Units];
+   If Not SolutionAbort Then Result := FLineData.ZMatrix[F, Lngth, Units];
 end;
 
 procedure TLineGeometryObj.InitPropertyValues(ArrayOffset: Integer);
@@ -463,10 +465,11 @@ begin
   FLineData := TOHLineConstants.Create(FNconds);  // set number phases=number conductors
   FcondType := AllocStringArray(FNconds);
 
-  FWireData := Allocmem(Sizeof(FWireData^[1])*FNconds);
-  FX        := Allocmem(Sizeof(FX^[1])*FNconds);
-  FY        := Allocmem(Sizeof(FY^[1])*FNconds);
-  FUnits    := Allocmem(Sizeof(Funits^[1])*FNconds);
+  {Allocations}
+  FWireData := Allocmem(Sizeof(FWireData^[1]) *FNconds);
+  FX        := Allocmem(Sizeof(FX^[1])        *FNconds);
+  FY        := Allocmem(Sizeof(FY^[1])        *FNconds);
+  FUnits    := Allocmem(Sizeof(Funits^[1])    *FNconds);
   For i := 1 to FNconds Do FUnits^[i] := -1;  // default to ft
   FLastUnit := UNITS_FT;
 
@@ -484,7 +487,8 @@ begin
 end;
 
 procedure TLineGeometryObj.UpdateLineGeometryData(f:Double);
-Var i:Integer;
+Var i   :Integer;
+    LineGeomErrMsg :String;
 begin
 
      For i := 1 to FNconds Do Begin
@@ -496,11 +500,17 @@ begin
      End;
 
      FLineData.Nphases := FNphases;
-
-     FLineData.Calc(f);
-     If FReduce Then FLineData.Reduce; // reduce out neutrals
-
      DataChanged := FALSE;
+
+     {Before we calc, check for bad conductor definitions}
+     if FLineData.ConductorsInSameSpace(LineGeomErrMsg) then Begin
+         Raise ELineGeometryProblem.Create('Error in LineGeometry.'+Name+': '+LineGeomErrMsg);
+         SolutionAbort := TRUE;
+     End Else Begin
+         FLineData.Calc(f);
+         If FReduce Then FLineData.Reduce; // reduce out neutrals
+     End;
+
 end;
 
 end.

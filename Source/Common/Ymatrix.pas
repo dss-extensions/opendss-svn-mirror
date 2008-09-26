@@ -162,9 +162,15 @@ Begin
      End;
 
      // tune up the Yprims if necessary
-     IF  (FrequencyChanged)
-     THEN ReCalcAllYPrims
-     ELSE ReCalcInvalidYPrims;
+     IF  (FrequencyChanged) THEN ReCalcAllYPrims
+                            ELSE ReCalcInvalidYPrims;
+
+     if SolutionAbort then  Begin
+       DoSimpleMsg('Y matrix build aborted due to error in primitive Y calculations.', 11001);
+       Exit;  // Some problem occured building Yprims
+     End;
+     
+
      FrequencyChanged := FALSE;
 
      If LogEvents Then  Case BuildOption of

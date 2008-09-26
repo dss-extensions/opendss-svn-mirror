@@ -77,6 +77,7 @@ TOHLineConstants = class(TObject)
 
   public
 
+     Function  ConductorsInSameSpace(var ErrorMessage:String):Boolean;
      Procedure Calc(f:double); // force a calc of impedances
      Procedure Kron(Norder:Integer); // Performs a Kron reduction leaving first Norder  rows
      Procedure Reduce;  // Kron reduce to Numphases only
@@ -185,7 +186,7 @@ begin
 
       For i := 1 to FNumConds Do Begin
         For j := 1 to i-1 Do Begin
-            Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+            Dij  := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
             Dijp := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]+Fy^[j])); // distance to image j
             FYCMatrix.SetElemSym(i, j, cmplx(0.0, pfactor * ln(Dijp/Dij)));
         End;
@@ -199,6 +200,38 @@ begin
 
 end;
 
+function TOHLineConstants.ConductorsInSameSpace( var ErrorMessage: String): Boolean;
+var
+   i,j   :Integer;
+   Dij   :Double;
+begin
+{Check all conductors to make sure none occupy the same space or are defined at 0,0}
+     Result := FALSE;
+
+     {Check for 0 Y coordinate}
+     For i := 1 to FNumConds do Begin
+         if (FY^[i] <= 0.0) then Begin
+             Result := TRUE;
+             ErrorMessage := Format('Conductor %d height is 0. Height coordinate must be  > 0. ',
+                             [ i ]);
+             Exit
+         End;
+     End;
+
+     {Check for overlapping conductors}
+     For i := 1 to FNumConds do Begin
+       for j := i+1 to FNumConds do Begin
+         Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
+         if (Dij < (Fradius^[i]+Fradius^[j])) then Begin
+             Result := TRUE;
+             ErrorMessage := Format('Conductors %d and %d occupy the same space.',
+                             [i, j ]);
+             Exit;
+         End;
+       End;
+     End;
+end;
+
 constructor TOHLineConstants.Create( NumConductors: Integer);
 Var i:Integer;
 begin
@@ -206,25 +239,25 @@ begin
      FNumConds := NumConductors;
      NPhases := FNumConds;
 
-     FX := Allocmem(Sizeof(FX^[1])*FNumConds);
-     FY := Allocmem(Sizeof(Fy^[1])*FNumConds);
-     FGMR := Allocmem(Sizeof(FGMR^[1])*FNumConds);
+     FX      := Allocmem(Sizeof(FX^[1])*FNumConds);
+     FY      := Allocmem(Sizeof(Fy^[1])*FNumConds);
+     FGMR    := Allocmem(Sizeof(FGMR^[1])*FNumConds);
      Fradius := Allocmem(Sizeof(Fradius^[1])*FNumConds);
-     FRdc := Allocmem(Sizeof(FRdc^[1])*FNumConds);
+     FRdc    := Allocmem(Sizeof(FRdc^[1])*FNumConds);
 
 
      {Initialize to  not set}
-     For i := 1 to FNumConds Do FGMR^[i] := -1.0;
+     For i := 1 to FNumConds Do FGMR^[i]    := -1.0;
      For i := 1 to FNumConds Do Fradius^[i] := -1.0;
-     For i := 1 to FNumConds Do FRdc^[i] := -1.0;
+     For i := 1 to FNumConds Do FRdc^[i]    := -1.0;
 
-     FZMatrix := TCMatrix.CreateMatrix(FNumconds);
+     FZMatrix  := TCMatrix.CreateMatrix(FNumconds);
      FYCMatrix := TCMatrix.CreateMatrix(FNumconds);
 
      FFrequency := -1.0;  // not computed
-     Frhoearth := 100.0;  // default value
+     Frhoearth  := 100.0;  // default value
 
-     FZreduced := Nil;
+     FZreduced  := Nil;
      FYCreduced := Nil;
 
 end;
@@ -233,10 +266,10 @@ destructor TOHLineConstants.Destroy;
 begin
   inherited;
 
-  If assigned(FZmatrix) then FZmatrix.Free ;
+  If assigned(FZmatrix)  then FZmatrix.Free ;
   If assigned(FYCmatrix) then FYCmatrix.Free ;
   If assigned(FZreduced) then FZreduced.Free ;
-  If assigned(FYCreduced) then FYCreduced.Free ;
+  If assigned(FYCreduced)then FYCreduced.Free ;
 
   Reallocmem(FX, 0);
   Reallocmem(FY, 0);
@@ -248,7 +281,7 @@ end;
 
 function TOHLineConstants.Get_GMR(i, units: Integer): Double;
 begin
-      Result := FGMR^[i] * From_Meters(Units);
+    Result := FGMR^[i] * From_Meters(Units);
 end;
 
 function TOHLineConstants.Get_radius(i, units: Integer): Double;
@@ -279,8 +312,8 @@ function TOHLineConstants.Get_YCmatrix(f, Lngth: double;
 Var
    Newsize, i:Integer;
    UnitLengthConversion:Double;
-   YC :TCMatrix;
-   YCValues:pComplexArray;
+   YC       :TCMatrix;
+   YCValues :pComplexArray;
 begin
     If assigned(FYCreduced) Then Begin
        YC := FYCReduced;
@@ -304,13 +337,13 @@ Var
 begin
 
     If i<>j Then Begin
-        hterm := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
-        xterm := cmplx(Fx^[i] - Fx^[j], 0.0);
-        LnArg := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm,xterm)));
-        Result :=  Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
+        hterm  := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
+        xterm  := cmplx(Fx^[i] - Fx^[j], 0.0);
+        LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm,xterm)));
+        Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
     End Else Begin
-        hterm := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
-        Result :=  Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
+        hterm  := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
+        Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
     End;
 end;
 

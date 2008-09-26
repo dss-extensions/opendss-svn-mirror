@@ -1079,45 +1079,46 @@ Begin
 End;
 
 
-Procedure WriteTerminalPower(Var F:TextFile; CktElem:TCktElement; j, opt:Integer);
+Procedure WriteTerminalPower(Var F:TextFile; CktElem:TCktElement; jTerm, opt:Integer);
 
 Var
 
-  i,k,Ncond, nref:integer;
-  Volts, S:Complex;
-  Saccum:Complex;
-  c_Buffer :pComplexArray;  // Allocate to max total conductors
-  FromBus :String;
+  i,k,Ncond, nref: integer;
+  Volts, S:        Complex;
+  Saccum:          Complex;
+  c_Buffer:        pComplexArray;  // Allocate to max total conductors
+  FromBus:         String;
+
 Begin
 
     c_Buffer := Nil;
 
     Try
 
-    Getmem(c_buffer, sizeof(c_Buffer^[1])* CktElem.Yorder);
+      Getmem(c_buffer, sizeof(c_Buffer^[1])* CktElem.Yorder);
 
-    NCond := CktElem.NConds;
-    CktElem.GetCurrents(c_Buffer);
-    FromBus := Pad(StripExtension(CktElem.GetBus(j)),12);
-    Writeln(F, 'ELEMENT = ',Pad(FullName(cktElem), MaxDeviceNameLength+2));
+      NCond := CktElem.NConds;
+      CktElem.GetCurrents(c_Buffer);
+      FromBus := Pad(StripExtension(CktElem.GetBus(jTerm)),12);
+      Writeln(F, 'ELEMENT = ',Pad(FullName(cktElem), MaxDeviceNameLength+2));
 
-      Saccum := CZERO;
-      For i := 1 to NCond Do Begin
-         k := (j-1)*Ncond + i;
-         nref := CktElem.NodeRef^[k];
-         Volts := ActiveCircuit.Solution.NodeV^[nref];
-         S := Cmul(Volts, conjg(c_Buffer^[k]));
-         IF (CktElem.nphases=1) and ActiveCircuit.PositiveSequence
-         THEN S := CmulReal(S, 3.0);
-         If Opt=1 Then S := CmulReal(S, 0.001);
-         Caccum(Saccum, S);
-         //Write(F,FromBus:6,'  ',GetNodeNum(CktElem.NodeRef^[k]):4,'    ',S.re/1000.0:8:1,' +j ',S.im/1000.0:8:1);
-         //Writeln(F, '   ', Cabs(S)/1000.0:8:1,'     ', PowerFactor(S):8:4);
-         Writeln(F,Format('%s %4d %10.5g +j %10.5g    %10.5g    %8.4f', [FromBus, GetNodeNum(CktElem.NodeRef^[k]), S.re/1000.0, S.im/1000.0 , Cabs(S)/1000.0 , PowerFactor(S) ]));
-      End;
-     // Write(F,'   TERMINAL TOTAL     ',Saccum.re/1000.0:8:1,' +j ',Saccum.im/1000.0:8:1);
-     // Writeln(F, '   ', Cabs(Saccum)/1000.0:8:1,'     ', PowerFactor(Saccum):8:4);
-      Writeln(F, Format(' TERMINAL TOTAL   %10.5g +j %10.5g    %10.5g    %8.4f', [ Saccum.re/1000.0,Saccum.im/1000.0, Cabs(Saccum)/1000.0, PowerFactor(Saccum) ]));
+        Saccum := CZERO;
+        For i := 1 to NCond Do Begin
+           k := (jTerm-1)*Ncond + i;
+           nref := CktElem.NodeRef^[k];
+           Volts := ActiveCircuit.Solution.NodeV^[nref];
+           S := Cmul(Volts, conjg(c_Buffer^[k]));
+           IF (CktElem.nphases=1) and ActiveCircuit.PositiveSequence
+           THEN S := CmulReal(S, 3.0);
+           If Opt=1 Then S := CmulReal(S, 0.001);
+           Caccum(Saccum, S);
+           Writeln(F,Format('%s %4d %10.5g +j %10.5g    %10.5g    %8.4f',
+                  [FromBus, GetNodeNum(CktElem.NodeRef^[k]), S.re/1000.0, S.im/1000.0,
+                   Cabs(S)/1000.0 , PowerFactor(S) ]));
+        End;
+        Writeln(F, Format(' TERMINAL TOTAL   %10.5g +j %10.5g    %10.5g    %8.4f',
+               [ Saccum.re/1000.0,Saccum.im/1000.0, Cabs(Saccum)/1000.0,
+               PowerFactor(Saccum) ]));
 
      Finally
          If Assigned(C_buffer) then Freemem(c_Buffer);
@@ -1144,12 +1145,10 @@ Var
     p_Elem :TCktElement;
     PDElem :TPDElement;
     PCElem :TPCElement;
-
     I0,I1,I2, Cmax:Double;
     c_Buffer :pComplexArray;  // Allocate to max total conductors
-
-
     BusReference :Integer;
+    jTerm: Integer;
 
 
 Begin
@@ -1378,8 +1377,10 @@ Begin
      p_Elem := ActiveCircuit.PDElements.First;
 
      WHILE p_Elem<>nil DO Begin
-       IF p_Elem.Enabled THEN  If CheckBusReference(p_Elem, BusReference, j) Then Begin
-          WriteTerminalPower(F, p_Elem, j, opt);
+       IF p_Elem.Enabled THEN  If CheckBusReference(p_Elem, BusReference, jTerm) Then Begin
+          {Get the other bus for the report}
+          if jTerm=1 then jTerm:=2 Else jTerm:=1; // may sometimes give wrong terminal if more than 2 terminals
+          WriteTerminalPower(F, p_Elem, jTerm, opt);
           Writeln(F);
        End;
        p_Elem := ActiveCircuit.PDElements.Next;
@@ -1400,8 +1401,8 @@ Begin
      p_Elem := ActiveCircuit.PCElements.First;
 
      WHILE p_Elem<>nil DO Begin
-      IF p_Elem.Enabled THEN  If CheckBusReference(p_Elem, BusReference, j) Then Begin
-         WriteTerminalPower(F, p_Elem, j, opt);
+      IF p_Elem.Enabled THEN  If CheckBusReference(p_Elem, BusReference, jTerm) Then Begin
+         WriteTerminalPower(F, p_Elem, jTerm, opt);
          Writeln(F);
        End;
 

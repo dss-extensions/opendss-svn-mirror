@@ -392,8 +392,8 @@ FUNCTION DoMoreCmd:Integer;
 
 // more editstring  (assumes active circuit element)
 Begin
-      IF ActiveDSSClass<>nil THEN  Result := ActiveDSSClass.Edit
-      ELSE Result := 0;
+      IF ActiveDSSClass<>nil THEN Result := ActiveDSSClass.Edit
+                             ELSE Result := 0;
 End;
 
 
@@ -408,14 +408,12 @@ VAR
    i    :Integer;
 
    ParamPointer :Integer;
-   ParamName, Param:String;
-
-   ObjClass:String;
-   SaveDir:String;
-   saveFile:String;
-
-
-   DSSClass:TDSSClass;
+   ParamName,
+   Param        :String;
+   ObjClass     :String;
+   SaveDir      :String;
+   saveFile     :String;
+   DSSClass     :TDSSClass;
 
 Begin
      Result := 0;

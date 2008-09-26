@@ -714,18 +714,20 @@ Begin
     // Build Series YPrim
     WITH YPrim_Series DO Begin
 
+         {Build Zmatrix}
          If GeometrySpecified Then Begin
 
              FMakeZFromGeometry(ActiveCircuit.Solution.Frequency); // Includes length in proper units
+             if SolutionAbort then  Exit;
 
          End Else Begin  // Z is from line code or specified in line data
 
              LengthMultiplier := Len / FUnitsConvert;   // convert to per unit length
-             FYprimFreq := ActiveCircuit.Solution.Frequency ;
-             FreqMultiplier := FYprimFreq/BaseFrequency;
+             FYprimFreq       := ActiveCircuit.Solution.Frequency ;
+             FreqMultiplier   := FYprimFreq/BaseFrequency;
 
              { Put in Series RL }
-             ZValues := Z.GetValuesArrayPtr(Norder);
+             ZValues    := Z.GetValuesArrayPtr(Norder);
              ZinvValues := Zinv.GetValuesArrayPtr(Norder);
              // Correct the impedances for length and frequency
              // Rg increases with frequency
@@ -733,9 +735,8 @@ Begin
              if Xg <> 0.0 Then Xgmod :=  0.5 * KXg * ln(FreqMultiplier)
                           Else Xgmod := 0.0;
 
-             FOR i := 1 to Norder*Norder Do Begin
+             FOR i := 1 to Norder*Norder Do
                 ZinvValues^[i] := Cmplx((ZValues^[i].re + Rg * (FreqMultiplier - 1.0) )*LengthMultiplier, (ZValues^[i].im - Xgmod)* LengthMultiplier * FreqMultiplier);
-             End;
 
          End;
 
@@ -781,12 +782,12 @@ Begin
             {Values are already compensated for length and frequency}
              k := 0;
              FOR j := 1 to Fnphases Do
-             FOR i := 1 to Fnphases DO Begin
+               FOR i := 1 to Fnphases DO Begin
                   Inc(k);    // Assume matrix in col order (1,1  2,1  3,1 ...)
                   Value := CDivReal(YValues^[k], 2.0);  // half at each end ...
                   AddElement(i, j, Value);
                   AddElement(i+Fnphases, j+Fnphases, Value);
-             End;
+               End;
 
          End Else Begin
              {Regular line model - values computed per unit length at base frequency}
@@ -1264,20 +1265,16 @@ Begin
      IF Assigned(FLineGeometryObj) Then Begin
        {This will make a New Z; Throw away present allocations}
 
-        IF assigned(Z)    THEN Z.Free;
-        IF assigned(Zinv) THEN Zinv.Free;
+        IF assigned(Z)    THEN Begin Z.Free;    Z    := nil; End;
+        IF assigned(Zinv) THEN Begin Zinv.Free; Zinv := nil; End;
+        IF assigned(Yc)   THEN Begin Yc.Free;   Yc   := nil; End;
 
-        IF assigned(Yc)   THEN Yc.Free;
-
-        Try
-          Z    := FLineGeometryObj.Zmatrix[f, len, FLengthUnits];
-
-          Zinv := TCMatrix.CreateMatrix(Z.order);  // Either no. phases or no. conductors
-          Zinv.CopyFrom(Z);
-          Yc   := FLineGeometryObj.YCmatrix[f, len, FLengthUnits];
-        Except
-          On E:Exception Do DoSimpleMsg(' Error computing line constants for LineGeometry.'+
-                            FLineGeometryObj.name + '; Error message: ' + E.Message, 184);
+        Z    := FLineGeometryObj.Zmatrix[ f, len, FLengthUnits];
+        Yc   := FLineGeometryObj.YCmatrix[f, len, FLengthUnits];
+        {Init Zinv}
+        if Assigned(Z) then  Begin
+            Zinv := TCMatrix.CreateMatrix(Z.order);  // Either no. phases or no. conductors
+            Zinv.CopyFrom(Z);
         End;
 
         // Z and YC are actual total impedance for the line;
