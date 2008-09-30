@@ -2191,7 +2191,7 @@ Begin
         Caccum(TotalLosses, kLosses);
         TermPower := CmulReal(PDelem.power, 0.001);     // Terminal 1 power
 
-        IF (CLASSMASK AND PDElem.DSSObjType) =  XFMR         THEN Caccum(TransLosses, kLosses);
+        IF (CLASSMASK AND PDElem.DSSObjType) =  XFMR_ELEMENT         THEN Caccum(TransLosses, kLosses);
         IF (CLASSMASK AND PDElem.DSSObjType) =  LINE_ELEMENT THEN Caccum(LineLosses, kLosses);
 
         Write(F, Pad(FullName(PDelem), MaxDeviceNameLength+2));

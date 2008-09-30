@@ -178,7 +178,7 @@ constructor TTransf.Create;  // Creates superstructure for all Transformer objec
 Begin
      Inherited Create;
      Class_Name   := 'Transformer';
-     DSSClassType := DSSClassType + XFMR; // override PDElement   (kept in both actually)
+     DSSClassType := DSSClassType + XFMR_ELEMENT; // override PDElement   (kept in both actually)
 
      ActiveElement := 0;
 

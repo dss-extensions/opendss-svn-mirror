@@ -517,7 +517,7 @@ Begin
              MeteredElement := ActiveCircuit.CktElements.Get(DevIndex);
              Case (Mode and MODEMASK) of
                 2: Begin   // Must be transformer
-                          If (MeteredElement.DSSObjType And CLASSMASK) <> XFMR Then Begin
+                          If (MeteredElement.DSSObjType And CLASSMASK) <> XFMR_ELEMENT Then Begin
                             DoSimpleMsg(MeteredElement.Name + ' is not a transformer!', 663);
                             Exit;
                           End;

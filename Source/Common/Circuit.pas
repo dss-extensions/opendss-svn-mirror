@@ -624,7 +624,7 @@ BEGIN
 
        { Keep Lines, Transformer, and Lines and Faults in PDElements and separate lists
          so we can find them quickly.}
-       XFMR        :Transformers.Add(ActiveCktElement);
+       XFMR_ELEMENT        :Transformers.Add(ActiveCktElement);
        LINE_ELEMENT:Lines.Add(ActiveCktElement);
        FAULTOBJECT :Faults.Add(ActiveCktElement);
        FEEDER_ELEMENT :Feeders.Add(ActiveCktElement);

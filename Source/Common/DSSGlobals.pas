@@ -50,7 +50,7 @@ CONST
       MON_ELEMENT  =  1 * 8;
       DSS_OBJECT   =  2 * 8;   // Just a general DSS object, accessible to all circuits
       SOURCE       =  3 * 8;
-      XFMR         =  4 * 8;
+      XFMR_ELEMENT =  4 * 8;
       SUBSTATION   =  5 * 8;  // not used
       LINE_ELEMENT =  6 * 8;
       LOAD_ELEMENT =  7 * 8;

@@ -73,7 +73,7 @@ Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 26;    // Number of energy meter registers
+Const  NumEMRegisters = 28;   // Number of energy meter registers
 
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -87,8 +87,8 @@ Const  NumEMRegisters = 26;    // Number of energy meter registers
      Reg_OverloadkWhEmerg  = 10;
      Reg_LoadEEN           = 11;
      Reg_LoadUE            = 12;  // Energy served below normal voltage
-     Reg_LosseskWh         = 13;
-     Reg_Losseskvarh       = 14;
+     Reg_ZoneLosseskWh     = 13;
+     Reg_ZoneLosseskvarh   = 14;
      Reg_LossesMaxkW       = 15;
      Reg_LossesMaxkvar     = 16;
      Reg_LoadLosseskWh     = 17;
@@ -97,10 +97,12 @@ Const  NumEMRegisters = 26;    // Number of energy meter registers
      Reg_NoLoadLosseskvarh = 20;
      Reg_MaxLoadLosses     = 21;
      Reg_MaxNoLoadLosses   = 22;
-     Reg_GenkWh            = 23;
-     Reg_Genkvarh          = 24;
-     Reg_GenMaxkW          = 25;
-     Reg_GenMaxkVA         = 26;
+     Reg_LineLosseskWh        = 23;
+     Reg_TransformerLosseskWh = 24;
+     Reg_GenkWh            = 25;
+     Reg_Genkvarh          = 26;
+     Reg_GenMaxkW          = 27;
+     Reg_GenMaxkVA         = 28;
 
 
 Type
@@ -345,10 +347,12 @@ Begin
      RegisterNames[20] := 'No Load Losses kvarh';
      RegisterNames[21] := 'Max kW Load Losses';
      RegisterNames[22] := 'Max kW No Load Losses';
-     RegisterNames[23] := 'Gen kWh';
-     RegisterNames[24] := 'Gen kvarh';
-     RegisterNames[25] := 'Gen Max kW';
-     RegisterNames[26] := 'Gen Max kVA';
+     RegisterNames[23] := 'Line Losses';
+     RegisterNames[24] := 'Transformer Losses';
+     RegisterNames[25] := 'Gen kWh';
+     RegisterNames[26] := 'Gen kvarh';
+     RegisterNames[27] := 'Gen Max kW';
+     RegisterNames[28] := 'Gen Max kVA';
 
      GeneratorClass := DSSClassList.Get(ClassNames.Find('generator'));
 
@@ -595,13 +599,11 @@ Begin
 
          // initialize the Checked Flag FOR all circuit Elements
          pCktElement := CktElements.First;
-         WHILE  (pCktElement <> NIL) Do
-         Begin
-             With pCktElement Do
-             Begin
-               Checked := False;
-               IsIsolated := TRUE;
-               For i := 1 to NTerms Do Terminals^[i].Checked := FALSE;
+         WHILE  (pCktElement <> NIL) Do  Begin
+             With pCktElement Do Begin
+                 Checked := False;
+                 IsIsolated := TRUE;
+                 For i := 1 to NTerms Do Terminals^[i].Checked := FALSE;
              End;
              pCktElement := CktElements.Next;
          End;
@@ -619,8 +621,7 @@ Begin
          PDElementList.Capacity := PDElements.ListSize ;
          pCktElement := PDElements.First;
          {Put only eligible PDElements in the list}
-         While pCktElement<> Nil Do
-          Begin
+         While pCktElement<> Nil Do Begin
            If pCktElement.Enabled Then
             If  IsShuntElement(pCktElement) Then  Begin
                PCelementList.Add(pCktElement); // Put shunt elements in PCelement list
@@ -971,6 +972,8 @@ VAR
    S_NoLoadLosses,
    TotalLoadLosses,
    TotalNoLoadLosses,
+   TotalLineLosses,
+   TotalTransformerLosses,
    TotalLosses :Complex;
    CktElem,
    ParenElem :TPDElement;
@@ -989,7 +992,7 @@ VAR
    TotalGenkvar,
    LoadkVA,
    GenkVA,
-   S_Local_kVA :Double;
+   S_Local_kVA   :Double;
 
 Begin
 
@@ -1011,9 +1014,12 @@ Begin
      TotalLosses       := CZERO;     // Initialize loss accumulators
      TotalLoadLosses   := CZERO;
      TotalNoLoadLosses := CZERO;
-     CktElem     := BranchList.First;
-     MaxExcesskWNorm  := 0.0;
-     MaxExcesskWEmerg := 0.0;
+     TotalLineLosses   := CZERO;
+     TotalTransformerLosses   := CZERO;
+
+     CktElem           := BranchList.First;
+     MaxExcesskWNorm   := 0.0;
+     MaxExcesskWEmerg  := 0.0;
 
      IF LocalOnly THEN Begin
            CktElem :=  MeteredElement as TPDElement;
@@ -1075,8 +1081,7 @@ Begin
      TotalGenkvar  := 0.0;
 
      CktElem := BranchList.First;
-     WHILE (CktElem <> NIL) Do
-     Begin
+     WHILE (CktElem <> NIL) Do  Begin
          PCElem := Branchlist.FirstObject;
          WHILE (PCElem <> NIL) Do  Begin
              CASE (PCElem.DSSObjType and CLASSMASK) OF
@@ -1101,8 +1106,8 @@ Begin
           CmulRealAccum(S_LoadLosses,   0.001);
           CmulRealAccum(S_NoLoadLosses, 0.001);
          {Add losses into appropriate registers; convert to kW, kvar}
-         Integrate(Reg_LosseskWh,         S_TotalLosses.re,  Delta_Hrs);
-         Integrate(Reg_Losseskvarh,       S_TotalLosses.im,  Delta_Hrs);
+         Integrate(Reg_ZoneLosseskWh,     S_TotalLosses.re,  Delta_Hrs);
+         Integrate(Reg_ZoneLosseskvarh,   S_TotalLosses.im,  Delta_Hrs);
          Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re,   Delta_Hrs);
          Integrate(Reg_LoadLosseskvarh,   S_LoadLosses.im,   Delta_Hrs);
          Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re, Delta_Hrs);
@@ -1110,18 +1115,30 @@ Begin
          {Update accumulators}
          Caccum(TotalLosses,       S_TotalLosses); // Accumulate total losses in meter zone
          Caccum(TotalLoadLosses,   S_LoadLosses);  // Accumulate total load losses in meter zone
+
+         {Line and Transformer Elements}
          Caccum(TotalNoLoadLosses, S_NoLoadLosses); // Accumulate total no load losses in meter zone
+         If IsLineElement(Cktelem) then Begin
+             Integrate(Reg_LineLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
+             Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+         End
+         Else If IsTransformerElement(Cktelem) then Begin
+             Integrate(Reg_TransformerLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
+             Caccum(TotalTransformerLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+         End;
 
      CktElem := BranchList.GoForward;
      End;
 
      {So that Demand interval Data will be stored OK}
-     Derivatives[Reg_LosseskWh]       := TotalLosses.Re;
-     Derivatives[Reg_Losseskvarh]     := TotalLosses.im;
-     Derivatives[Reg_LoadLosseskWh]   := TotalLoadLosses.Re;
-     Derivatives[Reg_LoadLosseskvarh] := TotalLoadLosses.im;
-     Derivatives[Reg_NoLoadLosseskWh] := TotalNoLoadLosses.Re;
+     Derivatives[Reg_ZoneLosseskWh]     := TotalLosses.Re;
+     Derivatives[Reg_ZoneLosseskvarh]   := TotalLosses.im;
+     Derivatives[Reg_LoadLosseskWh]     := TotalLoadLosses.Re;
+     Derivatives[Reg_LoadLosseskvarh]   := TotalLoadLosses.im;
+     Derivatives[Reg_NoLoadLosseskWh]   := TotalNoLoadLosses.Re;
      Derivatives[Reg_NoLoadLosseskvarh] := TotalNoLoadLosses.im;
+     Derivatives[Reg_LineLosseskWh]     := TotalLineLosses.Re;
+     Derivatives[Reg_TransformerLosseskWh]  := TotalTransformerLosses.Re;
 
      SetDragHandRegister(Reg_LossesMaxkW,    Abs(TotalLosses.Re));
      SetDragHandRegister(Reg_LossesMaxkvar,  Abs(TotalLosses.im));
@@ -1129,9 +1146,9 @@ Begin
      SetDragHandRegister(Reg_MaxNoLoadLosses,Abs(TotalNoLoadLosses.Re));
      SetDragHandRegister(Reg_ZoneMaxkW,      TotalZonekW ); // Removed abs()  3-10-04
 
-     Derivatives[Reg_GenkWh]          := TotalGenkW;
+     Derivatives[Reg_GenkWh]     := TotalGenkW;
+     Derivatives[Reg_Genkvarh]   := TotalGenkvar;
      GenkVA := Sqrt(Sqr(TotalGenkvar) + Sqr(TotalGenkW));
-     Derivatives[Reg_Genkvarh]        := TotalGenkvar;
 
      LoadkVA :=  Sqrt(Sqr(TotalZonekvar) + Sqr(TotalZonekW));
      SetDragHandRegister(Reg_ZoneMaxkVA ,    LoadkVA  );
@@ -1152,13 +1169,12 @@ Begin
      If  (MaxZonekVA_Norm > 0.0) Then Begin
           IF (S_Local_KVA =0.0) Then S_Local_KVA := MaxZonekVA_Norm;
           Integrate(Reg_OverloadkWhNorm, Maxvalue([0.0, (ZonekW * (1.0 -  MaxZonekVA_Norm / S_Local_KVA))]), Delta_Hrs);
-     End Else Integrate(Reg_OverloadkWhNorm, MaxExcesskWNorm,                            Delta_Hrs);
+     End Else Integrate(Reg_OverloadkWhNorm, MaxExcesskWNorm,  Delta_Hrs);
 
      If  (MaxZonekVA_Emerg > 0.0)Then Begin
           IF (S_Local_KVA =0.0) Then S_Local_KVA := MaxZonekVA_Emerg;
           Integrate(Reg_OverloadkWhEmerg, Maxvalue([0.0, (ZonekW * (1.0 - MaxZonekVA_Emerg/ S_Local_KVA))]), Delta_Hrs);
-     End Else Integrate(Reg_OverloadkWhEmerg, MaxExcesskWEmerg,                            Delta_Hrs);
-
+     End Else Integrate(Reg_OverloadkWhEmerg, MaxExcesskWEmerg,  Delta_Hrs);
 
     FirstSampleAfterReset := False;
     IF EnergyMeterClass.SaveDemandInterval Then WriteDemandIntervalData;
@@ -1175,13 +1191,11 @@ VAR
 Begin
    {Initialize all to FALSE}
    With  ActiveCircuit Do Begin
-
      CktElem := PDElements.First;
      While CktElem <> Nil Do Begin
         CktElem.HasMeter := FALSE;
         CktElem := PDElements.Next;
      End;  {WHILE}
-
    End; {WITH}
 
    FOR i := 1 to ActiveCircuit.EnergyMeters.ListSize DO Begin

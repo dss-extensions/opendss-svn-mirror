@@ -56,6 +56,7 @@ Function DoExecutiveCommand(const s:String):Integer;
 FUNCTION GetCktElementIndex(const FullObjName :String) :Integer;
 FUNCTION IsShuntElement(const Elem:TCktElement):Boolean;
 FUNCTION IsLineElement(const Elem:TCktElement):Boolean;
+FUNCTION IsTransformerElement(const Elem:TCktElement):Boolean;
 Function IsStubLine(const Elem:TCktElement):Boolean;
 FUNCTION CheckParallel(const Line1, Line2:TCktElement): Boolean;
 FUNCTION AllTerminalsClosed(ThisElement:TcktElement):Boolean;
@@ -883,6 +884,16 @@ FUNCTION IsLineElement(const Elem:TCktElement):Boolean;
 Begin
 
     IF ((Elem.DSSObjType and CLASSMASK) =  LINE_ELEMENT) Then  Result := TRUE
+    ELSE   Result := FALSE;
+
+End;
+
+
+
+FUNCTION IsTransformerElement(const Elem:TCktElement):Boolean;
+Begin
+
+    IF ((Elem.DSSObjType and CLASSMASK) =  XFMR_ELEMENT) Then  Result := TRUE
     ELSE   Result := FALSE;
 
 End;
