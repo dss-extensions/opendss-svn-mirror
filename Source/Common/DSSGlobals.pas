@@ -140,6 +140,8 @@ VAR
    LastCommandWasCompile :Boolean;
 
    CALPHA             :Complex;  {120-degree shift constant}
+   SQRT2              :Double;
+   SQRT3              :Double;
    SolutionAbort      :Boolean;
    InShowResults      :Boolean;
    Redirect_Abort     :Boolean;
@@ -751,6 +753,8 @@ initialization
    {Various Constants and Switches}
 
    CALPHA                := Cmplx(-0.5, -0.866025); // -120 degrees phase shift
+   SQRT2                 := Sqrt(2.0);
+   SQRT3                 := Sqrt(3.0);
    CmdResult             := 0;
    DIFilesAreOpen        := FALSE;
    ErrorNumber           :=0;

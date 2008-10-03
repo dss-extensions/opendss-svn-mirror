@@ -102,7 +102,7 @@ Begin
 
          Writeln(F,
          Format('"%s", %10.6g, %9.5g, %8.2f, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g',
-                [BusList.Get(i), V1, Vpu, (Buses^[i].kvbase*1.732), V2, V2V1, V0, V0V1, Cabs(Vresidual)]
+                [BusList.Get(i), V1, Vpu, (Buses^[i].kvbase*SQRT3), V2, V2V1, V0, V0V1, Cabs(Vresidual)]
          ));
 
 
@@ -156,7 +156,7 @@ Begin
      WITH ActiveCircuit DO BEGIN
        FOR i := 1 to NumBuses DO BEGIN
            BusName := BusList.Get(i);
-           Write(F,Format('"%s", %.5g', [BusName, Buses^[i].kvbase*1.732]));
+           Write(F,Format('"%s", %.5g', [BusName, Buses^[i].kvbase*SQRT3]));
 
            jj := 1;
            With Buses^[i] Do
@@ -791,7 +791,7 @@ Begin
                 Rewrite(F);
                 {Write New Header}
                 Write(F, 'Year, LDCurve, Hour, Meter');
-                For i := 1 to NumEMRegisters Do Write(F, Separator, '"'+ MeterClass.RegisterNames[i]+'"');
+                For i := 1 to NumEMRegisters Do Write(F, Separator, '"'+ pelem.RegisterNames[i]+'"');
                 Writeln(F);
                 CloseFile(F);
             End;
@@ -859,8 +859,9 @@ Begin
     THEN Begin
         ReWrite(F);
         {Write New Header}
+        pElem := ActiveCircuit.energyMeters.First;
         Write(F, 'Year, LDCurve, Hour, Meter');
-        For i := 1 to NumEMRegisters Do Write(F, Separator, '"'+ EnergyMeterClass.RegisterNames[i]+'"');
+        For i := 1 to NumEMRegisters Do Write(F, Separator, '"'+ pElem.RegisterNames[i]+'"');
         Writeln(F);
     END
     ELSE Append(F);

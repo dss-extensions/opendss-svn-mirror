@@ -394,7 +394,7 @@ Begin
     Z    := TCmatrix.CreateMatrix(Fnphases);
     Zinv := TCMatrix.CreateMatrix(Fnphases);
 
-    If   FNPhases = 1 THEN Factor := 1.0 ELSE Factor := 1.732;
+    If   FNPhases = 1 THEN Factor := 1.0 ELSE Factor := SQRT3;
 
     Rs := 0.0;
     Rm := 0.0;
@@ -410,7 +410,7 @@ Begin
             Xm := Xs - X1;
             X0 := (Xs + 2.0 * Xm);
             R0 := X0 / X0R0;
-            Isc3 := MVAsc3 * 1000.0 /(1.732 * kVBase);
+            Isc3 := MVAsc3 * 1000.0 /(SQRT3 * kVBase);
             Isc1 := MVAsc1 * 1000.0 /(Factor * kVBase);
 
             IF    Fnphases = 1
@@ -421,7 +421,7 @@ Begin
           End;
 
         2:Begin  // Isc
-            MVAsc3 := 1.732 * kVBase * Isc3 / 1000.0;
+            MVAsc3 := SQRT3 * kVBase * Isc3 / 1000.0;
             MVAsc1 := Factor * kVBase * Isc1 / 1000.0;
             X1 := Sqr(KvBase) / MVAsc3 /Sqrt(1.0 + 1.0/Sqr(X1R1));
             Xs := Sqr(KvBase) / MVAsc1 /Sqrt(1.0 + 1.0/Sqr(X0R0)); //Approx
@@ -438,7 +438,7 @@ Begin
           End;
 
         3:Begin  // Z1, Z0    Specified
-            Isc3 := kVBase *1000.0 / 1.732 /Cabs(cmplx(R1, X1));
+            Isc3 := kVBase *1000.0 / SQRT3 /Cabs(cmplx(R1, X1));
 
             If Fnphases=1 Then Begin  // Force Z0 to be Z1 so Zs is same as Z1
                 R0 := R1;
@@ -449,7 +449,7 @@ Begin
 
 
             Isc1 := kVBase *1000.0 / Factor /Cabs(cmplx(Rs, Xs));
-            MVAsc3 := 1.732 * kVBase * Isc3 / 1000.0;
+            MVAsc3 := SQRT3 * kVBase * Isc3 / 1000.0;
             MVAsc1 := Factor * kVBase * Isc1 / 1000.0;
             Xm := Xs - X1;
 
@@ -743,7 +743,7 @@ Var
 begin
 
         S :='Phases=1 ';
-        S := S + Format('BasekV=%-.5g ', [kVbase/1.73205]);
+        S := S + Format('BasekV=%-.5g ', [kVbase/SQRT3]);
         S := S + Format('R1=%-.5g ', [R1]);
         S := S + Format('X1=%-.5g ', [X1]);
 

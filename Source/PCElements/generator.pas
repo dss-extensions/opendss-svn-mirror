@@ -846,7 +846,7 @@ Begin
      Basefrequency    := 60.0;
      GenVars.kVGeneratorBase  := 12.47;
      Vpu              := 1.0;
-     VTarget          := 1000.0 * Vpu * GenVars.kVGeneratorBase / 1.732;  {Line-to-Neutral target}
+     VTarget          := 1000.0 * Vpu * GenVars.kVGeneratorBase / SQRT3;  {Line-to-Neutral target}
      VBase            := 7200.0;
      Vminpu           := 0.90;
      Vmaxpu           := 1.10;
@@ -1124,7 +1124,7 @@ Begin
    *)
 
     YQFixed := -varBase / Sqr(VBase);   //10-17-02  Fixed negative sign
-    Vtarget := Vpu * 1000.0 * GenVars.kVGeneratorBase / 1.732;
+    Vtarget := Vpu * 1000.0 * GenVars.kVGeneratorBase / SQRT3;
 
     // Initialize to Zero - defaults to PQ generator
     // Solution object will reset after circuit modifications
@@ -1424,7 +1424,7 @@ Begin
                   ELSE With Genvars Do Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
                 End;
               1: Begin  {Delta}
-                  VMag := VMag/1.732;  // L-N magnitude
+                  VMag := VMag/SQRT3;  // L-N magnitude
                   IF   VMag <= VBase95
                   THEN Curr := Cmul(CdivReal(Yeq95, 3.0), V)  // Below 95% use an impedance model
                   ELSE If VMag > VBase105
@@ -1488,7 +1488,7 @@ Begin
    For i := 1 to Fnphases
    Do  V_Avg := V_Avg + Cabs(Vterminal^[i]);
 
-   If Connection =1 then V_Avg := V_Avg/(1.732*Fnphases) Else  V_Avg := V_Avg / Fnphases;
+   If Connection =1 then V_Avg := V_Avg/(SQRT3*Fnphases) Else  V_Avg := V_Avg / Fnphases;
 
    // 12-9-99 added empirical 0.7 factor to improve iteration
    // 12-17-99 changed to 0.1 because first guess was consistently too high
@@ -1544,7 +1544,7 @@ Begin
                 ELSE Curr := Conjg(Cdiv(Cmplx(Genvars.Pnominalperphase, varBase), V));
               End;
             1:Begin
-                Vmag := Vmag/1.732;  // Convert to L-N for test
+                Vmag := Vmag/SQRT3;  // Convert to L-N for test
                 IF   VMag <= VBase95
                 THEN Curr := Cmul(Cmplx(Yeq95.re/3.0, YQfixed/3.0), V)  // Below 95% use an impedance model
                 ELSE IF VMag > VBase105
@@ -1592,7 +1592,7 @@ Begin
                   End;
                End;
             1:Begin
-                  Vmag := Vmag / 1.732; // Convert to L-N for test
+                  Vmag := Vmag / SQRT3; // Convert to L-N for test
                   IF   Vmag <= VBase95
                   THEN Curr := Cmul(Cmplx(Yeq95.re/3.0, YQfixed/3.0), V)  // Below 95% use an impedance model
                   ELSE IF VMag > VBase105
@@ -1665,7 +1665,7 @@ Begin
               ELSE With Genvars Do Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Above Vminpu, constant PQ
            End;
         1: Begin
-              VmagLN := Vmag/1.732;
+              VmagLN := Vmag/SQRT3;
               IF   (VmagLN <= VBase95) or ((VmagLN > VBase105))    // limit the current magnitude when voltage drops outside normal range
               THEN Curr := Conjg( Cdiv( CurrentLimit, CDivReal(V, Vmag)) )   // Current limit expression
               ELSE With Genvars Do Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Above Vminpu, constant PQ
@@ -2551,7 +2551,7 @@ begin
   S := 'Phases=1 conn=wye';
 
   // Make sure voltage is line-neutral
-  If (Fnphases>1) or (connection<>0) Then   V :=  GenVars.kVGeneratorBase/1.732
+  If (Fnphases>1) or (connection<>0) Then   V :=  GenVars.kVGeneratorBase/SQRT3
   Else V :=  GenVars.kVGeneratorBase;
 
   S := S + Format(' kV=%-.5g',[V]);

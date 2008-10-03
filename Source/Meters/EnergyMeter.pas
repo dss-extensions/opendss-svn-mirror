@@ -73,8 +73,8 @@ Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 28;   // Number of energy meter registers
-
+Const  NumEMRegisters = 35;   // Number of energy meter registers
+    {Fixed Registers}
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
      Reg_MaxkW             = 3;
@@ -97,12 +97,13 @@ Const  NumEMRegisters = 28;   // Number of energy meter registers
      Reg_NoLoadLosseskvarh = 20;
      Reg_MaxLoadLosses     = 21;
      Reg_MaxNoLoadLosses   = 22;
-     Reg_LineLosseskWh        = 23;
+     Reg_LineLosseskWh     = 23;
      Reg_TransformerLosseskWh = 24;
      Reg_GenkWh            = 25;
      Reg_Genkvarh          = 26;
      Reg_GenMaxkW          = 27;
      Reg_GenMaxkVA         = 28;
+     Reg_VBaseStart        = 28;  {This is where the Voltage base load Registers start}
 
 
 Type
@@ -168,7 +169,6 @@ Type
         Function  MakeLike(Const EnergyMeterName:String):Integer;   Override;
         procedure SetHasMeterFlag;
      public
-       RegisterNames      :Array[1..NumEMregisters] of String;
        DI_RegisterTotals  :TRegisterArray;
 
        DI_Dir        :String;
@@ -217,9 +217,16 @@ Type
        MaxZonekVA_Norm   :Double;
        MaxZonekVA_Emerg  :Double;
 
+
        PeakCurrent            :pDoubleArray;
        PhaseAllocationFactor  :pDoubleArray;
        MeteredCurrent         :pComplexArray;
+
+       {Voltage bases in the Meter Zone}
+       TotalVBaseLosses       :pDoubleArray;    // dynamic array
+       VBaseList              :pDoubleArray;    // dynamic array
+       VBaseCount             :Integer;
+       MaxVBaseCount          :Integer;
 
        {Demand Interval File variables}
        DI_File                 :TextFile;
@@ -230,8 +237,9 @@ Type
        Procedure Integrate_Load(pLoad:TLoadObj; var TotalZonekW, TotalZonekvar:Double);
        Procedure Integrate_Gen(pGen:TGeneratorObj; var TotalZonekW, TotalZonekvar:Double);
        Procedure CalcBusCoordinates(StartBranch:TCktTreeNode; FirstCoordRef, SecondCoordRef, LineCount:Integer);
-
-       Function MakeDIFileName:String;
+       Function  AddToVoltBaseList(BusRef:Integer):Integer;
+       Function  MakeDIFileName:String;
+       Procedure AssignVoltBaseRegisterNames;
 
        Procedure MakeFeederObj;
        Procedure RemoveFeederObj;
@@ -244,12 +252,14 @@ Type
         Procedure AppendDemandIntervalFile;
 
       Public
+        RegisterNames          :Array[1..NumEMregisters] of String;
 
         BranchList     :TCktTree;      // Pointers to all circuit elements in meter's zone
 
         Registers      :TRegisterArray;
         Derivatives    :TRegisterArray;
         TotalsMask     :TRegisterArray;
+
 
         constructor Create(ParClass:TDSSClass; const EnergyMeterName:String);
         destructor Destroy; override;
@@ -273,7 +283,7 @@ Type
 
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
-        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
    end;
 
@@ -324,35 +334,6 @@ Begin
      CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
      CommandList.Abbrev := TRUE;
 
-     // Set Register names  that correspond to the register quantities
-     RegisterNames[1]  := 'kWh';
-     RegisterNames[2]  := 'kvarh';
-     RegisterNames[3]  := 'Max kW';
-     RegisterNames[4]  := 'Max kVA';
-     RegisterNames[5]  := 'Zone kWh';
-     RegisterNames[6]  := 'Zone kvarh';
-     RegisterNames[7]  := 'Zone Max kW';
-     RegisterNames[8]  := 'Zone Max kVA';
-     RegisterNames[9]  := 'Overload kWh Normal';
-     RegisterNames[10] := 'Overload kWh Emerg';
-     RegisterNames[11] := 'Load EEN';
-     RegisterNames[12] := 'Load UE';
-     RegisterNames[13] := 'Zone Losses kWh';
-     RegisterNames[14] := 'Zone Losses kvarh';
-     RegisterNames[15] := 'Zone Max kW Losses';
-     RegisterNames[16] := 'Zone Max kvar Losses';
-     RegisterNames[17] := 'Load Losses kWh';
-     RegisterNames[18] := 'Load Losses kvarh';
-     RegisterNames[19] := 'No Load Losses kWh';
-     RegisterNames[20] := 'No Load Losses kvarh';
-     RegisterNames[21] := 'Max kW Load Losses';
-     RegisterNames[22] := 'Max kW No Load Losses';
-     RegisterNames[23] := 'Line Losses';
-     RegisterNames[24] := 'Transformer Losses';
-     RegisterNames[25] := 'Gen kWh';
-     RegisterNames[26] := 'Gen kvarh';
-     RegisterNames[27] := 'Gen Max kW';
-     RegisterNames[28] := 'Gen Max kVA';
 
      GeneratorClass := DSSClassList.Get(ClassNames.Find('generator'));
 
@@ -781,22 +762,69 @@ Begin
      InitPropertyValues(0);
 
      // Max zone kW limits ignored unless the user provides a rating
-     MaxZonekVA_Norm := 0.0;
+     MaxZonekVA_Norm  := 0.0;
      MaxZonekVA_Emerg := 0.0;
 
      ZoneIsRadial    := True;
-     HasFeeder := FALSE;
-     FeederObj := Nil;  // initialize to not assigned
+     HasFeeder       := FALSE;
+     FeederObj       := Nil;  // initialize to not assigned
 
-     PeakCurrent :=NIL;
+     PeakCurrent     :=NIL;
      PhaseAllocationFactor := NIL;
-     MeteredCurrent := NIL;
+     MeteredCurrent  := NIL;
 
      DefinedZoneList := NIL;
      DefinedZoneListSize := 0;
 
+     VbaseList      := Nil;
+     TotalVBaseLosses := NIL;
+     VBaseCount     := 0;
+     MaxVBaseCount  := NumEMRegisters - Reg_VBaseStart;
+     ReallocMem(VBaseList, MaxVBaseCount * SizeOf(VBaseList^[1]));
+     ReallocMem(TotalVBaseLosses, MaxVBaseCount * SizeOf(TotalVBaseLosses^[1]));
+
+
+
      LocalOnly := FALSE;
      VoltageUEOnly := FALSE;
+
+     // Set Register names  that correspond to the register quantities
+     RegisterNames[1]  := 'kWh';
+     RegisterNames[2]  := 'kvarh';
+     RegisterNames[3]  := 'Max kW';
+     RegisterNames[4]  := 'Max kVA';
+     RegisterNames[5]  := 'Zone kWh';
+     RegisterNames[6]  := 'Zone kvarh';
+     RegisterNames[7]  := 'Zone Max kW';
+     RegisterNames[8]  := 'Zone Max kVA';
+     RegisterNames[9]  := 'Overload kWh Normal';
+     RegisterNames[10] := 'Overload kWh Emerg';
+     RegisterNames[11] := 'Load EEN';
+     RegisterNames[12] := 'Load UE';
+     RegisterNames[13] := 'Zone Losses kWh';
+     RegisterNames[14] := 'Zone Losses kvarh';
+     RegisterNames[15] := 'Zone Max kW Losses';
+     RegisterNames[16] := 'Zone Max kvar Losses';
+     RegisterNames[17] := 'Load Losses kWh';
+     RegisterNames[18] := 'Load Losses kvarh';
+     RegisterNames[19] := 'No Load Losses kWh';
+     RegisterNames[20] := 'No Load Losses kvarh';
+     RegisterNames[21] := 'Max kW Load Losses';
+     RegisterNames[22] := 'Max kW No Load Losses';
+     RegisterNames[23] := 'Line Losses';
+     RegisterNames[24] := 'Transformer Losses';
+     RegisterNames[25] := 'Gen kWh';
+     RegisterNames[26] := 'Gen kvarh';
+     RegisterNames[27] := 'Gen Max kW';
+     RegisterNames[28] := 'Gen Max kVA';
+     {Registers for capturing losses by base voltage}
+     RegisterNames[29] := 'N/A';     {Name is assigned after determining Voltage Bases}
+     RegisterNames[30] := 'N/A';
+     RegisterNames[31] := 'N/A';
+     RegisterNames[32] := 'N/A';
+     RegisterNames[33] := 'N/A';
+     RegisterNames[34] := 'N/A';
+     RegisterNames[35] := 'N/A';
 
      ResetRegisters;
      For i := 1 to NumEMRegisters Do TotalsMask[i] := 1.0;
@@ -805,14 +833,17 @@ Begin
      FOR i := 1 to Fnphases Do PeakCurrent^[i] := 400.0;
      ReAllocMem(PhaseAllocationFactor, Sizeof(PhaseAllocationFactor^[1])* Fnphases);
 
-
-
     // RecalcElementData;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TEnergyMeterObj.Destroy;
+var
+   i :Integer;
 Begin
+    If Assigned (VBaseList) then Reallocmem(VBaseList, 0);
+    If Assigned (TotalVBaseLosses) then Reallocmem(TotalVBaseLosses, 0);
+    for i := 1 to NumEMRegisters do RegisterNames[i] := '';
     BranchList.Free;
     Reallocmem(PeakCurrent, 0);
     Reallocmem(MeteredCurrent, 0);
@@ -938,7 +969,7 @@ Begin
 //       Writeln(F,'**** NEW RECORD ****');
        Writeln(F, 'Year, ', ActiveCircuit.Solution.Year:0,',');
        FOR i := 1 to NumEMregisters Do
-         Writeln(F, '"',EnergyMeterClass.RegisterNames[i], '",', Registers[i]:0:0);
+         Writeln(F, '"', RegisterNames[i], '",', Registers[i]:0:0);
  Finally
        CloseFile(F);
  End;
@@ -966,6 +997,8 @@ Procedure TEnergyMeterObj.TakeSample;
 // Assumes one time period has taken place since last sample.
 
 VAR
+   i :Integer;
+   
    S_Local,
    S_Totallosses,
    S_LoadLosses,
@@ -975,6 +1008,7 @@ VAR
    TotalLineLosses,
    TotalTransformerLosses,
    TotalLosses :Complex;
+
    CktElem,
    ParenElem :TPDElement;
    PCelem    :TPCElement;
@@ -1016,6 +1050,7 @@ Begin
      TotalNoLoadLosses := CZERO;
      TotalLineLosses   := CZERO;
      TotalTransformerLosses   := CZERO;
+     For i := 1 to MaxVBaseCount Do TotalVBaseLosses^[i] := 0.0;
 
      CktElem           := BranchList.First;
      MaxExcesskWNorm   := 0.0;
@@ -1127,6 +1162,13 @@ Begin
              Caccum(TotalTransformerLosses,       S_TotalLosses); // Accumulate total losses in meter zone
          End;
 
+         With BranchList.PresentBranch do
+         If VoltBaseIndex >0  then Begin
+             Integrate(Reg_VbaseStart + VoltBaseIndex,  S_TotalLosses.re,  Delta_Hrs);
+             TotalVBaseLosses^[VoltBaseIndex] := TotalVBaseLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+         End;
+
+
      CktElem := BranchList.GoForward;
      End;
 
@@ -1139,6 +1181,8 @@ Begin
      Derivatives[Reg_NoLoadLosseskvarh] := TotalNoLoadLosses.im;
      Derivatives[Reg_LineLosseskWh]     := TotalLineLosses.Re;
      Derivatives[Reg_TransformerLosseskWh]  := TotalTransformerLosses.Re;
+     for i  := 1 to MaxVBaseCount  do  Derivatives[Reg_VbaseStart + i] := TotalVBaseLosses^[i];
+       
 
      SetDragHandRegister(Reg_LossesMaxkW,    Abs(TotalLosses.Re));
      SetDragHandRegister(Reg_LossesMaxkvar,  Abs(TotalLosses.im));
@@ -1226,10 +1270,12 @@ Var
 Begin
 
      ZoneListCounter := 0;
+     VBasecount      := 0; {Build the voltage base list over in case a base added or deleted}
+     for j := 1 to MaxVBaseCount  do VBaseList^[j] := 0.0;
+
 
      IF BranchList <> NIL Then BranchList.Free;
      BranchList := TCktTree.Create;     {Instantiates ZoneEndsList, too}
-
 
     // Get Started
        If Assigned(MeteredElement) Then BranchList.New := MeteredElement
@@ -1242,13 +1288,14 @@ Begin
        With BranchList.PresentBranch Do Begin
           // This bus is the head of the feeder; do not mark as radial bus
           FromBusReference := MeteredElement.Terminals^[MeteredTerminal].BusRef;
-          FromTerminal := MeteredTerminal;
+          VoltBaseIndex    := AddToVoltBaseList(FromBusReference);
+          FromTerminal     := MeteredTerminal;
           If MeteredElement is TPDElement Then TPDElement(MeteredElement).FromTerminal := MeteredTerminal;
        End;
 
        // Check off this element so we don't use it  again
        With MeteredElement Do Begin
-         Checked := True;
+         Checked    := True;
          IsIsolated := FALSE;
        End;
 
@@ -1259,9 +1306,12 @@ Begin
        TestBranch := MeteredElement;
        WHILE TestBranch <> NIL DO
        Begin
-         BranchList.PresentBranch.IsLoopedHere := FALSE;
-         BranchList.PresentBranch.IsParallel := FALSE;
-         BranchList.PresentBranch.IsDangling := TRUE;  // Unless we find something connected to it
+         With  BranchList.PresentBranch Do begin
+           IsLoopedHere  := FALSE;
+           IsParallel    := FALSE;
+           IsDangling    := TRUE;  // Unless we find something connected to it
+           VoltBaseIndex := AddToVoltBaseList(FromBusReference);
+         end;
 
          FOR iTerm := 1 to TestBranch.Nterms Do  Begin
           IF NOT TestBranch.Terminals^[iTerm].Checked Then
@@ -1368,6 +1418,8 @@ Begin
        End;
 
        If HasFeeder Then FeederObj.InitializeFeeder(BranchList);   // Synchronize the feeder definition
+
+       AssignVoltBaseRegisterNames;
 End;
 
 {--------------------------------------------------------------------------}
@@ -1473,7 +1525,7 @@ Begin
        Writeln(F, 'Registers');
        FOR i := 1 to NumEMregisters Do
        Begin
-            Writeln(F, '"',EnergyMeterClass.RegisterNames[i],'" = ', Registers[i]:0:0);
+            Writeln(F, '"', RegisterNames[i],'" = ', Registers[i]:0:0);
        End;
        Writeln(F);
 
@@ -1521,6 +1573,30 @@ begin
               'v': VoltageUEOnly := TRUE;
          End;
     UNTIL Length(S2)=0;
+
+end;
+
+function TEnergyMeterObj.AddToVoltBaseList(BusRef: Integer): Integer;
+{Add to VoltBase list if not already there and return index}
+var
+   i  :Integer;
+
+begin
+   With ActiveCircuit.Buses^[BusRef]  Do Begin
+     for i  := 1 to VBaseCount do  Begin
+       if kVBase = VBaseList^[i]  then Begin
+          Result := i;
+          Exit;
+       End;
+     End;
+
+     if (kvBase>0.0) And (VBaseCount<MaxVBaseCount) Then Begin
+         Inc(VBaseCount);
+         VBaseList^[VBasecount] := ActiveCircuit.Buses^[BusRef].kVBase;
+         result := VBaseCount;
+     End
+     Else Result := 0;
+   End;
 
 end;
 
@@ -2010,7 +2086,7 @@ begin
           Rewrite(DI_File);
           This_Meter_DIFileIsOpen := TRUE;
           Write(DI_File,'"Hour"');
-          For i := 1 to NumEMRegisters Do Write(DI_File,', "',TEnergyMeter(ParentClass).RegisterNames[i], '"');
+          For i := 1 to NumEMRegisters Do Write(DI_File,', "', RegisterNames[i], '"');
           Writeln(DI_File);
       End;
   Except
@@ -2079,15 +2155,28 @@ begin
 
   Try
       If Energymeterclass.FDI_Verbose Then Begin
-        FileNm := MakeDIFileName;   // Creates directory if it doesn't exist
-        AssignFile(DI_File, FileNm );
-        {File Must Exist}
-        If FileExists(FileNm) Then Append(DI_File) Else Rewrite(DI_File);
-        This_Meter_DIFileIsOpen := TRUE;
+          FileNm := MakeDIFileName;   // Creates directory if it doesn't exist
+          AssignFile(DI_File, FileNm );
+          {File Must Exist}
+          If FileExists(FileNm) Then Append(DI_File) Else Rewrite(DI_File);
+          This_Meter_DIFileIsOpen := TRUE;
       End;
   Except
       On E:Exception Do DosimpleMsg('Error opening demand interval file "'+Name+'.CSV' +' for appending.'+CRLF+E.Message, 537);
   End;
+end;
+
+procedure TEnergyMeterObj.AssignVoltBaseRegisterNames;
+var
+   i: Integer;
+begin
+     for i := 1 to MaxVBaseCount  do   Begin
+
+          if VBaseList^[i]> 0.0 then
+               RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses ',[VBaseList^[i]* SQRT3 ])
+          Else RegisterNames[i + Reg_VBaseStart] := 'N/A';
+     
+     End;
 end;
 
 procedure TEnergyMeter.AppendAllDIFiles;
@@ -2158,13 +2247,13 @@ begin
              IF (Cmax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps) THEN Begin
                  With ActiveCircuit.Solution Do
                    Write(FOverLoadFile, Format('%-.6g,',[(Hour + dynavars.t/3600.0)]));
-                 Write(FOverLoadFile, Format(' %s, %-.g, %-.g,',[FullName(PDelem), PDElem.NormAmps, pdelem.EmergAmps ]));
-                 IF PDElem.Normamps > 0.0  THEN Write(FOverLoadFile, Format(' %-.g,',[Cmax/PDElem.Normamps*100.0]))
+                 Write(FOverLoadFile, Format(' %s, %-.4g, %-.4g,',[FullName(PDelem), PDElem.NormAmps, pdelem.EmergAmps ]));
+                 IF PDElem.Normamps > 0.0  THEN Write(FOverLoadFile, Format(' %-.7g,',[Cmax/PDElem.Normamps*100.0]))
                                            ELSE Write(FOverLoadFile,' 0.0,');
-                 IF PDElem.Emergamps > 0.0 THEN Write(FOverLoadFile, Format(' %-.g,',[Cmax/PDElem.Emergamps*100.0 ]))
+                 IF PDElem.Emergamps > 0.0 THEN Write(FOverLoadFile, Format(' %-.7g,',[Cmax/PDElem.Emergamps*100.0 ]))
                                            ELSE Write(FOverLoadFile,' 0.0,');
                  With ActiveCircuit Do {Find bus of first terminal}
-                   Write(FoverLoadFile, Format(' %-.g ', [Buses^[MapNodeToBus^[PDElem.NodeRef^[1]].BusRef].kVBase ]));
+                   Write(FoverLoadFile, Format(' %-.3g ', [Buses^[MapNodeToBus^[PDElem.NodeRef^[1]].BusRef].kVBase ]));
 
                  Writeln(FOverLoadFile);
              END;
@@ -2183,12 +2272,15 @@ end;
 
 procedure TEnergyMeter.CreateFDI_Totals;
 Var i:Integer;
+    mtr:TEnergyMeterObj;
 begin
  Try
     AssignFile(FDI_Totals, DI_Dir+'\DI_Totals.CSV');
     Rewrite(FDI_Totals);
     Write(FDI_Totals,'Time');
-    For i := 1 to NumEMRegisters Do Write(FDI_Totals,', "', RegisterNames[i],'"');
+    mtr := ActiveCircuit.EnergyMeters.First;  // just get the first one
+    if Assigned(mtr) then
+      For i := 1 to NumEMRegisters Do Write(FDI_Totals,', "', mtr.RegisterNames[i],'"');
     Writeln(FDI_Totals);
  Except
     On E:Exception Do DoSimpleMsg('Error creating: "'+DI_Dir+'\DI_Totals.CSV": '+E.Message, 539)
@@ -2360,11 +2452,13 @@ end;
 
 procedure TEnergyMeter.CreateMeterTotals;
 Var i:Integer;
+    mtr:TEnergyMeterObj;
 begin
     AssignFile(FMeterTotals, DI_Dir+'\EnergyMeterTotals.CSV');
     Rewrite(FMeterTotals);
     Write(FMeterTotals,'Name');
-    For i := 1 to NumEMRegisters Do Write(FMeterTotals,', "', RegisterNames[i],'"');
+    mtr := ActiveCircuit.EnergyMeters.First;
+    For i := 1 to NumEMRegisters Do Write(FMeterTotals,', "', mtr.RegisterNames[i],'"');
     Writeln(FMeterTotals);
 end;
 
@@ -2429,7 +2523,9 @@ begin
         AssignFile(F, DI_Dir + '\Totals.CSV' );
         Rewrite(F);
         Write(F,'Year');
-        For i := 1 to NumEMRegisters Do Write(F,', "', RegisterNames[i],'"');
+        mtr := ActiveCircuit.EnergyMeters.First;
+        if assigned(mtr) then
+           For i := 1 to NumEMRegisters Do Write(F,', "', mtr.RegisterNames[i],'"');
         Writeln(F);
         Write(F, ActiveCircuit.Solution.Year:0);
         For i := 1 to NumEMRegisters Do Write(F,Format(', %-g ', [RegSum[i]]));

@@ -1931,7 +1931,7 @@ Begin
             End Else Begin
                 Write(F, ' kW=',Format('%-g',[kWeach]));
                 Write(F, ' PF=',Format('%-.3g',[PF]));
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*1.732]));
+                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
             End;
         End;
         Write(F, ' model=1');
@@ -1979,7 +1979,7 @@ Begin
                 Write(F, ' phases=1');
                 Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
             End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*1.732]));
+                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
             End;
             Write(F, ' kW=',Format('%-g',[kWeach*random*2.0])); // random gen size
             Write(F, ' PF=',Format('%-.3g',[PF]));
@@ -2040,7 +2040,7 @@ Begin
                 Write(F, ' phases=1');
                 Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
             End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*1.732]));
+                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
             End;
             Write(F, ' kW=',Format('%-g',[kWeach*pLoad.kWBase]));
             Write(F, ' PF=',Format('%-.3g',[PF]));
@@ -2093,7 +2093,7 @@ Begin
                 Write(F, ' phases=1');
                 Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
             End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*1.732]));
+                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
             End;
             Write(F, ' kW=',Format('%-g',[kWeach*pLoad.kWBase]));
             Write(F, ' PF=',Format('%-.3g',[PF]));

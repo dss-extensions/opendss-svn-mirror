@@ -108,7 +108,7 @@ Begin
      // Calc per unit value
      IF Buses^[i].kvbase <> 0.0  THEN Vpu := V1 / Buses^[i].kVBase
                                  ELSE Vpu := 0.0;
-     IF LL then Vpu := Vpu/1.732;
+     IF LL then Vpu := Vpu/SQRT3;
 
      IF V1>0.0 THEN Begin
         V2V1 := 100.0*V2/V1;
@@ -151,10 +151,10 @@ Begin
          If Buses^[i].kvbase <> 0.0
                 Then Vpu := Vmag / Buses^[i].kVBase
                 Else Vpu := 0.0;
-         IF LL then Vpu := Vpu/1.732;
+         IF LL then Vpu := Vpu/SQRT3;
          If j=1 Then Bname := Paddots(BusList.Get(i), MaxBusNameLength)
                 Else BName := Pad('   -', MaxBusNameLength);
-         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %8.2f', [Bname,  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*1.732  ]));
+         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %8.2f', [Bname,  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*SQRT3  ]));
        End;
      End;
 End;
@@ -188,7 +188,7 @@ Begin
                               Then Vpu := Vmag / Buses^[bref].kVBase
                               Else Vpu := 0.0;
                    End;
-         IF LL then Vpu := Vpu/1.732;
+         IF LL then Vpu := Vpu/SQRT3;
          Writeln(F, Format('%s  (%3d) %4d    %13.5g (%8.4g) /_ %6.1f',[BusName, nref, i,Vmag, Vpu, cdang(Volts) ]));
        End;
     End;
@@ -1730,7 +1730,7 @@ Begin
        FOR i := 1 to NumBuses DO Begin
            Write(F, Pad(EncloseQuotes(BusList.Get(i)), MaxBusNameLength),' ');
            pBus := Buses^[i];
-           If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*1.732):7:2)
+           If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:2)
            Else Write(F, '   NA ');
            Write(F,'          (');
            If pBus.CoordDefined then Write(F, pBus.x:7:1,', ', pBus.y:7:1, ')' ) Else Write(F,'     NA,      NA  )');
@@ -1777,7 +1777,8 @@ Begin
      Writeln(F,'Registers:');
      MeterClass := TEnergyMeter(GetDSSClassPtr('Energymeter'));
      If MeterClass = nil THEN Exit;  // oops somewhere!!
-     For i := 1 to NumEMRegisters Do Writeln(F, 'Reg ' + IntToStr(i) + ' = ', MeterClass.RegisterNames[i]);
+     pElem := ActiveCircuit.energyMeters.First;   // write registernames for first meter only
+     For i := 1 to NumEMRegisters Do Writeln(F, 'Reg ' + IntToStr(i) + ' = ', pElem.RegisterNames[i]);
      Writeln(F);
 
      pElem := ActiveCircuit.energyMeters.First;

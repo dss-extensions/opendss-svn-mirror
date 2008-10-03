@@ -881,7 +881,7 @@ Begin
         0:        VFactor := Winding^[1].vbase*0.001;   // wye
         1:Case Fnphases of
              1:   VFactor := Winding^[1].vbase * 0.001;
-             2,3: VFactor := Winding^[1].vbase * 0.001 / 1.732;
+             2,3: VFactor := Winding^[1].vbase * 0.001 / SQRT3;
              Else
                   VFactor := Winding^[1].vbase * 0.001 * 0.5 / sin(pi/Fnphases);
           End;
@@ -1086,7 +1086,7 @@ Begin
      Inherited Create;
      Connection := 0;
      kvll       := 12.47;
-     VBase      := kvll/1.732*1000.0;
+     VBase      := kvll/SQRT3*1000.0;
      kva        := 1000.0;
      puTap      := 1.0;
      Rpu        := 0.002;
@@ -1409,7 +1409,7 @@ begin
 
    For i := 1 to NumWindings Do
      With Winding^[i] Do
-        If (NPhases>1) or (Connection<>0) Then S := S + Format(' %-.5g',[kVLL/1.73205])
+        If (NPhases>1) or (Connection<>0) Then S := S + Format(' %-.5g',[kVLL/SQRT3])
                                           Else S := S + Format(' %-.5g',[kVLL]);
    S := S + ')  kVAs=(';
 

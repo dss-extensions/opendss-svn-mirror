@@ -186,8 +186,8 @@ Begin
                         'May be one or more registers.  if more than one, register values are summed together. ' +
                         'Array of integer values > 0.  Defaults to 13 (for Zone kWh Losses). ' +  CRLF+CRLF+
                         'for a list of EnergyMeter register numbers, do the "Show Meters" command after defining a circuit.';
-     OptionHelp[39] := 'Define legal voltage bases for this circuit.  Enter an array '+
-                        'of the legal voltage bases, for example:' +CRLF+CRLF+
+     OptionHelp[39] := 'Define legal bus voltage bases for this circuit.  Enter an array '+
+                        'of the legal voltage bases, in phase-to-phase voltages, for example:' +CRLF+CRLF+
                         'set voltagebases=".208, .480, 12.47, 24.9, 34.5, 115.0, 230.0" '+CRLF+CRLF+
                         'When the CalcVoltageBases command is issued, a snapshot solution is performed '+
                         'with no load injections and the bus base voltage is set to the nearest legal voltage base. '+

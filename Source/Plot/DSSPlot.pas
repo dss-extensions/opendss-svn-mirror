@@ -1467,7 +1467,8 @@ begin
    AssignFile(Fout, 'LastYearlyCurvePlot.CSV');
    Rewrite(Fout);
      Write(Fout, 'Case, Year, TotalMW');
-     for i := 0 to high(iRegisters) Do Write(Fout,Format(', "%s"', [ EnergyMeterClass.RegisterNames[iRegisters[i]]]));
+     If Assigned(ActiveEnergyMeterObj) Then for i := 0 to high(iRegisters) Do Write(Fout,Format(', "%s"', [ ActiveEnergyMeterObj.RegisterNames[iRegisters[i]]]))
+     Else for i := 0 to high(iRegisters) Do Write(Fout,Format(', "Reg %d"', [ iRegisters[i]]));
      Writeln(Fout);
 
     {Loop Through Cases}

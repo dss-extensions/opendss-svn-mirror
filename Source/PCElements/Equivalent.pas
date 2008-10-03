@@ -648,7 +648,7 @@ begin
 
 
         S :='Phases=1 ';
-        S := S + Format('BasekV=%-.5g ', [kVbase/1.73205]);
+        S := S + Format('BasekV=%-.5g ', [kVbase/SQRT3]);
         S := S + Format('R1=%-.5g ', [R1]);
         S := S + Format('X1=%-.5g ', [X1]);
 

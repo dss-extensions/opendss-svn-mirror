@@ -1689,7 +1689,7 @@ begin
   S := 'Phases=1 conn=wye';
 
   // Make sure voltage is line-neutral
-  If (Fnphases>1) or (connection<>0) Then   V :=  kVLoadBase/1.732
+  If (Fnphases>1) or (connection<>0) Then   V :=  kVLoadBase/SQRT3
   Else V :=  kVLoadBase;
 
   S := S + Format(' kV=%-.5g',[V]);

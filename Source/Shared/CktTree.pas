@@ -44,7 +44,8 @@ Type
      public
        CktObject  :Pointer;    // Pointer to the circuit object referenced
        FromBusReference :Integer;
-       FromTerminal:Integer;
+       VoltBaseIndex    :Integer;
+       FromTerminal     :Integer;
        IsLoopedHere, IsParallel, IsDangling:Boolean;
        LoopLineObj :Pointer;
 
@@ -156,6 +157,7 @@ Begin
      FChildBranches   := TPointerList.Create(2);
      FShuntObjects    := TPointerList.Create(1);
      FromBusReference := 0;
+     VoltBaseIndex    := 0; // Index to voltage base list used by energymeter and maybe others
      NumToBuses := 0;
      ToBusList:=Nil;
      ToBusPtr := 0;

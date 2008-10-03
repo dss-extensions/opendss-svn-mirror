@@ -1859,7 +1859,7 @@ Begin
       THEN Begin
            IF    Comparetext(ParamName, 'kvln') = 0
            THEN  Buses^[ActiveBusIndex].kVBase := kVValue
-           ELSE  Buses^[ActiveBusIndex].kVBase := kVValue / 1.732;
+           ELSE  Buses^[ActiveBusIndex].kVBase := kVValue / SQRT3;
            Result := 0;
            Solution.VoltageBaseChanged := TRUE;
            // Solution.SolutionInitialized := FALSE;  // Force reinitialization

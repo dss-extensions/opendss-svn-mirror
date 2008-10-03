@@ -743,16 +743,13 @@ BEGIN
        ActiveCktElement := CktElements.Next;
      END;
 
-
-     DoResetMeterZones;  // Fix up meter zones to correspond
-
-
      ActiveCktElement := CktElementSave;  // restore active circuit element
 
      FOR i := 1 to NumBuses Do Buses^[i].AllocateBusVoltages;
-     RestoreBusInfo;     // frees old bus info, too
-
      FOR i := 1 to NumBuses Do Buses^[i].AllocateBusCurrents;
+
+     RestoreBusInfo;     // frees old bus info, too
+     DoResetMeterZones;  // Fix up meter zones to correspond
 
      BusNameRedefined := False;  // Get ready for next time
 END;

@@ -131,15 +131,18 @@ end;
 function TMeters.Get_RegisterNames: OleVariant;
 
 Var
-    EnergyMeterClass:TEnergyMeter;
+    mtr :TEnergyMeterObj;
     k :integer;
 
 Begin
-    EnergyMeterClass := DssClassList.Get(Classnames.Find('energymeter'));
-    Result := VarArrayCreate([0, NumEMRegisters - 1], varOleStr);
-    For k := 0 to  NumEMRegisters - 1  Do Begin
-       Result[k] := EnergyMeterClass.RegisterNames[k + 1];
-    End;
+    mtr := TEnergyMeterObj(ActiveCircuit.EnergyMeters.Active);
+    if Assigned(mtr) then  Begin
+      Result := VarArrayCreate([0, NumEMRegisters - 1], varOleStr);
+      For k := 0 to  NumEMRegisters - 1  Do Begin
+         Result[k] := mtr.RegisterNames[k + 1];
+      End;
+    End
+    Else Result := VarArrayCreate([0, 0], varOleStr); // null array
 end;
 
 function TMeters.Get_RegisterValues: OleVariant;

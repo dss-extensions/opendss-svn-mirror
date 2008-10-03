@@ -492,7 +492,7 @@ BEGIN
      Connection:=0;   // 0 or 1 for wye (default) or delta, respectively
      SpecType := 1; // 1=kvar, 2=Cuf, 3=Cmatrix
 
-     NormAmps := FkvarRating^[1]*1.732/kvrating * 1.35;   // 135%
+     NormAmps := FkvarRating^[1]*SQRT3/kvrating * 1.35;   // 135%
      EmergAmps := NormAmps * 1.8/1.35;   //180%
      FaultRate := 0.0005;
      PctPerm:=   100.0;
@@ -541,7 +541,7 @@ BEGIN
                 END;
           ELSE BEGIN  //  line-to-neutral
                  CASE Fnphases of
-                 2,3:PhasekV := kVRating / 1.732;  // Assume three phase system
+                 2,3:PhasekV := kVRating / SQRT3;  // Assume three phase system
                  ELSE
                     PhasekV := kVRating;
                  END;
@@ -558,7 +558,7 @@ BEGIN
                 END;
           ELSE BEGIN  //  line-to-neutral
                  CASE Fnphases of
-                 2,3:PhasekV := kVRating / 1.732;  // Assume three phase system
+                 2,3:PhasekV := kVRating / SQRT3;  // Assume three phase system
                  ELSE
                     PhasekV := kVRating;
                  END;
@@ -736,7 +736,7 @@ begin
 
          1:BEGIN // kvar
 
-              If (FnPhases>1) or ( Connection <> 0) Then  PhasekV := kVRating / 1.732
+              If (FnPhases>1) or ( Connection <> 0) Then  PhasekV := kVRating / SQRT3
               Else PhasekV := kVRating;
 
               S := 'Phases=1 ' + Format(' kV=%-.5g kvar=(',[PhasekV]);

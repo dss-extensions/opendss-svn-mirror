@@ -859,7 +859,7 @@ Begin
        WITH ActiveCircuit Do
          FOR i := 1 to NumBuses Do
            WITH Buses^[i] Do
-             kVBase := NearestBasekV( Cabs(NodeV^[GetRef(1)]) * 0.001732) / 1.732;  // l-n base kV
+             kVBase := NearestBasekV( Cabs(NodeV^[GetRef(1)]) * 0.001732) / SQRT3;  // l-n base kV
 
        InitializeNodeVbase;      // for convergence test
 

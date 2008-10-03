@@ -670,7 +670,7 @@ Begin
          CASE FNPhases of
             1: vbase := kVBase * 1000.0;
          ELSE
-             vbase := kVBase/1.732 * 1000.0 ;
+             vbase := kVBase/SQRT3 * 1000.0 ;
          END;
 
          PickupVolts47 := vbase * PctPickup47 * 0.01;

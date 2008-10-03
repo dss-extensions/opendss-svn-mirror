@@ -476,7 +476,7 @@ Begin
 
                              TRY
                                Append(Flog);
-                               Write(Flog, Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*1.732]));
+                               Write(Flog, Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*SQRT3]));
                                Write(Flog,  Format(', %-g, %-g',[kWLosses, puLossImprovement*100.0]));
                                Write(Flog,  Format(', %-g, %-g',[kWEEN, puEENImprovement*100.0]));
                                Writeln(Flog, Format(', %-g, %d', [LossImproveFactor, Iteration]) );
@@ -505,7 +505,7 @@ Begin
                    Begin
 
                        IF MinBusPhases >=3
-                       THEN kVrat := Buses^[MinLossBus].kVBase*1.732
+                       THEN kVrat := Buses^[MinLossBus].kVBase*SQRT3
                        ELSE kVrat := Buses^[MinLossBus].kVBase;
                        CommandString := 'New, generator.' + GetUniqueGenName +
                                   ', bus1="' + BusList.Get(MinLossBus) +
@@ -592,7 +592,7 @@ Begin
 
                              TRY
                                Append(Flog);
-                               Write(Flog, Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*1.732]));
+                               Write(Flog, Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*SQRT3]));
                                Write(Flog,  Format(', %-g, %-g',[kWLosses, puLossImprovement*100.0]));
                                Write(Flog,  Format(', %-g, %-g',[kWEEN, puEENImprovement*100.0]));
                                Writeln(Flog, Format(', %-g, %d', [LossImproveFactor, Iteration]) );
@@ -621,7 +621,7 @@ Begin
                    Begin
 
                        IF MinBusPhases >= 3
-                       THEN kVrat := Buses^[MinLossBus].kVBase*1.732
+                       THEN kVrat := Buses^[MinLossBus].kVBase*SQRT3
                        ELSE kVrat := Buses^[MinLossBus].kVBase;
 
                        CommandString := 'New, Capacitor.' + GetUniqueCapName +
