@@ -73,6 +73,7 @@ TYPE
         IsSwitch             :Boolean;
 
         PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); Override;
+        PROCEDURE GetSeqLosses(Var PosSeqLosses, NegSeqLosses, ZeroSeqLosses:complex); Override;
 
         constructor Create(ParClass:TDSSClass; const LineName:String);
         destructor Destroy; override;
@@ -942,6 +943,45 @@ begin
         Else
         End;
 
+
+end;
+
+procedure TLineObj.GetSeqLosses(var PosSeqLosses, NegSeqLosses, ZeroSeqLosses: complex);
+
+{ Only consider 3-phase branches with Pos seq >> Neg seq
+  Otherwise, we don't know whether it is a 3-phase line or just a line with 3 phases
+}
+
+Var
+   i,j, k :Integer;
+   Vph,
+   V012,
+   I012   :Array[0..2] of Complex;
+
+begin
+
+    PosSeqLosses  := CZERO;
+    NegSeqLosses  := CZERO;
+    ZeroSeqLosses := CZERO;
+
+    {Method: sum seq powers going into each terminal
+    }
+
+    If Fnphases=3 then Begin   {3-phase lines only}
+       ComputeIterminal;
+       For i := 1 to 2 do Begin
+         k := (i-1)*Fnphases + 1;
+         For j := 0 to 2 DO  Vph[j] := ActiveCircuit.Solution.NodeV^[NodeRef^[k+j]] ;
+         Phase2SymComp(@Vph, @V012);
+         Phase2SymComp(@Iterminal^[k], @I012);
+         Caccum(PosSeqLosses,  Cmul(V012[1], Conjg(I012[1])));
+         Caccum(NegSeqLosses,  Cmul(V012[2], Conjg(I012[2]))); // accumulate both line modes
+         Caccum(ZeroSeqLosses, Cmul(V012[0], Conjg(I012[0])));
+       End;
+       cmulrealaccum(PosSeqLosses,  3.0);
+       cmulrealaccum(NegSeqLosses,  3.0);
+       cmulrealaccum(ZeroSeqLosses, 3.0);
+    End;
 
 end;
 

@@ -106,6 +106,7 @@ TYPE
       PROCEDURE GetPhasePower(PowerBuffer:pComplexArray); Virtual;
       PROCEDURE GetPhaseLosses(Var Num_Phases:Integer; LossBuffer:pComplexArray); Virtual;
       PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); Virtual;
+      PROCEDURE GetSeqLosses(Var PosSeqLosses, NegSeqLosses, ZeroModeLosses:complex); Virtual;
 
       FUNCTION  GetPropertyValue(Index:Integer):String;Override;
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
@@ -896,6 +897,19 @@ begin
            // *** RCD 6-18-03 commented out PropertyValue[FEnabledProperty] := Result; // Keep this in synch
        End
       Else Result := Inherited GetPropertyValue(Index);
+end;
+
+procedure TCktElement.GetSeqLosses(var PosSeqLosses, NegSeqLosses, ZeroModeLosses: complex);
+begin
+
+{ For the base class, just return CZERO}
+
+{Derived classes have to supply appropriate function}
+
+   PosSeqLosses  := CZERO;
+   NegSeqLosses  := CZERO;
+   ZeroModeLosses := CZERO;
+
 end;
 
 procedure TCktElement.MakePosSequence;

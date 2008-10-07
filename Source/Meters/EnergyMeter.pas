@@ -73,7 +73,7 @@ Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 35;   // Number of energy meter registers
+Const  NumEMRegisters = 37;   // Number of energy meter registers
     {Fixed Registers}
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -99,11 +99,13 @@ Const  NumEMRegisters = 35;   // Number of energy meter registers
      Reg_MaxNoLoadLosses   = 22;
      Reg_LineLosseskWh     = 23;
      Reg_TransformerLosseskWh = 24;
-     Reg_GenkWh            = 25;
-     Reg_Genkvarh          = 26;
-     Reg_GenMaxkW          = 27;
-     Reg_GenMaxkVA         = 28;
-     Reg_VBaseStart        = 28;  {This is where the Voltage base load Registers start}
+     Reg_LineModeLineLoss  = 25;    // for 3-phase feeder lines
+     Reg_ZeroModeLineLoss  = 26;
+     Reg_GenkWh            = 27;
+     Reg_Genkvarh          = 28;
+     Reg_GenMaxkW          = 29;
+     Reg_GenMaxkVA         = 30;
+     Reg_VBaseStart        = 30;  {This is where the Voltage base load Registers start}
 
 
 Type
@@ -216,7 +218,6 @@ Type
         by the individual branches}
        MaxZonekVA_Norm   :Double;
        MaxZonekVA_Emerg  :Double;
-
 
        PeakCurrent            :pDoubleArray;
        PhaseAllocationFactor  :pDoubleArray;
@@ -813,18 +814,22 @@ Begin
      RegisterNames[22] := 'Max kW No Load Losses';
      RegisterNames[23] := 'Line Losses';
      RegisterNames[24] := 'Transformer Losses';
-     RegisterNames[25] := 'Gen kWh';
-     RegisterNames[26] := 'Gen kvarh';
-     RegisterNames[27] := 'Gen Max kW';
-     RegisterNames[28] := 'Gen Max kVA';
+
+     RegisterNames[25] := 'Line Mode Line Losses';
+     RegisterNames[26] := 'Zero Mode Line Losses';
+
+     RegisterNames[27] := 'Gen kWh';
+     RegisterNames[28] := 'Gen kvarh';
+     RegisterNames[29] := 'Gen Max kW';
+     RegisterNames[30] := 'Gen Max kVA';
      {Registers for capturing losses by base voltage}
-     RegisterNames[29] := 'N/A';     {Name is assigned after determining Voltage Bases}
-     RegisterNames[30] := 'N/A';
-     RegisterNames[31] := 'N/A';
+     RegisterNames[31] := 'N/A';     {Name is assigned after determining Voltage Bases}
      RegisterNames[32] := 'N/A';
      RegisterNames[33] := 'N/A';
      RegisterNames[34] := 'N/A';
      RegisterNames[35] := 'N/A';
+     RegisterNames[36] := 'N/A';
+     RegisterNames[37] := 'N/A';
 
      ResetRegisters;
      For i := 1 to NumEMRegisters Do TotalsMask[i] := 1.0;
@@ -958,8 +963,7 @@ Begin
        Rewrite(F);
        GlobalResult := CSVName;
   Except
-      On E: Exception DO
-      Begin
+      On E: Exception DO  Begin
        DoSimpleMsg('Error opening Meter File "' + CRLF + CSVName + '": ' + E.Message, 526);
        Exit;
       End
@@ -1007,6 +1011,8 @@ VAR
    TotalNoLoadLosses,
    TotalLineLosses,
    TotalTransformerLosses,
+   TotalLineModeLosses,    // Lines only  for now
+   TotalZeroModeLosses,
    TotalLosses :Complex;
 
    CktElem,
@@ -1027,6 +1033,9 @@ VAR
    LoadkVA,
    GenkVA,
    S_Local_kVA   :Double;
+   S_PosSeqLosses: Complex;
+   S_ZeroSeqLosses: Complex;
+   S_NegSeqLosses: complex;
 
 Begin
 
@@ -1049,6 +1058,8 @@ Begin
      TotalLoadLosses   := CZERO;
      TotalNoLoadLosses := CZERO;
      TotalLineLosses   := CZERO;
+     TotalLineModeLosses := CZERO;
+     TotalZeroModeLosses := CZERO;
      TotalTransformerLosses   := CZERO;
      For i := 1 to MaxVBaseCount Do TotalVBaseLosses^[i] := 0.0;
 
@@ -1156,6 +1167,14 @@ Begin
          If IsLineElement(Cktelem) then Begin
              Integrate(Reg_LineLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
              Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+             CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
+             Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
+             CmulRealAccum(S_PosSeqLosses,  0.001); // convert to kW
+             CmulRealAccum(S_ZeroSeqLosses, 0.001);
+             Integrate(Reg_LineModeLineLoss,   S_PosSeqLosses.re,   Delta_Hrs);
+             Integrate(Reg_ZeroModeLineLoss,   S_ZeroSeqLosses.re,  Delta_Hrs);
+             Caccum(TotalLineModeLosses,  S_PosSeqLosses );
+             Caccum(TotalZeroModeLosses,  S_ZeroSeqLosses);
          End
          Else If IsTransformerElement(Cktelem) then Begin
              Integrate(Reg_TransformerLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
@@ -1181,6 +1200,8 @@ Begin
      Derivatives[Reg_NoLoadLosseskvarh] := TotalNoLoadLosses.im;
      Derivatives[Reg_LineLosseskWh]     := TotalLineLosses.Re;
      Derivatives[Reg_TransformerLosseskWh]  := TotalTransformerLosses.Re;
+     Derivatives[Reg_LineModeLineLoss]   := TotalLineModeLosses.Re;
+     Derivatives[Reg_ZeroModeLineLoss]   := TotalZeroModeLosses.Re;
      for i  := 1 to MaxVBaseCount  do  Derivatives[Reg_VbaseStart + i] := TotalVBaseLosses^[i];
        
 
