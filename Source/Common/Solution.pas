@@ -388,14 +388,12 @@ Begin
 {Check of some special conditions that must be met before executing solutions}
 
     If ActiveCircuit.EmergMinVolts >= ActiveCircuit.NormalMinVolts Then  Begin
-        
             DoSimpleMsg('Error: Emergency Min Voltage Must Be Less Than Normal Min Voltage!' +
                          CRLF + 'Solution Not Executed.', 480);
             Exit;
-        End;
+    End;
 
     If SolutionAbort Then  Begin
-    
          GlobalResult:= 'Solution aborted.';
          CmdResult := SOLUTION_ABORT;
          ErrorNumber := CmdResult;

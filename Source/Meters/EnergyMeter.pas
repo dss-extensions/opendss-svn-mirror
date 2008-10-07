@@ -155,6 +155,7 @@ Type
         FSaveDemandInterval :Boolean;
         FDI_Verbose         :Boolean;
         FOverLoadFile       :Textfile;
+        FVoltageFile        :TextFile;
         PROCEDURE ProcessOptions(Const Opts:String);
         procedure Set_SaveDemandInterval(const Value: Boolean);
         Procedure CreateMeterTotals;
@@ -162,7 +163,9 @@ Type
         Procedure ClearDI_Totals;
         Procedure WriteTotalsFile;
         Procedure OpenOverloadReportFile;
+        Procedure OpenVoltageReportFile;
         Procedure WriteOverloadReport;
+        Procedure WriteVoltageReport;
         Procedure InterpretRegisterMaskArray(Var Mask:TRegisterArray);
         procedure Set_DI_Verbose(const Value: Boolean);
 
@@ -178,7 +181,9 @@ Type
        FMeterTotals  :TextFile;
        SystemMeter   :TSystemMeter;
        Do_OverloadReport   :Boolean;
-       OverLoadFileIsOpen :Boolean;
+       Do_VoltageExceptionReport :Boolean;
+       OverLoadFileIsOpen  :Boolean;
+       VoltageFileIsOpen   :Boolean;
 
        constructor Create;
        destructor Destroy; override;
@@ -210,7 +215,12 @@ Type
        LocalOnly             :Boolean;
        HasFeeder             :Boolean;
        MeteredElementChanged :Boolean;
-       FeederObj             :TFeederObj;
+       FLosses               :Boolean;
+       FLineLosses           :Boolean;
+       FXfmrLosses           :Boolean;
+       FSeqLosses            :Boolean;
+       FVBaseLosses          :Boolean;
+       FeederObj             :TFeederObj;   // not used at present
        DefinedZoneList       :pStringArray;
        DefinedZoneListSize   :Integer;
 
@@ -220,7 +230,7 @@ Type
        MaxZonekVA_Emerg  :Double;
 
        PeakCurrent            :pDoubleArray;
-       PhaseAllocationFactor  :pDoubleArray;
+       PhsAllocationFactor  :pDoubleArray;
        MeteredCurrent         :pComplexArray;
 
        {Voltage bases in the Meter Zone}
@@ -299,7 +309,7 @@ USES  ParserDel, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
       Classes, FileCtrl, ReduceAlgs, Windows;
 
 
-Const NumPropsThisClass = 11;
+Const NumPropsThisClass = 15;
 
 VAR
 
@@ -327,6 +337,7 @@ Begin
      FDI_Verbose         := FALSE;
      Do_OverloadReport   := FALSE;  // FSaveDemandInterval must be true for this to have an effect
      OverLoadFileIsOpen  := FALSE;
+     VoltageFileIsOpen   := FALSE;
      
      DI_Dir := '';
      
@@ -372,7 +383,14 @@ Begin
      PropertyName^[8] := 'Zonelist';
      PropertyName^[9] := 'LocalOnly';
      PropertyName^[10] := 'Mask';
-     PropertyName^[11] := 'Feeder';
+     PropertyName^[11] := 'Losses';
+     PropertyName^[12] := 'LineLosses';
+     PropertyName^[13] := 'XfmrLosses';
+     PropertyName^[14] := 'SeqLosses';
+     PropertyName^[15] := 'VbaseLosses'; // segregate losses by voltage base
+     PropertyName^[16] := 'OverloadReport';
+
+{     PropertyName^[11] := 'Feeder';  **** removed - not used}
 
      PropertyHelp[1] := 'Name (Full Object name) of element to which the monitor is connected.';
      PropertyHelp[2] := 'Number of the terminal of the circuit element to which the monitor is connected. '+
@@ -412,9 +430,16 @@ Begin
                          'representing the multiplier to be used for summing each register from this meter. ' +
                          'Default = (1, 1, 1, 1, ... ).  You only have to enter as many as are changed (positional). ' +
                          'Useful when two meters monitor same energy, etc.';
-      PropertyHelp[11]:= '{Yes/True | No/False}  Default is NO. If set to Yes, a Feeder object is created corresponding to ' +
+      PropertyHelp[11]:= '{Yes | No}  Default is YES. Compute Zone losses. If NO, then no losses at all are computed.';
+      PropertyHelp[12]:= '{Yes | No}  Default is YES. Compute Line losses. If NO, then none of the losses are computed.';
+      PropertyHelp[13]:= '{Yes | No}  Default is YES. Compute Transformer losses. If NO, transformers are ignored in loss calculations.';
+      PropertyHelp[14]:= '{Yes | No}  Default is YES. Compute Sequence losses in lines and segregate by line mode losses and zero mode losses.';
+      PropertyHelp[15]:= '{Yes | No}  Default is YES. Compute losses and segregate by voltage base. If NO, then voltage-based tabulation is not reported.';
+      PropertyHelp[16]:= '{Yes | No}  Default is YES. When YES, write Overload exception report when Demand Intervals are written.';
+(**** Not used in present version      PropertyHelp[11]:= '{Yes/True | No/False}  Default is NO. If set to Yes, a Feeder object is created corresponding to ' +
                          'the energymeter.  Feeder is enabled if Radial=Yes; diabled if Radial=No.  Feeder is ' +
                          'synched automatically with the meter zone.  Do not create feeders for zones in meshed transmission systems.';
+*****)
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -491,7 +516,12 @@ Begin
             8: InterpretAndAllocStrArray(Param, DefinedZoneListSize, DefinedZoneList);
             9: LocalOnly := InterpretYesNo(Param);
            10: InterpretRegisterMaskArray(TotalsMask);
-           11: HasFeeder := InterpretYesNo(Param);
+           11: FLosses      := InterpretYesNo(Param);
+           12: FLineLosses  := InterpretYesNo(Param);
+           13: FXfmrLosses  := InterpretYesNo(Param);
+           14: FSeqLosses   := InterpretYesNo(Param);
+           15: FVBaseLosses := InterpretYesNo(Param);
+           (****11: HasFeeder := InterpretYesNo(Param); ***)
          ELSE
            ClassEdit(ActiveEnergyMeterObj, ParamPointer - NumPropsthisClass)
          End;
@@ -706,7 +736,7 @@ Begin
         Writeln(FDI_Totals);
         ClearDI_Totals;
         if OverLoadFileIsOpen then WriteOverloadReport;
-
+        If VoltageFileIsOpen  then WriteVoltageReport;
       End;
 
       // Sample Generator Objects, too
@@ -747,14 +777,11 @@ Begin
      Name       := LowerCase(EnergyMeterName);
      DSSObjType := ParClass.DSSClassType; //ENERGY_METER;
 
-     NPhases      := 3;  // Directly set conds and phases
-     Fnconds       := 3;
-     Nterms := 1;  // this forces allocation of terminals and conductors
-                         // in base class
-     ExcessFlag := True;  // Default to Excess energy FOR UE
-
-     ElementName := 'Vsource.'+TCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
-
+     NPhases        := 3;  // Directly set conds and phases
+     Fnconds        := 3;
+     Nterms         := 1;  // this forces allocation of terminals and conductors in base class
+     ExcessFlag     := True;  // Default to Excess energy FOR UE
+     ElementName    := 'Vsource.'+TCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
      MeteredElement := NIL;
      BranchList     := NIL;  // initialize to NIL, set later when inited
 
@@ -763,31 +790,31 @@ Begin
      InitPropertyValues(0);
 
      // Max zone kW limits ignored unless the user provides a rating
-     MaxZonekVA_Norm  := 0.0;
-     MaxZonekVA_Emerg := 0.0;
+     MaxZonekVA_Norm     := 0.0;
+     MaxZonekVA_Emerg    := 0.0;
 
-     ZoneIsRadial    := True;
-     HasFeeder       := FALSE;
-     FeederObj       := Nil;  // initialize to not assigned
-
-     PeakCurrent     :=NIL;
-     PhaseAllocationFactor := NIL;
-     MeteredCurrent  := NIL;
-
-     DefinedZoneList := NIL;
+     ZoneIsRadial        := True;
+     HasFeeder           := FALSE;
+     FeederObj           := Nil;  // initialize to not assigned
+     PeakCurrent         := NIL;
+     PhsAllocationFactor := NIL;
+     MeteredCurrent      := NIL;
+     DefinedZoneList     := NIL;
      DefinedZoneListSize := 0;
-
-     VbaseList      := Nil;
-     TotalVBaseLosses := NIL;
-     VBaseCount     := 0;
-     MaxVBaseCount  := NumEMRegisters - Reg_VBaseStart;
+     FLosses             := TRUE;   {Loss Reporting switches}
+     FLineLosses         := TRUE;
+     FXfmrLosses         := TRUE;
+     FSeqLosses          := TRUE;
+     FVBaseLosses        := TRUE;
+     VbaseList           := NIL;
+     TotalVBaseLosses    := NIL;
+     VBaseCount          := 0;
+     MaxVBaseCount       := NumEMRegisters - Reg_VBaseStart;
      ReallocMem(VBaseList, MaxVBaseCount * SizeOf(VBaseList^[1]));
      ReallocMem(TotalVBaseLosses, MaxVBaseCount * SizeOf(TotalVBaseLosses^[1]));
 
-
-
-     LocalOnly := FALSE;
-     VoltageUEOnly := FALSE;
+     LocalOnly           := FALSE;
+     VoltageUEOnly       := FALSE;
 
      // Set Register names  that correspond to the register quantities
      RegisterNames[1]  := 'kWh';
@@ -836,7 +863,7 @@ Begin
 
      ReAllocMem(PeakCurrent, Sizeof(PeakCurrent^[1])* Fnphases);
      FOR i := 1 to Fnphases Do PeakCurrent^[i] := 400.0;
-     ReAllocMem(PhaseAllocationFactor, Sizeof(PhaseAllocationFactor^[1])* Fnphases);
+     ReAllocMem(PhsAllocationFactor, Sizeof(PhsAllocationFactor^[1])* Fnphases);
 
     // RecalcElementData;
 End;
@@ -852,7 +879,7 @@ Begin
     BranchList.Free;
     Reallocmem(PeakCurrent, 0);
     Reallocmem(MeteredCurrent, 0);
-    Reallocmem(PhaseAllocationFactor, 0);
+    Reallocmem(PhsAllocationFactor, 0);
     FreeStringArray(DefinedZoneList, DefinedZoneListSize);
     Inherited destroy;
 End;
@@ -865,49 +892,49 @@ VAR
 
 
 Begin
-         Devindex := GetCktElementIndex(ElementName);   // Global function
-         IF DevIndex>0 Then Begin  // Monitored element must already exist
-             MeteredElement := ActiveCircuit.CktElements.Get(DevIndex); // Get pointer to metered element
-             {MeteredElement must be a PDElement}
-             If NOT (MeteredElement is TPDElement) Then Begin
-                MeteredElement := NIL;   // element not found
-                DoErrorMsg('EnergyMeter: "' + Self.Name + '"', 'Circuit Element "'+ ElementName + '" is not a Power Delivery (PD) element.',
-                            ' Element must be a PD element.', 525);
-                Exit;
-             End;
+     Devindex := GetCktElementIndex(ElementName);   // Global function
+     IF DevIndex>0 Then Begin  // Monitored element must already exist
+         MeteredElement := ActiveCircuit.CktElements.Get(DevIndex); // Get pointer to metered element
+         {MeteredElement must be a PDElement}
+         If NOT (MeteredElement is TPDElement) Then Begin
+            MeteredElement := NIL;   // element not found
+            DoErrorMsg('EnergyMeter: "' + Self.Name + '"', 'Circuit Element "'+ ElementName + '" is not a Power Delivery (PD) element.',
+                        ' Element must be a PD element.', 525);
+            Exit;
+         End;
 
 
-             IF MeteredTerminal>MeteredElement.Nterms  Then Begin
-                 DoErrorMsg('EnergyMeter: "' + Name + '"',
-                                 'Terminal no. "' + IntToStr(MeteredTerminal)+'" does not exist.',
-                                 'Respecify terminal no.', 524);
-             END
-             ELSE Begin
-
-                 If MeteredElementChanged Then Begin
-                   // Sets name of i-th terminal's connected bus in monitor's buslist
-                   // This value will be used to set the NodeRef array (see TakeSample)
-                     Setbus(1, MeteredElement.GetBus(MeteredTerminal));
-                     Nphases := MeteredElement.NPhases;
-                     Nconds   := MeteredElement.Nconds;
-                     ReallocMem(MeteredCurrent, Sizeof(MeteredCurrent^[1])*MeteredElement.Yorder);
-                     ReAllocMem(PeakCurrent, Sizeof(PeakCurrent^[1])* Fnphases);
-                     ReAllocMem(PhaseAllocationFactor, Sizeof(PhaseAllocationFactor^[1])* Fnphases);
-
-                     // If we come through here, throw branchlist away
-                     IF BranchList <> NIL Then BranchList.Free;
-                     BranchList := Nil;
-                 End;
-
-                 If HasFeeder Then MakeFeederObj;  // OK to call multiple times
-
-             END;
+         IF MeteredTerminal>MeteredElement.Nterms  Then Begin
+             DoErrorMsg('EnergyMeter: "' + Name + '"',
+                             'Terminal no. "' + IntToStr(MeteredTerminal)+'" does not exist.',
+                             'Respecify terminal no.', 524);
          END
          ELSE Begin
-            MeteredElement := NIL;   // element not found
-            DoErrorMsg('EnergyMeter: "' + Self.Name + '"', 'Circuit Element "'+ ElementName + '" Not Found.',
-                            ' Element must be defined previously.', 525);
+
+             If MeteredElementChanged Then Begin
+               // Sets name of i-th terminal's connected bus in monitor's buslist
+               // This value will be used to set the NodeRef array (see TakeSample)
+                 Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+                 Nphases := MeteredElement.NPhases;
+                 Nconds   := MeteredElement.Nconds;
+                 ReallocMem(MeteredCurrent, Sizeof(MeteredCurrent^[1])*MeteredElement.Yorder);
+                 ReAllocMem(PeakCurrent, Sizeof(PeakCurrent^[1])* Fnphases);
+                 ReAllocMem(PhsAllocationFactor, Sizeof(PhsAllocationFactor^[1])* Fnphases);
+
+                 // If we come through here, throw branchlist away
+                 IF BranchList <> NIL Then BranchList.Free;
+                 BranchList := Nil;
+             End;
+
+             If HasFeeder Then MakeFeederObj;  // OK to call multiple times
+
          END;
+     END
+     ELSE Begin
+        MeteredElement := NIL;   // element not found
+        DoErrorMsg('EnergyMeter: "' + Self.Name + '"', 'Circuit Element "'+ ElementName + '" Not Found.',
+                        ' Element must be defined previously.', 525);
+     END;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1145,47 +1172,50 @@ Begin
           PCElem := BranchList.NextObject
          End;
 
-         {Get losses from the present circuit element}
-         CktElem.GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses);  // returns watts, vars
-         {Convert to kW}
-          CmulRealAccum(S_TotalLosses,  0.001);
-          CmulRealAccum(S_LoadLosses,   0.001);
-          CmulRealAccum(S_NoLoadLosses, 0.001);
-         {Add losses into appropriate registers; convert to kW, kvar}
-         Integrate(Reg_ZoneLosseskWh,     S_TotalLosses.re,  Delta_Hrs);
-         Integrate(Reg_ZoneLosseskvarh,   S_TotalLosses.im,  Delta_Hrs);
-         Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re,   Delta_Hrs);
-         Integrate(Reg_LoadLosseskvarh,   S_LoadLosses.im,   Delta_Hrs);
-         Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re, Delta_Hrs);
-         Integrate(Reg_NoLoadLosseskvarh, S_NoLoadLosses.im, Delta_Hrs);
-         {Update accumulators}
-         Caccum(TotalLosses,       S_TotalLosses); // Accumulate total losses in meter zone
-         Caccum(TotalLoadLosses,   S_LoadLosses);  // Accumulate total load losses in meter zone
+         If Flosses then Begin  // Compute and Report Losses
 
-         {Line and Transformer Elements}
-         Caccum(TotalNoLoadLosses, S_NoLoadLosses); // Accumulate total no load losses in meter zone
-         If IsLineElement(Cktelem) then Begin
-             Integrate(Reg_LineLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
-             Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
-             CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
-             Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
-             CmulRealAccum(S_PosSeqLosses,  0.001); // convert to kW
-             CmulRealAccum(S_ZeroSeqLosses, 0.001);
-             Integrate(Reg_LineModeLineLoss,   S_PosSeqLosses.re,   Delta_Hrs);
-             Integrate(Reg_ZeroModeLineLoss,   S_ZeroSeqLosses.re,  Delta_Hrs);
-             Caccum(TotalLineModeLosses,  S_PosSeqLosses );
-             Caccum(TotalZeroModeLosses,  S_ZeroSeqLosses);
-         End
-         Else If IsTransformerElement(Cktelem) then Begin
-             Integrate(Reg_TransformerLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
-             Caccum(TotalTransformerLosses,       S_TotalLosses); // Accumulate total losses in meter zone
-         End;
+           {Get losses from the present circuit element}
+           CktElem.GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses);  // returns watts, vars
+           {Convert to kW}
+            CmulRealAccum(S_TotalLosses,  0.001);
+            CmulRealAccum(S_LoadLosses,   0.001);
+            CmulRealAccum(S_NoLoadLosses, 0.001);
+           {Add losses into appropriate registers; convert to kW, kvar}
+           Integrate(Reg_ZoneLosseskWh,     S_TotalLosses.re,  Delta_Hrs);
+           Integrate(Reg_ZoneLosseskvarh,   S_TotalLosses.im,  Delta_Hrs);
+           Integrate(Reg_LoadLosseskWh,     S_LoadLosses.re,   Delta_Hrs);
+           Integrate(Reg_LoadLosseskvarh,   S_LoadLosses.im,   Delta_Hrs);
+           Integrate(Reg_NoLoadLosseskWh,   S_NoLoadLosses.re, Delta_Hrs);
+           Integrate(Reg_NoLoadLosseskvarh, S_NoLoadLosses.im, Delta_Hrs);
+           {Update accumulators}
+           Caccum(TotalLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+           Caccum(TotalLoadLosses,   S_LoadLosses);  // Accumulate total load losses in meter zone
 
-         With BranchList.PresentBranch do
-         If VoltBaseIndex >0  then Begin
-             Integrate(Reg_VbaseStart + VoltBaseIndex,  S_TotalLosses.re,  Delta_Hrs);
-             TotalVBaseLosses^[VoltBaseIndex] := TotalVBaseLosses^[VoltBaseIndex]  + S_TotalLosses.re;
-         End;
+           {Line and Transformer Elements}
+           Caccum(TotalNoLoadLosses, S_NoLoadLosses); // Accumulate total no load losses in meter zone
+           If IsLineElement(Cktelem) and FLineLosses then Begin
+               Integrate(Reg_LineLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
+               Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+               CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
+               Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
+               CmulRealAccum(S_PosSeqLosses,  0.001); // convert to kW
+               CmulRealAccum(S_ZeroSeqLosses, 0.001);
+               Integrate(Reg_LineModeLineLoss,   S_PosSeqLosses.re,   Delta_Hrs);
+               Integrate(Reg_ZeroModeLineLoss,   S_ZeroSeqLosses.re,  Delta_Hrs);
+               Caccum(TotalLineModeLosses,  S_PosSeqLosses );
+               Caccum(TotalZeroModeLosses,  S_ZeroSeqLosses);
+           End
+           Else If IsTransformerElement(Cktelem) and FXfmrLosses then Begin
+               Integrate(Reg_TransformerLosseskWh,  S_TotalLosses.re,  Delta_Hrs);
+               Caccum(TotalTransformerLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+           End;
+
+           If FVbaseLosses Then With BranchList.PresentBranch do
+           If VoltBaseIndex >0  then Begin
+               Integrate(Reg_VbaseStart + VoltBaseIndex,  S_TotalLosses.re,  Delta_Hrs);
+               TotalVBaseLosses^[VoltBaseIndex] := TotalVBaseLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+           End;
+         End;  {If FLosses}
 
 
      CktElem := BranchList.GoForward;
@@ -1642,9 +1672,9 @@ begin
     FOR i := 1 to Fnphases Do
      Begin
        Mag := Cabs(MeteredCurrent^[i + iOffset]);
-       IF   Mag > 0.0 THEN PhaseAllocationFactor^[i] := PeakCurrent^[i] / Mag
-                      ELSE PhaseAllocationFactor^[i] := 1.0; // No change
-       AvgFactor := AvgFactor + PhaseAllocationFactor^[i];
+       IF   Mag > 0.0 THEN PhsAllocationFactor^[i] := PeakCurrent^[i] / Mag
+                      ELSE PhsAllocationFactor^[i] := 1.0; // No change
+       AvgFactor := AvgFactor + PhsAllocationFactor^[i];
      End;
     AvgFactor := AvgFactor / Fnphases;   // Factor for 2- and 3-phase loads
 
@@ -1661,7 +1691,7 @@ begin
                   1: WITH LoadElem Do Begin
                           ConnectedPhase := ActiveCircuit.MapNodeToBus^[NodeRef^[1]].NodeNum;
                           IF  (ConnectedPhase > 0) and (ConnectedPhase < 4)   // Restrict to phases 1..3
-                          THEN AllocationFactor := AllocationFactor * PhaseAllocationFactor^[ConnectedPhase];
+                          THEN AllocationFactor := AllocationFactor * PhsAllocationFactor^[ConnectedPhase];
                      End;
              ELSE
                   WITH LoadElem Do AllocationFactor := AllocationFactor * AvgFactor;
@@ -2161,6 +2191,10 @@ Begin
             CloseFile(FOverloadFile);
             OverloadFileIsOpen := FALSE;
         End;
+        if VoltageFileIsOpen then Begin
+            CloseFile(FVoltageFile);
+            VoltageFileIsOpen := FALSE;
+        End;
       End;
 end;
 
@@ -2558,6 +2592,51 @@ begin
   
 end;
 
+procedure TEnergyMeter.WriteVoltageReport;
+var
+  i, j       :Integer;
+  Vmagpu     :Double;
+  UnderCount :Integer;
+  OverCount  :integer;
+  OverVmax   :Double;
+  UnderVmin  :Double;
+
+begin
+     {For any bus with a defined voltage base, test for > Vmax or < Vmin}
+
+
+
+     OverCount  := 0;
+     UnderCount := 0;
+
+     With ActiveCircuit Do Begin
+       OverVmax   := NormalMinVolts;
+       UnderVmin  := NormalMaxVolts;
+       For i := 1 to NumBuses do With Buses^[i] Do Begin
+           If kVBase > 0.0 Then Begin
+               For j := 1 to NumNodesThisBus Do Begin
+                  Vmagpu := Cabs(Solution.NodeV^[GetRef(j)])/kvbase * 0.001;
+                  If Vmagpu > 0.1 then Begin // ignore neutral buses
+                     UnderVmin := Min(UnderVmin, Vmagpu);
+                     OverVMax  := Max(OverVmax,  VMagpu);
+                     If (Vmagpu < NormalMinVolts) Then Begin
+                         Inc(UnderCount);
+                         Break; {next i}
+                     End Else if (Vmagpu > NormalMaxVolts) then Begin
+                         Inc(OverCount);
+                         Break;
+                     End;
+                  End;
+               End;
+           End;
+       End; {For i}
+       With Solution Do Write(FVoltageFile, Format('%-.6g,',[(Hour + dynavars.t/3600.0)]));
+       Writeln(FVoltageFile, Format(' %d, %-.6g, %d, %-.6g', [UnderCount, UnderVmin, OverCount, OverVmax ]))
+    End;
+
+
+end;
+
 procedure TEnergyMeter.InterpretRegisterMaskArray(Var Mask: TRegisterArray);
 
 Var i,n:integer;
@@ -2617,7 +2696,9 @@ begin
 
           SystemMeter.OpenDemandIntervalFile;
 
-          if Do_OverloadReport then OpenOverloadReportFile;
+          {Optional Exception Reporting}
+          if Do_OverloadReport         then OpenOverloadReportFile;
+          If Do_VoltageExceptionReport then OpenVoltageReportFile;
 
           {Open FDI_Totals}
           Try
@@ -2644,7 +2725,23 @@ begin
       OverloadFileIsOpen := TRUE;
       Writeln(FOverLoadFile,'"Hour", "Element", "Normal Amps", "Emerg Amps", "% Normal", "% Emerg", "kVBase"');
   Except
-      On E:Exception Do DosimpleMsg('Error opening demand interval file "DI_SystemMeter.CSV"  for writing.'+CRLF+E.Message, 541);
+      On E:Exception Do DosimpleMsg('Error opening demand interval file "'+EnergyMeterClass.DI_Dir+'\DI_Overloads.CSV"  for writing.'+CRLF+E.Message, 541);
+  End;
+
+end;
+
+procedure TEnergyMeter.OpenVoltageReportFile;
+begin
+  Try
+      IF VoltageFileIsOpen Then CloseFile(FVoltageFile);
+
+      AssignFile(FVoltageFile, EnergyMeterClass.DI_Dir+'\DI_VoltExceptions.CSV');
+      Rewrite(FVoltageFile);
+      VoltageFileIsOpen := TRUE;
+      Writeln(FVoltageFile,'"Hour", "Undervoltages", "Min Voltage", "Overvoltage", "Max Voltage"');
+
+  Except
+      On E:Exception Do DosimpleMsg('Error opening demand interval file "'+EnergyMeterClass.DI_Dir+'\DI_VoltExceptions.CSV"  for writing.'+CRLF+E.Message, 541);
   End;
 
 end;

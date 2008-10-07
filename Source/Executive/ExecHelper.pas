@@ -3049,7 +3049,7 @@ Begin
        S.Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
        S.Add(Format('Hour = %d ',[ActiveCircuit.Solution.hour]));
        S.Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
-       S.Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage]));
+       S.Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
        cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
        S.Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
        S.Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));

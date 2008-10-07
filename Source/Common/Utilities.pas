@@ -104,7 +104,7 @@ FUNCTION SavePresentVoltages:Boolean;
 FUNCTION RetrieveSavedVoltages:Boolean;
 
 Function GetMaxPUVoltage:Double;
-Function GetMinPUVoltage:Double;
+Function GetMinPUVoltage(IgnoreNeutrals:Boolean):Double;
 Function GetTotalPowerFromSources:Complex;
 Function GetMaxCktElementSize:Integer;
 Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
@@ -1861,24 +1861,34 @@ Begin
     End;
 End;
 
-Function GetMinPUVoltage:Double;
-Var i,j, nref:Integer;
-    MinFound:Boolean;
+Function GetMinPUVoltage(IgnoreNeutrals:Boolean):Double;
+Var i,j, nref :Integer;
+    MinFound  :Boolean;
+    Vmagpu    :Double;
 Begin
-    Result := 999999999.9;
+    Result   := 1.0e50; // start with big number
     MinFound := False;
+
     With ActiveCircuit Do Begin
-       For i := 1 to NumBuses do
-       Begin
-           If buses^[i].kVBase > 0.0 Then Begin
-               For j := 1 to Buses^[i].NumNodesThisBus Do Begin
-                Nref := Buses^[i].GetRef (j);
-                If Nref>0 Then
-                 Result := Min(Result, Cabs(Solution.NodeV^[nref])/Buses^[i].kvbase);
-                 MinFound := True;
-               end;
+       For i := 1 to NumBuses Do
+         With buses^[i] Do
+           If kVBase > 0.0 Then Begin
+               For j := 1 to NumNodesThisBus Do Begin
+                  Nref := GetRef (j);
+                  If Nref>0 Then Begin
+                     Vmagpu := Cabs(Solution.NodeV^[nref])/kvbase;
+                     If IgnoreNeutrals Then Begin
+                        if (Vmagpu > 100.0) then Begin  // 0.1 pu
+                           Result   := Min(Result, Vmagpu);   // only check buses greater than 10%
+                           MinFound := True;
+                        End;
+                     End Else Begin
+                         Result   := Min(Result, Vmagpu);
+                         MinFound := True;
+                     End;
+                  End;
+               End;
            End;
-       End;
        Result := Result * 0.001;
     End;
 

@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 68;
+        NumExecOptions = 69;
 
 VAR
          ExecOption,
@@ -97,6 +97,7 @@ Begin
      ExecOption[66] := 'log';
      ExecOption[67] := 'recorder';
      ExecOption[68] := 'overloadreport';
+     ExecOption[69] := 'voltexceptionreport';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -284,7 +285,8 @@ Begin
      OptionHelp[67] := '{YES/TRUE | NO/FALSE} Default = FALSE. Opens DSSRecorder.DSS in DSS install folder and enables recording of all commands that come through ' +
                        'the text command interface. Closed by either setting to NO/FALSE or exiting the program. ' +
                        'When closed by this command, the file name can be found in the Result. Does not require a circuit defined.';
-     OptionHelp[68] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets overload reports on/off. DemandInterval must be set to true for this to have effect.';
+     OptionHelp[68] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets overload reporting on/off. DemandInterval must be set to true for this to have effect.';
+     OptionHelp[69] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets voltage exception reporting on/off. DemandInterval must be set to true for this to have effect.';
 End;
 //----------------------------------------------------------------------------
 FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circuit
@@ -456,6 +458,7 @@ Begin
            66: ActiveCircuit.LogEvents       := InterpretYesNo(Param);
            67: DSSExecutive.RecorderOn       := InterpretYesNo(Param);
            68: EnergyMeterClass.Do_OverloadReport := InterpretYesNo(Param);
+           69: EnergyMeterClass.Do_VoltageExceptionReport := InterpretYesNo(Param);
          ELSE
            // Ignore excess parameters
          End;
