@@ -850,13 +850,13 @@ Begin
      RegisterNames[29] := 'Gen Max kW';
      RegisterNames[30] := 'Gen Max kVA';
      {Registers for capturing losses by base voltage}
-     RegisterNames[31] := 'N/A';     {Name is assigned after determining Voltage Bases}
-     RegisterNames[32] := 'N/A';
-     RegisterNames[33] := 'N/A';
-     RegisterNames[34] := 'N/A';
-     RegisterNames[35] := 'N/A';
-     RegisterNames[36] := 'N/A';
-     RegisterNames[37] := 'N/A';
+     RegisterNames[31] := 'Aux1';     {Name is assigned after determining Voltage Bases}
+     RegisterNames[32] := 'Aux2';
+     RegisterNames[33] := 'Aux3';
+     RegisterNames[34] := 'Aux4';
+     RegisterNames[35] := 'Aux5';
+     RegisterNames[36] := 'Aux6';
+     RegisterNames[37] := 'Aux7';
 
      ResetRegisters;
      For i := 1 to NumEMRegisters Do TotalsMask[i] := 1.0;

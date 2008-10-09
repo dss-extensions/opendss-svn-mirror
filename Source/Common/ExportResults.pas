@@ -1290,6 +1290,7 @@ Begin
         For k := 1 to NumDevices Do BEGIN
           ActiveCktElement := CktElements.Get(k);
           If  ActiveCktElement.Enabled THEN Begin
+              If (ActiveCktElement is TPDElement) or (ActiveCktElement is TPCElement) then
               With ActiveCktElement Do  Begin
                 Writeln(F, ParentClass.Name,'.',Name);
                 cValues := GetYprimValues(ALL_YPRIM);

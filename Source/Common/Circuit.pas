@@ -17,7 +17,8 @@ interface
 
 USES
      Solution, SysUtils, ArrayDef, HashList, PointerList, CktElement,
-     DSSClass, DSSObject, Bus, LoadShape, ControlQueue, uComplex, AutoAdd, EnergyMeter;
+     DSSClass, DSSObject, Bus, LoadShape, ControlQueue, uComplex,
+     AutoAdd, EnergyMeter;
 
 
 TYPE

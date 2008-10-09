@@ -33,7 +33,9 @@ unit Solution;
 interface
 
 USES
-    uCOMPLEX, Arraydef, Command, Monitor, DSSClass, DSSObject, Dynamics,   EnergyMeter,SysUtils;
+    uCOMPLEX, Arraydef, Command, Monitor,
+    DSSClass, DSSObject, Dynamics,
+    EnergyMeter, SysUtils;
 
 CONST
 
