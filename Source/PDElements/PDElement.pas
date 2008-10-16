@@ -9,7 +9,7 @@ unit PDElement;
 
 interface
 
-USES CktElement, ucomplex, ucmatrix, DSSClass;
+USES CktElement, ucomplex, ucmatrix, DSSClass, MeterElement;
 
 TYPE
 
@@ -27,6 +27,8 @@ TYPE
        HrsToRepair   :Double;
        FromTerminal, ToTerminal:Integer;  // Set by Meter zone for radial feeder
        IsShunt :Boolean;
+
+       SensorObj   :TMeterElement; // Upline Sensor for this element  for allocation and estimation
 
        Overload_UE,
        OverLoad_EEN  :double;  // Indicate amount of branch overload

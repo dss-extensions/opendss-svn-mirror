@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 69;
+        NumExecOptions = 71;
 
 VAR
          ExecOption,
@@ -98,6 +98,8 @@ Begin
      ExecOption[67] := 'recorder';
      ExecOption[68] := 'overloadreport';
      ExecOption[69] := 'voltexceptionreport';
+     ExecOption[70] := 'Cfactors';
+     ExecOption[71] := 'showexport';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -233,7 +235,7 @@ Begin
                         'Ignored for generators designated as Status=Fixed.';
      OptionHelp[46] := 'Default daily load shape name. Default value is "default", which is a 24-hour curve defined when the DSS is started.';
      OptionHelp[47] := 'Default yearly load shape name. Default value is "default", which is a 24-hour curve defined when the DSS is started.';
-     OptionHelp[48] := 'Sets all allocation factors for all loads in the active circuit to the value given.';
+     OptionHelp[48] := 'Sets the connected kVA allocation factors for all loads in the active circuit to the value given.';
      OptionHelp[49] := '{Multiphase | Positive}  Default = Multiphase.  Designates whether circuit model is to interpreted as a normal multi-phase '+
                         'model or a positive-sequence only model';
      OptionHelp[50] := 'Sets the price signal ($/MWh) for the circuit.  Initial value is 25.';
@@ -287,6 +289,9 @@ Begin
                        'When closed by this command, the file name can be found in the Result. Does not require a circuit defined.';
      OptionHelp[68] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets overload reporting on/off. DemandInterval must be set to true for this to have effect.';
      OptionHelp[69] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets voltage exception reporting on/off. DemandInterval must be set to true for this to have effect.';
+     OptionHelp[70] := 'Sets the CFactors for for all loads in the active circuit to the value given.';
+     OptionHelp[71] := '{YES/TRUE | NO/FALSE} Default = FALSE. If YES/TRUE will automatically show the results of an Export Command after it is written.';
+
 End;
 //----------------------------------------------------------------------------
 FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circuit
@@ -459,6 +464,8 @@ Begin
            67: DSSExecutive.RecorderOn       := InterpretYesNo(Param);
            68: EnergyMeterClass.Do_OverloadReport := InterpretYesNo(Param);
            69: EnergyMeterClass.Do_VoltageExceptionReport := InterpretYesNo(Param);
+           70: DoSetCFactors(Parser.DblValue);
+           71: AutoShowExport := InterpretYesNo(Param);
          ELSE
            // Ignore excess parameters
          End;

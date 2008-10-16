@@ -229,15 +229,12 @@ Type
        MaxZonekVA_Norm   :Double;
        MaxZonekVA_Emerg  :Double;
 
-       PeakCurrent            :pDoubleArray;
-       PhsAllocationFactor  :pDoubleArray;
-       MeteredCurrent         :pComplexArray;
 
        {Voltage bases in the Meter Zone}
-       TotalVBaseLosses       :pDoubleArray;    // dynamic array
-       VBaseList              :pDoubleArray;    // dynamic array
-       VBaseCount             :Integer;
-       MaxVBaseCount          :Integer;
+       TotalVBaseLosses   :pDoubleArray;    // allocated array
+       VBaseList          :pDoubleArray;    // allocated array
+       VBaseCount         :Integer;
+       MaxVBaseCount      :Integer;
 
        {Demand Interval File variables}
        DI_File                 :TextFile;
@@ -461,11 +458,11 @@ End;
 Function TEnergyMeter.Edit:Integer;
 
 VAR
-   ParamPointer:Integer;
-   ParamName:String;
-   Param:String;
+   ParamPointer :Integer;
+   ParamName    :String;
+   Param        :String;
 
-   DoRecalc :Boolean;
+   DoRecalc     :Boolean;
 
 Begin
 
@@ -483,8 +480,8 @@ Begin
 
      MeteredElementChanged := FALSE;
      ParamPointer := 0;
-     ParamName := Parser.NextParam;
-     Param := Parser.StrValue;
+     ParamName    := Parser.NextParam;
+     Param        := Parser.StrValue;
      WHILE Length(Param)>0 DO
      Begin
          IF   (Length(ParamName) = 0)
@@ -512,7 +509,7 @@ Begin
             4: ProcessOptions(Param);
             5: MaxZonekVA_Norm  := Parser.DblValue;
             6: MaxZonekVA_Emerg := Parser.DblValue;
-            7: parser.ParseAsVector(Fnphases, PeakCurrent);
+            7: parser.ParseAsVector(Fnphases, SensorCurrent);   // Inits to zero
             8: InterpretAndAllocStrArray(Param, DefinedZoneListSize, DefinedZoneList);
             9: LocalOnly := InterpretYesNo(Param);
            10: InterpretRegisterMaskArray(TotalsMask);
@@ -560,7 +557,7 @@ Begin
 
        ElementName     := OtherEnergyMeter.ElementName;
        MeteredElement  := OtherEnergyMeter.MeteredElement;  // Pointer to target circuit element
-       MeteredTerminal        := OtherEnergyMeter.MeteredTerminal;
+       MeteredTerminal := OtherEnergyMeter.MeteredTerminal;
        ExcessFlag      := OtherEnergyMeter.ExcessFlag;
 
        MaxZonekVA_Norm  := OtherEnergyMeter.MaxZonekVA_Norm;
@@ -620,7 +617,9 @@ Begin
              pCktElement := CktElements.Next;
          End;
 
-         {Set up the PCElementList and PDElementList for faster searching}
+         {Set up the PCElementList and PDElementList for faster searching
+          when building meter zone lists.
+         }
          PCElementList.Clear;
          PCElementList.Capacity := PCElements.ListSize ;
          pCktElement := PCElements.First;
@@ -646,6 +645,7 @@ Begin
 
          {Set Hasmeter flag for all cktelements}
          SetHasMeterFlag;
+         SensorClass.SetHasSensorFlag;  // Set all Sensor branch flags, too.
 
          // initialize the Checked Flag for all Buses
          FOR i := 1 to NumBuses Do   Buses^[i].BusChecked := False;
@@ -796,9 +796,6 @@ Begin
      ZoneIsRadial        := True;
      HasFeeder           := FALSE;
      FeederObj           := Nil;  // initialize to not assigned
-     PeakCurrent         := NIL;
-     PhsAllocationFactor := NIL;
-     MeteredCurrent      := NIL;
      DefinedZoneList     := NIL;
      DefinedZoneListSize := 0;
      FLosses             := TRUE;   {Loss Reporting switches}
@@ -861,9 +858,10 @@ Begin
      ResetRegisters;
      For i := 1 to NumEMRegisters Do TotalsMask[i] := 1.0;
 
-     ReAllocMem(PeakCurrent, Sizeof(PeakCurrent^[1])* Fnphases);
-     FOR i := 1 to Fnphases Do PeakCurrent^[i] := 400.0;
-     ReAllocMem(PhsAllocationFactor, Sizeof(PhsAllocationFactor^[1])* Fnphases);
+     AllocateSensorArrays;
+
+     FOR i := 1 to Fnphases Do SensorCurrent^[i] := 400.0;
+
 
     // RecalcElementData;
 End;
@@ -877,9 +875,6 @@ Begin
     If Assigned (TotalVBaseLosses) then Reallocmem(TotalVBaseLosses, 0);
     for i := 1 to NumEMRegisters do RegisterNames[i] := '';
     BranchList.Free;
-    Reallocmem(PeakCurrent, 0);
-    Reallocmem(MeteredCurrent, 0);
-    Reallocmem(PhsAllocationFactor, 0);
     FreeStringArray(DefinedZoneList, DefinedZoneListSize);
     Inherited destroy;
 End;
@@ -917,9 +912,7 @@ Begin
                  Setbus(1, MeteredElement.GetBus(MeteredTerminal));
                  Nphases := MeteredElement.NPhases;
                  Nconds   := MeteredElement.Nconds;
-                 ReallocMem(MeteredCurrent, Sizeof(MeteredCurrent^[1])*MeteredElement.Yorder);
-                 ReAllocMem(PeakCurrent, Sizeof(PeakCurrent^[1])* Fnphases);
-                 ReAllocMem(PhsAllocationFactor, Sizeof(PhsAllocationFactor^[1])* Fnphases);
+                 AllocateSensorArrays;
 
                  // If we come through here, throw branchlist away
                  IF BranchList <> NIL Then BranchList.Free;
@@ -1288,14 +1281,14 @@ Begin
    With  ActiveCircuit Do Begin
      CktElem := PDElements.First;
      While CktElem <> Nil Do Begin
-        CktElem.HasMeter := FALSE;
+        CktElem.HasEnergyMeter := FALSE;
         CktElem := PDElements.Next;
      End;  {WHILE}
    End; {WITH}
 
    FOR i := 1 to ActiveCircuit.EnergyMeters.ListSize DO Begin
        ThisMeter := ActiveCircuit.EnergyMeters.Get(i);
-       With ThisMeter Do If MeteredElement <> Nil Then MeteredElement.HasMeter := TRUE;
+       With ThisMeter Do If MeteredElement <> Nil Then MeteredElement.HasEnergyMeter := TRUE;
    End;   {FOR}
 End;
 
@@ -1334,6 +1327,14 @@ Begin
            DoSimpleMsg('Metered Element for EnergyMeter '+Name+' not defined.', 527);
            Exit;
        End;
+
+
+       {Initialize SensorObj property of the first branch to this TMeterElement Object.
+        Before starting, all sensorObj definitions are cleared in PCElements and PDElements. The
+        SensorObj property is passed down to the Load objects for LoadAllocation and State Estimation
+        }
+       If MeteredElement is TPDElement then TPDElement(MeteredElement).SensorObj := Self
+       Else If MeteredElement is TPCElement then TPCElement(MeteredElement).SensorObj := Self;
 
        MeteredElement.Terminals^[MeteredTerminal].Checked := TRUE;
        With BranchList.PresentBranch Do Begin
@@ -1375,7 +1376,6 @@ Begin
            TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
            BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
 
-
            iPC :=0;
            While iPC < PCElementList.Count Do
            Begin
@@ -1393,6 +1393,8 @@ Begin
                       BranchList.NewObject := pC;
                       pC.Checked := True;  // So we don't pick this element up again
                       pC.IsIsolated := FALSE;
+                      {If object does not have a sensor attached, it acquires the sensor of its parent branch}
+                      If Not pC.HasSensorObj then pC.SensorObj := TPDElement(TestBranch).SensorObj;
                       PCElementList.Delete(iPC);  // make the search list shorter
                       Dec(iPC);  // Back the pointer up
                    End; {IF}
@@ -1413,7 +1415,7 @@ Begin
                    // **** See ResetMeterZonesAll
 
                    IF Not (TestElement=TestBranch) Then  // Skip self
-                   IF Not TestElement.HasMeter THEN Begin  // Stop at other meters  so zones don't interfere
+                   IF Not TestElement.HasEnergyMeter THEN Begin  // Stop at other meters  so zones don't interfere
                       FOR j := 1 to TestElement.Nterms Do Begin     // Check each terminal
                          IF TestBusNum = TestElement.Terminals^[j].BusRef THEN  Begin
                              BranchList.PresentBranch.IsDangling := FALSE; // We found something it was connected to
@@ -1423,19 +1425,20 @@ Begin
                                  BranchList.PresentBranch.LoopLineObj := TestElement;
                                  If IsLineElement(TestBranch) and IsLineElement(TestElement) Then
                                    If CheckParallel(TestBranch, TestElement) Then BranchList.PresentBranch.IsParallel := TRUE; {It's paralleled with another line}
-                              End
-                             Else
-                              Begin
+                             End  {If}
+                             Else Begin
                                 IsFeederEnd := FALSE;  // for interpolation
                                 BranchList.AddNewChild( TestElement, TestBusNum, j);
                                 With TestElement Do Begin
-                                  Terminals^[j].Checked := TRUE;
-                                  FromTerminal := j;
-                                  Checked := TRUE;
-                                  IsIsolated := FALSE;
+                                    Terminals^[j].Checked := TRUE;
+                                    FromTerminal := j;
+                                    Checked := TRUE;
+                                    IsIsolated := FALSE;
+                                    {Branch inherits sensor of upline branch if it doesn't have its own}
+                                    If Not TestElement.HasSensorObj  then TestElement.SensorObj :=  TPDElement(TestBranch).SensorObj;
                                 End;
                                 Break;
-                              End;
+                             End; {Else}
                          END; {IF TestBusNum}
                       END;  {FOR}
                    END; {ELSE IsFeederEnd := FALSE;}  // So we don't accidentally reduce this out
@@ -1654,56 +1657,57 @@ end;
 PROCEDURE TEnergyMeterObj.AllocateLoad;
 
 VAR
-   iOffset, i,
    ConnectedPhase  :Integer;
-   Mag,
-   AvgFactor :Double;
    CktElem   :TPDElement;
    LoadElem  :TLoadobj;
 
-
 begin
 
-    MeteredElement.GetCurrents(MeteredCurrent);
 
-    // The Phase Allocation Factor is the amount that the load must change to match the measured peak
-    iOffset := (MeteredTerminal-1) * MeteredElement.NConds;
-    AvgFactor := 0.0;
-    FOR i := 1 to Fnphases Do
-     Begin
-       Mag := Cabs(MeteredCurrent^[i + iOffset]);
-       IF   Mag > 0.0 THEN PhsAllocationFactor^[i] := PeakCurrent^[i] / Mag
-                      ELSE PhsAllocationFactor^[i] := 1.0; // No change
-       AvgFactor := AvgFactor + PhsAllocationFactor^[i];
-     End;
-    AvgFactor := AvgFactor / Fnphases;   // Factor for 2- and 3-phase loads
+{PREREQUISITE: EXECUTE CALCALLOCATIONFACTORS FOR ALL ENERGYMETERS AND SENSORS}
+{****Done in calling procedure  now ***   CalcAllocationFactors;     {for this meter. Inherited from Meterelement}
+{See ExecHelper}
 
-    // Now go through the zone and adjust the loads.
+    { Now go through the meter's zone and adjust the loads.
+
+      While the AllocationFactor property is adjusted for all loads, it will only
+      have an effect on loads defined with either the XFKVA property or the
+      kWh property.
+
+      Loads have a SensorObj property that points to its upstream sensor that has the adjustments for
+      the allocation factors.  This is established in the MakeMeterZoneLists proc in this Unit.
+
+      Sensors consist of EnergyMeters, which drive the load allocation process and Sensor objects that
+      are simply voltage and current measuring points.  A Sensor may be attached to a line or transformer
+      or it may be connected directly to a load.
+     }
+
 
      CktElem     := BranchList.First;
      WHILE CktElem <> NIL Do Begin
-         // This overrides and supercedes the load's own determination of unserved based on voltage
          LoadElem := Branchlist.FirstObject;
          WHILE (LoadElem <> NIL) Do Begin
              If (LoadElem.DSSObjType and CLASSMASK) = LOAD_ELEMENT  Then  // only for loads not other shunts
-             CASE LoadElem.NPhases of
+               CASE LoadElem.NPhases of
                  {For Single phase loads, allocate based on phase factor, else average factor}
                   1: WITH LoadElem Do Begin
                           ConnectedPhase := ActiveCircuit.MapNodeToBus^[NodeRef^[1]].NodeNum;
                           IF  (ConnectedPhase > 0) and (ConnectedPhase < 4)   // Restrict to phases 1..3
-                          THEN AllocationFactor := AllocationFactor * PhsAllocationFactor^[ConnectedPhase];
+                          THEN AllocationFactor := AllocationFactor * SensorObj.PhsAllocationFactor^[ConnectedPhase];
                      End;
-             ELSE
-                  WITH LoadElem Do AllocationFactor := AllocationFactor * AvgFactor;
-             End;  {CASE}
-             LoadElem := BranchList.NextObject
+               ELSE
+                  WITH LoadElem Do AllocationFactor := AllocationFactor * AvgAllocFactor;
+               End;  {CASE}
+         LoadElem := BranchList.NextObject    {Next load at this bus}
          End;   {While Loadelem}
-       CktElem := BranchList.GoForward;
+       CktElem := BranchList.GoForward;    {Go on down the tree}
      End;  {While CktElem}
 
 end;
 
 procedure TEnergyMeterObj.InitPropertyValues(ArrayOffset: Integer);
+Var i:integer;
+    S:String;
 begin
 
      PropertyValue[1] := ''; //'element';
@@ -1715,8 +1719,16 @@ begin
      PropertyValue[7] := '(400, 400, 400)'; //'PeakCurrent';
      PropertyValue[8] := ''; // ZoneList
      PropertyValue[9] := 'No';
-     PropertyValue[10] := '(1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1)';
-     PropertyValue[11] := 'No';
+     {Define mask as 1 for all registers}
+     S := '[';
+     For i := 1 to NumEMregisters do  S := S + '1 ';
+     PropertyValue[10] := S + ']';
+     PropertyValue[11] := 'Yes';
+     PropertyValue[12] := 'Yes';
+     PropertyValue[13] := 'Yes';
+     PropertyValue[14] := 'Yes';
+     PropertyValue[15] := 'Yes'; // segregate losses by voltage base
+     PropertyValue[16] := 'Yes';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -2229,7 +2241,7 @@ begin
 
           if VBaseList^[i]> 0.0 then
                RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses ',[VBaseList^[i]* SQRT3 ])
-          Else RegisterNames[i + Reg_VBaseStart] := 'N/A';
+          Else RegisterNames[i + Reg_VBaseStart] := Format('Aux%d',[i]);
      
      End;
 end;

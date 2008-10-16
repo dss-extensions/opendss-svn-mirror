@@ -293,6 +293,7 @@ Begin
                          'Export Voltages  [Filename]   (EXP_VOLTAGES.CSV)' + CRLF +
                          'Export SeqVoltages [Filename] (EXP_SEQVOLTAGES.CSV)' + CRLF +
                          'Export Currents [Filename]    (EXP_CURRENTS.CSV)' + CRLF +
+                         'Export Estimation [Filename]  (EXP_ESTIMATION.CSV)' + CRLF +
                          'Export Overloads [Filename]    EXP_OVERLOADS.CSV)' + CRLF +
                          'Export Unserved  [UEonly] [Filename]   EXP_UNSERVED.CSV)' + CRLF +
                          'Export SeqCurrents [Filename] (EXP_SEQCURRENTS.CSV)' + CRLF +
@@ -304,7 +305,8 @@ Begin
                          'Export Monitors monitorname   (file name is assigned) ' + CRLF +
                          'Export Yprims  [Filename]     (EXP_Yprims.CSV)   (all YPrim matrices)' + CRLF +
                          'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +CRLF +
-                         'May be abreviated Export V, Export C, etc.  Default is "V".';
+                         'May be abreviated Export V, Export C, etc.  Default is "V".'+
+                         ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+
                          'Fileedit EXP_METERS.CSV (brings up the meters export file)' + CRLF+CRLF+
                          '"FileEdit" may be abbreviated to a unique character string.';
@@ -389,8 +391,8 @@ Begin
                         'yearlycurves cases=(basecase, pvgens) registers=9';
      CommandHelp[72] := 'Change default directory to specified directory' + CRLF +CRLF +
                         'CD dirname';
-     CommandHelp[73] := '[What=] {Currents* | Voltages | Powers} [element=]full_element_name  (class.name). ' +
-                        'Shows the currents for selected element on a drawing in polar coordinates.';
+     CommandHelp[73] := '[What=] one of {Currents* | Voltages | Powers} [element=]full_element_name  (class.name). ' +
+                        'Shows the selected quantity for selected element on a multiphase line drawing in phasor values.';
      CommandHelp[74] := 'Close all DI files ... useful at end of yearly solution where DI files are left open. ' +
                         '(Reset and Set Year=nnn will also close the DI files)';
      CommandHelp[75] := 'Do a DOS command. Sends the command "cmd ... " to Windows. Execute the "cmd /?" command '+

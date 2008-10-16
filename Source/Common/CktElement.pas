@@ -65,12 +65,13 @@ TYPE
       LastTerminalChecked :Integer;  // Flag used in tree searches
 
       Checked,
-      HasMeter,
+      HasEnergyMeter,
+      HasSensorObj,
       IsIsolated,
       HasControl,
       IsPartofFeeder  :Boolean;  // Flag used in tree searches etc
 
-      ControlElement: TCktElement; //Pointer to control for this device
+      ControlElement  :TCktElement; //Pointer to control for this device
       
       Iterminal:pComplexArray;  // Others need this
       Vterminal:pComplexArray;
@@ -144,8 +145,8 @@ Begin
      YPrim        := Nil;
      Terminals    := Nil;
      FBusNames    := nil;
-     Vterminal        := nil;
-     Iterminal        := nil;  // present value of terminal current
+     Vterminal    := nil;
+     Iterminal    := nil;  // present value of terminal current
      ComplexBuffer := Nil;
 
      BusIndex    := 0;
@@ -157,14 +158,15 @@ Begin
 
      YPrimInvalid := TRUE;
      FEnabled     := TRUE;
-     HasMeter     := FALSE;
+     HasEnergyMeter := FALSE;
+     HasSensorObj   := FALSE;
      IsPartofFeeder := False;
-     IsIsolated := False;
+     IsIsolated     := FALSE;
 
      ControlElement := Nil;  // Init to no control on this element.
-     HasControl   := FALSE;
+     HasControl     := FALSE;
 
-     FActiveTerminal      := 1;
+     FActiveTerminal     := 1;
      LastTerminalChecked := 0;
 
 {    Indicates which solution Itemp is computed for    }
@@ -212,7 +214,7 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TCktElement.Set_ActiveTerminal(value:Integer);
 Begin
-   IF (Value>0) and (Value<=fNterms) THEN
+   IF (Value > 0) and (Value <= fNterms) THEN
      Begin
         FActiveTerminal := Value;
         ActiveTerminal := Terminals^[Value] ;

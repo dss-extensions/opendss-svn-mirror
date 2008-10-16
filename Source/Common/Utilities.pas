@@ -33,6 +33,7 @@ FUNCTION  InterpretLoadModel(const s :String) :Integer;
 FUNCTION  InterpretYesNo(const s :String) :Boolean;
 FUNCTION  InterpretRandom(const s :string) :Integer;
 FUNCTION  InterpretAddType(const s :string) :Integer;
+FUNCTION  InterpretConnection(const s :string) :Integer;
 FUNCTION  InterpretSolveAlg(const s :string) :Integer;
 FUNCTION  InterpretCktModel(const s :string) :Boolean;
 Procedure InitDblArray(NumValues:Integer; Xarray:pDoubleArray; Value:Double);
@@ -403,6 +404,23 @@ Begin
 
 End;
 
+//----------------------------------------------------------------------------
+FUNCTION  InterpretConnection(const s :string) :Integer;
+{ Accepts  (Case insensitive)
+    delta or LL    Result=1       
+    Y, wye, or LN  Result=0
+}
+Begin
+     Result := 0;
+     CASE lowercase(S)[1] OF
+       'y','w': Result := 0;  {Wye}
+       'd': Result := 1;  {Delta or line-Line}
+       'l': CASE lowercase(s)[2] OF
+            'n': Result := 0;
+            'l': Result := 1;
+            End;
+     End;
+End;
 
 //----------------------------------------------------------------------------
 FUNCTION  InterpretSolveAlg(const s :string) :Integer;
@@ -1025,7 +1043,7 @@ Begin
      pLoad := Loads.First;
      While pLoad <> Nil Do
        Begin
-         Writeln(F, 'Load.'+pLoad.Name+'.AllocationFactor=', Format('%-.5g',[pLoad.AllocationFactor]));
+         Writeln(F, 'Load.'+pLoad.Name+'.AllocationFactor=', Format('%-.5g',[pLoad.kVAAllocationFactor]));
          pLoad := Loads.Next;
        End; {While}
     End; {With}

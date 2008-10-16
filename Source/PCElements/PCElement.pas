@@ -4,7 +4,7 @@ unit PCElement;
 
 interface
 
-USES CktElement, ucomplex, DSSClass, Spectrum, Arraydef;
+USES CktElement, ucomplex, DSSClass, Spectrum, Arraydef, Meterelement;
 
 TYPE
    TPCElement = class(TCktElement)
@@ -22,7 +22,11 @@ TYPE
        Spectrum:String;
        SpectrumObj:TSpectrumObj;
 
+       SensorObj  :TMeterElement; // Upline Sensor for this element
+
        InjCurrent:pComplexArray;
+
+
 
        constructor Create(ParClass:TDSSClass);
        destructor Destroy; override;

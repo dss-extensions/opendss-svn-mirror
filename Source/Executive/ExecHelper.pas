@@ -59,6 +59,7 @@ Uses Command;
          PROCEDURE DoKeeperBusList(Const S:String);
          PROCEDURE DoSetReduceStrategy(Const S:String);
          PROCEDURE DoSetAllocationFactors(Const X:Double);
+         PROCEDURE DoSetCFactors(Const X:Double);
 
          FUNCTION DovoltagesCmd(Const PerUnit:Boolean): Integer;
          FUNCTION DocurrentsCmd :Integer;
@@ -123,7 +124,7 @@ USES ArrayDef, ParserDel, SysUtils, DSSGlobals,
      EnergyMeter, Generator, LoadShape, Load, PCElement,   CktElement,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
-     Capacitor, Reactor, Line, Lineunits, Math, Classes,  CktElementClass, FileCtrl;
+     Capacitor, Reactor, Line, Lineunits, Math, Classes,  CktElementClass, Sensor, FileCtrl;
 
 Var
    SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands:TCommandList;
@@ -794,6 +795,7 @@ Begin
    IF Length(FileName) = 0 then Begin
        CASE TestChar OF
          'c': FileName := 'EXP_CURRENTS.CSV';
+         'e': FileName := 'EXP_ESTIMATION.CSV';   // Estimation error
          'f': FileName := 'EXP_FAULTS.CSV';
          'p': FileName := 'EXP_POWERS.CSV';
          'g': FileName := 'EXP_GENMETERS.CSV';
@@ -815,6 +817,7 @@ Begin
 
    CASE TestChar OF
      'c': ExportCurrents(FileName);
+     'e': ExportEstimation(FileName);
      'f': ExportFaultStudy(FileName);
      'p': ExportPowers(FileName, MVAOpt);
      'g': ExportGenMeters(FileName);
@@ -2405,28 +2408,49 @@ end;
 //----------------------------------------------------------------------------
 FUNCTION DoAllocateLoadsCmd: Integer;
 
+{ Requires an EnergyMeter Object at the head of the feeder
+  Adjusts loads defined by connected kVA or kWh billing
+}
+
 VAR
    pMeter :TEnergyMeterObj;
+   pSensor:TSensorObj;
    iCount :Integer;
 
 begin
     Result := 0;
     WITH ActiveCircuit Do
     Begin
-         LoadMultiplier := 1.0;   // Property
+         LoadMultiplier := 1.0;   // Property .. has side effects
          Solution.Mode := SNAPSHOT;
-         Solution.Solve;
+         Solution.Solve;  {Make guess based on present allocationfactors}
 
-         FOR iCount := 1 to 2 Do
-           Begin
-             pMeter := EnergyMeters.First;
-             WHILE pMeter <> NIL Do
-             Begin
+         {Allocation loop -- make two iterations}
+         FOR iCount := 1 to 2 Do Begin
+
+           {Do EnergyMeters}
+           pMeter := EnergyMeters.First;
+           WHILE pMeter <> NIL Do Begin
+              pMeter.CalcAllocationFactors;
+              pMeter := EnergyMeters.Next;
+           End;
+
+           {Now do other Sensors}
+           pSensor := Sensors.First;
+           WHILE pSensor <> NIL Do Begin
+              pSensor.CalcAllocationFactors;
+              pSensor := Sensors.Next;
+           End;
+
+           {Now let the EnergyMeters run down the circuit setting the loads}
+            pMeter := EnergyMeters.First;
+            WHILE pMeter <> NIL Do Begin
                 pMeter.AllocateLoad;
                 pMeter := EnergyMeters.Next;
-             End;
-           Solution.Solve;
-           End;
+            End;
+            Solution.Solve;  {Update the solution}
+
+         End;
     End;
 end;
 
@@ -2444,7 +2468,26 @@ begin
          pLoad := Loads.First;
          WHILE pLoad <> NIL Do
          Begin
-             pLoad.AllocationFactor := X;
+             pLoad.kVAAllocationFactor := X;
+             pLoad := Loads.Next;
+         End;
+    End;
+end;
+
+PROCEDURE DoSetCFactors(const X: Double);
+
+VAR
+   pLoad :TLoadObj;
+
+begin
+    IF   X <= 0.0
+    THEN DoSimpleMsg('CFactor must be greater than zero.', 271)
+    ELSE WITH ActiveCircuit Do
+    Begin
+         pLoad := Loads.First;
+         WHILE pLoad <> NIL Do
+         Begin
+             pLoad.CFactor := X;
              pLoad := Loads.Next;
          End;
     End;
@@ -3389,7 +3432,14 @@ FUNCTION DoEstimateCmd:Integer;
 
 Begin
     Result := 0;
-    DoSimpleMsg('Implementation of the Estimate command is incomplete.', 283);
+
+    {Load current Estimation is driven by Energy Meters at head of feeders.}
+    DoAllocateLoadsCmd;
+
+    {Let's look to see how well we did}
+     If not AutoShowExport Then DSSExecutive.Command := 'Set showexport=yes';
+     DSSExecutive.Command := 'Export Estimation';
+
 End;
 
 

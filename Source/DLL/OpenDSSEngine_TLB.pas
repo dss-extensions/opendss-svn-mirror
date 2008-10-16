@@ -1,4 +1,4 @@
-unit OpenDSSEngine_TLB;
+unit OpenDSSengine_TLB;
 
 // ************************************************************************ //
 // WARNING                                                                    
@@ -11,21 +11,26 @@ unit OpenDSSEngine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// PASTLWTR : $Revision:   1.88.1.0.1.0  $
-// File generated on 8/21/2008 1:34:04 PM from Type Library described below.
+// $Rev: 8291 $
+// File generated on 10/14/2008 2:43:49 PM from Type Library described below.
 
-// ************************************************************************ //
-// Type Lib: C:\OpenDSS\DLL\OpenDSSengine.tlb (1)
-// IID\LCID: {8BFDE413-245A-4514-B151-B16DCC243796}\0
+// ************************************************************************  //
+// Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
+// LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
+// LCID: 0
 // Helpfile: 
+// HelpString: OpenDSS Engine
 // DepndLst: 
 //   (1) v1.0 stdole, (C:\WINDOWS\system32\stdole32.tlb)
-//   (2) v1.0 StdVCL, (C:\WINDOWS\system32\STDVCL32.DLL)
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
+{$WARN SYMBOL_PLATFORM OFF}
+{$WRITEABLECONST ON}
+{$VARPROPSETTER ON}
 interface
 
-uses Windows, ActiveX, Classes, Graphics, OleServer, OleCtrls, StdVCL;
+uses Windows, ActiveX, Classes, Graphics, StdVCL, Variants;
+  
 
 // *********************************************************************//
 // GUIDS declared in the TypeLibrary. Following prefixes are used:        
@@ -36,10 +41,10 @@ uses Windows, ActiveX, Classes, Graphics, OleServer, OleCtrls, StdVCL;
 // *********************************************************************//
 const
   // TypeLibrary Major and minor versions
-  OpenDSSEngineMajorVersion = 1;
-  OpenDSSEngineMinorVersion = 0;
+  OpenDSSengineMajorVersion = 1;
+  OpenDSSengineMinorVersion = 0;
 
-  LIBID_OpenDSSEngine: TGUID = '{8BFDE413-245A-4514-B151-B16DCC243796}';
+  LIBID_OpenDSSengine: TGUID = '{8BFDE413-245A-4514-B151-B16DCC243796}';
 
   IID_IText: TGUID = '{0513A8DC-2C0D-4648-8BD7-2130B82C05FA}';
   CLASS_Text: TGUID = '{6E20BC4C-67C0-4AD3-9E12-BF90C478A1CC}';
@@ -186,9 +191,9 @@ type
 // *********************************************************************//
   IText = interface(IDispatch)
     ['{0513A8DC-2C0D-4648-8BD7-2130B82C05FA}']
-    function  Get_Command: WideString; safecall;
+    function Get_Command: WideString; safecall;
     procedure Set_Command(const Command: WideString); safecall;
-    function  Get_Result: WideString; safecall;
+    function Get_Result: WideString; safecall;
     property Command: WideString read Get_Command write Set_Command;
     property Result: WideString read Get_Result;
   end;
@@ -211,9 +216,9 @@ type
 // *********************************************************************//
   IDSSProperty = interface(IDispatch)
     ['{1298D126-0750-4B2A-8462-62EFE7310DF2}']
-    function  Get_Name: WideString; safecall;
-    function  Get_Description: WideString; safecall;
-    function  Get_Val: WideString; safecall;
+    function Get_Name: WideString; safecall;
+    function Get_Description: WideString; safecall;
+    function Get_Val: WideString; safecall;
     procedure Set_Val(const Value: WideString); safecall;
     property Name: WideString read Get_Name;
     property Description: WideString read Get_Description;
@@ -239,34 +244,34 @@ type
 // *********************************************************************//
   ICktElement = interface(IDispatch)
     ['{F20E8327-5B60-478E-8DBD-5EFC75EB929B}']
-    function  Get_Name: WideString; safecall;
-    function  Get_NumTerminals: Integer; safecall;
-    function  Get_NumConductors: Integer; safecall;
-    function  Get_NumPhases: Integer; safecall;
-    function  Get_BusNames: OleVariant; safecall;
+    function Get_Name: WideString; safecall;
+    function Get_NumTerminals: Integer; safecall;
+    function Get_NumConductors: Integer; safecall;
+    function Get_NumPhases: Integer; safecall;
+    function Get_BusNames: OleVariant; safecall;
     procedure Set_BusNames(Value: OleVariant); safecall;
-    function  Get_Properties(Indx: OleVariant): IDSSProperty; safecall;
-    function  Get_Voltages: OleVariant; safecall;
-    function  Get_Currents: OleVariant; safecall;
-    function  Get_Powers: OleVariant; safecall;
-    function  Get_Losses: OleVariant; safecall;
-    function  Get_PhaseLosses: OleVariant; safecall;
-    function  Get_SeqVoltages: OleVariant; safecall;
-    function  Get_SeqCurrents: OleVariant; safecall;
-    function  Get_SeqPowers: OleVariant; safecall;
-    function  Get_Enabled: WordBool; safecall;
+    function Get_Properties(Indx: OleVariant): IDSSProperty; safecall;
+    function Get_Voltages: OleVariant; safecall;
+    function Get_Currents: OleVariant; safecall;
+    function Get_Powers: OleVariant; safecall;
+    function Get_Losses: OleVariant; safecall;
+    function Get_PhaseLosses: OleVariant; safecall;
+    function Get_SeqVoltages: OleVariant; safecall;
+    function Get_SeqCurrents: OleVariant; safecall;
+    function Get_SeqPowers: OleVariant; safecall;
+    function Get_Enabled: WordBool; safecall;
     procedure Set_Enabled(Value: WordBool); safecall;
-    function  Get_NormalAmps: Double; safecall;
+    function Get_NormalAmps: Double; safecall;
     procedure Set_NormalAmps(Value: Double); safecall;
-    function  Get_EmergAmps: Double; safecall;
+    function Get_EmergAmps: Double; safecall;
     procedure Set_EmergAmps(Value: Double); safecall;
     procedure Open(Term: Integer; Phs: Integer); safecall;
     procedure Close(Term: Integer; Phs: Integer); safecall;
-    function  IsOpen(Term: Integer; Phs: Integer): WordBool; safecall;
-    function  Get_NumProperties: Integer; safecall;
-    function  Get_AllPropertyNames: OleVariant; safecall;
-    function  Get_Residuals: OleVariant; safecall;
-    function  Get_Yprim: OleVariant; safecall;
+    function IsOpen(Term: Integer; Phs: Integer): WordBool; safecall;
+    function Get_NumProperties: Integer; safecall;
+    function Get_AllPropertyNames: OleVariant; safecall;
+    function Get_Residuals: OleVariant; safecall;
+    function Get_Yprim: OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumTerminals: Integer read Get_NumTerminals;
     property NumConductors: Integer read Get_NumConductors;
@@ -316,7 +321,7 @@ type
     property EmergAmps: Double dispid 17;
     procedure Open(Term: Integer; Phs: Integer); dispid 18;
     procedure Close(Term: Integer; Phs: Integer); dispid 19;
-    function  IsOpen(Term: Integer; Phs: Integer): WordBool; dispid 20;
+    function IsOpen(Term: Integer; Phs: Integer): WordBool; dispid 20;
     property NumProperties: Integer readonly dispid 21;
     property AllPropertyNames: OleVariant readonly dispid 22;
     property Residuals: OleVariant readonly dispid 23;
@@ -330,8 +335,8 @@ type
 // *********************************************************************//
   IError = interface(IDispatch)
     ['{B521E339-8ED2-4BD6-9AEB-FD349CA8D8E3}']
-    function  Get_Number: Integer; safecall;
-    function  Get_Description: WideString; safecall;
+    function Get_Number: Integer; safecall;
+    function Get_Description: WideString; safecall;
     property Number: Integer read Get_Number;
     property Description: WideString read Get_Description;
   end;
@@ -354,44 +359,44 @@ type
 // *********************************************************************//
   ICircuit = interface(IDispatch)
     ['{32441C6D-7A27-4164-B5B0-FA054300C217}']
-    function  Get_Name: WideString; safecall;
-    function  Get_NumCktElements: Integer; safecall;
-    function  Get_NumBuses: Integer; safecall;
-    function  Get_NumNodes: Integer; safecall;
-    function  Get_Buses(Index: OleVariant): IBus; safecall;
-    function  Get_CktElements(Idx: OleVariant): ICktElement; safecall;
-    function  Get_Losses: OleVariant; safecall;
-    function  Get_LineLosses: OleVariant; safecall;
-    function  Get_SubstationLosses: OleVariant; safecall;
-    function  Get_TotalPower: OleVariant; safecall;
-    function  Get_AllBusVolts: OleVariant; safecall;
-    function  Get_AllBusVmag: OleVariant; safecall;
-    function  Get_AllElementNames: OleVariant; safecall;
-    function  Get_ActiveElement: ICktElement; safecall;
+    function Get_Name: WideString; safecall;
+    function Get_NumCktElements: Integer; safecall;
+    function Get_NumBuses: Integer; safecall;
+    function Get_NumNodes: Integer; safecall;
+    function Get_Buses(Index: OleVariant): IBus; safecall;
+    function Get_CktElements(Idx: OleVariant): ICktElement; safecall;
+    function Get_Losses: OleVariant; safecall;
+    function Get_LineLosses: OleVariant; safecall;
+    function Get_SubstationLosses: OleVariant; safecall;
+    function Get_TotalPower: OleVariant; safecall;
+    function Get_AllBusVolts: OleVariant; safecall;
+    function Get_AllBusVmag: OleVariant; safecall;
+    function Get_AllElementNames: OleVariant; safecall;
+    function Get_ActiveElement: ICktElement; safecall;
     procedure Disable(const Name: WideString); safecall;
     procedure Enable(const Name: WideString); safecall;
-    function  Get_Solution: ISolution; safecall;
-    function  Get_ActiveBus: IBus; safecall;
-    function  FirstPCElement: Integer; safecall;
-    function  NextPCElement: Integer; safecall;
-    function  FirstPDElement: Integer; safecall;
-    function  NextPDElement: Integer; safecall;
-    function  Get_AllBusNames: OleVariant; safecall;
-    function  Get_AllElementLosses: OleVariant; safecall;
+    function Get_Solution: ISolution; safecall;
+    function Get_ActiveBus: IBus; safecall;
+    function FirstPCElement: Integer; safecall;
+    function NextPCElement: Integer; safecall;
+    function FirstPDElement: Integer; safecall;
+    function NextPDElement: Integer; safecall;
+    function Get_AllBusNames: OleVariant; safecall;
+    function Get_AllElementLosses: OleVariant; safecall;
     procedure Sample; safecall;
     procedure SaveSample; safecall;
-    function  Get_Monitors: IMonitors; safecall;
-    function  Get_Meters: IMeters; safecall;
-    function  Get_Generators: IGenerators; safecall;
-    function  Get_Settings: ISettings; safecall;
-    function  Get_Lines: ILines; safecall;
-    function  SetActiveElement(const FullName: WideString): Integer; safecall;
-    function  Capacity(Start: Double; Increment: Double): Double; safecall;
-    function  SetActiveBus(const BusName: WideString): Integer; safecall;
-    function  SetActiveBusi(BusIndex: Integer): Integer; safecall;
-    function  Get_AllBusVmagPu: OleVariant; safecall;
-    function  Get_AllNodeNames: OleVariant; safecall;
-    function  Get_SystemY: OleVariant; safecall;
+    function Get_Monitors: IMonitors; safecall;
+    function Get_Meters: IMeters; safecall;
+    function Get_Generators: IGenerators; safecall;
+    function Get_Settings: ISettings; safecall;
+    function Get_Lines: ILines; safecall;
+    function SetActiveElement(const FullName: WideString): Integer; safecall;
+    function Capacity(Start: Double; Increment: Double): Double; safecall;
+    function SetActiveBus(const BusName: WideString): Integer; safecall;
+    function SetActiveBusi(BusIndex: Integer): Integer; safecall;
+    function Get_AllBusVmagPu: OleVariant; safecall;
+    function Get_AllNodeNames: OleVariant; safecall;
+    function Get_SystemY: OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -445,10 +450,10 @@ type
     procedure Enable(const Name: WideString); dispid 16;
     property Solution: ISolution readonly dispid 17;
     property ActiveBus: IBus readonly dispid 18;
-    function  FirstPCElement: Integer; dispid 19;
-    function  NextPCElement: Integer; dispid 20;
-    function  FirstPDElement: Integer; dispid 21;
-    function  NextPDElement: Integer; dispid 22;
+    function FirstPCElement: Integer; dispid 19;
+    function NextPCElement: Integer; dispid 20;
+    function FirstPDElement: Integer; dispid 21;
+    function NextPDElement: Integer; dispid 22;
     property AllBusNames: OleVariant readonly dispid 23;
     property AllElementLosses: OleVariant readonly dispid 24;
     procedure Sample; dispid 25;
@@ -458,10 +463,10 @@ type
     property Generators: IGenerators readonly dispid 29;
     property Settings: ISettings readonly dispid 30;
     property Lines: ILines readonly dispid 31;
-    function  SetActiveElement(const FullName: WideString): Integer; dispid 32;
-    function  Capacity(Start: Double; Increment: Double): Double; dispid 33;
-    function  SetActiveBus(const BusName: WideString): Integer; dispid 34;
-    function  SetActiveBusi(BusIndex: Integer): Integer; dispid 36;
+    function SetActiveElement(const FullName: WideString): Integer; dispid 32;
+    function Capacity(Start: Double; Increment: Double): Double; dispid 33;
+    function SetActiveBus(const BusName: WideString): Integer; dispid 34;
+    function SetActiveBusi(BusIndex: Integer): Integer; dispid 36;
     property AllBusVmagPu: OleVariant readonly dispid 35;
     property AllNodeNames: OleVariant readonly dispid 37;
     property SystemY: OleVariant readonly dispid 38;
@@ -474,20 +479,20 @@ type
 // *********************************************************************//
   IBus = interface(IDispatch)
     ['{E5B78C35-88F8-495F-8CD1-EBB5D90ED228}']
-    function  Get_Name: WideString; safecall;
-    function  Get_NumNodes: Integer; safecall;
-    function  Get_Voltages: OleVariant; safecall;
-    function  Get_SeqVoltages: OleVariant; safecall;
-    function  Get_Nodes: OleVariant; safecall;
-    function  Get_Voc: OleVariant; safecall;
-    function  Get_Isc: OleVariant; safecall;
-    function  Get_puVoltages: OleVariant; safecall;
-    function  Get_kVBase: Double; safecall;
-    function  Get_ZscMatrix: OleVariant; safecall;
-    function  Get_Zsc1: OleVariant; safecall;
-    function  Get_Zsc0: OleVariant; safecall;
-    function  ZscRefresh: WordBool; safecall;
-    function  Get_YscMatrix: OleVariant; safecall;
+    function Get_Name: WideString; safecall;
+    function Get_NumNodes: Integer; safecall;
+    function Get_Voltages: OleVariant; safecall;
+    function Get_SeqVoltages: OleVariant; safecall;
+    function Get_Nodes: OleVariant; safecall;
+    function Get_Voc: OleVariant; safecall;
+    function Get_Isc: OleVariant; safecall;
+    function Get_puVoltages: OleVariant; safecall;
+    function Get_kVBase: Double; safecall;
+    function Get_ZscMatrix: OleVariant; safecall;
+    function Get_Zsc1: OleVariant; safecall;
+    function Get_Zsc0: OleVariant; safecall;
+    function ZscRefresh: WordBool; safecall;
+    function Get_YscMatrix: OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumNodes: Integer read Get_NumNodes;
     property Voltages: OleVariant read Get_Voltages;
@@ -522,7 +527,7 @@ type
     property ZscMatrix: OleVariant readonly dispid 10;
     property Zsc1: OleVariant readonly dispid 11;
     property Zsc0: OleVariant readonly dispid 12;
-    function  ZscRefresh: WordBool; dispid 13;
+    function ZscRefresh: WordBool; dispid 13;
     property YscMatrix: OleVariant readonly dispid 14;
   end;
 
@@ -533,25 +538,25 @@ type
 // *********************************************************************//
   IDSS = interface(IDispatch)
     ['{14644AD0-4909-48FF-B624-24E8C38D1AED}']
-    function  Get_NumCircuits: Integer; safecall;
-    function  Get_Circuits(Idx: OleVariant): ICircuit; safecall;
-    function  Get_ActiveCircuit: ICircuit; safecall;
-    function  Get_Text: IText; safecall;
-    function  Get_Error: IError; safecall;
-    function  NewCircuit(const Name: WideString): ICircuit; safecall;
+    function Get_NumCircuits: Integer; safecall;
+    function Get_Circuits(Idx: OleVariant): ICircuit; safecall;
+    function Get_ActiveCircuit: ICircuit; safecall;
+    function Get_Text: IText; safecall;
+    function Get_Error: IError; safecall;
+    function NewCircuit(const Name: WideString): ICircuit; safecall;
     procedure ClearAll; safecall;
     procedure ShowPanel; safecall;
-    function  Start(code: Integer): WordBool; safecall;
-    function  Get_Version: WideString; safecall;
-    function  Get_DSSProgress: IDSSProgress; safecall;
-    function  Get_Classes: OleVariant; safecall;
-    function  Get_UserClasses: OleVariant; safecall;
-    function  Get_NumClasses: Integer; safecall;
-    function  Get_NumUserClasses: Integer; safecall;
-    function  Get_DataPath: WideString; safecall;
+    function Start(code: Integer): WordBool; safecall;
+    function Get_Version: WideString; safecall;
+    function Get_DSSProgress: IDSSProgress; safecall;
+    function Get_Classes: OleVariant; safecall;
+    function Get_UserClasses: OleVariant; safecall;
+    function Get_NumClasses: Integer; safecall;
+    function Get_NumUserClasses: Integer; safecall;
+    function Get_DataPath: WideString; safecall;
     procedure Set_DataPath(const Value: WideString); safecall;
     procedure Reset; safecall;
-    function  Get_AllowForms: WordBool; safecall;
+    function Get_AllowForms: WordBool; safecall;
     procedure Set_AllowForms(Value: WordBool); safecall;
     property NumCircuits: Integer read Get_NumCircuits;
     property Circuits[Idx: OleVariant]: ICircuit read Get_Circuits;
@@ -580,10 +585,10 @@ type
     property ActiveCircuit: ICircuit readonly dispid 3;
     property Text: IText readonly dispid 4;
     property Error: IError readonly dispid 5;
-    function  NewCircuit(const Name: WideString): ICircuit; dispid 6;
+    function NewCircuit(const Name: WideString): ICircuit; dispid 6;
     procedure ClearAll; dispid 7;
     procedure ShowPanel; dispid 8;
-    function  Start(code: Integer): WordBool; dispid 9;
+    function Start(code: Integer): WordBool; dispid 9;
     property Version: WideString readonly dispid 10;
     property DSSProgress: IDSSProgress readonly dispid 11;
     property Classes: OleVariant readonly dispid 12;
@@ -603,55 +608,55 @@ type
   ISolution = interface(IDispatch)
     ['{F2332365-962A-4DF4-9D1E-218E0B0F2CEF}']
     procedure Solve; safecall;
-    function  Get_Mode: Integer; safecall;
+    function Get_Mode: Integer; safecall;
     procedure Set_Mode(Mode: Integer); safecall;
-    function  Get_Frequency: Double; safecall;
+    function Get_Frequency: Double; safecall;
     procedure Set_Frequency(Frequency: Double); safecall;
-    function  Get_Hour: Integer; safecall;
+    function Get_Hour: Integer; safecall;
     procedure Set_Hour(Hour: Integer); safecall;
-    function  Get_Seconds: Double; safecall;
+    function Get_Seconds: Double; safecall;
     procedure Set_Seconds(Seconds: Double); safecall;
-    function  Get_StepSize: Double; safecall;
+    function Get_StepSize: Double; safecall;
     procedure Set_StepSize(StepSize: Double); safecall;
-    function  Get_Year: Integer; safecall;
+    function Get_Year: Integer; safecall;
     procedure Set_Year(Year: Integer); safecall;
-    function  Get_LoadMult: Double; safecall;
+    function Get_LoadMult: Double; safecall;
     procedure Set_LoadMult(LoadMult: Double); safecall;
-    function  Get_Iterations: Integer; safecall;
-    function  Get_MaxIterations: Integer; safecall;
+    function Get_Iterations: Integer; safecall;
+    function Get_MaxIterations: Integer; safecall;
     procedure Set_MaxIterations(MaxIterations: Integer); safecall;
-    function  Get_Tolerance: Double; safecall;
+    function Get_Tolerance: Double; safecall;
     procedure Set_Tolerance(Tolerance: Double); safecall;
-    function  Get_Number: Integer; safecall;
+    function Get_Number: Integer; safecall;
     procedure Set_Number(Number: Integer); safecall;
-    function  Get_Random: Integer; safecall;
+    function Get_Random: Integer; safecall;
     procedure Set_Random(Random: Integer); safecall;
-    function  Get_ModeID: WideString; safecall;
-    function  Get_LoadModel: Integer; safecall;
+    function Get_ModeID: WideString; safecall;
+    function Get_LoadModel: Integer; safecall;
     procedure Set_LoadModel(Value: Integer); safecall;
-    function  Get_LDCurve: WideString; safecall;
+    function Get_LDCurve: WideString; safecall;
     procedure Set_LDCurve(const Value: WideString); safecall;
-    function  Get_pctGrowth: Double; safecall;
+    function Get_pctGrowth: Double; safecall;
     procedure Set_pctGrowth(Value: Double); safecall;
-    function  Get_AddType: Integer; safecall;
+    function Get_AddType: Integer; safecall;
     procedure Set_AddType(Value: Integer); safecall;
-    function  Get_GenkW: Double; safecall;
+    function Get_GenkW: Double; safecall;
     procedure Set_GenkW(Value: Double); safecall;
-    function  Get_GenPF: Double; safecall;
+    function Get_GenPF: Double; safecall;
     procedure Set_GenPF(Value: Double); safecall;
-    function  Get_Capkvar: Double; safecall;
+    function Get_Capkvar: Double; safecall;
     procedure Set_Capkvar(Value: Double); safecall;
-    function  Get_Algorithm: Integer; safecall;
+    function Get_Algorithm: Integer; safecall;
     procedure Set_Algorithm(Value: Integer); safecall;
-    function  Get_ControlMode: Integer; safecall;
+    function Get_ControlMode: Integer; safecall;
     procedure Set_ControlMode(Value: Integer); safecall;
-    function  Get_GenMult: Double; safecall;
+    function Get_GenMult: Double; safecall;
     procedure Set_GenMult(Value: Double); safecall;
-    function  Get_DefaultDaily: WideString; safecall;
+    function Get_DefaultDaily: WideString; safecall;
     procedure Set_DefaultDaily(const Value: WideString); safecall;
-    function  Get_DefaultYearly: WideString; safecall;
+    function Get_DefaultYearly: WideString; safecall;
     procedure Set_DefaultYearly(const Value: WideString); safecall;
-    function  Get_EventLog: OleVariant; safecall;
+    function Get_EventLog: OleVariant; safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -723,21 +728,21 @@ type
 // *********************************************************************//
   IMonitors = interface(IDispatch)
     ['{5C339E44-C583-445C-91D1-3B1E49CAD6B0}']
-    function  Get_AllNames: OleVariant; safecall;
-    function  Get_First: Integer; safecall;
-    function  Get_Next: Integer; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
     procedure Reset; safecall;
     procedure ResetAll; safecall;
     procedure Sample; safecall;
     procedure Save; safecall;
     procedure Show; safecall;
-    function  Get_FileName: WideString; safecall;
-    function  Get_Mode: Integer; safecall;
+    function Get_FileName: WideString; safecall;
+    function Get_Mode: Integer; safecall;
     procedure Set_Mode(Value: Integer); safecall;
-    function  Get_Name: WideString; safecall;
+    function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
-    function  Get_ByteStream: OleVariant; safecall;
-    function  Get_SampleCount: Integer; safecall;
+    function Get_ByteStream: OleVariant; safecall;
+    function Get_SampleCount: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -777,18 +782,18 @@ type
 // *********************************************************************//
   IMeters = interface(IDispatch)
     ['{86705B6C-352A-47F8-A24B-78B750EC3859}']
-    function  Get_AllNames: OleVariant; safecall;
-    function  Get_First: Integer; safecall;
-    function  Get_Next: Integer; safecall;
-    function  Get_RegisterNames: OleVariant; safecall;
-    function  Get_RegisterValues: OleVariant; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_RegisterNames: OleVariant; safecall;
+    function Get_RegisterValues: OleVariant; safecall;
     procedure Reset; safecall;
     procedure ResetAll; safecall;
     procedure Sample; safecall;
     procedure Save; safecall;
-    function  Get_Name: WideString; safecall;
+    function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
-    function  Get_Totals: OleVariant; safecall;
+    function Get_Totals: OleVariant; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -825,14 +830,14 @@ type
 // *********************************************************************//
   IGenerators = interface(IDispatch)
     ['{2D9B7548-D03E-478A-9FEA-9FC4033C793E}']
-    function  Get_AllNames: OleVariant; safecall;
-    function  Get_RegisterNames: OleVariant; safecall;
-    function  Get_RegisterValues: OleVariant; safecall;
-    function  Get_First: Integer; safecall;
-    function  Get_Next: Integer; safecall;
-    function  Get_ForcedON: WordBool; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_RegisterNames: OleVariant; safecall;
+    function Get_RegisterValues: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_ForcedON: WordBool; safecall;
     procedure Set_ForcedON(Value: WordBool); safecall;
-    function  Get_Name: WideString; safecall;
+    function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property RegisterNames: OleVariant read Get_RegisterNames;
@@ -894,40 +899,40 @@ type
 // *********************************************************************//
   ISettings = interface(IDispatch)
     ['{4E3928A0-8B75-4127-885F-F4AD6B3F4323}']
-    function  Get_AllowDuplicates: WordBool; safecall;
+    function Get_AllowDuplicates: WordBool; safecall;
     procedure Set_AllowDuplicates(Value: WordBool); safecall;
-    function  Get_ZoneLock: WordBool; safecall;
+    function Get_ZoneLock: WordBool; safecall;
     procedure Set_ZoneLock(Value: WordBool); safecall;
     procedure Set_AllocationFactors(Param1: Double); safecall;
-    function  Get_AutoBusList: WideString; safecall;
+    function Get_AutoBusList: WideString; safecall;
     procedure Set_AutoBusList(const Value: WideString); safecall;
-    function  Get_CktModel: Integer; safecall;
+    function Get_CktModel: Integer; safecall;
     procedure Set_CktModel(Value: Integer); safecall;
-    function  Get_NormVminpu: Double; safecall;
+    function Get_NormVminpu: Double; safecall;
     procedure Set_NormVminpu(Value: Double); safecall;
-    function  Get_NormVmaxpu: Double; safecall;
+    function Get_NormVmaxpu: Double; safecall;
     procedure Set_NormVmaxpu(Value: Double); safecall;
-    function  Get_EmergVminpu: Double; safecall;
+    function Get_EmergVminpu: Double; safecall;
     procedure Set_EmergVminpu(Value: Double); safecall;
-    function  Get_EmergVmaxpu: Double; safecall;
+    function Get_EmergVmaxpu: Double; safecall;
     procedure Set_EmergVmaxpu(Value: Double); safecall;
-    function  Get_UEweight: Double; safecall;
+    function Get_UEweight: Double; safecall;
     procedure Set_UEweight(Value: Double); safecall;
-    function  Get_LossWeight: Double; safecall;
+    function Get_LossWeight: Double; safecall;
     procedure Set_LossWeight(Value: Double); safecall;
-    function  Get_UEregs: OleVariant; safecall;
+    function Get_UEregs: OleVariant; safecall;
     procedure Set_UEregs(Value: OleVariant); safecall;
-    function  Get_LossRegs: OleVariant; safecall;
+    function Get_LossRegs: OleVariant; safecall;
     procedure Set_LossRegs(Value: OleVariant); safecall;
-    function  Get_Trapezoidal: WordBool; safecall;
+    function Get_Trapezoidal: WordBool; safecall;
     procedure Set_Trapezoidal(Value: WordBool); safecall;
-    function  Get_VoltageBases: OleVariant; safecall;
+    function Get_VoltageBases: OleVariant; safecall;
     procedure Set_VoltageBases(Value: OleVariant); safecall;
-    function  Get_ControlTrace: WordBool; safecall;
+    function Get_ControlTrace: WordBool; safecall;
     procedure Set_ControlTrace(Value: WordBool); safecall;
-    function  Get_PriceSignal: Double; safecall;
+    function Get_PriceSignal: Double; safecall;
     procedure Set_PriceSignal(Value: Double); safecall;
-    function  Get_PriceCurve: WideString; safecall;
+    function Get_PriceCurve: WideString; safecall;
     procedure Set_PriceCurve(const Value: WideString); safecall;
     property AllowDuplicates: WordBool read Get_AllowDuplicates write Set_AllowDuplicates;
     property ZoneLock: WordBool read Get_ZoneLock write Set_ZoneLock;
@@ -983,53 +988,53 @@ type
 // *********************************************************************//
   ILines = interface(IDispatch)
     ['{E1616BDB-589B-4E5D-A7CE-828ACD73E5D4}']
-    function  Get_Name: WideString; safecall;
+    function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
-    function  Get_AllNames: OleVariant; safecall;
-    function  Get_First: Integer; safecall;
-    function  Get_Next: Integer; safecall;
-    function  New(const Name: WideString): Integer; safecall;
-    function  Get_Bus1: WideString; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function New(const Name: WideString): Integer; safecall;
+    function Get_Bus1: WideString; safecall;
     procedure Set_Bus1(const Value: WideString); safecall;
-    function  Get_Bus2: WideString; safecall;
+    function Get_Bus2: WideString; safecall;
     procedure Set_Bus2(const Value: WideString); safecall;
-    function  Get_LineCode: WideString; safecall;
+    function Get_LineCode: WideString; safecall;
     procedure Set_LineCode(const Value: WideString); safecall;
-    function  Get_Length: Double; safecall;
+    function Get_Length: Double; safecall;
     procedure Set_Length(Value: Double); safecall;
-    function  Get_Phases: Integer; safecall;
+    function Get_Phases: Integer; safecall;
     procedure Set_Phases(Value: Integer); safecall;
-    function  Get_R1: Double; safecall;
+    function Get_R1: Double; safecall;
     procedure Set_R1(Value: Double); safecall;
-    function  Get_X1: Double; safecall;
+    function Get_X1: Double; safecall;
     procedure Set_X1(Value: Double); safecall;
-    function  Get_R0: Double; safecall;
+    function Get_R0: Double; safecall;
     procedure Set_R0(Value: Double); safecall;
-    function  Get_X0: Double; safecall;
+    function Get_X0: Double; safecall;
     procedure Set_X0(Value: Double); safecall;
-    function  Get_C1: Double; safecall;
+    function Get_C1: Double; safecall;
     procedure Set_C1(Value: Double); safecall;
-    function  Get_C0: Double; safecall;
+    function Get_C0: Double; safecall;
     procedure Set_C0(Value: Double); safecall;
-    function  Get_Rmatrix: OleVariant; safecall;
+    function Get_Rmatrix: OleVariant; safecall;
     procedure Set_Rmatrix(Value: OleVariant); safecall;
-    function  Get_Xmatrix: OleVariant; safecall;
+    function Get_Xmatrix: OleVariant; safecall;
     procedure Set_Xmatrix(Value: OleVariant); safecall;
-    function  Get_Cmatrix: OleVariant; safecall;
+    function Get_Cmatrix: OleVariant; safecall;
     procedure Set_Cmatrix(Value: OleVariant); safecall;
-    function  Get_NormAmps: Double; safecall;
+    function Get_NormAmps: Double; safecall;
     procedure Set_NormAmps(Value: Double); safecall;
-    function  Get_EmergAmps: Double; safecall;
+    function Get_EmergAmps: Double; safecall;
     procedure Set_EmergAmps(Value: Double); safecall;
-    function  Get_Geometry: WideString; safecall;
+    function Get_Geometry: WideString; safecall;
     procedure Set_Geometry(const Value: WideString); safecall;
-    function  Get_Rg: Double; safecall;
+    function Get_Rg: Double; safecall;
     procedure Set_Rg(Value: Double); safecall;
-    function  Get_Xg: Double; safecall;
+    function Get_Xg: Double; safecall;
     procedure Set_Xg(Value: Double); safecall;
-    function  Get_Rho: Double; safecall;
+    function Get_Rho: Double; safecall;
     procedure Set_Rho(Value: Double); safecall;
-    function  Get_Yprim: OleVariant; safecall;
+    function Get_Yprim: OleVariant; safecall;
     procedure Set_Yprim(Value: OleVariant); safecall;
     property Name: WideString read Get_Name write Set_Name;
     property AllNames: OleVariant read Get_AllNames;
@@ -1069,7 +1074,7 @@ type
     property AllNames: OleVariant readonly dispid 7;
     property First: Integer readonly dispid 8;
     property Next: Integer readonly dispid 9;
-    function  New(const Name: WideString): Integer; dispid 10;
+    function New(const Name: WideString): Integer; dispid 10;
     property Bus1: WideString dispid 11;
     property Bus2: WideString dispid 12;
     property LineCode: WideString dispid 13;

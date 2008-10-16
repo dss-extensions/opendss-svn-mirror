@@ -62,11 +62,11 @@ CONST
       CAP_ELEMENT  = 13 * 8;
       RELAY_CONTROL = 14 * 8;
       RECLOSER_CONTROL = 15 * 8;
-      FUSE_CONTROL = 16 * 8;
-      REACTOR_ELEMENT = 17 * 8;
-      FEEDER_ELEMENT = 18 * 8;
-      GEN_CONTROL = 19 * 8;
-      SENSOR_ELEMENT = 20 * 8;
+      FUSE_CONTROL     = 16 * 8;
+      REACTOR_ELEMENT  = 17 * 8;
+      FEEDER_ELEMENT   = 18 * 8;
+      GEN_CONTROL      = 19 * 8;
+      SENSOR_ELEMENT   = 20 * 8;
 
       POWERFLOW  = 1;  // Load model types for solution
       ADMITTANCE = 2;
@@ -147,6 +147,7 @@ VAR
    Redirect_Abort     :Boolean;
    In_Redirect        :Boolean;
    DIFilesAreOpen     :Boolean;
+   AutoShowExport     :Boolean;
 
    ClassNames         :THashList;
    LastClassReferenced:Integer;  // index of class of last thing edited
@@ -768,6 +769,7 @@ initialization
    LastErrorMessage      := '';
    MaxCircuits           := 1;  //  This version only allows one circuit at a time
    SolutionAbort         := FALSE;
+   AutoShowExport        := FALSE;
 
    {Initialize filenames and directories}
 

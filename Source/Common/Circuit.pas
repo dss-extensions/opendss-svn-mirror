@@ -92,10 +92,11 @@ TYPE
           DSSControls,
           Sources,
           MeterElements,
+          Sensors,
           Monitors,
           EnergyMeters,
           Generators,
-          Substations,  // not doing anything with this yet
+          Substations,
           Transformers,
           CapControls,
           RegControls,
@@ -262,6 +263,7 @@ BEGIN
      MeterElements:= TPointerList.Create(20);
      Monitors     := TPointerList.Create(20);
      EnergyMeters := TPointerList.Create(5);
+     Sensors      := TPointerList.Create(5);
      Generators   := TPointerList.Create(5);
      Feeders   := TPointerList.Create(10);
      Substations  := TPointerList.Create(5);
@@ -399,6 +401,7 @@ BEGIN
      MeterElements.Free;
      Monitors.Free;
      EnergyMeters.Free;
+     Sensors.Free;
      Generators.Free;
      Feeders.Free;
      Substations.Free;
@@ -616,6 +619,7 @@ BEGIN
    CASE (ActiveCktElement.DSSObjType and CLASSMASK) OF
        MON_ELEMENT :Monitors.Add(ActiveCktElement);
        ENERGY_METER:EnergyMeters.Add(ActiveCktElement);
+       SENSOR_ELEMENT:Sensors.Add(ActiveCktElement);
        GEN_ELEMENT :Generators.Add(ActiveCktElement);
        SOURCE      :Sources.Add(ActiveCktElement);
        CAP_CONTROL :CapControls.Add(ActiveCktElement);

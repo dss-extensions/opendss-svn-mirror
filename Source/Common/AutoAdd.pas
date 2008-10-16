@@ -20,7 +20,6 @@ Uses uComplex, EnergyMeter, HashList, Arraydef, Generator, Capacitor;
 Type
     TAutoAdd = class(TObject)
     private
-      EnergyMeterClass   :TEnergyMeter;
       GeneratorClass   :TGenerator;
       CapacitorClass   :TCapacitor;
 
@@ -101,7 +100,6 @@ constructor TAutoAdd.Create;
 Begin
 
     BusIdxListCreated := False;
-    EnergyMeterClass := TEnergyMeter(GetDSSClassPtr('energymeter'));
     GeneratorClass   := DSSClassList.Get(ClassNames.Find('generator'));
     CapacitorClass   := DSSClassList.Get(ClassNames.Find('capacitor'));
 
@@ -581,8 +579,7 @@ Begin
                          UseAuxCurrents := TRUE;    // Calls InjCurrents on callback
                          SolveSnap;
 
-                         If   IsSolved
-                         THEN Begin
+                         If   IsSolved  THEN Begin
                               {Only do this if solution converged ELSE something might break
                                in meter sampling}
 
@@ -592,9 +589,9 @@ Begin
 
                              TRY
                                Append(Flog);
-                               Write(Flog, Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*SQRT3]));
-                               Write(Flog,  Format(', %-g, %-g',[kWLosses, puLossImprovement*100.0]));
-                               Write(Flog,  Format(', %-g, %-g',[kWEEN, puEENImprovement*100.0]));
+                               Write(Flog,   Format('"%s", %-g', [TestBus, Buses^[BusIndex].kVBase*SQRT3]));
+                               Write(Flog,   Format(', %-g, %-g',[kWLosses, puLossImprovement*100.0]));
+                               Write(Flog,   Format(', %-g, %-g',[kWEEN, puEENImprovement*100.0]));
                                Writeln(Flog, Format(', %-g, %d', [LossImproveFactor, Iteration]) );
                              FINALLY
                                CloseFile(Flog);

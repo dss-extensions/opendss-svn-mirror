@@ -2,11 +2,13 @@ unit Sensor;
 
 {
    Change Log
-   8-24-2007 Created from Sensor Object
+   8-24-2007 Created from Monitor Object
+   Sept-Oct 2008 Modified for new load allocation and state estimator algorithms
 }
 
 {
- 
+   Sensor compares voltages and currents. Power quantities are converted to current quantities
+   based on rated kVBase, or actual voltage if voltage measurement specified.
 }
 
 interface
@@ -15,9 +17,9 @@ USES
      Command, MeterClass, Meterelement, DSSClass, Arraydef, ucomplex, utilities, Classes;
 
 TYPE
-    TSensorStrBuffer = Array[1..256] of Char;
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+{==============================================================================}
+
    TSensor = class(TMeterClass)
      private
 
@@ -35,28 +37,45 @@ TYPE
        Procedure ResetAll; Override;
        Procedure SampleAll; Override;  // Force all Sensors to take a sample
        Procedure SaveAll;  Override;   // Force all Sensors to save their buffers to disk
+       Procedure SetHasSensorFlag;
 
    end;
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+{==============================================================================}
+
    TSensorObj = class(TMeterElement)
      private
        BaseFrequency:Double;
        ValidSensor:Boolean;
+       SensorkW   :pDoubleArray;
+       Sensorkvar :pDoubleArray;
+       kVBase     :Double; // value specified
+       Vbase      :Double; // in volts
 
-//    function Get_FileName: String;
-    procedure Set_SensedPhases(const Value: String);
-    procedure Set_SensorModes(const Value: String);
-    procedure Set_Conn(const Value: String);
-    procedure Set_Action(const Value: String);
+       FConn      :Integer;
+
+       Vspecified,
+       Ispecified,
+       Pspecified,
+       Qspecified  :Boolean;
+
+       ClearSpecified   :Boolean;
+       FDeltaDirection: Integer;
+
+        procedure Set_Conn(const Value: Integer);
+        procedure Set_Action(const Value: String);
+        procedure ZeroSensorArrays;
+        procedure AllocateSensorObjArrays;
+        procedure RecalcVbase;
+        Function RotatePhases(const j:Integer):Integer;
+        Function LimitToPlusMinusOne(const i:Integer):Integer;
+        procedure ClearSensor;
+        function Get_WLSCurrentError: Double;
+    function Get_WLSVoltageError: Double;
 
      public
-       MeaskV  :Double;
-       MeasAmps:Double;
-       MeaskW  :Double;
-       Measkvar:Double;
 
-       pctError     :Double;
+       pctError   :Double;
 
        constructor Create(ParClass:TDSSClass; const SensorName:String);
        destructor Destroy; override;
@@ -72,23 +91,24 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-
        {Properties to interpret input to the sensor}
 
-       Property Sensormodes:String  Write Set_SensorModes;
-       Property SensedPhases:String Write Set_SensedPhases;
-       Property Conn:String         Write Set_Conn;
-       Property Action:String       Write Set_Action;
+       Property Conn:Integer     Read Fconn    Write Set_Conn;      // Connection code
+       Property Action:String                  Write Set_Action;
+       Property WLSCurrentError:Double  Read Get_WLSCurrentError;
+       Property WLSVoltageError:Double  Read Get_WLSVoltageError;
 
 
    end;
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+{==============================================================================}
+
 
 VAR
     ActiveSensorObj:TSensorObj;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 implementation
 
 USES
@@ -100,7 +120,8 @@ CONST
 
     NumPropsThisClass = 11;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 constructor TSensor.Create;  // Creates superstructure for all Sensor objects
 Begin
      Inherited Create;
@@ -110,19 +131,20 @@ Begin
 
      DefineProperties;
 
-
      CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
      CommandList.Abbrev := TRUE;
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 destructor TSensor.Destroy;
 
 Begin
      Inherited Destroy;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{==============================================================================}
+
 Procedure TSensor.DefineProperties;
 Begin
 
@@ -135,33 +157,36 @@ Begin
 
      PropertyName[1] := 'element';
      PropertyName[2] := 'terminal';
-     PropertyName[3] := 'modes';
-     PropertyName[4] := 'v';
-     PropertyName[5] := 'i';
-     PropertyName[6] := 'p';
-     PropertyName[7] := 'q';
-     PropertyName[8] := 'Phases';  // Monitored phases
+     PropertyName[3] := 'kvbase';
+     PropertyName[4] := 'clear';
+     PropertyName[5] := 'v';
+     PropertyName[6] := 'i';
+     PropertyName[7] := 'p';
+     PropertyName[8] := 'q';
      PropertyName[9] := 'conn';  //  Sensor connection
-     PropertyName[10] := '%Error';  //  %Error of sensor
-     PropertyName[11] := 'action';  //  %Error of sensor
+     PropertyName[10] := 'Deltadirection';  //  +/- 1
+     PropertyName[11] := '%Error';  //  %Error of sensor
+     PropertyName[12] := 'action';
 
      PropertyHelp[1] := 'Name (Full Object name) of element to which the Sensor is connected.';
      PropertyHelp[2] := 'Number of the terminal of the circuit element to which the Sensor is connected. '+
-                    '1 or 2, typically. For Sensoring states, attach Sensor to terminal 1.';
-     PropertyHelp[3] := 'Array of any of { Voltage | Current | kW | kvar } in any order. Default is Voltage only. ' + CRLF +
-                        ' Quantities being sensed. Scalar magnitudes only. ' + CRLF +
-                        ' If quantity is not specified here, it ';
-     PropertyHelp[4] := 'Array of Voltages (kV) measured by the voltage sensor.';
-     PropertyHelp[5] := 'Array of Currents (amps) measured by the current sensor.';
-     PropertyHelp[6] := 'Array of Active power (kW) measurements at the sensor.';
-     PropertyHelp[7] := 'Array of Reactive power (kvar) measurements at the sensor.';
-     PropertyHelp[8] := 'Array of phases being monitored by this sensor. [1, 2, 3] or [2 3 1] or [1], etc.  '+CRLF+
-                        'Corresponds to the order that the measurement arrays will be supplied. ' +
-                        'Defaults to same number of quantities as phases in the monitored element.';
-     PropertyHelp[9] := 'Connection: { wye | delta | LN | LL }.  Default is wye. Applies to voltage measurement. '+CRLF+
+                        '1 or 2, typically. Default is 1.';
+     PropertyHelp[3] := 'Voltage base for the sensor, in kV. If connected to a 2- or 3-phase terminal, ' + CRLF +
+                        'specify L-L voltage. For 1-phase devices specify L-N or actual 1-phase voltage. '+
+                        'Like many other DSS devices, default is 12.47kV.';
+     PropertyHelp[4] := '{ Yes | No }. Clear=Yes clears sensor values. Should be issued before putting in a new set of measurements.';
+     PropertyHelp[5] := 'Array of Voltages (kV) measured by the voltage sensor. For Delta-connected ' +
+                        'sensors, Line-Line voltages are expected. For Wye, Line-Neutral are expected.';
+     PropertyHelp[6] := 'Array of Currents (amps) measured by the current sensor. Specify this or power quantities; not both.';
+     PropertyHelp[7] := 'Array of Active power (kW) measurements at the sensor. Is converted into Currents along with q=[...]'+CRLF+
+                        'Will override any i=[...] specification.';
+     PropertyHelp[8] := 'Array of Reactive power (kvar) measurements at the sensor. Is converted into Currents along with p=[...]';
+     PropertyHelp[9] := 'Voltage sensor Connection: { wye | delta | LN | LL }.  Default is wye. Applies to voltage measurement only. '+CRLF+
+                        'Currents are always assumed to be line currents.' + CRLF +
                         'If wye or LN, voltage is assumed measured line-neutral; otherwise, line-line.';
-     PropertyHelp[10] := 'Assumed percent error in the measurement. Default is 1.';
-     PropertyHelp[11] := 'Action options: '+CRLF+'SQERROR: Show square error of the present value of the monitored terminal  '+CRLF+
+     PropertyHelp[10] :='{1 or -1}  Default is 1:  1-2, 2-3, 3-1.  For reverse rotation, enter -1. Any positive or negative entry will suffice.';
+     PropertyHelp[11] :='Assumed percent error in the measurement. Default is 1.';
+     PropertyHelp[12] :='Action options: '+CRLF+'SQERROR: Show square error of the present value of the monitored terminal  '+CRLF+
                         'quantity vs the sensor value. Actual values - convert to per unit in calling program.  '+CRLF+
                         'Value reported in result window/result variable.';
 
@@ -171,7 +196,8 @@ Begin
 
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Function TSensor.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new Sensor and add it to Sensor class list
@@ -182,7 +208,8 @@ Begin
     End;
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Function TSensor.Edit:Integer;
 VAR
    ParamPointer:Integer;
@@ -191,7 +218,6 @@ VAR
 
 Begin
 
-  // continue parsing with contents of Parser
   // continue parsing with contents of Parser
   ActiveSensorObj := ElementList.Active;
   ActiveCircuit.ActiveCktElement := ActiveSensorObj;
@@ -213,19 +239,28 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 661);
             1: ElementName := lowercase(param);
             2: MeteredTerminal := Parser.IntValue;
-            3: Sensormodes := Param;
-            4: MeaskV      := Parser.dblValue;
-            5: MeasAmps    := Parser.dblValue;
-            6: MeaskW      := Parser.dblValue;
-            7: Measkvar    := Parser.dblValue;
-            8: SensedPhases := Param;
-            9: Conn         := Param;
-           10: pctError     := Parser.dblValue;
-           11: Action       := Param;  // Put sq error in Global Result
+            3: kVBase := Parser.DblValue;
+            4: ClearSpecified := InterpretYesNo(Param);
+            5: Parser.ParseAsVector(Fnphases, SensorVoltage);  // Inits to zero
+            6: Parser.ParseAsVector(Fnphases, SensorCurrent);  // Inits to zero
+            7: Parser.ParseAsVector(Fnphases, SensorkW );
+            8: Parser.ParseAsVector(Fnphases, Sensorkvar );
+            9: Conn         := InterpretConnection(Param);
+           10: FDeltaDirection := LimitToPlusMinusOne(Parser.IntValue);
+           11: pctError     := Parser.dblValue;
+           12: Action       := Param;  // Put sq error in Global Result
          ELSE
            // Inherited parameters
            ClassEdit( ActiveSensorObj, ParamPointer - NumPropsthisClass)
          End;
+
+         case ParamPointer of
+              4: If ClearSpecified then ClearSensor;
+              5: Vspecified := TRUE;
+              6: Ispecified := TRUE;
+              7: Pspecified := TRUE;
+              8: Qspecified := TRUE;
+         end;
 
          ParamName := Parser.NextParam;
          Param := Parser.StrValue;
@@ -236,42 +271,45 @@ Begin
 
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Procedure TSensor.ResetAll;  // Force all Sensors in the circuit to reset
 
-//VAR
-//   pSensor  :TSensorObj;
+VAR
+   pSensor  :TSensorObj;
 
 Begin
-{
+
+    pSensor := ActiveCircuit.Sensors.First;
+    WHILE pSensor<>Nil DO
+    Begin
+        If pSensor.enabled Then pSensor.ResetIt;
+        pSensor := ActiveCircuit.Sensors.Next;
+    End;
+
+End;
+
+{==============================================================================}
+
+Procedure TSensor.SampleAll;  // Force all Sensors in the circuit to take a sample
+
+VAR
+  pSensor:TSensorObj;
+
+Begin
+
+
       pSensor := ActiveCircuit.Sensors.First;
       WHILE pSensor<>Nil DO
       Begin
-          If pSensor.enabled Then pSensor.ResetIt;
+          If pSensor.enabled Then pSensor.TakeSample;
           pSensor := ActiveCircuit.Sensors.Next;
       End;
- }
+
 End;
 
-{--------------------------------------------------------------------------}
-Procedure TSensor.SampleAll;  // Force all Sensors in the circuit to take a sample
+{==============================================================================}
 
-//VAR
-//   Mon:TSensorObj;
-
-Begin
-
-{
-      Mon := ActiveCircuit.Sensors.First;
-      WHILE Mon<>Nil DO
-      Begin
-          If Mon.enabled Then Mon.TakeSample;
-          Mon := ActiveCircuit.Sensors.Next;
-      End;
-}
-End;
-
-{--------------------------------------------------------------------------}
 Procedure TSensor.SaveAll;     // Force all Sensors in the circuit to save their buffers to disk
 
 //VAR
@@ -288,7 +326,39 @@ Begin
 }
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
+procedure TSensor.SetHasSensorFlag;
+// Set the HasSensorObj Flag for all cktElement;
+VAR
+   i:Integer;
+   ThisSensor:TSensorObj;
+   CktElem:TCktElement;
+
+Begin
+   {Initialize all to FALSE}
+   With  ActiveCircuit Do Begin
+     CktElem := PDElements.First;
+     While CktElem <> Nil Do Begin
+        CktElem.HasSensorObj := FALSE;
+        CktElem := PDElements.Next;
+     End;  {WHILE}
+     CktElem := PCElements.First;
+     While CktElem <> Nil Do Begin
+        CktElem.HasSensorObj := FALSE;
+        CktElem := PCElements.Next;
+     End;  {WHILE}
+   End; {WITH}
+
+   FOR i := 1 to ActiveCircuit.Sensors.ListSize DO Begin
+       ThisSensor := ActiveCircuit.Sensors.Get(i);
+       With ThisSensor Do If MeteredElement <> Nil Then MeteredElement.HasSensorObj := TRUE;
+   End;   {FOR}
+
+end;
+
+{==============================================================================}
+
 Function TSensor.MakeLike(const SensorName:String):Integer;
 VAR
    OtherSensor:TSensorObj;
@@ -303,11 +373,18 @@ Begin
        NPhases := OtherSensor.Fnphases;
        NConds  := OtherSensor.Fnconds; // Force Reallocation of terminal stuff
 
-       ElementName:= OtherSensor.ElementName;
-       MeteredElement:= OtherSensor.MeteredElement;  // Pointer to target circuit element
-       MeteredTerminal:= OtherSensor.MeteredTerminal;
- {****Do This      SensorType := OtherSensor.SensorType;}
+       ElementName     := OtherSensor.ElementName;
+       MeteredElement  := OtherSensor.MeteredElement;  // Pointer to target circuit element
+       MeteredTerminal := OtherSensor.MeteredTerminal;
+{==========================================================================}
 
+
+
+
+
+
+
+{==========================================================================}
        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherSensor.PropertyValue[i];
 
        BaseFrequency:= OtherSensor.BaseFrequency;
@@ -317,23 +394,24 @@ Begin
 
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Function TSensor.Init(Handle:Integer):Integer;
 VAR
-   Mon:TSensorObj;
+   pSensor:TSensorObj;
 
 Begin
       Result := 0;
 
       IF Handle>0  THEN Begin
-         Mon := ElementList.Get(Handle);
-         Mon.ResetIt;
+         pSensor := ElementList.Get(Handle);
+         pSensor.ResetIt;
       End
       ELSE Begin  // Do 'em all
-        Mon := ElementList.First;
-        WHILE Mon<>Nil DO Begin
-            Mon.ResetIt;
-            Mon := ElementList.Next;
+        pSensor := ElementList.First;
+        WHILE pSensor<>Nil DO Begin
+            pSensor.ResetIt;
+            pSensor := ElementList.Next;
         End;
       End;
 
@@ -346,7 +424,8 @@ End;
 
 
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 constructor TSensorObj.Create(ParClass:TDSSClass; const SensorName:String);
 
 Begin
@@ -355,10 +434,17 @@ Begin
 
      Nphases := 3;  // Directly set conds and phases
      Fnconds := 3;
-     Nterms := 1;  // this forces allocation of terminals and conductors
+     Nterms  := 1;  // this forces allocation of terminals and conductors
                          // in base class
 
+     SensorkW   := NIL;
+     Sensorkvar := NIL;
 
+     kVBase := 12.47; // default 3-phase voltage
+
+     Conn := 0;  // Wye
+
+     ClearSensor;
 
      Basefrequency := 60.0;
 
@@ -370,16 +456,19 @@ Begin
 
 End;
 
+{==============================================================================}
+
 destructor TSensorObj.Destroy;
 Begin
      ElementName := '';
+     ReAllocMem(SensorkW,   0);
+     ReAllocMem(Sensorkvar, 0);
+
  Inherited Destroy;
 End;
 
+{==============================================================================}
 
-
-
-{--------------------------------------------------------------------------}
 Procedure TSensorObj.RecalcElementData;
 
 VAR
@@ -404,8 +493,13 @@ Begin
                // This value will be used to set the NodeRef array (see TakeSample)
                  Setbus(1, MeteredElement.GetBus(MeteredTerminal));
 
+                 ClearSensor;
+
                  ValidSensor := TRUE;
 
+                 AllocateSensorObjArrays;
+                 ZeroSensorArrays;
+                 RecalcVbase;
              End;
 
          End
@@ -416,7 +510,21 @@ Begin
          End;
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
+procedure TSensorObj.RecalcVbase;
+begin
+     case Fconn of
+         0: If Fnphases=1 then
+                 Vbase := kVBase * 1000.0
+            Else Vbase := kVBase * 1000.0 / sqrt3;
+
+         1: Vbase := kVBase * 1000.0;
+     end;
+end;
+
+{==============================================================================}
+
 Procedure TSensorObj.CalcYPrim;
 Begin
   // leave YPrims as nil and they will be ignored
@@ -424,47 +532,125 @@ Begin
   //  IF YPrim=nil THEN YPrim := TcMatrix.CreateMatrix(Yorder);
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Procedure TSensorObj.ResetIt;
 
 {What does it mean to reset a sensor?}
 Begin
 
-{     ClearSensorStream;}
+     ClearSensor;
 
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
+function TSensorObj.RotatePhases(const j: Integer): Integer;
+// For Delta connections or Line-Line voltages
+begin
+     Result := j + FDeltaDirection;
+
+     // make sure result is within limits
+     IF FnPhases > 2 Then  Begin
+         // Assumes 2 phase delta is open delta
+          If Result > Fnphases Then Result := 1;
+          If Result < 1        Then Result := Fnphases;
+     End
+     ELSE If Result < 1 Then Result := 3;    // For 2-phase delta, next phase will be 3rd phase
+
+end;
+
+{==============================================================================}
+
 Procedure TSensorObj.TakeSample;
+var
+  i: Integer;
 Begin
    If Not (ValidSensor and Enabled) Then Exit;
+
+   MeteredElement.GetCurrents(CalculatedCurrent);
+   ComputeVterminal;
+   case Fconn of
+       1: For i := 1 to Fnphases do
+           CalculatedVoltage^[i] := Csub(VTerminal^[i], VTerminal^[RotatePhases(i)]);
+   else
+      For i := 1 to Fnphases do CalculatedVoltage^[i] := VTerminal^[i];
+   end;
+
+   {NOTE: CalculatedVoltage is complex}
+
 End;
 
+{==============================================================================}
 
-
-{--------------------------------------------------------------------------}
 Procedure TSensorObj.GetCurrents(Curr: pComplexArray);  //Get present value of terminal Curr for reports
 VAR
    i:Integer;
 Begin
-
 {
-  Revised 12-7-99 to return Zero current instead of Sensored element current because
- it was messing up Newton iteration.
+  Return array of zero
 }
-
   For i := 1 to Fnconds Do Curr^[i] := CZERO;
-
 End;
 
-{--------------------------------------------------------------------------}
+{==============================================================================}
+
 Procedure TSensorObj.GetInjCurrents(Curr: pComplexArray);
 Var i:Integer;
 Begin
      FOR i := 1 to Fnconds DO Curr^[i] := cZero;
 End;
 
-{--------------------------------------------------------------------------}
+function TSensorObj.Get_WLSCurrentError: Double;
+{
+  Return the WLS Error for all values specified
+
+  Base primarily on Current mismatch in this version
+}
+
+Var
+   kVA :Double;
+   i   :Integer;
+begin
+
+    Result := 0.0;
+{Convert P and Q specification to Currents}
+    If Pspecified then  Begin    // compute currents assuming vbase
+       If Qspecified then  Begin
+         For i := 1 to FNPhases Do Begin
+           kVA := Cabs(Cmplx(SensorkW^[i], Sensorkvar^[i]));
+           SensorCurrent^[i] := kVA * 1000.0/Vbase;
+         End;
+       End Else Begin    // No Q just use P
+         For i := 1 to FNPhases Do Begin
+           SensorCurrent^[i] := SensorkW^[i] * 1000.0/Vbase;
+         End;
+       End;
+       Ispecified := TRUE;    // Overrides current specification
+    End;
+
+   If Ispecified then  Begin
+        For i := 1 to FnPhases do
+          Result := Result + SQR(CalculatedCurrent^[i].re) + SQR(CalculatedCurrent^[i].im) - SQR(SensorCurrent^[i]);
+   End;
+
+end;
+
+{==============================================================================}
+
+function TSensorObj.Get_WLSVoltageError: Double;
+var
+  i: Integer;
+begin
+    Result := 0.0;
+    If Vspecified then  Begin
+      For i := 1 to FnPhases do
+        Result := Result + SQR(CalculatedVoltage^[i].re) + SQR(CalculatedVoltage^[i].im) - SQR(SensorVoltage^[i]);
+   End;
+end;
+
+{==============================================================================}
+
 Procedure TSensorObj.DumpProperties(Var F:TextFile; Complete:Boolean);
 
 VAR
@@ -484,25 +670,71 @@ Begin
 
 End;
 
+{==============================================================================}
+
+procedure TSensorObj.ClearSensor;
+begin
+  Vspecified := FALSE;
+  Ispecified := FALSE;
+  Pspecified := FALSE;
+  Qspecified := FALSE;
+  ClearSpecified := FALSE;
+end;
+
+{==============================================================================}
+
+procedure TSensorObj.AllocateSensorObjArrays;
+begin
+  ReAllocMem(SensorkW,   Sizeof(SensorkW^[1])   * Fnphases);
+  ReAllocMem(Sensorkvar, Sizeof(Sensorkvar^[1]) * Fnphases);
+  AllocateSensorArrays;
+end;
+
+{==============================================================================}
+
+procedure TSensorObj.ZeroSensorArrays;
+var
+  i: Integer;
+begin
+  for i := 1 to FnPhases do
+  begin
+    SensorCurrent^[i] := 0.0;
+    SensorVoltage^[i] := 0.0;
+    SensorkW^[i]      := 0.0;
+    Sensorkvar^[i]    := 0.0;
+  end;
+end;
+
+{==============================================================================}
+
 procedure TSensorObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
      PropertyValue[1] := ''; //'element';
      PropertyValue[2] := '1'; //'terminal';
-     PropertyValue[3] := '[v]'; //'modes';
-     PropertyValue[4] := '7.2'; // matches default of most other quantities
-     PropertyValue[5] := '0.0';
-     PropertyValue[6] := '0.0';
-     PropertyValue[7] := '0.0';
-     PropertyValue[8] := '[1 2 3]';
+     PropertyValue[3] := '12.47'; //'kVBase';
+     PropertyValue[4] := 'No'; // Must be set to yes to clear before setting quantities
+     PropertyValue[5] := '[7.2, 7.2, 7.2]';
+     PropertyValue[6] := '[0.0, 0.0, 0.0]';  // currents
+     PropertyValue[7] := '[0.0, 0.0, 0.0]';  // P kW
+     PropertyValue[8] := '[0.0, 0.0, 0.0]';  // Q kvar
      PropertyValue[9] := 'wye';
      PropertyValue[10] := '1';
-     PropertyValue[11] := '';
+     PropertyValue[11] := '5';  // %Error
+     PropertyValue[12] := '';   // Action
+
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
 end;
 
+
+{==============================================================================}
+
+function TSensorObj.LimitToPlusMinusOne(const i: Integer): Integer;
+begin
+     If i>=0 then Result := 1 Else Result := -1;
+end;
 
 {--------------------------------------------------------------------------}
 
@@ -513,38 +745,32 @@ begin
 end;
 }
 
+{==============================================================================}
+
 procedure TSensorObj.Save;
 begin
 
 end;
 
-procedure TSensorObj.Set_SensedPhases(const Value: String);
 
-{Interpret which phases are being sensed}
+{==============================================================================}
 
-begin
-
-end;
-
-procedure TSensorObj.Set_SensorModes(const Value: String);
-
-{ Interpret which modes }
-
-begin
-
-end;
-
-procedure TSensorObj.Set_Conn(const Value: String);
+procedure TSensorObj.Set_Conn(const Value: Integer);
 {Interpret the Connection}
 begin
-
+    Fconn := Value;
+    RecalcVbase;
 end;
+
+{==============================================================================}
 
 procedure TSensorObj.Set_Action(const Value: String);
 {Interpret Action Property}
 begin
 
 end;
+
+{==============================================================================}
 
 initialization
   //WriteDLLDebugFile('Sensor');

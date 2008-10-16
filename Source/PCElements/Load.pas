@@ -25,6 +25,7 @@ unit Load;
     2-18-03 Changed Rneut default to -1
             Created a Y_Series with small conductances on the diagonal so that calcV doesn't fail
     9-23-08 Added CVR Factors
+    10-14-08 Added kWh and Cfactor. Modified behavior of AllocationFactor to simplify State Estimation
 }
 
 interface
@@ -54,8 +55,13 @@ TYPE
    TLoadObj = class(TPCElement)
       Private
         ExemptFromLDCurve       :Boolean;
-        FAllocationFactor       :Double;
+        FAllocationFactor       :Double;   // For all types of allocation
+        FkVAAllocationFactor    :Double;   // for connected kVA specification
         FConnectedkVA           :Double;
+        FkWh                    :Double;
+        FkWhDays                :Double;
+        FCFactor                :Double;   // For kWh billed spec
+        FAvgkW                  :Double;
         Fixed                   :Boolean;   // IF Fixed, always at base value
         FpuMean                 :Double;
         FpuStdDev               :Double;
@@ -85,7 +91,7 @@ TYPE
         Yeq95                   :Complex;
         Yneut                   :Complex;
         YPrimOpenCond           :TCmatrix;  // To handle cases where one conductor of load is open
-        YQFixed                 :Double;  // Fixed value of y FOR type 7 load
+        YQFixed                 :Double;   // Fixed value of y FOR type 7 load
 
         FUNCTION  AllTerminalsClosed:Boolean;
         PROCEDURE CalcDailyMult(Hour:Integer; Sec:double);
@@ -108,9 +114,14 @@ TYPE
 
         FUNCTION  Get_Unserved:Boolean;
         FUNCTION  Get_ExceedsNormal:Boolean;
-        PROCEDURE Set_AllocationFactor(const Value: Double);
+        PROCEDURE Set_kVAAllocationFactor(const Value: Double);
         PROCEDURE Set_ConnectedkVA(const Value: Double);
         PROCEDURE ComputeAllocatedLoad;
+        {Set kWh properties ...}
+        procedure Set_CFactor(const Value: Double);
+        procedure Set_kWh(const Value: Double);
+        procedure Set_kWhDays(const Value: Double);
+        procedure Set_AllocationFactor(const Value: Double);
 
 
       Protected
@@ -173,8 +184,15 @@ TYPE
         Property Unserved     :Boolean Read Get_Unserved;
         Property ExceedsNormal:Boolean Read Get_ExceedsNormal;
 
-        Property AllocationFactor :Double Read FAllocationFactor Write Set_AllocationFactor;
-        Property ConnectedkVA     :Double Read FConnectedkVA     Write Set_ConnectedkVA;
+        {AllocationFactor adjusts either connected kVA allocation factor or kWh CFactor}
+        Property AllocationFactor    :Double Read FAllocationFactor    Write Set_AllocationFactor;
+
+        {Allocate load from connected kva or kWh billing}
+        Property kVAAllocationFactor :Double Read FkVAAllocationFactor Write Set_kVAAllocationFactor;
+        Property ConnectedkVA        :Double Read FConnectedkVA        Write Set_ConnectedkVA;
+        Property kWh                 :Double Read FkWh                 Write Set_kWh;
+        Property kWhDays             :Double Read FkWhDays             Write Set_kWhDays;
+        Property CFactor             :Double Read FCFactor             Write Set_CFactor;
    End;
 
 Var
@@ -186,7 +204,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSGlobals, Dynamics, Sysutils, Command, Math, MathUtil, Utilities;
 
-Const  NumPropsThisClass = 27;
+Const  NumPropsThisClass = 30;
 
 Var  CDOUBLEONE:Complex;
 
@@ -247,12 +265,16 @@ Begin
      PropertyName[19] := 'Vminnorm';  // Min pu voltage normal load
      PropertyName[20] := 'Vminemerg';  // Min pu voltage emergency rating
      PropertyName[21] := 'xfkVA';  // Service transformer rated kVA
-     PropertyName[22] := 'allocationfactor';  // allocation factor
+     PropertyName[22] := 'allocationfactor';  // allocation factor  for xfkVA
      PropertyName[23] := 'kVA';  // specify load in kVA and PF
      PropertyName[24] := '%mean';  // per cent default mean
      PropertyName[25] := '%stddev';  // per cent default standard deviation
      PropertyName[26] := 'CVRwatts';  // Percent watts reduction per 1% reduction in voltage from nominal
      PropertyName[27] := 'CVRvars';  // Percent vars reduction per 1% reduction in voltage from nominal
+     PropertyName[28] := 'kwh';   // kwh billing
+     PropertyName[29] := 'kwhdays';   // kwh billing period (24-hr days)
+     PropertyName[30] := 'Cfactor';   // multiplier from kWh avg to peak kW
+
 
 
      // define Property help values
@@ -319,14 +341,16 @@ Begin
                          'overrides the system specification. This allows you to have different criteria for different loads. '+
                          'Set to zero to revert to the default system value.';
      PropertyHelp[21] := 'Default = 0.0.  Rated kVA of service transformer for allocating loads based on connected kVA ' +
-                         'at a bus. Side effect:  kW, PF, and kvar are modified.';
+                         'at a bus. Side effect:  kW, PF, and kvar are modified. See help on kVA.';
      PropertyHelp[22] := 'Default = 0.5.  Allocation factor for allocating loads based on connected kVA ' +
                          'at a bus. Side effect:  kW, PF, and kvar are modified by multiplying this factor times the XFKVA (if > 0).';
      PropertyHelp[23] := 'Specify base Load in kVA (and power factor)'+CRLF+CRLF+
                           'Legal ways to define base load:'+CRLF+
                           'kW, PF'+CRLF+
                           'kW, kvar'+CRLF+
-                          'kVA, PF';
+                          'kVA, PF' +CRLF+
+                          'XFKVA * Allocationfactor, PF' +CRLF+
+                          'kWh/(kWhdays*24) * Cfactor, PF';
      PropertyHelp[24] := 'Percent mean value for load to use for monte carlo studies if no loadshape is assigned to this load. Default is 50.';
      PropertyHelp[25] := 'Percent Std deviation value for load to use for monte carlo studies if no loadshape is assigned to this load. Default is 10.';
      PropertyHelp[26] := 'Percent reduction in active power (watts) per 1% reduction in voltage from 100% rated. Default=1. ' +CRLF +
@@ -335,6 +359,9 @@ Begin
      PropertyHelp[27] := 'Percent reduction in reactive power (vars) per 1% reduction in voltage from 100% rated. Default=2. ' +CRLF +
                          ' Typical values range from 2 to 3. Applies to Model=4 only.' + CRLF +
                          ' Intended to represent conservation voltage reduction or voltage optimization measures.';
+     PropertyHelp[28] := 'kWh billed for this period. Default is 0. See help on kVA and Cfactor and kWhDays.';
+     PropertyHelp[29] := 'Length of kWh billing period in days (24 hr days). Default is 30. Average demand is computed using this value.';   // kwh billing period (24-hr days)
+     PropertyHelp[30] := 'Factor relating average kW to peak kW. Default is 4.0. See kWh and kWhdays. See kVA.';   // multiplier from kWh avg to peak kW
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -463,12 +490,15 @@ Begin
            19: VminNormal    := Parser.DblValue;
            20: VminEmerg     := Parser.DblValue;
            21: ConnectedkVA  := Parser.DblValue;
-           22: AllocationFactor := Parser.DblValue;
+           22: kVAAllocationFactor := Parser.DblValue;
            23: kVABase       := Parser.DblValue;
            24: FpuMean       := Parser.DblValue/100.0;
            25: FpuStdDev     := Parser.DblValue/100.0;
            26: FCVRwattFactor:= Parser.DblValue;
            27: FCVRvarFactor := Parser.DblValue;
+           28: kWh          := Parser.DblValue;
+           29: kWhdays      := Parser.DblValue;
+           30: Cfactor      := Parser.DblValue;
          ELSE
            // Inherited edits
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
@@ -499,8 +529,10 @@ Begin
             9: DutyShapeObj := LoadShapeClass.Find(DutyShape);
             10: GrowthShapeObj := GrowthShapeClass.Find(GrowthShape);
 
-            12: LoadSpecType := 1;
-            23: LoadSpecType := 2;
+            12: LoadSpecType := 1;  // kW, kvar
+ {*** see set_xfkva, etc           21, 22: LoadSpectype := 3;  // XFKVA*AllocationFactor, PF  }
+            23: LoadSpecType := 2;  // kVA, PF
+ {*** see set_kwh, etc           28..30: LoadSpecType := 4;  // kWh, days, cfactor, PF }
          End;
 
          ParamName := Parser.NextParam;
@@ -562,7 +594,7 @@ Begin
        FLoadModel     := OtherLoad.FLoadModel;
        Fixed          := OtherLoad.Fixed;
        ExemptFromLDCurve := OtherLoad.ExemptFromLDCurve;
-       FAllocationFactor := OtherLoad.FAllocationFactor;
+       FkVAAllocationFactor := OtherLoad.FkVAAllocationFactor;
        FConnectedkVA     := OtherLoad.FConnectedkVA;
        FCVRwattFactor    := OtherLoad.FCVRwattFactor;
        FCVRvarFactor     := OtherLoad.FCVRvarFactor;
@@ -637,14 +669,18 @@ Begin
      FCVRvarFactor  := 2.0;
 
      LastGrowthFactor  :=1.0;
-     FAllocationFactor := 0.5;
+     FkVAAllocationFactor := 0.5;
+     FAllocationFactor := FkVAAllocationFactor;
      HasBeenAllocated  := FALSE;
 
      LoadSolutionCount     := -1;  // for keeping track of the present solution in Injcurrent calcs
      OpenLoadSolutionCount := -1;
      YPrimOpenCond         := nil;
 
-     FConnectedkVA  := 0.0;
+     FConnectedkVA  := 0.0;  // Loadspectype=3
+     FkWh           := 0.0;  // Loadspectype=4
+     FCfactor       := 4.0;
+     FkWhDays       := 30.0;
      VminNormal     := 0.0;    // indicates for program to use Circuit quantities
      VminEmerg      := 0.0;
      Basefrequency  := 60.0;
@@ -832,14 +868,21 @@ Begin
           kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
           IF PFNominal < 0.0 THEN kvarBase := -kvarBase;
         End;
-      1:Begin  {kW, kvar}
-          {Don't need to do anything}
+      1:Begin  {kW, kvar -- need to set PFNominal}
+          kVABase := Sqrt(Sqr(kWbase) + sqr(kvarBase));
+          If kVABase>0.0 then Begin
+             PFNominal := kWBase/kVABase;
+             {If kW and kvar are different signs, PF is negative}
+             If kvarbase<>0.0 then PFNominal := PFNominal * Sign(kWbase*kvarbase);
+          End;
+          {Else leave it as it is}
         End;
       2:Begin  {kVA, PF}
           kWbase   := kVABase * Abs(PFNominal);
           kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
           IF PFNominal < 0.0 THEN kvarBase := -kvarBase;
         End;
+{ done automagically in Property set...      3, 4: ComputeAllocatedLoad;    }
     Else
     End;
 
@@ -1577,7 +1620,7 @@ Begin
                4: Writeln(F,'~ ',PropertyName^[i],'=', kWBase:8:1);
                5: Writeln(F,'~ ',PropertyName^[i],'=', PFNominal:5:3);
               12: Writeln(F,'~ ',PropertyName^[i],'=', kvarBase:8:1);
-              22: Writeln(F,'~ ',PropertyName^[i],'=', FAllocationFactor:5:3);
+              22: Writeln(F,'~ ',PropertyName^[i],'=', FkVAAllocationFactor:5:3);
               23: Writeln(F,'~ ',PropertyName^[i],'=', kVABase:8:1);
           ELSE
                   Writeln(F,'~ ',PropertyName^[i],'=',PropertyValue[i]);
@@ -1587,9 +1630,32 @@ Begin
 End;
 
 
-PROCEDURE TLoadObj.Set_AllocationFactor(const Value: Double);
+PROCEDURE TLoadObj.Set_kVAAllocationFactor(const Value: Double);
+begin
+  FkVAAllocationFactor := Value;
+  FAllocationFactor := Value;
+  LoadSpecType := 3;
+  ComputeAllocatedLoad;
+  HasBeenAllocated:= True;
+end;
+
+procedure TLoadObj.Set_AllocationFactor(const Value: Double);
+{This procedure is used by the energymeter allocateload function to adjust load allocation factors}
 begin
   FAllocationFactor := Value;
+  case LoadSpecType of
+       3: FkVAAllocationFactor := Value;
+       4: FCFactor             := Value;
+  end;
+  ComputeAllocatedLoad;  // update kWbase
+  HasBeenAllocated:= True;
+end;
+
+procedure TLoadObj.Set_CFactor(const Value: Double);
+begin
+  FCFactor := Value;
+  FAllocationFactor := Value;
+  LoadSpecType := 4;
   ComputeAllocatedLoad;
   HasBeenAllocated:= True;
 end;
@@ -1597,18 +1663,46 @@ end;
 PROCEDURE TLoadObj.Set_ConnectedkVA(const Value: Double);
 begin
   FConnectedkVA := Value;
+  LoadSpecType := 3;
+  ComputeAllocatedLoad;
+end;
+
+procedure TLoadObj.Set_kWh(const Value: Double);
+begin
+  FkWh := Value;
+  LoadSpecType := 4;
+  ComputeAllocatedLoad;
+end;
+
+procedure TLoadObj.Set_kWhDays(const Value: Double);
+begin
+  FkWhDays := Value;
+  LoadSpecType := 4;
   ComputeAllocatedLoad;
 end;
 
 PROCEDURE TLoadObj.ComputeAllocatedLoad;
 begin
-  IF FConnectedkVA > 0.0
-  THEN  Begin
-      kWBase := FConnectedkVA * FallocationFactor * Abs(PFNominal);
-      kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
-      IF   PFNominal < 0.0
-      THEN kvarBase := -kvarBase;
-  End;
+{Fixed loads defined by kW, kvar or kW, pf are ignored}
+
+case LoadSpecType of
+
+     3: IF FConnectedkVA > 0.0 THEN  Begin
+            kWBase := FConnectedkVA * FkVAAllocationFactor * Abs(PFNominal);
+            kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
+            IF   PFNominal < 0.0
+            THEN kvarBase := -kvarBase;
+        End;
+
+     4: Begin
+            FavgkW := FkWh / (FkWhDays * 24);
+            kWBase := FavgkW * FCfactor;
+            kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
+            IF   PFNominal < 0.0
+            THEN kvarBase := -kvarBase;
+        End;
+end;
+  
 end;
 
 
@@ -1717,8 +1811,9 @@ begin
          4:  Result := Format('%-g',   [kwBase]);
          5:  Result := Format('%-.3g', [PFNominal]);
          12: Result := Format('%-.3g', [kvarbase]);
-         22: Result := Format('%-.3g', [FAllocationFactor]);
+         22: Result := Format('%-.3g', [FkVAAllocationFactor]);
          23: Result := Format('%-g',   [kVABase]);
+         30: Result := Format('%-.3g', [FCFactor]);
      ELSE
          Result := Inherited GetPropertyValue(index);
      End;

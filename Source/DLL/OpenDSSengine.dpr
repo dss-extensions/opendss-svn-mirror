@@ -38,9 +38,9 @@ uses
   Feeder in '..\Common\Feeder.pas',
   Frm_RPNcalc in '..\Parser\Frm_RPNcalc.pas' {RPNForm},
   FrmDoDSSCommand in '..\Forms\FrmDoDSSCommand.pas' {DoDSSCommandForm},
-  Fuse in '..\PDElements\fuse.pas',
+  fuse in '..\PDElements\fuse.pas',
   GenDispatcher in '..\Controls\GenDispatcher.pas',
-  Generator in '..\PCElements\generator.pas',
+  generator in '..\PCElements\generator.pas',
   GenUserModel in '..\PCElements\GenUserModel.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
@@ -54,7 +54,7 @@ uses
   ListForm in '..\Forms\ListForm.pas' {ListBoxForm},
   Load in '..\PCElements\Load.pas',
   LoadShape in '..\General\LoadShape.pas',
-  Mathutil in '..\Shared\mathutil.pas',
+  mathutil in '..\Shared\mathutil.pas',
   MessageForm in '..\Forms\MessageForm.pas' {MessageForm1},
   MeterClass in '..\Meters\MeterClass.pas',
   MeterElement in '..\Meters\MeterElement.pas',
@@ -109,7 +109,8 @@ uses
   ImplSettings in 'ImplSettings.pas' {Settings: CoClass},
   ImplSolution in 'ImplSolution.pas' {Solution: CoClass},
   ImplText in 'ImplText.pas' {Text: CoClass},
-  DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas';
+  DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
+  OpenDSSEngine_TLB in 'OpenDSSEngine_TLB.pas';
 
 exports
   DllGetClassObject,

@@ -10,6 +10,7 @@ INTERFACE
 Procedure ExportVoltages(FileNm:String);
 Procedure ExportSeqVoltages(FileNm:String);
 Procedure ExportCurrents(FileNm:String);
+Procedure ExportEstimation(Filenm:String);
 Procedure ExportSeqCurrents(FileNm:String);
 Procedure ExportPowers(FileNm:String; opt :Integer);
 Procedure ExportFaultStudy(FileNm:String);
@@ -25,7 +26,7 @@ IMPLEMENTATION
 
 Uses uComplex,  Arraydef, sysutils,   Circuit, DSSGlobals,
      uCMatrix,  solution, CktElement, Utilities, Bus, MathUtil,
-     PDElement, PCElement, Generator, EnergyMeter, Load, RegControl,
+     PDElement, PCElement, Generator, EnergyMeter, Sensor, Load, RegControl,
      ParserDel, Math, Ymatrix;
 
 
@@ -759,6 +760,101 @@ Begin
 End;
 
 
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Procedure ExportEstimation(Filenm:String);
+
+Var
+   F  :TextFile;
+   i  :Integer;
+   pEnergyMeterObj  :TEnergyMeterObj;
+   pSensorObj       :TSensorObj;
+   TempX  :Array[1..3] of Double; // temp number buffer
+
+   Procedure ZeroTempXArray;
+   var ii:Integer;
+   Begin  For ii := 1 to 3 do TempX[ii] := 0.0; End;
+
+
+Begin
+
+    TRY
+          AssignFile(F,  FileNm);
+          Rewrite(F);   // clears file
+
+          {Do the EnergyMeters first}
+          Writeln(F, '"Energy Meters" ');
+          Writeln(F, '"energyMeter", "I1 Target", "I2 Target", "I3 Target", "I1 Calc", "I2 Calc", "I3 Calc", "I1 %Err", "I2 %Err", "I3 %Err", "I1 Factor", "I2 Factor", "I3 Factor"');
+
+           pEnergyMeterObj := ActiveCircuit.energyMeters.First;
+           WHILE pEnergyMeterObj <> NIL Do  Begin
+              IF pEnergyMeterObj.Enabled THEN   BEGIN
+                  Write(F, Format('"Energymeter.%s",  ',[pEnergyMeterObj.Name ]));
+                  {Sensor currents (Target)}
+                  ZeroTempXArray;
+                  For i := 1 to pEnergyMeterObj.Nphases do TempX[i] := pEnergyMeterObj.SensorCurrent^[i];
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {Calculated Currents}
+                  ZeroTempXArray;
+                  For i := 1 to pEnergyMeterObj.Nphases do TempX[i] := Cabs(pEnergyMeterObj.CalculatedCurrent^[i]);
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {Percent Error}
+                  For i := 1 to pEnergyMeterObj.Nphases do TempX[i] := (1.0 - TempX[i]/Max(0.001, pEnergyMeterObj.SensorCurrent^[i])) * 100.0;
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {Allocation Factors}
+                  ZeroTempXArray;
+                  For i := 1 to pEnergyMeterObj.Nphases do TempX[i] := pEnergyMeterObj.PhsAllocationFactor^[i];
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+
+                  Writeln(F);
+              END;
+              pEnergyMeterObj := ActiveCircuit.EnergyMeters.Next;
+           End;
+
+
+          {Do the Sensors Next}
+          Writeln(F, '"Sensors" ');
+          Write(F, '"Sensor", "I1 Target", "I2 Target", "I3 Target", "I1 Calc", "I2 Calc", "I3 Calc", "I1 %Err", "I2 %Err", "I3 %Err", "I1 Factor", "I2 Factor", "I3 Factor"');
+          Writeln(F, ' "V1 Target", "V2 Target", "V3 Target", "V1 Calc", "V2 Calc", "V3 Calc", "V1 %Err", "V2 %Err", "V3 %Err", "WLS Voltage Err", "WLS Current Err"');
+
+           pSensorObj := ActiveCircuit.Sensors.First;
+           WHILE pSensorObj <> NIL Do  Begin
+              IF pSensorObj.Enabled THEN   BEGIN
+                  Write(F, Format('"Sensor.%s",  ',[pSensorObj.Name ]));
+                  {Sensor currents (Target)}
+                  ZeroTempXArray;
+                  For i := 1 to pSensorObj.Nphases do TempX[i] := pSensorObj.SensorVoltage^[i];
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {Calculated Currents}
+                  ZeroTempXArray;
+                  For i := 1 to pSensorObj.Nphases do TempX[i] := Cabs(pSensorObj.CalculatedVoltage^[i]);
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {Percent Error}
+                  For i := 1 to pSensorObj.Nphases do TempX[i] := (1.0 - TempX[i]/Max(0.001, pSensorObj.SensorVoltage^[i])) * 100.0;
+                  For i := 1 to 3 do Write(F, Format(' %.6g,',[TempX[i]]));
+                  {WLS Errors}
+                  ZeroTempXArray;
+                  Write(F, Format(' %.6g, %.6g',[pSensorObj.WLSVoltageError , pSensorObj.WLSCurrentError]));
+
+                  Writeln(F);
+              END;
+              pSensorObj := ActiveCircuit.Sensors.Next;
+           End;
+
+
+      FINALLY
+        AppendGlobalResult(FileNm);
+        CloseFile(F);
+
+        If AutoShowExport then  FireOffEditor(FileNm);
+        
+      END;
+
+
+
+
+End;
+
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure WriteMultipleMeterFiles;
@@ -1093,7 +1189,7 @@ Begin
         BEGIN
             Write(F,Name);
             Write(F, Separator, ConnectedkVA:8:1);
-            Write(F, Separator, AllocationFactor:5:3);
+            Write(F, Separator, kVAAllocationFactor:5:3);
             Write(F, Separator, NPhases:0);
             Write(F, Separator, kWBase:8:1);
             Write(F, Separator, kvarBase:8:1);
