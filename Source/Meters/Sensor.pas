@@ -113,7 +113,7 @@ implementation
 
 USES
 
-    ParserDel, DSSGlobals, Circuit, CktElement,Transformer, PCElement,
+    ParserDel, DSSGlobals, Circuit, CktElement,Transformer, PCElement, PDElement,
     Sysutils, ucmatrix, showresults, mathUtil, PointerList, TOPExport, Dynamics;
 
 CONST
@@ -159,10 +159,10 @@ Begin
      PropertyName[2] := 'terminal';
      PropertyName[3] := 'kvbase';
      PropertyName[4] := 'clear';
-     PropertyName[5] := 'v';
-     PropertyName[6] := 'i';
-     PropertyName[7] := 'p';
-     PropertyName[8] := 'q';
+     PropertyName[5] := 'kVs';
+     PropertyName[6] := 'currents';
+     PropertyName[7] := 'kWs';
+     PropertyName[8] := 'kvars';
      PropertyName[9] := 'conn';  //  Sensor connection
      PropertyName[10] := 'Deltadirection';  //  +/- 1
      PropertyName[11] := '%Error';  //  %Error of sensor
@@ -215,6 +215,7 @@ VAR
    ParamPointer:Integer;
    ParamName:String;
    Param:String;
+   DoRecalcElementData :Boolean;
 
 Begin
 
@@ -223,6 +224,7 @@ Begin
   ActiveCircuit.ActiveCktElement := ActiveSensorObj;
 
   Result := 0;
+  DoRecalcElementData := FALSE;
 
   WITH ActiveSensorObj DO Begin
 
@@ -255,18 +257,26 @@ Begin
          End;
 
          case ParamPointer of
+              1: DoRecalcElementData := TRUE;
+              2: DoRecalcElementData := TRUE;
+              3: DoRecalcElementData := TRUE;
+
+              {Do not recalc element data for setting of sensor quantities}
               4: If ClearSpecified then ClearSensor;
               5: Vspecified := TRUE;
               6: Ispecified := TRUE;
               7: Pspecified := TRUE;
               8: Qspecified := TRUE;
+
+              9: DoRecalcElementData := TRUE;
+             10: DoRecalcElementData := TRUE;
          end;
 
          ParamName := Parser.NextParam;
          Param := Parser.StrValue;
      End;
 
-     RecalcElementData;
+     If DoRecalcElementData Then RecalcElementData;
   End;
 
 End;
@@ -352,7 +362,11 @@ Begin
 
    FOR i := 1 to ActiveCircuit.Sensors.ListSize DO Begin
        ThisSensor := ActiveCircuit.Sensors.Get(i);
-       With ThisSensor Do If MeteredElement <> Nil Then MeteredElement.HasSensorObj := TRUE;
+       With ThisSensor Do If MeteredElement <> Nil Then Begin
+          MeteredElement.HasSensorObj := TRUE;
+          If MeteredElement is TPCElement then  TPCElement(MeteredElement).SensorObj := ThisSensor
+          Else TPDElement(MeteredElement).SensorObj := ThisSensor;
+       End;
    End;   {FOR}
 
 end;

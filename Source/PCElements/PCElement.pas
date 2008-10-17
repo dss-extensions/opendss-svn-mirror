@@ -68,9 +68,9 @@ Constructor TPCElement.Create(ParClass:TDSSClass);
 Begin
     Inherited Create(ParClass);
     Spectrum := 'default';
-    SpectrumObj := Nil;  // have to allocate later because not guaranteed there will be one now.
-
-    InjCurrent := Nil;
+    SpectrumObj := NIL;  // have to allocate later because not guaranteed there will be one now.
+    SensorObj   := NIL;
+    InjCurrent  := NIL;
     FIterminalUpdated := FALSE;
     
     DSSObjType := PC_ELEMENT;

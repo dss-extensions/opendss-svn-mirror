@@ -1043,7 +1043,10 @@ Begin
      pLoad := Loads.First;
      While pLoad <> Nil Do
        Begin
-         Writeln(F, 'Load.'+pLoad.Name+'.AllocationFactor=', Format('%-.5g',[pLoad.kVAAllocationFactor]));
+         Case pLoad.LoadSpecType of
+            3: Writeln(F, 'Load.'+pLoad.Name+'.AllocationFactor=', Format('%-.5g',[pLoad.kVAAllocationFactor]));
+            4: Writeln(F, 'Load.'+pLoad.Name+'.CFactor=', Format('%-.5g',[pLoad.CFactor]));
+         End;
          pLoad := Loads.Next;
        End; {While}
     End; {With}

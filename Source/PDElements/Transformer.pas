@@ -658,11 +658,9 @@ Begin
    IF OtherTransf<>Nil THEN 
    WITH ActiveTransfObj Do
      Begin
-      Nphases := OtherTransf.Fnphases;
-       IF NumWindings <> OtherTransf.NumWindings THEN  Begin
-           SetNumWindings(OtherTransf.NumWindings);
-           NConds := Fnphases + 1; // forces reallocation of terminals and conductors
-       End;
+       Nphases := OtherTransf.Fnphases;
+       SetNumWindings(OtherTransf.NumWindings);
+       NConds := Fnphases + 1; // forces reallocation of terminals and conductors
 
        Yorder := fNConds*fNTerms;
        YPrimInvalid := True;
@@ -693,6 +691,7 @@ Begin
        Y_Term.CopyFrom(OtherTransf.Y_Term);
        Y_1Volt_NL.CopyFrom(OtherTransf.Y_1Volt_NL);
        Y_Term_NL.CopyFrom(OtherTransf.Y_Term_NL);
+
        ThermalTimeConst := OtherTransf.ThermalTimeConst;
        n_thermal        := OtherTransf.n_thermal;
        m_thermal        := OtherTransf.m_thermal;

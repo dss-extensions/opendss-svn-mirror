@@ -212,7 +212,7 @@ Var  CDOUBLEONE:Complex;
 constructor TLoad.Create;  // Creates superstructure FOR all Line objects
 Begin
      Inherited Create;
-     Class_Name := 'Load';
+     Class_Name   := 'Load';
      DSSClassType := DSSClassType + LOAD_ELEMENT;
 
      ActiveElement := 0;
@@ -287,9 +287,11 @@ Begin
      PropertyHelp[4] := 'Total base kW for the load.  Normally, you would enter the maximum kW for the load for the first year '+
                         'and allow it to be adjusted by the load shapes, growth shapes, and global load multiplier.'+CRLF+CRLF+
                         'Legal ways to define base load:'+CRLF+
-                        'kW, PF'+CRLF+
-                        'kW, kvar'+CRLF+
-                        'kVA, PF';
+                          'kW, PF'+CRLF+
+                          'kW, kvar'+CRLF+
+                          'kVA, PF' +CRLF+
+                          'XFKVA * Allocationfactor, PF' +CRLF+
+                          'kWh/(kWhdays*24) * Cfactor, PF';
      PropertyHelp[5] := 'Load power factor.  Enter negative for leading powerfactor (when kW and kvar have opposite signs.)';
      PropertyHelp[6] := 'Integer code for the model to use for load variation with voltage. '+
                         'Valid values are:' +CRLF+CRLF+
@@ -1664,6 +1666,7 @@ PROCEDURE TLoadObj.Set_ConnectedkVA(const Value: Double);
 begin
   FConnectedkVA := Value;
   LoadSpecType := 3;
+  FAllocationFactor := FkVAAllocationFactor;
   ComputeAllocatedLoad;
 end;
 
@@ -1671,6 +1674,7 @@ procedure TLoadObj.Set_kWh(const Value: Double);
 begin
   FkWh := Value;
   LoadSpecType := 4;
+  FAllocationFactor := FCFactor;
   ComputeAllocatedLoad;
 end;
 

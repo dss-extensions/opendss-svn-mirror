@@ -2415,7 +2415,7 @@ FUNCTION DoAllocateLoadsCmd: Integer;
 VAR
    pMeter :TEnergyMeterObj;
    pSensor:TSensorObj;
-   iCount :Integer;
+   iterCount :Integer;
 
 begin
     Result := 0;
@@ -2425,8 +2425,8 @@ begin
          Solution.Mode := SNAPSHOT;
          Solution.Solve;  {Make guess based on present allocationfactors}
 
-         {Allocation loop -- make two iterations}
-         FOR iCount := 1 to 2 Do Begin
+         {Allocation loop -- make MaxAllocationIterations iterations}
+         FOR iterCount := 1 to MaxAllocationIterations Do Begin
 
            {Do EnergyMeters}
            pMeter := EnergyMeters.First;

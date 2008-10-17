@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 71;
+        NumExecOptions = 72;
 
 VAR
          ExecOption,
@@ -45,7 +45,7 @@ Begin
      ExecOption[14] := 'circuit';
      ExecOption[15] := 'editor';
      ExecOption[16] := 'tolerance';
-     ExecOption[17] := 'maxiter';
+     ExecOption[17] := 'maxiterations';
      ExecOption[18] := 'h';
      ExecOption[19] := 'loadmodel';
      ExecOption[20] := 'loadmult';
@@ -100,6 +100,7 @@ Begin
      ExecOption[69] := 'voltexceptionreport';
      ExecOption[70] := 'Cfactors';
      ExecOption[71] := 'showexport';
+     ExecOption[72] := 'Numallociterations';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -291,6 +292,7 @@ Begin
      OptionHelp[69] := '{YES/TRUE | NO/FALSE} Default = FALSE. For yearly solution mode, sets voltage exception reporting on/off. DemandInterval must be set to true for this to have effect.';
      OptionHelp[70] := 'Sets the CFactors for for all loads in the active circuit to the value given.';
      OptionHelp[71] := '{YES/TRUE | NO/FALSE} Default = FALSE. If YES/TRUE will automatically show the results of an Export Command after it is written.';
+     OptionHelp[72] := 'Default is 2. Maximum number of iterations for load allocations for each time the AllocateLoads or Estimate command is given.';
 
 End;
 //----------------------------------------------------------------------------
@@ -466,6 +468,7 @@ Begin
            69: EnergyMeterClass.Do_VoltageExceptionReport := InterpretYesNo(Param);
            70: DoSetCFactors(Parser.DblValue);
            71: AutoShowExport := InterpretYesNo(Param);
+           72: MaxAllocationIterations := Parser.IntValue;
          ELSE
            // Ignore excess parameters
          End;
@@ -596,6 +599,11 @@ Begin
            65: AppendGlobalResult(Format('%d' ,[ActiveCircuit.NodeMarkerWidth]));
            66: If ActiveCircuit.LogEvents Then  AppendGlobalResult('Yes') else AppendGlobalResult('No');
            67: If DSSExecutive.RecorderON Then  AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           68: If EnergyMeterClass.Do_OverloadReport Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           69: If EnergyMeterClass.Do_VoltageExceptionReport Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           70: AppendGlobalResult('Get function not applicable.');
+           71: If AutoShowExport Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           72: AppendGlobalResult(Format('%d' ,[MaxAllocationIterations])) ;
 
          ELSE
            // Ignore excess parameters

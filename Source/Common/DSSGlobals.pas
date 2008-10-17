@@ -115,6 +115,7 @@ VAR
    NumCircuits     :Integer;
    MaxCircuits     :Integer;
    MaxBusLimit     :Integer; // Set in Validation
+   MaxAllocationIterations :Integer;
    Circuits        :TPointerList;
    SolutionClass   :TDSSClass;
    EnergyMeterClass:TEnergyMeter;
@@ -768,6 +769,7 @@ initialization
    LastCommandWasCompile := FALSE;
    LastErrorMessage      := '';
    MaxCircuits           := 1;  //  This version only allows one circuit at a time
+   MaxAllocationIterations := 2;
    SolutionAbort         := FALSE;
    AutoShowExport        := FALSE;
 

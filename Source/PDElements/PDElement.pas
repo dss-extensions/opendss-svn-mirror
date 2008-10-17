@@ -57,8 +57,8 @@ Begin
 
     IsShunt := False;
     FromTerminal := 1;
-
-    DSSObjType := PD_ELEMENT;
+    SensorObj    := NIL;
+    DSSObjType   := PD_ELEMENT;
 End;
 
 destructor TPDElement.Destroy;

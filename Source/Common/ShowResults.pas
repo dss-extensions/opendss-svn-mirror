@@ -1958,12 +1958,19 @@ Begin
                   If IsParallel Then Write(F,'(PARALLEL:'+Tcktelement(LoopLineObj).Name+')');
                   If IsLoopedHere Then Write(F,'(LOOP:'+Tcktelement(LoopLineObj).ParentClass.Name+'.'+Tcktelement(LoopLineObj).Name+')');
                  End;
+                 If Assigned(PDElem.SensorObj) then
+                      Write(F, Format(' (Sensor: %s.%s) ', [PDElem.SensorObj.ParentClass.Name, PDElem.SensorObj.Name]))
+                 Else Write(F, ' (Sensor: NIL)');
                  Writeln(F);
                  LoadElem := pMtr.Branchlist.FirstObject;
                  While LoadElem <> Nil Do
                    Begin
                        For i := 1 to pMtr.Branchlist.Level+1 Do Write(F, TABCHAR);
-                       Writeln(F, LoadElem.ParentClass.Name,'.',LoadElem.Name);
+                       Write(F, LoadElem.ParentClass.Name,'.',LoadElem.Name);
+                       If Assigned(LoadElem.SensorObj) then
+                           Write(F, Format(' (Sensor: %s.%s) ', [LoadElem.SensorObj.ParentClass.Name, LoadElem.SensorObj.Name]))
+                       Else Write(F, ' (Sensor: NIL)');
+                       Writeln(F);
                        LoadElem := pMtr.BranchList.NextObject
                    End;
                  PDElem := pMtr.BranchList.GoForward;

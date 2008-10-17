@@ -731,8 +731,8 @@ Begin
       SystemMeter.TakeSample;
 
       If FSaveDemandInterval Then Begin  {Write Totals Demand interval file}
-        With ActiveCircuit.Solution  Do Write(FDI_Totals, Format('%-.6g, ',[(Hour + dynavars.t/3600.0)]));
-        For i := 1 to NumEMRegisters Do Write(FDI_Totals, Format('%-.6g, ',[DI_RegisterTotals[i]]));
+        With ActiveCircuit.Solution  Do Write(FDI_Totals, Format('%-.6g ',[(Hour + dynavars.t/3600.0)]));
+        For i := 1 to NumEMRegisters Do Write(FDI_Totals, Format(', %-.6g',[DI_RegisterTotals[i]]));
         Writeln(FDI_Totals);
         ClearDI_Totals;
         if OverLoadFileIsOpen then WriteOverloadReport;
@@ -1432,8 +1432,8 @@ Begin
                                 With TestElement Do Begin
                                     Terminals^[j].Checked := TRUE;
                                     FromTerminal := j;
-                                    Checked := TRUE;
-                                    IsIsolated := FALSE;
+                                    Checked      := TRUE;
+                                    IsIsolated   := FALSE;
                                     {Branch inherits sensor of upline branch if it doesn't have its own}
                                     If Not TestElement.HasSensorObj  then TestElement.SensorObj :=  TPDElement(TestBranch).SensorObj;
                                 End;
@@ -2163,8 +2163,8 @@ Var i:Integer;
 
 begin
       If EnergyMeterClass.FDI_Verbose and This_Meter_DIFileIsOpen Then Begin
-          With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g, ',[(Hour + dynavars.t/3600.0)]));
-          For i := 1 to NumEMRegisters Do Write(DI_File, Format('%-.6g, ',[Derivatives[i]]));
+          With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g',[(Hour + dynavars.t/3600.0)]));
+          For i := 1 to NumEMRegisters Do Write(DI_File, Format(', %-.6g',[Derivatives[i]]));
           Writeln(DI_File);
       End;
 

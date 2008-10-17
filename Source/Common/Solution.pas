@@ -934,6 +934,11 @@ Begin
 
    UNTIL ControlActionsDone or (ControlIteration >= MaxControlIterations);
 
+   If Not ControlActionsDone and (ControlIteration >= MaxControlIterations) then
+       DoSimpleMsg('Warning Max Control Iterations Exceeded. Primitive Y matrices could be out of synch with System Y.' +
+                   ' Current and Power reports may not be correct.', 485);
+   
+
    If ActiveCircuit.LogEvents Then LogThisEvent('Solution Done');
 
    Iteration := TotalIterations;  { so that it reports a more interesting number }
