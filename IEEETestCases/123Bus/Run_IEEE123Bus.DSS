@@ -12,6 +12,7 @@ RegControl.creg3c.maxtapchange=1  Delay=30  !Allow only one tap change per solut
 RegControl.creg4b.maxtapchange=1  Delay=30  !Allow only one tap change per solution
 RegControl.creg4c.maxtapchange=1  Delay=30  !Allow only one tap change per solution
 
+Set Maxcontroliter=30
 solve
 
 ! Show Results
