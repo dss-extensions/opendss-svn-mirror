@@ -1171,6 +1171,7 @@ Var
    WattFactor :Double;
    VarFactor  :Double;
    Vmag       :Double;
+   VRatio     :Double;
 
 Begin
 
@@ -1183,7 +1184,11 @@ Begin
     FOR i := 1 to Fnphases DO Begin
         V    := Vterminal^[i];
         Vmag := Cabs(V);
-        WattFactor := (1.0 +(Vmag - VBase)/VBase*FCVRwattFactor);   // vbase is l-n FOR wye and l-l FOR delta
+        VRatio := Vmag/VBase;    // vbase is l-n FOR wye and l-l FOR delta
+        // Linear factor adjustment does not converge for some reason while power adjust does easily
+           // WattFactor := (1.0 + FCVRwattFactor*(Vmag/VBase - 1.0));
+        If FCVRWattFactor <> 1.0 then WattFactor := math.power(VRatio, FCVRWattFactor)
+                                 else WattFactor := 1.0;
         If WattFactor > 0.0 Then Curr := Conjg(Cdiv(Cmplx(WNominal * WattFactor, 0.0), V))
                             Else Curr := CZERO; // P component of current
 
@@ -1191,11 +1196,11 @@ Begin
         If FCVRvarFactor = 2.0 Then    {Check for easy, quick ones first}
              Cvar := Cmul(Y, V) // 2 is same as Constant impedance
         Else If FCVRvarFactor = 3.0 Then Begin
-             VarFactor := math.intpower((Vmag/Vbase), 3);
+             VarFactor := math.intpower(VRatio, 3);
              Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
         End Else Begin
             {Other Var factor code here if not squared or cubed}
-             VarFactor := math.power((Vmag/Vbase), FCVRvarFactor);
+             VarFactor := math.power(VRatio, FCVRvarFactor);
              Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
         End;
         Caccum(Curr, Cvar);  // add in Q component of current
