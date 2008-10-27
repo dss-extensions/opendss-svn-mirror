@@ -1,3 +1,12 @@
+!
+! LOAD DEFINITIONS
+!
+! Note that 1-phase loads have a voltage rating = to actual voltage across terminals
+! This could be either 2.4kV for Wye connectoin or 4.16 kV for Delta or Line-Line connection.
+! 3-phase loads are rated Line-Line (as are 2-phase loads, but there are none in this case).
+! Only the balanced 3-phase loads are declared as 3-phase; unbalanced 3-phase loads are declared
+! as three 1-phase loads.
+
 New Load.S1a   Bus1=1.1    Phases=1 Conn=Wye   Model=1 kV=2.4   kW=40.0  kvar=20.0  
 New Load.S2b   Bus1=2.2    Phases=1 Conn=Wye   Model=1 kV=2.4   kW=20.0  kvar=10.0  
 New Load.S4c   Bus1=4.3    Phases=1 Conn=Wye   Model=0 kV=2.4   kW=40.0  kvar=20.0  
