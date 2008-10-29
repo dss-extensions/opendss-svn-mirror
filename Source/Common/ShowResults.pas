@@ -2890,24 +2890,26 @@ Begin
              Writeln(F);
 
              cValues := GetYprimValues(ALL_YPRIM);
+             If cValues<>Nil then  Begin
 
-             Writeln(F);
-             Writeln(F, 'G matrix (conductance), S');
-             Writeln(F);
+                 Writeln(F);
+                 Writeln(F, 'G matrix (conductance), S');
+                 Writeln(F);
 
-             For i := 1 to Yorder Do  Begin
-               For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].re]));
-               Writeln(F);
-             End;
+                 For i := 1 to Yorder Do  Begin
+                   For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].re]));
+                   Writeln(F);
+                 End;
 
-             Writeln(F);
-             Writeln(F, 'jB matrix (Susceptance), S') ;
-             Writeln(F);
+                 Writeln(F);
+                 Writeln(F, 'jB matrix (Susceptance), S') ;
+                 Writeln(F);
 
-             For i := 1 to Yorder Do  Begin
-               For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].im]));
-               Writeln(F);
-             End;
+                 For i := 1 to Yorder Do  Begin
+                   For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].im]));
+                   Writeln(F);
+                 End;
+             End Else Writeln(F, 'Yprim matrix is Nil');
 
          End;
 

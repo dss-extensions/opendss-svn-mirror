@@ -12,6 +12,7 @@ TYPE
        ElementName     :String;
        MeteredElement  :TCktElement;  // Pointer to target circuit element
        MeteredTerminal :Integer;
+       MeteredElementChanged :Boolean;
 
        SensorCurrent         :pDoubleArray;
        SensorVoltage         :pDoubleArray;

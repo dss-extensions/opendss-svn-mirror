@@ -100,6 +100,7 @@ TYPE
         PROCEDURE CalcLoadModelContribution;
         PROCEDURE CalcVTerminalPhase;
         PROCEDURE CalcYearlyMult(Hour:Integer);
+        PROCEDURE CalcCVRMult(Hour:Integer);
         PROCEDURE CalcYPrimMatrix(Ymatrix:TcMatrix);
         PROCEDURE DoConstantILoad;
         PROCEDURE DoConstantPQLoad;
@@ -151,6 +152,8 @@ TYPE
         Xneut              :Double;  // Neutral impedance
         YearlyShape        :String;  // ='fixed' means no variation  exempt from variation
         YearlyShapeObj     :TLoadShapeObj;  // Shape for this load
+        CVRshape           :String;
+        CVRShapeObj        :TLoadShapeObj;
 
         FLoadModel:Integer;   // Variation with voltage
           {  1 = Constant kVA (P,Q always in same ratio)
@@ -204,7 +207,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSGlobals, Dynamics, Sysutils, Command, Math, MathUtil, Utilities;
 
-Const  NumPropsThisClass = 30;
+Const  NumPropsThisClass = 31;
 
 Var  CDOUBLEONE:Complex;
 
@@ -274,6 +277,7 @@ Begin
      PropertyName[28] := 'kwh';   // kwh billing
      PropertyName[29] := 'kwhdays';   // kwh billing period (24-hr days)
      PropertyName[30] := 'Cfactor';   // multiplier from kWh avg to peak kW
+     PropertyName[31] := 'CVRcurve';   // name of curve to use for yearly CVR simulations
 
 
 
@@ -364,6 +368,10 @@ Begin
      PropertyHelp[28] := 'kWh billed for this period. Default is 0. See help on kVA and Cfactor and kWhDays.';
      PropertyHelp[29] := 'Length of kWh billing period in days (24 hr days). Default is 30. Average demand is computed using this value.';   // kwh billing period (24-hr days)
      PropertyHelp[30] := 'Factor relating average kW to peak kW. Default is 4.0. See kWh and kWhdays. See kVA.';   // multiplier from kWh avg to peak kW
+     PropertyHelp[31] := 'Default is NONE. Curve describing both watt and var factors as a function of time. ' +
+                         'Refers to a LoadShape object with both Mult and Qmult defined. ' +
+                         'Define a Loadshape to agree with yearly or daily curve according to the type of analysis being done. ' +
+                         'If NONE, the CVRwatts and CVRvars factors are used and assumed constant.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -501,6 +509,7 @@ Begin
            28: kWh          := Parser.DblValue;
            29: kWhdays      := Parser.DblValue;
            30: Cfactor      := Parser.DblValue;
+           31: CVRShape     := Param;
          ELSE
            // Inherited edits
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
@@ -535,6 +544,7 @@ Begin
  {*** see set_xfkva, etc           21, 22: LoadSpectype := 3;  // XFKVA*AllocationFactor, PF  }
             23: LoadSpecType := 2;  // kVA, PF
  {*** see set_kwh, etc           28..30: LoadSpecType := 4;  // kWh, days, cfactor, PF }
+            31: CVRShapeObj := LoadShapeClass.Find(CVRshape);
          End;
 
          ParamName := Parser.NextParam;
@@ -584,6 +594,8 @@ Begin
        Xneut          := OtherLoad.Xneut;
        YearlyShape    := OtherLoad.YearlyShape;
        YearlyShapeObj := OtherLoad.YearlyShapeObj;
+       CVRshape       := OtherLoad.CVRshape;
+       CVRshapeObj    := OtherLoad.CVRshapeObj;
        DailyShape     := OtherLoad.DailyShape;
        DailyShapeObj  := OtherLoad.DailyShapeObj;
        DutyShape      := OtherLoad.DutyShape;
@@ -663,6 +675,8 @@ Begin
      DutyShapeObj   := nil;  // IF DutyShapeobj = nil THEN the load alway stays nominal * global multipliers
      Growthshape    := '';
      GrowthShapeObj := nil;  // IF grwothshapeobj = nil THEN the load alway stays nominal * global multipliers
+     CVRShape       := '';
+     CVRShapeObj    := Nil;
      Connection     := 0;    // Wye (star)
      FLoadModel     := 1;  // changed from 2 RCD {easiest to solve}
      LoadClass      := 1;
@@ -779,6 +793,22 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
+Procedure TLoadObj.CalcCVRMult(Hour:Integer);
+
+Var
+   CVRFactor  :Complex;
+
+Begin
+  {CVR curve is assumed to be used in a yearly simulation}
+   IF   YearlyShapeObj<>Nil THEN Begin
+     CVRFactor       := CVRShapeObj.GetMult((Hour));    {Complex}
+     FCVRWattFactor  := CVRFactor.re;
+     FCVRvarFactor   := CVRFactor.im;
+   End;
+   {Else FCVRWattFactor, etc. remain unchanged}
+End;
+
+//----------------------------------------------------------------------------
 FUNCTION TLoadObj.GrowthFactor(Year:Integer):Double;
 
 Begin
@@ -820,7 +850,11 @@ Begin
                                                     Factor := ActiveCircuit.LoadMultiplier  * GrowthFactor(Year);
                                                     CalcDailyMult(Hour, Dynavars.t);
                                              End;
-         YEARLYMODE:  Begin Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year); CalcYearlyMult(Hour); End;
+         YEARLYMODE:  Begin
+                         Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
+                         CalcYearlyMult(Hour);
+                         If FLoadModel=4 Then CalcCVRMult(Hour);
+                      End;
          MONTECARLO1: Begin
                         Randomize(RandomType);
                         IF   ExemptFromLDCurve THEN Factor := RandomMult * GrowthFactor(Year)
@@ -890,7 +924,6 @@ Begin
 
     SetNominalLoad;
 
-
     {Now check FOR errors.  IF any of these came out nil and the string was not nil, give warning}
     IF YearlyShapeObj = Nil THEN
       IF Length(YearlyShape)>0 THEN DoSimpleMsg('WARNING! Yearly load shape: "'+ YearlyShape +'" Not Found.', 583);
@@ -900,6 +933,8 @@ Begin
       IF Length(DutyShape)>0 THEN DoSimpleMsg('WARNING! Duty load shape: "'+ DutyShape +'" Not Found.', 585);
     IF GrowthShapeObj = Nil THEN
       IF Length(GrowthShape)>0 THEN DoSimpleMsg('WARNING! Yearly Growth shape: "'+ GrowthShape +'" Not Found.', 586);
+    IF CVRShapeObj = Nil THEN
+      IF Length(CVRShape)>0 THEN DoSimpleMsg('WARNING! CVR Shape shape: "'+ CVRShape +'" Not Found.', 586);
 
     SpectrumObj := SpectrumClass.Find(Spectrum);
     If SpectrumObj=Nil Then DoSimpleMsg('ERROR! Spectrum "'+Spectrum+'" Not Found.', 587);
@@ -1157,14 +1192,12 @@ Begin
 
 End;
 
-
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 PROCEDURE TLoadObj.DoCVRModel;
 // Linear P, quadratic Q
 
 Var
    i    :Integer;
-   Y    :Complex;
    V    :Complex;
    Curr :Complex;
    Cvar :Complex;  // var current
@@ -1179,7 +1212,6 @@ Begin
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
 
-    Y := Cmplx(0.0, Yeq.im);  // Working variable
 
     FOR i := 1 to Fnphases DO Begin
         V    := Vterminal^[i];
@@ -1193,9 +1225,9 @@ Begin
                             Else Curr := CZERO; // P component of current
 
         {Compute Q component of current}
-        If FCVRvarFactor = 2.0 Then    {Check for easy, quick ones first}
-             Cvar := Cmul(Y, V) // 2 is same as Constant impedance
-        Else If FCVRvarFactor = 3.0 Then Begin
+        If FCVRvarFactor = 2.0 Then  Begin  {Check for easy, quick ones first}
+             Cvar := Cmul(Cmplx(0.0, Yeq.im), V); // 2 is same as Constant impedance
+        End Else If FCVRvarFactor = 3.0 Then Begin
              VarFactor := math.intpower(VRatio, 3);
              Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
         End Else Begin

@@ -110,7 +110,8 @@ uses
   ImplSolution in 'ImplSolution.pas' {Solution: CoClass},
   ImplText in 'ImplText.pas' {Text: CoClass},
   DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
-  OpenDSSEngine_TLB in 'OpenDSSEngine_TLB.pas';
+  OpenDSSEngine_TLB in 'OpenDSSEngine_TLB.pas',
+  ImplSensors in 'ImplSensors.pas' {Sensors: CoClass};
 
 exports
   DllGetClassObject,

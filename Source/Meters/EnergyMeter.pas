@@ -214,7 +214,7 @@ Type
        VoltageUEOnly         :Boolean;
        LocalOnly             :Boolean;
        HasFeeder             :Boolean;
-       MeteredElementChanged :Boolean;
+
        FLosses               :Boolean;
        FLineLosses           :Boolean;
        FXfmrLosses           :Boolean;

@@ -104,7 +104,6 @@ TYPE
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-
         Property NumPoints :Integer Read FNumPoints Write Set_NumPoints;
         Property PresentInterval :Double Read Get_Interval;
         {Property FirstMult :Double Read Get_FirstMult;}
@@ -158,7 +157,7 @@ Begin
      // Define Property names
      PropertyName[1] := 'npts';     // Number of points to expect
      PropertyName[2] := 'interval'; // default = 1.0;
-     PropertyName[3] := 'mult';     // vector of multiplier values
+     PropertyName[3] := 'mult';     // vector of power multiplier values
      PropertyName[4] := 'hour';     // vextor of hour values
      PropertyName[5] := 'mean';     // set the mean (otherwise computed)
      PropertyName[6] := 'stddev';   // set the std dev (otherwise computed)
@@ -166,7 +165,7 @@ Begin
      PropertyName[8] := 'sngfile';  // switch input to a binary file of singles
      PropertyName[9] := 'dblfile';   // switch input to a binary file of singles
      PropertyName[10] := 'action'; // actions  Normalize
-     PropertyName[11] := 'qmult'; // actions  Normalize
+     PropertyName[11] := 'qmult'; // Q multiplier
 
      // define Property help values
 

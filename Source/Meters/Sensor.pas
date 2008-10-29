@@ -75,7 +75,8 @@ TYPE
 
      public
 
-       pctError   :Double;
+       pctError,
+       Weight   :Double;
 
        constructor Create(ParClass:TDSSClass; const SensorName:String);
        destructor Destroy; override;
@@ -166,7 +167,8 @@ Begin
      PropertyName[9] := 'conn';  //  Sensor connection
      PropertyName[10] := 'Deltadirection';  //  +/- 1
      PropertyName[11] := '%Error';  //  %Error of sensor
-     PropertyName[12] := 'action';
+     PropertyName[12] := 'Weight';  // for WLS calc
+     PropertyName[13] := 'action';
 
      PropertyHelp[1] := 'Name (Full Object name) of element to which the Sensor is connected.';
      PropertyHelp[2] := 'Number of the terminal of the circuit element to which the Sensor is connected. '+
@@ -186,7 +188,8 @@ Begin
                         'If wye or LN, voltage is assumed measured line-neutral; otherwise, line-line.';
      PropertyHelp[10] :='{1 or -1}  Default is 1:  1-2, 2-3, 3-1.  For reverse rotation, enter -1. Any positive or negative entry will suffice.';
      PropertyHelp[11] :='Assumed percent error in the measurement. Default is 1.';
-     PropertyHelp[12] :='Action options: '+CRLF+'SQERROR: Show square error of the present value of the monitored terminal  '+CRLF+
+     PropertyHelp[12] :='Weighting factor: Default is 1.';
+     PropertyHelp[13] :='NOT IMPLEMENTED.Action options: '+CRLF+'SQERROR: Show square error of the present value of the monitored terminal  '+CRLF+
                         'quantity vs the sensor value. Actual values - convert to per unit in calling program.  '+CRLF+
                         'Value reported in result window/result variable.';
 
@@ -250,15 +253,18 @@ Begin
             9: Conn         := InterpretConnection(Param);
            10: FDeltaDirection := LimitToPlusMinusOne(Parser.IntValue);
            11: pctError     := Parser.dblValue;
-           12: Action       := Param;  // Put sq error in Global Result
+           12: Weight       := Parser.dblValue;
+           13: Action       := Param;  // Put sq error in Global Result
          ELSE
            // Inherited parameters
            ClassEdit( ActiveSensorObj, ParamPointer - NumPropsthisClass)
          End;
 
          case ParamPointer of
-              1: DoRecalcElementData := TRUE;
-              2: DoRecalcElementData := TRUE;
+              1..2: Begin
+                       DoRecalcElementData := TRUE;
+                       MeteredElementChanged := TRUE;
+                     End;
               3: DoRecalcElementData := TRUE;
 
               {Do not recalc element data for setting of sensor quantities}
@@ -455,6 +461,8 @@ Begin
      Sensorkvar := NIL;
 
      kVBase := 12.47; // default 3-phase voltage
+     Weight := 1.0;
+     pctError := 1.0;
 
      Conn := 0;  // Wye
 
@@ -617,9 +625,9 @@ End;
 
 function TSensorObj.Get_WLSCurrentError: Double;
 {
-  Return the WLS Error for all values specified
+  Return the WLS Error for Currents
+  Get Square error and weight it
 
-  Base primarily on Current mismatch in this version
 }
 
 Var
@@ -648,11 +656,14 @@ begin
           Result := Result + SQR(CalculatedCurrent^[i].re) + SQR(CalculatedCurrent^[i].im) - SQR(SensorCurrent^[i]);
    End;
 
+   Result := Result * Weight;
+
 end;
 
 {==============================================================================}
 
 function TSensorObj.Get_WLSVoltageError: Double;
+// Get Square error and weight it
 var
   i: Integer;
 begin
@@ -661,6 +672,7 @@ begin
       For i := 1 to FnPhases do
         Result := Result + SQR(CalculatedVoltage^[i].re) + SQR(CalculatedVoltage^[i].im) - SQR(SensorVoltage^[i]);
    End;
+   Result := Result * Weight;
 end;
 
 {==============================================================================}
@@ -734,8 +746,9 @@ begin
      PropertyValue[8] := '[0.0, 0.0, 0.0]';  // Q kvar
      PropertyValue[9] := 'wye';
      PropertyValue[10] := '1';
-     PropertyValue[11] := '5';  // %Error
-     PropertyValue[12] := '';   // Action
+     PropertyValue[11] := '1';  // %Error
+     PropertyValue[12] := '1';  // %Error
+     PropertyValue[13] := '';   // Action
 
 
   inherited  InitPropertyValues(NumPropsThisClass);
