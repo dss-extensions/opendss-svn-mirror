@@ -800,7 +800,7 @@ Var
 
 Begin
   {CVR curve is assumed to be used in a yearly simulation}
-   IF   YearlyShapeObj<>Nil THEN Begin
+   IF   CVRShapeObj<>Nil THEN Begin
      CVRFactor       := CVRShapeObj.GetMult((Hour));    {Complex}
      FCVRWattFactor  := CVRFactor.re;
      FCVRvarFactor   := CVRFactor.im;
