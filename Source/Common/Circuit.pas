@@ -32,7 +32,7 @@ TYPE
     pCktElementDefArray = ^CktElementDefArray;
     CktElementDefArray = Array[1..1] of CktElementDef;
 
-    TCircuit = CLASS(Tobject)
+    TDSSCircuit = CLASS(Tobject)
 
       Private
           FName:String;
@@ -216,7 +216,7 @@ USES
      Utilities, FileCtrl, DSSForms;
 
 //----------------------------------------------------------------------------
-Constructor TCircuit.Create(const Name:String);
+Constructor TDSSCircuit.Create(const Name:String);
 
 // Var Retval:Integer;
 
@@ -365,7 +365,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Destructor  Tcircuit.Destroy;
+Destructor  TDSSCircuit.Destroy;
 VAR
     i:Integer;
 
@@ -420,7 +420,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.ProcessBusDefs;
+Procedure TDSSCircuit.ProcessBusDefs;
 VAR
    BusName:String;
    NNodes, NP,  Ncond, i, j, iTerm, RetVal:Integer;
@@ -481,7 +481,7 @@ END;
 
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.AddABus;
+Procedure TDSSCircuit.AddABus;
 BEGIN
     If NumBuses > MaxBuses THEN BEGIN
         Inc(MaxBuses, IncBuses);
@@ -490,7 +490,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.AddANodeBus;
+Procedure TDSSCircuit.AddANodeBus;
 BEGIN
     If NumNodes > MaxNodes THEN BEGIN
         Inc(MaxNodes, IncNodes);
@@ -499,7 +499,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Function TCircuit.AddBus(const BusName:String; NNodes:Integer):Integer;
+Function TDSSCircuit.AddBus(const BusName:String; NNodes:Integer):Integer;
 
 VAR
    NodeRef, i :Integer;
@@ -507,7 +507,7 @@ BEGIN
 
 // Trap error in bus name
     IF Length(BusName) = 0 THEN BEGIN  // Error in busname
-       DoErrorMsg('TCircuit.AddBus', 'BusName for Object "' + ActiveCktElement.Name + '" is null.',
+       DoErrorMsg('TDSSCircuit.AddBus', 'BusName for Object "' + ActiveCktElement.Name + '" is null.',
                   'Error in definition of object.', 424);
        For i := 1 to ActiveCktElement.NConds DO NodeBuffer^[i] := 0;
        Result := 0;
@@ -538,7 +538,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.AddDeviceHandle(Handle:Integer);
+Procedure TDSSCircuit.AddDeviceHandle(Handle:Integer);
 BEGIN
     If NumDevices>MaxDevices THEN BEGIN
         MaxDevices := MaxDevices + IncDevices;
@@ -550,7 +550,7 @@ END;
 
 
 //----------------------------------------------------------------------------
-Function TCircuit.SetElementActive(Const FullObjectName:String):Integer;
+Function TDSSCircuit.SetElementActive(Const FullObjectName:String):Integer;
 
 // Fast way to set a cktelement active
 VAR
@@ -585,14 +585,14 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.Set_ActiveCktElement(Value:TcktElement);
+Procedure TDSSCircuit.Set_ActiveCktElement(Value:TcktElement);
 BEGIN
     FActiveCktElement := Value;
     ActiveDSSObject := Value;
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.AddCktElement(Handle:Integer);
+Procedure TDSSCircuit.AddCktElement(Handle:Integer);
 
 
 BEGIN
@@ -641,7 +641,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.DoResetMeterZones;
+Procedure TDSSCircuit.DoResetMeterZones;
 
 BEGIN
 
@@ -659,7 +659,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.SaveBusInfo;
+Procedure TDSSCircuit.SaveBusInfo;
 Var
    i  :Integer;
 
@@ -678,7 +678,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.RestoreBusInfo;
+Procedure TDSSCircuit.RestoreBusInfo;
 
 Var
    i,j,idx, jdx:Integer;
@@ -717,7 +717,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.ReProcessBusDefs;
+Procedure TDSSCircuit.ReProcessBusDefs;
 
 // Redo all Buslists, nodelists
 
@@ -760,7 +760,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TCircuit.Set_BusNameRedefined(Value:Boolean);
+Procedure TDSSCircuit.Set_BusNameRedefined(Value:Boolean);
 BEGIN
     FBusNameRedefined := Value;
 
@@ -771,7 +771,7 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TCircuit.Get_Losses:Complex;
+Function TDSSCircuit.Get_Losses:Complex;
 
 Var
    pdelem :TPDElement;
@@ -792,7 +792,7 @@ Begin
 
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TCircuit.DebugDump(Var F:TextFile);
+Procedure TDSSCircuit.DebugDump(Var F:TextFile);
 
 VAR
    i,j:Integer;
@@ -826,7 +826,7 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TCircuit.InvalidateAllPCElements;
+Procedure TDSSCircuit.InvalidateAllPCElements;
 
 VAR
    p:TCktElement;
@@ -846,7 +846,7 @@ END;
 
 
 // - - ------------------------------------------------------
-Procedure TCircuit.Set_LoadMultiplier(Value :Double);
+Procedure TDSSCircuit.Set_LoadMultiplier(Value :Double);
 
 Begin
 
@@ -862,7 +862,7 @@ Begin
 
 End;
 
-procedure TCircuit.TotalizeMeters;
+procedure TDSSCircuit.TotalizeMeters;
 
 { Totalize all energymeters in the problem}
 
@@ -882,7 +882,7 @@ begin
       End;
 end;
 
-FUNCTION TCircuit.ComputeCapacity: Boolean;
+FUNCTION TDSSCircuit.ComputeCapacity: Boolean;
 Var
    CapacityFound :Boolean;
 
@@ -927,7 +927,7 @@ begin
      Result := TRUE;
 end;
 
-Function TCircuit.Save(Dir:String):Boolean;
+Function TDSSCircuit.Save(Dir:String):Boolean;
 {Save the present circuit - Enabled devices only}
 
 var
@@ -1018,7 +1018,7 @@ begin
 
 end;
 
-function TCircuit.SaveDSSObjects: Boolean;
+function TDSSCircuit.SaveDSSObjects: Boolean;
 Var
 
    Dss_Class:TDSSClass;
@@ -1041,7 +1041,7 @@ begin
 
 end;
 
-function TCircuit.SaveMasterFile: Boolean;
+function TDSSCircuit.SaveMasterFile: Boolean;
 
 Var
    F:TextFile;
@@ -1080,7 +1080,7 @@ begin
 
 end;
 
-function TCircuit.SaveFeeders: Boolean;
+function TDSSCircuit.SaveFeeders: Boolean;
 Var
    i:Integer;
    SaveDir, CurrDir:String;
@@ -1110,7 +1110,7 @@ begin
     
 end;
 
-function TCircuit.SaveBusCoords: Boolean;
+function TDSSCircuit.SaveBusCoords: Boolean;
 Var
         F:TextFile;
         i:Integer;
@@ -1139,7 +1139,7 @@ begin
 
 end;
 
-procedure TCircuit.ReallocDeviceList;
+procedure TDSSCircuit.ReallocDeviceList;
 
 Var
     TempList:THashList;
@@ -1160,7 +1160,7 @@ begin
 
 end;
 
-procedure TCircuit.Set_CaseName(const Value: String);
+procedure TDSSCircuit.Set_CaseName(const Value: String);
 begin
   FCaseName := Value;
   CircuitName_ := Value + '_';

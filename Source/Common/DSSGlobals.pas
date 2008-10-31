@@ -111,7 +111,7 @@ VAR
    IsDLL,
    NoFormsAllowed  :Boolean;
 
-   ActiveCircuit   :TCircuit;
+   ActiveCircuit   :TDSSCircuit;
    NumCircuits     :Integer;
    MaxCircuits     :Integer;
    MaxBusLimit     :Integer; // Set in Validation
@@ -636,7 +636,7 @@ Begin
 
      If NumCircuits <= MaxCircuits - 1 Then
      Begin
-         ActiveCircuit := TCircuit.Create(Name);
+         ActiveCircuit := TDSSCircuit.Create(Name);
          ActiveDSSObject := ActiveSolutionObj;
          {*Handle := *} Circuits.Add(ActiveCircuit);
          Inc(NumCircuits);

@@ -1092,7 +1092,10 @@ Begin
            MaxExcesskWNorm   := Abs(CktElem.ExcesskVANorm.re);
            MaxExcesskWEmerg  := Abs(CktElem.ExcesskVAEmerg.re);
      End
-     ELSE WHILE CktElem <> NIL Do  Begin       // loop thru all ckt element on zone
+
+     ELSE
+
+     WHILE CktElem <> NIL Do  Begin       // loop thru all ckt element on zone
 
          CktElem.ActiveTerminalIdx := BranchList.Presentbranch.FromTerminal;
        // Invoking this property sets the Overload_UE flag in the PD Element
@@ -1226,7 +1229,6 @@ Begin
      Derivatives[Reg_LineModeLineLoss]   := TotalLineModeLosses.Re;
      Derivatives[Reg_ZeroModeLineLoss]   := TotalZeroModeLosses.Re;
      for i  := 1 to MaxVBaseCount  do  Derivatives[Reg_VbaseStart + i] := TotalVBaseLosses^[i];
-       
 
      SetDragHandRegister(Reg_LossesMaxkW,    Abs(TotalLosses.Re));
      SetDragHandRegister(Reg_LossesMaxkvar,  Abs(TotalLosses.im));
@@ -1524,16 +1526,17 @@ Begin
      END;
 
      TRY
+         Writeln(F, 'Level, Branch, Bus');
          IF BranchList<>NIL
          Then Begin
            PDElem := BranchList.First;
            WHILE PDElem <> NIL Do
            Begin
-               Writeln(F, BranchList.Level,', ', PDelem.Name);
+               Writeln(F, Format('%d, %s.%s, %s',[BranchList.Level, PDelem.ParentClass.Name, PDelem.Name, ActiveCircuit.BusList.Get(BranchList.PresentBranch.FromBusReference)]));
                LoadElem := Branchlist.FirstObject;
                WHILE LoadElem <> NIL Do
                Begin
-                     Writeln(F, '-1, [', LoadElem.ParentClass.Name, '], ', LoadElem.Name);
+                     Writeln(F, '-1, ', Format('%s.%s, %s', [LoadElem.ParentClass.Name, LoadElem.Name, ActiveCircuit.BusList.Get(BranchList.PresentBranch.ToBusReference)]));
                      LoadElem := BranchList.NextObject
                End;
            PDElem := BranchList.GoForward;
@@ -1747,7 +1750,7 @@ begin
 
 end;
 
-procedure TEnergyMeterObj.Integrate_Load;
+procedure TEnergyMeterObj.Integrate_Load(pLoad:TLoadObj; var TotalZonekW, TotalZonekvar:Double);
 Var
    S:Complex;
    kW_Load : Double;
@@ -1774,7 +1777,7 @@ begin
        ELSE  Begin    // Return total load as EEN/UE
            IF   (ExceedsNormal)
            Then Integrate(Reg_LoadEEN, kW_Load,  Delta_Hrs)
-           Else Integrate(Reg_LoadEEN, 0.0,       Delta_Hrs);
+           Else Integrate(Reg_LoadEEN, 0.0,      Delta_Hrs);
 
            IF   (Unserved)
            Then Integrate(Reg_LoadUE,  kW_Load,  Delta_Hrs)

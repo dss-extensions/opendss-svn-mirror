@@ -1183,7 +1183,7 @@ End;
 PROCEDURE SetActiveCircuit(const cktname:String);
 
 VAR
-   pCkt:TCircuit;
+   pCkt:TDSSCircuit;
 Begin
 
    pCkt := Circuits.First;

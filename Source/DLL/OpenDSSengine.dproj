@@ -185,9 +185,6 @@
     <DCCReference Include="ImplMonitors.pas">
       <CoClasses>Monitors</CoClasses>
     </DCCReference>
-    <DCCReference Include="ImplSensors.pas">
-      <CoClasses>Sensors</CoClasses>
-    </DCCReference>
     <DCCReference Include="ImplSettings.pas">
       <CoClasses>Settings</CoClasses>
     </DCCReference>

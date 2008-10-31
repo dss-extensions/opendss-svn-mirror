@@ -1,2 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject/>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2008/10/30 17:50:34.231.pas,C:\opendss\Source\Common\Circuit.pas=C:\opendss\Source\Common\DSSCircuit.pas</Transaction>
+  </Transactions>
+</BorlandProject>

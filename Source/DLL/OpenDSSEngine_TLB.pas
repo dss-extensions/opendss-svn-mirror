@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 10/14/2008 2:43:49 PM from Type Library described below.
+// File generated on 10/31/2008 1:13:39 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -794,6 +794,16 @@ type
     function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
     function Get_Totals: OleVariant; safecall;
+    function Get_Peakcurrent: OleVariant; safecall;
+    procedure Set_Peakcurrent(Value: OleVariant); safecall;
+    function Get_CalcCurrent: OleVariant; safecall;
+    procedure Set_CalcCurrent(Value: OleVariant); safecall;
+    function Get_AllocFactors: OleVariant; safecall;
+    procedure Set_AllocFactors(Value: OleVariant); safecall;
+    function Get_MeteredElement: WideString; safecall;
+    procedure Set_MeteredElement(const Value: WideString); safecall;
+    function Get_MeteredTerminal: Integer; safecall;
+    procedure Set_MeteredTerminal(Value: Integer); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -801,6 +811,11 @@ type
     property RegisterValues: OleVariant read Get_RegisterValues;
     property Name: WideString read Get_Name write Set_Name;
     property Totals: OleVariant read Get_Totals;
+    property Peakcurrent: OleVariant read Get_Peakcurrent write Set_Peakcurrent;
+    property CalcCurrent: OleVariant read Get_CalcCurrent write Set_CalcCurrent;
+    property AllocFactors: OleVariant read Get_AllocFactors write Set_AllocFactors;
+    property MeteredElement: WideString read Get_MeteredElement write Set_MeteredElement;
+    property MeteredTerminal: Integer read Get_MeteredTerminal write Set_MeteredTerminal;
   end;
 
 // *********************************************************************//
@@ -821,6 +836,11 @@ type
     procedure Save; dispid 10;
     property Name: WideString dispid 12;
     property Totals: OleVariant readonly dispid 1;
+    property Peakcurrent: OleVariant dispid 201;
+    property CalcCurrent: OleVariant dispid 202;
+    property AllocFactors: OleVariant dispid 203;
+    property MeteredElement: WideString dispid 204;
+    property MeteredTerminal: Integer dispid 205;
   end;
 
 // *********************************************************************//
