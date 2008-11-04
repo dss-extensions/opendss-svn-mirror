@@ -180,7 +180,8 @@ Begin
                     'If you use a line code, you do not need to specify the impedances here. '+
                     'The line code must have been PREVIOUSLY defined. ' +
                     'The values specified last will prevail over those specified earlier (left-to-right ' +
-                    'sequence of properties).  If no line code or impedance data are specified, line object '+
+                    'sequence of properties).  You can subsequently change the number of phases if symmetrical component quantities are specified.' +
+                    'If no line code or impedance data are specified, the line object '+
                     'defaults to 336 MCM ACSR on 4 ft spacing.';
      PropertyHelp[4] := 'Length of line. Default is 1.0. If units do not match the impedance data, specify "units" property. ';
      PropertyHelp[5] := 'Number of phases, this line.';
@@ -205,7 +206,8 @@ Begin
      PropertyHelp[17] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
      PropertyHelp[18] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor. Overrides Line geometry definition if specified.';
      PropertyHelp[19] := 'Geometry code for LineGeometry Object. Supercedes any previous definition of line impedance. ' +
-                         'Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases.';
+                         'Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases. '+
+                         'You cannot subsequently change the number of phases unless you change how the line impedance is defined.';
      PropertyHelp[20] := 'Length Units = {none | mi|kft|km|m|Ft|in|cm } Default is None - assumes length units match impedance units.';
 
 
@@ -466,17 +468,22 @@ Begin
 
          // Side Effects ...
          CASE ParamPointer OF
-          5: IF Fnphases <> Parser.IntValue THEN Begin
+          5: {Change the number of phases ... only valid if SymComponentsModel=TRUE}
+             IF Fnphases <> Parser.IntValue THEN
+              If (Not GeometrySpecified) and SymComponentsModel Then Begin  // ignore change of nphases if geometry used
                  Nphases      := Parser.IntValue ;
                  NConds       := Fnphases;  // Force Reallocation of terminal info
                  Yorder       := Fnterms * Fnconds;
-                 {YPrimInvalid := True;}  // set below
+                 {YPrimInvalid := True;}  // now set below
                  RecalcElementData;  // Reallocate Z, etc.
-             End;
+              End Else Begin
+                 DoSimpleMsg('Illegal change of number of phases for Line.'+Name, 181);
+              End;
           6..11: Begin FLineCodeSpecified := FALSE; KillGeometrySpecified; ResetLengthUnits; SymComponentsChanged := True;  End;
           12..14:Begin FLineCodeSpecified := FALSE; SymComponentsModel := FALSE;  ResetLengthUnits; KillGeometrySpecified; End;
           15: If IsSwitch Then Begin
                 SymComponentsChanged := True;  YprimInvalid := True;
+                GeometrySpecified := FALSE;
                 r1 := 0.001; x1 := 0.001; r0 := 0.001; x0 := 0.001;
                 c1 := 0.01*1.0e-9; c0 := 0.01*1.0e-9;  len := 1.0;
                 ResetLengthUnits;
@@ -1141,8 +1148,8 @@ begin
       End; {If Series}
 
       {Rename the line}
-       If Series Then NewName := GetBus(1) + '~' + GetBus(2)
-       Else NewName := GetBus(1) + '||' + GetBus(2);
+       If Series Then NewName := StripExtension(GetBus(1)) + '~'  + StripExtension(GetBus(2))
+                 Else NewName := StripExtension(GetBus(1)) + '||' + StripExtension(GetBus(2));
 
        {Update ControlElement Connections to This Line}
        UpdateControlElements('line.'+NewName, 'line.'+Name);
@@ -1163,7 +1170,6 @@ begin
               S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen]);
               S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9]);
               S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9]);
-
          End
          Else   {parallel}
          Begin

@@ -2179,7 +2179,7 @@ Begin
      Writeln(F);
      Writeln(F, 'Power Delivery Element Loss Report');
      Writeln(F);
-     Writeln(F,'Element                      kW Losses    % of Power   kvar Losses');
+     Writeln(F,'Element                              kW Losses    % of Power   kvar Losses');
      Writeln(F);
 
 
@@ -2199,17 +2199,16 @@ Begin
         Caccum(TotalLosses, kLosses);
         TermPower := CmulReal(PDelem.power, 0.001);     // Terminal 1 power
 
-        IF (CLASSMASK AND PDElem.DSSObjType) =  XFMR_ELEMENT         THEN Caccum(TransLosses, kLosses);
+        IF (CLASSMASK AND PDElem.DSSObjType) =  XFMR_ELEMENT THEN Caccum(TransLosses, kLosses);
         IF (CLASSMASK AND PDElem.DSSObjType) =  LINE_ELEMENT THEN Caccum(LineLosses, kLosses);
 
         Write(F, Pad(FullName(PDelem), MaxDeviceNameLength+2));
-        Write(F, kLosses.RE:8:2, '  ');
-        IF TermPower.re <> 0.0
+        Write(F, Format('%10.5f, ', [kLosses.re]));
+        IF (TermPower.re > 0.0) and (kLosses.re>0.0009)
           Then Write(F, (kLosses.re / Abs(TermPower.re)*100.0):8:2)
           ELSE Write(F, CZERO.RE:8:1);
-        Write(F,'     ', Abs(kLosses.im):8:1);
+        Write(F,Format('     %.6g', [Abs(kLosses.im)]));
         Writeln(F);
-
        End;
         PDelem := ActiveCircuit.PDElements.Next;
      End;      {While}
