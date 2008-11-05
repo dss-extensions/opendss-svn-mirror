@@ -405,15 +405,15 @@ begin
 
    If (FFrequency >= 0.0) and (Norder>0) and (Norder<FnumConds) Then Begin
 
-      If Assigned(FZreduced) Then FZreduced.Free;
-      If Assigned(FYCreduced) then FYCReduced.Free;
+      If Assigned(FZreduced)  Then FZreduced.Free;
+      If Assigned(FYCreduced) Then FYCReduced.Free;
 
      {Reduce computed matrix one row/col at a time until it is norder}
 
       While Ztemp.Order > Norder Do Begin
 
-         FZReduced  := Ztemp.Kron;
-         FYCReduced := YCtemp.Kron;
+         FZReduced  := Ztemp.Kron(ZTemp.Order );    // Eliminate last row
+         FYCReduced := YCtemp.Kron(ZTemp.Order );
 
          If Not FirstTime Then Begin
              Ztemp.Free;  // Ztemp points to intermediate matrix

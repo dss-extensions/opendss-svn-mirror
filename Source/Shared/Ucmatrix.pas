@@ -44,7 +44,7 @@ type
     Function AvgOffDiagonal:Complex;
     Procedure MultByConst( x:Double);  // Multiply all elements by a constant
 
-    Function Kron:TcMatrix;  // Perform Kron reduction on last row/col and return new matrix
+    Function Kron(EliminationRow:Integer):TcMatrix;  // Perform Kron reduction on last row/col and return new matrix
 
     Property Order:Integer read Norder;
 
@@ -371,23 +371,30 @@ begin
    If Ntimes>0 then Result := CdivReal(Result, (Ntimes));
 end;
 
-function TcMatrix.Kron: TcMatrix;
+function TcMatrix.Kron(EliminationRow:Integer): TcMatrix;
 
 {Do Kron reduction on present matrix and return a new one}
+{Eliminates specified row/column}
+
 Var
     i,j,N :Integer;
+    ii, jj:Integer;
     NNElement:Complex;
 begin
-  Result := Nil;
-  If Norder>1 Then Begin
+  Result := Nil;   // Nil result means it failed
+  If (Norder>1) and (EliminationRow <= Norder) and (EliminationRow > 0) Then Begin
 
      Result := TCMatrix.CreateMatrix(Norder-1);
-     N := Norder;
+     N := EliminationRow;
      NNElement := GetElement(N,N);
 
-     For i := 1 to Result.Norder Do Begin
-         For j  := 1 to Result.Norder Do Begin
-             Result.SetElement(i, j, CSub(GetElement(i,j), Cdiv(Cmul(GetElement(i,N),GetElement(N,j)), NNElement) ));
+     ii := 0;
+     For i := 1 to Norder Do If i<>N then Begin    // skip elimination row
+         Inc(ii);
+         jj := 0;
+         For j  := 1 to Norder Do If j<>N Then Begin
+             Inc(jj);
+             Result.SetElement(ii, jj, CSub(GetElement(i,j), Cdiv(Cmul(GetElement(i,N),GetElement(N,j)), NNElement) ));
          End;
      End;
 

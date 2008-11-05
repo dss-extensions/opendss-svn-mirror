@@ -53,6 +53,8 @@ TYPE
    TLineCodeObj = class(TDSSObject)
      private
 
+        FNeutralConductor :Integer;
+
         Procedure Set_NPhases(Value:Integer);
         Procedure DoKronReduction;
 
@@ -102,7 +104,7 @@ implementation
 
 USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Arraydef, Utilities, LineUnits;
 
-Const      NumPropsThisClass = 21;
+Const      NumPropsThisClass = 22;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLineCode.Create;  // Creates superstructure for all Line objects
@@ -155,6 +157,7 @@ Begin
      PropertyName[19] := 'Rg';
      PropertyName[20] := 'Xg';
      PropertyName[21] := 'rho';
+     PropertyName[22] := 'neutral';
 
 
      PropertyHelp[1] := 'Number of phases in the line this line code data represents.  Setting this property reinitializes the line code.  Impedance matrix is reset for default symmetrical component.';
@@ -184,10 +187,15 @@ Begin
      PropertyHelp[16] := 'Percentage of the faults that become permanent.';
      PropertyHelp[17] := 'Hours to repair.';
      PropertyHelp[18] := 'Kron = Y/N. Default=N.  Perform Kron reduction on the impedance matrix after it is formed, reducing order by 1. ' +
-                         'Do this only on initial definition after matrices are defined. Ignored for symmetrical components.';
+                         'Eliminates the conductor designated by the "Neutral=" property. ' +
+                         'Do this after the R, X, and C matrices are defined. Ignored for symmetrical components. ' +
+                         'May be issued more than once to eliminate more than one conductor by resetting the Neutral property.';
      PropertyHelp[19] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
      PropertyHelp[20] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
      PropertyHelp[21] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor.';
+     PropertyHelp[22] := 'Designates which conductor is the "neutral" conductor that will be eliminated by Kron reduction. ' +
+                         'Default is the last conductor (nphases value). After Kron reduction is set to 0. Subsequent issuing of Kron=Yes ' +
+                         'will not do anything until this property is set to a legal value. Applies only to LineCodes defined by R, X, and C matrix.';
 
 
      ActiveProperty := NumPropsThisClass;
@@ -328,6 +336,7 @@ BEGIN
            19: Rg := Parser.DblValue;
            20: Xg := Parser.DblValue;
            21: rho := Parser.DblValue;
+           22: FNeutralConductor := Parser.IntValue;
          ELSE
            ClassEdit(ActiveLineCodeObj, Parampointer - NumPropsThisClass)
          END;
@@ -387,6 +396,7 @@ BEGIN
        Rg := OtherLineCode.Rg;
        Xg := OtherLineCode.Xg;
        rho := OtherLineCode.rho;
+       FNeutralConductor := OtherLineCode.FNeutralConductor;
        NormAmps := OtherLineCode.NormAmps;
        EmergAmps := OtherLineCode.EmergAmps;
        FaultRate := OtherLineCode.FaultRate;
@@ -451,6 +461,7 @@ BEGIN
      DSSObjType := ParClass.DSSClassType;
 
      FNPhases := 3;  // Directly set conds and phases
+     FNeutralConductor := FNphases;  // initialize to last conductor
      R1 := 0.0580;  //ohms per 1000 ft
      X1 := 0.1206;
      R0 := 0.1784;
@@ -496,6 +507,7 @@ BEGIN
     If Value>0 THEN BEGIN
       IF FNphases <> Value THEN BEGIN    // If size is no different, we don't need to do anything
         FNPhases := Value;
+        FNeutralConductor := FNphases;  // Init to last conductor
         // Put some reasonable values in these matrices
         CalcMatricesFromZ1Z0;  // reallocs matrices
       END;
@@ -588,10 +600,12 @@ Begin
            Writeln(F,'"');
 
 
-         For i := 12 to NumProperties Do
+         For i := 12 to 21 Do
          Begin
             Writeln(F,'~ ',PropertyName^[i],'=',PropertyValue[i]);
          End;
+
+         Writeln(F, Format('~ %s=%d',[PropertyName^[22], FNeutralConductor]));
 
      End;
 
@@ -621,6 +635,7 @@ begin
      PropertyValue[19] :=  '0'; // 'Rg';
      PropertyValue[20] :=  '0'; // 'Xg';
      PropertyValue[21] :=  '100'; // 'rho';
+     PropertyValue[22] :=  '3'; // 'Neutral';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -631,24 +646,38 @@ Var
         NewZ, NewYC : TcMatrix;
 
 begin
+   If FneutralConductor=0 then Exit;   // Do Nothing
+   
+   If Fnphases>1 then Begin
 
-        NewZ := Z.Kron ;       // Perform Kron Reductions into temp space
-        NewYC := YC.Kron ;
+        NewZ  := Z.Kron(FNeutralConductor);       // Perform Kron Reductions into temp space
+      { Have to invert the Y matrix to eliminate properly}
+        YC.Invert;  // Vn = 0 not In
+        NewYC := YC.Kron(FNeutralConductor);
 
         // Reallocate into smaller space   if Kron was successful
 
+        If (NewZ<>Nil) and (NewYC<>Nil) Then Begin
 
-        If NewZ<>Nil Then Begin
+            NewYC.Invert;  // Back to Y
+
             Numphases :=NewZ.order;
 
             // Get rid of Z and YC and replace
-
             Z.Free;
             YC.Free;
 
-            Z := NewZ;
+            Z  := NewZ;
             YC := NewYC;
+
+            FNeutralConductor := 0;
+        End Else Begin
+           DoSimpleMsg(Format('Kron Reduction failed: LineCode.%s. Attempting to eliminate Neutral Conductor %d.', [Name, FNeutralConductor]), 103);
         End;
+
+   End Else Begin
+       DoSimpleMsg('Cannot perform Kron Reduction on a 1-phase LineCode: LineCode.'+Name, 103);
+   End;;
 
 end;
 
