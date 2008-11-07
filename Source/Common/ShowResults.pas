@@ -2179,7 +2179,7 @@ Begin
      Writeln(F);
      Writeln(F, 'Power Delivery Element Loss Report');
      Writeln(F);
-     Writeln(F,'Element                              kW Losses    % of Power   kvar Losses');
+     Writeln(F,'Element                  kW Losses    % of Power   kvar Losses');
      Writeln(F);
 
 
@@ -2192,7 +2192,7 @@ Begin
      WHILE PDelem<>nil DO
      Begin
        IF (PDelem.Enabled)
-       THEN IF (CLASSMASK AND PDElem.DSSObjType) <>  CAP_ELEMENT     // Ignore capacitors
+       {THEN IF (CLASSMASK AND PDElem.DSSObjType) <>  CAP_ELEMENT }    // Ignore capacitors
        THEN Begin
         PDelem.ActiveTerminalIdx := 1;  // activate 1st terminal for Power call
         kLosses := CmulReal(PDelem.Losses, 0.001);   // kW Losses in element
@@ -2207,7 +2207,7 @@ Begin
         IF (TermPower.re > 0.0) and (kLosses.re>0.0009)
           Then Write(F, (kLosses.re / Abs(TermPower.re)*100.0):8:2)
           ELSE Write(F, CZERO.RE:8:1);
-        Write(F,Format('     %.6g', [Abs(kLosses.im)]));
+        Write(F,Format('     %.6g', [kLosses.im]));
         Writeln(F);
        End;
         PDelem := ActiveCircuit.PDElements.Next;

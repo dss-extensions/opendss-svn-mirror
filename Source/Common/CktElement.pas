@@ -603,7 +603,7 @@ Begin
      WITH ActiveCircuit.Solution DO
        Begin
          k := (FActiveTerminal -1)*Fnconds;
-         FOR i := 1 to Fnphases DO
+         FOR i := 1 to Fnconds DO     // 11-7-08 Changed from Fnphases - was not accounting for all conductors
            Begin
             n := ActiveTerminal.TermNodeRef^[i]; // don't bother for grounded node
             IF  n > 0 THEN  Caccum(cPower, Cmul(NodeV^[n], conjg(Iterminal[k+i]) ));
@@ -918,8 +918,9 @@ procedure TCktElement.MakePosSequence;
 Var
         i:Integer;
 begin
-        // Strip phase designation off of bus names
-        For i := 1 to FNterms Do FBusNames^[i] := StripExtension(FBusNames^[i]);
+        For i := 1 to FNterms Do Begin
+           FBusNames^[i] := StripExtension(FBusNames^[i]);
+        End;
 end;
 
 procedure TCktElement.ComputeVterminal;

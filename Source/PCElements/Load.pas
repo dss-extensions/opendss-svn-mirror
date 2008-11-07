@@ -1849,6 +1849,7 @@ end;
 function TLoadObj.GetPropertyValue(Index: Integer): String;
 begin
      Case Index of
+         2:  Result := GetBus(1);
          4:  Result := Format('%-g',   [kwBase]);
          5:  Result := Format('%-.3g', [PFNominal]);
          12: Result := Format('%-.3g', [kvarbase]);

@@ -479,8 +479,13 @@ Begin
               End Else Begin
                  DoSimpleMsg('Illegal change of number of phases for Line.'+Name, 181);
               End;
-          6..11: Begin FLineCodeSpecified := FALSE; KillGeometrySpecified; ResetLengthUnits; SymComponentsChanged := True;  End;
-          12..14:Begin FLineCodeSpecified := FALSE; SymComponentsModel := FALSE;  ResetLengthUnits; KillGeometrySpecified; End;
+          6..11: Begin FLineCodeSpecified := FALSE; KillGeometrySpecified;
+                       ResetLengthUnits; SymComponentsChanged := True;
+                       SymComponentsModel := TRUE;
+                 End;
+          12..14:Begin FLineCodeSpecified := FALSE; SymComponentsModel := FALSE;
+                       ResetLengthUnits; KillGeometrySpecified;
+                 End;
           15: If IsSwitch Then Begin
                 SymComponentsChanged := True;  YprimInvalid := True;
                 GeometrySpecified := FALSE;
@@ -905,6 +910,8 @@ begin
         End;
 
         CASE Index of
+            1: Result := GetBus(1);
+            2: Result := GetBus(2);
             5: Result := Format('%d', [FNphases]);
 
            12: FOR i := 1 to FNconds Do   // R matrix
@@ -1045,7 +1052,6 @@ begin
             PrpSequence^[3] := 0;
             For i := 6 to 14 Do PrpSequence^[i] := 0;
 
-            S := 'Phases=1';
             // Average the diagonals
             Zs := CZERO;
             For i := 1 to FnPhases  Do Caccum(Zs, Z.GetElement(i,i));
@@ -1057,7 +1063,7 @@ begin
             Zm := CdivReal(Zm, (Fnphases*(FnPhases-1.0)/2.0));
             Z1 := CSub(Zs, Zm);
 
-            S := S + Format(' R1=%-.5g  %-.5g',[Z1.re, Z1.im]);
+            S := Format(' R1=%-.5g  %-.5g  Phases=1',[Z1.re, Z1.im]);
 
             // Do same for Capacitances
             Cs := 0.0;

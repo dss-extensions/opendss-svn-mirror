@@ -803,8 +803,8 @@ Begin
          'o': FileName := 'EXP_OVERLOADS.CSV';
          'u': FileName := 'EXP_UNSERVED.CSV';
          'm': If Parm1[2]='e' THEN FileName := 'EXP_METERS.CSV';
-         's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0
-              THEN FileName := 'EXP_SEQCURRENTS.CSV'
+         's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0      THEN FileName := 'EXP_SEQCURRENTS.CSV'
+              ELSE If Comparetext(Copy(Parm1,1,4), 'seqp')=0 THEN FileName := 'EXP_SEQPOWERS.CSV'
               ELSE FileName := 'EXP_SEQVOLTAGES.CSV';
          'y': If Parm1[2]='p' Then Filename := 'EXP_YPRIM.CSV'
                               Else Filename := 'EXP_Y.CSV';
@@ -837,8 +837,8 @@ Begin
            End; {Else}
           END;  {CASE}
 
-     's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0
-          THEN ExportSeqCurrents(FileName)
+     's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0      THEN ExportSeqCurrents(FileName)
+          ELSE If Comparetext(Copy(Parm1,1,4), 'seqp')=0 THEN ExportSeqPowers(FileName, MVAopt)
           ELSE ExportSeqVoltages(FileName);
      'y': If Parm1[2]='p' Then ExportYprim(Filename)
                           Else ExportY(Filename);
@@ -848,6 +848,8 @@ Begin
 
    Result := 0;
    InShowResults := False;
+
+   If AutoShowExport then  FireOffEditor(FileName);
 
 End;
 

@@ -781,8 +781,7 @@ Begin
 
         pdelem := PDElements.First;
         Result := cZERO;
-        While pdelem <> nil Do
-        Begin
+        While pdelem <> nil Do Begin
             IF pdelem.enabled Then Begin
               {Ignore Shunt Elements}
               If Not pdElem.IsShunt Then Caccum(Result, pdelem.losses);

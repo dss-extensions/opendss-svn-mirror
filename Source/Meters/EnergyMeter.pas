@@ -62,7 +62,7 @@ unit EnergyMeter;
 8/2/01  Fixed hole in Local only options.
 4/29/03 Added ReduceZone Function
 2/7/07  Fixed overload formulas
-9/18/08 Added load loss and no load loss registers
+9/18/08 Added load loss and no load loss registers  and aux registers
 }
 
 {$WARN UNIT_PLATFORM OFF}
@@ -314,9 +314,6 @@ VAR
    Delta_Hrs      :Double;
    PCElementList  :TList;
    PDElementList  :TList;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -911,7 +908,7 @@ Begin
                // This value will be used to set the NodeRef array (see TakeSample)
                  Setbus(1, MeteredElement.GetBus(MeteredTerminal));
                  Nphases := MeteredElement.NPhases;
-                 Nconds   := MeteredElement.Nconds;
+                 Nconds  := MeteredElement.Nconds;
                  AllocateSensorArrays;
 
                  // If we come through here, throw branchlist away
@@ -1033,7 +1030,7 @@ VAR
    TotalTransformerLosses,
    TotalLineModeLosses,    // Lines only  for now
    TotalZeroModeLosses,
-   TotalLosses :Complex;
+   TotalLosses           :Complex;
 
    CktElem,
    ParenElem :TPDElement;
@@ -1052,10 +1049,10 @@ VAR
    TotalGenkvar,
    LoadkVA,
    GenkVA,
-   S_Local_kVA   :Double;
-   S_PosSeqLosses: Complex;
-   S_ZeroSeqLosses: Complex;
-   S_NegSeqLosses: complex;
+   S_Local_kVA     :Double;
+   S_PosSeqLosses  :Complex;
+   S_ZeroSeqLosses :Complex;
+   S_NegSeqLosses  :Complex;
 
 Begin
 
@@ -1068,16 +1065,16 @@ Begin
      Integrate(Reg_kWh,   S_Local.re, Delta_Hrs);   // Accumulate the power
      Integrate(Reg_kvarh, S_Local.im, Delta_Hrs);
      SetDragHandRegister( Reg_MaxkW,  S_Local.re);   // 3-10-04 removed abs()
-     SetDragHandRegister( Reg_MaxkVA, cabs(S_Local));
+     SetDragHandRegister( Reg_MaxkVA, S_Local_kVA);
 
 // Compute Maximum overload energy in all branches in zone
 // and mark all load downline from an overloaded branch as unserved
 // If localonly, check only metered element
 
-     TotalLosses       := CZERO;     // Initialize loss accumulators
-     TotalLoadLosses   := CZERO;
-     TotalNoLoadLosses := CZERO;
-     TotalLineLosses   := CZERO;
+     TotalLosses         := CZERO;     // Initialize loss accumulators
+     TotalLoadLosses     := CZERO;
+     TotalNoLoadLosses   := CZERO;
+     TotalLineLosses     := CZERO;
      TotalLineModeLosses := CZERO;
      TotalZeroModeLosses := CZERO;
      TotalTransformerLosses   := CZERO;
@@ -1095,7 +1092,7 @@ Begin
 
      ELSE
 
-     WHILE CktElem <> NIL Do  Begin       // loop thru all ckt element on zone
+     WHILE CktElem <> NIL Do  Begin       // loop thru all ckt elements on zone
 
          CktElem.ActiveTerminalIdx := BranchList.Presentbranch.FromTerminal;
        // Invoking this property sets the Overload_UE flag in the PD Element
@@ -1109,14 +1106,14 @@ Begin
          End
          ELSE Begin
               MaxExcesskWEmerg := MaxExcesskWEmerg + UE;
-              MaxExcesskWNorm  := MaxExcesskWNorm + EEN;
+              MaxExcesskWNorm  := MaxExcesskWNorm  + EEN;
          End;
 
          // Even if this branch is not overloaded, if the parent element is overloaded
          // mark load on this branch as unserved also
          // Use the larger of the two factors
          ParenElem := BranchList.Parent;
-         IF   (ParenElem <> NIL)   Then Begin
+         IF  (ParenElem <> NIL) Then Begin
               CktElem.OverLoad_EEN := Maxvalue([CktElem.Overload_EEN, ParenElem.Overload_EEN]);
               CktElem.OverLoad_UE  := Maxvalue([CktElem.OverLoad_UE,  ParenElem.OverLoad_UE]);
          End;
@@ -1173,9 +1170,9 @@ Begin
            {Get losses from the present circuit element}
            CktElem.GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses);  // returns watts, vars
            {Convert to kW}
-            CmulRealAccum(S_TotalLosses,  0.001);
-            CmulRealAccum(S_LoadLosses,   0.001);
-            CmulRealAccum(S_NoLoadLosses, 0.001);
+           CmulRealAccum(S_TotalLosses,  0.001);
+           CmulRealAccum(S_LoadLosses,   0.001);
+           CmulRealAccum(S_NoLoadLosses, 0.001);
            {Add losses into appropriate registers; convert to kW, kvar}
            Integrate(Reg_ZoneLosseskWh,     S_TotalLosses.re,  Delta_Hrs);
            Integrate(Reg_ZoneLosseskvarh,   S_TotalLosses.im,  Delta_Hrs);
@@ -1312,6 +1309,7 @@ Var
    TestElement:TPDElement;
    PC         :TPCElement;
    IsFeederEnd:Boolean;
+   S    :String;
 
 Begin
 
@@ -1329,7 +1327,6 @@ Begin
            DoSimpleMsg('Metered Element for EnergyMeter '+Name+' not defined.', 527);
            Exit;
        End;
-
 
        {Initialize SensorObj property of the first branch to this TMeterElement Object.
         Before starting, all sensorObj definitions are cleared in PCElements and PDElements. The
@@ -1352,7 +1349,6 @@ Begin
          Checked    := True;
          IsIsolated := FALSE;
        End;
-
 
     // Now start looking for other branches
     // Finds any branch connected to the TestBranch and adds it to the list
@@ -1395,6 +1391,7 @@ Begin
                       BranchList.NewObject := pC;
                       pC.Checked := True;  // So we don't pick this element up again
                       pC.IsIsolated := FALSE;
+                      pC.ActiveTerminalIdx := 1;
                       {If object does not have a sensor attached, it acquires the sensor of its parent branch}
                       If Not pC.HasSensorObj then pC.SensorObj := TPDElement(TestBranch).SensorObj;
                       PCElementList.Delete(iPC);  // make the search list shorter
@@ -1476,6 +1473,7 @@ Begin
        If HasFeeder Then FeederObj.InitializeFeeder(BranchList);   // Synchronize the feeder definition
 
        AssignVoltBaseRegisterNames;
+
 End;
 
 {--------------------------------------------------------------------------}
@@ -2507,7 +2505,7 @@ begin
   Peakkva := Max(Cabs(cPower), Peakkva);
 
   {Get total circuit losses}
-   cLosses := ActiveCircuit.Losses;
+   cLosses := ActiveCircuit.Losses;  // PD Elements except shunts
    cLosses := CmulReal(cLosses, 0.001);  // convert to kW
 
    Integrate(Losseskwh, cLosses.re, dLosseskwh);
@@ -2589,7 +2587,6 @@ begin
   End;
 
   Try     // Write the file
-
         AssignFile(F, DI_Dir + '\Totals.CSV' );
         Rewrite(F);
         Write(F,'Year');

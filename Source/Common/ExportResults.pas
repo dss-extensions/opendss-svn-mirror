@@ -13,6 +13,7 @@ Procedure ExportCurrents(FileNm:String);
 Procedure ExportEstimation(Filenm:String);
 Procedure ExportSeqCurrents(FileNm:String);
 Procedure ExportPowers(FileNm:String; opt :Integer);
+Procedure ExportSeqPowers(FileNm:String; opt :Integer);
 Procedure ExportFaultStudy(FileNm:String);
 Procedure ExportMeters(FileNm:String);
 Procedure ExportGenMeters(FileNm:String);
@@ -467,6 +468,102 @@ Procedure ExportPowers(FileNm:String; opt :Integer);
 
 Var
     F :TextFile;
+    Nterm,  j :Integer;
+    PDElem :TPDElement;
+    PCElem :TPCElement;
+    S:Complex;
+    Separator :String;
+
+Begin
+
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+     Separator := ', ';
+
+
+     CASE Opt of
+          1:Writeln(F,'Element, Terminal, P(MW), Q(Mvar), P_Normal, Q_Normal, P_Emergency, Q_Emergency');
+     ELSE
+          Writeln(F,'Element, Terminal, P(kW), Q(kvar),  P_Normal, Q_Normal, P_Emergency, Q_Emergency');
+     End;
+
+     // PDELEMENTS first
+     PDElem := ActiveCircuit.PDElements.First;
+
+     WHILE PDElem <> nil DO
+     BEGIN
+       IF (PDElem.Enabled)
+       THEN BEGIN
+        Nterm := pDElem.Nterms;
+
+        FOR j := 1 to NTerm Do
+        Begin
+          Write(F,  Pad('"'+PDelem.DSSClassName + '.' + PDElem.Name+'"', 24), Separator, j:3);
+           PDElem.ActiveTerminalIdx := j;
+           S := PDElem.Power;
+           If Opt=1 Then S := CmulReal(S, 0.001);
+           Write(F, Separator, S.re*0.001:11:1);
+           Write(F, Separator, S.im*0.001:11:1);
+           If j = 1  Then begin
+             PDelem.ActiveTerminalIdx := 1;
+             S := PDElem.ExcesskVANorm;
+             If Opt=1 Then S := CmulReal(S, 0.001);
+             Write(F, Separator, Abs(S.re):11:1);
+             Write(F, Separator, Abs(S.im):11:1);
+             S := PDElem.ExcesskVAEmerg;
+             If Opt=1 Then S := CmulReal(S, 0.001);
+             Write(F, Separator, Abs(S.re):11:1);
+             Write(F, Separator, Abs(S.im):11:1);
+           End;
+           Writeln(F);
+        END;
+       END;
+        PDElem := ActiveCircuit.PDElements.Next;
+     END;
+
+     // PCELEMENTS Next
+     PCElem := ActiveCircuit.PCElements.First;
+
+     WHILE PCElem <> nil DO
+     BEGIN
+
+       IF (PCElem.Enabled) THEN
+       BEGIN
+        Nterm := PCElem.Nterms;
+
+        FOR j := 1 to NTerm Do
+        Begin
+           Write(F,  Pad('"'+PCElem.DSSClassName + '.' + PCElem.Name+'"', 24), Separator, j:3);
+           S := pCElem.Power ;
+           If Opt=1 Then S := CmulReal(S, 0.001);
+           Write(F, Separator, S.re*0.001:11:1);
+           Write(F, Separator, S.im*0.001:11:1);
+           Writeln(F);
+
+        END;
+       END;
+        PCElem := ActiveCircuit.PCElements.Next;
+     END;
+
+     GlobalResult := FileNm;
+
+  FINALLY
+     CloseFile(F);
+
+  End;
+End;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Procedure ExportSeqPowers(FileNm:String; opt :Integer);
+
+{Opt = 0: kVA
+ opt = 1: MVA
+ }
+
+Var
+    F :TextFile;
     cBuffer :pComplexArray;
     NCond, Nterm, i, j, k :Integer;
     PDElem :TPDElement;
@@ -859,8 +956,6 @@ Begin
         AppendGlobalResult(FileNm);
         CloseFile(F);
 
-        If AutoShowExport then  FireOffEditor(FileNm);
-        
       END;
 
 
@@ -963,8 +1058,7 @@ Begin
     End;
 
    {Either open or append the file}
-    IF RewriteFile
-    THEN Begin
+    IF RewriteFile  THEN Begin
         ReWrite(F);
         {Write New Header}
         pElem := ActiveCircuit.energyMeters.First;
@@ -976,18 +1070,15 @@ Begin
 
 
      pElem := ActiveCircuit.energyMeters.First;
-     WHILE pElem <> NIL Do
-     Begin
-        IF pElem.Enabled THEN
-        BEGIN
+     WHILE pElem <> NIL Do  Begin
+        IF pElem.Enabled THEN   BEGIN
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
-            Write(F,ActiveCircuit.LoadDurCurve, Separator);
+            Write(F,ActiveCircuit.LoadDurCurve,    Separator);
             Write(F,ActiveCircuit.Solution.Hour:0, Separator);
             Write(F,Pad('"'+pElem.Name+'"', 14));
             FOR j := 1 to NumEMRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
         END;
-
         pElem := ActiveCircuit.EnergyMeters.Next;
      End;
 

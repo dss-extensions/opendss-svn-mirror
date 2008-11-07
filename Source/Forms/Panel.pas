@@ -203,6 +203,9 @@ type
     ToolButton25: TToolButton;
     CurrentsElemResid1: TMenuItem;
     RPNEvaluator1: TMenuItem;
+    SeqPowers1: TMenuItem;
+    Yprims1: TMenuItem;
+    Y1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -344,6 +347,9 @@ type
     procedure PowersElement1Click(Sender: TObject);
     procedure CurrentsElemResid1Click(Sender: TObject);
     procedure RPNEvaluator1Click(Sender: TObject);
+    procedure SeqPowers1Click(Sender: TObject);
+    procedure Yprims1Click(Sender: TObject);
+    procedure Y1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1307,6 +1313,11 @@ begin
         End;
 end;
 
+procedure TControlPanel.Y1Click(Sender: TObject);
+begin
+     ActiveScriptForm.ExecuteDSSCommand('Export Y');
+end;
+
 procedure TControlPanel.Year1Click(Sender: TObject);
 begin
         With TValueEntryForm.Create(Nil) Do
@@ -1320,6 +1331,11 @@ begin
            Free;
         End;
 
+end;
+
+procedure TControlPanel.Yprims1Click(Sender: TObject);
+begin
+      ActiveScriptForm.ExecuteDSSCommand('Export Yprims');
 end;
 
 procedure TControlPanel.Bus1Click(Sender: TObject);
@@ -2295,6 +2311,11 @@ end;
 procedure TControlPanel.SeqCurrents1Click(Sender: TObject);
 begin
      ActiveScriptForm.ExecuteDSSCommand('Export seqcurrents');
+end;
+
+procedure TControlPanel.SeqPowers1Click(Sender: TObject);
+begin
+     ActiveScriptForm.ExecuteDSSCommand('Export seqpowers');
 end;
 
 procedure TControlPanel.Powers2Click(Sender: TObject);
