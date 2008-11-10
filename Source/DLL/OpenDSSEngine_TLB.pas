@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 10/31/2008 1:13:39 PM from Type Library described below.
+// File generated on 11/10/2008 11:40:44 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)

@@ -1812,20 +1812,19 @@ begin
        AuxParser.NextParam;
 
        With TListBoxForm.Create(nil) Do Begin
-            ListBox1.Multiselect := FALSE;
             Caption := 'Field to Plot';
             FieldName := AuxParser.StrValue;
             While Length(FieldName)>0 Do Begin
-               ListBox1.Items.Add(FieldName);
+               ComboBox1.Items.Add(FieldName);
                AuxParser.NextParam;
                FieldName := AuxParser.StrValue;
             End;
 
-            ListBox1.ItemIndex := 0;
+            ComboBox1.ItemIndex := 0;
             ShowModal;
 
             If CancelPressed Then FieldIndex := 0  // Do nothing
-            Else FieldIndex := ListBox1.ItemIndex + 1;
+            Else FieldIndex := ComboBox1.ItemIndex + 1;
             Free;
        End;
        AuxParser.Delimiters := SaveDelims;
@@ -2137,20 +2136,19 @@ begin
        AuxParser.NextParam;
 
        With TListBoxForm.Create(nil) Do Begin
-            ListBox1.Multiselect := FALSE;
             Caption := 'Field to Plot';
             FieldName := AuxParser.StrValue;
             While Length(FieldName)>0 Do Begin
-               ListBox1.Items.Add(FieldName);
+               ComboBox1.Items.Add(FieldName);
                AuxParser.NextParam;
                FieldName := AuxParser.StrValue;
             End;
 
-            ListBox1.ItemIndex := 0;
+            ComboBox1.ItemIndex := 0;
             ShowModal;
 
             If CancelPressed Then FieldIndex := 0  // Do nothing
-            Else FieldIndex := ListBox1.ItemIndex + 1;
+            Else FieldIndex := ComboBox1.ItemIndex + 1;
             Free;
        End;
        AuxParser.Delimiters := SaveDelims;
@@ -2198,18 +2196,17 @@ begin
       Cancelled := FALSE;
 
       With TListBoxForm.Create(nil) Do Begin
-            ListBox1.Multiselect := FALSE;
             Caption := 'Pick a bus';
 
             With ActiveCircuit Do
-            For i := 1 to Numbuses Do ListBox1.Items.Add(BusList.get(i));
+            For i := 1 to Numbuses Do ComboBox1.Items.Add(BusList.get(i));
 
-            ListBox1.Sorted := TRUE;
-            ListBox1.ItemIndex := 0;
+            ComboBox1.Sorted := TRUE;
+            ComboBox1.ItemIndex := 0;
             ShowModal;
 
             If CancelPressed Then Cancelled := TRUE  // Do nothing
-            Else BusName := ListBox1.Items.Strings[ListBox1.ItemIndex];
+            Else BusName := ComboBox1.Items.Strings[ComboBox1.ItemIndex];
             Free;
        End;
 
@@ -2272,16 +2269,15 @@ begin
 
      If not Cancelled Then
      With TListBoxForm.Create(nil) Do Begin
-            ListBox1.Multiselect := FALSE;
             Caption := 'Specify Units';
 
-            For i := 0 to UNITS_MAXNUM Do ListBox1.Items.Add(LineUnitsStr(i));
+            For i := 0 to UNITS_MAXNUM Do ComboBox1.Items.Add(LineUnitsStr(i));
 
-            ListBox1.ItemIndex := 0;
+            ComboBox1.ItemIndex := 0;
             ShowModal;
 
             If CancelPressed Then Cancelled := TRUE  // Do nothing
-            Else UnitsIndex := ListBox1.ItemIndex;
+            Else UnitsIndex := ComboBox1.ItemIndex;
             LenUnits := LineUnitsStr(UnitsIndex);
             Free;
        End;
@@ -2357,20 +2353,19 @@ Var
 begin
     Cancelled := FALSE;
       With TListBoxForm.Create(nil) Do Begin
-            ListBox1.Multiselect := FALSE;
             Caption := 'Select Monitor';
 
             pMon := ActiveCircuit.Monitors.First;
             While pMon <> Nil Do Begin
-                 ListBox1.Items.add(pMon.name);
+                 ComboBox1.Items.add(pMon.name);
                  pMon := ActiveCircuit.Monitors.Next;
             End ;
 
-            ListBox1.ItemIndex := 0;
+            ComboBox1.ItemIndex := 0;
             ShowModal;
 
             If CancelPressed Then Cancelled := TRUE  // Do nothing
-            Else With ListBox1 Do MonName := Items.strings[ItemIndex];
+            Else With ComboBox1 Do MonName := Items.strings[ItemIndex];
             Free;
        End;
 

@@ -8,9 +8,9 @@ uses
 
 type
   TListBoxForm = class(TForm)
-    ListBox1: TListBox;
     OKBtn: TButton;
     CancelBtn: TButton;
+    ComboBox1: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure OKBtnClick(Sender: TObject);
     procedure CancelBtnClick(Sender: TObject);
@@ -39,8 +39,8 @@ end;
 procedure TListBoxForm.OKBtnClick(Sender: TObject);
 begin
      CancelPressed := FALSE;
-     SelectedIndex := ListBox1.ItemIndex;
-     SelectedValue := ListBox1.Items.Strings[SelectedIndex];
+     SelectedIndex := ComboBox1.ItemIndex;
+     SelectedValue := ComboBox1.Items.Strings[SelectedIndex];
      Close;
 end;
 

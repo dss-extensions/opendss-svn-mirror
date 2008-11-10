@@ -3,8 +3,8 @@ object ListBoxForm: TListBoxForm
   Top = 276
   BorderStyle = bsDialog
   Caption = 'Standard DSS List Form'
-  ClientHeight = 232
-  ClientWidth = 206
+  ClientHeight = 314
+  ClientWidth = 243
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,35 +12,37 @@ object ListBoxForm: TListBoxForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object ListBox1: TListBox
-    Left = 16
-    Top = 8
-    Width = 177
-    Height = 169
-    ItemHeight = 13
-    TabOrder = 0
-    OnDblClick = ListBox1DblClick
-  end
   object OKBtn: TButton
-    Left = 16
-    Top = 192
+    Left = 8
+    Top = 264
     Width = 57
     Height = 25
     Caption = '&OK'
     Default = True
-    TabOrder = 1
+    TabOrder = 0
     OnClick = OKBtnClick
   end
   object CancelBtn: TButton
-    Left = 128
-    Top = 192
+    Left = 161
+    Top = 264
     Width = 65
     Height = 25
     Caption = '&Cancel'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = CancelBtnClick
+  end
+  object ComboBox1: TComboBox
+    Left = 8
+    Top = 8
+    Width = 218
+    Height = 21
+    AutoDropDown = True
+    DropDownCount = 16
+    ItemHeight = 13
+    TabOrder = 2
   end
 end

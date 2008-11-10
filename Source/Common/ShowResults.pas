@@ -154,7 +154,7 @@ Begin
          IF LL then Vpu := Vpu/SQRT3;
          If j=1 Then Bname := Paddots(BusList.Get(i), MaxBusNameLength)
                 Else BName := Pad('   -', MaxBusNameLength);
-         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %8.2f', [Bname,  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*SQRT3  ]));
+         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %9.3f', [Bname,  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*SQRT3  ]));
        End;
      End;
 End;
