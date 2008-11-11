@@ -45,7 +45,6 @@ TYPE
 
    TSensorObj = class(TMeterElement)
      private
-       BaseFrequency:Double;
        ValidSensor:Boolean;
        SensorkW   :pDoubleArray;
        Sensorkvar :pDoubleArray;
@@ -467,8 +466,6 @@ Begin
      Conn := 0;  // Wye
 
      ClearSensor;
-
-     Basefrequency := 60.0;
 
      DSSObjType := ParClass.DSSClassType; //SENSOR_ELEMENT;
 

@@ -714,7 +714,7 @@ Begin
             ShowBusPowers(DSSDataDirectory + CircuitName_ + FilName + '.txt', BusName, MVAOpt, ShowOptionCode);
           End;
       24: Begin {ShowLineConstants  Show Lineconstants 60 mi}
-             Freq := 60.0;  // Default
+             Freq := DefaultBaseFreq;  // Default
              Units := UNITS_KFT; // 'kft'; // default
              ParamName := parser.nextparam;
              If Length(Parser.strvalue)>0 Then Freq := Parser.dblvalue;

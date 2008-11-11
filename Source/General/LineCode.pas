@@ -471,7 +471,7 @@ BEGIN
      Z    := nil;
      Zinv := nil;
      Yc   := nil;
-     Basefrequency := 60.0;
+     Basefrequency := ActiveCircuit.Fundamental;
      Units := UNITS_NONE;  // default to none  (no conversion)
      Normamps := 400.0;
      EmergAmps := 600.0;
@@ -625,7 +625,7 @@ begin
      PropertyValue[9] :=  ''; // 'rmatrix';
      PropertyValue[10] := ''; // 'xmatrix';
      PropertyValue[11] := ''; // 'cmatrix';
-     PropertyValue[12] := '60'; // 'baseFreq';
+     PropertyValue[12] := Format('%6.1f',[DefaultBaseFreq]); // 'baseFreq';
      PropertyValue[13] :=  '400'; // 'normamps';
      PropertyValue[14] :=  '600'; // 'emergamps';
      PropertyValue[15] :=  '0.1'; // 'faultrate';

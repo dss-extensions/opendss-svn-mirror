@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 72;
+        NumExecOptions = 73;
 
 VAR
          ExecOption,
@@ -21,8 +21,6 @@ implementation
 
 Uses DSSGlobals, ParserDel, Math, Executive, ExecHelper,
      LoadShape, Utilities, sysutils, solution, energymeter;
-
-
 
 
 PROCEDURE DefineOptions;
@@ -101,6 +99,7 @@ Begin
      ExecOption[70] := 'Cfactors';
      ExecOption[71] := 'showexport';
      ExecOption[72] := 'Numallociterations';
+     ExecOption[73] := 'DefaultBaseFrequency';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -246,7 +245,7 @@ Begin
                         'the type of analysis being performed (daily, yearly, load-duration, etc.).';
      OptionHelp[52] := 'Set the active terminal of the active circuit element. May also be done with Select command.';
      OptionHelp[53] := 'Default = 60. Set the fundamental frequency for harmonic solution and the default base frequency for all impedance quantities. ' +
-                        'Side effect: also changes the value of the solution frequency.';
+                        'Side effect: also changes the value of the solution frequency. Saved as default for next circuit.';
      OptionHelp[54] := '{ALL | (list of harmonics) }  Default = ALL. Array of harmonics for which to perform a solution in Harmonics mode. ' +
                         'If ALL, then solution is performed for all harmonics defined in spectra currently being used. ' +
                         'Otherwise, specify a more limited list such as: ' +CRLF+CRLF+
@@ -293,6 +292,7 @@ Begin
      OptionHelp[70] := 'Sets the CFactors for for all loads in the active circuit to the value given.';
      OptionHelp[71] := '{YES/TRUE | NO/FALSE} Default = FALSE. If YES/TRUE will automatically show the results of an Export Command after it is written.';
      OptionHelp[72] := 'Default is 2. Maximum number of iterations for load allocations for each time the AllocateLoads or Estimate command is given.';
+     OptionHelp[73] := 'Set Default Base Frequency, Hz. Side effect: Sets solution Frequency and default Circuit Base Frequency. This value is saved when the DSS closes down.';
 
 End;
 //----------------------------------------------------------------------------
@@ -323,6 +323,7 @@ Begin
            15: DefaultEditor := Param;     // 'Editor='
            57: SetDataPath(Param);  // Set a legal data path
            67: DSSExecutive.RecorderOn := InterpretYesNo(Param);
+           73: DefaultBaseFreq  := Parser.DblValue;
          ELSE
             Begin
                 DoSimpleMsg('You must create a new circuit object first: "new circuit.mycktname" to execute this Set command.', 301);
@@ -446,7 +447,10 @@ Begin
                    ActiveTerminalIdx := Parser.IntValue;
                    SetActiveBus(StripExtension(Getbus(ActiveTerminalIdx)));   // bus connected to terminal
                 End;
-           53: ActiveCircuit.Fundamental := Parser.DblValue;     // Set Base Frequency for system (used henceforth)
+           53: Begin
+                ActiveCircuit.Fundamental        := Parser.DblValue;     // Set Base Frequency for system (used henceforth)
+                ActiveCircuit.Solution.Frequency := Parser.DblValue;
+               End;
            54: DoHarmonicsList(Param);
            55: ActiveCircuit.Solution.MaxControlIterations := Parser.IntValue;
            56: Result := SetActiveBus(Param);   // See DSSGlobals
@@ -469,6 +473,11 @@ Begin
            70: DoSetCFactors(Parser.DblValue);
            71: AutoShowExport := InterpretYesNo(Param);
            72: MaxAllocationIterations := Parser.IntValue;
+           73: Begin
+                 DefaultBaseFreq  := Parser.DblValue;
+                 ActiveCircuit.Fundamental        := Parser.DblValue;     // Set Base Frequency for system (used henceforth)
+                 ActiveCircuit.Solution.Frequency := Parser.DblValue;
+               End ;
          ELSE
            // Ignore excess parameters
          End;
@@ -604,7 +613,7 @@ Begin
            70: AppendGlobalResult('Get function not applicable.');
            71: If AutoShowExport Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
            72: AppendGlobalResult(Format('%d' ,[MaxAllocationIterations])) ;
-
+           73: AppendGlobalResult(Format('%d', [Round(DefaultBaseFreq)]));
          ELSE
            // Ignore excess parameters
          End;

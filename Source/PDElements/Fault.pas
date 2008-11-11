@@ -64,8 +64,7 @@ TYPE
         RandomMult:Double;
         FUNCTION FaultStillGoing: Boolean;
       Protected
-        G,          // single G per phase (line rating) if Gmatrix not specified
-        BaseFrequency:Double;
+        G :Double;         // single G per phase (line rating) if Gmatrix not specified
         Gmatrix: pDoubleArray;  // If not nil then overrides G
 
         Stddev:Double;  // per unit stddev
@@ -391,7 +390,6 @@ BEGIN
      IsShunt := True;
 
      Gmatrix       := nil;
-     Basefrequency := 60.0;
      G             := 10000.0;
      SpecType      := 1; // G  2=Gmatrix
 

@@ -130,7 +130,6 @@ TYPE
 
       public
 
-        BaseFrequency      :double ;
         Connection         :Integer;  {     0 = line-neutral; 1=Delta}
         DailyShape         :String;         // Daily (24 HR) load shape
         DailyShapeObj      :TLoadShapeObj;  // Daily load Shape FOR this load
@@ -699,7 +698,6 @@ Begin
      FkWhDays       := 30.0;
      VminNormal     := 0.0;    // indicates for program to use Circuit quantities
      VminEmerg      := 0.0;
-     Basefrequency  := 60.0;
      kVLoadBase     := 12.47;
      VBase          := 7200.0;
      VminPu         := 0.95;

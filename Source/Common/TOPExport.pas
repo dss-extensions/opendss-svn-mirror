@@ -66,7 +66,7 @@ VAR
 
 implementation
 
-Uses ComObj, SysUtils, Dialogs, ActiveX;
+Uses ComObj, SysUtils, Dialogs, ActiveX, DSSGlobals;
 Var
   TOP_Inited:Boolean;
 
@@ -133,7 +133,7 @@ BEGIN
          Signature := 'SuperTran V1.00'#0;
          VersionMajor := 1;
          VersionMinor := 1;
-         FBase := 60.0;
+         FBase := DefaultBaseFreq;
          VBase := 1.0;
          tStart := 0;
          TFinish := 0;

@@ -610,7 +610,7 @@ Begin
      rho := 100.0;
      FrhoSpecified :=FALSE;
 
-     {Basefrequency := 60.0;}  // set in base class to system base
+     {Basefrequency := 60.0;}  // set in base class
      Normamps := 400.0;
      EmergAmps := 600.0;
      PctPerm := 20.0;

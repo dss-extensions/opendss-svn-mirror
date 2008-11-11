@@ -174,6 +174,8 @@ VAR
    DSSDataDirectory :String;
    CircuitName_     :String;     // Name of Circuit with a "_" appended
 
+   DefaultBaseFreq  :Double;
+
 
 
 PROCEDURE DoErrorMsg(Const S, Emsg, ProbCause :String; ErrNum:Integer);
@@ -772,6 +774,8 @@ initialization
    MaxAllocationIterations := 2;
    SolutionAbort         := FALSE;
    AutoShowExport        := FALSE;
+
+   DefaultBaseFreq       := 60.0;
 
    {Initialize filenames and directories}
 

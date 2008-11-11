@@ -206,6 +206,8 @@ type
     SeqPowers1: TMenuItem;
     Yprims1: TMenuItem;
     Y1: TMenuItem;
+    LBL_DefaultFreq: TLabel;
+    ToolButton20: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -478,6 +480,9 @@ begin
 
     Writeln(F,'[Editor]');
     Writeln(F, DefaultEditor);
+
+    Writeln(F,'[BaseFrequency]');
+    Writeln(F, Format('%d',[Round(DefaultBaseFreq)]));
 
     Writeln(F,'[LastFile]');
     Writeln(F, LastFileCompiled);
@@ -807,6 +812,15 @@ begin
           End;
       End;
 
+      If CompareText(TextLine, '[BaseFrequency]')=0 Then Begin
+          While Not Eof(F) Do Begin
+              Readln(F, TextLine);
+              If Length(TextLine)>0 Then
+              If TextLine[1]='[' Then Break;
+              DefaultBaseFreq := StrToInt(TextLine);
+          End;
+      End;
+
       If CompareText(TextLine, '[LastFile]')=0 Then Begin
           While Not Eof(F) Do Begin
               Readln(F, TextLine);
@@ -992,6 +1006,7 @@ begin
        TraceLog1.Checked := ControlQueue.TraceLog;
        Trapezoidal1.checked := TrapezoidalIntegration;
      End;
+     LBL_DefaultFreq.Caption := Format('Base Frequency = %d Hz ', [Round(DefaultBaseFreq) ]);
 end;
 
 procedure TControlPanel.RecordScript1Click(Sender: TObject);
@@ -2254,12 +2269,12 @@ begin
      { Show LineConstants  Freq   [none|mi|km|kft|m|me|ft|in|cm] }
 
       Cancelled := FALSE;
-      Freq := '60';
+      Freq := Format('%d',[Round(DefaultBaseFreq)]);
       UnitsIndex := 0;
       With TValueEntryForm.Create(Nil) Do
         Begin
            Caption:='Freq (Hz)';
-           Edit1.text := '60';
+           Edit1.text := Freq;
            Showmodal;
            If OKPressed Then Begin
                Freq := Edit1.text;

@@ -232,7 +232,7 @@ BEGIN
      CaseName    := FName;  // Default case name to circuitname
                             // Sets CircuitName_
 
-     Fundamental  := 60.0;
+     Fundamental  := DefaultBaseFreq;
      ActiveCktElement := nil;
      ActiveBusIndex := 1;    // Always a bus
 

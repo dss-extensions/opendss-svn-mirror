@@ -149,7 +149,7 @@ Begin
      PropertyHelp[3] := 'Per unit of the base voltage that the source is actually operating at.'+ CRLF +
                      '"pu=1.05"';
      PropertyHelp[4] := 'Phase angle in degrees of first phase: e.g.,Angle=10.3';
-     PropertyHelp[5] := 'Source frequency.  Defaults to  60 Hz.';
+     PropertyHelp[5] := 'Source frequency.  Defaults to system default base frequency.';
      PropertyHelp[6] := 'Number of phases.  Defaults to 3.';
      PropertyHelp[7] := 'MVA Short circuit, 3-phase fault. Default = 2000. ' +
                         'Z1 is determined by squaring the base kv and dividing by this value. '+
@@ -701,7 +701,7 @@ begin
      PropertyValue[2]  := '115';
      PropertyValue[3]  := '1';
      PropertyValue[4]  := '0';
-     PropertyValue[5]  := '60';
+     PropertyValue[5]  := Format('%d',[Round(DefaultBaseFreq)]);
      PropertyValue[6]  := '3';
      PropertyValue[7]  := '2000';
      PropertyValue[8]  := '2100';

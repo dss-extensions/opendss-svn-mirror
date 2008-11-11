@@ -201,7 +201,6 @@ TYPE
 
       public
         
-        BaseFrequency   :double ;
         Connection      :Integer;  {0 = line-neutral; 1=Delta}
         DailyDispShape  :String;  // Daily (24 HR) Generator shape
         DailyDispShapeObj :TLoadShapeObj;  // Daily Generator Shape for this load
@@ -843,7 +842,6 @@ Begin
      OpenGeneratorSolutionCount := -1;
      YPrimOpenCond              := nil;
 
-     Basefrequency    := 60.0;
      GenVars.kVGeneratorBase  := 12.47;
      Vpu              := 1.0;
      VTarget          := 1000.0 * Vpu * GenVars.kVGeneratorBase / SQRT3;  {Line-to-Neutral target}
@@ -874,7 +872,7 @@ Begin
        Xdpp       :=  puXdpp * SQR(kVGeneratorBase) * 1000.0 / kVARating;
        Hmass      := 1.0;       //  W-sec/VA rating
        Theta      := 0.0;
-       w0         := TwoPi * 60.0;     // for 60 Hz
+       w0         := TwoPi * Basefrequency;
        Speed      := 0.0;
        dSpeed     := 0.0;
        D          := 1.0;
