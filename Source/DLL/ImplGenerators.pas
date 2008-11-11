@@ -1,4 +1,10 @@
 unit ImplGenerators;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
   1-12-00  Modified first..Next to reurn only enabled generators

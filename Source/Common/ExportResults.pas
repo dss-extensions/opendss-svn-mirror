@@ -1,6 +1,12 @@
 unit ExportResults;
 
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{
    2-25-00 Created
    5-30-00 Added code for handling positive sequence mode
 }

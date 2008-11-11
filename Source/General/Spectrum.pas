@@ -1,4 +1,10 @@
 unit Spectrum;
+ {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 { Created 10/25/00
 

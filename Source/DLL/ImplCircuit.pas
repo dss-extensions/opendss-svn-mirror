@@ -1,4 +1,10 @@
 unit ImplCircuit;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
  10/14/99  Corrected the calculation of Circuit Losses

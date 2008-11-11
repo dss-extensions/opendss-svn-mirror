@@ -1,4 +1,10 @@
 unit DSSPlot;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
   Unit for interfacing to Plotting form

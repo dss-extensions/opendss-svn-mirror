@@ -1,4 +1,10 @@
 unit Bus;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
  2/4/03 added Zsc and Zsc1, Zsc0 properties

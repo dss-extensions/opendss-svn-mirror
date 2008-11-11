@@ -51,7 +51,7 @@ object MainEditForm: TMainEditForm
     TabOrder = 1
     object FontBtn: TButton
       Left = 0
-      Top = 2
+      Top = 0
       Width = 89
       Height = 22
       Caption = 'Font...'

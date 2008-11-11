@@ -1,4 +1,10 @@
 unit Equivalent;
+ {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {Multi terminal, multi-phase Short Circuit (Thevinen) Equivalent
 

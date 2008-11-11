@@ -1,5 +1,11 @@
 unit CktElementClass;
 
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 { Created 5/17/01 RCD to balance inheritance tree for Circuit Elements}
 
 {$M+}

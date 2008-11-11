@@ -1,5 +1,11 @@
 unit Notes;
- {Dummy module just for development notes.}
+ {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{Dummy module just for development notes.}
 interface
 
 implementation

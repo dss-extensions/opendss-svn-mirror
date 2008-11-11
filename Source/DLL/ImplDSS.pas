@@ -1,4 +1,10 @@
 unit ImplDSS;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {This is the class that gets registered}
 

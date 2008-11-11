@@ -1,4 +1,10 @@
 unit ImplMeters;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
    1-12-00  Modified first..next to return only enabled Meters

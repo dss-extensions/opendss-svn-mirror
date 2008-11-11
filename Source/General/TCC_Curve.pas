@@ -1,4 +1,10 @@
 unit TCC_Curve;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 { Created 8-25-00 }
 

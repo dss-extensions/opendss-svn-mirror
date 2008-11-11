@@ -1,4 +1,10 @@
 unit Fault;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
    3-1-00 Restored old Dump

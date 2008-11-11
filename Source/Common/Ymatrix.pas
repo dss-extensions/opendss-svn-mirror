@@ -1,4 +1,10 @@
 unit Ymatrix;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
    Unit to manage System Y matrix

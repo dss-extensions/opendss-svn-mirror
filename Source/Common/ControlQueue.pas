@@ -1,4 +1,10 @@
 unit ControlQueue;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
    11-1-00 added Handle and delete function

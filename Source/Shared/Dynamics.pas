@@ -1,4 +1,10 @@
 unit Dynamics;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {Definitions of constants and structures for user-written dynamic generator models}
 

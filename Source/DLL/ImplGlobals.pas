@@ -1,4 +1,10 @@
 unit ImplGlobals;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 // Globals for the implementation of the interface
 { Change Log
  8-14-99 Added DSSProgress

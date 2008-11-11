@@ -1,4 +1,10 @@
 unit Reactor;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {   10-26-00  Created from Capacitor  object
     3-2-06 Added Parallel Option and corrected frequency adjustments

@@ -1,5 +1,11 @@
 unit GenDispatcher;
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{
   A GenDispatcher is a control element that is connected to a terminal of another
   circuit element and sends dispatch kW signals to a set of generators it controls
 

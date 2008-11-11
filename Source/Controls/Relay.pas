@@ -1,4 +1,10 @@
 unit Relay;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
     Created 8-24-00 from CktElement Control

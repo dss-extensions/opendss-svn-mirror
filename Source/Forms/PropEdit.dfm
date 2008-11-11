@@ -16,6 +16,9 @@ object PropEditForm: TPropEditForm
   OldCreateOrder = False
   OnCreate = FormCreate
   OnShow = FormShow
+  DesignSize = (
+    205
+    96)
   PixelsPerInch = 96
   TextHeight = 13
   object StringGrid1: TStringGrid

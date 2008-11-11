@@ -1,6 +1,13 @@
 unit Sensor;
 
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+
+{
    Change Log
    8-24-2007 Created from Monitor Object
    Sept-Oct 2008 Modified for new load allocation and state estimator algorithms

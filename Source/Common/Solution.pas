@@ -1,4 +1,10 @@
 unit Solution;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 { Change Log
  8-14-99 Added progress display and abort on longer solution types

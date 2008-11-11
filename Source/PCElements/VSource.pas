@@ -1,4 +1,10 @@
 unit VSource;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
  2-17-00  Change Log

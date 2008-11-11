@@ -1,5 +1,12 @@
 unit Load;
 
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+
 //  The load is assumed balanced over the no. of phases defined
 // To model unbalanced loads, define separate single-phase loads
 
@@ -1234,7 +1241,7 @@ Begin
              Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
         End;
         Caccum(Curr, Cvar);  // add in Q component of current
-
+{****  WriteDLLDebugFile(Format('%s, %d, %-.5g, %-.5g, %-.5g, %-.5g, %-.5g, %-.5g, %-.5g, %-.5g ', [Name, i, Vmag, VRatio, Wnominal, WattFactor, VarNominal, VarFactor, Cabs(Curr), Cmul(V, Conjg(Curr)).re]));}
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
         IterminalUpdated := TRUE;
         StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection

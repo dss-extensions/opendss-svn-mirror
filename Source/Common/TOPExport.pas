@@ -1,4 +1,10 @@
 unit TOPExport;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {Supports Creation of a STO file for interfacing to TOP and the
  invoking of TOP.}

@@ -1,4 +1,10 @@
 unit Capacitor;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {   4-17-00  Made IsShunt Public
     12-7-04 Added Reactance in series with each capacitor

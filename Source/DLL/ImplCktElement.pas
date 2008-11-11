@@ -1,4 +1,10 @@
 unit ImplCktElement;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
    5-17-00 Fixed bug in SeqCurrents and SeqPowers with location of Reallocmem

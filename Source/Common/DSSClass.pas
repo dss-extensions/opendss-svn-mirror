@@ -1,5 +1,11 @@
 unit DSSClass;
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{
  Base Class for all DSS collection classes.
  Keeps track of objects of each class, dispatches edits, etc
 }

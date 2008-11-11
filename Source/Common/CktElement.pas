@@ -1,6 +1,12 @@
 unit CktElement;
 
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{
      2-17-00 Modified Get_ConductorClosed to handle Index=0
      7-14-01 Changed way Enabled property works.
      8-17-06 Caught BusnameRedefined error when nconds changed

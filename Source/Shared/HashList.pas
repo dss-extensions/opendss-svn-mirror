@@ -1,4 +1,10 @@
 unit HashList;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {
   This Hash list module is designed to make searches on arrays of strings more

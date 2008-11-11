@@ -1,4 +1,10 @@
 unit OHLineConstants;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {Manages the geometry data and calculates the impedance matrices for an overhead line}
 

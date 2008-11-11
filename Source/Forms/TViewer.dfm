@@ -1,9 +1,9 @@
 object TViewForm: TTViewForm
   Left = 283
   Top = 184
-  Width = 656
-  Height = 521
   Caption = 'TViewForm'
+  ClientHeight = 467
+  ClientWidth = 648
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -26,17 +26,17 @@ object TViewForm: TTViewForm
     Left = 0
     Top = 0
     Width = 648
-    Height = 472
+    Height = 467
     Align = alClient
     AutoExpand = True
     Indent = 19
     ReadOnly = True
     TabOrder = 0
     OnMouseDown = TreeView1MouseDown
-    Items.Data = {
-      010000001D0000000000000000000000FFFFFFFFFFFFFFFF0000000001000000
-      044974656D20000000000000000000000000000000FFFFFFFF00000000000000
-      00077375624974656D}
+    Items.NodeData = {
+      0101000000210000000000000000000000FFFFFFFFFFFFFFFF00000000010000
+      00044900740065006D0027000000000000000000000000000000FFFFFFFF0000
+      000000000000077300750062004900740065006D00}
   end
   object MainMenuTView: TMainMenu
     Left = 264

@@ -1,4 +1,10 @@
 unit GrowthShape;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {  8-18-00 Added call to InterpretDblArrayto allow File=Syntax }
 

@@ -1,4 +1,10 @@
 unit IniRegSave;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 { Simple unit to create an Ini file equivalent in the registry.
   By default, creates a key under HKEY_CURRENT_USER

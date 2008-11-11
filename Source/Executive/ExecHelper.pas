@@ -1,4 +1,10 @@
 unit ExecHelper;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {Functions for performing DSS Exec Commands and Options}
 {

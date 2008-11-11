@@ -1,5 +1,11 @@
 unit AutoAdd;
 
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 {  Unit for processing the AutoAdd Solution FUNCTIONs
 
   Note: Make sure this class in instantiated after energymeter class

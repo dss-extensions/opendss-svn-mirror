@@ -1,8 +1,14 @@
 unit ParserDel;
 {
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
+{
    Command Line Parser Class
 
-   This Version is a Simple for for Direct Inclusion in Delphi Programs.
+   This Version is a Simple version for embedding in Delphi Programs.
 
    3/20/01  Added Quote char properties and strings
 }

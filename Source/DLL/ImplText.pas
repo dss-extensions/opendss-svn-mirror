@@ -1,4 +1,10 @@
 unit ImplText;
+{
+  ----------------------------------------------------------
+  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
 {8-14-00 RCD Revised Get_Result for D5}
 
