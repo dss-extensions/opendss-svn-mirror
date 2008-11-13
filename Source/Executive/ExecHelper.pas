@@ -924,7 +924,7 @@ FUNCTION DoEnableCmd:Integer;
 
 Var Objtype, ObjName:String;
     ClassPtr:TDSSClass;
-    CktElem:TCktElement;
+    CktElem:TDSSCktElement;
     i:Integer;
 
 
@@ -975,7 +975,7 @@ FUNCTION DoDisableCmd:Integer;
 
 Var Objtype, ObjName:String;
     ClassPtr:TDSSClass;
-    CktElem:TCktElement;
+    CktElem:TDSSCktElement;
     i:Integer;
 
 
@@ -2314,7 +2314,7 @@ FUNCTION DovoltagesCmd(Const PerUnit:Boolean): Integer;
 VAR
   i:Integer;
   Volts:Complex;
-  ActiveBus:TBus;
+  ActiveBus:TDSSBus;
   VMag:Double;
 
 Begin
@@ -2350,7 +2350,7 @@ FUNCTION DoZscCmd(Zmatrix:Boolean): Integer;
 
 VAR
   i,j:Integer;
-  ActiveBus:TBus;
+  ActiveBus:TDSSBus;
   Z:Complex;
 
 Begin
@@ -2387,7 +2387,7 @@ FUNCTION DoZsc10Cmd: Integer;
 // Bus Short Circuit matrix
 
 VAR
-  ActiveBus:TBus;
+  ActiveBus:TDSSBus;
   Z:Complex;
 
 Begin
@@ -2780,7 +2780,7 @@ End;
 FUNCTION DoMakePosSeq:Integer;
 
 Var
-   CktElem:TCktElement;
+   CktElem:TDSSCktElement;
 
 Begin
     Result := 0;
@@ -2851,7 +2851,7 @@ VAR
     MeterClass: TEnergyMeter;
     ParamName, Param  :String;
     DevClassIndex:Integer;
-    CktElem:TCktElement;
+    CktElem:TDSSCktElement;
 
 Begin
     Result := 0;
@@ -3416,8 +3416,8 @@ Begin
      Devindex := GetCktElementIndex(ElemName); // Global function
      IF DevIndex > 0 THEN Begin  //  element must already exist
         pElem := ActiveCircuit.CktElements.Get(DevIndex);
-        If pElem is TCktElement Then Begin
-           DSSPlotObj.DoVisualizationPlot(TCktElement(pElem), Quantity);
+        If pElem is TDSSCktElement Then Begin
+           DSSPlotObj.DoVisualizationPlot(TDSSCktElement(pElem), Quantity);
         End Else Begin
           DoSimpleMsg(pElem.Name + ' must be a circuit element type!', 282);   // Wrong type
         End;

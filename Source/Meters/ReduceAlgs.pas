@@ -88,7 +88,7 @@ end;
 
 procedure DoReduceDangling(var BranchList:TCktTree);
 VAr
-        pLineElem1:TCktElement;
+        pLineElem1:TDSSCktElement;
         ToBusRef:Integer;
 begin
   If BranchList <> Nil Then

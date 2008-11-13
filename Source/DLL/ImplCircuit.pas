@@ -271,7 +271,7 @@ Begin
        Result := VarArrayCreate([0, NumDevices-1], varOleStr);
        FOR i := 1 to NumDevices DO
        Begin
-            WITH  TCktElement(CktElements.Get(i)) DO
+            WITH  TDSSCktElement(CktElements.Get(i)) DO
              Result[i-1] := ParentClass.Name + '.' + Name;
        End;
      End
@@ -312,7 +312,7 @@ function TCircuit.Get_TotalPower: OleVariant;
 
 // Returns result in kW
 
-VAR pCktElem:TCktElement;
+VAR pCktElem:TDSSCktElement;
     cPower:Complex;
 
 Begin
@@ -371,7 +371,7 @@ end;
 
 function TCircuit.FirstPCElement: Integer;
 VAR
-   p:TCktElement;
+   p:TDSSCktElement;
 
 { Returns first enabled element}
 
@@ -423,7 +423,7 @@ end;
 function TCircuit.NextPCElement: Integer;
 
 VAR
-   p:TCktElement;
+   p:TDSSCktElement;
 
 Begin
       Result := 0;
@@ -492,7 +492,7 @@ end;
 function TCircuit.Get_AllElementLosses: OleVariant;
 
 Var
-  pCktElem:TCktElement;
+  pCktElem:TDSSCktElement;
   cLoss:Complex;
   k:Integer;
 

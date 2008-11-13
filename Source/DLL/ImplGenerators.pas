@@ -39,7 +39,7 @@ uses ComServ,
      SysUtils,
      Variants;
 
-Function IsGenerator(Const CktElem:TCktElement):Boolean;
+Function IsGenerator(Const CktElem:TDSSCktElement):Boolean;
 
 Begin
       Result := ((CktElem.DssObjtype AND CLASSMASK) = GEN_ELEMENT);

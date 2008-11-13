@@ -20,7 +20,7 @@ USES
 
 TYPE
 
-   TCktElement = class(TDSSObject)
+   TDSSCktElement = class(TDSSObject)
     private
 
       FBusNames: pStringArray;
@@ -77,7 +77,7 @@ TYPE
       HasControl,
       IsPartofFeeder  :Boolean;  // Flag used in tree searches etc
 
-      ControlElement  :TCktElement; //Pointer to control for this device
+      ControlElement  :TDSSCktElement; //Pointer to control for this device
       
       Iterminal:pComplexArray;  // Others need this
       Vterminal:pComplexArray;
@@ -141,7 +141,7 @@ implementation
 USES DSSGlobals, SysUtils, Utilities, Math;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-constructor TCktElement.Create(ParClass:TDSSClass);
+constructor TDSSCktElement.Create(ParClass:TDSSClass);
 Begin
 
      Inherited Create(ParClass);
@@ -183,7 +183,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-destructor TCktElement.Destroy;
+destructor TDSSCktElement.Destroy;
 VAR
    i:Integer;
 Begin
@@ -206,7 +206,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_YprimInvalid(Value:Boolean);
+PROCEDURE TDSSCktElement.Set_YprimInvalid(Value:Boolean);
 Begin
     FYPrimInvalid := value;
     IF   Value   THEN Begin
@@ -218,7 +218,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_ActiveTerminal(value:Integer);
+PROCEDURE TDSSCktElement.Set_ActiveTerminal(value:Integer);
 Begin
    IF (Value > 0) and (Value <= fNterms) THEN
      Begin
@@ -227,7 +227,7 @@ Begin
      End;
 End;
 
-FUNCTION TCktElement.Get_ConductorClosed(Index:Integer):Boolean;
+FUNCTION TDSSCktElement.Get_ConductorClosed(Index:Integer):Boolean;
 
 // return state of selected conductor
 // if index=0 return true if all phases closed, else false
@@ -254,7 +254,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_ConductorClosed(Index:Integer; Value:Boolean);
+PROCEDURE TDSSCktElement.Set_ConductorClosed(Index:Integer; Value:Boolean);
 VAR
    i:Integer;
 Begin
@@ -282,7 +282,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_NConds(Value:Integer);
+PROCEDURE TDSSCktElement.Set_NConds(Value:Integer);
 
 Begin
     If Value>0 THEN Begin
@@ -293,13 +293,13 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_NPhases(Value:Integer);
+PROCEDURE TDSSCktElement.Set_NPhases(Value:Integer);
 Begin
     If Value>0 Then Fnphases := Value;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_NTerms(Value:Integer);
+PROCEDURE TDSSCktElement.Set_NTerms(Value:Integer);
 VAR
    i:Integer;
    NewBusNames:pStringArray;
@@ -367,7 +367,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_Enabled(Value:Boolean);
+PROCEDURE TDSSCktElement.Set_Enabled(Value:Boolean);
 //  If disabled, but defined, just have to processBusDefs.  Adding a bus OK
 // If being removed from circuit, could remove a node or bus so have to rebuild
 //VAR
@@ -399,7 +399,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.GetYPrim(Var Ymatrix:TCmatrix; Opt:Integer):Integer;
+FUNCTION TDSSCktElement.GetYPrim(Var Ymatrix:TCmatrix; Opt:Integer):Integer;
 //returns pointer to actual YPrim
 
 Begin
@@ -412,7 +412,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.GetYPrimValues(Opt:Integer):pComplexArray;
+FUNCTION TDSSCktElement.GetYPrimValues(Opt:Integer):pComplexArray;
 // Return a pointer to the Beginning the storage arrays for fast access
 Var
    Norder:Integer;
@@ -432,7 +432,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.GetCurrents(Curr: pComplexArray);  //Get present value of terminal Curr for reports
+PROCEDURE TDSSCktElement.GetCurrents(Curr: pComplexArray);  //Get present value of terminal Curr for reports
 
 Begin
 
@@ -444,7 +444,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.GetInjCurrents(Curr: pComplexArray);
+PROCEDURE TDSSCktElement.GetInjCurrents(Curr: pComplexArray);
 
 Begin
 
@@ -453,7 +453,7 @@ Begin
 
 End;
 
-procedure TCktElement.GetLosses(var TotalLosses, LoadLosses,
+procedure TDSSCktElement.GetLosses(var TotalLosses, LoadLosses,
   NoLoadLosses: Complex);
 begin
   {For no override, Default behavior is:
@@ -466,7 +466,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.InjCurrents:Integer;  // Applies to PC Elements
+FUNCTION TDSSCktElement.InjCurrents:Integer;  // Applies to PC Elements
 
 Begin
     Result := 0;
@@ -476,7 +476,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.SetNodeRef(iTerm:Integer; NodeRefArray:pIntegerArray);
+PROCEDURE TDSSCktElement.SetNodeRef(iTerm:Integer; NodeRefArray:pIntegerArray);
 
 // Also allocates VTemp  & Itemp
 
@@ -497,7 +497,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.Get_FirstBus:String;
+FUNCTION TDSSCktElement.Get_FirstBus:String;
 Begin
    IF FNterms>0 THEN
     Begin
@@ -508,7 +508,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.Get_NextBus:String;
+FUNCTION TDSSCktElement.Get_NextBus:String;
 Begin
    Result := '';
    IF FNterms>0 THEN
@@ -520,7 +520,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.GetBus(i:Integer):String;  // Get bus name by index
+FUNCTION TDSSCktElement.GetBus(i:Integer):String;  // Get bus name by index
 
 Begin
    IF i<= FNTerms THEN
@@ -530,7 +530,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.SetBus(i:Integer; const s:String); // Set bus name by index
+PROCEDURE TDSSCktElement.SetBus(i:Integer; const s:String); // Set bus name by index
 Begin
 
   IF i<=FNterms THEN
@@ -542,19 +542,19 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.Set_Freq(Value:Double);
+PROCEDURE TDSSCktElement.Set_Freq(Value:Double);
 Begin
     If Value>0.0 Then FYprimFreq := Value;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.RecalcElementData;
+PROCEDURE TDSSCktElement.RecalcElementData;
 Begin
     DoSimpleMsg('Virtual proc RecalcElementData in Base CktElement Class Called for Device = "' + Name +'"', 754);
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.CalcYPrim;
+PROCEDURE TDSSCktElement.CalcYPrim;
 
 Begin
 
@@ -565,7 +565,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.ComputeIterminal;
+PROCEDURE TDSSCktElement.ComputeIterminal;
 Begin
 
 // to save time, only recompute if a different solution than last time it was computed.
@@ -576,7 +576,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.MaxTerminalOneIMag:Double;
+FUNCTION TDSSCktElement.MaxTerminalOneIMag:Double;
 
 { Get max of phase currents on the first terminal; Requires computing Iterminal
 }
@@ -591,7 +591,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION  TCktElement.Get_Power:Complex;    // Get total complex power in active terminal
+FUNCTION  TDSSCktElement.Get_Power:Complex;    // Get total complex power in active terminal
 
 VAR
    cPower:Complex;
@@ -626,7 +626,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TCktElement.Get_Losses:Complex;
+FUNCTION TDSSCktElement.Get_Losses:Complex;
 // get total losses in circuit element, all phases, all terminals.
 // Returns complex losses (watts, vars)
 
@@ -660,7 +660,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.GetPhasePower( PowerBuffer:pComplexArray);
+PROCEDURE TDSSCktElement.GetPhasePower( PowerBuffer:pComplexArray);
 // Get the power in each phase (complex losses) of active terminal
 // neutral conductors are ignored by this routine
 VAR
@@ -688,7 +688,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.GetPhaseLosses(Var Num_Phases:Integer; LossBuffer:pComplexArray);
+PROCEDURE TDSSCktElement.GetPhaseLosses(Var Num_Phases:Integer; LossBuffer:pComplexArray);
 // Get the losses in each phase (complex losses);  Power difference coming out
 // each phase. Note: This can be misleading if the nodev voltage is greatly unbalanced.
 // neutral conductors are ignored by this routine
@@ -722,7 +722,7 @@ Begin
           For i := 1 to Num_Phases Do LossBuffer^[i] := cZero;
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TCktElement.DumpProperties(Var F:TextFile; Complete:Boolean);
+PROCEDURE TDSSCktElement.DumpProperties(Var F:TextFile; Complete:Boolean);
 
 VAR
    i,j:Integer;
@@ -783,7 +783,7 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-PROCEDURE TCktElement.DoYprimCalcs(Ymatrix: TCMatrix);
+PROCEDURE TDSSCktElement.DoYprimCalcs(Ymatrix: TCMatrix);
 
 Var i, j, k , ii, jj,  ElimRow :Integer;
     Ynn, Yij, Yin, Ynj    :Complex;
@@ -832,7 +832,7 @@ Begin
 end;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-PROCEDURE TCktElement.SumCurrents;
+PROCEDURE TDSSCktElement.SumCurrents;
 
 // sum Terminal Currents into System  Currents Array
 // Primarily for Newton Iteration
@@ -849,7 +849,7 @@ Begin
       End;
 end;
 
-PROCEDURE TCktElement.GetTermVoltages(iTerm: Integer;   VBuffer: PComplexArray);
+PROCEDURE TDSSCktElement.GetTermVoltages(iTerm: Integer;   VBuffer: PComplexArray);
 
 // Bus Voltages at indicated terminal
 // Fill Vbuffer array which must be adequately allocated by calling routine
@@ -887,7 +887,7 @@ Begin
 End;
 
 
-procedure TCktElement.InitPropertyValues(ArrayOffset: Integer);
+procedure TDSSCktElement.InitPropertyValues(ArrayOffset: Integer);
 begin
  
     PropertyValue[ArrayOffset + 1] := Format('%-g',[BaseFrequency]);  // Base freq
@@ -897,7 +897,7 @@ begin
     inherited InitPropertyValues(ArrayOffset + 2);
 end;
 
-function TCktElement.GetPropertyValue(Index: Integer): String;
+function TDSSCktElement.GetPropertyValue(Index: Integer): String;
 begin
       If Index = FEnabledProperty Then
        Begin
@@ -907,7 +907,7 @@ begin
       Else Result := Inherited GetPropertyValue(Index);
 end;
 
-procedure TCktElement.GetSeqLosses(var PosSeqLosses, NegSeqLosses, ZeroModeLosses: complex);
+procedure TDSSCktElement.GetSeqLosses(var PosSeqLosses, NegSeqLosses, ZeroModeLosses: complex);
 begin
 
 { For the base class, just return CZERO}
@@ -920,7 +920,7 @@ begin
 
 end;
 
-procedure TCktElement.MakePosSequence;
+procedure TDSSCktElement.MakePosSequence;
 Var
         i:Integer;
 begin
@@ -929,7 +929,7 @@ begin
         End;
 end;
 
-procedure TCktElement.ComputeVterminal;
+procedure TDSSCktElement.ComputeVterminal;
 
 {Put terminal voltages in an array}
 
@@ -942,7 +942,7 @@ end;
 
 
 
-procedure TCktElement.ZeroITerminal;
+procedure TDSSCktElement.ZeroITerminal;
 Var i:Integer;
 
 begin

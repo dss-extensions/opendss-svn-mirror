@@ -17,7 +17,7 @@ USES ArrayDef, uComplex, uCMatrix;
 TYPE
 
 
-   TBus = class(TObject)
+   TDSSBus = class(TObject)
      private
 
         FNumNodesThisBus:  Integer;
@@ -37,7 +37,8 @@ TYPE
        Ysc          :TCMatrix;
 
        x,y,              // coordinates
-       kVBase       :Double;  // Base kV for each node to ground (0)
+       kVBase,
+       DistFromMeter       :Double;  // Base kV for each node to ground (0)
 
        CoordDefined,
        BusChecked,
@@ -66,7 +67,7 @@ TYPE
 
    // Bus Collection
    pTBusArray = ^TBusArray;
-   TBusArray = Array[1..10] of TBus;
+   TBusArray = Array[1..10] of TDSSBus;
 
 
    TNodeBus = Record
@@ -83,26 +84,27 @@ implementation
 USES
     DSSGlobals, SysUtils;
 
-constructor TBus.Create;
+constructor TDSSBus.Create;
 Begin
     Inherited Create;
     Allocation := 3;
     Nodes := AllocMem(Sizeof(Nodes^[1])*Allocation);
     RefNo := AllocMem(Sizeof(RefNo^[1])*Allocation);
     FNumNodesThisBus := 0;
-    Ysc := Nil;
-    Zsc := Nil;
-    VBus := nil;
-    BusCurrent := nil;
-    kVBase := 0.0;  // Signify that it has not been set
-    x := 0.0;
-    y := 0.0;
-    CoordDefined := FALSE;
-    Keep := FALSE;
-    IsRadialBus := FALSE;  
+    Ysc              := Nil;
+    Zsc              := Nil;
+    VBus             := nil;
+    BusCurrent       := nil;
+    kVBase           := 0.0;  // Signify that it has not been set
+    x                := 0.0;
+    y                := 0.0;
+    DistFromMeter    := 0.0;
+    CoordDefined     := FALSE;
+    Keep             := FALSE;
+    IsRadialBus      := FALSE;
 End;
 
-destructor TBus.Destroy;
+destructor TDSSBus.Destroy;
 Begin
     ReallocMem(Nodes, 0);
     ReallocMem(RefNo, 0);
@@ -114,7 +116,7 @@ Begin
     Inherited Destroy;
 End;
 
-PROCEDURE TBus.AddANode;
+PROCEDURE TDSSBus.AddANode;
 Begin
      Inc(FNumNodesThisBus);
      If FNumNodesThisBus>Allocation THEN Begin
@@ -124,7 +126,7 @@ Begin
      End;
 End;
 
-FUNCTION TBus.Add(NodeNum:Integer):Integer;
+FUNCTION TDSSBus.Add(NodeNum:Integer):Integer;
 Begin
      If NodeNum=0 THEN Result := 0
 
@@ -146,7 +148,7 @@ Begin
 End;
 
 
-FUNCTION TBus.Find(NodeNum:Integer):Integer;
+FUNCTION TDSSBus.Find(NodeNum:Integer):Integer;
 // Returns reference number
 VAR
    i:Integer;
@@ -163,19 +165,19 @@ Begin
 End;
 
 
-FUNCTION TBus.GetRef(NodeIndex:Integer):Integer;
+FUNCTION TDSSBus.GetRef(NodeIndex:Integer):Integer;
 Begin
     Result := 0;
     IF (NodeIndex>0) and (NodeIndex<=FNumNodesThisBus) Then Result := Refno^[NodeIndex];
 End;
 
-FUNCTION TBus.GetNum(NodeIndex:Integer):Integer;
+FUNCTION TDSSBus.GetNum(NodeIndex:Integer):Integer;
 Begin
     Result := 0;
     IF (NodeIndex>0) and (NodeIndex<=FNumNodesThisBus) Then Result := Nodes^[NodeIndex];
 End;
 
-PROCEDURE Tbus.AllocateBusQuantities;
+PROCEDURE TDSSBus.AllocateBusQuantities;
 // Have to perform a short circuit study to get this allocated
 Begin
     If Assigned(Ysc) Then Ysc.Free;
@@ -187,14 +189,14 @@ Begin
 
 End;
 
-function TBus.Get_Zsc0: Complex;
+function TDSSBus.Get_Zsc0: Complex;
 // = Zs + 2 Zm
 begin
      If   Assigned(Zsc) Then Result := Cadd(Zsc.AvgDiagonal , CmulReal(Zsc.AvgOffDiagonal, 2.0) )
      Else Result := cZERO;
 end;
 
-function TBus.Get_Zsc1: Complex;
+function TDSSBus.Get_Zsc1: Complex;
 // = Zs-Zm
 begin
 
@@ -203,7 +205,7 @@ begin
 
 end;
 
-function TBus.FindIdx(NodeNum: Integer): Integer;
+function TDSSBus.FindIdx(NodeNum: Integer): Integer;
 // Returns Index
 VAR
    i:Integer;
@@ -218,7 +220,7 @@ Begin
 
 end;
 
-procedure TBus.AllocateBusVoltages;
+procedure TDSSBus.AllocateBusVoltages;
 Var
    i:Integer;
 begin
@@ -226,7 +228,7 @@ begin
     For i := 1 to FNumNodesThisBus Do VBus^[i] := CZERO;
 end;
 
-procedure TBus.AllocateBusCurrents;
+procedure TDSSBus.AllocateBusCurrents;
 Var
    i:Integer;
 begin

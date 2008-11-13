@@ -116,7 +116,7 @@ Type
        Procedure DoDI_Plot(Const CaseName: String; CaseYear: Integer; iRegisters: array of integer; PeakDay: Boolean;const MeterName:String);
        Procedure DoCompareCases(CaseName1, CaseName2, WhichFile:String;  Reg:Integer);
        Procedure DoYearlyCurvePlot(CaseNames:TStringList; WhichFile:String; iRegisters:Array of Integer);
-       Procedure DoVisualizationPlot(Element:TCktElement; Quantity:Integer);
+       Procedure DoVisualizationPlot(Element:TDSSCktElement; Quantity:Integer);
 
        Property  MaxLineThickness:Integer Read FMaxLineThickness write Set_MaxLineThickness;
        
@@ -215,7 +215,7 @@ End;
 function TDSSPlot.GetColor: Integer;
 
 Var
-   pBus:TBus;
+   pBus:TDSSBus;
    Factor:Double;
 
 begin
@@ -1975,7 +1975,7 @@ begin
 
 end;
 
-procedure TDSSPlot.DoVisualizationPlot(Element:TCktElement; Quantity:Integer);
+procedure TDSSPlot.DoVisualizationPlot(Element:TDSSCktElement; Quantity:Integer);
 
 VAR
    cBuffer      :pComplexArray;

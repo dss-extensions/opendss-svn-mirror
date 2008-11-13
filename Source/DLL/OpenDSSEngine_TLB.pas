@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 11/10/2008 11:40:44 AM from Type Library described below.
+// File generated on 11/13/2008 1:49:37 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -493,6 +493,12 @@ type
     function Get_Zsc0: OleVariant; safecall;
     function ZscRefresh: WordBool; safecall;
     function Get_YscMatrix: OleVariant; safecall;
+    function Get_Coorddefined: WordBool; safecall;
+    function Get_x: Double; safecall;
+    procedure Set_x(Value: Double); safecall;
+    function Get_y: Double; safecall;
+    procedure Set_y(Value: Double); safecall;
+    function Get_Distance: Double; safecall;
     property Name: WideString read Get_Name;
     property NumNodes: Integer read Get_NumNodes;
     property Voltages: OleVariant read Get_Voltages;
@@ -506,6 +512,10 @@ type
     property Zsc1: OleVariant read Get_Zsc1;
     property Zsc0: OleVariant read Get_Zsc0;
     property YscMatrix: OleVariant read Get_YscMatrix;
+    property Coorddefined: WordBool read Get_Coorddefined;
+    property x: Double read Get_x write Set_x;
+    property y: Double read Get_y write Set_y;
+    property Distance: Double read Get_Distance;
   end;
 
 // *********************************************************************//
@@ -529,6 +539,10 @@ type
     property Zsc0: OleVariant readonly dispid 12;
     function ZscRefresh: WordBool; dispid 13;
     property YscMatrix: OleVariant readonly dispid 14;
+    property Coorddefined: WordBool readonly dispid 201;
+    property x: Double dispid 202;
+    property y: Double dispid 203;
+    property Distance: Double readonly dispid 204;
   end;
 
 // *********************************************************************//

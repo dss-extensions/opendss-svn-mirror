@@ -13,7 +13,7 @@ interface
 USES CktElement, ucomplex, DSSClass, Spectrum, Arraydef, Meterelement;
 
 TYPE
-   TPCElement = class(TCktElement)
+   TPCElement = class(TDSSCktElement)
   private
       FIterminalUpdated:Boolean;
     procedure set_ITerminalUpdated(const Value: Boolean);

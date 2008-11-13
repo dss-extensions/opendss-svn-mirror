@@ -45,7 +45,7 @@ TYPE
           NodeBuffer:pIntegerArray;
           NodeBufferMax:Integer;
           FBusNameRedefined:Boolean;
-          FActiveCktElement :TCktElement;
+          FActiveCktElement :TDSSCktElement;
 
           // Temp arrays for when the bus swap takes place
           SavedBuses: pTBusArray;
@@ -60,7 +60,7 @@ TYPE
           Procedure AddABus;
           Procedure AddANodeBus;
           Function  AddBus(const BusName:String; NNodes:Integer):Integer;
-          Procedure Set_ActiveCktElement(Value:TcktElement);
+          Procedure Set_ActiveCktElement(Value:TDSSCktElement);
           Procedure Set_BusNameRedefined(Value:Boolean);
           Procedure DoResetMeterZones;
           Function Get_Losses:Complex; //Total Circuit losses
@@ -206,7 +206,7 @@ TYPE
 
           property Name             :String   Read FName;
           Property CaseName         :String   Read FCaseName Write Set_CaseName;
-          Property ActiveCktElement :TCktElement Read FActiveCktElement Write Set_ActiveCktElement;
+          Property ActiveCktElement :TDSSCktElement Read FActiveCktElement Write Set_ActiveCktElement;
           Property Losses           :Complex Read Get_Losses;  // Total Circuit PD Element losses
           Property BusNameRedefined :Boolean  Read FBusNameRedefined Write Set_BusNameRedefined;
           Property LoadMultiplier   :Double  Read FLoadMultiplier write Set_LoadMultiplier;
@@ -377,7 +377,7 @@ VAR
 
 BEGIN
      TRY
-       For i := 1 to NumDevices Do TCktElement(CktElements.Get(i)).Free;
+       For i := 1 to NumDevices Do TDSSCktElement(CktElements.Get(i)).Free;
 
      EXCEPT
        ON E: Exception Do
@@ -525,7 +525,7 @@ BEGIN
          Result := BusList.Add(BusName);    // Result is index of bus
          Inc(NumBuses);
          AddABus;   // Allocates more memory if necessary
-         Buses^[NumBuses] := TBus.Create;
+         Buses^[NumBuses] := TDSSBus.Create;
     END;
 
     {Define nodes belonging to the bus}
@@ -591,7 +591,7 @@ BEGIN
 END;
 
 //----------------------------------------------------------------------------
-Procedure TDSSCircuit.Set_ActiveCktElement(Value:TcktElement);
+Procedure TDSSCircuit.Set_ActiveCktElement(Value:TDSSCktElement);
 BEGIN
     FActiveCktElement := Value;
     ActiveDSSObject := Value;
@@ -688,7 +688,7 @@ Procedure TDSSCircuit.RestoreBusInfo;
 
 Var
    i,j,idx, jdx:Integer;
-   pBus:TBus;
+   pBus:TDSSBus;
 
 Begin
 
@@ -728,7 +728,7 @@ Procedure TDSSCircuit.ReProcessBusDefs;
 // Redo all Buslists, nodelists
 
 VAR
-    CktElementSave :TCktElement;
+    CktElementSave :TDSSCktElement;
     i:integer;
 
 BEGIN
@@ -834,7 +834,7 @@ END;
 Procedure TDSSCircuit.InvalidateAllPCElements;
 
 VAR
-   p:TCktElement;
+   p:TDSSCktElement;
 
 BEGIN
 
@@ -988,7 +988,7 @@ begin
     SavedFileList.Clear;  {This list keeps track of all files saved}
 
     // Initialize so we will know when we have saved the circuit elements
-    For i := 1 to CktElements.ListSize Do TCktElement(CktElements.Get(i)).HasBeenSaved := False;
+    For i := 1 to CktElements.ListSize Do TDSSCktElement(CktElements.Get(i)).HasBeenSaved := False;
 
     // Initialize so we don't save a class twice
     For i := 1 to DSSClassList.ListSize Do TDssClass(DSSClassList.Get(i)).Saved := FALSE;

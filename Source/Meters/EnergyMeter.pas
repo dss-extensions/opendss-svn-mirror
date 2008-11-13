@@ -596,7 +596,7 @@ Procedure TEnergyMeter.ResetMeterZonesAll;  // Force all EnergyMeters in the cir
 
 VAR
    mtr :TEnergyMeterObj;
-   pCktElement  :TCktElement;
+   pCktElement  :TDSSCktElement;
    i :Integer;
 
 Begin
@@ -785,7 +785,7 @@ Begin
      Fnconds        := 3;
      Nterms         := 1;  // this forces allocation of terminals and conductors in base class
      ExcessFlag     := True;  // Default to Excess energy FOR UE
-     ElementName    := 'Vsource.'+TCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
+     ElementName    := 'Vsource.'+TDSSCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
      MeteredElement := NIL;
      BranchList     := NIL;  // initialize to NIL, set later when inited
 
@@ -1300,7 +1300,7 @@ Procedure TEnergyMeter.SetHasMeterFlag;
 VAR
    i:Integer;
    ThisMeter:TEnergyMeterObj;
-   CktElem:TCktElement;
+   CktElem:TDSSCktElement;
 
 Begin
    {Initialize all to FALSE}
@@ -1332,7 +1332,7 @@ Var
    ZoneListCounter :Integer ;
    j,
    iTerm,iPC, iPD      :Integer;
-   TestBranch: TCktElement;
+   TestBranch: TDSSCktElement;
    TestElement:TPDElement;
    PC         :TPCElement;
    IsFeederEnd:Boolean;
@@ -1366,6 +1366,7 @@ Begin
        With BranchList.PresentBranch Do Begin
           // This bus is the head of the feeder; do not mark as radial bus
           FromBusReference := MeteredElement.Terminals^[MeteredTerminal].BusRef;
+          ActiveCircuit.Buses^[FromBusReference].DistFromMeter := 0.0;
           VoltBaseIndex    := AddToVoltBaseList(FromBusReference);
           FromTerminal     := MeteredTerminal;
           If MeteredElement is TPDElement Then TPDElement(MeteredElement).FromTerminal := MeteredTerminal;
@@ -1400,7 +1401,11 @@ Begin
 
            TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
            BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
+           If isLineElement(TestBranch)
+             then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(TestBranch).Len
+             else Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter;
 
+           
            iPC :=0;
            While iPC < PCElementList.Count Do
            Begin
@@ -1529,7 +1534,7 @@ Var
     CSVName :String;
     F       :TextFile;
     pdelem  :TPDelement;
-    LoadElem:TCktElement;
+    LoadElem:TDSSCktElement;
 
 Begin
 
@@ -1551,13 +1556,16 @@ Begin
      END;
 
      TRY
-         Writeln(F, 'Level, Branch, Bus');
+         Writeln(F, 'Level, Branch, Bus, Distance');
          IF BranchList<>NIL
          Then Begin
            PDElem := BranchList.First;
-           WHILE PDElem <> NIL Do
+           WHILE PDElem <> NIL Do With ActiveCircuit Do
            Begin
-               Writeln(F, Format('%d, %s.%s, %s',[BranchList.Level, PDelem.ParentClass.Name, PDelem.Name, ActiveCircuit.BusList.Get(BranchList.PresentBranch.FromBusReference)]));
+               Writeln(F, Format('%d, %s.%s, %s, %10.4f',
+                 [BranchList.Level, PDelem.ParentClass.Name, PDelem.Name,
+                  BusList.Get(BranchList.PresentBranch.ToBusReference),
+                  Buses^[BranchList.PresentBranch.ToBusReference].DistFromMeter]));
                LoadElem := Branchlist.FirstObject;
                WHILE LoadElem <> NIL Do
                Begin
@@ -1580,7 +1588,7 @@ Procedure TEnergyMeterObj.DumpProperties(Var F:TextFile; Complete:Boolean);
 VAR
    i:Integer;
    pdelem:TPDelement;
-   LoadElem:TCktElement;
+   LoadElem:TDSSCktElement;
 
 
 Begin
@@ -1848,7 +1856,7 @@ Var
   FirstCoordRef, SecondCoordRef,
   Linecount:integer;
   PresentNode, StartNode: TCktTreeNode;
-  CktElem:TCktElement;
+  CktElem:TDSSCktElement;
 
 begin
   If Not Assigned(BranchList) Then
@@ -1990,7 +1998,7 @@ end;
 
 procedure TEnergyMeterObj.SaveZone(const dirname:String);
 
-Var cktElem, shuntElement:TCktElement;
+Var cktElem, shuntElement:TDSSCktElement;
     LoadElement:TLoadObj;
     FBranches, FShunts, FLoads, FGens, FCaps: TextFile;
     NBranches, NShunts, Nloads, NGens, NCaps: Integer;

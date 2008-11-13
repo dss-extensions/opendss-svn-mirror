@@ -28,6 +28,12 @@ type
     function Get_ZscMatrix: OleVariant; safecall;
     function ZscRefresh: WordBool; safecall;
     function Get_YscMatrix: OleVariant; safecall;
+    function Get_Coorddefined: WordBool; safecall;
+    function Get_x: Double; safecall;
+    procedure Set_x(Value: Double); safecall;
+    function Get_y: Double; safecall;
+    procedure Set_y(Value: Double); safecall;
+    function Get_Distance: Double; safecall;
   end;
 
 implementation
@@ -412,6 +418,61 @@ begin
       End;
 
 
+end;
+
+function TBus.Get_Coorddefined: WordBool;
+begin
+     Result := FALSE;
+     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       IF (Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined) Then Result := TRUE;
+end;
+
+function TBus.Get_x: Double;
+begin
+    Result := 0.0;
+     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       IF (Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined) Then
+         Result := Buses^[ActiveCircuit.ActiveBusIndex].x;
+end;
+
+procedure TBus.Set_x(Value: Double);
+begin
+     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       Begin
+         Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined := TRUE;
+         Buses^[ActiveCircuit.ActiveBusIndex].x := Value;
+       End;
+end;
+
+function TBus.Get_y: Double;
+begin
+    Result := 0.0;
+     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       IF (Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined) Then
+         Result := Buses^[ActiveCircuit.ActiveBusIndex].y;
+end;
+
+procedure TBus.Set_y(Value: Double);
+begin
+   If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       Begin
+         Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined := TRUE;
+         Buses^[ActiveCircuit.ActiveBusIndex].y := Value;
+       End;
+end;
+
+function TBus.Get_Distance: Double;
+begin
+    Result := 0.0;
+     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
+      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+       IF (Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined) Then
+         Result := Buses^[ActiveCircuit.ActiveBusIndex].DistFromMeter;
 end;
 
 initialization

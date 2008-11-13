@@ -367,7 +367,7 @@ Begin
      {instantiate all Intrinsic Object Classes}
 
      {Generic Object classes first in case others refer to them}
-     DSSClasses.New := TSolution.Create;
+     DSSClasses.New := TDSSSolution.Create;
      SolutionClass  := ActiveDSSClass;     // this is a special class
      DSSClasses.New := TLineCode.Create;
      LoadShapeClass := TLoadShape.Create;

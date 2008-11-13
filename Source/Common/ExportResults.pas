@@ -200,7 +200,7 @@ Begin
 End;
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-PROCEDURE CalcAndWriteSeqCurrents(Var F:TextFile; j:Integer; pelem:TCktElement; cBuffer:pComplexArray; DoRatings:Boolean);
+PROCEDURE CalcAndWriteSeqCurrents(Var F:TextFile; j:Integer; pelem:TDSSCktElement; cBuffer:pComplexArray; DoRatings:Boolean);
 VAR
   I0,I1,I2, I2I1, I0I1, iNormal,iEmerg :Double;
   i,k,NCond:integer;
@@ -267,7 +267,7 @@ Procedure ExportSeqCurrents(FileNm:String);
 Var
     F       :TextFile;
     j:Integer;
-    pElem :TCktElement;
+    pElem :TDSSCktElement;
     PDElem:TPDElement;
     PCelem:TPCelement;
     cBuffer :pComplexArray;  // Allocate to max total conductors
@@ -346,7 +346,7 @@ End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-PROCEDURE CalcAndWriteCurrents(Var F:TextFile; pElem:TcktElement; Cbuffer:pComplexArray; CondWidth, TermWidth:Integer);
+PROCEDURE CalcAndWriteCurrents(Var F:TextFile; pElem:TDSSCktElement; Cbuffer:pComplexArray; CondWidth, TermWidth:Integer);
 VAr
     i,j,k:Integer;
     Iresid:Complex;
@@ -379,7 +379,7 @@ Procedure ExportCurrents(FileNm:String);
 Var
     F          :TextFile;
     cBuffer    :pComplexArray;
-    pElem      :TCktElement;
+    pElem      :TDSSCktElement;
     MaxCond, MaxTerm   :Integer;
     i,j        :Integer;
 

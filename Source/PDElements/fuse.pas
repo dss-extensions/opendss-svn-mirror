@@ -60,7 +60,7 @@ TYPE
 
             MonitoredElementName     :String;
             MonitoredElementTerminal :Integer;
-            MonitoredElement	     :TCktElement;
+            MonitoredElement	     :TDSSCktElement;
 
             hAction,         // handle to control queue actions
             PresentState    :Array[1..FUSEMAXDIM] of Integer;  // 0 = open 1 = close

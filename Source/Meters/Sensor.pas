@@ -355,7 +355,7 @@ procedure TSensor.SetHasSensorFlag;
 VAR
    i:Integer;
    ThisSensor:TSensorObj;
-   CktElem:TCktElement;
+   CktElem:TDSSCktElement;
 
 Begin
    {Initialize all to FALSE}

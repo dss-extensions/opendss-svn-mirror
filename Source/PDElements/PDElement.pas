@@ -19,7 +19,7 @@ USES CktElement, ucomplex, ucmatrix, DSSClass, MeterElement;
 
 TYPE
 
-   TPDElement = class(TCktElement)
+   TPDElement = class(TDSSCktElement)
      private
        FUNCTION Get_ExcessKVANorm:Complex;
        FUNCTION Get_ExcessKVAEmerg:Complex;

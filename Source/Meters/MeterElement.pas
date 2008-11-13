@@ -11,12 +11,12 @@ Interface
 USES CktElement, Bus, ucomplex, DSSClass, Arraydef;
 
 TYPE
-   TMeterElement = class(TCktElement)
+   TMeterElement = class(TDSSCktElement)
 
    public
 
        ElementName     :String;
-       MeteredElement  :TCktElement;  // Pointer to target circuit element
+       MeteredElement  :TDSSCktElement;  // Pointer to target circuit element
        MeteredTerminal :Integer;
        MeteredElementChanged :Boolean;
 

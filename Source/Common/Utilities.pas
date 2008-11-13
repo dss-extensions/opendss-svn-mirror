@@ -27,7 +27,7 @@ Function PadTrunc(Const S:String; Width:Integer):String;
 Function IntArrayToString( iarray:pIntegerArray; count:integer):String;
 Function EncloseQuotes(Const s:String):String;
 Procedure ShowMessageBeep(Const s:String);
-Function FullName(pElem :TCktElement):String;
+Function FullName(pElem :TDSSCktElement):String;
 
 
 {Parsing Utilities}
@@ -61,12 +61,12 @@ FUNCTION GetDSSArray_Integer(n:Integer; ints:pIntegerArray):String;
 {misc functions}
 Function DoExecutiveCommand(const s:String):Integer;
 FUNCTION GetCktElementIndex(const FullObjName :String) :Integer;
-FUNCTION IsShuntElement(const Elem:TCktElement):Boolean;
-FUNCTION IsLineElement(const Elem:TCktElement):Boolean;
-FUNCTION IsTransformerElement(const Elem:TCktElement):Boolean;
-Function IsStubLine(const Elem:TCktElement):Boolean;
-FUNCTION CheckParallel(const Line1, Line2:TCktElement): Boolean;
-FUNCTION AllTerminalsClosed(ThisElement:TcktElement):Boolean;
+FUNCTION IsShuntElement(const Elem:TDSSCktElement):Boolean;
+FUNCTION IsLineElement(const Elem:TDSSCktElement):Boolean;
+FUNCTION IsTransformerElement(const Elem:TDSSCktElement):Boolean;
+Function IsStubLine(const Elem:TDSSCktElement):Boolean;
+FUNCTION CheckParallel(const Line1, Line2:TDSSCktElement): Boolean;
+FUNCTION AllTerminalsClosed(ThisElement:TDSSCktElement):Boolean;
 FUNCTION  Str_Real(Const Value :Double; NumDecimals :Integer) :String;
 PROCEDURE DumpAllDSSCommands(Var Filename:String);
 PROCEDURE DumpAllocationFactors(Var Filename:String);
@@ -182,7 +182,7 @@ BEGIN
 END;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-Function FullName(pElem :TCktElement):String;
+Function FullName(pElem :TDSSCktElement):String;
 Begin
     Result := EncloseQuotes(pElem.DSSClassName + '.' + pElem.Name);
 End;
@@ -890,7 +890,7 @@ Begin
 
 End;
 
-FUNCTION IsShuntElement(const Elem:TCktElement):Boolean;
+FUNCTION IsShuntElement(const Elem:TDSSCktElement):Boolean;
 Begin
 
      CASE (Elem.DSSObjType and CLASSMASK) of
@@ -904,7 +904,7 @@ Begin
 
 End;
 
-FUNCTION IsLineElement(const Elem:TCktElement):Boolean;
+FUNCTION IsLineElement(const Elem:TDSSCktElement):Boolean;
 Begin
 
     IF ((Elem.DSSObjType and CLASSMASK) =  LINE_ELEMENT) Then  Result := TRUE
@@ -914,7 +914,7 @@ End;
 
 
 
-FUNCTION IsTransformerElement(const Elem:TCktElement):Boolean;
+FUNCTION IsTransformerElement(const Elem:TDSSCktElement):Boolean;
 Begin
 
     IF ((Elem.DSSObjType and CLASSMASK) =  XFMR_ELEMENT) Then  Result := TRUE
@@ -922,7 +922,7 @@ Begin
 
 End;
 
-Function IsStubLine(const Elem:TCktElement):Boolean;
+Function IsStubLine(const Elem:TDSSCktElement):Boolean;
 Var
    Ztest:Double;
    LineElement: TLineObj;
@@ -1541,7 +1541,7 @@ Begin
 
 End;
 
-Function AllTerminalsClosed(ThisElement:TcktElement):Boolean;
+Function AllTerminalsClosed(ThisElement:TDSSCktElement):Boolean;
 // check all conductors of this element to see IF it is closed.
 // Make sure at least one phase on each terminal is closed.
 VAR
@@ -1611,7 +1611,7 @@ Begin
       Begin
        // Skip Cktelements that have been checked before and written out by
        // something else
-       If TCktElement(ActiveDSSObject).HasBeenSaved Then Continue;
+       If TDSSCktElement(ActiveDSSObject).HasBeenSaved Then Continue;
        // Skip disabled circuit elements; write all general DSS objects
        WriteActiveDSSObject(F, 'New');    // sets HasBeenSaved := TRUE
       End;
@@ -1655,7 +1655,7 @@ Begin
 
        // Skip Cktelements that have been checked before and written out by
        // something else
-       If IsCktElement Then If TCktElement(ActiveDSSObject).HasBeenSaved Then Continue;
+       If IsCktElement Then If TDSSCktElement(ActiveDSSObject).HasBeenSaved Then Continue;
 
         WriteActiveDSSObject(F, 'New');  // sets HasBeenSaved := TRUE
         Inc(Nrecords); // count the actual records
@@ -1710,7 +1710,7 @@ Begin
      End;
    // Handle disabled circuit elements;   Modified to allow applets to save disabled elements 12-28-06
    IF (ActiveDSSObject.DSSObjType AND ClassMask) <> DSS_Object Then
-      If Not TCktElement( ActiveDSSObject).Enabled Then Write(F, ' ENABLED=NO');
+      If Not TDSSCktElement( ActiveDSSObject).Enabled Then Write(F, ' ENABLED=NO');
    Writeln(F); // Terminate line
 
    ActiveDSSObject.HasBeenSaved := TRUE;
@@ -1851,7 +1851,7 @@ Begin
 End;
 
 
-FUNCTION CheckParallel(const Line1, Line2:TCktElement): Boolean;
+FUNCTION CheckParallel(const Line1, Line2:TDSSCktElement): Boolean;
   {Check to see if two lines are in parallel}
 Begin
     Result := FALSE;
@@ -1925,7 +1925,7 @@ End;
 
 Function GetTotalPowerFromSources:Complex;
 
-Var CktElem:TCktElement;
+Var CktElem:TDSSCktElement;
 
 Begin
   Result := CZERO;
@@ -2290,7 +2290,7 @@ Begin
    Result := 0;
 
    With ActiveCircuit Do
-      For i := 1 to NumDevices Do Result := max(result, TCktElement(CktElements.Get(i)).Yorder);
+      For i := 1 to NumDevices Do Result := max(result, TDSSCktElement(CktElements.Get(i)).Yorder);
 
 End;
 

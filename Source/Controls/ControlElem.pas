@@ -12,18 +12,18 @@ interface
 USES CktElement, Bus, ucomplex, DSSClass;
 
 TYPE
-   TControlElem = class(TCktElement)
+   TControlElem = class(TDSSCktElement)
 
    private
-       FControlledElement:TCktElement;
-       procedure Set_ControlledElement(const Value: TCktElement);  // Pointer to target circuit element
+       FControlledElement:TDSSCktElement;
+       procedure Set_ControlledElement(const Value: TDSSCktElement);  // Pointer to target circuit element
 
    public
 
        ElementName:String;
        ElementTerminal:Integer;
        ControlledBusName:String;  // If different than terminal
-       ControlledBus: TBus;
+       ControlledBus: TDSSBus;
        MonitorVariable: String;
        MonitorVarIndex: Integer;
        TimeDelay,
@@ -36,7 +36,7 @@ TYPE
        PROCEDURE DoPendingAction(Const Code:Integer); Virtual;   // Do the action that is pending from last sample
        PROCEDURE Reset; Virtual;
 
-       Property ControlledElement:TCktElement Read FControlledElement Write Set_ControlledElement;
+       Property ControlledElement:TDSSCktElement Read FControlledElement Write Set_ControlledElement;
 
    end;
 
@@ -79,7 +79,7 @@ begin
 end;
 
 
-procedure TControlElem.Set_ControlledElement(const Value: TCktElement);
+procedure TControlElem.Set_ControlledElement(const Value: TDSSCktElement);
 begin
 
   Try

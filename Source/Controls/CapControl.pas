@@ -71,7 +71,7 @@ TYPE
             Vmin       :Double;
 
             CapacitorName :String;
-            MonitoredElement :TCktElement;
+            MonitoredElement :TDSSCktElement;
             ControlledCapacitor :TCapacitorObj;
             FPendingChange   :Integer;  // 0 = open 1 = close
             ShouldSwitch   :Boolean;  // True: action is pending

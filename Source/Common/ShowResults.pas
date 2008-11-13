@@ -63,7 +63,7 @@ Begin
      MaxDeviceNameLength := 0;
      With ActiveCircuit Do FOR i := 1 to NumDevices DO Begin
         DevName := DeviceList.Get(i);
-        DevClassName := TCktElement(DSSClassList.Get(DeviceRef^[i].CktElementClass)).Name;
+        DevClassName := TDSSCktElement(DSSClassList.Get(DeviceRef^[i].CktElementClass)).Name;
         MaxDeviceNameLength := Max(MaxDeviceNameLength, (Length(DevName) + Length(DevClassName) + 1));
      End;
 End;
@@ -167,7 +167,7 @@ End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-PROCEDURE WriteElementVoltages(Var F:TextFile; pElem:TCktElement; LL:Boolean);
+PROCEDURE WriteElementVoltages(Var F:TextFile; pElem:TDSSCktElement; LL:Boolean);
 Var
      NCond, Nterm, i,j,k, nref, bref:Integer;
      Busname:String;
@@ -211,7 +211,7 @@ Procedure ShowVoltages(FileNm:String; LL:Boolean; ShowOptionCode:Integer);
 Var
    F :TextFile;
    i :Integer;
-   pElem :TCktElement;
+   pElem :TDSSCktElement;
 
 Begin
 
@@ -358,7 +358,7 @@ End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-PROCEDURE  WriteTerminalCurrents(Var F:TextFile; pElem:TCktElement; ShowResidual:Boolean);
+PROCEDURE  WriteTerminalCurrents(Var F:TextFile; pElem:TDSSCktElement; ShowResidual:Boolean);
 
 Var
 
@@ -416,7 +416,7 @@ Var
     F       :TextFile;
     cBuffer :pComplexArray;
     NCond, Nterm, j:Integer;
-    pElem :TCktElement;
+    pElem :TDSSCktElement;
     PDElem:TPDElement;
     PCelem:TPCelement;
     I0,I1,I2,
@@ -618,7 +618,7 @@ Var
     F :TextFile;
     c_Buffer :pComplexArray;
     NCond, Nterm, i, j, k :Integer;
-    p_Elem :TCktElement;
+    p_Elem :TDSSCktElement;
     PDElem :TPDElement;
     PCElem :TPCElement;
     Volts:Complex;
@@ -992,7 +992,7 @@ Begin
   End;
 End;
 
-Function CheckBusReference(cktElem:TCktElement; BusReference:Integer; Var TerminalIndex:integer):Boolean;
+Function CheckBusReference(cktElem:TDSSCktElement; BusReference:Integer; Var TerminalIndex:integer):Boolean;
 
 {Check all terminals of cktelement to see if bus connected to busreference}
 
@@ -1010,7 +1010,7 @@ Begin
 End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-Procedure WriteTerminalPowerSeq(Var F:TextFile; cktElem:TCktElement; j, opt:Integer);
+Procedure WriteTerminalPowerSeq(Var F:TextFile; cktElem:TDSSCktElement; j, opt:Integer);
 Var
   i,k,Ncond, nref:integer;
   Volts, S:Complex;
@@ -1085,7 +1085,7 @@ Begin
 End;
 
 
-Procedure WriteTerminalPower(Var F:TextFile; CktElem:TCktElement; jTerm, opt:Integer);
+Procedure WriteTerminalPower(Var F:TextFile; CktElem:TDSSCktElement; jTerm, opt:Integer);
 
 Var
 
@@ -1148,7 +1148,7 @@ Var
     F :TextFile;
 
     j, Ncond, Nterm  :Integer;
-    p_Elem :TCktElement;
+    p_Elem :TDSSCktElement;
     PDElem :TPDElement;
     PCElem :TPCElement;
     I0,I1,I2, Cmax:Double;
@@ -1569,7 +1569,7 @@ Begin
   End;
 End;
 
-Procedure WriteElementRecord(Var F:TextFile; pElem:TCktElement);
+Procedure WriteElementRecord(Var F:TextFile; pElem:TDSSCktElement);
 Var
    Nterm, j:Integer;
    BusName:String;
@@ -1594,7 +1594,7 @@ Var
    F, FDisabled  :TextFile;
    i :Integer;
    DisabledFileNm:String;
-   pElem  :TCktElement;
+   pElem  :TDSSCktElement;
 
 Begin
   SetMaxBusNameLength;
@@ -1622,7 +1622,7 @@ Begin
                   ActiveDSSClass.Active := i;
                   If (ActiveDSSClass.DSSClassType And BASECLASSMASK)>0 Then
                    Begin
-                     If TcktElement(ActiveDSSObject).Enabled Then  Writeln(F, ActiveDssObject.Name)
+                     If TDSSCktElement(ActiveDSSObject).Enabled Then  Writeln(F, ActiveDssObject.Name)
                      Else Writeln(Fdisabled, ActiveDssObject.Name);
                    End
                   Else Writeln(F, ActiveDssObject.Name);   // non cktelements
@@ -1716,7 +1716,7 @@ Procedure ShowBuses(FileNm:String);
 Var
    F:TextFile;
    i,j :Integer;
-   pBus:TBus;
+   pBus:TDSSBus;
 
 Begin
 
@@ -1961,8 +1961,8 @@ Begin
                  //Write(F, pMtr.BranchList.Level:0,' ');
                  Write(F, PDElem.ParentClass.Name,'.',PDelem.Name);
                  With pMtr.BranchList.PresentBranch Do Begin
-                  If IsParallel Then Write(F,'(PARALLEL:'+Tcktelement(LoopLineObj).Name+')');
-                  If IsLoopedHere Then Write(F,'(LOOP:'+Tcktelement(LoopLineObj).ParentClass.Name+'.'+Tcktelement(LoopLineObj).Name+')');
+                  If IsParallel Then Write(F,'(PARALLEL:'+TDSSCktElement(LoopLineObj).Name+')');
+                  If IsLoopedHere Then Write(F,'(LOOP:'+TDSSCktElement(LoopLineObj).ParentClass.Name+'.'+TDSSCktElement(LoopLineObj).Name+')');
                  End;
                  If Assigned(PDElem.SensorObj) then
                       Write(F, Format(' (Sensor: %s.%s) ', [PDElem.SensorObj.ParentClass.Name, PDElem.SensorObj.Name]))
@@ -2343,7 +2343,7 @@ End;
 Procedure  FindAllChildBranches(TestBusNum:Integer; BranchList:TCktTree);
 Var
     j:Integer;
-    TestElement:TCktElement;
+    TestElement:TDSSCktElement;
 Begin
   With ActiveCircuit Do Begin
      TestElement := PDElements.First;
@@ -2368,7 +2368,7 @@ End;
 
 Procedure  GetShuntPDElementsConnectedToBus(TestBusNum:Integer; BranchList:TCktTree);
 Var
-    PD:TCktElement;
+    PD:TDSSCktElement;
 Begin
 
   With ActiveCircuit Do Begin
@@ -2391,7 +2391,7 @@ Begin
 
 End;
 
-Function GetIsolatedSubArea(StartElement:TCktElement):TCktTree;
+Function GetIsolatedSubArea(StartElement:TDSSCktElement):TCktTree;
 
 Var
    TestBusNum  :Integer ;
@@ -2401,7 +2401,7 @@ Var
    iTerm      :Integer;
 
    TestBranch,
-   TestElement:TCktElement;
+   TestElement:TDSSCktElement;
 
 
 
@@ -2472,7 +2472,7 @@ Var
    SubArea:TCktTree;      // Pointers to all circuit elements
 
    F :TextFile;
-   TestElement, TestBranch, pElem: TCktElement;
+   TestElement, TestBranch, pElem: TDSSCktElement;
 
    i,j:Integer;
 
@@ -2565,10 +2565,10 @@ Try
 
        {Mark all energy meters and monitors as checked so they don't show up}
 
-       For i := 1 to EnergyMeters.ListSize Do TcktElement(EnergyMeters.Get(i)).Checked := TRue;
-       For i := 1 to Monitors.ListSize Do TcktElement(Monitors.Get(i)).Checked := TRue;
-       For i := 1 to CapControls.ListSize Do TcktElement(CapControls.Get(i)).Checked := TRue;
-       For i := 1 to RegControls.ListSize Do TcktElement(RegControls.Get(i)).Checked := TRue;
+       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(EnergyMeters.Get(i)).Checked := TRue;
+       For i := 1 to Monitors.ListSize Do TDSSCktElement(Monitors.Get(i)).Checked := TRue;
+       For i := 1 to CapControls.ListSize Do TDSSCktElement(CapControls.Get(i)).Checked := TRue;
+       For i := 1 to RegControls.ListSize Do TDSSCktElement(RegControls.Get(i)).Checked := TRue;
 
        TestElement := CktElements.First;
 
@@ -2688,8 +2688,8 @@ Begin
              While PDElem <> Nil Do  Begin
                
                  With pMtr.BranchList.PresentBranch Do Begin
-                  If IsParallel   Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': PARALLEL WITH ',Tcktelement(LoopLineObj).Parentclass.Name,'.', Tcktelement(LoopLineObj).Name);
-                  If IsLoopedHere Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': LOOPED TO     ',Tcktelement(LoopLineObj).parentclass.Name,'.', Tcktelement(LoopLineObj).Name);
+                  If IsParallel   Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': PARALLEL WITH ',TDSSCktElement(LoopLineObj).Parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
+                  If IsLoopedHere Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': LOOPED TO     ',TDSSCktElement(LoopLineObj).parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
                  End;
                  PDElem := pMtr.BranchList.GoForward;
                End;

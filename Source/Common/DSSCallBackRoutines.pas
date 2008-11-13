@@ -104,7 +104,7 @@ Procedure GetActiveElementBusNamesCallBack(Name1:pchar; Len1:Cardinal; Name2:pch
   {Get first two bus names of active Circuit Element for labeling graphs, etc.}
   {Coordinate must be defined else returns null string}
 Var
-   CktElement :TCktElement;
+   CktElement :TDSSCktElement;
    BusIdx     :Integer;
 Begin
    StrlCopy(Name1, pchar(''), Len1) ;  // Initialize to null

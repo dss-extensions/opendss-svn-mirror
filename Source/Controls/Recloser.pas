@@ -75,7 +75,7 @@ TYPE
 
             MonitoredElementName     :String;
             MonitoredElementTerminal :Integer;
-            MonitoredElement	     :TCktElement;
+            MonitoredElement	     :TDSSCktElement;
 
             PresentState    :Integer;  // 0 = open 1 = close
 

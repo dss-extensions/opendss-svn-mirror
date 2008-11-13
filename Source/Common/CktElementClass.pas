@@ -47,7 +47,7 @@ BEGIN
   Result := 0;
   // continue parsing with contents of Parser
   If ParamPointer > 0 Then
-  WITH TCktElement(ActiveCktElemObj) DO BEGIN
+  WITH TDSSCktElement(ActiveCktElemObj) DO BEGIN
 
       CASE ParamPointer OF
        1: BaseFrequency := Parser.Dblvalue;
@@ -61,12 +61,12 @@ end;
 
 procedure TCktElementClass.ClassMakeLike(const OtherObj: Pointer);
 Var
-   OtherCktObj : TCktElement;
+   OtherCktObj : TDSSCktElement;
 Begin
 
-     OtherCktObj := TCktElement(OtherObj);
+     OtherCktObj := TDSSCktElement(OtherObj);
 
-     With TCktElement(ActiveDSSObject) Do
+     With TDSSCktElement(ActiveDSSObject) Do
      Begin
        BaseFrequency:= OtherCktObj.BaseFrequency;
        Enabled := TRUE;

@@ -48,7 +48,7 @@ Uses DSSGlobals, Circuit, CktElement, Utilities;
 PROCEDURE ReCalcAllYPrims;
 
 VAR
-   pElem:TCktElement;
+   pElem:TDSSCktElement;
 
 Begin
 
@@ -69,7 +69,7 @@ PROCEDURE ReCalcInvalidYPrims;
 {Recalc YPrims only for those circuit elements that have had changes since last
  solution}
 VAR
-   pElem:TCktElement;
+   pElem:TDSSCktElement;
 
 Begin
 
@@ -133,7 +133,7 @@ PROCEDURE BuildYMatrix(BuildOption :Integer; AllocateVI:Boolean);
 VAR
    YMatrixsize:Integer;
    CmatArray:pComplexArray;
-   pElem:TCktElement;
+   pElem:TDSSCktElement;
 
    //{****} FTrace: TextFile;
 

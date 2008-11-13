@@ -56,7 +56,7 @@ TYPE
    TNodeVarray = Array[0..1000] of Complex;
    pNodeVarray = ^TNodeVarray;
 
-   TSolution = CLASS(TDSSClass)
+   TDSSSolution = CLASS(TDSSClass)
      private
 //       CommandList:TCommandlist;
      Protected
@@ -211,7 +211,7 @@ var FDebug:TextFile;
 
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-constructor TSolution.Create;  // Collection of all solution objects
+constructor TDSSSolution.Create;  // Collection of all solution objects
 Begin
      Inherited Create;
      Class_Name := 'Solution';
@@ -226,7 +226,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Destructor TSolution.Destroy;
+Destructor TDSSSolution.Destroy;
 
 Begin
     // ElementList and  CommandList freed in inherited destroy
@@ -235,7 +235,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TSolution.DefineProperties;
+PROCEDURE TDSSSolution.DefineProperties;
 Begin
 
      Numproperties := NumPropsThisClass;
@@ -258,7 +258,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TSolution.NewObject(const ObjName:String):Integer;
+FUNCTION TDSSSolution.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new Solution Object and add it to Solution class list
       ActiveSolutionObj := TSolutionObj.Create(Self, ObjName);
@@ -366,7 +366,7 @@ End;
 
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-FUNCTION TSolution.Edit:Integer;
+FUNCTION TDSSSolution.Edit:Integer;
 
 
 Begin
@@ -523,7 +523,7 @@ PROCEDURE TSolutionObj.GetSourceInjCurrents;
 // Add in the contributions of all source type elements to the global solution vector InjCurr
 
 VAR
-   pElem:TCktElement;
+   pElem:TDSSCktElement;
 
 Begin
 
@@ -992,7 +992,7 @@ End;
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 //----------------------------------------------------------------------------
-FUNCTION TSolution.Init(Handle:Integer):Integer;
+FUNCTION TDSSSolution.Init(Handle:Integer):Integer;
 
 Begin
    DoSimpleMsg('Need to implement TSolution.Init', -1);
@@ -1003,7 +1003,7 @@ End;
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 PROCEDURE TSolutionObj.GetPCInjCurr;
   VAR
-     pElem:TCktElement;
+     pElem:TDSSCktElement;
 
 { Get inj currents from all enabled PC devices }
 
@@ -1193,7 +1193,7 @@ End;
 PROCEDURE TSolutionObj.SumAllCurrents;
 
 Var
-   pelem :TCktElement;
+   pelem :TDSSCktElement;
 
 begin
      WITH  ActiveCircuit Do Begin
@@ -1394,7 +1394,7 @@ Procedure TSolutionObj.GetMachineInjCurrents;
 }
 
 Var
-  pElem:TCktElement;
+  pElem:TDSSCktElement;
 
 begin
      // do machines in Dynamics Mode

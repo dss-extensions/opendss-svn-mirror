@@ -56,7 +56,7 @@ TYPE
           SequenceList,
           ShuntList:TPointerList;
 
-          RootElement:TCktElement;
+          RootElement:TDSSCktElement;
           FromTerminalOffset:Integer;
 
       public
@@ -283,7 +283,7 @@ End;
 
 PROCEDURE TFeederObj.InitializeFeeder(const BranchList:TCktTree);
 Var i, bref:Integer;
-    pElement, pShunt:TCktElement;
+    pElement, pShunt:TDSSCktElement;
 
 Begin
      SequenceList.Clear;  // Get rid of any previous definitions
@@ -497,11 +497,11 @@ Var  i:integer;
 
 Begin
     For i := 1 to ShuntList.ListSize Do Begin
-      TCktElement(ShuntList.Get(i)).IsPartofFeeder := Value;
+      TDSSCktElement(ShuntList.Get(i)).IsPartofFeeder := Value;
     End;
 
     For i := 1 to SequenceList.ListSize Do Begin
-      TCktElement(SequenceList.Get(i)).IsPartofFeeder := Value;
+      TDSSCktElement(SequenceList.Get(i)).IsPartofFeeder := Value;
     End;
 
 End;

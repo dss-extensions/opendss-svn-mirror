@@ -70,7 +70,7 @@ implementation
 uses ComServ, Line, DSSGlobals, CktElement,
   uComplex, ExecHelper, dialogs, Sysutils, ParserDel, Variants;
 
-Function IsLine(Const CktElem:TCktElement):Boolean;
+Function IsLine(Const CktElem:TDSSCktElement):Boolean;
 
 Begin
       Result := ((CktElem.DssObjtype AND CLASSMASK) = LINE_ELEMENT);
@@ -173,7 +173,7 @@ end;
 
 function TLines.Get_Name: WideString;
 Var
-   pLine:TCktElement;
+   pLine:TDSSCktElement;
 
 Begin
    Result := '';  // signify no name

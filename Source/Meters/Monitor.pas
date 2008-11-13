@@ -462,7 +462,7 @@ Begin
      MonBuffer  := AllocMem(Sizeof(MonBuffer^[1]) * BufferSize);
      BufPtr     := 0;
 
-     ElementName    := TCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
+     ElementName    := TDSSCktElement(ActiveCircuit.CktElements.Get(1)).Name; // Default to first circuit element (source)
      MeteredElement := nil;
      Bufferfile     := '';
 
