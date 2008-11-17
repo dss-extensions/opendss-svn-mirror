@@ -3,7 +3,16 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 6.1.1
+Version 6.2.1
+
+Third-party Components
+======================
+
+DSSGraph.DLL uses a commercial product "SDL Delphi Component Suite", 
+available from www.sdlsuite.com
+
+KLUSolve.DLL is open source software, available from
+www.sourceforge.net/projects/klusolve
 
 Introduction
 ============
@@ -71,8 +80,10 @@ documentation.
 Source Code
 ===========
 
-OpenDSS source code will be available from SourceForge by the end of 
-September, 2008.
+OpenDSS source code is available from the following SVN repository:
+
+https://electricdss.svn.sourceforge.net/svnroot/electricdss
+
 
 License
 =======

@@ -146,11 +146,11 @@
 		</Language>
 		<VersionInfo>
 			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-			<VersionInfo Name="AutoIncBuild">True</VersionInfo>
+			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 			<VersionInfo Name="MajorVer">6</VersionInfo>
-			<VersionInfo Name="MinorVer">1</VersionInfo>
+			<VersionInfo Name="MinorVer">2</VersionInfo>
 			<VersionInfo Name="Release">1</VersionInfo>
-			<VersionInfo Name="Build">199</VersionInfo>
+			<VersionInfo Name="Build">1</VersionInfo>
 			<VersionInfo Name="Debug">False</VersionInfo>
 			<VersionInfo Name="PreRelease">False</VersionInfo>
 			<VersionInfo Name="Special">False</VersionInfo>
@@ -162,13 +162,13 @@
 		<VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">6.1.1.199</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">6.2.1.1</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">DSS</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008 EPRI, All Rights Reserved.</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">DSS</VersionInfoKeys>
-			<VersionInfoKeys Name="ProductVersion">7.1.0</VersionInfoKeys>
+			<VersionInfoKeys Name="ProductVersion">7.2.0</VersionInfoKeys>
 			<VersionInfoKeys Name="Comments"></VersionInfoKeys>
 		</VersionInfoKeys>
 	</Delphi.Personality>
