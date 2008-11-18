@@ -55,6 +55,7 @@ TOHLineConstants = class(TObject)
       Fw             :Double;  // 2piF
       FrhoEarth      :Double;  // ohm-m
       Fme            :Complex; // factor for earth impedance
+      FRhoChanged    :Boolean;
 
     function Get_GMR(i, units: Integer): Double;
     function Get_radius(i, units: Integer): Double;
@@ -75,7 +76,7 @@ TOHLineConstants = class(TObject)
 
 
    {These can only be called privately}
-     Property Frequency:Double read FFrequency write Set_Frequency;
+    Property Frequency:Double read FFrequency write Set_Frequency;
 
     procedure set_Nphases(const Value: Integer);
 
@@ -204,6 +205,8 @@ begin
 
     {Else the Zmatrix is OK as last computed}
 
+    FRhoChanged := FALSE;
+
 end;
 
 function TOHLineConstants.ConductorsInSameSpace( var ErrorMessage: String): Boolean;
@@ -241,7 +244,7 @@ end;
 constructor TOHLineConstants.Create( NumConductors: Integer);
 Var i:Integer;
 begin
-     
+
      FNumConds := NumConductors;
      NPhases := FNumConds;
 
@@ -262,6 +265,7 @@ begin
 
      FFrequency := -1.0;  // not computed
      Frhoearth  := 100.0;  // default value
+     FRhoChanged := TRUE;
 
      FZreduced  := Nil;
      FYCreduced := Nil;
@@ -376,10 +380,10 @@ Var
    UnitLengthConversion:Double;
    Z :TCMatrix;
    ZValues:pComplexArray;
-   
+
 begin
 
-    If F<> FFrequency Then Calc(f);  // only recalcs if f changed or rho earth changed
+    If (F <> FFrequency) or FRhoChanged Then Calc(f);  // only recalcs if f changed or rho earth changed
 
     If assigned(FZreduced) Then Begin
        Z := FZReduced;
@@ -457,8 +461,9 @@ end;
 
 procedure TOHLineConstants.Set_Frhoearth(const Value: Double);
 begin
+     If Value <> Frhoearth then   FRhoChanged := TRUE;
      Frhoearth := Value;
-     If FFrequency>=0.0 Then Fme := Csqrt(cmplx(0.0, Fw*Mu0/Frhoearth));
+     If FFrequency >= 0.0 Then Fme := Csqrt(cmplx(0.0, Fw*Mu0/Frhoearth));
 end;
 
 procedure TOHLineConstants.Set_GMR(i, units: Integer; const Value: Double);

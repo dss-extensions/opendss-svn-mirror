@@ -569,6 +569,7 @@ VAR
    BusName:String;
    Freq:Double;
    Units:Integer;
+  Rho_line: Double;
 
 
 Begin
@@ -722,11 +723,14 @@ Begin
       24: Begin {ShowLineConstants  Show Lineconstants 60 mi}
              Freq := DefaultBaseFreq;  // Default
              Units := UNITS_KFT; // 'kft'; // default
+             Rho_line   := 100.0;
              ParamName := parser.nextparam;
              If Length(Parser.strvalue)>0 Then Freq := Parser.dblvalue;
              ParamName := parser.nextparam;
              If Length(Parser.strvalue)>0 Then Units := GetUnitsCode(Parser.strvalue);
-             ShowLineConstants(DSSDataDirectory + CircuitName_ + 'LineConstants.txt', freq, units);
+             ParamName := parser.nextparam;
+             If Length(Parser.strvalue)>0 Then Rho_line := Parser.dblValue;
+             ShowLineConstants(DSSDataDirectory + CircuitName_ + 'LineConstants.txt', freq, units, Rho_line);
           End;
 
       25: If ActiveCircuit<>nil then Begin  {Yprim}

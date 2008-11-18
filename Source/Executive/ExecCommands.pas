@@ -175,7 +175,7 @@ Begin
                          'Show Yprim  (shows Yprim for active ckt element)' +CRLF+
                          'Show Y      (shows system Y)' +CRLF+
                          'Show BusFlow busname [MVA|kVA*] [Seq* | Elements]' +CRLF+
-                         'Show LineConstants [frequency] [none|mi|km|kft|m|me|ft|in|cm]' +CRLF+ CRLF+
+                         'Show LineConstants [frequency] [none|mi|km|kft|m|me|ft|in|cm] [rho]' +CRLF+ CRLF+
                          'Default is "show voltages LN Seq".  ';
      CommandHelp[9]  := 'Perform the solution of the present solution mode. You can set any option '+
                          'that you can set with the Set command (see Set). '+

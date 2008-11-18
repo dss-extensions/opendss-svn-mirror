@@ -30,7 +30,7 @@ Procedure ShowVariables(FileNm:String);
 Procedure ShowIsolated(FileNm:String);
 Procedure ShowRatings(FileNm:String);
 Procedure ShowLoops(FileNm:String);
-Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer);
+Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer;Rho:Double);
 Procedure ShowYPrim(Filenm:String);
 Procedure ShowY(FileNm:String);
 
@@ -2706,7 +2706,7 @@ Begin
 End;
 
 
-Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer);
+Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer; Rho:Double);
 Var
    F       :TextFile;
    p       :Integer;
@@ -2730,7 +2730,7 @@ Begin
      ReWrite(F);
 
      Writeln(F,'LINE CONSTANTS');
-     Writeln(F,Format('Frequency = %.6g Hz',[Freq]));
+     Writeln(F,Format('Frequency = %.6g Hz, Earth resistivity = %.6g ohm-m',[Freq, Rho]));
      Writeln(F);
 
          LineGeometryClass := DSSClassList.Get(ClassNames.Find('LineGeometry'));
@@ -2746,6 +2746,7 @@ Begin
 
             Try
                 // Get impedances per unit length
+                pelem.RhoEarth := Rho;
                 Z  := pelem.Zmatrix  [freq, 1.0, Units];
                 YC := pelem.YCmatrix [freq, 1.0, Units];
             except

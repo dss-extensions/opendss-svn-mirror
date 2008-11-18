@@ -2269,6 +2269,7 @@ Var
     UnitsIndex        :Integer;
     Cancelled         :Boolean;
     i                 :Integer;
+    rho_earth         :String;
 
 begin
 
@@ -2284,6 +2285,19 @@ begin
            Showmodal;
            If OKPressed Then Begin
                Freq := Edit1.text;
+           End Else Cancelled := TRUE;
+           Free;
+        End;
+
+      Rho_Earth := '100.0';
+      If not Cancelled Then
+      With TValueEntryForm.Create(Nil) Do
+        Begin
+           Caption:='Earth resistivity (ohm-m)';
+           Edit1.text := Rho_Earth;
+           Showmodal;
+           If OKPressed Then Begin
+               rho_earth := Edit1.text;
            End Else Cancelled := TRUE;
            Free;
         End;
@@ -2304,7 +2318,7 @@ begin
        End;
 
      If Not Cancelled Then
-     ActiveScriptForm.ExecuteDSSCommand('Show LineConstants '+Freq+' '+LenUnits);
+     ActiveScriptForm.ExecuteDSSCommand(Format('Show LineConstants %s %s %s', [Freq, LenUnits, rho_earth]));
 
 end;
 
