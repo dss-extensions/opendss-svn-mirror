@@ -875,9 +875,9 @@ begin
                         pLine.ActiveTerminalIdx := 1;
                         Result := Round(5.0 * (abs(pLine.Power.re)/Maxscale*0.001));  // kW
                       End;
-             pqLosses:  Begin
+             pqLosses:  Begin  // Losses per unit length
                         pLine.ActiveTerminalIdx := 1;
-                        Result := Round(5.0 * (abs(pLine.Losses.re)/Maxscale*0.001));  // kW
+                        Result := Round(5.0 * (abs(pLine.Losses.re/pLine.Len )/Maxscale*0.001));  // kW
                       End;
              pqCapacity: Begin
                         pLine.ActiveTerminalIdx := 1;

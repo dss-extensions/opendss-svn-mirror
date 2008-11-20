@@ -583,7 +583,7 @@ Begin
         Write(F,'~ ',PropertyName^[9],'=','"');
            FOR i := 1 to FNPhases DO Begin
              FOR j := 1 to FNphases DO Begin
-                 Write(F, Z.GetElement(i,j).re:0:5,' ');
+                 Write(F, Z.GetElement(i,j).re:0:8,' ');
              End;
              Write(F,'|');
            End;
@@ -591,7 +591,7 @@ Begin
         Write(F,'~ ',PropertyName^[10],'=','"');
            FOR i := 1 to FNPhases DO Begin
              FOR j := 1 to FNphases DO Begin
-                 Write(F, Z.GetElement(i,j).im:0:5,' ');
+                 Write(F, Z.GetElement(i,j).im:0:8,' ');
              End;
              Write(F,'|');
            End;
@@ -599,7 +599,7 @@ Begin
         Write(F,'~ ',PropertyName^[11],'=','"');
            FOR i := 1 to FNPhases DO Begin
              FOR j := 1 to FNphases DO Begin
-                 Write(F, (Yc.GetElement(i,j).im/TwoPi/BaseFrequency * 1.e9):0:2,' ');
+                 Write(F, (Yc.GetElement(i,j).im/TwoPi/BaseFrequency * 1.e9):0:8,' ');
              End;
              Write(F,'|');
            End;
@@ -653,13 +653,19 @@ Var
 
 begin
    If FneutralConductor=0 then Exit;   // Do Nothing
+
+   NewZ := Nil;
+   NewYC := Nil;
    
    If Fnphases>1 then Begin
-
-        NewZ  := Z.Kron(FNeutralConductor);       // Perform Kron Reductions into temp space
-      { Have to invert the Y matrix to eliminate properly}
-        YC.Invert;  // Vn = 0 not In
-        NewYC := YC.Kron(FNeutralConductor);
+        Try
+          NewZ  := Z.Kron(FNeutralConductor);       // Perform Kron Reductions into temp space
+        { Have to invert the Y matrix to eliminate properly}
+          YC.Invert;  // Vn = 0 not In
+          NewYC := YC.Kron(FNeutralConductor);
+        Except
+          On E:Exception Do DoSimpleMsg(Format('Kron Reduction failed: LineCode.%s. Attempting to eliminate Neutral Conductor %d.', [Name, FNeutralConductor]), 103);
+        End;
 
         // Reallocate into smaller space   if Kron was successful
 

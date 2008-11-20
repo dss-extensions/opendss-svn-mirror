@@ -8,6 +8,8 @@ unit DSSCallBackRoutines;
 
 interface
 
+Uses ArrayDef, uComplex;
+
 {$INCLUDE DSSCallBackStructDef.pas}
 
 
@@ -18,13 +20,12 @@ PROCEDURE DoSimpleMsgCallback(S:pchar; maxlen:Cardinal); StdCall; // Call back f
 
 implementation
 
-Uses  ParserDel, DSSGlobals, Executive, SysUtils, CktElement;
+Uses  ParserDel, DSSGlobals, Executive, SysUtils, CktElement, Math;
 
 Var
    CallBackParser  :TParser;
    CB_ParamName,
    CB_Param        :String;
-
 
 {====================================================================================================================}
 
@@ -126,6 +127,114 @@ End;
 
 {====================================================================================================================}
 
+Procedure        GetActiveElementVoltagesCallBack (Var NumVoltages:Integer; V:pComplexArray); StdCall;
+{NumVoltages is size of the V buffer}
+Var
+    i :Integer;
+Begin
+        If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             NumVoltages := Min(Yorder, NumVoltages) ;  // reset buffer size
+             For i  := 1 to NumVoltages do V^[i] := Solution.NodeV^[NodeRef^[i]];
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetActiveElementCurrentsCallBack (Var NumCurrents:Integer; Curr:pComplexArray); StdCall;
+Var
+    i :Integer;
+Begin
+        If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             ComputeIterminal;
+             NumCurrents := Min(Yorder, NumCurrents); // Reset to actual number of elements returned
+             For i  := 1 to NumCurrents do Curr^[i] := ITerminal^[i];
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetActiveElementLossesCallBack   (Var TotalLosses, LoadLosses, NoLoadLosses:Complex); StdCall;
+Begin
+     TotalLosses := CZERO;
+     LoadLosses := CZERO;
+     NoLoadLosses := CZERO;
+     If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             GetLosses(TotalLosses, LoadLosses, NoLoadLosses);
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetActiveElementPowerCallBack    (Terminal:Integer; Var TotalPower:Complex); StdCall;
+Begin
+     TotalPower := CZERO;
+     If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             ActiveTerminalIdx := Terminal;
+             TotalPower := Power;
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetActiveElementNodeRefCallBack  (Maxsize:Integer; NodeReferenceArray:pIntegerArray);  StdCall;// calling program must allocate
+Var
+    i :Integer;
+Begin
+        If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             For i  := 1 to Min(Yorder, Maxsize) do NodeReferenceArray^[i] := NodeRef^[i];
+        End;
+End;
+
+{====================================================================================================================}
+
+Function         GetActiveElementBusRefCallBack   (Terminal:Integer):Integer;  StdCall;
+Begin
+       Result := 0;
+       If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+              Result := Terminals^[Terminal].BusRef;
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetActiveElementTerminalInfoCallBack (Var NumTerminals, NumConds, NumPhases:Integer); StdCall;
+Begin
+       If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+              NumTerminals := Nterms;
+              NumConds     := Nconds;
+              NumPhases    := NPhases;
+        End;
+End;
+
+{====================================================================================================================}
+
+Procedure        GetPtrToSystemVarrayCallBack   (var V:Pointer; var iNumNodes:Integer); StdCall; // Returns pointer to Solution.V and size
+Begin
+      If Assigned(ActiveCircuit.ActiveCktElement) then
+        With ActiveCircuit Do
+           With ActiveCktElement Do Begin
+             V := Solution.NodeV;  // Return Pointer to Node Voltage array
+             iNumNodes := NumNodes;
+        End;
+End;
+
+
+{====================================================================================================================}
+
 Function GetActiveElementIndexCallBack: Integer;  StdCall;
     {Usually just checking to see if this result >0}
 Begin
@@ -140,11 +249,38 @@ End;
 Function IsActiveElementEnabledCallBack: Boolean; StdCall;
 
 Begin
-    Result := False;
+   Result := False;
    If Assigned(ActiveCircuit) Then
     If Assigned(ActiveCircuit.ActiveCktElement) Then
      Result := ActiveCircuit.ActiveCktElement.Enabled;
 End;
+
+{====================================================================================================================}
+
+Function        IsBusCoordinateDefinedCallback (BusRef:Integer):Boolean; StdCall;
+Begin
+        Result := False;
+        If Assigned(ActiveCircuit) Then Result := ActiveCircuit.Buses^[BusRef].CoordDefined;
+End;
+
+{====================================================================================================================}
+Procedure       GetBusCoordinateCallback       (BusRef:Integer; Var X, Y:Double); StdCall;
+Begin
+       If Assigned(ActiveCircuit) Then Begin
+          X := ActiveCircuit.Buses^[BusRef].X;
+          Y := ActiveCircuit.Buses^[BusRef].Y;
+       End;
+End;
+
+{====================================================================================================================}
+Procedure       GetBuskVBaseCallback           (BusRef:Integer; Var kVBase:Double); StdCall;
+Begin
+       If Assigned(ActiveCircuit) Then Begin
+          kVBase := ActiveCircuit.Buses^[BusRef].kVBase;
+       End;
+End;
+
+
 
 {====================================================================================================================}
 
@@ -161,8 +297,20 @@ Initialization
       NextParam   := ParserNextParam;
       DoDSSCommand := DoDSSCommandCallBack;
       GetActiveElementBusNames := GetActiveElementBusNamesCallBack;
+      GetActiveElementVoltages := GetActiveElementVoltagesCallBack;
+      GetActiveElementCurrents := GetActiveElementCurrentsCallBack;
+      GetActiveElementLosses   := GetActiveElementLossesCallBack;
+      GetActiveElementPower    := GetActiveElementPowerCallBack;
+      GetActiveElementNodeRef  := GetActiveElementNodeRefCallBack;
+      GetActiveElementBusRef   := GetActiveElementBusRefCallBack;
+      GetActiveElementTerminalInfo := GetActiveElementTerminalInfoCallBack;
+      GetPtrToSystemVarray     := GetPtrToSystemVarrayCallBack;
       GetActiveElementIndex    := GetActiveElementIndexCallBack;
       IsActiveElementEnabled   := IsActiveElementEnabledCallBack;
+      IsBusCoordinateDefined   := IsBusCoordinateDefinedCallBack;
+      GetBusCoordinate         := GetBusCoordinateCallBack;
+      GetBuskVBase             := GetBuskVBaseCallBack;
+
   End;
 
   CallBackParser  := TParser.Create;

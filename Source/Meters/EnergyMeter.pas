@@ -76,7 +76,12 @@ unit EnergyMeter;
 
 interface
 
-Uses DSSClass, MeterClass, MeterElement, CktElement, PDElement, arrayDef,
+Uses DSSClass,
+     MeterClass,
+     MeterElement,
+     CktElement,
+     PDElement,
+     arrayDef,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 

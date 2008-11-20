@@ -394,15 +394,15 @@ begin
      N := EliminationRow;
      NNElement := GetElement(N,N);
 
-     ii := 0;
-     For i := 1 to Norder Do If i<>N then Begin    // skip elimination row
-         Inc(ii);
-         jj := 0;
-         For j  := 1 to Norder Do If j<>N Then Begin
-             Inc(jj);
-             Result.SetElement(ii, jj, CSub(GetElement(i,j), Cdiv(Cmul(GetElement(i,N),GetElement(N,j)), NNElement) ));
-         End;
-     End;
+       ii := 0;
+       For i := 1 to Norder Do If i<>N then Begin    // skip elimination row
+           Inc(ii);
+           jj := 0;
+           For j  := 1 to Norder Do If j<>N Then Begin
+               Inc(jj);
+               Result.SetElement(ii, jj, CSub(GetElement(i,j), Cdiv(Cmul(GetElement(i,N),GetElement(N,j)), NNElement) ));
+           End;
+       End;
 
   End;
 

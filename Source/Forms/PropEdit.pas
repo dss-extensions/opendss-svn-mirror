@@ -17,6 +17,7 @@ type
     StringGrid1: TStringGrid;
     Button1: TButton;
     Button2: TButton;
+    Edit1: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure StringGrid1SetEditText(Sender: TObject; ACol, ARow: Integer;
@@ -52,12 +53,14 @@ Var
 procedure TPropEditForm.FormCreate(Sender: TObject);
 begin
 
-   StringGrid1.ColWidths[0] := 75;
-   StringGrid1.ColWidths[1] := 200;
-   StringGrid1.Width := 277;
+   StringGrid1.ColWidths[0] := 80;
+   StringGrid1.ColWidths[1] := 300;
+   StringGrid1.Width := 300 + 80 + 2;
    Width := StringGrid1.Width + 20;
    StringGrid1.DefaultRowHeight := Abs(StringGrid1.Font.Height) + 4;
    StringGrid1.colcount := 2;
+   Edit1.Width := StringGrid1.Width;
+   Edit1.Left := StringGrid1.Left;
 
 end;
 
@@ -77,13 +80,14 @@ begin
    TRY
      ObjectBeingEdited  := ActiveDSSObject;
      Caption := ObjectBeingEdited.ParentClass.name + '.' + ObjectBeingEdited.Name;
+     Edit1.Text := Caption;
      StringGrid1.rowcount := ObjectBeingEdited.ParentClass.NumProperties + 1;
      StringGrid1.Cells[0, 0] := 'Property';
      StringGrid1.Cells[1, 0] := 'Value';
 
      StringGrid1.Height := StringGrid1.DefaultRowHeight * (StringGrid1.RowCount+2);
-     Height := StringGrid1.Height + Button1.Height + 30;
-     Button1.Top := Height - 50;
+     Height := StringGrid1.Height + Button1.Height +  Edit1.Height + 50;
+     Button1.Top := Height - 60;
      Button2.Top := Button1.Top;
      With  ObjectBeingEdited.ParentClass Do
      For i := 1 to NumProperties Do Begin
