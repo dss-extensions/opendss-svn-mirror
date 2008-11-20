@@ -708,7 +708,7 @@ Begin
               Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
               RangeLoX := (Xmin+Xmax - Xrange)/2.0; // Xmin - Mar;    {Isometric=true forces Y to have same range as X}
               RangeHiX := (Xmin+Xmax + Xrange)/2.0; // Xmin + HiX + Mar;
-              RangeLoY := YMin;
+              RangeLoY :=  YMin - 0.02 * Xrange/Aspect;
               RangeHiY := RangeLoY +  (Xrange/Aspect);
               Set_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
 
