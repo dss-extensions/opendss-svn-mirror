@@ -168,7 +168,9 @@ begin
 
    If Pos(' ', S)>0 Then Begin
        If S[1] <> '(' Then  // Ignore if already quoted
-        Result := '"'+S+'"';
+        If S[1] <> '[' Then  // Ignore if already quoted
+         If S[1] <> '{' Then  // Ignore if already quoted
+          Result := '"'+S+'"';
    End;
 end;
 

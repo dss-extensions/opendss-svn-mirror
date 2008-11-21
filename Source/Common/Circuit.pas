@@ -23,7 +23,7 @@ interface
 
 USES
      Solution, SysUtils, ArrayDef, HashList, PointerList, CktElement,
-     DSSClass, DSSObject, Bus, LoadShape, ControlQueue, uComplex,
+     DSSClass, {DSSObject,} Bus, LoadShape, ControlQueue, uComplex,
      AutoAdd, EnergyMeter;
 
 

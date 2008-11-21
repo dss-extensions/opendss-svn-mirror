@@ -98,6 +98,7 @@ TYPE
         Property NumPhases:Integer Read FNPhases Write Set_Nphases;
         Procedure CalcMatricesFromZ1Z0;
 
+        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
@@ -349,14 +350,15 @@ BEGIN
 
          CASE ParamPointer OF
              9..11: SymComponentsModel := FALSE;
+             18: IF ReduceByKron and Not SymComponentsModel Then DoKronReduction;
          END;
 
+         
          ParamName := Parser.NextParam;
          Param := Parser.StrValue;
      END;
 
      IF SymComponentsModel THEN CalcMatricesFromZ1Z0;
-     IF ReduceByKron and Not SymComponentsModel Then DoKronReduction;
      IF MatrixChanged THEN BEGIN
         Zinv.Copyfrom(Z);
         Zinv.Invert;
@@ -617,10 +619,65 @@ Begin
 
 end;
 
+function TLineCodeObj.GetPropertyValue(Index: Integer): String;
+var
+  i: Integer;
+  j: Integer;
+begin
+     case Index of
+         1: Result := Format('%d', [FnPhases]);
+         2: If SymComponentsModel Then Result := Format('%.5g', [R1]) else Result := '----';
+         3: If SymComponentsModel Then Result := Format('%.5g', [X1]) else Result := '----';
+         4: If SymComponentsModel Then Result := Format('%.5g', [R0]) else Result := '----';
+         5: If SymComponentsModel Then Result := Format('%.5g', [X0]) else Result := '----';
+         6: If SymComponentsModel Then Result := Format('%.5g', [C1*1.0e9]) else Result := '----';
+         7: If SymComponentsModel Then Result := Format('%.5g', [C0*1.0e9]) else Result := '----';
+         8: Result := LineUnitsStr(Units);
+         9: Begin
+               Result := '[';
+               FOR i := 1 to FNPhases DO Begin
+                 FOR j := 1 to FNphases DO Begin
+                     Result := Result + Format('%12.8f ',[Z.GetElement(i,j).re]);
+                 End;
+               Result := Result + '|';
+               End;
+               Result := Result + ']';
+            End;
+        10: Begin
+               Result := '[';
+               FOR i := 1 to FNPhases DO Begin
+                 FOR j := 1 to FNphases DO Begin
+                     Result := Result + Format('%12.8f  ',[Z.GetElement(i,j).im]);
+                 End;
+               Result := Result + '|';
+               End;
+               Result := Result + ']';
+            End;
+        11:  Begin
+               Result := '[';
+               FOR i := 1 to FNPhases DO Begin
+                 FOR j := 1 to FNphases DO Begin
+                     Result := Result + Format('%12.8f ',[Yc.GetElement(i,j).im/TwoPi/BaseFrequency * 1.e9]);
+                 End;
+               Result := Result + '|';
+               End;
+               Result := Result + ']';
+            End;
+        12: Result := Format('%.g',[DefaultBaseFreq]); // 'baseFreq';
+        18: If ReduceByKron  then Result := 'Y' Else Result := 'N';
+        19: Result := Format('%.5g',[Rg]);
+        20: Result := Format('%.5g',[Xg]);
+        21: Result := Format('%.5g',[Rho]); 
+        22: Result := IntToStr(FNeutralConductor);
+     Else
+        Result := Inherited GetPropertyValue(index);
+     end;
+end;
+
 procedure TLineCodeObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
-     PropertyValue[1] := '3'; // 'nphases';
+     PropertyValue[1] :=  '3'; // 'nphases';
      PropertyValue[2] :=  '.058'; // 'r1';
      PropertyValue[3] :=  '.1206'; // 'x1';
      PropertyValue[4] :=  '0.1784'; // 'r0';
@@ -683,6 +740,7 @@ begin
             YC := NewYC;
 
             FNeutralConductor := 0;
+            ReduceByKron := FALSE;
         End Else Begin
            DoSimpleMsg(Format('Kron Reduction failed: LineCode.%s. Attempting to eliminate Neutral Conductor %d.', [Name, FNeutralConductor]), 103);
         End;

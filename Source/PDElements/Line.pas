@@ -909,7 +909,7 @@ VAR
    Factor: double;
 begin
         Case Index of
-          12..14: Result := '(';
+          12..14: Result := '[';
 
         Else
             Result := '';
@@ -919,6 +919,12 @@ begin
             1: Result := GetBus(1);
             2: Result := GetBus(2);
             5: Result := Format('%d', [FNphases]);
+            6: If SymComponentsModel Then Result := Format('%-g', [R1]) else Result := '----';
+            7: If SymComponentsModel Then Result := Format('%-g', [X1]) else Result := '----';
+            8: If SymComponentsModel Then Result := Format('%-g', [R0]) else Result := '----';
+            9: If SymComponentsModel Then Result := Format('%-g', [X0]) else Result := '----';
+           10: If SymComponentsModel Then Result := Format('%-g', [C1*1.0e9]) else Result := '----';
+           11: If SymComponentsModel Then Result := Format('%-g', [C0*1.0e9]) else Result := '----';
 
            12: FOR i := 1 to FNconds Do   // R matrix
                Begin
@@ -958,7 +964,7 @@ begin
         END;
 
         Case Index of
-          12..14: Result := Result + ')';
+          12..14: Result := Result + ']';
 
         Else
         End;
