@@ -137,15 +137,15 @@ Begin
      AllocatePropertyArrays;
 
 
-     PropertyName[1] := 'nconds';
-     PropertyName[2] := 'nphases';
-     PropertyName[3] := 'cond';
-     PropertyName[4] := 'wire';
-     PropertyName[5] := 'x';
-     PropertyName[6] := 'h';
-     PropertyName[7] := 'units';
-     PropertyName[8] := 'normamps';
-     PropertyName[9] := 'emergamps';
+     PropertyName[1]  := 'nconds';
+     PropertyName[2]  := 'nphases';
+     PropertyName[3]  := 'cond';
+     PropertyName[4]  := 'wire';
+     PropertyName[5]  := 'x';
+     PropertyName[6]  := 'h';
+     PropertyName[7]  := 'units';
+     PropertyName[8]  := 'normamps';
+     PropertyName[9]  := 'emergamps';
      PropertyName[10] := 'reduce';
 
 

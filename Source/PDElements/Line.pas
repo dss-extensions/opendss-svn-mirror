@@ -208,8 +208,9 @@ Begin
                      'use the standard symmetrical component data definition instead.';
      PropertyHelp[15] := '{y/n | T/F}  Default= no/false.  Designates this line as a switch for graphics and algorithmic purposes. ' +CRLF+
                          'SIDE EFFECT: Sets R1=0.001 X1=0.0. You must reset if you want something different.';
-     PropertyHelp[16] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
-     PropertyHelp[17] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
+     PropertyHelp[16] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default value is 60 Hz value.';
+     PropertyHelp[17] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
+                         'Default is 60 Hz value that will yield the default line impedances.';
      PropertyHelp[18] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor. Overrides Line geometry definition if specified.';
      PropertyHelp[19] := 'Geometry code for LineGeometry Object. Supercedes any previous definition of line impedance. ' +
                          'Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases. '+
@@ -610,10 +611,10 @@ Begin
      Zinv := nil;
      Yc   := nil;
 
-     Rg := 0.0;
-     Xg := 0.0;
-     KXg := 0.0;
+     Rg := 0.01805;    //ohms per 1000 ft
+     Xg := 0.155081;
      rho := 100.0;
+     Kxg := Xg/ln(658.5*sqrt(rho/BaseFrequency));
      FrhoSpecified :=FALSE;
 
      {Basefrequency := 60.0;}  // set in base class
@@ -897,7 +898,7 @@ End;
 procedure TLineObj.GetLosses(var TotalLosses, LoadLosses,  NoLoadLosses: Complex);
 begin
 
-  {For Now, we'll just to the default behavior until we implement shunt losses}
+  {For Now, we'll just do the default behavior until we implement shunt losses}
 
   inherited;
 
@@ -1029,8 +1030,8 @@ begin
      PropertyValue[13] := '';
      PropertyValue[14] := '';
      PropertyValue[15] := 'false';
-     PropertyValue[16] := '0';
-     PropertyValue[17] := '0';
+     PropertyValue[16] := '0.01805';
+     PropertyValue[17] := '0.155081';
      PropertyValue[18] := '100';
      PropertyValue[19] := '';
      PropertyValue[20] := 'NONE';

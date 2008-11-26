@@ -194,13 +194,13 @@ BEGIN
             1: FRDC := Parser.Dblvalue;  // Use property value to force reallocations
             2: FR60 := Parser.DblValue;
             3: FresistanceUnits := GetUnitsCode(Param);
-            4: FGMR60 := Parser.DblValue;
-            5: FGMRUnits := GetUnitsCode(Param);
-            6: Fradius := Parser.DblValue;
-            7: FRadiusUnits := GetUnitsCode(Param);
-            8: NormAmps := Parser.DblValue ;
-            9: EmergAmps := Parser.DblValue ;
-           10: Fradius := Parser.DblValue / 2.0;
+            4: FGMR60           := Parser.DblValue;
+            5: FGMRUnits        := GetUnitsCode(Param);
+            6: Fradius          := Parser.DblValue;
+            7: FRadiusUnits     := GetUnitsCode(Param);
+            8: NormAmps         := Parser.DblValue ;
+            9: EmergAmps        := Parser.DblValue ;
+           10: Fradius          := Parser.DblValue / 2.0;
          ELSE
            // Inherited parameters
            ClassEdit(ActiveWireDataObj, Parampointer - NumPropsThisClass)
@@ -209,15 +209,21 @@ BEGIN
          {Set defaults}
          CASE ParamPointer OF
 
-            1: If FR60<0.0 Then FR60 := 1.02* FRDC;
-            2: If FRDC<0.0 Then FRDC := FR60 / 1.02;
-            4: If Fradius<0.0 Then Fradius := FGMR60 / 0.7788;
+            1: If FR60<0.0      Then FR60 := 1.02* FRDC;
+            2: If FRDC<0.0      Then FRDC := FR60 / 1.02;
+            4: If Fradius<0.0   Then Fradius := FGMR60 / 0.7788;
             5: If FradiusUnits =0 Then FradiusUnits := FGMRunits;
-            6: If FGMR60<0.0 Then FGMR60 := 0.7788 * FRadius;
-            7: If FGMRUnits=0 Then FGMRunits := FradiusUnits;
+            6: If FGMR60<0.0    Then FGMR60 := 0.7788 * FRadius;
+            7: If FGMRUnits=0   Then FGMRunits := FradiusUnits;
             8: IF EmergAmps<0.0 Then EmergAmps := 1.5*NormAmps;
-            9: If NormAmps<0.0 Then NormAmps := EmergAmps/1.5;
-            10: If FGMR60<0.0 Then FGMR60 := 0.7788 * FRadius;
+            9: If NormAmps<0.0  Then NormAmps := EmergAmps/1.5;
+            10: If FGMR60<0.0   Then FGMR60 := 0.7788 * FRadius;
+         END;
+
+          {Check for critical errors}
+         CASE ParamPointer OF
+            4: If (Fradius = 0.0)  Then DoSimpleMsg('Error: Radius is specified as zero for Wiredata.' + Name,999);
+            6: If (FGMR60 = 0.0)   Then DoSimpleMsg('Error: GMR is specified as zero for Wiredata.' + Name,999);
          END;
 
          ParamName := Parser.NextParam;

@@ -29,6 +29,7 @@ type
     procedure Button2Click(Sender: TObject);
     Function QuotedIfBlanks(const S:String):String;
   private
+    strActiveCellValue :String;
     { Private declarations }
     Procedure RefreshPropValues;
     Procedure UpdateSelectedRow;
@@ -97,6 +98,7 @@ begin
 
      SelectedRow := 0;
      CellEdited  := FALSE;
+     strActiveCellValue := '';
    EXCEPT
        On E:Exception Do Begin
             DoSimpleMsg('Error attempting to show editing Form: '+E.Message, 143);
@@ -121,9 +123,9 @@ procedure TPropEditForm.StringGrid1SetEditText(Sender: TObject; ACol,
   ARow: Integer; const Value: String);
 begin
 
-   CellEdited := TRUE;  // Just keep track of the fact that the selected cell has been edited
+   If (comparetext(strActiveCellValue, Value) <> 0) then CellEdited := TRUE
+   Else CellEdited := FALSE;  //  keep track of the fact that the selected cell has been edited
    SelectedRow := Arow;
-
 end;
 
 procedure TPropEditForm.StringGrid1SelectCell(Sender: TObject; ACol,
@@ -135,6 +137,7 @@ begin
 
      SelectedRow := ARow;
      CanSelect := TRUE;
+     strActiveCellValue := StringGrid1.Cells[1, SelectedRow];
 end;
 
 procedure TPropEditForm.StringGrid1KeyPress(Sender: TObject;

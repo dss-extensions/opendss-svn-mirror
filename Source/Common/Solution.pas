@@ -972,7 +972,7 @@ Begin
    GetSourceInjCurrents;
    GetMachineInjCurrents;  // Need this in dynamics mode to pick up injections
 
-   IF   SolveSystem(NodeV) = 0   // Solve with Zero injection current
+   IF   SolveSystem(NodeV) = 1   // Solve with Zero injection current
    THEN Begin
        ActiveCircuit.IsSolved := TRUE;
        ConvergedFlag := TRUE;

@@ -38,6 +38,7 @@ TYPE
        Procedure SetUnits(Const s:String);  // decode units specification
 
        Procedure DoMatrix(i:Integer);  // set impedances as matrices
+
        
      Protected
        Procedure DefineProperties;
@@ -63,6 +64,9 @@ TYPE
 
         Procedure Set_NPhases(Value:Integer);
         Procedure DoKronReduction;
+        Function get_Rmatrix: string;
+        Function get_Xmatrix: string;
+        Function get_CMatrix: string;
 
       public
         FNPhases:Integer;
@@ -197,8 +201,10 @@ Begin
                          'Eliminates the conductor designated by the "Neutral=" property. ' +
                          'Do this after the R, X, and C matrices are defined. Ignored for symmetrical components. ' +
                          'May be issued more than once to eliminate more than one conductor by resetting the Neutral property.';
-     PropertyHelp[19] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
-     PropertyHelp[20] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default=0';
+     PropertyHelp[19] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
+                         'Default is value commonly used for 60 Hz.';
+     PropertyHelp[20] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
+                         'Default value will yield default line impedances at 60 Hz.';
      PropertyHelp[21] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor.';
      PropertyHelp[22] := 'Designates which conductor is the "neutral" conductor that will be eliminated by Kron reduction. ' +
                          'Default is the last conductor (nphases value). After Kron reduction is set to 0. Subsequent issuing of Kron=Yes ' +
@@ -219,6 +225,55 @@ BEGIN
     Result := AddObjectToList(ActiveDSSObject);
    End;
 END;
+
+Function TLineCodeObj.get_Rmatrix: string;
+var
+  j: Integer;
+  i: Integer;
+begin
+  Result := '[';
+  for i := 1 to FNPhases do
+  begin
+    for j := 1 to FNphases do
+    begin
+      Result := Result + Format('%12.8f ', [Z.GetElement(i, j).re]);
+    end;
+    if i < FNphases then
+      Result := Result + '|';
+  end;
+  Result := Result + ']';
+end;
+
+Function TLineCodeObj.get_Xmatrix: string;
+var
+  j: Integer;
+  i: Integer;
+begin
+  Result := '[';
+  for i := 1 to FNPhases do
+  begin
+    for j := 1 to FNphases do
+    begin
+      Result := Result + Format('%12.8f ', [Z.GetElement(i, j).im]);
+    end;
+    if i < FNphases then
+      Result := Result + '|';
+  end;
+  Result := Result + ']';
+end;
+
+function TLineCodeObj.get_CMatrix: string;
+Var  i,j:Integer;
+begin
+        Result := '[';
+         FOR i := 1 to FNPhases DO Begin
+           FOR j := 1 to FNphases DO Begin
+               Result := Result + Format('%12.8f ',[Yc.GetElement(i,j).im/TwoPi/BaseFrequency * 1.e9]);
+           End;
+           If i< FNphases then Result := Result + '|';
+         End;
+         Result := Result + ']';
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TLineCode.SetUnits(Const s:String);
@@ -486,8 +541,8 @@ BEGIN
      PctPerm := 20.0;
      FaultRate := 0.1;
 
-     Rg := 0.0;
-     Xg := 0.0;
+     Rg := 0.01805;  // ohms per 1000'
+     Xg := 0.155081;
      rho := 100.0;
 
      SymComponentsModel := TRUE;
@@ -620,9 +675,6 @@ Begin
 end;
 
 function TLineCodeObj.GetPropertyValue(Index: Integer): String;
-var
-  i: Integer;
-  j: Integer;
 begin
      case Index of
          1: Result := Format('%d', [FnPhases]);
@@ -633,36 +685,9 @@ begin
          6: If SymComponentsModel Then Result := Format('%.5g', [C1*1.0e9]) else Result := '----';
          7: If SymComponentsModel Then Result := Format('%.5g', [C0*1.0e9]) else Result := '----';
          8: Result := LineUnitsStr(Units);
-         9: Begin
-               Result := '[';
-               FOR i := 1 to FNPhases DO Begin
-                 FOR j := 1 to FNphases DO Begin
-                     Result := Result + Format('%12.8f ',[Z.GetElement(i,j).re]);
-                 End;
-               Result := Result + '|';
-               End;
-               Result := Result + ']';
-            End;
-        10: Begin
-               Result := '[';
-               FOR i := 1 to FNPhases DO Begin
-                 FOR j := 1 to FNphases DO Begin
-                     Result := Result + Format('%12.8f  ',[Z.GetElement(i,j).im]);
-                 End;
-               Result := Result + '|';
-               End;
-               Result := Result + ']';
-            End;
-        11:  Begin
-               Result := '[';
-               FOR i := 1 to FNPhases DO Begin
-                 FOR j := 1 to FNphases DO Begin
-                     Result := Result + Format('%12.8f ',[Yc.GetElement(i,j).im/TwoPi/BaseFrequency * 1.e9]);
-                 End;
-               Result := Result + '|';
-               End;
-               Result := Result + ']';
-            End;
+         9: Result  := Get_Rmatrix;
+        10: Result  := Get_Xmatrix;
+        11:  Result := get_Cmatrix;
         12: Result := Format('%.g',[DefaultBaseFreq]); // 'baseFreq';
         18: If ReduceByKron  then Result := 'Y' Else Result := 'N';
         19: Result := Format('%.5g',[Rg]);
@@ -695,8 +720,8 @@ begin
      PropertyValue[16] :=  '20'; // 'pctperm';
      PropertyValue[17] :=  '3'; // 'Hrs to repair';
      PropertyValue[18] :=  'N'; // 'Kron';
-     PropertyValue[19] :=  '0'; // 'Rg';
-     PropertyValue[20] :=  '0'; // 'Xg';
+     PropertyValue[19] :=  '.01805'; // 'Rg';
+     PropertyValue[20] :=  '.155081'; // 'Xg';
      PropertyValue[21] :=  '100'; // 'rho';
      PropertyValue[22] :=  '3'; // 'Neutral';
 
@@ -741,6 +766,13 @@ begin
 
             FNeutralConductor := 0;
             ReduceByKron := FALSE;
+
+            {Change Property values to reflect Kron reduction for save circuit function}
+             PropertyValue[1] := Format('%d', [FnPhases]);
+             PropertyValue[9] := get_Rmatrix;
+             PropertyValue[10] := get_Xmatrix;
+             PropertyValue[11] := get_Cmatrix;
+
         End Else Begin
            DoSimpleMsg(Format('Kron Reduction failed: LineCode.%s. Attempting to eliminate Neutral Conductor %d.', [Name, FNeutralConductor]), 103);
         End;

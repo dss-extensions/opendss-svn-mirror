@@ -53,7 +53,6 @@ object PropEditForm: TPropEditForm
     Caption = '&Update'
     TabOrder = 1
     OnClick = Button1Click
-    ExplicitTop = 48
   end
   object Button2: TButton
     Left = 8
@@ -64,13 +63,12 @@ object PropEditForm: TPropEditForm
     Caption = '&Close'
     TabOrder = 2
     OnClick = Button2Click
-    ExplicitTop = 48
   end
   object Edit1: TEdit
     Left = 8
     Top = 0
     Width = 241
-    Height = 26
+    Height = 21
     ReadOnly = True
     TabOrder = 3
     Text = 'Edit1'
