@@ -2794,7 +2794,7 @@ Begin
               Writeln(F);
             End;
 
-             w := freq * twopi /1.e9;
+            w := freq * twopi /1.e9;
             Writeln(F);
             Writeln(F, 'C MATRIX, nF per ', LineUnitsStr(Units));
             For i := 1 to Yc.order Do Begin
@@ -2803,6 +2803,37 @@ Begin
               End;
               Writeln(F);
             End;
+
+            {Write DSS LineCode record}
+            Writeln(F);
+            Writeln(F,'-------------------------------------------------------------------');
+            Writeln(F,'-------------------DSS Linecode Definition-------------------------');
+            Writeln(F,'-------------------------------------------------------------------');
+            Writeln(F);
+
+            Writeln(F, Format('New Linecode.%s nphases=%d  Units=%s', [ pelem.Name, z.order, LineUnitsStr(Units)]));
+
+            Write(F, '~ Rmatrix=[');
+            For i := 1 to Z.order Do Begin
+              For j := 1 to i Do Write(F, Format('%.6g  ', [Z.GetElement(i,j).re] ));
+              If i < Z.order then Write(F, '|');
+            End;
+            Writeln(F, ']');
+
+            Write(F, '~ Xmatrix=[');
+            For i := 1 to Z.order Do Begin
+              For j := 1 to i Do Write(F, Format('%.6g  ', [Z.GetElement(i,j).im] ));
+              If i < Z.order then Write(F, '|');
+            End;
+            Writeln(F, ']');
+
+            w := freq * twopi /1.e9;
+            Write(F, '~ Cmatrix=[');
+            For i := 1 to Yc.order Do Begin
+              For j := 1 to i Do Write(F, Format('%.6g  ', [YC.GetElement(i,j).im/w] ));
+              if i < Yc.order then Write(F, '|');
+            End;
+            Writeln(F, ']');
 
             {Add pos- and zero-sequence approximation here}
             {Kron reduce to 3 phases first}
@@ -2814,6 +2845,11 @@ Begin
             CM := 0.0;
 
             If Z.order=3 Then Begin
+               Writeln(F);
+               Writeln(F,'-------------------------------------------------------------------');
+               Writeln(F,'-------------------Equiv Symmetrical Component --------------------');
+               Writeln(F,'-------------------------------------------------------------------');
+               Writeln(F);
                For i := 1 to 3 Do   Caccum(Zs, Z.GetElement(i,i));
                For i := 1 to 3 Do
                For j := 1 to i-1 Do Caccum(Zm, Z.GetElement(i,j));
