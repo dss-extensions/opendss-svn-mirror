@@ -152,6 +152,7 @@ TYPE
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+        PROCEDURE SaveWrite(Var F:TextFile);Override;
         PROCEDURE GetWindingVoltages(iWind:Integer; VBuffer:pComplexArray);
 
         PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
@@ -900,6 +901,38 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TTransfObj.SaveWrite(var F: TextFile);
+{Override standard SaveWrite}
+{Transformer structure not conducive to standard means of saving}
+var
+   iprop :Integer;
+   i     :Integer;
+begin
+   {Write only properties that were explicitly set in the
+   final order they were actually set}
+   iProp := GetNextPropertySet(0); // Works on ActiveDSSObject
+   While iProp >0 Do
+   Begin
+      With ParentClass Do
+       {Trap wdg= and write out array properties instead}
+        CASE RevPropertyIdxMap[iProp] of
+            3:  Begin   // if WDG= was ever used write out arrays ...
+                 For i := 12 to 16 Do
+                   Write(F, Format(' %s=%s', [PropertyName^[i], GetPropertyValue(i) ]));
+                 For i := 1 to Numwindings do
+                   Write(F, Format(' wdg=%d %sR=%.7g', [i, '%', Winding^[i].Rpu *100.0]));
+            End;
+            4..9: {do Nothing}; // Ignore these properties; use arrays instead
+
+        ELSE
+          Write(F,Format(' %s=%s', [PropertyName^[RevPropertyIdxMap[iProp]],CheckForBlanks(PropertyValue[iProp])] ));
+        END;
+      iProp := GetNextPropertySet(iProp);
+   End;
+
+
+end;
+
 PROCEDURE TTransfObj.SetTermRef;
 
 // sets an array which maps the two conductors of each winding to the
@@ -1247,7 +1280,7 @@ VAR
 
 begin
         Case Index of
-            12..16,20: Result := '(';
+            12..16,20: Result := '[';
         Else
             Result := '';
         End;
@@ -1296,7 +1329,7 @@ begin
         End;
 
         Case Index of
-            12..16,20: Result := Result + ')';
+            12..16,20: Result := Result + ']';
         Else
         End;
 

@@ -19,10 +19,15 @@ TYPE
       procedure Set_PropertyValue(Index: Integer; const Value: String);
       procedure Set_Name(const Value: String);
 
+
     protected
+
       PropSeqCount   :Integer;
       FPropertyValue :pStringArray;
+      PrpSequence    :pIntegerArray;
 
+      Function  GetNextPropertySet(idx:Integer):Integer;
+      
     public
 
       DSSObjType    :Integer; // PD, PC, Monitor, CondCode, etc.
@@ -33,8 +38,6 @@ TYPE
       HasBeenSaved  :Boolean;
       Flag          :Boolean;  // General purpose Flag for each object  don't assume inited
 
-      PrpSequence   :pIntegerArray;
-
       constructor Create(ParClass:TDSSClass);
       destructor Destroy; override;
 
@@ -44,6 +47,7 @@ TYPE
       FUNCTION  GetPropertyValue(Index:Integer):String; Virtual;  // Use dssclass.propertyindex to get index by name
       PROCEDURE InitPropertyValues(ArrayOffset:Integer); Virtual;
       PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Virtual;
+      PROCEDURE SaveWrite(Var F:TextFile);Virtual;
 
       Procedure ClearPropSeqArray;
 
@@ -124,6 +128,45 @@ begin
      ClearPropSeqArray;
 
 end;
+
+procedure TDSSObject.SaveWrite(var F: TextFile);
+var
+   iprop:Integer;
+begin
+   {Write only properties that were explicitly set in the
+   final order they were actually set}
+   iProp := GetNextPropertySet(0); // Works on ActiveDSSObject
+   While iProp >0 Do
+     Begin
+      With ParentClass Do Write(F,' ', PropertyName^[RevPropertyIdxMap[iProp]]);
+      Write(F,'=',CheckForBlanks(PropertyValue[iProp]));
+      iProp := GetNextPropertySet(iProp);
+     End;
+end;
+
+Function TDSSObject.GetNextPropertySet(idx:Integer):Integer;
+// Find next larger property sequence number
+// return 0 if none found
+
+Var
+   i, smallest:integer;
+Begin
+
+     Smallest := 9999999; // some big number
+     Result := 0;
+
+     If idx>0 Then idx := PrpSequence^[idx];
+     For i := 1 to ParentClass.NumProperties Do
+     Begin
+        If PrpSequence^[i]>idx Then
+          If PrpSequence^[i]<Smallest Then
+            Begin
+               Smallest := PrpSequence^[i];
+               Result := i;
+            End;
+     End;
+
+End;
 
 procedure TDSSObject.Set_Name(const Value: String);
 begin

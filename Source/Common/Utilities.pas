@@ -1563,32 +1563,7 @@ Begin
    End;
 End;
 
-Function GetNextPropertySet(idx:Integer):Integer;
-// Find next larger property sequence number
-// return 0 if none found
 
-Var
-   i, smallest:integer;
-Begin
-
-   Smallest := 9999999; // some big number
-   Result := 0;
-
-   With ActiveDSSObject Do
-   Begin
-     If idx>0 Then idx := PrpSequence^[idx];
-     For i := 1 to ParentClass.NumProperties Do
-     Begin
-        If PrpSequence^[i]>idx Then
-          If PrpSequence^[i]<Smallest Then
-            Begin
-               Smallest := PrpSequence^[i];
-               Result := i;
-            End;
-     End;
-   End;
-
-End;
 
 Function WriteVsourceClassFile(Const DSS_Class:TDSSClass; IsCktElement:Boolean):Boolean;
 {Special Function to write the Vsource class and change the DSS command of the first Source
@@ -1694,20 +1669,16 @@ Procedure WriteActiveDSSObject(Var F:TextFile; const NeworEdit:String);
 
 Var
    ParClass:TDssClass;
-   iprop:Integer;
+
 
 Begin
    ParClass := ActiveDSSObject.ParentClass;
    Write(F, NeworEdit, ' "', ParClass.Name + '.' + ActiveDSSObject.Name,'"');
-   {Write only properties that were explicitly set in the
-   final order they were actually set}
-   iProp := GetNextPropertySet(0); // Works on ActiveDSSObject
-   While iProp >0 Do
-     Begin
-      With ParClass Do Write(F,' ', PropertyName^[RevPropertyIdxMap[iProp]]);
-      Write(F,'=',CheckForBlanks(ActiveDSSObject.PropertyValue[iProp]));
-      iProp := GetNextPropertySet(iProp);
-     End;
+
+   ActiveDSSObject.SaveWrite(F);
+
+
+
    // Handle disabled circuit elements;   Modified to allow applets to save disabled elements 12-28-06
    IF (ActiveDSSObject.DSSObjType AND ClassMask) <> DSS_Object Then
       If Not TDSSCktElement( ActiveDSSObject).Enabled Then Write(F, ' ENABLED=NO');
