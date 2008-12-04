@@ -277,7 +277,7 @@ Begin
     Inherited Create(ParClass);
     Name := LowerCase(SolutionName);
 
-    FYear     := 0;
+    FYear    := 0;
     Hour     := 0;
     DynaVars.t        := 0.0;
     DynaVars.tstart   := 0.0;
@@ -1309,6 +1309,7 @@ begin
                       End;
        YEARLYMODE:    Begin
                          IntervalHrs   := 1.0;
+                         DynaVars.h    := 3600.0;
                          NumberOfTimes := 8760;
                       End;
        DUTYCYCLE:     Begin
@@ -1316,7 +1317,7 @@ begin
                          ControlMode := TIMEDRIVEN;
                       End;
        DYNAMICMODE:   Begin
-                         DynaVars.h     := 0.1;
+                         DynaVars.h     := 0.001;
                          ControlMode    := TIMEDRIVEN;
                          IsDynamicModel := TRUE;
                          PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
@@ -1509,6 +1510,7 @@ begin
       If DIFilesAreOpen Then EnergyMeterClass.CloseAllDIFiles;
       FYear := Value;
       Hour := 0;  {Change year, start over}
+      Dynavars.t := 0.0;
       EnergyMeterClass.ResetAll;  // force any previous year data to complete
 end;
 

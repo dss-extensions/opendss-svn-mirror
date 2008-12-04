@@ -118,7 +118,9 @@ Begin
      OptionHelp[5]  := 'Sets the Year (integer number) to be used for the solution. '+
                         'for certain solution types, this determines the growth multiplier.';
      OptionHelp[6]  := 'Sets the frequency for the solution of the active circuit.';
-     OptionHelp[7]  := 'Sets the time step in sec for the active circuit.  Nominally for dynamics solution.';
+     OptionHelp[7]  := 'Sets the time step size for the active circuit.  Default units are s. ' +
+                       'May also be specified in minutes or hours by appending "m" or "h" to the value. For example:' + CRLF + CRLF +
+                       '   stepsize=.25h ' + CRLF + '  stepsize=15m' + CRLF + '  stepsize=900s';
      OptionHelp[8]  := 'Set the solution Mode: One of'+
                     CRLF+'  Snapshot,'+
                     CRLF+'  Daily,'+
@@ -381,7 +383,7 @@ Begin
                   DefaultGrowthFactor :=  IntPower(DefaultGrowthRate, (Solution.Year-1));
                End;
             6: ActiveCircuit.solution.Frequency        := Parser.DblValue;
-            7,18: ActiveCircuit.solution.DynaVars.h          := Parser.DblValue;
+            7,18: ActiveCircuit.solution.DynaVars.h    := InterpretTimeStepSize(Param);
             8: ActiveCircuit.solution.Mode          := InterpretSolveMode(Param);  // see DSSGlobals
             9: ActiveCircuit.solution.RandomType    := InterpretRandom(Param);
            10: ActiveCircuit.solution.NumberOfTimes := Parser.IntValue;

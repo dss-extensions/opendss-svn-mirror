@@ -72,13 +72,17 @@ Begin
  WITH ActiveCircuit, ActiveCircuit.Solution Do
  Begin
   Try
-    DynaVars.t := 0.0;
+    IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
     IF Not DIFilesAreOpen then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired   Creates DI_Totals
     Twopct := Max(NumberOfTimes div 50, 1);
     FOR N := 1 TO NumberOfTimes Do
-      IF Not SolutionAbort Then Begin
-          Inc(Hour);
-          DefaultHourMult := DefaultYearlyShapeObj.getmult(Hour);
+      IF Not SolutionAbort Then With Dynavars do Begin
+          t := t+h;
+          IF t >= 3600.0 THEN Begin
+              Inc(Hour);
+              t := t - 3600.0;
+          End;
+          DefaultHourMult := DefaultYearlyShapeObj.getmult(Hour + t/3600.0);
           IF PriceCurveObj <> NIL THEN PriceSignal := PriceCurveObj.GetMult(Hour).re;
           SolveSnap;
           MonitorClass.SampleAll;  // Make all monitors take a sample

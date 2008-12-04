@@ -48,6 +48,7 @@ FUNCTION  InterpretDblArray(const s: string; MaxValues:Integer; ResultArray :pDo
 FUNCTION  InterpretIntArray(const s: string; MaxValues:Integer; ResultArray :pIntegerArray):Integer;
 PROCEDURE InterpretAndAllocStrArray(const s: string; var Size:Integer;var ResultArray :pStringArray);
 PROCEDURE InterpretTStringListArray(const s: string; var ResultList :TStringList);
+FUNCTION  InterpretTimeStepSize(const s:string):double;
 
 FUNCTION GetSolutionModeID:String;
 FUNCTION GetSolutionModeIDName(idx:Integer):String;
@@ -582,6 +583,38 @@ Begin
                 AuxParser.NextParam;
            END;
        End;
+End;
+
+FUNCTION  InterpretTimeStepSize(const s:string):double;
+{Return stepsize in seconds}
+Var
+   Code :Integer;
+   ch :char;
+   s2 :String;
+
+Begin
+     {Try to convert and see if we get an error}
+     val(s,Result, Code);
+     If Code = 0 then  Exit;  // Only a number was specified, so must be seconds
+
+     {Error occurred so must have a units specifier}
+     ch := s[Length(s)];  // get last character
+     s2 := copy(s, 1, Length(s)-1);
+     Val(S2, Result, Code);
+     If Code>0 then Begin   {check for error}
+       Result := ActiveCircuit.solution.DynaVars.h; // Don't change it
+       DosimpleMsg('Error in specification of StepSize: ' + s, 99933);
+       Exit;
+     End;
+     case ch of
+        'h': Result := Result * 3600.0;
+        'm': Result := Result * 60.0;
+        's':; // Do nothing
+     Else
+         Result := ActiveCircuit.solution.DynaVars.h; // Don't change it
+         DosimpleMsg('Error in specification of StepSize: "' + s +'" Units can only be h, m, or s (single char only) ', 99934);
+     end;
+     
 End;
 
 //----------------------------------------------------------------------------

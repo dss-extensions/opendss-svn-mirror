@@ -465,7 +465,7 @@ Begin
            20: Begin // Update units conversion factor that might have been changed previously
                      NewLengthUnits := GetUnitsCode(Param);
                      If FLineCodeSpecified Then FUnitsConvert := ConvertLineUnits(FLineCodeUnits, NewLengthUnits)
-                     Else FUnitsConvert := FUnitsConvert * ConvertLineUnits(FlengthUnits, NewLengthUnits);
+                                           Else FUnitsConvert := FUnitsConvert * ConvertLineUnits(FlengthUnits, NewLengthUnits);
                      FLengthUnits := NewLengthUnits;
                END;
          ELSE
@@ -1108,7 +1108,7 @@ Var
     Values1, Values2 : pComplexArray;
     Order1, Order2, i, j,
     Common1, Common2:Integer;
-    TotalLen, w:Double;
+    TotalLen, wnano:Double;
     S, NewName:String;
     TestBusNum:Integer;
     NewZ:Complex;
@@ -1118,6 +1118,10 @@ begin
    IF OtherLine <> Nil THEN
    Begin
       IF Fnphases <> OtherLine.Fnphases THEN  Exit;  // Can't merge
+
+      {This code won't work for mixed length units}
+      If FLengthUnits <> OtherLine.FLengthUnits then Exit;
+      
       YPrimInvalid := True;
 
       // Redefine property values to make it appear that line was defined this way originally using matrices
@@ -1183,18 +1187,19 @@ begin
        Begin
          If Series Then
          Begin
-              S := ' R1='+ Format('%-g',[(R1*Len + OtherLine.R1*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(X1*Len + OtherLine.X1*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(R0*Len + OtherLine.R0*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9]);
-              S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9]);
+              S := ' R1='+ Format('%-g',[(R1*Len + OtherLine.R1*OtherLine.Len)/TotalLen/FUnitsConvert]);
+              S := S + Format(' %-g',[(X1*Len + OtherLine.X1*OtherLine.Len)/TotalLen/FUnitsConvert]);
+              S := S + Format(' %-g',[(R0*Len + OtherLine.R0*OtherLine.Len)/TotalLen/FUnitsConvert]);
+              S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen/FUnitsConvert]);
+              S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9/FUnitsConvert]);
+              S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9/FUnitsConvert]);
          End
          Else   {parallel}
          Begin
              If IsSwitch Then S := ''   {Leave as is if switch; just dummy z anyway}
              Else If OtherLine.IsSwitch Then S := ' switch=yes'   {This will take care of setting Z's}
              Else Begin
+{********* Will This work with Length multiplier?  did it ever work? *************************}
               NewZ := ParallelZ(Cmplx(R1*Len ,X1*Len ), Cmplx(OtherLine.R1*OtherLine.Len,OtherLine.X1*OtherLine.Len));
               S := ' R1='+ Format('%-g %-g ',[NewZ.Re, NewZ.im]);
               NewZ := ParallelZ(Cmplx(R0*Len ,X0*Len ), Cmplx(OtherLine.R0*OtherLine.Len,OtherLine.X0*OtherLine.Len));
@@ -1206,7 +1211,7 @@ begin
           Parser.cmdstring := S;
           Edit;
        End
-       Else
+       Else  {Matrix Model}
            If Not Series Then  TotalLen := Len /2.0 {We'll assume lines are equal for now}
            Else
              Begin  {Matrices were defined}
@@ -1219,7 +1224,7 @@ begin
 
                // Z <= (Z1*len1 + Z2 *len2)/TotalLen   to get equiv ohms per unit length
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen);
+                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen/FUnitsConvert);
 
                // Merge Yc matrices
                Values1 := Yc.GetValuesArrayPtr(Order1);
@@ -1228,7 +1233,7 @@ begin
                If Order1 <> Order2 Then Exit;  // OOps.  Lines not same size for some reason
 
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen);
+                 Values1^[i] := CDivReal(Cadd( CmulReal(Values1^[i], Len) , CmulReal(Values2^[i] , OtherLine.Len )), TotalLen/FUnitsConvert);
 
                {R Matrix}
                S := 'Rmatrix=(';
@@ -1251,12 +1256,12 @@ begin
                Edit;
 
                {C Matrix}
-               w := TwoPi * BaseFrequency/1.0e9;
+               wnano := TwoPi * BaseFrequency/1.0e9;
                S := 'Cmatrix=(';
                For i := 1 to 3 Do
                Begin
                 For j := 1 to i Do
-                  S := S + Format(' %-g',[(Yc.GetElement(i,j).im/w)]);   // convert from mhos to nanofs
+                  S := S + Format(' %-g',[(Yc.GetElement(i,j).im/wnano)]);   // convert from mhos to nanofs
                 S := S + ' | ';
                End;
                S := S + ') ';
@@ -1264,9 +1269,8 @@ begin
                Edit;
            End;  {Matrix definition}
 
-           Parser.cmdstring := ' Length='+Format('%-g',[TotalLen]);
-           Edit;
-
+       Parser.cmdstring := Format(' Length=%-g  Units=%s',[TotalLen, LineUnitsStr(FLengthUnits)]);
+       Edit;
 
        OtherLine.Enabled := FALSE;  // Disable the Other Line
        Result := TRUE;
