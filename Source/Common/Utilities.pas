@@ -1353,7 +1353,7 @@ FUNCTION PresentTimeInSec:Double;
 
 Begin
     With ActiveCircuit.Solution Do
-       Result := Dynavars.t + Hour*3600.0;
+       Result := Dynavars.t + intHour*3600.0;
 End;
 
 
@@ -1529,7 +1529,7 @@ VAR
 
 Begin
 
-          S :=  Format('%d, ', [ActiveCircuit.Solution.Hour])
+          S :=  Format('%d, ', [ActiveCircuit.Solution.intHour])
               + Format('%-.5g, ', [ActiveCircuit.Solution.Dynavars.t])
               + Opdev + ' ' 
               + Uppercase(action);

@@ -740,7 +740,7 @@ Begin
       SystemMeter.TakeSample;
 
       If FSaveDemandInterval Then Begin  {Write Totals Demand interval file}
-        With ActiveCircuit.Solution  Do Write(FDI_Totals, Format('%-.6g ',[(Hour + dynavars.t/3600.0)]));
+        With ActiveCircuit.Solution  Do Write(FDI_Totals, Format('%-.6g ',[dblHour]));
         For i := 1 to NumEMRegisters Do Write(FDI_Totals, Format(', %-.6g',[DI_RegisterTotals[i]]));
         Writeln(FDI_Totals);
         ClearDI_Totals;
@@ -2203,7 +2203,7 @@ Var i:Integer;
 
 begin
       If EnergyMeterClass.FDI_Verbose and This_Meter_DIFileIsOpen Then Begin
-          With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g',[(Hour + dynavars.t/3600.0)]));
+          With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g',[dblHour]));
           For i := 1 to NumEMRegisters Do Write(DI_File, Format(', %-.6g',[Derivatives[i]]));
           Writeln(DI_File);
       End;
@@ -2353,7 +2353,7 @@ begin
              Cmax := PDelem.MaxTerminalOneImag; // For now, check only terminal 1 for overloads
              IF (Cmax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps) THEN Begin
                  With ActiveCircuit.Solution Do
-                   Write(FOverLoadFile, Format('%-.6g,',[(Hour + dynavars.t/3600.0)]));
+                   Write(FOverLoadFile, Format('%-.6g,',[dblHour]));
                  Write(FOverLoadFile, Format(' %s, %-.4g, %-.4g,',[FullName(PDelem), PDElem.NormAmps, pdelem.EmergAmps ]));
                  IF PDElem.Normamps > 0.0  THEN Write(FOverLoadFile, Format(' %-.7g,',[Cmax/PDElem.Normamps*100.0]))
                                            ELSE Write(FOverLoadFile,' 0.0,');
@@ -2571,7 +2571,7 @@ end;
 
 procedure TSystemMeter.WriteDemandIntervalData;
 begin
-   With ActiveCircuit.Solution Do Write(SystemDIFile, Format('%-.6g',[(Hour + dynavars.t/3600.0)]));
+   With ActiveCircuit.Solution Do Write(SystemDIFile, Format('%-.6g',[dblHour]));
    Write(SystemDIFile, Format(', %-g', [cPower.re]));
    Write(SystemDIFile, Format(', %-g', [cPower.im]));
    Write(SystemDIFile, Format(', %-g',[peakkW]));
@@ -2679,7 +2679,7 @@ begin
                End;
            End;
        End; {For i}
-       With Solution Do Write(FVoltageFile, Format('%-.6g,',[(Hour + dynavars.t/3600.0)]));
+       With Solution Do Write(FVoltageFile, Format('%-.6g,',[dblHour]));
        Writeln(FVoltageFile, Format(' %d, %-.6g, %d, %-.6g', [UnderCount, UnderVmin, OverCount, OverVmax ]))
     End;
 

@@ -77,13 +77,9 @@ Begin
     Twopct := Max(NumberOfTimes div 50, 1);
     FOR N := 1 TO NumberOfTimes Do
       IF Not SolutionAbort Then With Dynavars do Begin
-          t := t+h;
-          IF t >= 3600.0 THEN Begin
-              Inc(Hour);
-              t := t - 3600.0;
-          End;
-          DefaultHourMult := DefaultYearlyShapeObj.getmult(Hour + t/3600.0);
-          IF PriceCurveObj <> NIL THEN PriceSignal := PriceCurveObj.GetMult(Hour).re;
+          Increment_time;
+          DefaultHourMult := DefaultYearlyShapeObj.getmult(dblHour);
+          IF PriceCurveObj <> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
           SolveSnap;
           MonitorClass.SampleAll;  // Make all monitors take a sample
           EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -126,13 +122,9 @@ Begin
 
       FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
-            t := t+h;
-            IF t>=3600.0 THEN Begin
-                Inc(Hour);
-                t := t - 3600.0;
-            End;
-            DefaultHourMult := DefaultDailyShapeObj.getmult(Hour + t/3600.0);
-            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(Hour).re;
+            Increment_time;
+            DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
+            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -170,20 +162,16 @@ Begin
         // MonitorClass.ResetAll;
         // EnergyMeterClass.ResetAll;
      Try
-        Hour := 0;
+        intHour := 0; dblHour := 0.0;
         IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
         DefaultDailyShapeObj := LoadShapeClass.Find('default');
         If Not DIFilesAreOpen Then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired
 
         FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
-            t := t+h;
-            IF t>=3600.0 THEN Begin
-                Inc(Hour);
-                t := t - 3600.0;
-            End;
-            DefaultHourMult := DefaultDailyShapeObj.GetMult(Hour + t/3600.0);
-            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(Hour).re;
+            Increment_time;
+            DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
+            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -217,12 +205,8 @@ Begin
       Try
         FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
-            t := t+h;
-            IF t>=3600.0 THEN Begin
-                Inc(Hour);
-                t := t - 3600.0;
-            End;
-            DefaultHourMult := DefaultDailyShapeObj.getmult(Hour + t/3600.0);
+            Increment_time;
+            DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
             // Assume pricesignal stays constant for dutycycle calcs
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
@@ -270,12 +254,8 @@ Begin
         SolutionInitialized := True; // If we're in dynamics mode, no need to re-initialize.
         FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
-          t := t + h;
-          IF t>=3600.0 THEN Begin
-              Inc(Hour);
-              t := t - 3600.0;
-          End;
-          DefaultHourMult := DefaultDailyShapeObj.getmult(Hour + t/3600.0);
+          Increment_time;
+          DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
           // Assume price signal stays constant for dutycycle calcs
        {Predictor}
           IterationFlag := 0;
@@ -306,7 +286,7 @@ Begin
    Begin
      Try
         LoadMultiplier := 1.0;   // Always set with prop in case matrix must be rebuilt
-        Hour := 0; // Use hour to denote Case number
+        intHour := 0;  dblHour := 0.0;// Use hour to denote Case number
         DynaVars.t := 0.0;
 
         // MonitorClass.ResetAll;
@@ -317,7 +297,7 @@ Begin
 
         FOR N := 1 TO NumberOfTimes Do
         If Not SolutionAbort Then  Begin
-            Inc(Hour);
+            Inc(intHour);
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll;  // Make all meters take a sample
@@ -352,7 +332,7 @@ Begin
     Do Begin
      Try
         DynaVars.t := 0.0;
-        Hour := 0;
+        intHour := 0;   dblHour := 0.0;
         // MonitorClass.ResetAll;
         // EnergyMeterClass.ResetAll;
         IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
@@ -376,13 +356,8 @@ Begin
 
           With DynaVars Do FOR i := 1 to Ndaily Do
           Begin
-            t := t + h;
-            If       t >= 3600.0
-            THEN Begin
-                  Inc(Hour);
-                  t := t - 3600.0;
-            End;
-            DefaultHourMult := DefaultDailyShapeObj.GetMult(Hour + t/3600.0);
+            Increment_time;
+            DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
             SolveSnap;
 
             MonitorClass.SampleAll;  // Make all monitors take a sample
@@ -431,8 +406,8 @@ Begin
         ProgressCaption( 'Monte Carlo Mode 3, ' + IntToStr(NumberofTimes) + ' Different Load Levels.');
         ProgressCount := 0;
 
-        DefaultHourMult := DefaultDailyShapeObj.GetMult(Hour + DynaVars.t/3600.0);
-        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(Hour + DynaVars.t/3600.0).re;
+        DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
+        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
 
         FOR N := 1 TO NumberOfTimes Do
         If Not SolutionAbort Then
@@ -500,17 +475,13 @@ Begin
 
       // (set in Solve method) DefaultGrowthFactor :=  IntPower(DefaultGrowthRate, (Year-1));
 
-      Hour := 0;
+      intHour := 0;
       With DynaVars Do FOR i := 1 to Ndaily Do Begin
 
       // Set the time
-        t := t + h;
-        IF t>=3600.0 THEN Begin
-            Inc(Hour);
-            t := t - 3600.0;
-        End;
+        Increment_time;
 
-        DefaultHourMult := DefaultDailyShapeObj.GetMult(Hour +  t/3600.0);
+        DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
 
         If    NOT SolutionAbort
         THEN  Begin
@@ -575,7 +546,7 @@ Begin
     // MonitorClass.ResetAll;
     // EnergyMeterClass.ResetAll;
 
-    DefaultHourMult := DefaultDailyShapeObj.GetMult(Hour +  DynaVars.t/3600.0);
+    DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
     If Not DIFilesAreOpen Then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired
 
     // (set in Solve Method) DefaultGrowthFactor :=  IntPower(DefaultGrowthRate, (Year-1));
@@ -650,8 +621,9 @@ Begin
     Try
       LoadModel := ADMITTANCE;   // All Direct solution
       LoadMultiplier := 1.0;    // Always set LoadMultiplier WITH prop in case matrix must be rebuilt
-      Hour := 0; // Use hour to denote Case number
+      intHour := 0; dblHour := 0.0; // Use hour to denote Case number
       DynaVars.t := 0.0;
+
 
       // MonitorClass.ResetAll;
 
@@ -662,7 +634,7 @@ Begin
 
       FOR N := 1 TO NumberOfTimes Do
       IF Not SolutionAbort Then Begin
-          Inc(Hour);
+          Inc(intHour);
           PickAFault;  // Randomly enable one of the faults
           ActiveFaultObj.Randomize;  // Randomize the fault resistance
           SolveDirect;

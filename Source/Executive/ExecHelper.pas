@@ -130,7 +130,8 @@ USES ArrayDef, ParserDel, SysUtils, DSSGlobals,
      EnergyMeter, Generator, LoadShape, Load, PCElement,   CktElement,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
-     Capacitor, Reactor, Line, Lineunits, Math, Classes,  CktElementClass, Sensor, FileCtrl;
+     Capacitor, Reactor, Line, Lineunits, Math,
+     Classes,  CktElementClass, Sensor, FileCtrl;
 
 Var
    SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands:TCommandList;
@@ -1186,8 +1187,9 @@ Begin
      Parser.ParseAsVector(2, @TimeArray);
      WITH ActiveCircuit.Solution DO
      Begin
-        Hour := Round(TimeArray[1]);
+        intHour := Round(TimeArray[1]);
         DynaVars.t := TimeArray[2];
+        UpdatedblHour;
      End;
 End;
 
@@ -1708,14 +1710,8 @@ Begin
     CASE UpCase(Param[1]) of
 
        'Y'{Year}:  Year := Year + 1;
-       'H'{Hour}:  Inc(Hour);
-       'T'{Time}:  With DynaVars Do Begin
-                        t := t + h;
-                        IF t >= 3600.0 THEN Begin
-                        Inc(Hour);
-                        t := t - 3600.0;
-                        End;
-                    End;
+       'H'{Hour}:  Inc(intHour);
+       'T'{Time}:  Increment_time;
     ELSE
 
     END;
@@ -3107,7 +3103,7 @@ Begin
   S := TStringList.Create;
   Try
        S.Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
-       S.Add(Format('Hour = %d ',[ActiveCircuit.Solution.hour]));
+       S.Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
        S.Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
        S.Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
        cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA

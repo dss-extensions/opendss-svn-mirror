@@ -171,14 +171,14 @@ TYPE
         YPrimOpenCond   :TCmatrix;  // To handle cases where one conductor of load is open ; We revert to admittance for inj currents
         YQFixed         :Double;  // Fixed value of y for type 7 load
 
-        PROCEDURE CalcDailyMult(Hour:Integer; Sec:double);
-        PROCEDURE CalcDutyMult(Hour:Integer; Sec:double);
+        PROCEDURE CalcDailyMult(Hr:double);
+        PROCEDURE CalcDutyMult(Hr:double);
         Procedure CalcGenModelContribution;
         Procedure CalcInjCurrentArray;
         Procedure CalcVterminal;
         Procedure CalcVTerminalPhase;
         Procedure CalcVthev_Dyn;      // 3-phase Voltage behind transient reactance
-        PROCEDURE CalcYearlyMult(Hour:Integer);
+        PROCEDURE CalcYearlyMult(Hr:double);
         Procedure CalcYPrimMatrix(Ymatrix:TcMatrix);
 
         Procedure DoConstantPQGen;
@@ -932,15 +932,11 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TGeneratorObj.CalcDailyMult(Hour:Integer; Sec:double);
-
-VAR
-   Hr:Double;
+Procedure TGeneratorObj.CalcDailyMult(Hr:Double);
 
 Begin
      If (DailyDispShapeObj <> Nil) Then
        Begin
-         Hr     := Hour +  Sec/3600.0;    // Convert to hours
          ShapeFactor := DailyDispShapeObj.GetMult(Hr);
        End
      ELSE ShapeFactor := CDOUBLEONE;  // Default to no daily variation
@@ -948,27 +944,23 @@ End;
 
 
 //----------------------------------------------------------------------------
-Procedure TGeneratorObj.CalcDutyMult(Hour:Integer; Sec:double);
-
-VAR
-   Hr:Double;
+Procedure TGeneratorObj.CalcDutyMult(Hr:Double);
 
 Begin
      If DutyShapeObj <> Nil Then
        Begin
-         Hr     := Hour + Sec / 3600.0;    // Convert to hours
          ShapeFactor := DutyShapeObj.GetMult(Hr);
        End
-     ELSE CalcDailyMult(Hour, Sec);  // Default to Daily Mult if no duty curve specified
+     ELSE CalcDailyMult(Hr);  // Default to Daily Mult if no duty curve specified
 End;
 
 //----------------------------------------------------------------------------
-Procedure TGeneratorObj.CalcYearlyMult(Hour:Integer);
+Procedure TGeneratorObj.CalcYearlyMult(Hr:Double);
 
 Begin
 {Yearly curve is assumed to be hourly only}
  If YearlyShapeObj<>Nil Then
-      ShapeFactor := YearlyShapeObj.GetMult((Hour))
+      ShapeFactor := YearlyShapeObj.GetMult(Hr)
  ELSE
       ShapeFactor := CDOUBLEONE;  // Defaults to no variation
 
@@ -1019,9 +1011,9 @@ Begin
                 SNAPSHOT:     Factor := ActiveCircuit.GenMultiplier * 1.0;
                 DAILYMODE:    Begin
                                 Factor := ActiveCircuit.GenMultiplier  ;
-                                CalcDailyMult(Hour, DynaVars.t) // Daily dispatch curve
+                                CalcDailyMult(dblHour) // Daily dispatch curve
                               End;
-                YEARLYMODE:   Begin Factor := ActiveCircuit.GenMultiplier; CalcYearlyMult(Hour);  End;
+                YEARLYMODE:   Begin Factor := ActiveCircuit.GenMultiplier; CalcYearlyMult(dblHour);  End;
                 MONTECARLO1,
                 MONTEFAULT,
                 FAULTSTUDY,
@@ -1029,9 +1021,9 @@ Begin
                 MONTECARLO2,
                 MONTECARLO3,
                 LOADDURATION1,
-                LOADDURATION2:Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(Hour, DynaVars.t); End;
-                PEAKDAY:      Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(Hour, DynaVars.t); End;
-                DUTYCYCLE:    Begin Factor := ActiveCircuit.GenMultiplier; CalcDutyMult(Hour, DynaVars.t) ; End;
+                LOADDURATION2:Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
+                PEAKDAY:      Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
+                DUTYCYCLE:    Begin Factor := ActiveCircuit.GenMultiplier; CalcDutyMult(dblHour) ; End;
                 AUTOADDFLAG:  Factor := 1.0;
               ELSE
                 Factor := 1.0

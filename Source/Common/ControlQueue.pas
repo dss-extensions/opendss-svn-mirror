@@ -350,7 +350,7 @@ Begin
              Separator := ', ';
              Append(TraceFile);
              Writeln(TraceFile,
-                      ActiveCircuit.Solution.Hour:0, Separator,
+                      ActiveCircuit.Solution.intHour:0, Separator,
                       ActiveCircuit.Solution.DynaVars.t:0:3, Separator,
                       ActiveCircuit.Solution.ControlIteration:0, Separator,
                       ElementName, Separator,

@@ -522,7 +522,7 @@ begin
                           ControlledElement.Closed[0] := FALSE;   // Open all phases of active terminal
                           AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Opened**');
                           PresentState := OPEN;
-                          With ActiveCircuit.Solution Do LastOpenTime := DynaVars.t + 3600.0*Hour;
+                          With ActiveCircuit.Solution Do LastOpenTime := DynaVars.t + 3600.0*intHour;
                         End;
                        End;
                     ELSE
@@ -735,7 +735,7 @@ begin
 
               4: {time}
                  Begin
-                    WITH ActiveCircuit.Solution Do t_Value := NormalizeToTOD(Hour, DynaVars.t);
+                    WITH ActiveCircuit.Solution Do t_Value := NormalizeToTOD(intHour, DynaVars.t);
                     // This assumes OFF_Value > ON_Value
                     CASE PresentState OF
                           OPEN:   IF (t_Value > ON_Value) and (T_Value < OFF_Value)
@@ -768,11 +768,11 @@ begin
          IF   ShouldSwitch and Not Armed THEN
            Begin
             If PendingChange = CLOSE Then Begin
-               If (Solution.DynaVars.t + Solution.Hour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
-                    TimeDelay := Max(ONDelay , Deadtime - (Solution.DynaVars.t + Solution.Hour*3600.0-LastOpenTime))
+               If (Solution.DynaVars.t + Solution.intHour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
+                    TimeDelay := Max(ONDelay , Deadtime - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
                Else TimeDelay := ONDelay;
             End Else TimeDelay := OFFDelay;
-            ControlActionHandle := ControlQueue.Push(Solution.Hour, Solution.DynaVars.t + TimeDelay, PendingChange, Self);
+            ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, Self);
             Armed := TRUE;
            End;
 

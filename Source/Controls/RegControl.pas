@@ -613,7 +613,7 @@ begin
                   Begin
                       If (DebugTrace) Then WriteTraceRecord(OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
-                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(Hour, Dynavars.t + TapDelay, 0,Self)
+                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, Dynavars.t + TapDelay, 0,Self)
                       ELSE Armed := FALSE;
                   End;
                TIMEDRIVEN:
@@ -621,7 +621,7 @@ begin
                       If (DebugTrace) Then WriteTraceRecord(OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
                       AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.4g.',[Lastchange,PresentTap[TapWinding]]));
-                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(Hour, DynaVars.t + TapDelay, 0,Self)
+                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, DynaVars.t + TapDelay, 0,Self)
                       ELSE Armed := FALSE;
                   End;
             End;
@@ -703,7 +703,7 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] < MaxTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.Hour, Solution.DynaVars.t + ComputeTimeDelay(Vavg), 0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vavg), 0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End
@@ -711,7 +711,7 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] > MinTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.Hour, Solution.DynaVars.t + ComputeTimeDelay(Vavg),0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vavg),0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End;
@@ -748,7 +748,7 @@ Begin
                Append(TraceFile);
                WITH TTransfObj(ControlledElement) Do
                Writeln(TraceFile,
-                        ActiveCircuit.Solution.Hour:0, Separator,
+                        ActiveCircuit.Solution.intHour:0, Separator,
                         ActiveCircuit.Solution.DynaVars.t:0:3, Separator,
                         ActiveCircuit.Solution.ControlIteration:0, Separator,
                         ActiveCircuit.Solution.Iteration:0, Separator,

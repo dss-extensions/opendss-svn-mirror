@@ -1009,7 +1009,7 @@ Begin
             Append(F);
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve,    Separator);
-            Write(F,ActiveCircuit.Solution.Hour:0, Separator);
+            Write(F,ActiveCircuit.Solution.intHour:0, Separator);
             Write(F,Pad('"'+pElem.Name+'"', 14));
             FOR j := 1 to NumEMRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
@@ -1080,7 +1080,7 @@ Begin
         IF pElem.Enabled THEN   BEGIN
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve,    Separator);
-            Write(F,ActiveCircuit.Solution.Hour:0, Separator);
+            Write(F,ActiveCircuit.Solution.intHour:0, Separator);
             Write(F,Pad('"'+pElem.Name+'"', 14));
             FOR j := 1 to NumEMRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
@@ -1154,7 +1154,7 @@ Begin
             Append(F);
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve, Separator);
-            Write(F,ActiveCircuit.Solution.Hour:0, Separator);
+            Write(F,ActiveCircuit.Solution.intHour:0, Separator);
             Write(F,Pad('"'+pElem.Name+'"', 14));
             FOR j := 1 to NumGenRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
@@ -1232,7 +1232,7 @@ Begin
         BEGIN
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve, Separator);
-            Write(F,ActiveCircuit.Solution.Hour:0, Separator);
+            Write(F,ActiveCircuit.Solution.intHour:0, Separator);
             Write(F,Pad('"'+pElem.Name+'"', 14));
             FOR j := 1 to NumGenRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);

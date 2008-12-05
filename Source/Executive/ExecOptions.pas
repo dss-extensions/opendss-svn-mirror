@@ -376,14 +376,14 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Set Command ', 130);
             1,12: SetObjectClass(Param);
             2,13: SetObject(Param);
-            3: ActiveCircuit.solution.Hour := Parser.IntValue;
+            3: ActiveCircuit.solution.intHour := Parser.IntValue;
             4: ActiveCircuit.solution.DynaVars.t    := Parser.DblValue;
             5: WITH ActiveCircuit Do Begin
                   Solution.Year := Parser.IntValue;
                   DefaultGrowthFactor :=  IntPower(DefaultGrowthRate, (Solution.Year-1));
                End;
-            6: ActiveCircuit.solution.Frequency        := Parser.DblValue;
-            7,18: ActiveCircuit.solution.DynaVars.h    := InterpretTimeStepSize(Param);
+            6: ActiveCircuit.solution.Frequency      := Parser.DblValue;
+            7,18: ActiveCircuit.solution.DynaVars.h  := InterpretTimeStepSize(Param);
             8: ActiveCircuit.solution.Mode          := InterpretSolveMode(Param);  // see DSSGlobals
             9: ActiveCircuit.solution.RandomType    := InterpretRandom(Param);
            10: ActiveCircuit.solution.NumberOfTimes := Parser.IntValue;
@@ -490,6 +490,10 @@ Begin
            // Ignore excess parameters
          End;
 
+         CASE ParamPointer OF
+              3,4: ActiveCircuit.Solution.UpdatedblHour;
+         END;
+
          ParamName := Parser.NextParam;
          Param := Parser.StrValue;
      End; {WHILE}
@@ -530,7 +534,7 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Get Command ', 133);
             1,12: AppendGlobalResult(ActiveCircuit.ActiveCktElement.DSSClassName );
             2,13: AppendGlobalResult(ActiveCircuit.ActiveCktElement.Name);
-            3: AppendGlobalResult(IntToStr(ActiveCircuit.solution.Hour));
+            3: AppendGlobalResult(IntToStr(ActiveCircuit.solution.intHour));
             4: AppendGlobalResult(Format('%-g' ,[ActiveCircuit.solution.DynaVars.t]));
             5: AppendGlobalResult(IntToStr(ActiveCircuit.solution.Year));
             6: AppendGlobalResult(Format('%-g' ,[ActiveCircuit.solution.Frequency]));
@@ -538,10 +542,7 @@ Begin
             8: AppendGlobalResult(GetSolutionModeID);
             9: AppendGlobalResult(GetRandomModeID);
            10: AppendGlobalResult(IntToStr(ActiveCircuit.solution.NumberOfTimes));
-           11: Begin
-                   AppendGlobalResult(IntToStr(ActiveCircuit.solution.Hour));
-                   AppendGlobalResult(FORmat('%-g' ,[ActiveCircuit.solution.DynaVars.t]));
-               End;
+           11: AppendGlobalResult(Format('[ %d, %-g ]', [IntToStr(ActiveCircuit.solution.intHour), ActiveCircuit.solution.DynaVars.t]));
            14: AppendGlobalResult(ActiveCircuit.name);
            15: AppendGlobalResult(DefaultEditor);
            16: AppendGlobalResult(Format('%-g' ,[ActiveCircuit.solution.ConvergenceTolerance]));

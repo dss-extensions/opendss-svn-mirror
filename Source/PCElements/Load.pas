@@ -101,13 +101,13 @@ TYPE
         YQFixed                 :Double;   // Fixed value of y FOR type 7 load
 
         FUNCTION  AllTerminalsClosed:Boolean;
-        PROCEDURE CalcDailyMult(Hour:Integer; Sec:double);
-        PROCEDURE CalcDutyMult(Hour:Integer; Sec:double);
+        PROCEDURE CalcDailyMult(Hr:double);
+        PROCEDURE CalcDutyMult(Hr:double);
         PROCEDURE CalcInjCurrentArray;
         PROCEDURE CalcLoadModelContribution;
         PROCEDURE CalcVTerminalPhase;
-        PROCEDURE CalcYearlyMult(Hour:Integer);
-        PROCEDURE CalcCVRMult(Hour:Integer);
+        PROCEDURE CalcYearlyMult(Hr:double);
+        PROCEDURE CalcCVRMult(Hr:double);
         PROCEDURE CalcYPrimMatrix(Ymatrix:TcMatrix);
         PROCEDURE DoConstantILoad;
         PROCEDURE DoConstantPQLoad;
@@ -758,14 +758,10 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TLoadObj.CalcDailyMult(Hour:Integer; Sec:double);
-
-Var
-   Hr:Double;
+Procedure TLoadObj.CalcDailyMult(Hr:Double);
 
 Begin
-     IF DailyShapeObj<>Nil THEN Begin
-       Hr := Hour +  Sec/3600.0;    // Convert to hours
+     IF DailyShapeObj <> Nil THEN Begin
        ShapeFactor := DailyShapeObj.GetMult(Hr);
      End
      ELSE ShapeFactor := Cmplx(1.0, 1.0);  // Default to no daily variation
@@ -773,32 +769,27 @@ End;
 
 
 //----------------------------------------------------------------------------
-Procedure TLoadObj.CalcDutyMult(Hour:Integer; Sec:double);
-
-Var
-   Hr:Double;
+Procedure TLoadObj.CalcDutyMult(Hr:double);
 
 Begin
      IF DutyShapeObj <> Nil THEN Begin
-       Hr := Hour + Sec/3600.0;    // Convert to hours
        ShapeFactor := DutyShapeObj.GetMult(Hr);
      End
-     ELSE CalcDailyMult(Hour, Sec);  // Default to Daily Mult IF no duty curve specified
+     ELSE CalcDailyMult(Hr);  // Default to Daily Mult IF no duty curve specified
 End;
 
 //----------------------------------------------------------------------------
-Procedure TLoadObj.CalcYearlyMult(Hour:Integer);
+Procedure TLoadObj.CalcYearlyMult(Hr:double);
 
 Begin
 {Yearly curve is assumed to be hourly only}
- IF   YearlyShapeObj<>Nil THEN ShapeFactor := YearlyShapeObj.GetMult((Hour))
+ IF   YearlyShapeObj<>Nil THEN ShapeFactor := YearlyShapeObj.GetMult(Hr)
                           ELSE ShapeFactor := Cmplx(1.0, 1.0);
                           // Defaults to no variation
-
 End;
 
 //----------------------------------------------------------------------------
-Procedure TLoadObj.CalcCVRMult(Hour:Integer);
+Procedure TLoadObj.CalcCVRMult(Hr:double);
 
 Var
    CVRFactor  :Complex;
@@ -806,7 +797,7 @@ Var
 Begin
   {CVR curve is assumed to be used in a yearly simulation}
    IF   CVRShapeObj<>Nil THEN Begin
-     CVRFactor       := CVRShapeObj.GetMult((Hour));    {Complex}
+     CVRFactor       := CVRShapeObj.GetMult(Hr);    {Complex}
      FCVRWattFactor  := CVRFactor.re;
      FCVRvarFactor   := CVRFactor.im;
    End;
@@ -850,15 +841,15 @@ Begin
                                              ELSE Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
          DAILYMODE:   IF   ExemptFromLDCurve THEN Begin
                                                     Factor := GrowthFactor(Year);
-                                                    CalcDailyMult(Hour, Dynavars.t);
+                                                    CalcDailyMult(dblHour);
                                              End ELSE Begin
                                                     Factor := ActiveCircuit.LoadMultiplier  * GrowthFactor(Year);
-                                                    CalcDailyMult(Hour, Dynavars.t);
+                                                    CalcDailyMult(dblHour);
                                              End;
          YEARLYMODE:  Begin
                          Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
-                         CalcYearlyMult(Hour);
-                         If FLoadModel=4 Then CalcCVRMult(Hour);
+                         CalcYearlyMult(dblHour);
+                         If FLoadModel=4 Then CalcCVRMult(dblHour);
                       End;
          MONTECARLO1: Begin
                         Randomize(RandomType);
@@ -869,12 +860,12 @@ Begin
          MONTECARLO3,
          LOADDURATION1,
          LOADDURATION2:IF   ExemptFromLDCurve
-                       THEN Begin Factor :=  GrowthFactor(Year); CalcDailyMult(Hour, Dynavars.t) ; End
-                       ELSE Begin Factor := ActiveCircuit.LoadMultiplier *  GrowthFactor(Year); CalcDailyMult(Hour, Dynavars.t); End;
-         PEAKDAY:      Begin Factor := GrowthFactor(Year);  CalcDailyMult(Hour, Dynavars.t); End;
+                       THEN Begin Factor :=  GrowthFactor(Year); CalcDailyMult(dblHour) ; End
+                       ELSE Begin Factor := ActiveCircuit.LoadMultiplier *  GrowthFactor(Year); CalcDailyMult(dblHour); End;
+         PEAKDAY:      Begin Factor := GrowthFactor(Year);  CalcDailyMult(dblHour); End;
          DUTYCYCLE:    IF   ExemptFromLDCurve
-                       THEN Begin Factor := GrowthFactor(Year); CalcDutyMult(Hour, Dynavars.t)  End
-                       ELSE Begin Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year); CalcDutyMult(Hour, Dynavars.t); End;
+                       THEN Begin Factor := GrowthFactor(Year); CalcDutyMult(dblHour)  End
+                       ELSE Begin Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year); CalcDutyMult(dblHour); End;
          AUTOADDFLAG:  Factor := GrowthFactor(Year);  // Loadmult = 1.0 by default
        ELSE
          Factor := GrowthFactor(Year)    // defaults to Base kW * growth
