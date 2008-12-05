@@ -64,6 +64,10 @@ type
     procedure Set_DefaultDaily(const Value: WideString); safecall;
     procedure Set_DefaultYearly(const Value: WideString); safecall;
     function Get_EventLog: OleVariant; safecall;
+    function Get_dblHour: Double; safecall;
+    procedure Set_dblHour(Value: Double); safecall;
+    procedure Set_StepsizeHr(Value: Double); safecall;
+    procedure Set_StepsizeMin(Value: Double); safecall;
   end;
 
 implementation
@@ -78,7 +82,7 @@ end;
 
 function TSolution.Get_Hour: Integer;
 begin
-     If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.Hour
+     If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.intHour
      Else Result := 0;
 end;
 
@@ -150,7 +154,10 @@ end;
 
 procedure TSolution.Set_Hour(Value: Integer);
 begin
-     If ActiveCircuit <> Nil Then ActiveCircuit.Solution.Hour  := Value;
+     If ActiveCircuit <> Nil Then With  ActiveCircuit.Solution Do Begin
+        intHour  := Value;
+        UpdatedblHour;
+     End;
 end;
 
 procedure TSolution.Set_LoadMult(Value: Double);
@@ -390,6 +397,38 @@ begin
        End;
     END
     Else Result := VarArrayCreate([0,0], varOleStr);;
+
+end;
+
+function TSolution.Get_dblHour: Double;
+begin
+     If ActiveCircuit <> Nil Then  Begin
+        Result := ActiveCircuit.Solution.dblHour;
+     End;
+end;
+
+procedure TSolution.Set_dblHour(Value: Double);
+begin
+  If ActiveCircuit <> Nil Then With ActiveCircuit.Solution Do Begin
+      intHour := Trunc(Value);
+      dblHour := Value;
+      Dynavars.t := (Value - intHour) * 3600.0;
+  End;
+end;
+
+procedure TSolution.Set_StepsizeHr(Value: Double);
+begin
+  If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.Dynavars.h := Value * 3600.0;
+  End;
+end;
+
+procedure TSolution.Set_StepsizeMin(Value: Double);
+begin
+
+  If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.Dynavars.h := Value * 60.0;
+  End;
 
 end;
 
