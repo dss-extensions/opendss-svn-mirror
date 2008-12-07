@@ -483,15 +483,20 @@ begin
   End;
 
   Try
+    { don't write these variables any more. Now put in the Registry}
+    (********************************************************
+            Writeln(F,'[Editor]');
+            Writeln(F, DefaultEditor);
 
-    Writeln(F,'[Editor]');
-    Writeln(F, DefaultEditor);
+            Writeln(F,'[BaseFrequency]');
+            Writeln(F, Format('%d',[Round(DefaultBaseFreq)]));
 
-    Writeln(F,'[BaseFrequency]');
-    Writeln(F, Format('%d',[Round(DefaultBaseFreq)]));
+            Writeln(F,'[LastFile]');
+            Writeln(F, LastFileCompiled);
 
-    Writeln(F,'[LastFile]');
-    Writeln(F, LastFileCompiled);
+    *******************************************************)
+
+
     // Main control panel
     Writeln(F,'[Main]');
     Writeln(F,'{Window}', Format(' %d, %d, %d, %d, %d',[Top, Left, Height, Width, WinStateToInt(WindowState)]));
@@ -808,34 +813,43 @@ begin
 
     Try
      {Read Options}
+
+     
       Readln(F, Textline);
-      If CompareText(TextLine, '[Editor]')=0 Then Begin
-          While Not Eof(F) Do Begin
-              Readln(F, TextLine);
-              If Length(TextLine)>0 Then
-              If TextLine[1]='[' Then Break;
-              DefaultEditor := TextLine;
-          End;
-      End;
 
-      If CompareText(TextLine, '[BaseFrequency]')=0 Then Begin
-          While Not Eof(F) Do Begin
-              Readln(F, TextLine);
-              If Length(TextLine)>0 Then
-              If TextLine[1]='[' Then Break;
-              DefaultBaseFreq := StrToInt(TextLine);
-          End;
-      End;
+      {------------------------------------------------------------------------------------------}
 
-      If CompareText(TextLine, '[LastFile]')=0 Then Begin
-          While Not Eof(F) Do Begin
-              Readln(F, TextLine);
-              If Length(TextLine)>0 Then
-              If TextLine[1]='[' Then Break;
-              LastFileCompiled := TextLine;
+         {Editor, BaseFrequency, and LastFile Variables are now in the Registry; This is maintained
+         for legacy ini files.}
+          If CompareText(TextLine, '[Editor]')=0 Then Begin
+              While Not Eof(F) Do Begin
+                  Readln(F, TextLine);
+                  If Length(TextLine)>0 Then
+                  If TextLine[1]='[' Then Break;
+                  DefaultEditor := TextLine;
+              End;
           End;
-      End;
 
+          If CompareText(TextLine, '[BaseFrequency]')=0 Then Begin
+              While Not Eof(F) Do Begin
+                  Readln(F, TextLine);
+                  If Length(TextLine)>0 Then
+                  If TextLine[1]='[' Then Break;
+                  DefaultBaseFreq := StrToInt(TextLine); // int converts to double
+              End;
+          End;
+
+          If CompareText(TextLine, '[LastFile]')=0 Then Begin
+              While Not Eof(F) Do Begin
+                  Readln(F, TextLine);
+                  If Length(TextLine)>0 Then
+                  If TextLine[1]='[' Then Break;
+                  LastFileCompiled := TextLine;
+              End;
+          End;
+
+      {------------------------------------------------------------------------------------------}
+          
       // Main Form
       If CompareText(TextLine, '[Main]')=0 Then Begin
           While Not Eof(F) Do Begin

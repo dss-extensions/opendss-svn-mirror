@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 11/14/2008 9:26:10 PM from Type Library described below.
+// File generated on 12/7/2008 3:14:17 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -671,6 +671,10 @@ type
     function Get_DefaultYearly: WideString; safecall;
     procedure Set_DefaultYearly(const Value: WideString); safecall;
     function Get_EventLog: OleVariant; safecall;
+    function Get_dblHour: Double; safecall;
+    procedure Set_dblHour(Value: Double); safecall;
+    procedure Set_StepsizeMin(Param1: Double); safecall;
+    procedure Set_StepsizeHr(Param1: Double); safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -697,6 +701,9 @@ type
     property DefaultDaily: WideString read Get_DefaultDaily write Set_DefaultDaily;
     property DefaultYearly: WideString read Get_DefaultYearly write Set_DefaultYearly;
     property EventLog: OleVariant read Get_EventLog;
+    property dblHour: Double read Get_dblHour write Set_dblHour;
+    property StepsizeMin: Double write Set_StepsizeMin;
+    property StepsizeHr: Double write Set_StepsizeHr;
   end;
 
 // *********************************************************************//
@@ -733,6 +740,9 @@ type
     property DefaultDaily: WideString dispid 25;
     property DefaultYearly: WideString dispid 26;
     property EventLog: OleVariant readonly dispid 27;
+    property dblHour: Double dispid 201;
+    property StepsizeMin: Double writeonly dispid 202;
+    property StepsizeHr: Double writeonly dispid 203;
   end;
 
 // *********************************************************************//

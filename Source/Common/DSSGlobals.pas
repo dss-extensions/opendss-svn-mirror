@@ -22,7 +22,7 @@ unit DSSGlobals;
 interface
 
 Uses Circuit, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
-     UComplex, Spectrum,  Arraydef, CktElement,
+     UComplex, Spectrum,  Arraydef, CktElement, IniRegSave,
      LoadShape,
      GrowthShape,
      Monitor,
@@ -113,6 +113,7 @@ VAR
    DLLFirstTime   :Boolean=TRUE;
    DLLDebugFile   :TextFile;
    DSS_IniFileName:String;
+   DSS_Registry   :TIniRegSave; // Registry   (See Executive)
    
    IsDLL,
    NoFormsAllowed  :Boolean;
@@ -203,6 +204,9 @@ PROCEDURE AppendGlobalResult(Const s:String);
 PROCEDURE AppendGlobalResultCRLF(const S:String);  // Separate by CRLF
 
 PROCEDURE WriteDLLDebugFile(Const S:String);
+
+PROCEDURE ReadDSS_Registry;
+PROCEDURE WriteDSS_Registry;
 
 
 implementation
@@ -756,6 +760,21 @@ BEGIN
     End;
 END;
 
+PROCEDURE ReadDSS_Registry;
+Begin
+      DefaultEditor    := DSS_Registry.ReadString('Editor', 'Notepad.exe' );
+      DefaultBaseFreq  := StrToInt(DSS_Registry.ReadString('BaseFrequency', '60' ));
+      LastFileCompiled := DSS_Registry.ReadString('LastFile', 'Notepad.exe' );
+End;
+
+
+PROCEDURE WriteDSS_Registry;
+Begin
+     DSS_Registry.WriteString('Editor',        DefaultEditor);
+     DSS_Registry.WriteString('BaseFrequency', Format('%d',[Round(DefaultBaseFreq)]));
+     DSS_Registry.WriteString('LastFile',      LastFileCompiled);
+End;
+
 
 
 initialization
@@ -792,7 +811,7 @@ initialization
    DSSDataDirectory := StartupDirectory;
 
    DSS_IniFileName  := 'OpenDSSPanel.ini';
-
+   DSS_Registry     := TIniRegSave.Create('\Software\OpenDSS');
 
    AuxParser      := TParser.Create;
    DefaultEditor  := 'NotePad';
@@ -800,13 +819,15 @@ initialization
 
    //WriteDLLDebugFile('DSSGlobals');
 
-
-
-
 Finalization
 
   // Dosimplemsg('Enter DSSGlobals Unit Finalization.');
   Auxparser.Free;
-  
+
+  With DSSExecutive Do If RecorderOn Then Recorderon := FALSE;
+
+  DSSExecutive.Free;  {Writes to Registry}
+  DSS_Registry.Free;  {Close Registry}
+
 
 End.

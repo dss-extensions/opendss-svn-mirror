@@ -88,7 +88,7 @@ implementation
 
 USES ExecCommands, ExecOptions,
      {ExecHelper,} DSSGlobals, ParserDel,  SysUtils,
-       Utilities, Solution, DSSClass,
+     Utilities, Solution, DSSClass, IniRegSave,
      DSSForms;
 
 
@@ -119,8 +119,8 @@ Begin
      FRecorderOn := FALSE;
      FrecorderFile := '';
 
-
-
+     {Get some global Variables from Registry}
+     ReadDSS_Registry;
 
 End;
 
@@ -129,6 +129,9 @@ End;
 Destructor TExecutive.Destroy;
 
 Begin
+
+    {Write some global Variables to Registry}
+     WriteDSS_Registry;
 
      ClearAllCircuits;
 
@@ -245,10 +248,10 @@ initialization
 
 //WriteDLLDebugFile('Executive');
 
+
+
 finalization
 
-  With DSSExecutive Do If FRecorderOn Then Recorderon := FALSE;
 
-  DSSExecutive.Free;
 
 end.

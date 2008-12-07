@@ -175,6 +175,6 @@ begin
   DSSExecutive := TExecutive.Create;  // Start the DSS when DSS interface is created
   DSSExecutive.CreateDefaultDSSItems;
 
-  WriteDLLDebugFile(DSSDirectory);
+  //WriteDLLDebugFile(DSSDirectory);
 
 end.
