@@ -1113,6 +1113,7 @@ Var
     TestBusNum:Integer;
     LenUnitsSaved:Integer;
     NewZ:Complex;
+    LenSelf, LenOther :Double;
 
 begin
    Result := FALSE;
@@ -1120,15 +1121,13 @@ begin
    Begin
       IF Fnphases <> OtherLine.Fnphases THEN  Exit;  // Can't merge
 
-      {This code won't work for mixed length units}
-      If FLengthUnits <> OtherLine.FLengthUnits then Exit;
       LenUnitsSaved := FLengthUnits;
 
       YPrimInvalid := True;
 
       // Redefine property values to make it appear that line was defined this way originally using matrices
 
-      IF Series then TotalLen := Len + Otherline.Len Else TotalLen := 1.0;
+      IF Series then TotalLen := Len + Otherline.Len * ConvertLineUnits(OtherLine.FLengthUnits, FLengthUnits) Else TotalLen := 1.0;
 
       If Series Then
       Begin
@@ -1185,16 +1184,19 @@ begin
 
        {Now Do the impedances}
 
+       LenSelf := Len/FunitsConvert;  // in units of R X Data
+       LenOther := OtherLine.Len/OtherLine.FunitsConvert;
+
        If SymComponentsModel Then
        Begin   {------------------------- Sym Component Model ----------------------------------}
          If Series Then
          Begin
-              S := ' R1='+ Format('%-g',[(R1*Len + OtherLine.R1*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(X1*Len + OtherLine.X1*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(R0*Len + OtherLine.R0*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen]);
-              S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9]);
-              S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9]);
+              S := ' R1='+ Format('%-g',[(R1*LenSelf + OtherLine.R1*LenOther)/TotalLen]);     // Ohms per unit length of this line length units
+              S := S + Format(' %-g',[(X1*LenSelf + OtherLine.X1*LenOther)/TotalLen]);
+              S := S + Format(' %-g',[(R0*LenSelf + OtherLine.R0*LenOther)/TotalLen]);
+              S := S + Format(' %-g',[(X0*LenSelf + OtherLine.X0*LenOther)/TotalLen]);
+              S := S + Format(' %-g',[(C1*LenSelf + OtherLine.C1*LenOther)/TotalLen*1.0e9]);
+              S := S + Format(' %-g',[(C0*LenSelf + OtherLine.C0*LenOther)/TotalLen*1.0e9]);
          End
          Else   {parallel}
          Begin
@@ -1226,7 +1228,7 @@ begin
 
                // Z <= (Z1 + Z2 )/TotalLen   to get equiv ohms per unit length
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen);
+                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], LenSelf), CmulReal(Values2^[i], LenOther)), TotalLen);
 
                // Merge Yc matrices
                Values1 := Yc.GetValuesArrayPtr(Order1);
@@ -1235,7 +1237,7 @@ begin
                If Order1 <> Order2 Then Exit;  // OOps.  Lines not same size for some reason
 
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd( CmulReal(Values1^[i], Len) , CmulReal(Values2^[i], OtherLine.Len) ), TotalLen);
+                 Values1^[i] := CDivReal(Cadd( CmulReal(Values1^[i], LenSelf) , CmulReal(Values2^[i], LenOther) ), TotalLen);
 
                {R Matrix}
                S := 'Rmatrix=[';

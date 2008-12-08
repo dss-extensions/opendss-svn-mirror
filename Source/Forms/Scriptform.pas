@@ -188,6 +188,7 @@ procedure TMainEditForm.UpdateResultform;
 begin
      ResultForm.Editor.Clear;
      ResultForm.Editor.Lines.Add(GlobalResult);
+     ControlPanel.Edit_Result.Text := GlobalResult;
 end;
 
 procedure TMainEditForm.UpdateSummaryForm;

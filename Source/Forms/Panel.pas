@@ -212,8 +212,9 @@ type
     SeqPowers1: TMenuItem;
     Yprims1: TMenuItem;
     Y1: TMenuItem;
-    LBL_DefaultFreq: TLabel;
     ToolButton20: TToolButton;
+    LBL_DefaultFreq: TLabel;
+    Edit_Result: TEdit;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);

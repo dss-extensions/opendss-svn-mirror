@@ -1663,7 +1663,8 @@ Begin
 
        // Skip Cktelements that have been checked before and written out by
        // something else
-       If IsCktElement Then If TDSSCktElement(ActiveDSSObject).HasBeenSaved Then Continue;
+       If IsCktElement Then With TDSSCktElement(ActiveDSSObject) Do
+                            If HasBeenSaved or (not Enabled) Then Continue;
 
         WriteActiveDSSObject(F, 'New');  // sets HasBeenSaved := TRUE
         Inc(Nrecords); // count the actual records

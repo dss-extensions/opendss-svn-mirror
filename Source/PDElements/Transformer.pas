@@ -270,7 +270,8 @@ Begin
      PropertyHelp[4] := 'Bus to which this winding is connected.';
      PropertyHelp[5] := 'Connection of this winding. Default is "wye" with the neutral solidly grounded.';
      PropertyHelp[6] := 'For 2-or 3-phase, enter phase-phase kV rating.  Otherwise, kV rating of the actual winding';
-     PropertyHelp[7] := 'Base kVA rating of the winding. Side effect: forces change of max normal and emerg kva ratings.';
+     PropertyHelp[7] := 'Base kVA rating of the winding. Side effect: forces change of max normal and emerg kva ratings.' +
+                        'If 2-winding transformer, forces other winding to same value.';
      PropertyHelp[8] := 'Per unit tap that this winding is on.';
      PropertyHelp[9] := 'Percent resistance this winding.  (half of total for a 2-winding).';
      PropertyHelp[10] := 'Default = -1. Neutral resistance of wye (star)-connected winding in actual ohms.' +
@@ -380,7 +381,7 @@ Begin
             4: Setbus(ActiveWinding, param);
             5: InterpretConnection(Param);
             6: Winding^[ActiveWinding].kvll  := parser.Dblvalue;
-            7: Winding^[ActiveWinding].kva   := parser.Dblvalue;
+            7: Winding^[ActiveWinding].kVA   := parser.Dblvalue;
             8: Winding^[ActiveWinding].puTap := parser.Dblvalue;
             9: Winding^[ActiveWinding].Rpu   := parser.Dblvalue * 0.01;  // %R
            10: Winding^[ActiveWinding].Rneut := parser.Dblvalue;
@@ -425,6 +426,8 @@ Begin
                  EmergMaxHkVA    := 1.5 * Winding^[1].kVA;
                  Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
                  Winding^[2].Rpu := Winding^[1].Rpu;
+              End Else If NumWindings=2 Then Begin
+                  Winding^[1].kVA := Winding^[2].kVA;  // For 2-winding, force both kVAs to be same
               End;
            // Update LoadLosskW if winding %r changed. Using only windings 1 and 2
            9: pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0;
