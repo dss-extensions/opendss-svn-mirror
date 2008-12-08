@@ -88,7 +88,7 @@ TYPE
         PROCEDURE CalcYPrim;Override;
 
         {Public for COM interface}
-        PROCEDURE FetchCondCode(Const Code:String);
+        PROCEDURE FetchLineCode(Const Code:String);
         PROCEDURE FetchGeometryCode(Const Code:String);
 
         PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
@@ -235,7 +235,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TLineObj.FetchCondCode(Const Code:String);
+PROCEDURE TLineObj.FetchLineCode(Const Code:String);
 VAR
   LineCodeObj     :TLineCodeObj;
 
@@ -267,8 +267,8 @@ Begin
 
 
        // Earth return impedances used to compensate for frequency
-       Rg := LineCodeObj.Rg;
-       Xg := LineCodeObj.Xg;
+       Rg  := LineCodeObj.Rg;
+       Xg  := LineCodeObj.Xg;
        rho := LineCodeObj.rho;
        Kxg := Xg/ln(658.5*sqrt(rho/BaseFrequency));
 
@@ -277,10 +277,10 @@ Begin
 
        FUnitsConvert := ConvertLineUnits(FLineCodeUnits, FLengthUnits);
 
-       NormAmps := LineCodeObj.NormAmps;
+       NormAmps  := LineCodeObj.NormAmps;
        EmergAmps := LineCodeObj.EmergAmps;
        FaultRate := LineCodeObj.FaultRate;
-       PctPerm := LineCodeObj.PctPerm;
+       PctPerm   := LineCodeObj.PctPerm;
        HrsToRepair := LineCodeObj.HrsToRepair;
 
 
@@ -445,7 +445,7 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "Line.' + Name + '"', 181);
             1: Setbus(1, param);
             2: Setbus(2, param);
-            3: FetchCondCode(Param);  // Define line by conductor code
+            3: FetchLineCode(Param);  // Define line by conductor code
             4: Len := Parser.DblValue;
             5: {Nphases: See below};
             6: r1 := Parser.Dblvalue;
@@ -1111,6 +1111,7 @@ Var
     TotalLen, wnano:Double;
     S, NewName:String;
     TestBusNum:Integer;
+    LenUnitsSaved:Integer;
     NewZ:Complex;
 
 begin
@@ -1121,7 +1122,8 @@ begin
 
       {This code won't work for mixed length units}
       If FLengthUnits <> OtherLine.FLengthUnits then Exit;
-      
+      LenUnitsSaved := FLengthUnits;
+
       YPrimInvalid := True;
 
       // Redefine property values to make it appear that line was defined this way originally using matrices
@@ -1184,15 +1186,15 @@ begin
        {Now Do the impedances}
 
        If SymComponentsModel Then
-       Begin
+       Begin   {------------------------- Sym Component Model ----------------------------------}
          If Series Then
          Begin
-              S := ' R1='+ Format('%-g',[(R1*Len + OtherLine.R1*OtherLine.Len)/TotalLen/FUnitsConvert]);
-              S := S + Format(' %-g',[(X1*Len + OtherLine.X1*OtherLine.Len)/TotalLen/FUnitsConvert]);
-              S := S + Format(' %-g',[(R0*Len + OtherLine.R0*OtherLine.Len)/TotalLen/FUnitsConvert]);
-              S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen/FUnitsConvert]);
-              S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9/FUnitsConvert]);
-              S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9/FUnitsConvert]);
+              S := ' R1='+ Format('%-g',[(R1*Len + OtherLine.R1*OtherLine.Len)/TotalLen]);
+              S := S + Format(' %-g',[(X1*Len + OtherLine.X1*OtherLine.Len)/TotalLen]);
+              S := S + Format(' %-g',[(R0*Len + OtherLine.R0*OtherLine.Len)/TotalLen]);
+              S := S + Format(' %-g',[(X0*Len + OtherLine.X0*OtherLine.Len)/TotalLen]);
+              S := S + Format(' %-g',[(C1*Len + OtherLine.C1*OtherLine.Len)/TotalLen*1.0e9]);
+              S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9]);
          End
          Else   {parallel}
          Begin
@@ -1208,10 +1210,10 @@ begin
               S := S + Format(' %-g',[(C0*Len + OtherLine.C0*OtherLine.Len)/TotalLen*1.0e9]);
              End;
          End;
-          Parser.cmdstring := S;
+          Parser.cmdstring := S;   // This reset the length units
           Edit;
        End
-       Else  {Matrix Model}
+       Else  {------------------------- Matrix Model ----------------------------------}
            If Not Series Then  TotalLen := Len /2.0 {We'll assume lines are equal for now}
            Else
              Begin  {Matrices were defined}
@@ -1222,9 +1224,9 @@ begin
 
                If Order1 <> Order2 Then Exit;  // OOps.  Lines not same size for some reason
 
-               // Z <= (Z1*len1 + Z2 *len2)/TotalLen   to get equiv ohms per unit length
+               // Z <= (Z1 + Z2 )/TotalLen   to get equiv ohms per unit length
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen/FUnitsConvert);
+                 Values1^[i] := CDivReal(Cadd(CmulReal(Values1^[i], Len), CmulReal(Values2^[i], OtherLine.Len)), TotalLen);
 
                // Merge Yc matrices
                Values1 := Yc.GetValuesArrayPtr(Order1);
@@ -1233,17 +1235,17 @@ begin
                If Order1 <> Order2 Then Exit;  // OOps.  Lines not same size for some reason
 
                For i := 1 to Order1*Order1 Do
-                 Values1^[i] := CDivReal(Cadd( CmulReal(Values1^[i], Len) , CmulReal(Values2^[i] , OtherLine.Len )), TotalLen/FUnitsConvert);
+                 Values1^[i] := CDivReal(Cadd( CmulReal(Values1^[i], Len) , CmulReal(Values2^[i], OtherLine.Len) ), TotalLen);
 
                {R Matrix}
-               S := 'Rmatrix=(';
+               S := 'Rmatrix=[';
                For i := 1 to 3 Do
                Begin
                 For j := 1 to i Do
                   S := S + Format(' %-g',[Z.GetElement(i,j).Re]);
                 S := S + ' | ';
                End;
-               S := S + ') Xmatrix=(';
+               S := S + '] Xmatrix=[';
                {X Matrix}
                For i := 1 to 3 Do
                Begin
@@ -1251,25 +1253,25 @@ begin
                   S := S + Format(' %-g',[Z.GetElement(i,j).im]);
                 S := S + ' | ';
                End;
-               S := S + ')';
+               S := S + ']';
                Parser.cmdstring := S;
                Edit;
 
                {C Matrix}
                wnano := TwoPi * BaseFrequency/1.0e9;
-               S := 'Cmatrix=(';
+               S := 'Cmatrix=[';
                For i := 1 to 3 Do
                Begin
                 For j := 1 to i Do
                   S := S + Format(' %-g',[(Yc.GetElement(i,j).im/wnano)]);   // convert from mhos to nanofs
                 S := S + ' | ';
                End;
-               S := S + ') ';
+               S := S + '] ';
                Parser.cmdstring := S;
                Edit;
            End;  {Matrix definition}
 
-       Parser.cmdstring := Format(' Length=%-g  Units=%s',[TotalLen, LineUnitsStr(FLengthUnits)]);
+       Parser.cmdstring := Format(' Length=%-g  Units=%s',[TotalLen, LineUnitsStr(LenUnitsSaved)]);
        Edit;
 
        OtherLine.Enabled := FALSE;  // Disable the Other Line

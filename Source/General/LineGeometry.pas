@@ -45,6 +45,7 @@ TYPE
        Function Init(Handle:Integer):Integer; override;
        Function NewObject(const ObjName:String):Integer; override;
 
+
        // Set this property to point ActiveLineGeometryObj to the right value
        Property Code:String Read Get_Code  Write Set_Code;
 
@@ -87,8 +88,9 @@ TYPE
         destructor Destroy; override;
 
         FUNCTION  GetPropertyValue(Index:Integer):String; Override;
-        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
-        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+        PROCEDURE InitPropertyValues(ArrayOffset:Integer); Override;
+        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean); Override;
+        PROCEDURE SaveWrite(Var F:TextFile); Override;
 
         Property Nconds:Integer     read get_Nconds  write set_Nconds;
         Property Nphases:Integer    read FNphases    write set_Nphases;
@@ -454,6 +456,44 @@ begin
 
 end;
 
+
+procedure TLineGeometryObj.SaveWrite(var F: TextFile);
+{ Override standard SaveWrite}
+{Linegeometry structure not conducive to standard means of saving}
+var
+   iprop :Integer;
+   i     :Integer;
+
+begin
+   {Write only properties that were explicitly set in the
+   final order they were actually set}
+   iProp := GetNextPropertySet(0); // Works on ActiveDSSObject
+   If iProp > 0 then  Writeln(F);
+   
+   While iProp >0 Do
+   Begin
+      With ParentClass Do
+
+        CASE RevPropertyIdxMap[iProp] of
+            3:  Begin   // if cond= was ever used write out arrays ...
+                 For i := 1 to Fnconds Do
+                   Writeln(F, Format('~ Cond=%d wire=%s X=%.7g h=%.7g units=%s',
+                                      [i, FCondType^[i], FX^[i], FY^[i], LineUnitsStr(FUnits^[i]) ]));
+                End;
+            4..7: {do Nothing}; // Ignore these properties;
+            8: Writeln(F, Format('~ normamps=%.4g', [NormAmps]));
+            9: Writeln(F, Format('~ emergamps=%.4g', [EmergAmps]));
+            10: If FReduce then  Writeln(F, '~ Reduce=Yes');
+                
+        ELSE
+          Writeln(F,Format('~ %s=%s', [PropertyName^[RevPropertyIdxMap[iProp]],CheckForBlanks(PropertyValue[iProp])] ));
+        END;
+      iProp := GetNextPropertySet(iProp);
+   End;
+
+
+
+end;
 
 procedure TLineGeometryObj.set_ActiveCond(const Value: Integer);
 begin

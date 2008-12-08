@@ -1689,12 +1689,12 @@ End;
 Function checkforblanks(const S:String): String;
 {Checks for blanks in the name and puts quotes around it}
 Begin
+   Result := s;
    If Pos(' ', S)>0 Then
-     Begin
-        If S[1]<>'(' Then Result := '"' + S + '"'
-        Else Result := S;  // already quoted
-     End
-   Else Result := S;
+      If S[1] <> '(' Then  // Ignore if already quoted
+        If S[1] <> '[' Then  // Ignore if already quoted
+         If S[1] <> '{' Then  // Ignore if already quoted
+          Result := '"'+S+'"';
 End;
 
 

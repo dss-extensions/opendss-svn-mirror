@@ -293,7 +293,7 @@ begin
   THEN If IsLine(ActiveCircuit.ActiveCktElement)
   THEN Begin
        With TLineObj(ActiveCircuit.ActiveCktElement) DO Begin
-         FetchCondCode(Value);
+         FetchLineCode(Value);
          YprimInvalid := True;
        End;
   End;
