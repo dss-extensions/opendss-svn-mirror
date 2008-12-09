@@ -805,7 +805,7 @@ Begin
    {Assign default file name if alternate not specified}
    IF Length(FileName) = 0 then Begin
        CASE TestChar OF
-         'c': FileName := 'EXP_CURRENTS.CSV';
+         'c': If Parm1[2]='a' Then FileName := 'EXP_CAPACITY.CSV' Else FileName := 'EXP_CURRENTS.CSV';
          'e': FileName := 'EXP_ESTIMATION.CSV';   // Estimation error
          'f': FileName := 'EXP_FAULTS.CSV';
          'p': FileName := 'EXP_POWERS.CSV';
@@ -827,7 +827,7 @@ Begin
 
 
    CASE TestChar OF
-     'c': ExportCurrents(FileName);
+     'c': If Parm1[2] = 'a' Then ExportCapacity(FileName) Else ExportCurrents(FileName);
      'e': ExportEstimation(FileName);
      'f': ExportFaultStudy(FileName);
      'p': ExportPowers(FileName, MVAOpt);

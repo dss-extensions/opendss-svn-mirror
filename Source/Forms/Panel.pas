@@ -215,6 +215,7 @@ type
     ToolButton20: TToolButton;
     LBL_DefaultFreq: TLabel;
     Edit_Result: TEdit;
+    Capacity1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -359,6 +360,7 @@ type
     procedure SeqPowers1Click(Sender: TObject);
     procedure Yprims1Click(Sender: TObject);
     procedure Y1Click(Sender: TObject);
+    procedure Capacity1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1602,6 +1604,11 @@ procedure TControlPanel.CalcVoltageBases1Click(Sender: TObject);
 begin
    If ActiveCircuit <> Nil Then
       ActiveScriptForm.ExecuteDSSCommand('calcvoltagebases');
+end;
+
+procedure TControlPanel.Capacity1Click(Sender: TObject);
+begin
+   ActiveScriptForm.ExecuteDSSCommand('Export Capacity');
 end;
 
 procedure TControlPanel.TakeSample1Click(Sender: TObject);

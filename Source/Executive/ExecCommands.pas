@@ -170,7 +170,7 @@ Begin
                          'Show EVentlog' +CRLF+
                          'Show VAriables' +CRLF+
                          'Show Isolated' +CRLF+
-                         'Show Ratings' +CRLF+
+                         'Show Ratings  (ratings of PD Elements)' +CRLF+
                          'Show Loops' +CRLF+
                          'Show Yprim  (shows Yprim for active ckt element)' +CRLF+
                          'Show Y      (shows system Y)' +CRLF+
@@ -300,6 +300,7 @@ Begin
                          'Export SeqVoltages [Filename] (EXP_SEQVOLTAGES.CSV)' + CRLF +
                          'Export Currents [Filename]    (EXP_CURRENTS.CSV)' + CRLF +
                          'Export Estimation [Filename]  (EXP_ESTIMATION.CSV)' + CRLF +
+                         'Export Capacity [Filename]    (EXP_CAPACITY.CSV)' + CRLF +
                          'Export Overloads [Filename]    EXP_OVERLOADS.CSV)' + CRLF +
                          'Export Unserved  [UEonly] [Filename]   EXP_UNSERVED.CSV)' + CRLF +
                          'Export SeqCurrents [Filename] (EXP_SEQCURRENTS.CSV)' + CRLF +

@@ -24,6 +24,7 @@ TYPE
        PROCEDURE DoXmatrix;
        PROCEDURE DoCmatrix;
 
+
      Protected
         PROCEDURE DefineProperties;  // Add Properties of this class to propName
         FUNCTION MakeLike(Const LineName:String):Integer;Override;
@@ -53,6 +54,7 @@ TYPE
         Procedure KillGeometrySpecified;
         Procedure ClearYPrim;
         Procedure ResetLengthUnits;
+        procedure UpdatePDProperties;   // update inherited properties
 
       Protected
         Zinv               :TCMatrix;
@@ -111,7 +113,7 @@ IMPLEMENTATION
 USES  ParserDel,  DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
 
 Const NumPropsThisClass = 20;
-      MaxPhases = 20; // for fixed buffers
+    //  MaxPhases = 20; // for fixed buffers
 
 VAR
      CAP_EPSILON   :Complex;
@@ -234,6 +236,15 @@ Begin
       End;
 End;
 
+procedure TLineObj.UpdatePDProperties;
+begin
+  PropertyValue[NumPropsThisClass + 1] := Format('%-g', [Normamps]);
+  PropertyValue[NumPropsThisClass + 2] := Format('%-g', [EmergAmps]);
+  PropertyValue[NumPropsThisClass + 3] := Format('%-g', [FaultRate]);
+  PropertyValue[NumPropsThisClass + 4] := Format('%-g', [PctPerm]);
+  PropertyValue[NumPropsThisClass + 5] := Format('%-g', [HrsToRepair]);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TLineObj.FetchLineCode(Const Code:String);
 VAR
@@ -282,6 +293,7 @@ Begin
        FaultRate := LineCodeObj.FaultRate;
        PctPerm   := LineCodeObj.PctPerm;
        HrsToRepair := LineCodeObj.HrsToRepair;
+       UpdatePDProperties;
 
 
        IF Fnphases <> LineCodeObj.FNphases THEN
@@ -1320,6 +1332,8 @@ Begin
 
        NormAmps      := FLineGeometryObj.NormAmps;
        EmergAmps     := FLineGeometryObj.EmergAmps;
+       UpdatePDProperties;
+
        NPhases       := FLineGeometryObj.Nconds;
        Nconds        := FNPhases;  // Force Reallocation of terminal info
        Yorder        := Fnconds * Fnterms;

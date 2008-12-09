@@ -24,6 +24,7 @@ Procedure ExportFaultStudy(FileNm:String);
 Procedure ExportMeters(FileNm:String);
 Procedure ExportGenMeters(FileNm:String);
 Procedure ExportLoads(FileNm :String);
+Procedure ExportCapacity(FileNm:String);
 Procedure ExportOverloads(FileNm:String);
 Procedure ExportUnserved(FileNm:String; UE_Only:Boolean);
 Procedure ExportYprim(FileNm:String);
@@ -373,6 +374,27 @@ Begin
     Writeln(F);
 End;
 
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+PROCEDURE CalcAndWriteMaxCurrents(Var F:TextFile; pElem:TPDElement; Cbuffer:pComplexArray);
+VAr
+    i:Integer;
+    Currmag, MaxCurrent:Double;
+
+Begin
+    Write(F, Format('%s.%s', [pelem.DSSClassName, pElem.Name]));
+    MaxCurrent := 0.0;
+    For    i := 1 to pElem.Nphases  Do Begin
+       Currmag := Cabs(Cbuffer^[i]);
+       If Currmag  > MaxCurrent then   MaxCurrent :=  Currmag;
+    End;
+    If (pElem.NormAmps=0.0) or (pElem.EmergAmps=0.0) then
+         Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, 0.0 , 0.0]))
+    Else Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, MaxCurrent/pElem.NormAmps*100.0 , MaxCurrent/pElem.Emergamps*100.0]));
+    Writeln(F);
+End;
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure ExportCurrents(FileNm:String);
 
@@ -386,7 +408,7 @@ Var
 Begin
 
   cBuffer := nil;
-  
+
   Try
      Assignfile(F, FileNm);
      ReWrite(F);
@@ -1319,6 +1341,54 @@ Begin
 
 End;
 
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Procedure ExportCapacity(FileNm:String);
+
+{
+ Similar to export currents except does only max of the phases and compares that
+ to the Normamps and Emergamps rating
+}
+
+Var
+    F          :TextFile;
+    cBuffer    :pComplexArray;
+    pElem      :TPDElement;
+
+Begin
+
+  cBuffer := nil;
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     Getmem(cBuffer, sizeof(cBuffer^[1])*GetMaxCktElementSize);
+
+     Writeln(F, 'Name, Imax, %normal, %emergency');
+
+
+     // PDELEMENTS ONLY
+     pElem := ActiveCircuit.PDElements.First;
+     WHILE pElem<>nil DO BEGIN
+       IF pElem.Enabled THEN BEGIN
+        pElem.GetCurrents(cBuffer);
+        CalcAndWriteMaxCurrents(F, pElem, Cbuffer);
+       END;
+        pElem := ActiveCircuit.PDElements.Next;
+     END;
+
+
+     GlobalResult := FileNm;
+
+
+  FINALLY
+     If Assigned(cBuffer) Then Freemem(cBuffer);
+     CloseFile(F);
+
+  End;
+
+
+End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure ExportOverloads(FileNm:String);
