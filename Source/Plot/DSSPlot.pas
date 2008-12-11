@@ -20,6 +20,7 @@ interface
 Uses Line,
      Transformer,
      Graphics,
+     Arraydef,
      Classes,
      Ucomplex,
      CktElement,
@@ -160,7 +161,6 @@ Uses  Comobj,
       LoadShape,
       SysUtils,
       FileCtrl,
-      Arraydef,
       math,
       Controls,
       DlgPlotOptions,
@@ -898,23 +898,28 @@ end;
 procedure TDSSPlot.DoLoadShapePlot(const LoadShapeName: String);
 
 Var
-    LSObj      :TLoadShapeObj;
-    Xarray     :Array of Double;    // Dynamic Array
+    Load_Shape :TLoadShapeObj;
+    Xarray     :pdoubleArray ;
     X, Xinc    :Double;
     i          :integer;
+    Xsize      :Integer ;
     XLabel     :string;
     UseXarray  :Boolean;
     S          :String;
 
 begin
-     LSObj :=  LoadShapeClass.Find(LoadShapeName);
-     If LSObj=Nil Then Exit;
+     Load_Shape :=  LoadShapeClass.Find(LoadShapeName);
+     If Load_Shape=Nil Then Exit;
      
      UseXarray := FALSE;
+     Xarray := Nil;
+     XSize := 0;  //Init
 
-     If LSObj.Interval <> 0.0 Then With LSObj Do Begin // have to gen up Xarray
+     If Load_Shape.Interval <> 0.0 Then
+     With Load_Shape Do Begin // have to gen up Xarray
         UseXarray := TRUE;
-        SetLength(Xarray, Numpoints);
+        XSize :=Sizeof(Xarray^[1])*NumPoints ;
+        GetMem(Xarray, XSize);  //SetLength(Xarray, Numpoints);
         X := 0.0;
         If Interval*Numpoints < 1.0 Then Begin
            Xinc   := Interval * 3600.0;  // Plot secs
@@ -924,8 +929,7 @@ begin
            Xinc   := Interval;
            Xlabel := 'Hours';
         End;
-
-        For i := 0 to NumPoints-1 Do Begin
+        For i := 1 to NumPoints Do Begin
             Xarray[i] := X;
             X         := X + Xinc;
         End;
@@ -935,18 +939,18 @@ begin
      S  := 'Loadshape.' + LoadshapeName;
      Set_Caption(pchar(S), Length(S));
      Set_XaxisLabel(pchar(Xlabel), Length(Xlabel)) ;
-     Set_YaxisLabel(pchar('p.u.'), 4); ;
+     Set_YaxisLabel(pchar('p.u.'), 4);
 
      If UseXarray Then
-         AddNewCurve (Xarray, Slice(LSobj.PMultipliers^, LSobj.NumPoints),
-                            Color1, 1, psSolid, FALSE, 1, LoadShapeName)
+         AddNewCurve (Xarray, Load_Shape.PMultipliers, Load_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, LoadShapeName)
      Else
-         AddNewCurve (Slice(LSObj.Hours^, LSobj.NumPoints), Slice(LSobj.PMultipliers^, LSobj.NumPoints),
-                            Color1, 1, psSolid, FALSE, 1, LoadShapeName);
+         AddNewCurve (Load_Shape.Hours, Load_Shape.PMultipliers, Load_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, LoadShapeName);
 
      Set_KeepAspectRatio(False);
 
-     If UseXarray Then Xarray := Nil;
+     If UseXarray Then FreeMem(Xarray, Xsize);
      Set_Autorange(2.0);    // 2% rim
      ShowGraph;    {Form Freed on close}
 end;

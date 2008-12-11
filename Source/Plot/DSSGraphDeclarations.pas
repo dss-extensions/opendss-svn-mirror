@@ -21,7 +21,7 @@ Function  MakeNewGraph:Integer;                          StdCall;  external 'DSS
 
 Procedure AddNewLine(X1, Y1, X2, Y2: Double; Color:TColor;  Thickness:Byte; Style: TPenStyle; Dots: Boolean; Const LineName:String;
                     MarkCenter:Boolean; CenterMarkerCode, NodeMarkerCode, NodeMarkerWidth :Integer); StdCall;   external 'DSSGraph.dll';
-Procedure AddNewCurve(Xarray, Yarray: Array of Double; Color:TColor;  Thickness:Byte; Style: TPenStyle;
+Procedure AddNewCurve(Xarray, Yarray: pDoubleArray; NumPoints:Integer; Color:TColor;  Thickness:Byte; Style: TPenStyle;
                     Curvemarkers: Boolean; CurveMarker:Integer; Const CurveName:String); StdCall;  external 'DSSGraph.dll';
 Procedure AddNewText(X1,Y1:Double; Color:TColor; Size:Integer; S:String); StdCall;   external 'DSSGraph.dll';
 Procedure AddNewCircle(Xc, Yc, Radius:double; LineColor, FColor:TColor);  StdCall;   external 'DSSGraph.dll';

@@ -1922,6 +1922,8 @@ begin
 
        If Not Assigned(DSSPlotObj) Then DSSPlotObj := TDSSPlot.Create;
 
+       DSSPlotObj.SetDefaults;
+
        If compareText(classbox.text, 'loadshape')=0 then
        Begin
          Screen.Cursor := crHourglass;
