@@ -201,7 +201,7 @@ BEGIN
          IF Length(ParamName) = 0 THEN Inc(ParamPointer)
          ELSE ParamPointer := CommandList.GetCommand(ParamName);
 
-         If (ParamPointer>0) and (ParamPointer<=NumProperties) Then PropertyValue[ParamPointer]:= Param;
+         If (ParamPointer > 0 ) and (ParamPointer <= NumProperties) Then PropertyValue[ParamPointer]:= Param;
 
          CASE ParamPointer OF
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 10101);
@@ -223,12 +223,19 @@ BEGIN
          {Set defaults}
          CASE ParamPointer OF
 
-            2: If FNPhases>FNconds then FNPhases := FNConds;
-            3: If (ActiveCond<1) or (ActiveCond>FNconds) Then DoSimpleMsg('Illegal cond= specification in Line Geometry:'+CRLF+Parser.cmdstring, 10102);
+            2: If (FNPhases > FNconds) then FNPhases := FNConds;
+            3: If (ActiveCond < 1) or (ActiveCond > FNconds) Then DoSimpleMsg('Illegal cond= specification in Line Geometry:'+CRLF+Parser.cmdstring, 10102);
             4: Begin
                  WireDataClass.code := Param;
-                 If Assigned(ActiveWireDataObj) Then FWireData^[ActiveCond] := ActiveWireDataObj
-                 Else DoSimpleMsg('WireData Object "'+param+'" not defined. Must be previously defined.', 10103);
+                 If Assigned(ActiveWireDataObj) Then Begin
+                    FWireData^[ActiveCond] := ActiveWireDataObj;
+                    {Default the current ratings for this geometry to the rating of the first conductor}
+                    If (ActiveCond = 1) then  Begin
+                      If (ActiveWireDataObj.NormAmps > 0.0)  Then Normamps  := ActiveWireDataObj.NormAmps;
+                      If (ActiveWireDataObj.Emergamps > 0.0) Then Emergamps := ActiveWireDataObj.EmergAmps;
+                    End;
+                 End
+                 Else DoSimpleMsg('WireData Object "' + param + '" not defined. Must be previously defined.', 10103);
                End;
          END;
 

@@ -217,6 +217,7 @@ function TDSSPlot.GetColor: Integer;
 Var
    pBus:TDSSBus;
    Factor:Double;
+   i,j: Integer;
 
 begin
      Case Plottype of
@@ -225,9 +226,15 @@ begin
              pqVoltage: Begin
                           pBus := ActiveCircuit.Buses^[bus2Idx];
                           If ActiveCircuit.IsSolved and (pBus.kVBase > 0.0) Then Begin
-                              Factor := 0.001 * Cabs(ActiveCircuit.Solution.NodeV^[pBus.GetRef(1)])/pBus.kVBase;
+                              {Find min phase voltage at bus - check nodes 1..3 }
+                              Factor := 1.0;
+                              For i := 1 to  pBus.NumNodesThisBus do Begin
+                                  j := pBus.GetNum(i);
+                                  If (j>0) and (j<=3) then
+                                  Factor := Min(Factor, 0.001 * Cabs(ActiveCircuit.Solution.NodeV^[pBus.GetRef(i)])/pBus.kVBase);
+                              End;
                               If      Factor > ActiveCircuit.NormalMinVolts Then Result := Color1
-                              Else If Factor > ActiveCircuit.EmergMinVolts  Then Result := color2
+                              Else If Factor > ActiveCircuit.EmergMinVolts  Then Result := Color2
                                                                             Else Result := Color3;
                           End
                           Else Result := Color1;
@@ -1982,8 +1989,9 @@ end;
 procedure TDSSPlot.DoVisualizationPlot(Element:TDSSCktElement; Quantity:Integer);
 
 VAR
-   cBuffer      :pComplexArray;
-   Nterm, Ncond :Integer;
+   cBuffer          :pComplexArray;
+   Nterm, Ncond     :Integer;
+   kVBase1, kVBase2 :Double;
    i, j, k          :Integer;
    CBufferAllocated :Boolean;
    S1, S2, S, arrowLeft, arrowright :String;
@@ -2000,6 +2008,11 @@ VAR
             vizPower: Begin S1 := Format('%-.6g', [Cbuffer^[k].re]);
                             S2 := Format('+ j%-.6g kW', [CBuffer^[k].im]);
                       End;
+            vizVoltage: Begin
+                          If k <= Ncond Then S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase1])
+                                        Else S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase2]);
+                          S2 := Format(' /_ %8.2f', [cdang(CBuffer^[k])]);
+                        End
          Else
             S1 := Format('%-.6g', [Cabs(Cbuffer^[k])]);
             S2 := Format(' /_ %8.2f', [cdang(CBuffer^[k])]);
@@ -2048,6 +2061,8 @@ begin
   Element.ComputeVTerminal;
 
   Xmx := 300.0;   // don't use Xmax -- already used
+  kVBAse1 := 1.0;
+  kVBase2 := 1.0;
 
   Case Quantity of
     vizVoltage: Begin ArrowLeft := '^ ';  ArrowRight := ' ^'; End;
@@ -2056,7 +2071,11 @@ begin
   End;
 
   Case Quantity of
-    vizVoltage: cBuffer := Element.Vterminal;
+    vizVoltage: Begin
+                  cBuffer := Element.Vterminal;
+                  kVBase1 := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[1].busRef].kVBase);
+                  kVBase2 := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[2].busRef].kVBase);
+                End;
     vizCurrent: cBuffer := Element.Iterminal;
     vizPower:   Begin
                   cBuffer := AllocMem(Sizeof(Complex)*Element.Yorder);
