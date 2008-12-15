@@ -119,6 +119,7 @@ TYPE
         PROCEDURE DoMotorTypeLoad;
         FUNCTION  GrowthFactor(Year:Integer):Double;
         PROCEDURE StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
+        PROCEDURE UpdateVoltageBases;
 
         FUNCTION  Get_Unserved:Boolean;
         FUNCTION  Get_ExceedsNormal:Boolean;
@@ -523,18 +524,12 @@ Begin
 
          // keep kvar nominal up to date WITH kW and PF
          CASE ParamPointer OF
-            1: SetNcondsForConnection;  // Force Reallocation of terminal info
-            3: Begin
-                  CASE Connection OF
-                    1: VBase := kVLoadBase * 1000.0 ;
-                  ELSE  {wye}
-                    Case Fnphases Of
-                     2,3: VBase := kVLoadBase * 577.4;
-                     ELSE
-                          VBase := kVLoadBase * 1000.0 ; {1-phase or unknown}
-                     End;
-                  End;
+            1: Begin
+                 SetNcondsForConnection;  // Force Reallocation of terminal info
+                 UpdateVoltageBases;
                End;
+            3: UpdateVoltageBases;
+
             4: LoadSpecType := 0;
     {Set shape objects;  returns nil IF not valid}
             7: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
@@ -1066,6 +1061,21 @@ Begin
             End;
     End;
 End;
+
+procedure TLoadObj.UpdateVoltageBases;
+begin
+       WITH ActiveLoadObj  DO
+          CASE Connection OF
+                1: VBase := kVLoadBase * 1000.0 ;
+          ELSE  {wye}
+                Case Fnphases Of
+                 2,3: VBase := kVLoadBase * 577.4;
+                 ELSE
+                      VBase := kVLoadBase * 1000.0 ; {1-phase or unknown}
+                 End;
+          End;
+
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 PROCEDURE TLoadObj.DoConstantPQLoad;
