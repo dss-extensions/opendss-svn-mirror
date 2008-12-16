@@ -85,7 +85,7 @@ Uses DSSClass,
      PointerList, CktTree, ucomplex, Feeder,
      Load, Generator, Command;
 
-Const  NumEMRegisters = 37;   // Number of energy meter registers
+Const  NumEMRegisters = 39;   // Number of energy meter registers
     {Fixed Registers}
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -113,11 +113,13 @@ Const  NumEMRegisters = 37;   // Number of energy meter registers
      Reg_TransformerLosseskWh = 24;
      Reg_LineModeLineLoss  = 25;    // for 3-phase feeder lines
      Reg_ZeroModeLineLoss  = 26;
-     Reg_GenkWh            = 27;
-     Reg_Genkvarh          = 28;
-     Reg_GenMaxkW          = 29;
-     Reg_GenMaxkVA         = 30;
-     Reg_VBaseStart        = 30;  {This is where the Voltage base load Registers start}
+     Reg_3_phaseLineLoss   = 27;
+     Reg_1_phaseLineLoss   = 28;
+     Reg_GenkWh            = 29;
+     Reg_Genkvarh          = 30;
+     Reg_GenMaxkW          = 31;
+     Reg_GenMaxkVA         = 32;
+     Reg_VBaseStart        = 32;  {This is where the Voltage base load Registers start}
 
 
 Type
@@ -187,12 +189,11 @@ Type
         procedure SetHasMeterFlag;
      public
        DI_RegisterTotals  :TRegisterArray;
-
-       DI_Dir        :String;
-       FDI_Totals    :TextFile;
-       FMeterTotals  :TextFile;
-       SystemMeter   :TSystemMeter;
-       Do_OverloadReport   :Boolean;
+       DI_Dir             :String;
+       FDI_Totals         :TextFile;
+       FMeterTotals       :TextFile;
+       SystemMeter        :TSystemMeter;
+       Do_OverloadReport  :Boolean;
        Do_VoltageExceptionReport :Boolean;
        OverLoadFileIsOpen  :Boolean;
        VoltageFileIsOpen   :Boolean;
@@ -231,22 +232,24 @@ Type
        FLineLosses           :Boolean;
        FXfmrLosses           :Boolean;
        FSeqLosses            :Boolean;
+       F3PhaseLosses         :Boolean;
        FVBaseLosses          :Boolean;
+
        FeederObj             :TFeederObj;   // not used at present
        DefinedZoneList       :pStringArray;
        DefinedZoneListSize   :Integer;
 
        {Limits on the entire load in the zone for networks where UE cannot be determined
         by the individual branches}
-       MaxZonekVA_Norm   :Double;
-       MaxZonekVA_Emerg  :Double;
+       MaxZonekVA_Norm       :Double;
+       MaxZonekVA_Emerg      :Double;
 
 
        {Voltage bases in the Meter Zone}
-       TotalVBaseLosses   :pDoubleArray;    // allocated array
-       VBaseList          :pDoubleArray;    // allocated array
-       VBaseCount         :Integer;
-       MaxVBaseCount      :Integer;
+       TotalVBaseLosses      :pDoubleArray;    // allocated array
+       VBaseList             :pDoubleArray;    // allocated array
+       VBaseCount            :Integer;
+       MaxVBaseCount         :Integer;
 
        {Demand Interval File variables}
        DI_File                 :TextFile;
@@ -318,7 +321,7 @@ USES  ParserDel, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
       Classes, FileCtrl, ReduceAlgs, Windows;
 
 
-Const NumPropsThisClass = 15;
+Const NumPropsThisClass = 16;
 
 VAR
 
@@ -393,8 +396,8 @@ Begin
      PropertyName^[12] := 'LineLosses';
      PropertyName^[13] := 'XfmrLosses';
      PropertyName^[14] := 'SeqLosses';
-     PropertyName^[15] := 'VbaseLosses'; // segregate losses by voltage base
-     PropertyName^[16] := 'OverloadReport';
+     PropertyName^[15] := '3phaseLosses';
+     PropertyName^[16] := 'VbaseLosses'; // segregate losses by voltage base
 
 {     PropertyName^[11] := 'Feeder';  **** removed - not used}
 
@@ -440,8 +443,8 @@ Begin
       PropertyHelp[12]:= '{Yes | No}  Default is YES. Compute Line losses. If NO, then none of the losses are computed.';
       PropertyHelp[13]:= '{Yes | No}  Default is YES. Compute Transformer losses. If NO, transformers are ignored in loss calculations.';
       PropertyHelp[14]:= '{Yes | No}  Default is YES. Compute Sequence losses in lines and segregate by line mode losses and zero mode losses.';
-      PropertyHelp[15]:= '{Yes | No}  Default is YES. Compute losses and segregate by voltage base. If NO, then voltage-based tabulation is not reported.';
-      PropertyHelp[16]:= '{Yes | No}  Default is YES. When YES, write Overload exception report when Demand Intervals are written.';
+      PropertyHelp[15]:= '{Yes | No}  Default is YES. Compute Line losses and segregate by 3-phase and other (1- and 2-phase) line losses. ';
+      PropertyHelp[16]:= '{Yes | No}  Default is YES. Compute losses and segregate by voltage base. If NO, then voltage-based tabulation is not reported.';
 (**** Not used in present version      PropertyHelp[11]:= '{Yes/True | No/False}  Default is NO. If set to Yes, a Feeder object is created corresponding to ' +
                          'the energymeter.  Feeder is enabled if Radial=Yes; diabled if Radial=No.  Feeder is ' +
                          'synched automatically with the meter zone.  Do not create feeders for zones in meshed transmission systems.';
@@ -526,7 +529,8 @@ Begin
            12: FLineLosses  := InterpretYesNo(Param);
            13: FXfmrLosses  := InterpretYesNo(Param);
            14: FSeqLosses   := InterpretYesNo(Param);
-           15: FVBaseLosses := InterpretYesNo(Param);
+           15: F3PhaseLosses := InterpretYesNo(Param);
+           16: FVBaseLosses := InterpretYesNo(Param);
            (****11: HasFeeder := InterpretYesNo(Param); ***)
          ELSE
            ClassEdit(ActiveEnergyMeterObj, ParamPointer - NumPropsthisClass)
@@ -811,6 +815,7 @@ Begin
      FLineLosses         := TRUE;
      FXfmrLosses         := TRUE;
      FSeqLosses          := TRUE;
+     F3PhaseLosses       := TRUE;
      FVBaseLosses        := TRUE;
      VbaseList           := NIL;
      TotalVBaseLosses    := NIL;
@@ -851,18 +856,21 @@ Begin
      RegisterNames[25] := 'Line Mode Line Losses';
      RegisterNames[26] := 'Zero Mode Line Losses';
 
-     RegisterNames[27] := 'Gen kWh';
-     RegisterNames[28] := 'Gen kvarh';
-     RegisterNames[29] := 'Gen Max kW';
-     RegisterNames[30] := 'Gen Max kVA';
+     RegisterNames[27] := '3-phase Line Losses';
+     RegisterNames[28] := '1- and 2-phase Line Losses';
+
+     RegisterNames[29] := 'Gen kWh';
+     RegisterNames[30] := 'Gen kvarh';
+     RegisterNames[31] := 'Gen Max kW';
+     RegisterNames[32] := 'Gen Max kVA';
      {Registers for capturing losses by base voltage}
-     RegisterNames[31] := 'Aux1';     {Name is assigned after determining Voltage Bases}
-     RegisterNames[32] := 'Aux2';
-     RegisterNames[33] := 'Aux3';
-     RegisterNames[34] := 'Aux4';
-     RegisterNames[35] := 'Aux5';
-     RegisterNames[36] := 'Aux6';
-     RegisterNames[37] := 'Aux7';
+     RegisterNames[33] := 'Aux1';     {Name is assigned after determining Voltage Bases}
+     RegisterNames[34] := 'Aux2';
+     RegisterNames[35] := 'Aux3';
+     RegisterNames[36] := 'Aux4';
+     RegisterNames[37] := 'Aux5';
+     RegisterNames[38] := 'Aux6';
+     RegisterNames[39] := 'Aux7';
 
      ResetRegisters;
      For i := 1 to NumEMRegisters Do TotalsMask[i] := 1.0;
@@ -1045,6 +1053,8 @@ VAR
    TotalTransformerLosses,
    TotalLineModeLosses,    // Lines only  for now
    TotalZeroModeLosses,
+   Total3phaseLosses,
+   Total1phaseLosses,
    TotalLosses           :Complex;
 
    CktElem,
@@ -1094,7 +1104,10 @@ Begin
      TotalLineLosses     := CZERO;
      TotalLineModeLosses := CZERO;
      TotalZeroModeLosses := CZERO;
+     Total3phaseLosses   := CZERO;
+     Total1phaseLosses   := CZERO;
      TotalTransformerLosses   := CZERO;
+
      For i := 1 to MaxVBaseCount Do TotalVBaseLosses^[i] := 0.0;
 
      CktElem           := BranchList.First;
@@ -1207,12 +1220,19 @@ Begin
            {Line and Transformer Elements}
            If IsLineElement(Cktelem) and FLineLosses then Begin
                Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
-               CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
-               Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
-               CmulRealAccum(S_PosSeqLosses,  0.001); // convert to kW
-               CmulRealAccum(S_ZeroSeqLosses, 0.001);
-               Caccum(TotalLineModeLosses,  S_PosSeqLosses );
-               Caccum(TotalZeroModeLosses,  S_ZeroSeqLosses);
+               If FseqLosses then  Begin
+                   CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
+                   Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
+                   CmulRealAccum(S_PosSeqLosses,  0.001); // convert to kW
+                   CmulRealAccum(S_ZeroSeqLosses, 0.001);
+                   Caccum(TotalLineModeLosses,  S_PosSeqLosses );
+                   Caccum(TotalZeroModeLosses,  S_ZeroSeqLosses);
+               End;
+               {Separate Line losses into 3- and "1-phase" losses}
+               If F3PhaseLosses then Begin
+                   If Cktelem.NPhases = 3 then Caccum(Total3phaseLosses,  S_TotalLosses )
+                                          Else Caccum(Total1phaseLosses,  S_TotalLosses );
+               End;
            End
            Else If IsTransformerElement(Cktelem) and FXfmrLosses then Begin
                Caccum(TotalTransformerLosses,  S_TotalLosses); // Accumulate total losses in meter zone
@@ -1241,6 +1261,8 @@ Begin
      Integrate(Reg_LineLosseskWh,     TotalLineLosses.re,      Delta_Hrs);
      Integrate(Reg_LineModeLineLoss,  TotalLineModeLosses.re,  Delta_Hrs);
      Integrate(Reg_ZeroModeLineLoss,  TotalZeroModeLosses.re,  Delta_Hrs);
+     Integrate(Reg_3_phaseLineLoss,   Total3phaseLosses.re,    Delta_Hrs);
+     Integrate(Reg_1_phaseLineLoss,   Total1phaseLosses.re,    Delta_Hrs);
      Integrate(Reg_TransformerLosseskWh,  TotalTransformerLosses.re,  Delta_Hrs);
      for i  := 1 to MaxVBaseCount  do  Integrate(Reg_VbaseStart + i,  TotalVBaseLosses^[i],  Delta_Hrs);
 
