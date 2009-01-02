@@ -31,8 +31,11 @@ TYPE
        FaultRate,
        PctPerm,
        HrsToRepair   :Double;
-       FromTerminal, ToTerminal:Integer;  // Set by Meter zone for radial feeder
+       FromTerminal,
+       ToTerminal   :Integer;  // Set by Meter zone for radial feeder
        IsShunt :Boolean;
+
+       NumCustomers  :Integer;
 
        SensorObj   :TMeterElement; // Upline Sensor for this element  for allocation and estimation
 
@@ -63,6 +66,7 @@ Begin
 
     IsShunt := False;
     FromTerminal := 1;
+    NumCustomers := 0;
     SensorObj    := NIL;
     DSSObjType   := PD_ELEMENT;
 End;

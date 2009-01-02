@@ -78,6 +78,8 @@ TYPE
             TapLimitPerChange :Integer;
             TapWinding        :Integer;  // Added 7-19-07
             FInversetime      :Boolean;
+            Vlimit           :Double;
+            VLimitActive      :Boolean;
 
             VBuffer, CBuffer  :pComplexArray;
             FUNCTION Get_Transformer  :TTransfObj;
@@ -127,7 +129,7 @@ USES
 
 CONST
 
-    NumPropsThisClass = 20;
+    NumPropsThisClass = 21;
 
 Var
     LastChange:Integer;
@@ -184,6 +186,7 @@ Begin
      PropertyName[18] := 'maxtapchange';
      PropertyName[19] := 'inversetime';
      PropertyName[20] := 'tapwinding';
+     PropertyName[21] := 'vlimit';
 
      PropertyHelp[1] := 'Name of Transformer element to which the RegControl is connected. '+
                         'Do not specify the full object name; "Transformer" is assumed for '  +
@@ -225,6 +228,8 @@ Begin
                          'Set this to 0 to fix the tap in the current position.';
      PropertyHelp[19] := '{Yes | No } Default is no.  The time delay is adjusted inversely proportional to the amount the voltage is outside the band down to 10%.';
      PropertyHelp[20] := 'Winding containing the actual taps, if different than the WINDING property. Defaults to the same winding as specified by the WINDING property.';
+     PropertyHelp[21] := 'Voltage Limit for bus to which regulated winding is connected (e.g. first customer). Default is 0.0. ' +
+                         'Set to a value greater then zero to activate this function.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -294,7 +299,11 @@ Begin
             17: DebugTrace   := InterpretYesNo(Param);
             18: TapLimitPerChange := max(0, Parser.IntValue);
             19: FInversetime := InterpretYesNo(Param);
-            20: TapWinding := Parser.intValue;
+            20: TapWinding   := Parser.intValue;
+            21: Begin
+                  Vlimit      := Parser.DblValue;
+                  If VLimit > 0.0 then  VLimitActive := TRUE else VLimitActive := FALSE;
+                End;
 
          ELSE
            // Inherited parameters
@@ -427,6 +436,7 @@ Begin
      InitPropertyValues(0);
      FInversetime := FALSE;
      RegulatedBus := '';
+     Vlimit := 0.0;
    //  RecalcElementData;
 
 End;
@@ -635,14 +645,17 @@ end;
 PROCEDURE TRegControlObj.Sample;
 
 VAR
-   
+
    BoostNeeded,
    Increment,
-   Vavg  :Double;
+   Vactual,
+   Vboost    :Double;
+   VlocalBus :Double;
    Vterm,
    VLDC,
-   ILDC :Complex;
-   i,ii    :Integer;
+   ILDC      :Complex;
+   TapChangeIsNeeded :Boolean;
+   i,ii      :Integer;
    ControlledTransformer:TTransfObj;
    TransformerConnection:Integer;
 
@@ -668,28 +681,42 @@ begin
 
            // Changed to first phase only  12-17-01 (way most LTCs work)
 
-           Vterm :=  CDivReal(VBuffer^[1], PTRatio );
+           Vterm := CDivReal(VBuffer^[1], PTRatio );
+
+           // Check Vlimit
+           If VlimitActive then Begin
+             If UsingRegulatedBus then ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
+             Vlocalbus := Cabs(CDivReal(VBuffer^[1], PTRatio ));
+           End
+           Else Vlocalbus := 0.0; // to get rid of warning message;
 
            // Check for LDC
            IF NOT UsingRegulatedBus and LDCActive Then
              Begin
                  ControlledElement.GetCurrents(Cbuffer);
-                 ILDC := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1)+1], CTRating);
-                 VLDC := Cmul(Cmplx(R, X), ILDC);
+                 ILDC  := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1)+1], CTRating);
+                 VLDC  := Cmul(Cmplx(R, X), ILDC);
                  Vterm := Cadd(Vterm, VLDC);   // Direction on ILDC is INTO terminal, so this is equivalent to Vterm - (R+jX)*ILDC
              End;
 
-           Vavg := Cabs(Vterm);
+           Vactual := Cabs(Vterm);
 
      WITH   ControlledTransformer Do
      Begin
          // Check for out of band voltage
-         IF    (Abs(Vreg - Vavg) > Bandwidth / 2.0) THEN
+         IF (Abs(Vreg - Vactual) > Bandwidth / 2.0) Then TapChangeIsNeeded := TRUE
+                                                    Else TapChangeIsNeeded := FALSE;
+
+         If Vlimitactive then If (Vlocalbus > Vlimit) Then TapChangeIsNeeded := TRUE;
+
+         If TapChangeIsNeeded then
            Begin
               // Compute tapchange
-              BoostNeeded := (Vreg - Vavg) * PTRatio / BaseVoltage[ElementTerminal];  // per unit Winding boost needed
-              Increment := TapIncrement[TapWinding];
-              PendingTapChange :=  Round(BoostNeeded / Increment) * Increment;  // Make sure it is an even increment
+              Vboost := (Vreg - Vactual);
+              If Vlimitactive then If (Vlocalbus > Vlimit) then Vboost := (Vlimit - Vlocalbus);
+              BoostNeeded      := Vboost * PTRatio / BaseVoltage[ElementTerminal];  // per unit Winding boost needed
+              Increment        := TapIncrement[TapWinding];
+              PendingTapChange := Round(BoostNeeded / Increment) * Increment;  // Make sure it is an even increment
 
               {If Tap is another winding, it has to move the other way to accomplish the change}
               If TapWinding <> ElementTerminal Then PendingTapChange := -PendingTapChange;
@@ -703,7 +730,7 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] < MaxTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vavg), 0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual), 0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End
@@ -711,11 +738,11 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] > MinTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vavg),0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual),0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End;
-                 
+
                End;
 
            END
@@ -797,7 +824,7 @@ begin
      PropertyValue[18] := '16';
      PropertyValue[19] := 'no';
      PropertyValue[20] := '1';
-
+     PropertyValue[21] := '0.0';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 

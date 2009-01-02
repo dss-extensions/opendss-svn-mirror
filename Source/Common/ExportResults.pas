@@ -379,8 +379,9 @@ End;
 
 PROCEDURE CalcAndWriteMaxCurrents(Var F:TextFile; pElem:TPDElement; Cbuffer:pComplexArray);
 VAr
-    i:Integer;
-    Currmag, MaxCurrent:Double;
+    i :Integer;
+    Currmag, MaxCurrent :Double;
+    LocalPower :Complex;
 
 Begin
     Write(F, Format('%s.%s', [pelem.DSSClassName, pElem.Name]));
@@ -389,9 +390,13 @@ Begin
        Currmag := Cabs(Cbuffer^[i]);
        If Currmag  > MaxCurrent then   MaxCurrent :=  Currmag;
     End;
+    pElem.ActiveTerminalIdx := 1;
+    LocalPower := CmulReal(pElem.Power, 0.001);
     If (pElem.NormAmps=0.0) or (pElem.EmergAmps=0.0) then
          Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, 0.0 , 0.0]))
     Else Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, MaxCurrent/pElem.NormAmps*100.0 , MaxCurrent/pElem.Emergamps*100.0]));
+    Write(F, Format(', %10.6g, %10.6g, %d, %d', [Localpower.re, Localpower.im, pElem.NumCustomers, pElem.NPhases   ]));
+    With ActiveCircuit Do Write(F, Format(', %-.3g ', [Buses^[MapNodeToBus^[PElem.NodeRef^[1]].BusRef].kVBase ]));
     Writeln(F);
 End;
 
@@ -1362,24 +1367,21 @@ Begin
      Assignfile(F, FileNm);
      ReWrite(F);
 
-     Getmem(cBuffer, sizeof(cBuffer^[1])*GetMaxCktElementSize);
+     Getmem(cBuffer, sizeof(cBuffer^[1]) * GetMaxCktElementSize);
 
-     Writeln(F, 'Name, Imax, %normal, %emergency');
-
+     Writeln(F, 'Name, Imax, %normal, %emergency, kW, kvar, NumCustomers, NumPhases, kVBase');
 
      // PDELEMENTS ONLY
      pElem := ActiveCircuit.PDElements.First;
      WHILE pElem<>nil DO BEGIN
        IF pElem.Enabled THEN BEGIN
-        pElem.GetCurrents(cBuffer);
-        CalcAndWriteMaxCurrents(F, pElem, Cbuffer);
+          pElem.GetCurrents(cBuffer);
+          CalcAndWriteMaxCurrents(F, pElem, Cbuffer);
        END;
         pElem := ActiveCircuit.PDElements.Next;
      END;
 
-
      GlobalResult := FileNm;
-
 
   FINALLY
      If Assigned(cBuffer) Then Freemem(cBuffer);

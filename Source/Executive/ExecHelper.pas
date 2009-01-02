@@ -49,7 +49,6 @@ Uses Command;
          FUNCTION DoReduceCmd:Integer;
          FUNCTION DoInterpolateCmd:Integer;
 
-
          FUNCTION DoCloseCmd:Integer;
          FUNCTION DoResetMonitors:Integer;
 

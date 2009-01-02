@@ -152,6 +152,7 @@ TYPE
         kvarBase           :Double;
         kVLoadBase         :Double;
         LoadClass          :Integer;
+        NumCustomers       :Integer;
         LoadSpecType       :Integer;  // 0=kW, PF;  1= kw, kvar;  2=kva, PF
         PFNominal          :Double;
         Rneut              :Double;
@@ -191,8 +192,8 @@ TYPE
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-        Property Unserved     :Boolean Read Get_Unserved;
-        Property ExceedsNormal:Boolean Read Get_ExceedsNormal;
+        Property Unserved      :Boolean Read Get_Unserved;
+        Property ExceedsNormal :Boolean Read Get_ExceedsNormal;
 
         {AllocationFactor adjusts either connected kVA allocation factor or kWh CFactor}
         Property AllocationFactor    :Double Read FAllocationFactor    Write Set_AllocationFactor;
@@ -214,7 +215,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSGlobals, Dynamics, Sysutils, Command, Math, MathUtil, Utilities;
 
-Const  NumPropsThisClass = 31;
+Const  NumPropsThisClass = 32;
 
 Var  CDOUBLEONE:Complex;
 
@@ -253,7 +254,6 @@ Begin
 
      // Define Property names
 
-
      PropertyName[1] := 'phases';
      PropertyName[2] := 'bus1';
      PropertyName[3] := 'kV';  //
@@ -285,7 +285,7 @@ Begin
      PropertyName[29] := 'kwhdays';   // kwh billing period (24-hr days)
      PropertyName[30] := 'Cfactor';   // multiplier from kWh avg to peak kW
      PropertyName[31] := 'CVRcurve';   // name of curve to use for yearly CVR simulations
-
+     PropertyName[32] := 'NumCust';   // Number of customers, this load
 
 
      // define Property help values
@@ -379,6 +379,7 @@ Begin
                          'Refers to a LoadShape object with both Mult and Qmult defined. ' +
                          'Define a Loadshape to agree with yearly or daily curve according to the type of analysis being done. ' +
                          'If NONE, the CVRwatts and CVRvars factors are used and assumed constant.';
+     PropertyHelp[32] := 'Number of customers, this load. Default is 1.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -517,6 +518,7 @@ Begin
            29: kWhdays      := Parser.DblValue;
            30: Cfactor      := Parser.DblValue;
            31: CVRShape     := Param;
+           32: NumCustomers  := Parser.IntValue;
          ELSE
            // Inherited edits
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
@@ -606,6 +608,7 @@ Begin
 //        Spectrum       := OtherLoad.Spectrum;       in base class now
 //       SpectrumObj    := OtherLoad.SpectrumObj;
        LoadClass      := OtherLoad.LoadClass;
+       NumCustomers   := OtherLoad.NumCustomers;
        FLoadModel     := OtherLoad.FLoadModel;
        Fixed          := OtherLoad.Fixed;
        ExemptFromLDCurve := OtherLoad.ExemptFromLDCurve;
@@ -681,6 +684,7 @@ Begin
      Connection     := 0;    // Wye (star)
      FLoadModel     := 1;  // changed from 2 RCD {easiest to solve}
      LoadClass      := 1;
+     NumCustomers   := 1;
      LastYear       := 0;
      FCVRwattFactor := 1.0;
      FCVRvarFactor  := 2.0;
@@ -1813,6 +1817,11 @@ begin
      PropertyValue[25] := '10';
      PropertyValue[26] := '1';  // CVR watt factor
      PropertyValue[27] := '2';  // CVR var factor
+     PropertyValue[28] := '0';  // kwh bulling
+     PropertyValue[29] := '30';  // kwhdays
+     PropertyValue[30] := '4';  // Cfactor
+     PropertyValue[31] := '';  // CVRCurve
+     PropertyValue[32] := '1';  // NumCust
 
 
 

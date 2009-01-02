@@ -188,21 +188,22 @@ Type
         Function  MakeLike(Const EnergyMeterName:String):Integer;   Override;
         procedure SetHasMeterFlag;
      public
-       DI_RegisterTotals  :TRegisterArray;
-       DI_Dir             :String;
-       FDI_Totals         :TextFile;
-       FMeterTotals       :TextFile;
-       SystemMeter        :TSystemMeter;
-       Do_OverloadReport  :Boolean;
+
+       DI_RegisterTotals   :TRegisterArray;
+       DI_Dir              :String;
+       FDI_Totals          :TextFile;
+       FMeterTotals        :TextFile;
+       SystemMeter         :TSystemMeter;
+       Do_OverloadReport   :Boolean;
        Do_VoltageExceptionReport :Boolean;
        OverLoadFileIsOpen  :Boolean;
        VoltageFileIsOpen   :Boolean;
 
        constructor Create;
-       destructor Destroy; override;
+       destructor Destroy;     override;
 
-       Function Edit:Integer; override;     // uses global parser
-       Function Init(Handle:Integer):Integer; override;
+       Function Edit:Integer;  override;     // uses global parser
+       Function Init(Handle:Integer):Integer;            override;
        Function NewObject(const ObjName:String):Integer; override;
 
        Procedure ResetMeterZonesAll;
@@ -243,7 +244,6 @@ Type
         by the individual branches}
        MaxZonekVA_Norm       :Double;
        MaxZonekVA_Emerg      :Double;
-
 
        {Voltage bases in the Meter Zone}
        TotalVBaseLosses      :pDoubleArray;    // allocated array
@@ -1357,11 +1357,11 @@ Var
 
    TestBusNum,
    ZoneListCounter :Integer ;
-   j,
-   iTerm,iPC, iPD      :Integer;
+   j, iTerm,iPC, iPD      :Integer;
    TestBranch: TDSSCktElement;
    TestElement:TPDElement;
    PC         :TPCElement;
+   pLoad      :TLoadObj;
    IsFeederEnd:Boolean;
    S    :String;
 
@@ -1432,14 +1432,15 @@ Begin
              then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(TestBranch).Len
              else Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter;
 
-           
+           TPDElement(TestBranch).NumCustomers := 0;
+
            iPC :=0;
            While iPC < PCElementList.Count Do
            Begin
               pC := PCElementList.List^[iPC];
-              // IF pC.Enabled Then Begin   onlye enabled elements in the search list
+              //  IF pC.Enabled Then Begin   only enabled elements in the search list
               //  IF (Not pC.Checked) Then// Skip if we've already done this PC device
-               IF (pC.Terminals^[1].BusRef = TestBusNum) Then  Begin // ?Connected to this bus ?
+               IF (pC.Terminals^[1].BusRef = TestBusNum) Then Begin // ?Connected to this bus ?
                  BranchList.PresentBranch.IsDangling := FALSE;   // Something is connected here
                // Is this a load or a generator or a Capacitor or reactor??
                  IF ((pC.DSSObjType and CLASSMASK) = LOAD_ELEMENT)
@@ -1451,6 +1452,11 @@ Begin
                       pC.Checked := True;  // So we don't pick this element up again
                       pC.IsIsolated := FALSE;
                       pC.ActiveTerminalIdx := 1;
+                      {Totalize Number of Customers if Load Type}
+                      If (pC is TLoadObj) then Begin
+                        pLoad := pC As TLoadObj;
+                        Inc(TPDElement(TestBranch).NumCustomers, pLoad.NumCustomers);
+                      End;
                       {If object does not have a sensor attached, it acquires the sensor of its parent branch}
                       If Not pC.HasSensorObj then pC.SensorObj := TPDElement(TestBranch).SensorObj;
                       PCElementList.Delete(iPC);  // make the search list shorter
@@ -1468,7 +1474,7 @@ Begin
                  iPD := 0;
                  WHILE iPD < PDElementList.Count Do
                  Begin
-                   TestElement := PDElementList.List^[iPD];  // Only enabled objects are in thie list
+                   TestElement := PDElementList.List^[iPD];  // Only enabled objects are in this list
 
                    // **** See ResetMeterZonesAll
 
@@ -2361,7 +2367,8 @@ Var
    Cmax    :double;
 
 begin
-{ Scans the active circuit for overloaded PD elements and writes each to a file
+{
+  Scans the active circuit for overloaded PD elements and writes each to a file
   This is called only if in Demand Interval (DI) mode and the file is open.
 }
 
@@ -2374,8 +2381,7 @@ begin
              PDelem.ComputeIterminal;
              Cmax := PDelem.MaxTerminalOneImag; // For now, check only terminal 1 for overloads
              IF (Cmax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps) THEN Begin
-                 With ActiveCircuit.Solution Do
-                   Write(FOverLoadFile, Format('%-.6g,',[dblHour]));
+                 With ActiveCircuit.Solution Do Write(FOverLoadFile, Format('%-.6g,',[dblHour]));
                  Write(FOverLoadFile, Format(' %s, %-.4g, %-.4g,',[FullName(PDelem), PDElem.NormAmps, pdelem.EmergAmps ]));
                  IF PDElem.Normamps > 0.0  THEN Write(FOverLoadFile, Format(' %-.7g,',[Cmax/PDElem.Normamps*100.0]))
                                            ELSE Write(FOverLoadFile,' 0.0,');
