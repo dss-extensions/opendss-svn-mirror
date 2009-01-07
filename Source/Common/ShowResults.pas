@@ -36,10 +36,10 @@ Procedure ShowY(FileNm:String);
 
 implementation
 
-Uses uComplex,  Arraydef, sysutils, Circuit, DSSGlobals,
-     uCMatrix, solution, CktElement, Utilities, Bus, MathUtil,
+Uses uComplex,  Arraydef,  sysutils, Circuit, DSSGlobals,
+     uCMatrix,  solution,  CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, Transformer, EnergyMeter, Load, RegControl,
-     ParserDel, CktTree, DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix;
+     ParserDel, CktTree,   DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix;
 
 VAR
    MaxBusNameLength :Integer;

@@ -395,7 +395,7 @@ Begin
     If (pElem.NormAmps=0.0) or (pElem.EmergAmps=0.0) then
          Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, 0.0 , 0.0]))
     Else Write(F,Format(', %10.6g, %8.2f, %8.2f',  [MaxCurrent, MaxCurrent/pElem.NormAmps*100.0 , MaxCurrent/pElem.Emergamps*100.0]));
-    Write(F, Format(', %10.6g, %10.6g, %d, %d', [Localpower.re, Localpower.im, pElem.NumCustomers, pElem.NPhases   ]));
+    Write(F, Format(', %10.6g, %10.6g, %d, %d, %d', [Localpower.re, Localpower.im, pElem.NumCustomers, pElem.TotalCustomers, pElem.NPhases   ]));
     With ActiveCircuit Do Write(F, Format(', %-.3g ', [Buses^[MapNodeToBus^[PElem.NodeRef^[1]].BusRef].kVBase ]));
     Writeln(F);
 End;
@@ -1369,7 +1369,7 @@ Begin
 
      Getmem(cBuffer, sizeof(cBuffer^[1]) * GetMaxCktElementSize);
 
-     Writeln(F, 'Name, Imax, %normal, %emergency, kW, kvar, NumCustomers, NumPhases, kVBase');
+     Writeln(F, 'Name, Imax, %normal, %emergency, kW, kvar, NumCustomers, TotalCustomers, NumPhases, kVBase');
 
      // PDELEMENTS ONLY
      pElem := ActiveCircuit.PDElements.First;

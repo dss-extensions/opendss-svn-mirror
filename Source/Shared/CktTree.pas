@@ -36,36 +36,34 @@ Type
         function Get_NextObject: Pointer;
 
      protected
-       ChildAdded  :Boolean;
-       LexicalLevel :Integer;
+       ChildAdded    :Boolean;
+       LexicalLevel  :Integer;
        FParentBranch :TCktTreeNode;
        FShuntObjects :TPointerList;  // Generic objects attached to the tree at this node
 
      public
-       CktObject  :Pointer;    // Pointer to the circuit object referenced
+       CktObject        :Pointer;    // Pointer to the circuit object referenced
        FromBusReference :Integer;
        VoltBaseIndex    :Integer;
        FromTerminal     :Integer;
        IsLoopedHere, IsParallel, IsDangling:Boolean;
-       LoopLineObj :Pointer;
+       LoopLineObj      :Pointer;
 
        constructor Create(const pParent :TCktTreeNode; const pSelfObj:Pointer);
        destructor Destroy; override;
 
        Procedure ResetToBusList;
-       Property AddChildBranch  :TCktTreeNode Write Set_AddChild;
-       Property AddShuntObject :Pointer      Write Set_AddObject;
-       Property FirstChildBranch:TCktTreeNode Read Get_FirstChild;
-       Property NextChildBranch :TCktTreeNode Read Get_NextChild;
-       Property FirstShuntObject:Pointer Read Get_FirstObject;
-       Property NextShuntObject:Pointer Read Get_NextObject;
+       Property AddChildBranch   :TCktTreeNode Write Set_AddChild;
+       Property AddShuntObject   :Pointer      Write Set_AddObject;
+       Property FirstChildBranch :TCktTreeNode Read Get_FirstChild;
+       Property NextChildBranch  :TCktTreeNode Read Get_NextChild;
+       Property FirstShuntObject :Pointer      Read Get_FirstObject;
+       Property NextShuntObject  :Pointer      Read Get_NextObject;
 
-       Property ParentBranch    :TCktTreeNode Read Get_Parent;
-       Property NumChildBranches:Integer Read Get_NumChildren;  // Number of children at present node
-       Property NumShuntObjects:Integer Read Get_NumObjects; // Number of objects at present node
-
-
-       Property ToBusReference:Integer Read Get_ToBusReference Write Set_ToBusReference;
+       Property ParentBranch     :TCktTreeNode Read Get_Parent;
+       Property NumChildBranches :Integer      Read Get_NumChildren;  // Number of children at present node
+       Property NumShuntObjects  :Integer      Read Get_NumObjects; // Number of objects at present node
+       Property ToBusReference   :Integer      Read Get_ToBusReference Write Set_ToBusReference;
 
      published
 
@@ -115,8 +113,8 @@ Type
      protected
 
      public
-       PresentBranch:TCktTreeNode;
-       ZoneEndsList:TZoneEndsList;
+       PresentBranch :TCktTreeNode;
+       ZoneEndsList  :TZoneEndsList;
 
        constructor Create;
        destructor Destroy; override;
@@ -125,17 +123,17 @@ Type
                               // can also use active
        Procedure AddNewChild(Value:Pointer; BusRef, TerminalNo:Integer);
 
-       Property New       :Pointer Write Set_New; // Adds Child and makes it present
+       Property New         :Pointer Write Set_New; // Adds Child and makes it present
        //Property NewChild  :Pointer Write Set_NewChild; // Adds child to present, but doesn't change present
-       Property NewObject :Pointer Write Set_NewObject; // Adds a pointer to an object to be associated with the current node
-       Property First     :Pointer Read Get_First;  // Returns pointer to first cktobject
-       Property Parent    :Pointer Read Get_Parent;
-       Property FirstObject:Pointer Read Get_FirstObject;
-       Property NextObject:Pointer Read Get_NextObject;
-       Property GoForward :Pointer Read Get_Forward;
-       Property GoBackward:Pointer Read Get_Backward;
-       Property Active    :pointer Read Get_Active Write Set_Active;
-       Property Level     :Integer Read Get_Level;  {Get lexical level of present node}
+       Property NewObject   :Pointer Write Set_NewObject; // Adds a pointer to an object to be associated with the current node
+       Property First       :Pointer Read Get_First;  // Returns pointer to first cktobject
+       Property Parent      :Pointer Read Get_Parent;
+       Property FirstObject :Pointer Read Get_FirstObject;
+       Property NextObject  :Pointer Read Get_NextObject;
+       Property GoForward   :Pointer Read Get_Forward;
+       Property GoBackward  :Pointer Read Get_Backward;
+       Property Active      :Pointer Read Get_Active Write Set_Active;
+       Property Level       :Integer Read Get_Level;  {Get lexical level of present node}
 
      published
 

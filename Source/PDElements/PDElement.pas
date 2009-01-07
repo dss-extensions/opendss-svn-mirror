@@ -33,9 +33,10 @@ TYPE
        HrsToRepair   :Double;
        FromTerminal,
        ToTerminal   :Integer;  // Set by Meter zone for radial feeder
-       IsShunt :Boolean;
+       IsShunt      :Boolean;
 
        NumCustomers  :Integer;
+       TotalCustomers :Integer;
 
        SensorObj   :TMeterElement; // Upline Sensor for this element  for allocation and estimation
 
@@ -67,8 +68,9 @@ Begin
     IsShunt := False;
     FromTerminal := 1;
     NumCustomers := 0;
-    SensorObj    := NIL;
-    DSSObjType   := PD_ELEMENT;
+    TotalCustomers := 0;
+    SensorObj      := NIL;
+    DSSObjType     := PD_ELEMENT;
 End;
 
 destructor TPDElement.Destroy;

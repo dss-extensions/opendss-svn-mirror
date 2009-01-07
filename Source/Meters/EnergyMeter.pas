@@ -266,6 +266,7 @@ Type
 
        Procedure MakeFeederObj;
        Procedure RemoveFeederObj;
+       Procedure TotalupDownstreamCustomers;
 
       Protected
 
@@ -1321,6 +1322,52 @@ Begin
     IF EnergyMeterClass.SaveDemandInterval Then WriteDemandIntervalData;
 End;
 
+{---------------------------------------------------------------------------------}
+
+procedure TEnergyMeterObj.TotalUpDownstreamCustomers;
+Var
+  i, Accumulator :integer;
+  PresentNode: TCktTreeNode;
+  CktElem:TPDElement;
+
+begin
+
+    If Not Assigned(BranchList) Then
+    Begin
+        DoSimpleMsg('Meter Zone Lists need to be built. Do Solve or Makebuslist first!', 529);
+        Exit;
+    End;
+
+    {Init totsls and checked flag}
+    CktElem := BranchList.First;
+    While CktElem <> Nil do  Begin
+        CktElem.Checked := False;
+        CktElem.TotalCustomers := 0;
+        CktElem := BranchList.GoForward;
+    End;
+
+  {This algorithm could be made more efficient with a Sequence list}
+
+     For i := 1 to Branchlist.ZoneEndsList.NumEnds Do
+     Begin
+       {Busref := } Branchlist.ZoneEndsList.Get(i, PresentNode);
+       While PresentNode <> Nil Do
+       Begin
+          CktElem     := PresentNode.CktObject;
+          Accumulator := CktElem.NumCustomers;
+          Repeat  {Go back to the source}
+              //CktElem.Checked := True;
+              Inc(CktElem.TotalCustomers, Accumulator);
+              PresentNode := PresentNode.ParentBranch;
+              If PresentNode=Nil Then Break;
+              CktElem     := PresentNode.CktObject;
+              inc(Accumulator, CktElem.NumCustomers);
+          Until FALSE;
+       End;
+     End; {For}
+
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TEnergyMeter.SetHasMeterFlag;
 // Set the HasMeter Flag for all cktElement;
@@ -1449,8 +1496,8 @@ Begin
                  OR ((pC.DSSObjType and CLASSMASK) = REACTOR_ELEMENT)
                    Then  Begin
                       BranchList.NewObject := pC;
-                      pC.Checked := True;  // So we don't pick this element up again
-                      pC.IsIsolated := FALSE;
+                      pC.Checked           := TRUE;  // So we don't pick this element up again
+                      pC.IsIsolated        := FALSE;
                       pC.ActiveTerminalIdx := 1;
                       {Totalize Number of Customers if Load Type}
                       If (pC is TLoadObj) then Begin
@@ -1534,6 +1581,8 @@ Begin
           End;   {FOR iTerm}
           TestBranch := BranchList.GoForward;   // Sets PresentNode
        End;
+
+       TotalupDownstreamCustomers;
 
        If HasFeeder Then FeederObj.InitializeFeeder(BranchList);   // Synchronize the feeder definition
 
@@ -1920,21 +1969,21 @@ begin
        While PresentNode <> Nil Do
        Begin
           {Back up until we find another Coord defined}
-          LineCount := 0;
+          LineCount := 0;   {number of line segments in this segment}
           StartNode := PresentNode;
-          CktElem := PresentNode.CktObject;
+          CktElem   := PresentNode.CktObject;
           If FirstCoordRef <> PresentNode.FromBusReference then
-          Begin   {Handle special case for end branch}
-              If  Buses^[PresentNode.FromBusReference].CoordDefined Then
-                  FirstCoordRef := PresentNode.FromBusReference
-              Else Inc(LineCount);
-          End;
+            Begin   {Handle special case for end branch}
+                If  Buses^[PresentNode.FromBusReference].CoordDefined Then
+                    FirstCoordRef := PresentNode.FromBusReference
+                Else Inc(LineCount);
+            End;
 
           Repeat
               CktElem.Checked := True;
               PresentNode := PresentNode.ParentBranch;
               If PresentNode=Nil Then Break;
-              CktElem := PresentNode.CktObject;
+              CktElem     := PresentNode.CktObject;
               SecondCoordRef := PresentNode.FromBusReference;
               Inc(LineCount);
           Until Buses^[SecondCoordRef].CoordDefined or CktElem.Checked;
@@ -2613,7 +2662,7 @@ end;
 
 procedure TSystemMeter.WriteRegisterNames(var F: TextFile);
 begin
-  Write(F, 'kWh, kvarh, "Peak kW", "peak kVA", "Losses kWh", "Losses kvarh", "Peak Losses kW"');
+   Write(F, 'kWh, kvarh, "Peak kW", "peak kVA", "Losses kWh", "Losses kvarh", "Peak Losses kW"');
 end;
 
 procedure TSystemMeter.WriteRegisters(var F: TextFile);
