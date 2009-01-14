@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 12/8/2008 6:21:43 PM from Type Library described below.
+// File generated on 1/14/2009 1:51:36 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -1080,6 +1080,8 @@ type
     procedure Set_Rho(Value: Double); safecall;
     function Get_Yprim: OleVariant; safecall;
     procedure Set_Yprim(Value: OleVariant); safecall;
+    function Get_NumCust: Integer; safecall;
+    function Get_TotalCust: Integer; safecall;
     property Name: WideString read Get_Name write Set_Name;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
@@ -1105,6 +1107,8 @@ type
     property Xg: Double read Get_Xg write Set_Xg;
     property Rho: Double read Get_Rho write Set_Rho;
     property Yprim: OleVariant read Get_Yprim write Set_Yprim;
+    property NumCust: Integer read Get_NumCust;
+    property TotalCust: Integer read Get_TotalCust;
   end;
 
 // *********************************************************************//
@@ -1140,6 +1144,8 @@ type
     property Xg: Double dispid 3;
     property Rho: Double dispid 4;
     property Yprim: OleVariant dispid 5;
+    property NumCust: Integer readonly dispid 201;
+    property TotalCust: Integer readonly dispid 202;
   end;
 
 // *********************************************************************//

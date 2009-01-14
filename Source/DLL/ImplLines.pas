@@ -62,6 +62,8 @@ type
     procedure Set_Xg(Value: Double); safecall;
     function Get_Yprim: OleVariant; safecall;
     procedure Set_Yprim(Value: OleVariant); safecall;
+    function Get_NumCust: Integer; safecall;
+    function Get_TotalCust: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -788,6 +790,26 @@ begin
      IF ActiveCircuit <> NIL Then  Begin
        {Do Nothing for now}
      End;
+end;
+
+function TLines.Get_NumCust: Integer;
+begin
+  Result := 0;
+  IF ActiveCircuit <> NIL
+  THEN If IsLine(ActiveCircuit.ActiveCktElement)
+  THEN Begin
+       Result := TLineObj(ActiveCircuit.ActiveCktElement).NumCustomers ;
+  End
+end;
+
+function TLines.Get_TotalCust: Integer;
+begin
+  Result := 0;
+  IF ActiveCircuit <> NIL
+  THEN If IsLine(ActiveCircuit.ActiveCktElement)
+  THEN Begin
+       Result := TLineObj(ActiveCircuit.ActiveCktElement).TotalCustomers  ;
+  End
 end;
 
 initialization
