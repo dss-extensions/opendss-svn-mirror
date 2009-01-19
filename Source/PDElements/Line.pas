@@ -43,7 +43,6 @@ TYPE
    TLineObj = class(TPDElement)
       Private
         FZFrequency        :Double; // keep track of last frequency computed for geometry
-        FLengthUnits       :Integer;
         FLineCodeUnits     :Integer;
         FUnitsConvert      :Double; // conversion factor
         FLineGeometryObj   :TLineGeometryObj;
@@ -71,6 +70,7 @@ TYPE
         C1    :Double;
         C0    :Double;
         Len   :Double;
+        LengthUnits         :Integer;
         Rg, Xg, KXg, rho    :Double;
         GeneralPlotQuantity :Double;  // For general circuit plotting
         CondCode            :String;
@@ -286,7 +286,7 @@ Begin
        FLineCodeUnits :=  LineCodeObj.Units;
        FLineCodeSpecified := TRUE;
 
-       FUnitsConvert := ConvertLineUnits(FLineCodeUnits, FLengthUnits);
+       FUnitsConvert := ConvertLineUnits(FLineCodeUnits, LengthUnits);
 
        NormAmps  := LineCodeObj.NormAmps;
        EmergAmps := LineCodeObj.EmergAmps;
@@ -477,8 +477,8 @@ Begin
            20: Begin // Update units conversion factor that might have been changed previously
                      NewLengthUnits := GetUnitsCode(Param);
                      If FLineCodeSpecified Then FUnitsConvert := ConvertLineUnits(FLineCodeUnits, NewLengthUnits)
-                                           Else FUnitsConvert := FUnitsConvert * ConvertLineUnits(FlengthUnits, NewLengthUnits);
-                     FLengthUnits := NewLengthUnits;
+                                           Else FUnitsConvert := FUnitsConvert * ConvertLineUnits(LengthUnits, NewLengthUnits);
+                     LengthUnits := NewLengthUnits;
                END;
          ELSE
             // Inherited Property Edits
@@ -640,10 +640,10 @@ Begin
      SymComponentsModel := True;
 
      GeometrySpecified := False;
-     GeometryCode := '';
-     FLengthUnits := UNITS_NONE; // Assume everything matches
-     FUnitsConvert := 1.0;
-     FLineCodeUnits := UNITS_NONE;
+     GeometryCode      := '';
+     LengthUnits       := UNITS_NONE; // Assume everything matches
+     FUnitsConvert     := 1.0;
+     FLineCodeUnits    := UNITS_NONE;
      FLineCodeSpecified := FALSE;
 
      FZFrequency := -1.0; // indicate Z not computed.
@@ -1133,13 +1133,13 @@ begin
    Begin
       IF Fnphases <> OtherLine.Fnphases THEN  Exit;  // Can't merge
 
-      LenUnitsSaved := FLengthUnits;
+      LenUnitsSaved := LengthUnits;
 
       YPrimInvalid := True;
 
       // Redefine property values to make it appear that line was defined this way originally using matrices
 
-      IF Series then TotalLen := Len + Otherline.Len * ConvertLineUnits(OtherLine.FLengthUnits, FLengthUnits) Else TotalLen := 1.0;
+      IF Series then TotalLen := Len + Otherline.Len * ConvertLineUnits(OtherLine.LengthUnits, LengthUnits) Else TotalLen := 1.0;
 
       If Series Then
       Begin
@@ -1356,8 +1356,8 @@ Begin
         IF assigned(Zinv) THEN Begin Zinv.Free; Zinv := nil; End;
         IF assigned(Yc)   THEN Begin Yc.Free;   Yc   := nil; End;
 
-        Z    := FLineGeometryObj.Zmatrix[ f, len, FLengthUnits];
-        Yc   := FLineGeometryObj.YCmatrix[f, len, FLengthUnits];
+        Z    := FLineGeometryObj.Zmatrix[ f, len, LengthUnits];
+        Yc   := FLineGeometryObj.YCmatrix[f, len, LengthUnits];
         {Init Zinv}
         if Assigned(Z) then  Begin
             Zinv := TCMatrix.CreateMatrix(Z.order);  // Either no. phases or no. conductors
@@ -1403,7 +1403,7 @@ procedure TLineObj.ResetLengthUnits;
 {If specify the impedances always assume the length units match}
 begin
       FUnitsConvert := 1.0;
-      FLengthUnits  := UNITS_NONE;
+      LengthUnits   := UNITS_NONE;
 end;
 
 initialization

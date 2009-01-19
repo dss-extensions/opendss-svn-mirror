@@ -27,6 +27,7 @@ TYPE
         GetActiveElementCurrents: Procedure(Var NumCurrents:Integer; Curr:pComplexArray); StdCall;
         GetActiveElementLosses:   Procedure(Var TotalLosses, LoadLosses, NoLoadLosses:Complex); StdCall;
         GetActiveElementPower:    Procedure(Terminal:Integer; Var TotalPower:Complex); StdCall;
+        GetActiveElementNumCust:  Procedure(Var NumCust, TotalCust:Integer); StdCall;
         GetActiveElementNodeRef:  Procedure(Maxsize:Integer; NodeReferenceArray:pIntegerArray);  StdCall;// calling program must allocate
         GetActiveElementBusRef:   Function(Terminal:Integer):Integer;  StdCall;
         GetActiveElementTerminalInfo: Procedure(Var NumTerminals, NumConds, NumPhases:Integer); StdCall;
@@ -35,5 +36,6 @@ TYPE
         IsActiveElementEnabled: Function():Boolean; StdCall;
         IsBusCoordinateDefined: Function(BusRef:Integer):Boolean; StdCall;
         GetBusCoordinate:       Procedure(BusRef:Integer; Var X, Y:Double); StdCall;
-        GetBuskVBase:           Procedure(BusRef:Integer; Var kVBase:Double); StdCall;
+        GetBuskVBase:           Function(BusRef:Integer) :Double; StdCall;
+        GetBusDistFromMeter:    Function(BusRef:Integer) :Double; StdCall;
    End;

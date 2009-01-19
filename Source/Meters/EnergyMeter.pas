@@ -318,7 +318,7 @@ VAR
 
 implementation
 USES  ParserDel, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
-      Utilities, PCElement,  StackDef, Circuit, Line,
+      Utilities, PCElement,  StackDef, Circuit, Line, LineUnits,
       Classes, FileCtrl, ReduceAlgs, Windows;
 
 
@@ -1475,8 +1475,8 @@ Begin
 
            TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
            BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
-           If isLineElement(TestBranch)
-             then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(TestBranch).Len
+           If isLineElement(TestBranch)   // Convert to consistent units (km)
+             then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(TestBranch).Len * ConvertLineUnits(TLineObj(TestBranch).LengthUnits, UNITS_KM)
              else Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter;
 
            TPDElement(TestBranch).NumCustomers := 0;

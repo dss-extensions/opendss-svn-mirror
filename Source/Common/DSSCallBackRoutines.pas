@@ -20,7 +20,7 @@ PROCEDURE DoSimpleMsgCallback(S:pchar; maxlen:Cardinal); StdCall; // Call back f
 
 implementation
 
-Uses  ParserDel, DSSGlobals, Executive, SysUtils, CktElement, Math;
+Uses  ParserDel, DSSGlobals, Executive, SysUtils, CktElement, Math, PDElement;
 
 Var
    CallBackParser  :TParser;
@@ -184,6 +184,23 @@ End;
 
 {====================================================================================================================}
 
+Procedure    GetActiveElementNumCustCallBack (Var Numcust, TotalCust:Integer); StdCall;
+
+Var pDElem : TPDElement;
+
+Begin
+     NumCust := 0;
+     TotalCust := 0;
+     If Assigned(ActiveCircuit.ActiveCktElement) then
+     If ActiveCircuit.ActiveCktElement is TPDElement then Begin
+        pDElem    := ActiveCircuit.ActiveCktElement as TPDElement;
+        NumCust   := pDElem.NumCustomers;
+        TotalCust := pDElem.TotalCustomers;
+     End;
+End;
+
+{====================================================================================================================}
+
 Procedure        GetActiveElementNodeRefCallBack  (Maxsize:Integer; NodeReferenceArray:pIntegerArray);  StdCall;// calling program must allocate
 Var
     i :Integer;
@@ -273,14 +290,22 @@ Begin
 End;
 
 {====================================================================================================================}
-Procedure       GetBuskVBaseCallback           (BusRef:Integer; Var kVBase:Double); StdCall;
+Function       GetBuskVBaseCallback           (BusRef:Integer):Double; StdCall;
 Begin
+       Result := 0.0;
        If Assigned(ActiveCircuit) Then Begin
-          kVBase := ActiveCircuit.Buses^[BusRef].kVBase;
+          Result := ActiveCircuit.Buses^[BusRef].kVBase;
        End;
 End;
 
-
+{====================================================================================================================}
+Function       GetBusDistFromMeterCallback      (BusRef:Integer):Double; StdCall;
+Begin
+       Result := 0.0;
+       If Assigned(ActiveCircuit) Then Begin
+          Result := ActiveCircuit.Buses^[BusRef].DistFromMeter;
+       End;
+End;
 
 {====================================================================================================================}
 
@@ -301,6 +326,7 @@ Initialization
       GetActiveElementCurrents := GetActiveElementCurrentsCallBack;
       GetActiveElementLosses   := GetActiveElementLossesCallBack;
       GetActiveElementPower    := GetActiveElementPowerCallBack;
+      GetActiveElementNumCust  := GetActiveElementNumCustCallBack;
       GetActiveElementNodeRef  := GetActiveElementNodeRefCallBack;
       GetActiveElementBusRef   := GetActiveElementBusRefCallBack;
       GetActiveElementTerminalInfo := GetActiveElementTerminalInfoCallBack;
@@ -310,7 +336,7 @@ Initialization
       IsBusCoordinateDefined   := IsBusCoordinateDefinedCallBack;
       GetBusCoordinate         := GetBusCoordinateCallBack;
       GetBuskVBase             := GetBuskVBaseCallBack;
-
+      GetBusDistFromMeter      := GetBusDistFromMeterCallback;
   End;
 
   CallBackParser  := TParser.Create;
