@@ -23,11 +23,12 @@ TYPE
       procedure Set_Variable(i: Integer;  Value: Double);  virtual;
 
      public
-       
+
        
        Spectrum:String;
        SpectrumObj:TSpectrumObj;
 
+       MeterObj,  {Upline Energymeter}
        SensorObj  :TMeterElement; // Upline Sensor for this element
 
        InjCurrent:pComplexArray;
@@ -76,6 +77,7 @@ Begin
     Spectrum := 'default';
     SpectrumObj := NIL;  // have to allocate later because not guaranteed there will be one now.
     SensorObj   := NIL;
+    MeterObj    := NIL;
     InjCurrent  := NIL;
     FIterminalUpdated := FALSE;
     

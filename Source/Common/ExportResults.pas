@@ -29,6 +29,7 @@ Procedure ExportOverloads(FileNm:String);
 Procedure ExportUnserved(FileNm:String; UE_Only:Boolean);
 Procedure ExportYprim(FileNm:String);
 Procedure ExportY(FileNm:String);
+Procedure ExportSeqZ(FileNm:String);
 
 IMPLEMENTATION
 
@@ -831,9 +832,9 @@ Begin
 
                    { Solve for Injection Currents}
                    YFault.Invert;
-                   YFault.MvMult(VFault,BusCurrent);  {Gets voltage appearing at fault}
+                   YFault.MvMult(VFault, BusCurrent);  {Gets voltage appearing at fault}
 
-                   Currmag := Cabs(Cmul(VFault^[iphs],GFault));
+                   Currmag := Cabs(Cmul(VFault^[iphs], GFault));
                    If CurrMag > MaxCurr THEN MaxCurr := Currmag;
 
              End; {For iphase}
@@ -1665,6 +1666,53 @@ Begin
 
   End;
 
+
+End;
+
+Procedure ExportSeqZ(FileNm:String);
+
+// Export Symmetrical Component Impedances at each bus
+
+Var
+   F :TextFile;
+   i:Integer;
+   Z1, Z0 :Complex;
+   X1R1, X0R0 : Double;
+
+
+Begin
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     Writeln(F,'Bus,  NumNodes, R1, X1, R0, X0, Z1, Z0, "X1/R1", "X0/R0"');
+     WITH ActiveCircuit DO
+     BEGIN
+       FOR i := 1 to NumBuses DO
+       BEGIN
+
+         Z1 := Buses^[i].Zsc1;
+         Z0 := Buses^[i].Zsc0;
+         If Z1.re<>0.0 then  X1R1 := Z1.im/Z1.re Else X1R1 := 1000.0;
+         If Z0.re<>0.0 then  X0R0 := Z0.im/Z0.re Else X0R0 := 1000.0;
+
+         Writeln(F,
+         Format('"%s", %d, %10.6g, %10.6g, %10.6g, %10.6g, %10.6g, %10.6g, %8.4g, %8.4g',
+                [BusList.Get(i), Buses^[i].NumNodesThisBus,
+                 Z1.re, Z1.im, Z0.Re, Z0.im, Cabs(Z1), Cabs(Z0), X1R1, X0R0 ]
+         ));
+
+       END;
+     END;
+
+
+     GlobalResult := FileNm;
+
+  FINALLY
+
+     CloseFile(F);
+  End;
 
 End;
 

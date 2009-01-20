@@ -101,6 +101,7 @@ Uses Command;
          FUNCTION DoCloseDICmd:Integer;
          FUNCTION DoADOScmd:Integer;
          FUNCTION DoEstimateCmd:Integer;
+         FUNCTION DoReconductorCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -133,7 +134,8 @@ USES ArrayDef, ParserDel, SysUtils, DSSGlobals,
      Classes,  CktElementClass, Sensor, FileCtrl;
 
 Var
-   SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands:TCommandList;
+   SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands, ExportCommands,
+   ReconductorCommands :TCommandList;
 
 //----------------------------------------------------------------------------
 PROCEDURE GetObjClassAndName(VAR ObjClass,ObjName:String);
@@ -758,41 +760,41 @@ VAR
    Parm1,
    Parm2,
    FileName :String;
-   TestChar :Char;
 
    MVAopt :Integer;
    UEonlyOpt:Boolean;
    pMon      :TMonitorObj;
+   ParamPointer :Integer;
 
 Begin
 
    ParamName := Parser.NextParam;
    Parm1 := LowerCase(Parser.StrValue);
-   IF Length(Parm1)=0 THEN Testchar := 'v' ELSE TestChar := Parm1[1];
+   ParamPointer := ExportCommands.Getcommand (Parm1);
 
    MVAOpt := 0;
    UEonlyOpt := FALSE;
 
-   CASE TestChar OF
-     'p': Begin { Trap export powers command and look for MVA/kVA option }
+   CASE ParamPointer OF
+      9: Begin { Trap export powers command and look for MVA/kVA option }
             ParamName := parser.nextParam;
             Parm2 := LowerCase(Parser.strvalue);
             MVAOpt := 0;
             IF Length(Parm2) > 0 THEN IF Parm2[1]='m' THEN MVAOpt := 1;
           End;
 
-     'm': IF Parm1[2] <> 'e'
-          THEN Begin {Get monitor name for export monitors command}
-             ParamName := Parser.NextParam;
-             Parm2 := Parser.StrValue;
-          End;
-
-     'u': Begin { Trap UE only flag  }
+      8: Begin { Trap UE only flag  }
             ParamName := parser.nextParam;
             Parm2 := LowerCase(Parser.strvalue);
             UEonlyOpt := FALSE;
             IF Length(Parm2) > 0 THEN IF Parm2[1]='u' THEN UEonlyOpt := TRUE;
           End;
+
+      15: Begin {Get monitor name for export monitors command}
+             ParamName := Parser.NextParam;
+             Parm2 := Parser.StrValue;
+          End;
+
    End;
 
    {Pick up last parameter on line, alternate file name, if any}
@@ -803,58 +805,58 @@ Begin
 
    {Assign default file name if alternate not specified}
    IF Length(FileName) = 0 then Begin
-       CASE TestChar OF
-         'c': If Parm1[2]='a' Then FileName := 'EXP_CAPACITY.CSV' Else FileName := 'EXP_CURRENTS.CSV';
-         'e': FileName := 'EXP_ESTIMATION.CSV';   // Estimation error
-         'f': FileName := 'EXP_FAULTS.CSV';
-         'p': FileName := 'EXP_POWERS.CSV';
-         'g': FileName := 'EXP_GENMETERS.CSV';
-         'l': FileName := 'EXP_LOADS.CSV';
-         'o': FileName := 'EXP_OVERLOADS.CSV';
-         'u': FileName := 'EXP_UNSERVED.CSV';
-         'm': If Parm1[2]='e' THEN FileName := 'EXP_METERS.CSV';
-         's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0      THEN FileName := 'EXP_SEQCURRENTS.CSV'
-              ELSE If Comparetext(Copy(Parm1,1,4), 'seqp')=0 THEN FileName := 'EXP_SEQPOWERS.CSV'
-              ELSE FileName := 'EXP_SEQVOLTAGES.CSV';
-         'y': If Parm1[2]='p' Then Filename := 'EXP_YPRIM.CSV'
-                              Else Filename := 'EXP_Y.CSV';
+       CASE ParamPointer OF
+          1: FileName := 'EXP_VOLTAGES.CSV';
+          2: FileName := 'EXP_SEQVOLTAGES.CSV';
+          3: FileName := 'EXP_CURRENTS.CSV';
+          4: FileName := 'EXP_SEQCURRENTS.CSV';
+          5: FileName := 'EXP_ESTIMATION.CSV';   // Estimation error
+          6: FileName := 'EXP_CAPACITY.CSV';
+          7: FileName := 'EXP_OVERLOADS.CSV';
+          8: FileName := 'EXP_UNSERVED.CSV';
+          9: FileName := 'EXP_POWERS.CSV';
+         10: FileName := 'EXP_SEQPOWERS.CSV';
+         11: FileName := 'EXP_FAULTS.CSV';
+         12: FileName := 'EXP_GENMETERS.CSV';
+         13: FileName := 'EXP_LOADS.CSV';
+         14: FileName := 'EXP_METERS.CSV';
+         {15: Filename is assigned}
+         16: Filename := 'EXP_YPRIM.CSV';
+         17: Filename := 'EXP_Y.CSV';
+         18: Filename := 'EXP_SEQZ.CSV';
        ELSE
-          FileName := 'EXP_VOLTAGES.CSV';
+             FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
        FileName := DSSDataDirectory + CircuitName_ + FileName;  // Explicitly define directory
    End;
 
-
-   CASE TestChar OF
-     'c': If Parm1[2] = 'a' Then ExportCapacity(FileName) Else ExportCurrents(FileName);
-     'e': ExportEstimation(FileName);
-     'f': ExportFaultStudy(FileName);
-     'p': ExportPowers(FileName, MVAOpt);
-     'g': ExportGenMeters(FileName);
-     'l': ExportLoads(FileName);
-     'o': ExportOverLoads(FileName);
-     'u': ExportUnserved(FileName, UEOnlyOpt);
-     'm': CASE Parm1[2] of
-          'e': ExportMeters(FileName);
-          ELSE Begin     // Export Monitor
-             IF   Length(Parm2) > 0
-             THEN Begin
-               pMon:=MonitorClass.Find(Parm2);
-               IF   pMon <> NIL  THEN pMon.TranslateToCSV(FALSE)
-                                 ELSE DoSimpleMsg('Monitor "'+Parm2+'" not found.'+ CRLF + parser.CmdString, 250);
-             End
-             ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 251);
-           End; {Else}
-          END;  {CASE}
-
-     's': If Comparetext(Copy(Parm1,1,4), 'seqc')=0      THEN ExportSeqCurrents(FileName)
-          ELSE If Comparetext(Copy(Parm1,1,4), 'seqp')=0 THEN ExportSeqPowers(FileName, MVAopt)
-          ELSE ExportSeqVoltages(FileName);
-     'y': If Parm1[2]='p' Then ExportYprim(Filename)
-                          Else ExportY(Filename);
+   CASE ParamPointer OF
+      1: ExportVoltages(FileName);
+      2: ExportSeqVoltages(FileName);
+      3: ExportCurrents(FileName);
+      4: ExportSeqCurrents(FileName);
+      5: ExportEstimation(FileName);   // Estimation error
+      6: ExportCapacity(FileName);
+      7: ExportOverLoads(FileName);
+      8: ExportUnserved(FileName, UEOnlyOpt);
+      9: ExportPowers(FileName, MVAOpt);
+     10: ExportSeqPowers(FileName, MVAopt);
+     11: ExportFaultStudy(FileName);
+     12: ExportGenMeters(FileName);
+     13: ExportLoads(FileName);
+     14: ExportMeters(FileName);
+     15: IF   Length(Parm2) > 0 THEN Begin
+           pMon:=MonitorClass.Find(Parm2);
+           IF   pMon <> NIL  THEN pMon.TranslateToCSV(FALSE)
+                             ELSE DoSimpleMsg('Monitor "'+Parm2+'" not found.'+ CRLF + parser.CmdString, 250);
+         End
+         ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 251);
+     16: ExportYprim(Filename);
+     17: ExportY(Filename);
+     18: ExportSeqZ(Filename);
    ELSE
-      ExportVoltages(FileName);
-   End;
+         ExportVoltages(FileName);    // default
+   END;
 
    Result := 0;
    InShowResults := False;
@@ -3442,6 +3444,8 @@ End;
 
 FUNCTION DoEstimateCmd:Integer;
 
+
+
 Begin
     Result := 0;
 
@@ -3451,6 +3455,107 @@ Begin
     {Let's look to see how well we did}
      If not AutoShowExport Then DSSExecutive.Command := 'Set showexport=yes';
      DSSExecutive.Command := 'Export Estimation';
+
+End;
+
+
+
+FUNCTION DoReconductorCmd:Integer;
+
+Var
+     Param       :String;
+     ParamName   :String;
+     ParamPointer:Integer;
+     Line1, Line2,
+     Linecode,
+     Geometry,
+     EditString:String;
+     LineCodeSpecified,
+     GeometrySpecified :Boolean;
+     pLine1, pLine2 :TLineObj;
+     LineClass :TLine;
+     TraceDirection :Integer;
+
+
+Begin
+     Result := 0;
+     ParamPointer := 0;
+     LineCodeSpecified := FALSE;
+     GeometrySpecified := FALSE;
+     Line1 := '';
+     Line2 := '';
+     ParamName := Parser.NextParam;
+     Param := Parser.StrValue;
+     while Length(Param) > 0 do Begin
+       IF Length(ParamName) = 0 THEN Inc(ParamPointer)
+       ELSE ParamPointer := ReconductorCommands.GetCommand(ParamName);
+
+       Case ParamPointer of
+          1: Line1 := Param;
+          2: Line2 := Param;
+          3: Begin Linecode := Param; LineCodeSpecified := TRUE; GeometrySpecified := FALSE; End;
+          4: Begin Geometry := Param; LineCodeSpecified := FALSE; GeometrySpecified := TRUE; End;
+       Else
+          DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28701);
+       End;
+
+      ParamName := Parser.NextParam;
+      Param := Parser.StrValue;
+     End;
+
+     {Check for Errors}
+
+     {If user specified full line name, get rid of "line."}
+     Line1 := StripClassName(Line1);
+     Line2 := StripClassName(Line2);
+
+     If (Length(Line1)=0) or (Length(Line2)=0) then Begin
+       DoSimpleMsg('Both Line1 and Line2 must be specified!', 28702);
+       Exit;
+     End;
+
+     If (Not LineCodeSpecified) and (Not GeometrySpecified) then Begin
+       DoSimpleMsg('Either a new LineCode or a Geometry must be specified!', 28703);
+       Exit;
+     End;
+
+     LineClass := DSSClassList.Get(ClassNames.Find('Line'));
+     pLine1 := LineClass.Find(Line1);
+     pLine2 := LineCLass.Find(Line2);
+
+     If (pLine1 = Nil) or (pLine2=NIL) then Begin
+       If pLine1=Nil then doSimpleMsg('Line.'+Line1+' not found.', 28704)
+       Else If pLine2=Nil then doSimpleMsg('Line.'+Line2+' not found.', 28704);
+       Exit;
+     End;
+
+     {Now check to make sure they are in the same meter's zone}
+     If (pLine1.MeterObj=Nil) or (pLine2.MeterObj=Nil)  then Begin
+       DoSimpleMsg('Error: Both Lines must be in the same EnergyMeter zone. One or both are not in any meter zone.', 28705);
+       Exit;
+     End;
+
+     If pLine1.MeterObj<>pline2.MeterObj then Begin
+       DoSimpleMsg('Error: Line1 is in EnergyMeter.'+pLine1.MeterObj.Name+
+                   ' zone while Line2 is in EnergyMeter.'+pLine2.MeterObj.Name+ ' zone. Both must be in the same Zone.', 28706);
+       Exit;
+     End;
+
+     {Since the lines can be given in either order, Have to check to see which direction they are specified and find the path between them}
+     TraceDirection := 0;
+     If IsPathBetween(pLine1, pLine2) then TraceDirection := 1;
+     If IsPathBetween(pLine2, pLine1) then TraceDirection := 2;
+
+     If LineCodeSpecified Then EditString := 'Linecode=' + LineCode
+     Else EditString := 'Geometry=' + Geometry;
+
+     case TraceDirection of
+          1: TraceAndEdit(pLine1, pLine2, Editstring);
+          2: TraceAndEdit(pLine2, pLine1, Editstring);
+     Else
+         DoSimpleMsg('Traceback path not found between Line1 and Line2.', 28707);
+         Exit;
+     end;
 
 End;
 
@@ -3477,7 +3582,15 @@ initialization
                                            'y']);
 
     ShowCommands.Abbrev := True;
+                                             {  1            2              3            4             5 }
+    ExportCommands := TCommandList.Create([ 'Voltages',   'SeqVoltages', 'Currents', 'SeqCurrents', 'Estimation',
+                                            'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
+                                            'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
+                                            'Yprims',     'Y',           'seqz']);
+    ExportCommands.Abbrev := True;
 
+    ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
+    ReconductorCommands.Abbrev := True;
 finalization
 
     DistributeCommands.Free;

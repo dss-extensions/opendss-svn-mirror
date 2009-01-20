@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 76;
+     NumExecCommands = 77;
 
 Var
 
@@ -111,6 +111,7 @@ Begin
      ExecCommand[74] := 'CloseDI';
      ExecCommand[75] := 'DOScmd';
      ExecCommand[76] := 'Estimate';
+     ExecCommand[77] := 'Reconductor';
 
 
 
@@ -311,9 +312,10 @@ Begin
                          'Export Loads [Filename]       (EXP_LOADS.CSV)' + CRLF +
                          'Export Meters [Filename |/m ] (EXP_METERS.CSV)' + CRLF +
                          'Export Monitors monitorname   (file name is assigned) ' + CRLF +
-                         'Export Yprims  [Filename]     (EXP_Yprims.CSV)   (all YPrim matrices)' + CRLF +
-                         'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +CRLF +
-                         'May be abreviated Export V, Export C, etc.  Default is "V".'+
+                         'Export Yprims  [Filename]     (EXP_YPRIMS.CSV)   (all YPrim matrices)' + CRLF +
+                         'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +
+                         'Export seqZ  [Filename]       (EXP_SEQZ.CSV) (equiv sequence Z1, Z0 to bus)' + CRLF +
+                         CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
                          ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+
                          'Fileedit EXP_METERS.CSV (brings up the meters export file)' + CRLF+CRLF+
@@ -408,7 +410,11 @@ Begin
                         'DOScmd /c ...command string ...'+CRLF+CRLF+
                         'To keep the DOS window open, use /k switch.';
      CommandHelp[76] := 'Execute state estimator on present circuit given present sensor values.';
-                        
+     CommandHelp[77] := 'Reconductor a line section. Must be in an EnergyMeter zone. ' + CRLF +
+                        'Syntax: Reconductor Line1=... Line2=... [LineCode= | Geometry = ] ' +CRLF+
+                        'Line1 and Line2 may be given in any order. All lines in the path between the two are redefined ' +
+                        'with either the LineCode or Geometry.';
+
 End;
 
 //----------------------------------------------------------------------------
@@ -488,7 +494,8 @@ Begin
             Else DoSimpleMsg('Directory "'+Param+'" not found.', 282);
            End;
        75: DoADosCmd;
-       76: DoEstimateCmd;
+
+
 
      ELSE IF ActiveCircuit=nil THEN
           Begin
@@ -594,6 +601,8 @@ Begin
 //      72;
        73: CmdResult := DoVisualizeCmd;
        74: CmdResult := DoCloseDICmd;
+       76: CmdResult := DoEstimateCmd;
+       77: CmdResult := DoReconductorCmd;
      ELSE
        // Ignore excess parameters
      End;

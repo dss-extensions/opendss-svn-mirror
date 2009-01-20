@@ -607,6 +607,8 @@ Procedure TEnergyMeter.ResetMeterZonesAll;  // Force all EnergyMeters in the cir
 VAR
    mtr :TEnergyMeterObj;
    pCktElement  :TDSSCktElement;
+   PDElem       :TPDElement;
+   PCElem       :TPCElement;
    i :Integer;
 
 Begin
@@ -629,6 +631,22 @@ Begin
                  For i := 1 to NTerms Do Terminals^[i].Checked := FALSE;
              End;
              pCktElement := CktElements.Next;
+         End;
+
+         {Clear some things that will be set by the Meter Zone}
+         PDElem := PDElements.First;
+         while PDElem <> Nil do  Begin
+           PDElem.MeterObj := Nil;
+           PDElem.SensorObj := Nil;
+           PDElem.ParentPDElement := Nil;
+           PDElem := PDElements.Next;
+         End;
+
+         PCElem := PCElements.First;
+         while PCElem <> Nil do  Begin
+           PCElem.MeterObj := Nil;
+           PCElem.SensorObj := Nil;
+           PCElem := PCElements.Next;
          End;
 
          {Set up the PCElementList and PDElementList for faster searching
@@ -1404,13 +1422,14 @@ Var
 
    TestBusNum,
    ZoneListCounter :Integer ;
-   j, iTerm,iPC, iPD      :Integer;
-   TestBranch: TDSSCktElement;
-   TestElement:TPDElement;
-   PC         :TPCElement;
-   pLoad      :TLoadObj;
-   IsFeederEnd:Boolean;
-   S    :String;
+   j, iTerm,
+   iPC, iPD      :Integer;
+   ActiveBranch  :TDSSCktElement;
+   TestElement   :TPDElement;
+   PC            :TPCElement;
+   pLoad         :TLoadObj;
+   IsFeederEnd   :Boolean;
+   S             :String;
 
 Begin
 
@@ -1436,6 +1455,9 @@ Begin
        If MeteredElement is TPDElement then TPDElement(MeteredElement).SensorObj := Self
        Else If MeteredElement is TPCElement then TPCElement(MeteredElement).SensorObj := Self;
 
+       If MeteredElement is TPDElement then TPDElement(MeteredElement).MeterObj := Self
+       Else If MeteredElement is TPCElement then TPCElement(MeteredElement).MeterObj := Self;
+
        MeteredElement.Terminals^[MeteredTerminal].Checked := TRUE;
        With BranchList.PresentBranch Do Begin
           // This bus is the head of the feeder; do not mark as radial bus
@@ -1455,8 +1477,8 @@ Begin
     // Now start looking for other branches
     // Finds any branch connected to the TestBranch and adds it to the list
     // Goes until end of circuit, another energy meter, an open terminal, or disabled device.
-       TestBranch := MeteredElement;
-       WHILE TestBranch <> NIL DO
+       ActiveBranch := MeteredElement;
+       WHILE ActiveBranch <> NIL DO
        Begin
          With  BranchList.PresentBranch Do begin
            IsLoopedHere  := FALSE;
@@ -1465,21 +1487,21 @@ Begin
            VoltBaseIndex := AddToVoltBaseList(FromBusReference);
          end;
 
-         FOR iTerm := 1 to TestBranch.Nterms Do  Begin
-          IF NOT TestBranch.Terminals^[iTerm].Checked Then
+         FOR iTerm := 1 to ActiveBranch.Nterms Do  Begin
+          IF NOT ActiveBranch.Terminals^[iTerm].Checked Then
           WITH ActiveCircuit Do
           Begin
 
            // Now find all loads and generators connected to the bus on this end of branch
            // attach them as generic objects to cktTree node.
 
-           TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
+           TestBusNum := ActiveBranch.Terminals^[iTerm].BusRef;
            BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
-           If isLineElement(TestBranch)   // Convert to consistent units (km)
-             then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(TestBranch).Len * ConvertLineUnits(TLineObj(TestBranch).LengthUnits, UNITS_KM)
+           If isLineElement(ActiveBranch)   // Convert to consistent units (km)
+             then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(ActiveBranch).Len * ConvertLineUnits(TLineObj(ActiveBranch).LengthUnits, UNITS_KM)
              else Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter;
 
-           TPDElement(TestBranch).NumCustomers := 0;
+           TPDElement(ActiveBranch).NumCustomers := 0;   // Init counter
 
            iPC :=0;
            While iPC < PCElementList.Count Do
@@ -1502,10 +1524,11 @@ Begin
                       {Totalize Number of Customers if Load Type}
                       If (pC is TLoadObj) then Begin
                         pLoad := pC As TLoadObj;
-                        Inc(TPDElement(TestBranch).NumCustomers, pLoad.NumCustomers);
+                        Inc(TPDElement(ActiveBranch).NumCustomers, pLoad.NumCustomers);
                       End;
                       {If object does not have a sensor attached, it acquires the sensor of its parent branch}
-                      If Not pC.HasSensorObj then pC.SensorObj := TPDElement(TestBranch).SensorObj;
+                      If Not pC.HasSensorObj then pC.SensorObj := TPDElement(ActiveBranch).SensorObj;
+                      pC.MeterObj := Self;
                       PCElementList.Delete(iPC);  // make the search list shorter
                       Dec(iPC);  // Back the pointer up
                    End; {IF}
@@ -1525,7 +1548,7 @@ Begin
 
                    // **** See ResetMeterZonesAll
 
-                   IF Not (TestElement=TestBranch) Then  // Skip self
+                   IF Not (TestElement = ActiveBranch) Then  // Skip self
                    IF Not TestElement.HasEnergyMeter THEN Begin  // Stop at other meters  so zones don't interfere
                       FOR j := 1 to TestElement.Nterms Do Begin     // Check each terminal
                          IF TestBusNum = TestElement.Terminals^[j].BusRef THEN  Begin
@@ -1534,20 +1557,22 @@ Begin
                              IF   (TestElement.Checked) Then Begin      {This branch is on some meter's list already }
                                  BranchList.PresentBranch.IsLoopedHere := TRUE; {It's a loop}
                                  BranchList.PresentBranch.LoopLineObj := TestElement;
-                                 If IsLineElement(TestBranch) and IsLineElement(TestElement) Then
-                                   If CheckParallel(TestBranch, TestElement) Then BranchList.PresentBranch.IsParallel := TRUE; {It's paralleled with another line}
+                                 If IsLineElement(ActiveBranch) and IsLineElement(TestElement) Then
+                                   If CheckParallel(ActiveBranch, TestElement) Then BranchList.PresentBranch.IsParallel := TRUE; {It's paralleled with another line}
                              End  {If}
-                             Else Begin
+                             Else Begin  // push TestElement onto stack and set properties
                                 IsFeederEnd := FALSE;  // for interpolation
-                                BranchList.AddNewChild( TestElement, TestBusNum, j);
-                                With TestElement Do Begin
-                                    Terminals^[j].Checked := TRUE;
-                                    FromTerminal := j;
-                                    Checked      := TRUE;
-                                    IsIsolated   := FALSE;
-                                    {Branch inherits sensor of upline branch if it doesn't have its own}
-                                    If Not TestElement.HasSensorObj  then TestElement.SensorObj :=  TPDElement(TestBranch).SensorObj;
-                                End;
+                                BranchList.AddNewChild( TestElement, TestBusNum, j);  // Add new child to the branchlist
+                                  With TestElement Do Begin
+                                      Terminals^[j].Checked := TRUE;
+                                      FromTerminal := j;
+                                      Checked      := TRUE;
+                                      IsIsolated   := FALSE;
+                                      {Branch inherits sensor of upline branch if it doesn't have its own}
+                                      If Not HasSensorObj  then SensorObj :=  TPDElement(ActiveBranch).SensorObj;
+                                      MeterObj := Self;   // Set meterobj to this meter
+                                      ParentPDElement := TPDElement(ActiveBranch);  // record the parent so we can easily back up for reconductoring, etc.
+                                  End;
                                 Break;
                              End; {Else}
                          END; {IF TestBusNum}
@@ -1579,7 +1604,7 @@ Begin
             END;
             End;  {WITH Active Circuit}
           End;   {FOR iTerm}
-          TestBranch := BranchList.GoForward;   // Sets PresentNode
+          ActiveBranch := BranchList.GoForward;   // Sets PresentNode
        End;
 
        TotalupDownstreamCustomers;

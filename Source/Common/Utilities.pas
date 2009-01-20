@@ -13,7 +13,7 @@ unit Utilities;
 
 interface
 
-Uses ArrayDef, CktElement, UComplex, UcMatrix, DSSClass, Classes, StdCtrls;
+Uses ArrayDef, CktElement, PDElement, UComplex, UcMatrix, DSSClass, Classes, StdCtrls;
 
 
 
@@ -21,6 +21,7 @@ Function CompareTextShortest(Const S1, S2:String):Integer;
 Procedure FireOffEditor(FileNm:String);
 Procedure DoDOSCmd(CmdString:String);
 Function StripExtension(const S:String):String;
+Function StripClassName(const S:String):String;  // Return only element name sans class.
 Function Pad(Const S:String; Width:Integer):String;
 Function PadDots(Const S:String; Width:Integer):String;
 Function PadTrunc(Const S:String; Width:Integer):String;
@@ -117,6 +118,10 @@ Function GetTotalPowerFromSources:Complex;
 Function GetMaxCktElementSize:Integer;
 Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 
+{TraceBack Functions}
+Function IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
+Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
+
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
 
 {Feeder Utilities}
@@ -134,8 +139,8 @@ implementation
 
 Uses Windows, SysUtils, ShellAPI, Dialogs,
 DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
-Capacitor, Reactor, Generator, Load,Line, Fault, Feeder,
-EnergyMeter, ControlElem, math, DSSForms;
+Capacitor, Reactor, Generator, Load, Line, Fault, Feeder,
+EnergyMeter, ControlElem, math, DSSForms, ParserDel;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -200,6 +205,17 @@ BEGIN
     If dotpos=(-1) THEN dotpos := Length(S);
     Result := Copy(S, 1, dotpos);
 END;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Function StripClassName(const S:String):String;
+{Returns everything past the first period}
+
+VAR dotpos:Integer;
+
+BEGIN
+    dotpos := pos('.',S);
+    Result := Copy(S, dotpos+1, Length(S));
+End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure FireOffEditor(FileNm:String);
@@ -2332,6 +2348,35 @@ Procedure ShowMessageBeep(Const s:String);
 Begin
     Beep;
     ShowMessage(s);
+End;
+
+Function IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
+Var
+   PDElem :TPDelement;
+Begin
+   PDElem := FromLine;
+   Result := False;
+   while PDElem <> NIL do Begin
+     If PDElem = ToLine then Begin
+       Result := True;
+       Exit;
+     End;
+     PDElem := PDElem.ParentPDElement;
+   End;
+End;
+
+Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
+{Trace back up a tree and execute an edit command string}
+Var
+   pLine :TPDElement;
+Begin
+   pLine := FromLine;
+   while pLine <> NIL do Begin
+     Parser.CmdString := EditStr;
+     pLine.Edit;   // Uses Parser
+     If pLine = ToLine then Break;
+     pLine := pLine.ParentPDElement;
+   End;
 End;
 
 initialization

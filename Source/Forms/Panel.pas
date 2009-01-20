@@ -216,6 +216,7 @@ type
     LBL_DefaultFreq: TLabel;
     Edit_Result: TEdit;
     Capacity1: TMenuItem;
+    SeqZ1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -361,6 +362,7 @@ type
     procedure Yprims1Click(Sender: TObject);
     procedure Y1Click(Sender: TObject);
     procedure Capacity1Click(Sender: TObject);
+    procedure SeqZ1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -2356,6 +2358,11 @@ end;
 procedure TControlPanel.SeqVoltages1Click(Sender: TObject);
 begin
      ActiveScriptForm.ExecuteDSSCommand('Export seqVoltages');
+end;
+
+procedure TControlPanel.SeqZ1Click(Sender: TObject);
+begin
+    ActiveScriptForm.ExecuteDSSCommand('Export seqz');
 end;
 
 procedure TControlPanel.Currents3Click(Sender: TObject);

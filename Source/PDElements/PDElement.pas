@@ -38,6 +38,9 @@ TYPE
        NumCustomers  :Integer;
        TotalCustomers :Integer;
 
+       ParentPDElement :TPDElement;
+
+       MeterObj,   {Upline energymeter}
        SensorObj   :TMeterElement; // Upline Sensor for this element  for allocation and estimation
 
        Overload_UE,
@@ -70,6 +73,8 @@ Begin
     NumCustomers := 0;
     TotalCustomers := 0;
     SensorObj      := NIL;
+    MeterObj       := NIL;
+    ParentPDElement := NIL;
     DSSObjType     := PD_ELEMENT;
 End;
 
