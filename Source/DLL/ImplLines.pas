@@ -64,6 +64,7 @@ type
     procedure Set_Yprim(Value: OleVariant); safecall;
     function Get_NumCust: Integer; safecall;
     function Get_TotalCust: Integer; safecall;
+    function Get_Parent: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -810,6 +811,33 @@ begin
   THEN Begin
        Result := TLineObj(ActiveCircuit.ActiveCktElement).TotalCustomers  ;
   End
+end;
+
+function TLines.Get_Parent: Integer;
+
+{ Sets the Active Line to the immediately upline Line obj, if any}
+{ Returns line index  or 0 if it fails or no more lines}
+
+Var
+   pLine:TLineObj;
+
+Begin
+
+   Result := 0;
+   If ActiveCircuit <> Nil Then
+     If IsLine(ActiveCircuit.ActiveCktElement) then
+     Begin
+          pLine := TLineObj(ActiveCircuit.ActiveCktElement);
+          If pLine.ParentPDelement <> Nil Then
+          Begin
+              If (pLine.ParentPDelement.Enabled) and (IsLine(pLine.ParentPDelement)) Then
+              Begin
+                ActiveCircuit.ActiveCktElement := pLine.ParentPDElement;
+                Result := ActiveCircuit.Lines.ActiveIndex;
+              End;
+          End;
+     End;
+
 end;
 
 initialization
