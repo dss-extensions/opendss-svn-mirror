@@ -19,6 +19,7 @@ Procedure ExportCurrents(FileNm:String);
 Procedure ExportEstimation(Filenm:String);
 Procedure ExportSeqCurrents(FileNm:String);
 Procedure ExportPowers(FileNm:String; opt :Integer);
+Procedure ExportPbyphase(FileNm:String; opt :Integer);
 Procedure ExportSeqPowers(FileNm:String; opt :Integer);
 Procedure ExportFaultStudy(FileNm:String);
 Procedure ExportMeters(FileNm:String);
@@ -577,6 +578,89 @@ Begin
            Writeln(F);
 
         END;
+       END;
+        PCElem := ActiveCircuit.PCElements.Next;
+     END;
+
+     GlobalResult := FileNm;
+
+  FINALLY
+     CloseFile(F);
+
+  End;
+End;
+
+Procedure ExportPbyphase(FileNm:String; opt :Integer);
+
+{ Export Powers by phase }
+
+{Opt = 0: kVA
+ opt = 1: MVA
+ }
+
+Var
+    F :TextFile;
+    i :Integer;
+    PDElem :TPDElement;
+    PCElem :TPCElement;
+    S:Complex;
+
+Begin
+
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     CASE Opt of
+          1: Writeln(F,'Element, NumTerminals, NumConductors, NumPhases, MW1, Mvar1, MW2, Mvar2, MW3, Mvar3, ... ');
+     ELSE
+          Writeln(F,'Element, NumTerminals, NumConductors, NumPhases, kW1, kvar1, kW2, kvar2, kW3, kvar3, ... ');
+     End;
+
+     // PDELEMENTS first
+     PDElem := ActiveCircuit.PDElements.First;
+
+     WHILE PDElem <> nil DO
+     BEGIN
+       IF (PDElem.Enabled) THEN
+       BEGIN
+        With PDElem Do Begin
+          ComputeITerminal;
+          ComputeVTerminal;
+          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Name,  NTerms, NConds, Nphases ]));
+          FOR i := 1 to Yorder Do Begin
+             S := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
+             If Opt=1 Then S := CmulReal(S, 0.001);   // convert to MVA
+             Write(F, Format(', %10.3f, %10.3f', [S.re, S.im]));
+          END;
+        End;
+        Writeln(F);
+       END;
+        PDElem := ActiveCircuit.PDElements.Next;
+     END;
+
+     // PCELEMENTS Next
+     PCElem := ActiveCircuit.PCElements.First;
+
+     WHILE PCElem <> nil DO
+     BEGIN
+
+       IF (PCElem.Enabled) THEN
+       BEGIN
+        With PCelem Do Begin
+          ComputeITerminal;
+          ComputeVTerminal;
+          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Name,  NTerms, NConds, NPhases ]));
+          FOR i := 1 to Yorder Do
+          Begin
+             S := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
+             If Opt=1 Then S := CmulReal(S, 0.001);   // convert to MVA
+             Write(F, Format(', %10.3f, %10.3f', [S.re, S.im]));
+          END;
+        End;
+        Writeln(F);
+
        END;
         PCElem := ActiveCircuit.PCElements.Next;
      END;

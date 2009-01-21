@@ -306,6 +306,7 @@ Begin
                          'Export Unserved  [UEonly] [Filename]   EXP_UNSERVED.CSV)' + CRLF +
                          'Export SeqCurrents [Filename] (EXP_SEQCURRENTS.CSV)' + CRLF +
                          'Export Powers [MVA] [Filename](EXP_POWERS.CSV)' + CRLF +
+                         'Export P_Byphase [MVA] [Filename](EXP_P_BYPHASE.CSV)' + CRLF +
                          'Export SeqPowers [MVA] [Filename](EXP_SEQPOWERS.CSV)' + CRLF +
                          'Export Faultstudy [Filename]  (EXP_FAULTS.CSV)' + CRLF +
                          'Export Generators [Filename | /m ]  (EXP_GENMETERS.CSV)' + CRLF +

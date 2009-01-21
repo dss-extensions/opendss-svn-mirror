@@ -383,29 +383,27 @@ function TMainEditForm.TrimParens(const S: String): String;
 begin
 {Get rid of leading and trailing Parens}
         Result := S;
-        Case Result[1] of
+        Case S[1] of
           '(': Begin
-                Result := Copy(Result, 2, Length(Result)-1);
+                Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]=')' Then SetLength(Result, Length(Result)-1);
                End;
           '"': Begin
-                Result := Copy(Result, 2, Length(Result)-1);
+                Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]='"' Then SetLength(Result, Length(Result)-1);
                End;
           '''':Begin
-                Result := Copy(Result, 2, Length(Result)-1);
+                Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]='''' Then SetLength(Result, Length(Result)-1);
                End;
           '[': Begin
-                Result := Copy(Result, 2, Length(Result)-1);
+                Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]=']' Then SetLength(Result, Length(Result)-1);
                End;
           '{': Begin
-                Result := Copy(Result, 2, Length(Result)-1);
+                Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]='}' Then SetLength(Result, Length(Result)-1);
                End;
-        Else
-           {Nada}
         End;
 
 end;

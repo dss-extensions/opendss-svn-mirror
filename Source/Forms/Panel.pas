@@ -217,6 +217,8 @@ type
     Edit_Result: TEdit;
     Capacity1: TMenuItem;
     SeqZ1: TMenuItem;
+    PowersByPhase1: TMenuItem;
+    Estimation1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -363,6 +365,8 @@ type
     procedure Y1Click(Sender: TObject);
     procedure Capacity1Click(Sender: TObject);
     procedure SeqZ1Click(Sender: TObject);
+    procedure PowersByPhase1Click(Sender: TObject);
+    procedure Estimation1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1156,6 +1160,8 @@ procedure TControlPanel.EnergyMeters1Click(Sender: TObject);
 begin
 ActiveScriptForm.ExecuteDSSCommand('Reset meters');
 end;
+
+
 
 procedure TControlPanel.Zones1Click(Sender: TObject);
 begin
@@ -2385,9 +2391,19 @@ begin
      ActiveScriptForm.ExecuteDSSCommand('Export powers');
 end;
 
+procedure TControlPanel.PowersByPhase1Click(Sender: TObject);
+begin
+    ActiveScriptForm.ExecuteDSSCommand('Export p_byphase');
+end;
+
 procedure TControlPanel.FaultCurrents1Click(Sender: TObject);
 begin
      ActiveScriptForm.ExecuteDSSCommand('Export fault');
+end;
+
+procedure TControlPanel.Estimation1Click(Sender: TObject);
+begin
+    ActiveScriptForm.ExecuteDSSCommand('Export Estimation');
 end;
 
 procedure TControlPanel.Unserved1Click(Sender: TObject);

@@ -776,7 +776,7 @@ Begin
    UEonlyOpt := FALSE;
 
    CASE ParamPointer OF
-      9: Begin { Trap export powers command and look for MVA/kVA option }
+      9, 19: Begin { Trap export powers command and look for MVA/kVA option }
             ParamName := parser.nextParam;
             Parm2 := LowerCase(Parser.strvalue);
             MVAOpt := 0;
@@ -824,6 +824,7 @@ Begin
          16: Filename := 'EXP_YPRIM.CSV';
          17: Filename := 'EXP_Y.CSV';
          18: Filename := 'EXP_SEQZ.CSV';
+         19: Filename := 'EXP_P_BYPHASE.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -854,6 +855,7 @@ Begin
      16: ExportYprim(Filename);
      17: ExportY(Filename);
      18: ExportSeqZ(Filename);
+     19: ExportPbyphase(Filename, MVAOpt);
    ELSE
          ExportVoltages(FileName);    // default
    END;
@@ -3586,7 +3588,7 @@ initialization
     ExportCommands := TCommandList.Create([ 'Voltages',   'SeqVoltages', 'Currents', 'SeqCurrents', 'Estimation',
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
                                             'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
-                                            'Yprims',     'Y',           'seqz']);
+                                            'Yprims',     'Y',           'seqz',     'P_byphase']);
     ExportCommands.Abbrev := True;
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
