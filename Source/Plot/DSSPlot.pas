@@ -1991,7 +1991,7 @@ procedure TDSSPlot.DoVisualizationPlot(Element:TDSSCktElement; Quantity:Integer)
 VAR
    cBuffer          :pComplexArray;
    Nterm, Ncond     :Integer;
-   kVBase1, kVBase2 :Double;
+   kVBase1          :Array[1..2] of Double;
    i, j, k          :Integer;
    CBufferAllocated :Boolean;
    S1, S2, S, arrowLeft, arrowright :String;
@@ -2009,8 +2009,8 @@ VAR
                             S2 := Format('+ j%-.6g kW', [CBuffer^[k].im]);
                       End;
             vizVoltage: Begin
-                          If k <= Ncond Then S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase1])
-                                        Else S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase2]);
+                          If k <= Ncond Then S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase1[1]])
+                                        Else S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase1[2]]);
                           S2 := Format(' /_ %8.2f', [cdang(CBuffer^[k])]);
                         End
          Else
@@ -2061,8 +2061,7 @@ begin
   Element.ComputeVTerminal;
 
   Xmx := 300.0;   // don't use Xmax -- already used
-  kVBAse1 := 1.0;
-  kVBase2 := 1.0;
+  For i := 1 to 2 Do kVBase1[i] := 1.0;
 
   Case Quantity of
     vizVoltage: Begin ArrowLeft := '^ ';  ArrowRight := ' ^'; End;
@@ -2073,8 +2072,8 @@ begin
   Case Quantity of
     vizVoltage: Begin
                   cBuffer := Element.Vterminal;
-                  kVBase1 := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[1].busRef].kVBase);
-                  kVBase2 := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[2].busRef].kVBase);
+                  For i := 1 to min(2, Nterm) do
+                     kVBase1[i] := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[i].busRef].kVBase);
                 End;
     vizCurrent: cBuffer := Element.Iterminal;
     vizPower:   Begin
