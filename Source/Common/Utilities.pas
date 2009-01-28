@@ -521,19 +521,31 @@ Begin
          TRY
              AssignFile(F, Param);
              Reset(F);
-             FOR i := 1 to MaxValues Do
-               Begin
+             
+             FOR i := 1 to MaxValues Do Begin
+
+                 TRY
                     IF Not EOF(F)
                     THEN Readln(F, ResultArray^[i])
                     ELSE Begin
                       Result := i-1 ;  // This will be different if less found;
                       Break;
                     End;
-               End;
+                 Except
+
+                    On E:Exception Do Begin
+                      DoSimpleMsg(Format('Error reading %d-th numeric array value from file: "%s" Error is:', [i, Param, E.message]), 705);
+                      Result := i-1;
+                      Break;
+                    End;
+                 END;
+
+             End;
+
+         FINALLY
+
              CloseFile(F);
 
-         EXCEPT
-             On E:Exception Do DoSimpleMsg('Error trying to read numeric array values from file: "'+Param +'"  Error is: '+E.message, 705);
          END;
        End
      ELSE

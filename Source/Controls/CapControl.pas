@@ -198,7 +198,8 @@ Begin
                         'Voltage: Line-Neutral (or Line-Line for delta) Volts / PTratio' +CRLF+
                         'kvar:    Total kvar, all phases (3-phase for pos seq model). This is directional. ' + CRLF +
                         'Time:    Hrs from Midnight as a floating point number (decimal). 7:30am would be entered as 7.5.';
-     PropertyHelp[8] := 'Value at which the control arms to switch the capacitor OFF. (See help for ONsetting)';
+     PropertyHelp[8] := 'Value at which the control arms to switch the capacitor OFF. (See help for ONsetting)' +
+                        'For Time control, is OK to have Off time the next day ( < On time)';
      PropertyHelp[9] := 'Time delay, in seconds, from when the control is armed before it sends out the switching ' +
                         'command to turn ON.  The control may reset before the action actually occurs. ' +
                         'This is used to determine which capacity control will act first. Default is 15.  You may specify any '+
@@ -736,28 +737,55 @@ begin
               4: {time}
                  Begin
                     WITH ActiveCircuit.Solution Do t_Value := NormalizeToTOD(intHour, DynaVars.t);
-                    // This assumes OFF_Value > ON_Value
+                    // 1/28/09 Code modified to accommodate OFF_Value < ON_Value
                     CASE PresentState OF
-                          OPEN:   IF (t_Value > ON_Value) and (T_Value < OFF_Value)
-                                  THEN  Begin
-                                        PendingChange := CLOSE;
-                                        ShouldSwitch := TRUE;
-                                  End
-                                  ELSE // Reset
-                                        PendingChange := NONE;
-                          CLOSE:  IF t_Value > OFF_Value
-                                  THEN Begin
-                                         PendingChange := OPEN;
-                                         ShouldSwitch := TRUE;
-                                  End
-                                  ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
-                                      IF (t_Value > ON_Value) and (T_Value < OFF_Value) Then Begin
-                                        PendingChange := CLOSE;  // We can go some more
-                                        ShouldSwitch := TRUE;
-                                      End;
-                                  End
-                                  ELSE // Reset
-                                        PendingChange := NONE;
+                          OPEN:   IF OFF_Value > ON_Value Then Begin
+                                    IF (t_Value >= ON_Value) and (t_Value < OFF_Value)
+                                    THEN  Begin
+                                          PendingChange := CLOSE;
+                                          ShouldSwitch := TRUE;
+                                    End
+                                    ELSE // Reset
+                                          PendingChange := NONE;
+                                  End ELSE Begin    // OFF time is next day
+                                    IF (t_Value >= ON_Value) and (t_Value < 24)
+                                    THEN  Begin
+                                          PendingChange := CLOSE;
+                                          ShouldSwitch := TRUE;
+                                    End
+                                    ELSE // Reset
+                                          PendingChange := NONE;
+                                  End;
+
+                          CLOSE:  IF OFF_Value > ON_Value Then Begin
+                                      IF t_Value >= OFF_Value
+                                      THEN Begin
+                                             PendingChange := OPEN;
+                                             ShouldSwitch := TRUE;
+                                      End
+                                      ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
+                                          IF (t_Value >= ON_Value) and (T_Value < OFF_Value) Then Begin
+                                             PendingChange := CLOSE;  // We can go some more
+                                             ShouldSwitch := TRUE;
+                                          End;
+                                      End
+                                      ELSE // Reset
+                                            PendingChange := NONE;
+                                  End ELSE Begin  // OFF time is next day
+                                      IF (t_Value >= OFF_Value) and (t_Value < ON_Value)
+                                      THEN Begin
+                                             PendingChange := OPEN;
+                                             ShouldSwitch := TRUE;
+                                      End
+                                      ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
+                                          IF (t_Value >= ON_Value) and (T_Value < 24) Then Begin
+                                             PendingChange := CLOSE;  // We can go some more
+                                             ShouldSwitch := TRUE;
+                                          End;
+                                      End
+                                      ELSE // Reset
+                                            PendingChange := NONE;
+                                  End;
                      End;
                  End;
 

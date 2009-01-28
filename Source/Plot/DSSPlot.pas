@@ -227,7 +227,7 @@ begin
                           pBus := ActiveCircuit.Buses^[bus2Idx];
                           If ActiveCircuit.IsSolved and (pBus.kVBase > 0.0) Then Begin
                               {Find min phase voltage at bus - check nodes 1..3 }
-                              Factor := 1.0;
+                              Factor := ActiveCircuit.NormalMaxVolts ;
                               For i := 1 to  pBus.NumNodesThisBus do Begin
                                   j := pBus.GetNum(i);
                                   If (j>0) and (j<=3) then
