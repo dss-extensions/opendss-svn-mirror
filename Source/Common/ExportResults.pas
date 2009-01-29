@@ -1200,7 +1200,7 @@ Begin
         pElem := ActiveCircuit.EnergyMeters.Next;
      End;
 
-     GlobalResult := DSSDataDirectory + FileNm;
+     GlobalResult := FileNm;
 
   FINALLY
 

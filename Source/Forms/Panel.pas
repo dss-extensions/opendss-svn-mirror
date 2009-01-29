@@ -777,7 +777,7 @@ Var
   CmdLineFileFound,
   InCompiled,
   WindowExistsAlready :Boolean;
-  
+
   i,j:Integer;
   TestForm:TMainEditForm;
 
@@ -791,6 +791,7 @@ begin
   ResultForm.Caption := 'Result';
   ResultForm.Height := ResultForm.Height div 4;
   ResultForm.Editor.Clear;
+  ResultForm.Editor.WordWrap := False;
 
   SummaryForm := TMessageForm1.Create(Nil);
   SummaryForm.Caption := 'Summary';
