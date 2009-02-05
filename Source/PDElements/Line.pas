@@ -508,8 +508,8 @@ Begin
           15: If IsSwitch Then Begin
                 SymComponentsChanged := True;  YprimInvalid := True;
                 GeometrySpecified := FALSE;
-                r1 := 0.001; x1 := 0.001; r0 := 0.001; x0 := 0.001;
-                c1 := 0.01*1.0e-9; c0 := 0.01*1.0e-9;  len := 1.0;
+                r1 := 1.0; x1 := 1.0; r0 := 1.0; x0 := 1.0;
+                c1 := 1.1 * 1.0e-9; c0 := 1.0 * 1.0e-9;  len := 0.001;
                 ResetLengthUnits;
               End;
 
@@ -781,7 +781,7 @@ Begin
             For i := 1 to Fnphases Do Zinv.SetElement(i, i, Cmplx(epsilon, 0.0));
           End
          Else
-           { Now, Put in Yprim matrix }
+           { Now, Put in Yprim_Series matrix }
            FOR i := 1 to Fnphases Do Begin
                FOR j := 1 to Fnphases Do Begin
                    Value := Zinv.GetElement(i,j);
@@ -798,10 +798,10 @@ Begin
      YPrim.Copyfrom(Yprim_Series);      // Initialize YPrim for series impedances
 
      // 10/3/2006 moved this to after the copy to Yprim so it doesn't affect normal line model capacitance
-        // 3-30-04  -----
-        // Increase diagonal elements of one side of line so that we will avoid isolated bus problem
-        // add equivalent of 10 kvar capacitive at 345 kV  cmplx(0.0, 8.4e-8)
-     With Yprim_Series Do For i := 1 to Fnphases Do AddElement(i,i, CAP_EPSILON);
+        // 3-30-04  ----- Rev 2-4-09 to include both sides of line
+        // Increase diagonal elements of both sides of line so that we will avoid isolated bus problem
+        // add equivalent of 10 kvar capacitive at 345 kV
+     With Yprim_Series Do For i := 1 to Yorder Do AddElement(i,i, CAP_EPSILON);
 
      // Now Build the Shunt admittances and add into YPrim
      WITH YPrim_Shunt Do  Begin
@@ -1408,6 +1408,6 @@ end;
 
 initialization
 
-   CAP_EPSILON := cmplx(0.0, 8.4e-8);  // 10 kvar of capacitive reactance at 345 kV to avoid open line problem
+   CAP_EPSILON := cmplx(0.0, 4.2e-8);  // 5 kvar of capacitive reactance at 345 kV to avoid open line problem
 
 End.
