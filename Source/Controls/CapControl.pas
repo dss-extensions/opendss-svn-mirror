@@ -59,6 +59,8 @@ TYPE
 
             ON_Value,
             OFF_Value,
+            PFON_Value,
+            PFOFF_Value,
             CTRatio,
             PTRatio,
             ONDelay,
@@ -129,6 +131,12 @@ CONST
     OPEN = 0;
     CLOSE = 1;
 
+    CURRENTCONTROL = 1;
+    VOLTAGECONTROL = 2;
+    KVARCONTROL = 3;
+    TIMECONTROL = 4;
+    PFCONTROL = 5;
+
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -186,7 +194,7 @@ Begin
                         'Do not specify the full object name; "Capacitor" is assumed for '  +
                         'the object class.  Example:'+CRLF+CRLF+
                         'Capacitor=cap1';
-     PropertyHelp[4] := '{Current | voltage | kvar |time } Control type.  Specify the ONsetting and OFFsetting ' +
+     PropertyHelp[4] := '{Current | voltage | kvar | PF | time } Control type.  Specify the ONsetting and OFFsetting ' +
                         'appropriately with the type of control. (See help for ONsetting)';
      PropertyHelp[5] := 'Ratio of the PT that converts the monitored voltage to the control voltage. '+
                         'Default is 60.  If the capacitor is Wye, the 1st phase line-to-neutral voltage is monitored.  Else, the line-to-line ' +
@@ -197,6 +205,7 @@ Begin
                         'Current: Line Amps / CTratio'+CRLF+
                         'Voltage: Line-Neutral (or Line-Line for delta) Volts / PTratio' +CRLF+
                         'kvar:    Total kvar, all phases (3-phase for pos seq model). This is directional. ' + CRLF +
+                        'PF:      Power Factor, Total power in monitored terminal. Negative for Leading. ' + CRLF +
                         'Time:    Hrs from Midnight as a floating point number (decimal). 7:30am would be entered as 7.5.';
      PropertyHelp[8] := 'Value at which the control arms to switch the capacitor OFF. (See help for ONsetting)' +
                         'For Time control, is OK to have Off time the next day ( < On time)';
@@ -264,10 +273,11 @@ Begin
             2: ElementTerminal := Parser.IntValue;
             3: CapacitorName   := 'capacitor.'+ param;
             4: CASE lowercase(param)[1] of
-                    'c': ControlType := 1;
-                    'v': ControlType := 2;
-                    'k': ControlType := 3;
-                    't': ControlType := 4;
+                    'c': ControlType := CURRENTCONTROL;
+                    'v': ControlType := VOLTAGECONTROL;
+                    'k': ControlType := KVARCONTROL;
+                    't': ControlType := TIMECONTROL;
+                    'p': ControlType := PFCONTROL;
                End;
             5: PTRatio := Parser.DblValue;
             6: CTRatio := Parser.DblValue;
@@ -283,6 +293,32 @@ Begin
          ELSE
            // Inherited parameters
            ClassEdit( ActiveCapControlObj, ParamPointer - NumPropsthisClass)
+         End;
+
+
+         {PF Controller changes}
+         If ControlType=PFCONTROL then
+         Case ParamPointer of
+
+            4: Begin
+                  PFON_Value := 0.95;     // defaults
+                  PFOFF_Value := 1.05;
+               End;
+
+            7: Begin
+                 If (ON_Value >= -1.0) and (ON_Value <= 1.0) then Begin
+                    If ON_Value < 0.0 then PFON_Value := 2.0 + ON_Value else PFON_Value := ON_Value;
+                 End Else Begin
+                    DoSimpleMsg('Invalid PF ON value for CapControl.'+ActiveCapControlObj.Name, 353);
+                 End;
+               End;
+            8: Begin
+                 If (OFF_Value >= -1.0) and (OFF_Value <= 1.0) then Begin
+                    If OFF_Value < 0.0 then PFOFF_Value := 2.0 + OFF_Value else PFOFF_Value :=  OFF_Value;
+                 End Else Begin
+                    DoSimpleMsg('Invalid PF OFF value for CapControl.'+ActiveCapControlObj.Name, 353);
+                 End;
+               End;
          End;
 
          ParamName := Parser.NextParam;
@@ -324,6 +360,8 @@ Begin
 
         ON_Value          := OtherCapControl.ON_Value;
         OFF_Value         := OtherCapControl.OFF_Value;
+        PFON_Value        := OtherCapControl.PFON_Value;
+        PFOFF_Value       := OtherCapControl.PFOFF_Value;
 
 
         For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherCapControl.PropertyValue[i];
@@ -363,6 +401,9 @@ Begin
 
       ON_Value    := 300.0;
       OFF_Value   := 200.0;
+
+      PFON_Value    := 0.95;
+      PFOFF_Value   := 1.05;
 
       Voverride  := False;
       Vmax       := 126;
@@ -560,16 +601,24 @@ end;
 PROCEDURE TCapControlObj.Sample;
 
 VAR
-   i           :Integer;
+   i       :Integer;
    Cmax,
    cmag,
    Vavg,
    t_value,
    Q       :Double;
-   S           :Complex ;
+   S       :Complex;
+   PF      :Double;
+   Sabs    :Double;
+
+   Function PF1to2(Const Spower:Complex):Double;   // return PF in range of 1 to 2
+   Begin
+       Sabs := Cabs(Spower);
+       If Sabs <> 0.0 then Result := abs(Spower.re) / Cabs(Spower) else PF := 1.0;  // default to unity
+       If Spower.im < 0.0 Then Result := 2.0 - Result;
+   End;
 
 begin
-
 
      ControlledElement.ActiveTerminalIdx := 1;
      IF  ControlledElement.Closed [0]      // Check state of phases of active terminal
@@ -582,9 +631,8 @@ begin
          ShouldSwitch := FALSE;
 
          // First Check voltage override
-         IF   Voverride
-         THEN IF ControlType <> 2  // Don't bother for voltage control
-         THEN Begin
+         IF Voverride THEN
+          IF ControlType <> 2 THEN Begin  // Don't bother for voltage control
 
               MonitoredElement.GetTermVoltages (ElementTerminal, cBuffer);
               //Vavg := 0.0;
@@ -619,7 +667,7 @@ begin
          IF Not ShouldSwitch THEN   // Else skip other control evaluations
          CASE ControlType of
 
-              1: {Current}
+              CURRENTCONTROL: {Current}
                  Begin
 
                      // Check largest Current of all phases of monitored element
@@ -658,7 +706,7 @@ begin
 
                  End;
 
-              2: {Voltage}
+              VOLTAGECONTROL: {Voltage}
                  Begin
                      MonitoredElement.GetTermVoltages(ElementTerminal, cBuffer);
 
@@ -703,7 +751,7 @@ begin
 
                  End;
 
-              3: {kvar}
+              KVARCONTROL: {kvar}
                  Begin
                       MonitoredElement.ActiveTerminalIdx := ElementTerminal;
                       S := MonitoredElement.Power;
@@ -734,7 +782,7 @@ begin
 
                  End;
 
-              4: {time}
+              TIMECONTROL: {time}
                  Begin
                     WITH ActiveCircuit.Solution Do t_Value := NormalizeToTOD(intHour, DynaVars.t);
                     // 1/28/09 Code modified to accommodate OFF_Value < ON_Value
@@ -789,6 +837,38 @@ begin
                      End;
                  End;
 
+                 PFCONTROL: {PF}
+                 Begin
+                      MonitoredElement.ActiveTerminalIdx := ElementTerminal;
+                      PF := PF1to2(MonitoredElement.Power);
+
+                      {PF is in range of 0 .. 2;  Leading is 1..2}
+
+                      CASE PresentState of
+                          OPEN:   IF PF < PFON_Value
+                                  THEN  Begin
+                                        PendingChange := CLOSE;
+                                        ShouldSwitch := TRUE;
+                                  End
+                                  ELSE // Reset
+                                        PendingChange := NONE;
+                          CLOSE:  IF PF > PFOFF_Value
+                                  THEN Begin
+                                         PendingChange := OPEN;
+                                         ShouldSwitch := TRUE;
+                                  End
+                                  ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
+                                      IF PF < PFON_Value Then Begin
+                                        PendingChange := CLOSE;  // We can go some more
+                                        ShouldSwitch := TRUE;
+                                      End;
+                                  End
+                                  ELSE // Reset
+                                        PendingChange := NONE;
+                      End;
+
+                 End;
+
          End;
      End;
      WITH ActiveCircuit Do
@@ -802,12 +882,14 @@ begin
             End Else TimeDelay := OFFDelay;
             ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, Self);
             Armed := TRUE;
+            AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
            End;
 
         IF Armed and (PendingChange = NONE) Then
           Begin
               ControlQueue.Delete(ControlActionHandle);
               Armed := FALSE;
+              AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Reset**');
           End;
       End;  {With}
 end;

@@ -1547,7 +1547,7 @@ End;
 PROCEDURE LogThisEvent(Const EventName:String);
 
 Begin
-    EventStrings.Add(TimeToStr(Time)+': '+EventName);
+    EventStrings.Add('Time=' + TimeToStr(Time)+': '+EventName);
     ShowMessageForm(EventStrings);
 End;
 
@@ -1557,10 +1557,9 @@ VAR
 
 Begin
 
-          S :=  Format('%d, ', [ActiveCircuit.Solution.intHour])
-              + Format('%-.5g, ', [ActiveCircuit.Solution.Dynavars.t])
-              + Opdev + ' ' 
-              + Uppercase(action);
+          With  ActiveCircuit.Solution  Do
+          S :=  Format('Hour=%d, Sec=%-.5g, ControlIter=%d, Element=%s, Action=%s',
+          [intHour, Dynavars.t, ControlIteration, OpDev, Uppercase(action) ]);
           EventStrings.Add(S);
 End;
 
