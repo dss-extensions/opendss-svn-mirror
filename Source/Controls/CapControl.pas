@@ -840,12 +840,14 @@ begin
                  PFCONTROL: {PF}
                  Begin
                       MonitoredElement.ActiveTerminalIdx := ElementTerminal;
-                      PF := PF1to2(MonitoredElement.Power);
+                      S := MonitoredElement.Power;
+                      PF := PF1to2(S);
 
                       {PF is in range of 0 .. 2;  Leading is 1..2}
+                      {When turning on make sure there is at least half the kvar of the bank}
 
                       CASE PresentState of
-                          OPEN:   IF PF < PFON_Value
+                          OPEN:   IF (PF < PFON_Value) and (S.im * 0.001 > ControlledCapacitor.Totalkvar * 0.5) // make sure we don't go too far leading
                                   THEN  Begin
                                         PendingChange := CLOSE;
                                         ShouldSwitch := TRUE;
@@ -858,7 +860,7 @@ begin
                                          ShouldSwitch := TRUE;
                                   End
                                   ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
-                                      IF PF < PFON_Value Then Begin
+                                      IF (PF < PFON_Value) and (S.im * 0.001 > ControlledCapacitor.Totalkvar/ControlledCapacitor.Numsteps * 0.5) Then Begin
                                         PendingChange := CLOSE;  // We can go some more
                                         ShouldSwitch := TRUE;
                                       End;
@@ -877,7 +879,8 @@ begin
            Begin
             If PendingChange = CLOSE Then Begin
                If (Solution.DynaVars.t + Solution.intHour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
-                    TimeDelay := Max(ONDelay , Deadtime - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
+                    {2-6-09 Added ONDelay to Deadtime so that all caps do not close back in at same time}
+                    TimeDelay := Max(ONDelay , (Deadtime + ONDelay) - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
                Else TimeDelay := ONDelay;
             End Else TimeDelay := OFFDelay;
             ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, Self);

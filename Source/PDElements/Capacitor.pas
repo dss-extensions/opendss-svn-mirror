@@ -85,7 +85,7 @@ TYPE
 
         SpecType   :Integer;
 
-        function get_States(Idx: Integer): Integer;
+        function  get_States(Idx: Integer): Integer;
         procedure set_States(Idx: Integer; const Value: Integer);
 
         Procedure ProcessHarmonicSpec(const Param:String);
@@ -116,6 +116,7 @@ TYPE
         FUNCTION AvailableSteps:Integer;
         Property NumSteps:Integer  Read FNumSteps write set_NumSteps;
         Property States[Idx:Integer]:Integer Read get_States write set_States;
+        Property Totalkvar:Double Read FTotalkvar;
 
    end;
 

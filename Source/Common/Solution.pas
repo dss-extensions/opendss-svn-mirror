@@ -949,9 +949,12 @@ Begin
 
    UNTIL ControlActionsDone or (ControlIteration >= MaxControlIterations);
 
-   If Not ControlActionsDone and (ControlIteration >= MaxControlIterations) then
+   If Not ControlActionsDone and (ControlIteration >= MaxControlIterations) then  Begin
        DoSimpleMsg('Warning Max Control Iterations Exceeded. Primitive Y matrices could be out of synch with System Y.' +
-                   ' Current and Power reports may not be correct.', 485);
+                   ' Current and Power reports may not be correct.' + CRLF + 'Tip: Show Eventlog to debug control settings.', 485);
+
+       SolutionAbort := TRUE;   // this will stop this message in dynamic power flow modes
+   End;
    
 
    If ActiveCircuit.LogEvents Then LogThisEvent('Solution Done');
