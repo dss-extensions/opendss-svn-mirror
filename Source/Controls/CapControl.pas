@@ -614,7 +614,7 @@ VAR
    Function PF1to2(Const Spower:Complex):Double;   // return PF in range of 1 to 2
    Begin
        Sabs := Cabs(Spower);
-       If Sabs <> 0.0 then Result := abs(Spower.re) / Cabs(Spower) else PF := 1.0;  // default to unity
+       If Sabs <> 0.0 then Result := abs(Spower.re) / Sabs else Result := 1.0;  // default to unity
        If Spower.im < 0.0 Then Result := 2.0 - Result;
    End;
 
