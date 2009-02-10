@@ -128,7 +128,8 @@ uses
   VSource in '..\PCElements\VSource.pas',
   WireData in '..\General\WireData.pas',
   Ymatrix in '..\Common\Ymatrix.pas',
-  DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas';
+  DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
+  ExportCIMXML in '..\Common\ExportCIMXML.pas';
 
 {$R *.RES}
 

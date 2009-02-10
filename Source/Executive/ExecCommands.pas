@@ -288,8 +288,8 @@ Begin
                          'has been a circuit change.  However, if the previous solution is bad, it may be necessary ' +
                          'to re-initialize.  In most cases, a re-initiallization results in a zero-load power flow ' +
                          'solution with only the series power delivery elements considered.';
-     CommandHelp[34] := 'Export various solution values to CSV files for import into other programs. ' +
-                         'Creates a new CSV file except for Energymeter and Generator objects, for which ' +
+     CommandHelp[34] := 'Export various solution values to CSV (or XML) files for import into other programs. ' +
+                         'Creates a new file except for Energymeter and Generator objects, for which ' +
                          'the results for each device of this class are APPENDED to the CSV File. You may export to '+
                          'a specific file by specifying the file name as the LAST parameter on the line. '+
                          'Otherwise, the default file names shown below are used. ' +
@@ -316,6 +316,7 @@ Begin
                          'Export Yprims  [Filename]     (EXP_YPRIMS.CSV)   (all YPrim matrices)' + CRLF +
                          'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +
                          'Export seqZ  [Filename]       (EXP_SEQZ.CSV) (equiv sequence Z1, Z0 to bus)' + CRLF +
+                         'Export CDPSM [Filename]       (CDPSM.XML) (IEC 61968-13, CDPSM format)' + CRLF +
                          CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
                          ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+
