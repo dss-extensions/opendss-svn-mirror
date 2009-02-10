@@ -76,18 +76,17 @@ TYPE
             MonitoredElement :TDSSCktElement;
             ControlledCapacitor :TCapacitorObj;
             FPendingChange   :Integer;  // 0 = open 1 = close
-            ShouldSwitch   :Boolean;  // True: action is pending
-            Armed          :Boolean;  // Control is armed for switching unless reset
+            ShouldSwitch     :Boolean;  // True: action is pending
+            Armed            :Boolean;  // Control is armed for switching unless reset
             PresentState,             // 0 = open 1 = close
             InitialState,
             ControlActionHandle    :Integer;
-
-            CondOffset     :Integer; // Offset for monitored terminal
+            CondOffset             :Integer; // Offset for monitored terminal
 
             cBuffer :pComplexArray;    // Complexarray buffer
             FUNCTION Get_Capacitor: TCapacitorObj;
-            FUNCTION NormalizeToTOD(h:Integer; sec:Double):Double;
-    procedure Set_PendingChange(const Value: Integer);
+            FUNCTION NormalizeToTOD(h:Integer; sec:Double) :Double;
+            procedure Set_PendingChange(const Value: Integer);
 
      public
 
