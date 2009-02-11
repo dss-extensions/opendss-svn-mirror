@@ -132,59 +132,59 @@ Begin
 
      // Define Property names
      PropertyName[1] := 'bus1';
-     PropertyName[2] := 'bus2';
-     PropertyName[3] := 'basekv';
-     PropertyName[4] := 'pu';
-     PropertyName[5] := 'angle';
-     PropertyName[6] := 'frequency';
-     PropertyName[7] := 'phases';
-     PropertyName[8] := 'MVAsc3';
-     PropertyName[9] := 'MVAsc1';
-     PropertyName[10] := 'x1r1';
-     PropertyName[11] := 'x0r0';
-     PropertyName[12] := 'Isc3';
-     PropertyName[13] := 'Isc1';
-     PropertyName[14] := 'R1';
-     PropertyName[15] := 'X1';
-     PropertyName[16] := 'R0';
-     PropertyName[17] := 'X0';
-     PropertyName[18] := 'ScanType';
+     PropertyName[2] := 'basekv';
+     PropertyName[3] := 'pu';
+     PropertyName[4] := 'angle';
+     PropertyName[5] := 'frequency';
+     PropertyName[6] := 'phases';
+     PropertyName[7] := 'MVAsc3';
+     PropertyName[8] := 'MVAsc1';
+     PropertyName[9] := 'x1r1';
+     PropertyName[10] := 'x0r0';
+     PropertyName[11] := 'Isc3';
+     PropertyName[12] := 'Isc1';
+     PropertyName[13] := 'R1';
+     PropertyName[14] := 'X1';
+     PropertyName[15] := 'R0';
+     PropertyName[16] := 'X0';
+     PropertyName[17] := 'ScanType';
+     PropertyName[18]  := 'bus2';
 
      // define Property help values
      PropertyHelp[1] := 'Name of bus to which the main terminal (1) is connected.'+CRLF+'bus1=busname'+CRLF+'bus1=busname.1.2.3';
-     PropertyHelp[2] := 'Name of bus to which 2nd terminal is connected.'+CRLF+'bus2=busname'+CRLF+'bus2=busname.1.2.3' +
-                        CRLF + CRLF +
-                        'Default is Bus1.0.0.0 (grounded wye connection)';
-     PropertyHelp[3] := 'Base Source kV, usually phase-phase (L-L) unless you are making a positive-sequence model or 1-phase model'+
+     PropertyHelp[2] := 'Base Source kV, usually phase-phase (L-L) unless you are making a positive-sequence model or 1-phase model'+
                         'in which case, it will be phase-neutral (L-N) kV.';
-     PropertyHelp[4] := 'Per unit of the base voltage that the source is actually operating at.'+ CRLF +
+     PropertyHelp[3] := 'Per unit of the base voltage that the source is actually operating at.'+ CRLF +
                         '"pu=1.05"';
-     PropertyHelp[5] := 'Phase angle in degrees of first phase: e.g.,Angle=10.3';
-     PropertyHelp[6] := 'Source frequency.  Defaults to system default base frequency.';
-     PropertyHelp[7] := 'Number of phases.  Defaults to 3.';
-     PropertyHelp[8] := 'MVA Short circuit, 3-phase fault. Default = 2000. ' +
+     PropertyHelp[4] := 'Phase angle in degrees of first phase: e.g.,Angle=10.3';
+     PropertyHelp[5] := 'Source frequency.  Defaults to system default base frequency.';
+     PropertyHelp[6] := 'Number of phases.  Defaults to 3.';
+     PropertyHelp[7] := 'MVA Short circuit, 3-phase fault. Default = 2000. ' +
                         'Z1 is determined by squaring the base kv and dividing by this value. '+
                         'For single-phase source, this value is not used.';
-     PropertyHelp[9] := 'MVA Short Circuit, 1-phase fault. Default = 2100. ' +
+     PropertyHelp[8] := 'MVA Short Circuit, 1-phase fault. Default = 2100. ' +
                         'The "single-phase impedance", Zs, is determined by squaring the base kV and dividing by this value. '+
                         'Then Z0 is determined by Z0 = 3Zs - 2Z1.  For 1-phase sources, Zs is used directly. ' +
                         'Use X0R0 to define X/R ratio for 1-phase source.';
-     PropertyHelp[10] := 'Positive-sequence  X/R ratio. Default = 4.';
-     PropertyHelp[11] := 'Zero-sequence X/R ratio.Default = 3.';
-     PropertyHelp[12] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[9] := 'Positive-sequence  X/R ratio. Default = 4.';
+     PropertyHelp[10] := 'Zero-sequence X/R ratio.Default = 3.';
+     PropertyHelp[11] := 'Alternate method of defining the source impedance. ' + CRLF +
                          '3-phase short circuit current, amps.  Default is 10000.';
-     PropertyHelp[13] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[12] := 'Alternate method of defining the source impedance. ' + CRLF +
                          'single-phase short circuit current, amps.  Default is 10500.';
-     PropertyHelp[14] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[13] := 'Alternate method of defining the source impedance. ' + CRLF +
                          'Positive-sequence resistance, ohms.  Default is 1.65.';
-     PropertyHelp[15] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[14] := 'Alternate method of defining the source impedance. ' + CRLF +
                          'Positive-sequence reactance, ohms.  Default is 6.6.';
-     PropertyHelp[16] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[15] := 'Alternate method of defining the source impedance. ' + CRLF +
                          'Zero-sequence resistance, ohms.  Default is 1.9.';
-     PropertyHelp[17] := 'Alternate method of defining the source impedance. ' + CRLF +
+     PropertyHelp[16] := 'Alternate method of defining the source impedance. ' + CRLF +
                          'Zero-sequence reactance, ohms.  Default is 5.7.';
-     PropertyHelp[18] := '{pos*| zero | none} Maintain specified sequence for harmonic solution. Default is positive sequence. '+
+     PropertyHelp[17] := '{pos*| zero | none} Maintain specified sequence for harmonic solution. Default is positive sequence. '+
                          'Otherwise, angle between phases rotates with harmonic.';
+     PropertyHelp[18] := 'Name of bus to which 2nd terminal is connected.'+CRLF+'bus2=busname'+CRLF+'bus2=busname.1.2.3' +
+                        CRLF + CRLF +
+                        'Default is Bus1.0.0.0 (grounded wye connection)';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -261,41 +261,41 @@ Begin
          CASE ParamPointer OF
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "VSource.'+Name+'"', 320);
             1: VSourceSetBus1(param);   // special handling of Bus 1
-            2: SetBus(2, param);
-            3: kVBase    := Parser.DblValue; // basekv
-            4: PerUnit   := Parser.DblValue; // pu
-            5: Angle     := Parser.DblValue; // Ang
-            6: SrcFrequency := Parser.DblValue; // freq
-            7: Begin
+            2: kVBase    := Parser.DblValue; // basekv
+            3: PerUnit   := Parser.DblValue; // pu
+            4: Angle     := Parser.DblValue; // Ang
+            5: SrcFrequency := Parser.DblValue; // freq
+            6: Begin
                  Nphases   := Parser.Intvalue; // num phases
                  NConds    := Fnphases;  // Force Reallocation of terminal info
                End;
-            8: MVAsc3 := Parser.DblValue; // MVAsc3
-            9: MVAsc1 := Parser.DblValue; // MVAsc1
-           10: X1R1   := Parser.DblValue; // X1/R1
-           11: X0R0   := Parser.DblValue; // X0/R0
-           12: Isc3   := Parser.DblValue;
-           13: Isc1   := Parser.DblValue;
-           14: R1    := Parser.DblValue;
-           15: X1    := Parser.DblValue;
-           16: R0    := Parser.DblValue;
-           17: X0    := Parser.DblValue;
-           18:Case Uppercase(Param)[1] of
+            7: MVAsc3 := Parser.DblValue; // MVAsc3
+            8: MVAsc1 := Parser.DblValue; // MVAsc1
+            9: X1R1   := Parser.DblValue; // X1/R1
+           10: X0R0   := Parser.DblValue; // X0/R0
+           11: Isc3   := Parser.DblValue;
+           12: Isc1   := Parser.DblValue;
+           13: R1    := Parser.DblValue;
+           14: X1    := Parser.DblValue;
+           15: R0    := Parser.DblValue;
+           16: X0    := Parser.DblValue;
+           17:Case Uppercase(Param)[1] of
                   'P': ScanType := 1;
                   'Z': ScanType := 0;
                   'N': ScanType := -1;
                 ELSE
                    DoSimpleMsg('Unknown Scan Type for "' + Class_Name +'.'+ Name + '": '+Param, 321);
                 END;
+           18: SetBus(2, param);
          ELSE
             ClassEdit(ActiveVsourceObj, ParamPointer - NumPropsThisClass)
          End;
 
          // Set the Z spec type switch depending on which was specified.
          CASE ParamPointer OF
-             8, 9   :ZSpecType := 1;
-             12, 13 :ZSpecType := 2;
-             14, 15, 16, 17 : ZSpecType := 3;
+             7, 8   :ZSpecType := 1;
+             11, 12 :ZSpecType := 2;
+             13, 14, 15, 16 : ZSpecType := 3;
          END;
 
          ParamName := Parser.NextParam;
@@ -758,23 +758,23 @@ begin
 
      {PropertyValue Allocated in DSSObject.Create}
      PropertyValue[1]  := GetBus(1);
-     PropertyValue[2]  := GetBus(2);
-     PropertyValue[3]  := '115';
-     PropertyValue[4]  := '1';
-     PropertyValue[5]  := '0';
-     PropertyValue[6]  := Format('%d',[Round(DefaultBaseFreq)]);
-     PropertyValue[7]  := '3';
-     PropertyValue[8]  := '2000';
-     PropertyValue[9]  := '2100';
-     PropertyValue[10]  := '4';
-     PropertyValue[11] := '3';
-     PropertyValue[12] := '10000';
-     PropertyValue[13] := '10500';
-     PropertyValue[14] := '1.65';
-     PropertyValue[15] := '6.6';
-     PropertyValue[16] := '1.9';
-     PropertyValue[17] := '5.7';
-     PropertyValue[18] := 'Pos';
+     PropertyValue[2]  := '115';
+     PropertyValue[3]  := '1';
+     PropertyValue[4]  := '0';
+     PropertyValue[5]  := Format('%d',[Round(DefaultBaseFreq)]);
+     PropertyValue[6]  := '3';
+     PropertyValue[7]  := '2000';
+     PropertyValue[8]  := '2100';
+     PropertyValue[9]  := '4';
+     PropertyValue[10] := '3';
+     PropertyValue[11] := '10000';
+     PropertyValue[12] := '10500';
+     PropertyValue[13] := '1.65';
+     PropertyValue[14] := '6.6';
+     PropertyValue[15] := '1.9';
+     PropertyValue[16] := '5.7';
+     PropertyValue[17] := 'Pos';
+     PropertyValue[18]  := GetBus(2);
 
 
      inherited  InitPropertyValues(NumPropsThisClass);
@@ -785,14 +785,14 @@ end;
 function TVsourceObj.GetPropertyValue(Index: Integer): String;
 begin
         Case Index of
-          8 : Result  := Format('%-.5g',[MVAsc3]);
-          9 : Result  := Format('%-.5g',[MVAsc1]);
-          12 : Result := Format('%-.5g',[Isc3]);
-          13 : Result := Format('%-.5g',[Isc1]);
-          14 : Result := Format('%-.5g',[R1]);
-          15 : Result := Format('%-.5g',[X1]);
-          16 : Result := Format('%-.5g',[R0]);
-          17 : Result := Format('%-.5g',[X0]);
+          7 : Result  := Format('%-.5g',[MVAsc3]);
+          8 : Result  := Format('%-.5g',[MVAsc1]);
+          11 : Result := Format('%-.5g',[Isc3]);
+          12 : Result := Format('%-.5g',[Isc1]);
+          13 : Result := Format('%-.5g',[R1]);
+          14 : Result := Format('%-.5g',[X1]);
+          15 : Result := Format('%-.5g',[R0]);
+          16 : Result := Format('%-.5g',[X0]);
         Else
           Result := Inherited GetPropertyValue(Index);
         End;
