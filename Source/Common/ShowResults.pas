@@ -256,6 +256,15 @@ Begin
      Writeln(F);
 
 
+     // SOURCES first
+     pElem := ActiveCircuit.sources.First;
+
+     WHILE pElem<>nil DO Begin
+      IF pElem.Enabled THEN WriteElementVoltages(F, pElem, LL);
+      Writeln(F);
+      pElem := ActiveCircuit.sources.Next;
+     End;
+
      // PDELEMENTS first
      pElem := ActiveCircuit.PDElements.First;
 
@@ -1384,6 +1393,7 @@ Begin
 
      WHILE p_Elem<>nil DO Begin
        IF p_Elem.Enabled THEN  If CheckBusReference(p_Elem, BusReference, jTerm) Then Begin
+          WriteTerminalPower(F, p_Elem, jTerm, opt);
           {Get the other bus for the report}
           if jTerm=1 then jTerm:=2 Else jTerm:=1; // may sometimes give wrong terminal if more than 2 terminals
           WriteTerminalPower(F, p_Elem, jTerm, opt);

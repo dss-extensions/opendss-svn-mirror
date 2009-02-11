@@ -284,15 +284,15 @@ BEGIN
    WITH ActiveCapacitorObj DO BEGIN
      SetBus(1, S);
 
-     // Default Bus2 to zero node of Bus1. (Wye Grounded connection)
+     // Default Bus2 to zero node of Bus1. (Grounded-Y connection)
 
      // Strip node designations from S
      dotpos := Pos('.',S);
      IF dotpos>0 THEN S2 := Copy(S,1,dotpos-1)
-     ELSE S2 := Copy(S,1,Length(S));  // copy up to Dot
-     FOR i := 1 to Fnphases DO S2 := S2 + '.0';
+                 ELSE S2 := Copy(S,1,Length(S));  // copy up to Dot
+     FOR i := 1 to Fnphases DO S2 := S2 + '.0';   // append series of ".0"'s
 
-     SetBus(2,S2);
+     SetBus(2, S2);    // default setting for Bus2
      IsShunt := True;
    END;
 END;

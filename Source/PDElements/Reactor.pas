@@ -604,11 +604,10 @@ BEGIN
                         // Remainder of the matrix is all zero
                       END;
                ELSE BEGIN // Wye
-                      Value2 := cnegate(Value);
                       FOR i := 1 to Fnphases Do BEGIN
                           SetElement(i, i, Value);     // Elements are only on the diagonals
                           SetElement(i+Fnphases, i+Fnphases, Value);
-                          SetElemSym(i, i+Fnphases, Value2);
+                          SetElemSym(i, i+Fnphases, cnegate(Value));
                       END;
                     END;
                END;
@@ -617,7 +616,6 @@ BEGIN
 
        3: BEGIN    // Z matrix specified
             {Compute Z matrix}
-             
 
              { Put in Parallel R & L }
              If IsParallel Then Begin  {Build Z as a Y Matrix}
@@ -628,8 +626,7 @@ BEGIN
                        Value := Cmplx(Gmatrix^[idx], Bmatrix^[idx] / FreqMultiplier);
                        SetElement(i,j,Value);
                        SetElement(i+Fnphases, j+Fnphases, Value);
-                       Value := cnegate(Value);
-                       SetElemSym(i, j+Fnphases, Value);
+                       SetElemSym(i, j+Fnphases, Cnegate(Value));
                      END;
                  END;
 
@@ -651,14 +648,12 @@ BEGIN
                     For i := 1 to Fnphases Do ZMatrix.SetElement(i, i, Cmplx(epsilon, 0.0));
                  End;
 
-
                  FOR i := 1 to Fnphases Do  BEGIN
                     FOR j := 1 to Fnphases Do  BEGIN
                        Value := Zmatrix.GetElement(i,j);
                        SetElement(i, j, Value);
                        SetElement(i+Fnphases, j+Fnphases, Value);
-                       Value := cnegate(Value);
-                       SetElemSym(i, j+Fnphases, Value);
+                       SetElemSym(i, j+Fnphases, Cnegate(Value));
                      END;
                  END;
 

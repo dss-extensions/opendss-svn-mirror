@@ -184,9 +184,9 @@ TYPE
        PROCEDURE UpdatedblHour;
        PROCEDURE Increment_time;
 
-       Property  Mode :Integer Read dynavars.SolutionMode Write Set_Mode;
-       Property  Frequency : Double Read FFrequency Write Set_Frequency;
-       Property  Year :Integer  Read FYear Write Set_Year;
+       Property  Mode      :Integer  Read dynavars.SolutionMode Write Set_Mode;
+       Property  Frequency :Double   Read FFrequency            Write Set_Frequency;
+       Property  Year      :Integer  Read FYear                 Write Set_Year;
 
    End;
 
