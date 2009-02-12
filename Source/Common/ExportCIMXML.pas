@@ -16,7 +16,7 @@ Procedure ExportCDPSM(FileNm:String);
 
 implementation
 
-Uses sysutils, Circuit, DSSGlobals, CktElement,
+Uses sysutils, Utilities, Circuit, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Equivalent, Vsource, Isource, Line, Transformer,
      Fuse, Capacitor, CapControl, Reactor;
@@ -78,20 +78,47 @@ begin
   Writeln (F, Format ('</cim:%s>', [Root]));
 end;
 
+function IsGroundBus (const S: String) : Boolean;
+var
+  i : Integer;
+begin
+  Result := True;
+  i := pos ('.1', S);
+  if i > 0 then Result := False;
+  i := pos ('.2', S);
+  if i > 0 then Result := False;
+  i := pos ('.3', S);
+  if i > 0 then Result := False;
+  i := pos ('.', S);
+  if i = 0 then Result := False;
+end;
+
 procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement; Abbrev: String; Name: String);
 var
   Nterm, j : Integer;
-  BusName, Ref : String;
+  BusName, Ref, TermName : String;
 begin
   Ref := Abbrev + '_' + Name;
   Nterm := pElem.Nterms;
-  BusName := Pad(StripExtension(pElem.FirstBus), MaxBusNameLength);
-  Write(F, Pad(FullName(PElem), MaxDeviceNameLength+2),' ');
+  BusName := pElem.FirstBus;
   for j := 1 to NTerm do begin
-      Write(F, Busname,' ');
-      BusName := Pad(StripExtension(pElem.Nextbus),MaxBusNameLength);
+    if IsGroundBus (BusName) = False then begin
+      BusName := StripExtension (BusName);
+
+      Str (j, TermName);
+      TermName := Ref + '_T' + TermName;
+
+      StartInstance (F, 'Terminal', 'Trm', TermName);
+      StringNode (F, 'Naming.name', TermName);
+      Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
+        [Ref]));
+      Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#CN_%s"/>',
+        [BusName]));
+      EndInstance (F, 'Terminal');
+    end;
+
+    BusName := pElem.Nextbus;
   end;
-  Writeln(F);
 end;
 
 Procedure ExportCDPSM(FileNm:String);
@@ -142,7 +169,7 @@ Begin
       end;
 
       for i := 1 to NumBuses do begin
-        Writeln(F, Format('<cim:ConnectivityNode ref:ID="%s">', [BusList.Get(i)]));
+        Writeln(F, Format('<cim:ConnectivityNode ref:ID="CN_%s">', [BusList.Get(i)]));
         StringNode (F, 'IdentifiedObject.name', BusList.Get(i));
         VoltageLevelNode (F, 'ConnectivityNode', Buses^[i].kVBase);
         DoubleNode (F, 'PositionPoint.xPosition', Buses^[i].x);
