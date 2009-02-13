@@ -95,6 +95,11 @@ TYPE
         FUNCTION  Get_TapIncrement(i: Integer): Double;
         FUNCTION  Get_BaseVoltage(i: Integer): Double;
         FUNCTION  Get_BasekVLL(i: Integer): Double;
+        // CIM accessors
+        FUNCTION  Get_WdgResistance(i: Integer): Double;
+        FUNCTION  Get_WdgConnection(i: Integer): Integer;
+        FUNCTION  Get_WdgKVA(i: Integer): Double;
+        FUNCTION  Get_Xsc(i: Integer): Double;
 
         PROCEDURE CalcY_Terminal(FreqMult:Double);
 
@@ -163,6 +168,13 @@ TYPE
         Property TapIncrement[i:Integer] :Double Read Get_TapIncrement;
         Property BaseVoltage[i:Integer]  :Double Read Get_BaseVoltage;  // Winding Vbase
         Property BasekVLL[i:Integer]     :Double Read Get_BasekVLL;  // Winding Vbase
+
+        // CIM accessors
+        Property NumberOfWindings :Integer Read NumWindings;
+        Property WdgResistance[i:Integer] :Double Read Get_WdgResistance;
+        Property WdgKVA[i:Integer] :Double Read Get_WdgKVA;
+        Property WdgConnection[i:Integer] :Integer Read Get_WdgConnection;
+        Property XscVal[i:Integer] : Double Read Get_Xsc;
 
    end;
 
@@ -1172,6 +1184,37 @@ Begin
               RecalcElementData;
            End;
        End;
+end;
+
+FUNCTION TTransfObj.Get_WdgResistance(i: Integer): Double;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].Rpu
+     ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_WdgKVA(i: Integer): Double;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].kva
+     ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_Xsc(i: Integer): Double;
+var
+  imax: Integer;
+Begin
+  imax := (NumWindings - 1) * NumWindings div 2;
+  IF (i > 0) and (i <= imax)
+  THEN Result := XSC^[i]
+  ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_WdgConnection(i: Integer): Integer;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].Connection
+     ELSE Result := 0;
 end;
 
 FUNCTION TTransfObj.Get_MinTap(i: Integer): Double;
