@@ -19,7 +19,7 @@ implementation
 Uses sysutils, Utilities, Circuit, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Equivalent, Vsource, Isource, Line, Transformer,
-     Fuse, Capacitor, CapControl, Reactor;
+     Fuse, Capacitor, CapControl, Reactor, Feeder;
 
 procedure DoubleNode (var F: TextFile; Node: String; val: Double);
 begin
@@ -39,6 +39,38 @@ end;
 procedure VoltageLevelNode (var F: TextFile; Prefix: String; val: Double);
 begin
   Writeln(F, Format('  <cim:%s.MemberOf_EquipmentContainer rdf:resource="#VoltageLevel_%.3f"/>',
+    [Prefix, val]));
+end;
+
+procedure LineRefNode (var F: TextFile; Name: String);
+begin
+  Writeln(F, Format('  <cim:ACLineSegment.MemberOf_Line rdf:resource="#Line_%s"/>',
+    [Name]));
+end;
+
+procedure SubRefNode (var F: TextFile; Prefix: String; Name: String);
+begin
+  Writeln(F, Format('  <cim:%s.MemberOf_Substation rdf:resource="#Sub_%s"/>',
+    [Prefix, Name]));
+end;
+
+procedure XfRefNode (var F: TextFile; Name: String);
+begin
+  Writeln(F, Format('  <cim:Transformer.MemberOf_PowerTransformer rdf:resource="#Xf_%s"/>',
+    [Name]));
+end;
+
+procedure CapControlRefNodes (var F: TextFile; Cap: String; Term: String);
+begin
+  Writeln(F, Format('  <cim:RegulatingControl.regulatingCondEq rdf:resource="#Cap_%s"/>',
+    [Cap]));
+  Writeln(F, Format('  <cim:RegulatingControl.terminal rdf:resource="#Cap_%s"/>',
+    [Term]));
+end;
+
+procedure BaseVoltageNode (var F: TextFile; Prefix: String; val: Double);
+begin
+  Writeln(F, Format('  <cim:%s.BaseVoltage rdf:resource="#BaseVoltage_%.3f"/>',
     [Prefix, val]));
 end;
 
@@ -126,23 +158,29 @@ Var
   F   : TextFile;
   i   : Integer;
   val : double;
+  v1, v2 : double;
+  WdgName : String;
 
   pLoad  : TLoadObj;
-  pVsrc  : TVsource;
-  pIsrc  : TIsource;
-  pEquiv : TEquivalent;
-  pGen   : TGenerator;
+  pVsrc  : TVsourceObj;
+  pIsrc  : TIsourceObj;
+  pEquiv : TEquivalentObj;
+  pGen   : TGeneratorObj;
 
   pCap  : TCapacitorObj;
-  pCapC : TCapControl;
-  pXf   : TTransf;
-  pReg  : TRegControl;
-  pLine : TLine;
+  pCapC : TCapControlObj;
+  pXf   : TTransfObj;
+  pReg  : TRegControlObj;
+  pLine : TLineObj;
+
+  pFdr  : TFeederObj;
+  kvFdr : double;
 
 Begin
   Try
     Assignfile(F, FileNm);
     ReWrite(F);
+    kvFdr := 0.0;
 
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
@@ -178,6 +216,15 @@ Begin
       end;
     end;
 
+    pFdr := ActiveCircuit.Feeders.First;
+    while pFdr <> nil do begin
+      with pFdr do begin
+        StartInstance (F, 'Feeder', 'Fdr', Name);
+        EndInstance (F, 'Feeder');
+      end;
+      pFdr := ActiveCircuit.Feeders.Next;
+    end;
+
     pGen := ActiveCircuit.Generators.First;
     while pGen <> nil do begin
       with pGen do begin
@@ -200,6 +247,8 @@ Begin
     while pCap <> nil do begin
       with pCap do begin
         StartInstance (F, 'ShuntCompensator', 'Cap', Name);
+        VoltageLevelNode (F, 'Equipment', kvFdr);
+        PhasesNode (F, 'ConductingEquipment.phases', pCap);
         DoubleNode (F, 'ShuntCompensator.reactivePerSection', TotalKvar);
         IntegerNode (F, 'ShuntCompensator.normalSections', NumSteps);
         IntegerNode (F, 'ShuntCompensator.maximumSections', NumSteps);
@@ -212,8 +261,25 @@ Begin
     pCapC := ActiveCircuit.CapControls.First;
     while pCapC <> nil do begin
       with pCapC do begin
-        StartInstance (F, 'CapControl', 'CapC', Name);
-        EndInstance (F, 'CapControl');
+        StartInstance (F, 'RegulatingControl', 'CapC', Name);
+        CapControlRefNodes (F, This_Capacitor.Name, ElementName);
+        if CapControlType = 5 then begin
+          v1 := OnValue;
+          v2 := OffValue
+        end else begin
+          v1 := PfOnValue;
+          v2 := PfOffValue;
+        end;
+        case CapControlType of
+          1: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
+          2: StringNode (F, 'RegulatingControl.mode', 'voltage');
+          3: StringNode (F, 'RegulatingControl.mode', 'reactivePower');
+          4: StringNode (F, 'RegulatingControl.mode', '***time');
+          5: StringNode (F, 'RegulatingControl.mode', '***powerFactor');
+        end;
+        DoubleNode (F, 'RegulatingControl.targetValue', v1);
+        DoubleNode (F, 'RegulatingControl.targetRange', v2);
+        EndInstance (F, 'RegulatingControl');
       end;
       pCapC := ActiveCircuit.CapControls.Next;
     end;
@@ -222,7 +288,31 @@ Begin
     while pXf <> nil do begin
       with pXf do begin
         StartInstance (F, 'PowerTransformer', 'Xf', Name);
+        if IsSubstation then SubRefNode (F, 'PowerTransformer', SubstationName);
+        PhasesNode (F, 'PowerTransformer.phases', pXf);
         EndInstance (F, 'PowerTransformer');
+        for i := 1 to NumberOfWindings do begin
+          Str (i, WdgName);
+          WdgName := Name + '_' + WdgName;
+          StartInstance (F, 'TransformerWinding', 'Wdg', WdgName);
+          XfRefNode (F, Name);
+          BaseVoltageNode (F, 'ConductingEquipment.BaseVoltage', 0.001 * BaseVoltage[i]);
+          DoubleNode (F, 'TransformerWinding.r', WdgResistance[i]);
+          DoubleNode (F, 'TransformerWinding.x', XscVal[i]);
+          DoubleNode (F, 'TransformerWinding.ratedKV', 0.001 * BaseVoltage[i]);
+          DoubleNode (F, 'TransformerWinding.ratedMVA', 0.001 * WdgKVA[i]);
+          case i of
+            1 : StringNode (F, 'TransformerWinding.windingType', 'primary');
+            2 : StringNode (F, 'TransformerWinding.windingType', 'secondary');
+            3 : StringNode (F, 'TransformerWinding.windingType', 'tertiary');
+            4 : StringNode (F, 'TransformerWinding.windingType', 'quaternary');
+          end;
+          if WdgConnection[i] > 0 then
+            StringNode (F, 'TransformerWinding.connectionType', 'D')
+          else
+            StringNode (F, 'TransformerWinding.connectionType', 'Y');
+          EndInstance (F, 'TransformerWinding');
+        end;
       end;
       pXf := ActiveCircuit.Transformers.Next;
     end;
@@ -230,8 +320,8 @@ Begin
     pReg := ActiveCircuit.RegControls.First;
     while pReg <> nil do begin
       with pReg do begin
-        StartInstance (F, 'TapChanger', 'Reg', Name);
-        EndInstance (F, 'TapChanger');
+        StartInstance (F, 'RatioTapChanger', 'Reg', Name);
+        EndInstance (F, 'RatioTapChanger');
       end;
       pReg := ActiveCircuit.RegControls.Next;
     end;
@@ -239,7 +329,25 @@ Begin
     pLine := ActiveCircuit.Lines.First;
     while pLine <> nil do begin
       with pLine do begin
-        StartInstance (F, 'ACLineSegment', 'Line', Name);
+        StartInstance (F, 'Line', 'Line', Name);
+        EndInstance (F, 'Line');
+        WriteTerminals (F, pLine, 'Line', Name);
+
+        StartInstance (F, 'ACLineSegment', 'Seg', Name);
+        LineRefNode (F, Name);
+        BaseVoltageNode (F, 'ConductingEquipment', kvFdr);
+        DoubleNode (F, 'Conductor.length', Len);
+        PhasesNode (F, 'ConductingEquipment.phases', pLine);
+        DoubleNode (F, 'Conductor.r', R1);
+        DoubleNode (F, 'Conductor.x', X1);
+        DoubleNode (F, 'Conductor.bch', C1);
+        DoubleNode (F, 'Conductor.r0', R0);
+        DoubleNode (F, 'Conductor.x0', X0);
+        DoubleNode (F, 'Conductor.bch0', C0);
+
+        StringNode (F, 'CondCode', CondCode);
+        if GeometrySpecified then StringNode (F, 'Geometry', GeometryCode);
+
         EndInstance (F, 'ACLineSegment');
       end;
       pLine := ActiveCircuit.Lines.Next;
