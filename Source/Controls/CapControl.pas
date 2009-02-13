@@ -109,6 +109,13 @@ TYPE
 
        Property This_Capacitor:TCapacitorObj Read Get_Capacitor;  // Pointer to controlled Capacitor
        Property PendingChange:Integer Read FPendingChange Write Set_PendingChange;
+
+       // for CIM export, which doesn't yet use the delays, CT, PT, and voltage override
+       Property CapControlType:Integer Read ControlType;
+       Property OnValue:Double Read ON_Value;
+       Property OffValue:Double Read OFF_Value;
+       Property PFOnValue:Double Read PFON_Value;
+       Property PFOffValue:Double Read PFOFF_Value;
    end;
 
 
@@ -130,6 +137,7 @@ CONST
     OPEN = 0;
     CLOSE = 1;
 
+    // TEMc - might move these to the interface
     CURRENTCONTROL = 1;
     VOLTAGECONTROL = 2;
     KVARCONTROL = 3;
