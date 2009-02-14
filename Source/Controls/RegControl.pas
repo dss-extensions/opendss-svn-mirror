@@ -84,6 +84,11 @@ TYPE
             VBuffer, CBuffer  :pComplexArray;
             FUNCTION Get_Transformer  :TTransfObj;
             FUNCTION Get_Winding      :Integer;
+            // CIM accessors
+            Function Get_MinTap       :Double;
+            Function Get_MaxTap       :Double;
+            Function Get_TapIncrement :Double;
+            Function Get_NumTaps      :Integer;
 
             PROCEDURE WriteTraceRecord(TapChangeMade:Double);
             procedure set_PendingTapChange(const Value: Double);
@@ -113,6 +118,20 @@ TYPE
        Property TrWinding:Integer Read Get_Winding;  // Report Tapped winding
 
        Property PendingTapChange: Double  Read FPendingTapChange Write set_PendingTapChange;
+
+       // CIM XML accessors
+       Property TargetVoltage: Double Read Vreg;
+       Property BandVoltage: Double Read BandWidth;
+       Property PT: Double Read PTRatio;
+       Property LineDropR: Double Read R;
+       Property LineDropX: Double Read X;
+       Property UseLineDrop: Boolean Read LDCActive;
+       Property InitialDelay: Double Read TimeDelay;
+       Property SubsequentDelay: Double Read TapDelay;
+       Property MinTap: Double Read Get_MinTap;
+       Property MaxTap: Double Read Get_MaxTap;
+       Property TapIncrement: Double Read Get_TapIncrement;
+       Property NumTaps: Integer Read Get_NumTaps;
 
    end;
 
@@ -754,12 +773,31 @@ FUNCTION TRegControlObj.Get_Transformer: TTransfObj;
 begin
 
      Result := TTransfObj(ControlledElement);
-
 end;
 
 FUNCTION TRegControlObj.Get_Winding: Integer;
 begin
      Result := TapWinding;
+end;
+
+Function TRegControlObj.Get_MinTap :Double;
+begin
+  Result := Get_Transformer.Mintap[TapWinding];
+end;
+
+Function TRegControlObj.Get_MaxTap :Double;
+begin
+  Result := Get_Transformer.Maxtap[TapWinding];
+end;
+
+Function TRegControlObj.Get_TapIncrement :Double;
+begin
+  Result := Get_Transformer.TapIncrement[TapWinding];
+end;
+
+Function TRegControlObj.Get_NumTaps :Integer;
+begin
+  Result := Get_Transformer.NumTaps[TapWinding];
 end;
 
 Procedure TRegControlObj.WriteTraceRecord(TapChangeMade:Double);

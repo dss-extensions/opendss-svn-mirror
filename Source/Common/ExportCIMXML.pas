@@ -18,7 +18,7 @@ implementation
 
 Uses sysutils, Utilities, Circuit, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
-     Equivalent, Vsource, Isource, Line, Transformer,
+     Vsource, Line, Transformer, Ucomplex,
      Fuse, Capacitor, CapControl, Reactor, Feeder;
 
 procedure DoubleNode (var F: TextFile; Node: String; val: Double);
@@ -66,6 +66,31 @@ begin
     [Cap]));
   Writeln(F, Format('  <cim:RegulatingControl.terminal rdf:resource="#Cap_%s"/>',
     [Term]));
+end;
+
+procedure TapRefNode (var F: TextFile; pXf: TTransfObj; Wdg: Integer);
+var
+  WdgName: String;
+begin
+  Str (Wdg, WdgName);
+  WdgName := pXf.Name + '_' + WdgName;
+  Writeln(F,
+    Format('  <cim:RatioTapChanger.transformerWinding rdf:resource="#Wdg_%s"/>',
+    [WdgName]));
+end;
+
+procedure RegRefNode (var F: TextFile; Tap: String);
+begin
+  Writeln(F,
+    Format('  <cim:RegulatingControl.ratioTapChanger rdf:resource="#Tap_%s"/>',
+    [Tap]));
+end;
+
+procedure SchedRefNode (var F: TextFile; Reg: String);
+begin
+  Writeln(F,
+    Format('  <cim:RegulationSchedule.regulatingControl rdf:resource="#RegCtrl_%s"/>',
+    [Reg]));
 end;
 
 procedure BaseVoltageNode (var F: TextFile; Prefix: String; val: Double);
@@ -159,12 +184,13 @@ Var
   i   : Integer;
   val : double;
   v1, v2 : double;
+  i1, i2, i3 : Integer;
+  Zs, Zm : complex;
+  Rs, Rm, Xs, Xm, R1, R0, X1, X0: double;
   WdgName : String;
 
   pLoad  : TLoadObj;
   pVsrc  : TVsourceObj;
-  pIsrc  : TIsourceObj;
-  pEquiv : TEquivalentObj;
   pGen   : TGeneratorObj;
 
   pCap  : TCapacitorObj;
@@ -234,12 +260,38 @@ Begin
       pGen := ActiveCircuit.Generators.Next;
     end;
 
-    pVsrc := ActiveCircuit.Sources.First; // pIsrc in the same list?
+    pVsrc := ActiveCircuit.Sources.First; // pIsrc are in the same list
     while pVsrc <> nil do begin
-      with pVsrc do begin
-        StartInstance (F, 'Substation', 'Src', Name);
-        EndInstance (F, 'Substation');
-      end;
+      if pVsrc.ClassNameIs('TVSourceObj') then
+        with pVsrc do begin
+          StartInstance (F, 'Substation', 'Sub', Name);
+          EndInstance (F, 'Substation');
+
+          Zs := Z.AvgDiagonal;
+          Zm := Z.AvgOffDiagonal;
+          Rs := Zs.re;
+          Rm := Zm.re;
+          Xs := Zs.im;
+          Xm := Zm.im;
+          v1 := pVsrc.NPhases;
+          R1 := (Rs - Rm) / v1;
+          X1 := (Xs - Xm) / v1;
+          R0 := (Rs + (v1 - 1.0) * Rm) / v1;
+          X0 := (Xs + (v1 - 1.0) * Xm) / v1;
+
+          StartInstance (F, 'EnergySource', 'Eq', Name);
+          VoltageLevelNode (F, 'Equipment', kVbase);
+          PhasesNode (F, 'ConductingEquipment.phases', pVsrc);
+          DoubleNode (F, 'EnergySource.nominalVoltage', kVbase);
+          DoubleNode (F, 'EnergySource.voltageMagnitude', kVbase * PerUnit);
+          DoubleNode (F, 'EnergySource.voltageAngle', TwoPi * Angle / 180.0);
+          DoubleNode (F, 'EnergySource.r', R1);
+          DoubleNode (F, 'EnergySource.x', X1);
+          DoubleNode (F, 'EnergySource.r0', R0);
+          DoubleNode (F, 'EnergySource.x0', X0);
+          EndInstance (F, 'EnergySource');
+          WriteTerminals (F, pVsrc, 'Eq', Name);
+        end;
       pVsrc := ActiveCircuit.Sources.Next;
     end;
 
@@ -277,6 +329,7 @@ Begin
           4: StringNode (F, 'RegulatingControl.mode', '***time');
           5: StringNode (F, 'RegulatingControl.mode', '***powerFactor');
         end;
+        IntegerNode (F, 'RegulatingControl.discrete', 1);
         DoubleNode (F, 'RegulatingControl.targetValue', v1);
         DoubleNode (F, 'RegulatingControl.targetRange', v2);
         EndInstance (F, 'RegulatingControl');
@@ -298,7 +351,17 @@ Begin
           XfRefNode (F, Name);
           BaseVoltageNode (F, 'ConductingEquipment.BaseVoltage', 0.001 * BaseVoltage[i]);
           DoubleNode (F, 'TransformerWinding.r', WdgResistance[i]);
-          DoubleNode (F, 'TransformerWinding.x', XscVal[i]);
+          // Xsc is an upper triangle array, X12, X13, X23
+          // but the star equivalent doesn't even work for more than 3 windings
+          i1:=1; i2:=1; i3:=1; // for 2 windings, placeholder for nwdg > 3
+          if NumberOfWindings = 3 then
+            case i of
+              1 : begin i1:=1; i2:=2; i3:=3 end;
+              2 : begin i1:=1; i2:=3; i3:=2 end;
+              3 : begin i1:=2; i2:=3; i3:=1 end;
+            end;
+          v1 := 0.5 * (XscVal[i1] + XscVal[i2] - XscVal[i3]);
+          DoubleNode (F, 'TransformerWinding.x', v1);
           DoubleNode (F, 'TransformerWinding.ratedKV', 0.001 * BaseVoltage[i]);
           DoubleNode (F, 'TransformerWinding.ratedMVA', 0.001 * WdgKVA[i]);
           case i of
@@ -320,8 +383,36 @@ Begin
     pReg := ActiveCircuit.RegControls.First;
     while pReg <> nil do begin
       with pReg do begin
-        StartInstance (F, 'RatioTapChanger', 'Reg', Name);
+        StartInstance (F, 'RatioTapChanger', 'Tap', Name);
+        TapRefNode (F, Transformer, TrWinding);
+        i := NumTaps;
+        IntegerNode (F, 'TapChanger.highStep', i);
+        IntegerNode (F, 'TapChanger.lowStep', 0);
+        IntegerNode (F, 'TapChanger.neutralStep', i div 2);
+        IntegerNode (F, 'TapChanger.normalStep', i div 2);
+        DoubleNode (F, 'TapChanger.neutralU', 120.0 * PT);
+        DoubleNode (F, 'TapChanger.stepVoltageIncrement', 100.0 * TapIncrement);
+        DoubleNode (F, 'TapChanger.initialDelay', InitialDelay);
+        DoubleNode (F, 'TapChanger.subsequentDelay', SubsequentDelay);
+        StringNode (F, 'TapChanger.tculControlMode', 'volt'); // what is 'local'?
+        StringNode (F, 'TapChanger.type', 'voltageControl');
         EndInstance (F, 'RatioTapChanger');
+
+        StartInstance (F, 'RegulatingControl', 'RegCtrl', Name);
+        RegRefNode (F, Name);
+        IntegerNode (F, 'RegulatingControl.discrete', 1);
+        StringNode (F, 'RegulatingControl.mode', 'voltage');
+        DoubleNode (F, 'RegulatingControl.targetValue', PT * TargetVoltage);
+        DoubleNode (F, 'RegulatingControl.targetRange', PT * BandVoltage);
+        EndInstance (F, 'RegulatingControl');
+
+        StartInstance (F, 'RegulationSchedule', 'RegSched', Name);
+        SchedRefNode (F, Name);
+        if UseLineDrop then i:=1 else i:=0;
+        IntegerNode (F, 'RegulationSchedule.lineDropCompensation', i);
+        DoubleNode (F, 'RegulationSchedule.lineDropR', LineDropR);
+        DoubleNode (F, 'RegulationSchedule.lineDropX', LineDropX);
+        EndInstance (F, 'RegulationSchedule');
       end;
       pReg := ActiveCircuit.RegControls.Next;
     end;

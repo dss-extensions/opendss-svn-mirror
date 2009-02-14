@@ -74,8 +74,8 @@ TYPE
      Public
         Connection:Integer;
 
-         Constructor Create;
-         destructor Destroy; Override;
+        Constructor Create;
+        destructor Destroy; Override;
    end;
 
    WindingArray = Array[1..3] of TWinding;
@@ -96,6 +96,7 @@ TYPE
         FUNCTION  Get_BaseVoltage(i: Integer): Double;
         FUNCTION  Get_BasekVLL(i: Integer): Double;
         // CIM accessors
+        FUNCTION  Get_NumTaps(i: Integer): Integer;
         FUNCTION  Get_WdgResistance(i: Integer): Double;
         FUNCTION  Get_WdgConnection(i: Integer): Integer;
         FUNCTION  Get_WdgKVA(i: Integer): Double;
@@ -170,11 +171,12 @@ TYPE
         Property BasekVLL[i:Integer]     :Double Read Get_BasekVLL;  // Winding Vbase
 
         // CIM accessors
-        Property NumberOfWindings :Integer Read NumWindings;
-        Property WdgResistance[i:Integer] :Double Read Get_WdgResistance;
-        Property WdgKVA[i:Integer] :Double Read Get_WdgKVA;
+        Property NumTaps[i:Integer]       :Integer Read Get_NumTaps;
+        Property NumberOfWindings         :Integer Read NumWindings;
+        Property WdgResistance[i:Integer] :Double  Read Get_WdgResistance;
+        Property WdgKVA[i:Integer]        :Double  Read Get_WdgKVA;
         Property WdgConnection[i:Integer] :Integer Read Get_WdgConnection;
-        Property XscVal[i:Integer] : Double Read Get_Xsc;
+        Property XscVal[i:Integer]        :Double  Read Get_Xsc;
 
    end;
 
@@ -1229,6 +1231,13 @@ Begin
      IF (i > 0) and (i <= NumWindings)
      THEN Result := Winding^[i].MaxTap
      ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_NumTaps(i: Integer): Integer;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].NumTaps
+     ELSE Result := 0;
 end;
 
 FUNCTION TTransfObj.Get_TapIncrement(i: Integer): Double;
