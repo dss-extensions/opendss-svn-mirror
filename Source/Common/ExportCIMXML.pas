@@ -18,8 +18,9 @@ implementation
 
 Uses sysutils, Utilities, Circuit, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
-     Vsource, Line, Transformer, Ucomplex,
-     Fuse, Capacitor, CapControl, Reactor, Feeder;
+     Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
+     Fuse, Capacitor, CapControl, Reactor, Feeder, WireData,
+     LineGeometry;
 
 procedure DoubleNode (var F: TextFile; Node: String; val: Double);
 begin
@@ -93,6 +94,20 @@ begin
     [Reg]));
 end;
 
+procedure ArrCondRefNode (var F: TextFile; Cond: String);
+begin
+  Writeln(F,
+    Format('  <cim:WireArrangement.MemberOf_ConductorType rdf:resource="#Cond_%s"/>',
+    [Cond]));
+end;
+
+procedure ArrWireRefNode (var F: TextFile; Wire: String);
+begin
+  Writeln(F,
+    Format('  <cim:WireArrangement.WireType rdf:resource="#Wire_%s"/>',
+    [Wire]));
+end;
+
 procedure BaseVoltageNode (var F: TextFile; Prefix: String; val: Double);
 begin
   Writeln(F, Format('  <cim:%s.BaseVoltage rdf:resource="#BaseVoltage_%.3f"/>',
@@ -122,6 +137,24 @@ end;
 procedure StringNode (var F: TextFile; Node: String; val: String);
 begin
   Writeln (F, Format ('  <cim:%s>%s</cim:%s>', [Node, val, Node]));
+end;
+
+procedure MatrixNode (var F: TextFile; Node: String; m: TCMatrix; n: Integer; imag: Boolean; scale: Double);
+var
+  i, j: Integer;
+  v : Double;
+begin
+  Write (F, Format ('  <cim:%s>', [Node]));
+  for i := 1 to n do begin
+    for j := 1 to i do begin
+      if imag then v := m.GetElement(i, j).im else v := m.GetElement(i,j).re;
+      v := scale * v;
+      Write (F, v:0:8);
+      if j < i then Write (F, ',');
+    end;
+    if i < n then Write (F, '|');
+  end;
+  Writeln (F, Format ('</cim:%s>', [Node]));
 end;
 
 procedure StartInstance (var F: TextFile; Root: String; Abbrev: String; Name: String);
@@ -188,6 +221,7 @@ Var
   Zs, Zm : complex;
   Rs, Rm, Xs, Xm, R1, R0, X1, X0: double;
   WdgName : String;
+  ArrName : String;
 
   pLoad  : TLoadObj;
   pVsrc  : TVsourceObj;
@@ -201,6 +235,14 @@ Var
 
   pFdr  : TFeederObj;
   kvFdr : double;
+
+  clsCode : TLineCode;
+  clsGeom : TLineGeometry;
+  clsWire : TWireData;
+
+  pCode : TLineCodeObj;
+  pGeom : TLineGeometryObj;
+  pWire : TWireDataObj;
 
 Begin
   Try
@@ -458,6 +500,62 @@ Begin
           WriteTerminals (F, pLoad, 'Load', Name);
         end;
         pLoad := ActiveCircuit.Loads.Next;
+    end;
+
+    clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
+    pCode := clsCode.ElementList.First;
+    while pCode <> nil do begin
+      StartInstance (F, 'LineCode', 'Code', pCode.Name);
+      IntegerNode (F, 'numPhases', pCode.FNPhases);
+      DoubleNode (F, 'baseFreq', pCode.BaseFrequency);
+      DoubleNode (F, 'r', pCode.R1);
+      DoubleNode (F, 'x', pCode.X1);
+      DoubleNode (F, 'c', 1.0e9 * pCode.C1);
+      DoubleNode (F, 'r0', pCode.R0);
+      DoubleNode (F, 'x0', pCode.X0);
+      DoubleNode (F, 'c0', 1.0e9 * pCode.C0);
+      MatrixNode (F, 'rMatrix', pCode.Z, pCode.FNPhases,
+        False, 1.0);
+      MatrixNode (F, 'xMatrix', pCode.Z, pCode.FNPhases,
+        True, 1.0);
+      MatrixNode (F, 'cMatrix', pCode.YC, pCode.FNPhases,
+        True, 1.0e9 / TwoPi / pCode.BaseFrequency);
+      EndInstance (F, 'LineCode');
+      pCode := clsCode.ElementList.Next;
+    end;
+
+    clsWire := DSSClassList.Get(ClassNames.Find('wiredata'));
+    pWire := clsWire.ElementList.First;
+    while pWire <> nil do begin
+      StartInstance (F, 'WireType', 'Wire', pWire.Name);
+      DoubleNode (F, 'WireType.gMR', pWire.GMR);
+      DoubleNode (F, 'WireType.radius', pWire.Radius);
+      DoubleNode (F, 'WireType.resistance', pWire.Rac);
+      DoubleNode (F, 'WireType.ratedCurrent', pWire.NormAmps);
+      IntegerNode (F, 'WireType.phaseConductorCount', 1);
+      EndInstance (F, 'WireType');
+      pWire := clsWire.ElementList.Next;
+    end;
+
+    clsGeom := DSSClassList.Get(ClassNames.Find('linegeometry'));
+    pGeom := clsGeom.ElementList.First;
+    while pGeom <> nil do begin
+      StartInstance (F, 'ConductorType', 'Cond', pGeom.Name);
+      EndInstance (F, 'ConductorType');
+
+      for i := 1 to pGeom.Nconds do begin
+        Str (i, ArrName);
+        ArrName := pGeom.Name + '_' + ArrName;
+        StartInstance (F, 'WireArrangement', 'Arr', ArrName);
+        IntegerNode (F, 'WireArrangement.sequence', i);
+        ArrCondRefNode (F, pGeom.Name);
+        ArrWireRefNode (F, pGeom.WireName[i]);
+        DoubleNode (F, 'WireArrangement.mountingPointX', pGeom.Xcoord[i]);
+        DoubleNode (F, 'WireArrangement.mountingPointY', pGeom.Ycoord[i]);
+        EndInstance (F, 'WireArrangement');
+      end;
+
+      pGeom := clsGeom.ElementList.Next;
     end;
 
     GlobalResult := FileNm;

@@ -78,6 +78,10 @@ TYPE
         function  get_Nconds: Integer;
         Procedure UpdateLineGeometryData(f:Double);   // call this before using the line data
 
+        // CIM Accessors
+        function Get_FX (i: integer) : Double;
+        function Get_FY (i: integer) : Double;
+        function Get_WireName (i: integer) : String;
 
       public
 
@@ -98,6 +102,11 @@ TYPE
         Property Zmatrix [f, Lngth:double; Units:Integer]:Tcmatrix read Get_Zmatrix;
         Property YCmatrix[f, Lngth:double; Units:Integer]:Tcmatrix read Get_YCmatrix;
         Property RhoEarth:Double    Read Get_RhoEarth Write Set_RhoEarth;
+
+        // CIM XML accessors
+        Property Xcoord[i:Integer]: Double Read Get_FX;
+        Property Ycoord[i:Integer]: Double Read Get_FY;
+        Property WireName[i:Integer]: String Read Get_WireName;
    end;
 
 VAR
@@ -418,6 +427,21 @@ begin
      Result     := Inherited GetPropertyValue(Index);
    END;
 
+end;
+
+function TLineGeometryObj.Get_FX(i:Integer) : Double;
+begin
+  If i <= FNConds Then Result := FX^[i] Else Result := 0.0;
+end;
+
+function TLineGeometryObj.Get_FY(i:Integer) : Double;
+begin
+  If i <= FNConds Then Result := FY^[i] Else Result := 0.0;
+end;
+
+function TLineGeometryObj.Get_WireName(i:Integer) : String;
+begin
+  If i <= FNConds Then Result := Fcondtype^[i] Else Result := '';
 end;
 
 function TLineGeometryObj.get_Nconds: Integer;
