@@ -159,7 +159,7 @@ end;
 
 procedure StartInstance (var F: TextFile; Root: String; Abbrev: String; Name: String);
 begin
-  Writeln(F, Format('<cim:%s ref:ID="%s_%s">', [Root, Abbrev, Name]));
+  Writeln(F, Format('<cim:%s rdf:ID="%s_%s">', [Root, Abbrev, Name]));
   StringNode (F, 'IdentifiedObject.name', Name);
 end;
 
@@ -252,18 +252,20 @@ Begin
 
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
+    Writeln(F,'-->');
     Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2008/CIM-schema-cim13#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+    Writeln(F,'<!--');
     Writeln(F,'-->');
     with ActiveCircuit do begin
       i:=1;
       val:=LegalVoltageBases^[i];
       while val > 0.0 do begin
-        Writeln(F, Format('<cim:BaseVoltage ref:ID="BaseVoltage_%.3f">', [val]));
+        Writeln(F, Format('<cim:BaseVoltage rdf:ID="BaseVoltage_%.3f">', [val]));
         PrefixVbaseNode (F, 'IdentifiedObject.name', 'BaseVoltage', val);
         DoubleNode (F, 'BaseVoltage.nominalVoltage', val);
         Writeln(F,'</cim:BaseVoltage>');
 
-        Writeln(F, Format('<cim:VoltageLevel ref:ID="VoltageLevel_%.3f">', [val]));
+        Writeln(F, Format('<cim:VoltageLevel rdf:ID="VoltageLevel_%.3f">', [val]));
         PrefixVbaseNode (F, 'IdentifiedObject.name', 'VoltageLevel', val);
         Writeln(F, Format('  <cim:VoltageLevel.BaseVoltage rdf:resource="#BaseVoltage_%.3f"/>', [val]));
         DoubleNode (F, 'VoltageLevel.lowVoltageLimit', val * NormalMinVolts);
@@ -275,7 +277,7 @@ Begin
       end;
 
       for i := 1 to NumBuses do begin
-        Writeln(F, Format('<cim:ConnectivityNode ref:ID="CN_%s">', [BusList.Get(i)]));
+        Writeln(F, Format('<cim:ConnectivityNode rdf:ID="CN_%s">', [BusList.Get(i)]));
         StringNode (F, 'IdentifiedObject.name', BusList.Get(i));
         VoltageLevelNode (F, 'ConnectivityNode', Buses^[i].kVBase);
         DoubleNode (F, 'PositionPoint.xPosition', Buses^[i].x);
@@ -558,6 +560,7 @@ Begin
       pGeom := clsGeom.ElementList.Next;
     end;
 
+    Writeln (F, '</rdf:RDF>');
     GlobalResult := FileNm;
   Finally
     CloseFile(F);
