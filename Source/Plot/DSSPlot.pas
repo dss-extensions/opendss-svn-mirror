@@ -866,6 +866,7 @@ begin
        ptMonitorPlot: Result := 1;
      Else
          Begin
+         pLine.ActiveTerminalIdx := 1; // just for good measure
           Case Quantity of
              pqNone:    Begin
                            If plotType=ptGeneralCircuitPlot Then
@@ -874,20 +875,16 @@ begin
                         End;
              pqVoltage: Result := 1;
              pqCurrent: Begin
-                        pLine.ActiveTerminalIdx := 1;
                         If pLine.NormAmps>0.0 Then Result := Round(5.0 * MaxCurrent/pLine.Normamps)
                         Else Result := 1;
                       End;
              pqPower:   Begin
-                        pLine.ActiveTerminalIdx := 1;
-                        Result := Round(5.0 * (abs(pLine.Power.re)/Maxscale*0.001));  // kW
+                        Result := Round(5.0 * (abs(pLine.Power[1].re)/Maxscale * 0.001));  // kW
                       End;
              pqLosses:  Begin  // Losses per unit length
-                        pLine.ActiveTerminalIdx := 1;
-                        Result := Round(5.0 * (abs(pLine.Losses.re/pLine.Len )/Maxscale*0.001));  // kW
+                        Result := Round(5.0 * (abs(pLine.Losses.re/pLine.Len )/Maxscale * 0.001));  // kW
                       End;
              pqCapacity: Begin
-                        pLine.ActiveTerminalIdx := 1;
                         If pLine.NormAmps > 0.0 Then Result := Round(5.0 *(1.0- MaxCurrent/pLine.Normamps))
                         Else Result := 7;
                       End;
@@ -1848,8 +1845,8 @@ begin
                    pLine := ActiveCircuit.Lines.First;
                    While pLine <> Nil Do Begin
                      If pLine.Enabled Then  With pLine Do Begin
-                      ActiveTerminalIdx := 1;
-                      MaxScale := Max(MaxScale, abs(Power.re))
+                      //----ActiveTerminalIdx := 1;
+                      MaxScale := Max(MaxScale, abs(Power[1].re))
                      End;
                     pLine := ActiveCircuit.Lines.next;
                    End;

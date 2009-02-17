@@ -21,8 +21,8 @@ TYPE
 
    TPDElement = class(TDSSCktElement)
      private
-       FUNCTION Get_ExcessKVANorm:Complex;
-       FUNCTION Get_ExcessKVAEmerg:Complex;
+       FUNCTION Get_ExcessKVANorm (idxTerm:Integer):Complex;
+       FUNCTION Get_ExcessKVAEmerg(idxTerm:Integer):Complex;
 
      public
 
@@ -52,8 +52,8 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        PROCEDURE GetCurrents(Curr: pComplexArray); Override; // Get present values of terminal
 
-       Property ExcesskVANorm :Complex Read Get_ExcesskVANorm;
-       Property ExcesskVAEmerg:Complex Read Get_ExcesskVAEmerg;
+       Property ExcesskVANorm[idxTerm:Integer] :Complex Read Get_ExcesskVANorm;
+       Property ExcesskVAEmerg[idxTerm:Integer]:Complex Read Get_ExcesskVAEmerg;
 
    end;
 
@@ -107,7 +107,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TPDElement.Get_ExcessKVANorm:Complex;
+FUNCTION TPDElement.Get_ExcessKVANorm(idxTerm:Integer):Complex;
 
 VAR
    Factor:Double;
@@ -120,7 +120,7 @@ Begin
           Exit;
      End;
 
-     kVA    := CmulReal(Power, 0.001);  // Also forces computation of Current into Itemp
+     kVA    := CmulReal(Power[idxTerm], 0.001);  // Also forces computation of Current into Itemp
      Factor := (MaxTerminalOneIMag/NormAmps - 1.0);
      IF    (Factor > 0.0) THEN  Begin
         OverLoad_EEN := Factor;
@@ -137,7 +137,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - -
-FUNCTION TPDElement.Get_ExcessKVAEmerg:Complex;
+FUNCTION TPDElement.Get_ExcessKVAEmerg(idxTerm:Integer):Complex;
 VAR
    Factor:Double;
    kVA :Complex;
@@ -149,7 +149,7 @@ Begin
           Exit;
      End;
 
-     kVA := CmulReal(Power, 0.001);  // Also forces computation of Current into Itemp
+     kVA := CmulReal(Power[idxTerm], 0.001);  // Also forces computation of Current into Itemp
 
      Factor := (MaxTerminalOneIMag/EmergAmps-1.0);
      IF    Factor > 0.0

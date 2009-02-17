@@ -177,8 +177,8 @@ Begin
      If Assigned(ActiveCircuit.ActiveCktElement) then
         With ActiveCircuit Do
            With ActiveCktElement Do Begin
-             ActiveTerminalIdx := Terminal;
-             TotalPower := Power;
+             //----ActiveTerminalIdx := Terminal;
+             TotalPower := Power[Terminal];
         End;
 End;
 

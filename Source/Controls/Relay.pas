@@ -1153,8 +1153,8 @@ begin
 
  WITH   MonitoredElement Do
    Begin
-      MonitoredElement.ActiveTerminalIdx := MonitoredElementTerminal;
-      S := MonitoredElement.Power;
+      //----MonitoredElement.ActiveTerminalIdx := MonitoredElementTerminal;
+      S := MonitoredElement.Power[MonitoredElementTerminal];
       IF S.re < 0.0  THEN
         Begin
           IF Abs(S.Re) > PhaseInst * 1000.0 THEN

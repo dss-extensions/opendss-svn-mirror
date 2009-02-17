@@ -40,7 +40,7 @@ TYPE
       FUNCTION  Get_FirstBus:String;
       FUNCTION  Get_NextBus:String;
       FUNCTION  Get_Losses:Complex;   // Get total losses for property...
-      FUNCTION  Get_Power:Complex;    // Get total complex power in active terminal
+      FUNCTION  Get_Power(idxTerm:Integer):Complex;    // Get total complex power in active terminal
 
       PROCEDURE DoYprimCalcs(Ymatrix: TCMatrix);
 
@@ -128,7 +128,7 @@ TYPE
       Property FirstBus:String        read Get_FirstBus;
       Property NextBus:String         read Get_NextBus;    // null string if no more values
       Property Losses:Complex         read Get_Losses;
-      Property Power:Complex          read Get_Power;  // Total power in active terminal
+      Property Power[idxTerm:Integer]:Complex  read Get_Power;  // Total power in active terminal
       Property ActiveTerminalIdx:Integer       read FActiveTerminal      write Set_ActiveTerminal;
       Property Closed[Index:Integer]:Boolean   read Get_ConductorClosed  write Set_ConductorClosed;
       PROCEDURE SumCurrents;
@@ -591,7 +591,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION  TDSSCktElement.Get_Power:Complex;    // Get total complex power in active terminal
+FUNCTION  TDSSCktElement.Get_Power(idxTerm:Integer):Complex;    // Get total complex power in active terminal
 
 VAR
    cPower:Complex;
@@ -608,7 +608,7 @@ Begin
   // Method: Sum complex power going into phase conductors of active terminal
      WITH ActiveCircuit.Solution DO
        Begin
-         k := (FActiveTerminal -1)*Fnconds;
+         k := (idxTerm -1)*Fnconds;
          FOR i := 1 to Fnconds DO     // 11-7-08 Changed from Fnphases - was not accounting for all conductors
            Begin
             n := ActiveTerminal.TermNodeRef^[i]; // don't bother for grounded node

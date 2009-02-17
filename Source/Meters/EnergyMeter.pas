@@ -1104,8 +1104,8 @@ Begin
 
 // Compute energy in branch  to which meter is connected
 
-     MeteredElement.ActiveTerminalIdx := MeteredTerminal;
-     S_Local     := CmulReal(MeteredElement.Power, 0.001);
+     //----MeteredElement.ActiveTerminalIdx := MeteredTerminal;  // needed for Excess kVA calcs
+     S_Local     := CmulReal(MeteredElement.Power[MeteredTerminal], 0.001);
      S_Local_kVA := Cabs(S_Local);
      Delta_Hrs   := ActiveCircuit.Solution.IntervalHrs;
      Integrate(Reg_kWh,   S_Local.re, Delta_Hrs);   // Accumulate the power
@@ -1138,8 +1138,8 @@ Begin
      {--------------------------------------------------------------------------}
      IF LocalOnly THEN Begin
            CktElem :=  MeteredElement as TPDElement;
-           MaxExcesskWNorm   := Abs(CktElem.ExcesskVANorm.re);
-           MaxExcesskWEmerg  := Abs(CktElem.ExcesskVAEmerg.re);
+           MaxExcesskWNorm   := Abs(CktElem.ExcesskVANorm[MeteredTerminal].re);
+           MaxExcesskWEmerg  := Abs(CktElem.ExcesskVAEmerg[MeteredTerminal].re);
      End ELSE
      {--------------------------------------------------------------------------}
      {--------Cyle Through Entire Zone Setting EEN/UE --------------------------}
@@ -1147,10 +1147,12 @@ Begin
      WHILE CktElem <> NIL Do
      Begin       // loop thru all ckt elements on zone
 
-         CktElem.ActiveTerminalIdx := BranchList.Presentbranch.FromTerminal;
-       // Invoking this property sets the Overload_UE flag in the PD Element
-         EEN  := Abs(CktElem.ExcesskVANorm.re);
-         UE   := Abs(CktElem.ExcesskVAEmerg.re);
+         With CktElem Do Begin
+           ActiveTerminalIdx := BranchList.Presentbranch.FromTerminal;
+         // Invoking this property sets the Overload_UE flag in the PD Element
+           EEN  := Abs(ExcesskVANorm[ActiveTerminalIdx].re);
+           UE   := Abs(ExcesskVAEmerg[ActiveTerminalIdx].re);
+         End;
 
          {For radial circuits just keep the maximum overload; for mesh, add 'em up}
          IF   (ZoneIsRadial)  THEN Begin
@@ -1881,8 +1883,8 @@ PROCEDURE TEnergyMeterObj.Accumulate_Gen;
 Var
    S:Complex;
 begin
-     pGen.ActiveTerminalIdx := 1;
-     S := Cnegate(CmulReal(pGen.Power, 0.001));
+     //----pGen.ActiveTerminalIdx := 1;
+     S := Cnegate(CmulReal(pGen.Power[1], 0.001));
      TotalZonekw   := TotalZonekW   + S.re;
      TotalZonekvar := TotalZonekvar + S.im;
 
@@ -1897,8 +1899,8 @@ Var
 begin
   WITH   pLoad  Do
   Begin
-       ActiveTerminalIdx := 1;
-       S_Load        := CmulReal(pLoad.Power, 0.001);   // Get Power in Terminal 1
+       //----ActiveTerminalIdx := 1;
+       S_Load        := CmulReal(pLoad.Power[1], 0.001);   // Get Power in Terminal 1
        kW_Load       := S_Load.re;
 
        {Accumulate load in zone}

@@ -323,7 +323,7 @@ Begin
         pCktElem := Sources.First;
         cPower := Cmplx(0.0, 0.0);
         WHILE pCktElem<>nil  DO Begin
-           CAccum(cPower, pcktElem.Power);
+           CAccum(cPower, pcktElem.Power[1]);
            pCktElem := Sources.Next;
         End;
         Result[0] := cPower.re * 0.001;

@@ -774,12 +774,12 @@ Begin
 
            If j = 1
            Then Begin
-               PDelem.ActiveTerminalIdx := 1;
-               S := PDElem.ExcesskVANorm;
+               //----PDelem.ActiveTerminalIdx := 1;
+               S := PDElem.ExcesskVANorm[1];
                If Opt=1 Then S := CmulReal(S, 0.001);
                Write(F, S.re:11:1);
                Write(F, S.im:11:1);
-               S := PDElem.ExcesskVAEmerg;
+               S := PDElem.ExcesskVAEmerg[1];
                If Opt=1 Then S := CmulReal(S, 0.001);
                Write(F, S.re:11:1);
                Write(F, S.im:11:1);
@@ -2210,10 +2210,10 @@ Begin
        IF (PDelem.Enabled)
        {THEN IF (CLASSMASK AND PDElem.DSSObjType) <>  CAP_ELEMENT }    // Ignore capacitors
        THEN Begin
-        PDelem.ActiveTerminalIdx := 1;  // activate 1st terminal for Power call
+        //----PDelem.ActiveTerminalIdx := 1;  // activate 1st terminal for Power call
         kLosses := CmulReal(PDelem.Losses, 0.001);   // kW Losses in element
         Caccum(TotalLosses, kLosses);
-        TermPower := CmulReal(PDelem.power, 0.001);     // Terminal 1 power
+        TermPower := CmulReal(PDelem.power[1], 0.001);     // Terminal 1 power
 
         IF (CLASSMASK AND PDElem.DSSObjType) =  XFMR_ELEMENT THEN Caccum(TransLosses, kLosses);
         IF (CLASSMASK AND PDElem.DSSObjType) =  LINE_ELEMENT THEN Caccum(LineLosses, kLosses);
@@ -2241,8 +2241,7 @@ Begin
      WHILE Pcelem<>nil DO
      Begin
          If PcElem.Enabled Then Begin
-             PCelem.ActiveTerminalIdx := 1;
-             Caccum(LoadPower, PCelem.Power);
+             Caccum(LoadPower, PCelem.Power[1]);
          End;
          PCelem := ActiveCircuit.Loads.Next;
      End;

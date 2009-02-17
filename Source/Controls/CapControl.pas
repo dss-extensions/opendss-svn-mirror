@@ -760,8 +760,8 @@ begin
 
               KVARCONTROL: {kvar}
                  Begin
-                      MonitoredElement.ActiveTerminalIdx := ElementTerminal;
-                      S := MonitoredElement.Power;
+                      //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
+                      S := MonitoredElement.Power[ElementTerminal];
                       Q := S.im * 0.001;  // kvar
 
                       CASE PresentState of
@@ -846,8 +846,8 @@ begin
 
                  PFCONTROL: {PF}
                  Begin
-                      MonitoredElement.ActiveTerminalIdx := ElementTerminal;
-                      S := MonitoredElement.Power;
+                      //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
+                      S := MonitoredElement.Power[ElementTerminal];
                       PF := PF1to2(S);
 
                       {PF is in range of 0 .. 2;  Leading is 1..2}
