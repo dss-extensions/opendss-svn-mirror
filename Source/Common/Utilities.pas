@@ -1963,6 +1963,7 @@ Begin
   Result := CZERO;
   cktElem := ActiveCircuit.Sources.First;
   While CktElem <>nil Do Begin
+     CktElem.ActiveTerminalIdx := 1;
      Caccum( Result, Cnegate(CktElem.power));
      cktElem := ActiveCircuit.Sources.Next;
   End;

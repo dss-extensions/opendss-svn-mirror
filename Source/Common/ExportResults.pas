@@ -571,6 +571,7 @@ Begin
         FOR j := 1 to NTerm Do
         Begin
            Write(F,  Pad('"'+PCElem.DSSClassName + '.' + PCElem.Name+'"', 24), Separator, j:3);
+           pcElem.ActiveTerminalIdx := j;
            S := pCElem.Power ;
            If Opt=1 Then S := CmulReal(S, 0.001);
            Write(F, Separator, S.re*0.001:11:1);

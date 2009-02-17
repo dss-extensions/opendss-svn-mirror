@@ -1881,7 +1881,7 @@ PROCEDURE TEnergyMeterObj.Accumulate_Gen;
 Var
    S:Complex;
 begin
-
+     pGen.ActiveTerminalIdx := 1;
      S := Cnegate(CmulReal(pGen.Power, 0.001));
      TotalZonekw   := TotalZonekW   + S.re;
      TotalZonekvar := TotalZonekvar + S.im;
@@ -1897,6 +1897,7 @@ Var
 begin
   WITH   pLoad  Do
   Begin
+       ActiveTerminalIdx := 1;
        S_Load        := CmulReal(pLoad.Power, 0.001);   // Get Power in Terminal 1
        kW_Load       := S_Load.re;
 
