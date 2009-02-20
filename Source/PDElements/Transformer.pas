@@ -700,6 +700,11 @@ Begin
            Rpu        := OtherTransf.Winding^[i].Rpu;
            RNeut      := OtherTransf.Winding^[i].RNeut;
            Xneut      := OtherTransf.Winding^[i].Xneut;
+           // copy the taps
+           TapIncrement := OtherTransf.Winding^[i].TapIncrement;
+           MinTap       := OtherTransf.Winding^[i].MinTap;
+           MaxTap       := OtherTransf.Winding^[i].MaxTap;
+           NumTaps      := OtherTransf.Winding^[i].NumTaps;
          End;
 
        SetTermRef;

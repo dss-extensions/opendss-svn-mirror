@@ -384,11 +384,11 @@ Begin
         StartInstance (F, 'RegulatingControl', 'CapC', Name);
         CapControlRefNodes (F, This_Capacitor.Name, ElementName);
         if CapControlType = 5 then begin
-          v1 := OnValue;
-          v2 := OffValue
-        end else begin
           v1 := PfOnValue;
-          v2 := PfOffValue;
+          v2 := PfOffValue
+        end else begin
+          v1 := OnValue;
+          v2 := OffValue;
         end;
         case CapControlType of
           1: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
