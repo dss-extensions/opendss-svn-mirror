@@ -211,6 +211,30 @@ begin
   end;
 end;
 
+procedure WriteWdgTerminals(var F:TextFile; pXf:TTransfObj);
+var
+  i : Integer;
+  BusName, WdgName, TermName : String;
+begin
+  BusName := pXf.FirstBus;
+  for i := 1 to pXf.NumberOfWindings do begin
+    BusName := StripExtension (BusName);
+    Str (i, WdgName);
+    WdgName := 'Wdg_' + pXf.Name + '_' + WdgName;
+    TermName := WdgName + '_T1';
+
+    StartInstance (F, 'Terminal', 'Trm', TermName);
+    StringNode (F, 'Naming.name', TermName);
+    Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
+      [WdgName]));
+    Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#CN_%s"/>',
+      [BusName]));
+    EndInstance (F, 'Terminal');
+
+    BusName := pXf.Nextbus;
+  end;
+end;
+
 Procedure ExportCDPSM(FileNm:String);
 Var
   F   : TextFile;
@@ -420,6 +444,7 @@ Begin
             StringNode (F, 'TransformerWinding.connectionType', 'Y');
           EndInstance (F, 'TransformerWinding');
         end;
+        WriteWdgTerminals (F, pXf);
       end;
       pXf := ActiveCircuit.Transformers.Next;
     end;
