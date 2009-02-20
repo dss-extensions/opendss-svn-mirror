@@ -601,6 +601,7 @@ Begin
 
 
    cPower := cmplx(0.0,0.0);
+   ActiveTerminalIdx := idxTerm;
 
    If FEnabled Then Begin
      ComputeIterminal;

@@ -3115,7 +3115,8 @@ Begin
        S.Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
        S.Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
        cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
-			 S.Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]));
+			 If cPower.re <> 0.0 Then S.Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
+                           Else S.Add('Total Active Losses:   ****** MW, (**** %%)');
        S.Add(Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]));
        S.Add(Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]));
        S.Add('Mode = '+GetSolutionModeID);
