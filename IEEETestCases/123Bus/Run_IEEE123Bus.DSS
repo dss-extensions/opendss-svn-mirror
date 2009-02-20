@@ -42,6 +42,7 @@ Set MaxControlIter=30
 ! Solve executes the solution for the present solution mode, which is "snapshot".
 
 solve
+Buscoords Buscoords.txt   ! load in bus coordinates
 
 ! Show some selected results
 
@@ -49,6 +50,8 @@ Show Voltage LN Nodes     ! this shows the voltages by node, Line-to-Neutral vol
 Show Currents Elements    ! this produces a report of the currents, element-by-element.
 Show Powers kva Elements  ! This produces a report of the powers, in kVA, element-by-element
 Show taps                 ! shows the present regulator taps
+
+Redirect CircuitplottingScripts.DSS
 
 ! =================================================================
 ! 2nd Script
@@ -85,7 +88,8 @@ RegControl.creg4c.maxtapchange=0  !Fixed at present tap
 ! No need to revise the MaxControlIter option in this case;
 ! there will be only one control iteration
 
-solve    
+solve  
+Buscoords Buscoords.txt   ! load in bus coordinates
 
 ! Show Results
 
