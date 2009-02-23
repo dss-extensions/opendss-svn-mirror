@@ -199,7 +199,7 @@ begin
       TermName := Ref + '_T' + TermName;
 
       StartInstance (F, 'Terminal', 'Trm', TermName);
-      StringNode (F, 'Naming.name', TermName);
+//      StringNode (F, 'Naming.name', TermName);
       Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
         [Ref]));
       Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#CN_%s"/>',
@@ -272,7 +272,7 @@ Begin
   Try
     Assignfile(F, FileNm);
     ReWrite(F);
-    kvFdr := 0.0;
+    kvFdr := 12.47;  // default for EPRI examples
 
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
@@ -489,26 +489,38 @@ Begin
     pLine := ActiveCircuit.Lines.First;
     while pLine <> nil do begin
       with pLine do begin
-        StartInstance (F, 'Line', 'Line', Name);
-        EndInstance (F, 'Line');
-        WriteTerminals (F, pLine, 'Line', Name);
+        if pLine.IsSwitch then begin
+          StartInstance (F, 'LoadBreakSwitch', 'Swt', Name);
+          PhasesNode (F, 'ConductingEquipment.phases', pLine);
+          if pLine.Closed[0] then
+            StringNode (F, 'Switch.normalOpen', 'false')
+          else
+            StringNode (F, 'Switch.normalOpen', 'true');
+          
+          EndInstance (F, 'LoadBreakSwitch');
+          WriteTerminals (F, pLine, 'Swt', Name);
+        end else begin
+          StartInstance (F, 'Line', 'Line', Name);
+          EndInstance (F, 'Line');
+          WriteTerminals (F, pLine, 'Line', Name);
 
-        StartInstance (F, 'ACLineSegment', 'Seg', Name);
-        LineRefNode (F, Name);
-        BaseVoltageNode (F, 'ConductingEquipment', kvFdr);
-        DoubleNode (F, 'Conductor.length', Len);
-        PhasesNode (F, 'ConductingEquipment.phases', pLine);
-        DoubleNode (F, 'Conductor.r', R1);
-        DoubleNode (F, 'Conductor.x', X1);
-        DoubleNode (F, 'Conductor.bch', C1);
-        DoubleNode (F, 'Conductor.r0', R0);
-        DoubleNode (F, 'Conductor.x0', X0);
-        DoubleNode (F, 'Conductor.bch0', C0);
+          StartInstance (F, 'ACLineSegment', 'Seg', Name);
+          LineRefNode (F, Name);
+          BaseVoltageNode (F, 'ConductingEquipment', kvFdr);
+          DoubleNode (F, 'Conductor.length', Len);
+          PhasesNode (F, 'ConductingEquipment.phases', pLine);
+          DoubleNode (F, 'Conductor.r', R1);
+          DoubleNode (F, 'Conductor.x', X1);
+          DoubleNode (F, 'Conductor.bch', C1);
+          DoubleNode (F, 'Conductor.r0', R0);
+          DoubleNode (F, 'Conductor.x0', X0);
+          DoubleNode (F, 'Conductor.bch0', C0);
 
-        StringNode (F, 'CondCode', CondCode);
-        if GeometrySpecified then StringNode (F, 'Geometry', GeometryCode);
+          StringNode (F, 'CondCode', CondCode);
+          if GeometrySpecified then StringNode (F, 'Geometry', GeometryCode);
 
-        EndInstance (F, 'ACLineSegment');
+          EndInstance (F, 'ACLineSegment');
+        end;
       end;
       pLine := ActiveCircuit.Lines.Next;
     end;
