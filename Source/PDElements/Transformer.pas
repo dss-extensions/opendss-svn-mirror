@@ -39,6 +39,7 @@ TYPE
        PROCEDURE InterpretAllTaps(const S:String);
        PROCEDURE InterpretAllkVRatings(const S:String);
        PROCEDURE InterpretAllkVARatings(const S:String);
+       PROCEDURE InterpretAllRs(const S:String);
        PROCEDURE SetNumWindings(N:Integer);
        {PROCEDURE MakeNewBusNameForNeutral(Var NewBusName:String; Nphases:Integer);}
      Protected
@@ -192,7 +193,7 @@ IMPLEMENTATION
 
 USES    DSSGlobals, Sysutils, Utilities;
 
-Const NumPropsThisClass = 36;
+Const NumPropsThisClass = 37;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TTransf.Create;  // Creates superstructure for all Transformer objects
@@ -269,6 +270,7 @@ Begin
      PropertyName[34] := 'subname';
      PropertyName[35] := '%imag';
      PropertyName[36] := 'ppm_antifloat';
+     PropertyName[37] := '%Rs';
 
 
 
@@ -280,12 +282,14 @@ Begin
      PropertyHelp[3] := 'Set this = to the number of the winding you wish to define.  Then set '+
                     'the values for this winding.  Repeat for each winding.  Alternatively, use '+
                     'the array collections (buses, kvas, etc.) to define the windings.  Note: '+
-                    'impedances are BETWEEN pairs of windings; they are not the property of a single winding.';
+                    'reactances are BETWEEN pairs of windings; they are not the property of a single winding.';
      PropertyHelp[4] := 'Bus to which this winding is connected.';
      PropertyHelp[5] := 'Connection of this winding. Default is "wye" with the neutral solidly grounded.';
      PropertyHelp[6] := 'For 2-or 3-phase, enter phase-phase kV rating.  Otherwise, kV rating of the actual winding';
      PropertyHelp[7] := 'Base kVA rating of the winding. Side effect: forces change of max normal and emerg kva ratings.' +
-                        'If 2-winding transformer, forces other winding to same value.';
+                        'If 2-winding transformer, forces other winding to same value. ' +
+                        'When winding 1 is defined, all other windings are defaulted to the same rating ' +
+                        'and the first two winding resistances are defaulted to the %loadloss value.';
      PropertyHelp[8] := 'Per unit tap that this winding is on.';
      PropertyHelp[9] := 'Percent resistance this winding.  (half of total for a 2-winding).';
      PropertyHelp[10] := 'Default = -1. Neutral resistance of wye (star)-connected winding in actual ohms.' +
@@ -336,6 +340,9 @@ Begin
      PropertyHelp[35] := 'Percent magnetizing current. Default=0.0. Magnetizing branch is in parallel with windings in each phase. Also, see "ppm_antifloat".';
      PropertyHelp[36] := 'Default=1 ppm.  Parts per million by which the reactive term is increased to protect against accidentally floating a winding. ' +
                          'If positive then the effect is adding a small reactor to ground.  If negative, then a capacitor.';
+     PropertyHelp[37] := 'Use this property to specify all the winding %resistances using an array. Example:'+CRLF+CRLF+
+                         'New Transformer.T1 buses="Hibus, lowbus" '+
+                         '~ %Rs=(0.2  0.3)';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -425,6 +432,7 @@ Begin
            34: SubstationName   := Param;
            35: pctImag          := Parser.DblValue;
            36: ppm_FloatFactorPlusOne := Parser.DblValue * 1.0e-6 + 1.0;
+           37: InterpretAllRs(Param);
          ELSE
            // Inherited properties
               ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -451,8 +459,8 @@ Begin
              End;
           17..19: XHLChanged := True;
           20: For i := 1 to ((NumWindings - 1) * NumWindings div 2) Do Xsc^[i] := Xsc^[i]*0.01;  // Convert to per unit
-          // Assume load loss is split evenly  between windings 1 and 2
-          26: Begin
+          
+          26: Begin    // Assume load loss is split evenly  between windings 1 and 2
                  Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
                  Winding^[2].Rpu := Winding^[1].Rpu;
               End;
@@ -584,7 +592,6 @@ End;
 PROCEDURE TTransf.InterpretAllBuses(const S:String);
 //  routine expecting all winding connections expressed in one array of strings
 VAR
-    S1,
     BusNam  :String;
     i       :Integer;
 Begin
@@ -595,7 +602,7 @@ Begin
     WITH ActiveTransfObj DO
       FOR i := 1 to Numwindings Do Begin
            ActiveWinding := i;
-           S1 := AuxParser.NextParam; // ignore any parameter name  not expecting any
+           AuxParser.NextParam; // ignore any parameter name  not expecting any
            BusNam := AuxParser.StrValue;
            IF Length(BusNam)>0 THEN SetBus(ActiveWinding, BusNam);
       End;
@@ -607,7 +614,7 @@ End;
 PROCEDURE TTransf.InterpretAllkVRatings(const S:String);
 //  routine expecting all winding connections expressed in one array of strings
 VAR
-    S1, DataStr:String;
+    DataStr:String;
     i:Integer;
 Begin
 
@@ -617,9 +624,9 @@ Begin
     WITH ActiveTransfObj DO
       FOR i := 1 to Numwindings Do  Begin
            ActiveWinding := i;
-           S1 := AuxParser.NextParam; // ignore any parameter name  not expecting any
+           AuxParser.NextParam; // ignore any parameter name  not expecting any
            DataStr := AuxParser.StrValue;
-           IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].kvll := AuxParser.Dblvalue;;
+           IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].kvll := AuxParser.Dblvalue;
       End;
 
 End;
@@ -628,7 +635,6 @@ End;
 PROCEDURE TTransf.InterpretAllkVARatings(const S:String);
 //  routine expecting all winding ratings expressed in one array of strings
 VAR
-    S1,
     DataStr  :String;
     i        :Integer;
 Begin
@@ -639,19 +645,40 @@ Begin
     WITH ActiveTransfObj DO
       FOR i := 1 to Numwindings Do Begin
          ActiveWinding := i;
-         S1 := AuxParser.NextParam; // ignore any parameter name  not expecting any
+         AuxParser.NextParam; // ignore any parameter name  not expecting any
          DataStr := AuxParser.StrValue;
-         IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].kva := AuxParser.Dblvalue;;
+         IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].kva := AuxParser.Dblvalue;
       End;
 
 End;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROCEDURE TTransf.InterpretAllRs(const S:String);
+//  routine expecting all winding ratings expressed in one array of strings
+VAR
+    DataStr  :String;
+    i        :Integer;
+Begin
+
+    AuxParser.CmdString := S;  // Load up Parser
+
+    {Loop for no more than the expected number of windings;  Ignore omitted values}
+    WITH ActiveTransfObj DO
+      FOR i := 1 to Numwindings Do Begin
+         ActiveWinding := i;
+         AuxParser.NextParam; // ignore any parameter name  not expecting any
+         DataStr := AuxParser.StrValue;
+         IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].Rpu := AuxParser.Dblvalue * 0.01;
+      End;
+
+End;
+
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TTransf.InterpretAllTaps(const S:String);
 //  routine expecting all winding connections expressed in one array of strings
 VAR
-    S1,
     DataStr  :String;
     i        :Integer;
 Begin
@@ -662,7 +689,7 @@ Begin
     WITH ActiveTransfObj DO
       FOR i := 1 to Numwindings Do Begin
            ActiveWinding := i;
-           S1 := AuxParser.NextParam; // ignore any parameter name,  not expecting any
+           AuxParser.NextParam; // ignore any parameter name,  not expecting any
            DataStr := AuxParser.StrValue;
            IF Length(DataStr) > 0 THEN Winding^[ActiveWinding].puTap := AuxParser.Dblvalue;
       End;
@@ -1340,7 +1367,7 @@ VAR
 
 begin
         Case Index of
-            12..16,20: Result := '[';
+            12..16,20, 37: Result := '[';
         Else
             Result := '';
         End;
@@ -1367,15 +1394,16 @@ begin
                      1: Result := Result + 'delta, ';
                  ELSE
                  END;
-           14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].kvll]) + ', ';
-           15: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].kVA]) + ', ';
-           16: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g',[Winding^[i].puTap]) + ', ';// InterpretAllTaps(Param);
+           14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kvll]);
+           15: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kVA]);
+           16: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].puTap]);// InterpretAllTaps(Param);
            20: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g.',[ Xsc^[i]*100.0]);// Parser.ParseAsVector(((NumWindings - 1)*NumWindings div 2), Xsc);
            26: Result := Format('%.7g',[pctLoadLoss]);
            27: Result := Format('%.7g',[pctNoLoadLoss]);
            31: Result := Format('%.7g',[Winding^[ActiveWinding].MaxTap]);
            32: Result := Format('%.7g',[Winding^[ActiveWinding].MinTap]);
            33: Result := Format('%-d',[Winding^[ActiveWinding].NumTaps]);
+           37: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].rpu * 100.0]);
 
 
         ELSE
@@ -1389,7 +1417,7 @@ begin
         End;
 
         Case Index of
-            12..16,20: Result := Result + ']';
+            12..16,20, 37: Result := Result + ']';
         Else
         End;
 
@@ -1437,6 +1465,7 @@ begin
      PropertyValue[34] := '';
      PropertyValue[35] := '0';
      PropertyValue[36] := '1';
+     PropertyValue[37] := '';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
