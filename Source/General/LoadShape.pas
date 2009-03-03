@@ -381,6 +381,7 @@ Procedure TLoadShape.DoCSVFile(Const FileName:String);
 VAR
     F:Textfile;
     i:Integer;
+    s:String;
 
 BEGIN
     TRY
@@ -400,8 +401,15 @@ BEGIN
          i := 0;
          WHILE (NOT EOF(F)) AND (i<FNumPoints) DO BEGIN
             Inc(i);
-            IF Interval=0.0 THEN Read(F, Hours^[i]);
-            Readln(F, PMultipliers^[i]);
+            Readln(F, s); // read entire line  and parse with AuxParser
+            {AuxParser allows commas or white space}
+            With AuxParser Do Begin
+                CmdString := s;
+                IF Interval=0.0 THEN Begin
+                   NextParam; Hours^[i] := DblValue;
+                End;
+                NextParam; PMultipliers^[i] := DblValue;
+            End;
           END;
          CloseFile(F);
          If i<>FNumPoints Then NumPoints := i;

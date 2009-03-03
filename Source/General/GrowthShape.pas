@@ -318,6 +318,7 @@ Procedure TGrowthShape.DoCSVFile(Const FileName:String);
 VAR
     F:Textfile;
     i:Integer;
+    s:String;
 
 BEGIN
     TRY
@@ -334,7 +335,13 @@ BEGIN
          i := 0;
          WHILE (NOT EOF(F)) AND (i<Npts) DO BEGIN
           Inc(i);
-          Readln(F,Year^[i], Multiplier^[i]);
+          Readln(F, s);  {Use AuxParser to allow flexible formats}
+          With AuxParser Do Begin
+             // Readln(F,Year^[i], Multiplier^[i]);
+             CmdString := S;
+             NextParam; Year^[i] := IntValue;
+             NextParam; Multiplier^[i] := DblValue;
+          End;
          END;
          CloseFile(F);
        END;

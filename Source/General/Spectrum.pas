@@ -311,6 +311,7 @@ Procedure TSpectrum.DoCSVFile(Const FileName:String);
 VAR
     F:Textfile;
     i:Integer;
+    s:String;
 
 BEGIN
     TRY
@@ -331,9 +332,13 @@ BEGIN
          i := 0;
          WHILE (NOT EOF(F)) AND (i < NumHarm) DO BEGIN
           Inc(i);
-          Read(F, HarmArray^[i]);
-          Read(F, puMagArray^[i]);  puMagArray^[i] := puMagArray^[i] * 0.01;
-          Readln(F, AngleArray^[i]);
+          Readln(F, S);  // Use Auxparser, which allows for formats
+          With AuxParser Do Begin
+              CmdString := S;
+              NextParam;  HarmArray^[i]  := DblValue;
+              NextParam;  puMagArray^[i] := DblValue * 0.01;
+              NextParam;  AngleArray^[i] := DblValue;
+          End;
          END;
          CloseFile(F);
          If i<>NumHarm Then NumHarm := i;   // reset number of points
