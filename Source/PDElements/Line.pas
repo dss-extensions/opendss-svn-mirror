@@ -921,29 +921,32 @@ VAR
    i, j: Integer;
    Factor: double;
 begin
+
+
         Case Index of
           12..14: Result := '[';
 
         Else
             Result := '';
         End;
-
+       {Report Impedance values in ohms per unit length of present length units}
         CASE Index of
             1: Result := GetBus(1);
             2: Result := GetBus(2);
             5: Result := Format('%d', [FNphases]);
-            6: If SymComponentsModel Then Result := Format('%-g', [R1]) else Result := '----';
-            7: If SymComponentsModel Then Result := Format('%-g', [X1]) else Result := '----';
-            8: If SymComponentsModel Then Result := Format('%-g', [R0]) else Result := '----';
-            9: If SymComponentsModel Then Result := Format('%-g', [X0]) else Result := '----';
-           10: If SymComponentsModel Then Result := Format('%-g', [C1*1.0e9]) else Result := '----';
-           11: If SymComponentsModel Then Result := Format('%-g', [C0*1.0e9]) else Result := '----';
+            6: If SymComponentsModel Then Result := Format('%-.7g', [R1/FUnitsConvert]) else Result := '----';
+            7: If SymComponentsModel Then Result := Format('%-.7g', [X1/FUnitsConvert]) else Result := '----';
+            8: If SymComponentsModel Then Result := Format('%-.7g', [R0/FUnitsConvert]) else Result := '----';
+            9: If SymComponentsModel Then Result := Format('%-.7g', [X0/FUnitsConvert]) else Result := '----';
+           10: If SymComponentsModel Then Result := Format('%-.7g', [C1*1.0e9/FUnitsConvert]) else Result := '----';
+           11: If SymComponentsModel Then Result := Format('%-.7g', [C0*1.0e9/FUnitsConvert]) else Result := '----';
 
            12: FOR i := 1 to FNconds Do   // R matrix
                Begin
                    For j := 1 to i Do
-                   Begin
-                       Result := Result + Format('%-g',[Z.GetElement(i,j).re]) + ' ';
+                   Begin  // report in per unit Length in length units
+                       If GeometrySpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).re/len]) + ' '
+                       Else Result := Result + Format('%-.7g',[Z.GetElement(i,j).re/FUnitsConvert]) + ' ';
                    End;
                    IF i < FNconds Then Result := Result + '|';
                End;
@@ -952,7 +955,8 @@ begin
                Begin
                    For j := 1 to i Do
                    Begin
-                       Result := Result + Format('%-g',[Z.GetElement(i,j).im]) + ' ';
+                       If GeometrySpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).im/Len]) + ' '
+                       Else Result := Result + Format('%-.7g',[Z.GetElement(i,j).im/FUnitsConvert]) + ' ';
                    End;
                    IF i < FNconds Then Result := Result + '|';
                End;
@@ -963,7 +967,8 @@ begin
                  Begin
                      For j := 1 to i Do
                      Begin
-                         Result := Result + Format('%-g',[YC.GetElement(i,j).im/Factor]) + ' ';
+                         If GeometrySpecified Then Result := Result + Format('%-.7g',[YC.GetElement(i,j).im/Factor/Len]) + ' '
+                         Else Result := Result + Format('%-.7g',[YC.GetElement(i,j).im/Factor/FUnitsConvert]) + ' ';
                      End;
                      IF i < FNconds Then Result := Result + '|';
                  End;

@@ -317,6 +317,7 @@ Begin
                          'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +
                          'Export seqZ  [Filename]       (EXP_SEQZ.CSV) (equiv sequence Z1, Z0 to bus)' + CRLF +
                          'Export CDPSM [Filename]       (CDPSM.XML) (IEC 61968-13, CDPSM format)' + CRLF +
+                         'Export Buscoords [Filename]   [EXP_BUSCOORDS.CSV]' + CRLF +
                          CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
                          ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+

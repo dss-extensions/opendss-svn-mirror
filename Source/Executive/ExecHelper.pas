@@ -826,6 +826,7 @@ Begin
          18: Filename := 'EXP_SEQZ.CSV';
          19: Filename := 'EXP_P_BYPHASE.CSV';
          20: FileName := 'CDPSM.XML';
+         21: FileName := 'EXP_BUSCOORDS.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -858,6 +859,7 @@ Begin
      18: ExportSeqZ(Filename);
      19: ExportPbyphase(Filename, MVAOpt);
      20: ExportCDPSM(Filename);
+     21: ExportBusCoords(Filename);
    ELSE
          ExportVoltages(FileName);    // default
    END;
@@ -3591,7 +3593,8 @@ initialization
     ExportCommands := TCommandList.Create([ 'Voltages',   'SeqVoltages', 'Currents', 'SeqCurrents', 'Estimation',
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
                                             'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
-                                            'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM']);
+                                            'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM',
+                                            'Buscoords']);
     ExportCommands.Abbrev := True;
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);

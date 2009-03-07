@@ -219,6 +219,7 @@ type
     SeqZ1: TMenuItem;
     PowersByPhase1: TMenuItem;
     Estimation1: TMenuItem;
+    Buscoords1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -367,6 +368,7 @@ type
     procedure SeqZ1Click(Sender: TObject);
     procedure PowersByPhase1Click(Sender: TObject);
     procedure Estimation1Click(Sender: TObject);
+    procedure Buscoords1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1414,6 +1416,13 @@ begin
 
             Free;
         End;
+end;
+
+procedure TControlPanel.Buscoords1Click(Sender: TObject);
+begin
+
+{Export Bus Coordinates}
+   ActiveScriptForm.ExecuteDSSCommand('Export buscoords');
 end;
 
 procedure TControlPanel.MakeBusList1Click(Sender: TObject);

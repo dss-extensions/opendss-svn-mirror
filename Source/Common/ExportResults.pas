@@ -31,6 +31,7 @@ Procedure ExportUnserved(FileNm:String; UE_Only:Boolean);
 Procedure ExportYprim(FileNm:String);
 Procedure ExportY(FileNm:String);
 Procedure ExportSeqZ(FileNm:String);
+Procedure ExportBusCoords(FileNm:String);
 
 IMPLEMENTATION
 
@@ -1800,6 +1801,35 @@ Begin
   End;
 
 End;
+
+Procedure ExportBusCoords(FileNm:String);
+// Export bus x, y coordinates
+
+Var
+   F :TextFile;
+   i:Integer;
+
+
+Begin
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     With ActiveCircuit Do
+     For i := 1 to NumBuses Do
+       Begin
+           If Buses^[i].CoordDefined then Writeln(F, Format('%s, %-g, %-g', [CheckForBlanks(BusList.Get(i)), Buses^[i].X, Buses^[i].Y]));
+       End;
+
+     GlobalResult := FileNm;
+
+  FINALLY
+
+     CloseFile(F);
+  End;
+End;
+
 
 
 end.
