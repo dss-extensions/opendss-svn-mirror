@@ -41,6 +41,7 @@ object MainEditForm: TMainEditForm
     OnChange = EditorChange
     OnKeyDown = EditorKeyDown
     OnSelectionChange = EditorSelectionChange
+    ExplicitTop = 28
   end
   object ToolBar1: TToolBar
     Left = 0
@@ -82,6 +83,10 @@ object MainEditForm: TMainEditForm
     object CloseWindow1: TMenuItem
       Caption = '&Close Window'
       OnClick = CloseWindow1Click
+    end
+    object ChangetothisDir1: TMenuItem
+      Caption = 'C&hange to this Directory'
+      OnClick = ChangetothisDir1Click
     end
     object OpenSelectedFile1: TMenuItem
       Caption = '&Open Selected File'

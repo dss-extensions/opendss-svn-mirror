@@ -24,6 +24,7 @@ type
     FontDialog1: TFontDialog;
     ToolBar1: TToolBar;
     FontBtn: TButton;
+    ChangetothisDir1: TMenuItem;
     procedure EditorKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure EditorSelectionChange(Sender: TObject);
@@ -39,6 +40,7 @@ type
     procedure EditSelectedFile1Click(Sender: TObject);
     procedure FontDialog1Apply(Sender: TObject; Wnd: HWND);
     procedure FontBtnClick(Sender: TObject);
+    procedure ChangetothisDir1Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -327,6 +329,16 @@ begin
         If Not HasFileName Then  ControlPanel.SaveScriptWindow1Click(Sender)
         Else SaveEditorContents;
 
+end;
+
+procedure TMainEditForm.ChangetothisDir1Click(Sender: TObject);
+Var
+    CurrDir :String;
+begin
+    CurrDir := ExtractFileDir(Caption);
+    SetCurrentDir(CurrDir);
+    SetDataPath(CurrDir);  // change dssdatadirectory
+    ControlPanel.UpdateStatus;
 end;
 
 procedure TMainEditForm.CloseWindow1Click(Sender: TObject);

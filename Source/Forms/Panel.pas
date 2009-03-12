@@ -1021,22 +1021,23 @@ begin
      pmc^.cb := cb;
      IF GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb)
      then
-      StatusBar1.Panels[0].Text := Format('Memory: %dK',[pmc^.WorkingSetSize div 1024])
+        StatusBar1.Panels[0].Text := Format('Memory: %dK',[pmc^.WorkingSetSize div 1024])
      else
-      StatusBar1.Panels[0].Text := 'Memory: ?';
+        StatusBar1.Panels[0].Text := 'Memory: ?';
      FreeMem(pmc);
 //     StatusBar1.Panels[1].Text := Format('Blocks: %d',[AllocMemCount]);
      If ActiveCircuit <> Nil Then With ActiveCircuit Do StatusBar1.Panels[1].Text := 'Bus: ' + busList.Get(ActiveBusIndex)
      Else StatusBar1.Panels[1].Text := 'Bus:';
      StatusBar1.Panels[2].Text := 'Panel 2 status';
-     DemandInterval1.Checked := EnergyMeterclass.SaveDemandInterval ;
+     DemandInterval1.Checked   := EnergyMeterclass.SaveDemandInterval ;
+     Caption := 'OpenDSS Data Directory: ' + DSSDataDirectory;
      If ActiveCircuit <> Nil then
      With ActiveCircuit Do
      Begin
-       ZonesLocked1.Checked := ZonesLocked;
+       ZonesLocked1.Checked       := ZonesLocked;
        DuplicatesAllowed1.checked := DuplicatesAllowed;
-       TraceLog1.Checked := ControlQueue.TraceLog;
-       Trapezoidal1.checked := TrapezoidalIntegration;
+       TraceLog1.Checked          := ControlQueue.TraceLog;
+       Trapezoidal1.checked       := TrapezoidalIntegration;
      End;
      LBL_DefaultFreq.Caption := Format('Base Frequency = %d Hz ', [Round(DefaultBaseFreq) ]);
 end;
@@ -1044,7 +1045,7 @@ end;
 procedure TControlPanel.RecordScript1Click(Sender: TObject);
 begin
         RecordScript1.Checked := NOT  RecordScript1.Checked;
-        RecordCommands := RecordScript1.Checked;
+        RecordCommands        := RecordScript1.Checked;
 end;
 
 procedure TControlPanel.Zone1Click(Sender: TObject);
@@ -2059,7 +2060,7 @@ begin
 end;
 
 procedure TControlPanel.Open1Click(Sender: TObject);
-
+Var CurrDir :String;
 
 begin
     With OpenDialog1 Do Begin
@@ -2074,6 +2075,10 @@ begin
                ActiveScriptForm.HasBeenModified := FALSE;
                ActiveScriptForm.HasFileName := TRUE;
                AddCompiledFile(FileName);  // Stick it in combobox
+               CurrDir := ExtractFileDir(FileName);
+               SetCurrentDir(CurrDir);
+               SetDataPath(CurrDir);  // change dssdatadirectory
+               UpdateStatus;
            Except
                On E:Exception Do DoSimpleMsg('Error: ' + E.Message, 218);
            End;
@@ -2466,6 +2471,7 @@ begin
 end;
 
 procedure TControlPanel.ToolButton21Click(Sender: TObject);
+Var CurrDir:String;
 
 {Open File Listed in combobox a Window}
 
@@ -2478,6 +2484,10 @@ begin
          ActiveScriptForm.Editor.Lines.LoadFromFile (CompileCombo.text);
          ActiveScriptForm.HasBeenModified := FALSE;
          ActiveScriptForm.HasFileName := TRUE;
+         CurrDir := ExtractFileDir(CompileCombo.text);
+         SetCurrentDir(CurrDir);
+         SetDataPath(CurrDir);  // change dssdatadirectory
+         UpdateStatus;
      Except
          On E:Exception Do DoSimpleMsg('Error Loading File: ' + E.Message, 218);
      End;

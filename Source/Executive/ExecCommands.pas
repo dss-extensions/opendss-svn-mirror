@@ -493,7 +493,10 @@ Begin
        72: Begin
             ParamName := Parser.NextParam;
             Param := Parser.StrValue;
-            If SetCurrentDir(Param) Then CmdResult := 0
+            If SetCurrentDir(Param) Then Begin
+               CmdResult := 0  ;
+               SetDataPath(Param);  // change dssdatadirectory
+            End
             Else DoSimpleMsg('Directory "'+Param+'" not found.', 282);
            End;
        75: DoADosCmd;
