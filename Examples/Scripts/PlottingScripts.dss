@@ -1,0 +1,16 @@
+! Plot meter zone -- specify meter name
+plot zone Power max=2000 n n object=metername showloops=y C1=$00FF0000
+
+! typical circuit plotting scripts
+plot circuit Losses Max=20   dots=y labels=n subs=n C1=$00FF0000
+plot circuit Power  Max=2000 dots=y labels=n subs=n C1=$00FF0000
+
+
+! Script for "general" bus data plot for a specified column in a CSV file
+! First column of CSV file is bus name
+plot type=General quantity=1 Max=.003 dots=n labels=n subs=y object=filename.csv  C1=$0080FFFF C2=$000000FF
+
+
+! Plot circuit with branch width proportional to a column in a CSV file
+! First column of CSV file is Line element name (full Line.____ format may be used)
+Plot circuit quantity=1 Max=.001  dots=n  labels=n Object=filename.CSV
