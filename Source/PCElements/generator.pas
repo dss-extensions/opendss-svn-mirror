@@ -731,13 +731,13 @@ Begin
        GenVars.puXdpp         := OtherGenerator.GenVars.puXdpp;
        GenVars.Hmass          := OtherGenerator.GenVars.Hmass;
        GenVars.Theta          := OtherGenerator.GenVars.Theta;
-       GenVars.Speed       := OtherGenerator.GenVars.Speed;
+       GenVars.Speed          := OtherGenerator.GenVars.Speed;
        GenVars.w0             := OtherGenerator.GenVars.w0;
        GenVars.dSpeed         := OtherGenerator.GenVars.dSpeed;
        GenVars.D              := OtherGenerator.GenVars.D;
        GenVars.Dpu            := OtherGenerator.GenVars.Dpu;
 
-       UserModel.Name := OtherGenerator.UserModel.Name;  // Connect to user written models
+       UserModel.Name    := OtherGenerator.UserModel.Name;  // Connect to user written models
        ShaftModel.Name   := OtherGenerator.ShaftModel.Name;
 
        ClassMakeLike(OtherGenerator);
@@ -873,8 +873,8 @@ Begin
        puXd       := 1.0;
        puXdp      := 0.28;
        puXdpp     := 0.20;
-       Xd         :=  puXd * SQR(kVGeneratorBase) * 1000.0 / kVARating;
-       Xdp        :=  puXdp * SQR(kVGeneratorBase) * 1000.0 / kVARating;
+       Xd         :=  puXd   * SQR(kVGeneratorBase) * 1000.0 / kVARating;
+       Xdp        :=  puXdp  * SQR(kVGeneratorBase) * 1000.0 / kVARating;
        Xdpp       :=  puXdpp * SQR(kVGeneratorBase) * 1000.0 / kVARating;
        Hmass      := 1.0;       //  W-sec/VA rating
        Theta      := 0.0;
@@ -1130,7 +1130,7 @@ Begin
     Reallocmem(InjCurrent, SizeOf(InjCurrent^[1])*Yorder);
 
     {Update any user-written models}
-    If Usermodel.Exists Then UserModel.FUpdateModel;
+    If Usermodel.Exists  Then UserModel.FUpdateModel;
     If Shaftmodel.Exists Then Shaftmodel.FUpdateModel;
 
 End;
@@ -2425,8 +2425,7 @@ begin
        6: dTheta := Value ;
      Else
        Begin
-         If UserModel.Exists Then
-          Begin
+         If UserModel.Exists Then Begin
             N := UserModel.FNumVars;
             k := (i-NumGenVariables) ;
             If  k<= N Then Begin
@@ -2435,8 +2434,7 @@ begin
               End;
           End;
          // If we get here, must be in the shaft model
-         If ShaftModel.Exists Then
-          Begin
+         If ShaftModel.Exists Then Begin
             k := (i-(NumGenVariables+N)) ;
             If  k > 0 Then ShaftModel.FSetVariable( k, Value );
           End;

@@ -143,6 +143,7 @@ CONST
     KVARCONTROL = 3;
     TIMECONTROL = 4;
     PFCONTROL = 5;
+    SRPCONTROL = 6;
 
 
 {--------------------------------------------------------------------------}
@@ -285,6 +286,9 @@ Begin
                     'k': ControlType := KVARCONTROL;
                     't': ControlType := TIMECONTROL;
                     'p': ControlType := PFCONTROL;
+                    's': ControlType := SRPCONTROL; // Special for Will Kook
+               ELSE
+                   DoSimpleMsg(Format('Unrecognized CapControl Type: "%s" (Capcontrol.%s)', [param, ActiveCapControlObj.name]), 352);
                End;
             5: PTRatio := Parser.DblValue;
             6: CTRatio := Parser.DblValue;
@@ -763,6 +767,37 @@ begin
                       //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
                       S := MonitoredElement.Power[ElementTerminal];
                       Q := S.im * 0.001;  // kvar
+
+                      CASE PresentState of
+                          OPEN:   IF Q > ON_Value
+                                  THEN  Begin
+                                        PendingChange := CLOSE;
+                                        ShouldSwitch := TRUE;
+                                  End
+                                  ELSE // Reset
+                                        PendingChange := NONE;
+                          CLOSE:  IF Q < OFF_Value
+                                  THEN Begin
+                                         PendingChange := OPEN;
+                                         ShouldSwitch := TRUE;
+                                  End
+                                  ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
+                                      IF Q > ON_Value Then Begin
+                                        PendingChange := CLOSE;  // We can go some more
+                                        ShouldSwitch := TRUE;
+                                      End;
+                                  End
+                                  ELSE // Reset
+                                        PendingChange := NONE;
+                      End;
+
+                 End;
+
+              SRPCONTROL: {kvar modified to keep PF around .98 lead}
+                 Begin
+                      //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
+                      S := MonitoredElement.Power[ElementTerminal];
+                      Q := S.im * 0.001 + 0.20306 * S.re * 0.001;  // kvar for -.98 PF
 
                       CASE PresentState of
                           OPEN:   IF Q > ON_Value

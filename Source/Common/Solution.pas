@@ -89,8 +89,6 @@ TYPE
        Function SolveSystem(V:pNodeVArray):Integer;
 
        PROCEDURE AddInAuxCurrents(SolveType:Integer);
-       PROCEDURE CheckControlActions;
-       PROCEDURE CheckFaultStatus;
        PROCEDURE DoNewtonSolution;
        PROCEDURE DoNormalSolution;
        PROCEDURE GetMachineInjCurrents;
@@ -152,13 +150,12 @@ TYPE
 
 
        {Voltage and Current Arrays}
-       NodeV  :pNodeVArray;    // Main System Voltage Array   allows NodeV^[0]=0
+       NodeV    :pNodeVArray;    // Main System Voltage Array   allows NodeV^[0]=0
        Currents :pNodeVArray;      // Main System Currents Array
 
 
        constructor Create(ParClass:TDSSClass; const solutionname:String);
-       destructor Destroy; override;
-
+       destructor  Destroy; override;
 
        PROCEDURE ZeroAuxCurrents;
        FUNCTION  SolveZeroLoadSnapShot :Integer;
@@ -168,6 +165,9 @@ TYPE
        FUNCTION  SolveSnap:Integer;    // solve for now once
        FUNCTION  SolveDirect:Integer;  // solve for now once, direct solution
        FUNCTION  SolveYDirect:Integer; // Similar to SolveDirect; used for initialization
+       FUNCTION  SolveCircuit:Integer; // SolveSnap sans control iteration
+       PROCEDURE Check_Control_Actions;
+       PROCEDURE Check_Fault_Status;
 
        PROCEDURE SetGeneratorDispRef;
        PROCEDURE SetVoltageBases;
@@ -896,7 +896,6 @@ VAR
    TotalIterations  :Integer;
 
 Begin
-   Result := 0;
 
    SetGeneratorDispRef;
 
@@ -909,36 +908,20 @@ Begin
 
    REPEAT
 
-      Inc(ControlIteration);
+       Inc(ControlIteration);
 
-       IF LoadModel=ADMITTANCE Then
-            TRY
-              SolveDirect     // no sense horsing around when its all admittance
-            EXCEPT
-              ON E:EEsolv32Problem Do Begin
-                DoSimpleMsg('From SolveSnap.SolveDirect: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
-                Raise ESolveError.Create('Aborting');
-              End;
-            END
-       Else  Begin
-           TRY
-              IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, TRUE);   // Side Effect: Allocates V
-              DoPFLOWsolution;
-           EXCEPT
-             ON E:EEsolv32Problem Do Begin
-               DoSimpleMsg('From SolveSnap.DoPflowSolution: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7074);
-               Raise ESolveError.Create('Aborting');
-             End;
-           END
+       Result := SolveCircuit;  // Do circuit solution w/o checking controls
+
+       {Now Check controls}
+       If ControlIteration < MaxControlIterations then Begin
+           IF ConvergedFlag Then Begin
+               If ActiveCircuit.LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration));
+               Check_Control_Actions;
+               Check_Fault_Status;
+           End
+           ELSE
+               ControlActionsDone := TRUE; // Stop solution process if failure to converge
        End;
-
-       IF ConvergedFlag Then Begin
-           If ActiveCircuit.LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration));
-           CheckControlActions;
-           CheckFaultStatus;
-       End
-       ELSE
-           ControlActionsDone := TRUE; // Stop solution process if failure to converge
 
        IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, FALSE); // Rebuild Y matrix, but V stays same
 
@@ -950,12 +933,9 @@ Begin
    UNTIL ControlActionsDone or (ControlIteration >= MaxControlIterations);
 
    If Not ControlActionsDone and (ControlIteration >= MaxControlIterations) then  Begin
-       DoSimpleMsg('Warning Max Control Iterations Exceeded. Primitive Y matrices could be out of synch with System Y.' +
-                   ' Current and Power reports may not be correct.' + CRLF + 'Tip: Show Eventlog to debug control settings.', 485);
-
+       DoSimpleMsg('Warning Max Control Iterations Exceeded. ' + CRLF + 'Tip: Show Eventlog to debug control settings.', 485);
        SolutionAbort := TRUE;   // this will stop this message in dynamic power flow modes
    End;
-   
 
    If ActiveCircuit.LogEvents Then LogThisEvent('Solution Done');
 
@@ -989,6 +969,33 @@ Begin
 
 End;
 
+
+function TSolutionObj.SolveCircuit: Integer;
+begin
+
+       Result := 0;
+       IF LoadModel=ADMITTANCE Then
+            TRY
+              SolveDirect     // no sense horsing around when its all admittance
+            EXCEPT
+              ON E:EEsolv32Problem Do Begin
+                DoSimpleMsg('From SolveSnap.SolveDirect: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
+                Raise ESolveError.Create('Aborting');
+              End;
+            END
+       Else  Begin
+           TRY
+              IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, TRUE);   // Side Effect: Allocates V
+              DoPFLOWsolution;
+           EXCEPT
+             ON E:EEsolv32Problem Do Begin
+               DoSimpleMsg('From SolveSnap.DoPflowSolution: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7074);
+               Raise ESolveError.Create('Aborting');
+             End;
+           END
+       End;
+
+end;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 PROCEDURE TSolutionObj.ZeroInjCurr;
@@ -1220,7 +1227,7 @@ begin
 end;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-PROCEDURE TSolutionObj.CheckControlActions;
+PROCEDURE TSolutionObj.Check_Control_Actions;
 
 VAR
    ControlDevice:TControlElem;
@@ -1383,7 +1390,7 @@ BEGIN
     FOR i := 1 to ActiveCircuit.NumNodes Do AuxCurrents^[i] := CZERO;
 END;
 
-PROCEDURE TSolutionObj.CheckFaultStatus;
+PROCEDURE TSolutionObj.Check_Fault_Status;
 
 VAR
    pFault:TFaultOBj;

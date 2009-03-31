@@ -41,6 +41,11 @@ type
     function Get_MeteredTerminal: Integer; safecall;
     procedure Set_MeteredElement(const Value: WideString); safecall;
     procedure Set_MeteredTerminal(Value: Integer); safecall;
+    function Get_DIFilesAreOpen: WordBool; safecall;
+    procedure CloseAllDIFiles; safecall;
+    procedure OpenAllDIFiles; safecall;
+    procedure SampleAll; safecall;
+    procedure SaveAll; safecall;
     { Protected declarations }
   end;
 
@@ -203,15 +208,10 @@ Begin
 end;
 
 procedure TMeters.ResetAll;
-VAR
-    pEnergyMeterClass:TEnergyMeter;
-    DevClassIndex:Integer;
 
 Begin
-     DevClassIndex := ClassNames.Find('energymeter');
-     IF DevClassIndex>0 THEN Begin
-        pEnergyMeterClass := DSSClassList.Get(DevClassIndex);
-        pEnergyMeterClass.ResetAll;
+     IF ActiveCircuit <> Nil THEN Begin
+        EnergyMeterClass.ResetAll;
      End;
 end;
 
@@ -515,6 +515,41 @@ Begin
         End;
    End;
 
+end;
+
+function TMeters.Get_DIFilesAreOpen: WordBool;
+begin
+     IF ActiveCircuit <> Nil THEN Begin
+            Result := DIFilesAreOpen;    // Global variable
+     End;
+end;
+
+procedure TMeters.CloseAllDIFiles;
+begin
+     IF ActiveCircuit <> Nil THEN Begin
+        EnergyMeterClass.CloseAllDIFiles;
+     End;
+end;
+
+procedure TMeters.OpenAllDIFiles;
+begin
+     IF ActiveCircuit <> Nil THEN Begin
+        EnergyMeterClass.OpenAllDIFiles;
+     End;
+end;
+
+procedure TMeters.SampleAll;
+begin
+     IF ActiveCircuit <> Nil THEN Begin
+        EnergyMeterClass.SampleAll;
+     End;
+end;
+
+procedure TMeters.SaveAll;
+begin
+     IF ActiveCircuit <> Nil THEN Begin
+        EnergyMeterClass.SaveAll;
+     End;
 end;
 
 initialization

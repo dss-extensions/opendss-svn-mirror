@@ -33,6 +33,8 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     function Get_ByteStream: OleVariant; safecall;
     function Get_SampleCount: Integer; safecall;
+    procedure SampleAll; safecall;
+    procedure SaveAll; safecall;
     { Protected declarations }
   end;
 
@@ -181,16 +183,10 @@ Begin
 end;
 
 procedure TMonitors.ResetAll;
-VAR
-    Mon:TDSSMonitor;
-    DevClassIndex:Integer;
 
 Begin
-     DevClassIndex := ClassNames.Find('monitor');
-     IF DevClassIndex>0 THEN
-     Begin
-      Mon := DSSClassList.Get(DevClassIndex);
-      Mon.ResetAll;
+     If ActiveCircuit <> Nil Then Begin
+        MonitorClass.ResetAll;
      End;
 end;
 
@@ -322,6 +318,20 @@ begin
      If ActiveCircuit <> Nil Then Begin
          pMon := ActiveCircuit.Monitors.Active;
          Result := pMon.SampleCount;
+     End;
+end;
+
+procedure TMonitors.SampleAll;
+begin
+     If ActiveCircuit <> Nil Then Begin
+         MonitorClass.SampleAll;
+     End;
+end;
+
+procedure TMonitors.SaveAll;
+begin
+     If ActiveCircuit <> Nil Then Begin
+         MonitorClass.SaveAll;
      End;
 end;
 

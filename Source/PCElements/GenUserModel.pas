@@ -38,11 +38,11 @@ TYPE
 
       public
 
-        FEdit:    Procedure(s:pchar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
-        FInit:    procedure(V, I:pComplexArray);Stdcall;   // For dynamics
-        FCalc:    Procedure(V, I:pComplexArray); stdcall; // returns Currents or sets Pshaft
+        FEdit:         Procedure(s:pchar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
+        FInit:         procedure(V, I:pComplexArray);Stdcall;   // For dynamics
+        FCalc:         Procedure(V, I:pComplexArray); stdcall; // returns Currents or sets Pshaft
         FIntegrate:    Procedure; stdcall; // Integrates any state vars
-        FUpdateModel :Procedure; Stdcall; // Called when props of generator updated
+        FUpdateModel:  Procedure; Stdcall; // Called when props of generator updated
 
         FActiveGeneratorVars:pTGeneratorVars;
 
@@ -51,11 +51,11 @@ TYPE
         FRestore: Procedure; Stdcall;
 
         {Monitoring functions}
-        FNumVars:   Function:Integer;Stdcall;
-        FGetAllVars: Procedure(Vars:pDoubleArray);StdCall;  // Get all vars
+        FNumVars:     Function:Integer;Stdcall;
+        FGetAllVars:  Procedure(Vars:pDoubleArray);StdCall;  // Get all vars
         FGetVariable: Function(var I:Integer):Double;StdCall;// Get a particular var
         FSetVariable: Procedure(var i:Integer; var value:Double); StdCall;
-        FGetVarName: Procedure(var VarNum:Integer; VarName:pchar; maxlen:Cardinal);StdCall;
+        FGetVarName:  Procedure(var VarNum:Integer; VarName:pchar; maxlen:Cardinal);StdCall;
 
         // this property loads library (if needed), sets the procedure variables, and makes a new instance
         // old reference is freed first
@@ -67,7 +67,7 @@ TYPE
         Procedure Integrate;
         
         constructor Create(ActiveGeneratorVars:pTGeneratorVars);
-        destructor Destroy; override;
+        destructor  Destroy; override;
       published
 
       end;

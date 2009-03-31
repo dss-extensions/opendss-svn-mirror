@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 2/11/2009 12:15:48 AM from Type Library described below.
+// File generated on 3/31/2009 4:04:57 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -675,6 +675,17 @@ type
     procedure Set_dblHour(Value: Double); safecall;
     procedure Set_StepsizeMin(Param1: Double); safecall;
     procedure Set_StepsizeHr(Param1: Double); safecall;
+    function Get_ControlIterations: Integer; safecall;
+    procedure Set_ControlIterations(Value: Integer); safecall;
+    function Get_MaxControlIterations: Integer; safecall;
+    procedure Set_MaxControlIterations(Value: Integer); safecall;
+    procedure CheckControlActions; safecall;
+    procedure CheckFaultStatus; safecall;
+    procedure SolveSnap; safecall;
+    procedure SolveDirect; safecall;
+    procedure SolvePflow; safecall;
+    procedure SolveNoControl; safecall;
+    procedure SolvePlusControl; safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -704,6 +715,8 @@ type
     property dblHour: Double read Get_dblHour write Set_dblHour;
     property StepsizeMin: Double write Set_StepsizeMin;
     property StepsizeHr: Double write Set_StepsizeHr;
+    property ControlIterations: Integer read Get_ControlIterations write Set_ControlIterations;
+    property MaxControlIterations: Integer read Get_MaxControlIterations write Set_MaxControlIterations;
   end;
 
 // *********************************************************************//
@@ -743,6 +756,15 @@ type
     property dblHour: Double dispid 201;
     property StepsizeMin: Double writeonly dispid 202;
     property StepsizeHr: Double writeonly dispid 203;
+    property ControlIterations: Integer dispid 204;
+    property MaxControlIterations: Integer dispid 205;
+    procedure CheckControlActions; dispid 206;
+    procedure CheckFaultStatus; dispid 207;
+    procedure SolveSnap; dispid 208;
+    procedure SolveDirect; dispid 209;
+    procedure SolvePflow; dispid 210;
+    procedure SolveNoControl; dispid 211;
+    procedure SolvePlusControl; dispid 212;
   end;
 
 // *********************************************************************//
@@ -767,6 +789,8 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     function Get_ByteStream: OleVariant; safecall;
     function Get_SampleCount: Integer; safecall;
+    procedure SampleAll; safecall;
+    procedure SaveAll; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -797,6 +821,8 @@ type
     property Name: WideString dispid 1;
     property ByteStream: OleVariant readonly dispid 12;
     property SampleCount: Integer readonly dispid 13;
+    procedure SampleAll; dispid 201;
+    procedure SaveAll; dispid 202;
   end;
 
 // *********************************************************************//
@@ -828,6 +854,11 @@ type
     procedure Set_MeteredElement(const Value: WideString); safecall;
     function Get_MeteredTerminal: Integer; safecall;
     procedure Set_MeteredTerminal(Value: Integer); safecall;
+    function Get_DIFilesAreOpen: WordBool; safecall;
+    procedure SampleAll; safecall;
+    procedure SaveAll; safecall;
+    procedure OpenAllDIFiles; safecall;
+    procedure CloseAllDIFiles; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -840,6 +871,7 @@ type
     property AllocFactors: OleVariant read Get_AllocFactors write Set_AllocFactors;
     property MeteredElement: WideString read Get_MeteredElement write Set_MeteredElement;
     property MeteredTerminal: Integer read Get_MeteredTerminal write Set_MeteredTerminal;
+    property DIFilesAreOpen: WordBool read Get_DIFilesAreOpen;
   end;
 
 // *********************************************************************//
@@ -865,6 +897,11 @@ type
     property AllocFactors: OleVariant dispid 203;
     property MeteredElement: WideString dispid 204;
     property MeteredTerminal: Integer dispid 205;
+    property DIFilesAreOpen: WordBool readonly dispid 206;
+    procedure SampleAll; dispid 207;
+    procedure SaveAll; dispid 208;
+    procedure OpenAllDIFiles; dispid 209;
+    procedure CloseAllDIFiles; dispid 210;
   end;
 
 // *********************************************************************//

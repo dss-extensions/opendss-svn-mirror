@@ -68,6 +68,17 @@ type
     procedure Set_dblHour(Value: Double); safecall;
     procedure Set_StepsizeHr(Value: Double); safecall;
     procedure Set_StepsizeMin(Value: Double); safecall;
+    function Get_ControlIterations: Integer; safecall;
+    function Get_MaxControlIterations: Integer; safecall;
+    procedure CheckControlActions; safecall;
+    procedure Set_ControlIterations(Value: Integer); safecall;
+    procedure Set_MaxControlIterations(Value: Integer); safecall;
+    procedure CheckFaultStatus; safecall;
+    procedure SolveDirect; safecall;
+    procedure SolveNoControl; safecall;
+    procedure SolvePflow; safecall;
+    procedure SolvePlusControl; safecall;
+    procedure SolveSnap; safecall;
   end;
 
 implementation
@@ -430,6 +441,86 @@ begin
       ActiveCircuit.Solution.Dynavars.h := Value * 60.0;
   End;
 
+end;
+
+function TSolution.Get_ControlIterations: Integer;
+begin
+     If ActiveCircuit <> Nil Then  Begin
+        Result := ActiveCircuit.Solution.ControlIteration;
+     End;
+end;
+
+function TSolution.Get_MaxControlIterations: Integer;
+begin
+     If ActiveCircuit <> Nil Then  Begin
+        Result := ActiveCircuit.Solution.MaxControlIterations;
+     End;
+end;
+
+procedure TSolution.CheckControlActions;
+begin
+    If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.Check_Control_Actions  ;
+   End;
+end;
+
+procedure TSolution.Set_ControlIterations(Value: Integer);
+begin
+    If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.ControlIteration := Value;
+    End;
+end;
+
+procedure TSolution.Set_MaxControlIterations(Value: Integer);
+begin
+    If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.MaxControlIterations := Value;
+    End;
+end;
+
+procedure TSolution.CheckFaultStatus;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.Check_Fault_Status ;
+   End;
+end;
+
+procedure TSolution.SolveDirect;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.SolveDirect;
+   End;
+end;
+
+procedure TSolution.SolveNoControl;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.SolveCircuit;
+   End;
+end;
+
+procedure TSolution.SolvePflow;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.DoPflowSolution;
+   End;
+end;
+
+procedure TSolution.SolvePlusControl;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      With ActiveCircuit.Solution Do Begin
+         SolveCircuit;
+         CheckControlActions;
+      End;
+   End;
+end;
+
+procedure TSolution.SolveSnap;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.SolveSnap;
+   End;
 end;
 
 initialization
