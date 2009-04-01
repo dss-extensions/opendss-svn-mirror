@@ -80,7 +80,7 @@ TYPE
        PROCEDURE CalcYPrim; Override;    // Always Zero for a Fuse
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Phs:Integer); Override;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Phs, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
        PROCEDURE Reset; Override;  // Reset to initial defined state
 
 
@@ -460,7 +460,7 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TFuseObj.DoPendingAction(Const Phs:Integer);
+PROCEDURE TFuseObj.DoPendingAction(Const Phs, ProxyHdl:Integer);
 // Do what we're instructed by the control queue
 // Theoretically, there shouldn't be anything on the queue unless we have to do something
 {Only legal action is to open one phase}
@@ -546,7 +546,7 @@ begin
                   IF Not ReadyToBlow[i]  THEN
                   WITH ActiveCircuit Do
                    Begin  // Then arm for an open operation
-                         hAction[i] := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + Delaytime,i, Self);
+                         hAction[i] := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + Delaytime,i, 0, Self);
                          ReadyToBlow[i] := TRUE;
                    End; {With}
                 End

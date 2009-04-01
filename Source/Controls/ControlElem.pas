@@ -33,7 +33,7 @@ TYPE
        destructor Destroy; override;
 
        PROCEDURE Sample;  Virtual;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Code:Integer); Virtual;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Virtual;   // Do the action that is pending from last sample
        PROCEDURE Reset; Virtual;
 
        Property ControlledElement:TDSSCktElement Read FControlledElement Write Set_ControlledElement;

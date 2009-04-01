@@ -103,7 +103,7 @@ TYPE
        PROCEDURE CalcYPrim; Override;    // Always Zero for a RegControl
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Code:Integer); Override;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
        PROCEDURE Reset; Override;  // Reset to initial defined state
 
 
@@ -642,7 +642,7 @@ begin
                   Begin
                       If (DebugTrace) Then WriteTraceRecord(OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
-                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, Dynavars.t + TapDelay, 0,Self)
+                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, Dynavars.t + TapDelay, 0, 0, Self)
                       ELSE Armed := FALSE;
                   End;
                TIMEDRIVEN:
@@ -650,7 +650,7 @@ begin
                       If (DebugTrace) Then WriteTraceRecord(OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
                       AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.4g.',[Lastchange,PresentTap[TapWinding]]));
-                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, DynaVars.t + TapDelay, 0,Self)
+                      IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, DynaVars.t + TapDelay, 0, 0, Self)
                       ELSE Armed := FALSE;
                   End;
             End;
@@ -749,7 +749,7 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] < MaxTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual), 0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual), 0, 0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End
@@ -757,7 +757,7 @@ begin
                    Begin
                      IF   PresentTap[TapWinding] > MinTap[TapWinding]  THEN
                      WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual),0, Self);
+                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual),0, 0, Self);
                            Armed := TRUE;  // Armed to change taps
                      End;
                    End;

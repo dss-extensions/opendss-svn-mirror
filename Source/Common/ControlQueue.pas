@@ -14,90 +14,80 @@ unit ControlQueue;
 
 interface
 
-Uses Arraydef, ControlElem;
+Uses Arraydef, ControlElem, Classes;
 
 Type
 
     TTimeRec = RECORD
-          Hour:Integer;
+          Hour :Integer;
           Sec  :Double;
     END;
 
-    pControlElementArray = ^ControlElementArray;
-    ControlElementArray = Array[1..100] of TControlElem;
-    pTimeArray = ^TimeArray;
-    TimeArray = Array[1..100] of TTimeRec;
+    pActionRecord = ^TActionRecord;
+    TActionRecord = Record
+        ActionTime    :TTimeRec;
+        ActionCode    :Integer;
+        ActionHandle  :Integer;
+        ProxyHandle   :Integer;
+        ControlElement:TControlElem;
+    End;
 
     TControlQueue = class(Tobject)
     private
-       NumActions,
-       MaxActions :Integer;
-       ActionTimes :pTimeArray;
-       ActionCodes,
-       ActionHandles :pIntegerArray;
-       ControlElements :pControlElementArray;
+       ActionList :TList;
+       DebugTrace :Boolean;
+       Tracefile  :TextFile;
+       ctrlHandle :Integer;
 
-       DebugTrace: Boolean;
-       Tracefile: TextFile;
-
-       ctrlHandle: Integer;
-
-
-       PROCEDURE PushDownArrays(i:Integer);
-       PROCEDURE BumpUpStorage;
-       PROCEDURE AllocActionArrays(NewSize:Integer);
-       FUNCTION  Pop(const ActionTime:TTimeRec; Var Code, Hdl:Integer): TControlElem;  // Pop action from queue <= given time
+       FUNCTION  Pop(const ActionTime:TTimeRec; Var Code, ProxyHdl, Hdl:Integer): TControlElem;  // Pop action from queue <= given time
        PROCEDURE DeleteFromQueue(i: Integer; popped:Boolean);
-       FUNCTION TimeRecToTime(Trec:TTimeRec):Double;
+       FUNCTION  TimeRecToTime(Trec:TTimeRec):Double;
        PROCEDURE Set_Trace(const Value: Boolean);
        PROCEDURE WriteTraceRecord(const ElementName: String;const Code:Integer; TraceParameter:Double;const s:String);
 
-    protected
 
     public
       constructor Create;
       destructor Destroy; override;
 
-      FUNCTION Push(Const Hour:Integer; Const Sec:Double; Const Code:Integer; Const Owner:TControlElem):Integer;
+      FUNCTION  Push(Const Hour:Integer; Const Sec:Double; Const Code, ProxyHdl:Integer; Const Owner:TControlElem):Integer;
       PROCEDURE Clear;
       PROCEDURE DoAllActions;
-      FUNCTION DoNearestActions(VAR Hour:Integer; VAR Sec:Double):Boolean;  // Do only actions with lowest time
-      FUNCTION DoActions(const Hour:Integer; const sec: Double):Boolean;  // Do actions with time <= t
-      FUNCTION IsEmpty:Boolean;
+      FUNCTION  DoNearestActions(VAR Hour:Integer; VAR Sec:Double):Boolean;  // Do only actions with lowest time
+      FUNCTION  DoActions(const Hour:Integer; const sec: Double):Boolean;  // Do actions with time <= t
+      FUNCTION  IsEmpty:Boolean;
       PROCEDURE Delete(Hdl:Integer);  // Delete queue item by handle
+
+      PROCEDURE ShowQueue(Const Filenm:String);
 
       Property  TraceLog:Boolean Read DebugTrace Write Set_Trace;
 
-    published
 
     End;
 
 
 implementation
 
-Uses DSSGlobals, sysutils;
+Uses DSSGlobals, sysutils, Utilities;
 
 { TControlQueue }
 
-Function TControlQueue.Push(Const Hour:Integer; const Sec: Double;Const code:Integer;   const Owner: TControlElem):Integer;
+Function TControlQueue.Push(Const Hour:Integer; const Sec: Double; Const code, ProxyHdl:Integer;   const Owner: TControlElem):Integer;
 
 {Add a control action to the queue, sorted by lowest time first}
 {Returns handle to the action}
 
 VAR
    i,
-   AddIndex,
    Hr         :Integer;
-   ActionTime,
+   ThisActionTime,
    S          :Double;
-   Trec      :TTimeRec;
+   Trec       :TTimeRec;
+   pAction    :pActionRecord;
+   ActionInserted :Boolean;
 
 Begin
-     IF NumActions = MaxActions  // No room for another one
-     THEN BumpUpStorage;
 
-     Inc(NumActions);
-     AddIndex := NumActions;
 
      Inc(ctrlHandle); // just a serial number
 
@@ -106,31 +96,37 @@ Begin
      S  := Sec;
      If S > 3600.0
      THEN REPEAT
-       Begin
            Hr := Hr +1;
            S := S - 3600.0;
-       End
      UNTIL S < 3600.0;
 
      Trec.Hour := Hr;
      Trec.Sec  := S;
 
-     ActionTime := TimeRecToTime(Trec);
+     ThisActionTime := TimeRecToTime(Trec);
+     pAction := Allocmem(Sizeof(TActionRecord));  // Make a new Action
 
-     FOR i := 1 to NumActions-1 Do
+     {Insert the action in the list in order of time}
+     ActionInserted := FALSE;
+     FOR i := 0 to ActionList.Count-1 Do
        Begin
-           If ActionTime <= TimeRecToTime(ActionTimes^[i])
+           If ThisActionTime <= TimeRecToTime(pActionRecord(ActionList.Items[i])^.ActionTime)
            THEN Begin
-               PushDownArrays(i);
-               AddIndex := i;
+               ActionList.Insert(i, pAction);
+               ActionInserted := TRUE;
                Break;
            End;
        End;
 
-     ActionTimes^[AddIndex]     := Trec;
-     ActionCodes^[AddIndex]     := Code;
-     ActionHandles^[AddIndex]   :=  ctrlHandle;
-     ControlElements^[AddIndex] := Owner;
+     If Not ActionInserted then  ActionList.Add(pAction);
+     
+     With pAction^ Do Begin
+       ActionTime     := Trec;
+       ActionCode     := Code;
+       ActionHandle   := ctrlHandle;
+       ProxyHandle    := ProxyHdl;
+       ControlElement := Owner;
+     End;
 
      Result := ctrlHandle;
 
@@ -138,45 +134,33 @@ Begin
                                Format('Handle %d Pushed onto Stack',[ctrlHandle]));
 End;
 
-PROCEDURE TControlQueue.AllocActionArrays(NewSize: Integer);
-Begin
-     ReallocMem(ActionTimes, SizeOf(ActionTimes^[1])*NewSize);
-     ReallocMem(ActionCodes, SizeOf(ActionCodes^[1])*NewSize);
-     ReallocMem(ActionHandles, SizeOf(ActionHandles^[1])*NewSize);
-     ReallocMem(ControlElements, SizeOf(ControlElements^[1])*NewSize);
-End;
-
-PROCEDURE TControlQueue.BumpUpStorage;
-Begin
-
-     MaxActions := 2 * MaxActions;
-     AllocActionArrays(MaxActions);
-
-End;
 
 PROCEDURE TControlQueue.Clear;
+VAR
+   i:Integer;
 Begin
-    NumActions := 0;
+    With ActionList Do  {Free Allocated memory}
+      For i := 0 to Count-1 do
+        Freemem(ActionList.Items[i], Sizeof(TActionRecord));
+
+    ActionList.Clear;
 End;
 
 constructor TControlQueue.Create;
 Begin
      Inherited Create;
-     ActionTimes     := NIL;
-     ActionCodes     := NIL;
-     ActionHandles   := NIL;
-     ControlElements := NIL;
-     MaxActions      := 10;
+     ActionList := TList.Create;
+     ActionList.Clear;
+
      ctrlHandle:=0;
-     AllocActionArrays(MaxActions);
-     NumActions      := 0;
 
      DebugTrace := FALSE;
 End;
 
 destructor TControlQueue.Destroy;
 Begin
-   AllocActionArrays(0);
+   Clear;
+   ActionList.Free;
    Inherited Destroy;
 End;
 
@@ -186,8 +170,11 @@ VAR
    i:Integer;
 
 Begin
-     FOR i := 1 to NumActions Do ControlElements^[i].DoPendingAction(ActionCodes^[i]);
-     NumActions := 0;
+    With ActionList Do
+     FOR i := 0 to Count-1 Do
+       With pActionRecord(Items[i])^ Do
+          ControlElement.DoPendingAction(ActionCode, ProxyHandle);
+     Clear;
 End;
 
 FUNCTION TControlQueue.DoNearestActions( VAR Hour:Integer; VAR Sec:Double):Boolean;
@@ -196,69 +183,59 @@ FUNCTION TControlQueue.DoNearestActions( VAR Hour:Integer; VAR Sec:Double):Boole
 // Return time
 
 VAR
-   pElem     :TControlElem   ;
-   t         :TTimeRec;
-   Code, hdl      :Integer;
+   pElem      :TControlElem;
+   t          :TTimeRec;
+   Code,
+   hdl,
+   ProxyHdl        :Integer;
+
 Begin
    Result := FALSE;
-   IF NumActions > 0
-   THEN Begin
-
-       t := ActionTimes^[1];
+   With ActionList Do
+   IF Count > 0 THEN Begin
+       t := pActionRecord(Items[0])^.ActionTime;
        Hour := t.Hour;
        Sec  := t.Sec;
-       pElem := Pop(t, Code, hdl);
+       pElem := Pop(t, Code, ProxyHdl, hdl);
        While pElem <> NIL Do
        Begin
            IF DebugTrace Then WriteTraceRecord(pElem.Name, Code, pElem.DblTraceParameter, Format('Pop Handle %d Do Nearest Action',[hdl]) );
-           pElem.DoPendingAction(Code);
+           pElem.DoPendingAction(Code, ProxyHdl);
            Result := TRUE;
-           pElem := Pop(t, Code, hdl);
+           pElem := Pop(t, Code, ProxyHdl, hdl);
        End;
-
    End;
-
 End;
 
 function TControlQueue.IsEmpty: Boolean;
 begin
-     IF NumActions = 0
+     IF ActionList.Count = 0
      THEN Result := True
      ELSE Result := False;
 end;
 
-PROCEDURE TControlQueue.PushDownArrays(i: Integer);
 
-VAR
-   j:integer;
-Begin
-
-     FOR j := NumActions downto i+1 Do
-     Begin
-         ActionTimes^[j]     := ActionTimes^[j-1];
-         ActionCodes^[j]     := ActionCodes^[j-1];
-         ActionHandles^[j]   := ActionHandles^[j-1];
-         ControlElements^[j] := ControlElements^[j-1];
-     End;
-End;
-
-FUNCTION TControlQueue.Pop(const ActionTime: TTimeRec; Var Code, Hdl:Integer): TControlElem;
+FUNCTION TControlQueue.Pop(const ActionTime: TTimeRec; Var Code, ProxyHdl, Hdl:Integer): TControlElem;
  // pop off next control action with an action time <= ActionTime (sec)
 
 VAR
    i    :Integer;
-   t    :Double ;
+   t    :Double;
 
 Begin
       Result := NIL;
       t := TimeRecToTime(ActionTime);
-      FOR i := 1 to NumActions Do
+
+      With ActionList Do
+      FOR i := 0 to Count-1 Do
       Begin
-          IF TimeRecToTime(ActionTimes^[i]) <= t
+          With pActionRecord(Items[i])^ Do
+          IF TimeRecToTime(ActionTime) <= t
           THEN Begin
-              Result :=  ControlElements^[i];
-              Code := ActionCodes^[i];
-              Hdl  := ActionHandles^[i];
+              Result   :=  ControlElement;
+              Code     := ActionCode;
+              ProxyHdl := ProxyHandle;
+              Hdl      := ActionHandle;
               DeleteFromQueue(i, TRUE);
               Break;
           End;
@@ -268,25 +245,22 @@ End;
 PROCEDURE TControlQueue.DeleteFromQueue(i: Integer; popped:Boolean);
 // Delete i-th element from the Queue
 VAR
-   j         :Integer;
    pElem     :TControlElem;
    S         :String;
 
 Begin
-     pElem := ControlElements^[i];
-     IF (DebugTrace)  THEN Begin
-           If Popped Then S := 'by Pop function' Else S := 'by control device' ;
-           WriteTraceRecord(pElem.Name, ActionCodes^[i], pelem.dbltraceParameter,
-                           Format('Handle %d deleted from Queue %s',[ActionHandles^[i], S]));
+     With pActionRecord(ActionList.Items[i])^ Do Begin
+       pElem := ControlElement;
+       IF (DebugTrace)  THEN Begin
+             If Popped Then S := 'by Pop function' Else S := 'by control device' ;
+             WriteTraceRecord(pElem.Name, ActionCode, pelem.dbltraceParameter,
+                             Format('Handle %d deleted from Queue %s',[ActionHandle, S]));
+       End;
      End;
-     NumActions := NumActions -1;
-     FOR j := i to NumActions Do
-     Begin
-          ActionTimes^[j] := ActionTimes^[j+1];
-          ActionCodes^[j] := ActionCodes^[j+1];
-          ActionHandles^[j] := ActionHandles^[j+1];
-          ControlElements^[j]   := ControlElements^[j+1]
-     End;
+
+     Freemem(ActionList.Items[i], Sizeof(TActionRecord));
+     ActionList.Delete(i);
+
 End;
 
 FUNCTION TControlQueue.DoActions(const Hour:Integer; const sec: Double):Boolean;
@@ -296,22 +270,24 @@ FUNCTION TControlQueue.DoActions(const Hour:Integer; const sec: Double):Boolean;
 VAR
    pElem     :TControlElem;
    t         :TTimeRec;
-   Code, hdl      :Integer;
+   Code,
+   hdl,
+   ProxyHdl      :Integer;
 
 Begin
    Result := FALSE;
-   IF NumActions > 0
+   IF ActionList.Count > 0
    THEN Begin
 
        t.Hour := Hour;
        t.Sec  := Sec;
-       pElem := Pop(t, Code, hdl);
+       pElem := Pop(t, Code, ProxyHdl, hdl);
        While pElem <> NIL Do
        Begin
            IF (DebugTrace)  THEN WriteTraceRecord(pElem.Name, Code, pelem.dbltraceParameter, Format('Pop Handle %d Do Action',[Hdl]));
-           pElem.DoPendingAction(code);
+           pElem.DoPendingAction(code, ProxyHdl);
            Result := TRUE;
-           pElem := Pop(t, Code, hdl);
+           pElem := Pop(t, Code, ProxyHdl, hdl);
        End;
    End;
 
@@ -338,25 +314,50 @@ begin
 
 end;
 
+procedure TControlQueue.ShowQueue(const Filenm: String);
+Var
+   F:TextFile;
+   i:Integer;
+   pAction:pActionRecord;
+
+begin
+  Try
+    Assignfile(F,FileNm);
+    ReWrite(F);
+
+    Writeln(F,'Handle, Hour, Sec, ActionCode, ProxyDevRef, Device )');
+
+    For i := 0 to ActionList.Count-1 do Begin
+        pAction := ActionList.Items[i];
+        If pAction<>Nil then With Paction^ Do Begin
+           Writeln(F, Format('%d, %d, %-.g, %d, %d, %s ',
+           [ActionHandle, ActionTime.Hour, ActionTime.sec, ActionCode, ProxyHandle, ControlElement.Name  ]));
+        End;
+    End;
+  Finally
+    CloseFile(F);
+    FireOffEditor(FileNm);
+  End;
+
+
+end;
+
 PROCEDURE TControlQueue.WriteTraceRecord(const ElementName: String;const Code:Integer; TraceParameter:Double;const s:String);
-VAR
-   Separator :String;
 
 Begin
 
       Try
         IF (Not InshowResults)
         THEN Begin
-             Separator := ', ';
              Append(TraceFile);
-             Writeln(TraceFile,
-                      ActiveCircuit.Solution.intHour:0, Separator,
-                      ActiveCircuit.Solution.DynaVars.t:0:3, Separator,
-                      ActiveCircuit.Solution.ControlIteration:0, Separator,
-                      ElementName, Separator,
-                      Code:0, Separator,
-                      Format('%-.g',[TraceParameter]), Separator,
-                      S );
+             Writeln(TraceFile, Format('%d, %.6g, %d, %s, %d, %-.g, %s', [
+                      ActiveCircuit.Solution.intHour,
+                      ActiveCircuit.Solution.DynaVars.t,
+                      ActiveCircuit.Solution.ControlIteration,
+                      ElementName,
+                      Code,
+                      TraceParameter,
+                      S ]));
 
              CloseFile(TraceFile);
         End;
@@ -375,8 +376,9 @@ PROCEDURE TControlQueue.Delete(Hdl: Integer);
 Var
    i:Integer;
 begin
-     For i := 1 to NumActions Do Begin
-         IF ActionHandles^[i] = Hdl THEN  Begin
+     With ActionList Do
+     For i := 0 to Count-1 Do Begin
+         IF pActionRecord(Items[i])^.ActionHandle = Hdl THEN  Begin
               DeleteFromQueue(i, FALSE);
               Exit;
             End;

@@ -79,6 +79,8 @@ type
     procedure SolvePflow; safecall;
     procedure SolvePlusControl; safecall;
     procedure SolveSnap; safecall;
+    procedure CheckControls; safecall;
+    procedure InitSnap; safecall;
   end;
 
 implementation
@@ -493,6 +495,7 @@ begin
 end;
 
 procedure TSolution.SolveNoControl;
+{Solves without checking controls}
 begin
    If ActiveCircuit <> Nil Then Begin
       ActiveCircuit.Solution.SolveCircuit;
@@ -507,6 +510,7 @@ begin
 end;
 
 procedure TSolution.SolvePlusControl;
+{One Pass Through the solution and then dispatches controls}
 begin
    If ActiveCircuit <> Nil Then Begin
       With ActiveCircuit.Solution Do Begin
@@ -520,6 +524,21 @@ procedure TSolution.SolveSnap;
 begin
    If ActiveCircuit <> Nil Then Begin
       ActiveCircuit.Solution.SolveSnap;
+   End;
+end;
+
+procedure TSolution.CheckControls;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.CheckControls;
+   End;
+end;
+
+procedure TSolution.InitSnap;
+{Initi some things that are done at the beginning of a snapshot solve}
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.SnapShotInit;
    End;
 end;
 

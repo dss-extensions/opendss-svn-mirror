@@ -162,10 +162,12 @@ TYPE
        PROCEDURE DoPFLOWsolution;
 
        PROCEDURE Solve;                // Main Solution dispatch
+       PROCEDURE SnapShotInit;
        FUNCTION  SolveSnap:Integer;    // solve for now once
        FUNCTION  SolveDirect:Integer;  // solve for now once, direct solution
        FUNCTION  SolveYDirect:Integer; // Similar to SolveDirect; used for initialization
        FUNCTION  SolveCircuit:Integer; // SolveSnap sans control iteration
+       PROCEDURE CheckControls;       // Snapshot checks with matrix rebuild
        PROCEDURE Check_Control_Actions;
        PROCEDURE Check_Fault_Status;
 
@@ -889,31 +891,22 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-FUNCTION TSolutionObj.SolveSnap:Integer;  // solve for now once
-
-VAR
-   TotalIterations  :Integer;
+PROCEDURE TSolutionObj.SnapShotInit;
 
 Begin
 
    SetGeneratorDispRef;
-
    ControlIteration   := 0;
-   TotalIterations    := 0;
    ControlActionsDone := False;
    MostIterationsDone := 0;
-
    LoadsNeedUpdating := TRUE;  // Force the loads to update at least once
 
-   REPEAT
+End;
 
-       Inc(ControlIteration);
+PROCEDURE TSolutionObj.CheckControls;
 
-       Result := SolveCircuit;  // Do circuit solution w/o checking controls
-
-       {Now Check controls}
-       If ControlIteration < MaxControlIterations then Begin
+Begin
+      If ControlIteration < MaxControlIterations then Begin
            IF ConvergedFlag Then Begin
                If ActiveCircuit.LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration));
                Check_Control_Actions;
@@ -924,6 +917,27 @@ Begin
        End;
 
        IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, FALSE); // Rebuild Y matrix, but V stays same
+
+End;
+
+//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+FUNCTION TSolutionObj.SolveSnap:Integer;  // solve for now once
+
+VAR
+   TotalIterations  :Integer;
+
+Begin
+   SnapShotInit;
+   TotalIterations    := 0;
+
+   REPEAT
+
+       Inc(ControlIteration);
+
+       Result := SolveCircuit;  // Do circuit solution w/o checking controls
+
+       {Now Check controls}
+       CheckControls;
 
        {For reporting max iterations per control iteration}
        If Iteration > MostIterationsDone  THEN MostIterationsDone := Iteration;

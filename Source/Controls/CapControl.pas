@@ -97,7 +97,7 @@ TYPE
        PROCEDURE CalcYPrim; Override;    // Always Zero for a CapControl
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Code:Integer); Override;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
        PROCEDURE Reset; Override;  // Reset to initial defined state
 
 
@@ -925,7 +925,7 @@ begin
                     TimeDelay := Max(ONDelay , (Deadtime + ONDelay) - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
                Else TimeDelay := ONDelay;
             End Else TimeDelay := OFFDelay;
-            ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, Self);
+            ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, 0, Self);
             Armed := TRUE;
             AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
            End;

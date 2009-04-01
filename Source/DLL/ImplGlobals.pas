@@ -28,6 +28,7 @@ Uses
        ImplDSSProgress,
        ImplSettings,
        ImplLines,
+       ImplCtrlQueue,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -48,6 +49,7 @@ Var
    FDSSProgress :IDSSProgress;
    FSettings    :ISettings;
    FLines       :ILines;
+   FCtrlQueue   :ICtrlQueue;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -85,6 +87,7 @@ Begin
      FDSSProgress := TDSSProgress.Create;
      FSettings    := TSettings.Create;
      FLines       := TLines.Create;
+     FCtrlQueue   := TCtrlQueue.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

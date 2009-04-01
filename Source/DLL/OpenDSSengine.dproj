@@ -168,6 +168,9 @@
     <DCCReference Include="ImplCktElement.pas">
       <CoClasses>CktElement</CoClasses>
     </DCCReference>
+    <DCCReference Include="ImplCtrlQueue.pas">
+      <CoClasses>CtrlQueue</CoClasses>
+    </DCCReference>
     <DCCReference Include="ImplDSS.pas">
       <CoClasses>DSS</CoClasses>
     </DCCReference>

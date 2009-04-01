@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 3/31/2009 4:04:57 PM from Type Library described below.
+// File generated on 4/1/2009 6:18:32 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -74,6 +74,8 @@ const
   CLASS_Settings: TGUID = '{9D910AA4-0CB3-4907-AEEF-8DD79A58C0AD}';
   IID_ILines: TGUID = '{E1616BDB-589B-4E5D-A7CE-828ACD73E5D4}';
   CLASS_Lines: TGUID = '{A1352870-9D53-4E48-B83A-6DB0C8FED65B}';
+  IID_ICtrlQueue: TGUID = '{55055001-5EEC-4667-9CCA-63F3A60F31F3}';
+  CLASS_CtrlQueue: TGUID = '{19DD7174-7FEE-4E59-97ED-C54F16EDC3F0}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -163,6 +165,7 @@ type
   ISettingsDisp = dispinterface;
   ILines = interface;
   ILinesDisp = dispinterface;
+  ICtrlQueue = interface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -182,6 +185,7 @@ type
   DSSProgress = IDSSProgress;
   Settings = ISettings;
   Lines = ILines;
+  CtrlQueue = ICtrlQueue;
 
 
 // *********************************************************************//
@@ -686,6 +690,8 @@ type
     procedure SolvePflow; safecall;
     procedure SolveNoControl; safecall;
     procedure SolvePlusControl; safecall;
+    procedure InitSnap; safecall;
+    procedure CheckControls; safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -765,6 +771,8 @@ type
     procedure SolvePflow; dispid 210;
     procedure SolveNoControl; dispid 211;
     procedure SolvePlusControl; dispid 212;
+    procedure InitSnap; dispid 213;
+    procedure CheckControls; dispid 214;
   end;
 
 // *********************************************************************//
@@ -1189,6 +1197,25 @@ type
   end;
 
 // *********************************************************************//
+// Interface: ICtrlQueue
+// Flags:     (256) OleAutomation
+// GUID:      {55055001-5EEC-4667-9CCA-63F3A60F31F3}
+// *********************************************************************//
+  ICtrlQueue = interface(IUnknown)
+    ['{55055001-5EEC-4667-9CCA-63F3A60F31F3}']
+    function ClearQueue: HResult; stdcall;
+    function Delete(ActionHandle: Integer): HResult; stdcall;
+    function Get_NumActions(out Value: Integer): HResult; stdcall;
+    function Set_Action(Param1: Integer): HResult; stdcall;
+    function Get_ActionCode(out Value: Integer): HResult; stdcall;
+    function Get_DeviceHandle(out Value: Integer): HResult; stdcall;
+    function Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer): HResult; stdcall;
+    function Show: HResult; stdcall;
+    function ClearActions: HResult; stdcall;
+    function Get_PopAction(out Value: Integer): HResult; stdcall;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -1356,6 +1383,18 @@ type
     class function CreateRemote(const MachineName: string): ILines;
   end;
 
+// *********************************************************************//
+// The Class CoCtrlQueue provides a Create and CreateRemote method to          
+// create instances of the default interface ICtrlQueue exposed by              
+// the CoClass CtrlQueue. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoCtrlQueue = class
+    class function Create: ICtrlQueue;
+    class function CreateRemote(const MachineName: string): ICtrlQueue;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1498,6 +1537,16 @@ end;
 class function CoLines.CreateRemote(const MachineName: string): ILines;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Lines) as ILines;
+end;
+
+class function CoCtrlQueue.Create: ICtrlQueue;
+begin
+  Result := CreateComObject(CLASS_CtrlQueue) as ICtrlQueue;
+end;
+
+class function CoCtrlQueue.CreateRemote(const MachineName: string): ICtrlQueue;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_CtrlQueue) as ICtrlQueue;
 end;
 
 end.

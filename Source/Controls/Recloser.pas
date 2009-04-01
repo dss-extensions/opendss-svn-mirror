@@ -99,7 +99,7 @@ TYPE
        PROCEDURE CalcYPrim; Override;    // Always Zero for a Recloser
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Code:Integer); Override;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
        PROCEDURE Reset; Override;  // Reset to initial defined state
 
 
@@ -569,7 +569,7 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TRecloserObj.DoPendingAction(Const Code:Integer);
+PROCEDURE TRecloserObj.DoPendingAction(Const Code, ProxyHdl:Integer);
 
 
 begin
@@ -746,8 +746,8 @@ begin
                   IF Not ArmedForOpen
                   THEN WITH ActiveCircuit Do   // Then arm for an open operation
                   Begin
-                         ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + Delaytime, OPEN, Self);
-                         IF OperationCount <= NumReclose THEN ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + DelayTime + RecloseIntervals^[OperationCount], CLOSE, Self);
+                         ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + Delaytime, OPEN, 0, Self);
+                         IF OperationCount <= NumReclose THEN ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TripTime + DelayTime + RecloseIntervals^[OperationCount], CLOSE, 0, Self);
                          ArmedForOpen := TRUE;
                          ArmedForClose := TRUE;
                   End;
@@ -756,7 +756,7 @@ begin
                    IF ArmedForOpen
                    THEN  WITH ActiveCircuit Do    // If current dropped below pickup, disarm trip and set for reset
                    Begin
-                        ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, Self);
+                        ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
                         ArmedForOpen := FALSE;
                         ArmedForClose := FALSE;
                         GroundTarget := FALSE;

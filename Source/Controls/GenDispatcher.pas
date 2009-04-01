@@ -65,7 +65,7 @@ TYPE
        PROCEDURE CalcYPrim; Override;    // Always Zero for a GenDispatcher
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
-       PROCEDURE DoPendingAction(Const Code:Integer); Override;   // Do the action that is pending from last sample
+       PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
        PROCEDURE Reset; Override;  // Reset to initial defined state
 
        PROCEDURE GetCurrents(Curr: pComplexArray); Override; // Get present value of terminal Curr
@@ -465,7 +465,7 @@ begin
           With ActiveCircuit, ActiveCircuit.Solution Do Begin
             LoadsNeedUpdating := TRUE; // Force recalc of power parms
             // Push present time onto control queue to force re solve at new dispatch value
-            ControlQueue.Push(intHour, DynaVars.t, 0, Self);
+            ControlQueue.Push(intHour, DynaVars.t, 0, 0, Self);
           End;
        
 

@@ -140,7 +140,8 @@ uses
   ImplText in 'ImplText.pas' {Text: CoClass},
   DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
   OpenDSSEngine_TLB in 'OpenDSSEngine_TLB.pas',
-  ExportCIMXML in '..\Common\ExportCIMXML.pas';
+  ExportCIMXML in '..\Common\ExportCIMXML.pas',
+  ImplCtrlQueue in 'ImplCtrlQueue.pas' {CtrlQueue: CoClass};
 
 exports
   DllGetClassObject,
