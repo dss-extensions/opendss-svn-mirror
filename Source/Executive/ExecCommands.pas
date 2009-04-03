@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 77;
+     NumExecCommands = 84;
 
 Var
 
@@ -112,6 +112,13 @@ Begin
      ExecCommand[75] := 'DOScmd';
      ExecCommand[76] := 'Estimate';
      ExecCommand[77] := 'Reconductor';
+     ExecCommand[78] := '_InitSnap';
+     ExecCommand[79] := '_SolveNoControl';
+     ExecCommand[80] := '_SampleControls';
+     ExecCommand[81] := '_DoControlActions';
+     ExecCommand[82] := '_ShowControlQueue';
+     ExecCommand[83] := '_SolveDirect';
+     ExecCommand[84] := '_SolvePFlow';
 
 
 
@@ -154,6 +161,7 @@ Begin
                          'Show Buses' +CRLF+
                          'Show Currents  [[residual=]yes|no*] [Seq* | Elements]' +CRLF+
                          'Show COnvergence  (convergence report)' +CRLF+
+                         'Show CONTrolQueue  ' +CRLF+
                          'Show ELements [Classname] (shows names of all elements in circuit or all elements of a class)' +CRLF+
                          'Show Faults (after Fault Study)' +CRLF+
                          'Show Generators' +CRLF+
@@ -172,11 +180,11 @@ Begin
                          'Show VAriables' +CRLF+
                          'Show Isolated' +CRLF+
                          'Show Ratings  (ratings of PD Elements)' +CRLF+
-                         'Show Loops' +CRLF+
-                         'Show Yprim  (shows Yprim for active ckt element)' +CRLF+
+                         'Show LOOps' +CRLF+
+                         'Show YPrim  (shows Yprim for active ckt element)' +CRLF+
                          'Show Y      (shows system Y)' +CRLF+
-                         'Show BusFlow busname [MVA|kVA*] [Seq* | Elements]' +CRLF+
-                         'Show LineConstants [frequency] [none|mi|km|kft|m|me|ft|in|cm] [rho]' +CRLF+ CRLF+
+                         'Show BUSFlow busname [MVA|kVA*] [Seq* | Elements]' +CRLF+
+                         'Show LIneConstants [frequency] [none|mi|km|kft|m|me|ft|in|cm] [rho]' +CRLF+ CRLF+
                          'Default is "show voltages LN Seq".  ';
      CommandHelp[9]  := 'Perform the solution of the present solution mode. You can set any option '+
                          'that you can set with the Set command (see Set). '+
@@ -417,6 +425,15 @@ Begin
                         'Syntax: Reconductor Line1=... Line2=... [LineCode= | Geometry = ] ' +CRLF+
                         'Line1 and Line2 may be given in any order. All lines in the path between the two are redefined ' +
                         'with either the LineCode or Geometry.';
+     CommandHelp[78] := 'For step control of solution process: Intialize iteration counters, etc. that normally occurs at the ' +
+                        'start of a snapshot solution process.';
+     CommandHelp[79] := 'For step control of solution process: Solves the circuit in present state but does not check for control actions.';
+     CommandHelp[80] := 'For step control of solution process: Sample the control elements, which push control action requests onto the control queue.';
+     CommandHelp[81] := 'For step control of solution process: Pops control actions off the control queue according to the present control mode rules. ' +
+                        'Dispatches contol actions to proper control element "DoPendingAction" handlers.';
+     CommandHelp[82] := 'For step control of solution process: Show the present control queue contents.';
+     CommandHelp[83] := 'For step control of solution process: Invoke direct solution function in DSS. Non-iterative solution of Y matrix and active sources only.';
+     CommandHelp[84] := 'For step control of solution process: Invoke iterative power flow solution function of DSS directly.';
 
 End;
 
@@ -609,6 +626,14 @@ Begin
        74: CmdResult := DoCloseDICmd;
        76: CmdResult := DoEstimateCmd;
        77: CmdResult := DoReconductorCmd;
+       {Step solution commands}
+       78: ActiveCircuit.Solution.SnapShotInit;
+       79: ActiveCircuit.Solution.SolveCircuit;
+       80: ActiveCircuit.Solution.SampleControlDevices;
+       81: ActiveCircuit.Solution.DoControlActions;
+       82: ActiveCircuit.ControlQueue.ShowQueue(DSSDirectory + CircuitName_+'ControlQueue.csv');
+       83: ActiveCircuit.Solution.SolveDirect;
+       84: ActiveCircuit.Solution.DoPFLOWsolution;
      ELSE
        // Ignore excess parameters
      End;

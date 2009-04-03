@@ -92,6 +92,7 @@ Begin
      FPropIndex := 0;
      FPropClass := Nil;
 
+
      {MessageDlg('Interfaces initialized', mtInformation, [mbOK], 0);}
      FIntfInitialized := True;
 End;

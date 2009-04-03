@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 4/1/2009 6:18:32 PM from Type Library described below.
+// File generated on 4/3/2009 9:24:21 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -401,6 +401,7 @@ type
     function Get_AllBusVmagPu: OleVariant; safecall;
     function Get_AllNodeNames: OleVariant; safecall;
     function Get_SystemY: OleVariant; safecall;
+    function Get_CtrlQueue: ICtrlQueue; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -427,6 +428,7 @@ type
     property AllBusVmagPu: OleVariant read Get_AllBusVmagPu;
     property AllNodeNames: OleVariant read Get_AllNodeNames;
     property SystemY: OleVariant read Get_SystemY;
+    property CtrlQueue: ICtrlQueue read Get_CtrlQueue;
   end;
 
 // *********************************************************************//
@@ -474,6 +476,7 @@ type
     property AllBusVmagPu: OleVariant readonly dispid 35;
     property AllNodeNames: OleVariant readonly dispid 37;
     property SystemY: OleVariant readonly dispid 38;
+    property CtrlQueue: ICtrlQueue readonly dispid 201;
   end;
 
 // *********************************************************************//
@@ -683,7 +686,7 @@ type
     procedure Set_ControlIterations(Value: Integer); safecall;
     function Get_MaxControlIterations: Integer; safecall;
     procedure Set_MaxControlIterations(Value: Integer); safecall;
-    procedure CheckControlActions; safecall;
+    procedure Sample_DoControlActions; safecall;
     procedure CheckFaultStatus; safecall;
     procedure SolveSnap; safecall;
     procedure SolveDirect; safecall;
@@ -692,6 +695,12 @@ type
     procedure SolvePlusControl; safecall;
     procedure InitSnap; safecall;
     procedure CheckControls; safecall;
+    procedure SampleControlDevices; safecall;
+    procedure DoControlActions; safecall;
+    procedure BuildYMatrix(BuildOption: Integer; AllocateVI: Integer); safecall;
+    function Get_SystemYChanged: WordBool; safecall;
+    function Get_Converged: WordBool; safecall;
+    procedure Set_Converged(Value: WordBool); safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -723,6 +732,8 @@ type
     property StepsizeHr: Double write Set_StepsizeHr;
     property ControlIterations: Integer read Get_ControlIterations write Set_ControlIterations;
     property MaxControlIterations: Integer read Get_MaxControlIterations write Set_MaxControlIterations;
+    property SystemYChanged: WordBool read Get_SystemYChanged;
+    property Converged: WordBool read Get_Converged write Set_Converged;
   end;
 
 // *********************************************************************//
@@ -764,7 +775,7 @@ type
     property StepsizeHr: Double writeonly dispid 203;
     property ControlIterations: Integer dispid 204;
     property MaxControlIterations: Integer dispid 205;
-    procedure CheckControlActions; dispid 206;
+    procedure Sample_DoControlActions; dispid 206;
     procedure CheckFaultStatus; dispid 207;
     procedure SolveSnap; dispid 208;
     procedure SolveDirect; dispid 209;
@@ -773,6 +784,11 @@ type
     procedure SolvePlusControl; dispid 212;
     procedure InitSnap; dispid 213;
     procedure CheckControls; dispid 214;
+    procedure SampleControlDevices; dispid 215;
+    procedure DoControlActions; dispid 216;
+    procedure BuildYMatrix(BuildOption: Integer; AllocateVI: Integer); dispid 217;
+    property SystemYChanged: WordBool readonly dispid 218;
+    property Converged: WordBool dispid 219;
   end;
 
 // *********************************************************************//

@@ -78,7 +78,6 @@ TYPE
 
    TSolutionObj = class(TDSSObject)
      private
-       ConvergedFlag:Boolean;
 
        dV :pNodeVArray;   // Array of delta V for Newton iteration
        FFrequency:Double;
@@ -109,6 +108,7 @@ TYPE
        ControlIteration :Integer;
        ControlMode :Integer;     // EVENTDRIVEN, TIMEDRIVEN
        ConvergenceTolerance :Double;
+       ConvergedFlag:Boolean;
        DefaultControlMode :Integer;    // EVENTDRIVEN, TIMEDRIVEN
        DefaultLoadModel :Integer;     // 1=POWERFLOW  2=ADMITTANCE
        DoAllHarmonics : Boolean;
@@ -168,7 +168,9 @@ TYPE
        FUNCTION  SolveYDirect:Integer; // Similar to SolveDirect; used for initialization
        FUNCTION  SolveCircuit:Integer; // SolveSnap sans control iteration
        PROCEDURE CheckControls;       // Snapshot checks with matrix rebuild
-       PROCEDURE Check_Control_Actions;
+       PROCEDURE SampleControlDevices;
+       PROCEDURE DoControlActions;
+       PROCEDURE Sample_DoControlActions;    // Sample and Do
        PROCEDURE Check_Fault_Status;
 
        PROCEDURE SetGeneratorDispRef;
@@ -297,6 +299,7 @@ Begin
     MaxIterations    := 15;
     MaxControlIterations  := 10;
     ConvergenceTolerance := 0.0001;
+    ConvergedFlag := FALSE;
 
     IsDynamicModel   := FALSE;
     IsHarmonicModel  := FALSE;
@@ -909,7 +912,7 @@ Begin
       If ControlIteration < MaxControlIterations then Begin
            IF ConvergedFlag Then Begin
                If ActiveCircuit.LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration));
-               Check_Control_Actions;
+               Sample_DoControlActions;
                Check_Fault_Status;
            End
            ELSE
@@ -917,7 +920,6 @@ Begin
        End;
 
        IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, FALSE); // Rebuild Y matrix, but V stays same
-
 End;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1240,39 +1242,16 @@ begin
      End;
 end;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-PROCEDURE TSolutionObj.Check_Control_Actions;
 
+
+//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+PROCEDURE TSolutionObj.DoControlActions;
 VAR
-   ControlDevice:TControlElem;
    XHour:Integer;
    XSec :Double;
-
-begin
-
-     IF ControlMode = CONTROLSOFF THEN ControlActionsDone := TRUE ELSE
-     WITH ActiveCircuit Do
-     Begin
-
-
-          ControlDevice := Nil;
-          TRY
-            // Sample all controls and set action times in control Queue
-            ControlDevice := DSSControls.First;
-            WHILE ControlDevice <> Nil Do
-            Begin
-                 IF ControlDevice.Enabled THEN ControlDevice.Sample;
-                 ControlDevice := DSSControls.Next;
-            End;
-
-          EXCEPT
-             On E: Exception DO  Begin
-             DoSimpleMsg('Error Sampling Control Device "'+ControlDevice.Name+'"'+CRLF+'Error = '+E.message, 484);
-             Raise EControlProblem.Create('Solution aborted.');
-             End;
-          END;
-
-          CASE ControlMode of
+Begin
+    With ActiveCircuit Do Begin
+        CASE ControlMode of
             //  execute the nearest set of control actions time-wise
             STATIC:
                Begin
@@ -1291,11 +1270,54 @@ begin
                End;
 
           END;
+    End;
 
-     {This variable lets control devices no the bus list has changed}
-         Control_BusNameRedefined := False;  // Reset until next change
+End;
+
+//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+PROCEDURE TSolutionObj.SampleControlDevices;
+
+Var
+    ControlDevice:TControlElem;
+
+Begin
+    With ActiveCircuit Do Begin
+          ControlDevice := Nil;
+          TRY
+            // Sample all controls and set action times in control Queue
+            ControlDevice := DSSControls.First;
+            WHILE ControlDevice <> Nil Do
+            Begin
+                 IF ControlDevice.Enabled THEN ControlDevice.Sample;
+                 ControlDevice := DSSControls.Next;
+            End;
+
+          EXCEPT
+             On E: Exception DO  Begin
+             DoSimpleMsg('Error Sampling Control Device "'+ControlDevice.Name+'"'+CRLF+'Error = '+E.message, 484);
+             Raise EControlProblem.Create('Solution aborted.');
+             End;
+          END;
+    End;
+
+End;
+
+//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+PROCEDURE TSolutionObj.Sample_DoControlActions;
+
+
+
+begin
+
+     IF ControlMode = CONTROLSOFF THEN ControlActionsDone := TRUE
+     ELSE  Begin
+
+          SampleControlDevices;
+          DoControlActions;
+
+     {This variable lets control devices know the bus list has changed}
+         ActiveCircuit.Control_BusNameRedefined := False;  // Reset until next change
      End;
-
 
 end;
 

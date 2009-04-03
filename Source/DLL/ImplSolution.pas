@@ -70,7 +70,7 @@ type
     procedure Set_StepsizeMin(Value: Double); safecall;
     function Get_ControlIterations: Integer; safecall;
     function Get_MaxControlIterations: Integer; safecall;
-    procedure CheckControlActions; safecall;
+    procedure Sample_DoControlActions; safecall;
     procedure Set_ControlIterations(Value: Integer); safecall;
     procedure Set_MaxControlIterations(Value: Integer); safecall;
     procedure CheckFaultStatus; safecall;
@@ -81,11 +81,17 @@ type
     procedure SolveSnap; safecall;
     procedure CheckControls; safecall;
     procedure InitSnap; safecall;
+    function Get_SystemYChanged: WordBool; safecall;
+    procedure BuildYMatrix(BuildOption, AllocateVI: Integer); safecall;
+    procedure DoControlActions; safecall;
+    procedure SampleControlDevices; safecall;
+    function Get_Converged: WordBool; safecall;
+    procedure Set_Converged(Value: WordBool); safecall;
   end;
 
 implementation
 
-uses ComServ, DSSGlobals, Math, LoadShape, Utilities, Variants;
+uses ComServ, DSSGlobals, Math, LoadShape, Utilities, YMatrix, Variants;
 
 function TSolution.Get_Frequency: Double;
 begin
@@ -459,10 +465,10 @@ begin
      End;
 end;
 
-procedure TSolution.CheckControlActions;
+procedure TSolution.Sample_DoControlActions;
 begin
     If ActiveCircuit <> Nil Then Begin
-      ActiveCircuit.Solution.Check_Control_Actions  ;
+      ActiveCircuit.Solution.Sample_DoControlActions  ;
    End;
 end;
 
@@ -515,7 +521,7 @@ begin
    If ActiveCircuit <> Nil Then Begin
       With ActiveCircuit.Solution Do Begin
          SolveCircuit;
-         CheckControlActions;
+         CheckControls;
       End;
    End;
 end;
@@ -539,6 +545,64 @@ procedure TSolution.InitSnap;
 begin
    If ActiveCircuit <> Nil Then Begin
       ActiveCircuit.Solution.SnapShotInit;
+   End;
+end;
+
+function TSolution.Get_SystemYChanged: WordBool;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      Result := ActiveCircuit.Solution.SystemYChanged;
+   End;
+end;
+
+procedure TSolution.BuildYMatrix(BuildOption, AllocateVI: Integer);
+{
+  Build Options
+    1 = Series elements only
+    2 = Whole Y matrix
+
+  AllocateVI
+    TRUE:  Reallocate VI
+    FALSE: Do not Reallocate VI; leave as is
+}
+begin
+  If ActiveCircuit <> Nil then  Begin
+    If AllocateVI = 0 then
+       Ymatrix.BuildYMatrix(BuildOption, FALSE)
+    else
+       Ymatrix.BuildYMatrix(BuildOption, TRUE)
+  End;
+end;
+
+procedure TSolution.DoControlActions;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.DoControlActions;
+   End;
+end;
+
+procedure TSolution.SampleControlDevices;
+begin
+    If ActiveCircuit <> Nil Then Begin
+      ActiveCircuit.Solution.SampleControlDevices;
+   End;
+end;
+
+function TSolution.Get_Converged: WordBool;
+begin
+   If ActiveCircuit <> Nil Then Begin
+      Result := ActiveCircuit.Issolved;
+   End;
+end;
+
+procedure TSolution.Set_Converged(Value: WordBool);
+
+{Set the flag directly to force its setting}
+begin
+
+   If ActiveCircuit <> Nil Then Begin
+     ActiveCircuit.Solution.ConvergedFlag := Value;
+     ActiveCircuit.Issolved := Value;
    End;
 end;
 

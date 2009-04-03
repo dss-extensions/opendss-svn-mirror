@@ -57,6 +57,7 @@ type
     function SetActiveBusi(BusIndex: Integer): Integer; safecall;
     function Get_AllNodeNames: OleVariant; safecall;
     function Get_SystemY: OleVariant; safecall;
+    function Get_CtrlQueue: ICtrlQueue; safecall;
   end;
 
 implementation
@@ -380,11 +381,9 @@ Begin
       IF ActiveCircuit <> Nil THEN
       Begin
         p:= ActiveCircuit.PCElements.First;
-        IF p <> Nil
-        THEN Begin
+        IF p <> Nil  THEN Begin
            Repeat
-               If p.enabled
-               Then Begin
+               If p.enabled Then Begin
                    Result := 1;
                    ActiveCircuit.ActiveCktElement := p;
                End
@@ -720,6 +719,11 @@ begin
       end;
    END;
 
+end;
+
+function TCircuit.Get_CtrlQueue: ICtrlQueue;
+begin
+     Result := FCtrlQueue as ICtrlQueue;
 end;
 
 initialization

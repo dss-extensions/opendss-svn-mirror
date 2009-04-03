@@ -325,7 +325,7 @@ begin
     Assignfile(F,FileNm);
     ReWrite(F);
 
-    Writeln(F,'Handle, Hour, Sec, ActionCode, ProxyDevRef, Device )');
+    Writeln(F,'Handle, Hour, Sec, ActionCode, ProxyDevRef, Device');
 
     For i := 0 to ActionList.Count-1 do Begin
         pAction := ActionList.Items[i];
