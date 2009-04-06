@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 4/3/2009 9:24:21 AM from Type Library described below.
+// File generated on 4/6/2009 1:12:10 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\opendss\Source\DLL\OpenDSSengine.tlb (1)
@@ -402,6 +402,12 @@ type
     function Get_AllNodeNames: OleVariant; safecall;
     function Get_SystemY: OleVariant; safecall;
     function Get_CtrlQueue: ICtrlQueue; safecall;
+    function Get_AllBusDistances: OleVariant; safecall;
+    function Get_AllNodeDistances: OleVariant; safecall;
+    function Get_AllNodeVmagByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -429,6 +435,12 @@ type
     property AllNodeNames: OleVariant read Get_AllNodeNames;
     property SystemY: OleVariant read Get_SystemY;
     property CtrlQueue: ICtrlQueue read Get_CtrlQueue;
+    property AllBusDistances: OleVariant read Get_AllBusDistances;
+    property AllNodeDistances: OleVariant read Get_AllNodeDistances;
+    property AllNodeVmagByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagByPhase;
+    property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagPUByPhase;
+    property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
+    property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
   end;
 
 // *********************************************************************//
@@ -477,6 +489,12 @@ type
     property AllNodeNames: OleVariant readonly dispid 37;
     property SystemY: OleVariant readonly dispid 38;
     property CtrlQueue: ICtrlQueue readonly dispid 201;
+    property AllBusDistances: OleVariant readonly dispid 202;
+    property AllNodeDistances: OleVariant readonly dispid 203;
+    property AllNodeVmagByPhase[Phase: Integer]: OleVariant readonly dispid 204;
+    property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant readonly dispid 205;
+    property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
+    property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
   end;
 
 // *********************************************************************//

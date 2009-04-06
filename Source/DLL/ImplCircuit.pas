@@ -58,6 +58,12 @@ type
     function Get_AllNodeNames: OleVariant; safecall;
     function Get_SystemY: OleVariant; safecall;
     function Get_CtrlQueue: ICtrlQueue; safecall;
+    function Get_AllBusDistances: OleVariant; safecall;
+    function Get_AllNodeDistances: OleVariant; safecall;
+    function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeVmagByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
   end;
 
 implementation
@@ -76,7 +82,8 @@ uses ComServ,
      EnergyMeter,
      dialogs,
      YMatrix,
-     Variants;
+     Variants,
+     arrayDef;
 
 function TCircuit.Get_Buses(Index: OleVariant): IBus;
 
@@ -212,7 +219,6 @@ end;
 function TCircuit.Get_AllBusVmag: OleVariant;
 VAR
    i,j,k:Integer;
-   Volts:Double;
 
 Begin
     IF ActiveCircuit <> Nil THEN
@@ -224,8 +230,7 @@ Begin
        Begin
            For j := 1 to Buses^[i].NumNodesThisBus  DO
            Begin
-             Volts := Cabs(ActiveCircuit.Solution.NodeV^[Buses^[i].GetRef(j)]);
-              Result[k] := Volts;
+              Result[k] := Cabs(ActiveCircuit.Solution.NodeV^[Buses^[i].GetRef(j)]);
               Inc(k);
            End;
        End;
@@ -724,6 +729,187 @@ end;
 function TCircuit.Get_CtrlQueue: ICtrlQueue;
 begin
      Result := FCtrlQueue as ICtrlQueue;
+end;
+
+function TCircuit.Get_AllBusDistances: OleVariant;
+{Return distances from each bus to its parent energymeter in an array that aligns with the buslist}
+VAR
+   i:Integer;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       Result := VarArrayCreate([0, NumBuses-1], varDouble);
+       FOR i := 0 to NumBuses-1 DO
+       Begin
+           Result[i] := Buses^[i+1].DistFromMeter;
+       End;
+     End
+    ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCircuit.Get_AllNodeDistances: OleVariant;
+{Return distance from each Node back to parent EnergyMeter}
+{Array sequence is same as all bus Vmag and Vmagpu}
+VAR
+   i,j,k:Integer;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       Result := VarArrayCreate([0, NumNodes-1], varDouble);
+       k:=0;
+       FOR i := 1 to NumBuses DO
+       Begin
+           FOR j := 1 to Buses^[i].NumNodesThisBus DO
+           Begin
+                Result[k] := Buses^[i].DistFromMeter;
+                Inc(k);
+           End;
+       End;
+     End
+    ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCircuit.Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant;
+VAR
+   i,k, NodeIdx:Integer;
+   Temp:pDoubleArray;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       // Make a Temporary Array big enough to hold all nodes
+       Temp := AllocMem(SizeOF(Temp^[1]) * NumNodes);
+
+       // Find nodes connected to specified phase
+       k:=0;
+       FOR i := 1 to NumBuses DO
+       Begin
+           NodeIdx := Buses^[i].FindIdx(Phase);
+           If NodeIdx > 0 then   // Node found with this phase number
+           Begin
+                Inc(k);
+                Temp^[k] := Buses^[i].DistFromMeter;
+           End;
+       End;
+
+       // Assign to result and free temp array
+       Result := VarArrayCreate([0, k-1], varDouble);
+       For i := 0 to k-1 do
+          Result[i] := Temp^[i+1];
+
+       Freemem(Temp, SizeOF(Temp^[1])*NumNodes);
+     End
+    ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCircuit.Get_AllNodeVmagByPhase(Phase: Integer): OleVariant;
+VAR
+   i,k, NodeIdx:Integer;
+   Temp:pDoubleArray;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       // Make a Temporary Array big enough to hold all nodes
+       Temp := AllocMem(SizeOF(Temp^[1]) * NumNodes);
+
+       // Find nodes connected to specified phase
+       k:=0;
+       FOR i := 1 to NumBuses DO
+       Begin
+           NodeIdx := Buses^[i].FindIdx(Phase);
+           If NodeIdx > 0 then   // Node found with this phase number
+           Begin
+                Inc(k);
+                Temp^[k] := Cabs(ActiveCircuit.Solution.NodeV^[Buses^[i].GetRef(NodeIdx)]);
+           End;
+       End;
+
+       // Assign to result and free temp array
+       Result := VarArrayCreate([0, k-1], varDouble);
+       For i := 0 to k-1 do  Result[i] := Temp^[i+1];
+
+       Freemem(Temp, SizeOF(Temp^[1])*NumNodes);
+     End
+    ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCircuit.Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant;
+VAR
+   i,k, NodeIdx:Integer;
+   Temp:pDoubleArray;
+   BaseFactor :Double;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       // Make a Temporary Array big enough to hold all nodes
+       Temp := AllocMem(SizeOF(Temp^[1]) * NumNodes);
+
+       // Find nodes connected to specified phase
+       k:=0;
+       FOR i := 1 to NumBuses DO  Begin
+           NodeIdx := Buses^[i].FindIdx(Phase);
+           If NodeIdx > 0 then   // Node found with this phase number
+           Begin
+                If Buses^[i].kVBase >0.0 then BaseFactor :=  1000.0* Buses^[i].kVBase  Else BaseFactor := 1.0;
+                Inc(k);
+                Temp^[k] := Cabs(ActiveCircuit.Solution.NodeV^[Buses^[i].GetRef(NodeIdx)])/Basefactor;
+           End;
+       End;
+
+       // Assign to result and free temp array
+       Result := VarArrayCreate([0, k-1], varDouble);
+       For i := 0 to k-1 do  Result[i] := Temp^[i+1];
+
+       Freemem(Temp, SizeOF(Temp^[1])*NumNodes);
+     End
+    ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCircuit.Get_AllNodeNamesByPhase(Phase: Integer): OleVariant;
+VAR
+   i,k, NodeIdx:Integer;
+   Temp:pStringArray;
+
+Begin
+    IF ActiveCircuit <> Nil THEN
+     WITH ActiveCircuit DO
+     Begin
+       // Make a Temporary Array big enough to hold all nodes
+       Temp := AllocStringArray(NumNodes);
+
+       // Find nodes connected to specified phase
+       k:=0;
+       FOR i := 1 to NumBuses DO  Begin
+           NodeIdx := Buses^[i].FindIdx(Phase);
+           If NodeIdx > 0 then   // Node found with this phase number
+           Begin
+                Inc(k);
+                Temp^[k] := Format('%s.%d',[BusList.Get(i), Phase]);
+           End;
+       End;
+
+       // Assign to result and free temp array
+       Result := VarArrayCreate([0, k-1], varOleStr);
+       For i := 0 to k-1 do  Result[i] := Temp^[i+1];
+
+       FreeStringArray(Temp, NumNodes);
+     End
+    ELSE Result := VarArrayCreate([0, 0], varOleStr);
+
 end;
 
 initialization

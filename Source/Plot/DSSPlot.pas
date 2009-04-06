@@ -2002,8 +2002,8 @@ VAR
      Procedure GetS;
      Begin
          Case Quantity of
-            vizPower: Begin S1 := Format('%-.6g', [Cbuffer^[k].re]);
-                            S2 := Format('+ j%-.6g kW', [CBuffer^[k].im]);
+            vizPower: Begin S1 := Format('%-.6g + j', [Cbuffer^[k].re]);
+                            S2 := Format('%-.6g kVA', [CBuffer^[k].im]);
                       End;
             vizVoltage: Begin
                           If k <= Ncond Then S1 := Format('%-.6g', [Cabs(Cbuffer^[k])/kVBase1[1]])
@@ -2063,7 +2063,7 @@ begin
   Case Quantity of
     vizVoltage: Begin ArrowLeft := '^ ';  ArrowRight := ' ^'; End;
     Else
-    ArrowLeft := '<-- ';  ArrowRight := ' -->';
+    ArrowLeft := '<- ';  ArrowRight := ' ->';
   End;
 
   Case Quantity of
