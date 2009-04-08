@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 73;
+        NumExecOptions = 75;
 
 VAR
          ExecOption,
@@ -51,8 +51,8 @@ Begin
      ExecOption[16] := 'tolerance';
      ExecOption[17] := 'maxiterations';
      ExecOption[18] := 'h';
-     ExecOption[19] := 'loadmodel';
-     ExecOption[20] := 'loadmult';
+     ExecOption[19] := 'Loadmodel';
+     ExecOption[20] := 'Loadmult';
      ExecOption[21] := 'normvminpu';
      ExecOption[22] := 'normvmaxpu';
      ExecOption[23] := 'emergvminpu';
@@ -61,51 +61,53 @@ Begin
      ExecOption[26] := '%stddev';
      ExecOption[27] := 'LDCurve';  // Load Duration Curve
      ExecOption[28] := '%growth';  // default growth rate
-     ExecOption[29] := 'genkw';
-     ExecOption[30] := 'genpf';
-     ExecOption[31] := 'capkVAR';
-     ExecOption[32] := 'addtype';
-     ExecOption[33] := 'allowduplicates';
-     ExecOption[34] := 'zonelock';
-     ExecOption[35] := 'ueweight';
-     ExecOption[36] := 'lossweight';
-     ExecOption[37] := 'ueregs';
-     ExecOption[38] := 'lossregs';
-     ExecOption[39] := 'voltagebases';  //  changes the default voltage base rules
-     ExecOption[40] := 'algorithm';  //  changes the default voltage base rules
-     ExecOption[41] := 'trapezoidal';
-     ExecOption[42] := 'autobuslist';  // array of bus names to include in auto add solutions
-     ExecOption[43] := 'controlmode';
-     ExecOption[44] := 'tracecontrol';
-     ExecOption[45] := 'genmult';
-     ExecOption[46] := 'defaultdaily';
-     ExecOption[47] := 'defaultyearly';
-     ExecOption[48] := 'allocationfactors';
-     ExecOption[49] := 'cktmodel';
-     ExecOption[50] := 'pricesignal';
-     ExecOption[51] := 'pricecurve';
-     ExecOption[52] := 'terminal';
-     ExecOption[53] := 'basefrequency';
-     ExecOption[54] := 'harmonics';
-     ExecOption[55] := 'maxcontroliter';
-     ExecOption[56] := 'bus';
-     ExecOption[57] := 'datapath';
+     ExecOption[29] := 'Genkw';
+     ExecOption[30] := 'Genpf';
+     ExecOption[31] := 'CapkVAR';
+     ExecOption[32] := 'Addtype';
+     ExecOption[33] := 'Allowduplicates';
+     ExecOption[34] := 'Zonelock';
+     ExecOption[35] := 'UEweight';
+     ExecOption[36] := 'Lossweight';
+     ExecOption[37] := 'UEregs';
+     ExecOption[38] := 'Lossregs';
+     ExecOption[39] := 'Voltagebases';  //  changes the default voltage base rules
+     ExecOption[40] := 'Algorithm';  //  changes the default voltage base rules
+     ExecOption[41] := 'Trapezoidal';
+     ExecOption[42] := 'Autobuslist';  // array of bus names to include in auto add solutions
+     ExecOption[43] := 'Controlmode';
+     ExecOption[44] := 'Tracecontrol';
+     ExecOption[45] := 'Genmult';
+     ExecOption[46] := 'Defaultdaily';
+     ExecOption[47] := 'Defaultyearly';
+     ExecOption[48] := 'Allocationfactors';
+     ExecOption[49] := 'Cktmodel';
+     ExecOption[50] := 'Pricesignal';
+     ExecOption[51] := 'Pricecurve';
+     ExecOption[52] := 'Terminal';
+     ExecOption[53] := 'Basefrequency';
+     ExecOption[54] := 'Harmonics';
+     ExecOption[55] := 'Maxcontroliter';
+     ExecOption[56] := 'Bus';
+     ExecOption[57] := 'Datapath';
      ExecOption[58] := 'KeepList';
      ExecOption[59] := 'ReduceOption';
      ExecOption[60] := 'DemandInterval';
      ExecOption[61] := '%Normal';
      ExecOption[62] := 'DIVerbose';
-     ExecOption[63] := 'casename';
-     ExecOption[64] := 'markercode';
-     ExecOption[65] := 'nodewidth';
-     ExecOption[66] := 'log';
-     ExecOption[67] := 'recorder';
-     ExecOption[68] := 'overloadreport';
-     ExecOption[69] := 'voltexceptionreport';
+     ExecOption[63] := 'Casename';
+     ExecOption[64] := 'Markercode';
+     ExecOption[65] := 'Nodewidth';
+     ExecOption[66] := 'Log';
+     ExecOption[67] := 'Recorder';
+     ExecOption[68] := 'Overloadreport';
+     ExecOption[69] := 'Voltexceptionreport';
      ExecOption[70] := 'Cfactors';
-     ExecOption[71] := 'showexport';
+     ExecOption[71] := 'Showexport';
      ExecOption[72] := 'Numallociterations';
      ExecOption[73] := 'DefaultBaseFrequency';
+     ExecOption[74] := 'Markswitches';
+     ExecOption[75] := 'Switchmarkercode';
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -289,8 +291,8 @@ Begin
                        'Becomes the name of the subdirectory under which all the year data are stored. '+
                        'Default = circuit name '+CRLF+CRLF+
                        'Side Effect: Sets the prefix for output files';
-     OptionHelp[64] := 'Number code for node marker on circuit plots (SDL MarkAt options).';
-     OptionHelp[65] := 'Width of node marker. Default=1.';
+     OptionHelp[64] := 'Number code for node marker on circuit plots. Number from 0 to 47. Default is 24. See also Nodewidth';
+     OptionHelp[65] := 'Width of node marker. Default=1. See MarkerCode';
      OptionHelp[66] := '{YES/TRUE | NO/FALSE} Default = FALSE.  Significant solution events are added to the Event Log, primarily for debugging.';
      OptionHelp[67] := '{YES/TRUE | NO/FALSE} Default = FALSE. Opens DSSRecorder.DSS in DSS install folder and enables recording of all commands that come through ' +
                        'the text command interface. Closed by either setting to NO/FALSE or exiting the program. ' +
@@ -301,6 +303,8 @@ Begin
      OptionHelp[71] := '{YES/TRUE | NO/FALSE} Default = FALSE. If YES/TRUE will automatically show the results of an Export Command after it is written.';
      OptionHelp[72] := 'Default is 2. Maximum number of iterations for load allocations for each time the AllocateLoads or Estimate command is given.';
      OptionHelp[73] := 'Set Default Base Frequency, Hz. Side effect: Sets solution Frequency and default Circuit Base Frequency. This value is saved when the DSS closes down.';
+     OptionHelp[74] := '{YES/TRUE | NO/FALSE}  Default is Yes. Mark lines that are switches or are isolated with a symbol. See SwitchMarkerCode.';
+     OptionHelp[75] := 'Numeric marker code for lines with switches or are isolated from the circuit. See markswitches option.';
 
 End;
 //----------------------------------------------------------------------------
@@ -486,6 +490,8 @@ Begin
                  ActiveCircuit.Fundamental        := Parser.DblValue;     // Set Base Frequency for system (used henceforth)
                  ActiveCircuit.Solution.Frequency := Parser.DblValue;
                End ;
+           74: ActiveCircuit.MarkSwitches := InterpretYesNo(Param);
+           75: ActiveCircuit.SwitchMarkerCode := Parser.IntValue;
          ELSE
            // Ignore excess parameters
          End;
@@ -623,6 +629,8 @@ Begin
            71: If AutoShowExport Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
            72: AppendGlobalResult(Format('%d' ,[MaxAllocationIterations])) ;
            73: AppendGlobalResult(Format('%d', [Round(DefaultBaseFreq)]));
+           74: If ActiveCircuit.MarkSwitches  Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           75: AppendGlobalResult(Format('%d' ,[ActiveCircuit.SwitchMarkerCode]));
          ELSE
            // Ignore excess parameters
          End;
