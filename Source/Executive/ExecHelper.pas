@@ -1297,7 +1297,10 @@ Begin
                'C': PlotType := ptCircuitplot;
                'G': PlotType := ptGeneralDataPlot;
                'M': PlotType := ptMonitorplot;
-               'D': PlotType := ptDaisyplot;
+               'D': Begin
+                      PlotType := ptDaisyplot;
+                      DaisyBusList.Clear;
+                    End;
                'Z': PlotType := ptMeterZones;
             Else
             End;
@@ -1347,6 +1350,7 @@ Begin
              End;
          15: ShowSubs := InterpretYesNo(Param);
          16: MaxLineThickness := Parser.IntValue ;
+         17: InterpretTStringListArray(Param,  DaisyBusList);  {read in Bus list}
        Else
        End;
 
@@ -3580,7 +3584,7 @@ initialization
     DistributeCommands.Abbrev := True;
 
     PlotCommands := TCommandList.Create(['type', 'quantity', 'max', 'dots', 'labels', 'object','showloops',
-                                         'r3','r2','c1','c2', 'c3','channels', 'bases', 'subs', 'thickness']);
+                                         'r3','r2','c1','c2', 'c3','channels', 'bases', 'subs', 'thickness', 'buslist']);
     PlotCommands.Abbrev := True;
                                           {  1            2          3           4             5 }
     ShowCommands := TCommandList.Create(['autoadded',  'buses', 'currents',   'convergence', 'elements',

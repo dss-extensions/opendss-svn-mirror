@@ -38,19 +38,20 @@ Type
 
      TDSSPlot = class(TObject)
      private
-       ActiveColorIdx   :Integer;
-       ColorArray       :Array[1..17] of Integer;
-       pLine            :TLineObj;
-       pTransf          :TTransfObj;
+       ActiveColorIdx:  Integer;
+       ColorArray:      Array[1..17] of Integer;
+       pLine:            TLineObj;
+       pTransf:          TTransfObj;
        Bus1Idx,
-       Bus2Idx          :Integer;
-       FGeneralCircuitPlotQuantity :String;
-       FMaxLineThickness :Integer;
+       Bus2Idx:          Integer;
+       FGeneralCircuitPlotQuantity: String;
+       FMaxLineThickness: Integer;
+
 
        {Main procedures for the various types of plots ... called from execute}
        Procedure DoGeneralPlot;
        Procedure DoAutoAddPlot;
-       Procedure DoGeneratorDaisies;
+       Procedure DoTheDaisies;
        Procedure DoCircuitPlot;
        Procedure DoGeneralCircuitPlot;
        Procedure DoMeterZonePlot;
@@ -106,6 +107,8 @@ Type
        TriColorMid       :Double;
 
        MaxScaleIsSpecified  :Boolean;
+
+       DaisyBusList:    TStringList;
 
        constructor Create;
        destructor Destroy; override;
@@ -274,6 +277,7 @@ end;
 constructor TDSSPlot.Create;
 begin
      SetDefaults;
+     DaisyBusList := TSTringList.Create;
      {Initialize Plotting DLL}
      DSSGraphInit(@CallBackRoutines);  // send a pointer to the DSS Callback routines struct
 end;
@@ -331,37 +335,37 @@ begin
    {Draw the lines  }
    pLine := ActiveCircuit.Lines.First;
 
-   While pLine <> nil Do
+   While pLine <> nil Do With ActiveCircuit Do
      Begin
        If pLine.Enabled then
         Begin
-         // Idx1 := ActiveCircuit.Buslist.Find(StripExtension(pLine.GetBus (1)));
-         // Idx2 := ActiveCircuit.Buslist.Find(StripExtension(pLine.GetBus (2)));
+         // Idx1 := Buslist.Find(StripExtension(pLine.GetBus (1)));
+         // Idx2 := Buslist.Find(StripExtension(pLine.GetBus (2)));
          Bus1Idx := pLine.Terminals^[1].BusRef;
          Bus2Idx := pLine.Terminals^[2].BusRef;
-         If ActiveCircuit.Buses^[Bus1Idx].CoordDefined and ActiveCircuit.Buses^[Bus2Idx].CoordDefined Then
+         If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
           Begin
              If pLine.IsSwitch
-             Then  AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
-                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, TRUE, ActiveCircuit.SwitchMarkerCode,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerWidth )
+             Then  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              NodeMarkerCode, NodeMarkerWidth )
 
              Else If pLine.IsIsolated
                   Then
-                    AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
-                              clFuchsia, 3, Style(1), Dots, pLine.Name, TRUE, ActiveCircuit.SwitchMarkerCode,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerWidth )
+                    AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                              clFuchsia, 3, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              NodeMarkerCode, NodeMarkerWidth )
                   Else
-                    AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
+                    AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
                               GetColor, Thickness, Style(1), Dots, pLine.Name, False, 0,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerWidth );
+                              NodeMarkerCode, NodeMarkerWidth );
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;
        End;
-       pLine := ActiveCircuit.Lines.Next;
+       pLine := Lines.Next;
      End;
 end;
 
@@ -452,8 +456,8 @@ begin
          If Idx>0 Then  With ActiveCircuit.Buses^[Idx] Do Begin
            If CoordDefined Then Begin
              Case PlotType of
-               ptGeneralDataPlot:  AddNewMarker(x, y, InterpolateGradientColor(Color1, Color2, IntPower((GenPlotItem.Value - MinValue)/ Diff,1)), MarkerIdx);
-               ptAutoAddLogPlot:   AddNewMarker(x, y, GetAutoColor((GenPlotItem.Value - MinValue)/ Diff), MarkerIdx);
+               ptGeneralDataPlot:  AddNewMarker(x, y, InterpolateGradientColor(Color1, Color2, IntPower((GenPlotItem.Value - MinValue)/ Diff,1)), MarkerIdx, ActiveCircuit.NodeMarkerWidth);
+               ptAutoAddLogPlot:   AddNewMarker(x, y, GetAutoColor((GenPlotItem.Value - MinValue)/ Diff), MarkerIdx, ActiveCircuit.NodeMarkerWidth);
              Else
              End;
              If Labels Then DoBusLabel(Idx, ActiveCircuit.BusList.Get(Idx));
@@ -470,11 +474,11 @@ begin
   End;
 end;
 
-procedure TDSSPlot.DoGeneratorDaisies;
+procedure TDSSPlot.DoTheDaisies;
 
 Var
    pGen       :TGeneratorObj;
-   GenCount   :pIntegerArray;
+   BusCount   :pIntegerArray;
    i,j,Idx    :Integer;
    Xc, Yc,
    Radius,
@@ -484,30 +488,36 @@ Var
 
 begin
 
-   GenCount := Allocmem(Sizeof(GenCount^[1])*ActiveCircuit.Numbuses);
+   BusCount := Allocmem(Sizeof(BusCount^[1])*ActiveCircuit.Numbuses);
 
-   pGen := ActiveCircuit.Generators.First;
+   If DaisyBusList.Count = 0 then Begin
+     {If Daisy Bus List not filled, then fill it with Generator Buses by default}
+     pGen := ActiveCircuit.Generators.First;
+     While pGen <> nil Do Begin
+          If pGen.Enabled Then Begin
+             DaisyBusList.Add( StripExtension(pGen.GetBus(1)));
+          End;
+          pGen := ActiveCircuit.Generators.Next;
+     End;
+   End;
 
-   {Count the number of generators at each bus}
+   {Count the number of Objects at each bus}
 
-   While pGen <> nil Do Begin
-        If pGen.Enabled Then Begin
-            idx := pGen.terminals^[1].BusRef;
-           // Idx := ActiveCircuit.BusList.Find(StripExtension(pGen.GetBus(1)));
-            If Idx > 0 Then Inc(GenCount^[Idx]);
-        End;
-        pGen := ActiveCircuit.Generators.Next;
+   For i := 0 to DaisyBusList.Count-1 do Begin
+        Idx := ActiveCircuit.BusList.Find(DaisyBusList.Strings[i]);
+        If Idx > 0 Then Inc(BusCount^[Idx]);
    End;
 
    Randomize;
+
    {Draw the generators in}
    Get_Properties(ActiveGraphProps); // Get active graph properties
    Radius := 0.005 * (ActiveGraphProps.Xmax - ActiveGraphProps.Xmin);
    For i := 1 to ActiveCircuit.Numbuses Do Begin
-      If (GenCount^[i] > 0) and ActiveCircuit.Buses^[i].CoordDefined Then Begin
+      If (BusCount^[i] > 0) and ActiveCircuit.Buses^[i].CoordDefined Then Begin
         StartAngle := TwoPi {* Random};
-        Angle      := (Twopi/GenCount^[i]);  // Radians
-        For j := 1 to GenCount^[i] Do Begin
+        Angle      := (Twopi/BusCount^[i]);  // Radians
+        For j := 1 to BusCount^[i] Do Begin
              Xc := ActiveCircuit.Buses^[i].X + 2.0 * Radius * Cos(Angle*(j-1)+ StartAngle);
              Yc := ActiveCircuit.Buses^[i].Y + 2.0 * Radius * Sin(Angle*(j-1)+ StartAngle);
              AddNewLine(ActiveCircuit.Buses^[i].X, ActiveCircuit.Buses^[i].Y, Xc, Yc,
@@ -520,10 +530,10 @@ begin
      {Put Labels on}
    If Labels Then
      For i := 1 to ActiveCircuit.Numbuses Do
-        If (GenCount^[i] > 0) and ActiveCircuit.Buses^[i].CoordDefined Then
+        If (BusCount^[i] > 0) and ActiveCircuit.Buses^[i].CoordDefined Then
             DoBusLabel(i, ActiveCircuit.BusList.Get(i));
 
-   Reallocmem(GenCount, 0);  {Clean up allocated memory}
+   Reallocmem(BusCount, 0);  {Clean up allocated memory}
 
 end;
 
@@ -574,7 +584,7 @@ begin
         Idx1 := pLine.Terminals^[pMeter.MeteredTerminal].BusRef;
         Set_LineWidth(4);
           If    ActiveCircuit.Buses^[Idx1].coorddefined Then
-           AddNewMarker (ActiveCircuit.Buses^[Idx1].x, ActiveCircuit.Buses^[Idx1].y, clRed, 24);
+           AddNewMarker (ActiveCircuit.Buses^[Idx1].x, ActiveCircuit.Buses^[Idx1].y, clRed, 24, 3);
 
        If ShowLoops Then FdrColor := Color1 Else FdrColor := NextColor;
 
@@ -693,7 +703,7 @@ Begin
                       End
                       Else  DoCircuitPlot;
                       If ShowSubs Then MarkSubTransformers;
-                      DoGeneratorDaisies;
+                      DoTheDaisies;
                     End;
 
        ELSE   {Case PlotType}
@@ -1296,7 +1306,7 @@ begin
                        ActiveColoridx := ActiveColorStartThisCase;
                        AddNewLine(X[iCase, PrevCaseYear], Registers1[reg],X[iCase, CaseYear], Registers2[reg],
                                           NextColor, 2, psSolid, FALSE, '', False, 0,0,0);
-                       MarkAt (X[iCase, CaseYear], Registers2[reg], GetMarker(ActiveColorIdx));
+                       MarkAt (X[iCase, CaseYear], Registers2[reg], GetMarker(ActiveColorIdx),1);
                        For i := 0 to NumEMRegisters Do Registers1[i] := Registers2[i];
                       End;
                  Else
@@ -1331,7 +1341,7 @@ begin
                 FirstYear := False;
              End Else Begin
                 AddNewLine(X1, Y1, X[1, CaseYear], HorizDiff[CaseYear], DiffColor, 1, psSolid, FALSE, '', False, 0, 0, 0);
-                markat(X[1, CaseYear], HorizDiff[CaseYear], GetMarker(ActiveColorIdx));
+                markat(X[1, CaseYear], HorizDiff[CaseYear], GetMarker(ActiveColorIdx),1);
                 X1 :=  X[1, CaseYear];
                 Y1 :=  HorizDiff[CaseYear];
              End;
@@ -1579,7 +1589,7 @@ begin
                        For i := 0 to High(iRegisters) do Begin
                          AddNewLine(XValue[iX-1], Registers1[iRegisters[i]], XValue[iX], Registers2[iRegisters[i]],
                                           NextColor, 2, psSolid, FALSE, '', False, 0, 0 , 0);
-                         MarkAt (XValue[iX], Registers2[iRegisters[i]], GetMarker(ActiveColorIdx));
+                         MarkAt (XValue[iX], Registers2[iRegisters[i]], GetMarker(ActiveColorIdx),1);
                        End;
                        WriteFoutRecord(2);
                        For i := 0 to NumEMRegisters Do Registers1[i] := Registers2[i];
@@ -1618,7 +1628,7 @@ begin
                   S := CaseNames.Strings[iCase] + ', ' + Names.Strings[iRegisters[i]];
                   DatColor := NextColor;
                   Set_DataColor( DatColor);
-                  MarkAt(LegendX, LegendY, GetMarker(ActiveColorIdx));
+                  MarkAt(LegendX, LegendY, GetMarker(ActiveColorIdx),1);
                   LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pchar( S), 0);
                   Set_LeftJustifyTransparent(LabelIdx);
             End;
@@ -1783,7 +1793,7 @@ begin
         If pTRansF.IsSubstation Then Begin
           Bus2Idx := pTRansF.Terminals^[2].BusRef;
           If    ActiveCircuit.Buses^[Bus2Idx].coorddefined Then Begin
-           AddNewMarker (ActiveCircuit.Buses^[Bus2Idx].x, ActiveCircuit.Buses^[Bus2Idx].y, clRed, 36);
+           AddNewMarker (ActiveCircuit.Buses^[Bus2Idx].x, ActiveCircuit.Buses^[Bus2Idx].y, clRed, 36, 4);
            If Length(pTransf.SubstationName)>0 Then
              AddNewText( ActiveCircuit.Buses^[Bus2Idx].X, ActiveCircuit.Buses^[Bus2Idx].Y, clBlack, 10, '  '+pTransf.SubstationName);          End;
 
@@ -1868,35 +1878,35 @@ begin
  {Draw the lines With the thickness proportional to the data loaded in the general line data file }
    pLine := ActiveCircuit.Lines.First;
 
-   While pLine <> nil Do
+   With ActiveCircuit Do While pLine <> nil Do
      Begin
        If pLine.Enabled then
         Begin
          Bus1Idx := pLine.Terminals^[1].BusRef;
          Bus2Idx := pLine.Terminals^[2].BusRef;
-         If ActiveCircuit.Buses^[Bus1Idx].CoordDefined and ActiveCircuit.Buses^[Bus2Idx].CoordDefined Then
+         If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
           Begin
              If pLine.IsSwitch
-             Then  AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
-                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, TRUE, ActiveCircuit.SwitchMarkerCode,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerCode )
+             Then  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              NodeMarkerCode, NodeMarkerWidth )
 
              Else If pLine.IsIsolated
              Then
-                  AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
-                              clFuchsia, 3, Style(1), Dots, pLine.Name, TRUE, ActiveCircuit.SwitchMarkerCode,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerCode )
+                  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                              clFuchsia, 3, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              NodeMarkerCode, NodeMarkerWidth )
              Else
-                  AddNewLine(ActiveCircuit.Buses^[Bus1Idx].X, ActiveCircuit.Buses^[Bus1Idx].Y,
-                              ActiveCircuit.Buses^[Bus2Idx].X,ActiveCircuit.Buses^[Bus2Idx].Y,
+                  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
                               GetColor, Thickness, Style(1), Dots, pLine.Name, False, 0,
-                              ActiveCircuit.NodeMarkerCode, ActiveCircuit.NodeMarkerCode );
+                              NodeMarkerCode, NodeMarkerWidth );
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;
        End;
-       pLine := ActiveCircuit.Lines.Next;
+       pLine := Lines.Next;
      End;
 
 

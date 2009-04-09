@@ -211,9 +211,11 @@ Begin
                         'Channels=(array of channel numbers for monitor plot)' +CRLF+
                         'Bases=(array of base values for each channel for monitor plot).  Default is 1.0 for each.  Set Base= after defining channels.' +CRLF+
                         'Subs={Y | N} (default=N) (show substations)'+CRLF+
-                        'Thickness=max thickness allowed for lines in circuit plots (default=7)'+CRLF+CRLF+
+                        'Thickness=max thickness allowed for lines in circuit plots (default=7)'+CRLF +
+                        'Buslist=[Array of Bus Names | File=filename ] (for Daisy plot)' +CRLF+CRLF+
                         'Power and Losses in kW.  C1 used for default color.  C2, C3 used for gradients, tri-color plots. Scale determined automatically of Max = 0 or not specified.  Example:'+CRLF+CRLF+
-                        'Plot daisy power 5000 dots=N'+CRLF+
+                        'Plot daisy power 5000 dots=N !! Generators by default'+CRLF+
+                        'Plot daisy power 5000 dots=N Buslist=[file=MyBusList.txt]'+CRLF+
                         'Plot circuit quantity=7 Max=.010 dots=Y Object=branchdata.csv'+CRLF+
                         'Plot General Quantity=2 Object=valuefile.csv';
      CommandHelp[13] := '{MOnitors | MEters | Faults | Controls | Eventlog | Keeplist |(no argument) } Resets all Monitors, Energymeters, etc. ' +

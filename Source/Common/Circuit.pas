@@ -187,6 +187,8 @@ TYPE
           NodeMarkerWidth,
           SwitchMarkerCode:Integer;
 
+          MarkSwitches:Boolean;
+
           Constructor Create(const Name:String);
           Destructor Destroy; Override;
 
@@ -340,6 +342,7 @@ BEGIN
 
      NodeMarkerCode := 16;
      NodeMarkerWidth:= 1;
+     MarkSwitches := TRUE;
      SwitchMarkerCode := 5;
 
      

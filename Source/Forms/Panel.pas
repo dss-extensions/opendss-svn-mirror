@@ -1915,6 +1915,7 @@ procedure TControlPanel.AutoaddLog1Click(Sender: TObject);
 begin
     If assigned(ActiveCircuit) Then  With PlotOptionsForm Do
         ActiveScriptForm.ExecuteDSSCommand('plot Auto '+ EditAutoIndex.Text+PlotOptionString +
+                                          ' max=0 ' + {override plot option string}
                                           ' C1=' + InttoStr(AutoColor1)  +
                                           ' C2=' + InttoStr(AutoColor2)  +
                                           ' C3=' + InttoStr(AutoColor3)  +

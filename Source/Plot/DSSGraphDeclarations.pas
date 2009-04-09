@@ -25,7 +25,7 @@ Procedure AddNewCurve(Xarray, Yarray: pDoubleArray; NumPoints:Integer; Color:TCo
                     Curvemarkers: Boolean; CurveMarker:Integer; Const CurveName:String); StdCall;  external 'DSSGraph.dll';
 Procedure AddNewText(X1,Y1:Double; Color:TColor; Size:Integer; S:String); StdCall;   external 'DSSGraph.dll';
 Procedure AddNewCircle(Xc, Yc, Radius:double; LineColor, FColor:TColor);  StdCall;   external 'DSSGraph.dll';
-Procedure AddNewMarker(X, Y:Double; Color:TColor; Symbol:Integer);        StdCall;   external 'DSSGraph.dll';
+Procedure AddNewMarker(X, Y:Double; Color:TColor; Symbol, Size:byte);        StdCall;   external 'DSSGraph.dll';
 
 {Routines to manage DSSGraph Properties. Calling routine myst allocate the structure}
 {Issue a Get_Properties to populate the Props struct first then change values}
@@ -56,7 +56,7 @@ Procedure Set_ChartCaption(s:pchar; Maxlen:Cardinal);     StdCall;   external 'D
   Function  AddTextLabel (X, Y: double; TextColor:  TColor; Txt: pchar; Template: integer):  integer;   StdCall; external 'DSSGraph.dll';
   Procedure LockInTextLabel(idx:Integer);               StdCall;     external 'DSSGraph.dll';
   Procedure BoldTextLabel(idx:Integer);                 StdCall;     external 'DSSGraph.dll';
-  procedure MarkAt (x,y: double; Marker: byte);         StdCall;     external 'DSSGraph.dll';
+  procedure MarkAt (x,y: double; Marker, Size:Byte);         StdCall;     external 'DSSGraph.dll';
   procedure CenteredText15 (x,y: double; size: integer; txt:  pchar); StdCall;  external 'DSSGraph.dll';
 
 

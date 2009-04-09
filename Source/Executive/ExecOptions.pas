@@ -291,7 +291,7 @@ Begin
                        'Becomes the name of the subdirectory under which all the year data are stored. '+
                        'Default = circuit name '+CRLF+CRLF+
                        'Side Effect: Sets the prefix for output files';
-     OptionHelp[64] := 'Number code for node marker on circuit plots. Number from 0 to 47. Default is 24. See also Nodewidth';
+     OptionHelp[64] := 'Number code for node marker on circuit plots. Number from 0 to 47. Default is 16 (open circle). 24 is solid circle. Try other values for other symbols. See also Nodewidth';
      OptionHelp[65] := 'Width of node marker. Default=1. See MarkerCode';
      OptionHelp[66] := '{YES/TRUE | NO/FALSE} Default = FALSE.  Significant solution events are added to the Event Log, primarily for debugging.';
      OptionHelp[67] := '{YES/TRUE | NO/FALSE} Default = FALSE. Opens DSSRecorder.DSS in DSS install folder and enables recording of all commands that come through ' +
@@ -304,7 +304,7 @@ Begin
      OptionHelp[72] := 'Default is 2. Maximum number of iterations for load allocations for each time the AllocateLoads or Estimate command is given.';
      OptionHelp[73] := 'Set Default Base Frequency, Hz. Side effect: Sets solution Frequency and default Circuit Base Frequency. This value is saved when the DSS closes down.';
      OptionHelp[74] := '{YES/TRUE | NO/FALSE}  Default is Yes. Mark lines that are switches or are isolated with a symbol. See SwitchMarkerCode.';
-     OptionHelp[75] := 'Numeric marker code for lines with switches or are isolated from the circuit. See markswitches option.';
+     OptionHelp[75] := 'Numeric marker code for lines with switches or are isolated from the circuit. Default is 4. See markswitches option.';
 
 End;
 //----------------------------------------------------------------------------
