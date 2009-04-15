@@ -512,7 +512,7 @@ begin
 
    {Draw the generators in}
    Get_Properties(ActiveGraphProps); // Get active graph properties
-   Radius := 0.005 * (ActiveGraphProps.Xmax - ActiveGraphProps.Xmin);
+   Radius := 0.005 * DaisySize * (ActiveGraphProps.Xmax - ActiveGraphProps.Xmin);
    For i := 1 to ActiveCircuit.Numbuses Do Begin
       If (BusCount^[i] > 0) and ActiveCircuit.Buses^[i].CoordDefined Then Begin
         StartAngle := TwoPi {* Random};
@@ -694,7 +694,7 @@ Begin
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptDaisyPlot: Begin
-                      S := 'Generator Locations / ' + QuantityString;
+                      S := 'Device Locations / ' + QuantityString;
                       Set_ChartCaption(pchar(S), Length(S));
                       If Labels Then Begin
                          Labels := False;  {Temporarily turn off}

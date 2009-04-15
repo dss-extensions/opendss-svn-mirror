@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 75;
+        NumExecOptions = 76;
 
 VAR
          ExecOption,
@@ -108,6 +108,8 @@ Begin
      ExecOption[73] := 'DefaultBaseFrequency';
      ExecOption[74] := 'Markswitches';
      ExecOption[75] := 'Switchmarkercode';
+     ExecOption[76] := 'Daisysize';
+
 
 
      OptionHelp[1]  := 'Sets the active DSS class type.  Same as Class=...';
@@ -305,6 +307,7 @@ Begin
      OptionHelp[73] := 'Set Default Base Frequency, Hz. Side effect: Sets solution Frequency and default Circuit Base Frequency. This value is saved when the DSS closes down.';
      OptionHelp[74] := '{YES/TRUE | NO/FALSE}  Default is Yes. Mark lines that are switches or are isolated with a symbol. See SwitchMarkerCode.';
      OptionHelp[75] := 'Numeric marker code for lines with switches or are isolated from the circuit. Default is 4. See markswitches option.';
+     OptionHelp[76] := 'Default is 1.0. Relative size (a multiplier applied to default size) of daisy circles on daisy plot.';
 
 End;
 //----------------------------------------------------------------------------
@@ -492,6 +495,7 @@ Begin
                End ;
            74: ActiveCircuit.MarkSwitches := InterpretYesNo(Param);
            75: ActiveCircuit.SwitchMarkerCode := Parser.IntValue;
+           76: DaisySize := Parser.DblValue;
          ELSE
            // Ignore excess parameters
          End;
@@ -631,6 +635,7 @@ Begin
            73: AppendGlobalResult(Format('%d', [Round(DefaultBaseFreq)]));
            74: If ActiveCircuit.MarkSwitches  Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
            75: AppendGlobalResult(Format('%d' ,[ActiveCircuit.SwitchMarkerCode]));
+           76: AppendGlobalResult(Format('%-.6g' ,[DaisySize]))
          ELSE
            // Ignore excess parameters
          End;

@@ -182,6 +182,7 @@ VAR
    CircuitName_     :String;     // Name of Circuit with a "_" appended
 
    DefaultBaseFreq  :Double;
+   DaisySize        :Double;
 
 
 
@@ -801,6 +802,7 @@ initialization
    AutoShowExport        := FALSE;
 
    DefaultBaseFreq       := 60.0;
+   DaisySize             := 1.0;
 
    {Initialize filenames and directories}
 
