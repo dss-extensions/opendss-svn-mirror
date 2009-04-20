@@ -220,6 +220,7 @@ type
     PowersByPhase1: TMenuItem;
     Estimation1: TMenuItem;
     Buscoords1: TMenuItem;
+    Sort1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -369,6 +370,7 @@ type
     procedure PowersByPhase1Click(Sender: TObject);
     procedure Estimation1Click(Sender: TObject);
     procedure Buscoords1Click(Sender: TObject);
+    procedure Sort1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -2385,6 +2387,12 @@ end;
 procedure TControlPanel.SeqZ1Click(Sender: TObject);
 begin
     ActiveScriptForm.ExecuteDSSCommand('Export seqz');
+end;
+
+procedure TControlPanel.Sort1Click(Sender: TObject);
+begin
+     CompileCombo.Sorted := TRUE; // Force Box to sort;
+     CompileCombo.Sorted := FALSE; // set back to unsorted (last in first out)
 end;
 
 procedure TControlPanel.Currents3Click(Sender: TObject);
