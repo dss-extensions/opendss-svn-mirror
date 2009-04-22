@@ -102,6 +102,7 @@ Uses Command;
          FUNCTION DoADOScmd:Integer;
          FUNCTION DoEstimateCmd:Integer;
          FUNCTION DoReconductorCmd:Integer;
+         FUNCTION DoAddMarkerCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -135,7 +136,9 @@ USES ArrayDef, ParserDel, SysUtils, DSSGlobals,
 
 Var
    SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands, ExportCommands,
-   ReconductorCommands :TCommandList;
+   ReconductorCommands, AddMarkerCommands :TCommandList;
+
+
 
 //----------------------------------------------------------------------------
 PROCEDURE GetObjClassAndName(VAR ObjClass,ObjName:String);
@@ -3572,6 +3575,57 @@ Begin
 
 End;
 
+FUNCTION DoAddMarkerCmd:Integer;
+Var
+   ParamPointer :Integer;
+   ParamName,
+   Param:String;
+
+   BusName:String;
+   BusIdx :Integer;
+   Bus :TDSSBus;
+
+Begin
+     Result := 0;
+     ParamPointer := 0;
+
+     ParamName := Parser.NextParam;
+     Param := Parser.StrValue;
+     WHILE Length(Param)>0 DO
+     Begin
+         IF   (Length(ParamName) = 0)
+         THEN Inc(ParamPointer)
+         ELSE ParamPointer := AddmarkerCommands.GetCommand(ParamName);
+
+         CASE ParamPointer OF
+           1: BusName := Param;
+           2: AddMarkerCode := Parser.IntValue;
+           3: AddMarkerColor:= Parser.IntValue;
+           4: AddMarkerSize := Parser.IntValue;
+
+         ELSE
+             // ignore unnamed and extra parms
+         End;
+
+         ParamName := Parser.NextParam;
+         Param := Parser.StrValue;
+     End;
+
+     BusIdx := ActiveCircuit.BusList.Find(BusName);
+     if BusIdx>0  then Begin
+          Bus := ActiveCircuit.Buses^[BusIdx];
+          if Bus.CoordDefined  then Begin
+               AddNewMarker(Bus.x, Bus.y, AddMarkerColor, AddMarkerCode, AddMarkerSize);
+               ShowGraph;
+          End
+          Else DoSimpleMsg('Bus Coordinates not defined for bus ' + Busname, 28709);
+
+     End Else
+        Dosimplemsg('Bus not found.', 28708);
+
+
+End;
+
 
 initialization
 
@@ -3605,6 +3659,10 @@ initialization
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
     ReconductorCommands.Abbrev := True;
+
+    AddMarkerCommands := TCommandList.Create(['Bus', 'code', 'color', 'size']);
+    AddMarkerCommands.Abbrev := True;
+
 finalization
 
     DistributeCommands.Free;

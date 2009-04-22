@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 84;
+     NumExecCommands = 85;
 
 Var
 
@@ -119,6 +119,7 @@ Begin
      ExecCommand[82] := '_ShowControlQueue';
      ExecCommand[83] := '_SolveDirect';
      ExecCommand[84] := '_SolvePFlow';
+     ExecCommand[85] := 'AddMarker';
 
 
 
@@ -436,6 +437,7 @@ Begin
      CommandHelp[82] := 'For step control of solution process: Show the present control queue contents.';
      CommandHelp[83] := 'For step control of solution process: Invoke direct solution function in DSS. Non-iterative solution of Y matrix and active sources only.';
      CommandHelp[84] := 'For step control of solution process: Invoke iterative power flow solution function of DSS directly.';
+     CommandHelp[85] := 'Add a marker to the active plot. Example: '+CRLF+CRLF+'AddMarker Bus=busname code=nn color=$00FF0000 size=3';
 
 End;
 
@@ -636,6 +638,7 @@ Begin
        82: ActiveCircuit.ControlQueue.ShowQueue(DSSDirectory + CircuitName_+'ControlQueue.csv');
        83: ActiveCircuit.Solution.SolveDirect;
        84: ActiveCircuit.Solution.DoPFLOWsolution;
+       85: CmdResult := DoAddMarkerCmd;
      ELSE
        // Ignore excess parameters
      End;

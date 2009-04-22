@@ -765,7 +765,7 @@ PROCEDURE ReadDSS_Registry;
 Begin
       DefaultEditor    := DSS_Registry.ReadString('Editor', 'Notepad.exe' );
       DefaultBaseFreq  := StrToInt(DSS_Registry.ReadString('BaseFrequency', '60' ));
-      LastFileCompiled := DSS_Registry.ReadString('LastFile', 'Notepad.exe' );
+      LastFileCompiled := DSS_Registry.ReadString('LastFile', '' );
 End;
 
 

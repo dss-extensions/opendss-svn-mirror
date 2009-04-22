@@ -152,6 +152,8 @@ Type
 
 Var
      DSSPlotObj :TDSSPlot;
+     AddMarkerColor :TColor;
+     AddMarkerCode, AddMarkerSize:Integer;
 
 implementation
 
@@ -2188,6 +2190,9 @@ end;
 initialization
 
     DSSPlotObj := nil;   // Instantiate only if Plot command issued
+    AddMarkerColor := clBlack;
+    AddMarkerCode := 4;
+    AddMarkerSize := 1;
 
 finalization
 
