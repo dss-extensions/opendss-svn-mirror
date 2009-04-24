@@ -1,9 +1,7 @@
 %--------------------------------------------------------------------------
-function [Start,Obj,Text] = DSSStartup(mydir)
+function [Start,Obj,Text] = DSSStartup
     % Function for starting up the DSS
-    % make sure we are in the proper directory
-    cd(mydir);
-    %
+    
     %instantiate the DSS Object
     Obj = actxserver('OpenDSSEngine.DSS');
     %
