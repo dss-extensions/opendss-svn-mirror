@@ -889,13 +889,15 @@ end;
 
 procedure TLoadShapeObj.Set_NumPoints(const Value: Integer);
 begin
-        FNumPoints := Value;
+
         PropertyValue[1] := IntToStr(Value);   // Update property list variable
 
         // Reset array property values to keep them in propoer order in Save
 
         If ArrayPropertyIndex>0  Then  PropertyValue[ArrayPropertyIndex] := PropertyValue[ArrayPropertyIndex];
         If Assigned(Qmultipliers) Then  PropertyValue[11] := PropertyValue[11];
+
+        FNumPoints := Value;   // Now assign the value
 
 end;
 
