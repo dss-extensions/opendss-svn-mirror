@@ -221,7 +221,7 @@ Begin
                         'Default is 60.  If the winding is Wye, the line-to-neutral voltage is used.  Else, the line-to-line ' +
                         'voltage is used.';
      PropertyHelp[6] := 'Rating, in Amperes, of the primary CT rating for converting the line amps to control amps.'+
-                        'The typical default secondary ampere rating is 5 Amps.';
+                        'The typical default secondary ampere rating is 0.2 Amps (check with manufacturer specs).';
      PropertyHelp[7] := 'R setting on the line drop compensator in the regulator, expressed in VOLTS.';
      PropertyHelp[8] := 'X setting on the line drop compensator in the regulator, expressed in VOLTS.';
      PropertyHelp[9] := 'Name of a bus in the system to use as the controlled bus instead of the bus to which the '+
