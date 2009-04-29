@@ -32,6 +32,8 @@ Procedure ExportYprim(FileNm:String);
 Procedure ExportY(FileNm:String);
 Procedure ExportSeqZ(FileNm:String);
 Procedure ExportBusCoords(FileNm:String);
+Procedure ExportLosses(FileNm:String);
+
 
 IMPLEMENTATION
 
@@ -592,6 +594,48 @@ Begin
   End;
 End;
 
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Procedure ExportLosses(FileNm:String);
+
+{Opt = 0: kVA
+ opt = 1: MVA
+ }
+
+Var
+    F :TextFile;
+    PDElem :TPDElement;
+    S_total, S_Load, S_NoLoad:Complex;
+
+Begin
+
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     Writeln(F,'Element,  Total(W), Total(var),  I2R(W), I2X(var), No-load(W), No-load(var)');
+     // PDELEMENTS first
+     PDElem := ActiveCircuit.PDElements.First;
+
+     WHILE PDElem <> nil DO
+     BEGIN
+       IF (PDElem.Enabled)
+       THEN BEGIN
+            PDElem.GetLosses(S_total, S_Load, S_NoLoad);
+            Writeln(F, Format('%s.%s, %.7g, %.7g, %.7g, %.7g, %.7g, %.7g', [PDElem.ParentClass.Name, PDElem.Name, S_total.re, S_total.im, S_Load.re, S_Load.im, S_NoLoad.re, S_NoLoad.im]));
+       END;
+        PDElem := ActiveCircuit.PDElements.Next;
+     END;
+
+     GlobalResult := FileNm;
+
+  FINALLY
+     CloseFile(F);
+
+  End;
+End;
+
+// ===============================================================================
 Procedure ExportPbyphase(FileNm:String; opt :Integer);
 
 { Export Powers by phase }

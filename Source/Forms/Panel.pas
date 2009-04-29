@@ -221,6 +221,7 @@ type
     Estimation1: TMenuItem;
     Buscoords1: TMenuItem;
     Sort1: TMenuItem;
+    Losses2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -371,6 +372,7 @@ type
     procedure Estimation1Click(Sender: TObject);
     procedure Buscoords1Click(Sender: TObject);
     procedure Sort1Click(Sender: TObject);
+    procedure Losses2Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1966,6 +1968,12 @@ procedure TControlPanel.Losses1Click(Sender: TObject);
 begin
   If ActiveCircuit <> Nil Then
       ActiveScriptForm.ExecuteDSSCommand('show losses');
+end;
+
+procedure TControlPanel.Losses2Click(Sender: TObject);
+begin
+   If ActiveCircuit <> Nil Then
+      ActiveScriptForm.ExecuteDSSCommand('export losses');
 end;
 
 procedure TControlPanel.Summary1Click(Sender: TObject);
