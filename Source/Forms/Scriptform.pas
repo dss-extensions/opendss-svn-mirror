@@ -153,6 +153,7 @@ begin
 
   UpdateResultForm;
   UpdateSummaryForm;
+  if Not ActiveCircuit.IsSolved then SummaryForm.Show;
 end;
 
 Procedure TMainEditForm.ExecuteDSSCommand(Const S:String);

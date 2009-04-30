@@ -664,6 +664,7 @@ procedure TControlPanel.ToolButton3Click(Sender: TObject);
 begin
   Screen.Cursor := crHourglass;
   ActiveScriptForm.ExecuteDSSCommand('solve');
+  if Not ActiveCircuit.IsSolved then SummaryForm.Show;
   Screen.Cursor := crDefault;
 end;
 
