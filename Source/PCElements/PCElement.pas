@@ -144,7 +144,7 @@ Begin
      If  (Enabled)
      THEN Begin
 
-       IF (LoadModel=ADMITTANCE) AND (NOT (IsDynamicModel or IsHarmonicModel))
+       IF (LastSolutionWasDirect) AND (NOT (IsDynamicModel or IsHarmonicModel))
        THEN Begin
        
            // Take a short cut and get Currents from YPrim only

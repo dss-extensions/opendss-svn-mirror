@@ -131,6 +131,7 @@ TYPE
        IsHarmonicModel :Boolean;
        Iteration :Integer;
        LoadModel :Integer;        // 1=POWERFLOW  2=ADMITTANCE
+       LastSolutionWasDirect :Boolean;
        LoadsNeedUpdating :Boolean;
        MaxControlIterations :Integer;
        MaxError :Double;
@@ -327,6 +328,7 @@ Begin
     SolutionInitialized := FALSE;
     LoadModel        := POWERFLOW;
     DefaultLoadModel := LoadModel;
+    LastSolutionWasDirect := False;
 
     hYseries := 0;
     hYsystem := 0;
@@ -831,6 +833,8 @@ Begin
    End;
 
    ActiveCircuit.Issolved := ConvergedFlag;
+   LastSolutionWasDirect := False;
+
 End;
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -982,6 +986,7 @@ Begin
    End;
 
    Iteration := 1;
+   LastSolutionWasDirect := TRUE;
 
 End;
 
@@ -992,7 +997,7 @@ begin
        Result := 0;
        IF LoadModel=ADMITTANCE Then
             TRY
-              SolveDirect     // no sense horsing around when its all admittance
+              SolveDirect     // no sense horsing around when it's all admittance
             EXCEPT
               ON E:EEsolv32Problem Do Begin
                 DoSimpleMsg('From SolveSnap.SolveDirect: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
