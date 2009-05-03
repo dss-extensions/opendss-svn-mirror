@@ -1031,9 +1031,17 @@ begin
         StatusBar1.Panels[0].Text := 'Memory: ?';
      FreeMem(pmc);
 //     StatusBar1.Panels[1].Text := Format('Blocks: %d',[AllocMemCount]);
-     If ActiveCircuit <> Nil Then With ActiveCircuit Do StatusBar1.Panels[1].Text := 'Bus: ' + busList.Get(ActiveBusIndex)
-     Else StatusBar1.Panels[1].Text := 'Bus:';
-     StatusBar1.Panels[2].Text := 'Panel 2 status';
+     If ActiveCircuit <> Nil Then  Begin
+         With ActiveCircuit Do Begin
+          If IsSolved Then  StatusBar1.Panels[1].Text := 'Circuit Status: SOLVED'
+                      else  StatusBar1.Panels[1].Text := 'Circuit Status: NOT SOLVED';
+          StatusBar1.Panels[2].Text := Format('Number of Iterations = %d',[solution.iteration]);
+         End;
+     End Else Begin
+         StatusBar1.Panels[1].Text := 'No Active Circuit';
+         StatusBar1.Panels[2].Text := ' ';
+     End;
+
      DemandInterval1.Checked   := EnergyMeterclass.SaveDemandInterval ;
      Caption := 'OpenDSS Data Directory: ' + DSSDataDirectory;
      If ActiveCircuit <> Nil then
@@ -2299,10 +2307,10 @@ begin
             Combolabel.caption := 'Choices:';
             Combobox1.Clear;
 
-            ComboBox1.Items.Add('kVA seq');
             ComboBox1.Items.Add('kVA Elem');
-            ComboBox1.Items.Add('MVA seq');
             ComboBox1.Items.Add('MVA Elem');
+            ComboBox1.Items.Add('kVA seq');
+            ComboBox1.Items.Add('MVA seq');
 
             Combobox1.Sorted := False;
             ComboBox1.ItemIndex := 0;
