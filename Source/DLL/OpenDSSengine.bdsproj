@@ -116,9 +116,10 @@
 			<Linker Name="MinStackSize">16384</Linker>
 			<Linker Name="MaxStackSize">1048576</Linker>
 			<Linker Name="ImageBase">4194304</Linker>
-			<Linker Name="ExeDescription"></Linker>  <Linker Name="AutoRegisterTLB">False</Linker>
-      <Linker Name="AutoGenImportAssembly">False</Linker>
-    </Linker>
+			<Linker Name="ExeDescription"></Linker>
+			<Linker Name="AutoRegisterTLB">False</Linker>
+			<Linker Name="AutoGenImportAssembly">False</Linker>
+		</Linker>
 		<Directories>
 			<Directories Name="OutputDir">..</Directories>
 			<Directories Name="UnitOutputDir"></Directories>
@@ -161,11 +162,11 @@
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
-			<VersionInfoKeys Name="CompanyName">EPRI </VersionInfoKeys>
+			<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">DSS Engine</VersionInfoKeys>
 			<VersionInfoKeys Name="FileVersion">6.2.1.1</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">OpenDSSEngine</VersionInfoKeys>
-			<VersionInfoKeys Name="LegalCopyright">Copyright 2008 EPRI </VersionInfoKeys>
+			<VersionInfoKeys Name="LegalCopyright">Copyright 2008 EPRI</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename">OpenDSSEngine.DLL</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">OpenDSS</VersionInfoKeys>

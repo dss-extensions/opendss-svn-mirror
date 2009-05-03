@@ -670,9 +670,10 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TLineObj.RecalcElementData;
 VAR
-   Zs,Zm,Ys, Ym, Ztemp:Complex;
-   i,j:Integer;
+   Zs, Zm, Ys, Ym, Ztemp: Complex;
+   i, j: Integer;
    Yc1, Yc0, OneThird: double;
+   GammaL, ExpP, ExpM, Exp2P, Exp2M, SinhGL, Tanh2GL: Complex;
 
 Begin
     IF Z<>nil    THEN Z.Free;
@@ -691,9 +692,31 @@ Begin
     Ztemp := CmulReal(cmplx(R1,X1),2.0);
     {Handle special case for 1-phase line and/or pos seq model }
     If (FnPhases =1) or ActiveCircuit.PositiveSequence Then Begin
-       R0 := R1;
-       X0 := X1;
-       C0 := C1;
+      // long-line equivalent PI, but only for CktModel=Positive
+      if ActiveCircuit.PositiveSequence and (C1 > 0) then begin
+        // nominal PI parameters per unit length
+        Zs := cmplx (R1, X1);
+        Ys := cmplx (0.0, TwoPi * BaseFrequency * C1);
+        // apply the long-line correction to obtain Zm and Ym
+        GammaL := Csqrt (Cmul(Zs, Ys));
+        GammaL := CmulReal (GammaL, Len);
+        ExpP := CmulReal (cmplx(cos(GammaL.im), sin(GammaL.im)), exp(GammaL.re));
+        Exp2P := CmulReal (cmplx(cos(0.5 * GammaL.im), sin(0.5 * GammaL.im)), exp(0.5 * GammaL.re));
+        ExpM := Cinv(ExpP);
+        Exp2M := Cinv(Exp2P);
+        SinhGL := CmulReal (Csub (ExpP, ExpM), 0.5);
+        Tanh2GL := Cdiv (Csub (Exp2P, Exp2M), Cadd (Exp2P, Exp2M));
+        Zm := Cdiv (Cmul (CMulReal (Zs, Len), SinhGL), GammaL);
+        Ym := Cdiv (Cmul (CMulReal (Ys, Len), Tanh2GL), CmulReal (GammaL, 0.5));
+        // rely on this function being called only once, unless R1, X1, or C1 changes
+        R1 := Zm.re / Len;
+        X1 := Zm.im / Len;
+        C1 := Ym.im / Len / TwoPi / BaseFrequency;
+      end;
+      // zero sequence the same as positive sequence
+      R0 := R1;
+      X0 := X1;
+      C0 := C1;
     End;
     Zs := CmulReal(CAdd(Ztemp, Cmplx(R0, X0)), OneThird);
     Zm := CmulReal(Csub(cmplx(R0, X0), Cmplx(R1, X1)), OneThird);
