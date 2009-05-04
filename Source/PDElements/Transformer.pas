@@ -283,7 +283,7 @@ Begin
                     'the values for this winding.  Repeat for each winding.  Alternatively, use '+
                     'the array collections (buses, kvas, etc.) to define the windings.  Note: '+
                     'reactances are BETWEEN pairs of windings; they are not the property of a single winding.';
-     PropertyHelp[4] := 'Bus to which this winding is connected.';
+     PropertyHelp[4] := 'Bus connection spec for this winding.';
      PropertyHelp[5] := 'Connection of this winding. Default is "wye" with the neutral solidly grounded.';
      PropertyHelp[6] := 'For 2-or 3-phase, enter phase-phase kV rating.  Otherwise, kV rating of the actual winding';
      PropertyHelp[7] := 'Base kVA rating of the winding. Side effect: forces change of max normal and emerg kva ratings.' +

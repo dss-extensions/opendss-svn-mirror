@@ -236,6 +236,8 @@ Begin
 
      CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
      CommandList.Abbrev := True;
+
+
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -406,6 +408,7 @@ PROCEDURE TSolutionObj.Solve;
 Begin
 
      ActiveCircuit.Issolved := False;
+     SolutionWasAttempted   := TRUE;
 
      InitProgressForm; // initialize Progress Form;
 

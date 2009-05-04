@@ -142,6 +142,8 @@ begin
   imax := cmdList.Count - 1;
   if imax < 0 then Exit;
 
+  SolutionWasAttempted := FALSE;      // Global variable
+
   Screen.Cursor := crHourglass;
   for i := 0 to imax do begin
     If Not SolutionAbort Then Begin  // If script involves step that gets aborted, just flush the script
@@ -153,9 +155,11 @@ begin
 
   UpdateResultForm;
   UpdateSummaryForm;
-  if Not ActiveCircuit.IsSolved then Begin
-    Beep;
-    SummaryForm.Show;
+
+  With ActiveCircuit Do
+  if (SolutionWasAttempted) and (Not IsSolved) then Begin
+      Beep;
+      SummaryForm.Show;
   End;
   ControlPanel.UpdateStatus;
 end;

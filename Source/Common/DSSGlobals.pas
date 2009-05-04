@@ -156,6 +156,7 @@ VAR
    In_Redirect        :Boolean;
    DIFilesAreOpen     :Boolean;
    AutoShowExport     :Boolean;
+   SolutionWasAttempted :Boolean;
 
    ClassNames         :THashList;
    LastClassReferenced:Integer;  // index of class of last thing edited
@@ -800,6 +801,7 @@ initialization
    MaxAllocationIterations := 2;
    SolutionAbort         := FALSE;
    AutoShowExport        := FALSE;
+   SolutionWasAttempted  := FALSE;
 
    DefaultBaseFreq       := 60.0;
    DaisySize             := 1.0;

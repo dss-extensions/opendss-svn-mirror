@@ -1839,8 +1839,8 @@ begin
   S := 'Phases=1 conn=wye';
 
   // Make sure voltage is line-neutral
-  If (Fnphases>1) or (connection<>0) Then   V :=  kVLoadBase/SQRT3
-  Else V :=  kVLoadBase;
+  If (Fnphases>1) or (connection<>0) Then V :=  kVLoadBase/SQRT3
+                                     Else V :=  kVLoadBase;
 
   S := S + Format(' kV=%-.5g',[V]);
 
@@ -1849,7 +1849,7 @@ begin
   Begin
       S := S + Format(' kW=%-.5g  kvar=%-.5g',[kWbase/Fnphases, kvarbase/Fnphases]);
       If FConnectedKVA>0.0 Then
-       S := S + Format(' xfkVA=%-.5g  ',[FConnectedkVA/Fnphases]);
+         S := S + Format(' xfkVA=%-.5g  ',[FConnectedkVA/Fnphases]);
   End;
 
 

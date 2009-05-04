@@ -1035,7 +1035,7 @@ begin
          With ActiveCircuit Do Begin
           If IsSolved Then  StatusBar1.Panels[1].Text := 'Circuit Status: SOLVED'
                       else  StatusBar1.Panels[1].Text := 'Circuit Status: NOT SOLVED';
-          StatusBar1.Panels[2].Text := Format('Number of Iterations = %d',[solution.iteration]);
+          StatusBar1.Panels[2].Text := Format('Total Iterations = %d, Control Iterations = %d,  Max Solution Iterations = %d',[solution.iteration, Solution.ControlIteration, Solution.MostIterationsDone  ]);
          End;
      End Else Begin
          StatusBar1.Panels[1].Text := 'No Active Circuit';
