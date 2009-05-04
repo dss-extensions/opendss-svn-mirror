@@ -28,3 +28,5 @@ redirect c:\opendss\ieeetest\IEEE13Nodeckt.dss
 
 redirect c:\opendss\ieeetest\IEEE37.dss
 
+redirect c:\opendss\ieeetest\IEEELineGeometry.dss
+
