@@ -1,13 +1,15 @@
 
 !------------------------------------------------------------------------------------
 ! Script to run IEEE 34-bus Test Feeder Mod 2
-------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------
 !
 ! change the path to the appropriate location on your computer.
 
-Compile (C:\DSSdata\IEEETest\ieee34Mod2.dss)
+Compile (C:\OpenDSS\IEEETest\ieee34Mod2.dss)
 
+set maxcontroliter=300
 solve
+
 show voltages LN Nodes
 show currents residual=y elements
 show powers kva element
@@ -21,7 +23,7 @@ show taps
 ! This script forces the regulator taps to the same values reported in the 
 ! published results
 
-Compile (C:\DSSdata\IEEETest\ieee34Mod2.dss)
+Compile (C:\OpenDSS\IEEETest\ieee34Mod2.dss)
 
 ! Force Regulator Transformer taps
 Transformer.reg1a.wdg=2 Tap=(0.00625  12  * 1 +)   ! Tap 12
@@ -33,7 +35,9 @@ Transformer.reg2c.wdg=2 Tap=(0.00625  12 * 1 +)    ! Tap 12
 
 Set Controlmode=OFF  ! prevents further tap changes
 
+set maxcontroliter=300
 solve
+
 show voltages LN Nodes
 show currents residual=y elements
 show powers kva element

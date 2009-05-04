@@ -8,13 +8,13 @@ Clear
 New object=circuit.ieee34-2
 ~ basekv=69 pu=1.05 angle=30 mvasc3=200000  !stiffen up a bit over default
 
-! Substation Transformer  -- Modification: Make souce very stiff by using artificially low short circuit reactance
+! Substation Transformer  -- Modification: Make source very stiff by using artificially low short circuit reactance
 New Transformer.SubXF Phases=3 Windings=2 Xhl=0.001 ppm=0    ! Very low %Z and no shunt reactance added
 ~ wdg=1 bus=sourcebus conn=Delta kv=69    kva=25000   %r=0.0005  ! Set the %r very low
 ~ wdg=2 bus=800       conn=wye   kv=24.9  kva=25000   %r=0.0005
 
 ! import line codes with phase impedance matrices
-Redirect        nmsu_linecode2_ABC.txt   ! assumes original order is ABC rather than BAC
+Redirect        IEEELineCodes.dss   ! assumes original order is ABC rather than BAC
 
 ! Define Lines and mid-point buses
 ! NOTE: Since units are not specified for length, it is assumed to match the linecode units
