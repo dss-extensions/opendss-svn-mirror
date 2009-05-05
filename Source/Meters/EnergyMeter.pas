@@ -1671,9 +1671,10 @@ Begin
            PDElem := BranchList.First;
            WHILE PDElem <> NIL Do With ActiveCircuit Do
            Begin
-               Writeln(F, Format('%d, %s.%s, %s, %10.4f',
+               Writeln(F, Format('%d, %s.%s, %s, %s, %10.4f',
                  [BranchList.Level, PDelem.ParentClass.Name, PDelem.Name,
-                  BusList.Get(BranchList.PresentBranch.ToBusReference),
+                  PDelem.FirstBus, PDelem.NextBus,
+                  {BusList.Get(BranchList.PresentBranch.ToBusReference),}
                   Buses^[BranchList.PresentBranch.ToBusReference].DistFromMeter]));
                LoadElem := Branchlist.FirstObject;
                WHILE LoadElem <> NIL Do
