@@ -27,6 +27,16 @@ type
     function Get_ForcedON: WordBool; safecall;
     procedure Set_ForcedON(Value: WordBool); safecall;
     procedure Set_Name(const Value: WideString); safecall;
+    function Get_kV: Double; safecall;
+    function Get_kvar: Double; safecall;
+    function Get_kW: Double; safecall;
+    function Get_PF: Double; safecall;
+    function Get_Phases: Integer; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    procedure Set_kvar(Value: Double); safecall;
+    procedure Set_kW(Value: Double); safecall;
+    procedure Set_PF(Value: Double); safecall;
+    procedure Set_Phases(Value: Integer); safecall;
     { Protected declarations }
   end;
 
@@ -60,8 +70,7 @@ Begin
        Result := VarArrayCreate([0, Generators.ListSize-1], varOleStr);
        k:=0;
        GenElem := Generators.First;
-       WHILE GenElem<>Nil DO
-       Begin
+       WHILE GenElem<>Nil DO  Begin
           Result[k] := GenElem.Name;
           Inc(k);
           GenElem := Generators.Next;
@@ -251,6 +260,123 @@ Begin
              End;
          End;
   End;
+end;
+
+function TGenerators.Get_kV: Double;
+begin
+   Result := -1.0;  // not set
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TGeneratorObj(Active).GenVars.kVGeneratorBase;
+             End;
+         End;
+   End;
+end;
+
+function TGenerators.Get_kvar: Double;
+begin
+  Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TGeneratorObj(Active).Presentkvar;
+             End;
+         End;
+   End;
+end;
+
+function TGenerators.Get_kW: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TGeneratorObj(Active).PresentkW;
+             End;
+         End;
+   End;
+end;
+
+function TGenerators.Get_PF: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TGeneratorObj(Active).PowerFactor;
+             End;
+         End;
+   End;
+end;
+
+function TGenerators.Get_Phases: Integer;
+begin
+   Result := 0;  // not set
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TGeneratorObj(Active).nphases;
+             End;
+         End;
+   End;
+end;
+
+procedure TGenerators.Set_kV(Value: Double);
+begin
+
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TGeneratorObj(Active).PresentkV := Value;
+             End;
+         End;
+   End;
+
+end;
+
+procedure TGenerators.Set_kvar(Value: Double);
+begin
+    IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TGeneratorObj(Active).Presentkvar := Value;
+             End;
+         End;
+   End;
+end;
+
+procedure TGenerators.Set_kW(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TGeneratorObj(Active).PresentkW := Value;
+             End;
+         End;
+   End;
+end;
+
+procedure TGenerators.Set_PF(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Generators Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TGeneratorObj(Active).PowerFactor := Value;
+             End;
+         End;
+   End;
+end;
+
+procedure TGenerators.Set_Phases(Value: Integer);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+       WITH ActiveCircuit.Generators Do Begin
+           IF ActiveIndex<>0 THEN Begin
+                TGeneratorObj(Active).Nphases := Value;
+           End;
+       End;
+   End;
 end;
 
 initialization

@@ -64,6 +64,7 @@ type
     function Get_AllNodeVmagByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_Loads: ILoads; safecall;
   end;
 
 implementation
@@ -910,6 +911,11 @@ Begin
      End
     ELSE Result := VarArrayCreate([0, 0], varOleStr);
 
+end;
+
+function TCircuit.Get_Loads: ILoads;
+begin
+    Result := FLoads as ILoads;
 end;
 
 initialization

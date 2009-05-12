@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 4/26/2009 4:25:22 PM from Type Library described below.
+// File generated on 5/12/2009 4:52:32 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -76,6 +76,8 @@ const
   CLASS_Lines: TGUID = '{A1352870-9D53-4E48-B83A-6DB0C8FED65B}';
   IID_ICtrlQueue: TGUID = '{55055001-5EEC-4667-9CCA-63F3A60F31F3}';
   CLASS_CtrlQueue: TGUID = '{19DD7174-7FEE-4E59-97ED-C54F16EDC3F0}';
+  IID_ILoads: TGUID = '{0C1898CF-4DBA-484D-9D99-BD115AD3B43A}';
+  CLASS_Loads: TGUID = '{71A3C6AA-3B1E-43DE-82BD-74944286A51D}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -166,6 +168,7 @@ type
   ILines = interface;
   ILinesDisp = dispinterface;
   ICtrlQueue = interface;
+  ILoads = interface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -186,6 +189,7 @@ type
   Settings = ISettings;
   Lines = ILines;
   CtrlQueue = ICtrlQueue;
+  Loads = ILoads;
 
 
 // *********************************************************************//
@@ -408,6 +412,7 @@ type
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
+    function Get_Loads: ILoads; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -441,6 +446,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagPUByPhase;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
+    property Loads: ILoads read Get_Loads;
   end;
 
 // *********************************************************************//
@@ -495,6 +501,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant readonly dispid 205;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
+    property Loads: ILoads readonly dispid 208;
   end;
 
 // *********************************************************************//
@@ -962,6 +969,16 @@ type
     procedure Set_ForcedON(Value: WordBool); safecall;
     function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
+    function Get_kV: Double; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    function Get_kW: Double; safecall;
+    procedure Set_kW(Value: Double); safecall;
+    function Get_kvar: Double; safecall;
+    procedure Set_kvar(Value: Double); safecall;
+    function Get_PF: Double; safecall;
+    procedure Set_PF(Value: Double); safecall;
+    function Get_Phases: Integer; safecall;
+    procedure Set_Phases(Value: Integer); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property RegisterNames: OleVariant read Get_RegisterNames;
     property RegisterValues: OleVariant read Get_RegisterValues;
@@ -969,6 +986,11 @@ type
     property Next: Integer read Get_Next;
     property ForcedON: WordBool read Get_ForcedON write Set_ForcedON;
     property Name: WideString read Get_Name write Set_Name;
+    property kV: Double read Get_kV write Set_kV;
+    property kW: Double read Get_kW write Set_kW;
+    property kvar: Double read Get_kvar write Set_kvar;
+    property PF: Double read Get_PF write Set_PF;
+    property Phases: Integer read Get_Phases write Set_Phases;
   end;
 
 // *********************************************************************//
@@ -985,6 +1007,11 @@ type
     property Next: Integer readonly dispid 6;
     property ForcedON: WordBool dispid 8;
     property Name: WideString dispid 9;
+    property kV: Double dispid 201;
+    property kW: Double dispid 202;
+    property kvar: Double dispid 203;
+    property PF: Double dispid 204;
+    property Phases: Integer dispid 205;
   end;
 
 // *********************************************************************//
@@ -1250,6 +1277,22 @@ type
   end;
 
 // *********************************************************************//
+// Interface: ILoads
+// Flags:     (256) OleAutomation
+// GUID:      {0C1898CF-4DBA-484D-9D99-BD115AD3B43A}
+// *********************************************************************//
+  ILoads = interface(IUnknown)
+    ['{0C1898CF-4DBA-484D-9D99-BD115AD3B43A}']
+    function Get_AllNames(out Value: OleVariant): HResult; stdcall;
+    function Get_First(out Value: Integer): HResult; stdcall;
+    function Get_Next(out Value: Integer): HResult; stdcall;
+    function Get_Name(out Value: WideString): HResult; stdcall;
+    function Set_Name(const Value: WideString): HResult; stdcall;
+    function Get_Idx(out Value: Integer): HResult; stdcall;
+    function Set_Idx(Value: Integer): HResult; stdcall;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -1429,6 +1472,18 @@ type
     class function CreateRemote(const MachineName: string): ICtrlQueue;
   end;
 
+// *********************************************************************//
+// The Class CoLoads provides a Create and CreateRemote method to          
+// create instances of the default interface ILoads exposed by              
+// the CoClass Loads. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoLoads = class
+    class function Create: ILoads;
+    class function CreateRemote(const MachineName: string): ILoads;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1581,6 +1636,16 @@ end;
 class function CoCtrlQueue.CreateRemote(const MachineName: string): ICtrlQueue;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_CtrlQueue) as ICtrlQueue;
+end;
+
+class function CoLoads.Create: ILoads;
+begin
+  Result := CreateComObject(CLASS_Loads) as ILoads;
+end;
+
+class function CoLoads.CreateRemote(const MachineName: string): ILoads;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Loads) as ILoads;
 end;
 
 end.

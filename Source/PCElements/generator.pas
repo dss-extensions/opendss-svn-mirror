@@ -39,6 +39,7 @@ unit generator;
     3/6/03   Revised user-written dll interface.
              added control terminal code for PCELement override.
     3-17-03  Revised user-written models and harmonic models
+    5-11-09  Added properties to support kW, kvar, PV, and kV  through COM
 }
 {
   The generator is essentially a negative load that can be dispatched.
@@ -137,7 +138,6 @@ TYPE
         GenFundamental  :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         GenON           :Boolean;           {Indicates whether generator is currently on}
         GenSwitchOpen   :Boolean;
-        GenVars         :TGeneratorVars; {State Variables}
         kVANotSet       :Boolean;
         LastGrowthFactor :Double;
         LastYear         :Integer;   // added for speedup so we don't have to search for growth factor a lot
@@ -197,16 +197,23 @@ TYPE
 
         Procedure WriteTraceRecord(const s:string);
 
+        procedure SyncUpPowerQuantities;
+
 
         Function Get_PresentkW:Double;
         Function Get_Presentkvar:Double;
+        function Get_PresentkV: Double;
+        procedure Set_PresentkV(const Value: Double);
+        procedure Set_Presentkvar(const Value: Double);
+        procedure Set_PresentkW(const Value: Double);
+        procedure Set_PowerFactor(const Value: Double);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
         Procedure GetTerminalCurrents(Curr:pComplexArray); Override ;
 
       public
-        
+
         Connection      :Integer;  {0 = line-neutral; 1=Delta}
         DailyDispShape  :String;  // Daily (24 HR) Generator shape
         DailyDispShapeObj :TLoadShapeObj;  // Daily Generator Shape for this load
@@ -214,6 +221,7 @@ TYPE
         DutyShapeObj    :TLoadShapeObj;  // Shape for this generator
         GenClass        :Integer;
         GenModel        :Integer;   // Variation with voltage
+        GenVars         :TGeneratorVars; {State Variables}
         kvarBase        :Double;
         kvarMax         :Double;
         kvarMin         :Double;
@@ -236,9 +244,9 @@ TYPE
         Procedure GetInjCurrents(Curr:pComplexArray); Override;
         Function  NumVariables:Integer;Override;
         Procedure GetAllVariables(States:pDoubleArray);Override;
-        Function Get_Variable(i: Integer): Double; Override;
+        Function  Get_Variable(i: Integer): Double; Override;
         procedure Set_Variable(i: Integer; Value: Double);  Override;
-        Function VariableName(i:Integer):String ;Override;
+        Function  VariableName(i:Integer):String ;Override;
 
         Procedure SetNominalGeneration;
         Procedure Randomize(Opt:Integer);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
@@ -266,9 +274,11 @@ TYPE
        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
-       Property PresentkW    :Double  Read Get_PresentkW;
-       Property Presentkvar  :Double  Read Get_Presentkvar;
-       Property ForcedON     :Boolean Read FForcedON Write FForcedON;
+       Property PresentkW    :Double  Read Get_PresentkW   Write Set_PresentkW;
+       Property Presentkvar  :Double  Read Get_Presentkvar Write Set_Presentkvar;
+       Property ForcedON     :Boolean Read FForcedON       Write FForcedON;
+       Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
+       Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
 
    End;
 
@@ -529,7 +539,7 @@ VAR
    ParamName:String;
    Param:String;
 
-   kVA_Gen :Double;
+   
 
 Begin
   // continue parsing with contents of Parser
@@ -559,7 +569,7 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
             1: NPhases    := Parser.Intvalue; // num phases
             2: SetBus(1, param);
-            3: GenVars.kVGeneratorBase   := Parser.DblValue;
+            3: PresentkV    := Parser.DblValue;
             4: kWBase       := Parser.DblValue;
             5: PFNominal    := Parser.DblValue;
             6: GenModel     := Parser.IntValue;
@@ -569,7 +579,7 @@ Begin
            10: DispatchMode  := InterpretDispMode(Param);
            11: DispatchValue := Parser.DblValue;
            12: InterpretConnection(Param);
-           13: kvarBase     := Parser.DblValue;
+           13: Presentkvar   := Parser.DblValue;
            14: DoSimpleMsg('Rneut property has been deleted. Use external impedance.', 5611);
            15: DoSimpleMsg('Xneut property has been deleted. Use external impedance.', 5612);
            16: If Param[1]='f' Then Fixed := TRUE ELSE Fixed := FALSE;
@@ -603,46 +613,16 @@ Begin
          If ParamPointer > 0 Then
          CASE PropertyIdxMap[ParamPointer] OF
             1: SetNcondsForConnection;  // Force Reallocation of terminal info
-            3: Begin
-                  {VBase is always L-N voltage unless 1-phase device or more than 3 phases}
-                  With GenVars Do {CASE Connection OF
-                    1: VBase := kVGeneratorBase * 1000.0 ;
-                    Else}
-                        Case Fnphases Of
-                         2,3: VBase := kVGeneratorBase * 577.4;
-                         Else
-                             VBase := kVGeneratorBase * 1000.0 ;
-                         End;
-                  {End;}
-               End;
 
             // keep kvar nominal up to date with kW and PF
-            4,5: If (PFNominal <> 0.0)
-                 Then Begin
-                    kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
-                    Genvars.Qnominalperphase := 1000.0* kvarBase / Fnphases;
-                    kvarMax  := 2.0 * kvarBase;
-                    kvarMin  := -kvarMax;
-                    If PFNominal<0.0 Then kvarBase := -kvarBase;
+            4,5: SyncUpPowerQuantities;
 
-                    If kVANotSet Then GenVars.kVARating := kWBase * 1.2;
-
-                 End;
 
     {Set shape objects;  returns nil if not valid}
             7: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
             8: DailyDispShapeObj := LoadShapeClass.Find(DailyDispShape);
             9: DutyShapeObj := LoadShapeClass.Find(DutyShape);
 
-            13: Begin
-                   Genvars.Qnominalperphase := 1000.0 * kvarBase  / Fnphases; // init to something reasonable
-                   kVA_Gen := Sqrt(Sqr(kWBase) + Sqr(kvarBase)) ;
-                   IF kVA_Gen <> 0.0 THEN PFNominal := kWBase / kVA_Gen ELSE PFNominal := 1.0;
-                   If (kWBase*kvarBase) < 0.0 Then PFNominal := -PFNominal;
-
-                   kvarMax  := 2.0 * kvarBase;
-                   kvarMin  := -kvarMax;
-                End;
             22: IF DebugTrace
                 THEN Begin
                    AssignFile(TraceFile, DSSDataDirectory + 'GEN_'+Name+'.CSV');
@@ -2052,6 +2032,11 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+function TGeneratorObj.Get_PresentkV: Double;
+begin
+     Result := Genvars.kVGeneratorBase;
+end;
+
 Function TGeneratorObj.Get_Presentkvar:Double;
 Begin
      Result := Genvars.Qnominalperphase * 0.001 * Fnphases;
@@ -2520,12 +2505,14 @@ function TGeneratorObj.GetPropertyValue(Index: Integer): String;
 begin
       Result := '';
       CASE Index of
-         5:  Result := Str_Real(PFNominal, 3);
-         13: Result := Str_Real(kvarBase, 3);
-         19: Result := Str_Real(kvarMax, 3);
-         20: Result := Str_Real(kvarMin, 3);
-         26: Result := Str_Real(Genvars.kVArating, 3);
-         27: Result := Str_Real(Genvars.kVArating*0.001, 3);
+         3:  Result := Format('%.6g', [Genvars.kVGeneratorBase]);
+         4:  Result := Format('%.6g', [kWBase]);
+         5:  Result := Format('%.6g', [PFNominal]);
+         13: Result := Format('%.6g', [kvarBase]);
+         19: Result := Format('%.6g', [kvarMax]);
+         20: Result := Format('%.6g', [kvarMin]);
+         26: Result := Format('%.6g', [Genvars.kVArating]);
+         27: Result := Format('%.6g', [Genvars.kVArating*0.001]);
          34,36: Begin
                     Result := '(' + inherited GetPropertyValue(index) + ')';
                 End
@@ -2579,6 +2566,64 @@ begin
 end;
 
 
+
+procedure TGeneratorObj.Set_PowerFactor(const Value: Double);
+begin
+     PFNominal := Value;
+     SyncUpPowerQuantities;
+end;
+
+procedure TGeneratorObj.Set_PresentkV(const Value: Double);
+begin
+   With Genvars Do Begin
+      kVGeneratorBase := Value ;
+      Case FNphases Of
+           2,3: VBase := kVGeneratorBase * 577.4;
+      Else
+             VBase := kVGeneratorBase * 1000.0 ;
+      End;
+   End;
+end;
+
+procedure TGeneratorObj.Set_Presentkvar(const Value: Double);
+Var
+   kVA_Gen :Double;
+
+begin
+   kvarBase := Value;
+   Genvars.Qnominalperphase := 1000.0 * kvarBase  / Fnphases; // init to something reasonable
+   kVA_Gen := Sqrt(Sqr(kWBase) + Sqr(kvarBase)) ;
+   IF kVA_Gen <> 0.0 THEN PFNominal := kWBase / kVA_Gen ELSE PFNominal := 1.0;
+   If (kWBase*kvarBase) < 0.0 Then PFNominal := -PFNominal;
+
+   kvarMax  := 2.0 * kvarBase;
+   kvarMin  := -kvarMax;
+end;
+
+procedure TGeneratorObj.Set_PresentkW(const Value: Double);
+begin
+
+   kWBase := Value;
+   SyncUpPowerQuantities;
+
+End;
+
+procedure TGeneratorObj.SyncUpPowerQuantities;
+Begin
+
+   // keep kvar nominal up to date with kW and PF
+   If (PFNominal <> 0.0)  Then Begin
+      kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
+      Genvars.Qnominalperphase := 1000.0* kvarBase / Fnphases;
+      kvarMax  := 2.0 * kvarBase;
+      kvarMin  := -kvarMax;
+      If PFNominal<0.0 Then kvarBase := -kvarBase;
+
+      If kVANotSet Then GenVars.kVARating := kWBase * 1.2;
+
+   End;
+
+end;
 
 procedure TGeneratorObj.SetDragHandRegister(Reg: Integer;
   const Value: Double);
