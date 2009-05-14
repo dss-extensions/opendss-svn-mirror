@@ -8,7 +8,7 @@ uses
   Windows, ActiveX, Classes, ComObj, OpenDSSengine_TLB, StdVcl;
 
 type
-  TCtrlQueue = class(TTypedComObject, ICtrlQueue)
+  TCtrlQueue = class(TAutoObject, ICtrlQueue)
   private
   protected
     function ClearQueue: HResult; stdcall;
@@ -192,7 +192,7 @@ begin
 end;
 
 initialization
-  TTypedComObjectFactory.Create(ComServer, TCtrlQueue, Class_CtrlQueue,
+  TAutoObjectFactory.Create(ComServer, TCtrlQueue, Class_CtrlQueue,
     ciInternal, tmApartment);
  {Make a Proxy Control Object to receiving control actions}
     COMControlProxyObj := TCOMControlProxyObj.Create(Nil, 'COM_Proxy');

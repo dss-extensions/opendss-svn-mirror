@@ -23,7 +23,10 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, Executive;
+uses ComServ, DSSGlobals, Executive, Dialogs, SysUtils;
+
+const
+  nothing: WideString = #0#0;
 
 function TText.Get_Command: WideString;
 begin
@@ -41,7 +44,10 @@ end;
 
 function TText.Get_Result: WideString;
 begin
-   Result := GlobalResult;
+   if Length(GlobalResult) < 1 then
+      Result := nothing
+   else
+      Result := GlobalResult;
     {****}
     {
       Need to implement a protocol for determining whether to go get the
