@@ -64,7 +64,10 @@ type
     function Get_AllNodeVmagByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
-    function Get_Loads: ILoads; safecall;
+    function Get_Loads: IUnknown; safecall;
+//    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
+
+//  function ICircuit_Get_Loads: IUnknown; safecall;
   end;
 
 implementation
@@ -913,9 +916,19 @@ Begin
 
 end;
 
-function TCircuit.Get_Loads: ILoads;
+//function TCircuit.Get_Loads: ILoads;
+//begin
+//    Result := FLoads as ILoads;
+//end;
+
+//function TCircuit.ICircuit_Get_Loads: IUnknown;
+//begin
+//
+//end;
+
+function TCircuit.Get_Loads: IUnknown;
 begin
-    Result := FLoads as ILoads;
+
 end;
 
 initialization

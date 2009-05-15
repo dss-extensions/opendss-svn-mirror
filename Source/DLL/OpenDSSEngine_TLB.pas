@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// $Rev: 8291 $
-// File generated on 5/12/2009 4:52:32 PM from Type Library described below.
+// PASTLWTR : 1.2
+// File generated on 5/15/2009 8:09:25 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -76,8 +76,6 @@ const
   CLASS_Lines: TGUID = '{A1352870-9D53-4E48-B83A-6DB0C8FED65B}';
   IID_ICtrlQueue: TGUID = '{55055001-5EEC-4667-9CCA-63F3A60F31F3}';
   CLASS_CtrlQueue: TGUID = '{19DD7174-7FEE-4E59-97ED-C54F16EDC3F0}';
-  IID_ILoads: TGUID = '{0C1898CF-4DBA-484D-9D99-BD115AD3B43A}';
-  CLASS_Loads: TGUID = '{71A3C6AA-3B1E-43DE-82BD-74944286A51D}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -168,7 +166,7 @@ type
   ILines = interface;
   ILinesDisp = dispinterface;
   ICtrlQueue = interface;
-  ILoads = interface;
+  ICtrlQueueDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -189,7 +187,6 @@ type
   Settings = ISettings;
   Lines = ILines;
   CtrlQueue = ICtrlQueue;
-  Loads = ILoads;
 
 
 // *********************************************************************//
@@ -412,7 +409,7 @@ type
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
-    function Get_Loads: ILoads; safecall;
+    function Get_Loads: IUnknown; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -446,7 +443,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagPUByPhase;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
-    property Loads: ILoads read Get_Loads;
+    property Loads: IUnknown read Get_Loads;
   end;
 
 // *********************************************************************//
@@ -501,7 +498,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant readonly dispid 205;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
-    property Loads: ILoads readonly dispid 208;
+    property Loads: IUnknown readonly dispid 208;
   end;
 
 // *********************************************************************//
@@ -1259,10 +1256,10 @@ type
 
 // *********************************************************************//
 // Interface: ICtrlQueue
-// Flags:     (256) OleAutomation
+// Flags:     (4416) Dual OleAutomation Dispatchable
 // GUID:      {55055001-5EEC-4667-9CCA-63F3A60F31F3}
 // *********************************************************************//
-  ICtrlQueue = interface(IUnknown)
+  ICtrlQueue = interface(IDispatch)
     ['{55055001-5EEC-4667-9CCA-63F3A60F31F3}']
     function ClearQueue: HResult; stdcall;
     function Delete(ActionHandle: Integer): HResult; stdcall;
@@ -1277,19 +1274,22 @@ type
   end;
 
 // *********************************************************************//
-// Interface: ILoads
-// Flags:     (256) OleAutomation
-// GUID:      {0C1898CF-4DBA-484D-9D99-BD115AD3B43A}
+// DispIntf:  ICtrlQueueDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {55055001-5EEC-4667-9CCA-63F3A60F31F3}
 // *********************************************************************//
-  ILoads = interface(IUnknown)
-    ['{0C1898CF-4DBA-484D-9D99-BD115AD3B43A}']
-    function Get_AllNames(out Value: OleVariant): HResult; stdcall;
-    function Get_First(out Value: Integer): HResult; stdcall;
-    function Get_Next(out Value: Integer): HResult; stdcall;
-    function Get_Name(out Value: WideString): HResult; stdcall;
-    function Set_Name(const Value: WideString): HResult; stdcall;
-    function Get_Idx(out Value: Integer): HResult; stdcall;
-    function Set_Idx(Value: Integer): HResult; stdcall;
+  ICtrlQueueDisp = dispinterface
+    ['{55055001-5EEC-4667-9CCA-63F3A60F31F3}']
+    procedure ClearQueue; dispid 101;
+    procedure Delete(ActionHandle: Integer); dispid 103;
+    property NumActions: Integer readonly dispid 104;
+    property Action: Integer writeonly dispid 102;
+    property ActionCode: Integer readonly dispid 105;
+    property DeviceHandle: Integer readonly dispid 106;
+    procedure Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer); dispid 107;
+    procedure Show; dispid 108;
+    procedure ClearActions; dispid 109;
+    property PopAction: Integer readonly dispid 110;
   end;
 
 // *********************************************************************//
@@ -1472,18 +1472,6 @@ type
     class function CreateRemote(const MachineName: string): ICtrlQueue;
   end;
 
-// *********************************************************************//
-// The Class CoLoads provides a Create and CreateRemote method to          
-// create instances of the default interface ILoads exposed by              
-// the CoClass Loads. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
-// *********************************************************************//
-  CoLoads = class
-    class function Create: ILoads;
-    class function CreateRemote(const MachineName: string): ILoads;
-  end;
-
 implementation
 
 uses ComObj;
@@ -1636,16 +1624,6 @@ end;
 class function CoCtrlQueue.CreateRemote(const MachineName: string): ICtrlQueue;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_CtrlQueue) as ICtrlQueue;
-end;
-
-class function CoLoads.Create: ILoads;
-begin
-  Result := CreateComObject(CLASS_Loads) as ILoads;
-end;
-
-class function CoLoads.CreateRemote(const MachineName: string): ILoads;
-begin
-  Result := CreateRemoteComObject(MachineName, CLASS_Loads) as ILoads;
 end;
 
 end.
