@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// PASTLWTR : 1.2
-// File generated on 5/15/2009 8:09:25 AM from Type Library described below.
+// $Rev: 8291 $
+// File generated on 5/17/2009 10:21:56 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -76,6 +76,8 @@ const
   CLASS_Lines: TGUID = '{A1352870-9D53-4E48-B83A-6DB0C8FED65B}';
   IID_ICtrlQueue: TGUID = '{55055001-5EEC-4667-9CCA-63F3A60F31F3}';
   CLASS_CtrlQueue: TGUID = '{19DD7174-7FEE-4E59-97ED-C54F16EDC3F0}';
+  IID_ILoads: TGUID = '{9A3FFA05-5B82-488C-B08D-FCA2FDB23101}';
+  CLASS_Loads: TGUID = '{1302A34B-A554-4C32-BCED-4AF0A94FF114}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -167,6 +169,8 @@ type
   ILinesDisp = dispinterface;
   ICtrlQueue = interface;
   ICtrlQueueDisp = dispinterface;
+  ILoads = interface;
+  ILoadsDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -187,6 +191,7 @@ type
   Settings = ISettings;
   Lines = ILines;
   CtrlQueue = ICtrlQueue;
+  Loads = ILoads;
 
 
 // *********************************************************************//
@@ -409,7 +414,7 @@ type
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
-    function Get_Loads: IUnknown; safecall;
+    function Get_Loads: Loads; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -443,7 +448,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagPUByPhase;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
-    property Loads: IUnknown read Get_Loads;
+    property Loads: Loads read Get_Loads;
   end;
 
 // *********************************************************************//
@@ -498,7 +503,7 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant readonly dispid 205;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
-    property Loads: IUnknown readonly dispid 208;
+    property Loads: Loads readonly dispid 208;
   end;
 
 // *********************************************************************//
@@ -1261,16 +1266,21 @@ type
 // *********************************************************************//
   ICtrlQueue = interface(IDispatch)
     ['{55055001-5EEC-4667-9CCA-63F3A60F31F3}']
-    function ClearQueue: HResult; stdcall;
-    function Delete(ActionHandle: Integer): HResult; stdcall;
-    function Get_NumActions(out Value: Integer): HResult; stdcall;
-    function Set_Action(Param1: Integer): HResult; stdcall;
-    function Get_ActionCode(out Value: Integer): HResult; stdcall;
-    function Get_DeviceHandle(out Value: Integer): HResult; stdcall;
-    function Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer): HResult; stdcall;
-    function Show: HResult; stdcall;
-    function ClearActions: HResult; stdcall;
-    function Get_PopAction(out Value: Integer): HResult; stdcall;
+    procedure ClearQueue; safecall;
+    procedure Delete(ActionHandle: Integer); safecall;
+    function Get_NumActions: Integer; safecall;
+    procedure Set_Action(Param1: Integer); safecall;
+    function Get_ActionCode: Integer; safecall;
+    function Get_DeviceHandle: Integer; safecall;
+    function Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer): Integer; safecall;
+    procedure Show; safecall;
+    procedure ClearActions; safecall;
+    function Get_PopAction: Integer; safecall;
+    property NumActions: Integer read Get_NumActions;
+    property Action: Integer write Set_Action;
+    property ActionCode: Integer read Get_ActionCode;
+    property DeviceHandle: Integer read Get_DeviceHandle;
+    property PopAction: Integer read Get_PopAction;
   end;
 
 // *********************************************************************//
@@ -1286,10 +1296,45 @@ type
     property Action: Integer writeonly dispid 102;
     property ActionCode: Integer readonly dispid 105;
     property DeviceHandle: Integer readonly dispid 106;
-    procedure Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer); dispid 107;
+    function Push(Hour: Integer; Seconds: Double; ActionCode: Integer; DeviceHandle: Integer): Integer; dispid 107;
     procedure Show; dispid 108;
     procedure ClearActions; dispid 109;
     property PopAction: Integer readonly dispid 110;
+  end;
+
+// *********************************************************************//
+// Interface: ILoads
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {9A3FFA05-5B82-488C-B08D-FCA2FDB23101}
+// *********************************************************************//
+  ILoads = interface(IDispatch)
+    ['{9A3FFA05-5B82-488C-B08D-FCA2FDB23101}']
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_Idx: Integer; safecall;
+    procedure Set_Idx(Value: Integer); safecall;
+    property AllNames: OleVariant read Get_AllNames;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property Name: WideString read Get_Name write Set_Name;
+    property Idx: Integer read Get_Idx write Set_Idx;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ILoadsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {9A3FFA05-5B82-488C-B08D-FCA2FDB23101}
+// *********************************************************************//
+  ILoadsDisp = dispinterface
+    ['{9A3FFA05-5B82-488C-B08D-FCA2FDB23101}']
+    property AllNames: OleVariant readonly dispid 201;
+    property First: Integer readonly dispid 202;
+    property Next: Integer readonly dispid 203;
+    property Name: WideString dispid 204;
+    property Idx: Integer dispid 205;
   end;
 
 // *********************************************************************//
@@ -1472,6 +1517,18 @@ type
     class function CreateRemote(const MachineName: string): ICtrlQueue;
   end;
 
+// *********************************************************************//
+// The Class CoLoads provides a Create and CreateRemote method to          
+// create instances of the default interface ILoads exposed by              
+// the CoClass Loads. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoLoads = class
+    class function Create: ILoads;
+    class function CreateRemote(const MachineName: string): ILoads;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1624,6 +1681,16 @@ end;
 class function CoCtrlQueue.CreateRemote(const MachineName: string): ICtrlQueue;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_CtrlQueue) as ICtrlQueue;
+end;
+
+class function CoLoads.Create: ILoads;
+begin
+  Result := CreateComObject(CLASS_Loads) as ILoads;
+end;
+
+class function CoLoads.CreateRemote(const MachineName: string): ILoads;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Loads) as ILoads;
 end;
 
 end.

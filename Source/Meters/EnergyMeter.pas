@@ -1665,7 +1665,7 @@ Begin
      END;
 
      TRY
-         Writeln(F, 'Level, Branch, Bus, Distance');
+         Writeln(F, 'Level, Branch, Bus1, Bus2, Distance');
          IF BranchList<>NIL
          Then Begin
            PDElem := BranchList.First;
@@ -1679,7 +1679,7 @@ Begin
                LoadElem := Branchlist.FirstObject;
                WHILE LoadElem <> NIL Do
                Begin
-                     Writeln(F, '-1, ', Format('%s.%s, %s', [LoadElem.ParentClass.Name, LoadElem.Name, ActiveCircuit.BusList.Get(BranchList.PresentBranch.ToBusReference)]));
+                     Writeln(F, '-1, ', Format('%s.%s, %s', [LoadElem.ParentClass.Name, LoadElem.Name, LoadElem.Firstbus{ActiveCircuit.BusList.Get(BranchList.PresentBranch.ToBusReference)}]));
                      LoadElem := BranchList.NextObject
                End;
            PDElem := BranchList.GoForward;
