@@ -11,17 +11,17 @@ type
   TCtrlQueue = class(TAutoObject, ICtrlQueue)
   private
   protected
-    function ClearQueue: HResult; stdcall;
-    function Delete(ActionHandle: Integer): HResult; stdcall;
-    function Get_ActionCode(out Value: Integer): HResult; stdcall;
-    function Get_DeviceHandle(out Value: Integer): HResult; stdcall;
-    function Get_NumActions(out Value: Integer): HResult; stdcall;
+    procedure ClearQueue; safecall;
+    procedure Delete(ActionHandle: Integer); safecall;
+    function Get_ActionCode: Integer; safecall;
+    function Get_DeviceHandle: Integer; safecall;
+    function Get_NumActions: Integer; safecall;
     function Push(Hour: Integer; Seconds: Double; ActionCode,
-      DeviceHandle: Integer): HResult; stdcall;
-    function Show: HResult; stdcall;  
-    function ClearActions: HResult; stdcall;
-    function Get_PopAction(out Value: Integer): HResult; stdcall;
-    function Set_Action(Value: Integer): HResult; stdcall;
+      DeviceHandle: Integer): Integer; safecall;
+    procedure Show; safecall;
+    procedure ClearActions; safecall;
+    function Get_PopAction: Integer; safecall;
+    procedure Set_Action(Param1: Integer); safecall;
     {Declare ICtrlQueue methods here}
   end;
 
@@ -61,38 +61,38 @@ Var
 
 
 
-function TCtrlQueue.Delete(ActionHandle: Integer): HResult;
+procedure TCtrlQueue.Delete(ActionHandle: Integer);
 begin
-   Result := 0;
     If ActiveCircuit <> Nil then Begin
       ActiveCircuit.ControlQueue.Delete(ActionHandle);
    End;
 end;
 
 
-function TCtrlQueue.Get_ActionCode(out Value: Integer): HResult;
+function TCtrlQueue.Get_ActionCode: Integer;
 begin
    Result := 0;
-    If ActiveAction<> NIl then   Value := ActiveAction^.ActionCode ;
+    If ActiveAction<> NIl then   Result := ActiveAction^.ActionCode ;
 end;
 
-function TCtrlQueue.Get_DeviceHandle(out Value: Integer): HResult;
+function TCtrlQueue.Get_DeviceHandle: Integer;
 begin
    Result := 0;
-    If ActiveAction<> NIl then   Value := ActiveAction^.DeviceHandle;
+    If ActiveAction<> NIl then   Result := ActiveAction^.DeviceHandle;
 end;
 
-function TCtrlQueue.Get_NumActions(out Value: Integer): HResult;
+function TCtrlQueue.Get_NumActions: Integer;
 begin
    Result := 0;
-     Value := COMControlProxyObj.ActionList.Count;
+     Result := COMControlProxyObj.ActionList.Count;
 end;
 
 
 
 function TCtrlQueue.Push(Hour: Integer; Seconds: Double; ActionCode,
-  DeviceHandle: Integer): HResult;
-{Return a Handle to the control action on the main control queue}
+  DeviceHandle: Integer): Integer;
+
+  // returns handle on control queue
 begin
    Result := 0;
    If ActiveCircuit <> Nil then Begin
@@ -100,11 +100,10 @@ begin
    End;
 end;
 
-function TCtrlQueue.Show: HResult;
+procedure TCtrlQueue.Show;
 begin
      If ActiveCircuit <> Nil then
         ActiveCircuit.ControlQueue.ShowQueue(DSSDirectory + 'COMProxy_ControlQueue.CSV');
-     Result := 0;
 end;
 
 { TCOMControlProxyObj }
@@ -160,34 +159,31 @@ begin
 end;
 
 
-function TCtrlQueue.ClearActions: HResult;
+procedure TCtrlQueue.ClearActions;
 begin
-      Result := 0;
       COMControlProxyObj.ClearActionList;
 end;
 
-function TCtrlQueue.ClearQueue: HResult;
+procedure TCtrlQueue.ClearQueue;
 begin
-   Result := 0;
    If ActiveCircuit <> Nil then Begin
       ActiveCircuit.ControlQueue.Clear;
    End;
 end;
 
 
-function TCtrlQueue.Get_PopAction(out Value: Integer): HResult;
+function TCtrlQueue.Get_PopAction: Integer;
 begin
      Result := 0;
      COMControlProxyObj.PopAction;
-     Value := COMControlProxyObj.ActionList.Count;
+     Result := COMControlProxyObj.ActionList.Count;
 end;
 
-function TCtrlQueue.Set_Action(Value: Integer): HResult;
+procedure TCtrlQueue.Set_Action(Param1: Integer);
 begin
-    Result := 0;
     With COMControlProxyObj Do
-     If Value < ActionList.Count then Begin
-       ActiveAction := ActionList.Items[Value-1];
+     If Param1 < ActionList.Count then Begin
+       ActiveAction := ActionList.Items[Param1 - 1];
      End;
 end;
 

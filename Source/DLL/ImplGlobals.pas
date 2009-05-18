@@ -29,6 +29,7 @@ Uses
        ImplSettings,
        ImplLines,
        ImplCtrlQueue,
+       ImplLoads,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -50,7 +51,7 @@ Var
    FSettings    :ISettings;
    FLines       :ILines;
    FCtrlQueue   :ICtrlQueue;
-// FLoads       :ILoads;
+   FLoads       :ILoads;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -89,6 +90,7 @@ Begin
      FSettings    := TSettings.Create;
      FLines       := TLines.Create;
      FCtrlQueue   := TCtrlQueue.Create;
+     FLoads       := TLoads.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;
