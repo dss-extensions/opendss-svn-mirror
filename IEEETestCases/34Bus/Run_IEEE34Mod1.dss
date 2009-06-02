@@ -4,7 +4,7 @@
 
 ! change the path name to match where it is actually installed on your computer
 
-Compile (C:\OpenDSS\IEEETestCases\34Bus\ieee34Mod1.dss)
+Compile ieee34Mod1.dss
 solve
 
 Show voltage LN Nodes
@@ -20,7 +20,7 @@ show taps
 ! This script forces the regulator taps to the same values reported in the 
 ! published results
 
-Compile (C:\OpenDSS\IEEETestCases\34Bus\ieee34Mod1.dss)
+Compile ieee34Mod1.dss
 
 ! Force Regulator Transformer taps
 Transformer.reg1a.wdg=2 Tap=(0.00625  12  * 1 +)   ! Tap 12
