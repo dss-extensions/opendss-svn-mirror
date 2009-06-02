@@ -30,7 +30,7 @@ if DSSStartOK
     
     % Now load in the bus coordinates so we can execute a circuit plot if
     % we want to
-    DSSText.Command='Buscoords Buscoords.txt   ! load in bus coordinates';
+    DSSText.Command='Buscoords Buscoords.dat   ! load in bus coordinates';
     
     % Get bus voltage magnitudes in pu and distances from energy meter and
     % plot in a scatter plot
