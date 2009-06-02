@@ -2717,7 +2717,7 @@ End;
 
 Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer; Rho:Double);
 Var
-   F       :TextFile;
+   F, F2   :TextFile;
    p       :Integer;
    Pelem   :TLineGeometryObj;
    Z, YC   :TCMatrix;
@@ -2730,6 +2730,7 @@ Var
    YCM     :Complex;
    XCM     :Double;
    CCM     :Double;  // Common mode capacitance
+   LineCodesFileNm :String;
 
 Begin
 
@@ -2738,9 +2739,19 @@ Begin
      Assignfile(F,FileNm);
      ReWrite(F);
 
+     
+
      Writeln(F,'LINE CONSTANTS');
      Writeln(F,Format('Frequency = %.6g Hz, Earth resistivity = %.6g ohm-m',[Freq, Rho]));
      Writeln(F);
+
+
+     LineCodesFileNm := 'LineConstantsCode.DSS';
+     Assignfile(F2, LineCodesFileNm);
+     ReWrite(F2);
+
+     Writeln(F2, '!--- OpenDSS Linecodes file generated from Show LINECONSTANTS command');
+     Writeln(F2, Format('!--- Frequency = %.6g Hz, Earth resistivity = %.6g ohm-m',[Freq, Rho]));
 
          LineGeometryClass := DSSClassList.Get(ClassNames.Find('LineGeometry'));
          Z:=Nil;
@@ -2765,6 +2776,7 @@ Begin
             End;
 
             Writeln(F);
+            Writeln(F, '--------------------------------------------------');
             Writeln(F, 'Geometry Code = ',Pelem.Name);
             Writeln(F);
             Writeln(F, 'R MATRIX, ohms per ', LineUnitsStr(Units));
@@ -2814,35 +2826,35 @@ Begin
             End;
 
             {Write DSS LineCode record}
-            Writeln(F);
-            Writeln(F,'-------------------------------------------------------------------');
-            Writeln(F,'-------------------DSS Linecode Definition-------------------------');
-            Writeln(F,'-------------------------------------------------------------------');
-            Writeln(F);
+            //Writeln(F);
+            //Writeln(F,'-------------------------------------------------------------------');
+            //Writeln(F,'-------------------DSS Linecode Definition-------------------------');
+            //Writeln(F,'-------------------------------------------------------------------');
+            Writeln(F2);
 
-            Writeln(F, Format('New Linecode.%s nphases=%d  Units=%s', [ pelem.Name, z.order, LineUnitsStr(Units)]));
+            Writeln(F2, Format('New Linecode.%s nphases=%d  Units=%s', [ pelem.Name, z.order, LineUnitsStr(Units)]));
 
-            Write(F, '~ Rmatrix=[');
+            Write(F2, '~ Rmatrix=[');
             For i := 1 to Z.order Do Begin
-              For j := 1 to i Do Write(F, Format('%.6g  ', [Z.GetElement(i,j).re] ));
-              If i < Z.order then Write(F, '|');
+              For j := 1 to i Do Write(F2, Format('%.6g  ', [Z.GetElement(i,j).re] ));
+              If i < Z.order then Write(F2, '|');
             End;
-            Writeln(F, ']');
+            Writeln(F2, ']');
 
-            Write(F, '~ Xmatrix=[');
+            Write(F2, '~ Xmatrix=[');
             For i := 1 to Z.order Do Begin
-              For j := 1 to i Do Write(F, Format('%.6g  ', [Z.GetElement(i,j).im] ));
-              If i < Z.order then Write(F, '|');
+              For j := 1 to i Do Write(F2, Format('%.6g  ', [Z.GetElement(i,j).im] ));
+              If i < Z.order then Write(F2, '|');
             End;
-            Writeln(F, ']');
+            Writeln(F2, ']');
 
             w := freq * twopi /1.e9;
-            Write(F, '~ Cmatrix=[');
+            Write(F2, '~ Cmatrix=[');
             For i := 1 to Yc.order Do Begin
-              For j := 1 to i Do Write(F, Format('%.6g  ', [YC.GetElement(i,j).im/w] ));
-              if i < Yc.order then Write(F, '|');
+              For j := 1 to i Do Write(F2, Format('%.6g  ', [YC.GetElement(i,j).im/w] ));
+              if i < Yc.order then Write(F2, '|');
             End;
-            Writeln(F, ']');
+            Writeln(F2, ']');
 
             {Add pos- and zero-sequence approximation here}
             {Kron reduce to 3 phases first}
@@ -2916,7 +2928,9 @@ Begin
    Finally
 
      CloseFile(F);
+     CloseFile(F2);
      FireOffEditor(FileNm);
+     FireOffEditor(LineCodesFileNm);
    End;
 End;
 
