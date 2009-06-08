@@ -825,7 +825,7 @@ Begin
       HSrise           := 15.0;  // Hot spot rise
       NormMaxHkVA      := 1.1 * Winding^[1].kVA;
       EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
-      pctLoadLoss      := 2.0 * Winding^[1].Rpu; //  assume two windings
+      pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings
       ppm_FloatFactorPlusOne  := 1.000001;
       {Default the no load properties to zero}
       pctNoLoadLoss    := 0.0;
