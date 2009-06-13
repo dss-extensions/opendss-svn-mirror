@@ -395,11 +395,14 @@ implementation
 
 uses Executive, DSSGlobals,
   ClipBrd,  Utilities, contnrs, MessageForm,
-  DlgPlotOptions,  DSSPlot, 
+  DlgPlotOptions,  DSSPlot, FrmCSVchannelSelect,
   DlgComboBox,dlgNumber, ExecOptions, ExecCommands, ExecHelper, Dynamics, DSSClass, ListForm,
   Lineunits, Monitor, FrmDoDSSCommand, Frm_RPNcalc;
 
 {$R *.DFM}
+
+Var
+   SelectedMonitor :String;
 
 Function WinStateToInt(WindowState:TWindowState):Integer;
 Begin
@@ -2031,13 +2034,18 @@ begin
 
        If activeCircuit=nil Then Exit;
 
-       If compareText(classbox.text, 'monitor')=0 then
-       Begin
-         Screen.Cursor := crHourglass;
-         ActiveScriptForm.ExecuteDSSCommand('Plot monitor object= '+Elementbox.Text+' channels=(1, 3, 5)');
-         Screen.Cursor := crDefault;
-       End
-       Else DoSimpleMsg('Select "monitor" element before executing this command.', 217);
+       Monitors2Click(Sender); // Export monitor  to CSV file
+
+       {Open Result File and Parse first line}
+       if FileExists(ResultForm.Editor.Lines.Strings[0]) then  Begin
+
+         if MakeChannelSelection(2, ResultForm.Editor.Lines.Strings[0]) Then
+         Begin
+           Screen.Cursor := crHourglass;
+           ActiveScriptForm.ExecuteDSSCommand('Plot monitor object= '+SelectedMonitor+' channels=(' + ChannelSelectForm.ResultString  +')');
+           Screen.Cursor := crDefault;
+         End;
+       End;
 
 end;
 
@@ -2472,9 +2480,9 @@ procedure TControlPanel.Monitors2Click(Sender: TObject);
 Var
     pmon       :TMonitorObj;
     Cancelled  :Boolean;
-    MonName    :String;
 begin
     Cancelled := FALSE;
+    SelectedMonitor := '';
       With TListBoxForm.Create(nil) Do Begin
             Caption := 'Select Monitor';
 
@@ -2488,12 +2496,12 @@ begin
             ShowModal;
 
             If CancelPressed Then Cancelled := TRUE  // Do nothing
-            Else With ComboBox1 Do MonName := Items.strings[ItemIndex];
+            Else With ComboBox1 Do SelectedMonitor := Items.strings[ItemIndex];
             Free;
        End;
 
        If Not Cancelled Then
-      ActiveScriptForm.ExecuteDSSCommand('Export monitors '+ MonName);
+        ActiveScriptForm.ExecuteDSSCommand('Export monitors '+ SelectedMonitor);
 end;
 
 procedure TControlPanel.ToolButton21Click(Sender: TObject);
@@ -2560,7 +2568,7 @@ begin
 end;
 
 Initialization
-
+    SelectedMonitor :=  '';
 
 Finalization
 

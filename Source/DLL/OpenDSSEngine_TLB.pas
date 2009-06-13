@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 5/17/2009 10:21:56 PM from Type Library described below.
+// File generated on 6/12/2009 5:02:20 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -1316,11 +1316,23 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     function Get_Idx: Integer; safecall;
     procedure Set_Idx(Value: Integer); safecall;
+    function Get_kW: Double; safecall;
+    procedure Set_kW(Value: Double); safecall;
+    function Get_kV: Double; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    function Get_kvar: Double; safecall;
+    procedure Set_kvar(Value: Double); safecall;
+    function Get_PF: Double; safecall;
+    procedure Set_PF(Value: Double); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
     property Name: WideString read Get_Name write Set_Name;
     property Idx: Integer read Get_Idx write Set_Idx;
+    property kW: Double read Get_kW write Set_kW;
+    property kV: Double read Get_kV write Set_kV;
+    property kvar: Double read Get_kvar write Set_kvar;
+    property PF: Double read Get_PF write Set_PF;
   end;
 
 // *********************************************************************//
@@ -1335,6 +1347,10 @@ type
     property Next: Integer readonly dispid 203;
     property Name: WideString dispid 204;
     property Idx: Integer dispid 205;
+    property kW: Double dispid 206;
+    property kV: Double dispid 207;
+    property kvar: Double dispid 208;
+    property PF: Double dispid 209;
   end;
 
 // *********************************************************************//

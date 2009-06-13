@@ -82,7 +82,7 @@ INTERFACE
 
 IMPLEMENTATION
 
-USES  Sysutils;
+USES  Sysutils, math;
 
 Constructor THashList.Create(Nelements:Integer);
 VAR
@@ -165,24 +165,39 @@ BEGIN
 
 END;
 
+(*
 Function THashList.Hash(Const S:String):Integer;
 
-TYPE
-   pWordArray = ^WordArray;
-   Wordarray = Array[1..1] of Word;
+VAR
+    Hashvalue:UInt64;
+
+BEGIN
+   HashValue := Uint64(0);
+ // Only hash first 8 characters
+
+   Move(S[1], HashValue, min(8, Length(S)));
+   Result := (Hashvalue mod NumLists) + 1;
+END;
+*)
+(* OLD HASH FUNCTION  *)
+
+Function THashList.Hash(Const S:String):Integer;
 
 VAR
     Hashvalue:Word;
     i:Integer;
 
-    Function Min(a,b:Integer):Integer;
-    BEGIN If a<b Then result := a else result := b; END;
+    {Use Delphi Math function: it is declared as inline}
+    {Function Min(const a,b:Integer):Integer;
+    BEGIN If a<b Then result := a else result := b; END;  }
 BEGIN
-   HashValue :=0;
-   // Only hash first 8 characters
+   HashValue := 0;
+ // Only hash first 8 characters
    FOR i := 1 to min(8,Length(S)) DO HashValue := HashValue*2 + ord(S[i]);
-   Result := (hashvalue mod NumLists) + 1;
+   Result := (Hashvalue mod NumLists) + 1;
 END;
+
+
 
 Procedure THashList.ResizeStrPtr;
 

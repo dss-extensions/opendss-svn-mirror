@@ -69,8 +69,8 @@ BEGIN
      Result := CommandList.Find(Cmd);
 {If no match found on whole command, check for abbrev}
 {This routine will generally be faster if one enters the whole command}
-     IF AbbrevAllowed THEN
-     If Result=0 THEN Result := CommandList.FindAbbrev(Cmd);
+     If Result=0 THEN
+       IF AbbrevAllowed THEN Result := CommandList.FindAbbrev(Cmd);
 
 END;
 

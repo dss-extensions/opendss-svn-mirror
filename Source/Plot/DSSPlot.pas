@@ -1691,19 +1691,24 @@ end;
 procedure TDSSPlot.DoMonitorPlot;
 
 Var
-    Fversion, FSignature, iMode:Integer;
-    hr, s:single;
-    i,Nread, RecordSize, RecordBytes:Cardinal;
-    sngBuffer:Array[1..100] of Single;
-  //  pStr:pchar;
-    StrBuffer:TMonitorStrBuffer;
-    pStrBuffer:Pchar;
-    time:Double;
-    FirstRecord, Hours:Boolean;
-    Time1:Double;
-    HoldArray:Array of Double;
-    ChannelNames:Array of String;
-    Str:String;
+    Fversion,
+    FSignature,
+    iMode        :Integer;
+    hr, s        :single;
+    i, Nread,
+    RecordSize,
+    RecordBytes  :Cardinal;
+    sngBuffer    :Array[1..100] of Single;
+    StrBuffer    :TMonitorStrBuffer;
+    pStrBuffer   :Pchar;
+    time         :Double;
+    FirstRecord,
+    Hours        :Boolean;
+    Time1        :Double;
+    HoldArray    :Array of Double;
+    ChannelNames :Array of String;
+    Str          :String;
+    ItsAFreqScan :Boolean;
 
 
 begin
@@ -1737,6 +1742,10 @@ begin
            End;
            AuxParser.ResetDelims;
 
+           if CompareText(ChannelNames[0], 'Freq')=0 then ItsAFreqScan := True
+           Else ItsAFreqScan := False;
+           
+
        //    pStr := @StrBuffer;
            RecordBytes := Sizeof(SngBuffer[1]) * RecordSize;
            Time1 := 0.0 ;
@@ -1751,8 +1760,10 @@ begin
               If FirstRecord Then Begin
                   If (s>0.0) and (s < 100.0) Then Hours := FALSE ;
               End;
-              If Hours Then Time := hr + s/3600.0 // in hrs
-              Else Time := Hr * 3600.0 + s; // in sec
+              if ItsAFreqScan then
+                   Time := hr   // frequency value
+              else If Hours Then Time := hr + s/3600.0 // in hrs
+                            Else Time := Hr * 3600.0 + s; // in sec
               ActiveColorIdx := 0;
               FOR i := 0 to high(channels) DO Begin
                  If Channels[i]<= RecordSize Then  // check for legal channel number
@@ -1769,8 +1780,10 @@ begin
            End;
 
            CloseMonitorStream;
-           If Hours Then Str := 'Time, H'
-                    Else Str := 'Time, s';
+           if ItsAFreqScan then
+               str := 'Frequency, Hz'
+           Else If Hours Then Str := 'Time, H'
+                         Else Str := 'Time, s';
            Set_XAxisLabel(pchar(Str), Length(Str)) ;
            Str := 'Mag';
            Set_YAxisLabel(pchar(Str), Length(Str)) ;

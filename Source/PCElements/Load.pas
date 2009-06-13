@@ -119,7 +119,6 @@ TYPE
         PROCEDURE DoMotorTypeLoad;
         FUNCTION  GrowthFactor(Year:Integer):Double;
         PROCEDURE StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
-        PROCEDURE UpdateVoltageBases;
 
         FUNCTION  Get_Unserved:Boolean;
         FUNCTION  Get_ExceedsNormal:Boolean;
@@ -191,6 +190,8 @@ TYPE
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+
+        PROCEDURE UpdateVoltageBases;
 
         Property Unserved      :Boolean Read Get_Unserved;
         Property ExceedsNormal :Boolean Read Get_ExceedsNormal;
@@ -1865,6 +1866,7 @@ function TLoadObj.GetPropertyValue(Index: Integer): String;
 begin
      Case Index of
          2:  Result := GetBus(1);
+         3:  Result := Format('%-g',   [kVLoadBase]);
          4:  Result := Format('%-g',   [kwBase]);
          5:  Result := Format('%-.3g', [PFNominal]);
          12: Result := Format('%-.3g', [kvarbase]);

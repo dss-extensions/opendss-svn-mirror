@@ -142,7 +142,8 @@ uses
   OpenDSSEngine_TLB in 'OpenDSSEngine_TLB.pas',
   ExportCIMXML in '..\Common\ExportCIMXML.pas',
   ImplCtrlQueue in 'ImplCtrlQueue.pas' {CtrlQueue: CoClass},
-  ImplLoads in 'ImplLoads.pas' {Loads: CoClass};
+  ImplLoads in 'ImplLoads.pas' {Loads: CoClass},
+  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm};
 
 exports
   DllGetClassObject,

@@ -83,6 +83,8 @@ PROCEDURE InitStringToNull(Var S:String);
 FUNCTION CmulReal_im(const a:Complex; const Mult:Double):Complex;  // Multiply only imaginary part by a real
 //FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
 
+Function MakeChannelSelection(NumFieldsToSkip:Integer; const Filename:String):Boolean;
+
 {Save Function Helper}
 Function WriteClassFile(Const DSS_Class:TDSSClass; FileName:String; IsCktElement:Boolean):Boolean;
 Function WriteVsourceClassFile(Const DSS_Class:TDSSClass; IsCktElement:Boolean):Boolean;
@@ -139,8 +141,8 @@ implementation
 
 Uses Windows, SysUtils, ShellAPI, Dialogs,
 DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
-Capacitor, Reactor, Generator, Load, Line, Fault, Feeder,
-EnergyMeter, ControlElem, math, DSSForms, ParserDel;
+Capacitor, Reactor, Generator, Load, Line, Fault, Feeder, FrmCSVchannelSelect,
+EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -1044,6 +1046,39 @@ Begin
    Except
          Result := '*****';
    End;
+
+End;
+
+//----------------------------------------------------------------------------
+Function MakeChannelSelection(NumFieldsToSkip:Integer; const Filename:String):Boolean;
+Var
+    F:TextFile;
+    S:string;
+    iCounter :Integer;
+    i   :Integer;
+
+Begin
+   AssignFile(F, FileName);
+   Reset(F);
+   Readln(F, S);  // Read first line in file
+   CloseFile(F);
+
+   AuxParser.CmdString := S;  // Load up Parser
+   // Skip specified number of columns in CSV file
+   For i:= 1 to NumFieldsToSkip Do Auxparser.NextParam;
+   With ChannelSelectForm.ListBox1 Do Begin
+     Clear;
+     iCounter := 0;
+     Repeat
+       Auxparser.NextParam;
+       S := Auxparser.StrValue;
+       If Length(S)>0 Then Begin
+           iCounter := iCounter + 1;
+           AddItem(Format('%d. %s',[iCounter, S]), nil);
+       End;
+     Until Length(S)=0;
+   End;
+   If ChannelSelectForm.ShowModal = mrOK Then Result := TRUE Else Result := FALSE;
 
 End;
 

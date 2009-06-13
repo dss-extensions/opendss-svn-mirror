@@ -17,6 +17,14 @@ type
     function Get_Next: Integer; safecall;
     procedure Set_idx(Value: Integer); safecall;
     procedure Set_Name(const Value: WideString); safecall;
+    function Get_kV: Double; safecall;
+    function Get_kvar: Double; safecall;
+    function Get_kW: Double; safecall;
+    function Get_PF: Double; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    procedure Set_kvar(Value: Double); safecall;
+    procedure Set_kW(Value: Double); safecall;
+    procedure Set_PF(Value: Double); safecall;
 
   end;
 
@@ -169,6 +177,102 @@ Begin
        End;
   End;
 
+end;
+
+function TLoads.Get_kV: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TLoadObj(Active).kVLoadBase;
+             End;
+         End;
+   End;
+
+end;
+
+function TLoads.Get_kvar: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TLoadObj(Active).kvarBase;
+             End;
+         End;
+   End;
+end;
+
+function TLoads.Get_kW: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TLoadObj(Active).kWBase;
+             End;
+         End;
+   End;
+end;
+
+function TLoads.Get_PF: Double;
+begin
+   Result := 0.0;
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                 Result := TLoadObj(Active).PFNominal;
+             End;
+         End;
+   End;
+end;
+
+procedure TLoads.Set_kV(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TLoadObj(Active).kVLoadBase := Value;
+                  TLoadObj(Active).UpdateVoltageBases;  // side effectes
+             End;
+         End;
+   End;
+end;
+
+procedure TLoads.Set_kvar(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TLoadObj(Active).kvarBase := Value;
+                  TLoadObj(Active).LoadSpecType := 1;
+             End;
+         End;
+   End;
+end;
+
+procedure TLoads.Set_kW(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TLoadObj(Active).kWBase := Value;
+                  TLoadObj(Active).LoadSpecType := 0;
+             End;
+         End;
+   End;
+end;
+
+procedure TLoads.Set_PF(Value: Double);
+begin
+   IF ActiveCircuit<> NIL THEN Begin
+         WITH ActiveCircuit.Loads Do Begin
+             IF ActiveIndex<>0 THEN Begin
+                  TLoadObj(Active).PFNominal := Value;
+             End;
+         End;
+   End;
 end;
 
 initialization

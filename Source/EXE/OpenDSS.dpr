@@ -129,7 +129,8 @@ uses
   WireData in '..\General\WireData.pas',
   Ymatrix in '..\Common\Ymatrix.pas',
   DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
-  ExportCIMXML in '..\Common\ExportCIMXML.pas';
+  ExportCIMXML in '..\Common\ExportCIMXML.pas',
+  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm};
 
 {$R *.RES}
 
@@ -155,6 +156,7 @@ begin
   Application.CreateForm(TListBoxForm, ListBoxForm);
   Application.CreateForm(TDoDSSCommandForm, DoDSSCommandForm);
   Application.CreateForm(TRPNForm, RPNForm);
+  Application.CreateForm(TChannelSelectForm, ChannelSelectForm);
   ControlPanelCreated := TRUE;
       ControlPanel.InitializeForm;
       MessageForm1.Editor.Clear;

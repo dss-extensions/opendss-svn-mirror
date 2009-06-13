@@ -84,6 +84,9 @@
     <DCCReference Include="..\Forms\DlgPlotOptions.pas">
       <Form>PlotOptionsForm</Form>
     </DCCReference>
+    <DCCReference Include="..\Forms\FrmCSVchannelSelect.pas">
+      <Form>ChannelSelectForm</Form>
+    </DCCReference>
     <DCCReference Include="..\Forms\FrmDoDSSCommand.pas">
       <Form>DoDSSCommandForm</Form>
     </DCCReference>
