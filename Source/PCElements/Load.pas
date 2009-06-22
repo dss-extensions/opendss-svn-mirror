@@ -1223,6 +1223,7 @@ Begin
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
 
+  TRY
 
     FOR i := 1 to Fnphases DO Begin
         V    := Vterminal^[i];
@@ -1240,6 +1241,7 @@ Begin
              Cvar := Cmul(Cmplx(0.0, Yeq.im), V); // 2 is same as Constant impedance
         End Else If FCVRvarFactor = 3.0 Then Begin
              VarFactor := math.intpower(VRatio, 3);
+{****    WriteDLLDebugFile(Format('%s, V=%.6g +j %.6g',[Name, V.re, V.im]));  }
              Cvar      := Conjg(Cdiv(Cmplx(0.0, VarNominal * VarFactor), V));
         End Else Begin
             {Other Var factor code here if not squared or cubed}
@@ -1252,6 +1254,12 @@ Begin
         IterminalUpdated := TRUE;
         StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
     End;
+  EXCEPT
+    On E:Exception Do Begin
+      DoSimpleMsg(Format('Error in Load.%s: %s ', [Name, E.Message ]), 5871);
+      Raise;
+    End;
+  END;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -

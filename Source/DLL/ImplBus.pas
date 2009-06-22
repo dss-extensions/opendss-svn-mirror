@@ -461,18 +461,19 @@ begin
    If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
       IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
        Begin
-         Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined := TRUE;
-         Buses^[ActiveCircuit.ActiveBusIndex].y := Value;
+         Buses^[ActiveBusIndex].Coorddefined := TRUE;
+         Buses^[ActiveBusIndex].y := Value;
        End;
 end;
 
 function TBus.Get_Distance: Double;
 begin
     Result := 0.0;
-     If (ActiveCircuit <> Nil) Then With ActiveCircuit Do
-      IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
-       IF (Buses^[ActiveCircuit.ActiveBusIndex].Coorddefined) Then
-         Result := Buses^[ActiveCircuit.ActiveBusIndex].DistFromMeter;
+    If (ActiveCircuit <> Nil) Then
+     With ActiveCircuit Do
+      IF ((ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses)) Then
+       IF (Buses^[ActiveBusIndex].Coorddefined) Then
+         Result := Buses^[ActiveBusIndex].DistFromMeter;
 end;
 
 initialization
