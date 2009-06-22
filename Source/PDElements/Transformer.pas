@@ -920,7 +920,7 @@ Begin
     WITH Winding^[i] Do  // Get the actual turns voltage base for each winding
       CASE Connection of
         0:Case Fnphases of   // Wye
-            2,3:VBase := kVll * 577.35;   // assume 3-phase for 2-phase designation
+            2,3:VBase := kVll * InvSQRT3x1000;   // assume 3-phase for 2-phase designation
           ELSE
                 VBase := kVll * 1000.0;
           End;

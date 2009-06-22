@@ -243,7 +243,7 @@ end;
 
 initialization
 
-   DegToRad := 3.14159/180.0;
+   DegToRad := 3.14159265359/180.0;
    RadToDeg := 1.0/DegToRad;
 
 end.

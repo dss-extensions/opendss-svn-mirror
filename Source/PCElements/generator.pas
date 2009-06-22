@@ -503,7 +503,7 @@ Begin
               1: VBase := kVGeneratorBase * 1000.0 ;
               Else}
                   Case Fnphases Of
-                   2,3: VBase := kVGeneratorBase * 577.4;    // L-N Volts
+                   2,3: VBase := kVGeneratorBase * InvSQRT3x1000;    // L-N Volts
                    Else
                        VBase := kVGeneratorBase * 1000.0 ;   // Just use what is supplied
                    End;
@@ -1312,7 +1312,7 @@ Begin
            For i := 1 to nphases Do Write(TraceFile,(Cabs(InjCurrent^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(ITerminal^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(Vterminal^[i])):8:1 ,', ');
-           Write(TraceFile,VThevMag:8:1 ,', ', Genvars.Theta*180.0/3.14159);
+           Write(TraceFile,VThevMag:8:1 ,', ', Genvars.Theta*180.0/PI);
            Writeln(TRacefile);
            CloseFile(TraceFile);
       End;
@@ -2367,10 +2367,10 @@ begin
     With GenVars Do
     Case i of
        1: Result := (w0+Speed)/TwoPi;  // Frequency, Hz
-       2: Result := (Theta )*57.295779;  // Report in Deg
+       2: Result := (Theta ) * RadiansToDegrees;  // Report in Deg
        3: Result := Cabs(Vthev)/vbase;      // Report in pu
        4: Result := Pshaft;
-       5: Result := dSpeed * 57.29577; // Report in Deg
+       5: Result := dSpeed * RadiansToDegrees; // Report in Deg      57.29577951
        6: Result := dTheta ;
      Else
         Begin
@@ -2403,10 +2403,10 @@ begin
   With GenVars Do
     Case i of
        1: Speed := (Value-w0)*TwoPi;
-       2: Theta := Value/57.295779; // deg to rad
+       2: Theta := Value/RadiansToDegrees; // deg to rad
        3: ;// meaningless to set Vd := Value * vbase; // pu to volts
        4: Pshaft := Value;
-       5: dSpeed := Value / 57.29577;
+       5: dSpeed := Value / RadiansToDegrees;
        6: dTheta := Value ;
      Else
        Begin
@@ -2578,7 +2578,7 @@ begin
    With Genvars Do Begin
       kVGeneratorBase := Value ;
       Case FNphases Of
-           2,3: VBase := kVGeneratorBase * 577.4;
+           2,3: VBase := kVGeneratorBase * InvSQRT3x1000;
       Else
              VBase := kVGeneratorBase * 1000.0 ;
       End;

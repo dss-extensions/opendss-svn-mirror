@@ -443,7 +443,7 @@ Begin
               1: VBase := kVLoadBase * 1000.0 ;
               ELSE
                   Case Fnphases Of
-                   2,3: VBase := kVLoadBase * 577.4;
+                   2,3: VBase := kVLoadBase * InvSQRT3x1000;
                    ELSE
                         VBase := kVLoadBase * 1000.0 ;
                    End;
@@ -1074,7 +1074,7 @@ begin
                 1: VBase := kVLoadBase * 1000.0 ;
           ELSE  {wye}
                 Case Fnphases Of
-                 2,3: VBase := kVLoadBase * 577.4;
+                 2,3: VBase := kVLoadBase * InvSQRT3x1000;
                  ELSE
                       VBase := kVLoadBase * 1000.0 ; {1-phase or unknown}
                  End;

@@ -36,7 +36,11 @@ Uses Circuit, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
 CONST
       CRLF = #13#10;
 
-      TwoPi = 2.0 * 3.141592654;
+      PI =  3.14159265359;
+
+      TwoPi = 2.0 * PI;
+
+      RadiansToDegrees = 57.29577951;
 
       EPSILON = 1.0e-12;   // Default tiny floating point
       EPSILON2 = 1.0e-3;   // Default for Real number mismatch testing
@@ -150,6 +154,8 @@ VAR
    CALPHA             :Complex;  {120-degree shift constant}
    SQRT2              :Double;
    SQRT3              :Double;
+   InvSQRT3           :Double;
+   InvSQRT3x1000      :Double;
    SolutionAbort      :Boolean;
    InShowResults      :Boolean;
    Redirect_Abort     :Boolean;
@@ -786,6 +792,8 @@ initialization
    CALPHA                := Cmplx(-0.5, -0.866025); // -120 degrees phase shift
    SQRT2                 := Sqrt(2.0);
    SQRT3                 := Sqrt(3.0);
+   InvSQRT3              := 1.0/SQRT3;
+   InvSQRT3x1000         := InvSQRT3 * 1000.0;
    CmdResult             := 0;
    DIFilesAreOpen        := FALSE;
    ErrorNumber           :=0;

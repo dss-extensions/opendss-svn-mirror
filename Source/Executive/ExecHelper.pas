@@ -3002,7 +3002,7 @@ Begin
     If ActiveCircuit <> NIl then Begin
 
         ParamName := Parser.NextParam;
-        Angle := Parser.DblValue * 3.14159/180.0;   // Deg to rad
+        Angle := Parser.DblValue * PI/180.0;   // Deg to rad
 
         a := cmplx(cos(Angle), Sin(Angle));
         With ActiveCircuit Do Begin

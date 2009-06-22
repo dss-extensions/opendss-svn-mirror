@@ -165,7 +165,7 @@ Var
 
 Begin
 
-    Sin2pi3 := Sin(2.0*3.14159/3.0);
+    Sin2pi3 := Sin(2.0*PI/3.0);
     With ClarkeF Do Begin       // Forward Clarke
        SetElement(1, 1,  cmplx(1.0, 0.0) );
        SetElement(1, 2,  cmplx(-0.5,0.0) );

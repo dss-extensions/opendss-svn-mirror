@@ -515,7 +515,7 @@ Begin
    CASE Fnphases OF
      1: Vmag := kVBase * PerUnit * 1000.0;
      ELSE
-        Vmag := kVBase * PerUnit * 1000.0 / 2.0 / Sin((180.0/Fnphases)* 3.14159/180.0);
+        Vmag := kVBase * PerUnit * 1000.0 / 2.0 / Sin((180.0/Fnphases)* PI/180.0);
    End;
 
    SpectrumObj := SpectrumClass.Find(Spectrum);
@@ -610,7 +610,7 @@ Begin
        CASE Fnphases OF
          1:Vmag := kVBase * PerUnit * 1000.0;
          ELSE
-           Vmag := kVBase * PerUnit * 1000.0/2.0/Sin((180.0/Fnphases)*3.14159/180.0);
+           Vmag := kVBase * PerUnit * 1000.0/2.0/Sin((180.0/Fnphases)*PI/180.0);
        End;
 
       WITH ActiveCircuit.Solution Do

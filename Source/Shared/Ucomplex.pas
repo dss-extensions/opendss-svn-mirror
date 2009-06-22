@@ -84,7 +84,7 @@ Implementation
   
   Function ATAN2 (x, iy : double) : double ;
   CONST
-    PI=3.14159; { 180 DEGREES }
+    PI=3.14159265359; { 180 DEGREES }
   BEGIN         
     if       (x < 0.0) and (iy >= 0 )
        then ATAN2 := arctan(iy/x) + PI
@@ -279,8 +279,8 @@ Implementation
 
 Initialization
 
-  cZERO := cmplx(0.0,0.0);
-  cONE := cmplx(1.0,0.0);
+  cZERO := cmplx(0.0, 0.0);
+  cONE  := cmplx(1.0, 0.0);
 
 End.
 
