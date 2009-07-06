@@ -14,3 +14,9 @@ plot type=General quantity=1 Max=.003 dots=n labels=n subs=y object=filename.csv
 ! Plot circuit with branch width proportional to a column in a CSV file
 ! First column of CSV file is Line element name (full Line.____ format may be used)
 Plot circuit quantity=1 Max=.001  dots=n  labels=n Object=filename.CSV
+
+
+! Plot voltages with different colors for voltage below 99% amd 101%
+Set normvminpu=1.01
+Set emergvminpu=.99
+plot circuit Voltage Max=0 dots=n labels=n subs=n C1=$00FF0000  C2=$00808000 C3=$000000FF
