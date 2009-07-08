@@ -472,8 +472,7 @@ begin
     If (ActiveCircuit <> Nil) Then
      With ActiveCircuit Do
       IF ((ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses)) Then
-       IF (Buses^[ActiveBusIndex].Coorddefined) Then
-         Result := Buses^[ActiveBusIndex].DistFromMeter;
+        Result := Buses^[ActiveBusIndex].DistFromMeter;
 end;
 
 initialization
