@@ -62,6 +62,7 @@ TYPE
    TLoadObj = class(TPCElement)
       Private
         ExemptFromLDCurve       :Boolean;
+        PFChanged               :Boolean;
         FAllocationFactor       :Double;   // For all types of allocation
         FkVAAllocationFactor    :Double;   // for connected kVA specification
         FConnectedkVA           :Double;
@@ -525,6 +526,7 @@ Begin
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
          End;
 
+         // << SIDE EFFECTS >>
          // keep kvar nominal up to date WITH kW and PF
          CASE ParamPointer OF
             1: Begin
@@ -534,6 +536,7 @@ Begin
             3: UpdateVoltageBases;
 
             4: LoadSpecType := 0;
+            5: PFChanged := TRUE;
     {Set shape objects;  returns nil IF not valid}
             7: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
             8: Begin
@@ -694,6 +697,7 @@ Begin
      FkVAAllocationFactor := 0.5;
      FAllocationFactor := FkVAAllocationFactor;
      HasBeenAllocated  := FALSE;
+     PFChanged         := FALSE;
 
      LoadSolutionCount     := -1;  // for keeping track of the present solution in Injcurrent calcs
      OpenLoadSolutionCount := -1;
@@ -914,6 +918,12 @@ Begin
           kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
           IF PFNominal < 0.0 THEN kvarBase := -kvarBase;
         End;
+      3,4: If PFChanged then Begin  // Recompute kvarBase
+              kvarBase := kWBase* sqrt(1.0/Sqr(PFNominal) - 1.0);
+              IF   PFNominal < 0.0 THEN kvarBase := -kvarBase;
+           End;
+
+           
 { done automagically in Property set...      3, 4: ComputeAllocatedLoad;    }
     Else
     End;
@@ -946,6 +956,8 @@ Begin
     YQFixed := -varBase/ Sqr(VBase);
 
     Reallocmem(InjCurrent, SizeOf(InjCurrent^[1])*Yorder);
+
+    PFChanged := FALSE;
     
 End;
 
