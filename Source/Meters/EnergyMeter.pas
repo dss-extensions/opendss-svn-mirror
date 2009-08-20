@@ -1489,6 +1489,8 @@ Begin
            VoltBaseIndex := AddToVoltBaseList(FromBusReference);
          end;
 
+         TPDElement(ActiveBranch).NumCustomers := 0;   // Init counter
+
          FOR iTerm := 1 to ActiveBranch.Nterms Do  Begin
           IF NOT ActiveBranch.Terminals^[iTerm].Checked Then
           WITH ActiveCircuit Do
@@ -1502,8 +1504,6 @@ Begin
            If isLineElement(ActiveBranch)   // Convert to consistent units (km)
              then Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter  + TLineObj(ActiveBranch).Len * ConvertLineUnits(TLineObj(ActiveBranch).LengthUnits, UNITS_KM)
              else Buses^[TestBusNum].DistFromMeter := Buses^[BranchList.PresentBranch.FromBusReference].DistFromMeter;
-
-           TPDElement(ActiveBranch).NumCustomers := 0;   // Init counter
 
            iPC :=0;
            While iPC < PCElementList.Count Do
