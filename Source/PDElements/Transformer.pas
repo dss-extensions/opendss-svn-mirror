@@ -65,6 +65,7 @@ TYPE
         Rpu,      // on transformer MVABase  (1st winding)
         Rneut,
         Xneut:    Double;
+        Y_PPM:    Double;  // Anti Float reactance adder
 
         {Tap Changer Data}
         TapIncrement,
@@ -74,6 +75,8 @@ TYPE
 
      Public
         Connection:Integer;
+
+        Procedure ComputeAntiFloatAdder(PPM_Factor, VABase1ph:Double);
 
         Constructor Create;
         destructor Destroy; Override;
@@ -86,7 +89,7 @@ TYPE
       Private
 
         DeltaDirection         :Integer;
-        ppm_FloatFactorPlusOne :Double; // 1 + parts per million winding float factor
+        ppm_FloatFactor        :Double; //  parts per million winding float factor
         pctImag                :Double;
 
         FUNCTION  Get_PresentTap(i: Integer): double;
@@ -338,8 +341,8 @@ Begin
      PropertyHelp[33] := 'Total number of taps between min and max tap.  Default is 32.';
      PropertyHelp[34] := 'Substation Name. Optional. Default is null. If specified, printed on plots';
      PropertyHelp[35] := 'Percent magnetizing current. Default=0.0. Magnetizing branch is in parallel with windings in each phase. Also, see "ppm_antifloat".';
-     PropertyHelp[36] := 'Default=1 ppm.  Parts per million by which the reactive term is increased to protect against accidentally floating a winding. ' +
-                         'If positive then the effect is adding a small reactor to ground.  If negative, then a capacitor.';
+     PropertyHelp[36] := 'Default=1 ppm.  Parts per million of transformer winding VA rating connected to ground to protect against accidentally floating a winding without a reference. ' +
+                         'If positive then the effect is adding a very large reactance to ground.  If negative, then a capacitor.';
      PropertyHelp[37] := 'Use this property to specify all the winding %resistances using an array. Example:'+CRLF+CRLF+
                          'New Transformer.T1 buses="Hibus, lowbus" '+
                          '~ %Rs=(0.2  0.3)';
@@ -431,7 +434,7 @@ Begin
            33: Winding^[ActiveWinding].NumTaps := Parser.IntValue;
            34: SubstationName   := Param;
            35: pctImag          := Parser.DblValue;
-           36: ppm_FloatFactorPlusOne := Parser.DblValue * 1.0e-6 + 1.0;
+           36: ppm_FloatFactor  := Parser.DblValue * 1.0e-6;
            37: InterpretAllRs(Param);
          ELSE
            // Inherited properties
@@ -464,13 +467,14 @@ Begin
                  Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
                  Winding^[2].Rpu := Winding^[1].Rpu;
               End;
+
          ELSE
          End;
 
          //YPrim invalidation on anything that changes impedance values
          CASE ParamPointer OF
            5..19  : YprimInvalid := True;
-           26, 27, 35  : YprimInvalid := True;
+           26, 27, 35, 36 : YprimInvalid := True;
          ELSE
          End;
 
@@ -590,7 +594,7 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TTransf.InterpretAllBuses(const S:String);
-//  routine expecting all winding connections expressed in one array of strings
+//  routine expecting all winding bus connections expressed in one array of strings
 VAR
     BusNam  :String;
     i       :Integer;
@@ -612,7 +616,7 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TTransf.InterpretAllkVRatings(const S:String);
-//  routine expecting all winding connections expressed in one array of strings
+//  routine expecting all winding kV ratings expressed in one array of strings
 VAR
     DataStr:String;
     i:Integer;
@@ -677,7 +681,7 @@ End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TTransf.InterpretAllTaps(const S:String);
-//  routine expecting all winding connections expressed in one array of strings
+//  routine expecting all winding taps expressed in one array of strings
 VAR
     DataStr  :String;
     i        :Integer;
@@ -826,7 +830,10 @@ Begin
       NormMaxHkVA      := 1.1 * Winding^[1].kVA;
       EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
       pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings
-      ppm_FloatFactorPlusOne  := 1.000001;
+      ppm_FloatFactor  := 0.000001;
+      {Compute antifloat added for each winding    }
+      for i := 1 to NumWindings do  Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase/FNPhases);
+
       {Default the no load properties to zero}
       pctNoLoadLoss    := 0.0;
       pctImag          := 0.0;
@@ -929,6 +936,8 @@ Begin
 
    {Base rating of Winding 1 }
      VABase := Winding^[1].kVA * 1000.0;
+
+     For i := 1 to NumWindings do Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase/FNPhases);
 
    { Normal and Emergency terminal current Rating for UE check}
      Vfactor := 1.0;  // ensure initialization
@@ -1165,6 +1174,11 @@ Begin
     End;
 End;
 
+Procedure TWinding.ComputeAntiFloatAdder(PPM_Factor, VABase1ph:Double);
+begin
+       Y_PPM := -PPM_Factor/(SQR(VBase)/VABase1ph);
+end;
+
 Constructor TWinding.Create;
 {
    Make a new winding
@@ -1179,6 +1193,7 @@ Begin
      Rpu        := 0.002;
      Rneut      := -1.0;    // default to open - make user specify connection
      Xneut      := 0.0;
+     ComputeAntiFloatAdder(1.0e-6, kva/3.0/1000.0);     //  1 PPM
 
      TapIncrement := 0.00625;
      NumTaps      := 32;
@@ -1580,8 +1595,9 @@ begin
           else begin
             // Bump up neutral admittance a bit in case neutral is floating
             j := i * fNconds;
-            if ppm_FloatFactorPlusOne <> 1 then
-              SetElement(j, j, CmulReal_im(GetElement(j, j), ppm_FloatFactorPlusOne));
+            if ppm_FloatFactor <> 0.0 then
+              SetElement(j, j, Cadd(GetElement(j, j), Cmplx(0.0, Y_PPM)));
+             { SetElement(j, j, CmulReal_im(GetElement(j, j), ppm_FloatFactorPlusOne));}
           end;
         end;
       end;
@@ -1765,14 +1781,15 @@ begin
 {$ENDIF}
 {*****************************************************************************************}
 
-   {Add a small Admittance to the first terminal of each winding so that
+   {Add a small Admittance to the first conductor of each winding so that
     the matrix will always invert even if the user neglects to define a voltage
     reference on all sides}
-   If ppm_FloatFactorPlusOne <> 1.0 Then
+   If ppm_FloatFactor <> 0.0 Then
      WITH Y_Term DO
        FOR i := 1 to NumWindings Do Begin
            j := 2 * i - 1;
-           SetElement(j, j, CmulReal_im(GetElement(j, j) , ppm_FloatFactorPlusOne));
+           SetElement(j, j, Cadd(GetElement(j, j) , cmplx(0.0, Winding^[i].Y_PPM )));
+{           SetElement(j, j, CmulReal_im(GetElement(j, j) , ppm_FloatFactorPlusOne));}
        End;
 
 {******************************DEBUG******************************************************}

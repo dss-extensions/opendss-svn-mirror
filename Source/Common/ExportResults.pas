@@ -1703,7 +1703,7 @@ Begin
                 Writeln(F, ParentClass.Name,'.',Name);
                 cValues := GetYprimValues(ALL_YPRIM);
                 For i := 1 to Yorder Do  Begin
-                 For j := 1 to Yorder Do Write(F, Format('%-.7g, %-.7g, ',[cValues^[i+(j-1)*Yorder].re, cValues^[i+(j-1)*Yorder].im]));
+                 For j := 1 to Yorder Do Write(F, Format('%-13.10g, %-13.10g, ',[cValues^[i+(j-1)*Yorder].re, cValues^[i+(j-1)*Yorder].im]));
                  Writeln(F);
                 End;
               End;
@@ -1759,13 +1759,14 @@ Begin
 
      {Write out fully qualified Bus Names}
       With ActiveCircuit Do Begin
-        Write(F, Format('%d, ',[NumNodes]));
-        For i := 1 to NumNodes DO BEGIN
+
+        Writeln(F, Format('%d, ',[NumNodes]));
+(*        For i := 1 to NumNodes DO BEGIN
            j :=  MapNodeToBus^[i].BusRef;
-           Write(F, Format('%s.%-d, +j, ',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
+           Write(F, Format('%s.%-d, +j,',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
         END;
         Writeln(F);
-
+*)
         For i := 1 to NumNodes Do Begin
            j :=  MapNodeToBus^[i].BusRef;
            Write(F, Format('%s.%-d, ',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
@@ -1780,7 +1781,7 @@ Begin
                   im := cVals[p].im;
                 end;
               end;
-              Write(F, Format('%-.7g, %-.7g,', [re, im]));
+              Write(F, Format('%-13.10g, +j %-13.10g,', [re, im]));
            End;
            Writeln(F);
         End;

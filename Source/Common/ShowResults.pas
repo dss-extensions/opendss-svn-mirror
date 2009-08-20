@@ -2962,7 +2962,7 @@ Begin
                  Writeln(F);
 
                  For i := 1 to Yorder Do  Begin
-                   For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].re]));
+                   For j := 1 to i Do Write(F, Format('%13.10g ',[cValues^[i+(j-1)*Yorder].re]));
                    Writeln(F);
                  End;
 
@@ -2971,7 +2971,7 @@ Begin
                  Writeln(F);
 
                  For i := 1 to Yorder Do  Begin
-                   For j := 1 to i Do Write(F, Format('%10.5g ',[cValues^[i+(j-1)*Yorder].im]));
+                   For j := 1 to i Do Write(F, Format('%13.10g ',[cValues^[i+(j-1)*Yorder].im]));
                    Writeln(F);
                  End;
              End Else Writeln(F, 'Yprim matrix is Nil');
@@ -3036,7 +3036,7 @@ Begin
       if row >= col then begin
         re := cVals[i].re;
         im := cVals[i].im;
-        Writeln (F, Format('[%4d,%4d] = %12.5g + j%12.5g', [row, col, re, im]));
+        Writeln (F, Format('[%4d,%4d] = %13.10g + j%13.10g', [row, col, re, im]));
       end;
     end;
 
