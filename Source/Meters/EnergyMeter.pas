@@ -1371,18 +1371,22 @@ begin
      For i := 1 to Branchlist.ZoneEndsList.NumEnds Do
      Begin
        {Busref := } Branchlist.ZoneEndsList.Get(i, PresentNode);
-       While PresentNode <> Nil Do
+       If PresentNode <> Nil Then
        Begin
           CktElem     := PresentNode.CktObject;
-          Accumulator := CktElem.NumCustomers;
-          Repeat  {Go back to the source}
-              //CktElem.Checked := True;
-              Inc(CktElem.TotalCustomers, Accumulator);
-              PresentNode := PresentNode.ParentBranch;
-              If PresentNode=Nil Then Break;
-              CktElem     := PresentNode.CktObject;
-              inc(Accumulator, CktElem.NumCustomers);
-          Until FALSE;
+          if Not CktElem.Checked  then    // don't do a zone end element more than once
+          Begin
+            CktElem.Checked := True;
+            Accumulator := CktElem.NumCustomers;
+            Repeat  {Go back to the source}
+
+                Inc(CktElem.TotalCustomers, Accumulator);
+                PresentNode := PresentNode.ParentBranch;
+                If PresentNode=Nil Then Break;
+                CktElem     := PresentNode.CktObject;
+                inc(Accumulator, CktElem.NumCustomers);
+            Until FALSE;
+          End;
        End;
      End; {For}
 
