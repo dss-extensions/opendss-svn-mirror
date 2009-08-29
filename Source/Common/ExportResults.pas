@@ -1864,7 +1864,7 @@ Begin
      With ActiveCircuit Do
      For i := 1 to NumBuses Do
        Begin
-           If Buses^[i].CoordDefined then Writeln(F, Format('%s, %-g, %-g', [CheckForBlanks(BusList.Get(i)), Buses^[i].X, Buses^[i].Y]));
+           If Buses^[i].CoordDefined then Writeln(F, Format('%s, %-13.11g, %-13.11g', [CheckForBlanks(BusList.Get(i)), Buses^[i].X, Buses^[i].Y]));
        End;
 
      GlobalResult := FileNm;

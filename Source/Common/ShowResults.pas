@@ -1749,7 +1749,7 @@ Begin
            If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:2)
            Else Write(F, '   NA ');
            Write(F,'          (');
-           If pBus.CoordDefined then Write(F, pBus.x:7:1,', ', pBus.y:7:1, ')' ) Else Write(F,'     NA,      NA  )');
+           If pBus.CoordDefined then Write(F, Format(' %-13.11g, %-13.11g)',[pBus.x, pBus.y] )) Else Write(F,'           NA,            NA )');
            If pBus.Keep then Write(F,'     Yes  ') Else Write(F,'     No  ');
            Write(F,'     ');
            Write(F, pBus.NumNodesThisBus:5);
