@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 76;
+        NumExecOptions = 79;
 
 VAR
          ExecOption,
@@ -109,6 +109,9 @@ Begin
      ExecOption[74] := 'Markswitches';
      ExecOption[75] := 'Switchmarkercode';
      ExecOption[76] := 'Daisysize';
+     ExecOption[77] := 'Marktransformers';
+     ExecOption[78] := 'TransMarkerCode';
+     ExecOption[79] := 'TransMarkerSize';
 
 
 
@@ -305,9 +308,13 @@ Begin
      OptionHelp[71] := '{YES/TRUE | NO/FALSE} Default = FALSE. If YES/TRUE will automatically show the results of an Export Command after it is written.';
      OptionHelp[72] := 'Default is 2. Maximum number of iterations for load allocations for each time the AllocateLoads or Estimate command is given.';
      OptionHelp[73] := 'Set Default Base Frequency, Hz. Side effect: Sets solution Frequency and default Circuit Base Frequency. This value is saved when the DSS closes down.';
-     OptionHelp[74] := '{YES/TRUE | NO/FALSE}  Default is Yes. Mark lines that are switches or are isolated with a symbol. See SwitchMarkerCode.';
+     OptionHelp[74] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark lines that are switches or are isolated with a symbol. See SwitchMarkerCode.';
      OptionHelp[75] := 'Numeric marker code for lines with switches or are isolated from the circuit. Default is 4. See markswitches option.';
      OptionHelp[76] := 'Default is 1.0. Relative size (a multiplier applied to default size) of daisy circles on daisy plot.';
+     OptionHelp[77] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark transformer locations with a symbol. See TransMarkerCode. ' +
+                       'The coordinate of one of the buses for winding 1 or 2 must be defined for the symbol to show';
+     OptionHelp[78] := 'Numeric marker code for transformers. Default is 35. See markstransformers option.';
+     OptionHelp[79] := 'Size of transformer marker. Default is 1.';
 
 End;
 //----------------------------------------------------------------------------
@@ -493,9 +500,12 @@ Begin
                  ActiveCircuit.Fundamental        := Parser.DblValue;     // Set Base Frequency for system (used henceforth)
                  ActiveCircuit.Solution.Frequency := Parser.DblValue;
                End ;
-           74: ActiveCircuit.MarkSwitches := InterpretYesNo(Param);
+           74: ActiveCircuit.MarkSwitches     := InterpretYesNo(Param);
            75: ActiveCircuit.SwitchMarkerCode := Parser.IntValue;
            76: DaisySize := Parser.DblValue;
+           77: ActiveCircuit.MarkTransformers := InterpretYesNo(Param);
+           78: ActiveCircuit.TransMarkerCode  := Parser.IntValue;
+           79: ActiveCircuit.TransMarkerSize  := Parser.IntValue;
          ELSE
            // Ignore excess parameters
          End;

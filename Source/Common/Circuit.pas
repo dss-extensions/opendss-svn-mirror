@@ -186,8 +186,11 @@ TYPE
           NodeMarkerCode,
           NodeMarkerWidth,
           SwitchMarkerCode:Integer;
+          TransMarkerSize,
+          TransMarkerCode:Integer;
 
           MarkSwitches:Boolean;
+          MarkTransformers:Boolean;
 
           Constructor Create(const Name:String);
           Destructor Destroy; Override;
@@ -342,8 +345,11 @@ BEGIN
 
      NodeMarkerCode := 16;
      NodeMarkerWidth:= 1;
-     MarkSwitches := TRUE;
+     MarkSwitches     := FALSE;
+     MarkTransformers := FALSE;
      SwitchMarkerCode := 5;
+     TransMarkerCode  := 35;
+     TransMarkerSize  := 1;
 
      
      TrapezoidalIntegration := FALSE;  // Default to Euler method

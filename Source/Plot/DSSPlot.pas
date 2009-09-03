@@ -59,6 +59,7 @@ Type
 
        {Misc support procedures}
        Procedure MarkSubTransformers;
+       procedure MarkTheTransformers;
        Procedure DoBusLabels(Const Idx1, Idx2:Integer);
        Procedure DoBusLabel (const Idx: Integer; const BusLabel:String);
        Procedure LabelBuses;
@@ -666,6 +667,7 @@ Begin
                 MarkerIdx := 26;
                 Set_KeyClass (DSSG_MARKERCLASS); {Marker}
                 DoAutoAddPlot;
+                If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptCircuitPlot: Begin
@@ -673,6 +675,7 @@ Begin
                 Set_ChartCaption(pchar(S), Length(S));
                 SetMaxScale;
                 DoCircuitPlot;
+                If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptGeneralDataPlot: Begin
@@ -681,6 +684,7 @@ Begin
                 Set_KeyClass (DSSG_MARKERCLASS); {Marker}
                 MarkerIdx := 24;
                 DoGeneralPlot;
+                If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptGeneralCircuitPlot: Begin
@@ -689,10 +693,12 @@ Begin
                 Set_ChartCaption(pchar(S), Length(S));
                 SetMaxScale;
                 DoGeneralCircuitPlot;
+                If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptMeterZones: Begin
                 DoMeterZonePlot;
+                If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
          ptDaisyPlot: Begin
@@ -704,6 +710,7 @@ Begin
                          Labels := True;  {Turn back on to label generators}
                       End
                       Else  DoCircuitPlot;
+                      If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                       If ShowSubs Then MarkSubTransformers;
                       DoTheDaisies;
                     End;
@@ -1808,11 +1815,33 @@ begin
         If pTRansF.IsSubstation Then Begin
           Bus2Idx := pTRansF.Terminals^[2].BusRef;
           If    ActiveCircuit.Buses^[Bus2Idx].coorddefined Then Begin
-           AddNewMarker (ActiveCircuit.Buses^[Bus2Idx].x, ActiveCircuit.Buses^[Bus2Idx].y, clRed, 36, 4);
-           If Length(pTransf.SubstationName)>0 Then
-             AddNewText( ActiveCircuit.Buses^[Bus2Idx].X, ActiveCircuit.Buses^[Bus2Idx].Y, clBlack, 10, '  '+pTransf.SubstationName);          End;
-
+             AddNewMarker (ActiveCircuit.Buses^[Bus2Idx].x, ActiveCircuit.Buses^[Bus2Idx].y, clRed, 36, 4);
+             If Length(pTransf.SubstationName)>0 Then
+               AddNewText( ActiveCircuit.Buses^[Bus2Idx].X, ActiveCircuit.Buses^[Bus2Idx].Y, clBlack, 10, '  '+pTransf.SubstationName);
+          End;
        End;
+       pTransF := ActiveCircuit.Transformers.Next;
+   End;
+
+end;
+
+procedure TDSSPlot.MarkTheTransformers;
+Var
+   BusIdx :Integer;
+begin
+      {Mark Locations of Substation Transformers}
+   pTransF := ActiveCircuit.Transformers.First;
+   Set_LineWidth(1);
+   While pTransF <> Nil Do Begin
+       If pTransF.Enabled Then
+        If Not pTRansF.IsSubstation Then Begin
+          BusIdx := pTRansF.Terminals^[1].BusRef;
+          With ActiveCircuit Do  Begin
+             If Not Buses^[BusIdx].CoordDefined then BusIdx := pTRansF.Terminals^[2].BusRef; // Try the other winding
+             If Buses^[BusIdx].CoordDefined Then
+             AddNewMarker (Buses^[BusIdx].x, Buses^[BusIdx].y, clBlue, TransMarkerCode, TransMarkerSize);
+          End;
+        End;
        pTransF := ActiveCircuit.Transformers.Next;
    End;
 
