@@ -200,11 +200,17 @@ Begin
      PropertyHelp[18] := 'Kron = Y/N. Default=N.  Perform Kron reduction on the impedance matrix after it is formed, reducing order by 1. ' +
                          'Eliminates the conductor designated by the "Neutral=" property. ' +
                          'Do this after the R, X, and C matrices are defined. Ignored for symmetrical components. ' +
-                         'May be issued more than once to eliminate more than one conductor by resetting the Neutral property.';
+                         'May be issued more than once to eliminate more than one conductor by resetting the Neutral property after the previous ' +
+                         'invoking of this property. Generally, you do not want to do a Kron reduction on the matrix if you intend to solve at a ' +
+                         'frequency other than the base frequency and exploit the Rg and Xg values.';
      PropertyHelp[19] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
-                         'Default is value commonly used for 60 Hz.';
+                         'Default is 0.01805 = 60 Hz value in ohms per kft (matches default line impedances). ' +
+                         'This value is required for harmonic solutions if you wish to adjust the earth return impedances for frequency. ' +
+                         'If not, set both Rg and Xg = 0.';
      PropertyHelp[20] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
-                         'Default value will yield default line impedances at 60 Hz.';
+                         'Default value is 0.155081 = 60 Hz value in ohms per kft (matches default line impedances). ' +
+                         'This value is required for harmonic solutions if you wish to adjust the earth return impedances for frequency. ' +
+                         'If not, set both Rg and Xg = 0.';
      PropertyHelp[21] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor.';
      PropertyHelp[22] := 'Designates which conductor is the "neutral" conductor that will be eliminated by Kron reduction. ' +
                          'Default is the last conductor (nphases value). After Kron reduction is set to 0. Subsequent issuing of Kron=Yes ' +

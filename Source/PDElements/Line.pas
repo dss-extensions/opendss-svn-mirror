@@ -193,26 +193,37 @@ Begin
                     'defaults to 336 MCM ACSR on 4 ft spacing.';
      PropertyHelp[4] := 'Length of line. Default is 1.0. If units do not match the impedance data, specify "units" property. ';
      PropertyHelp[5] := 'Number of phases, this line.';
-     PropertyHelp[6] := 'Positive-sequence Resistance, ohms per unit length.  See also Rmatrix.';
-     PropertyHelp[7] := 'Positive-sequence Reactance, ohms per unit length.  See also Xmatrix';
+     PropertyHelp[6] := 'Positive-sequence Resistance, ohms per unit length. Setting any of R1, R0, X1, X0, C1, C0 forces ' +
+                        'the program to use the symmetrical component line definition. See also Rmatrix.';
+     PropertyHelp[7] := 'Positive-sequence Reactance, ohms per unit length. Setting any of R1, R0, X1, X0, C1, C0 forces ' +
+                        'the program to use the symmetrical component line definition.  See also Xmatrix';
      PropertyHelp[8] := 'Zero-sequence Resistance, ohms per unit length.';
      PropertyHelp[9] := 'Zero-sequence Reactance, ohms per unit length.';
-     PropertyHelp[10] := 'Positive-sequence capacitance, nf per unit length. See also Cmatrix.';
+     PropertyHelp[10] := 'Positive-sequence capacitance, nf per unit length.  Setting any of R1, R0, X1, X0, C1, C0 forces ' +
+                        'the program to use the symmetrical component line definition. See also Cmatrix.';
      PropertyHelp[11] := 'Zero-sequence capacitance, nf per unit length.';
      PropertyHelp[12] := 'Resistance matrix, lower triangle, ohms per unit length. Order of the matrix is the number of phases. '+
-                     'May be used to specify the impedance of any line configuration.  For balanced line models, you may '+
+                     'May be used to specify the impedance of any line configuration. Using any of Rmatrix, Xmatrix, Cmatrix ' +
+                     'forces program to use the matrix values for line impedance definition. For balanced line models, you may '+
                      'use the standard symmetrical component data definition instead.';
      PropertyHelp[13] := 'Reactance matrix, lower triangle, ohms per unit length. Order of the matrix is the number of phases. '+
-                     'May be used to specify the impedance of any line configuration.  For balanced line models, you may '+
+                     'May be used to specify the impedance of any line configuration. Using any of Rmatrix, Xmatrix, Cmatrix ' +
+                     'forces program to use the matrix values for line impedance definition.  For balanced line models, you may '+
                      'use the standard symmetrical component data definition instead.';
      PropertyHelp[14] := 'Nodal Capacitance matrix, lower triangle, nf per unit length.Order of the matrix is the number of phases. '+
-                     'May be used to specify the shunt capacitance of any line configuration.  For balanced line models, you may '+
+                     'May be used to specify the shunt capacitance of any line configuration. Using any of Rmatrix, Xmatrix, Cmatrix ' +
+                     'forces program to use the matrix values for line impedance definition.  For balanced line models, you may '+
                      'use the standard symmetrical component data definition instead.';
      PropertyHelp[15] := '{y/n | T/F}  Default= no/false.  Designates this line as a switch for graphics and algorithmic purposes. ' +CRLF+
                          'SIDE EFFECT: Sets R1=0.001 X1=0.0. You must reset if you want something different.';
-     PropertyHelp[16] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. Default value is 60 Hz value.';
+     PropertyHelp[16] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency. ' +
+                         'Default is 0.01805 = 60 Hz value in ohms per kft (matches default line impedances). ' +
+                         'This value is required for harmonic solutions if you wish to adjust the earth return impedances for frequency. ' +
+                         'If not, set both Rg and Xg = 0.';
      PropertyHelp[17] := 'Carson earth return reactance per unit length used to compute impedance values at base frequency.  For making better frequency adjustments. ' +
-                         'Default is 60 Hz value that will yield the default line impedances.';
+                         'Default is 0.155081 = 60 Hz value in ohms per kft (matches default line impedances). ' +
+                         'This value is required for harmonic solutions if you wish to adjust the earth return impedances for frequency. ' +
+                         'If not, set both Rg and Xg = 0.';
      PropertyHelp[18] := 'Default=100 meter ohms.  Earth resitivity used to compute earth correction factor. Overrides Line geometry definition if specified.';
      PropertyHelp[19] := 'Geometry code for LineGeometry Object. Supercedes any previous definition of line impedance. ' +
                          'Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases. '+
