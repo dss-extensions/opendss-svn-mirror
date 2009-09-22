@@ -43,6 +43,7 @@ type
 implementation
 
 uses ComServ,
+     DSSCLassDefs,
      DSSGlobals,
      Generator,
      CktElement,

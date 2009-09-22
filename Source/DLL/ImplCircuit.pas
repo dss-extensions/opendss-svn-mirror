@@ -73,6 +73,7 @@ type
 implementation
 
 uses ComServ,
+     DSSClassDefs, 
      DSSGlobals,
      ImplGlobals,
      Line,

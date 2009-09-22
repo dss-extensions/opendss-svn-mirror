@@ -70,7 +70,7 @@ type
 
 implementation
 
-uses ComServ, Line, DSSGlobals, CktElement,
+uses ComServ, Line, DSSClassDefs, DSSGlobals, CktElement,
   uComplex, ExecHelper, dialogs, Sysutils, ParserDel, Variants;
 
 Function IsLine(Const CktElem:TDSSCktElement):Boolean;

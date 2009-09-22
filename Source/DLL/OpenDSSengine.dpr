@@ -143,7 +143,8 @@ uses
   ExportCIMXML in '..\Common\ExportCIMXML.pas',
   ImplCtrlQueue in 'ImplCtrlQueue.pas' {CtrlQueue: CoClass},
   ImplLoads in 'ImplLoads.pas' {Loads: CoClass},
-  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm};
+  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
+  DSSClassDefs in '..\Common\DSSClassDefs.pas';
 
 exports
   DllGetClassObject,

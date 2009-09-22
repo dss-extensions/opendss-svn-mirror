@@ -41,6 +41,7 @@ type
 implementation
 
 uses ComServ,
+     DSSClassDefs,
      DSSGlobals,
      DSSForms,
      DSSClass,

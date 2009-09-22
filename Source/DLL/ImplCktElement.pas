@@ -51,7 +51,7 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, UComplex, Sysutils,
+uses ComServ, DSSClassDefs, DSSGlobals, UComplex, Sysutils,
      PDElement, MathUtil, ImplGlobals, Variants;
 
 { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
