@@ -35,7 +35,7 @@ TYPE
 
 implementation
 
-Uses PCElement, ParserDel, DSSGlobals, Utilities;
+Uses PCElement, ParserDel, DSSClassDefs, DSSGlobals, Utilities;
 
 constructor TPCClass.Create;
 begin

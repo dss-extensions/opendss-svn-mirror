@@ -317,7 +317,7 @@ VAR
 
 
 implementation
-USES  ParserDel, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
+USES  ParserDel, DSSClassDefs, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
       Utilities, PCElement,  StackDef, Circuit, Line, LineUnits,
       Classes, FileCtrl, ReduceAlgs, Windows;
 

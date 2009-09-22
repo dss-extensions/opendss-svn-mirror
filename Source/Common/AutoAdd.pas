@@ -86,7 +86,7 @@ Type
 
 implementation
 
-Uses  DSSGlobals, PDElement, Utilities, SysUtils, Executive,
+Uses  DSSClassDefs, DSSGlobals, PDElement, Utilities, SysUtils, Executive,
       DSSForms,
       {ProgressForm, Forms,} Solution;
 

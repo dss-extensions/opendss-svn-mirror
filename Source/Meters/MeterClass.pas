@@ -43,7 +43,7 @@ TYPE
 
 implementation
 
-Uses MeterElement, ParserDel, DSSGlobals;
+Uses MeterElement, ParserDel, DSSClassDefs, DSSGlobals;
 
 constructor TMeterClass.Create;
 begin

@@ -39,7 +39,7 @@ TYPE
 implementation
 
 USES
-    DSSGlobals, Sysutils;
+    DSSClassDefs, DSSGlobals, Sysutils;
 
 
 procedure TMeterElement.AllocateSensorArrays;

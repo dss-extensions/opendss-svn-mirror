@@ -194,7 +194,7 @@ IMPLEMENTATION
 
 {$DEFINE NOTRANSDEBUG}    {TRANSDEBUG}
 
-USES    DSSGlobals, Sysutils, Utilities;
+USES    DSSClassDefs, DSSGlobals, Sysutils, Utilities;
 
 Const NumPropsThisClass = 37;
 

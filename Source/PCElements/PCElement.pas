@@ -68,7 +68,7 @@ TYPE
 implementation
 
 USES
-    DSSGlobals, Sysutils;
+    DSSClassDefs, DSSGlobals, Sysutils;
 
 
 Constructor TPCElement.Create(ParClass:TDSSClass);

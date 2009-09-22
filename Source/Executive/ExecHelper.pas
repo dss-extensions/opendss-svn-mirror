@@ -125,7 +125,7 @@ Var   ShowCommands:TCommandList;
 
 implementation
 
-USES ArrayDef, ParserDel, SysUtils, DSSGlobals,
+USES ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      Circuit, Monitor, ShowResults, ExportResults,
      DSSClass, DSSObject, Utilities, Solution,
      EnergyMeter, Generator, LoadShape, Load, PCElement,   CktElement,

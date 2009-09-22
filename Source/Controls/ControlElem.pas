@@ -44,7 +44,7 @@ TYPE
 implementation
 
 USES
-    DSSGlobals, Sysutils;
+    DSSClassDefs, DSSGlobals, Sysutils;
 
 Constructor TControlElem.Create(ParClass:TDSSClass);
 Begin

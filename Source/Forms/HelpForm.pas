@@ -41,7 +41,7 @@ implementation
 
 {$R *.DFM}
 
-Uses DSSGlobals, ExecCommands, ExecOptions, DSSClass;
+Uses DSSClassDefs, DSSGlobals, ExecCommands, ExecOptions, DSSClass;
 
 const TreeSep: String = '== classes ==';
 

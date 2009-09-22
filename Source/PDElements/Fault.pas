@@ -99,7 +99,7 @@ VAR
    ActiveFaultObj:TFaultObj;
 
 implementation
-USES  ParserDel,  DSSGlobals, dynamics, Sysutils, Ucomplex, MathUtil, Utilities;
+USES  ParserDel,  DSSClassDefs, DSSGlobals, dynamics, Sysutils, Ucomplex, MathUtil, Utilities;
 
 Const NumPropsthisclass = 9;
 

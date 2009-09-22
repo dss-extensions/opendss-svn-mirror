@@ -113,7 +113,7 @@ VAR
 
 implementation
 
-USES  ParserDel,  DSSGlobals, Sysutils, Ucomplex, Arraydef, Utilities, LineUnits;
+USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils, Ucomplex, Arraydef, Utilities, LineUnits;
 
 Const      NumPropsThisClass = 22;
 

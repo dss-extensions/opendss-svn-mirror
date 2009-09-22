@@ -32,7 +32,7 @@ TYPE
 
 implementation
 
-Uses PDElement, ParserDel, DSSGlobals, Utilities;
+Uses PDElement, ParserDel, DSSClassDefs, DSSGlobals, Utilities;
 
 constructor TPDClass.Create;
 begin

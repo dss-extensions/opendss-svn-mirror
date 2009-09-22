@@ -25,7 +25,7 @@ FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circ
 
 implementation
 
-Uses DSSGlobals, ParserDel, Math, Executive, ExecHelper,
+Uses DSSClassDefs, DSSGlobals, ParserDel, Math, Executive, ExecHelper,
      LoadShape, Utilities, sysutils, solution, energymeter;
 
 

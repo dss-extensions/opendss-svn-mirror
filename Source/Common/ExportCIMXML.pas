@@ -16,7 +16,7 @@ Procedure ExportCDPSM(FileNm:String);
 
 implementation
 
-Uses sysutils, Utilities, Circuit, DSSGlobals, CktElement,
+Uses sysutils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
      Fuse, Capacitor, CapControl, Reactor, Feeder, WireData,

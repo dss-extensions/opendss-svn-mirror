@@ -139,7 +139,7 @@ VAR
 
 implementation
 
-Uses Windows, SysUtils, ShellAPI, Dialogs,
+Uses Windows, SysUtils, ShellAPI, Dialogs,  DSSClassDefs, 
 DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
 Capacitor, Reactor, Generator, Load, Line, Fault, Feeder, FrmCSVchannelSelect,
 EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls;

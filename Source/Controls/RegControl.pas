@@ -144,7 +144,7 @@ implementation
 
 USES
 
-    ParserDel, DSSGlobals, Circuit, CktElement,  Sysutils, uCmatrix, MathUtil, Math;
+    ParserDel, DSSClassDefs, DSSGlobals, Circuit, CktElement,  Sysutils, uCmatrix, MathUtil, Math;
 
 CONST
 

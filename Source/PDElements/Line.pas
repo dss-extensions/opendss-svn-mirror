@@ -110,7 +110,7 @@ VAR
 
 IMPLEMENTATION
 
-USES  ParserDel,  DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
+USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
 
 Const NumPropsThisClass = 20;
     //  MaxPhases = 20; // for fixed buffers

@@ -38,7 +38,7 @@ TYPE
 
 implementation
 
-Uses ControlElem, ParserDel, DSSGlobals;
+Uses ControlElem, ParserDel, DSSClassDefs, DSSGlobals;
 
 constructor TControlClass.Create;
 begin

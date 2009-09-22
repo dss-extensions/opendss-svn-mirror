@@ -130,7 +130,8 @@ uses
   Ymatrix in '..\Common\Ymatrix.pas',
   DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
   ExportCIMXML in '..\Common\ExportCIMXML.pas',
-  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm};
+  FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
+  DSSClassDefs in '..\Common\DSSClassDefs.pas';
 
 {$R *.RES}
 

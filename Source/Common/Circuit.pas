@@ -222,7 +222,7 @@ implementation
 
 USES
      PDElement, CktElementClass,
-     ParserDel,  DSSGlobals, Dynamics,
+     ParserDel,  DSSClassDefs, DSSGlobals, Dynamics,
      Line, Transformer,  Vsource,
      Utilities, FileCtrl, DSSForms;
 

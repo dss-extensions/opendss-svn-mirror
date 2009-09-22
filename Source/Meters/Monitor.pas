@@ -177,7 +177,7 @@ implementation
 
 USES
 
-    ParserDel, DSSGlobals, Circuit, CktElement,Transformer, PCElement,
+    ParserDel, DSSClassDefs, DSSGlobals, Circuit, CktElement,Transformer, PCElement,
     Sysutils, ucmatrix, showresults, mathUtil, PointerList, TOPExport, Dynamics;
 
 CONST

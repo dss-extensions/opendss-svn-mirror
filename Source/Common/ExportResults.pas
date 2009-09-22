@@ -37,7 +37,7 @@ Procedure ExportLosses(FileNm:String);
 
 IMPLEMENTATION
 
-Uses uComplex,  Arraydef, sysutils,   Circuit, DSSGlobals,
+Uses uComplex,  Arraydef, sysutils,   Circuit, DSSClassDefs, DSSGlobals,
      uCMatrix,  solution, CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, EnergyMeter, Sensor, Load, RegControl,
      ParserDel, Math, Ymatrix;

@@ -206,7 +206,7 @@ VAR
 implementation
 
 USES  SolutionAlgs,
-      DSSGlobals, DSSForms, CktElement,  ControlElem, Fault,
+      DSSClassDefs, DSSGlobals, DSSForms, CktElement,  ControlElem, Fault,
       Executive, AutoAdd,  YMatrix,
       ParserDel, Generator,
       Math,  Circuit, Utilities

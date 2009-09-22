@@ -36,7 +36,7 @@ Procedure ShowY(FileNm:String);
 
 implementation
 
-Uses uComplex,  Arraydef,  sysutils, Circuit, DSSGlobals,
+Uses uComplex,  Arraydef,  sysutils, Circuit, DSSClassDefs, DSSGlobals,
      uCMatrix,  solution,  CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, Transformer, EnergyMeter, Load, RegControl,
      ParserDel, CktTree,   DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix;

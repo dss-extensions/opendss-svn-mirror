@@ -159,6 +159,7 @@ Var
 implementation
 
 Uses  Comobj,
+      DSSClassDefs,
       DssGlobals,
       Circuit,
       Generator,

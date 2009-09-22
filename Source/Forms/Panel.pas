@@ -393,7 +393,7 @@ type
 
 implementation
 
-uses Executive, DSSGlobals,
+uses Executive, DSSClassDefs, DSSGlobals,
   ClipBrd,  Utilities, contnrs, MessageForm,
   DlgPlotOptions,  DSSPlot, FrmCSVchannelSelect,
   DlgComboBox,dlgNumber, ExecOptions, ExecCommands, ExecHelper, Dynamics, DSSClass, ListForm,

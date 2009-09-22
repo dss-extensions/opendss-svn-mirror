@@ -179,7 +179,7 @@ IMPLEMENTATION
 
 USES
 
-    ParserDel, DSSGlobals, Circuit, PCElement,  Sysutils, uCmatrix, MathUtil;
+    ParserDel, DSSClassDefs, DSSGlobals, Circuit, PCElement,  Sysutils, uCmatrix, MathUtil;
 
 CONST
 
