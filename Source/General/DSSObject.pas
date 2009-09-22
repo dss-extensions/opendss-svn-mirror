@@ -8,17 +8,16 @@ unit DSSObject;
 
 interface
 
-Uses Arraydef, DSSClass;
+Uses Arraydef, DSSClass, NamedObject;
 
 TYPE
 
-  TDSSObject = class(TObject)
+  TDSSObject = class(TNamedObject)
     private
-      FName  :String;
       function  Get_PropertyValue(Index: Integer): String;
       procedure Set_PropertyValue(Index: Integer; const Value: String);
+      function Get_Name: String;
       procedure Set_Name(const Value: String);
-
 
     protected
 
@@ -27,11 +26,10 @@ TYPE
       PrpSequence    :pIntegerArray;
 
       Function  GetNextPropertySet(idx:Integer):Integer;
-      
+
     public
 
       DSSObjType    :Integer; // PD, PC, Monitor, CondCode, etc.
-      DSSClassName  :String;
       ParentClass   :TDSSClass;
       ClassIndex    :Integer;    // Index into the class collection list
 
@@ -51,9 +49,10 @@ TYPE
 
       Procedure ClearPropSeqArray;
 
-      Property Name:String Read FName Write Set_Name;
       Property PropertyValue[Index:Integer]:String Read Get_PropertyValue Write Set_PropertyValue;
-  END;
+
+      Property Name:String Read Get_Name Write Set_Name;
+ END;
 
 
 implementation
@@ -71,12 +70,10 @@ end;
 
 constructor TDSSObject.Create(ParClass:TDSSClass);
 BEGIN
-   Inherited Create;
-   Fname := '';
+   Inherited Create(ParClass.Name);
    DSSObjType := 0;
    PropSeqCount := 0;
    ParentClass := ParClass;
-   DSSClassName := ParentClass.Name;
    FPropertyValue := Allocmem(SizeOf(FPropertyValue^[1])*ParentClass.NumProperties);
 
    // init'd to zero when allocated
@@ -94,6 +91,7 @@ BEGIN
    For i := 1 to ParentClass.NumProperties DO FPropertyValue^[i] := '';
    Reallocmem(FPropertyValue,0);
    Reallocmem(PrpSequence,0);
+
    Inherited Destroy;
 END;
 
@@ -171,8 +169,13 @@ End;
 procedure TDSSObject.Set_Name(const Value: String);
 begin
 // If renamed, then let someone know so hash list can be updated;
-  If Length(Fname)>0 Then ParentClass.ElementNamesOutOfSynch := True;
-  FName := Value;
+  If Length(LocalName)>0 Then ParentClass.ElementNamesOutOfSynch := True;
+  LocalName := Value;
+end;
+
+function TDSSObject.Get_Name:String;
+begin
+   Result:=LocalName;
 end;
 
 procedure TDSSObject.Set_PropertyValue(Index: Integer;

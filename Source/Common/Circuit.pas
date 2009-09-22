@@ -24,7 +24,7 @@ interface
 USES
      Solution, SysUtils, ArrayDef, HashList, PointerList, CktElement,
      DSSClass, {DSSObject,} Bus, LoadShape, ControlQueue, uComplex,
-     AutoAdd, EnergyMeter;
+     AutoAdd, EnergyMeter, NamedObject;
 
 
 TYPE
@@ -38,10 +38,9 @@ TYPE
     pCktElementDefArray = ^CktElementDefArray;
     CktElementDefArray = Array[1..1] of CktElementDef;
 
-    TDSSCircuit = CLASS(Tobject)
+    TDSSCircuit = CLASS(TNamedObject)
 
       Private
-          FName:String;
           NodeBuffer:pIntegerArray;
           NodeBufferMax:Integer;
           FBusNameRedefined:Boolean;
@@ -75,6 +74,8 @@ TYPE
 
           Procedure ReallocDeviceList;
           procedure Set_CaseName(const Value: String);
+
+          function Get_Name:String;
 
 
       Public
@@ -192,7 +193,7 @@ TYPE
           MarkSwitches:Boolean;
           MarkTransformers:Boolean;
 
-          Constructor Create(const Name:String);
+          Constructor Create(const aName:String);
           Destructor Destroy; Override;
 
           Procedure AddCktElement(Handle:Integer);  // Adds last DSS object created to circuit
@@ -209,7 +210,7 @@ TYPE
 
           Procedure DebugDump(Var F:TextFile);
 
-          property Name             :String   Read FName;
+          property Name             :String   Read Get_Name;
           Property CaseName         :String   Read FCaseName Write Set_CaseName;
           Property ActiveCktElement :TDSSCktElement Read FActiveCktElement Write Set_ActiveCktElement;
           Property Losses           :Complex Read Get_Losses;  // Total Circuit PD Element losses
@@ -227,20 +228,20 @@ USES
      Utilities, FileCtrl, DSSForms;
 
 //----------------------------------------------------------------------------
-Constructor TDSSCircuit.Create(const Name:String);
+Constructor TDSSCircuit.Create(const aName:String);
 
 // Var Retval:Integer;
 
 BEGIN
-     inherited Create;
+     inherited Create('Circuit');
 
      IsSolved := False;
      {*Retval   := *} SolutionClass.NewObject(Name);
      Solution := ActiveSolutionObj;
 
-     FName       := LowerCase(Name);
-     
-     CaseName    := FName;  // Default case name to circuitname
+     LocalName   := LowerCase(aName);
+
+     CaseName    := aName;  // Default case name to circuitname
                             // Sets CircuitName_
 
      Fundamental  := DefaultBaseFreq;
@@ -1180,5 +1181,9 @@ begin
   CircuitName_ := Value + '_';
 end;
 
+function TDSSCircuit.Get_Name:String;
+begin
+   Result:=LocalName;
+end;
 
 end.

@@ -20,7 +20,7 @@ Uses sysutils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
      Fuse, Capacitor, CapControl, Reactor, Feeder, WireData,
-     LineGeometry;
+     LineGeometry, NamedObject;
 
 procedure DoubleNode (var F: TextFile; Node: String; val: Double);
 begin
@@ -37,22 +37,15 @@ begin
   Writeln (F, Format ('  <cim:%s>%s_%.3f</cim:%s>', [Node, Prefix, val, Node]));
 end;
 
-procedure VoltageLevelNode (var F: TextFile; Prefix: String; val: Double);
+procedure CircuitNode (var F: TextFile; Obj: TNamedObject);
 begin
-  Writeln(F, Format('  <cim:%s.MemberOf_EquipmentContainer rdf:resource="#VoltageLevel_%.3f"/>',
-    [Prefix, val]));
+  Writeln(F, Format('  <cim:Equipment.MemberOf_Circuit rdf:resource="#%s"/>', [Obj.ID]));
 end;
 
 procedure LineRefNode (var F: TextFile; Name: String);
 begin
   Writeln(F, Format('  <cim:ACLineSegment.MemberOf_Line rdf:resource="#Line_%s"/>',
     [Name]));
-end;
-
-procedure SubRefNode (var F: TextFile; Prefix: String; Name: String);
-begin
-  Writeln(F, Format('  <cim:%s.MemberOf_Substation rdf:resource="#Sub_%s"/>',
-    [Prefix, Name]));
 end;
 
 procedure XfRefNode (var F: TextFile; Name: String);
@@ -157,10 +150,10 @@ begin
   Writeln (F, Format ('</cim:%s>', [Node]));
 end;
 
-procedure StartInstance (var F: TextFile; Root: String; Abbrev: String; Name: String);
+procedure StartInstance (var F: TextFile; Root: String; Obj: TNamedObject);
 begin
-  Writeln(F, Format('<cim:%s rdf:ID="%s_%s">', [Root, Abbrev, Name]));
-  StringNode (F, 'IdentifiedObject.name', Name);
+  Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, Obj.ID]));
+  StringNode (F, 'IdentifiedObject.name', Obj.LocalName);
 end;
 
 procedure EndInstance (var F: TextFile; Root: String);
@@ -183,27 +176,28 @@ begin
   if i = 0 then Result := False;
 end;
 
-procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement; Abbrev: String; Name: String);
+procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement);
 var
-  Nterm, j : Integer;
-  BusName, Ref, TermName : String;
+  Nterm, j, ref : Integer;
+  BusName, TermName : String;
+  temp: TGUID;
 begin
-  Ref := Abbrev + '_' + Name;
   Nterm := pElem.Nterms;
   BusName := pElem.FirstBus;
   for j := 1 to NTerm do begin
     if IsGroundBus (BusName) = False then begin
-      BusName := StripExtension (BusName);
-
+      ref := pElem.Terminals^[j].BusRef;
       Str (j, TermName);
-      TermName := Ref + '_T' + TermName;
+      TermName := pElem.Name + '_T' + TermName;
+      CreateGUID (temp);
 
-      StartInstance (F, 'Terminal', 'Trm', TermName);
-//      StringNode (F, 'Naming.name', TermName);
+      Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToString(temp)]));
+      StringNode (F, 'IdentifiedObject.name', TermName);
+      IntegerNode (F, 'Terminal.sequence', j);
       Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
-        [Ref]));
-      Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#CN_%s"/>',
-        [BusName]));
+        [pElem.ID]));
+      Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
+        [ActiveCircuit.Buses[ref].ID]));
       EndInstance (F, 'Terminal');
     end;
 
@@ -223,8 +217,8 @@ begin
     WdgName := 'Wdg_' + pXf.Name + '_' + WdgName;
     TermName := WdgName + '_T1';
 
-    StartInstance (F, 'Terminal', 'Trm', TermName);
-    StringNode (F, 'Naming.name', TermName);
+//    StartInstance (F, 'Terminal', 'Trm', TermName);
+    StringNode (F, 'IdentifiedObject.name', TermName);
     Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
       [WdgName]));
     Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#CN_%s"/>',
@@ -280,10 +274,15 @@ Begin
     Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2008/CIM-schema-cim13#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F,'<!--');
     Writeln(F,'-->');
+
+    StartInstance (F, 'Circuit', ActiveCircuit);
+    EndInstance (F, 'Circuit');
+
     with ActiveCircuit do begin
       i:=1;
       val:=LegalVoltageBases^[i];
       while val > 0.0 do begin
+      (*
         Writeln(F, Format('<cim:BaseVoltage rdf:ID="BaseVoltage_%.3f">', [val]));
         PrefixVbaseNode (F, 'IdentifiedObject.name', 'BaseVoltage', val);
         DoubleNode (F, 'BaseVoltage.nominalVoltage', val);
@@ -295,34 +294,30 @@ Begin
         DoubleNode (F, 'VoltageLevel.lowVoltageLimit', val * NormalMinVolts);
         DoubleNode (F, 'VoltageLevel.highVoltageLimit', val * NormalMaxVolts);
         Writeln(F,'</cim:VoltageLevel>');
-
+        *)
         Inc(i);
         val:=LegalVoltageBases^[i];
       end;
 
       for i := 1 to NumBuses do begin
-        Writeln(F, Format('<cim:ConnectivityNode rdf:ID="CN_%s">', [BusList.Get(i)]));
-        StringNode (F, 'IdentifiedObject.name', BusList.Get(i));
-        VoltageLevelNode (F, 'ConnectivityNode', Buses^[i].kVBase);
+        Buses^[i].LocalName:= BusList.Get(i);
+      end;
+
+      for i := 1 to NumBuses do begin
+        Writeln(F, Format('<cim:ConnectivityNode rdf:ID="%s">',
+          [GUIDToString (Buses^[i].GUID)]));
+        StringNode (F, 'IdentifiedObject.name', Buses^[i].LocalName);
+//        VoltageLevelNode (F, 'ConnectivityNode', Buses^[i].kVBase);
         DoubleNode (F, 'PositionPoint.xPosition', Buses^[i].x);
         DoubleNode (F, 'PositionPoint.yPosition', Buses^[i].y);
         Writeln(F,'</cim:ConnectivityNode>');
       end;
     end;
 
-    pFdr := ActiveCircuit.Feeders.First;
-    while pFdr <> nil do begin
-      with pFdr do begin
-        StartInstance (F, 'Feeder', 'Fdr', Name);
-        EndInstance (F, 'Feeder');
-      end;
-      pFdr := ActiveCircuit.Feeders.Next;
-    end;
-
     pGen := ActiveCircuit.Generators.First;
     while pGen <> nil do begin
       with pGen do begin
-        StartInstance (F, 'EquivalentGenerator', 'Gen', Name);
+        StartInstance (F, 'EquivalentGenerator', pGen);
         EndInstance (F, 'EquivalentGenerator');
       end;
       pGen := ActiveCircuit.Generators.Next;
@@ -332,9 +327,6 @@ Begin
     while pVsrc <> nil do begin
       if pVsrc.ClassNameIs('TVSourceObj') then
         with pVsrc do begin
-          StartInstance (F, 'Substation', 'Sub', Name);
-          EndInstance (F, 'Substation');
-
           Zs := Z.AvgDiagonal;
           Zm := Z.AvgOffDiagonal;
           Rs := Zs.re;
@@ -342,23 +334,30 @@ Begin
           Xs := Zs.im;
           Xm := Zm.im;
           v1 := pVsrc.NPhases;
-          R1 := (Rs - Rm) / v1;
-          X1 := (Xs - Xm) / v1;
-          R0 := (Rs + (v1 - 1.0) * Rm) / v1;
-          X0 := (Xs + (v1 - 1.0) * Xm) / v1;
+          if v1 > 1.0 then begin
+            R1 := Rs - Rm;
+            X1 := Xs - Xm;
+            R0 := Rs + (v1 - 1.0) * Rm;
+            X0 := Xs + (v1 - 1.0) * Xm;
+          end else begin
+            R1 := Rs;
+            X1 := Xs;
+            R0 := Rs;
+            X0 := Xs;
+          end;
 
-          StartInstance (F, 'EnergySource', 'Eq', Name);
-          VoltageLevelNode (F, 'Equipment', kVbase);
+          StartInstance (F, 'EnergySource', pVsrc);
+          CircuitNode (F, ActiveCircuit);
           PhasesNode (F, 'ConductingEquipment.phases', pVsrc);
           DoubleNode (F, 'EnergySource.nominalVoltage', kVbase);
           DoubleNode (F, 'EnergySource.voltageMagnitude', kVbase * PerUnit);
-          DoubleNode (F, 'EnergySource.voltageAngle', TwoPi * Angle / 180.0);
+          DoubleNode (F, 'EnergySource.voltageAngle', TwoPi * Angle / 360.0);
           DoubleNode (F, 'EnergySource.r', R1);
           DoubleNode (F, 'EnergySource.x', X1);
           DoubleNode (F, 'EnergySource.r0', R0);
           DoubleNode (F, 'EnergySource.x0', X0);
           EndInstance (F, 'EnergySource');
-          WriteTerminals (F, pVsrc, 'Eq', Name);
+          WriteTerminals (F, pVsrc);
         end;
       pVsrc := ActiveCircuit.Sources.Next;
     end;
@@ -366,14 +365,16 @@ Begin
     pCap := ActiveCircuit.ShuntCapacitors.First;
     while pCap <> nil do begin
       with pCap do begin
-        StartInstance (F, 'ShuntCompensator', 'Cap', Name);
-        VoltageLevelNode (F, 'Equipment', kvFdr);
+        StartInstance (F, 'ShuntCompensator', pCap);
+        CircuitNode (F, ActiveCircuit);
         PhasesNode (F, 'ConductingEquipment.phases', pCap);
-        DoubleNode (F, 'ShuntCompensator.reactivePerSection', TotalKvar);
+        DoubleNode (F, 'ShuntCompensator.nomU', NomKV);
+        DoubleNode (F, 'ShuntCompensator.nomQ', TotalKvar);
+        DoubleNode (F, 'ShuntCompensator.reactivePerSection', TotalKvar / NumSteps);
         IntegerNode (F, 'ShuntCompensator.normalSections', NumSteps);
         IntegerNode (F, 'ShuntCompensator.maximumSections', NumSteps);
         EndInstance (F, 'ShuntCompensator');
-        WriteTerminals (F, pCap, 'Cap', Name);
+        WriteTerminals (F, pCap);
       end;
       pCap := ActiveCircuit.ShuntCapacitors.Next;
     end;
@@ -381,7 +382,7 @@ Begin
     pCapC := ActiveCircuit.CapControls.First;
     while pCapC <> nil do begin
       with pCapC do begin
-        StartInstance (F, 'RegulatingControl', 'CapC', Name);
+        StartInstance (F, 'RegulatingControl', pCapC);
         CapControlRefNodes (F, This_Capacitor.Name, ElementName);
         if CapControlType = 5 then begin
           v1 := PfOnValue;
@@ -408,14 +409,13 @@ Begin
     pXf := ActiveCircuit.Transformers.First;
     while pXf <> nil do begin
       with pXf do begin
-        StartInstance (F, 'PowerTransformer', 'Xf', Name);
-        if IsSubstation then SubRefNode (F, 'PowerTransformer', SubstationName);
+        StartInstance (F, 'PowerTransformer', pXf);
         PhasesNode (F, 'PowerTransformer.phases', pXf);
         EndInstance (F, 'PowerTransformer');
         for i := 1 to NumberOfWindings do begin
           Str (i, WdgName);
           WdgName := Name + '_' + WdgName;
-          StartInstance (F, 'TransformerWinding', 'Wdg', WdgName);
+          StartInstance (F, 'TransformerWinding', pXf); // wdg
           XfRefNode (F, Name);
           BaseVoltageNode (F, 'ConductingEquipment.BaseVoltage', 0.001 * BaseVoltage[i]);
           DoubleNode (F, 'TransformerWinding.r', WdgResistance[i]);
@@ -452,7 +452,7 @@ Begin
     pReg := ActiveCircuit.RegControls.First;
     while pReg <> nil do begin
       with pReg do begin
-        StartInstance (F, 'RatioTapChanger', 'Tap', Name);
+        StartInstance (F, 'RatioTapChanger', pReg);
         TapRefNode (F, Transformer, TrWinding);
         i := NumTaps;
         IntegerNode (F, 'TapChanger.highStep', i);
@@ -467,7 +467,7 @@ Begin
         StringNode (F, 'TapChanger.type', 'voltageControl');
         EndInstance (F, 'RatioTapChanger');
 
-        StartInstance (F, 'RegulatingControl', 'RegCtrl', Name);
+        StartInstance (F, 'RegulatingControl', pReg);
         RegRefNode (F, Name);
         IntegerNode (F, 'RegulatingControl.discrete', 1);
         StringNode (F, 'RegulatingControl.mode', 'voltage');
@@ -475,7 +475,7 @@ Begin
         DoubleNode (F, 'RegulatingControl.targetRange', PT * BandVoltage);
         EndInstance (F, 'RegulatingControl');
 
-        StartInstance (F, 'RegulationSchedule', 'RegSched', Name);
+        StartInstance (F, 'RegulationSchedule', pReg);
         SchedRefNode (F, Name);
         if UseLineDrop then i:=1 else i:=0;
         IntegerNode (F, 'RegulationSchedule.lineDropCompensation', i);
@@ -490,7 +490,7 @@ Begin
     while pLine <> nil do begin
       with pLine do begin
         if pLine.IsSwitch then begin
-          StartInstance (F, 'LoadBreakSwitch', 'Swt', Name);
+          StartInstance (F, 'LoadBreakSwitch', pLine);
           PhasesNode (F, 'ConductingEquipment.phases', pLine);
           if pLine.Closed[0] then
             StringNode (F, 'Switch.normalOpen', 'false')
@@ -498,13 +498,13 @@ Begin
             StringNode (F, 'Switch.normalOpen', 'true');
           
           EndInstance (F, 'LoadBreakSwitch');
-          WriteTerminals (F, pLine, 'Swt', Name);
+          WriteTerminals (F, pLine);
         end else begin
-          StartInstance (F, 'Line', 'Line', Name);
+          StartInstance (F, 'Line', pLine);
           EndInstance (F, 'Line');
-          WriteTerminals (F, pLine, 'Line', Name);
+          WriteTerminals (F, pLine);
 
-          StartInstance (F, 'ACLineSegment', 'Seg', Name);
+          StartInstance (F, 'ACLineSegment', pLine);
           LineRefNode (F, Name);
           BaseVoltageNode (F, 'ConductingEquipment', kvFdr);
           DoubleNode (F, 'Conductor.length', Len);
@@ -529,14 +529,14 @@ Begin
     while pLoad <> nil do begin
       if pLoad.Enabled then
         with pLoad do begin
-          StartInstance (F, 'EquivalentLoad', 'Load', Name);
-          VoltageLevelNode (F, 'EquivalentLoad', kvLoadBase);
+          StartInstance (F, 'EnergyConsumer', pLoad);
+          CircuitNode (F, ActiveCircuit);
           PhasesNode (F, 'ConductingEquipment.phases', pLoad);
           DoubleNode (F, 'EnergyConsumer.qfixed', kvarBase);
           DoubleNode (F, 'EnergyConsumer.pfixed', kWBase);
           IntegerNode (F, 'EnergyConsumer.customerCount', NumCustomers);
-          EndInstance (F, 'EquivalentLoad');
-          WriteTerminals (F, pLoad, 'Load', Name);
+          EndInstance (F, 'EnergyConsumer');
+          WriteTerminals (F, pLoad);
         end;
         pLoad := ActiveCircuit.Loads.Next;
     end;
@@ -544,7 +544,7 @@ Begin
     clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
     pCode := clsCode.ElementList.First;
     while pCode <> nil do begin
-      StartInstance (F, 'LineCode', 'Code', pCode.Name);
+      StartInstance (F, 'LineCode', pCode);
       IntegerNode (F, 'numPhases', pCode.FNPhases);
       DoubleNode (F, 'baseFreq', pCode.BaseFrequency);
       DoubleNode (F, 'r', pCode.R1);
@@ -566,7 +566,7 @@ Begin
     clsWire := DSSClassList.Get(ClassNames.Find('wiredata'));
     pWire := clsWire.ElementList.First;
     while pWire <> nil do begin
-      StartInstance (F, 'WireType', 'Wire', pWire.Name);
+      StartInstance (F, 'WireType', pWire);
       DoubleNode (F, 'WireType.gMR', pWire.GMR);
       DoubleNode (F, 'WireType.radius', pWire.Radius);
       DoubleNode (F, 'WireType.resistance', pWire.Rac);
@@ -579,13 +579,13 @@ Begin
     clsGeom := DSSClassList.Get(ClassNames.Find('linegeometry'));
     pGeom := clsGeom.ElementList.First;
     while pGeom <> nil do begin
-      StartInstance (F, 'ConductorType', 'Cond', pGeom.Name);
+      StartInstance (F, 'ConductorType', pGeom);
       EndInstance (F, 'ConductorType');
 
       for i := 1 to pGeom.Nconds do begin
         Str (i, ArrName);
         ArrName := pGeom.Name + '_' + ArrName;
-        StartInstance (F, 'WireArrangement', 'Arr', ArrName);
+        StartInstance (F, 'WireArrangement', pGeom); // arrangement
         IntegerNode (F, 'WireArrangement.sequence', i);
         ArrCondRefNode (F, pGeom.Name);
         ArrWireRefNode (F, pGeom.WireName[i]);

@@ -144,7 +144,8 @@ uses
   ImplCtrlQueue in 'ImplCtrlQueue.pas' {CtrlQueue: CoClass},
   ImplLoads in 'ImplLoads.pas' {Loads: CoClass},
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
-  DSSClassDefs in '..\Common\DSSClassDefs.pas';
+  DSSClassDefs in '..\Common\DSSClassDefs.pas',
+  NamedObject in '..\General\NamedObject.pas';
 
 exports
   DllGetClassObject,

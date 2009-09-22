@@ -117,6 +117,7 @@ TYPE
         Property NumSteps:Integer  Read FNumSteps write set_NumSteps;
         Property States[Idx:Integer]:Integer Read get_States write set_States;
         Property Totalkvar:Double Read FTotalkvar;
+        Property NomKV:Double Read kvrating;
 
    end;
 

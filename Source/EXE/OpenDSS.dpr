@@ -131,7 +131,8 @@ uses
   DSSCallBackRoutines in '..\Common\DSSCallBackRoutines.pas',
   ExportCIMXML in '..\Common\ExportCIMXML.pas',
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
-  DSSClassDefs in '..\Common\DSSClassDefs.pas';
+  DSSClassDefs in '..\Common\DSSClassDefs.pas',
+  NamedObject in '..\General\NamedObject.pas';
 
 {$R *.RES}
 

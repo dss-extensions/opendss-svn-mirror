@@ -12,12 +12,12 @@ unit Bus;
 
 interface
 
-USES ArrayDef, uComplex, uCMatrix;
+USES ArrayDef, uComplex, uCMatrix, NamedObject;
 
 TYPE
 
 
-   TDSSBus = class(TObject)
+   TDSSBus = class(TNamedObject)
      private
 
         FNumNodesThisBus:  Integer;
@@ -86,7 +86,7 @@ USES
 
 constructor TDSSBus.Create;
 Begin
-    Inherited Create;
+    Inherited Create('Bus');
     Allocation := 3;
     Nodes := AllocMem(Sizeof(Nodes^[1])*Allocation);
     RefNo := AllocMem(Sizeof(RefNo^[1])*Allocation);

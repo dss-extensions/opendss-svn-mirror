@@ -36,7 +36,7 @@ Procedure ShowY(FileNm:String);
 
 implementation
 
-Uses uComplex,  Arraydef,  sysutils, Circuit, DSSClassDefs, DSSGlobals,
+Uses uComplex,  Arraydef,  sysutils, Circuit, DSSClass, DSSClassDefs, DSSGlobals,
      uCMatrix,  solution,  CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, Transformer, EnergyMeter, Load, RegControl,
      ParserDel, CktTree,   DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix;
@@ -63,7 +63,7 @@ Begin
      MaxDeviceNameLength := 0;
      With ActiveCircuit Do FOR i := 1 to NumDevices DO Begin
         DevName := DeviceList.Get(i);
-        DevClassName := TDSSCktElement(DSSClassList.Get(DeviceRef^[i].CktElementClass)).Name;
+        DevClassName := TDSSClass(DSSClassList.Get(DeviceRef^[i].CktElementClass)).Name;
         MaxDeviceNameLength := Max(MaxDeviceNameLength, (Length(DevName) + Length(DevClassName) + 1));
      End;
 End;

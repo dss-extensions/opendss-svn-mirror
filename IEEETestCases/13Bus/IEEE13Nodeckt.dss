@@ -8,7 +8,7 @@ Clear
 new circuit.IEEE13Nodeckt 
 ~ basekv=115 pu=1.00 phases=3 bus1=SourceBus  
 ~ Angle=30                                                         ! advance angle 30 deg so result agree with published angle
-~ MVAsc3=20000 MVASC1=210000    ! stiffen the source to approximate inf source
+~ MVAsc3=20000 MVASC1=21000    ! stiffen the source to approximate inf source
 
 !SUB TRANSFORMER DEFINITION 
 ! Although this data was given, it does not appear to be used in the test case results
@@ -114,17 +114,18 @@ New Line.671692    Phases=3 Bus1=671   Bus2=692  Switch=y  r1=1e-4 r0=1e-4 x1=0.
 Set Voltagebases=[115, 4.16, .48]
 calcv
 Solve
+BusCoords IEEE13Node_BusXY.csv
 
 !---------------------------------------------------------------------------------------------------------------------------------------------------
 !----------------Show some Results -----------------------------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Show Voltages LN Nodes
-Show Currents Elem
-Show Powers kVA Elem
-Show Losses
-Show Taps
+// Show Voltages LN Nodes
+// Show Currents Elem
+// Show Powers kVA Elem
+// Show Losses
+// Show Taps
 
 !---------------------------------------------------------------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------------------------------------------------------------

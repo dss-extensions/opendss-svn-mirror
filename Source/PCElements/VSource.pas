@@ -442,7 +442,6 @@ Begin
     {Calculate the short circuit impedance and make all other spec types agree}
     CASE ZSpecType OF
         1:Begin  // MVAsc
-
             X1   := Sqr(KvBase) / MVAsc3/Sqrt(1.0 + 1.0/Sqr(X1R1));
             Xs   := Sqr(KvBase) / MVAsc1/Sqrt(1.0 + 1.0/Sqr(X0R0)); // Approx
             R1   := X1 / X1R1;
