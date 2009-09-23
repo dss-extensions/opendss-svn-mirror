@@ -275,7 +275,7 @@ BEGIN
    IF OtherLineGeometry<>Nil THEN
    WITH ActiveLineGeometryObj DO BEGIN
 
-       NConds := OtherLineGeometry.NConds;   // allocates
+       NConds := OtherLineGeometry.NWires;   // allocates
        FNphases := OtherLineGeometry.FNphases;
        For i := 1 to FNConds Do FCondType^[i] := OtherLineGeometry.FCondType^[i];
        For i := 1 to FNConds Do FWireData^[i] := OtherLineGeometry.FWireData^[i];
@@ -454,8 +454,7 @@ end;
 
 function TLineGeometryObj.get_Nconds: Integer;
 begin
-//     If Freduce Then Result := FNPhases Else Result :=FNConds;
-     Result :=FNConds;
+     If Freduce Then Result := FNPhases Else Result :=FNConds;
 end;
 
 function TLineGeometryObj.Get_RhoEarth: Double;
