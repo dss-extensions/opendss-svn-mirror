@@ -266,7 +266,7 @@ TYPE
         Procedure IntegrateStates;Override;
 
         // Support for Harmonics Mode
-        Procedure InitHarmonics;
+        Procedure InitHarmonics; Override;
 
        PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
 

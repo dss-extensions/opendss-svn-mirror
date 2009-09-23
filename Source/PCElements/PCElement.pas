@@ -50,6 +50,9 @@ TYPE
 
       // Sweep solution removed  PROCEDURE BackwardSweep;Override;
 
+      // For Harmonics Mode
+       Procedure InitHarmonics; Virtual;
+
        // For Dynamics Mode and Control Devices
        Procedure InitStateVars; Virtual;
        Procedure IntegrateStates;Virtual;
@@ -179,6 +182,12 @@ begin
       ComputeVTerminal;
       // Apply these voltages to Yprim
       YPrim.MVMult(Curr, Vterminal);
+end;
+
+procedure TPCElement.InitHarmonics;
+begin
+  // By default do nothing in the base class
+
 end;
 
 procedure TPCElement.InitPropertyValues(ArrayOffset: Integer);

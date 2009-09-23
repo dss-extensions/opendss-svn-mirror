@@ -142,7 +142,7 @@ implementation
 Uses Windows, SysUtils, ShellAPI, Dialogs,  DSSClassDefs, 
 DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
 Capacitor, Reactor, Generator, Load, Line, Fault, Feeder, FrmCSVchannelSelect,
-EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls;
+EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls, PCElement;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -1341,24 +1341,18 @@ FUNCTION InitializeForHarmonics:Boolean;
 {Intialize load and generator base values for harmonics analysis}
 
 Var
-   pGen: TGeneratorObj;
-   pLoad: TLoadObj;
+   pcElem: TPCElement;
 
 Begin
 
  IF SavePresentVoltages   // Zap voltage vector to disk
  THEN WITH ActiveCircuit Do Begin
-        pGen := Generators.First;
-        WHILE pGen <> NIL Do
+    // Go through all PC Elements
+        pcElem := PCElements.First;
+        WHILE pcElem <> NIL Do
          Begin
-            pGen.InitHarmonics;
-            pGen := Generators.Next;
-         End;
-        pLoad := Loads.First;
-        WHILE pLoad <> NIL Do
-         Begin
-            pLoad.InitHarmonics;
-            pLoad := Loads.Next;
+            pcElem.InitHarmonics;   // Virtual function
+            pcElem := PCElements.Next;
          End;
          Result := TRUE;
      End {With}
@@ -1371,20 +1365,22 @@ End;
 PROCEDURE CalcInitialMachineStates;
 
 Var
-   pGen: TGeneratorObj;
+   pcelem: TPCElement;
 
 Begin
 
-// For now, just do Generators
+// Do All PC Elements
+
+// If state variables not defined for a PC class, does nothing
 
  WITH ActiveCircuit Do
    Begin
-      pGen := TGeneratorObj(Generators.First);
+      pcelem := PCElements.First;
 
-      WHILE pGen <> NIL Do
+      WHILE pcelem <> NIL Do
        Begin
-          If pGen.Enabled Then pGen.InitStateVars;
-          pGen := TGeneratorObj(Generators.Next);
+          If pcelem.Enabled Then pcelem.InitStateVars;
+          pcelem := PCElements.Next;
        End;
    End;
 

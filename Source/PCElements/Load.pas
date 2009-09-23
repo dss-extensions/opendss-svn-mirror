@@ -180,7 +180,7 @@ TYPE
         PROCEDURE CalcYPrim; Override;
         FUNCTION  InjCurrents:Integer; Override;
         PROCEDURE GetInjCurrents(Curr:pComplexArray); Override;
-        PROCEDURE InitHarmonics;
+        PROCEDURE InitHarmonics; Override;
         PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
         PROCEDURE SetNominalLoad;
         PROCEDURE Randomize(Opt:Integer);
