@@ -251,9 +251,6 @@ Var
   pReg  : TRegControlObj;
   pLine : TLineObj;
 
-  pFdr  : TFeederObj;
-  kvFdr : double;
-
   clsCode : TLineCode;
   clsGeom : TLineGeometry;
   clsWire : TWireData;
@@ -266,7 +263,6 @@ Begin
   Try
     Assignfile(F, FileNm);
     ReWrite(F);
-    kvFdr := 12.47;  // default for EPRI examples
 
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
@@ -409,7 +405,7 @@ Begin
     pXf := ActiveCircuit.Transformers.First;
     while pXf <> nil do begin
       with pXf do begin
-        StartInstance (F, 'PowerTransformer', pXf);
+        StartInstance (F, 'DistributionTransformer', pXf);
         PhasesNode (F, 'PowerTransformer.phases', pXf);
         EndInstance (F, 'PowerTransformer');
         for i := 1 to NumberOfWindings do begin
@@ -506,7 +502,6 @@ Begin
 
           StartInstance (F, 'ACLineSegment', pLine);
           LineRefNode (F, Name);
-          BaseVoltageNode (F, 'ConductingEquipment', kvFdr);
           DoubleNode (F, 'Conductor.length', Len);
           PhasesNode (F, 'ConductingEquipment.phases', pLine);
           DoubleNode (F, 'Conductor.r', R1);
