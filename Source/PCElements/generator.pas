@@ -262,7 +262,7 @@ TYPE
         Procedure ResetStartPoint;
 
         // Support for Dynamics Mode
-        Procedure InitStateVars;
+        Procedure InitStateVars; Override;
         Procedure IntegrateStates;Override;
 
         // Support for Harmonics Mode

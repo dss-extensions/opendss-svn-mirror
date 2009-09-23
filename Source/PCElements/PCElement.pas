@@ -51,6 +51,7 @@ TYPE
       // Sweep solution removed  PROCEDURE BackwardSweep;Override;
 
        // For Dynamics Mode and Control Devices
+       Procedure InitStateVars; Virtual;
        Procedure IntegrateStates;Virtual;
        Function NumVariables:Integer; Virtual;
        Procedure GetAllVariables( States:pDoubleArray);Virtual;
@@ -186,6 +187,12 @@ begin
   PropertyValue[ArrayOffset + 1] := Spectrum;
 
   inherited InitPropertyValues(ArrayOffset + 1);
+
+end;
+
+procedure TPCElement.InitStateVars;
+begin
+    // By default do nothing
 
 end;
 
