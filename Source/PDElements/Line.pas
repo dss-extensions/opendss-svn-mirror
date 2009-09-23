@@ -101,6 +101,8 @@ TYPE
         PROCEDURE InitPropertyValues(ArrayOffset:Integer); Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
+        // CIM XML access
+        property LineCodeSpecified: Boolean read FLineCodeSpecified;
    end;
 
 VAR
@@ -633,6 +635,7 @@ Begin
      Z    := nil;
      Zinv := nil;
      Yc   := nil;
+     CondCode := '';
 
      Rg := 0.01805;    //ohms per 1000 ft
      Xg := 0.155081;

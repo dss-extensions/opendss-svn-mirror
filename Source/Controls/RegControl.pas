@@ -122,10 +122,16 @@ TYPE
        // CIM XML accessors
        Property TargetVoltage: Double Read Vreg;
        Property BandVoltage: Double Read BandWidth;
+       Property CT: Double Read CTRating;
        Property PT: Double Read PTRatio;
        Property LineDropR: Double Read R;
        Property LineDropX: Double Read X;
+       Property RevLineDropR: Double Read revR;
+       Property RevLineDropX: Double Read revX;
        Property UseLineDrop: Boolean Read LDCActive;
+       Property UseReverseDrop: Boolean Read IsReversible;
+       Property UseLimit: Boolean Read VLimitActive;
+       Property VoltageLimit: Double Read VLimit;
        Property InitialDelay: Double Read TimeDelay;
        Property SubsequentDelay: Double Read TapDelay;
        Property MinTap: Double Read Get_MinTap;

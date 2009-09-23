@@ -82,6 +82,7 @@ TYPE
         function Get_FX (i: integer) : Double;
         function Get_FY (i: integer) : Double;
         function Get_WireName (i: integer) : String;
+        function Get_WireData (i: integer) : TWireDataObj;
 
       public
 
@@ -107,6 +108,8 @@ TYPE
         Property Xcoord[i:Integer]: Double Read Get_FX;
         Property Ycoord[i:Integer]: Double Read Get_FY;
         Property WireName[i:Integer]: String Read Get_WireName;
+        Property WireData[i: Integer]: TWireDataObj Read Get_WireData;
+        Property NWires: Integer Read FNConds;
    end;
 
 VAR
@@ -444,9 +447,15 @@ begin
   If i <= FNConds Then Result := Fcondtype^[i] Else Result := '';
 end;
 
+function TLineGeometryObj.Get_WireData(i:Integer) : TWireDataObj;
+begin
+  If i <= FNConds Then Result := FWireData^[i] Else Result := nil;
+end;
+
 function TLineGeometryObj.get_Nconds: Integer;
 begin
-     If Freduce Then Result := FNPhases Else Result :=FNConds;
+//     If Freduce Then Result := FNPhases Else Result :=FNConds;
+     Result :=FNConds;
 end;
 
 function TLineGeometryObj.Get_RhoEarth: Double;
