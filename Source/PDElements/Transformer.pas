@@ -148,6 +148,8 @@ TYPE
         IsSubstation       :Boolean;
         SubstationName     :String;
         Winding            :pWindingArray;
+        XfmrBank           :String;
+        XfmrCode           :String;
 
         constructor Create(ParClass:TDSSClass; const TransfName:String);
         destructor  Destroy; override;
@@ -196,7 +198,7 @@ IMPLEMENTATION
 
 USES    DSSClassDefs, DSSGlobals, Sysutils, Utilities;
 
-Const NumPropsThisClass = 37;
+Const NumPropsThisClass = 39;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TTransf.Create;  // Creates superstructure for all Transformer objects
@@ -275,6 +277,9 @@ Begin
      PropertyName[36] := 'ppm_antifloat';
      PropertyName[37] := '%Rs';
 
+     PropertyName[38] := 'bank';
+     PropertyName[39] := 'XfmrCode';
+
 
 
      // define Property help values
@@ -346,6 +351,8 @@ Begin
      PropertyHelp[37] := 'Use this property to specify all the winding %resistances using an array. Example:'+CRLF+CRLF+
                          'New Transformer.T1 buses="Hibus, lowbus" '+
                          '~ %Rs=(0.2  0.3)';
+     PropertyHelp[38] := 'Name of the bank this transformer is part of, for CIM, MultiSpeak, and other interfaces.';
+     PropertyHelp[39] := 'Name of a library entry for transformer properties.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -436,6 +443,8 @@ Begin
            35: pctImag          := Parser.DblValue;
            36: ppm_FloatFactor  := Parser.DblValue * 1.0e-6;
            37: InterpretAllRs(Param);
+           38: XfmrBank := Param;
+           39: XfmrCode := Param;
          ELSE
            // Inherited properties
               ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -816,6 +825,8 @@ Begin
 
       DeltaDirection := 1;
       SubstationName := '';
+      XfmrBank := '';
+      XfmrCode := '';
 
       // array of short circuit measurements between pairs of windings
       XSC      := Allocmem(SizeOF(XSC^[1])*((NumWindings-1)*NumWindings div 2));

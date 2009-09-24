@@ -45,6 +45,11 @@ begin
   Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, Obj.ID]));
 end;
 
+procedure GuidNode (var F: TextFile; Node: String; ID: TGuid);
+begin
+  Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, GuidToString (ID)]));
+end;
+
 procedure LineCodeRefNode (var F: TextFile; List: TLineCode; Name: String);
 var
   Obj : TLineCodeObj;
@@ -148,6 +153,32 @@ begin
   Writeln (F, Format ('</cim:%s>', [Root]));
 end;
 
+procedure WriteLoadModel (var F: TextFile; Name: String; ID: TGuid;
+  zP: Double; iP: Double; pP: Double; zQ: Double; iQ: Double; pQ: Double;
+  eP: Double; eQ: Double);
+begin
+  Writeln(F, Format('<cim:LoadResponseCharacteristic rdf:ID="%s">', [GuidToString(ID)]));
+  StringNode (F, 'IdentifiedObject.name', Name);
+  if (eP > 0.0) or (eQ > 0.0) then
+    BooleanNode (F, 'LoadResponseCharacteristic.exponentModel', true)
+  else
+    BooleanNode (F, 'LoadResponseCharacteristic.exponentModel', false);
+
+  DoubleNode (F, 'LoadResponseCharacteristic.pConstantImpedance', zP);
+  DoubleNode (F, 'LoadResponseCharacteristic.pConstantCurrent', iP);
+  DoubleNode (F, 'LoadResponseCharacteristic.pConstantPower', pP);
+
+  DoubleNode (F, 'LoadResponseCharacteristic.qConstantImpedance', zQ);
+  DoubleNode (F, 'LoadResponseCharacteristic.qConstantCurrent', iQ);
+  DoubleNode (F, 'LoadResponseCharacteristic.qConstantPower', pQ);
+
+  DoubleNode (F, 'LoadResponseCharacteristic.pVoltageExponent', eP);
+  DoubleNode (F, 'LoadResponseCharacteristic.qVoltageExponent', eQ);
+  DoubleNode (F, 'LoadResponseCharacteristic.pFrequencyExponent', 0.0);
+  DoubleNode (F, 'LoadResponseCharacteristic.qFrequencyExponent', 0.0);
+  Writeln (F, '</cim:LoadResponseCharacteristic>');
+end;
+
 function IsGroundBus (const S: String) : Boolean;
 var
   i : Integer;
@@ -161,6 +192,33 @@ begin
   if i > 0 then Result := False;
   i := pos ('.', S);
   if i = 0 then Result := False;
+end;
+
+procedure WritePositions(var F:TextFile; pElem:TDSSCktElement);
+var
+  Nterm, j, ref : Integer;
+  BusName : String;
+  temp: TGUID;
+begin
+  Nterm := pElem.Nterms;
+  BusName := pElem.FirstBus;
+  CreateGUID (temp);
+  Writeln(F, Format('<cim:GeoLocation rdf:ID="%s">', [GUIDToString(temp)]));
+  RefNode (F, 'PowerSystemResource', pElem);
+  EndInstance (F, 'GeoLocation');
+
+  for j := 1 to NTerm do begin
+    if IsGroundBus (BusName) = False then begin
+      ref := pElem.Terminals^[j].BusRef;
+      StartFreeInstance (F, 'PositionPoint');
+      GuidNode (F, 'PositionPoint.Location', temp);
+      IntegerNode (F, 'PositionPoint.sequenceNumber', j);
+      StringNode (F, 'PositionPoint.xPosition', FloatToStr (ActiveCircuit.Buses^[ref].x));
+      StringNode (F, 'PositionPoint.yPosition', FloatToStr (ActiveCircuit.Buses^[ref].y));
+      EndInstance (F, 'PositionPoint');
+    end;
+    BusName := pElem.Nextbus;
+  end;
 end;
 
 procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement);
@@ -190,6 +248,7 @@ begin
 
     BusName := pElem.Nextbus;
   end;
+  WritePositions (F, pElem);
 end;
 
 procedure WriteWdgTerminals(var F:TextFile; pXf:TTransfObj);
@@ -247,6 +306,14 @@ Var
   pGeom : TLineGeometryObj;
   pWire : TWireDataObj;
 
+  // DSS-like load models
+  id1_ConstkVA:     TGuid;
+  id2_ConstZ:       TGuid;
+  id3_ConstPQuadQ:  TGuid;
+  id4_LinPQuadQ:    TGuid;
+  id5_ConstI:       TGuid;
+  id6_ConstPConstQ: TGuid;  // P can vary, Q not
+  id7_ConstPConstX: TGuid;
 Begin
   Try
     clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
@@ -275,8 +342,6 @@ Begin
         Writeln(F, Format('<cim:ConnectivityNode rdf:ID="%s">',
           [GUIDToString (Buses^[i].GUID)]));
         StringNode (F, 'IdentifiedObject.name', Buses^[i].LocalName);
-//        DoubleNode (F, 'PositionPoint.xPosition', Buses^[i].x);
-//        DoubleNode (F, 'PositionPoint.yPosition', Buses^[i].y);
         Writeln(F,'</cim:ConnectivityNode>');
       end;
     end;
@@ -360,15 +425,15 @@ Begin
           v2 := OffValue
         end;
         case CapControlType of
-          1: StringNode (F, 'mode', 'currentFlow');
-          2: StringNode (F, 'mode', 'voltage');
-          3: StringNode (F, 'mode', 'reactivePower');
-          4: StringNode (F, 'mode', 'timeScheduled');
-          5: StringNode (F, 'mode', 'powerFactor');
+          1: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
+          2: StringNode (F, 'RegulatingControl.mode', 'voltage');
+          3: StringNode (F, 'RegulatingControl.mode', 'reactivePower');
+          4: StringNode (F, 'RegulatingControl.mode', 'timeScheduled');
+          5: StringNode (F, 'RegulatingControl.mode', 'powerFactor');
         end;
-        BooleanNode (F, 'discrete', true);
-        DoubleNode (F, 'targetValue', v1);
-        DoubleNode (F, 'targetRange', v2);
+        BooleanNode (F, 'RegulatingControl.discrete', true);
+        DoubleNode (F, 'RegulatingControl.targetValue', v1);
+        DoubleNode (F, 'RegulatingControl.targetRange', v2);
         EndInstance (F, 'RegulatingControl');
       end;
       pCapC := ActiveCircuit.CapControls.Next;
@@ -435,25 +500,25 @@ Begin
 
         StringNode (F, 'RatioTapChanger.tculControlMode', 'volt');
 
-        DoubleNode (F, 'ptRatio', PT);
-        DoubleNode (F, 'ctRatio', CT);
-        DoubleNode (F, 'targetVoltage', PT * TargetVoltage);
-        DoubleNode (F, 'bandVoltage', PT * BandVoltage);
-        BooleanNode (F, 'lineDropCompensation', UseLineDrop);
-        DoubleNode (F, 'lineDropR', LineDropR);
-        DoubleNode (F, 'lineDropX', LineDropX);
+        DoubleNode (F, 'DistributionTapChanger.ptRatio', PT);
+        DoubleNode (F, 'DistributionTapChanger.ctRatio', CT);
+        DoubleNode (F, 'DistributionTapChanger.targetVoltage', PT * TargetVoltage);
+        DoubleNode (F, 'DistributionTapChanger.bandVoltage', PT * BandVoltage);
+        BooleanNode (F, 'DistributionTapChanger.lineDropCompensation', UseLineDrop);
+        DoubleNode (F, 'DistributionTapChanger.lineDropR', LineDropR);
+        DoubleNode (F, 'DistributionTapChanger.lineDropX', LineDropX);
         if UseReverseDrop then begin
-          DoubleNode (F, 'reverseLineDropR', RevLineDropR);
-          DoubleNode (F, 'reverseLineDropX', RevLineDropX)
+          DoubleNode (F, 'DistributionTapChanger.reverseLineDropR', RevLineDropR);
+          DoubleNode (F, 'DistributionTapChanger.reverseLineDropX', RevLineDropX)
         end else begin
-          DoubleNode (F, 'reverseLineDropR', 0.0);
-          DoubleNode (F, 'reverseLineDropX', 0.0)
+          DoubleNode (F, 'DistributionTapChanger.reverseLineDropR', 0.0);
+          DoubleNode (F, 'DistributionTapChanger.reverseLineDropX', 0.0)
         end;
         if UseLimit then
-          DoubleNode (F, 'limitVoltage', VoltageLimit)
+          DoubleNode (F, 'DistributionTapChanger.limitVoltage', VoltageLimit)
         else
-          DoubleNode (F, 'limitVoltage', 0.0);
-        StringNode (F, 'monitoredPhase', 'A'); // TBD
+          DoubleNode (F, 'DistributionTapChanger.limitVoltage', 0.0);
+        StringNode (F, 'DistributionTapChanger.monitoredPhase', 'A'); // TBD
         EndInstance (F, 'DistributionTapChanger');
 
         StartFreeInstance (F, 'SvTapStep');
@@ -484,12 +549,12 @@ Begin
             CircuitNode (F, ActiveCircuit);
             DoubleNode (F, 'Conductor.length', Len);
             PhasesNode (F, 'ConductingEquipment.phases', pLine);
-            DoubleNode (F, 'r', R1);
-            DoubleNode (F, 'x', X1);
-            DoubleNode (F, 'bch', C1 * val);
-            DoubleNode (F, 'r0', R0);
-            DoubleNode (F, 'x0', X0);
-            DoubleNode (F, 'b0ch', C0 * val);
+            DoubleNode (F, 'ACLineSegment.r', R1);
+            DoubleNode (F, 'ACLineSegment.x', X1);
+            DoubleNode (F, 'ACLineSegment.bch', C1 * val);
+            DoubleNode (F, 'ACLineSegment.r0', R0);
+            DoubleNode (F, 'ACLineSegment.x0', X0);
+            DoubleNode (F, 'ACLineSegment.b0ch', C0 * val);
             EndInstance (F, 'ACLineSegment')
           end else begin
             StartInstance (F, 'DistributionLineSegment', pLine);
@@ -506,6 +571,44 @@ Begin
       pLine := ActiveCircuit.Lines.Next;
     end;
 
+    // create the DSS-like load models
+    CreateGuid (id1_ConstkVA);
+    CreateGuid (id2_ConstZ);
+    CreateGuid (id3_ConstPQuadQ);
+    CreateGuid (id4_LinPQuadQ);
+    CreateGuid (id5_ConstI);
+    CreateGuid (id6_ConstPConstQ);  // P can vary, Q not
+    CreateGuid (id7_ConstPConstX);
+
+    WriteLoadModel (F, 'Constant kVA', id1_ConstkVA,
+      0, 0, 100,
+      0, 0, 100,
+      0, 0);
+    WriteLoadModel (F, 'Constant Z', id2_ConstZ,
+      100, 0, 0,
+      100, 0, 0,
+      0, 0);
+    WriteLoadModel (F, 'Motor', id3_ConstPQuadQ,
+      0, 0, 100,
+      100, 0, 0,
+      0, 0);
+    WriteLoadModel (F, 'Mix Motor/Res', id4_LinPQuadQ,
+      0, 0, 0,
+      0, 0, 0,
+      1, 2);
+    WriteLoadModel (F, 'Constant I', id5_ConstI,
+      0, 100, 0,
+      0, 100, 0,
+      0, 0);
+    WriteLoadModel (F, 'Variable P, Fixed Q', id6_ConstPConstQ,
+      0, 0, 100,
+      0, 0, 100,
+      0, 0);
+    WriteLoadModel (F, 'Variable P, Fixed X', id7_ConstPConstX,
+      0, 0, 100,
+      100, 0, 0,
+      0, 0);
+
     pLoad := ActiveCircuit.Loads.First;
     while pLoad <> nil do begin
       if pLoad.Enabled then
@@ -513,6 +616,15 @@ Begin
           StartInstance (F, 'EnergyConsumer', pLoad);
           CircuitNode (F, ActiveCircuit);
           PhasesNode (F, 'ConductingEquipment.phases', pLoad);
+          case FLoadModel of
+            1: GuidNode (F, 'LoadResponse', id1_ConstkVA);
+            2: GuidNode (F, 'LoadResponse', id2_ConstZ);
+            3: GuidNode (F, 'LoadResponse', id3_ConstPQuadQ);
+            4: GuidNode (F, 'LoadResponse', id4_LinPQuadQ);
+            5: GuidNode (F, 'LoadResponse', id5_ConstI);
+            6: GuidNode (F, 'LoadResponse', id6_ConstPConstQ);
+            7: GuidNode (F, 'LoadResponse', id7_ConstPConstX);
+          end;
           DoubleNode (F, 'EnergyConsumer.qfixed', kvarBase);
           DoubleNode (F, 'EnergyConsumer.pfixed', kWBase);
           IntegerNode (F, 'EnergyConsumer.customerCount', NumCustomers);
@@ -528,16 +640,16 @@ Begin
         if SymComponentsModel then begin
           val := 1.0e-9 * TwoPi * BaseFrequency; // convert nF to mhos
           StartInstance (F, 'PerLengthSequenceImpedance', pCode);
-          DoubleNode (F, 'r', R1);
-          DoubleNode (F, 'x', X1);
-          DoubleNode (F, 'bch', C1 * val);
-          DoubleNode (F, 'r0', R0);
-          DoubleNode (F, 'x0', X0);
-          DoubleNode (F, 'b0ch', C0 * val);
+          DoubleNode (F, 'PerLengthSequenceImpedance.r', R1);
+          DoubleNode (F, 'PerLengthSequenceImpedance.x', X1);
+          DoubleNode (F, 'PerLengthSequenceImpedance.bch', C1 * val);
+          DoubleNode (F, 'PerLengthSequenceImpedance.r0', R0);
+          DoubleNode (F, 'PerLengthSequenceImpedance.x0', X0);
+          DoubleNode (F, 'PerLengthSequenceImpedance.b0ch', C0 * val);
           EndInstance (F, 'PerLengthSequenceImpedance')
         end else begin
           StartInstance (F, 'PerLengthPhaseImpedance', pCode);
-          IntegerNode (F, 'conductorCount', FNPhases);
+          IntegerNode (F, 'PerLengthPhaseImpedance.conductorCount', FNPhases);
           EndInstance (F, 'PerLengthPhaseImpedance');
           seq := 0;
           for j:= 1 to FNPhases do begin
@@ -545,10 +657,10 @@ Begin
               Inc (seq);
               StartFreeInstance (F, 'PhaseImpedanceData');
               RefNode (F, 'PhaseImpedance', pCode);
-              IntegerNode (F, 'sequenceNumber', seq);
-              DoubleNode (F, 'r', Z.GetElement(i,j).re);
-              DoubleNode (F, 'x', Z.GetElement(i,j).im);
-              DoubleNode (F, 'b', YC.GetElement(i,j).im);
+              IntegerNode (F, 'PhaseImpedanceData.sequenceNumber', seq);
+              DoubleNode (F, 'PhaseImpedanceData.r', Z.GetElement(i,j).re);
+              DoubleNode (F, 'PhaseImpedanceData.x', Z.GetElement(i,j).im);
+              DoubleNode (F, 'PhaseImpedanceData.b', YC.GetElement(i,j).im);
               EndInstance (F, 'PhaseImpedanceData')
             end;
           end;
@@ -561,27 +673,27 @@ Begin
     while pWire <> nil do begin
       StartInstance (F, 'WireType', pWire);
       with pWire do begin
-        StringNode (F, 'sizeDescription', DisplayName);
+        StringNode (F, 'WireType.sizeDescription', DisplayName);
         if CompareText (LeftStr (LocalName, 2), 'AA') = 0 then
-          StringNode (F, 'material', 'aluminum')
+          StringNode (F, 'WireType.material', 'aluminum')
         else if CompareText (LeftStr (LocalName, 4), 'ACSR') = 0 then
-          StringNode (F, 'material', 'acsr')
+          StringNode (F, 'WireType.material', 'acsr')
         else if CompareText (LeftStr (LocalName, 2), 'CU') = 0 then
-          StringNode (F, 'material', 'copper')
+          StringNode (F, 'WireType.material', 'copper')
         else if CompareText (LeftStr (LocalName, 3), 'EHS') = 0 then
-          StringNode (F, 'material', 'steel')
+          StringNode (F, 'WireType.material', 'steel')
         else
-          StringNode (F, 'material', 'other');
-        DoubleNode (F, 'gmr', GMR);
-        DoubleNode (F, 'radius', Radius);
-        DoubleNode (F, 'rDC20', Rdc);
-        DoubleNode (F, 'rAC25', Rac);
-        DoubleNode (F, 'rAC50', Rac);
-        DoubleNode (F, 'rAC75', Rac);
-        DoubleNode (F, 'ratedCurrent', MaxValue ([NormAmps, 0.0]));
-        IntegerNode (F, 'strandCount', 0);
-        IntegerNode (F, 'coreStrandCount', 0);
-        DoubleNode (F, 'coreRadius', 0.0);
+          StringNode (F, 'WireType.material', 'other');
+        DoubleNode (F, 'WireType.gmr', GMR);
+        DoubleNode (F, 'WireType.radius', Radius);
+        DoubleNode (F, 'WireType.rDC20', Rdc);
+        DoubleNode (F, 'WireType.rAC25', Rac);
+        DoubleNode (F, 'WireType.rAC50', Rac);
+        DoubleNode (F, 'WireType.rAC75', Rac);
+        DoubleNode (F, 'WireType.ratedCurrent', MaxValue ([NormAmps, 0.0]));
+        IntegerNode (F, 'WireType.strandCount', 0);
+        IntegerNode (F, 'WireType.coreStrandCount', 0);
+        DoubleNode (F, 'WireType.coreRadius', 0.0);
       end;
       EndInstance (F, 'WireType');
       pWire := clsWire.ElementList.Next;
@@ -594,16 +706,16 @@ Begin
         StringNode (F, 'ConductorInfo.usage', 'distribution');
         IntegerNode (F, 'ConductorInfo.phaseCount', Nphases);
         BooleanNode (F, 'ConductorInfo.insulated', false);
-        IntegerNode (F, 'phaseConductorCount', 1);
-        DoubleNode (F, 'neutralInsulationThickness', 0.0);
+        IntegerNode (F, 'OverheadConductorInfo.phaseConductorCount', 1);
+        DoubleNode (F, 'OverheadConductorInfo.neutralInsulationThickness', 0.0);
         EndInstance (F, 'OverheadConductorInfo');
         for i := 1 to NWires do begin
           StartFreeInstance (F, 'WireArrangement');
           RefNode (F, 'ConductorInfo', pGeom);
           RefNode (F, 'WireType', WireData[i]);
-          IntegerNode (F, 'position', i);
-          DoubleNode (F, 'mountingPointX', Xcoord[i]);
-          DoubleNode (F, 'mountingPointY', Ycoord[i]);
+          IntegerNode (F, 'WireArrangement.position', i);
+          DoubleNode (F, 'WireArrangement.mountingPointX', Xcoord[i]);
+          DoubleNode (F, 'WireArrangement.mountingPointY', Ycoord[i]);
           EndInstance (F, 'WireArrangement')
         end;
       end;
