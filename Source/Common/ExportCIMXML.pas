@@ -95,20 +95,6 @@ begin
     [WdgName]));
 end;
 
-procedure ArrCondRefNode (var F: TextFile; Cond: String);
-begin
-  Writeln(F,
-    Format('  <cim:WireArrangement.MemberOf_ConductorType rdf:resource="#Cond_%s"/>',
-    [Cond]));
-end;
-
-procedure ArrWireRefNode (var F: TextFile; Wire: String);
-begin
-  Writeln(F,
-    Format('  <cim:WireArrangement.WireType rdf:resource="#Wire_%s"/>',
-    [Wire]));
-end;
-
 procedure PhasesNode (var F: TextFile; Node: String; pElem:TDSSCktElement);
 var
   val, phs: String;

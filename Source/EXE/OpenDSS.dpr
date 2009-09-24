@@ -82,7 +82,7 @@ uses
   IniRegSave in '..\Shared\IniRegSave.pas',
   Isource in '..\PCElements\Isource.pas',
   Line in '..\PDElements\Line.pas',
-  LineCode in '..\General\LineCode.pas',
+  XfmrCode in '..\General\XfmrCode.pas',
   LineGeometry in '..\General\LineGeometry.pas',
   LineUnits in '..\Shared\LineUnits.pas',
   ListForm in '..\Forms\ListForm.pas' {ListBoxForm},
@@ -132,7 +132,8 @@ uses
   ExportCIMXML in '..\Common\ExportCIMXML.pas',
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
   DSSClassDefs in '..\Common\DSSClassDefs.pas',
-  NamedObject in '..\General\NamedObject.pas';
+  NamedObject in '..\General\NamedObject.pas',
+  LineCode in '..\General\LineCode.pas';
 
 {$R *.RES}
 

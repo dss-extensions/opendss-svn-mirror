@@ -23,7 +23,7 @@ unit Transformer;
 interface
 
 USES
-   Command, DSSClass, PDClass,Circuit, PDElement, uComplex, UcMatrix, LineCode, ParserDel, Arraydef, math;
+   Command, DSSClass, PDClass,Circuit, PDElement, uComplex, UcMatrix, ParserDel, Arraydef, math;
 
 
 TYPE
@@ -40,7 +40,6 @@ TYPE
        PROCEDURE InterpretAllkVRatings(const S:String);
        PROCEDURE InterpretAllkVARatings(const S:String);
        PROCEDURE InterpretAllRs(const S:String);
-       PROCEDURE SetNumWindings(N:Integer);
        {PROCEDURE MakeNewBusNameForNeutral(Var NewBusName:String; Nphases:Integer);}
      Protected
        PROCEDURE DefineProperties;
@@ -56,8 +55,8 @@ TYPE
    End;
 
    TWinding = class(Tobject)
-
-     Private
+     Public
+        Connection:Integer;
         kvll,
         VBase,
         kva,
@@ -72,9 +71,6 @@ TYPE
         MinTap,
         MaxTap:   Double;
         NumTaps:  Integer;
-
-     Public
-        Connection:Integer;
 
         Procedure ComputeAntiFloatAdder(PPM_Factor, VABase1ph:Double);
 
@@ -110,6 +106,8 @@ TYPE
 
         PROCEDURE BuildYPrimComponent(YPrim_Component, Y_Terminal:TCMatrix);
         PROCEDURE AddNeutralToY(FreqMultiplier: Double);
+
+        PROCEDURE FetchXfmrCode(Const Code:String);
 
       Protected
         ActiveWinding   :Integer;
@@ -154,6 +152,8 @@ TYPE
         constructor Create(ParClass:TDSSClass; const TransfName:String);
         destructor  Destroy; override;
 
+        PROCEDURE SetNumWindings(N:Integer);
+
         PROCEDURE RecalcElementData;Override;
         PROCEDURE CalcYPrim;Override;
 
@@ -196,7 +196,10 @@ IMPLEMENTATION
 
 {$DEFINE NOTRANSDEBUG}    {TRANSDEBUG}
 
-USES    DSSClassDefs, DSSGlobals, Sysutils, Utilities;
+USES    DSSClassDefs, DSSGlobals, Sysutils, Utilities, XfmrCode;
+
+var
+   XfmrCodeClass:TXfmrCode;
 
 Const NumPropsThisClass = 39;
 
@@ -208,6 +211,7 @@ Begin
      DSSClassType := DSSClassType + XFMR_ELEMENT; // override PDElement   (kept in both actually)
 
      ActiveElement := 0;
+     XfmrCodeClass := Nil;
 
      DefineProperties;
 
@@ -352,7 +356,7 @@ Begin
                          'New Transformer.T1 buses="Hibus, lowbus" '+
                          '~ %Rs=(0.2  0.3)';
      PropertyHelp[38] := 'Name of the bank this transformer is part of, for CIM, MultiSpeak, and other interfaces.';
-     PropertyHelp[39] := 'Name of a library entry for transformer properties.';
+     PropertyHelp[39] := 'Name of a library entry for transformer properties. The named XfmrCode must already be defined.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -444,7 +448,7 @@ Begin
            36: ppm_FloatFactor  := Parser.DblValue * 1.0e-6;
            37: InterpretAllRs(Param);
            38: XfmrBank := Param;
-           39: XfmrCode := Param;
+           39: FetchXfmrCode (Param);
          ELSE
            // Inherited properties
               ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -495,53 +499,6 @@ Begin
      RecalcElementData;
   End;
 
-End;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TTransf.SetNumWindings(N:Integer);
-
-VAR i          :Integer;
-    OldWdgSize :Integer;
-
-Begin
-
-    IF N>1 THEN
-    WITH ActiveTransfObj Do  Begin
-        FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
-        OldWdgSize := (NumWindings-1) * NumWindings div 2;
-        NumWindings := N;
-        MaxWindings := N;
-        FNconds := Fnphases + 1;
-        Nterms  := NumWindings;
-        Reallocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);  // Reallocate collector array
-        FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
-
-     // array of short circuit measurements between pairs of windings
-        ReAllocmem(XSC, SizeOF(XSC^[1]) * ((NumWindings-1) * NumWindings div 2));
-        FOR i := OldWdgSize+1 to (NumWindings-1) * NumWindings div 2 Do
-          Begin
-              XSC^[i] := 0.30;   // default to something
-          End;
-        Reallocmem(TermRef, SizeOf(TermRef^[1]) * 2 * NumWindings*Fnphases);
-
-        {Reallocate impedance matrices}
-        ZB.Free;
-        Y_1Volt.Free;
-        Y_1Volt_NL.Free;
-        Y_Term.Free;
-        Y_Term_NL.Free;
-
-        ZB         := TCMatrix.CreateMatrix(NumWindings - 1);
-        Y_1Volt    := TCMatrix.CreateMatrix(NumWindings);
-        Y_1Volt_NL := TCMatrix.CreateMatrix(NumWindings);
-        Y_Term     := TCMatrix.CreateMatrix(2 * NumWindings);
-        Y_Term_NL  := TCMatrix.CreateMatrix(2 * NumWindings);
-      End
-
-    Else
-       Dosimplemsg('Invalid number of windings: ' + IntToStr(N) + ' for Transformer ' +
-                   ActiveTransfObj.Name, 111);
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -771,6 +728,9 @@ Begin
        NormMaxHkVA      := OtherTransf.NormMaxHkVA;
        EmergMaxHkVA     := OtherTransf.EmergMaxHkVA;
 
+       XfmrBank         := OtherTransf.XfmrBank;
+       XfmrCode         := OtherTransf.XfmrCode;
+
        ClassMakeLike(OtherTransf);
 
        FOR i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherTransf.PropertyValue[i];
@@ -796,76 +756,92 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 constructor TTransfObj.Create(ParClass:TDSSClass; const TransfName:String);
-
 VAR
-   i:Integer;
-
+  i:Integer;
 Begin
-     Inherited Create(ParClass);
-     Name       := LowerCase(TransfName);
-     DSSObjType := ParClass.DSSClassType; //DSSObjType + XFMR; // override PDElement   (kept in both actually)
+  Inherited Create(ParClass);
+  Name       := LowerCase(TransfName);
+  DSSObjType := ParClass.DSSClassType; //DSSObjType + XFMR; // override PDElement   (kept in both actually)
 
-     NumWindings   := 2;   // Default values
-     MaxWindings   := 2;
-     ActiveWinding := 1;
+  Nphases := 3;  // Directly set conds and phases
+  fNConds := Fnphases+1;
+  SetNumWindings (2);  // must do this after setting number of phases
+  ActiveWinding := 1;
 
-     // Create Windings and keep track of them in an allocated array
-     Winding:= Allocmem( Sizeof(Winding^[1])*MaxWindings);
-     FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
+  Nterms  := NumWindings;  // Force allocation of terminals and conductors
 
-     Nphases := 3;  // Directly set conds and phases
-     fNConds := Fnphases+1;
-     Nterms  := NumWindings;  // Force allocation of terminals and conductors
+  XHL := 0.07;
+  XHT := 0.35;
+  XLT := 0.30;
+  XHLChanged := True;  // Set flag to for calc of XSC array from XHL, etc.
 
+  DeltaDirection := 1;
+  SubstationName := '';
+  XfmrBank := '';
+  XfmrCode := '';
 
-      XHL := 0.07;
-      XHT := 0.35;
-      XLT := 0.30;
-      XHLChanged := True;  // Set flag to for calc of XSC array from XHL, etc.
+  VABase           := Winding^[1].kVA*1000.0;
+  ThermalTimeconst := 2.0;
+  n_thermal        := 0.8;
+  m_thermal        := 0.8;
+  FLrise           := 65.0;
+  HSrise           := 15.0;  // Hot spot rise
+  NormMaxHkVA      := 1.1 * Winding^[1].kVA;
+  EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
+  pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings
+  ppm_FloatFactor  := 0.000001;
+  {Compute antifloat added for each winding    }
+  for i := 1 to NumWindings do  Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase/FNPhases);
 
-      DeltaDirection := 1;
-      SubstationName := '';
-      XfmrBank := '';
-      XfmrCode := '';
+  {Default the no load properties to zero}
+  pctNoLoadLoss    := 0.0;
+  pctImag          := 0.0;
 
-      // array of short circuit measurements between pairs of windings
-      XSC      := Allocmem(SizeOF(XSC^[1])*((NumWindings-1)*NumWindings div 2));
-      TermRef  := Allocmem(SizeOf(TermRef^[1])* 2 * NumWindings*Fnphases);  // Pointers to terminals
+  {Basefrequency := 60.0;   set in base class to circuit fundamental freq; Do not reset here}
+  FaultRate     := 0.007;
+  IsSubstation  := False;
 
-      VABase           := Winding^[1].kVA*1000.0;
-      ThermalTimeconst := 2.0;
-      n_thermal        := 0.8;
-      m_thermal        := 0.8;
-      FLrise           := 65.0;
-      HSrise           := 15.0;  // Hot spot rise
-      NormMaxHkVA      := 1.1 * Winding^[1].kVA;
-      EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
-      pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings
-      ppm_FloatFactor  := 0.000001;
-      {Compute antifloat added for each winding    }
-      for i := 1 to NumWindings do  Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase/FNPhases);
+  Y_Terminal_FreqMult := 0.0;
 
-      {Default the no load properties to zero}
-      pctNoLoadLoss    := 0.0;
-      pctImag          := 0.0;
+  Yorder := fNTerms * fNconds;
+  InitPropertyValues(0);
+  RecalcElementData;
+End;
 
-      {Basefrequency := 60.0;   set in base class to circuit fundamental freq; Do not reset here}
-      FaultRate     := 0.007;
-      IsSubstation  := False;
+PROCEDURE TTransfObj.SetNumWindings(N:Integer);
+VAR
+  i          :Integer;
+  OldWdgSize :Integer;
+Begin
+  IF N>1 THEN begin
+    FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
+    OldWdgSize := (NumWindings-1) * NumWindings div 2;
+    NumWindings := N;
+    MaxWindings := N;
+    FNconds := Fnphases + 1;
+    Nterms  := NumWindings;
+    Reallocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);  // Reallocate collector array
+    FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
 
-      {Make some temp complex matrices required to build Yprim}
-      ZB          := TCMatrix.CreateMatrix(NumWindings-1);
-      Y_1Volt     := TCMatrix.CreateMatrix(NumWindings);
-      Y_Term      := TCMatrix.CreateMatrix(2*NumWindings);
-      Y_1Volt_NL  := TCMatrix.CreateMatrix(NumWindings);  // No Load elements
-      Y_Term_NL   := TCMatrix.CreateMatrix(2*NumWindings);
+    // array of short circuit measurements between pairs of windings
+    ReAllocmem(XSC, SizeOF(XSC^[1]) * ((NumWindings-1) * NumWindings div 2));
+    FOR i := OldWdgSize+1 to (NumWindings-1) * NumWindings div 2 Do  XSC^[i] := 0.30;
+    Reallocmem(TermRef, SizeOf(TermRef^[1]) * 2 * NumWindings*Fnphases);
 
-      Y_Terminal_FreqMult := 0.0;
+    {Reallocate impedance matrices}
+    ZB.Free;
+    Y_1Volt.Free;
+    Y_1Volt_NL.Free;
+    Y_Term.Free;
+    Y_Term_NL.Free;
 
-      Yorder := fNTerms * fNconds;
-      InitPropertyValues(0);
-      RecalcElementData;
-
+    ZB         := TCMatrix.CreateMatrix(NumWindings - 1);
+    Y_1Volt    := TCMatrix.CreateMatrix(NumWindings);
+    Y_1Volt_NL := TCMatrix.CreateMatrix(NumWindings);
+    Y_Term     := TCMatrix.CreateMatrix(2 * NumWindings);
+    Y_Term_NL  := TCMatrix.CreateMatrix(2 * NumWindings);
+  end Else
+    Dosimplemsg('Invalid number of windings: ' + IntToStr(N) + ' for Transformer ' + Name, 111);
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1819,5 +1795,57 @@ begin
    Y_Terminal_FreqMult := Freqmult;
 
 end;
+
+PROCEDURE TTransfObj.FetchXfmrCode(Const Code:String);
+var
+  Obj: TXfmrCodeObj;
+  i: Integer;
+begin
+  if XfmrCodeClass=Nil then XfmrCodeClass := DSSClassList.Get(ClassNames.Find('xfmrcode'));
+
+  if XfmrCodeClass.SetActive(Code) then begin
+    Obj := XfmrCodeClass.GetActiveObj;
+    XfmrCode := LowerCase(Code);
+    // set sizes and copy parameters
+    Nphases := Obj.Fnphases;
+    SetNumWindings(Obj.NumWindings);
+    NConds := Fnphases + 1; // forces reallocation of terminals and conductors
+    for i := 1 to NumWindings do
+      with Winding^[i] do begin
+        Connection := Obj.Winding^[i].Connection;
+        kvll       := Obj.Winding^[i].kvll;
+        Vbase      := Obj.Winding^[i].Vbase;
+        kva        := Obj.Winding^[i].kva;
+        puTAP      := Obj.Winding^[i].puTAP;
+        Rpu        := Obj.Winding^[i].Rpu;
+        RNeut      := Obj.Winding^[i].RNeut;
+        Xneut      := Obj.Winding^[i].Xneut;
+        TapIncrement := Obj.Winding^[i].TapIncrement;
+        MinTap       := Obj.Winding^[i].MinTap;
+        MaxTap       := Obj.Winding^[i].MaxTap;
+        NumTaps      := Obj.Winding^[i].NumTaps;
+      end;
+    SetTermRef;
+    XHL := Obj.XHL;
+    XHT := Obj.XHT;
+    XLT := Obj.XLT;
+    for i := 1 to (NumWindings*(NumWindings-1) div 2) do XSc^[i] := Obj.XSC^[i];
+    ThermalTimeConst := Obj.ThermalTimeConst;
+    n_thermal        := Obj.n_thermal;
+    m_thermal        := Obj.m_thermal;
+    FLrise           := Obj.FLrise;
+    HSrise           := Obj.HSrise;
+    pctLoadLoss      := Obj.pctLoadLoss;
+    pctNoLoadLoss    := Obj.pctNoLoadLoss;
+    NormMaxHkVA      := Obj.NormMaxHkVA;
+    EmergMaxHkVA     := Obj.EmergMaxHkVA;
+    Yorder := fNConds*fNTerms;
+    YPrimInvalid := True;
+    Y_Terminal_FreqMult := 0.0;
+
+    RecalcElementData
+  end else
+    DoSimpleMsg('Xfmr Code:' + Code + ' not found.', 180);
+End;
 
 end.

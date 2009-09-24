@@ -89,10 +89,6 @@ TYPE
         PROCEDURE RecalcElementData;Override;
         PROCEDURE CalcYPrim;Override;
 
-        {Public for COM interface}
-        PROCEDURE FetchLineCode(Const Code:String);
-        PROCEDURE FetchGeometryCode(Const Code:String);
-
         PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
         FUNCTION  MergeWith(Var OtherLine:TLineObj; Series:Boolean):Boolean;
         Procedure UpdateControlElements(const NewName, OldName:String);
@@ -100,6 +96,10 @@ TYPE
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer); Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+
+        // Public for the COM Interface
+        PROCEDURE FetchLineCode(Const Code:String);
+        PROCEDURE FetchGeometryCode(Const Code:String);
 
         // CIM XML access
         property LineCodeSpecified: Boolean read FLineCodeSpecified;

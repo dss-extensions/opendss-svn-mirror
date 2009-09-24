@@ -88,7 +88,8 @@ USES
      Recloser,
      Fuse,
      Sensor,
-     Feeder
+     Feeder,
+     XfmrCode
 ;
 
 TYPE
@@ -164,6 +165,7 @@ Begin
      WireDataClass  := TWireData.Create;
      DSSClasses.New := WireDataClass;
      DSSClasses.New := TLineGeometry.Create;
+     DSSClasses.New := TXfmrCode.Create;
 
      {Circuit Element Classes}
      DSSClasses.New := TLine.Create;
