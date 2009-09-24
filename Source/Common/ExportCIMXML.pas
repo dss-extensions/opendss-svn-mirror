@@ -20,7 +20,7 @@ Uses SysUtils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
      Fuse, Capacitor, CapControl, Reactor, Feeder, WireData,
-     LineGeometry, NamedObject, StrUtils, Math;
+     LineGeometry, NamedObject, StrUtils, Math, XfmrCode;
 
 procedure DoubleNode (var F: TextFile; Node: String; val: Double);
 begin
@@ -261,6 +261,95 @@ begin
   end;
 end;
 
+Procedure WriteCableInfoTest (var F:TextFile);
+var
+  cab: TNamedObject;
+  id: TGuid;
+begin
+  cab := TNamedObject.Create('CableTest');
+
+  CreateGuid (id);
+  cab.GUID := id;
+  cab.LocalName := '606';
+  StartInstance (F, 'ConcentricNeutralCableInfo', cab);
+  StringNode (F, 'ConductorInfo.usage', 'distribution');
+  IntegerNode (F, 'ConductorInfo.phaseCount', 3);
+  BooleanNode (F, 'ConductorInfo.insulated', True);
+  StringNode (F, 'ConductorInfo.insulationMaterial', 'crosslinkedPolyethylene');
+  DoubleNode (F, 'ConductorInfo.insulationThickness', 220);
+  DoubleNode (F, 'CableInfo.diameterOverCore', 0.575);
+  DoubleNode (F, 'CableInfo.diameterOverInsulation', 1.06);
+  DoubleNode (F, 'CableInfo.diameterOverJacket', 1.16);
+  DoubleNode (F, 'CableInfo.diameterOverScreen', 1.29);
+  DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral', 1.29);
+  IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', 13);
+  WireDataClass.code := 'CU_#14';
+  If Assigned(ActiveWireDataObj) Then RefNode (F, 'WireType', ActiveWireDataObj);
+  WireDataClass.code := 'AA_250';
+  If Assigned(ActiveWireDataObj) Then Begin
+    StartFreeInstance (F, 'WireArrangement');
+    RefNode (F, 'ConductorInfo', cab);
+    RefNode (F, 'WireType', ActiveWireDataObj);
+    IntegerNode (F, 'WireArrangement.position', 1);
+    DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
+    DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
+    EndInstance (F, 'WireArrangement');
+
+    StartFreeInstance (F, 'WireArrangement');
+    RefNode (F, 'ConductorInfo', cab);
+    RefNode (F, 'WireType', ActiveWireDataObj);
+    IntegerNode (F, 'WireArrangement.position', 2);
+    DoubleNode (F, 'WireArrangement.mountingPointX', 0.5);
+    DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
+    EndInstance (F, 'WireArrangement');
+
+    StartFreeInstance (F, 'WireArrangement');
+    RefNode (F, 'ConductorInfo', cab);
+    RefNode (F, 'WireType', ActiveWireDataObj);
+    IntegerNode (F, 'WireArrangement.position', 3);
+    DoubleNode (F, 'WireArrangement.mountingPointX', 1.0);
+    DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
+    EndInstance (F, 'WireArrangement')
+  End;
+
+  CreateGuid (id);
+  cab.GUID := id;
+  cab.LocalName := '607';
+  StartInstance (F, 'TapeShieldCableInfo', cab);
+  StringNode (F, 'ConductorInfo.usage', 'distribution');
+  IntegerNode (F, 'ConductorInfo.phaseCount', 1);
+  BooleanNode (F, 'ConductorInfo.insulated', True);
+  StringNode (F, 'ConductorInfo.insulationMaterial', 'crosslinkedPolyethylene');
+  DoubleNode (F, 'ConductorInfo.insulationThickness', 220);
+  DoubleNode (F, 'CableInfo.diameterOverCore', 0.373);
+  DoubleNode (F, 'CableInfo.diameterOverInsulation', 0.82);
+  DoubleNode (F, 'CableInfo.diameterOverJacket', 0.88);
+  DoubleNode (F, 'CableInfo.diameterOverScreen', 1.06);
+  DoubleNode (F, 'TapeShieldCableInfo.tapeLap', 20.0);
+  DoubleNode (F, 'TapeShieldCableInfo.tapeThickness', 5.0);
+  EndInstance (F, 'TapeShieldCableInfo');
+  WireDataClass.code := 'AA_1/0';
+  If Assigned(ActiveWireDataObj) Then Begin
+    StartFreeInstance (F, 'WireArrangement');
+    RefNode (F, 'ConductorInfo', cab);
+    RefNode (F, 'WireType', ActiveWireDataObj);
+    IntegerNode (F, 'WireArrangement.position', 1);
+    DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
+    DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
+    EndInstance (F, 'WireArrangement');
+  End;
+  WireDataClass.code := 'CU_1/0';
+  If Assigned(ActiveWireDataObj) Then Begin
+    StartFreeInstance (F, 'WireArrangement');
+    RefNode (F, 'ConductorInfo', cab);
+    RefNode (F, 'WireType', ActiveWireDataObj);
+    IntegerNode (F, 'WireArrangement.position', 2);
+    DoubleNode (F, 'WireArrangement.mountingPointX', 1.0 / 12.0);
+    DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
+    EndInstance (F, 'WireArrangement');
+  End;
+end;
+
 Procedure ExportCDPSM(FileNm:String);
 Var
   F      : TextFile;
@@ -287,10 +376,12 @@ Var
   clsCode : TLineCode;
   clsGeom : TLineGeometry;
   clsWire : TWireData;
+  clsXfmr : TXfmrCode;
 
   pCode : TLineCodeObj;
   pGeom : TLineGeometryObj;
   pWire : TWireDataObj;
+  pXfmr : TXfmrCodeObj;
 
   // DSS-like load models
   id1_ConstkVA:     TGuid;
@@ -305,6 +396,7 @@ Begin
     clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
     clsWire := DSSClassList.Get(ClassNames.Find('wiredata'));
     clsGeom := DSSClassList.Get(ClassNames.Find('linegeometry'));
+    clsXfmr := DSSClassList.Get(ClassNames.Find('xfmrcode'));
 
     Assignfile(F, FileNm);
     ReWrite(F);
@@ -707,6 +799,19 @@ Begin
       end;
       pGeom := clsGeom.ElementList.Next;
     end;
+
+    pXfmr := clsXfmr.ElementList.First;
+    while pXfmr <> nil do begin
+      with pXfmr do begin
+        StartInstance (F, 'TransformerInfo', pXfmr);
+        EndInstance (F, 'TransformerInfo');
+      end;
+      pXfmr := clsXfmr.ElementList.Next;
+    end;
+
+    // temporary test harness until DSS has a cable constants module
+    if CompareText ('ieee13', LeftStr(ActiveCircuit.Name, 6)) = 0 then
+      WriteCableInfoTest (F);
 
     Writeln (F, '</rdf:RDF>');
     GlobalResult := FileNm;
