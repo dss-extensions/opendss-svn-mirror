@@ -101,6 +101,9 @@ TYPE
         FUNCTION  Get_WdgConnection(i: Integer): Integer;
         FUNCTION  Get_WdgKVA(i: Integer): Double;
         FUNCTION  Get_Xsc(i: Integer): Double;
+        FUNCTION  Get_WdgRneutral(i: Integer): Double;
+        FUNCTION  Get_WdgXneutral(i: Integer): Double;
+        FUNCTION  Get_WdgYPPM(i: Integer): Double;
 
         PROCEDURE CalcY_Terminal(FreqMult:Double);
 
@@ -182,8 +185,25 @@ TYPE
         Property WdgResistance[i:Integer] :Double  Read Get_WdgResistance;
         Property WdgKVA[i:Integer]        :Double  Read Get_WdgKVA;
         Property WdgConnection[i:Integer] :Integer Read Get_WdgConnection;
+        Property WdgRneutral[i:Integer]   :Double  Read Get_WdgRneutral;
+        Property WdgXneutral[i:Integer]   :Double  Read Get_WdgXneutral;
+        Property WdgYPPM[i:Integer]       :Double  Read Get_WdgYPPM;
         Property XscVal[i:Integer]        :Double  Read Get_Xsc;
-
+        Property XhlVal:Double Read Xhl;
+        Property XhtVal:Double Read Xht;
+        Property XltVal:Double Read Xlt;
+        Property SbortHkVA: Double Read NormMaxHKVA;
+        Property EmergHkVA: Double Read EmergMaxHKVA;
+        Property thTau: Double Read ThermalTimeConst;
+        Property thN: Double Read n_thermal;
+        Property thM: Double Read m_thermal;
+        Property thFLRise: Double Read FLRise;
+        Property thHSRise: Double Read HSRise;
+        Property loadLossPct:Double Read pctLoadLoss;
+        Property noLoadLossPct:Double Read pctNoLoadLoss;
+        Property imagPct: Double Read pctImag;
+        Property ppmFloatFac: Double Read ppm_FloatFactor;
+        Property baseVA: Double Read VAbase;
    end;
 
 VAR
@@ -1233,6 +1253,27 @@ FUNCTION TTransfObj.Get_WdgKVA(i: Integer): Double;
 Begin
      IF (i > 0) and (i <= NumWindings)
      THEN Result := Winding^[i].kva
+     ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_WdgRneutral(i: Integer): Double;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].Rneut
+     ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_WdgXneutral(i: Integer): Double;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].Xneut
+     ELSE Result := 0.0;
+end;
+
+FUNCTION TTransfObj.Get_WdgYPPM(i: Integer): Double;
+Begin
+     IF (i > 0) and (i <= NumWindings)
+     THEN Result := Winding^[i].Y_PPM
      ELSE Result := 0.0;
 end;
 

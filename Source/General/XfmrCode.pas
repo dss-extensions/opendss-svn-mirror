@@ -18,7 +18,6 @@ TYPE
      private
        Function Get_Code:String;
        Procedure Set_Code(const Value:String);
-       Procedure SetNumWindings(N:Integer);
        Procedure SetActiveWinding(w:Integer);
        Procedure InterpretWindings(const S:String; which:WdgParmChoice);
      Protected
@@ -43,7 +42,6 @@ TYPE
         NumWindings     :Integer;
         MaxWindings     :Integer;
         XHL, XHT, XLT   :Double;  // per unit
-        Zbase           :Double;
         XSC             :pDoubleArray;     // per unit SC measurements
         VABase          :Double;    // FOR impedances
         NormMaxHKVA       :Double;
@@ -58,6 +56,9 @@ TYPE
         ppm_FloatFactor   :Double; //  parts per million winding float factor
         pctImag           :Double;
         Winding           :pWindingArray;
+
+        procedure SetNumWindings(N:Integer);
+        procedure PullFromTransformer (obj: TTransfObj);
 
         constructor Create(ParClass:TDSSClass; const XfmrCodeName:String);
         destructor Destroy; override;
@@ -222,12 +223,11 @@ BEGIN
    End;
 END;
 
-PROCEDURE TXfmrCode.SetNumWindings(N:Integer);
+PROCEDURE TXfmrCodeObj.SetNumWindings(N:Integer);
 VAR i          :Integer;
     OldWdgSize :Integer;
 Begin
-    IF N>1 THEN
-    WITH ActiveXfmrCodeObj Do  Begin
+    IF N>1 THEN begin
         FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
         OldWdgSize := (NumWindings-1) * NumWindings div 2;
         NumWindings := N;
@@ -238,8 +238,8 @@ Begin
         FOR i := OldWdgSize+1 to (NumWindings-1) * NumWindings div 2 Do
           Begin
               XSC^[i] := 0.30;   // default to something
-          End;
-      End
+          End
+    end
     Else
        Dosimplemsg('Invalid number of windings: ' + IntToStr(N) + ' for Transformer ' +
                    ActiveTransfObj.Name, 111);
@@ -516,6 +516,45 @@ BEGIN
   Reallocmem(XSC, 0);
   Inherited destroy;
 END;
+
+procedure TXfmrCodeObj.PullFromTransformer (obj: TTransfObj);
+var
+  i: Integer;
+begin
+  SetNumWindings (obj.NumberOfWindings);
+  FNPhases := obj.NPhases;
+  XHL := obj.XhlVal;
+  XHT := obj.XhtVal;
+  XLT := obj.XltVal;
+  VABase := obj.baseVA;
+  NormMaxHKVA := obj.SbortHkVA;
+  EmergMaxHKVA := obj.EmergHkVA;
+  ThermalTimeConst := obj.thTau;
+  n_thermal := obj.thN;
+  m_thermal := obj.thM;
+  FLrise := obj.thFLrise;
+  HSrise := obj.thHSrise;
+  pctLoadLoss := obj.loadLossPct;
+  pctNoLoadLoss := obj.noLoadLossPct;
+  ppm_FloatFactor := obj.ppmFloatFac;
+  pctImag := obj.imagPct;
+  FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do XSC[i] := obj.XscVal[i];
+  for i:= 1 to NumWindings do begin
+    Winding^[i].Connection := obj.WdgConnection[i];
+    Winding^[i].kvll := obj.BasekVLL[i];
+    Winding^[i].VBase := obj.BaseVoltage[i];
+    Winding^[i].kva := obj.WdgKVA[i];
+    Winding^[i].puTap := obj.PresentTap[i];
+    Winding^[i].Rpu := obj.WdgResistance[i];
+    Winding^[i].Rneut := obj.WdgRneutral[i];
+    Winding^[i].Xneut := obj.WdgXneutral[i];
+    Winding^[i].Y_PPM := obj.WdgYPPM[i];
+    Winding^[i].TapIncrement := obj.TapIncrement[i];
+    Winding^[i].MinTap := obj.MinTap[i];
+    Winding^[i].MaxTap := obj.MaxTap[i];
+    Winding^[i].NumTaps := obj.NumTaps[i];
+  end;
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TXfmrCodeObj.DumpProperties(var F: TextFile; Complete: Boolean);
