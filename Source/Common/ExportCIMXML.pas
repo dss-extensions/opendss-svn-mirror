@@ -20,7 +20,7 @@ Uses SysUtils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
      Fuse, Capacitor, CapControl, Reactor, Feeder, WireData,
-     LineGeometry, NamedObject, StrUtils, Math, XfmrCode, HashList, Contnrs;
+     LineGeometry, NamedObject, StrUtils, Math, XfmrCode, HashList;
 
 Type
   GuidChoice = (Bank, Wdg, XfInf, WdgInf, ScTest, OcTest);
@@ -46,7 +46,8 @@ Type
 Var
   GuidHash: THashList;       // index is 1-based
   GuidList: array of TGuid;  // index is 0-based
-  BankList: TObjectList;
+  BankHash: THashList;
+  BankList: array of TBankObject;
 
 constructor TBankObject.Create(MaxWdg: Integer);
 begin
@@ -121,6 +122,8 @@ var
   i: Integer;
   phs: String;
 begin
+  if pXf.NumberOfWindings > nWindings then nWindings := pXf.NumberOfWindings;
+
   for i:=1 to pXf.NumberOfWindings do begin
     phs := PhaseString (pXf, i);
     if Pos('A', phs) > 0 then phaseA[i-1] := 1;
@@ -142,22 +145,31 @@ procedure StartGuidList (size:Integer);
 begin
   GuidHash := THashList.Create(size);
   SetLength (GuidList, size);
-  BankList := TObjectList.Create(false);
+end;
+
+procedure StartBankList (size: Integer);
+begin
+  BankHash := THashList.Create(size);
+  SetLength (BankList, size);
 end;
 
 procedure AddBank (pBank: TBankObject);
+var
+  ref, size: Integer;
 begin
-  BankList.Add(pBank);
+  ref := BankHash.Add(pBank.LocalName);
+  size := High(BankList) + 1;
+  if ref > size then SetLength (BankList, 2 * size);
+  BankList[ref-1] := pBank;
 end;
 
 function GetBank (sBank: String): TBankObject;
 var
-  i : Integer;
+  ref : Integer;
 begin
-  for i:= 0 to BankList.Count - 1 do begin
-    Result := TBankObject (BankList[i]);
-    if CompareText (sBank, Result.LocalName) = 0 then break;
-  end;
+  Result := nil;
+  ref := BankHash.Find (sBank);
+  if ref > 0 then Result:=BankList[ref-1];
 end;
 
 // any temporary object (not managed by DSS) should have '=' prepended to the Name
@@ -192,6 +204,11 @@ procedure FreeGuidList;
 begin
   GuidHash.Free;
   GuidList := nil;
+end;
+
+procedure FreeBankList;
+begin
+  BankHash.Free;
   BankList := nil;
 end;
 
@@ -762,6 +779,7 @@ Begin
     i1 := clsXfmr.ElementCount * 6; // 3 wdg info, 3 sctest
     i2 := ActiveCircuit.Transformers.ListSize * 11; // bank, info, 3 wdg, 3 wdg info, 3sctest
     StartGuidList (i1 + i2);
+    StartBankList (ActiveCircuit.Transformers.ListSize);
     pTemp := TNamedObject.Create('Temp');
 
     pXfmr := clsXfmr.ElementList.First;
@@ -785,10 +803,13 @@ Begin
       else
         sBank := pXf.XfmrBank;
 
-      pBank := TBankObject.Create(maxWdg);
-      pBank.LocalName := sBank;
-      pBank.GUID := GetDevGuid (Bank, sBank, 0);
-      AddBank (pBank);
+      pBank := GetBank (sBank);
+      if pBank = nil then begin
+        pBank := TBankObject.Create(maxWdg);
+        pBank.LocalName := sBank;
+        pBank.GUID := GetDevGuid (Bank, sBank, 0);
+        AddBank (pBank);
+      end;
 
       if pXf.XfmrCode = '' then begin
         pXfTemp := TXfmrCodeObj.Create(clsXfmr, '=' + pXf.LocalName);
@@ -846,6 +867,16 @@ Begin
     end;
     pTemp.Free;
 
+    // write all the transformer banks
+    for i:=Low(BankList) to High(BankList) do begin
+      pBank := BankList[i];
+      if pBank = nil then break;
+      pBank.BuildVectorGroup;
+      StartInstance (F, 'TransformerBank', pBank);
+      StringNode (F, 'TransformerBank.vectorGroup', pBank.vectorGroup);
+      EndInstance (F, 'TransformerBank');
+    end;
+
     pReg := ActiveCircuit.RegControls.First;
     while pReg <> nil do begin
       with pReg do begin
@@ -898,6 +929,7 @@ Begin
     end;
 
     FreeGuidList;
+    FreeBankList;
 
     // done with the transformers
 
