@@ -232,12 +232,12 @@ end;
 
 procedure RefNode (var F: TextFile; Node: String; Obj: TNamedObject);
 begin
-  Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, Obj.ID]));
+  Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, Obj.CIM_ID]));
 end;
 
 procedure GuidNode (var F: TextFile; Node: String; ID: TGuid);
 begin
-  Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, GuidToString (ID)]));
+  Writeln (F, Format ('  <cim:%s rdf:resource="#%s"/>', [Node, GUIDToCIMString (ID)]));
 end;
 
 procedure LineCodeRefNode (var F: TextFile; List: TLineCode; Name: String);
@@ -247,9 +247,9 @@ begin
   if List.SetActive (Name) then begin
     Obj := List.GetActiveObj;
     if Obj.SymComponentsModel then
-      Writeln (F, Format ('  <cim:SequenceImpedance rdf:resource="#%s"/>', [Obj.ID]))
+      Writeln (F, Format ('  <cim:DistributionLineSegment.SequenceImpedance rdf:resource="#%s"/>', [Obj.CIM_ID]))
     else
-      Writeln (F, Format ('  <cim:PhaseImpedance rdf:resource="#%s"/>', [Obj.ID]));
+      Writeln (F, Format ('  <cim:DistributionLineSegment.PhaseImpedance rdf:resource="#%s"/>', [Obj.CIM_ID]));
   end;
 end;
 
@@ -259,13 +259,13 @@ var
 begin
   if List.SetActive (Name) then begin
     Obj := List.GetActiveObj;
-    Writeln (F, Format ('  <cim:OverheadConductorInfo rdf:resource="#%s"/>', [Obj.ID]))
+    Writeln (F, Format ('  <cim:DistributionLineSegment.ConductorInfo rdf:resource="#%s"/>', [Obj.CIM_ID]))
   end;
 end;
 
 procedure CircuitNode (var F: TextFile; Obj: TNamedObject);
 begin
-  Writeln(F, Format('  <cim:Equipment.MemberOf_Line rdf:resource="#%s"/>', [Obj.ID]));
+  Writeln(F, Format('  <cim:Equipment.MemberOf_Line rdf:resource="#%s"/>', [Obj.CIM_ID]));
 end;
 
 function FirstPhaseString (pElem:TDSSCktElement; bus: Integer): String;
@@ -291,7 +291,7 @@ end;
 
 procedure StartInstance (var F: TextFile; Root: String; Obj: TNamedObject);
 begin
-  Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, Obj.ID]));
+  Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, Obj.CIM_ID]));
   StringNode (F, 'IdentifiedObject.name', Obj.LocalName);
 end;
 
@@ -300,7 +300,7 @@ var
   temp: TGUID;
 begin
   CreateGUID (temp);
-  Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, GUIDToString (temp)]));
+  Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, GUIDToCIMString (temp)]));
 end;
 
 procedure EndInstance (var F: TextFile; Root: String);
@@ -312,7 +312,7 @@ procedure WriteLoadModel (var F: TextFile; Name: String; ID: TGuid;
   zP: Double; iP: Double; pP: Double; zQ: Double; iQ: Double; pQ: Double;
   eP: Double; eQ: Double);
 begin
-  Writeln(F, Format('<cim:LoadResponseCharacteristic rdf:ID="%s">', [GuidToString(ID)]));
+  Writeln(F, Format('<cim:LoadResponseCharacteristic rdf:ID="%s">', [GUIDToCIMString(ID)]));
   StringNode (F, 'IdentifiedObject.name', Name);
   if (eP > 0.0) or (eQ > 0.0) then
     BooleanNode (F, 'LoadResponseCharacteristic.exponentModel', true)
@@ -358,8 +358,8 @@ begin
   Nterm := pElem.Nterms;
   BusName := pElem.FirstBus;
   CreateGUID (temp);
-  Writeln(F, Format('<cim:GeoLocation rdf:ID="%s">', [GUIDToString(temp)]));
-  RefNode (F, 'PowerSystemResource', pElem);
+  Writeln(F, Format('<cim:GeoLocation rdf:ID="%s">', [GUIDToCIMString(temp)]));
+  RefNode (F, 'GeoLocation.PowerSystemResources', pElem);
   EndInstance (F, 'GeoLocation');
 
   for j := 1 to NTerm do begin
@@ -391,13 +391,13 @@ begin
       TermName := pElem.Name + '_T' + TermName;
       CreateGUID (temp);
 
-      Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToString(temp)]));
+      Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToCIMString(temp)]));
       StringNode (F, 'IdentifiedObject.name', TermName);
       IntegerNode (F, 'Terminal.sequenceNumber', j);
       Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
-        [pElem.ID]));
+        [pElem.CIM_ID]));
       Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
-        [ActiveCircuit.Buses[ref].ID]));
+        [ActiveCircuit.Buses[ref].CIM_ID]));
       EndInstance (F, 'Terminal');
     end;
 
@@ -417,13 +417,13 @@ begin
     TermName := pXf.Name + '_T' + IntToStr (i);
     CreateGUID (temp);
 
-    Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToString(temp)]));
+    Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToCIMString(temp)]));
     StringNode (F, 'IdentifiedObject.name', TermName);
     IntegerNode (F, 'Terminal.sequenceNumber', 1);  // sequence number always 1 for a winding
     Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
-      [GuidToString (GetDevGuid (Wdg, pXf.Name, i))]));
+      [GUIDToCIMString (GetDevGuid (Wdg, pXf.Name, i))]));
     Writeln (F, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
-      [ActiveCircuit.Buses[ref].ID]));
+      [ActiveCircuit.Buses[ref].CIM_ID]));
     EndInstance (F, 'Terminal');
   end;
   WritePositions (F, pXf);
@@ -447,7 +447,7 @@ begin
       pName.LocalName := pXfmr.Name + '_' + IntToStr (i);
       pName.GUID := GetDevGuid (WdgInf, pXfmr.Name, i);
       StartInstance (F, 'WindingInfo', pName);
-      RefNode (F, 'TransformerInfo', pXfmr);
+      RefNode (F, 'WindingInfo.TransformerInfo', pXfmr);
       IntegerNode (F, 'WindingInfo.sequenceNumber', i);
       if pXfmr.FNPhases < 3 then begin
         StringNode (F, 'WindingInfo.connectionKind', 'I');
@@ -503,8 +503,8 @@ begin
         end;
         EndInstance (F, 'ShortCircuitTest');
         StartFreeInstance (F, 'ToWindingSpec');
-        GuidNode (F, 'ShortCircuitTest', GetDevGuid (ScTest, pXfmr.Name, seq));
-        GuidNode (F, 'ToWinding', GetDevGuid (WdgInf, pXfmr.Name, j));
+        GuidNode (F, 'ToWindingSpec.ShortCircuitTests', GetDevGuid (ScTest, pXfmr.Name, seq));
+        GuidNode (F, 'ToWindingSpec.ToWinding', GetDevGuid (WdgInf, pXfmr.Name, j));
         IntegerNode (F, 'ToWindingSpec.toTapStep', Winding^[j].NumTaps div 2);
         EndInstance (F, 'ToWindingSpec');
       end;
@@ -535,28 +535,28 @@ begin
   DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral', 1.29);
   IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', 13);
   WireDataClass.code := 'CU_#14';
-  If Assigned(ActiveWireDataObj) Then RefNode (F, 'WireType', ActiveWireDataObj);
+  If Assigned(ActiveWireDataObj) Then RefNode (F, 'ConcentricNeutralCableInfo.WireType', ActiveWireDataObj);
   WireDataClass.code := 'AA_250';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'ConductorInfo', cab);
-    RefNode (F, 'WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangment.ConductorInfo', cab);
+    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
     EndInstance (F, 'WireArrangement');
 
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'ConductorInfo', cab);
-    RefNode (F, 'WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangment.ConductorInfo', cab);
+    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.5);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
     EndInstance (F, 'WireArrangement');
 
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'ConductorInfo', cab);
-    RefNode (F, 'WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangment.ConductorInfo', cab);
+    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 3);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -582,8 +582,8 @@ begin
   WireDataClass.code := 'AA_1/0';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'ConductorInfo', cab);
-    RefNode (F, 'WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangment.ConductorInfo', cab);
+    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -592,8 +592,8 @@ begin
   WireDataClass.code := 'CU_1/0';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'ConductorInfo', cab);
-    RefNode (F, 'WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangment.ConductorInfo', cab);
+    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0 / 12.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -674,7 +674,7 @@ Begin
 
       for i := 1 to NumBuses do begin
         Writeln(F, Format('<cim:ConnectivityNode rdf:ID="%s">',
-          [GUIDToString (Buses^[i].GUID)]));
+          [GUIDToCIMString (Buses^[i].GUID)]));
         StringNode (F, 'IdentifiedObject.name', Buses^[i].LocalName);
         Writeln(F,'</cim:ConnectivityNode>');
       end;
@@ -750,7 +750,7 @@ Begin
     while pCapC <> nil do begin
       with pCapC do begin
         StartInstance (F, 'RegulatingControl', pCapC);
-        RefNode (F, 'RegulatingCondEq', This_Capacitor);
+        RefNode (F, 'RegulatingControl.RegulatingCondEq', This_Capacitor);
         if CapControlType = 5 then begin
           v1 := PfOnValue;
           v2 := PfOffValue
@@ -831,14 +831,14 @@ Begin
         else
           sBank := pXf.XfmrBank;
         pBank := GetBank (sBank);
-        RefNode (F, 'TransformerBank', pBank);
+        RefNode (F, 'DistributionTransformer.TransformerBank', pBank);
         pBank.AddTransformer (pXf);
         if pXf.XfmrCode = '' then
-          GuidNode (F, 'TransformerInfo', GetDevGuid (XfInf, '=' + pXf.Name, 0))
+          GuidNode (F, 'DistributionTransformer.TransformerInfo', GetDevGuid (XfInf, '=' + pXf.Name, 0))
         else begin
           clsXfmr.SetActive(pXf.XfmrCode);
           pXfmr := clsXfmr.GetActiveObj;
-          RefNode (F, 'TransformerInfo', pXfmr);
+          RefNode (F, 'DistributionTransformer.TransformerInfo', pXfmr);
         end;
         EndInstance (F, 'DistributionTransformer');
 
@@ -847,11 +847,11 @@ Begin
           pTemp.GUID := GetDevGuid (Wdg, pTemp.LocalName, i);
           StartInstance (F, 'DistributionTransformerWinding', pTemp);
           PhasesNode (F, 'ConductingEquipment.phases', pXf, i);
-          RefNode (F, 'Transformer', pXf);
+          RefNode (F, 'DistributionTransformerWinding.Transformer', pXf);
           if XfmrCode = '' then
-            GuidNode (F, 'WindingInfo', GetDevGuid (WdgInf, '=' + pXf.Name, i))
+            GuidNode (F, 'DistributionTransformerWinding.WindingInfo', GetDevGuid (WdgInf, '=' + pXf.Name, i))
           else
-            GuidNode (F, 'WindingInfo', GetDevGuid (WdgInf, XfmrCode, i));
+            GuidNode (F, 'DistributionTransformerWinding.WindingInfo', GetDevGuid (WdgInf, XfmrCode, i));
           if (Winding^[i].Rneut < 0.0) or (Winding^[i].Connection = 1) then
             BooleanNode (F, 'DistributionTransformerWinding.grounded', false)
           else begin
@@ -918,7 +918,7 @@ Begin
         EndInstance (F, 'DistributionTapChanger');
 
         StartFreeInstance (F, 'SvTapStep');
-        RefNode (F, 'TapChanger', pReg);
+        RefNode (F, 'SvTapStep.TapChanger', pReg);
         val := Transformer.PresentTap[TrWinding];
         i1 := Round((val - Transformer.Mintap[TrWinding]) / Transformer.TapIncrement[TrWinding]);
         IntegerNode (F, 'position', i1);
@@ -1020,13 +1020,13 @@ Begin
           CircuitNode (F, ActiveCircuit);
           PhasesNode (F, 'ConductingEquipment.phases', pLoad, 1);
           case FLoadModel of
-            1: GuidNode (F, 'LoadResponse', id1_ConstkVA);
-            2: GuidNode (F, 'LoadResponse', id2_ConstZ);
-            3: GuidNode (F, 'LoadResponse', id3_ConstPQuadQ);
-            4: GuidNode (F, 'LoadResponse', id4_LinPQuadQ);
-            5: GuidNode (F, 'LoadResponse', id5_ConstI);
-            6: GuidNode (F, 'LoadResponse', id6_ConstPConstQ);
-            7: GuidNode (F, 'LoadResponse', id7_ConstPConstX);
+            1: GuidNode (F, 'EnergyConsumer.LoadResponse', id1_ConstkVA);
+            2: GuidNode (F, 'EnergyConsumer.LoadResponse', id2_ConstZ);
+            3: GuidNode (F, 'EnergyConsumer.LoadResponse', id3_ConstPQuadQ);
+            4: GuidNode (F, 'EnergyConsumer.LoadResponse', id4_LinPQuadQ);
+            5: GuidNode (F, 'EnergyConsumer.LoadResponse', id5_ConstI);
+            6: GuidNode (F, 'EnergyConsumer.LoadResponse', id6_ConstPConstQ);
+            7: GuidNode (F, 'EnergyConsumer.LoadResponse', id7_ConstPConstX);
           end;
           DoubleNode (F, 'EnergyConsumer.qfixed', kvarBase);
           DoubleNode (F, 'EnergyConsumer.pfixed', kWBase);
@@ -1059,7 +1059,7 @@ Begin
             for i:= j to FNPhases do begin
               Inc (seq);
               StartFreeInstance (F, 'PhaseImpedanceData');
-              RefNode (F, 'PhaseImpedance', pCode);
+              RefNode (F, 'PhaseImpedanceData.PhaseImpedance', pCode);
               IntegerNode (F, 'PhaseImpedanceData.sequenceNumber', seq);
               DoubleNode (F, 'PhaseImpedanceData.r', Z.GetElement(i,j).re);
               DoubleNode (F, 'PhaseImpedanceData.x', Z.GetElement(i,j).im);
@@ -1114,8 +1114,8 @@ Begin
         EndInstance (F, 'OverheadConductorInfo');
         for i := 1 to NWires do begin
           StartFreeInstance (F, 'WireArrangement');
-          RefNode (F, 'ConductorInfo', pGeom);
-          RefNode (F, 'WireType', WireData[i]);
+          RefNode (F, 'WireArrangment.ConductorInfo', pGeom);
+          RefNode (F, 'WireArrangment.WireType', WireData[i]);
           IntegerNode (F, 'WireArrangement.position', i);
           DoubleNode (F, 'WireArrangement.mountingPointX', Xcoord[i]);
           DoubleNode (F, 'WireArrangement.mountingPointY', Ycoord[i]);
