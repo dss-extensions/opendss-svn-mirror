@@ -21,6 +21,7 @@ TYPE
     procedure Set_DisplayName(const Value: String);
     function Get_GUID: TGuid;
     function Get_ID: String;
+    function Get_CIM_ID: String;
     procedure Set_GUID(const Value: TGUID);
   public
     constructor Create(ClassName:String);
@@ -31,11 +32,22 @@ TYPE
     Property DisplayName:String Read Get_DisplayName Write Set_DisplayName;
     Property GUID:TGuid Read Get_GUID Write Set_GUID;
     Property ID:String read Get_ID;
+    Property CIM_ID:String read Get_CIM_ID;
   end;
+
+function GUIDToCIMString (GUID: TGUID): string;
 
 implementation
 
-Uses Sysutils;
+Uses Sysutils, StrUtils;
+
+function GUIDToCIMString (GUID: TGUID): string;
+var
+  s: String;
+begin
+  s := GUIDToString (GuID);
+  Result := '_' + MidStr (s, 2, Length (s)-2);
+end;
 
 constructor TNamedObject.Create(ClassName:String);
 BEGIN
@@ -84,6 +96,11 @@ end;
 function TNamedObject.Get_ID: String;
 begin
   Result := GUIDToString (Get_GUID);
+end;
+
+function TNamedObject.Get_CIM_ID: String;
+begin
+  Result := GUIDToCIMString (Get_GUID);
 end;
 
 end.
