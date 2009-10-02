@@ -91,7 +91,7 @@ TYPE
       Private
 
       {Private variables of this class}
-       // a typical variable:
+       // a typical private variable:
         Yeq             :Complex;   // Y at nominal voltage
 
        // a typical procedure if user models are supported
@@ -102,6 +102,7 @@ TYPE
 	
       Protected
 
+        {A couple of virtual procedures you can override}
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
         Procedure GetTerminalCurrents(Curr:pComplexArray); Override ;
 
@@ -116,11 +117,15 @@ TYPE
         Procedure CalcYPrim; Override;   // Calculate Primitive Y matrix 
 
         // Injection current management functions (unique to PC Elements)
-	// This is how the DSS represents elements with nonlinear characteristics
+	      // This is how the DSS represents elements with nonlinear characteristics
+        // Inj currents are the difference between the desired total terminal currents and the
+        // currents that result from the linear admittance matrix of the element
         Function  InjCurrents:Integer; Override;
         Procedure GetInjCurrents(Curr:pComplexArray); Override;
 
-	// State variable management functions, if any
+      	// State variable management functions, if any
+        // You can omit these if your PC element model is not using these
+        // Default behavior is to basically do nothing
         Function  NumVariables:Integer;Override;
         Procedure GetAllVariables(States:pDoubleArray);Override;
         Function  Get_Variable(i: Integer): Double; Override;
@@ -128,11 +133,11 @@ TYPE
         Function  VariableName(i:Integer):String ;Override;
 
         // Support for Dynamics Mode
-        Procedure InitStateVars;
+        Procedure InitStateVars;  Override;
         Procedure IntegrateStates;Override;
 
         // Support for Harmonics Mode
-        Procedure InitHarmonics;
+        Procedure InitHarmonics; Override;
 
        PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model, if possible
 
@@ -141,9 +146,12 @@ TYPE
        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
-       {Put any properties here}
+       {Put any class properties here}
        {Use properties when some method must be executed when a value is set or retrieved}
 
+       {   Example (from Load)
+         Property ConnectedkVA        :Double Read FConnectedkVA        Write Set_ConnectedkVA;
+       }
 
    End;
 

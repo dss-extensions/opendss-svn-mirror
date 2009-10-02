@@ -47,6 +47,7 @@
     <DCCReference Include="..\Common\ControlQueue.pas" />
     <DCCReference Include="..\Common\DSSCallBackRoutines.pas" />
     <DCCReference Include="..\Common\DSSClass.pas" />
+    <DCCReference Include="..\Common\DSSClassDefs.pas" />
     <DCCReference Include="..\Common\DSSForms.pas" />
     <DCCReference Include="..\Common\DSSGlobals.pas" />
     <DCCReference Include="..\Common\EventQueue.pas" />
@@ -119,10 +120,12 @@
     <DCCReference Include="..\General\LineCode.pas" />
     <DCCReference Include="..\General\LineGeometry.pas" />
     <DCCReference Include="..\General\LoadShape.pas" />
+    <DCCReference Include="..\General\NamedObject.pas" />
     <DCCReference Include="..\General\OHLineConstants.pas" />
     <DCCReference Include="..\General\Spectrum.pas" />
     <DCCReference Include="..\General\TCC_Curve.pas" />
     <DCCReference Include="..\General\WireData.pas" />
+    <DCCReference Include="..\General\XfmrCode.pas" />
     <DCCReference Include="..\Meters\EnergyMeter.pas" />
     <DCCReference Include="..\Meters\MeterClass.pas" />
     <DCCReference Include="..\Meters\MeterElement.pas" />
@@ -177,6 +180,9 @@
     </DCCReference>
     <DCCReference Include="ImplDSS.pas">
       <CoClasses>DSS</CoClasses>
+    </DCCReference>
+    <DCCReference Include="ImplDSSElement.pas">
+      <CoClasses>DSSElement</CoClasses>
     </DCCReference>
     <DCCReference Include="ImplDSSProgress.pas">
       <CoClasses>DSSProgress</CoClasses>

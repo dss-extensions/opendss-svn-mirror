@@ -17,6 +17,7 @@ Uses
        ImplBus,
        ImplCircuit,
        ImplCktElement,
+       ImplDSSElement,
        ImplError,
        ImplDSS,
        ImplSolution,
@@ -40,6 +41,7 @@ Var
    FCircuit     :ICircuit;
    FBus         :IBus;
    FCktElement  :ICktElement;
+   FDSSElement  :IDSSElement;
    FError       :IError;
    FSolution    :ISolution;
    FDSS         :IDSS;
@@ -78,6 +80,7 @@ Begin
      FBus         := TBus.Create;
      FCircuit     := TCircuit.Create;
      FCktElement  := TCktElement.Create;
+     FDSSElement  := TDSSElement.Create;
      FText        := TText.Create;
      FSolution    := TSolution.Create;
      FDSSProperty := TDSSProperty.Create;

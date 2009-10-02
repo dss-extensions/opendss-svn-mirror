@@ -4,6 +4,9 @@ unit ImplDSSProperty;
   Copyright (c) 2008, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
+
+  10-1-2009 Revised so it works on all DSSobjects
+
 }
 
 interface
@@ -28,7 +31,7 @@ function TDSSProperty.Get_Description: WideString;
 begin
       Result := '';
       If (ActiveCircuit<> Nil) and (FPropIndex <> 0) {and (FPropClass <> Nil)} Then
-      With  ActiveCircuit.ActiveCktElement.ParentClass Do
+      With  ActiveDSSObject.ParentClass Do
         If FPropIndex <= NumProperties Then
           Result := PropertyHelp^[FPropIndex];
 
@@ -38,7 +41,7 @@ function TDSSProperty.Get_Name: WideString;
 begin
       Result := '';
       If (ActiveCircuit<> Nil) and (FPropIndex <> 0) {and (FPropClass <> Nil)} Then
-        With  ActiveCircuit.ActiveCktElement.ParentClass   Do
+        With  ActiveDSSObject.ParentClass   Do
         If FPropIndex <= NumProperties Then
           Result := PropertyName^[FPropIndex];
 
@@ -49,7 +52,7 @@ function TDSSProperty.Get_Val: WideString;
 begin
        Result := '';
       If (ActiveCircuit<> Nil)
-      THEN  With ActiveCircuit.ActiveCktElement Do
+      THEN  With ActiveDSSObject Do
         If FPropIndex <= ParentClass.NumProperties Then
               Result := PropertyValue[FPropIndex];
 
@@ -58,7 +61,7 @@ end;
 procedure TDSSProperty.Set_Val(const Value: WideString);
 begin
       If (ActiveCircuit<> Nil)
-      THEN  With ActiveCircuit.ActiveCktElement Do
+      THEN  With ActiveDSSObject Do
         If FPropIndex <= ParentClass.NumProperties Then
               DSSExecutive.Command := 'Edit ' + ParentClass.Name + '.' + Name + ' ' +
                      ParentClass.PropertyName^[FPropIndex] + '=' +

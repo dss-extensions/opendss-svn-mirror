@@ -65,6 +65,11 @@ type
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_Loads: Loads; safecall;
+    function SetActiveClass(const ClassName: WideString): Integer; safecall;
+    function FirstElement: Integer; safecall;
+    function NextElement: Integer; safecall;
+    function Get_ActiveCktElement: ICktElement; safecall;
+    function Get_ActiveDSSElement: IDSSElement; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -80,6 +85,9 @@ uses ComServ,
      UComplex,
      sysutils,
      CktElement,
+     ImplDSSElement,
+     DSSObject,
+     DSSClass,
      Transformer,
      PCElement,
      PDElement,
@@ -921,6 +929,60 @@ end;
 function TCircuit.Get_Loads: Loads;
 begin
      Result := FLoads as ILoads;
+end;
+
+function TCircuit.SetActiveClass(const ClassName: WideString): Integer;
+Var
+   DevClassIndex :Integer;
+
+begin
+
+     DevClassIndex := ClassNames.Find(ClassName);
+     If DevClassIndex = 0 Then  Begin
+        DoSimplemsg('Error: Class ' + ClassName + ' not found.' , 5016);
+        Exit;
+     End;
+
+     LastClassReferenced := DevClassIndex;
+     ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+end;
+
+function TCircuit.FirstElement: Integer;
+{ Sets first  element in active class to be active}
+
+Begin
+
+      Result := 0;
+      IF (ActiveCircuit <> Nil) and Assigned(ActiveDSSClass) THEN
+      Begin
+         Result := ActiveDSSClass.First;
+      End
+        ELSE Result := 0;
+
+end;
+
+function TCircuit.NextElement: Integer;
+{ Sets next  element in active class to be active}
+
+Begin
+
+      Result := 0;
+      IF (ActiveCircuit <> Nil) and Assigned(ActiveDSSClass) THEN
+      Begin
+         Result := ActiveDSSClass.Next;
+      End
+        ELSE Result := 0;
+
+end;
+
+function TCircuit.Get_ActiveCktElement: ICktElement;
+begin
+     Result := FCktElement as ICktElement;
+end;
+
+function TCircuit.Get_ActiveDSSElement: IDSSElement;
+begin
+    Result := FDSSElement as IDSSElement;
 end;
 
 initialization

@@ -146,7 +146,8 @@ uses
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
   DSSClassDefs in '..\Common\DSSClassDefs.pas',
   NamedObject in '..\General\NamedObject.pas',
-  LineCode in '..\General\LineCode.pas';
+  LineCode in '..\General\LineCode.pas',
+  ImplDSSElement in 'ImplDSSElement.pas' {DSSElement: CoClass};
 
 exports
   DllGetClassObject,

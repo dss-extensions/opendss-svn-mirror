@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 7/8/2009 12:01:32 AM from Type Library described below.
+// File generated on 10/1/2009 9:57:48 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -78,6 +78,8 @@ const
   CLASS_CtrlQueue: TGUID = '{19DD7174-7FEE-4E59-97ED-C54F16EDC3F0}';
   IID_ILoads: TGUID = '{9A3FFA05-5B82-488C-B08D-FCA2FDB23101}';
   CLASS_Loads: TGUID = '{1302A34B-A554-4C32-BCED-4AF0A94FF114}';
+  IID_IDSSElement: TGUID = '{C22D4922-6DC2-4283-93AB-4F2138C4B922}';
+  CLASS_DSSElement: TGUID = '{09D4B4AB-DF58-4F8F-A3F0-72F32830B337}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -171,6 +173,8 @@ type
   ICtrlQueueDisp = dispinterface;
   ILoads = interface;
   ILoadsDisp = dispinterface;
+  IDSSElement = interface;
+  IDSSElementDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -192,6 +196,7 @@ type
   Lines = ILines;
   CtrlQueue = ICtrlQueue;
   Loads = ILoads;
+  DSSElement = IDSSElement;
 
 
 // *********************************************************************//
@@ -415,6 +420,11 @@ type
     function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_Loads: Loads; safecall;
+    function FirstElement: Integer; safecall;
+    function NextElement: Integer; safecall;
+    function SetActiveClass(const ClassName: WideString): Integer; safecall;
+    function Get_ActiveDSSElement: IDSSElement; safecall;
+    function Get_ActiveCktElement: ICktElement; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -449,6 +459,8 @@ type
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
     property Loads: Loads read Get_Loads;
+    property ActiveDSSElement: IDSSElement read Get_ActiveDSSElement;
+    property ActiveCktElement: ICktElement read Get_ActiveCktElement;
   end;
 
 // *********************************************************************//
@@ -504,6 +516,11 @@ type
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
     property Loads: Loads readonly dispid 208;
+    function FirstElement: Integer; dispid 209;
+    function NextElement: Integer; dispid 210;
+    function SetActiveClass(const ClassName: WideString): Integer; dispid 211;
+    property ActiveDSSElement: IDSSElement readonly dispid 212;
+    property ActiveCktElement: ICktElement readonly dispid 213;
   end;
 
 // *********************************************************************//
@@ -1354,6 +1371,36 @@ type
   end;
 
 // *********************************************************************//
+// Interface: IDSSElement
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {C22D4922-6DC2-4283-93AB-4F2138C4B922}
+// *********************************************************************//
+  IDSSElement = interface(IDispatch)
+    ['{C22D4922-6DC2-4283-93AB-4F2138C4B922}']
+    function Get_Name: WideString; safecall;
+    function Get_Properties(Indx: OleVariant): IDSSProperty; safecall;
+    function Get_NumProperties: Integer; safecall;
+    function Get_AllPropertyNames: OleVariant; safecall;
+    property Name: WideString read Get_Name;
+    property Properties[Indx: OleVariant]: IDSSProperty read Get_Properties;
+    property NumProperties: Integer read Get_NumProperties;
+    property AllPropertyNames: OleVariant read Get_AllPropertyNames;
+  end;
+
+// *********************************************************************//
+// DispIntf:  IDSSElementDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {C22D4922-6DC2-4283-93AB-4F2138C4B922}
+// *********************************************************************//
+  IDSSElementDisp = dispinterface
+    ['{C22D4922-6DC2-4283-93AB-4F2138C4B922}']
+    property Name: WideString readonly dispid 201;
+    property Properties[Indx: OleVariant]: IDSSProperty readonly dispid 202;
+    property NumProperties: Integer readonly dispid 203;
+    property AllPropertyNames: OleVariant readonly dispid 204;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -1545,6 +1592,18 @@ type
     class function CreateRemote(const MachineName: string): ILoads;
   end;
 
+// *********************************************************************//
+// The Class CoDSSElement provides a Create and CreateRemote method to          
+// create instances of the default interface IDSSElement exposed by              
+// the CoClass DSSElement. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoDSSElement = class
+    class function Create: IDSSElement;
+    class function CreateRemote(const MachineName: string): IDSSElement;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1707,6 +1766,16 @@ end;
 class function CoLoads.CreateRemote(const MachineName: string): ILoads;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Loads) as ILoads;
+end;
+
+class function CoDSSElement.Create: IDSSElement;
+begin
+  Result := CreateComObject(CLASS_DSSElement) as IDSSElement;
+end;
+
+class function CoDSSElement.CreateRemote(const MachineName: string): IDSSElement;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_DSSElement) as IDSSElement;
 end;
 
 end.
