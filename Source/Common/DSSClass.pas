@@ -89,7 +89,7 @@ TYPE
 implementation
 
 
-USES DSSGlobals, SysUtils, DSSObject, ParserDel;
+USES DSSGlobals, SysUtils, DSSObject, ParserDel, CktElement;
 
 Constructor TDSSClass.Create;
 
@@ -293,6 +293,10 @@ begin
     ELSE Begin
       ActiveElement := 1;
       ActiveDSSObject := ElementList.First;
+      // Make sure Active Ckt Element agrees if is a ckt element
+      // So COM interface will work
+      if ActiveDSSObject is TDSSCktElement then
+         ActiveCircuit.ActiveCktElement := TDSSCktElement(ActiveDSSObject);
       Result := ActiveElement;
     End;
 end;
@@ -304,6 +308,10 @@ begin
     THEN Result := 0
     ELSE Begin
       ActiveDSSObject := ElementList.Next;
+      // Make sure Active Ckt Element agrees if is a ckt element
+      // So COM interface will work
+      if ActiveDSSObject is TDSSCktElement then
+         ActiveCircuit.ActiveCktElement := TDSSCktElement(ActiveDSSObject);
       Result := ActiveElement;
     End;
 
