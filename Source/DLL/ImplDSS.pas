@@ -36,6 +36,9 @@ type
     procedure Set_DataPath(const Value: WideString); safecall;
     procedure Reset; safecall;
     procedure Set_AllowForms(Value: WordBool); safecall;
+    function Get_DefaultEditor: WideString; safecall;
+    function Get_ActiveClass: IActiveClass; safecall;
+    function SetActiveClass(const ClassName: WideString): Integer; safecall;
   end;
 
 implementation
@@ -214,6 +217,34 @@ begin
 end;
 
 
+
+function TDSS.Get_DefaultEditor: WideString;
+begin
+     Result := DSSGlobals.DefaultEditor;
+end;
+
+function TDSS.Get_ActiveClass: IActiveClass;
+begin
+     Result := FActiveClass as IActiveClass;
+end;
+
+function TDSS.SetActiveClass(const ClassName: WideString): Integer;
+Var
+   DevClassIndex :Integer;
+
+begin
+     Result := 0;
+     DevClassIndex := ClassNames.Find(ClassName);
+     If DevClassIndex = 0 Then  Begin
+        DoSimplemsg('Error: Class ' + ClassName + ' not found.' , 5016);
+        Exit;
+     End;
+
+     LastClassReferenced := DevClassIndex;
+     ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+     Result := LastClassReferenced;
+
+end;
 
 initialization
 

@@ -145,6 +145,10 @@ BEGIN
        Begin
          ActiveElement := Value;
          ActiveDSSObject := ElementList.Get(ActiveElement);
+         // Make sure Active Ckt Element agrees if is a ckt element
+         // So COM interface will work
+         if ActiveDSSObject is TDSSCktElement then
+         ActiveCircuit.ActiveCktElement := TDSSCktElement(ActiveDSSObject);
        End;
 END;
 

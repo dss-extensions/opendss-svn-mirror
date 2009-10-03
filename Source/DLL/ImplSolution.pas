@@ -87,6 +87,8 @@ type
     procedure SampleControlDevices; safecall;
     function Get_Converged: WordBool; safecall;
     procedure Set_Converged(Value: WordBool); safecall;
+    function Get_Totaliterations: Integer; safecall;
+    function Get_MostIterationsDone: Integer; safecall;
   end;
 
 implementation
@@ -604,6 +606,21 @@ begin
      ActiveCircuit.Solution.ConvergedFlag := Value;
      ActiveCircuit.Issolved := Value;
    End;
+end;
+
+function TSolution.Get_Totaliterations: Integer;
+
+// Same as Iterations interface
+
+begin
+    If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.Iteration
+     Else Result := 0;
+end;
+
+function TSolution.Get_MostIterationsDone: Integer;
+begin
+   If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.MostIterationsDone
+     Else Result := 0;
 end;
 
 initialization

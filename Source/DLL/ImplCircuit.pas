@@ -70,6 +70,7 @@ type
     function NextElement: Integer; safecall;
     function Get_ActiveCktElement: ICktElement; safecall;
     function Get_ActiveDSSElement: IDSSElement; safecall;
+    function Get_ActiveClass: IActiveClass; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -936,7 +937,7 @@ Var
    DevClassIndex :Integer;
 
 begin
-
+     Result := 0;
      DevClassIndex := ClassNames.Find(ClassName);
      If DevClassIndex = 0 Then  Begin
         DoSimplemsg('Error: Class ' + ClassName + ' not found.' , 5016);
@@ -945,6 +946,7 @@ begin
 
      LastClassReferenced := DevClassIndex;
      ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+     Result := LastClassReferenced;
 end;
 
 function TCircuit.FirstElement: Integer;
@@ -983,6 +985,11 @@ end;
 function TCircuit.Get_ActiveDSSElement: IDSSElement;
 begin
     Result := FDSSElement as IDSSElement;
+end;
+
+function TCircuit.Get_ActiveClass: IActiveClass;
+begin
+    Result := FActiveClass as IActiveClass;
 end;
 
 initialization

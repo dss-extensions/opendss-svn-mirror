@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 10/1/2009 9:57:48 PM from Type Library described below.
+// File generated on 10/2/2009 5:00:41 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -80,6 +80,8 @@ const
   CLASS_Loads: TGUID = '{1302A34B-A554-4C32-BCED-4AF0A94FF114}';
   IID_IDSSElement: TGUID = '{C22D4922-6DC2-4283-93AB-4F2138C4B922}';
   CLASS_DSSElement: TGUID = '{09D4B4AB-DF58-4F8F-A3F0-72F32830B337}';
+  IID_IActiveClass: TGUID = '{8E73B64C-0D99-4D19-AB90-170DBBD06FA0}';
+  CLASS_ActiveClass: TGUID = '{2A02BB33-50A4-4C87-86E0-59EF7738F86C}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -175,6 +177,8 @@ type
   ILoadsDisp = dispinterface;
   IDSSElement = interface;
   IDSSElementDisp = dispinterface;
+  IActiveClass = interface;
+  IActiveClassDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -197,6 +201,7 @@ type
   CtrlQueue = ICtrlQueue;
   Loads = ILoads;
   DSSElement = IDSSElement;
+  ActiveClass = IActiveClass;
 
 
 // *********************************************************************//
@@ -425,6 +430,7 @@ type
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_ActiveDSSElement: IDSSElement; safecall;
     function Get_ActiveCktElement: ICktElement; safecall;
+    function Get_ActiveClass: IActiveClass; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -461,6 +467,7 @@ type
     property Loads: Loads read Get_Loads;
     property ActiveDSSElement: IDSSElement read Get_ActiveDSSElement;
     property ActiveCktElement: ICktElement read Get_ActiveCktElement;
+    property ActiveClass: IActiveClass read Get_ActiveClass;
   end;
 
 // *********************************************************************//
@@ -521,6 +528,7 @@ type
     function SetActiveClass(const ClassName: WideString): Integer; dispid 211;
     property ActiveDSSElement: IDSSElement readonly dispid 212;
     property ActiveCktElement: ICktElement readonly dispid 213;
+    property ActiveClass: IActiveClass readonly dispid 214;
   end;
 
 // *********************************************************************//
@@ -550,6 +558,7 @@ type
     function Get_y: Double; safecall;
     procedure Set_y(Value: Double); safecall;
     function Get_Distance: Double; safecall;
+    function GetUniqueNodeNumber(StartNumber: Integer): Integer; safecall;
     property Name: WideString read Get_Name;
     property NumNodes: Integer read Get_NumNodes;
     property Voltages: OleVariant read Get_Voltages;
@@ -594,6 +603,7 @@ type
     property x: Double dispid 202;
     property y: Double dispid 203;
     property Distance: Double readonly dispid 204;
+    function GetUniqueNodeNumber(StartNumber: Integer): Integer; dispid 205;
   end;
 
 // *********************************************************************//
@@ -623,6 +633,9 @@ type
     procedure Reset; safecall;
     function Get_AllowForms: WordBool; safecall;
     procedure Set_AllowForms(Value: WordBool); safecall;
+    function Get_DefaultEditor: WideString; safecall;
+    function Get_ActiveClass: IActiveClass; safecall;
+    function SetActiveClass(const ClassName: WideString): Integer; safecall;
     property NumCircuits: Integer read Get_NumCircuits;
     property Circuits[Idx: OleVariant]: ICircuit read Get_Circuits;
     property ActiveCircuit: ICircuit read Get_ActiveCircuit;
@@ -636,6 +649,8 @@ type
     property NumUserClasses: Integer read Get_NumUserClasses;
     property DataPath: WideString read Get_DataPath write Set_DataPath;
     property AllowForms: WordBool read Get_AllowForms write Set_AllowForms;
+    property DefaultEditor: WideString read Get_DefaultEditor;
+    property ActiveClass: IActiveClass read Get_ActiveClass;
   end;
 
 // *********************************************************************//
@@ -663,6 +678,9 @@ type
     property DataPath: WideString dispid 17;
     procedure Reset; dispid 18;
     property AllowForms: WordBool dispid 20;
+    property DefaultEditor: WideString readonly dispid 201;
+    property ActiveClass: IActiveClass readonly dispid 202;
+    function SetActiveClass(const ClassName: WideString): Integer; dispid 203;
   end;
 
 // *********************************************************************//
@@ -745,6 +763,8 @@ type
     function Get_SystemYChanged: WordBool; safecall;
     function Get_Converged: WordBool; safecall;
     procedure Set_Converged(Value: WordBool); safecall;
+    function Get_Totaliterations: Integer; safecall;
+    function Get_MostIterationsDone: Integer; safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -778,6 +798,8 @@ type
     property MaxControlIterations: Integer read Get_MaxControlIterations write Set_MaxControlIterations;
     property SystemYChanged: WordBool read Get_SystemYChanged;
     property Converged: WordBool read Get_Converged write Set_Converged;
+    property Totaliterations: Integer read Get_Totaliterations;
+    property MostIterationsDone: Integer read Get_MostIterationsDone;
   end;
 
 // *********************************************************************//
@@ -833,6 +855,8 @@ type
     procedure BuildYMatrix(BuildOption: Integer; AllocateVI: Integer); dispid 217;
     property SystemYChanged: WordBool readonly dispid 218;
     property Converged: WordBool dispid 219;
+    property Totaliterations: Integer readonly dispid 220;
+    property MostIterationsDone: Integer readonly dispid 221;
   end;
 
 // *********************************************************************//
@@ -1401,6 +1425,43 @@ type
   end;
 
 // *********************************************************************//
+// Interface: IActiveClass
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {8E73B64C-0D99-4D19-AB90-170DBBD06FA0}
+// *********************************************************************//
+  IActiveClass = interface(IDispatch)
+    ['{8E73B64C-0D99-4D19-AB90-170DBBD06FA0}']
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_NumElements: Integer; safecall;
+    function Get_ActiveClassName: WideString; safecall;
+    property AllNames: OleVariant read Get_AllNames;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property Name: WideString read Get_Name write Set_Name;
+    property NumElements: Integer read Get_NumElements;
+    property ActiveClassName: WideString read Get_ActiveClassName;
+  end;
+
+// *********************************************************************//
+// DispIntf:  IActiveClassDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {8E73B64C-0D99-4D19-AB90-170DBBD06FA0}
+// *********************************************************************//
+  IActiveClassDisp = dispinterface
+    ['{8E73B64C-0D99-4D19-AB90-170DBBD06FA0}']
+    property AllNames: OleVariant readonly dispid 201;
+    property First: Integer readonly dispid 202;
+    property Next: Integer readonly dispid 203;
+    property Name: WideString dispid 204;
+    property NumElements: Integer readonly dispid 205;
+    property ActiveClassName: WideString readonly dispid 206;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -1604,6 +1665,18 @@ type
     class function CreateRemote(const MachineName: string): IDSSElement;
   end;
 
+// *********************************************************************//
+// The Class CoActiveClass provides a Create and CreateRemote method to          
+// create instances of the default interface IActiveClass exposed by              
+// the CoClass ActiveClass. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoActiveClass = class
+    class function Create: IActiveClass;
+    class function CreateRemote(const MachineName: string): IActiveClass;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1776,6 +1849,16 @@ end;
 class function CoDSSElement.CreateRemote(const MachineName: string): IDSSElement;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DSSElement) as IDSSElement;
+end;
+
+class function CoActiveClass.Create: IActiveClass;
+begin
+  Result := CreateComObject(CLASS_ActiveClass) as IActiveClass;
+end;
+
+class function CoActiveClass.CreateRemote(const MachineName: string): IActiveClass;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_ActiveClass) as IActiveClass;
 end;
 
 end.

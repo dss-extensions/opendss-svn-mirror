@@ -147,7 +147,8 @@ uses
   DSSClassDefs in '..\Common\DSSClassDefs.pas',
   NamedObject in '..\General\NamedObject.pas',
   LineCode in '..\General\LineCode.pas',
-  ImplDSSElement in 'ImplDSSElement.pas' {DSSElement: CoClass};
+  ImplDSSElement in 'ImplDSSElement.pas' {DSSElement: CoClass},
+  ImplActiveClass in 'ImplActiveClass.pas' {ActiveClass: CoClass};
 
 exports
   DllGetClassObject,

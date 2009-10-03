@@ -31,6 +31,7 @@ Uses
        ImplLines,
        ImplCtrlQueue,
        ImplLoads,
+       ImplActiveClass,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -54,6 +55,7 @@ Var
    FLines       :ILines;
    FCtrlQueue   :ICtrlQueue;
    FLoads       :ILoads;
+   FActiveClass :IActiveClass;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -94,6 +96,7 @@ Begin
      FLines       := TLines.Create;
      FCtrlQueue   := TCtrlQueue.Create;
      FLoads       := TLoads.Create;
+     FActiveClass := TActiveClass.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

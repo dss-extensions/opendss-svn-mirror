@@ -34,12 +34,13 @@ type
     function Get_y: Double; safecall;
     procedure Set_y(Value: Double); safecall;
     function Get_Distance: Double; safecall;
+    function GetUniqueNodeNumber(StartNumber: Integer): Integer; safecall;
   end;
 
 implementation
 
 uses ComServ, DSSGlobals, ImplGlobals, Circuit, Ucomplex, MathUtil, sysutils,
-     ExecHelper, SolutionAlgs, Variants;
+     ExecHelper, SolutionAlgs, Variants, Utilities;
 
 function TBus.Get_Name: WideString;
 begin
@@ -473,6 +474,15 @@ begin
      With ActiveCircuit Do
       IF ((ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses)) Then
         Result := Buses^[ActiveBusIndex].DistFromMeter;
+end;
+
+function TBus.GetUniqueNodeNumber(StartNumber: Integer): Integer;
+begin
+    if ActiveCircuit <> Nil then
+    With ActiveCircuit Do
+
+    if ActiveBusIndex > 0 then
+      Result := Utilities.GetUniqueNodeNumber(BusList.Get(ActiveBusIndex), StartNumber);
 end;
 
 initialization

@@ -166,6 +166,9 @@
     <DCCReference Include="..\Shared\StackDef.pas" />
     <DCCReference Include="..\Shared\Ucmatrix.pas" />
     <DCCReference Include="..\Shared\Ucomplex.pas" />
+    <DCCReference Include="ImplActiveClass.pas">
+      <CoClasses>ActiveClass</CoClasses>
+    </DCCReference>
     <DCCReference Include="ImplBus.pas">
       <CoClasses>Bus</CoClasses>
     </DCCReference>
