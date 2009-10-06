@@ -1945,7 +1945,7 @@ Begin
 
    EXCEPT
      ON E: Exception Do
-        DoErrorMsg('Load Object: "' + Name + '" in GetInjCurrents function.',
+        DoErrorMsg('Generator Object: "' + Name + '" in GetInjCurrents function.',
                     E.Message,
                    'Current buffer not big enough.', 568);
    End;
