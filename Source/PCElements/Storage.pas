@@ -21,14 +21,10 @@ unit Storage;
 
 //  The Storage element is assumed balanced over the no. of phases defined
 
-// If you do not specify load shapes defaults are:
-//    Yearly:  Defaults to No variation (i.e. multiplier = 1.0 always)
-//    Daily:   Defaults to No variation
-//    Dutycycle: Defaults to Daily shape
 
 interface
 
-USES  StoreUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadShape, GrowthShape, Spectrum, ArrayDef, Dynamics;
+USES  StoreUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadShape, Spectrum, ArrayDef, Dynamics;
 
 //**** DEFINE REGISTERS AND VARIABLES
 
@@ -72,31 +68,39 @@ TYPE
         DebugTrace      :Boolean;
         DeltaQMax       :Double;  // Max allowable var change on Model=3 per iteration
         DispatchMode    :Integer;
-        DispatchValue   :Double;
-        FForcedON       :Boolean;
+        FState          :Integer;
+        FStateChanged   :Boolean;
         FirstSampleAfterReset  :Boolean;
-        Fixed           :Boolean;   // if Fixed, always at base value
-        StorageSolutionCount    :Integer;
-        StorageFundamental  :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
-        StoreON           :Boolean;           {Indicates whether generator is currently on}
+        StorageSolutionCount   :Integer;
+        StorageFundamental     :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         StorageObjSwitchOpen   :Boolean;
 
         kVANotSet       :Boolean;
         kVArating       :Double;
         kVStorageBase   :Double;
-
+        kWrating        :double;
         kWhRating       :Double;
         kWhStored       :Double;
         kWhReserve      :Double;
+        pctReserve      :Double;
+        pctIdlekW       :Double;
+        pctIdlekvar     :Double;
+        YeqIdling       :Complex;   // in shunt representing idle impedance
+        pctChargeEff    :Double;
+        pctDischargeEff :Double;
+        pctPower        :Double;   // percent of kW rated output currently dispatched
+        DischargeTrigger:Double;
+        ChargeTrigger   :Double;
+
+
         pctR            :Double;
         pctX            :Double;
 
-        LastGrowthFactor :Double;
-        LastYear         :Integer;   // added for speedup so we don't have to search for growth factor a lot
         OpenStorageSolutionCount :Integer;
         Pnominalperphase :Double;
         Qnominalperphase :Double;
         RandomMult      :Double;
+
         Reg_Hours       :Integer;
         Reg_kvarh       :Integer;
         Reg_kWh         :Integer;
@@ -105,8 +109,8 @@ TYPE
         Reg_Price       :Integer;
         ShapeFactor     :Complex;
         Thetaharm       :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
-        Tracefile       : TextFile;
-        UserModel       : TStoreUserModel;   {User-Written Models}
+        Tracefile       :TextFile;
+        UserModel       :TStoreUserModel;   {User-Written Models}
 
         varBase         :Double; // Base vars per phase
         VBase           :Double;  // Base volts suitable for computing currents
@@ -117,8 +121,10 @@ TYPE
         Vthev           :Complex;  {Thevinen equivalent voltage (complex) for dynamic model}
         Vthevharm       :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         VthevMag        :Double;    {Thevinen equivalent voltage for dynamic model}
-        YPrimOpenCond   :TCmatrix;  // To handle cases where one conductor of load is open ; We revert to admittance for inj currents
-        YQFixed         :Double;  // Fixed value of y for type 7 load
+        YPrimOpenCond   :TCmatrix;
+        RThev           :Double;
+        XThev           :Double;
+
 
         PROCEDURE CalcDailyMult(Hr:double);
         PROCEDURE CalcDutyMult(Hr:double);
@@ -143,6 +149,11 @@ TYPE
         Procedure WriteTraceRecord(const s:string);
 
         procedure SyncUpPowerQuantities;
+        Procedure SetkWBaseandkvarBase;
+        Procedure CheckStateTriggerLevel(Level:Double);
+
+        Function InterpretState(const S:String):Integer;
+        Function DecodeState:String;
 
         Function Get_PresentkW:Double;
         Function Get_Presentkvar:Double;
@@ -209,7 +220,6 @@ TYPE
 
        Property PresentkW    :Double  Read Get_PresentkW   Write Set_PresentkW;
        Property Presentkvar  :Double  Read Get_Presentkvar Write Set_Presentkvar;
-       Property ForcedON     :Boolean Read FForcedON       Write FForcedON;
        Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
 
@@ -242,23 +252,23 @@ Const
   propDAILY      =  8;
   propDUTY       =  9;
   propDISPMODE   = 10;
-  prop11         = 11;
+  propIDLEKVAR   = 11;
   propCONNECTION = 12;
   propKVAR       = 13;
   propPCTR       = 14;
   propPCTX       = 15;
-  prop16         = 16;
+  propIDLEKW     = 16;
   propCLASS      = 17;
-  propDISPOUTVAL = 18;
-  propDISPINVAL  = 19;
-  prop20         = 20;
-  prop21         = 21;
-  prop22         = 22;
+  propDISPOUTTRIG= 18;
+  propDISPINTRIG = 19;
+  propCHARGEEFF  = 20;
+  propDISCHARGEEFF = 21;
+  propPCTPOWER   = 22;
   propVMINPU     = 23;
   propVMAXPU     = 24;
-  propFORCEDON   = 25;
+  propSTATE      = 25;
   propKVA        = 26;
-  propMVA        = 27;
+  propKWRATED    = 27;
   propKWHRATED   = 28;
   propKWHSTORED  = 29;
   propPCTRESERVE = 30;      
@@ -267,6 +277,10 @@ Const
   propDEBUGTRACE = 33;
 
   NumPropsThisClass = 33; // Make this agree with the last property constant
+
+  STATE_CHARGING    = -1;
+  STATE_IDLING      =  0;
+  STATE_DISCHARGING =  1;
 
 
 //**** DEFINE DISPATCH MODES
@@ -280,11 +294,11 @@ Var cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase generat
     CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-constructor TStorage.Create;  // Creates superstructure for all Line objects
+constructor TStorage.Create;  // Creates superstructure for all Storage elements
 Begin
      Inherited Create;
-     Class_Name := 'Generator';
-     DSSClassType := DSSClassType + GEN_ELEMENT;  // In both PCelement and Genelement list
+     Class_Name := 'Storage';
+     DSSClassType := DSSClassType + STORAGE_ELEMENT;  // In both PCelement and Genelement list
 
      ActiveElement := 0;
 
@@ -331,27 +345,28 @@ Begin
      AddProperty('phases', 1, 'Number of Phases, this Storage element.  Power is evenly divided among phases.');
      AddProperty('bus1',   2, 'Bus to which the Storage element is connected.  May include specific node specification.');
      AddProperty('kv',        propKV,
-                              'Nominal rated (1.0 per unit) voltage, kV, for Storage element. For 2- and 3-phase Generators, specify phase-phase kV. '+
+                              'Nominal rated (1.0 per unit) voltage, kV, for Storage element. For 2- and 3-phase Storage elements, specify phase-phase kV. '+
                               'Otherwise, specify actual kV across each branch of the Storage element. '+
                               'If wye (star), specify phase-neutral kV. '+
                               'If delta or phase-phase connected, specify phase-phase kV.');  // line-neutral voltage//  base voltage
      AddProperty('kW',        propKW,
-                              'Total base kW for the Generator.  A positive value denotes power coming OUT of the element, '+CRLF+
-                              'which is the opposite of a load. This value is modified depending on the dispatch mode. ' +
-                              'Unaffected by the global load multiplier and growth curves. ' +
-                              'If you want there to be more generation, you must add more generators or change this value.');
+                              'Get/set the present kW value.  A positive value denotes power coming OUT of the element, '+CRLF+
+                              'which is the opposite of a Load element. A negative value indicates the Storage element is in Charging state. ' +
+                              'This value is modified internally depending on the dispatch mode. ' );
      AddProperty('pf',        propPF,
-                              'Generator power factor. Default is 0.80. Enter negative for leading powerfactor '+
+                              'Nominally, the power factor for discharging (acting as a generator). Default is 1.0. ' +
+                              'Setting this property will also set the kvar property.' +
+                              'Enter negative for leading powerfactor '+
                               '(when kW and kvar have opposite signs.)'+CRLF+
                               'A positive power factor for a generator signifies that the Storage element produces vars ' + CRLF +
                               'as is typical for a generator.  ');
      AddProperty('kvar',      propKVAR,
-                              'Specify the base kvar.  Alternative to specifying the power factor.  Side effect: '+
+                              'Get/set the present kW value.  Alternative to specifying the power factor.  Side effect: '+
                               ' the power factor value is altered to agree based on present value of kW.');
      AddProperty('kVA',       propKVA,
-                              'kVA rating of power output. Defaults to 1.0* kW if not specified.');
-     AddProperty('MVA',       propMVA,
-                              'MVA rating of power output.  Alternative to using kVA=.');
+                              'kVA rating of power output. Defaults to rated kW. Used as the base for Dynamics mode and Harmonics mode values.');
+     AddProperty('kWrated',   propKWRATED,
+                              'kW rating of power output. Side effect: Set KVA property.');
 
      AddProperty('kWhrated',  propKWHRATED,
                               'Rated storage capacity in kWh. Default is 50.');
@@ -359,11 +374,26 @@ Begin
                               'Present amount of energy stored, kWh. Default is 50.');
      AddProperty('%reserve',  propPCTRESERVE,
                               'Percent of rated kWh storage capacity to be held in reserve for normal operation. Default = 20. ' + CRLF +
-                              'This is treated as the minimum energy discharge level unless there is an emergency.');
+                              'This is treated as the minimum energy discharge level unless there is an emergency. For emergency operation ' +
+                              'set this property lower. Cannot be less than zero.');
+     AddProperty('%EffCharge',propCHARGEEFF,
+                              'Percent efficiency for CHARGING the storage element. Default = 90.');
+     AddProperty('%EffDischarge',propDISCHARGEEFF,
+                              'Percent efficiency for DISCHARGING the storage element. Default = 90.' +
+                              'Idling losses are handled by %IdlingkW property and are in addition to the charging and discharging efficiency losses ' +
+                              'in the power conversion process inside the unit.');
+     AddProperty('%IdlingkW', propIDLEKW,
+                              'Percent of rated kW consumed while idling. Default = 1.');
+     AddProperty('%Idlingkvar', propIDLEKVAR,
+                              'Percent of rated kW consumed as reactive power (kvar) while idling. Default = 0.');
      AddProperty('%R',        propPCTR,
-                              'Equivalent percent internal resistance, ohms. Default is 0.');
+                              'Equivalent percent internal resistance, ohms. Default is 0. Placed in series with internal voltage source' +
+                              ' for harmonics and dynamics modes. Use a combination of %IdlekW and %EffCharge and %EffDischarge to account for ' +
+                              'losses in power flow modes.');
      AddProperty('%X',        propPCTX,
-                              'Equivalent percent internal reactance, ohms. Default is 50%. (Limits fault current to 2 pu.');
+                              'Equivalent percent internal reactance, ohms. Default is 50%. Placed in series with internal voltage source' +
+                              ' for harmonics and dynamics modes. (Limits fault current to 2 pu.) ' +
+                              'Use %Idlekvar and kvar properties to account for any reactive power during power flow solutions.');
      AddProperty('model',     propMODEL,
                               'Integer code for the model to use for powet output variation with voltage. '+
                               'Valid values are:' +CRLF+CRLF+
@@ -379,39 +409,33 @@ Begin
                                  'Above this value, the load model reverts to a constant impedance model.');
      AddProperty('yearly',       propYEARLY,
                                  'Dispatch shape to use for yearly simulations.  Must be previously defined '+
-                                 'as a Loadshape object. If this is not specified, the daily dispatch shape is repeated. '+
-                                 'If the Storage element is assumed to be ON continuously, specify this value as FIXED, or '+
-                                 'designate a curve that is 1.0 per unit at all times. '+
-                                 'Nominally for 8760 simulations.  If there are fewer points in the designated shape than '+
-                                 'the number of points in the solution, the curve is repeated.');
+                                 'as a Loadshape object. If this is not specified, the Daily dispatch shape, if any, is repeated '+
+                                 'during Yearly solution modes. In the default dispatch mode, ' +
+                                 'the Storage element uses this loadshape to trigger State changes.');
      AddProperty('daily',        propDAILY,
                                  'Dispatch shape to use for daily simulations.  Must be previously defined '+
-                                 'as a Loadshape object of 24 hrs, typically.  If Storage element is assumed to be '+
-                                 'ON continuously, specify this value as FIXED, or designate a Loadshape object'+
-                                 'that is 1.0 perunit for all hours.'); // daily dispatch (hourly)
+                                 'as a Loadshape object of 24 hrs, typically.  In the default dispatch mode, '+
+                                 'the Storage element uses this loadshape to trigger State changes.'); // daily dispatch (hourly)
      AddProperty('duty',          propDUTY,
-                                  'Load shape to use for duty cycle dispatch simulations such as for wind generation. ' +
+                                 'Load shape to use for duty cycle dispatch simulations such as for solar ramp rate studies. ' +
                                  'Must be previously defined as a Loadshape object. '+
-                                 'Typically would have time intervals less than 1 hr -- perhaps, in seconds. '+
+                                 'Typically would have time intervals of 1-5 seconds. '+
                                  'Designate the number of points to solve using the Set Number=xxxx command. '+
                                  'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
      AddProperty('dispmode',     propDISPMODE,
-                                 '{Default | Loadlevel | Price } Default = Default. Dispatch mode. '+
-                                 'In default mode, Storage element is either always on or follows dispatch curve as specified. '+
-                                 'Otherwise, the Storage element comes on when either the global default load level or the price level '+
-                                 'exceeds the dispatch value.'); // = 0 | >0
-     AddProperty('dispoutvalue', propDISPOUTVAL,
+                                 '{Default | Loadlevel | Price } Default = "Default". Dispatch mode. '+
+                                 'In Default mode, Storage element state is triggered by the loadshape curve corresponding to the solution mode. '+
+                                 'For the other two dispatch modes, the Storage element state is controlled by either the global default Loadlevel value or the price level. ');
+     AddProperty('dischargetrigger', propDISPOUTTRIG,
                                  'Dispatch trigger value for discharging the storage. '+CRLF+
-                                 'If = 0.0 Then Storage element follow dispatch curves, if any. ' +CRLF+
-                                 'If > 0  Then Storage element is ON only when either the price signal exceeds this value or the load multiplier '+
-                                 '(set loadmult=) times the default yearly growth factor ' +
-                                 'exceeds this value.  Then the Storage element follows dispatch curves, if any (see also Status).');  // = 0 | >0
-     AddProperty('dispinvalue', propDISPINVAL,
-                                ' Dispatch trigger value for charging the storage. '+CRLF+
-                                'If = 0.0 Then Storage element follow dispatch curves, if any. ' +CRLF+
-                                'If > 0  Then Storage element is ON only when either the price signal exceeds this value or the load multiplier '+
-                                '(set loadmult=) times the default yearly growth factor ' +
-                                'exceeds this value.  Then the Storage element follows dispatch curves, if any (see also Status).');  // = 0 | >0
+                                 'If = 0.0 the Storage element state is changed by the State command or by a StorageController object. ' +CRLF+
+                                 'If <> 0  the Storage element state is set to DISCHARGING when this trigger level is EXCEEDED by either the specified ' +
+                                 'Loadshape curve value or the price signal or global Loadlevel value, depending on dispatch mode. See State property.');
+     AddProperty('Chargetrigger', propDISPINTRIG,
+                                 'Dispatch trigger value for charging the storage. '+CRLF+
+                                 'If = 0.0 the Storage element state is changed by the State command or StorageController object.  ' +CRLF+
+                                 'If <> 0  the Storage element state is set to CHARGING when this trigger level is GREATER than either the specified ' +
+                                 'Loadshape curve value or the price signal or global Loadlevel value, depending on dispatch mode. See State property.');
      AddProperty('conn',        propCONNECTION,
                                 '={wye|LN|delta|LL}.  Default is wye.');
 
@@ -419,9 +443,14 @@ Begin
                                 'An arbitrary integer number representing the class of Generator so that Generator values may '+
                                 'be segregated by class.'); // integer
 
-     AddProperty('forceon',     propFORCEDON,
-                                '{Yes | No}  Forces Storage element ON despite requirements of other dispatch modes. ' +
-                                'Stays ON until this property is set to NO, or an internal algorithm cancels the forced ON state.');
+     AddProperty('State',       propSTATE,
+                                '{IDLING | CHARGING | DISCHARGING}  Get/Set present operational state. In DISCHARGING mode, the Storage element ' +
+                                'acts as a generator and the kW property is positive. The element continues discharging at the scheduled output power level ' +
+                                'until the storage reaches the reserve value. Then the state reverts to IDLING. ' +
+                                'In the CHARGING state, the Storage element behaves like a Load and the kW property is negative. ' +
+                                'The element continues to charge until the max storage kWh is reached and then switches to IDLING state. ' +
+                                'In IDLING state, the kW property shows zero. However, the resistive and reactive loss elements remain in the circuit ' +
+                                'and the power flow report will show power being consumed.');
      AddProperty('UserModel',   propUSERMODEL,
                                 'Name of DLL containing user-written model, which computes the terminal currents for Dynamics studies, ' +
                                 'overriding the default model.  Set to "none" to negate previous setting.');
@@ -529,7 +558,7 @@ End;
 
 Function TStorage.Edit:Integer;
 VAR
-   i,
+   i, iCase,
    ParamPointer:Integer;
    ParamName:String;
    Param:String;
@@ -557,8 +586,9 @@ Begin
          Then PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
          ELSE DoSimpleMsg('Unknown parameter "'+ParamName+'" for Generator "'+Name+'"', 560);
 
-         If ParamPointer > 0 Then
-         CASE PropertyIdxMap[ParamPointer] OF
+         If ParamPointer > 0 Then Begin
+         iCase := PropertyIdxMap[ParamPointer];
+         CASE iCASE OF
             0               : DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
             1               : NPhases    := Parser.Intvalue; // num phases
             2               : SetBus(1, param);
@@ -570,26 +600,26 @@ Begin
            propDAILY        : DailyShape  := Param;
            propDUTY         : DutyShape     := Param;
            propDISPMODE     : DispatchMode  := InterpretDispMode(Param);
-           prop11           : ;
+           propIDLEKVAR     : pctIdlekvar   := Parser.DblValue;
            propCONNECTION   : InterpretConnection(Param);
            propKVAR         : Presentkvar   := Parser.DblValue;
            propPCTR         : pctR          := Parser.DblValue;
            propPCTX         : pctX          := Parser.DblValue;
-           prop16           : ;
+           propIDLEKW       : pctIdlekW     := Parser.DblValue;
            propCLASS        : StorageClass  := Parser.IntValue;
-           propDISPOUTVAL   : ; //**** DispatchValue := Parser.DblValue;
-           propDISPINVAL    : ;
-           prop20           : ;
-           prop21           : ;
-           prop22           : ;
+           propDISPOUTTRIG  : DischargeTrigger := Parser.DblValue;
+           propDISPINTRIG   : ChargeTrigger    := Parser.DblValue;
+           propCHARGEEFF    : pctChargeEff     := Parser.DblValue;
+           propDISCHARGEEFF : pctDischargeEff   := Parser.DblValue;
+           propPCTPOWER     : pctPower     := Parser.DblValue;
            propVMINPU       : VMinPu       := Parser.DblValue;
            propVMAXPU       : VMaxPu       := Parser.DblValue;
-           propFORCEDON     : FForcedON     := InterpretYesNo(Param);
+           propSTATE        : FState       := InterpretState(Param); //****
            propKVA          : kVArating    := Parser.DblValue;
-           propMVA          : kVArating    := Parser.DblValue * 1000.0;  // 'MVA';
+           propKWRATED      : kwrating      := Parser.DblValue ;
            propKWHRATED     : kWhrating    := Parser.DblValue;
            propKWHSTORED    : kWhstored    := Parser.DblValue;
-           propPCTRESERVE   : kWhReserve    := Parser.DblValue;
+           propPCTRESERVE   : pctReserve    := Parser.DblValue;
            propUSERMODEL    : UserModel.Name := Parser.StrValue;  // Connect to user written models
            propUSERDATA     : UserModel.Edit := Parser.StrValue;  // Send edit string to user model
            propDEBUGTRACE   : DebugTrace   := InterpretYesNo(Param);
@@ -600,8 +630,7 @@ Begin
              ClassEdit(ActiveStorageObj, ParamPointer - NumPropsThisClass)
          End;
 
-         If ParamPointer > 0 Then
-         CASE PropertyIdxMap[ParamPointer] OF
+         CASE iCase OF
             1: SetNcondsForConnection;  // Force Reallocation of terminal info
             propKW,propPF: SyncUpPowerQuantities;   // keep kvar nominal up to date with kW and PF
 
@@ -609,6 +638,7 @@ Begin
             propYEARLY: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
             propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
             propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
+            propKWRATED:  kVArating := kWrating;
 
 //****    WHAT GOES IN TRACE FILE?
             propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
@@ -623,7 +653,8 @@ Begin
                    CloseFile(Tracefile);
                 End;
 //**** Is this needed?
-            propKVA, propMVA: kVANotSet := FALSE;
+            propKVA: kVANotSet := FALSE;
+         End;
          End;
 
          ParamName := Parser.NextParam;
@@ -677,19 +708,25 @@ Begin
        DutyShape      := OtherStorageObj.DutyShape;
        DutyShapeObj   := OtherStorageObj.DutyShapeObj;
        DispatchMode   := OtherStorageObj.DispatchMode;
-//****       DispatchValue  := OtherStorageObj.DispatchValue;
        StorageClass   := OtherStorageObj.StorageClass;
        StorageModel   := OtherStorageObj.StorageModel;
-       Fixed          := OtherStorageObj.Fixed;
 
-       FForcedON      := OtherStorageObj.FForcedON;
+       Fstate         := OtherStorageObj.Fstate;
        kVANotSet      := OtherStorageObj.kVANotSet;
 
        kVArating      := OtherStorageObj.kVArating;
 
+       kWRating        := OtherStorageObj.kWRating;
        kWhRating       := OtherStorageObj.kWhRating;
        kWhStored       := OtherStorageObj.kWhStored;
-       kWhReserve      := OtherStorageObj.kWhReserve;  // per unit of kWhRating
+       kWhReserve      := OtherStorageObj.kWhReserve;
+       pctReserve      := OtherStorageObj.pctReserve;
+       DischargeTrigger := OtherStorageObj.DischargeTrigger;
+       ChargeTrigger    := OtherStorageObj.ChargeTrigger;
+       pctChargeEff     := OtherStorageObj.pctChargeEff;
+       pctDischargeEff  := OtherStorageObj.pctDischargeEff;
+       pctPower         := OtherStorageObj.pctPower;
+
        pctR            := OtherStorageObj.pctR;
        pctX            := OtherStorageObj.pctX;
 
@@ -777,24 +814,17 @@ Begin
      Fnconds      := 4;  // defaults to wye
      Yorder       := 0;  // To trigger an initial allocation
      Nterms       := 1;  // forces allocations
-     kWBase       := 1000.0;
-     kvarBase     := 60.0;
-
-
-     PFNominal    := 0.88;
 
      YearlyShape       := '';
      YearlyShapeObj    := nil;  // if YearlyShapeobj = nil then the load alway stays nominal * global multipliers
-     DailyShape    := '';
-     DailyShapeObj := nil;  // if DaillyShapeobj = nil then the load alway stays nominal * global multipliers
+     DailyShape        := '';
+     DailyShapeObj     := nil;  // if DaillyShapeobj = nil then the load alway stays nominal * global multipliers
      DutyShape         := '';
      DutyShapeObj      := nil;  // if DutyShapeobj = nil then the load alway stays nominal * global multipliers
      Connection        := 0;    // Wye (star)
 //**** CHANGE THE NAME OF STORAGEMODEL
      StorageModel      := 1;  {Typical fixed kW negative load}
      StorageClass      := 1;
-     LastYear          := 0;
-     LastGrowthFactor  := 1.0;
 
      StorageSolutionCount     := -1;  // For keep track of the present solution in Injcurrent calcs
      OpenStorageSolutionCount := -1;
@@ -808,22 +838,32 @@ Begin
      VBase105         := Vmaxpu * Vbase;
      Yorder           := Fnterms * Fnconds;
      RandomMult       := 1.0 ;
-     Fixed            := FALSE;
 
-     
+      {Output rating stuff}
+     kWBase       := 25.0;
+     kvarBase     := 0.0;
+     PFNominal    := 1.0;
+     kWRating     := 25.0;
+     kVArating    := kWRating *1.0;
+
+     FState           := STATE_IDLING;  // Idling and fully charged
+     FStateChanged    := TRUE;  // Force building of YPrim
      kWhRating       := 50;
      kWhStored       := 50;
-     kWhReserve      := 0.2;  // per unit of kWhRating
+     pctReserve      := 20.0;  // per cent of kWhRating
+     kWhReserve      := kWhRating * pctReserve /100.0;
      pctR            := 0.0;;
      pctX            := 50.0;
 
-     {Output rating stuff}
-     kVArating  := kWBase *1.0;
-     kVANotSet   := TRUE;  // Flag for default value for kVA
+     DischargeTrigger := 0.0;
+     ChargeTrigger    := 0.0;
+     pctChargeEff     := 90.0;
+     pctDischargeEff  := 90.0;
+     pctPower         := 100.0;
+
+     kVANotSet    := TRUE;  // Flag for default value for kVA
      
 //**** ?????     UserModel  := TStoreUserModel.Create(@StoreVars) ;
-
-     DispatchValue    := 0.0;   // Follow curves
 
      Reg_kWh    := 1;
      Reg_kvarh  := 2;
@@ -833,11 +873,10 @@ Begin
      Reg_Price  := 6;
 
      DebugTrace := FALSE;
-     FForcedON := FALSE;
      StorageObjSwitchOpen := FALSE;
 
-     Spectrum := '';  // override base class
 
+     Spectrum := '';  // override base class
 
      InitPropertyValues(0);
 
@@ -847,6 +886,16 @@ End;
 
 
 //----------------------------------------------------------------------------
+function TStorageObj.DecodeState: String;
+begin
+   case Fstate of
+       STATE_CHARGING :    Result := 'CHARGING';
+       STATE_DISCHARGING : Result := 'DISCHARGING';
+   else
+       Result := 'IDLING';
+   end;
+end;
+
 Destructor TStorageObj.Destroy;
 Begin
     YPrimOpenCond.Free;
@@ -859,8 +908,8 @@ Procedure TStorageObj.Randomize(Opt:Integer);
 Begin
    CASE Opt OF
        0: RandomMult := 1.0;
-       GAUSSIAN: RandomMult := Gauss(YearlyShapeObj.Mean, YearlyShapeObj.StdDev);
-       UNIfORM:  RandomMult := Random;  // number between 0 and 1.0
+       GAUSSIAN:  RandomMult := Gauss(YearlyShapeObj.Mean, YearlyShapeObj.StdDev);
+       UNIfORM:   RandomMult := Random;  // number between 0 and 1.0
        LOGNORMAL: RandomMult := QuasiLognormal(YearlyShapeObj.Mean);
    End;
 End;
@@ -873,7 +922,9 @@ Begin
        Begin
          ShapeFactor := DailyShapeObj.GetMult(Hr);
        End
-     ELSE ShapeFactor := CDOUBLEONE;  // Default to no daily variation
+     ELSE ShapeFactor := CDOUBLEONE;  // Default to no  variation
+
+     CheckStateTriggerLevel(ShapeFactor.re);   // last recourse
 End;
 
 
@@ -884,6 +935,7 @@ Begin
      If DutyShapeObj <> Nil Then
        Begin
          ShapeFactor := DutyShapeObj.GetMult(Hr);
+         CheckStateTriggerLevel(ShapeFactor.re);
        End
      ELSE CalcDailyMult(Hr);  // Default to Daily Mult if no duty curve specified
 End;
@@ -893,86 +945,63 @@ Procedure TStorageObj.CalcYearlyMult(Hr:Double);
 
 Begin
 {Yearly curve is assumed to be hourly only}
- If YearlyShapeObj<>Nil Then
-      ShapeFactor := YearlyShapeObj.GetMult(Hr)
+ If YearlyShapeObj<>Nil Then Begin
+      ShapeFactor := YearlyShapeObj.GetMult(Hr) ;
+      CheckStateTriggerLevel(ShapeFactor.re);
+ End
  ELSE
-      ShapeFactor := CDOUBLEONE;  // Defaults to no variation
+     CalcDailyMult(Hr);  // Defaults to Daily curve
 
 End;
 
-
-
 //----------------------------------------------------------------------------
 Procedure TStorageObj.SetNominalStorageOuput;
-VAR
-   Factor:Double;
-   StoreON_Saved:Boolean;
 
 Begin
-   StoreON_Saved := StoreON;
-   ShapeFactor := CDOUBLEONE;
+
+   ShapeFactor := CDOUBLEONE;  // init here; changed by curve routine
     // Check to make sure the generation is ON
    With ActiveCircuit, ActiveCircuit.Solution Do
    Begin
     IF NOT (IsDynamicModel or IsHarmonicModel) THEN     // Leave generator in whatever state it was prior to entering Dynamic mode
-      Begin
-        StoreON := TRUE;   // Init to on then check if it should be off
-        IF NOT FForcedON
-        THEN CASE DispatchMode of
-           LOADMODE: IF (DispatchValue > 0.0)   AND (GeneratorDispatchReference < DispatchValue)  THEN StoreON := FALSE;
-           PRICEMODE:IF (DispatchValue > 0.0)   AND (PriceSignal < DispatchValue) THEN StoreON := FALSE;
-        END;
-      End;
-
-
-    IF NOT StoreON  THEN
-      Begin
-         // If Generator is OFF enter as tiny resistive load (.0001 pu) so we don't get divide by zero in matrix
-          Pnominalperphase   := -0.1 * kWBase / Fnphases;
-          // Pnominalperphase   := 0.0;
-          Qnominalperphase := 0.0;
-      End
-    ELSE
-      Begin    // Generator is on, compute it's nominal watts and vars
-        With Solution Do
-          If Fixed Then
-            Begin
-               Factor := 1.0;   // for fixed generators, set constant
-            End
-          ELSE
-            Begin
-              CASE Mode OF
-                SNAPSHOT:     Factor := ActiveCircuit.GenMultiplier * 1.0;
-                DAILYMODE:    Begin
-                                Factor := ActiveCircuit.GenMultiplier  ;
-                                CalcDailyMult(dblHour) // Daily dispatch curve
-                              End;
-                YEARLYMODE:   Begin Factor := ActiveCircuit.GenMultiplier; CalcYearlyMult(dblHour);  End;
-                MONTECARLO1,
-                MONTEFAULT,
-                FAULTSTUDY,
-                DYNAMICMODE:  Factor := ActiveCircuit.GenMultiplier * 1.0;
-                MONTECARLO2,
-                MONTECARLO3,
-                LOADDURATION1,
-                LOADDURATION2:Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
-                PEAKDAY:      Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
-                DUTYCYCLE:    Begin Factor := ActiveCircuit.GenMultiplier; CalcDutyMult(dblHour) ; End;
-                AUTOADDFLAG:  Factor := 1.0;
-              ELSE
-                Factor := 1.0
-              End;
-            End;
-
-        IF NOT (IsDynamicModel or IsHarmonicModel) THEN         //******
-          Begin
-              Pnominalperphase   := 1000.0 * kWBase   * Factor * ShapeFactor.re / Fnphases;
-              Qnominalperphase   := 1000.0 * kvarBase * Factor * ShapeFactor.im / Fnphases;
+    Begin
+        CASE DispatchMode of
+           LOADMODE: CheckStateTriggerLevel(GeneratorDispatchReference);
+           PRICEMODE:CheckStateTriggerLevel(PriceSignal);
+        ELSE // dispatch off element's loadshapes, if any
+         With Solution Do
+          CASE Mode OF
+            SNAPSHOT:     {Just solve for the present kW, kvar};  // don't check for state change
+            DAILYMODE:    CalcDailyMult(dblHour); // Daily dispatch curve
+            YEARLYMODE:   CalcYearlyMult(dblHour);
+            MONTECARLO1,
+            MONTEFAULT,
+            FAULTSTUDY,
+            DYNAMICMODE,
+            MONTECARLO2,
+            MONTECARLO3,
+            LOADDURATION1,
+            LOADDURATION2: CalcDailyMult(dblHour);
+            PEAKDAY:       CalcDailyMult(dblHour);
+            DUTYCYCLE:     CalcDutyMult(dblHour) ;
+            AUTOADDFLAG:  ;
           End;
-      End; {ELSE StoreON}
+        END;
 
 
-      IF NOT (IsDynamicModel or IsHarmonicModel) THEN  Begin       //******
+    SetkWBaseandkvarBase;   // Based on State and amount of energy left in storage
+
+
+    IF Fstate = STATE_IDLING  THEN  Begin
+       //  tiny resistive load (.0001 pu) so we don't get divide by zero in matrix
+        Pnominalperphase   := -0.1 * kWRating / Fnphases;     // watts
+        Qnominalperphase := 0.0;
+    End
+    ELSE  Begin       //****** NOT RIGHT YET
+            Pnominalperphase   := 1000.0 * kWBase    / Fnphases;
+            Qnominalperphase   := 1000.0 * kvarBase  / Fnphases;
+    End;
+
 
           CASE StorageModel  of
 //****?????
@@ -990,13 +1019,12 @@ Begin
           { When we leave here, all the Yeq's are in L-N values}
 
 
-      END;
+     End;  {If  NOT (IsDynamicModel or IsHarmonicModel)}
    End;  {With ActiveCircuit}
 
-   // If generator state changes, force re-calc of Y matrix
-   If StoreON <> StoreON_Saved Then Begin
-     YPrimInvalid := True;
-   End;
+   // If Storage elemen state changes, force re-calc of Y matrix
+   If FStateChanged Then  YPrimInvalid := True;
+
 End;
 
 //----------------------------------------------------------------------------
@@ -1010,6 +1038,9 @@ Begin
 
     varBase := 1000.0 * kvarBase / Fnphases;
 
+    RThev := pctR * 0.01 * SQR(PresentkV)/kVARating * 1000.0;
+    XThev := pctX * 0.01 * SQR(PresentkV)/kVARating * 1000.0;
+
     SetNominalStorageOuput;
 
     {Now check for errors.  If any of these came out nil and the string was not nil, give warning}
@@ -1022,8 +1053,6 @@ Begin
 
     SpectrumObj := SpectrumClass.Find(Spectrum);
     If SpectrumObj=Nil Then DoSimpleMsg('ERROR! Spectrum "'+Spectrum+'" Not Found.', 566);
-
-    YQFixed := -varBase / Sqr(VBase);   //10-17-02  Fixed negative sign
 
     // Initialize to Zero - defaults to PQ generator
     // Solution object will reset after circuit modifications
@@ -1051,8 +1080,14 @@ Begin
    With  ActiveCircuit.solution  Do
    IF IsDynamicModel or IsHarmonicModel Then
      Begin
-       IF StoreON Then   Y  := Yeq   // L-N value computed in initialization routines
-       ELSE Y := Cmplx(EPSILON, 0.0);
+       CASE Fstate of
+           STATE_IDLING: Y := YeqIdling
+       Else
+           Y  := Yeq   // L-N value computed in initialization routines
+       end;
+
+
+       //**** for idling ELSE Y := Cmplx(EPSILON, 0.0);
 
        IF Connection=1 Then Y := CDivReal(Y, 3.0); // Convert to delta impedance
        Y.im := Y.im / FreqMultiplier;
@@ -1080,7 +1115,12 @@ Begin
 
        {Yeq is always expected as the equivalent line-neutral admittance}
 
-       Y := cnegate(Yeq);  // negate for generation    Yeq is L-N quantity
+       
+       CASE Fstate of
+           STATE_IDLING: Y := YeqIdling;
+       Else
+           Y  := cnegate(Yeq)   // negate for generation    Yeq is L-N quantity
+       end;
 
        // ****** Need to modify the base admittance for real harmonics calcs
        Y.im           := Y.im / FreqMultiplier;
@@ -1113,6 +1153,33 @@ Begin
 End;
 
 
+procedure TStorageObj.CheckStateTriggerLevel(Level: Double);
+{This is where we set the state of the Storage element}
+
+Var
+    OldState :Integer;
+
+begin
+   FStateChanged := FALSE;
+   if (ChargeTrigger=0.0) and (DischargeTrigger=0.0) then   Exit;
+
+   OldState := Fstate;
+// First see if we want to turn off Charging or Discharging State
+   Case Fstate of
+       STATE_CHARGING:    if (ChargeTrigger    <> 0.0) Then if (ChargeTrigger    > Level) or (kWhStored >= kWHRating) then Fstate := STATE_IDLING;
+       STATE_DISCHARGING: if (DischargeTrigger <> 0.0) Then if (DischargeTrigger < Level) or (kWhStored <= kWHRating) then Fstate := STATE_IDLING;
+   end;
+
+// Now check to see if we want to turn on the opposite state
+   case Fstate of
+       STATE_IDLING: if      (DischargeTrigger <> 0.0) and (DischargeTrigger > Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
+                     else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    < Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
+   end;
+
+   if OldState <> Fstate then FstateChanged := TRUE;
+   
+end;
+
 //----------------------------------------------------------------------------
 Procedure TStorageObj.CalcYPrim;
 
@@ -1138,8 +1205,6 @@ Begin
           YPrim.Clear;
      End;
 
-
-     // ADMITTANCE model wanted
 
      SetNominalStorageOuput;
      CalcYPrimMatrix(YPrim_Shunt);
@@ -1596,18 +1661,18 @@ Begin
 // Compute energy in Generator branch
    IF  Enabled  THEN Begin
 
-      IF StoreON Then Begin
+   // Only tabulate discharge hours
+     IF FSTate = STATE_DISCHARGING then   Begin
         S := cmplx(Get_PresentkW, Get_Presentkvar);
         Smag := Cabs(S);
         HourValue := 1.0;
-      End
-      Else Begin
-         S := CZERO;
-         Smag := 0.0;
-         HourValue :=0.0;
-      End;
+     End Else Begin
+        S := CZERO;
+        Smag := 0.0;
+        HourValue := 0.0;
+     End;
 
-      IF StoreON or ActiveCircuit.TrapezoidalIntegration THEN
+      IF FState = STATE_DISCHARGING or ActiveCircuit.TrapezoidalIntegration THEN
       {Make sure we always integrate for Trapezoidal case
        Don't need to for Gen Off and normal integration}
       WITH ActiveCircuit.Solution Do Begin
@@ -1685,7 +1750,7 @@ begin
 
      {Compute reference Thevinen voltage from phase 1 current}
 
-     IF StoreON Then
+     IF FState = STATE_DISCHARGING Then
        Begin
 
          ComputeIterminal;  // Get present value of current
@@ -1713,51 +1778,57 @@ end;
 
 procedure TStorageObj.InitPropertyValues(ArrayOffset: Integer);
 
+// Define default values for the properties
+
 begin
 
-     PropertyValue[1]      := '3';     //'phases';
-     PropertyValue[2]      := Getbus(1);         //'bus1';
+     PropertyValue[1]      := '3';         //'phases';
+     PropertyValue[2]      := Getbus(1);   //'bus1';
+
      PropertyValue[propKV]      := Format('%-g', [kVStorageBase]);
      PropertyValue[propKW]      := Format('%-g', [kWBase]);
      PropertyValue[propPF]      := Format('%-g', [PFNominal]);
-     PropertyValue[propMODEL]      := '1';
-     PropertyValue[propYEARLY]      := '';
-     PropertyValue[propDAILY]      := '';
+     PropertyValue[propMODEL]     := '1';
+     PropertyValue[propYEARLY]    := '';
+     PropertyValue[propDAILY]     := '';
      PropertyValue[propDUTY]      := '';
-     PropertyValue[propDISPMODE]     := 'Default';
-     PropertyValue[prop11]     := '';
-     PropertyValue[propCONNECTION]     := 'wye';
-     PropertyValue[propKVAR]     := Format('%-g', [Presentkvar]);
+     PropertyValue[propDISPMODE]  := 'Default';
+     PropertyValue[propIDLEKVAR]  := '0';
+     PropertyValue[propCONNECTION]:= 'wye';
+     PropertyValue[propKVAR]      := Format('%-g', [Presentkvar]);
 
-     PropertyValue[propPCTR]     := Format('%-g', [pctR]);
-     PropertyValue[propPCTX]     := Format('%-g', [pctX]);
+     PropertyValue[propPCTR]      := Format('%-g', [pctR]);
+     PropertyValue[propPCTX]      := Format('%-g', [pctX]);
 
-     PropertyValue[prop16]     := '';
+     PropertyValue[propIDLEKW]    := '1';       // PERCENT
      PropertyValue[propCLASS]     := '1'; //'class'
-     PropertyValue[propDISPOUTVAL]     := '';
-     PropertyValue[propDISPINVAL]     := '';
-     PropertyValue[prop20]     := '';
-     PropertyValue[prop21]     := '';
-     PropertyValue[prop22]     := '';
+     PropertyValue[propDISPOUTTRIG]    := '0';   // 0 MEANS NO TRIGGER LEVEL
+     PropertyValue[propDISPINTRIG]:= '0';
+     PropertyValue[propCHARGEEFF] := '90';
+     PropertyValue[propDISCHARGEEFF]  := '90';
+     PropertyValue[propPCTPOWER]  := '100';
 
-     PropertyValue[propVMINPU]     := '0.90';
-     PropertyValue[propVMAXPU]     := '1.10';
-     PropertyValue[propFORCEDON]     := 'No';
-     PropertyValue[propKVA]     := Format('%-g', [kVARating]);
-     PropertyValue[propMVA]     := Format('%-g', [kVARating*0.001]);
-     PropertyValue[propKWHRATED]     := Format('%-g', [kWhRating]);
-     PropertyValue[propKWHSTORED]     := Format('%-g', [kWhStored]);
-     PropertyValue[propPCTRESERVE]     := Format('%-g', [kWhReserve]);
+     PropertyValue[propVMINPU]    := '0.90';
+     PropertyValue[propVMAXPU]    := '1.10';
+     PropertyValue[propSTATE]     := 'IDLING';
+     PropertyValue[propKVA]       := Format('%-g', [kVARating]);
+     PropertyValue[propKWRATED]   := Format('%-g', [kWRating]);
+     PropertyValue[propKWHRATED]  := Format('%-g', [kWhRating]);
+     PropertyValue[propKWHSTORED] := Format('%-g', [kWhStored]);
+     PropertyValue[propPCTRESERVE]:= Format('%-g', [pctReserve]);
 
-     PropertyValue[propUSERMODEL]     := '';  // Usermodel
-     PropertyValue[propUSERDATA]     := '';  // Userdata
-     PropertyValue[propDEBUGTRACE]     := 'NO';
+     PropertyValue[propUSERMODEL] := '';  // Usermodel
+     PropertyValue[propUSERDATA]  := '';  // Userdata
+     PropertyValue[propDEBUGTRACE]:= 'NO';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
 end;
 
 PROCEDURE TStorageObj.InitStateVars;
+
+// for going into dynamics mode
+
 Var
     VNeut,
     Edp   :Complex;
@@ -1774,7 +1845,7 @@ begin
 
      {Compute nominal Positive sequence voltage behind transient reactance}
 
-     IF StoreON Then With ActiveCircuit.Solution Do
+     IF FState = STATE_DISCHARGING Then With ActiveCircuit.Solution Do
        Begin
 
          ComputeIterminal;
@@ -1809,6 +1880,8 @@ begin
 end;
 
 procedure TStorageObj.IntegrateStates;
+
+// dynamics mode integration routine
 
 Var
     TracePower:Complex;
@@ -1862,6 +1935,17 @@ begin
 
 
    End;
+end;
+
+function TStorageObj.InterpretState(const S: String): Integer;
+begin
+
+   case LowerCase(S)[1] of
+       'c' : Result := STATE_CHARGING;
+       'd' : Result := STATE_DISCHARGING;
+   else
+       Result := STATE_IDLING;
+   end;
 end;
 
 function TStorageObj.Get_Variable(i: Integer): Double;
@@ -2010,10 +2094,11 @@ begin
          propPF:  Result := Format('%.6g', [PFNominal]);
          propKVAR: Result := Format('%.6g', [kvarBase]);
          propKVA: Result := Format('%.6g', [kVArating]);
-         propMVA: Result := Format('%.6g', [kVArating*0.001]);
+         propKWRATED: Result := Format('%.6g', [kWrating]);
          propUSERDATA: Begin
                     Result := '(' + inherited GetPropertyValue(index) + ')';
-                End
+                End;
+         propSTATE: Result := DecodeState;
       ELSE  // take the generic handler
          Result := Inherited GetPropertyValue(index);
       END;
@@ -2035,16 +2120,12 @@ begin
 
   S := S + Format(' kV=%-.5g',[V]);
 
-  // Divide the load by no. phases
   If Fnphases>1 Then
   Begin
-      S := S + Format(' kW=%-.5g  PF=%-.5g',[kWbase/Fnphases, PFNominal]);
-      If PrpSequence^[propKVA]>0 Then S := S + Format(' kva=%-.5g  ',[kvarating/Fnphases]);
-      If PrpSequence^[propMVA]>0 Then S := S + Format(' MVA=%-.5g  ',[kvarating/1000.0/Fnphases]);
+      S := S + Format(' kWrating=%-.5g  PF=%-.5g',[kWrating/Fnphases, PFNominal]);
   End;
 
-
-  inherited;
+  inherited;   // write out other properties
 
   Parser.CmdString := S;
   Edit;
@@ -2120,6 +2201,33 @@ procedure TStorageObj.SetDragHandRegister(Reg: Integer;
   const Value: Double);
 begin
     If Value>Registers[reg] Then Registers[Reg] := Value;
+end;
+
+procedure TStorageObj.SetkWBaseandkvarBase;
+begin
+    case FState of
+
+       STATE_CHARGING: Begin
+                            if kWhStored < kWhRating then Begin
+                               kWBase := -kWRating * pctPower / 100.0;
+                               if PFNominal = 1.0 then   kvarBase := 0.0
+                               else kvarbase := kWBase * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                            End
+                            Else Fstate := STATE_IDLING;
+                       End;
+
+
+       STATE_DISCHARGING: Begin
+                            if kWhStored > kWhReserve then Begin
+                               kWBase := kWRating * pctPower / 100.0;
+                               if PFNominal = 1.0 then   kvarBase := 0.0
+                               else kvarbase := kWBase * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                            End
+                            Else Fstate := STATE_IDLING;
+
+                          End;
+
+    end;
 end;
 
 procedure TStorageObj.CalcVthev_Dyn;
