@@ -72,7 +72,7 @@ Begin
  WITH ActiveCircuit, ActiveCircuit.Solution Do
  Begin
   Try
-    IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
+    IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage elements
     IF Not DIFilesAreOpen then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired   Creates DI_Totals
     Twopct := Max(NumberOfTimes div 50, 1);
     FOR N := 1 TO NumberOfTimes Do
@@ -83,6 +83,7 @@ Begin
           SolveSnap;
           MonitorClass.SampleAll;  // Make all monitors take a sample
           EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
+          StorageClass.UpdateAll;
           If (N mod Twopct)=0 Then ShowPctProgress((N*100) div NumberofTimes);
       End;
   Finally
@@ -128,6 +129,7 @@ Begin
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
+            StorageClass.UpdateAll;
         End;
 
     Finally
@@ -163,7 +165,7 @@ Begin
         // EnergyMeterClass.ResetAll;
      Try
         intHour := 0; dblHour := 0.0;
-        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
+        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
         DefaultDailyShapeObj := LoadShapeClass.Find('default');
         If Not DIFilesAreOpen Then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired
 
@@ -175,6 +177,7 @@ Begin
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
+            StorageClass.UpdateAll;
         End;
       Finally
         MonitorClass.SaveAll;
@@ -203,6 +206,7 @@ Begin
         // MonitorClass.ResetAll;
      TwoPct := Max(1, NumberOfTimes div 50);
       Try
+        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
         FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
             Increment_time;
@@ -210,6 +214,7 @@ Begin
             // Assume pricesignal stays constant for dutycycle calcs
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
+            StorageClass.UpdateAll;
 
             If (N mod Twopct)=0 Then ShowPctProgress((N*100) div NumberofTimes);
         End;
@@ -252,6 +257,7 @@ Begin
    Begin
      Try
         SolutionInitialized := True; // If we're in dynamics mode, no need to re-initialize.
+        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
         FOR N := 1 TO NumberOfTimes Do
         IF Not SolutionAbort Then With DynaVars Do Begin
           Increment_time;
@@ -266,6 +272,7 @@ Begin
           IntegratePCStates;
           SolveSnap;
           MonitorClass.SampleAll;  // Make all monitors take a sample
+          StorageClass.UpdateAll;
         End;
       Finally
         MonitorClass.SaveAll;
@@ -286,6 +293,7 @@ Begin
    Begin
      Try
         LoadMultiplier := 1.0;   // Always set with prop in case matrix must be rebuilt
+        IntervalHrs := 1.0;     // needed for energy meters and storage devices
         intHour := 0;  dblHour := 0.0;// Use hour to denote Case number
         DynaVars.t := 0.0;
 
@@ -335,7 +343,7 @@ Begin
         intHour := 0;   dblHour := 0.0;
         // MonitorClass.ResetAll;
         // EnergyMeterClass.ResetAll;
-        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
+        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
         Ndaily := Round(24.0 / IntervalHrs);
 
         If Not DIFilesAreOpen Then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired
@@ -362,6 +370,7 @@ Begin
 
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll;  // Make all meters take a sample
+            StorageClass.UpdateAll;
           End;
 
           Show10PctProgress(N, NumberOfTimes);
@@ -499,6 +508,7 @@ Begin
 
               MonitorClass.SampleAll;     // Make all monitors take a sample
               EnergyMeterClass.SampleAll;  // Make all meters take a sample
+              StorageClass.UpdateAll;
 
            End;
            ShowPctProgress((i * 100) div NDaily);
@@ -573,6 +583,7 @@ Begin
 
         MonitorClass.SampleAll;  // Make all monitors take a sample
         EnergyMeterClass.SampleAll;  // Make all meters take a sample
+        StorageClass.UpdateAll;
 
       End;
     Finally
@@ -946,6 +957,7 @@ Begin
                ShowPctProgress ( Round((100.0*i)/Nfreq));
                SolveDirect;
                MonitorClass.SampleAll;
+               // Storage devices are assumed to stay the same since there is no time variation in this mode
            End;
 
        End; {FOR}
