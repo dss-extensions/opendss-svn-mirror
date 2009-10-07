@@ -103,6 +103,7 @@ TYPE
           Monitors,
           EnergyMeters,
           Generators,
+          StorageElements,
           Substations,
           Transformers,
           CapControls,
@@ -277,6 +278,7 @@ BEGIN
      EnergyMeters := TPointerList.Create(5);
      Sensors      := TPointerList.Create(5);
      Generators   := TPointerList.Create(5);
+     StorageElements := TPointerList.Create(5);
      Feeders   := TPointerList.Create(10);
      Substations  := TPointerList.Create(5);
      Transformers := TPointerList.Create(10);
@@ -419,6 +421,7 @@ BEGIN
      EnergyMeters.Free;
      Sensors.Free;
      Generators.Free;
+     StorageElements.Free;
      Feeders.Free;
      Substations.Free;
      Transformers.Free;
@@ -633,22 +636,24 @@ BEGIN
 
    {Build  lists of Special elements and generic types}
    CASE (ActiveCktElement.DSSObjType and CLASSMASK) OF
-       MON_ELEMENT :Monitors.Add(ActiveCktElement);
-       ENERGY_METER:EnergyMeters.Add(ActiveCktElement);
+       MON_ELEMENT   :Monitors.Add(ActiveCktElement);
+       ENERGY_METER  :EnergyMeters.Add(ActiveCktElement);
        SENSOR_ELEMENT:Sensors.Add(ActiveCktElement);
-       GEN_ELEMENT :Generators.Add(ActiveCktElement);
-       SOURCE      :Sources.Add(ActiveCktElement);
-       CAP_CONTROL :CapControls.Add(ActiveCktElement);
-       REG_CONTROL :RegControls.Add(ActiveCktElement);
+       GEN_ELEMENT   :Generators.Add(ActiveCktElement);
+       SOURCE        :Sources.Add(ActiveCktElement);
+       CAP_CONTROL   :CapControls.Add(ActiveCktElement);
+       REG_CONTROL   :RegControls.Add(ActiveCktElement);
        LOAD_ELEMENT  :Loads.Add(ActiveCktElement);
-       CAP_ELEMENT: ShuntCapacitors.Add(ActiveCktElement);
+       CAP_ELEMENT   :ShuntCapacitors.Add(ActiveCktElement);
 
        { Keep Lines, Transformer, and Lines and Faults in PDElements and separate lists
          so we can find them quickly.}
-       XFMR_ELEMENT        :Transformers.Add(ActiveCktElement);
-       LINE_ELEMENT:Lines.Add(ActiveCktElement);
-       FAULTOBJECT :Faults.Add(ActiveCktElement);
+       XFMR_ELEMENT   :Transformers.Add(ActiveCktElement);
+       LINE_ELEMENT   :Lines.Add(ActiveCktElement);
+       FAULTOBJECT    :Faults.Add(ActiveCktElement);
        FEEDER_ELEMENT :Feeders.Add(ActiveCktElement);
+
+       STORAGE_ELEMENT:StorageElements.Add(ActiveCktElement);
    END;
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle

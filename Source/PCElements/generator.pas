@@ -373,7 +373,7 @@ Begin
      AddProperty('Vmaxpu', 24, 'Default = 1.10.  Maximum per unit voltage for which the Model is assumed to apply. ' +
                           'Above this value, the load model reverts to a constant impedance model.');
      AddProperty('yearly', 7,  'Dispatch shape to use for yearly simulations.  Must be previously defined '+
-                    'as a Loadshape object. If this is not specified, the daily dispatch shape is repeated. '+
+                    'as a Loadshape object. If this is not specified, a constant value is assumed (no variation). '+
                     'If the generator is assumed to be ON continuously, specify this value as FIXED, or '+
                     'designate a curve that is 1.0 per unit at all times. '+
                     'Nominally for 8760 simulations.  If there are fewer points in the designated shape than '+

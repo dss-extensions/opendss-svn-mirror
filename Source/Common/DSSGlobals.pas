@@ -32,7 +32,8 @@ Uses DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
      Sensor,
      TCC_Curve,
      Feeder,
-     WireData;
+     WireData,
+     Storage;
 
 
 
@@ -149,6 +150,7 @@ VAR
    SensorClass        :TSensor;
    TCC_CurveClass     :TTCC_Curve;
    WireDataClass      :TWireData;
+   StorageClass       :TStorage;
 
 
 PROCEDURE DoErrorMsg(Const S, Emsg, ProbCause :String; ErrNum:Integer);

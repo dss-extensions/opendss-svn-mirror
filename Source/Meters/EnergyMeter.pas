@@ -741,6 +741,7 @@ Begin
 
       // Reset Generator Objects, too
       GeneratorClass.ResetRegistersAll;
+      StorageClass.ResetRegistersAll;
 
 
 End;
@@ -771,8 +772,9 @@ Begin
         If VoltageFileIsOpen  then WriteVoltageReport;
       End;
 
-      // Sample Generator Objects, too
+      // Sample Generator ans Storage Objects, too
       GeneratorClass.SampleAll;
+      StorageClass.SampleAll;
 
 End;
 

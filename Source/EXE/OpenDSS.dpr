@@ -75,7 +75,7 @@ uses
   fuse in '..\PDElements\fuse.pas',
   GenDispatcher in '..\Controls\GenDispatcher.pas',
   generator in '..\PCElements\generator.pas',
-  GenUserModel in '..\PCElements\GenUserModel.pas',
+  StoreUserModel in '..\PCElements\StoreUserModel.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
   HelpForm in '..\Forms\HelpForm.pas' {HelpForm1},
@@ -133,7 +133,10 @@ uses
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
   DSSClassDefs in '..\Common\DSSClassDefs.pas',
   NamedObject in '..\General\NamedObject.pas',
-  LineCode in '..\General\LineCode.pas';
+  LineCode in '..\General\LineCode.pas',
+  GenUserModel in '..\PCElements\GenUserModel.pas',
+  Storage in '..\PCElements\Storage.pas',
+  StorageController in '..\Controls\StorageController.pas';
 
 {$R *.RES}
 

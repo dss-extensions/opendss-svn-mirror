@@ -6,5 +6,6 @@
     <Transaction>2009/06/12 12:19:34.796.dfm,C:\OpenDSS\Source\EXE\Unit1.dfm=C:\OpenDSS\Source\Forms\FrmCSVchannelSelect.dfm</Transaction>
     <Transaction>2009/09/21 20:53:11.375.pas,C:\OpenDSS\Source\EXE\Unit1.pas=C:\OpenDSS\Source\Common\DSSModules.pas</Transaction>
     <Transaction>2009/09/21 23:04:02.640.pas,C:\OpenDSS\Source\Common\DSSModules.pas=C:\OpenDSS\Source\Common\DSSClassDefs.pas</Transaction>
+    <Transaction>2009/10/04 09:20:47.242.pas,C:\OpenDSS\Source\PCElements\GenUserModel.pas=C:\OpenDSS\Source\PCElements\StoreUserModel.pas</Transaction>
   </Transactions>
 </BorlandProject>

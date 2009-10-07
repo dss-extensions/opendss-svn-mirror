@@ -11,7 +11,15 @@ unit Storage;
 
     10/04/2009 Created from Generator Model
     
-    
+
+  To Do:
+    Make connection to User model
+    Yprim for various modes
+    Update storage when sampled
+    Connect to DSS sampling algorithm
+    Implement StorageController
+    Define state vars and dynamics mode behavior
+    Complete Harmonics mode algorithm (generator mode is implemented)
 }
 {
   The storage element is essentially a generator that can be dispatched
@@ -88,7 +96,8 @@ TYPE
         YeqIdling       :Complex;   // in shunt representing idle impedance
         pctChargeEff    :Double;
         pctDischargeEff :Double;
-        pctPower        :Double;   // percent of kW rated output currently dispatched
+        pctkWout        :Double;   // percent of kW rated output currently dispatched
+        pctkWin         :Double;
         DischargeTrigger:Double;
         ChargeTrigger   :Double;
 
@@ -175,7 +184,7 @@ TYPE
         DutyShape       :String;  // Duty cycle load shape for changes typically less than one hour
         DutyShapeObj    :TLoadShapeObj;  // Shape for this generator
         StorageClass    :Integer;
-        StorageModel    :Integer;   // Variation with voltage
+        VoltageModel    :Integer;   // Variation with voltage
 //****        StoreVars       :TStorageVars; {State Variables}
         kvarBase        :Double;
         kWBase          :Double;
@@ -263,7 +272,7 @@ Const
   propDISPINTRIG = 19;
   propCHARGEEFF  = 20;
   propDISCHARGEEFF = 21;
-  propPCTPOWER   = 22;
+  propPCTKWOUT   = 22;
   propVMINPU     = 23;
   propVMAXPU     = 24;
   propSTATE      = 25;
@@ -275,8 +284,9 @@ Const
   propUSERMODEL  = 31;
   propUSERDATA   = 32;
   propDEBUGTRACE = 33;
+  propPCTKWIN    =34;
 
-  NumPropsThisClass = 33; // Make this agree with the last property constant
+  NumPropsThisClass = 34; // Make this agree with the last property constant
 
   STATE_CHARGING    = -1;
   STATE_IDLING      =  0;
@@ -298,7 +308,7 @@ constructor TStorage.Create;  // Creates superstructure for all Storage elements
 Begin
      Inherited Create;
      Class_Name := 'Storage';
-     DSSClassType := DSSClassType + STORAGE_ELEMENT;  // In both PCelement and Genelement list
+     DSSClassType := DSSClassType + STORAGE_ELEMENT;  // In both PCelement and Storage element list
 
      ActiveElement := 0;
 
@@ -376,6 +386,10 @@ Begin
                               'Percent of rated kWh storage capacity to be held in reserve for normal operation. Default = 20. ' + CRLF +
                               'This is treated as the minimum energy discharge level unless there is an emergency. For emergency operation ' +
                               'set this property lower. Cannot be less than zero.');
+     AddProperty('%kWOutput',  propPCTKWOUT,
+                              'Discharge level (output power) in Percent of rated kW. Default = 100.');
+     AddProperty('%kWInput',  propPCTKWIN,
+                              'Charging level (input power) in Percent of rated kW. Default = 100.');
      AddProperty('%EffCharge',propCHARGEEFF,
                               'Percent efficiency for CHARGING the storage element. Default = 90.');
      AddProperty('%EffDischarge',propDISCHARGEEFF,
@@ -397,8 +411,8 @@ Begin
      AddProperty('model',     propMODEL,
                               'Integer code for the model to use for powet output variation with voltage. '+
                               'Valid values are:' +CRLF+CRLF+
-                              '1:Storage element injects a constant kW at specified power factor.'+CRLF+
-                              '2:Storage element is modeled as a constant admittance.'  +CRLF+
+                              '1:Storage element injects a CONSTANT kW at specified power factor.'+CRLF+
+                              '2:Storage element is modeled as a CONSTANT ADMITTANCE.'  +CRLF+
                               '3:Compute load injection from User-written Model.');
 
      AddProperty('Vminpu',       propVMINPU,
@@ -595,7 +609,7 @@ Begin
            propKV           : PresentkV    := Parser.DblValue;
            propKW           : kWBase       := Parser.DblValue;
            propPF           : PFNominal    := Parser.DblValue;
-           propMODEL        : StorageModel := Parser.IntValue;
+           propMODEL        : VoltageModel := Parser.IntValue;
            propYEARLY       : YearlyShape  := Param;
            propDAILY        : DailyShape  := Param;
            propDUTY         : DutyShape     := Param;
@@ -611,7 +625,7 @@ Begin
            propDISPINTRIG   : ChargeTrigger    := Parser.DblValue;
            propCHARGEEFF    : pctChargeEff     := Parser.DblValue;
            propDISCHARGEEFF : pctDischargeEff   := Parser.DblValue;
-           propPCTPOWER     : pctPower     := Parser.DblValue;
+           propPCTKWOUT     : pctkWout     := Parser.DblValue;
            propVMINPU       : VMinPu       := Parser.DblValue;
            propVMAXPU       : VMaxPu       := Parser.DblValue;
            propSTATE        : FState       := InterpretState(Param); //****
@@ -623,6 +637,7 @@ Begin
            propUSERMODEL    : UserModel.Name := Parser.StrValue;  // Connect to user written models
            propUSERDATA     : UserModel.Edit := Parser.StrValue;  // Send edit string to user model
            propDEBUGTRACE   : DebugTrace   := InterpretYesNo(Param);
+           propPCTKWIN      : pctkWIn     := Parser.DblValue;
 
 
          ELSE
@@ -709,9 +724,10 @@ Begin
        DutyShapeObj   := OtherStorageObj.DutyShapeObj;
        DispatchMode   := OtherStorageObj.DispatchMode;
        StorageClass   := OtherStorageObj.StorageClass;
-       StorageModel   := OtherStorageObj.StorageModel;
+       VoltageModel   := OtherStorageObj.VoltageModel;
 
        Fstate         := OtherStorageObj.Fstate;
+       FstateChanged  := OtherStorageObj.FstateChanged;
        kVANotSet      := OtherStorageObj.kVANotSet;
 
        kVArating      := OtherStorageObj.kVArating;
@@ -725,10 +741,13 @@ Begin
        ChargeTrigger    := OtherStorageObj.ChargeTrigger;
        pctChargeEff     := OtherStorageObj.pctChargeEff;
        pctDischargeEff  := OtherStorageObj.pctDischargeEff;
-       pctPower         := OtherStorageObj.pctPower;
+       pctkWout         := OtherStorageObj.pctkWout;
+       pctkWin          := OtherStorageObj.pctkWin;
 
        pctR            := OtherStorageObj.pctR;
        pctX            := OtherStorageObj.pctX;
+
+       RandomMult      :=  OtherStorageObj.RandomMult;
 
        UserModel.Name    := OtherStorageObj.UserModel.Name;  // Connect to user written models
 
@@ -774,14 +793,14 @@ End;
 Procedure TStorage.ResetRegistersAll;  // Force all EnergyMeters in the circuit to reset
 
 VAR
-   pGen:TStorageObj;
+   idx  :Integer;
 
 Begin
-      pGen := ActiveCircuit.Generators.First;
-      WHILE (pGen <> Nil) Do
+      idx := First;
+      WHILE idx > 0 Do
       Begin
-          pGen.ResetRegisters;
-          pGen := ActiveCircuit.Generators.Next;
+          TStorageObj(GetActiveObj).ResetRegisters;
+          idx := Next;
       End;
 
 End;
@@ -790,16 +809,14 @@ End;
 Procedure TStorage.SampleAll;  // Force all EnergyMeters in the circuit to take a sample
 
 VAR
-   pGen:TStorageObj;
+   idx    :Integer;
 
 Begin
 
-{*** Do we need storage list in Active Circuit or is class enough ?}
-      pGen := ActiveCircuit.Generators.First;
-      WHILE pGen<>Nil Do
-      Begin
-          If pGen.enabled Then pGen.TakeSample;
-          pGen := ActiveCircuit.Generators.Next;
+      idx := First;
+      WHILE idx>0 Do Begin
+          With TStorageObj(GetActiveObj) do If enabled Then TakeSample;
+          idx := Next;
       End;
 End;
 
@@ -822,8 +839,7 @@ Begin
      DutyShape         := '';
      DutyShapeObj      := nil;  // if DutyShapeobj = nil then the load alway stays nominal * global multipliers
      Connection        := 0;    // Wye (star)
-//**** CHANGE THE NAME OF STORAGEMODEL
-     StorageModel      := 1;  {Typical fixed kW negative load}
+     VoltageModel      := 1;  {Typical fixed kW negative load}
      StorageClass      := 1;
 
      StorageSolutionCount     := -1;  // For keep track of the present solution in Injcurrent calcs
@@ -859,7 +875,8 @@ Begin
      ChargeTrigger    := 0.0;
      pctChargeEff     := 90.0;
      pctDischargeEff  := 90.0;
-     pctPower         := 100.0;
+     pctkWout         := 100.0;
+     pctkWin          := 100.0;
 
      kVANotSet    := TRUE;  // Flag for default value for kVA
      
@@ -977,12 +994,14 @@ Begin
             MONTECARLO1,
             MONTEFAULT,
             FAULTSTUDY,
-            DYNAMICMODE,
+            DYNAMICMODE:   {do nothing};
+            // Assume Daily curve, if any, for the following
             MONTECARLO2,
             MONTECARLO3,
             LOADDURATION1,
             LOADDURATION2: CalcDailyMult(dblHour);
             PEAKDAY:       CalcDailyMult(dblHour);
+
             DUTYCYCLE:     CalcDutyMult(dblHour) ;
             AUTOADDFLAG:  ;
           End;
@@ -1003,7 +1022,7 @@ Begin
     End;
 
 
-          CASE StorageModel  of
+          CASE VoltageModel  of
 //****?????
                3: // Yeq := Cinv(cmplx(0.0, -StoreVars.Xd))  ;  // Gets negated in CalcYPrim
           ELSE
@@ -1115,7 +1134,7 @@ Begin
 
        {Yeq is always expected as the equivalent line-neutral admittance}
 
-       
+
        CASE Fstate of
            STATE_IDLING: Y := YeqIdling;
        Else
@@ -1262,7 +1281,7 @@ Begin
                     ActiveCircuit.LoadMultiplier]),
                     GetSolutionModeID,', ',
                     GetLoadModel,', ',
-                    StorageModel:0,', ',
+                    VoltageModel:0,', ',
                    (Qnominalperphase*3.0/1.0e6):8:2,', ',
                    (Pnominalperphase*3.0/1.0e6):8:2,', ',
                    s,', ');
@@ -1327,6 +1346,8 @@ End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 Procedure TStorageObj.DoConstantZStorageObj;
+
+{constant Z model}
 VAR
    i    :Integer;
    Curr,
@@ -1393,7 +1414,7 @@ Begin
    CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
 
    {Inj = -Itotal (in) - Yprim*Vtemp}
-   If (StorageModel=6) and UserModel.Exists Then       // auto selects model
+   If (VoltageModel=6) and UserModel.Exists Then       // auto selects model
      Begin   {We have total currents in Itemp}
         UserModel.FCalc(Vterminal, Iterminal);  // returns terminal currents in Iterminal
      End
@@ -1519,7 +1540,7 @@ Begin
       ELSE IF IsHarmonicModel and (Frequency <> Fundamental) THEN  DoHarmonicMode
       ELSE  Begin
            //  compute currents and put into InjTemp array;
-           CASE StorageModel OF
+           CASE VoltageModel OF
               1: DoConstantPQStorageObj;
               2: DoConstantZStorageObj;
               3: DoUserModel;
@@ -1617,7 +1638,6 @@ Begin
    End;
 
 End;
-//= = =  = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1672,7 +1692,7 @@ Begin
         HourValue := 0.0;
      End;
 
-      IF FState = STATE_DISCHARGING or ActiveCircuit.TrapezoidalIntegration THEN
+      IF (FState = STATE_DISCHARGING) or ActiveCircuit.TrapezoidalIntegration THEN
       {Make sure we always integrate for Trapezoidal case
        Don't need to for Gen Off and normal integration}
       WITH ActiveCircuit.Solution Do Begin
@@ -1735,10 +1755,9 @@ End;
 
       
 Procedure TStorageObj.InitHarmonics;
+
 Var
   E, Va:complex;
-
-//****  NEED A HARMONICS ALGORITHM: CURRENT OR VOLTAGE?
 
 begin
 
@@ -1746,7 +1765,7 @@ begin
      StorageFundamental := ActiveCircuit.Solution.Frequency ;  // Whatever the frequency is when we enter here.
 
 
-//****     Yeq := Cinv(Cmplx(0.0, Xdpp));      // used for current calcs  Always L-N
+     Yeq := Cinv(Cmplx(RThev, XThev));      // used for current calcs  Always L-N
 
      {Compute reference Thevinen voltage from phase 1 current}
 
@@ -1765,7 +1784,7 @@ begin
               End;
          End;
 
-//****                 E := Csub(Va, Cmul(Iterminal^[1], cmplx(0.0, Xdpp)));
+         E := Csub(Va, Cmul(Iterminal^[1], cmplx(Rthev, Xthev)));
          Vthevharm := Cabs(E);   // establish base mag and angle
          ThetaHarm := Cang(E);
        End
@@ -1806,7 +1825,8 @@ begin
      PropertyValue[propDISPINTRIG]:= '0';
      PropertyValue[propCHARGEEFF] := '90';
      PropertyValue[propDISCHARGEEFF]  := '90';
-     PropertyValue[propPCTPOWER]  := '100';
+     PropertyValue[propPCTKWOUT]  := '100';
+     PropertyValue[propPCTKWIN]   := '100';
 
      PropertyValue[propVMINPU]    := '0.90';
      PropertyValue[propVMAXPU]    := '1.10';
@@ -1865,7 +1885,7 @@ begin
 
           // Init User-written models
          //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
-         With ActiveCircuit.Solution Do If StorageModel=6 then Begin
+         With ActiveCircuit.Solution Do If VoltageModel=6 then Begin
            If UserModel.Exists Then UserModel.FInit( Vterminal, Iterminal);
          End;
 
@@ -1929,7 +1949,7 @@ begin
              CloseFile(TraceFile);
          End;
 
-       If StorageModel=6 then Begin
+       If VoltageModel=6 then Begin
          If UserModel.Exists    Then UserModel.Integrate;
        End;
 
@@ -2079,9 +2099,6 @@ begin
 end;
 
 
-
-
-
 function TStorageObj.GetPropertyValue(Index: Integer): String;
 
 begin
@@ -2209,7 +2226,7 @@ begin
 
        STATE_CHARGING: Begin
                             if kWhStored < kWhRating then Begin
-                               kWBase := -kWRating * pctPower / 100.0;
+                               kWBase := -kWRating * pctkWin / 100.0;
                                if PFNominal = 1.0 then   kvarBase := 0.0
                                else kvarbase := kWBase * (1.0/sqrt(SQR(PFNominal) - 1.0) );
                             End
@@ -2219,7 +2236,7 @@ begin
 
        STATE_DISCHARGING: Begin
                             if kWhStored > kWhReserve then Begin
-                               kWBase := kWRating * pctPower / 100.0;
+                               kWBase := kWRating * pctkWout / 100.0;
                                if PFNominal = 1.0 then   kvarBase := 0.0
                                else kvarbase := kWBase * (1.0/sqrt(SQR(PFNominal) - 1.0) );
                             End

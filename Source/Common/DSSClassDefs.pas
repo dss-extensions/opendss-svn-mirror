@@ -40,6 +40,7 @@ CONST
       FEEDER_ELEMENT   = 18 * 8;
       GEN_CONTROL      = 19 * 8;
       SENSOR_ELEMENT   = 20 * 8;
+      STORAGE_ELEMENT  = 21 * 8;
 
 VAR
    ClassNames         :THashList;
@@ -89,7 +90,8 @@ USES
      Fuse,
      Sensor,
      Feeder,
-     XfmrCode
+     XfmrCode,
+     Storage
 ;
 
 TYPE
@@ -180,6 +182,8 @@ Begin
      DSSClasses.New := TFault.Create;
      DSSClasses.New := TGenerator.Create;
      DSSClasses.New := TGenDispatcher.Create;
+     StorageClass   := TStorage.Create;
+     DSSClasses.New := StorageClass;
      DSSClasses.New := TRelay.Create;
      DSSClasses.New := TRecloser.Create;
      DSSClasses.New := TFuse.Create;
