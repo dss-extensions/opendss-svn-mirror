@@ -144,6 +144,8 @@
     <DCCReference Include="..\PCElements\Load.pas" />
     <DCCReference Include="..\PCElements\PCClass.pas" />
     <DCCReference Include="..\PCElements\PCElement.pas" />
+    <DCCReference Include="..\PCElements\Storage.pas" />
+    <DCCReference Include="..\PCElements\StoreUserModel.pas" />
     <DCCReference Include="..\PCElements\VSource.pas" />
     <DCCReference Include="..\PDElements\Capacitor.pas" />
     <DCCReference Include="..\PDElements\Fault.pas" />

@@ -75,7 +75,6 @@ uses
   fuse in '..\PDElements\fuse.pas',
   GenDispatcher in '..\Controls\GenDispatcher.pas',
   generator in '..\PCElements\generator.pas',
-  StoreUserModel in '..\PCElements\StoreUserModel.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
   HelpForm in '..\Forms\HelpForm.pas' {HelpForm1},
@@ -136,7 +135,8 @@ uses
   LineCode in '..\General\LineCode.pas',
   GenUserModel in '..\PCElements\GenUserModel.pas',
   Storage in '..\PCElements\Storage.pas',
-  StorageController in '..\Controls\StorageController.pas';
+  StorageController in '..\Controls\StorageController.pas',
+  StoreUserModel in '..\PCElements\StoreUserModel.pas';
 
 {$R *.RES}
 

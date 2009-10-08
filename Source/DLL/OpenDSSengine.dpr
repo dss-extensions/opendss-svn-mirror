@@ -148,7 +148,9 @@ uses
   NamedObject in '..\General\NamedObject.pas',
   LineCode in '..\General\LineCode.pas',
   ImplDSSElement in 'ImplDSSElement.pas' {DSSElement: CoClass},
-  ImplActiveClass in 'ImplActiveClass.pas' {ActiveClass: CoClass};
+  ImplActiveClass in 'ImplActiveClass.pas' {ActiveClass: CoClass},
+  Storage in '..\PCElements\Storage.pas',
+  StoreUserModel in '..\PCElements\StoreUserModel.pas';
 
 exports
   DllGetClassObject,
