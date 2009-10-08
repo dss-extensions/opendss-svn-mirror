@@ -41,6 +41,7 @@ CONST
       GEN_CONTROL      = 19 * 8;
       SENSOR_ELEMENT   = 20 * 8;
       STORAGE_ELEMENT  = 21 * 8;
+      STORAGE_CONTROL  = 22 * 8;
 
 VAR
    ClassNames         :THashList;
@@ -91,7 +92,8 @@ USES
      Sensor,
      Feeder,
      XfmrCode,
-     Storage
+     Storage,
+     StorageController
 ;
 
 TYPE
@@ -184,6 +186,7 @@ Begin
      DSSClasses.New := TGenDispatcher.Create;
      StorageClass   := TStorage.Create;
      DSSClasses.New := StorageClass;
+     DSSClasses.New := TStorageController.Create;
      DSSClasses.New := TRelay.Create;
      DSSClasses.New := TRecloser.Create;
      DSSClasses.New := TFuse.Create;

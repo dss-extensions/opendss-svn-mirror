@@ -1,17 +1,17 @@
-unit GenDispatcher;
+unit StorageController;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  Copyright (c) 2009, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
 {
-  A GenDispatcher is a control element that is connected to a terminal of another
-  circuit element and sends dispatch kW signals to a set of generators it controls
+  A StorageController is a control element that is connected to a terminal of another
+  circuit element and sends dispatch  signals to a set of energy storage it controls
 
-  A GenDispatcher is defined by a New command:
+  A StorageController is defined by a New command:
 
-  New GenDispatcher.Name=myname Element=devclass.name terminal=[ 1|2|...] CapacitorList = (gen1  gen2 ...)
+  New StorageController.Name=myname Element=devclass.name terminal=[ 1|2|...] Elementlist = (elem1  elem2 ...)
 
  
 }
@@ -25,12 +25,12 @@ USES
 TYPE
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-   TGenDispatcher = class(TControlClass)
+   TStorageController = class(TControlClass)
      private
 
      protected
         PROCEDURE DefineProperties;
-        FUNCTION MakeLike(const GenDispatcherName:String):Integer;Override;
+        FUNCTION MakeLike(const StorageControllerName:String):Integer;Override;
      public
        constructor Create;
        destructor Destroy; override;
@@ -41,7 +41,7 @@ TYPE
    end;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-   TGenDispatcherObj = class(TControlElem)
+   TStorageControllerObj = class(TControlElem)
      private
 
             FkWLimit,
@@ -50,19 +50,19 @@ TYPE
             FkvarLimit,
             TotalWeight   :Double;
             FListSize:Integer;
-            FGeneratorNameList:TStringList;
-            FGenPointerList:PointerList.TPointerList;
+            FStorageNameList:TStringList;
+            FStorePointerList:PointerList.TPointerList;
             FWeights:pDoubleArray;
 
             MonitoredElement :TDSSCktElement;
 
      public
 
-       constructor Create(ParClass:TDSSClass; const GenDispatcherName:String);
+       constructor Create(ParClass:TDSSClass; const StorageControllerName:String);
        destructor Destroy; override;
 
        PROCEDURE RecalcElementData; Override;
-       PROCEDURE CalcYPrim; Override;    // Always Zero for a GenDispatcher
+       PROCEDURE CalcYPrim; Override;    // Always Zero for a StorageController
 
        PROCEDURE Sample;  Override;    // Sample control quantities and set action times in Control Queue
        PROCEDURE DoPendingAction(Const Code, ProxyHdl:Integer); Override;   // Do the action that is pending from last sample
@@ -74,19 +74,19 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-       FUNCTION MakeGenList:Boolean;
+       FUNCTION MakeStorageList:Boolean;
    end;
 
 
 VAR
-    ActiveGenDispatcherObj:TGenDispatcherObj;
+    ActiveStorageControllerObj:TStorageControllerObj;
 
 {--------------------------------------------------------------------------}
 IMPLEMENTATION
 
 USES
 
-    ParserDel, DSSClassDefs, DSSGlobals, Circuit,  Generator, Sysutils, uCmatrix, MathUtil, Math;
+    ParserDel, DSSClassDefs, DSSGlobals, Circuit,  Storage, Sysutils, uCmatrix, MathUtil, Math;
 
 CONST
 
@@ -94,12 +94,12 @@ CONST
 
 
 {--------------------------------------------------------------------------}
-constructor TGenDispatcher.Create;  // Creates superstructure for all GenDispatcher objects
+constructor TStorageController.Create;  // Creates superstructure for all StorageController objects
 Begin
      Inherited Create;
 
-     Class_name   := 'GenDispatcher';
-     DSSClassType := DSSClassType + GEN_CONTROL;
+     Class_name   := 'StorageController';
+     DSSClassType := DSSClassType + STORAGE_CONTROL;
 
      DefineProperties;
 
@@ -108,14 +108,14 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-destructor TGenDispatcher.Destroy;
+destructor TStorageController.Destroy;
 
 Begin
      Inherited Destroy;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TGenDispatcher.DefineProperties;
+PROCEDURE TStorageController.DefineProperties;
 Begin
 
      Numproperties := NumPropsThisClass;
@@ -130,20 +130,21 @@ Begin
      PropertyName[3] := 'kWLimit';
      PropertyName[4] := 'kWBand';
      PropertyName[5] := 'kvarlimit';
-     PropertyName[6] := 'GenList';
+     PropertyName[6] := 'ElementList';
      PropertyName[7] := 'Weights';
 
      PropertyHelp[1] := 'Full object name of the circuit element, typically a line or transformer, '+
                         'which the control is monitoring. There is no default; must be specified.';
-     PropertyHelp[2] := 'Number of the terminal of the circuit element to which the GenDispatcher control is connected. '+
+     PropertyHelp[2] := 'Number of the terminal of the circuit element to which the StorageController control is connected. '+
                         '1 or 2, typically.  Default is 1. Make sure you have the direction on the power matching the sign of kWLimit.';
-     PropertyHelp[3] := 'kW Limit for the monitored element. The generators are dispatched to hold the power in band.';
+     PropertyHelp[3] := 'kW Limit (directional) for the monitored element. The storage elements are dispatched to try to hold the power in band '+
+                        'at least until the storage is depleted.';
      PropertyHelp[4] := 'Bandwidth (kW) of the dead band around the target limit.' +
                         'No dispatch changes are attempted if the power in the monitored terminal stays within this band.';
      PropertyHelp[5] := 'Max kvar to be delivered through the element.  Uses same dead band as kW.';
-     PropertyHelp[6] := 'Array list of generators to be dispatched.  If not specified, all generators in the circuit are assumed dispatchable.';
-     PropertyHelp[7] := 'Array of proportional weights corresponding to each generator in the GenList.' +
-                        ' The needed kW to get back to center band is dispatched to each generator according to these weights. ' +
+     PropertyHelp[6] := 'Array list of Storage elements to be controlled.  If not specified, all storage elements in the circuit are assumed dispatched by this controller.';
+     PropertyHelp[7] := 'Array of proportional weights corresponding to each storage element in the ElementList.' +
+                        ' The needed kW to get back to center band is dispatched to each storage element according to these weights. ' +
                         'Default is to set all weights to 1.0.';
 
      ActiveProperty  := NumPropsThisClass;
@@ -152,18 +153,18 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-FUNCTION TGenDispatcher.NewObject(const ObjName:String):Integer;
+FUNCTION TStorageController.NewObject(const ObjName:String):Integer;
 Begin
-    // Make a new GenDispatcher and add it to GenDispatcher class list
+    // Make a new StorageController and add it to StorageController class list
     WITH ActiveCircuit Do
     Begin
-      ActiveCktElement := TGenDispatcherObj.Create(Self, ObjName);
+      ActiveCktElement := TStorageControllerObj.Create(Self, ObjName);
       Result := AddObjectToList(ActiveDSSObject);
     End;
 End;
 
 {--------------------------------------------------------------------------}
-FUNCTION TGenDispatcher.Edit:Integer;
+FUNCTION TStorageController.Edit:Integer;
 VAR
    ParamPointer:Integer;
    ParamName:String;
@@ -172,13 +173,13 @@ VAR
 
 Begin
 
-  // continue parsing WITH contents of Parser
-  ActiveGenDispatcherObj := ElementList.Active;
-  ActiveCircuit.ActiveCktElement := ActiveGenDispatcherObj;
+  // continue parsing with contents of Parser
+  ActiveStorageControllerObj := ElementList.Active;
+  ActiveCircuit.ActiveCktElement := ActiveStorageControllerObj;
 
   Result := 0;
 
-  WITH ActiveGenDispatcherObj Do Begin
+  WITH ActiveStorageControllerObj Do Begin
 
      ParamPointer := 0;
      ParamName := Parser.NextParam;
@@ -194,12 +195,12 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 364);
             1: ElementName     := lowercase(param);
             2: ElementTerminal := Parser.IntValue;
-            3: FkWLimit := Parser.DblValue;
-            4: FkWBand := Parser.DblValue;
-            5: FkvarLimit := Parser.DblValue;
-            6: InterpretTStringListArray(Param, FGeneratorNameList);
+            3: FkWLimit        := Parser.DblValue;
+            4: FkWBand         := Parser.DblValue;
+            5: FkvarLimit      := Parser.DblValue;
+            6: InterpretTStringListArray(Param, FStorageNameList);
             7: Begin
-                 FListSize := FGeneratorNameList.count;
+                 FListSize := FStorageNameList.count;
                  IF FListSize>0 Then Begin
                  Reallocmem(FWeights, Sizeof(FWeights^[1])*FListSize);
                  InterpretDblArray(Param, FListSize, FWeights);
@@ -208,14 +209,14 @@ Begin
 
          ELSE
            // Inherited parameters
-           ClassEdit( ActiveGenDispatcherObj, ParamPointer - NumPropsthisClass)
+           ClassEdit( ActiveStorageControllerObj, ParamPointer - NumPropsthisClass)
          End;
 
          CASE ParamPointer OF
             4: HalfkWBand := FkWBand / 2.0;
             6: Begin   // levelize the list
-                 FGenPointerList.Clear;  // clear this for resetting on first sample
-                 FListSize := FGeneratorNameList.count;
+                 FStorePointerList.Clear;  // clear this for resetting on first sample
+                 FListSize := FStorageNameList.count;
                  Reallocmem(FWeights, Sizeof(FWeights^[1])*FListSize);
                  For i := 1 to FListSize Do FWeights^[i] := 1.0;
                End;
@@ -235,31 +236,31 @@ End;
 
 
 {--------------------------------------------------------------------------}
-FUNCTION TGenDispatcher.MakeLike(const GenDispatcherName:String):Integer;
+FUNCTION TStorageController.MakeLike(const StorageControllerName:String):Integer;
 VAR
-   OtherGenDispatcher:TGenDispatcherObj;
+   OtherStorageController:TStorageControllerObj;
    i:Integer;
 Begin
    Result := 0;
-   {See if we can find this GenDispatcher name in the present collection}
-   OtherGenDispatcher := Find(GenDispatcherName);
-   IF OtherGenDispatcher<>Nil THEN
-   WITH ActiveGenDispatcherObj Do Begin
+   {See if we can find this StorageController name in the present collection}
+   OtherStorageController := Find(StorageControllerName);
+   IF OtherStorageController<>Nil THEN
+   WITH ActiveStorageControllerObj Do Begin
 
-        NPhases := OtherGenDispatcher.Fnphases;
-        NConds  := OtherGenDispatcher.Fnconds; // Force Reallocation of terminal stuff
+        NPhases := OtherStorageController.Fnphases;
+        NConds  := OtherStorageController.Fnconds; // Force Reallocation of terminal stuff
 
-        ElementName       := OtherGenDispatcher.ElementName;
-        ControlledElement := OtherGenDispatcher.ControlledElement;  // Pointer to target circuit element
-        MonitoredElement  := OtherGenDispatcher.MonitoredElement;  // Pointer to target circuit element
+        ElementName       := OtherStorageController.ElementName;
+        ControlledElement := OtherStorageController.ControlledElement;  // Pointer to target circuit element
+        MonitoredElement  := OtherStorageController.MonitoredElement;  // Pointer to target circuit element
 
-        ElementTerminal   := OtherGenDispatcher.ElementTerminal;
+        ElementTerminal   := OtherStorageController.ElementTerminal;
 
 
-        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherGenDispatcher.PropertyValue[i];
+        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherStorageController.PropertyValue[i];
 
    End
-   ELSE  DoSimpleMsg('Error in GenDispatcher MakeLike: "' + GenDispatcherName + '" Not Found.', 370);
+   ELSE  DoSimpleMsg('Error in StorageController MakeLike: "' + StorageControllerName + '" Not Found.', 370);
 
 End;
 
@@ -267,17 +268,17 @@ End;
 
 
 {==========================================================================}
-{                    TGenDispatcherObj                                           }
+{                    TStorageControllerObj                                           }
 {==========================================================================}
 
 
 
 {--------------------------------------------------------------------------}
-constructor TGenDispatcherObj.Create(ParClass:TDSSClass; const GenDispatcherName:String);
+constructor TStorageControllerObj.Create(ParClass:TDSSClass; const StorageControllerName:String);
 
 Begin
      Inherited Create(ParClass);
-     Name := LowerCase(GenDispatcherName);
+     Name := LowerCase(StorageControllerName);
      DSSObjType := ParClass.DSSClassType;
 
      NPhases := 3;  // Directly set conds and phases
@@ -292,9 +293,9 @@ Begin
      ElementTerminal  := 1;
      MonitoredElement := Nil;
 
-     FGeneratorNameList := TSTringList.Create;
+     FStorageNameList := TSTringList.Create;
      FWeights   := Nil;
-     FGenPointerList := PointerList.TPointerList.Create(20);  // Default size and increment
+     FStorePointerList := PointerList.TPointerList.Create(20);  // Default size and increment
      FListSize   := 0;
      FkWLimit    := 8000.0;
      FkWBand     := 100.0;
@@ -308,14 +309,14 @@ Begin
 
 End;
 
-destructor TGenDispatcherObj.Destroy;
+destructor TStorageControllerObj.Destroy;
 Begin
      ElementName := '';
      Inherited Destroy;
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.RecalcElementData;
+PROCEDURE TStorageControllerObj.RecalcElementData;
 
 VAR
    DevIndex :Integer;
@@ -330,22 +331,22 @@ Begin
              MonitoredElement := ActiveCircuit.CktElements.Get(DevIndex);
              IF ElementTerminal > MonitoredElement.Nterms
              THEN Begin
-                 DoErrorMsg('GenDispatcher: "' + Name + '"',
+                 DoErrorMsg('StorageController: "' + Name + '"',
                                  'Terminal no. "' +'" does not exist.',
                                  'Re-specify terminal no.', 371);
              End
              ELSE Begin
-               // Sets name of i-th terminal's connected bus in GenDispatcher's buslist
+               // Sets name of i-th terminal's connected bus in StorageController's buslist
                  Setbus(1, MonitoredElement.GetBus(ElementTerminal));
              End;
          End
-         ELSE DoSimpleMsg('Monitored Element in GenDispatcher.'+Name+ ' does not exist:"'+ElementName+'"', 372);
+         ELSE DoSimpleMsg('Monitored Element in StorageController.'+Name+ ' does not exist:"'+ElementName+'"', 372);
 
 
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.CalcYPrim;
+PROCEDURE TStorageControllerObj.CalcYPrim;
 Begin
   // leave YPrims as nil and they will be ignored
   // Yprim is zeroed when created.  Leave it as is.
@@ -358,7 +359,7 @@ End;
 
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.GetCurrents(Curr: pComplexArray);
+PROCEDURE TStorageControllerObj.GetCurrents(Curr: pComplexArray);
 VAR
    i:Integer;
 Begin
@@ -367,14 +368,14 @@ Begin
 
 End;
 
-PROCEDURE TGenDispatcherObj.GetInjCurrents(Curr: pComplexArray);
+PROCEDURE TStorageControllerObj.GetInjCurrents(Curr: pComplexArray);
 Var i:Integer;
 Begin
      FOR i := 1 to Fnconds Do Curr^[i] := CZERO;
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.DumpProperties(Var F:TextFile; Complete:Boolean);
+PROCEDURE TStorageControllerObj.DumpProperties(Var F:TextFile; Complete:Boolean);
 
 VAR
    i:Integer;
@@ -397,27 +398,27 @@ End;
 
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.DoPendingAction;
+PROCEDURE TStorageControllerObj.DoPendingAction;
 begin
 
         {Do Nothing}
 end;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TGenDispatcherObj.Sample;
+PROCEDURE TStorageControllerObj.Sample;
 
 VAR
    i           :Integer;
    PDiff,
    QDiff       :Double;
    S           :Complex ;
-   Gen         :TGeneratorObj;
-   GenkWChanged, Genkvarchanged: Boolean;
+   StorageObj         :TSTorageObj;
+   StorekWChanged, StorekvarChanged: Boolean;
    GenkW, Genkvar :Double;
 
 begin
      // If list is not define, go make one from all generators in circuit
-     IF FGenPointerList.ListSize=0 Then  MakeGenList;
+     IF FStorePointerList.ListSize=0 Then  MakeStorageList;
 
      If FListSize>0 Then Begin
 
@@ -430,36 +431,36 @@ begin
 
        // Redispatch the vars.
 
-       GenkWChanged := FALSE;
-       GenkvarChanged := FALSE;
+       StorekWChanged := FALSE;
+       StorekvarChanged := FALSE;
 
        If Abs(PDiff) > HalfkWBand Then Begin // Redispatch Generators
           // PDiff is kW needed to get back into band
           For i := 1 to FListSize Do Begin
-              Gen := FGenPointerList.Get(i);
+              StorageObj := FStorePointerList.Get(i);
               // compute new dispatch value for this generator ...
-              GenkW := Max(1.0, (Gen.kWBase + PDiff *(FWeights^[i]/TotalWeight)));
-              If GenkW <> Gen.kWBase Then Begin
-                  Gen.kWBase := GenkW;
-                  GenkWChanged := TRUE;
+              GenkW := Max(1.0, (StorageObj.PresentkW + PDiff *(FWeights^[i]/TotalWeight)));
+              If GenkW <> StorageObj.PresentkW Then Begin
+                  StorageObj.PresentkW := GenkW;  //****  Will this work?  Maybe
+                  StorekWChanged := TRUE;
               End;
           End;
        End;
 
-       If Abs(QDiff) > HalfkWBand Then Begin // Redispatch Generators
+       If Abs(QDiff) > HalfkWBand Then Begin // Redispatch Storage elents
           // QDiff is kvar needed to get back into band
           For i := 1 to FListSize Do Begin
-              Gen := FGenPointerList.Get(i);
+              StorageObj := FStorePointerList.Get(i);
               // compute new dispatch value for this generator ...
-              Genkvar := Max(0.0, (Gen.kvarBase + QDiff *(FWeights^[i]/TotalWeight)));
-              If Genkvar <> Gen.kvarBase Then Begin
-                  Gen.kvarBase := Genkvar;
-                  Genkvarchanged := TRUE;
+              Genkvar := Max(0.0, (StorageObj.Presentkvar + QDiff *(FWeights^[i]/TotalWeight)));
+              If Genkvar <> StorageObj.Presentkvar Then Begin
+                  StorageObj.kvarBase := Genkvar;
+                  StorekvarChanged := TRUE;
               End;
           End;
        End;
 
-       If GenkWChanged or Genkvarchanged Then  // Only push onto controlqueue if there has been a change
+       If StorekWChanged or StorekvarChanged Then  // Only push onto controlqueue if there has been a change
           With ActiveCircuit, ActiveCircuit.Solution Do Begin
             LoadsNeedUpdating := TRUE; // Force recalc of power parms
             // Push present time onto control queue to force re solve at new dispatch value
@@ -474,7 +475,7 @@ begin
 end;
 
 
-procedure TGenDispatcherObj.InitPropertyValues(ArrayOffset: Integer);
+procedure TStorageControllerObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
      PropertyValue[1]  := '';   //'element';
@@ -491,23 +492,21 @@ begin
 
 end;
 
-Function TGenDispatcherObj.MakeGenList:Boolean;
+Function TStorageControllerObj.MakeStorageList:Boolean;
 
 VAR
-   GenClass:TDSSClass;
-   Gen:TGeneratorObj;
+   StorageObj:TStorageObj;
    i:Integer;
 
 begin
 
    Result := FALSE;
-   GenClass := GetDSSClassPtr('generator');
 
    If FListSize>0 Then Begin    // Name list is defined - Use it
 
      For i := 1 to FListSize Do Begin
-         Gen := GenClass.Find(FGeneratorNameList.Strings[i-1]);
-         If Assigned(Gen) and Gen.Enabled Then FGenPointerList.New := Gen;
+         StorageObj := StorageClass.Find(FStorageNameList.Strings[i-1]);
+         If Assigned(StorageObj) and StorageObj.Enabled Then FStorePointerList.New := StorageObj;
      End;
 
    End
@@ -515,12 +514,12 @@ begin
      {Search through the entire circuit for enabled generators and add them to the list}
      
      For i := 1 to GenClass.ElementCount Do Begin
-        Gen :=  GenClass.ElementList.Get(i);
-        If Gen.Enabled Then FGenPointerList.New := Gen;
+        StorageObj :=  GenClass.ElementList.Get(i);
+        If StorageObj.Enabled Then FStorePointerList.New := StorageObj;
      End;
 
      {Allocate uniform weights}
-     FListSize := FGenPointerList.ListSize;
+     FListSize := FStorePointerList.ListSize;
      Reallocmem(FWeights, Sizeof(FWeights^[1])*FListSize);
      For i := 1 to FListSize Do FWeights^[i] := 1.0;
 
@@ -530,12 +529,12 @@ begin
    TotalWeight := 0.0;
    For i := 1 to FlistSize Do  TotalWeight := TotalWeight + FWeights^[i];
 
-   If FGenPointerList.ListSize>0 Then Result := TRUE;
+   If FStorePointerList.ListSize>0 Then Result := TRUE;
 end;
 
 
 
-procedure TGenDispatcherObj.Reset;
+procedure TStorageControllerObj.Reset;
 begin
   // inherited;
 

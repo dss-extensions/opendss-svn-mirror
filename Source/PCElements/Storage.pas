@@ -1204,14 +1204,14 @@ begin
      OldState := Fstate;
   // First see if we want to turn off Charging or Discharging State
      CASE Fstate of
-         STATE_CHARGING:    if (ChargeTrigger    <> 0.0) Then if (ChargeTrigger    > Level) or (kWhStored >= kWHRating) then Fstate := STATE_IDLING;
-         STATE_DISCHARGING: if (DischargeTrigger <> 0.0) Then if (DischargeTrigger < Level) or (kWhStored <= kWHRating) then Fstate := STATE_IDLING;
+         STATE_CHARGING:    if (ChargeTrigger    <> 0.0) Then if (ChargeTrigger    < Level) or (kWhStored >= kWHRating)  then Fstate := STATE_IDLING;
+         STATE_DISCHARGING: if (DischargeTrigger <> 0.0) Then if (DischargeTrigger > Level) or (kWhStored <= kWHReserve) then Fstate := STATE_IDLING;
      END;
 
   // Now check to see if we want to turn on the opposite state
      CASE Fstate of
-         STATE_IDLING: if      (DischargeTrigger <> 0.0) and (DischargeTrigger > Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
-                       else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    < Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
+         STATE_IDLING: if      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
+                       else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
      END;
 
      if OldState <> Fstate then FstateChanged := TRUE;
@@ -1707,7 +1707,7 @@ begin
                            End;
 
         STATE_CHARGING:    Begin
-                               kWhStored := kWhStored + PresentkW * IntervalHrs * ChargeEff;
+                               kWhStored := kWhStored - PresentkW * IntervalHrs * ChargeEff;
                                if kWhStored > kWhRating then Begin
                                   kWhStored := kWhRating;
                                   Fstate := STATE_IDLING;  // It's full Turn it off
