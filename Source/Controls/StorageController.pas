@@ -454,7 +454,7 @@ begin
               // compute new dispatch value for this generator ...
               Genkvar := Max(0.0, (StorageObj.Presentkvar + QDiff *(FWeights^[i]/TotalWeight)));
               If Genkvar <> StorageObj.Presentkvar Then Begin
-                  StorageObj.kvarBase := Genkvar;
+                  StorageObj.Presentkvar := Genkvar;
                   StorekvarChanged := TRUE;
               End;
           End;
@@ -513,8 +513,8 @@ begin
    Else Begin
      {Search through the entire circuit for enabled generators and add them to the list}
      
-     For i := 1 to GenClass.ElementCount Do Begin
-        StorageObj :=  GenClass.ElementList.Get(i);
+     For i := 1 to StorageClass.ElementCount Do Begin
+        StorageObj :=  StorageClass.ElementList.Get(i);
         If StorageObj.Enabled Then FStorePointerList.New := StorageObj;
      End;
 

@@ -98,6 +98,7 @@ TYPE
         pctkWin         :Double;
         DischargeTrigger:Double;
         ChargeTrigger   :Double;
+        ChargeTime      :Double;
 
 
         pctR            :Double;
@@ -156,6 +157,7 @@ TYPE
         Procedure SetKWandKvarOut;
         Procedure CheckStateTriggerLevel(Level:Double);
         Procedure UpdateStorage;    // Update Storage elements based on present kW and IntervalHrs variable
+        FUNCTION  NormalizeToTOD(h: Integer; sec: Double): Double;
 
         Function InterpretState(const S:String):Integer;
         Function DecodeState:String;
@@ -279,9 +281,11 @@ Const
   propUSERMODEL  = 31;
   propUSERDATA   = 32;
   propDEBUGTRACE = 33;
-  propPCTKWIN    =34;
+  propPCTKWIN    = 34;
+  propPCTSTORED  = 35;
+  propCHARGETIME = 36;
 
-  NumPropsThisClass = 34; // Make this agree with the last property constant
+  NumPropsThisClass = 36; // Make this agree with the last property constant
 
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -379,7 +383,9 @@ Begin
      AddProperty('kWhrated',  propKWHRATED,
                               'Rated storage capacity in kWh. Default is 50.');
      AddProperty('kWhstored', propKWHSTORED,
-                              'Present amount of energy stored, kWh. Default is 50.');
+                              'Present amount of energy stored, kWh. Default is same as kWh rated.');
+     AddProperty('%stored',   propPCTSTORED,
+                              'Present amount of energy stored, % of rated kWh. Default is 100%.');
      AddProperty('%reserve',  propPCTRESERVE,
                               'Percent of rated kWh storage capacity to be held in reserve for normal operation. Default = 20. ' + CRLF +
                               'This is treated as the minimum energy discharge level unless there is an emergency. For emergency operation ' +
@@ -456,6 +462,9 @@ Begin
                                  'If = 0.0 the Storage element state is changed by the State command or StorageController object.  ' +CRLF+
                                  'If <> 0  the Storage element state is set to CHARGING when this trigger level is GREATER than either the specified ' +
                                  'Loadshape curve value or the price signal or global Loadlevel value, depending on dispatch mode. See State property.');
+     AddProperty('TimeChargeTrig', propCHARGETIME,
+                                 'Time of day in fractional hours (0230 = 2.5) at which storage element will automatically go into charge state. ' +
+                                 'Default is 2.0.  Enter a negative time value to disable this feature.');
 
      AddProperty('class',       propCLASS,
                                 'An arbitrary integer number representing the class of Generator so that Generator values may '+
@@ -642,6 +651,8 @@ Begin
            propUSERDATA     : UserModel.Edit := Parser.StrValue;  // Send edit string to user model
            propDEBUGTRACE   : DebugTrace   := InterpretYesNo(Param);
            propPCTKWIN      : pctkWIn     := Parser.DblValue;
+           propPCTSTORED    : kWhStored   := Parser.DblValue * 0.01 * kWhRating;
+           propCHARGETIME   : ChargeTime := Parser.DblValue;
 
 
          ELSE
@@ -658,6 +669,7 @@ Begin
             propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
             propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
             propKWRATED:  kVArating := kWrating;
+            propKWHRATED: kWhStored := kWhRating; // Assume fully charged
 
             propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
                    AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
@@ -746,6 +758,7 @@ Begin
          pctDischargeEff := OtherStorageObj.pctDischargeEff;
          pctkWout        := OtherStorageObj.pctkWout;
          pctkWin         := OtherStorageObj.pctkWin;
+         ChargeTime      := OtherStorageObj.ChargeTime;
 
          pctR            := OtherStorageObj.pctR;
          pctX            := OtherStorageObj.pctX;
@@ -863,7 +876,7 @@ Begin
      FState           := STATE_IDLING;  // Idling and fully charged
      FStateChanged    := TRUE;  // Force building of YPrim
      kWhRating       := 50;
-     kWhStored       := 50;
+     kWhStored       := kWhRating;
      pctReserve      := 20.0;  // per cent of kWhRating
      kWhReserve      := kWhRating * pctReserve /100.0;
      pctR            := 0.0;;
@@ -875,6 +888,8 @@ Begin
      pctDischargeEff  := 90.0;
      pctkWout         := 100.0;
      pctkWin          := 100.0;
+
+     ChargeTime       := 2.0;   // 2 AM
 
      kVANotSet    := TRUE;  // Flag to set the default value for kVA
 
@@ -1191,6 +1206,26 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
+FUNCTION TStorageObj.NormalizeToTOD(h: Integer; sec: Double): Double;
+// Normalize time to a floating point number representing time of day if Hour > 24
+// time should be 0 to 24.
+VAR
+    HourOfDay :Integer;
+
+Begin
+
+   IF    h > 23
+   THEN  HourOfDay := (h - (h div 24)*24)
+   ELSE  HourOfDay := h;
+
+   Result := HourOfDay + sec/3600.0;
+
+   If   Result > 24.0
+   THEN Result := Result - 24.0;   // Wrap around
+
+End;
+
+//----------------------------------------------------------------------------
 procedure TStorageObj.CheckStateTriggerLevel(Level: Double);
 {This is where we set the state of the Storage element}
 
@@ -1210,9 +1245,20 @@ begin
 
   // Now check to see if we want to turn on the opposite state
      CASE Fstate of
-         STATE_IDLING: if      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
-                       else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
+         STATE_IDLING: Begin
+                           if      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
+                           else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
+
+                           // Check to see if it is time to turn the charge cycle on if it is not already on.
+                           if Not (Fstate = STATE_CHARGING) then
+                             if ChargeTime > 0.0 then
+                                   WITH ActiveCircuit.Solution Do Begin
+                                       if abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTime) < DynaVars.h/60.0 then Fstate := STATE_CHARGING;
+                                   End;
+                       End;
      END;
+
+
 
      if OldState <> Fstate then FstateChanged := TRUE;
 end;
@@ -1841,7 +1887,9 @@ begin
      PropertyValue[propKWRATED]   := Format('%-g', [kWRating]);
      PropertyValue[propKWHRATED]  := Format('%-g', [kWhRating]);
      PropertyValue[propKWHSTORED] := Format('%-g', [kWhStored]);
+     PropertyValue[propPCTSTORED] := Format('%-g', [kWhStored/kWhRating * 100.0]);
      PropertyValue[propPCTRESERVE]:= Format('%-g', [pctReserve]);
+     PropertyValue[propCHARGETIME]:= Format('%-g', [ChargeTime]);
 
      PropertyValue[propUSERMODEL] := '';  // Usermodel
      PropertyValue[propUSERDATA]  := '';  // Userdata
@@ -2109,6 +2157,7 @@ begin
            propKVAR: Result := Format('%.6g', [kvar_out]);
            propKVA: Result := Format('%.6g', [kVArating]);
            propKWRATED: Result := Format('%.6g', [kWrating]);
+           propKWHSTORED: Result := Format('%.6g', [kWHStored]);
            propUSERDATA: Begin
                       Result := '(' + inherited GetPropertyValue(index) + ')';
                   End;
