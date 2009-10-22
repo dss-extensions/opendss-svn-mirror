@@ -1018,7 +1018,9 @@ begin
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('wiredata'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('linegeometry'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('linecode'),'', FALSE);
-    If Success Then Success :=  WriteClassFile(GetDssClassPtr('loadshape'),'', FALSE);
+    If Success Then Success :=  WriteClassFile(GetDssClassPtr('linespacing'),'', FALSE);
+    If Success Then Success :=  WriteClassFile(GetDssClassPtr('linecode'),'', FALSE);
+    If Success Then Success :=  WriteClassFile(GetDssClassPtr('xfmrcode'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('growthshape'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('TCC_Curve'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('Spectrum'),'', FALSE);

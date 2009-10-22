@@ -82,7 +82,7 @@ uses
   Isource in '..\PCElements\Isource.pas',
   Line in '..\PDElements\Line.pas',
   XfmrCode in '..\General\XfmrCode.pas',
-  LineGeometry in '..\General\LineGeometry.pas',
+  LineSpacing in '..\General\LineSpacing.pas',
   LineUnits in '..\Shared\LineUnits.pas',
   ListForm in '..\Forms\ListForm.pas' {ListBoxForm},
   Load in '..\PCElements\Load.pas',
@@ -136,7 +136,8 @@ uses
   GenUserModel in '..\PCElements\GenUserModel.pas',
   Storage in '..\PCElements\Storage.pas',
   StorageController in '..\Controls\StorageController.pas',
-  StoreUserModel in '..\PCElements\StoreUserModel.pas';
+  StoreUserModel in '..\PCElements\StoreUserModel.pas',
+  LineGeometry in '..\General\LineGeometry.pas';
 
 {$R *.RES}
 

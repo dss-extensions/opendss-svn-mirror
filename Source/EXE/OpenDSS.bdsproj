@@ -150,7 +150,7 @@
 			<VersionInfo Name="MajorVer">6</VersionInfo>
 			<VersionInfo Name="MinorVer">3</VersionInfo>
 			<VersionInfo Name="Release">1</VersionInfo>
-			<VersionInfo Name="Build">32</VersionInfo>
+			<VersionInfo Name="Build">34</VersionInfo>
 			<VersionInfo Name="Debug">False</VersionInfo>
 			<VersionInfo Name="PreRelease">False</VersionInfo>
 			<VersionInfo Name="Special">False</VersionInfo>
@@ -162,7 +162,7 @@
 		<VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">6.3.1.32</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">6.3.1.34</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">OpenDSS</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008 EPRI, All Rights Reserved.</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
@@ -171,6 +171,10 @@
 			<VersionInfoKeys Name="ProductVersion">6.3.1</VersionInfoKeys>
 			<VersionInfoKeys Name="Comments"></VersionInfoKeys>
 		</VersionInfoKeys>  
+    
+    
+    
+    
     <Excluded_Packages>
       <Excluded_Packages Name="c:\program files\borland\bds\4.0\Bin\dclib100.bpl">Borland InterBase Express Components</Excluded_Packages>
       <Excluded_Packages Name="c:\program files\borland\bds\4.0\Bin\dclIntraweb_80_100.bpl">Intraweb 8.0 Design Package for Borland Development Studio 2006</Excluded_Packages>

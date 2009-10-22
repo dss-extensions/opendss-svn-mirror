@@ -72,6 +72,7 @@ USES
      Spectrum,
      WireData,
      LineGeometry,
+     LineSpacing,
      Load,
      LoadShape,
      Monitor,
@@ -169,6 +170,7 @@ Begin
      WireDataClass  := TWireData.Create;
      DSSClasses.New := WireDataClass;
      DSSClasses.New := TLineGeometry.Create;
+     DSSClasses.New := TLineSpacing.Create;
      DSSClasses.New := TXfmrCode.Create;
 
      {Circuit Element Classes}

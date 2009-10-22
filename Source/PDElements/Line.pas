@@ -13,7 +13,7 @@ unit Line;
 interface
 
 USES
-   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode, LineGeometry, PDClass, Ucomplex;
+   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode, LineGeometry, LineSpacing, WireData, PDClass, Ucomplex;
 
 
 TYPE
@@ -23,7 +23,6 @@ TYPE
        PROCEDURE DoRmatrix;
        PROCEDURE DoXmatrix;
        PROCEDURE DoCmatrix;
-
 
      Protected
         PROCEDURE DefineProperties;  // Add Properties of this class to propName
@@ -46,11 +45,17 @@ TYPE
         FLineCodeUnits     :Integer;
         FUnitsConvert      :Double; // conversion factor
         FLineGeometryObj   :TLineGeometryObj;
+        FLineSpacingObj    :TLineSpacingObj;
+        FWireData          :pWireDataArray;
         FrhoSpecified      :Boolean;
         FLineCodeSpecified :Boolean;
 
         Procedure FMakeZFromGeometry(f:Double); // make new Z, Zinv, Yc, etc
         Procedure KillGeometrySpecified;
+
+        Procedure FMakeZFromSpacing(f:Double); // make new Z, Zinv, Yc, etc
+        Procedure KillSpacingSpecified;
+
         Procedure ClearYPrim;
         Procedure ResetLengthUnits;
         procedure UpdatePDProperties;   // update inherited properties
@@ -75,7 +80,9 @@ TYPE
         GeneralPlotQuantity :Double;  // For general circuit plotting
         CondCode            :String;
         GeometryCode        :String;
+        SpacingCode         :String;
         GeometrySpecified    :Boolean;
+        SpacingSpecified     :Boolean;
         SymComponentsChanged :Boolean;
         SymComponentsModel   :Boolean;
         IsSwitch             :Boolean;
@@ -100,6 +107,8 @@ TYPE
         // Public for the COM Interface
         PROCEDURE FetchLineCode(Const Code:String);
         PROCEDURE FetchGeometryCode(Const Code:String);
+        PROCEDURE FetchLineSpacing(Const Code:String);
+        PROCEDURE FetchWireList(Const Code:String);
 
         // CIM XML access
         property LineCodeSpecified: Boolean read FLineCodeSpecified;
@@ -107,18 +116,20 @@ TYPE
 
 VAR
    ActiveLineObj:TLineObj;
-   LineCodeClass:TLineCode;
-   LineGeometryClass:TLineGeometry;
+   LineGeometryClass:TLineGeometry;  // public to show line constant results
 
 IMPLEMENTATION
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
 
-Const NumPropsThisClass = 20;
+Const NumPropsThisClass = 22;
     //  MaxPhases = 20; // for fixed buffers
 
 VAR
-     CAP_EPSILON   :Complex;
+   CAP_EPSILON   :Complex;
+   LineCodeClass:TLineCode;
+   LineSpacingClass:TLineSpacing;
+   WireDataClass:TWireData;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLine.Create;  // Creates superstructure for all Line objects
@@ -130,6 +141,8 @@ Begin
      ActiveElement := 0;
      LineCodeClass := Nil;
      LineGeometryClass := Nil;
+     LineSpacingClass := Nil;
+     WireDataClass := Nil;
 
      DefineProperties;
 
@@ -178,6 +191,8 @@ Begin
      PropertyName[18] := 'rho';
      PropertyName[19] := 'geometry';
      PropertyName[20] := 'units';
+     PropertyName[21] := 'spacing';
+     PropertyName[22] := 'wires';
 
      // define Property help values
 
@@ -231,7 +246,12 @@ Begin
                          'Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases. '+
                          'You cannot subsequently change the number of phases unless you change how the line impedance is defined.';
      PropertyHelp[20] := 'Length Units = {none | mi|kft|km|m|Ft|in|cm } Default is None - assumes length units match impedance units.';
-
+     PropertyHelp[21] := 'Reference to a LineSpacing for use in a line constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Wires property.' + CRLF +
+                          'Specify this before the wires property.';
+     PropertyHelp[22] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
+                          'Must be used in conjunction with the LineSpacing property.' + CRLF +
+                          'Specify the LineSpacing first.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -493,6 +513,8 @@ Begin
                                            Else FUnitsConvert := FUnitsConvert * ConvertLineUnits(LengthUnits, NewLengthUnits);
                      LengthUnits := NewLengthUnits;
                END;
+           21: FetchLineSpacing(Param);
+           22: FetchWireList(Param);
          ELSE
             // Inherited Property Edits
              ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass)
@@ -511,12 +533,12 @@ Begin
               End Else Begin
                  DoSimpleMsg('Illegal change of number of phases for Line.'+Name, 181);
               End;
-          6..11: Begin FLineCodeSpecified := FALSE; KillGeometrySpecified;
+          6..11: Begin FLineCodeSpecified := FALSE; KillGeometrySpecified; KillSpacingSpecified;
                        ResetLengthUnits; SymComponentsChanged := True;
                        SymComponentsModel := TRUE;
                  End;
           12..14:Begin FLineCodeSpecified := FALSE; SymComponentsModel := FALSE;
-                       ResetLengthUnits; KillGeometrySpecified;
+                       ResetLengthUnits; KillGeometrySpecified; KillSpacingSpecified;
                  End;
           15: If IsSwitch Then Begin
                 SymComponentsChanged := True;  YprimInvalid := True;
@@ -528,6 +550,15 @@ Begin
 
           17..18: Kxg := Xg/ln(658.5*sqrt(rho/BaseFrequency));
           19: Begin GeometrySpecified := TRUE; SymComponentsModel := FALSE; SymComponentsChanged := FALSE; End;
+          21..22: Begin
+              if Assigned (FLineSpacingObj) and Assigned (FWireData) then begin
+                SpacingSpecified := True;
+                SymComponentsModel := False;
+                SymComponentsChanged := False;
+                KillGeometrySpecified;
+              end;
+              YprimInvalid := True;
+            End;
          ELSE
          End;
 
@@ -660,6 +691,11 @@ Begin
      FLineCodeUnits    := UNITS_NONE;
      FLineCodeSpecified := FALSE;
 
+     SpacingSpecified := False;
+     FLineSpacingObj := Nil;
+     FWireData := Nil;
+     SpacingCode := '';
+
      FZFrequency := -1.0; // indicate Z not computed.
      FLineGeometryObj := Nil;
 
@@ -678,6 +714,7 @@ Begin
     If Assigned(Z) Then Z.Free;
     If Assigned(Zinv) Then Zinv.Free;
     If Assigned(Yc) Then Yc.Free;
+    Reallocmem (FWireData, 0);
     Inherited destroy;
 End;
 
@@ -787,6 +824,11 @@ Begin
          If GeometrySpecified Then Begin
 
              FMakeZFromGeometry(ActiveCircuit.Solution.Frequency); // Includes length in proper units
+             if SolutionAbort then  Exit;
+
+         End Else If SpacingSpecified Then Begin
+
+             FMakeZFromSpacing(ActiveCircuit.Solution.Frequency);
              if SolutionAbort then  Exit;
 
          End Else Begin  // Z is from line code or specified in line data
@@ -1354,7 +1396,39 @@ begin
      End;
 end;
 
+procedure TLineObj.FetchLineSpacing(const Code: string);
+begin
+  if LineSpacingClass=Nil then LineSpacingClass := DSSClassList.Get(ClassNames.Find('LineSpacing'));
+  if LineSpacingClass.SetActive(Code) then begin
+    FLineSpacingObj := LineSpacingClass.GetActiveObj;
+    FLineCodeSpecified := False;
+    KillGeometrySpecified;
+    SpacingCode := LowerCase(Code);
+  end else
+    DoSimpleMsg ('Line Spacing object ' + Code + ' not found.', 181);
+end;
 
+procedure TLineObj.FetchWireList(const Code: string);
+var
+  i: Integer;
+begin
+  if WireDataClass=Nil then WireDataClass := DSSClassList.Get(ClassNames.Find('WireData'));
+  FLineCodeSpecified := False;
+  KillGeometrySpecified;
+  if not assigned (FLineSpacingObj) then
+    DoSimpleMsg ('Must assign the LineSpacing before wires.', 181);
+
+  FWireData := Allocmem(Sizeof(FWireData^[1]) * FLineSpacingObj.NWires);
+  AuxParser.CmdString := Code;
+  for i := 1 to FLineSpacingObj.NWires do begin
+    AuxParser.NextParam; // ignore any parameter name  not expecting any
+    WireDataClass.code := AuxParser.StrValue;
+    if Assigned(ActiveWireDataObj) then
+      FWireData^[i] := ActiveWireDataObj
+    else
+      DoSimpleMsg ('Wire ' + AuxParser.StrValue + ' was not defined first.', 181);
+  end;
+end;
 
 procedure TLineObj.FetchGeometryCode(const Code: String);
 
@@ -1364,6 +1438,7 @@ Begin
    IF LineGeometryClass.SetActive(Code) THEN
    Begin
        FLineCodeSpecified := FALSE;  // Cancel this flag
+       SpacingSpecified := False;
 
        FLineGeometryObj := LineGeometryClass.GetActiveObj;
        FZFrequency      := -1.0;  // Init to signify not computed
@@ -1412,6 +1487,40 @@ Begin
      End;
 End;
 
+Procedure TLineObj.FMakeZFromSpacing(f:Double); // make new Z, Zinv, Yc, etc
+Var
+  pGeo   : TLineGeometryObj;
+Begin
+  If f = FZFrequency Then exit;  // Already Done for this frequency, no need to do anything
+
+  IF assigned(Z)    THEN Begin Z.Free;    Z    := nil; End;
+  IF assigned(Zinv) THEN Begin Zinv.Free; Zinv := nil; End;
+  IF assigned(Yc)   THEN Begin Yc.Free;   Yc   := nil; End;
+
+  // make a temporary LineGeometry to calculate line constants
+  IF LineGeometryClass=Nil THEN LineGeometryClass := DSSClassList.Get(ClassNames.Find('LineGeometry'));
+  pGeo := TLineGeometryObj.Create(LineGeometryClass, '==');
+  pGeo.LoadSpacingAndWires (FLineSpacingObj, FWireData);
+
+  If FrhoSpecified Then pGeo.rhoearth := rho;
+  NormAmps      := pGeo.NormAmps;
+  EmergAmps     := pGeo.EmergAmps;
+  UpdatePDProperties;
+  NPhases       := pGeo.Nconds;
+  Nconds        := FNPhases;  // Force Reallocation of terminal info
+  Yorder        := Fnconds * Fnterms;
+
+  Z    := pGeo.Zmatrix[ f, len, LengthUnits];
+  Yc   := pGeo.YCmatrix[f, len, LengthUnits];
+  if Assigned(Z) then begin
+    Zinv := TCMatrix.CreateMatrix(Z.order);  // Either no. phases or no. conductors
+    Zinv.CopyFrom(Z);
+  end;
+  pGeo.Free;
+
+  FZFrequency := f;
+End;
+
 procedure TLineObj.KillGeometrySpecified;
 begin
 {Indicate No Line Geometry specification if this is called}
@@ -1419,6 +1528,16 @@ begin
           FLineGeometryObj  := Nil;
           FZFrequency       := -1.0;
           GeometrySpecified := FALSE;
+      End;
+end;
+
+procedure TLineObj.KillSpacingSpecified;
+begin
+      If SpacingSpecified Then Begin
+          FLineSpacingObj := Nil;
+          Reallocmem (FWireData, 0);
+          FZFrequency       := -1.0;
+          SpacingSpecified := FALSE;
       End;
 end;
 

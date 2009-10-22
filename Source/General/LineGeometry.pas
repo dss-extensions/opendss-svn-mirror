@@ -21,7 +21,7 @@ interface
  }
 
 USES
-   Sysutils, Arraydef, Command, DSSClass, DSSObject, uCMatrix, OHLineConstants, WireData;
+   Sysutils, Arraydef, Command, DSSClass, DSSObject, uCMatrix, OHLineConstants, WireData, LineSpacing;
 
 
 TYPE
@@ -96,6 +96,8 @@ TYPE
         PROCEDURE InitPropertyValues(ArrayOffset:Integer); Override;
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean); Override;
         PROCEDURE SaveWrite(Var F:TextFile); Override;
+
+        Procedure LoadSpacingAndWires (Spc: TLineSpacingObj; Wires: pWireDataArray);
 
         Property Nconds:Integer     read get_Nconds  write set_Nconds;
         Property Nphases:Integer    read FNphases    write set_Nphases;
@@ -596,6 +598,24 @@ begin
          If FReduce Then FLineData.Reduce; // reduce out neutrals
      End;
 
+end;
+
+procedure TLineGeometryObj.LoadSpacingAndWires(Spc: TLineSpacingObj; Wires: pWireDataArray);
+var
+  i: Integer;
+begin
+  NConds := Spc.NWires;   // allocates
+  FNphases := Spc.Nphases;
+  For i := 1 to FNConds Do FCondType^[i] := Wires^[i].Name;
+  For i := 1 to FNConds Do FWireData^[i] := Wires^[i];
+  For i := 1 to FNConds Do FX^[i] := Spc.Xcoord[i];
+  For i := 1 to FNConds Do FY^[i] := Spc.Ycoord[i];
+  For i := 1 to FNConds Do FUnits^[i] := Spc.Units;
+  DataChanged := TRUE;
+  NormAmps    := Wires^[1].NormAmps;
+  EmergAmps   := Wires^[1].EmergAmps;
+
+  UpdateLineGeometryData(activecircuit.solution.Frequency );
 end;
 
 end.
