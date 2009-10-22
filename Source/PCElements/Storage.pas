@@ -35,6 +35,13 @@ USES  StoreUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadSha
 
 Const  NumStorageRegisters = 6;    // Number of energy meter registers
        NumStorageVariables = 4;    // No state variables that need integrating.
+       
+//= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
+
+  STATE_CHARGING    = -1;
+  STATE_IDLING      =  0;
+  STATE_DISCHARGING =  1;
+
 
 TYPE
 
@@ -83,23 +90,16 @@ TYPE
         kVANotSet       :Boolean;
         kVArating       :Double;
         kVStorageBase   :Double;
-        kWrating        :double;
-        kWhRating       :Double;
-        kWhStored       :Double;
         kWhReserve      :Double;
-        pctReserve      :Double;
         pctIdlekW       :Double;
         pctIdlekvar     :Double;
         pctChargeEff    :Double;
         pctDischargeEff :Double;
         ChargeEff       :Double;
         DischargeEff    :Double;
-        pctkWout        :Double;   // percent of kW rated output currently dispatched
-        pctkWin         :Double;
         DischargeTrigger:Double;
         ChargeTrigger   :Double;
         ChargeTime      :Double;
-
 
         pctR            :Double;
         pctX            :Double;
@@ -169,6 +169,7 @@ TYPE
         procedure Set_Presentkvar(const Value: Double);
         procedure Set_PresentkW(const Value: Double);
         procedure Set_PowerFactor(const Value: Double);
+    procedure Set_State(const Value: Integer);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
@@ -177,17 +178,26 @@ TYPE
       public
 
         Connection      :Integer;  {0 = line-neutral; 1=Delta}
-        DailyShape      :String;  // Daily (24 HR) Generator shape
-        DailyShapeObj   :TLoadShapeObj;  // Daily Generator Shape for this load
+        DailyShape      :String;  // Daily (24 HR) Storage element shape
+        DailyShapeObj   :TLoadShapeObj;  // Daily Storage element Shape for this load
         DutyShape       :String;  // Duty cycle load shape for changes typically less than one hour
-        DutyShapeObj    :TLoadShapeObj;  // Shape for this generator
+        DutyShapeObj    :TLoadShapeObj;  // Shape for this Storage element
         StorageClass    :Integer;
         VoltageModel    :Integer;   // Variation with voltage
         kvar_out        :Double;
         kW_out          :Double;
         PFNominal       :Double;
         YearlyShape     :String;  // ='fixed' means no variation  on all the time
-        YearlyShapeObj  :TLoadShapeObj;  // Shape for this Generator
+        YearlyShapeObj  :TLoadShapeObj;  // Shape for this Storage element
+
+        kWrating        :double;
+        kWhRating       :Double;
+        kWhStored       :Double;
+        pctkWout        :Double;   // percent of kW rated output currently dispatched
+        pctkvarout      :Double;
+        pctkWin         :Double;
+        pctReserve      :Double;
+
 
         Registers,  Derivatives         :Array[1..NumStorageRegisters] of Double;
 
@@ -207,6 +217,7 @@ TYPE
 
         Procedure SetNominalStorageOuput;
         Procedure Randomize(Opt:Integer);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
+
 
         Procedure ResetRegisters;
         Procedure TakeSample;
@@ -228,6 +239,8 @@ TYPE
        Property Presentkvar  :Double  Read Get_Presentkvar Write Set_Presentkvar;
        Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
+
+       Property StorageState :Integer Read FState          Write Set_State;
 
    End;
 
@@ -287,11 +300,6 @@ Const
 
   NumPropsThisClass = 36; // Make this agree with the last property constant
 
-//= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
-
-  STATE_CHARGING    = -1;
-  STATE_IDLING      =  0;
-  STATE_DISCHARGING =  1;
 
 //= = = = = = = = = = = = = = DEFINE DISPATCH MODES = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -299,7 +307,7 @@ Const
       LOADMODE = 1;
       PRICEMODE = 2;
 
-Var cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase generator?
+Var cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
     CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -467,7 +475,7 @@ Begin
                                  'Default is 2.0.  Enter a negative time value to disable this feature.');
 
      AddProperty('class',       propCLASS,
-                                'An arbitrary integer number representing the class of Generator so that Generator values may '+
+                                'An arbitrary integer number representing the class of Storage element so that Storage values may '+
                                 'be segregated by class.'); // integer
 
      AddProperty('UserModel',   propUSERMODEL,
@@ -476,7 +484,7 @@ Begin
      AddProperty('UserData',    propUSERDATA,
                                 'String (in quotes or parentheses) that gets passed to user-written model for defining the data required for that model.');
      AddProperty('debugtrace',  propDEBUGTRACE,
-                                '{Yes | No }  Default is no.  Turn this on to capture the progress of the generator model ' +
+                                '{Yes | No }  Default is no.  Turn this on to capture the progress of the Storage model ' +
                                 'for each iteration.  Creates a separate file for each Storage element named "STORAGE_name.CSV".' );
 
 
@@ -494,7 +502,7 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function TStorage.NewObject(const ObjName:String):Integer;
 Begin
-    // Make a new Generator and add it to Generator class list
+    // Make a new Storage element and add it to Storage class list
     With ActiveCircuit Do
     Begin
       ActiveCktElement := TStorageObj.Create(Self, ObjName);
@@ -611,7 +619,7 @@ Begin
 
          If  (ParamPointer>0) and (ParamPointer<=NumProperties)
          Then PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
-         ELSE DoSimpleMsg('Unknown parameter "'+ParamName+'" for Generator "'+Name+'"', 560);
+         ELSE DoSimpleMsg('Unknown parameter "'+ParamName+'" for Storage "'+Name+'"', 560);
 
          If ParamPointer > 0 Then Begin
          iCase := PropertyIdxMap[ParamPointer];
@@ -836,7 +844,7 @@ Begin
 
      Inherited create(ParClass);
      Name := LowerCase(SourceName);
-     DSSObjType := ParClass.DSSClassType ; // + STORAGE_ELEMENT;  // In both PCelement and Genelement list
+     DSSObjType := ParClass.DSSClassType ; // + STORAGE_ELEMENT;  // In both PCelement and Storageelement list
 
      Nphases    := 3;
      Fnconds    := 4;  // defaults to wye
@@ -989,10 +997,10 @@ Procedure TStorageObj.SetNominalStorageOuput;
 Begin
 
    ShapeFactor := CDOUBLEONE;  // init here; changed by curve routine
-    // Check to make sure the generation is ON
+    // Check to make sure the Storage element is ON
    With ActiveCircuit, ActiveCircuit.Solution Do
    Begin
-    IF NOT (IsDynamicModel or IsHarmonicModel) THEN     // Leave generator in whatever state it was prior to entering Dynamic mode
+    IF NOT (IsDynamicModel or IsHarmonicModel) THEN     // Leave Storage element in whatever state it was prior to entering Dynamic mode
     Begin
           CASE DispatchMode of
 
@@ -1104,7 +1112,7 @@ Begin
     End
     Else SpectrumObj := Nil;
 
-    // Initialize to Zero - defaults to PQ generator
+    // Initialize to Zero - defaults to PQ Storage element
     // Solution object will reset after circuit modifications
 
     Reallocmem(InjCurrent, SizeOf(InjCurrent^[1])*Yorder);
@@ -1159,7 +1167,7 @@ Begin
      End
 
    ELSE
-     Begin  //  Regular power flow generator model
+     Begin  //  Regular power flow Storage element model
 
        {Yeq is always expected as the equivalent line-neutral admittance}
 
@@ -1253,7 +1261,7 @@ begin
                            if Not (Fstate = STATE_CHARGING) then
                              if ChargeTime > 0.0 then
                                    WITH ActiveCircuit.Solution Do Begin
-                                       if abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTime) < DynaVars.h/60.0 then Fstate := STATE_CHARGING;
+                                       if abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTime) < DynaVars.h/3600.0 then Fstate := STATE_CHARGING;
                                    End;
                        End;
      END;
@@ -1450,13 +1458,13 @@ Begin
      Begin
          UserModel.FCalc (Vterminal, Iterminal);
          IterminalUpdated := TRUE;
-         With ActiveCircuit.Solution Do  Begin          // Negate currents from user model for power flow generator model
+         With ActiveCircuit.Solution Do  Begin          // Negate currents from user model for power flow Storage element model
                FOR i := 1 to FnConds Do Caccum(InjCurrent^[i], Cnegate(Iterminal^[i]));
          End;
      End
    Else
      Begin
-        DoSimpleMsg('Generator.' + name + ' model designated to use user-written model, but user-written model is not defined.', 567);
+        DoSimpleMsg('Storage.' + name + ' model designated to use user-written model, but user-written model is not defined.', 567);
      End;
 
 End;
@@ -1507,7 +1515,7 @@ Begin
         RotatePhasorRad(E, StorageHarmonic, ThetaHarm);  // Time shift by fundamental frequency phase shift
         FOR i := 1 to Fnphases DO Begin
            cBuffer[i] := E;
-           If i < Fnphases Then RotatePhasorDeg(E, StorageHarmonic, -120.0);  // Assume 3-phase generator
+           If i < Fnphases Then RotatePhasorDeg(E, StorageHarmonic, -120.0);  // Assume 3-phase Storage element
         End;
      END;
 
@@ -1564,7 +1572,7 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 Procedure TStorageObj.CalcStorageModelContribution;
 
-// Calculates generator current and adds it properly into the injcurrent array
+// Calculates Storage element current and adds it properly into the injcurrent array
 // routines may also compute ITerminal  (ITerminalUpdated flag)
 
 Begin
@@ -1701,7 +1709,7 @@ VAR
 
 Begin
 
-// Compute energy in Generator branch
+// Compute energy in Storage element branch
      IF  Enabled  THEN Begin
 
      // Only tabulate discharge hours
@@ -2158,6 +2166,7 @@ begin
            propKVA: Result := Format('%.6g', [kVArating]);
            propKWRATED: Result := Format('%.6g', [kWrating]);
            propKWHSTORED: Result := Format('%.6g', [kWHStored]);
+           propPCTSTORED: Result := Format('%.6g', [kWhStored/kWhRating * 100.0]);
            propUSERDATA: Begin
                       Result := '(' + inherited GetPropertyValue(index) + ')';
                   End;
@@ -2246,6 +2255,11 @@ begin
      kW_out := Value;
      SyncUpPowerQuantities;
 End;
+
+procedure TStorageObj.Set_State(const Value: Integer);
+begin
+  FState := Value;
+end;
 
 //----------------------------------------------------------------------------
 procedure TStorageObj.SyncUpPowerQuantities;

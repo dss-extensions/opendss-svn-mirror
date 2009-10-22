@@ -69,6 +69,7 @@
     <DCCReference Include="..\Controls\Recloser.pas" />
     <DCCReference Include="..\Controls\RegControl.pas" />
     <DCCReference Include="..\Controls\Relay.pas" />
+    <DCCReference Include="..\Controls\StorageController.pas" />
     <DCCReference Include="..\Executive\ExecCommands.pas" />
     <DCCReference Include="..\Executive\ExecHelper.pas" />
     <DCCReference Include="..\Executive\ExecOptions.pas" />

@@ -150,7 +150,8 @@ uses
   ImplDSSElement in 'ImplDSSElement.pas' {DSSElement: CoClass},
   ImplActiveClass in 'ImplActiveClass.pas' {ActiveClass: CoClass},
   Storage in '..\PCElements\Storage.pas',
-  StoreUserModel in '..\PCElements\StoreUserModel.pas';
+  StoreUserModel in '..\PCElements\StoreUserModel.pas',
+  StorageController in '..\Controls\StorageController.pas';
 
 exports
   DllGetClassObject,
