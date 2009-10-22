@@ -128,6 +128,7 @@
     <DCCReference Include="..\General\GrowthShape.pas" />
     <DCCReference Include="..\General\LineCode.pas" />
     <DCCReference Include="..\General\LineGeometry.pas" />
+    <DCCReference Include="..\General\LineSpacing.pas" />
     <DCCReference Include="..\General\LoadShape.pas" />
     <DCCReference Include="..\General\NamedObject.pas" />
     <DCCReference Include="..\General\OHLineConstants.pas" />

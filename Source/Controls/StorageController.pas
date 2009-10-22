@@ -356,7 +356,7 @@ Begin
          THEN PropertyValue[ParamPointer]:= Param;
 
          CASE ParamPointer OF
-            0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 364);
+            0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 14407);
             propELEMENT:  ElementName     := lowercase(param);
             propTERMINAL: ElementTerminal := Parser.IntValue;
             propKWTARGET: FkWTarget        := Parser.DblValue;
@@ -807,7 +807,7 @@ Begin
             MODESUPPORT:   DoLoadFollowMode;
             MODETIME:      DoTimeMode(1);
        ELSE
-           DoSimpleMsg(Format('Invalid DisCharging Mode: %d',[DisChargeMode]));
+           DoSimpleMsg(Format('Invalid DisCharging Mode: %d',[DisChargeMode]), 14408);
        END;
 
        If ChargingAllowed then
@@ -815,7 +815,7 @@ Begin
           //  MODELOADSHAPE:DoLoadShapeMode;
             MODETIME:DoTimeMode(2);
        ELSE
-           DoSimpleMsg(Format('Invalid Charging Mode: %d',[ChargeMode]));
+           DoSimpleMsg(Format('Invalid Charging Mode: %d',[ChargeMode]),14409);
        END;
 
 
