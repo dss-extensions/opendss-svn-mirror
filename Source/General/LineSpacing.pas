@@ -112,8 +112,8 @@ Begin
      AllocatePropertyArrays;
 
 
-     PropertyName[1]  := 'nwires';
-     PropertyName[2]  := 'phases';
+     PropertyName[1]  := 'nconds';
+     PropertyName[2]  := 'nphases';
      PropertyName[3]  := 'x';
      PropertyName[4]  := 'h';
      PropertyName[5]  := 'units';

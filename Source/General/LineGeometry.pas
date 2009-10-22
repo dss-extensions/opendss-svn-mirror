@@ -97,6 +97,7 @@ TYPE
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean); Override;
         PROCEDURE SaveWrite(Var F:TextFile); Override;
 
+        // sets reduce=y if the spacing has more wires than phases
         Procedure LoadSpacingAndWires (Spc: TLineSpacingObj; Wires: pWireDataArray);
 
         Property Nconds:Integer     read get_Nconds  write set_Nconds;
@@ -606,6 +607,8 @@ var
 begin
   NConds := Spc.NWires;   // allocates
   FNphases := Spc.Nphases;
+  if FNConds > FNPhases then FReduce := True;
+
   For i := 1 to FNConds Do FCondType^[i] := Wires^[i].Name;
   For i := 1 to FNConds Do FWireData^[i] := Wires^[i];
   For i := 1 to FNConds Do FX^[i] := Spc.Xcoord[i];

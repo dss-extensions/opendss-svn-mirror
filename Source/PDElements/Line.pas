@@ -542,7 +542,7 @@ Begin
                  End;
           15: If IsSwitch Then Begin
                 SymComponentsChanged := True;  YprimInvalid := True;
-                GeometrySpecified := FALSE;
+                GeometrySpecified := FALSE; SpacingSpecified := False;
                 r1 := 1.0; x1 := 1.0; r0 := 1.0; x0 := 1.0;
                 c1 := 1.1 * 1.0e-9; c0 := 1.0 * 1.0e-9;  len := 0.001;
                 ResetLengthUnits;
@@ -888,7 +888,7 @@ Begin
          {Put half the Shunt Capacitive Admittance at each end}
          YValues := Yc.GetValuesArrayPtr(Norder);
 
-         If GeometrySpecified Then Begin
+         If GeometrySpecified Or SpacingSpecified Then Begin
 
             {Values are already compensated for length and frequency}
              k := 0;
@@ -1024,7 +1024,7 @@ begin
                Begin
                    For j := 1 to i Do
                    Begin  // report in per unit Length in length units
-                       If GeometrySpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).re/len]) + ' '
+                       If GeometrySpecified Or SpacingSpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).re/len]) + ' '
                        Else Result := Result + Format('%-.7g',[Z.GetElement(i,j).re/FUnitsConvert]) + ' ';
                    End;
                    IF i < FNconds Then Result := Result + '|';
@@ -1034,7 +1034,7 @@ begin
                Begin
                    For j := 1 to i Do
                    Begin
-                       If GeometrySpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).im/Len]) + ' '
+                       If GeometrySpecified Or SpacingSpecified Then  Result := Result + Format('%-.7g',[Z.GetElement(i,j).im/Len]) + ' '
                        Else Result := Result + Format('%-.7g',[Z.GetElement(i,j).im/FUnitsConvert]) + ' ';
                    End;
                    IF i < FNconds Then Result := Result + '|';
@@ -1046,7 +1046,7 @@ begin
                  Begin
                      For j := 1 to i Do
                      Begin
-                         If GeometrySpecified Then Result := Result + Format('%-.7g',[YC.GetElement(i,j).im/Factor/Len]) + ' '
+                         If GeometrySpecified Or SpacingSpecified Then Result := Result + Format('%-.7g',[YC.GetElement(i,j).im/Factor/Len]) + ' '
                          Else Result := Result + Format('%-.7g',[YC.GetElement(i,j).im/Factor/FUnitsConvert]) + ' ';
                      End;
                      IF i < FNconds Then Result := Result + '|';
@@ -1404,6 +1404,13 @@ begin
     FLineCodeSpecified := False;
     KillGeometrySpecified;
     SpacingCode := LowerCase(Code);
+
+    // need to establish Yorder before FMakeZFromSpacing
+    NPhases       := FLineSpacingObj.NPhases;
+    Nconds        := FNPhases;  // Force Reallocation of terminal info
+    Yorder        := Fnconds * Fnterms;
+    YPrimInvalid  := True;       // Force Rebuild of Y matrix
+
   end else
     DoSimpleMsg ('Line Spacing object ' + Code + ' not found.', 181);
 end;
@@ -1506,9 +1513,6 @@ Begin
   NormAmps      := pGeo.NormAmps;
   EmergAmps     := pGeo.EmergAmps;
   UpdatePDProperties;
-  NPhases       := pGeo.Nconds;
-  Nconds        := FNPhases;  // Force Reallocation of terminal info
-  Yorder        := Fnconds * Fnterms;
 
   Z    := pGeo.Zmatrix[ f, len, LengthUnits];
   Yc   := pGeo.YCmatrix[f, len, LengthUnits];
