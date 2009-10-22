@@ -853,6 +853,7 @@ begin
                               PDiff := -S.re * 0.001 + FkWTarget;
                               QDiff := -S.re/Cabs(S) + FPFTarget;
                          End;
+             Else Begin PDiff:=0.0;QDiff:=0.0 End
        end;
 
 
