@@ -122,7 +122,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs,  DSSGlobals, Ucomplex, Utilities,  LineUNits;
 
-Const      NumPropsThisClass = 10;
+Const      NumPropsThisClass = 12;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLineGeometry.Create;  // Creates superstructure for all Line objects
@@ -164,6 +164,8 @@ Begin
      PropertyName[8]  := 'normamps';
      PropertyName[9]  := 'emergamps';
      PropertyName[10] := 'reduce';
+     PropertyName[11] := 'spacing';
+     PropertyName[12] := 'wires';
 
 
      PropertyHelp[1] := 'Number of conductors in this geometry. Default is 3. Triggers memory allocations. Define first!';
@@ -176,6 +178,12 @@ Begin
      PropertyHelp[8] := 'Normal ampacity, amperes for the line. Defaults to first conductor if not specified.';
      PropertyHelp[9] := 'Emergency ampacity, amperes. Defaults to first conductor if not specified.';
      PropertyHelp[10] := '{Yes | No} Default = no. Reduce to Nphases (Kron Reduction). Reduce out neutrals.';
+     PropertyHelp[11] := 'Reference to a LineSpacing for use in a line constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Wires property.' + CRLF +
+                          'Specify this before the wires property.';
+     PropertyHelp[12] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Spacing property.' + CRLF +
+                          'Specify the Spacing first.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list

@@ -250,8 +250,8 @@ Begin
                           'Must be used in conjunction with the Wires property.' + CRLF +
                           'Specify this before the wires property.';
      PropertyHelp[22] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
-                          'Must be used in conjunction with the LineSpacing property.' + CRLF +
-                          'Specify the LineSpacing first.';
+                          'Must be used in conjunction with the Spacing property.' + CRLF +
+                          'Specify the Spacing first.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
