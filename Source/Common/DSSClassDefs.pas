@@ -170,7 +170,8 @@ Begin
      WireDataClass  := TWireData.Create;
      DSSClasses.New := WireDataClass;
      DSSClasses.New := TLineGeometry.Create;
-     DSSClasses.New := TLineSpacing.Create;
+     LineSpacingClass := TLineSpacing.Create;
+     DSSClasses.New := LineSpacingClass;
      DSSClasses.New := TXfmrCode.Create;
 
      {Circuit Element Classes}

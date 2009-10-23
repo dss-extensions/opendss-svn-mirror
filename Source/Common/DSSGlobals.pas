@@ -33,6 +33,7 @@ Uses DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
      TCC_Curve,
      Feeder,
      WireData,
+     LineSpacing,
      Storage;
 
 
@@ -150,6 +151,7 @@ VAR
    SensorClass        :TSensor;
    TCC_CurveClass     :TTCC_Curve;
    WireDataClass      :TWireData;
+   LineSpacingClass   :TLineSpacing;
    StorageClass       :TStorage;
 
 

@@ -329,7 +329,7 @@ begin
   r := '[';
   if N > 0 then r := r + Format('%-g',[pF^[1]]);
   for i:= 2 to N do r := r + Format(',%-g',[pF^[i]]);
-  Result := r;
+  Result := r + ']';
 end;
 
 function TLineSpacingObj.GetPropertyValue(Index: Integer): String;

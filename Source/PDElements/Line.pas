@@ -128,8 +128,6 @@ Const NumPropsThisClass = 22;
 VAR
    CAP_EPSILON   :Complex;
    LineCodeClass:TLineCode;
-   LineSpacingClass:TLineSpacing;
-   WireDataClass:TWireData;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLine.Create;  // Creates superstructure for all Line objects
@@ -141,8 +139,6 @@ Begin
      ActiveElement := 0;
      LineCodeClass := Nil;
      LineGeometryClass := Nil;
-     LineSpacingClass := Nil;
-     WireDataClass := Nil;
 
      DefineProperties;
 
@@ -1398,7 +1394,6 @@ end;
 
 procedure TLineObj.FetchLineSpacing(const Code: string);
 begin
-  if LineSpacingClass=Nil then LineSpacingClass := DSSClassList.Get(ClassNames.Find('LineSpacing'));
   if LineSpacingClass.SetActive(Code) then begin
     FLineSpacingObj := LineSpacingClass.GetActiveObj;
     FLineCodeSpecified := False;
@@ -1419,7 +1414,6 @@ procedure TLineObj.FetchWireList(const Code: string);
 var
   i: Integer;
 begin
-  if WireDataClass=Nil then WireDataClass := DSSClassList.Get(ClassNames.Find('WireData'));
   FLineCodeSpecified := False;
   KillGeometrySpecified;
   if not assigned (FLineSpacingObj) then

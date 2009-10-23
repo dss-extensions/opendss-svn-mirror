@@ -37,7 +37,7 @@ TYPE
        Procedure DefineProperties;
        Function MakeLike(Const LineName:String):Integer;  Override;
      public
-       
+
        constructor Create;
        destructor Destroy; override;
 
@@ -65,6 +65,7 @@ TYPE
         DataChanged  :Boolean;
         FReduce      :Boolean;
         FActiveCond  :Integer;
+        FSpacingType :String;
 
         FLineData    :TOHLineConstants;
 
@@ -97,7 +98,8 @@ TYPE
         PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean); Override;
         PROCEDURE SaveWrite(Var F:TextFile); Override;
 
-        // sets reduce=y if the spacing has more wires than phases
+        // called from a Line object that has its own Spacing and Wires input
+        // automatically sets reduce=y if the spacing has more wires than phases
         Procedure LoadSpacingAndWires (Spc: TLineSpacingObj; Wires: pWireDataArray);
 
         Property Nconds:Integer     read get_Nconds  write set_Nconds;
@@ -179,11 +181,13 @@ Begin
      PropertyHelp[9] := 'Emergency ampacity, amperes. Defaults to first conductor if not specified.';
      PropertyHelp[10] := '{Yes | No} Default = no. Reduce to Nphases (Kron Reduction). Reduce out neutrals.';
      PropertyHelp[11] := 'Reference to a LineSpacing for use in a line constants calculation.' + CRLF +
-                          'Must be used in conjunction with the Wires property.' + CRLF +
-                          'Specify this before the wires property.';
+                          'Alternative to x, h, and units. MUST BE PREVIOUSLY DEFINED.' + CRLF +
+                          'Must match "nconds" as previously defined for this geometry.' + CRLF +
+                          'Must be used in conjunction with the Wires property.';
      PropertyHelp[12] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
-                          'Must be used in conjunction with the Spacing property.' + CRLF +
-                          'Specify the Spacing first.';
+                          'Alternative to individual wire inputs. ALL MUST BE PREVIOUSLY DEFINED.' + CRLF +
+                          'Must match "nconds" as previously defined for this geometry.' + CRLF +
+                          'Must be used in conjunction with the Spacing property.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -208,6 +212,7 @@ VAR
    ParamPointer:Integer;
    ParamName:String;
    Param:String;
+   i: Integer;
 
 BEGIN
   Result := 0;
@@ -238,6 +243,38 @@ BEGIN
             8: NormAmps    := Parser.DblValue ;
             9: EmergAmps   := Parser.DblValue ;
            10: Freduce     := InterpretYesNo(Param);
+           11: Begin
+                  FSpacingType := Parser.StrValue;
+                  if LineSpacingClass.SetActive(FSpacingType) then begin
+                    ActiveLineSpacingObj := LineSpacingClass.GetActiveObj;
+                    if (FNConds = ActiveLineSpacingObj.NWires) then begin
+                      FLastUnit := ActiveLineSpacingObj.Units;
+                      for i:=1 to FNConds do begin
+                        FX^[i] := ActiveLineSpacingObj.Xcoord[i];
+                        FY^[i] := ActiveLineSpacingObj.Ycoord[i];
+                        FUnits^[i] := FLastUnit;
+                      end
+                    end else
+                      DoSimpleMsg('LineSpacing object ' + FSpacingType + ' has the wrong number of wires.', 10103);
+                  end else
+                    DoSimpleMsg('LineSpacing object ' + FSpacingType + ' has not been defined.', 10103);
+           End;
+           12: Begin
+                  AuxParser.CmdString := Parser.StrValue;
+                  for i := 1 to FNConds do begin
+                    AuxParser.NextParam; // ignore any parameter name  not expecting any
+                    FCondType[i] := AuxParser.StrValue;
+                    WireDataClass.code := FCondType[i];
+                    if Assigned(ActiveWireDataObj) then begin
+                      FWireData^[i] := ActiveWireDataObj;
+                      if (i=1) then begin
+                        If (ActiveWireDataObj.NormAmps > 0.0)  Then Normamps  := ActiveWireDataObj.NormAmps;
+                        If (ActiveWireDataObj.Emergamps > 0.0) Then Emergamps := ActiveWireDataObj.EmergAmps;
+                      end;
+                    end else
+                      DoSimpleMsg('WireData Object "' + FCondType[i] + '" not defined. Must be previously defined.', 10103);
+                  end
+           End
          ELSE
            // Inherited parameters
            ClassEdit(ActiveLineGeometryObj, Parampointer - NumPropsThisClass)
@@ -263,7 +300,7 @@ BEGIN
          END;
 
          Case ParamPointer of
-            1,4..7: DataChanged := TRUE;
+            1,4..7,11..12: DataChanged := TRUE;
          END;
 
          ParamName := Parser.NextParam;
@@ -288,6 +325,7 @@ BEGIN
 
        NConds := OtherLineGeometry.NWires;   // allocates
        FNphases := OtherLineGeometry.FNphases;
+       FSpacingType := OtherLineGeometry.FSpacingType;
        For i := 1 to FNConds Do FCondType^[i] := OtherLineGeometry.FCondType^[i];
        For i := 1 to FNConds Do FWireData^[i] := OtherLineGeometry.FWireData^[i];
        For i := 1 to FNConds Do FX^[i] := OtherLineGeometry.FX^[i];
@@ -366,6 +404,7 @@ BEGIN
       FY          := nil;
       Funits      := nil;
       FLineData   := Nil;
+      FSpacingType := '';
 
       Nconds      := 3;  // Allocates terminals
       FNphases    := 3;
@@ -425,6 +464,8 @@ Begin
 end;
 
 function TLineGeometryObj.GetPropertyValue(Index: Integer): String;
+var
+  i: Integer;
 
 {Return Property Value for Active index}
 
@@ -436,6 +477,11 @@ begin
       5: Result := Format('%-g',[FX^[FActiveCond]]);
       6: Result := Format('%-g',[FY^[FActiveCond]]);
       7: Result :=  LineUnitsStr(FUnits^[FActiveCond]);
+      12: Begin
+        Result := '[';
+        for i:= 1 to FNConds do Result := Result + FCondType^[i] + ' ';
+        Result := Result + ']';
+      End
    ELSE
      // Inherited parameters
      Result     := Inherited GetPropertyValue(Index);
@@ -525,7 +571,7 @@ begin
       With ParentClass Do
 
         CASE RevPropertyIdxMap[iProp] of
-            3:  Begin   // if cond= was ever used write out arrays ...
+            3,11,12:  Begin   // if cond=, spacing, or wires were ever used write out arrays ...
                  For i := 1 to Fnconds Do
                    Writeln(F, Format('~ Cond=%d wire=%s X=%.7g h=%.7g units=%s',
                                       [i, FCondType^[i], FX^[i], FY^[i], LineUnitsStr(FUnits^[i]) ]));
@@ -615,6 +661,7 @@ var
 begin
   NConds := Spc.NWires;   // allocates
   FNphases := Spc.Nphases;
+  FSpacingType := Spc.Name;
   if FNConds > FNPhases then FReduce := True;
 
   For i := 1 to FNConds Do FCondType^[i] := Wires^[i].Name;
