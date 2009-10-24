@@ -81,7 +81,7 @@ TYPE
 
             MonitoredElement :TDSSCktElement;
 
-            PROCEDURE SetPctReserve;
+           // PROCEDURE SetPctReserve;
             PROCEDURE SetAllFleetValues;
             PROCEDURE SetFleetkWRate;
             PROCEDURE SetFleetkvarRate;
@@ -912,6 +912,9 @@ Begin
                               PDiff  := S.re * 0.001 + FkWTarget;  // assume S.re is normally negative
                               PFDiff := ConvertPFToPFRange2(PowerFactor(S)) - FPFTarget;  // for generator
                          End;
+       ELSE
+           PDiff := 0.0;
+           PFDiff := 0.0;
        END;
 
        StorekWChanged   := FALSE;
@@ -1128,13 +1131,15 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-PROCEDURE TStorageControllerObj.SetPctReserve;
-VAR
-      i   :Integer;
-Begin
-      For i := 1 to FleetPointerList.ListSize Do
-            TStorageObj(FleetPointerList.Get(i)).pctReserve := pctFleetReserve;
-End;
+(*
+  PROCEDURE TStorageControllerObj.SetPctReserve;
+  VAR
+        i   :Integer;
+  Begin
+        For i := 1 to FleetPointerList.ListSize Do
+              TStorageObj(FleetPointerList.Get(i)).pctReserve := pctFleetReserve;
+  End;
+*)
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageControllerObj.InitPropertyValues(ArrayOffset: Integer);
