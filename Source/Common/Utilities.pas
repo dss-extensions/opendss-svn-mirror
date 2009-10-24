@@ -105,6 +105,8 @@ Procedure ConvertComplexArrayToPowerandPF(Const Buffer:pComplexArray;N:Integer);
 FUNCTION Residual(p: Pointer; Nph:Integer):Complex;
 FUNCTION ResidualPolar(p: Pointer; Nph:Integer):Complex;
 FUNCTION Powerfactor(Const S:Complex):Double;
+FUNCTION ConvertPFToPFRange2(const value:double):Double;
+FUNCTION ConvertPFRange2ToPF(const value:double):Double;
 PROCEDURE CmulArray(pc:pcomplexarray; Multiplier:double; size:Integer);  // Multiply a complex array times a double
 
 {Support for going in and out of Dynamics Mode and Harmonics Mode}
@@ -1567,6 +1569,20 @@ FUNCTION Powerfactor(Const S:Complex):Double;
 Begin
    If (S.re <> 0.0) and (S.im <> 0.0) Then Result := Sign(S.re*S.im)*Abs(S.re)/Cabs(S)
    Else Result := 1.0;
+End;
+
+FUNCTION ConvertPFToPFRange2(const value:double):Double;
+{Convert PF from +/- 1 to 0..2 Where 1..2 is leading}
+Begin
+     If value<0.0 Then Result := 2.0 + Value
+     Else Result := Value;
+End;
+
+FUNCTION ConvertPFRange2ToPF(const value:double):Double;
+
+Begin
+     If value > 1.0 Then Result := value - 2.0
+     Else Result := Value;
 End;
 
 PROCEDURE ClearEventLog;

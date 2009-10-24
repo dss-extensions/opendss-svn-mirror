@@ -15,8 +15,6 @@ unit Storage;
   To Do:
     Make connection to User model
     Yprim for various modes
-    Update storage when sampled
-    Implement StorageController
     Define state vars and dynamics mode behavior
     Complete Harmonics mode algorithm (generator mode is implemented)
 }
@@ -24,6 +22,10 @@ unit Storage;
   The storage element is essentially a generator that can be dispatched
   to either produce power or consume power commensurate with rating and
   amount of stored energy.
+
+  The storage element can also produce or absorb vars within the kVA rating of the inverter.
+  That is, a StorageController object requests kvar and the storage element provides them if
+  it has any capacity left. The storage element can produce/absorb kvar while idling.
 }
 
 //  The Storage element is assumed balanced over the no. of phases defined
@@ -38,10 +40,15 @@ Const  NumStorageRegisters = 6;    // Number of energy meter registers
        
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
 
-  STATE_CHARGING    = -1;
-  STATE_IDLING      =  0;
-  STATE_DISCHARGING =  1;
+  STORE_CHARGING    = -1;
+  STORE_IDLING      =  0;
+  STORE_DISCHARGING =  1;
+//= = = = = = = = = = = = = = DEFINE DISPATCH MODES = = = = = = = = = = = = = = = = = = = = = = = = =
 
+  STORE_DEFAULT = 0;
+  STORE_LOADMODE = 1;
+  STORE_PRICEMODE = 2;
+  STORE_EXTERNALMODE = 3;
 
 TYPE
 
@@ -49,24 +56,24 @@ TYPE
    TStorage = CLASS(TPCClass)
      private
 
-       Procedure InterpretConnection(const S:String);
-       Procedure SetNcondsForConnection;
+       PROCEDURE InterpretConnection(const S:String);
+       PROCEDURE SetNcondsForConnection;
      Protected
-       Procedure DefineProperties;
-       Function MakeLike(Const OtherStorageObjName:STring):Integer;Override;
+       PROCEDURE DefineProperties;
+       FUNCTION MakeLike(Const OtherStorageObjName:STring):Integer;Override;
      public
        RegisterNames:Array[1..NumStorageRegisters] of String;
 
        constructor Create;
        destructor Destroy; override;
 
-       Function Edit:Integer; override;
-       Function Init(Handle:Integer):Integer; override;
-       Function NewObject(const ObjName:String):Integer; override;
+       FUNCTION Edit:Integer; override;
+       FUNCTION Init(Handle:Integer):Integer; override;
+       FUNCTION NewObject(const ObjName:String):Integer; override;
 
-       Procedure ResetRegistersAll;
-       Procedure SampleAll;
-       Procedure UpdateAll;
+       PROCEDURE ResetRegistersAll;
+       PROCEDURE SampleAll;
+       PROCEDURE UpdateAll;
 
    End;
 
@@ -79,7 +86,6 @@ TYPE
         YeqIdling       :Complex;   // in shunt representing idle impedance
 
         DebugTrace      :Boolean;
-        DispatchMode    :Integer;
         FState          :Integer;
         FStateChanged   :Boolean;
         FirstSampleAfterReset  :Boolean;
@@ -91,6 +97,9 @@ TYPE
         kVArating       :Double;
         kVStorageBase   :Double;
         kWhReserve      :Double;
+        kvar_out        :Double;
+        kW_out          :Double;
+        kvarRequested   :Double;
         pctIdlekW       :Double;
         pctIdlekvar     :Double;
         pctChargeEff    :Double;
@@ -134,46 +143,47 @@ TYPE
 
         PROCEDURE CalcDailyMult(Hr:double);
         PROCEDURE CalcDutyMult(Hr:double);
-        Procedure CalcStorageModelContribution;
-        Procedure CalcInjCurrentArray;
-        (*Procedure CalcVterminal;*)
-        Procedure CalcVTerminalPhase;
+        PROCEDURE CalcStorageModelContribution;
+        PROCEDURE CalcInjCurrentArray;
+        (*PROCEDURE CalcVterminal;*)
+        PROCEDURE CalcVTerminalPhase;
         PROCEDURE CalcYearlyMult(Hr:double);
-        Procedure CalcYPrimMatrix(Ymatrix:TcMatrix);
+        PROCEDURE CalcYPrimMatrix(Ymatrix:TcMatrix);
 
-        Procedure DoConstantPQStorageObj;
-        Procedure DoConstantZStorageObj;
+        PROCEDURE DoConstantPQStorageObj;
+        PROCEDURE DoConstantZStorageObj;
         PROCEDURE DoDynamicMode;
         PROCEDURE DoHarmonicMode;
-        Procedure DoUserModel;
+        PROCEDURE DoUserModel;
 
-        Procedure Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
-        Procedure SetDragHandRegister(Reg:Integer; const Value:Double);
-        Procedure StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
+        PROCEDURE Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
+        PROCEDURE SetDragHandRegister(Reg:Integer; const Value:Double);
+        PROCEDURE StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
 
-        Procedure WriteTraceRecord(const s:string);
+        PROCEDURE WriteTraceRecord(const s:string);
 
-        procedure SyncUpPowerQuantities;
-        Procedure SetKWandKvarOut;
-        Procedure CheckStateTriggerLevel(Level:Double);
-        Procedure UpdateStorage;    // Update Storage elements based on present kW and IntervalHrs variable
+        PROCEDURE SyncUpPowerQuantities;
+        PROCEDURE SetKWandKvarOut;
+        PROCEDURE CheckStateTriggerLevel(Level:Double);
+        PROCEDURE UpdateStorage;    // Update Storage elements based on present kW and IntervalHrs variable
         FUNCTION  NormalizeToTOD(h: Integer; sec: Double): Double;
 
-        Function InterpretState(const S:String):Integer;
-        Function DecodeState:String;
+        FUNCTION InterpretState(const S:String):Integer;
+        FUNCTION DecodeState:String;
 
-        Function Get_PresentkW:Double;
-        Function Get_Presentkvar:Double;
-        function Get_PresentkV: Double;
-        procedure Set_PresentkV(const Value: Double);
-        procedure Set_Presentkvar(const Value: Double);
-        procedure Set_PresentkW(const Value: Double);
-        procedure Set_PowerFactor(const Value: Double);
-    procedure Set_State(const Value: Integer);
+        FUNCTION Get_PresentkW:Double;
+        FUNCTION Get_Presentkvar:Double;
+        FUNCTION Get_PresentkV: Double;
+        PROCEDURE Set_PresentkV(const Value: Double);
+        PROCEDURE Set_Presentkvar(const Value: Double);
+        PROCEDURE Set_PresentkW(const Value: Double);
+        PROCEDURE Set_PowerFactor(const Value: Double);
+    PROCEDURE Set_State(const Value: Integer);
+    procedure Set_pctkvarOut(const Value: Double);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
-        Procedure GetTerminalCurrents(Curr:pComplexArray); Override ;
+        PROCEDURE GetTerminalCurrents(Curr:pComplexArray); Override ;
 
       public
 
@@ -183,9 +193,7 @@ TYPE
         DutyShape       :String;  // Duty cycle load shape for changes typically less than one hour
         DutyShapeObj    :TLoadShapeObj;  // Shape for this Storage element
         StorageClass    :Integer;
-        VoltageModel    :Integer;   // Variation with voltage
-        kvar_out        :Double;
-        kW_out          :Double;
+        VoltageModel    :Integer;   // VARiation with voltage
         PFNominal       :Double;
         YearlyShape     :String;  // ='fixed' means no variation  on all the time
         YearlyShapeObj  :TLoadShapeObj;  // Shape for this Storage element
@@ -194,9 +202,10 @@ TYPE
         kWhRating       :Double;
         kWhStored       :Double;
         pctkWout        :Double;   // percent of kW rated output currently dispatched
-        pctkvarout      :Double;
+        Fpctkvarout      :Double;
         pctkWin         :Double;
         pctReserve      :Double;
+        DispatchMode    :Integer;
 
 
         Registers,  Derivatives         :Array[1..NumStorageRegisters] of Double;
@@ -204,35 +213,35 @@ TYPE
         constructor Create(ParClass :TDSSClass; const SourceName :String);
         destructor  Destroy; override;
 
-        Procedure RecalcElementData; Override;
-        Procedure CalcYPrim; Override;
+        PROCEDURE RecalcElementData; Override;
+        PROCEDURE CalcYPrim; Override;
 
-        Function  InjCurrents:Integer; Override;
-        Procedure GetInjCurrents(Curr:pComplexArray); Override;
-        Function  NumVariables:Integer;Override;
-        Procedure GetAllVariables(States:pDoubleArray);Override;
-        Function  Get_Variable(i: Integer): Double; Override;
-        procedure Set_Variable(i: Integer; Value: Double);  Override;
-        Function  VariableName(i:Integer):String ;Override;
+        FUNCTION  InjCurrents:Integer; Override;
+        PROCEDURE GetInjCurrents(Curr:pComplexArray); Override;
+        FUNCTION  NumVariables:Integer;Override;
+        PROCEDURE GetAllVariables(States:pDoubleArray);Override;
+        FUNCTION  Get_Variable(i: Integer): Double; Override;
+        PROCEDURE Set_Variable(i: Integer; Value: Double);  Override;
+        FUNCTION  VariableName(i:Integer):String ;Override;
 
-        Procedure SetNominalStorageOuput;
-        Procedure Randomize(Opt:Integer);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
+        PROCEDURE SetNominalStorageOuput;
+        PROCEDURE Randomize(Opt:Integer);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
 
 
-        Procedure ResetRegisters;
-        Procedure TakeSample;
+        PROCEDURE ResetRegisters;
+        PROCEDURE TakeSample;
 
         // Support for Dynamics Mode
-        Procedure InitStateVars; Override;
-        Procedure IntegrateStates;Override;
+        PROCEDURE InitStateVars; Override;
+        PROCEDURE IntegrateStates;Override;
 
         // Support for Harmonics Mode
-        Procedure InitHarmonics; Override;
+        PROCEDURE InitHarmonics; Override;
 
        PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
 
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
-       Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+       PROCEDURE DumpProperties(VAR F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
        Property PresentkW    :Double  Read Get_PresentkW   Write Set_PresentkW;
@@ -241,6 +250,7 @@ TYPE
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
 
        Property StorageState :Integer Read FState          Write Set_State;
+       Property PctkVarOut   :Double  Read FpctkvarOut     Write Set_pctkvarOut;
 
    End;
 
@@ -258,9 +268,9 @@ Const
 {  = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    To add a property,
     1) add a property constant to this list
-    2) add a handler to the CASE statement in the Edit function
-    3) add a statement(s) to InitPropertyValues function to initialize the string value
-    4) add any special handlers to DumpProperties and GetPropertyValue, if needed
+    2) add a handler to the CASE statement in the Edit FUNCTION
+    3) add a statement(s) to InitPropertyValues FUNCTION to initialize the string value
+    4) add any special handlers to DumpProperties and GetPropertyValue, If needed
  = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =}
 
   propKV         =  3;
@@ -301,13 +311,9 @@ Const
   NumPropsThisClass = 36; // Make this agree with the last property constant
 
 
-//= = = = = = = = = = = = = = DEFINE DISPATCH MODES = = = = = = = = = = = = = = = = = = = = = = = = =
 
-      DEFAULT = 0;
-      LOADMODE = 1;
-      PRICEMODE = 2;
 
-Var cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
+VAR cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
     CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -343,7 +349,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorage.DefineProperties;
+PROCEDURE TStorage.DefineProperties;
 Begin
 
      Numproperties := NumPropsThisClass;
@@ -352,7 +358,7 @@ Begin
 
      // Define Property names
      {
-      Using the AddProperty function, you can list the properties here in the order you want
+      Using the AddProperty FUNCTION, you can list the properties here in the order you want
       them to appear when properties are accessed sequentially without tags.   Syntax:
 
       AddProperty( <name of property>, <index in the EDIT Case statement>, <help text>);
@@ -403,7 +409,7 @@ Begin
                               'acts as a generator and the kW property is positive. The element continues discharging at the scheduled output power level ' +
                               'until the storage reaches the reserve value. Then the state reverts to IDLING. ' +
                               'In the CHARGING state, the Storage element behaves like a Load and the kW property is negative. ' +
-                              'The element continues to charge until the max storage kWh is reached and then switches to IDLING state. ' +
+                              'The element continues to charge until the max storage kWh is reached and Then switches to IDLING state. ' +
                               'In IDLING state, the kW property shows zero. However, the resistive and reactive loss elements remain in the circuit ' +
                               'and the power flow report will show power being consumed.');
      AddProperty('%Discharge',  propPCTKWOUT,
@@ -443,7 +449,7 @@ Begin
                                  'Above this value, the load model reverts to a constant impedance model.');
      AddProperty('yearly',       propYEARLY,
                                  'Dispatch shape to use for yearly simulations.  Must be previously defined '+
-                                 'as a Loadshape object. If this is not specified, the Daily dispatch shape, if any, is repeated '+
+                                 'as a Loadshape object. If this is not specified, the Daily dispatch shape, If any, is repeated '+
                                  'during Yearly solution modes. In the default dispatch mode, ' +
                                  'the Storage element uses this loadshape to trigger State changes.');
      AddProperty('daily',        propDAILY,
@@ -457,8 +463,10 @@ Begin
                                  'Designate the number of points to solve using the Set Number=xxxx command. '+
                                  'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
      AddProperty('dispmode',     propDISPMODE,
-                                 '{Default | Loadlevel | Price } Default = "Default". Dispatch mode. '+
-                                 'In Default mode, Storage element state is triggered by the loadshape curve corresponding to the solution mode. '+
+                                 '{DEFAULT | EXTERNAL | LOADLEVEL | PRICE } Default = "DEFAULT". Dispatch mode. '+
+                                 'In DEFAULT mode, Storage element state is triggered by the loadshape curve corresponding to the solution mode. '+
+                                 'In EXTERNAL mode, Storage element state is controlled by an external Storage controller. '+
+                                 'This mode is automatically set if this Storage element is included in the element list of a StorageController element. ' +
                                  'For the other two dispatch modes, the Storage element state is controlled by either the global default Loadlevel value or the price level. ');
      AddProperty('dischargetrigger', propDISPOUTTRIG,
                                  'Dispatch trigger value for discharging the storage. '+CRLF+
@@ -500,7 +508,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TStorage.NewObject(const ObjName:String):Integer;
+FUNCTION TStorage.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new Storage element and add it to Storage class list
     With ActiveCircuit Do
@@ -511,7 +519,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorage.SetNcondsForConnection;
+PROCEDURE TStorage.SetNcondsForConnection;
 
 Begin
       With ActiveStorageObj Do
@@ -528,17 +536,17 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TStorage.UpdateAll;
-Var
+PROCEDURE TStorage.UpdateAll;
+VAR
      i :Integer;
-begin
+Begin
      For i := 1 to ElementList.ListSize  Do
         With TStorageObj(ElementList.Get(i)) Do
-          if Enabled then UpdateStorage;
-end;
+          If Enabled Then UpdateStorage;
+End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorage.InterpretConnection(const S:String);
+PROCEDURE TStorage.InterpretConnection(const S:String);
 
 // Accepts
 //    delta or LL           (Case insensitive)
@@ -555,18 +563,18 @@ Begin
             'l': CASE Tests[2] OF
                  'n': Connection := 0;
                  'l': Connection := 1;
-                 End;
-          End;
+                 END;
+          END;
 
           SetNCondsForConnection;
 
           {VBase is always L-N voltage unless 1-phase device or more than 3 phases}
 
-          Case Fnphases Of
+          CASE Fnphases Of
                2,3: VBase := kVStorageBase * InvSQRT3x1000;    // L-N Volts
-          Else
+          ELSE
                VBase := kVStorageBase * 1000.0 ;   // Just use what is supplied
-          End;
+          END;
 
           VBase95  := Vminpu * VBase;
           VBase105 := Vmaxpu * VBase;
@@ -580,17 +588,19 @@ End;
 FUNCTION InterpretDispMode(const S:String):Integer;
 BEGIN
         CASE lowercase(S)[1] of
-             'l': Result := LOADMODE;
-             'p': Result := PRICEMODE;
+             'e': Result := STORE_EXTERNALMODE;
+             'l': Result := STORE_LOADMODE;
+             'p': Result := STORE_PRICEMODE;
         ELSE
-             Result := DEFAULT;
+             Result := STORE_DEFAULT;
         END;
 End;
 
 
 //- - - - - - - - - - - - - - -MAIN EDIT FUNCTION - - - - - - - - - - - - - - -
 
-Function TStorage.Edit:Integer;
+FUNCTION TStorage.Edit:Integer;
+
 VAR
        i, iCase,
        ParamPointer:Integer;
@@ -621,78 +631,79 @@ Begin
          Then PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
          ELSE DoSimpleMsg('Unknown parameter "'+ParamName+'" for Storage "'+Name+'"', 560);
 
-         If ParamPointer > 0 Then Begin
-         iCase := PropertyIdxMap[ParamPointer];
-         CASE iCASE OF
-            0               : DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
-            1               : NPhases    := Parser.Intvalue; // num phases
-            2               : SetBus(1, param);
-           propKV           : PresentkV    := Parser.DblValue;
-           propKW           : kW_out       := Parser.DblValue;
-           propPF           : PFNominal    := Parser.DblValue;
-           propMODEL        : VoltageModel := Parser.IntValue;
-           propYEARLY       : YearlyShape  := Param;
-           propDAILY        : DailyShape  := Param;
-           propDUTY         : DutyShape     := Param;
-           propDISPMODE     : DispatchMode  := InterpretDispMode(Param);
-           propIDLEKVAR     : pctIdlekvar   := Parser.DblValue;
-           propCONNECTION   : InterpretConnection(Param);
-           propKVAR         : Presentkvar   := Parser.DblValue;
-           propPCTR         : pctR          := Parser.DblValue;
-           propPCTX         : pctX          := Parser.DblValue;
-           propIDLEKW       : pctIdlekW     := Parser.DblValue;
-           propCLASS        : StorageClass  := Parser.IntValue;
-           propDISPOUTTRIG  : DischargeTrigger := Parser.DblValue;
-           propDISPINTRIG   : ChargeTrigger    := Parser.DblValue;
-           propCHARGEEFF    : pctChargeEff     := Parser.DblValue;
-           propDISCHARGEEFF : pctDischargeEff   := Parser.DblValue;
-           propPCTKWOUT     : pctkWout     := Parser.DblValue;
-           propVMINPU       : VMinPu       := Parser.DblValue;
-           propVMAXPU       : VMaxPu       := Parser.DblValue;
-           propSTATE        : FState       := InterpretState(Param); //****
-           propKVA          : kVArating    := Parser.DblValue;
-           propKWRATED      : kwrating      := Parser.DblValue ;
-           propKWHRATED     : kWhrating    := Parser.DblValue;
-           propKWHSTORED    : kWhstored    := Parser.DblValue;
-           propPCTRESERVE   : pctReserve    := Parser.DblValue;
-           propUSERMODEL    : UserModel.Name := Parser.StrValue;  // Connect to user written models
-           propUSERDATA     : UserModel.Edit := Parser.StrValue;  // Send edit string to user model
-           propDEBUGTRACE   : DebugTrace   := InterpretYesNo(Param);
-           propPCTKWIN      : pctkWIn     := Parser.DblValue;
-           propPCTSTORED    : kWhStored   := Parser.DblValue * 0.01 * kWhRating;
-           propCHARGETIME   : ChargeTime := Parser.DblValue;
+         If ParamPointer > 0 Then
+         Begin
+             iCase := PropertyIdxMap[ParamPointer];
+             CASE iCASE OF
+                0               : DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
+                1               : NPhases    := Parser.Intvalue; // num phases
+                2               : SetBus(1, param);
+               propKV           : PresentkV    := Parser.DblValue;
+               propKW           : kW_out       := Parser.DblValue;
+               propPF           : PFNominal    := Parser.DblValue;
+               propMODEL        : VoltageModel := Parser.IntValue;
+               propYEARLY       : YearlyShape  := Param;
+               propDAILY        : DailyShape  := Param;
+               propDUTY         : DutyShape     := Param;
+               propDISPMODE     : DispatchMode  := InterpretDispMode(Param);
+               propIDLEKVAR     : pctIdlekvar   := Parser.DblValue;
+               propCONNECTION   : InterpretConnection(Param);
+               propKVAR         : Presentkvar   := Parser.DblValue;
+               propPCTR         : pctR          := Parser.DblValue;
+               propPCTX         : pctX          := Parser.DblValue;
+               propIDLEKW       : pctIdlekW     := Parser.DblValue;
+               propCLASS        : StorageClass  := Parser.IntValue;
+               propDISPOUTTRIG  : DischargeTrigger := Parser.DblValue;
+               propDISPINTRIG   : ChargeTrigger    := Parser.DblValue;
+               propCHARGEEFF    : pctChargeEff     := Parser.DblValue;
+               propDISCHARGEEFF : pctDischargeEff   := Parser.DblValue;
+               propPCTKWOUT     : pctkWout     := Parser.DblValue;
+               propVMINPU       : VMinPu       := Parser.DblValue;
+               propVMAXPU       : VMaxPu       := Parser.DblValue;
+               propSTATE        : FState       := InterpretState(Param); //****
+               propKVA          : kVArating    := Parser.DblValue;
+               propKWRATED      : kwrating      := Parser.DblValue ;
+               propKWHRATED     : kWhrating    := Parser.DblValue;
+               propKWHSTORED    : kWhstored    := Parser.DblValue;
+               propPCTRESERVE   : pctReserve    := Parser.DblValue;
+               propUSERMODEL    : UserModel.Name := Parser.StrValue;  // Connect to user written models
+               propUSERDATA     : UserModel.Edit := Parser.StrValue;  // Send edit string to user model
+               propDEBUGTRACE   : DebugTrace   := InterpretYesNo(Param);
+               propPCTKWIN      : pctkWIn     := Parser.DblValue;
+               propPCTSTORED    : kWhStored   := Parser.DblValue * 0.01 * kWhRating;
+               propCHARGETIME   : ChargeTime := Parser.DblValue;
 
 
-         ELSE
-           // Inherited parameters
-             ClassEdit(ActiveStorageObj, ParamPointer - NumPropsThisClass)
-         End;
+             ELSE
+               // Inherited parameters
+                 ClassEdit(ActiveStorageObj, ParamPointer - NumPropsThisClass)
+             END;
 
-         CASE iCase OF
-            1: SetNcondsForConnection;  // Force Reallocation of terminal info
-            propKW,propPF: SyncUpPowerQuantities;   // keep kvar nominal up to date with kW and PF
+             CASE iCase OF
+                1: SetNcondsForConnection;  // Force Reallocation of terminal info
+                propKW,propPF: SyncUpPowerQuantities;   // keep kvar nominal up to date with kW and PF
 
-    {Set loadshape objects;  returns nil if not valid}
-            propYEARLY: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
-            propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
-            propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
-            propKWRATED:  kVArating := kWrating;
-            propKWHRATED: kWhStored := kWhRating; // Assume fully charged
+        {Set loadshape objects;  returns nil If not valid}
+                propYEARLY: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
+                propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
+                propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
+                propKWRATED:  kVArating := kWrating;
+                propKWHRATED: kWhStored := kWhRating; // Assume fully charged
 
-            propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
-                   AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
-                   ReWrite(TraceFile);
-                   Write(TraceFile, 't, Iteration, LoadMultiplier, Mode, LoadModel, StorageModel,  Qnominalperphase, Pnominalperphase, CurrentType');
-                   For i := 1 to nphases Do Write(Tracefile,  ', |Iinj'+IntToStr(i)+'|');
-                   For i := 1 to nphases Do Write(Tracefile,  ', |Iterm'+IntToStr(i)+'|');
-                   For i := 1 to nphases Do Write(Tracefile,  ', |Vterm'+IntToStr(i)+'|');
-                   Write(TraceFile, ',Vthev, Theta');
-                   Writeln(TraceFile);
-                   CloseFile(Tracefile);
-             End;
+                propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
+                       AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
+                       ReWrite(TraceFile);
+                       Write(TraceFile, 't, Iteration, LoadMultiplier, Mode, LoadModel, StorageModel,  Qnominalperphase, Pnominalperphase, CurrentType');
+                       For i := 1 to nphases Do Write(Tracefile,  ', |Iinj'+IntToStr(i)+'|');
+                       For i := 1 to nphases Do Write(Tracefile,  ', |Iterm'+IntToStr(i)+'|');
+                       For i := 1 to nphases Do Write(Tracefile,  ', |Vterm'+IntToStr(i)+'|');
+                       Write(TraceFile, ',Vthev, Theta');
+                       Writeln(TraceFile);
+                       CloseFile(Tracefile);
+                 End;
 
-            propKVA: kVANotSet := FALSE;
-         End;
+                propKVA: kVANotSet := FALSE;
+             END;
          End;
 
          ParamName := Parser.NextParam;
@@ -706,7 +717,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Function TStorage.MakeLike(Const OtherStorageObjName:String):Integer;
+FUNCTION TStorage.MakeLike(Const OtherStorageObjName:String):Integer;
 
 // Copy over essential properties from other object
 
@@ -715,7 +726,7 @@ VAR
      i:Integer;
 Begin
      Result := 0;
-     {See if we can find this line name in the present collection}
+     {See If we can find this line name in the present collection}
      OtherStorageObj := Find(OtherStorageObjName);
      If   (OtherStorageObj <> Nil)
      Then With ActiveStorageObj Do
@@ -787,7 +798,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Function TStorage.Init(Handle:Integer):Integer;
+FUNCTION TStorage.Init(Handle:Integer):Integer;
 VAR
    p:TStorageObj;
 
@@ -813,7 +824,7 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-Procedure TStorage.ResetRegistersAll;  // Force all EnergyMeters in the circuit to reset
+PROCEDURE TStorage.ResetRegistersAll;  // Force all EnergyMeters in the circuit to reset
 
 VAR
       idx  :Integer;
@@ -828,14 +839,14 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-Procedure TStorage.SampleAll;  // Force all EnergyMeters in the circuit to take a sample
+PROCEDURE TStorage.SampleAll;  // Force all EnergyMeters in the circuit to take a sample
 
-Var
+VAR
       i :Integer;
-begin
+Begin
       For i := 1 to ElementList.ListSize  Do
         With TStorageObj(ElementList.Get(i)) Do
-          if Enabled then TakeSample;
+          If Enabled Then TakeSample;
 End;
 
 //----------------------------------------------------------------------------
@@ -852,11 +863,11 @@ Begin
      Nterms     := 1;  // forces allocations
 
      YearlyShape       := '';
-     YearlyShapeObj    := nil;  // if YearlyShapeobj = nil then the load alway stays nominal * global multipliers
+     YearlyShapeObj    := nil;  // If YearlyShapeobj = nil Then the load alway stays nominal * global multipliers
      DailyShape        := '';
-     DailyShapeObj     := nil;  // if DaillyShapeobj = nil then the load alway stays nominal * global multipliers
+     DailyShapeObj     := nil;  // If DaillyShapeobj = nil Then the load alway stays nominal * global multipliers
      DutyShape         := '';
-     DutyShapeObj      := nil;  // if DutyShapeobj = nil then the load alway stays nominal * global multipliers
+     DutyShapeObj      := nil;  // If DutyShapeobj = nil Then the load alway stays nominal * global multipliers
      Connection        := 0;    // Wye (star)
      VoltageModel      := 1;  {Typical fixed kW negative load}
      StorageClass      := 1;
@@ -881,7 +892,7 @@ Begin
      kWRating     := 25.0;
      kVArating    := kWRating *1.0;
 
-     FState           := STATE_IDLING;  // Idling and fully charged
+     FState           := STORE_IDLING;  // Idling and fully charged
      FStateChanged    := TRUE;  // Force building of YPrim
      kWhRating       := 50;
      kWhStored       := kWhRating;
@@ -922,15 +933,15 @@ End;
 
 
 //----------------------------------------------------------------------------
-function TStorageObj.DecodeState: String;
-begin
+FUNCTION TStorageObj.DecodeState: String;
+Begin
      CASE Fstate of
-         STATE_CHARGING :    Result := 'CHARGING';
-         STATE_DISCHARGING : Result := 'DISCHARGING';
+         STORE_CHARGING :    Result := 'CHARGING';
+         STORE_DISCHARGING : Result := 'DISCHARGING';
      ELSE
          Result := 'IDLING';
      END;
-end;
+End;
 
 //----------------------------------------------------------------------------
 Destructor TStorageObj.Destroy;
@@ -941,7 +952,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.Randomize(Opt:Integer);
+PROCEDURE TStorageObj.Randomize(Opt:Integer);
 Begin
 
    CASE Opt OF
@@ -954,7 +965,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.CalcDailyMult(Hr:Double);
+PROCEDURE TStorageObj.CalcDailyMult(Hr:Double);
 
 Begin
      If (DailyShapeObj <> Nil) Then
@@ -968,7 +979,7 @@ End;
 
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.CalcDutyMult(Hr:Double);
+PROCEDURE TStorageObj.CalcDutyMult(Hr:Double);
 
 Begin
      If DutyShapeObj <> Nil Then
@@ -976,11 +987,11 @@ Begin
              ShapeFactor := DutyShapeObj.GetMult(Hr);
              CheckStateTriggerLevel(ShapeFactor.re);
        End
-     ELSE CalcDailyMult(Hr);  // Default to Daily Mult if no duty curve specified
+     ELSE CalcDailyMult(Hr);  // Default to Daily Mult If no duty curve specified
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.CalcYearlyMult(Hr:Double);
+PROCEDURE TStorageObj.CalcYearlyMult(Hr:Double);
 
 Begin
      If YearlyShapeObj<>Nil Then
@@ -992,7 +1003,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.SetNominalStorageOuput;
+PROCEDURE TStorageObj.SetNominalStorageOuput;
 
 Begin
 
@@ -1002,26 +1013,26 @@ Begin
    Begin
     IF NOT (IsDynamicModel or IsHarmonicModel) THEN     // Leave Storage element in whatever state it was prior to entering Dynamic mode
     Begin
+          // Check dispatch to see what state the storage element should be in
           CASE DispatchMode of
 
-                LOADMODE: CheckStateTriggerLevel(GeneratorDispatchReference);
-                PRICEMODE:CheckStateTriggerLevel(PriceSignal);
+                STORE_EXTERNALMODE: ;  // Do nothing
+                STORE_LOADMODE: CheckStateTriggerLevel(GeneratorDispatchReference);
+                STORE_PRICEMODE:CheckStateTriggerLevel(PriceSignal);
 
-          ELSE // dispatch off element's loadshapes, if any
+          ELSE // dispatch off element's loadshapes, If any
 
            With Solution Do
             CASE Mode OF
-                SNAPSHOT:     {Just solve for the present kW, kvar};  // don't check for state change
+                SNAPSHOT:    ; {Just solve for the present kW, kvar}  // Don't check for state change
                 DAILYMODE:    CalcDailyMult(dblHour); // Daily dispatch curve
                 YEARLYMODE:   CalcYearlyMult(dblHour);
              (*
                 MONTECARLO1,
                 MONTEFAULT,
-                FAULTSTUDY,  *)
-
-                DYNAMICMODE:   {do nothing};
-
-                // Assume Daily curve, if any, for the following
+                FAULTSTUDY, 
+                DYNAMICMODE:   ; // {do nothing}   *)
+                // Assume Daily curve, If any, for the following
                 MONTECARLO2,
                 MONTECARLO3,
                 LOADDURATION1,
@@ -1029,7 +1040,7 @@ Begin
                 PEAKDAY:       CalcDailyMult(dblHour);
 
                 DUTYCYCLE:     CalcDutyMult(dblHour) ;
-                AUTOADDFLAG:  ;
+                {AUTOADDFLAG:  ; }
             End;
 
           END;
@@ -1037,12 +1048,14 @@ Begin
 
           SetKWandKvarOut;   // Based on State and amount of energy left in storage
 
-          IF Fstate = STATE_IDLING  THEN
+          IF Fstate = STORE_IDLING  THEN
             Begin
                   //  YeqIdle will be in the Yprim Matrix   so set this to zero
                   Pnominalperphase   := 0.0; // -0.1 * kWRating / Fnphases;     // watts
-                  Qnominalperphase   := 0.0;
-                  Yeq    := Cmplx(0.0,0.0);
+                  If DispatchMode = STORE_EXTERNALMODE Then   // Check for requested kvar
+                       Qnominalperphase := kvarRequested / Fnphases * 1000.0
+                  Else Qnominalperphase   := 0.0;
+                  Yeq  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
                   Yeq95  := Yeq;
                   Yeq105 := Yeq;
             End
@@ -1053,7 +1066,7 @@ Begin
 
                   CASE VoltageModel  of
         //****  Fix this when user model gets connected in
-                       3: // Yeq := Cinv(cmplx(0.0, -StoreVars.Xd))  ;  // Gets negated in CalcYPrim
+                       3: // Yeq := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
                   ELSE
                       Yeq  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
                       If   (Vminpu <> 0.0) Then Yeq95 := CDivReal(Yeq, sqr(Vminpu))  // at 95% voltage
@@ -1077,7 +1090,7 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.RecalcElementData;
+PROCEDURE TStorageObj.RecalcElementData;
 
 Begin
 
@@ -1106,7 +1119,7 @@ Begin
     If DutyShapeObj=Nil Then
       If Length(DutyShape)>0 Then DoSimpleMsg('WARNING! Duty load shape: "'+ DutyShape +'" Not Found.', 565);
 
-    if Length(Spectrum)> 0 then Begin
+    If Length(Spectrum)> 0 Then Begin
           SpectrumObj := SpectrumClass.Find(Spectrum);
           If SpectrumObj=Nil Then DoSimpleMsg('ERROR! Spectrum "'+Spectrum+'" Not Found.', 566);
     End
@@ -1123,9 +1136,9 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.CalcYPrimMatrix(Ymatrix:TcMatrix);
+PROCEDURE TStorageObj.CalcYPrimMatrix(Ymatrix:TcMatrix);
 
-Var
+VAR
        Y , Yij  :Complex;
        i, j     :Integer;
        FreqMultiplier :Double;
@@ -1140,8 +1153,8 @@ Begin
      Begin
        {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
            CASE Fstate of
-               STATE_IDLING: Y := YeqIdling;
-               STATE_DISCHARGING: Y := Cadd(cnegate(Yeq), YeqIdling);
+               STORE_IDLING: Y := YeqIdling;
+               STORE_DISCHARGING: Y := Cadd(cnegate(Yeq), YeqIdling);
            ELSE
                Y  := Yeq   // L-N value computed in initialization routines
            END;
@@ -1173,7 +1186,7 @@ Begin
 
 
        CASE Fstate of
-           STATE_IDLING: Y := YeqIdling;
+           STORE_IDLING: Y := YeqIdling;
        ELSE
            Y := Cadd(cnegate(Yeq), YeqIdling);   // negate for generation    Yeq is L-N quantity
        END;
@@ -1215,7 +1228,7 @@ End;
 
 //----------------------------------------------------------------------------
 FUNCTION TStorageObj.NormalizeToTOD(h: Integer; sec: Double): Double;
-// Normalize time to a floating point number representing time of day if Hour > 24
+// Normalize time to a floating point number representing time of day If Hour > 24
 // time should be 0 to 24.
 VAR
     HourOfDay :Integer;
@@ -1234,53 +1247,53 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.CheckStateTriggerLevel(Level: Double);
+PROCEDURE TStorageObj.CheckStateTriggerLevel(Level: Double);
 {This is where we set the state of the Storage element}
 
-Var
+VAR
      OldState :Integer;
 
-begin
+Begin
      FStateChanged := FALSE;
-     if (ChargeTrigger=0.0) and (DischargeTrigger=0.0) then   Exit;
+     If (ChargeTrigger=0.0) and (DischargeTrigger=0.0) Then   Exit;
 
      OldState := Fstate;
-  // First see if we want to turn off Charging or Discharging State
+  // First see If we want to turn off Charging or Discharging State
      CASE Fstate of
-         STATE_CHARGING:    if (ChargeTrigger    <> 0.0) Then if (ChargeTrigger    < Level) or (kWhStored >= kWHRating)  then Fstate := STATE_IDLING;
-         STATE_DISCHARGING: if (DischargeTrigger <> 0.0) Then if (DischargeTrigger > Level) or (kWhStored <= kWHReserve) then Fstate := STATE_IDLING;
+         STORE_CHARGING:    If (ChargeTrigger    <> 0.0) Then If (ChargeTrigger    < Level) or (kWhStored >= kWHRating)  Then Fstate := STORE_IDLING;
+         STORE_DISCHARGING: If (DischargeTrigger <> 0.0) Then If (DischargeTrigger > Level) or (kWhStored <= kWHReserve) Then Fstate := STORE_IDLING;
      END;
 
-  // Now check to see if we want to turn on the opposite state
+  // Now check to see If we want to turn on the opposite state
      CASE Fstate of
-         STATE_IDLING: Begin
-                           if      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) then FState := STATE_DISCHARGING
-                           else if (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  then Fstate := STATE_CHARGING;
+         STORE_IDLING: Begin
+                           If      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) Then FState := STORE_DISCHARGING
+                           Else If (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  Then Fstate := STORE_CHARGING;
 
-                           // Check to see if it is time to turn the charge cycle on if it is not already on.
-                           if Not (Fstate = STATE_CHARGING) then
-                             if ChargeTime > 0.0 then
+                           // Check to see If it is time to turn the charge cycle on If it is not already on.
+                           If Not (Fstate = STORE_CHARGING) Then
+                             If ChargeTime > 0.0 Then
                                    WITH ActiveCircuit.Solution Do Begin
-                                       if abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTime) < DynaVars.h/3600.0 then Fstate := STATE_CHARGING;
+                                       If abs(NormalizeToTOD(intHour, DynaVARs.t) - ChargeTime) < DynaVARs.h/3600.0 Then Fstate := STORE_CHARGING;
                                    End;
                        End;
      END;
 
 
 
-     if OldState <> Fstate then FstateChanged := TRUE;
-end;
+     If OldState <> Fstate Then FstateChanged := TRUE;
+End;
 
 //----------------------------------------------------------------------------
-Procedure TStorageObj.CalcYPrim;
+PROCEDURE TStorageObj.CalcYPrim;
 
-Var
+VAR
         i:integer;
         
 Begin
 
      // Build only shunt Yprim
-     // Build a dummy Yprim Series so that CalcV does not fail
+     // Build a dummy Yprim Series so that CalcV Does not fail
      If YPrimInvalid
      Then  Begin
          If YPrim_Shunt<>nil Then YPrim_Shunt.Free;
@@ -1299,7 +1312,7 @@ Begin
      SetNominalStorageOuput;
      CalcYPrimMatrix(YPrim_Shunt);
 
-     // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages doesn't fail
+     // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages Doesn't fail
      For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
      
      YPrim.CopyFrom(YPrim_Shunt);
@@ -1310,7 +1323,7 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
+PROCEDURE TStorageObj.StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
  {Add the current into the proper location according to connection}
 
  {Reverse of similar routine in load  (Cnegates are switched)}
@@ -1333,9 +1346,9 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.WriteTraceRecord(const s:string);
+PROCEDURE TStorageObj.WriteTraceRecord(const s:string);
 
-Var i:Integer;
+VAR i:Integer;
 
 Begin
 
@@ -1344,7 +1357,7 @@ Begin
       Begin
            Append(TraceFile);
            Write(TraceFile,Format('%-.g, %d, %-.g, ',
-                    [ActiveCircuit.Solution.DynaVars.t,
+                    [ActiveCircuit.Solution.DynaVARs.t,
                     ActiveCircuit.Solution.Iteration,
                     ActiveCircuit.LoadMultiplier]),
                     GetSolutionModeID,', ',
@@ -1356,7 +1369,7 @@ Begin
            For i := 1 to nphases Do Write(TraceFile,(Cabs(InjCurrent^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(ITerminal^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(Vterminal^[i])):8:1 ,', ');
-   //****        Write(TraceFile,VThevMag:8:1 ,', ', StoreVars.Theta*180.0/PI);
+   //****        Write(TraceFile,VThevMag:8:1 ,', ', StoreVARs.Theta*180.0/PI);
            Writeln(TRacefile);
            CloseFile(TraceFile);
       End;
@@ -1366,7 +1379,7 @@ Begin
       End;
 End;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.DoConstantPQStorageObj;
+PROCEDURE TStorageObj.DoConstantPQStorageObj;
 
 {Compute total terminal current for Constant PQ}
 
@@ -1416,7 +1429,7 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.DoConstantZStorageObj;
+PROCEDURE TStorageObj.DoConstantZStorageObj;
 
 {constant Z model}
 VAR
@@ -1447,14 +1460,14 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 PROCEDURE TStorageObj.DoUserModel;
 {Compute total terminal Current from User-written model}
-Var
+VAR
    i:Integer;
 
 Begin
 
    CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
 
-   If UserModel.Exists Then    // Check automatically selects the usermodel if true
+   If UserModel.Exists Then    // Check automatically selects the usermodel If true
      Begin
          UserModel.FCalc (Vterminal, Iterminal);
          IterminalUpdated := TRUE;
@@ -1496,7 +1509,7 @@ PROCEDURE TStorageObj.DoHarmonicMode;
 {Assumes spectrum is a voltage source behind subtransient reactance and YPrim has been built}
 {Vd is the fundamental frequency voltage behind Xd" for phase 1}
 
-Var
+VAR
    i     :Integer;
    E     :Complex;
    StorageHarmonic :double;
@@ -1508,7 +1521,7 @@ Begin
    WITH ActiveCircuit.Solution Do
      Begin
         StorageHarmonic := Frequency/StorageFundamental;
-        if SpectrumObj <> Nil then         
+        If SpectrumObj <> Nil Then         
              E := CmulReal(SpectrumObj.GetMult(StorageHarmonic), VThevHarm) // Get base harmonic magnitude
         Else E := CZERO;
 
@@ -1529,7 +1542,7 @@ End;
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.CalcVTerminalPhase;
+PROCEDURE TStorageObj.CalcVTerminalPhase;
 
 VAR i,j:Integer;
 
@@ -1560,7 +1573,7 @@ End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 (*
-Procedure TStorageObj.CalcVTerminal;
+PROCEDURE TStorageObj.CalcVTerminal;
 {Put terminal voltages in an array}
 Begin
    ComputeVTerminal;
@@ -1570,7 +1583,7 @@ End;
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.CalcStorageModelContribution;
+PROCEDURE TStorageObj.CalcStorageModelContribution;
 
 // Calculates Storage element current and adds it properly into the injcurrent array
 // routines may also compute ITerminal  (ITerminalUpdated flag)
@@ -1594,12 +1607,12 @@ Begin
             End; {ELSE}
      END; {WITH}
 
-   {When this is done, ITerminal is up to date}
+   {When this is Done, ITerminal is up to date}
 
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.CalcInjCurrentArray;
+PROCEDURE TStorageObj.CalcInjCurrentArray;
 // Difference between currents in YPrim and total current
 Begin
       // Now Get Injection Currents
@@ -1608,7 +1621,7 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.GetTerminalCurrents(Curr:pComplexArray);
+PROCEDURE TStorageObj.GetTerminalCurrents(Curr:pComplexArray);
 
 // Compute total Currents
 
@@ -1626,12 +1639,12 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Function TStorageObj.InjCurrents:Integer;
+FUNCTION TStorageObj.InjCurrents:Integer;
 
 Begin
      With ActiveCircuit.Solution Do
       Begin
-         If LoadsNeedUpdating Then SetNominalStorageOuput; // Set the nominal kW, etc for the type of solution being done
+         If LoadsNeedUpdating Then SetNominalStorageOuput; // Set the nominal kW, etc for the type of solution being Done
 
          CalcInjCurrentArray;          // Difference between currents in YPrim and total terminal current
 
@@ -1644,7 +1657,7 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.GetInjCurrents(Curr:pComplexArray);
+PROCEDURE TStorageObj.GetInjCurrents(Curr:pComplexArray);
 
 // Gives the currents for the last solution performed
 
@@ -1663,7 +1676,7 @@ Begin
 
    EXCEPT
      ON E: Exception Do
-        DoErrorMsg('Storage Object: "' + Name + '" in GetInjCurrents function.',
+        DoErrorMsg('Storage Object: "' + Name + '" in GetInjCurrents FUNCTION.',
                     E.Message,
                    'Current buffer not big enough.', 568);
    End;
@@ -1672,7 +1685,7 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.ResetRegisters;
+PROCEDURE TStorageObj.ResetRegisters;
 
 VAR
    i : Integer;
@@ -1684,7 +1697,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
+PROCEDURE TStorageObj.Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
 
 Begin
      IF ActiveCircuit.TrapezoidalIntegration THEN
@@ -1699,7 +1712,7 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.TakeSample;
+PROCEDURE TStorageObj.TakeSample;
 // Update Energy from metered zone
 
 VAR
@@ -1713,7 +1726,7 @@ Begin
      IF  Enabled  THEN Begin
 
      // Only tabulate discharge hours
-       IF FSTate = STATE_DISCHARGING then   Begin
+       IF FSTate = STORE_DISCHARGING Then   Begin
           S := cmplx(Get_PresentkW, Get_Presentkvar);
           Smag := Cabs(S);
           HourValue := 1.0;
@@ -1723,7 +1736,7 @@ Begin
           HourValue := 0.0;
        End;
 
-        IF (FState = STATE_DISCHARGING) or ActiveCircuit.TrapezoidalIntegration THEN
+        IF (FState = STORE_DISCHARGING) or ActiveCircuit.TrapezoidalIntegration THEN
         {Make sure we always integrate for Trapezoidal case
          Don't need to for Gen Off and normal integration}
         WITH ActiveCircuit.Solution Do
@@ -1744,55 +1757,55 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.UpdateStorage;
+PROCEDURE TStorageObj.UpdateStorage;
 {Update Storage levels}
-begin
+Begin
 
     With ActiveCircuit.Solution Do
     Case FState of
 
-        STATE_DISCHARGING: Begin
+        STORE_DISCHARGING: Begin
                                kWhStored := kWhStored - PresentkW * IntervalHrs / DischargeEff;
-                               if kWhStored < kWhReserve then Begin
+                               If kWhStored < kWhReserve Then Begin
                                   kWhStored := kWhReserve;
-                                  Fstate := STATE_IDLING;  // It's empty Turn it off
+                                  Fstate := STORE_IDLING;  // It's empty Turn it off
                                   FstateChanged := TRUE;
                                End;
                            End;
 
-        STATE_CHARGING:    Begin
+        STORE_CHARGING:    Begin
                                kWhStored := kWhStored - PresentkW * IntervalHrs * ChargeEff;
-                               if kWhStored > kWhRating then Begin
+                               If kWhStored > kWhRating Then Begin
                                   kWhStored := kWhRating;
-                                  Fstate := STATE_IDLING;  // It's full Turn it off
+                                  Fstate := STORE_IDLING;  // It's full Turn it off
                                   FstateChanged := TRUE;
                                End;
                            End;
-    end;
-end;
+    End;
+End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Function TStorageObj.Get_PresentkW:Double;
+FUNCTION TStorageObj.Get_PresentkW:Double;
 Begin
      Result := Pnominalperphase * 0.001 * Fnphases;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-function TStorageObj.Get_PresentkV: Double;
-begin
+FUNCTION TStorageObj.Get_PresentkV: Double;
+Begin
      Result := kVStorageBase;
-end;
+End;
 
-Function TStorageObj.Get_Presentkvar:Double;
+FUNCTION TStorageObj.Get_Presentkvar:Double;
 Begin
      Result := Qnominalperphase * 0.001 * Fnphases;
 End;
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-Procedure TStorageObj.DumpProperties(Var F:TextFile; Complete:Boolean);
+PROCEDURE TStorageObj.DumpProperties(VAR F:TextFile; Complete:Boolean);
 
-Var
+VAR
    i, idx :Integer;
 
 Begin
@@ -1814,14 +1827,14 @@ End;
 
       
 //----------------------------------------------------------------------------
-Procedure TStorageObj.InitHarmonics;
+PROCEDURE TStorageObj.InitHarmonics;
 
 // This routine makes a thevenin equivalent behis the reactance spec'd in %R and %X
 
-Var
+VAR
   E, Va:complex;
 
-begin
+Begin
      YPrimInvalid       := TRUE;  // Force rebuild of YPrims
      StorageFundamental := ActiveCircuit.Solution.Frequency ;  // Whatever the frequency is when we enter here.
 
@@ -1829,7 +1842,7 @@ begin
 
      {Compute reference Thevinen voltage from phase 1 current}
 
-     IF FState = STATE_DISCHARGING Then
+     IF FState = STORE_DISCHARGING Then
        Begin
            ComputeIterminal;  // Get present value of current
 
@@ -1852,14 +1865,14 @@ begin
            Vthevharm := 0.0;
            ThetaHarm := 0.0;
        End;
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.InitPropertyValues(ArrayOffset: Integer);
+PROCEDURE TStorageObj.InitPropertyValues(ArrayOffset: Integer);
 
 // Define default values for the properties
 
-begin
+Begin
 
      PropertyValue[1]      := '3';         //'phases';
      PropertyValue[2]      := Getbus(1);   //'bus1';
@@ -1905,14 +1918,14 @@ begin
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
-end;
+End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.InitStateVars;
 
 // for going into dynamics mode
 (*
-Var
+VAR
     VNeut,
     Edp   :Complex;
     i     :Integer;
@@ -1920,7 +1933,7 @@ Var
     I012  :Array[0..2] of Complex;
     Vabc  :Array[1..3] of Complex;
 *)
-begin
+Begin
     YPrimInvalid := TRUE;  // Force rebuild of YPrims
 
 (*
@@ -1948,7 +1961,7 @@ begin
 
               // Init User-written models
              //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
-             With ActiveCircuit.Solution Do If VoltageModel=6 then Begin
+             With ActiveCircuit.Solution Do If VoltageModel=6 Then Begin
                If UserModel.Exists Then UserModel.FInit( Vterminal, Iterminal);
              End;
        End
@@ -1957,30 +1970,30 @@ begin
 //****  ANY OTHERS
      End;
 *)
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.IntegrateStates;
+PROCEDURE TStorageObj.IntegrateStates;
 
 // dynamics mode integration routine
 
 (****
-Var
+VAR
     TracePower:Complex;
 
 ****)
-begin
-   // Compute Derivatives and then integrate
+Begin
+   // Compute Derivatives and Then integrate
 
-(*    For now, do nothing; no state vars to integrate
+(*    For now, Do nothing; no state vars to integrate
 
    ComputeIterminal;
 
 // Check for user-written exciter model.
-    //Function(V, I:pComplexArray; const Pshaft,Theta,Speed,dt,time:Double)
+    //FUNCTION(V, I:pComplexArray; const Pshaft,Theta,Speed,dt,time:Double)
     With ActiveCircuit.Solution Do  Begin
 
-      With DynaVars Do
+      With DynaVARs Do
       If (IterationFlag = 0) Then Begin {First iteration of new time step}
           ThetaHistory := Theta + 0.5*h*dTheta;
           SpeedHistory := Speed + 0.5*h*dSpeed;
@@ -1993,7 +2006,7 @@ begin
        dTheta  := Speed ;
 
      // Trapezoidal method
-      With DynaVars Do Begin
+      With DynaVARs Do Begin
         Speed := SpeedHistory + 0.5*h*dSpeed;
         Theta := ThetaHistory + 0.5*h*dTheta;
       End;
@@ -2013,7 +2026,7 @@ begin
              CloseFile(TraceFile);
          End;
 
-       If VoltageModel=6 then Begin
+       If VoltageModel=6 Then Begin
          If UserModel.Exists    Then UserModel.Integrate;
        End;
 
@@ -2021,64 +2034,66 @@ begin
    End;
 *)
 
-end;
+End;
 
 //----------------------------------------------------------------------------
-function TStorageObj.InterpretState(const S: String): Integer;
-begin
+FUNCTION TStorageObj.InterpretState(const S: String): Integer;
+Begin
      CASE LowerCase(S)[1] of
-         'c' : Result := STATE_CHARGING;
-         'd' : Result := STATE_DISCHARGING;
+         'c' : Result := STORE_CHARGING;
+         'd' : Result := STORE_DISCHARGING;
      ELSE
-         Result := STATE_IDLING;
+         Result := STORE_IDLING;
      END;
-end;
+End;
 
 //----------------------------------------------------------------------------
-function TStorageObj.Get_Variable(i: Integer): Double;
+FUNCTION TStorageObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
 
-Var
+VAR
       N, k:Integer;
 
-begin
+Begin
     Result := -9999.99;  // error return value; no state fars
     If i < 1 Then Exit;
 // for now, report kWhstored and mode
-    Case i of
+    CASE i of
        1: Result := kWhStored;
        2: Result := FState;
        3: Result := pctkWout;
        4: Result := pctkWin;
-     Else
+     ELSE
         Begin
-             If UserModel.Exists Then Begin
-                N := UserModel.FNumVars;
-                k := (i-NumStorageVariables);
-                If k <= N Then Begin
-                    Result := UserModel.FGetVariable(k);
-                    Exit;
-                End;
+             If UserModel.Exists Then
+             Begin
+                  N := UserModel.FNumVars;
+                  k := (i-NumStorageVariables);
+                  If k <= N Then Begin
+                      Result := UserModel.FGetVariable(k);
+                      Exit;
+                  End;
              End;
         End;
-     End;
-end;
+     END;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.Set_Variable(i: Integer;  Value: Double);
+PROCEDURE TStorageObj.Set_Variable(i: Integer;  Value: Double);
 var N, k:Integer;
 
-begin
+Begin
   If i<1 Then Exit;  // No variables to set
 
-    Case i of
+    CASE i of
        1: kWhStored := Value;
        2: Fstate    := Trunc(Value);
        3: pctkWout  := Value;
        4: pctkWin   := Value;
-     Else
+     ELSE
        Begin
-         If UserModel.Exists Then Begin
+         If UserModel.Exists Then
+         Begin
               N := UserModel.FNumVars;
               k := (i-NumStorageVariables) ;
               If  k<= N Then Begin
@@ -2087,15 +2102,15 @@ begin
               End;
           End;
        End;
-     End;
+     END;
 
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.GetAllVariables(States: pDoubleArray);
+PROCEDURE TStorageObj.GetAllVariables(States: pDoubleArray);
 
-Var  i{, N}:Integer;
-begin
+VAR  i{, N}:Integer;
+Begin
      For i := 1 to NumStorageVariables Do States^[i] := Variable[i];
 
      If UserModel.Exists Then Begin
@@ -2103,35 +2118,35 @@ begin
         UserModel.FGetAllVars(@States^[NumStorageVariables+1]);
      End;
 
-end;
+End;
 
 //----------------------------------------------------------------------------
-function TStorageObj.NumVariables: Integer;
-begin
+FUNCTION TStorageObj.NumVariables: Integer;
+Begin
      Result  := NumStorageVariables;
-     If UserModel.Exists    then Result := Result + UserModel.FNumVars;
-end;
+     If UserModel.Exists    Then Result := Result + UserModel.FNumVars;
+End;
 
 //----------------------------------------------------------------------------
-Function TStorageObj.VariableName(i: Integer):String;
+FUNCTION TStorageObj.VariableName(i: Integer):String;
 
 Const
     BuffSize = 255;
-Var
+VAR
     n,
     i2    :integer;
     Buff  :Array[0..BuffSize] of Char;
     pName :pchar;
 
-begin
+Begin
       If i<1 Then Exit;  // Someone goofed
 
-      Case i of
+      CASE i of
           1:Result := 'kWh Stored';
           2:Result := 'Storage State Flag';
           3:Result := '% discharge level';
           4:Result := '% charge level';
-      Else
+      ELSE
           Begin
             If UserModel.Exists Then
             Begin
@@ -2146,15 +2161,15 @@ begin
                   End;
             End;
           End;
-      End;
+      END;
 
-end;
+End;
 
 
 //----------------------------------------------------------------------------
-function TStorageObj.GetPropertyValue(Index: Integer): String;
+FUNCTION TStorageObj.GetPropertyValue(Index: Integer): String;
 
-begin
+Begin
 
       Result := '';
       CASE Index of
@@ -2174,16 +2189,16 @@ begin
       ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
       END;
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.MakePosSequence;
+PROCEDURE TStorageObj.MakePosSequence;
 
-Var
+VAR
     S :String;
     V :Double;
 
-begin
+Begin
 
   S := 'Phases=1 conn=wye';
 
@@ -2204,65 +2219,76 @@ begin
   Parser.CmdString := S;
   Edit;
 
-end;
+End;
 
-procedure TStorageObj.Set_ConductorClosed(Index: Integer;
+PROCEDURE TStorageObj.Set_ConductorClosed(Index: Integer;
   Value: Boolean);
-begin
+Begin
    inherited;
 
  // Just turn storage element on or off;
 
    If Value Then StorageObjSwitchOpen := FALSE Else StorageObjSwitchOpen := TRUE;
 
+End;
+
+
+
+procedure TStorageObj.Set_pctkvarOut(const Value: Double);
+begin
+     FpctkvarOut := Value;
+   // Force recompute of target PF and requested kVAr
+     Presentkvar := Value * kWRating / 100.0; 
 end;
 
-
-
 //----------------------------------------------------------------------------
-procedure TStorageObj.Set_PowerFactor(const Value: Double);
-begin
+PROCEDURE TStorageObj.Set_PowerFactor(const Value: Double);
+Begin
      PFNominal := Value;
      SyncUpPowerQuantities;
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.Set_PresentkV(const Value: Double);
-begin
+PROCEDURE TStorageObj.Set_PresentkV(const Value: Double);
+Begin
       kVStorageBase := Value ;
       CASE FNphases Of
            2,3: VBase := kVStorageBase * InvSQRT3x1000;
       ELSE
            VBase := kVStorageBase * 1000.0 ;
       END;
-end;
-
-//----------------------------------------------------------------------------
-procedure TStorageObj.Set_Presentkvar(const Value: Double);
-Var
-     kVA_Gen :Double;
-begin
-     kvar_out := Value;
-     Qnominalperphase := 1000.0 * kvar_out  / Fnphases; // init to something reasonable
-     kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out)) ;
-     IF kVA_Gen <> 0.0 THEN PFNominal := kW_out / kVA_Gen ELSE PFNominal := 1.0;
-     If (kW_out*kvar_out) < 0.0 Then PFNominal := -PFNominal;
-end;
-
-//----------------------------------------------------------------------------
-procedure TStorageObj.Set_PresentkW(const Value: Double);
-begin
-     kW_out := Value;
-     SyncUpPowerQuantities;
 End;
 
-procedure TStorageObj.Set_State(const Value: Integer);
-begin
-  FState := Value;
-end;
+//----------------------------------------------------------------------------
+PROCEDURE TStorageObj.Set_Presentkvar(const Value: Double);
+VAR
+     kVA_Gen :Double;
+Begin
+     kvar_out := Value;
+     kvarRequested := Value;
+     Fpctkvarout  := Value/kWrating;
+     {Requested kVA output}
+     kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out)) ;
+     If kVA_Gen > kVArating Then kVA_Gen := kVARating;  // Limit kVA to rated value
+     IF kVA_Gen <> 0.0 THEN PFNominal := kW_out / kVA_Gen ELSE PFNominal := 1.0;
+     If (kW_out*kvar_out) < 0.0 Then PFNominal := -PFNominal;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.SyncUpPowerQuantities;
+PROCEDURE TStorageObj.Set_PresentkW(const Value: Double);
+Begin
+     pctkWOut := Value/kWRating * 100.0;
+     kW_Out   := Value;
+     //SyncUpPowerQuantities;
+End;
+
+PROCEDURE TStorageObj.Set_State(const Value: Integer);
+Begin
+     FState := Value;
+End;
+
+//----------------------------------------------------------------------------
+PROCEDURE TStorageObj.SyncUpPowerQuantities;
 Begin
      // keep kvar nominal up to date with kW and PF
      If (PFNominal <> 0.0)  Then
@@ -2272,43 +2298,43 @@ Begin
           If PFNominal<0.0 Then kvar_out := -kvar_out;
           If kVANotSet Then kVARating := kWrating;
      End;
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.SetDragHandRegister(Reg: Integer; const Value: Double);
-begin
+PROCEDURE TStorageObj.SetDragHandRegister(Reg: Integer; const Value: Double);
+Begin
     If Value>Registers[reg] Then Registers[Reg] := Value;
-end;
+End;
 
 //----------------------------------------------------------------------------
-procedure TStorageObj.SetKWandKvarOut;
-begin
+PROCEDURE TStorageObj.SetKWandKvarOut;
+Begin
     CASE FState of
 
-       STATE_CHARGING: Begin
-                            if kWhStored < kWhRating then
+       STORE_CHARGING: Begin
+                            If kWhStored < kWhRating Then
                             Begin
                                  kW_out := -kWRating * pctkWin / 100.0;
-                                 if PFNominal = 1.0 then   kvar_out := 0.0
-                                 else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                                 If   PFNominal = 1.0 Then   kvar_out := 0.0
+                                 Else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
                             End
-                            Else Fstate := STATE_IDLING;
+                            Else Fstate := STORE_IDLING;   // all charged up
                        End;
 
 
-       STATE_DISCHARGING: Begin
-                                if kWhStored > kWhReserve then
+       STORE_DISCHARGING: Begin
+                                If kWhStored > kWhReserve Then
                                 Begin
                                      kW_out := kWRating * pctkWout / 100.0;
-                                     if PFNominal = 1.0 then   kvar_out := 0.0
-                                     else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                                     If   PFNominal = 1.0 Then   kvar_out := 0.0
+                                     Else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
                                 End
-                                Else Fstate := STATE_IDLING;
+                                Else Fstate := STORE_IDLING;  // not enough storage to discharge
 
                           End;
 
     END;
-end;
+End;
 
 //----------------------------------------------------------------------------
 
