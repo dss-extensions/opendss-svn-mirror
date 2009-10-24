@@ -596,6 +596,19 @@ BEGIN
         END;
 End;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+FUNCTION ReturnDispMode(const imode:Integer):String;
+BEGIN
+        CASE imode of
+             STORE_EXTERNALMODE: Result := 'External';
+             STORE_LOADMODE: Result := 'Loadshape';
+             STORE_PRICEMODE: Result := 'Price';
+        ELSE
+             Result := 'default';
+        END;
+End;
+
+
 
 //- - - - - - - - - - - - - - -MAIN EDIT FUNCTION - - - - - - - - - - - - - - -
 
@@ -777,6 +790,8 @@ Begin
          pctDischargeEff := OtherStorageObj.pctDischargeEff;
          pctkWout        := OtherStorageObj.pctkWout;
          pctkWin         := OtherStorageObj.pctkWin;
+         pctIdlekW       := OtherStorageObj.pctIdlekW;
+         pctIdlekvar     := OtherStorageObj.pctIdlekvar;
          ChargeTime      := OtherStorageObj.ChargeTime;
 
          pctR            := OtherStorageObj.pctR;
@@ -900,6 +915,8 @@ Begin
      kWhReserve      := kWhRating * pctReserve /100.0;
      pctR            := 0.0;;
      pctX            := 50.0;
+     pctIdlekW       := 1.0;
+     pctIdlekvar     := 0.0;
 
      DischargeTrigger := 0.0;
      ChargeTrigger    := 0.0;
@@ -2173,19 +2190,40 @@ Begin
 
       Result := '';
       CASE Index of
-        // Special handlers
-           propKV:  Result := Format('%.6g', [kVStorageBase]);
-           propKW:  Result := Format('%.6g', [kW_out]);
-           propPF:  Result := Format('%.6g', [PFNominal]);
-           propKVAR: Result := Format('%.6g', [kvar_out]);
-           propKVA: Result := Format('%.6g', [kVArating]);
-           propKWRATED: Result := Format('%.6g', [kWrating]);
-           propKWHSTORED: Result := Format('%.6g', [kWHStored]);
-           propPCTSTORED: Result := Format('%.6g', [kWhStored/kWhRating * 100.0]);
-           propUSERDATA: Begin
-                      Result := '(' + inherited GetPropertyValue(index) + ')';
-                  End;
-           propSTATE: Result := DecodeState;
+          propKV         : Result := Format('%.6g', [kVStorageBase]);
+          propKW         : Result := Format('%.6g', [kW_out]);
+          propPF         : Result := Format('%.6g', [PFNominal]);
+          propMODEL      : Result := Format('%d',   [VoltageModel]);
+          propYEARLY     : Result := YearlyShape;
+          propDAILY      : Result := DailyShape;
+          propDUTY       : Result := DutyShape;
+          propDISPMODE   : Result := ReturnDispMode(DispatchMode);
+          propIDLEKVAR   : Result := Format('%.6g', [pctIdlekvar]);
+          {propCONNECTION :;}
+          propKVAR       : Result := Format('%.6g', [kvar_out]);
+          propPCTR       : Result := Format('%.6g', [pctR]);
+          propPCTX       : Result := Format('%.6g', [pctX]);
+          propIDLEKW     : Result := Format('%.6g', [pctIdlekW]);
+          {propCLASS      = 17;}
+          propDISPOUTTRIG: Result := Format('%.6g', [DischargeTrigger]);
+          propDISPINTRIG : Result := Format('%.6g', [ChargeTrigger]);
+          propCHARGEEFF  : Result := Format('%.6g', [pctChargeEff]);
+          propDISCHARGEEFF : Result := Format('%.6g', [pctDischargeEff]);
+          propPCTKWOUT   : Result := Format('%.6g', [pctkWout]);
+          propVMINPU     : Result := Format('%.6g', [VMinPu]);
+          propVMAXPU     : Result := Format('%.6g', [VMaxPu]);
+          propSTATE      : Result := DecodeState;
+          propKVA        : Result := Format('%.6g', [kVArating]);
+          propKWRATED    : Result := Format('%.6g', [kWrating]);
+          propKWHRATED   : Result := Format('%.6g', [kWhrating]);
+          propKWHSTORED  : Result := Format('%.6g', [kWHStored]);
+          propPCTRESERVE : Result := Format('%.6g', [pctReserve]);
+          propUSERMODEL  : Result := UserModel.Name;
+          propUSERDATA   : Result := '(' + inherited GetPropertyValue(index) + ')';
+          {propDEBUGTRACE = 33;}
+          propPCTKWIN    : Result := Format('%.6g', [pctkWin]);
+          propPCTSTORED  : Result := Format('%.6g', [kWhStored/kWhRating * 100.0]);
+          propCHARGETIME : Result := Format('%.6g', [Chargetime]);
       ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
       END;
@@ -2316,7 +2354,7 @@ Begin
                             Begin
                                  kW_out := -kWRating * pctkWin / 100.0;
                                  If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                 Else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                                 Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
                             End
                             Else Fstate := STORE_IDLING;   // all charged up
                        End;
@@ -2327,7 +2365,7 @@ Begin
                                 Begin
                                      kW_out := kWRating * pctkWout / 100.0;
                                      If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                     Else kvar_out := kW_out * (1.0/sqrt(SQR(PFNominal) - 1.0) );
+                                     Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
                                 End
                                 Else Fstate := STORE_IDLING;  // not enough storage to discharge
 

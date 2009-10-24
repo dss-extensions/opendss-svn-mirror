@@ -53,6 +53,7 @@ TYPE
             TotalWeight   :Double;
             HalfPFBand    :Double;
             FPFBand       :Double;
+            kWNeeded      :double;
             FleetSize     :Integer;
 
             FStorageNameList  :TStringList;
@@ -406,7 +407,7 @@ Begin
 
          CASE ParamPointer OF
             propKWTARGET,
-            propKWBAND: HalfkWBand := FpctkWBand / 2.0 * FkWTarget;
+            propKWBAND: HalfkWBand := FpctkWBand / 200.0 * FkWTarget;
             propPFBAND: HalfPFBand := FPFBand / 2.0;
             propELEMENTLIST:
                    Begin   // levelize the list
@@ -539,20 +540,21 @@ Begin
      FkWTarget        := 8000.0;
      FpctkWBand       := 2.0;
      TotalWeight      := 1.0;
-     HalfkWBand       := FpctkWBand/2.0 * FkWTarget;
+     HalfkWBand       := FpctkWBand/200.0 * FkWTarget;
      FPFTarget        := 0.96;
      FPFBand          := 0.04;
-
+     kWNeeded         := 0.0;
 
      DischargeMode := MODEFOLLOW;
      ChargeMode    := MODETIME;
 
      DischargeTriggerTime := -1.0;  // disabled
      ChargeTriggerTime    := 2.0;   // 2 AM
-     FleetListChanged     := FALSE;
+     FleetListChanged     := TRUE;  // force building of list
      pctkWRate            := 20.0;
      pctkvarRate          := 20.0;
      pctChargeRate        := 20.0;
+     pctFleetReserve      := 25.0;
 
      InitPropertyValues(0);
 
@@ -584,7 +586,7 @@ VAR
 
 Begin
 
-{Check for existence of monitored element}
+        {Check for existence of monitored element}
 
          Devindex := GetCktElementIndex(ElementName); // Global FUNCTION
          IF   DevIndex>0  THEN Begin
@@ -596,6 +598,8 @@ Begin
                                  'Re-specify terminal no.', 371);
              End
              ELSE Begin
+                 Nphases := MonitoredElement.Nphases;
+                 NConds  := FNphases;
                // Sets name of i-th terminal's connected bus in StorageController's buslist
                  Setbus(1, MonitoredElement.GetBus(ElementTerminal));
              End;
@@ -739,21 +743,21 @@ Begin
           propWEIGHTS              : Result := ReturnWeightsList;
           propMODEDISCHARGE        : Result := GetModeString(propMODEDISCHARGE, DischargeMode);
           propMODECHARGE           : Result := GetModeString(propMODECHARGE,    ChargeMode);
-          propTIMEDISCHARGETRIGGER : Result := PropertyValue[Index];
-          propTIMECHARGETRIGGER    : Result := PropertyValue[Index];
-          propRATEKW               : Result := Format('%-8g',[pctkWRate]);
-          propRATEKVAR             : Result := Format('%-8g',[pctkvarRate]);
-          propRATECHARGE           : Result := Format('%-8g',[pctChargeRate]);
-          propRESERVE              : Result := Format('%-8g',[pctFleetReserve]);
+          propTIMEDISCHARGETRIGGER : Result := Format('%.6g', [DisChargeTriggerTime]);
+          propTIMECHARGETRIGGER    : Result := Format('%.6g', [ChargeTriggerTime]);
+          propRATEKW               : Result := Format('%-.8g',[pctkWRate]);
+          propRATEKVAR             : Result := Format('%-.8g',[pctkvarRate]);
+          propRATECHARGE           : Result := Format('%-.8g',[pctChargeRate]);
+          propRESERVE              : Result := Format('%-.8g',[pctFleetReserve]);
           propKWHTOTAL             : Result := GetkWhTotal;
           propKWTOTAL              : Result := GetkWTotal;
           propKWHACTUAL            : Result := GetkWhActual;
           propKWACTUAL             : Result := GetkWActual;
-          propKWNEED               : Result := PropertyValue[Index];
-          propPARTICIPATION        : Result := PropertyValue[Index];
-          propYEARLY               : Result := PropertyValue[Index];
-          propDAILY                : Result := PropertyValue[Index];
-          propDUTY                 : Result := PropertyValue[Index];
+          propKWNEED               : Result := Format('%-.6g',[kWNeeded]);
+          {propPARTICIPATION        : Result := PropertyValue[Index]; }
+          propYEARLY               : Result := YearlyShape;
+          propDAILY                : Result := DailyShape;
+          propDUTY                 : Result := DutyShape;
 
      ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
@@ -924,6 +928,8 @@ Begin
        If Abs(PDiff) > HalfkWBand Then
          Begin // Redispatch Storage
               // PDiff is kW needed to get back into band
+              kWNeeded := PDiff;
+              AppendToEventLog('StorageController.' + Self.Name, Format('Changed kW Dispatch by %.6g kW', [PDiff]));
               For i := 1 to FleetSize Do
               Begin
                     StorageObj := FleetPointerList.Get(i);
@@ -943,6 +949,7 @@ Begin
        // kvar dispatch  NOTE: PFDiff computed from PF in range of 0..2
        // Redispatch the vars only if the PF is outside the band
        If Abs(PFDiff) > HalfPFBand Then
+         AppendToEventLog('StorageController.' + Self.Name, Format('Changed kvar Dispatch. PF Diff needed = %.6g', [PFDiff]));
          Begin // Redispatch Storage elements
               For i := 1 to FleetSize Do
               Begin
@@ -1232,9 +1239,10 @@ Begin
    End
    Else Begin
      {Search through the entire circuit for enabled Storage Elements and add them to the list}
-     
+     FStorageNameList.Clear;
      For i := 1 to StorageClass.ElementCount Do Begin
         StorageObj :=  StorageClass.ElementList.Get(i);
+        FStorageNameList.Add(StorageObj.Name);  // Add to list of names
         If StorageObj.Enabled Then FleetPointerList.New := StorageObj;
      End;
 
@@ -1250,6 +1258,9 @@ Begin
    For i := 1 to FleetSize Do  TotalWeight := TotalWeight + FWeights^[i];
 
    If FleetPointerList.ListSize>0 Then Result := TRUE;
+
+   FleetListChanged := FALSE;
+
 End;
 
 
@@ -1277,9 +1288,9 @@ Begin
        End;
 
      Result := '['+ FStorageNameList.Strings[0];
-     For i := 2 to FleetSize Do
+     For i := 1 to FleetSize-1 Do
        Begin
-             Result := Result + ', ' + FStorageNameList.Strings[i-1];
+             Result := Result + ', ' + FStorageNameList.Strings[i];
        End;
      Result := Result + ']';  // terminate the array
 
