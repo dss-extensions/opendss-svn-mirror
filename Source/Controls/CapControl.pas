@@ -36,6 +36,15 @@ USES
 
 TYPE
 
+  ECapControlType = (
+    CURRENTCONTROL,
+    VOLTAGECONTROL,
+    KVARCONTROL,
+    TIMECONTROL,
+    PFCONTROL,
+    SRPCONTROL
+  );
+
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    TCapControl = class(TControlClass)
      private
@@ -55,7 +64,7 @@ TYPE
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    TCapControlObj = class(TControlElem)
      private
-            ControlType :Integer;
+            ControlType :ECapControlType;
 
             ON_Value,
             OFF_Value,
@@ -75,18 +84,18 @@ TYPE
             CapacitorName :String;
             MonitoredElement :TDSSCktElement;
             ControlledCapacitor :TCapacitorObj;
-            FPendingChange   :Integer;  // 0 = open 1 = close
+            FPendingChange   :EControlAction;
             ShouldSwitch     :Boolean;  // True: action is pending
             Armed            :Boolean;  // Control is armed for switching unless reset
-            PresentState,             // 0 = open 1 = close
-            InitialState,
+            PresentState     :EControlAction;
+            InitialState     :EControlAction;
             ControlActionHandle    :Integer;
             CondOffset             :Integer; // Offset for monitored terminal
 
             cBuffer :pComplexArray;    // Complexarray buffer
             FUNCTION Get_Capacitor: TCapacitorObj;
             FUNCTION NormalizeToTOD(h:Integer; sec:Double) :Double;
-            procedure Set_PendingChange(const Value: Integer);
+            procedure Set_PendingChange(const Value: EControlAction);
 
      public
 
@@ -108,10 +117,10 @@ TYPE
        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
        Property This_Capacitor:TCapacitorObj Read Get_Capacitor;  // Pointer to controlled Capacitor
-       Property PendingChange:Integer Read FPendingChange Write Set_PendingChange;
+       Property PendingChange:EControlAction Read FPendingChange Write Set_PendingChange;
 
        // for CIM export, which doesn't yet use the delays, CT, PT, and voltage override
-       Property CapControlType:Integer Read ControlType;
+       Property CapControlType:ECapControlType Read ControlType;
        Property OnValue:Double Read ON_Value;
        Property OffValue:Double Read OFF_Value;
        Property PFOnValue:Double Read PFON_Value;
@@ -132,19 +141,6 @@ USES
 CONST
 
     NumPropsThisClass = 14;
-
-    NONE = -1;
-    OPEN = 0;
-    CLOSE = 1;
-
-    // TEMc - might move these to the interface
-    CURRENTCONTROL = 1;
-    VOLTAGECONTROL = 2;
-    KVARCONTROL = 3;
-    TIMECONTROL = 4;
-    PFCONTROL = 5;
-    SRPCONTROL = 6;
-
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -404,7 +400,7 @@ Begin
 
       PTRatio      := 60.0;
       CTRatio      := 60.0;
-      ControlType  := 1;       // Current control
+      ControlType  := CURRENTCONTROL;
       ONDelay    := 15.0;
       OFFDelay  := 15.0;
       DeadTime  := 300.0;
@@ -430,7 +426,7 @@ Begin
 
      ShouldSwitch :=  FALSE;
      Armed        :=  FALSE;
-     PendingChange :=  NONE;
+     PendingChange := NONE;
      ControlActionHandle := 0;
 
      cBuffer := Nil; // Complex buffer
@@ -643,7 +639,7 @@ begin
 
          // First Check voltage override
          IF Voverride THEN
-          IF ControlType <> 2 THEN Begin  // Don't bother for voltage control
+          IF ControlType <> VOLTAGECONTROL THEN Begin  // Don't bother for voltage control
 
               MonitoredElement.GetTermVoltages (ElementTerminal, cBuffer);
               //Vavg := 0.0;
@@ -1001,10 +997,10 @@ begin
 
 end;
 
-procedure TCapControlObj.Set_PendingChange(const Value: Integer);
+procedure TCapControlObj.Set_PendingChange(const Value: EControlAction);
 begin
   FPendingChange := Value;
-  DblTraceParameter := Value;
+  DblTraceParameter := Integer(Value);
 end;
 
 INITIALIZATION

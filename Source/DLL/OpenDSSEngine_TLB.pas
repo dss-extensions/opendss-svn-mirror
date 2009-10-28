@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// $Rev: 8291 $
-// File generated on 10/13/2009 7:25:11 AM from Type Library described below.
+// PASTLWTR : 1.2
+// File generated on 10/28/2009 5:01:52 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -292,6 +292,10 @@ type
     function Get_AllPropertyNames: OleVariant; safecall;
     function Get_Residuals: OleVariant; safecall;
     function Get_Yprim: OleVariant; safecall;
+    function Get_DisplayName: WideString; safecall;
+    procedure Set_DisplayName(const Value: WideString); safecall;
+    function Get_Handle: Integer; safecall;
+    function Get_GUID: WideString; safecall;
     property Name: WideString read Get_Name;
     property NumTerminals: Integer read Get_NumTerminals;
     property NumConductors: Integer read Get_NumConductors;
@@ -313,6 +317,9 @@ type
     property AllPropertyNames: OleVariant read Get_AllPropertyNames;
     property Residuals: OleVariant read Get_Residuals;
     property Yprim: OleVariant read Get_Yprim;
+    property DisplayName: WideString read Get_DisplayName write Set_DisplayName;
+    property Handle: Integer read Get_Handle;
+    property GUID: WideString read Get_GUID;
   end;
 
 // *********************************************************************//
@@ -346,6 +353,9 @@ type
     property AllPropertyNames: OleVariant readonly dispid 22;
     property Residuals: OleVariant readonly dispid 23;
     property Yprim: OleVariant readonly dispid 24;
+    property DisplayName: WideString dispid 201;
+    property Handle: Integer readonly dispid 202;
+    property GUID: WideString readonly dispid 203;
   end;
 
 // *********************************************************************//

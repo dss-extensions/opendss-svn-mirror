@@ -50,7 +50,8 @@ Type
       constructor Create;
       destructor Destroy; override;
 
-      FUNCTION  Push(Const Hour:Integer; Const Sec:Double; Const Code, ProxyHdl:Integer; Const Owner:TControlElem):Integer;
+      FUNCTION  Push(Const Hour:Integer; Const Sec:Double; Const Code, ProxyHdl:Integer; Const Owner:TControlElem):Integer; overload;
+      FUNCTION  Push(Const Hour:Integer; Const Sec:Double; Const Code:EControlAction; Const ProxyHdl:Integer; Const Owner:TControlElem):Integer; overload;
       PROCEDURE Clear;
       PROCEDURE DoAllActions;
       FUNCTION  DoNearestActions(VAR Hour:Integer; VAR Sec:Double):Boolean;  // Do only actions with lowest time
@@ -71,6 +72,11 @@ implementation
 Uses DSSGlobals, sysutils, Utilities;
 
 { TControlQueue }
+
+Function TControlQueue.Push(Const Hour:Integer; const Sec: Double; Const code:EControlAction; Const ProxyHdl:Integer; const Owner: TControlElem):Integer;
+begin
+  Result := Push (Hour, Sec, Integer(code), ProxyHdl, Owner);
+end;
 
 Function TControlQueue.Push(Const Hour:Integer; const Sec: Double; Const code, ProxyHdl:Integer;   const Owner: TControlElem):Integer;
 

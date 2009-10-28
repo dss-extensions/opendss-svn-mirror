@@ -12,6 +12,17 @@ interface
 USES CktElement, Bus, ucomplex, DSSClass;
 
 TYPE
+
+  EControlAction = (
+    NONE,
+    OPEN,
+    CLOSE,
+    CTRL_RESET, // can't use the same name as file reset function
+    LOCK,
+    UNLOCK,
+    TAPUP,
+    TAPDOWN);
+
    TControlElem = class(TDSSCktElement)
 
    private
@@ -40,6 +51,8 @@ TYPE
 
    end;
 
+CONST
+  USER_BASE_ACTION_CODE = 100;
 
 implementation
 

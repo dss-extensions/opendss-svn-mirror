@@ -6,5 +6,6 @@
     <Transaction>2009/09/22 10:46:09.890.pas,C:\OpenDSS\Source\General\CIMObject.pas=C:\OpenDSS\Source\General\NamedObject.pas</Transaction>
     <Transaction>2009/09/24 09:52:57.250.pas,C:\OpenDSS\Source\General\LineCode.pas=C:\OpenDSS\Source\General\XfmrCode.pas</Transaction>
     <Transaction>2009/10/21 17:05:52.249.pas,C:\OpenDSS\Source\General\LineGeometry.pas=C:\OpenDSS\Source\General\LineSpacing.pas</Transaction>
+    <Transaction>2009/10/28 09:18:17.197.pas,C:\OpenDSS\Source\EXE\Unit1.pas=C:\OpenDSS\Source\Controls\SwtControl.pas</Transaction>
   </Transactions>
 </BorlandProject>

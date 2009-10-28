@@ -751,7 +751,7 @@ Begin
       with pCapC do begin
         StartInstance (F, 'RegulatingControl', pCapC);
         RefNode (F, 'RegulatingControl.RegulatingCondEq', This_Capacitor);
-        if CapControlType = 5 then begin
+        if CapControlType = PFCONTROL then begin
           v1 := PfOnValue;
           v2 := PfOffValue
         end else begin
@@ -759,11 +759,11 @@ Begin
           v2 := OffValue
         end;
         case CapControlType of
-          1: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
-          2: StringNode (F, 'RegulatingControl.mode', 'voltage');
-          3: StringNode (F, 'RegulatingControl.mode', 'reactivePower');
-          4: StringNode (F, 'RegulatingControl.mode', 'timeScheduled');
-          5: StringNode (F, 'RegulatingControl.mode', 'powerFactor');
+          CURRENTCONTROL: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
+          VOLTAGECONTROL: StringNode (F, 'RegulatingControl.mode', 'voltage');
+          KVARCONTROL: StringNode (F, 'RegulatingControl.mode', 'reactivePower');
+          TIMECONTROL: StringNode (F, 'RegulatingControl.mode', 'timeScheduled');
+          PFCONTROL, SRPCONTROL: StringNode (F, 'RegulatingControl.mode', 'powerFactor');
         end;
         BooleanNode (F, 'RegulatingControl.discrete', true);
         DoubleNode (F, 'RegulatingControl.targetValue', v1);

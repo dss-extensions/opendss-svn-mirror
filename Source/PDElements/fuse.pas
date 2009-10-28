@@ -62,8 +62,8 @@ TYPE
             MonitoredElementTerminal :Integer;
             MonitoredElement	     :TDSSCktElement;
 
-            hAction,         // handle to control queue actions
-            PresentState    :Array[1..FUSEMAXDIM] of Integer;  // 0 = open 1 = close
+            hAction         :Array[1..FUSEMAXDIM] of Integer;         // handle to control queue actions
+            PresentState    :Array[1..FUSEMAXDIM] of EControlAction;  // 0 = open 1 = close
             ReadyToBlow     :Array[1..FUSEMAXDIM] of Boolean;
 
             CondOffset     :Integer; // Offset for monitored terminal
@@ -107,11 +107,6 @@ USES
 CONST
 
     NumPropsThisClass = 8;
-
-    NONE = -1;
-    OPEN = 0;
-    CLOSE = 1;
-    _RESET = 2;
 
 VAR
    TCC_CurveClass:TDSSClass;

@@ -39,7 +39,8 @@ implementation
 Uses uComplex,  Arraydef,  sysutils, Circuit, DSSClass, DSSClassDefs, DSSGlobals,
      uCMatrix,  solution,  CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, Transformer, EnergyMeter, Load, RegControl,
-     ParserDel, CktTree,   DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix;
+     ParserDel, CktTree,   DSSForms, Math, Line, LineUnits, LineGeometry, YMatrix,
+     SwtControl;
 
 VAR
    MaxBusNameLength :Integer;
@@ -2577,6 +2578,7 @@ Try
        For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(EnergyMeters.Get(i)).Checked := TRue;
        For i := 1 to Monitors.ListSize Do TDSSCktElement(Monitors.Get(i)).Checked := TRue;
        For i := 1 to CapControls.ListSize Do TDSSCktElement(CapControls.Get(i)).Checked := TRue;
+       For i := 1 to SwtControls.ListSize Do TDSSCktElement(SwtControls.Get(i)).Checked := TRue;
        For i := 1 to RegControls.ListSize Do TDSSCktElement(RegControls.Get(i)).Checked := TRue;
 
        TestElement := CktElements.First;

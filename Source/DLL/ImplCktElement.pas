@@ -47,6 +47,10 @@ type
     function Get_NumProperties: Integer; safecall;
     function Get_Residuals: OleVariant; safecall;
     function Get_Yprim: OleVariant; safecall;
+    function Get_DisplayName: WideString; safecall;
+    function Get_GUID: WideString; safecall;
+    function Get_Handle: Integer; safecall;
+    procedure Set_DisplayName(const Value: WideString); safecall;
   end;
 
 implementation
@@ -812,6 +816,36 @@ begin
       End
       ELSE Result := VarArrayCreate([0, 0], varDouble);  // just return null array
 
+end;
+
+function TCktElement.Get_DisplayName: WideString;
+begin
+   If ActiveCircuit <> Nil Then
+      Result := ActiveCircuit.ActiveCktElement.DisplayName
+   Else
+      Result := '';
+end;
+
+function TCktElement.Get_GUID: WideString;
+begin
+   If ActiveCircuit <> Nil Then
+      Result := ActiveCircuit.ActiveCktElement.ID
+   Else
+      Result := '';
+end;
+
+function TCktElement.Get_Handle: Integer;
+begin
+   If ActiveCircuit <> Nil Then
+      Result := Integer (Addr (ActiveCircuit.ActiveCktElement))
+   Else
+      Result := 0;
+end;
+
+procedure TCktElement.Set_DisplayName(const Value: WideString);
+begin
+   If ActiveCircuit <> Nil Then
+      ActiveCircuit.ActiveCktElement.DisplayName := Value;
 end;
 
 initialization

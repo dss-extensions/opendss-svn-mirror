@@ -111,7 +111,8 @@ TYPE
           Lines,
           Loads,
           ShuntCapacitors,
-          Feeders        :TPointerList;
+          Feeders,
+          SwtControls        :TPointerList;
 
           ControlQueue:TControlQueue;
 
@@ -283,6 +284,7 @@ BEGIN
      Substations  := TPointerList.Create(5);
      Transformers := TPointerList.Create(10);
      CapControls  := TPointerList.Create(10);
+     SwtControls  := TPointerList.Create(50);
      RegControls  := TPointerList.Create(5);
      Lines        := TPointerList.Create(1000);
      Loads        := TPointerList.Create(1000);
@@ -426,6 +428,7 @@ BEGIN
      Substations.Free;
      Transformers.Free;
      CapControls.Free;
+     SwtControls.Free;
      RegControls.Free;
      Loads.Free;
      Lines.Free;
@@ -642,6 +645,7 @@ BEGIN
        GEN_ELEMENT   :Generators.Add(ActiveCktElement);
        SOURCE        :Sources.Add(ActiveCktElement);
        CAP_CONTROL   :CapControls.Add(ActiveCktElement);
+       SWT_CONTROL   :SwtControls.Add(ActiveCktElement);
        REG_CONTROL   :RegControls.Add(ActiveCktElement);
        LOAD_ELEMENT  :Loads.Add(ActiveCktElement);
        CAP_ELEMENT   :ShuntCapacitors.Add(ActiveCktElement);

@@ -122,7 +122,7 @@ TYPE
             MonitoredElementTerminal :Integer;
             MonitoredElement         :TDSSCktElement;
 
-            PresentState   :Integer;  // 0 = open 1 = close
+            PresentState   :EControlAction;
 
             OperationCount :Integer;
 
@@ -184,11 +184,6 @@ USES
 CONST
 
     NumPropsThisClass = 29;
-
-    NONE = -1;
-    OPEN = 0;
-    CLOSE = 1;
-    _RESET = 2;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -716,7 +711,7 @@ begin
       Begin
          ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal of CktElement to terminal 1
          CASE Code of
-            OPEN:   CASE PresentState of
+            Integer(OPEN):   CASE PresentState of
                          CLOSE:IF ArmedForOpen THEN
                                  Begin   // ignore if we became disarmed in meantime
                                     ControlledElement.Closed[0] := FALSE;   // Open all phases of active terminal
@@ -732,7 +727,7 @@ begin
                                  END;
                     ELSE {nada}
                     END;
-            CLOSE:  CASE PresentState of
+            Integer(CLOSE):  CASE PresentState of
                          OPEN:IF ArmedForClose and Not LockedOut THEN
                                 Begin
                                   ControlledElement.Closed[0] := TRUE;    // Close all phases of active terminal
@@ -742,7 +737,7 @@ begin
                                 End;
                     ELSE {Nada}
                     END;
-            _RESET:  CASE PresentState of
+            Integer(CTRL_RESET):  CASE PresentState of
                          CLOSE: IF Not ArmedForOpen THEN OperationCount := 1;       // Don't reset if we just rearmed
                     ELSE  {Nada}
                     END;
@@ -964,7 +959,7 @@ begin
               IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit Do
                 Begin
-                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                  ArmedForOpen := FALSE;
                 End;
         End;
@@ -1014,7 +1009,7 @@ begin
               IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit Do
                 Begin
-                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                  ArmedForOpen := FALSE;
                 End;
         End;
@@ -1130,7 +1125,7 @@ begin
                IF ArmedForOpen  THEN
                  WITH ActiveCircuit Do    // If current dropped below pickup, disarm trip and set for reset
                    Begin
-                    LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                    LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                     ArmedForOpen := FALSE;
                     ArmedForClose := FALSE;
                     PhaseTarget      := FALSE;
@@ -1172,7 +1167,7 @@ begin
               IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit Do
                 Begin
-                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                  ArmedForOpen := FALSE;
                 End;
         End;
@@ -1278,7 +1273,7 @@ begin
                  Begin
                     ControlQueue.Delete (LastEventHandle);  // Delete last event from Queue
                     NextTripTime := -1.0;
-                    LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                    LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                     ArmedForOpen := FALSE;
                  End;
              End;
@@ -1336,7 +1331,7 @@ begin
               IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit Do
                 Begin
-                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, _RESET, 0, Self);
+                 LastEventHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self);
                  ArmedForOpen := FALSE;
                 End;
         End;

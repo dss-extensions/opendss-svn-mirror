@@ -42,6 +42,7 @@ CONST
       SENSOR_ELEMENT   = 20 * 8;
       STORAGE_ELEMENT  = 21 * 8;
       STORAGE_CONTROL  = 22 * 8;
+      SWT_CONTROL      = 23 * 8;
 
 VAR
    ClassNames         :THashList;
@@ -94,7 +95,8 @@ USES
      Feeder,
      XfmrCode,
      Storage,
-     StorageController
+     StorageController,
+     SwtControl
 ;
 
 TYPE
@@ -195,6 +197,7 @@ Begin
      DSSClasses.New := TFuse.Create;
      FeederClass    := TFeeder.Create;
      DSSClasses.New := FeederClass;
+     DSSClasses.New := TSwtControl.Create;
 
      MonitorClass   := TDSSMonitor.Create;  // Have to do this AFTER Generator
      DSSClasses.New := MonitorClass;

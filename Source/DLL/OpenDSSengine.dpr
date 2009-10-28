@@ -152,7 +152,8 @@ uses
   Storage in '..\PCElements\Storage.pas',
   StoreUserModel in '..\PCElements\StoreUserModel.pas',
   StorageController in '..\Controls\StorageController.pas',
-  LineGeometry in '..\General\LineGeometry.pas';
+  LineGeometry in '..\General\LineGeometry.pas',
+  SwtControl in '..\Controls\SwtControl.pas';
 
 exports
   DllGetClassObject,
