@@ -24,7 +24,7 @@ interface
 USES
      Solution, SysUtils, ArrayDef, HashList, PointerList, CktElement,
      DSSClass, {DSSObject,} Bus, LoadShape, ControlQueue, uComplex,
-     AutoAdd, EnergyMeter, NamedObject;
+     AutoAdd, EnergyMeter, NamedObject, CktTree;
 
 
 TYPE
@@ -54,6 +54,8 @@ TYPE
           FLoadMultiplier:Double;  // global multiplier for every load
 
           AbortBusProcess:Boolean;
+
+          Branch_List: TCktTree; // topology from the first source, lazy evaluation
 
           Procedure AddDeviceHandle(Handle:Integer);
           Procedure AddABus;
@@ -211,6 +213,10 @@ TYPE
           Procedure InvalidateAllPCElements;
 
           Procedure DebugDump(Var F:TextFile);
+
+          // Access to topology from the first source
+          Function GetTopology: TCktTree;
+          Procedure FreeTopology;
 
           property Name             :String   Read Get_Name;
           Property CaseName         :String   Read FCaseName Write Set_CaseName;
@@ -381,7 +387,7 @@ BEGIN
    {Misc objects}
    AutoAddObj := TAutoAdd.Create;
 
-
+   Branch_List := nil;
 END;
 
 //----------------------------------------------------------------------------
@@ -437,6 +443,8 @@ BEGIN
      ControlQueue.Free;
 
      AutoAddObj.Free;
+
+     FreeTopology;
 
      Inherited Destroy;
 END;
@@ -679,7 +687,8 @@ BEGIN
      MeterZonesComputed := True;
      If LogEvents Then LogThisEvent('Done Resetting Meter Zones');
   End;
-  
+
+  FreeTopology;
 
 END;
 
@@ -1195,6 +1204,32 @@ end;
 function TDSSCircuit.Get_Name:String;
 begin
    Result:=LocalName;
+end;
+
+Function TDSSCircuit.GetTopology: TCktTree;
+var
+  i: Integer;
+  elem: TDSSCktElement;
+begin
+  if Not assigned(Branch_List) then begin
+    {Initialize all Circuit Elements and Buses to not checked, then build a new tree}
+    elem := CktElements.First;
+    WHILE assigned (elem) Do Begin
+      elem.Checked := False;
+      For i := 1 to elem.Nterms Do elem.Terminals^[i].Checked := FALSE;
+      elem.IsIsolated := TRUE; // till proven otherwise
+      elem := CktElements.Next;
+    End;
+    FOR i := 1 to NumBuses Do Buses^[i].BusChecked := FALSE;
+    Branch_List := GetIsolatedSubArea (Sources.First, TRUE);
+  end;
+  Result := Branch_List;
+end;
+
+Procedure TDSSCircuit.FreeTopology;
+begin
+  if Assigned (Branch_List) then Branch_List.Free;
+  Branch_List := nil;
 end;
 
 end.

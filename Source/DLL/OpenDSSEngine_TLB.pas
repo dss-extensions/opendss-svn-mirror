@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 10/28/2009 5:01:52 PM from Type Library described below.
+// File generated on 10/29/2009 4:21:36 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -82,6 +82,16 @@ const
   CLASS_DSSElement: TGUID = '{09D4B4AB-DF58-4F8F-A3F0-72F32830B337}';
   IID_IActiveClass: TGUID = '{8E73B64C-0D99-4D19-AB90-170DBBD06FA0}';
   CLASS_ActiveClass: TGUID = '{2A02BB33-50A4-4C87-86E0-59EF7738F86C}';
+  IID_ICapacitors: TGUID = '{3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}';
+  CLASS_Capacitors: TGUID = '{F733F571-4CEC-45CC-922D-16C2BEEBA5BC}';
+  IID_ITransformers: TGUID = '{94E9CACF-A548-4DC2-B460-E2642B501387}';
+  IID_ISwtControls: TGUID = '{112AB9E6-C112-46BE-A8A3-F72C5FA3A657}';
+  IID_ICapControls: TGUID = '{4C132096-4161-4D9B-A701-E6CCCFF1D5AE}';
+  IID_IRegControls: TGUID = '{3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}';
+  CLASS_Transformers: TGUID = '{3A3E2154-1249-4DBB-AEDC-C4C14300D332}';
+  CLASS_SwtControls: TGUID = '{7D8F53AE-0D61-4B87-9BEE-12D54052F689}';
+  CLASS_CapControls: TGUID = '{7D95304E-B0A8-4531-8D1B-F438287EEA6E}';
+  CLASS_RegControls: TGUID = '{D3DBDE53-6397-4C36-8C87-9BEA061FBC78}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -138,6 +148,29 @@ const
   dssAddGen = $00000001;
   dssAddCap = $00000002;
 
+// Constants for enum CapControlModes
+type
+  CapControlModes = TOleEnum;
+const
+  dssCapControlVoltage = $00000001;
+  dssCapControlKVAR = $00000002;
+  dssCapControlCurrent = $00000000;
+  dssCapControlPF = $00000004;
+  dssCapControlTime = $00000003;
+
+// Constants for enum ActionCodes
+type
+  ActionCodes = TOleEnum;
+const
+  dssActionNone = $00000000;
+  dssActionOpen = $00000001;
+  dssActionClose = $00000002;
+  dssActionReset = $00000003;
+  dssActionLock = $00000004;
+  dssActionUnlock = $00000005;
+  dssActionTapUp = $00000006;
+  dssActionTapDown = $00000007;
+
 type
 
 // *********************************************************************//
@@ -179,6 +212,16 @@ type
   IDSSElementDisp = dispinterface;
   IActiveClass = interface;
   IActiveClassDisp = dispinterface;
+  ICapacitors = interface;
+  ICapacitorsDisp = dispinterface;
+  ITransformers = interface;
+  ITransformersDisp = dispinterface;
+  ISwtControls = interface;
+  ISwtControlsDisp = dispinterface;
+  ICapControls = interface;
+  ICapControlsDisp = dispinterface;
+  IRegControls = interface;
+  IRegControlsDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -202,6 +245,11 @@ type
   Loads = ILoads;
   DSSElement = IDSSElement;
   ActiveClass = IActiveClass;
+  Capacitors = ICapacitors;
+  Transformers = ITransformers;
+  SwtControls = ISwtControls;
+  CapControls = ICapControls;
+  RegControls = IRegControls;
 
 
 // *********************************************************************//
@@ -1472,6 +1520,397 @@ type
   end;
 
 // *********************************************************************//
+// Interface: ICapacitors
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}
+// *********************************************************************//
+  ICapacitors = interface(IDispatch)
+    ['{3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}']
+    function Get_kV: Double; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    function Get_kVAR: Double; safecall;
+    procedure Set_kVAR(Value: Double); safecall;
+    function Get_NumSteps: Integer; safecall;
+    procedure Set_NumSteps(Value: Integer); safecall;
+    function Get_IsDelta: WordBool; safecall;
+    procedure Set_IsDelta(Value: WordBool); safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    property kV: Double read Get_kV write Set_kV;
+    property kVAR: Double read Get_kVAR write Set_kVAR;
+    property NumSteps: Integer read Get_NumSteps write Set_NumSteps;
+    property IsDelta: WordBool read Get_IsDelta write Set_IsDelta;
+    property AllNames: OleVariant read Get_AllNames;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property Name: WideString read Get_Name write Set_Name;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ICapacitorsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}
+// *********************************************************************//
+  ICapacitorsDisp = dispinterface
+    ['{3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}']
+    property kV: Double dispid 201;
+    property kVAR: Double dispid 202;
+    property NumSteps: Integer dispid 203;
+    property IsDelta: WordBool dispid 204;
+    property AllNames: OleVariant readonly dispid 205;
+    property First: Integer readonly dispid 206;
+    property Next: Integer readonly dispid 207;
+    property Name: WideString dispid 208;
+  end;
+
+// *********************************************************************//
+// Interface: ITransformers
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {94E9CACF-A548-4DC2-B460-E2642B501387}
+// *********************************************************************//
+  ITransformers = interface(IDispatch)
+    ['{94E9CACF-A548-4DC2-B460-E2642B501387}']
+    function Get_NumWindings: Integer; safecall;
+    procedure Set_NumWindings(Value: Integer); safecall;
+    function Get_XfmrCode: WideString; safecall;
+    procedure Set_XfmrCode(const Value: WideString); safecall;
+    function Get_Wdg: Integer; safecall;
+    procedure Set_Wdg(Value: Integer); safecall;
+    function Get_R: Double; safecall;
+    procedure Set_R(Value: Double); safecall;
+    function Get_Tap: Double; safecall;
+    procedure Set_Tap(Value: Double); safecall;
+    function Get_MinTap: Double; safecall;
+    procedure Set_MinTap(Value: Double); safecall;
+    function Get_MaxTap: Double; safecall;
+    procedure Set_MaxTap(Value: Double); safecall;
+    function Get_NumTaps: Integer; safecall;
+    procedure Set_NumTaps(Value: Integer); safecall;
+    function Get_kV: Double; safecall;
+    procedure Set_kV(Value: Double); safecall;
+    function Get_kVA: Double; safecall;
+    procedure Set_kVA(Value: Double); safecall;
+    function Get_Xneut: Double; safecall;
+    procedure Set_Xneut(Value: Double); safecall;
+    function Get_Rneut: Double; safecall;
+    procedure Set_Rneut(Value: Double); safecall;
+    function Get_IsDelta: WordBool; safecall;
+    procedure Set_IsDelta(Value: WordBool); safecall;
+    function Get_Xhl: Double; safecall;
+    procedure Set_Xhl(Value: Double); safecall;
+    function Get_Xht: Double; safecall;
+    procedure Set_Xht(Value: Double); safecall;
+    function Get_Xlt: Double; safecall;
+    procedure Set_Xlt(Value: Double); safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    property NumWindings: Integer read Get_NumWindings write Set_NumWindings;
+    property XfmrCode: WideString read Get_XfmrCode write Set_XfmrCode;
+    property Wdg: Integer read Get_Wdg write Set_Wdg;
+    property R: Double read Get_R write Set_R;
+    property Tap: Double read Get_Tap write Set_Tap;
+    property MinTap: Double read Get_MinTap write Set_MinTap;
+    property MaxTap: Double read Get_MaxTap write Set_MaxTap;
+    property NumTaps: Integer read Get_NumTaps write Set_NumTaps;
+    property kV: Double read Get_kV write Set_kV;
+    property kVA: Double read Get_kVA write Set_kVA;
+    property Xneut: Double read Get_Xneut write Set_Xneut;
+    property Rneut: Double read Get_Rneut write Set_Rneut;
+    property IsDelta: WordBool read Get_IsDelta write Set_IsDelta;
+    property Xhl: Double read Get_Xhl write Set_Xhl;
+    property Xht: Double read Get_Xht write Set_Xht;
+    property Xlt: Double read Get_Xlt write Set_Xlt;
+    property Name: WideString read Get_Name write Set_Name;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property AllNames: OleVariant read Get_AllNames;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ITransformersDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {94E9CACF-A548-4DC2-B460-E2642B501387}
+// *********************************************************************//
+  ITransformersDisp = dispinterface
+    ['{94E9CACF-A548-4DC2-B460-E2642B501387}']
+    property NumWindings: Integer dispid 201;
+    property XfmrCode: WideString dispid 202;
+    property Wdg: Integer dispid 203;
+    property R: Double dispid 204;
+    property Tap: Double dispid 205;
+    property MinTap: Double dispid 206;
+    property MaxTap: Double dispid 207;
+    property NumTaps: Integer dispid 208;
+    property kV: Double dispid 209;
+    property kVA: Double dispid 210;
+    property Xneut: Double dispid 211;
+    property Rneut: Double dispid 212;
+    property IsDelta: WordBool dispid 213;
+    property Xhl: Double dispid 214;
+    property Xht: Double dispid 215;
+    property Xlt: Double dispid 216;
+    property Name: WideString dispid 217;
+    property First: Integer readonly dispid 218;
+    property Next: Integer readonly dispid 219;
+    property AllNames: OleVariant readonly dispid 220;
+  end;
+
+// *********************************************************************//
+// Interface: ISwtControls
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {112AB9E6-C112-46BE-A8A3-F72C5FA3A657}
+// *********************************************************************//
+  ISwtControls = interface(IDispatch)
+    ['{112AB9E6-C112-46BE-A8A3-F72C5FA3A657}']
+    function Get_AllNames: OleVariant; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_Action: ActionCodes; safecall;
+    procedure Set_Action(Value: ActionCodes); safecall;
+    function Get_IsLocked: WordBool; safecall;
+    procedure Set_IsLocked(Value: WordBool); safecall;
+    function Get_Delay: Double; safecall;
+    procedure Set_Delay(Value: Double); safecall;
+    function Get_SwitchedObj: WideString; safecall;
+    procedure Set_SwitchedObj(const Value: WideString); safecall;
+    function Get_SwitchedTerm: Integer; safecall;
+    procedure Set_SwitchedTerm(Value: Integer); safecall;
+    property AllNames: OleVariant read Get_AllNames;
+    property Name: WideString read Get_Name write Set_Name;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property Action: ActionCodes read Get_Action write Set_Action;
+    property IsLocked: WordBool read Get_IsLocked write Set_IsLocked;
+    property Delay: Double read Get_Delay write Set_Delay;
+    property SwitchedObj: WideString read Get_SwitchedObj write Set_SwitchedObj;
+    property SwitchedTerm: Integer read Get_SwitchedTerm write Set_SwitchedTerm;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ISwtControlsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {112AB9E6-C112-46BE-A8A3-F72C5FA3A657}
+// *********************************************************************//
+  ISwtControlsDisp = dispinterface
+    ['{112AB9E6-C112-46BE-A8A3-F72C5FA3A657}']
+    property AllNames: OleVariant readonly dispid 201;
+    property Name: WideString dispid 202;
+    property First: Integer readonly dispid 203;
+    property Next: Integer readonly dispid 204;
+    property Action: ActionCodes dispid 205;
+    property IsLocked: WordBool dispid 206;
+    property Delay: Double dispid 207;
+    property SwitchedObj: WideString dispid 208;
+    property SwitchedTerm: Integer dispid 209;
+  end;
+
+// *********************************************************************//
+// Interface: ICapControls
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {4C132096-4161-4D9B-A701-E6CCCFF1D5AE}
+// *********************************************************************//
+  ICapControls = interface(IDispatch)
+    ['{4C132096-4161-4D9B-A701-E6CCCFF1D5AE}']
+    function Get_AllNames: OleVariant; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_Mode: CapControlModes; safecall;
+    procedure Set_Mode(Value: CapControlModes); safecall;
+    function Get_Capacitor: WideString; safecall;
+    procedure Set_Capacitor(const Value: WideString); safecall;
+    function Get_MonitoredObj: WideString; safecall;
+    procedure Set_MonitoredObj(const Value: WideString); safecall;
+    function Get_MonitoredTerm: Integer; safecall;
+    procedure Set_MonitoredTerm(Value: Integer); safecall;
+    function Get_CTratio: Double; safecall;
+    procedure Set_CTratio(Value: Double); safecall;
+    function Get_PTratio: Double; safecall;
+    procedure Set_PTratio(Value: Double); safecall;
+    function Get_ONSetting: Double; safecall;
+    procedure Set_ONSetting(Value: Double); safecall;
+    function Get_OFFSetting: Double; safecall;
+    procedure Set_OFFSetting(Value: Double); safecall;
+    function Get_Vmax: Double; safecall;
+    procedure Set_Vmax(Value: Double); safecall;
+    function Get_Vmin: Double; safecall;
+    procedure Set_Vmin(Value: Double); safecall;
+    function Get_UseVoltOverride: WordBool; safecall;
+    procedure Set_UseVoltOverride(Value: WordBool); safecall;
+    function Get_Delay: Double; safecall;
+    procedure Set_Delay(Value: Double); safecall;
+    function Get_DelayOff: Double; safecall;
+    procedure Set_DelayOff(Value: Double); safecall;
+    function Get_DeadTime: Double; safecall;
+    procedure Set_DeadTime(Value: Double); safecall;
+    property AllNames: OleVariant read Get_AllNames;
+    property Name: WideString read Get_Name write Set_Name;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property Mode: CapControlModes read Get_Mode write Set_Mode;
+    property Capacitor: WideString read Get_Capacitor write Set_Capacitor;
+    property MonitoredObj: WideString read Get_MonitoredObj write Set_MonitoredObj;
+    property MonitoredTerm: Integer read Get_MonitoredTerm write Set_MonitoredTerm;
+    property CTratio: Double read Get_CTratio write Set_CTratio;
+    property PTratio: Double read Get_PTratio write Set_PTratio;
+    property ONSetting: Double read Get_ONSetting write Set_ONSetting;
+    property OFFSetting: Double read Get_OFFSetting write Set_OFFSetting;
+    property Vmax: Double read Get_Vmax write Set_Vmax;
+    property Vmin: Double read Get_Vmin write Set_Vmin;
+    property UseVoltOverride: WordBool read Get_UseVoltOverride write Set_UseVoltOverride;
+    property Delay: Double read Get_Delay write Set_Delay;
+    property DelayOff: Double read Get_DelayOff write Set_DelayOff;
+    property DeadTime: Double read Get_DeadTime write Set_DeadTime;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ICapControlsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {4C132096-4161-4D9B-A701-E6CCCFF1D5AE}
+// *********************************************************************//
+  ICapControlsDisp = dispinterface
+    ['{4C132096-4161-4D9B-A701-E6CCCFF1D5AE}']
+    property AllNames: OleVariant readonly dispid 201;
+    property Name: WideString dispid 202;
+    property First: Integer readonly dispid 203;
+    property Next: Integer readonly dispid 204;
+    property Mode: CapControlModes dispid 205;
+    property Capacitor: WideString dispid 206;
+    property MonitoredObj: WideString dispid 207;
+    property MonitoredTerm: Integer dispid 208;
+    property CTratio: Double dispid 209;
+    property PTratio: Double dispid 210;
+    property ONSetting: Double dispid 211;
+    property OFFSetting: Double dispid 212;
+    property Vmax: Double dispid 213;
+    property Vmin: Double dispid 214;
+    property UseVoltOverride: WordBool dispid 215;
+    property Delay: Double dispid 216;
+    property DelayOff: Double dispid 217;
+    property DeadTime: Double dispid 218;
+  end;
+
+// *********************************************************************//
+// Interface: IRegControls
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}
+// *********************************************************************//
+  IRegControls = interface(IDispatch)
+    ['{3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}']
+    function Get_AllNames: Integer; safecall;
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_MonitoredBus: WideString; safecall;
+    procedure Set_MonitoredBus(const Value: WideString); safecall;
+    function Get_Transformer: WideString; safecall;
+    procedure Set_Transformer(const Value: WideString); safecall;
+    function Get_TapWinding: Integer; safecall;
+    procedure Set_TapWinding(Value: Integer); safecall;
+    function Get_Winding: Integer; safecall;
+    procedure Set_Winding(Value: Integer); safecall;
+    function Get_CTPrimary: Double; safecall;
+    procedure Set_CTPrimary(Value: Double); safecall;
+    function Get_PTratio: Double; safecall;
+    procedure Set_PTratio(Value: Double); safecall;
+    function Get_ForwardR: Double; safecall;
+    procedure Set_ForwardR(Value: Double); safecall;
+    function Get_ForwardX: Double; safecall;
+    procedure Set_ForwardX(Value: Double); safecall;
+    function Get_ReverseR: Double; safecall;
+    procedure Set_ReverseR(Value: Double); safecall;
+    function Get_ReverseX: Double; safecall;
+    procedure Set_ReverseX(Value: Double); safecall;
+    function Get_IsReversible: WordBool; safecall;
+    procedure Set_IsReversible(Value: WordBool); safecall;
+    function Get_IsInverseTime: WordBool; safecall;
+    procedure Set_IsInverseTime(Value: WordBool); safecall;
+    function Get_Delay: Double; safecall;
+    procedure Set_Delay(Value: Double); safecall;
+    function Get_TapDelay: Double; safecall;
+    procedure Set_TapDelay(Value: Double); safecall;
+    function Get_MaxTapChange: Double; safecall;
+    procedure Set_MaxTapChange(Value: Double); safecall;
+    function Get_VoltageLimit: Double; safecall;
+    procedure Set_VoltageLimit(Value: Double); safecall;
+    function Get_ForwardBand: Double; safecall;
+    procedure Set_ForwardBand(Value: Double); safecall;
+    function Get_ForwardVreg: Double; safecall;
+    procedure Set_ForwardVreg(Value: Double); safecall;
+    function Get_ReverseBand: Double; safecall;
+    procedure Set_ReverseBand(Value: Double); safecall;
+    function Get_ReverseVreg: Double; safecall;
+    procedure Set_ReverseVreg(Value: Double); safecall;
+    property AllNames: Integer read Get_AllNames;
+    property Name: WideString read Get_Name write Set_Name;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property MonitoredBus: WideString read Get_MonitoredBus write Set_MonitoredBus;
+    property Transformer: WideString read Get_Transformer write Set_Transformer;
+    property TapWinding: Integer read Get_TapWinding write Set_TapWinding;
+    property Winding: Integer read Get_Winding write Set_Winding;
+    property CTPrimary: Double read Get_CTPrimary write Set_CTPrimary;
+    property PTratio: Double read Get_PTratio write Set_PTratio;
+    property ForwardR: Double read Get_ForwardR write Set_ForwardR;
+    property ForwardX: Double read Get_ForwardX write Set_ForwardX;
+    property ReverseR: Double read Get_ReverseR write Set_ReverseR;
+    property ReverseX: Double read Get_ReverseX write Set_ReverseX;
+    property IsReversible: WordBool read Get_IsReversible write Set_IsReversible;
+    property IsInverseTime: WordBool read Get_IsInverseTime write Set_IsInverseTime;
+    property Delay: Double read Get_Delay write Set_Delay;
+    property TapDelay: Double read Get_TapDelay write Set_TapDelay;
+    property MaxTapChange: Double read Get_MaxTapChange write Set_MaxTapChange;
+    property VoltageLimit: Double read Get_VoltageLimit write Set_VoltageLimit;
+    property ForwardBand: Double read Get_ForwardBand write Set_ForwardBand;
+    property ForwardVreg: Double read Get_ForwardVreg write Set_ForwardVreg;
+    property ReverseBand: Double read Get_ReverseBand write Set_ReverseBand;
+    property ReverseVreg: Double read Get_ReverseVreg write Set_ReverseVreg;
+  end;
+
+// *********************************************************************//
+// DispIntf:  IRegControlsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}
+// *********************************************************************//
+  IRegControlsDisp = dispinterface
+    ['{3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}']
+    property AllNames: Integer readonly dispid 201;
+    property Name: WideString dispid 202;
+    property First: Integer readonly dispid 203;
+    property Next: Integer readonly dispid 204;
+    property MonitoredBus: WideString dispid 205;
+    property Transformer: WideString dispid 206;
+    property TapWinding: Integer dispid 207;
+    property Winding: Integer dispid 208;
+    property CTPrimary: Double dispid 209;
+    property PTratio: Double dispid 210;
+    property ForwardR: Double dispid 211;
+    property ForwardX: Double dispid 212;
+    property ReverseR: Double dispid 213;
+    property ReverseX: Double dispid 214;
+    property IsReversible: WordBool dispid 215;
+    property IsInverseTime: WordBool dispid 216;
+    property Delay: Double dispid 217;
+    property TapDelay: Double dispid 218;
+    property MaxTapChange: Double dispid 219;
+    property VoltageLimit: Double dispid 220;
+    property ForwardBand: Double dispid 221;
+    property ForwardVreg: Double dispid 222;
+    property ReverseBand: Double dispid 223;
+    property ReverseVreg: Double dispid 224;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -1687,6 +2126,66 @@ type
     class function CreateRemote(const MachineName: string): IActiveClass;
   end;
 
+// *********************************************************************//
+// The Class CoCapacitors provides a Create and CreateRemote method to          
+// create instances of the default interface ICapacitors exposed by              
+// the CoClass Capacitors. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoCapacitors = class
+    class function Create: ICapacitors;
+    class function CreateRemote(const MachineName: string): ICapacitors;
+  end;
+
+// *********************************************************************//
+// The Class CoTransformers provides a Create and CreateRemote method to          
+// create instances of the default interface ITransformers exposed by              
+// the CoClass Transformers. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoTransformers = class
+    class function Create: ITransformers;
+    class function CreateRemote(const MachineName: string): ITransformers;
+  end;
+
+// *********************************************************************//
+// The Class CoSwtControls provides a Create and CreateRemote method to          
+// create instances of the default interface ISwtControls exposed by              
+// the CoClass SwtControls. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoSwtControls = class
+    class function Create: ISwtControls;
+    class function CreateRemote(const MachineName: string): ISwtControls;
+  end;
+
+// *********************************************************************//
+// The Class CoCapControls provides a Create and CreateRemote method to          
+// create instances of the default interface ICapControls exposed by              
+// the CoClass CapControls. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoCapControls = class
+    class function Create: ICapControls;
+    class function CreateRemote(const MachineName: string): ICapControls;
+  end;
+
+// *********************************************************************//
+// The Class CoRegControls provides a Create and CreateRemote method to          
+// create instances of the default interface IRegControls exposed by              
+// the CoClass RegControls. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoRegControls = class
+    class function Create: IRegControls;
+    class function CreateRemote(const MachineName: string): IRegControls;
+  end;
+
 implementation
 
 uses ComObj;
@@ -1869,6 +2368,56 @@ end;
 class function CoActiveClass.CreateRemote(const MachineName: string): IActiveClass;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_ActiveClass) as IActiveClass;
+end;
+
+class function CoCapacitors.Create: ICapacitors;
+begin
+  Result := CreateComObject(CLASS_Capacitors) as ICapacitors;
+end;
+
+class function CoCapacitors.CreateRemote(const MachineName: string): ICapacitors;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Capacitors) as ICapacitors;
+end;
+
+class function CoTransformers.Create: ITransformers;
+begin
+  Result := CreateComObject(CLASS_Transformers) as ITransformers;
+end;
+
+class function CoTransformers.CreateRemote(const MachineName: string): ITransformers;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Transformers) as ITransformers;
+end;
+
+class function CoSwtControls.Create: ISwtControls;
+begin
+  Result := CreateComObject(CLASS_SwtControls) as ISwtControls;
+end;
+
+class function CoSwtControls.CreateRemote(const MachineName: string): ISwtControls;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_SwtControls) as ISwtControls;
+end;
+
+class function CoCapControls.Create: ICapControls;
+begin
+  Result := CreateComObject(CLASS_CapControls) as ICapControls;
+end;
+
+class function CoCapControls.CreateRemote(const MachineName: string): ICapControls;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_CapControls) as ICapControls;
+end;
+
+class function CoRegControls.Create: IRegControls;
+begin
+  Result := CreateComObject(CLASS_RegControls) as IRegControls;
+end;
+
+class function CoRegControls.CreateRemote(const MachineName: string): IRegControls;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_RegControls) as IRegControls;
 end;
 
 end.

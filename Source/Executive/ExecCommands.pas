@@ -181,7 +181,8 @@ Begin
                          'Show VAriables' +CRLF+
                          'Show Isolated' +CRLF+
                          'Show Ratings  (ratings of PD Elements)' +CRLF+
-                         'Show LOOps' +CRLF+
+                         'Show Loops' +CRLF+
+                         'Show Topology (as seen by SwtControl algorithms)' +CRLF+
                          'Show YPrim  (shows Yprim for active ckt element)' +CRLF+
                          'Show Y      (shows system Y)' +CRLF+
                          'Show BUSFlow busname [MVA|kVA*] [Seq* | Elements]' +CRLF+

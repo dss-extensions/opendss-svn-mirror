@@ -9,7 +9,7 @@ unit CktTree;
 
 interface
 
-Uses ArrayDef, StackDef, PointerList;
+Uses ArrayDef, StackDef, PointerList, CktElement;
 
 Type
 
@@ -139,8 +139,14 @@ Type
 
    END;
 
+   // build a tree of connected elements beginning at StartElement
+   // Analyze = TRUE will check for loops, isolated components, and parallel lines (takes longer)
+   Function GetIsolatedSubArea(StartElement:TDSSCktElement; Analyze: Boolean = FALSE):TCktTree;
 
 IMPLEMENTATION
+
+uses
+  Circuit, PDElement, PCElement, DSSGlobals, Utilities;
 
 constructor TcktTreeNode.Create(const pParent: TCktTreeNode;const pSelfobj:Pointer);
 
@@ -160,6 +166,11 @@ Begin
      ToBusList:=Nil;
      ToBusPtr := 0;
      ChildAdded := False;
+     // TEMc - initialize some topology variables, 10/2009
+     IsDangling := TRUE;
+     IsLoopedHere := FALSE;
+     IsParallel := FALSE;
+     LoopLineObj := nil;
 End;
 
 destructor TcktTreeNode.Destroy;
@@ -454,5 +465,184 @@ function TCktTreeNode.Get_NextObject: Pointer;
 begin
     Result := FShuntObjects.Next;
 end;
+
+////////////////////////////////////////////////////////////////////////
+//
+// utility code for building a connected tree starting from a circuit element
+//
+////////////////////////////////////////////////////////////////////////
+
+Procedure  GetSourcesConnectedToBus(TestBusNum:Integer; BranchList:TCktTree; Analyze: Boolean);
+Var
+  psrc         :TPCElement;      // Sources are special PC elements
+Begin
+  With ActiveCircuit Do Begin
+    psrc := Sources.First;
+    WHILE psrc <> NIL DO Begin
+      IF psrc.Enabled Then Begin
+        IF Analyze Or (Not psrc.Checked) Then begin
+          IF (psrc.Terminals^[1].BusRef = TestBusNum) Then Begin  // ?Connected to this bus ?
+            if Analyze then begin
+              psrc.IsIsolated := FALSE;
+              BranchList.PresentBranch.IsDangling := FALSE;
+            end;
+            if not psrc.checked then begin
+              BranchList.NewObject := psrc;
+              psrc.Checked := True;
+            end;
+          End;
+        end;
+      End;
+      psrc := Sources.Next;
+    End;
+  End;{With}
+End;
+
+Procedure  GetPCElementsConnectedToBus(TestBusNum:Integer; BranchList:TCktTree; Analyze: Boolean);
+Var
+  pC         :TPCElement;
+Begin
+  With ActiveCircuit Do Begin
+    pC := PCElements.First;
+    WHILE pC <> NIL DO Begin
+      IF pC.Enabled Then Begin
+        IF Analyze Or (Not pC.Checked) Then begin
+          IF (pC.Terminals^[1].BusRef = TestBusNum) Then Begin  // ?Connected to this bus ?
+            if Analyze then begin
+              pC.IsIsolated := FALSE;
+              BranchList.PresentBranch.IsDangling := FALSE;
+            end;
+            if not pC.Checked then begin
+              BranchList.NewObject := pC;
+              pC.Checked := True;  // So we don't pick this element up again
+            end;
+          End;
+        End;
+      End;
+      pC := PCElements.Next;
+    End;
+  End;{With}
+End;
+
+Procedure  FindAllChildBranches(TestBusNum:Integer; BranchList:TCktTree;
+  Analyze: Boolean; ActiveBranch: TDSSCktElement);
+Var
+  j:Integer;
+  TestElement:TDSSCktElement;
+Begin
+  With ActiveCircuit Do Begin
+    TestElement := PDElements.First;
+    WHILE TestElement <> NIL Do Begin
+      IF (TestElement.Enabled) and not (TestElement = ActiveBranch) THEN begin
+        IF Analyze Or (NOT TestElement.Checked) Then begin
+          IF Not IsShuntElement(TestElement) THEN begin // Ignore shunt capacitors and reactors
+            FOR j := 1 to TestElement.Nterms Do begin
+              IF TestBusNum = TestElement.Terminals^[j].BusRef THEN begin
+                IF AllTerminalsClosed(TestElement) THEN Begin
+                  if Analyze then begin
+                    TestElement.IsIsolated := FALSE;
+                    BranchList.PresentBranch.IsDangling := FALSE;
+                    if TestElement.Checked and (BranchList.Level > 0) then begin
+                      BranchList.PresentBranch.IsLoopedHere := TRUE;
+                      BranchList.PresentBranch.LoopLineObj := TestElement;
+                      if IsLineElement (TestElement) and IsLineElement (ActiveBranch) then
+                        if CheckParallel (ActiveBranch, TestElement) then
+                          BranchList.PresentBranch.IsParallel := TRUE;
+                    end;
+                  end;
+                  if not TestElement.Checked then begin
+                    BranchList.AddNewChild( TestElement, TestBusNum, j);
+                    TestElement.Terminals^[j].checked := TRUE;
+                    TestElement.Checked := True;
+                    Break; {For}
+                  end;
+                END;
+              end;
+            end;
+          end;
+        end;
+      end;
+      TestElement := PDElements.Next;
+    End; {WHILE}
+  End; {With}
+End;
+
+Procedure  GetShuntPDElementsConnectedToBus(TestBusNum:Integer; BranchList:TCktTree; Analyze: Boolean);
+Var
+  PD:TDSSCktElement;
+Begin
+  With ActiveCircuit Do Begin
+    PD := PDElements.First;
+    WHILE PD <> NIL DO Begin
+      IF PD.Enabled Then Begin
+        IF Analyze Or (Not PD.Checked) Then begin
+          IF IsShuntElement(PD) Then begin
+            IF PD.Terminals^[1].BusRef = TestBusNum Then begin   // ?Connected to this bus ?
+              if Analyze then begin
+                PD.IsIsolated := FALSE;
+                BranchList.PresentBranch.IsDangling := FALSE;
+              end;
+              if not PD.Checked then begin
+                BranchList.NewObject := PD;
+                PD.Checked := True;
+              end;
+            End; {IF}
+          end;
+        end;
+      End;  {IF}
+      PD := PDElements.Next;
+    End;  {WHILE}
+  End;   {With}
+End;
+
+Function GetIsolatedSubArea(StartElement:TDSSCktElement; Analyze: Boolean):TCktTree;
+Var
+  TestBusNum  :Integer ;
+  BranchList  :TCktTree;
+  iTerm      :Integer;
+  TestBranch,
+  TestElement:TDSSCktElement;
+Begin
+
+  BranchList := TCktTree.Create;
+  TestElement := StartElement;
+
+  BranchList.New :=  TestElement;
+  if Analyze then TestElement.IsIsolated := FALSE;
+  TestElement.LastTerminalChecked := 0;  // We'll check things connected to both sides
+
+  // Check off this element so we don't use it again
+  TestElement.Checked := True;
+
+  // Now start looking for other branches
+  // Finds any branch connected to the TestBranch and adds it to the list
+  // Goes until end of circuit, another energy meter, an open terminal, or disabled device.
+  TestBranch := TestElement;
+  WHILE TestBranch <> NIL DO Begin
+    FOR iTerm := 1 to TestBranch.Nterms Do Begin
+      IF NOT TestBranch.Terminals^[iTerm].Checked Then
+        WITH ActiveCircuit Do Begin
+          // Now find all pc Elements connected to the bus on this end of branch
+          // attach them as generic objects to cktTree node.
+
+          TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
+          BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
+
+          If TestBusNum>0 Then Begin
+            Buses^[TestBusNum].BusChecked := TRUE;
+
+            GetSourcesConnectedToBus (TestBusNum, BranchList, Analyze);
+            GetPCElementsConnectedToBus (TestBusNum, BranchList, Analyze);
+            GetShuntPDElementsConnectedToBus (TestBusNum, BranchList, Analyze);
+            FindAllChildBranches (TestBusNum, BranchList, Analyze, TestBranch);
+
+          End;
+        End;  {WITH Active Circuit}
+
+    End;   {FOR iTerm}
+    TestBranch := BranchList.GoForward;
+  End; {WHILE}
+  Result := BranchList;
+End;
 
 end.

@@ -33,6 +33,7 @@ Procedure ShowLoops(FileNm:String);
 Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer;Rho:Double);
 Procedure ShowYPrim(Filenm:String);
 Procedure ShowY(FileNm:String);
+Procedure ShowTopology(FileRoot:String); // summary and tree-view to separate files
 
 implementation
 
@@ -46,6 +47,8 @@ VAR
    MaxBusNameLength :Integer;
    MaxDeviceNameLength :Integer;
 
+Const
+    TABCHAR:Char = chr(9);
 
 Procedure SetMaxBusNameLength;
  Var
@@ -1926,9 +1929,6 @@ End;
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure ShowMeterZone(FileNm:String);
 
-Const
-    TABCHAR:Char = chr(9);
-
 Var
    F  :TextFile;
    i:Integer;
@@ -2309,169 +2309,6 @@ Begin
 
 End;
 
-Procedure  GetSourcesConnectedToBus(TestBusNum:Integer; BranchList:TCktTree);
-Var
-   psrc         :TPCElement;      // Sources are special PC elements
-
-Begin
-   With ActiveCircuit Do Begin
-     psrc := Sources.First;
-     WHILE psrc <> NIL DO Begin
-          IF psrc.Enabled Then  Begin
-               IF (Not psrc.Checked) Then // Skip if we've already done this PC device
-               IF (psrc.Terminals^[1].BusRef = TestBusNum) Then Begin  // ?Connected to this bus ?
-                   BranchList.NewObject := psrc;
-                   psrc.Checked := True;  // So we don't pick this element up again
-                 End;
-            End;
-       psrc := Sources.Next;
-      End;
-   End;{With}
-End;
-
-
-Procedure  GetPCElementsConnectedToBus(TestBusNum:Integer; BranchList:TCktTree);
-Var
-   pC         :TPCElement;
-
-Begin
-   With ActiveCircuit Do Begin
-     pC := PCElements.First;
-     WHILE pC <> NIL DO Begin
-          IF pC.Enabled Then  Begin
-               IF (Not pC.Checked) Then // Skip if we've already done this PC device
-               IF (pC.Terminals^[1].BusRef = TestBusNum) Then Begin  // ?Connected to this bus ?
-                   BranchList.NewObject := pC;
-                   pC.Checked := True;  // So we don't pick this element up again
-                 End;
-            End;
-       pC := PCElements.Next;
-      End;
-   End;{With}
-End;
-
-Procedure  FindAllChildBranches(TestBusNum:Integer; BranchList:TCktTree);
-Var
-    j:Integer;
-    TestElement:TDSSCktElement;
-Begin
-  With ActiveCircuit Do Begin
-     TestElement := PDElements.First;
-     WHILE TestElement <> NIL Do Begin
-        IF (TestElement.Enabled) THEN
-         IF (NOT TestElement.Checked) Then    // skip if we've already been here
-           IF Not IsShuntElement(TestElement) THEN  // Ignore shunt capacitors and reactors
-            FOR j := 1 to TestElement.Nterms Do
-               IF TestBusNum = TestElement.Terminals^[j].BusRef THEN
-                IF AllTerminalsClosed(TestElement) THEN
-                  Begin
-                    BranchList.AddNewChild( TestElement, TestBusNum, j);
-                    TestElement.Terminals^[j].checked := TRUE;
-                    TestElement.Checked := True;
-                    Break; {For}
-                  END;
-         TestElement := PDElements.Next;
-      End; {WHILE}
-  End; {With}
-
-End;
-
-Procedure  GetShuntPDElementsConnectedToBus(TestBusNum:Integer; BranchList:TCktTree);
-Var
-    PD:TDSSCktElement;
-Begin
-
-  With ActiveCircuit Do Begin
-
-       PD := PDElements.First;
-       WHILE PD <> NIL DO Begin
-            IF PD.Enabled Then Begin
-                 IF (Not PD.Checked) Then // Skip if we've already done this PD device
-                 IF IsShuntElement(PD) Then
-                 IF PD.Terminals^[1].BusRef = TestBusNum Then   // ?Connected to this bus ?
-                   Begin
-                     BranchList.NewObject := PD;
-                     PD.Checked := True;  // So we don't pick this element up again
-                   End; {IF}
-              End;  {IF}
-         PD := PDElements.Next;
-        End;  {WHILE}
-
-  End;   {With}
-
-End;
-
-Function GetIsolatedSubArea(StartElement:TDSSCktElement):TCktTree;
-
-Var
-   TestBusNum  :Integer ;
-   BranchList  :TCktTree;
-
-
-   iTerm      :Integer;
-
-   TestBranch,
-   TestElement:TDSSCktElement;
-
-
-
-Begin
-
-       BranchList := TCktTree.Create;
-       TestElement := StartElement;
-
-       BranchList.New :=  TestElement;
-       TestElement.LastTerminalChecked := 0;  // We'll check things connected to both sides
-
-       // Check off this element so we don't use it again
-       TestElement.Checked := True;
-
-    // Now start looking for other branches
-    // Finds any branch connected to the TestBranch and adds it to the list
-    // Goes until end of circuit, another energy meter, an open terminal, or disabled device.
-       TestBranch := TestElement;
-       WHILE TestBranch <> NIL DO Begin
-       
-         FOR iTerm := 1 to TestBranch.Nterms Do  Begin
-
-          IF   NOT TestBranch.Terminals^[iTerm].Checked Then
-          WITH ActiveCircuit Do
-            Begin
-               // Now find all pc Elements connected to the bus on this end of branch
-               // attach them as generic objects to cktTree node.
-
-               TestBusNum := TestBranch.Terminals^[iTerm].BusRef;
-               BranchList.PresentBranch.ToBusReference := TestBusNum;   // Add this as a "to" bus reference
-
-               If TestBusNum>0 Then
-               Begin
-                 Buses^[TestBusNum].BusChecked := TRUE;
-
-                 GetSourcesConnectedToBus(TestBusNum, BranchList);
-                 GetPCElementsConnectedToBus(TestBusNum, BranchList);
-
-                 // Look for Shunt Capacitors, Reactors
-
-                 GetShuntPDElementsConnectedToBus(TestBusNum, BranchList);
-
-             // Search tree for connected branches (default)
-             // Now find all branches connected to this bus that we havent found already
-             // Do not include in this zone if branch has open terminals or has another meter
-
-                 FindAllChildBranches(TestBusNum, BranchList);
-
-                End;
-            End;  {WITH Active Circuit}
-
-          End;   {FOR iTerm}
-          TestBranch := BranchList.GoForward;
-       End; {WHILE}
-
-
-    Result := BranchList;
-
-End;
-
 Procedure ShowIsolated(FileNm:String);
 
 {Show isolated buses/branches in present circuit}
@@ -2716,6 +2553,122 @@ Begin
    End;
 End;
 
+
+Procedure ShowTopology(FileRoot:String);
+Var
+  F, Ftree:TextFile;
+  FileNm, TreeNm:String;
+  pdElem:TPDElement;
+  LoadElem  :TLoadObj;
+  topo:TCktTree;
+  nLoops, nParallel, nLevels, nIsolated, nSwitches, i: Integer;
+Begin
+  Try
+    FileNm := FileRoot + 'TopoSumm.Txt';
+    TreeNm := FileRoot + 'TopoTree.Txt';
+
+    Assignfile(F,FileNm);
+    ReWrite(F);
+    Writeln(F,'Topology analysis for switch control algorithms');
+    Writeln(F);
+
+    Assignfile(Ftree,TreeNm);
+    ReWrite(Ftree);
+    Writeln(Ftree,'Branches and Loads in Circuit ' + ActiveCircuit.Name);
+    Writeln(Ftree);
+
+    topo := ActiveCircuit.GetTopology;
+    nLoops := 0;
+    nParallel := 0;
+    nLevels := 0;
+    nIsolated := 0;
+    nSwitches := 0;
+
+    If Assigned (topo) Then Begin
+      PDElem := topo.First;
+      While Assigned (PDElem) do begin
+        if topo.Level > nLevels then nLevels := topo.Level;
+        For i := 1 to topo.Level Do Write (Ftree, TABCHAR);
+        Write (Ftree, PDElem.ParentClass.Name,'.',PDElem.Name);
+        With topo.PresentBranch Do Begin
+          If IsParallel Then Begin
+            Inc (nParallel);
+            Write (Ftree,'(PARALLEL:'+TDSSCktElement(LoopLineObj).Name+')');
+          end;
+          If IsLoopedHere Then Begin
+            Inc (nLoops);
+            Write (Ftree,'(LOOP:'+TDSSCktElement(LoopLineObj).ParentClass.Name
+              +'.'+TDSSCktElement(LoopLineObj).Name+')');
+          end;
+          If PDElem.HasSensorObj then
+            Write (Ftree, Format(' (Sensor: %s.%s) ',
+              [PDElem.SensorObj.ParentClass.Name, PDElem.SensorObj.Name]));
+          if PDElem.HasControl then begin
+            Write(Ftree, Format(' (Control: %s.%s) ',
+              [PDElem.ControlElement.ParentClass.Name, PDElem.ControlElement.Name]));
+            IF ((PDElem.ControlElement.DSSObjType and CLASSMASK) = SWT_CONTROL) then Inc (nSwitches);
+          end;
+          if PDElem.HasEnergyMeter then
+            Write(Ftree, Format(' (Meter: %s) ', [PDElem.MeterObj.Name]));
+        End;
+        Writeln (Ftree);
+
+        LoadElem := topo.FirstObject;
+        While Assigned (LoadElem) Do Begin
+          For i := 1 to topo.Level+1 Do Write(Ftree, TABCHAR);
+          Write(Ftree, LoadElem.ParentClass.Name,'.',LoadElem.Name);
+          If LoadElem.HasSensorObj then
+            Write(Ftree, Format(' (Sensor: %s.%s) ',
+              [LoadElem.SensorObj.ParentClass.Name, LoadElem.SensorObj.Name]));
+          if LoadElem.HasControl then begin
+            Write(Ftree, Format(' (Control: %s.%s) ',
+              [LoadElem.ControlElement.ParentClass.Name, LoadElem.ControlElement.Name]));
+            IF ((LoadElem.ControlElement.DSSObjType and CLASSMASK) = SWT_CONTROL) then Inc (nSwitches);
+          end;
+          if LoadElem.HasEnergyMeter then
+            Write(Ftree, Format(' (Meter: %s) ', [LoadElem.MeterObj.Name]));
+          Writeln(Ftree);
+          LoadElem := topo.NextObject
+        End;
+
+        PDElem := topo.GoForward;
+      End;
+    End;
+
+    pdElem := ActiveCircuit.PDElements.First;
+    while assigned (pdElem) do begin
+      if pdElem.IsIsolated then begin
+        Write (Ftree, Format('Isolated: %s.%s', [PDElem.ParentClass.Name, PDElem.Name]));
+        If PDElem.HasSensorObj then
+          Write (Ftree, Format(' (Sensor: %s.%s) ',
+            [PDElem.SensorObj.ParentClass.Name, PDElem.SensorObj.Name]));
+        if PDElem.HasControl then begin
+          Write (Ftree, Format(' (Control: %s.%s) ',
+            [PDElem.ControlElement.ParentClass.Name, PDElem.ControlElement.Name]));
+            IF ((PDElem.ControlElement.DSSObjType and CLASSMASK) = SWT_CONTROL) then Inc (nSwitches);
+        end;
+        if PDElem.HasEnergyMeter then
+          Write (Ftree, Format(' (Meter: %s) ', [PDElem.MeterObj.Name]));
+        Writeln (Ftree);
+        Inc (nIsolated);
+      end;
+      pdElem := ActiveCircuit.PDElements.Next;
+    end;
+
+    nLoops := nLoops div 2;  // TODO, see if parallel lines also counted twice
+    Writeln(F, Format ('%d Levels Deep', [nLevels]));
+    Writeln(F, Format ('%d Loops', [nLoops]));
+    Writeln(F, Format ('%d Parallel PD elements', [nParallel]));
+    Writeln(F, Format ('%d Isolated PD components', [nIsolated]));
+    Writeln(F, Format ('%d Controlled Switches', [nSwitches]));
+
+  Finally
+    CloseFile(F);
+    CloseFile(Ftree);
+    FireOffEditor(FileNm);
+    ShowTreeView(TreeNm);
+  End;
+End;
 
 Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer; Rho:Double);
 Var
