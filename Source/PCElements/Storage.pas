@@ -96,7 +96,6 @@ TYPE
         kVANotSet       :Boolean;
         kVArating       :Double;
         kVStorageBase   :Double;
-        kWhReserve      :Double;
         kvar_out        :Double;
         kW_out          :Double;
         kvarRequested   :Double;
@@ -178,8 +177,8 @@ TYPE
         PROCEDURE Set_Presentkvar(const Value: Double);
         PROCEDURE Set_PresentkW(const Value: Double);
         PROCEDURE Set_PowerFactor(const Value: Double);
-    PROCEDURE Set_State(const Value: Integer);
-    procedure Set_pctkvarOut(const Value: Double);
+        PROCEDURE Set_State(const Value: Integer);
+        procedure Set_pctkvarOut(const Value: Double);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
@@ -201,8 +200,9 @@ TYPE
         kWrating        :double;
         kWhRating       :Double;
         kWhStored       :Double;
+        kWhReserve      :Double;
         pctkWout        :Double;   // percent of kW rated output currently dispatched
-        Fpctkvarout      :Double;
+        Fpctkvarout     :Double;
         pctkWin         :Double;
         pctReserve      :Double;
         DispatchMode    :Integer;
@@ -701,7 +701,11 @@ Begin
                 propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
                 propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
                 propKWRATED:  kVArating := kWrating;
-                propKWHRATED: kWhStored := kWhRating; // Assume fully charged
+                propKWHRATED: Begin kWhStored := kWhRating; // Assume fully charged
+                                    kWhReserve := kWhRating * pctReserve * 0.01;
+                              End;
+
+                propPCTRESERVE: kWhReserve := kWhRating * pctReserve * 0.01;
 
                 propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
                        AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
@@ -958,6 +962,106 @@ Begin
      ELSE
          Result := 'IDLING';
      END;
+End;
+
+//----------------------------------------------------------------------------
+PROCEDURE TStorageObj.InitPropertyValues(ArrayOffset: Integer);
+
+// Define default values for the properties
+
+Begin
+
+     PropertyValue[1]      := '3';         //'phases';
+     PropertyValue[2]      := Getbus(1);   //'bus1';
+
+     PropertyValue[propKV]      := Format('%-g', [kVStorageBase]);
+     PropertyValue[propKW]      := Format('%-g', [kW_out]);
+     PropertyValue[propPF]      := Format('%-g', [PFNominal]);
+     PropertyValue[propMODEL]     := '1';
+     PropertyValue[propYEARLY]    := '';
+     PropertyValue[propDAILY]     := '';
+     PropertyValue[propDUTY]      := '';
+     PropertyValue[propDISPMODE]  := 'Default';
+     PropertyValue[propIDLEKVAR]  := '0';
+     PropertyValue[propCONNECTION]:= 'wye';
+     PropertyValue[propKVAR]      := Format('%-g', [Presentkvar]);
+
+     PropertyValue[propPCTR]      := Format('%-g', [pctR]);
+     PropertyValue[propPCTX]      := Format('%-g', [pctX]);
+
+     PropertyValue[propIDLEKW]    := '1';       // PERCENT
+     PropertyValue[propCLASS]     := '1'; //'class'
+     PropertyValue[propDISPOUTTRIG]    := '0';   // 0 MEANS NO TRIGGER LEVEL
+     PropertyValue[propDISPINTRIG]:= '0';
+     PropertyValue[propCHARGEEFF] := '90';
+     PropertyValue[propDISCHARGEEFF]  := '90';
+     PropertyValue[propPCTKWOUT]  := '100';
+     PropertyValue[propPCTKWIN]   := '100';
+
+     PropertyValue[propVMINPU]    := '0.90';
+     PropertyValue[propVMAXPU]    := '1.10';
+     PropertyValue[propSTATE]     := 'IDLING';
+     PropertyValue[propKVA]       := Format('%-g', [kVARating]);
+     PropertyValue[propKWRATED]   := Format('%-g', [kWRating]);
+     PropertyValue[propKWHRATED]  := Format('%-g', [kWhRating]);
+     PropertyValue[propKWHSTORED] := Format('%-g', [kWhStored]);
+     PropertyValue[propPCTSTORED] := Format('%-g', [kWhStored/kWhRating * 100.0]);
+     PropertyValue[propPCTRESERVE]:= Format('%-g', [pctReserve]);
+     PropertyValue[propCHARGETIME]:= Format('%-g', [ChargeTime]);
+
+     PropertyValue[propUSERMODEL] := '';  // Usermodel
+     PropertyValue[propUSERDATA]  := '';  // Userdata
+     PropertyValue[propDEBUGTRACE]:= 'NO';
+
+  inherited  InitPropertyValues(NumPropsThisClass);
+
+End;
+
+
+//----------------------------------------------------------------------------
+FUNCTION TStorageObj.GetPropertyValue(Index: Integer): String;
+
+Begin
+
+      Result := '';
+      CASE Index of
+          propKV         : Result := Format('%.6g', [kVStorageBase]);
+          propKW         : Result := Format('%.6g', [kW_out]);
+          propPF         : Result := Format('%.6g', [PFNominal]);
+          propMODEL      : Result := Format('%d',   [VoltageModel]);
+          propYEARLY     : Result := YearlyShape;
+          propDAILY      : Result := DailyShape;
+          propDUTY       : Result := DutyShape;
+          propDISPMODE   : Result := ReturnDispMode(DispatchMode);
+          propIDLEKVAR   : Result := Format('%.6g', [pctIdlekvar]);
+          {propCONNECTION :;}
+          propKVAR       : Result := Format('%.6g', [kvar_out]);
+          propPCTR       : Result := Format('%.6g', [pctR]);
+          propPCTX       : Result := Format('%.6g', [pctX]);
+          propIDLEKW     : Result := Format('%.6g', [pctIdlekW]);
+          {propCLASS      = 17;}
+          propDISPOUTTRIG: Result := Format('%.6g', [DischargeTrigger]);
+          propDISPINTRIG : Result := Format('%.6g', [ChargeTrigger]);
+          propCHARGEEFF  : Result := Format('%.6g', [pctChargeEff]);
+          propDISCHARGEEFF : Result := Format('%.6g', [pctDischargeEff]);
+          propPCTKWOUT   : Result := Format('%.6g', [pctkWout]);
+          propVMINPU     : Result := Format('%.6g', [VMinPu]);
+          propVMAXPU     : Result := Format('%.6g', [VMaxPu]);
+          propSTATE      : Result := DecodeState;
+          propKVA        : Result := Format('%.6g', [kVArating]);
+          propKWRATED    : Result := Format('%.6g', [kWrating]);
+          propKWHRATED   : Result := Format('%.6g', [kWhrating]);
+          propKWHSTORED  : Result := Format('%.6g', [kWHStored]);
+          propPCTRESERVE : Result := Format('%.6g', [pctReserve]);
+          propUSERMODEL  : Result := UserModel.Name;
+          propUSERDATA   : Result := '(' + inherited GetPropertyValue(index) + ')';
+          {propDEBUGTRACE = 33;}
+          propPCTKWIN    : Result := Format('%.6g', [pctkWin]);
+          propPCTSTORED  : Result := Format('%.6g', [kWhStored/kWhRating * 100.0]);
+          propCHARGETIME : Result := Format('%.6g', [Chargetime]);
+      ELSE  // take the generic handler
+           Result := Inherited GetPropertyValue(index);
+      END;
 End;
 
 //----------------------------------------------------------------------------
@@ -1306,7 +1410,7 @@ PROCEDURE TStorageObj.CalcYPrim;
 
 VAR
         i:integer;
-        
+
 Begin
 
      // Build only shunt Yprim
@@ -1331,7 +1435,7 @@ Begin
 
      // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages Doesn't fail
      For i := 1 to Yorder Do Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
-     
+
      YPrim.CopyFrom(YPrim_Shunt);
 
      // Account for Open Conductors
@@ -1538,7 +1642,7 @@ Begin
    WITH ActiveCircuit.Solution Do
      Begin
         StorageHarmonic := Frequency/StorageFundamental;
-        If SpectrumObj <> Nil Then         
+        If SpectrumObj <> Nil Then
              E := CmulReal(SpectrumObj.GetMult(StorageHarmonic), VThevHarm) // Get base harmonic magnitude
         Else E := CZERO;
 
@@ -1842,7 +1946,7 @@ Begin
       Writeln(F);
 End;
 
-      
+
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.InitHarmonics;
 
@@ -1884,58 +1988,6 @@ Begin
        End;
 End;
 
-//----------------------------------------------------------------------------
-PROCEDURE TStorageObj.InitPropertyValues(ArrayOffset: Integer);
-
-// Define default values for the properties
-
-Begin
-
-     PropertyValue[1]      := '3';         //'phases';
-     PropertyValue[2]      := Getbus(1);   //'bus1';
-
-     PropertyValue[propKV]      := Format('%-g', [kVStorageBase]);
-     PropertyValue[propKW]      := Format('%-g', [kW_out]);
-     PropertyValue[propPF]      := Format('%-g', [PFNominal]);
-     PropertyValue[propMODEL]     := '1';
-     PropertyValue[propYEARLY]    := '';
-     PropertyValue[propDAILY]     := '';
-     PropertyValue[propDUTY]      := '';
-     PropertyValue[propDISPMODE]  := 'Default';
-     PropertyValue[propIDLEKVAR]  := '0';
-     PropertyValue[propCONNECTION]:= 'wye';
-     PropertyValue[propKVAR]      := Format('%-g', [Presentkvar]);
-
-     PropertyValue[propPCTR]      := Format('%-g', [pctR]);
-     PropertyValue[propPCTX]      := Format('%-g', [pctX]);
-
-     PropertyValue[propIDLEKW]    := '1';       // PERCENT
-     PropertyValue[propCLASS]     := '1'; //'class'
-     PropertyValue[propDISPOUTTRIG]    := '0';   // 0 MEANS NO TRIGGER LEVEL
-     PropertyValue[propDISPINTRIG]:= '0';
-     PropertyValue[propCHARGEEFF] := '90';
-     PropertyValue[propDISCHARGEEFF]  := '90';
-     PropertyValue[propPCTKWOUT]  := '100';
-     PropertyValue[propPCTKWIN]   := '100';
-
-     PropertyValue[propVMINPU]    := '0.90';
-     PropertyValue[propVMAXPU]    := '1.10';
-     PropertyValue[propSTATE]     := 'IDLING';
-     PropertyValue[propKVA]       := Format('%-g', [kVARating]);
-     PropertyValue[propKWRATED]   := Format('%-g', [kWRating]);
-     PropertyValue[propKWHRATED]  := Format('%-g', [kWhRating]);
-     PropertyValue[propKWHSTORED] := Format('%-g', [kWhStored]);
-     PropertyValue[propPCTSTORED] := Format('%-g', [kWhStored/kWhRating * 100.0]);
-     PropertyValue[propPCTRESERVE]:= Format('%-g', [pctReserve]);
-     PropertyValue[propCHARGETIME]:= Format('%-g', [ChargeTime]);
-
-     PropertyValue[propUSERMODEL] := '';  // Usermodel
-     PropertyValue[propUSERDATA]  := '';  // Userdata
-     PropertyValue[propDEBUGTRACE]:= 'NO';
-
-  inherited  InitPropertyValues(NumPropsThisClass);
-
-End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.InitStateVars;
@@ -2180,53 +2232,6 @@ Begin
           End;
       END;
 
-End;
-
-
-//----------------------------------------------------------------------------
-FUNCTION TStorageObj.GetPropertyValue(Index: Integer): String;
-
-Begin
-
-      Result := '';
-      CASE Index of
-          propKV         : Result := Format('%.6g', [kVStorageBase]);
-          propKW         : Result := Format('%.6g', [kW_out]);
-          propPF         : Result := Format('%.6g', [PFNominal]);
-          propMODEL      : Result := Format('%d',   [VoltageModel]);
-          propYEARLY     : Result := YearlyShape;
-          propDAILY      : Result := DailyShape;
-          propDUTY       : Result := DutyShape;
-          propDISPMODE   : Result := ReturnDispMode(DispatchMode);
-          propIDLEKVAR   : Result := Format('%.6g', [pctIdlekvar]);
-          {propCONNECTION :;}
-          propKVAR       : Result := Format('%.6g', [kvar_out]);
-          propPCTR       : Result := Format('%.6g', [pctR]);
-          propPCTX       : Result := Format('%.6g', [pctX]);
-          propIDLEKW     : Result := Format('%.6g', [pctIdlekW]);
-          {propCLASS      = 17;}
-          propDISPOUTTRIG: Result := Format('%.6g', [DischargeTrigger]);
-          propDISPINTRIG : Result := Format('%.6g', [ChargeTrigger]);
-          propCHARGEEFF  : Result := Format('%.6g', [pctChargeEff]);
-          propDISCHARGEEFF : Result := Format('%.6g', [pctDischargeEff]);
-          propPCTKWOUT   : Result := Format('%.6g', [pctkWout]);
-          propVMINPU     : Result := Format('%.6g', [VMinPu]);
-          propVMAXPU     : Result := Format('%.6g', [VMaxPu]);
-          propSTATE      : Result := DecodeState;
-          propKVA        : Result := Format('%.6g', [kVArating]);
-          propKWRATED    : Result := Format('%.6g', [kWrating]);
-          propKWHRATED   : Result := Format('%.6g', [kWhrating]);
-          propKWHSTORED  : Result := Format('%.6g', [kWHStored]);
-          propPCTRESERVE : Result := Format('%.6g', [pctReserve]);
-          propUSERMODEL  : Result := UserModel.Name;
-          propUSERDATA   : Result := '(' + inherited GetPropertyValue(index) + ')';
-          {propDEBUGTRACE = 33;}
-          propPCTKWIN    : Result := Format('%.6g', [pctkWin]);
-          propPCTSTORED  : Result := Format('%.6g', [kWhStored/kWhRating * 100.0]);
-          propCHARGETIME : Result := Format('%.6g', [Chargetime]);
-      ELSE  // take the generic handler
-           Result := Inherited GetPropertyValue(index);
-      END;
 End;
 
 //----------------------------------------------------------------------------

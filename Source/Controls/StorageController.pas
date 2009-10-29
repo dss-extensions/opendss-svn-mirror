@@ -55,6 +55,7 @@ TYPE
             FPFBand       :Double;
             kWNeeded      :double;
             FleetSize     :Integer;
+            FleetState    :Integer;
 
             FStorageNameList  :TStringList;
             FleetPointerList  :PointerList.TPointerList;
@@ -70,6 +71,11 @@ TYPE
             pctFleetReserve       :Double;
             FleetListChanged      :Boolean;
             ChargingAllowed       :Boolean;
+            ShowEventLog          :Boolean;
+            DispatchVars          :Boolean;
+
+            TotalkWCapacity       :Double;
+            TotalkWhCapacity      :Double;
 
             YearlyShape     :String;  // ='fixed' means no variation  on all the time
             YearlyShapeObj  :TLoadShapeObj;  // Shape for this Storage element
@@ -93,16 +99,14 @@ TYPE
             PROCEDURE SetFleetToExternal;
             FUNCTION  InterpretMode(Opt :Integer; Const S:String):Integer;
             FUNCTION  GetModeString(Opt, Mode :Integer):String;
-            FUNCTION  GetkWTotal:String;
-            FUNCTION  GetkWhTotal:String;
+            FUNCTION  GetkWTotal(Var Sum:double):String;
+            FUNCTION  GetkWhTotal(Var Sum:Double):String;
             FUNCTION  GetkWhActual:String;
             FUNCTION  GetkWActual:String;
 
             PROCEDURE CalcYearlyMult(Hr:double);
             PROCEDURE CalcDailyMult(Hr:double);
             PROCEDURE CalcDutyMult(Hr:double);
-
-
 
             FUNCTION  ReturnElementsList:String;
             FUNCTION  ReturnWeightsList:String;
@@ -112,6 +116,10 @@ TYPE
             PROCEDURE DoLoadShapeMode;
             PROCEDURE DoTimeMode (Opt:Integer);
             FUNCTION NormalizeToTOD(h: Integer; sec: Double): Double;
+            procedure Set_PFBand(const Value: Double);
+    function Get_FleetkW: Double;
+    function Get_FleetkWh: Double;
+    function Get_FleetReservekWh: Double;
 
 
      public
@@ -133,7 +141,10 @@ TYPE
        PROCEDURE DumpProperties(VAR F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
-
+       Property PFBand  :Double   Read FPFBand  Write  Set_PFBand;
+       Property FleetkW :Double   Read Get_FleetkW;
+       Property FleetkWh :Double  Read Get_FleetkWh;
+       Property FleetReservekWh :Double Read Get_FleetReservekWh;
    End;
 
 
@@ -174,9 +185,11 @@ CONST
     propYEARLY        = 23;
     propDAILY         = 24;
     propDUTY          = 25;
+    propEVENTLOG      = 26;
+    propVARDISPATCH   = 27;
 
 
-    NumPropsThisClass = 25;
+    NumPropsThisClass = 27;
 
 //= = = = = = = = = = = = = = DEFINE CONTROL MODES = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -244,6 +257,8 @@ Begin
      PropertyName[propYEARLY]                 := 'Yearly';
      PropertyName[propDAILY]                  := 'Daily';
      PropertyName[propDUTY]                   := 'Duty';
+     PropertyName[propEVENTLOG]               := 'EventLog';
+     PropertyName[propVARDISPATCH]            := 'VarDispatch';
 
 
     PropertyHelp[propELEMENT]             :=
@@ -319,6 +334,10 @@ Begin
       'Dispatch loadshape object, If any, for Daily solution mode.';
     PropertyHelp[propDUTY]                :=
       'Dispatch loadshape object, If any, for Dutycycle solution mode.';
+    PropertyHelp[propEVENTLOG]            :=
+      '{Yes/True | No/False} Default is No. Log control actions to Eventlog.';
+    PropertyHelp[propVARDISPATCH]            :=
+      '{Yes/True | No/False} Default is No. Flag to indicate whether or not to dispatch vars as well as watts.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -397,6 +416,8 @@ Begin
             propYEARLY:  YearlyShape  := Param;
             propDAILY:   DailyShape   := Param;
             propDUTY:    DutyShape    := Param;
+            propEVENTLOG: ShowEventLog := InterpretYesNo(Param);
+            propVARDISPATCH: DispatchVars := InterpretYesNo(Param);
 
          ELSE
            // Inherited parameters
@@ -472,6 +493,7 @@ Begin
         FpctkWBand        := OtherStorageController.FpctkWBand;
         FPFTarget         := OtherStorageController.FPFTarget;
         FPFBand           := OtherStorageController.FPFBand;
+        HalfPFBand        := OtherStorageController.HalfPFBand;
 
         FStorageNameList.Clear;
         For i := 1 to OtherStorageController.FStorageNameList.Count Do
@@ -495,6 +517,8 @@ Begin
         YearlyShape          := OtherStorageController.YearlyShape;
         DailyShape           := OtherStorageController.DailyShape;
         DutyShape            := OtherStorageController.DutyShape;
+        DispatchVars         := OtherStorageController.DispatchVars;
+        ShowEventLog         := OtherStorageController.ShowEventLog;
 
 
 
@@ -537,12 +561,14 @@ Begin
      FWeights         := Nil;
      FleetPointerList := PointerList.TPointerList.Create(20);  // Default size and increment
      FleetSize        := 0;
+     FleetState       := STORE_IDLING;
      FkWTarget        := 8000.0;
      FpctkWBand       := 2.0;
      TotalWeight      := 1.0;
      HalfkWBand       := FpctkWBand/200.0 * FkWTarget;
      FPFTarget        := 0.96;
      FPFBand          := 0.04;
+     HalfPFBand       := FPFBand / 2.0;
      kWNeeded         := 0.0;
 
      DischargeMode := MODEFOLLOW;
@@ -555,6 +581,9 @@ Begin
      pctkvarRate          := 20.0;
      pctChargeRate        := 20.0;
      pctFleetReserve      := 25.0;
+
+     ShowEventLog         := FALSE;
+     DispatchVars         := FALSE;
 
      InitPropertyValues(0);
 
@@ -575,6 +604,118 @@ Begin
 
      Inherited Destroy;
 End;
+
+//----------------------------------------------------------------------------
+PROCEDURE TStorageControllerObj.InitPropertyValues(ArrayOffset: Integer);
+Begin
+
+
+     PropertyValue[propELEMENT]              :='';
+     PropertyValue[propTERMINAL]             :='1';
+     PropertyValue[propKWTARGET]             :='8000';
+     PropertyValue[propKWBAND]               :='2';
+     PropertyValue[propPFTARGET]             :='.96';
+     PropertyValue[propPFBAND]               :='.04';
+     PropertyValue[propELEMENTLIST]          :='';
+     PropertyValue[propWEIGHTS]              :='';
+     PropertyValue[propMODEDISCHARGE]        :='Follow';
+     PropertyValue[propMODECHARGE]           :='Time';
+     PropertyValue[propTIMEDISCHARGETRIGGER] :='-1';
+     PropertyValue[propTIMECHARGETRIGGER]    :='2';
+     PropertyValue[propRATEKW]               :='20';
+     PropertyValue[propRATEKVAR]             :='20';
+     PropertyValue[propRATECHARGE]           :='20';
+     PropertyValue[propRESERVE]              :='25';
+     PropertyValue[propKWHTOTAL]             :='';
+     PropertyValue[propKWTOTAL]              :='';
+     PropertyValue[propKWACTUAL]             :='';
+     PropertyValue[propKWNEED]               :='';
+     PropertyValue[propPARTICIPATION]        :='';
+     PropertyValue[propYEARLY]               :='';
+     PropertyValue[propDAILY]                :='';
+     PropertyValue[propDUTY]                 :='';
+     PropertyValue[propEVENTLOG]             :='No';
+
+
+  inherited  InitPropertyValues(NumPropsThisClass);
+
+End;
+
+FUNCTION TStorageControllerObj.GetPropertyValue(Index: Integer): String;
+Begin
+     Result := '';
+     CASE Index of
+
+          propKWTARGET             : Result := Format('%-.6g',[FkWTarget]);
+          propKWBAND               : Result := Format('%-.6g',[FpctkWBand]);
+          propPFTARGET             : Result := Format('%-.6g',[ConvertPFRange2ToPF(FPFTarget)]);
+          propPFBAND               : Result := Format('%-.6g',[FPFBand]);
+          propELEMENTLIST          : Result := ReturnElementsList;
+          propWEIGHTS              : Result := ReturnWeightsList;
+          propMODEDISCHARGE        : Result := GetModeString(propMODEDISCHARGE, DischargeMode);
+          propMODECHARGE           : Result := GetModeString(propMODECHARGE,    ChargeMode);
+          propTIMEDISCHARGETRIGGER : Result := Format('%.6g', [DisChargeTriggerTime]);
+          propTIMECHARGETRIGGER    : Result := Format('%.6g', [ChargeTriggerTime]);
+          propRATEKW               : Result := Format('%-.8g',[pctkWRate]);
+          propRATEKVAR             : Result := Format('%-.8g',[pctkvarRate]);
+          propRATECHARGE           : Result := Format('%-.8g',[pctChargeRate]);
+          propRESERVE              : Result := Format('%-.8g',[pctFleetReserve]);
+          propKWHTOTAL             : Result := GetkWhTotal(TotalkWhCapacity);
+          propKWTOTAL              : Result := GetkWTotal(TotalkWCapacity);
+          propKWHACTUAL            : Result := GetkWhActual;
+          propKWACTUAL             : Result := GetkWActual;
+          propKWNEED               : Result := Format('%-.6g',[kWNeeded]);
+          {propPARTICIPATION        : Result := PropertyValue[Index]; }
+          propYEARLY               : Result := YearlyShape;
+          propDAILY                : Result := DailyShape;
+          propDUTY                 : Result := DutyShape;
+          propEVENTLOG             : If ShowEventLog Then Result := 'Yes' Else Result := 'No';
+          propVARDISPATCH          : If DispatchVars Then Result := 'Yes' Else Result := 'No';
+
+
+     ELSE  // take the generic handler
+           Result := Inherited GetPropertyValue(index);
+
+     END;
+End;
+
+function TStorageControllerObj.Get_FleetkW: Double;
+
+VAR
+    pStorage:TStorageObj;
+    i       :Integer;
+Begin
+      Result := 0.0;
+      for I := 1 to FleetPointerList.ListSize Do Begin
+          pStorage :=  FleetPointerList.Get(i);
+          Result := Result + pStorage.PresentkW;
+      End;
+end;
+
+function TStorageControllerObj.Get_FleetkWh: Double;
+VAR
+    pStorage:TStorageObj;
+    i       :Integer;
+Begin
+      Result := 0.0;
+      for I := 1 to FleetPointerList.ListSize Do Begin
+          pStorage :=  FleetPointerList.Get(i);
+          Result := Result + pStorage.kWhStored;
+      End;
+end;
+
+function TStorageControllerObj.Get_FleetReservekWh: Double;
+VAR
+    pStorage:TStorageObj;
+    i       :Integer;
+Begin
+      Result := 0.0;
+      for I := 1 to FleetPointerList.ListSize Do Begin
+          pStorage :=  FleetPointerList.Get(i);
+          Result := Result + pStorage.kWhReserve;
+      End;
+
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TStorageControllerObj.RecalcElementData;
@@ -607,6 +748,9 @@ Begin
          ELSE DoSimpleMsg('Monitored Element in StorageController.'+Name+ ' Does not exist:"'+ElementName+'"', 372);
 
        If FleetListChanged Then MakeFleetList; // Need error message ??
+
+       GetkWTotal(TotalkWCapacity);
+       GetkWhTotal(TotalkWhCapacity);
 
        If FleetSize > 0 Then
        Begin
@@ -665,6 +809,7 @@ VAR
     pStorage:TStorageObj;
     i       :Integer;
     Sum     :Double;
+    
 Begin
       Sum := 0.0;
       for I := 1 to FleetPointerList.ListSize Do Begin
@@ -674,11 +819,11 @@ Begin
       Result := Format('%-.8g',[sum]);
 End;
 
-FUNCTION TStorageControllerObj.GetkWhTotal: String;
+FUNCTION TStorageControllerObj.GetkWhTotal(Var Sum:Double): String;
 VAR
     pStorage:TStorageObj;
     i       :Integer;
-    Sum     :Double;
+
 Begin
       Sum := 0.0;
       for I := 1 to FleetPointerList.ListSize Do Begin
@@ -688,11 +833,10 @@ Begin
       Result := Format('%-.8g',[sum]);
 End;
 
-FUNCTION TStorageControllerObj.GetkWTotal: String;
+FUNCTION TStorageControllerObj.GetkWTotal(Var Sum:Double): String;
 VAR
     pStorage:TStorageObj;
     i       :Integer;
-    Sum     :Double;
 
 Begin
       Sum := 0.0;
@@ -730,40 +874,6 @@ Begin
       END;
 End;
 
-FUNCTION TStorageControllerObj.GetPropertyValue(Index: Integer): String;
-Begin
-     Result := '';
-     CASE Index of
-
-          propKWTARGET             : Result := Format('%-.6g',[FkWTarget]);
-          propKWBAND               : Result := Format('%-.6g',[FpctkWBand]);
-          propPFTARGET             : Result := Format('%-.6g',[ConvertPFRange2ToPF(FPFTarget)]);
-          propPFBAND               : Result := Format('%-.6g',[FPFBand]);
-          propELEMENTLIST          : Result := ReturnElementsList;
-          propWEIGHTS              : Result := ReturnWeightsList;
-          propMODEDISCHARGE        : Result := GetModeString(propMODEDISCHARGE, DischargeMode);
-          propMODECHARGE           : Result := GetModeString(propMODECHARGE,    ChargeMode);
-          propTIMEDISCHARGETRIGGER : Result := Format('%.6g', [DisChargeTriggerTime]);
-          propTIMECHARGETRIGGER    : Result := Format('%.6g', [ChargeTriggerTime]);
-          propRATEKW               : Result := Format('%-.8g',[pctkWRate]);
-          propRATEKVAR             : Result := Format('%-.8g',[pctkvarRate]);
-          propRATECHARGE           : Result := Format('%-.8g',[pctChargeRate]);
-          propRESERVE              : Result := Format('%-.8g',[pctFleetReserve]);
-          propKWHTOTAL             : Result := GetkWhTotal;
-          propKWTOTAL              : Result := GetkWTotal;
-          propKWHACTUAL            : Result := GetkWhActual;
-          propKWACTUAL             : Result := GetkWActual;
-          propKWNEED               : Result := Format('%-.6g',[kWNeeded]);
-          {propPARTICIPATION        : Result := PropertyValue[Index]; }
-          propYEARLY               : Result := YearlyShape;
-          propDAILY                : Result := DailyShape;
-          propDUTY                 : Result := DutyShape;
-
-     ELSE  // take the generic handler
-           Result := Inherited GetPropertyValue(index);
-
-     END;
-End;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TStorageControllerObj.DumpProperties(VAR F:TextFile; Complete:Boolean);
@@ -792,10 +902,21 @@ End;
 PROCEDURE TStorageControllerObj.DoPendingAction;
 Begin
 
-        {Do Nothing}
+        {Do Nothing for now}
+        {
+           The action has already been taken.
+           This version assumes no latency between the control and the resulting action.
+           To change, push the latency time onto the control stack and then add code here
+           to handle the action when it is popped off the stack.
+        }
 End;
 
 PROCEDURE TStorageControllerObj.DoTimeMode(Opt: Integer);
+{
+  In Time mode we need to only turn the storage elements on. They will turn themselves
+  off when they are either fully discharged, fully charged, or receive another command
+  from the controller
+}
 Begin
 
       CASE Opt of
@@ -804,13 +925,16 @@ Begin
              If DisChargeTriggerTime > 0.0 Then
                WITH ActiveCircuit.Solution Do Begin
                If abs(NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime) < DynaVars.h/3600.0 Then
+               If Not FleetState=STORE_DISCHARGING Then
                Begin
+                  {Time is within 1 time step of the trigger time}
+                    If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging by Time Trigger');
                     SetFleetToDischarge;
                     With ActiveCircuit, ActiveCircuit.Solution Do
                     Begin
                           LoadsNeedUpdating := TRUE; // Force recalc of power parms
                           // Push present time onto control queue to force re solve at new dispatch value
-                          ControlQueue.Push(intHour, DynaVars.t, 0, 0, Self);
+                          ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
                     End;
                End;
                End;
@@ -819,13 +943,16 @@ Begin
             If ChargeTriggerTime > 0.0 Then
                WITH ActiveCircuit.Solution Do Begin
                If abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTriggerTime) < DynaVars.h/3600.0 Then
+               If Not FleetState=STORE_CHARGING Then
                Begin
+                    {Time is within 1 time step of the trigger time}
+                    If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Charging by Time Trigger');
                     SetFleetToCharge;
                     With ActiveCircuit, ActiveCircuit.Solution Do
                     Begin
                           LoadsNeedUpdating := TRUE; // Force recalc of power parms
                           // Push present time onto control queue to force re solve at new dispatch value
-                          ControlQueue.Push(intHour, DynaVars.t, 0, 0, Self);
+                          ControlQueue.Push(intHour, DynaVars.t, STORE_CHARGING, 0, Self);
                     End;
                End;
                End;
@@ -837,7 +964,7 @@ End;
 //----------------------------------------------------------------------------
 FUNCTION TStorageControllerObj.NormalizeToTOD(h: Integer; sec: Double): Double;
 // Normalize time to a floating point number representing time of day If Hour > 24
-// time should be 0 to 24.
+// time should be 0 to 23.999999....
 VAR
     HourOfDay :Integer;
 
@@ -849,8 +976,7 @@ Begin
 
    Result := HourOfDay + sec/3600.0;
 
-   If   Result > 24.0
-   THEN Result := Result - 24.0;   // Wrap around
+   If  Result >= 24.0 THEN Result := Result - 24.0;   // Wrap around
 
 End;
 
@@ -889,11 +1015,16 @@ PROCEDURE TStorageControllerObj.DoLoadFollowMode;
 VAR
    i           :Integer;
    PDiff,
-   PFDiff       :Double;
+   PFDiff      :Double;
    S           :Complex ;
-   StorageObj         :TSTorageObj;
-   StorekWChanged, StorekvarChanged: Boolean;
-   DispatchkW, Dispatchkvar :Double;
+   StorageObj  :TSTorageObj;
+   StorekWChanged,
+   StorekvarChanged  :Boolean;
+   DispatchkW,
+   Dispatchkvar :Double;
+   SkipkWDispatch :Boolean;
+   RemainingkWh   :Double;
+   ReservekWh     :Double;
 
 
 Begin
@@ -923,34 +1054,57 @@ Begin
 
        StorekWChanged   := FALSE;
        StorekvarChanged := FALSE;
+       SkipkWDispatch   := FALSE;
+
+       kWNeeded := PDiff;
 
        {  kW dispatch  }
-       If Abs(PDiff) > HalfkWBand Then
-         Begin // Redispatch Storage
-              // PDiff is kW needed to get back into band
-              kWNeeded := PDiff;
-              AppendToEventLog('StorageController.' + Self.Name, Format('Changed kW Dispatch by %.6g kW', [PDiff]));
-              For i := 1 to FleetSize Do
-              Begin
-                    StorageObj := FleetPointerList.Get(i);
-                    // compute new dispatch value for this storage element ...
-                    DispatchkW := Max(0.0, (StorageObj.PresentkW + PDiff *(FWeights^[i]/TotalWeight)));
-                    If DispatchkW = 0.0 Then  StorageObj.StorageState := STORE_IDLING
-                    Else If DispatchkW <> StorageObj.PresentkW Then
-                    Begin
-                    // Attempt to set discharge kW;  Storage element will revert to idling if out of capacity
-                          StorageObj.StorageState := STORE_DISCHARGING;
-                          StorageObj.PresentkW    := Min(StorageObj.kWrating, DispatchkW);
-                          StorekWChanged := TRUE;
-                    End;
+       CASE  FleetState of
+            STORE_CHARGING,
+            STORE_IDLING: If (PDiff < 0.0) Then
+              Begin  // Don't bother trying to dispatch
+                   ChargingAllowed := TRUE;
+                   SkipkWDispatch  := TRUE;
               End;
-         End;
+            STORE_DISCHARGING: If (PDiff + FleetkW)<0.0 Then
+              Begin   // desired decrease is greater then present output; just cancel
+                    SetFleetToIdle;   // also sets presentkW = 0
+                    ChargingAllowed := TRUE;
+                    SkipkWDispatch  := TRUE;
+              End;
+
+       END;
+
+       RemainingkWh := FleetkWh;
+       ReservekWh   := FleetReservekWh;
+
+       If Not SkipkWDispatch Then
+          If (RemainingkWh > ReservekWh) Then
+           // But don't dispatch kW  if not storage left or an endless control loop will occur
+           If abs(PDiff) > HalfkWBand Then
+             Begin // Attempt to change storage dispatch
+                   SetFleetToDischarge;
+                   If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g reserve.', [kWneeded, RemainingkWh, ReservekWh]));
+                   For i := 1 to FleetSize Do
+                    Begin
+                          StorageObj := FleetPointerList.Get(i);
+                          // compute new dispatch value for this storage element ...
+                          DispatchkW := Min(StorageObj.kWrating, (StorageObj.PresentkW + PDiff *(FWeights^[i]/TotalWeight)));
+                          If DispatchkW <> StorageObj.PresentkW Then
+                            Begin  // Attempt to set discharge kW;  Storage element will revert to idling if out of capacity
+                                  StorageObj.PresentkW  := DispatchkW;
+                                  StorekWChanged        := TRUE;
+                            End;
+                    End;
+            End;
+
 
        // kvar dispatch  NOTE: PFDiff computed from PF in range of 0..2
        // Redispatch the vars only if the PF is outside the band
-       If Abs(PFDiff) > HalfPFBand Then
-         AppendToEventLog('StorageController.' + Self.Name, Format('Changed kvar Dispatch. PF Diff needed = %.6g', [PFDiff]));
-         Begin // Redispatch Storage elements
+       If DispatchVars and (Abs(PFDiff) > HalfPFBand) Then
+         Begin
+              If ShowEventLog Then AppendToEventLog('StorageController.' + Self.Name, Format('Changed kvar Dispatch. PF Diff needed = %.6g', [PFDiff]));
+          // Redispatch Storage elements
               For i := 1 to FleetSize Do
               Begin
                     StorageObj := FleetPointerList.Get(i);
@@ -974,7 +1128,8 @@ Begin
           Begin
                 LoadsNeedUpdating := TRUE; // Force recalc of power parms
                 // Push present time onto control queue to force re solve at new dispatch value
-                ControlQueue.Push(intHour, DynaVars.t, 0, 0, Self);
+
+                   ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
           End;
 
 
@@ -1021,7 +1176,11 @@ End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageControllerObj.DoLoadShapeMode;
+VAR
+     FleetStateSaved  :Integer;
 Begin
+
+    FleetStateSaved := FleetState;
 
     // Get multiplier
 
@@ -1034,11 +1193,12 @@ Begin
             DUTYCYCLE:     CalcDutyMult(dblHour) ;
         End;
 
-    If LoadShapeMult.re < 0.0 Then Begin
-       ChargingAllowed := TRUE;
-       pctChargeRate := Abs(LoadShapeMult.re)*100.0;
-       SetFleetChargeRate;
-    End
+    If LoadShapeMult.re < 0.0 Then
+        Begin
+           ChargingAllowed := TRUE;
+           pctChargeRate := Abs(LoadShapeMult.re)*100.0;
+           SetFleetChargeRate;
+        End
     Else If LoadShapeMult.re = 0.0  Then  SetFleetToIdle
          Else Begin   // Set fleet to discharging at a rate
              pctkWRate := LoadShapeMult.re*100.0;
@@ -1047,7 +1207,7 @@ Begin
              SetFleetkvarRate;
          End;
 
-
+    If FleetState <> FleetStateSaved Then
     With ActiveCircuit, ActiveCircuit.Solution Do
     Begin
           LoadsNeedUpdating := TRUE; // Force recalc of power parms
@@ -1067,8 +1227,8 @@ Begin
          WITH TStorageObj(FleetPointerList.Get(i)) Do
          Begin
               pctkWin    := pctChargeRate;
-              Fpctkvarout := pctkWRate;
-              pctkWout   := pctkvarRate;
+              Fpctkvarout := pctkvarRate;
+              pctkWout   := pctkWRate;
               pctReserve := pctFleetReserve;
          End;
 End;
@@ -1108,6 +1268,7 @@ VAR
 Begin
       For i := 1 to FleetPointerList.ListSize Do
             TStorageObj(FleetPointerList.Get(i)).StorageState := STORE_CHARGING;
+      FleetState :=  STORE_CHARGING;
 End;
 
 //----------------------------------------------------------------------------
@@ -1117,6 +1278,7 @@ VAR
 Begin
       For i := 1 to FleetPointerList.ListSize Do
             TStorageObj(FleetPointerList.Get(i)).StorageState := STORE_DISCHARGING;
+      FleetState :=  STORE_DISCHARGING;
 End;
 
 //----------------------------------------------------------------------------
@@ -1125,8 +1287,18 @@ VAR
       i   :Integer;
 Begin
       For i := 1 to FleetPointerList.ListSize Do
-            TStorageObj(FleetPointerList.Get(i)).StorageState := STORE_IDLING;
+          With TStorageObj(FleetPointerList.Get(i))do
+            Begin StorageState := STORE_IDLING;
+                  PresentkW := 0.0;
+            End;
+      FleetState := STORE_IDLING;
 End;
+
+procedure TStorageControllerObj.Set_PFBand(const Value: Double);
+begin
+      FPFBand    := Value;
+      HalfPFBand := FPFBand / 2.0;
+end;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageControllerObj.SetFleetToExternal;
@@ -1148,40 +1320,6 @@ End;
   End;
 *)
 
-//----------------------------------------------------------------------------
-PROCEDURE TStorageControllerObj.InitPropertyValues(ArrayOffset: Integer);
-Begin
-
-
-     PropertyValue[propELEMENT]              :='';
-     PropertyValue[propTERMINAL]             :='1';
-     PropertyValue[propKWTARGET]             :='8000';
-     PropertyValue[propKWBAND]               :='2';
-     PropertyValue[propPFTARGET]             :='.96';
-     PropertyValue[propPFBAND]               :='.04';
-     PropertyValue[propELEMENTLIST]          :='';
-     PropertyValue[propWEIGHTS]              :='';
-     PropertyValue[propMODEDISCHARGE]        :='Follow';
-     PropertyValue[propMODECHARGE]           :='Time';
-     PropertyValue[propTIMEDISCHARGETRIGGER] :='-1';
-     PropertyValue[propTIMECHARGETRIGGER]    :='2';
-     PropertyValue[propRATEKW]               :='20';
-     PropertyValue[propRATEKVAR]             :='20';
-     PropertyValue[propRATECHARGE]           :='20';
-     PropertyValue[propRESERVE]              :='25';
-     PropertyValue[propKWHTOTAL]             :='';
-     PropertyValue[propKWTOTAL]              :='';
-     PropertyValue[propKWACTUAL]             :='';
-     PropertyValue[propKWNEED]               :='';
-     PropertyValue[propPARTICIPATION]        :='';
-     PropertyValue[propYEARLY]               :='';
-     PropertyValue[propDAILY]                :='';
-     PropertyValue[propDUTY]                 :='';
-
-
-  inherited  InitPropertyValues(NumPropsThisClass);
-
-End;
 
 //----------------------------------------------------------------------------
 FUNCTION TStorageControllerObj.InterpretMode(Opt: Integer;
