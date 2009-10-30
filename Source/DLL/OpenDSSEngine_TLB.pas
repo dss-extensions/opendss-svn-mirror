@@ -1806,7 +1806,7 @@ type
 // *********************************************************************//
   IRegControls = interface(IDispatch)
     ['{3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}']
-    function Get_AllNames: Integer; safecall;
+    function Get_AllNames: OleVariant; safecall;
     function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
     function Get_First: Integer; safecall;
@@ -1851,7 +1851,7 @@ type
     procedure Set_ReverseBand(Value: Double); safecall;
     function Get_ReverseVreg: Double; safecall;
     procedure Set_ReverseVreg(Value: Double); safecall;
-    property AllNames: Integer read Get_AllNames;
+    property AllNames: OleVariant read Get_AllNames;
     property Name: WideString read Get_Name write Set_Name;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;

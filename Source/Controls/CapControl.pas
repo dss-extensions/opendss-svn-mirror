@@ -125,6 +125,14 @@ TYPE
        Property OffValue:Double Read OFF_Value;
        Property PFOnValue:Double Read PFON_Value;
        Property PFOffValue:Double Read PFOFF_Value;
+       Property PTRatioVal:Double Read PTratio;
+       Property CTRatioVal:Double Read CTratio;
+       Property OnDelayVal:Double Read OnDelay;
+       Property OffDelayVal:Double Read OffDelay;
+       Property VminVal:Double Read Vmin;
+       Property VmaxVal:Double Read Vmax;
+       Property UseVoltageOverride:Boolean Read Voverride;
+       Property DeadTimeVal:Double Read DeadTime;
    end;
 
 

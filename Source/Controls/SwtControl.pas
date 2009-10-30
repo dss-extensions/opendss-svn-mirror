@@ -41,6 +41,8 @@ TYPE
       FUNCTION  GetPropertyValue(Index:Integer):String;Override;
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
       PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+      Property IsLocked: Boolean Read Locked;
+      Property CurrentAction: EControlAction Read PresentState;
    end;
 
 VAR

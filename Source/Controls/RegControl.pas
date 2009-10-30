@@ -128,6 +128,8 @@ TYPE
        Property LineDropX: Double Read X;
        Property RevLineDropR: Double Read revR;
        Property RevLineDropX: Double Read revX;
+       Property RevTargetVoltage: Double Read revVreg;
+       Property RevBandVoltage: Double Read revBandWidth;
        Property UseLineDrop: Boolean Read LDCActive;
        Property UseReverseDrop: Boolean Read IsReversible;
        Property UseLimit: Boolean Read VLimitActive;
@@ -138,6 +140,8 @@ TYPE
        Property MaxTap: Double Read Get_MaxTap;
        Property TapIncrement: Double Read Get_TapIncrement;
        Property NumTaps: Integer Read Get_NumTaps;
+       Property MaxTapChange: Integer Read TapLimitPerChange;
+       Property IsInverseTime: Boolean Read FInverseTime;
 
    end;
 

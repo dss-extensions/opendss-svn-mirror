@@ -153,7 +153,12 @@ uses
   StoreUserModel in '..\PCElements\StoreUserModel.pas',
   StorageController in '..\Controls\StorageController.pas',
   LineGeometry in '..\General\LineGeometry.pas',
-  SwtControl in '..\Controls\SwtControl.pas';
+  SwtControl in '..\Controls\SwtControl.pas',
+  ImplTransformers in 'ImplTransformers.pas' {Transformers: CoClass},
+  ImplCapacitors in 'ImplCapacitors.pas' {Capacitors: CoClass},
+  ImplCapControls in 'ImplCapControls.pas' {CapControls: CoClass},
+  ImplRegControls in 'ImplRegControls.pas' {RegControls: CoClass},
+  ImplSwtControls in 'ImplSwtControls.pas' {SwtControls: CoClass};
 
 exports
   DllGetClassObject,

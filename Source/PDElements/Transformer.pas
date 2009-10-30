@@ -105,6 +105,10 @@ TYPE
         FUNCTION  Get_WdgXneutral(i: Integer): Double;
         FUNCTION  Get_WdgYPPM(i: Integer): Double;
 
+        Procedure Set_Xhl (const Value:Double);
+        Procedure Set_Xht (const Value:Double);
+        Procedure Set_Xlt (const Value:Double);
+
         PROCEDURE CalcY_Terminal(FreqMult:Double);
 
         PROCEDURE BuildYPrimComponent(YPrim_Component, Y_Terminal:TCMatrix);
@@ -113,7 +117,6 @@ TYPE
         PROCEDURE FetchXfmrCode(Const Code:String);
 
       Protected
-        ActiveWinding   :Integer;
         NumWindings     :Integer;
         MaxWindings     :Integer;
         TermRef         :pIntegerArray;  // keeps track of terminal connections
@@ -145,6 +148,7 @@ TYPE
 
         PROCEDURE SetTermRef;
       Public
+        ActiveWinding   :Integer;  // public for COM interface
 
         IsSubstation       :Boolean;
         SubstationName     :String;
@@ -189,9 +193,9 @@ TYPE
         Property WdgXneutral[i:Integer]   :Double  Read Get_WdgXneutral;
         Property WdgYPPM[i:Integer]       :Double  Read Get_WdgYPPM;
         Property XscVal[i:Integer]        :Double  Read Get_Xsc;
-        Property XhlVal:Double Read Xhl;
-        Property XhtVal:Double Read Xht;
-        Property XltVal:Double Read Xlt;
+        Property XhlVal:Double Read Xhl Write Set_Xhl;
+        Property XhtVal:Double Read Xht Write Set_Xht;
+        Property XltVal:Double Read Xlt Write Set_Xlt;
         Property SbortHkVA: Double Read NormMaxHKVA;
         Property EmergHkVA: Double Read EmergMaxHKVA;
         Property thTau: Double Read ThermalTimeConst;
@@ -1888,5 +1892,29 @@ begin
   end else
     DoSimpleMsg('Xfmr Code:' + Code + ' not found.', 180);
 End;
+
+Procedure TTransfObj.Set_Xhl (const Value:Double);
+begin
+  if NumWindings > 1 then begin
+    XSC^[1] := Value;
+    XHLChanged := TRUE;
+  end;
+end;
+
+Procedure TTransfObj.Set_Xht (const Value:Double);
+begin
+  if NumWindings > 2 then begin
+    XSC^[2] := Value;
+    XHLChanged := TRUE;
+  end;
+end;
+
+Procedure TTransfObj.Set_Xlt (const Value:Double);
+begin
+  if NumWindings > 2 then begin
+    XSC^[3] := Value;
+    XHLChanged := TRUE;
+  end;
+end;
 
 end.
