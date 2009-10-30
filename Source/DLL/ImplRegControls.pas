@@ -20,7 +20,7 @@ type
     function Get_ForwardX: Double; safecall;
     function Get_IsInverseTime: WordBool; safecall;
     function Get_IsReversible: WordBool; safecall;
-    function Get_MaxTapChange: Double; safecall;
+    function Get_MaxTapChange: Integer; safecall;
     function Get_MonitoredBus: WideString; safecall;
     function Get_Name: WideString; safecall;
     function Get_Next: Integer; safecall;
@@ -42,7 +42,7 @@ type
     procedure Set_ForwardX(Value: Double); safecall;
     procedure Set_IsInverseTime(Value: WordBool); safecall;
     procedure Set_IsReversible(Value: WordBool); safecall;
-    procedure Set_MaxTapChange(Value: Double); safecall;
+    procedure Set_MaxTapChange(Value: Integer); safecall;
     procedure Set_MonitoredBus(const Value: WideString); safecall;
     procedure Set_Name(const Value: WideString); safecall;
     procedure Set_PTratio(Value: Double); safecall;
@@ -60,12 +60,22 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, ControlElem, RegControl, Variants, SysUtils, PointerList;
+uses ComServ, DSSGlobals, Executive, ControlElem, RegControl, Variants, SysUtils, PointerList;
 
 function ActiveRegControl: TRegControlObj;
 begin
   Result := nil;
   if ActiveCircuit <> Nil then Result := ActiveCircuit.RegControls.Active;
+end;
+
+procedure Set_Parameter(const parm: string; const val: string);
+var
+  cmd: string;
+begin
+  if not Assigned (ActiveCircuit) then exit;
+  SolutionAbort := FALSE;  // Reset for commands entered from outside
+  cmd := Format ('regcontrol.%s.%s=%s', [ActiveRegControl.Name, parm, val]);
+  DSSExecutive.Command := cmd;
 end;
 
 function TRegControls.Get_AllNames: OleVariant;
@@ -182,11 +192,11 @@ begin
     if elem.UseReverseDrop then Result := TRUE;
 end;
 
-function TRegControls.Get_MaxTapChange: Double;   // TODO - change to Integer
+function TRegControls.Get_MaxTapChange: Integer;
 var
   elem: TRegControlObj;
 begin
-  Result := 0.0;
+  Result := 0;
   elem := ActiveRegControl;
   if elem <> nil then Result := elem.MaxTapChange;
 end;
@@ -322,52 +332,58 @@ end;
 
 procedure TRegControls.Set_CTPrimary(Value: Double);
 begin
-
+  Set_Parameter ('CTprim', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_Delay(Value: Double);
 begin
-
+  Set_Parameter ('Delay', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ForwardBand(Value: Double);
 begin
-
+  Set_Parameter ('Band', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ForwardR(Value: Double);
 begin
-
+  Set_Parameter ('R', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ForwardVreg(Value: Double);
 begin
-
+  Set_Parameter ('Vreg', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ForwardX(Value: Double);
 begin
-
+  Set_Parameter ('X', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_IsInverseTime(Value: WordBool);
 begin
-
+  if Value = TRUE then
+    Set_Parameter ('InverseTime', 'y')
+  else
+    Set_Parameter ('InverseTime', 'n');
 end;
 
 procedure TRegControls.Set_IsReversible(Value: WordBool);
 begin
-
+  if Value = TRUE then
+    Set_Parameter ('Reversible', 'y')
+  else
+    Set_Parameter ('Reversible', 'n');
 end;
 
-procedure TRegControls.Set_MaxTapChange(Value: Double);
+procedure TRegControls.Set_MaxTapChange(Value: Integer);
 begin
-
+  Set_Parameter ('MaxTapChange', IntToStr (Value));
 end;
 
 procedure TRegControls.Set_MonitoredBus(const Value: WideString);
 begin
-
+  Set_Parameter ('Bus', Value);
 end;
 
 procedure TRegControls.Set_Name(const Value: WideString);
@@ -402,52 +418,52 @@ end;
 
 procedure TRegControls.Set_PTratio(Value: Double);
 begin
-
+  Set_Parameter ('PTratio', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ReverseBand(Value: Double);
 begin
-
+  Set_Parameter ('RevBand', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ReverseR(Value: Double);
 begin
-
+  Set_Parameter ('RevR', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ReverseVreg(Value: Double);
 begin
-
+  Set_Parameter ('RevVreg', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_ReverseX(Value: Double);
 begin
-
+  Set_Parameter ('RevX', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_TapDelay(Value: Double);
 begin
-
+  Set_Parameter ('TapDelay', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_TapWinding(Value: Integer);
 begin
-
+  Set_Parameter ('TapWinding', IntToStr (Value));
 end;
 
 procedure TRegControls.Set_Transformer(const Value: WideString);
 begin
-
+  Set_Parameter ('Transformer', Value);
 end;
 
 procedure TRegControls.Set_VoltageLimit(Value: Double);
 begin
-
+  Set_Parameter ('Vlimit', FloatToStr (Value));
 end;
 
 procedure TRegControls.Set_Winding(Value: Integer);
 begin
-
+  Set_Parameter ('Winding', IntToStr (Value));
 end;
 
 initialization

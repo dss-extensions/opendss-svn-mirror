@@ -47,17 +47,27 @@ type
     procedure Set_Xht(Value: Double); safecall;
     procedure Set_Xlt(Value: Double); safecall;
     procedure Set_Xneut(Value: Double); safecall;
-
   end;
 
 implementation
 
-uses ComServ, DSSGlobals, Transformer, Variants, SysUtils, PointerList;
+uses ComServ, DSSGlobals, Executive, Transformer, Variants, SysUtils, PointerList;
 
 function ActiveTransformer: TTransfObj;
 begin
   Result := nil;
   if ActiveCircuit <> Nil then Result := ActiveCircuit.Transformers.Active;
+end;
+
+// assuming the active winding has already been set
+procedure Set_Parameter(const parm: string; const val: string);
+var
+  cmd: string;
+begin
+  if not Assigned (ActiveCircuit) then exit;
+  SolutionAbort := FALSE;  // Reset for commands entered from outside
+  cmd := Format ('transformer.%s.%s=%s', [ActiveTransformer.Name, parm, val]);
+  DSSExecutive.Command := cmd;
 end;
 
 function TTransformers.Get_AllNames: OleVariant;
@@ -287,48 +297,31 @@ begin
 end;
 
 procedure TTransformers.Set_IsDelta(Value: WordBool);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].Connection := Integer (Value);
+  if Value = TRUE then
+    Set_Parameter ('Conn', 'Delta')
+  else
+    Set_Parameter ('Conn', 'Wye')
 end;
 
 procedure TTransformers.Set_kV(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].kvll := Value;
+  Set_Parameter ('kv', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_kVA(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].kva := Value;
+  Set_Parameter ('kva', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_MaxTap(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].MaxTap := Value;
+  Set_Parameter ('MaxTap', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_MinTap(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].MinTap := Value;
+  Set_Parameter ('MinTap', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Name(const Value: WideString);
@@ -362,12 +355,8 @@ Begin
 end;
 
 procedure TTransformers.Set_NumTaps(Value: Integer);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].NumTaps := Value;
+  Set_Parameter ('NumTaps', IntToStr (Value));
 end;
 
 procedure TTransformers.Set_NumWindings(Value: Integer);
@@ -380,30 +369,18 @@ begin
 end;
 
 procedure TTransformers.Set_R(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].Rpu := 0.01 * Value;
+  Set_Parameter ('%R', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Rneut(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].Rneut := Value;
+  Set_Parameter ('Rneut', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Tap(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].puTap := Value;
+  Set_Parameter ('Tap', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Wdg(Value: Integer);
@@ -417,48 +394,28 @@ begin
 end;
 
 procedure TTransformers.Set_XfmrCode(const Value: WideString);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.XfmrCode := Value;
+  Set_Parameter ('XfmrCode', Value);
 end;
 
 procedure TTransformers.Set_Xhl(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    if elem.NumberOfWindings > 1 then elem.XhlVal := Value;
+  Set_Parameter ('Xhl', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Xht(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    if elem.NumberOfWindings > 1 then elem.XhtVal := Value;
+  Set_Parameter ('Xht', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Xlt(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    if elem.NumberOfWindings > 1 then elem.XltVal := Value;
+  Set_Parameter ('Xlt', FloatToStr (Value));
 end;
 
 procedure TTransformers.Set_Xneut(Value: Double);
-var
-  elem: TTransfObj;
 begin
-  elem := ActiveTransformer;
-  if elem <> nil then
-    elem.Winding^[elem.ActiveWinding].Xneut := Value;
+  Set_Parameter ('Xneut', FloatToStr (Value));
 end;
 
 initialization

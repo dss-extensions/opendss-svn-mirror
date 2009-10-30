@@ -28,12 +28,22 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, Capacitor, Variants, SysUtils, PointerList;
+uses ComServ, DSSGlobals, Executive, Capacitor, Variants, SysUtils, PointerList;
 
 function ActiveCapacitor: TCapacitorObj;
 begin
   Result := nil;
   if ActiveCircuit <> Nil then Result := ActiveCircuit.ShuntCapacitors.Active;
+end;
+
+procedure Set_Parameter(const parm: string; const val: string);
+var
+  cmd: string;
+begin
+  if not Assigned (ActiveCircuit) then exit;
+  SolutionAbort := FALSE;  // Reset for commands entered from outside
+  cmd := Format ('capacitor.%s.%s=%s', [ActiveCapacitor.Name, parm, val]);
+  DSSExecutive.Command := cmd;
 end;
 
 function TCapacitors.Get_AllNames: OleVariant;
@@ -152,19 +162,13 @@ begin
 end;
 
 procedure TCapacitors.Set_kV(Value: Double);
-var
-  elem: TCapacitorObj;
 begin
-  elem := ActiveCapacitor;
-  if elem <> nil then elem.NomKV := Value;
+  Set_Parameter ('kv', FloatToStr (Value));
 end;
 
 procedure TCapacitors.Set_kvar(Value: Double);
-var
-  elem: TCapacitorObj;
 begin
-  elem := ActiveCapacitor;
-  if elem <> nil then elem.Totalkvar := Value;
+  Set_Parameter ('kvar', FloatToStr (Value));
 end;
 
 procedure TCapacitors.Set_Name(const Value: WideString);
@@ -198,11 +202,8 @@ Begin
 end;
 
 procedure TCapacitors.Set_NumSteps(Value: Integer);
-var
-  elem: TCapacitorObj;
 begin
-  elem := ActiveCapacitor;
-  if elem <> nil then elem.NumSteps := Value;
+  Set_Parameter ('numsteps', IntToStr (Value));
 end;
 
 initialization

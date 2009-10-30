@@ -93,8 +93,6 @@ TYPE
         Procedure MakeYprimWork(YprimWork:TcMatrix; iStep:Integer);
 
         procedure set_NumSteps(const Value: Integer); // 1=kvar, 2=Cuf, 3=Cmatrix
-        procedure set_kvrating(const Value: Double);
-        procedure set_TotalKvar (const Value: Double);
 
 
       Public
@@ -118,8 +116,8 @@ TYPE
         FUNCTION AvailableSteps:Integer;
         Property NumSteps:Integer  Read FNumSteps write set_NumSteps;
         Property States[Idx:Integer]:Integer Read get_States write set_States;
-        Property Totalkvar:Double Read FTotalkvar Write Set_Totalkvar;
-        Property NomKV:Double Read kvrating Write Set_kvrating;
+        Property Totalkvar:Double Read FTotalkvar;
+        Property NomKV:Double Read kvrating;
 
    end;
 
@@ -803,27 +801,6 @@ begin
           YprimInvalid := True;
       End;
 End;
-
-procedure TCapacitorObj.set_kvrating(const Value: Double);
-begin
-  kvrating := value;
-  RecalcElementData;
-end;
-
-procedure TCapacitorObj.set_TotalKvar (const Value: Double);
-var
-  i: integer;
-  step: Double;
-begin
-  FTotalKvar := Value;
-  if FNumSteps > 1 then begin
-    step := Value / FNumSteps;
-    for i := 1 to FNumSteps do FKvarRating^[i] := step;
-  end else begin
-    FKvarRating^[1] := Value;
-  end;
-  RecalcElementData;
-end;
 
 procedure TCapacitorObj.set_NumSteps(const Value: Integer);
 

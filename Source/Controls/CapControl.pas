@@ -120,7 +120,7 @@ TYPE
        Property PendingChange:EControlAction Read FPendingChange Write Set_PendingChange;
 
        // for CIM export, which doesn't yet use the delays, CT, PT, and voltage override
-       Property CapControlType:ECapControlType Read ControlType;
+       Property CapControlType:ECapControlType Read ControlType Write ControlType;
        Property OnValue:Double Read ON_Value;
        Property OffValue:Double Read OFF_Value;
        Property PFOnValue:Double Read PFON_Value;

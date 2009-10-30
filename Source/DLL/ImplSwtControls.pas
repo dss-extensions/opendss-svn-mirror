@@ -30,12 +30,22 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, ControlElem, SwtControl, Variants, SysUtils, PointerList;
+uses ComServ, DSSGlobals, Executive, ControlElem, SwtControl, Variants, SysUtils, PointerList;
 
 function ActiveSwtControl: TSwtControlObj;
 begin
   Result := nil;
   if ActiveCircuit <> Nil then Result := ActiveCircuit.SwtControls.Active;
+end;
+
+procedure Set_Parameter(const parm: string; const val: string);
+var
+  cmd: string;
+begin
+  if not Assigned (ActiveCircuit) then exit;
+  SolutionAbort := FALSE;  // Reset for commands entered from outside
+  cmd := Format ('swtcontrol.%s.%s=%s', [ActiveSwtControl.Name, parm, val]);
+  DSSExecutive.Command := cmd;
 end;
 
 function TSwtControls.Get_Action: ActionCodes;
@@ -159,18 +169,36 @@ begin
 end;
 
 procedure TSwtControls.Set_Action(Value: ActionCodes);
+var
+  elem: TSwtControlObj;
 begin
-
+  elem := ActiveSwtControl;
+  if elem <> nil then begin
+    Case Value of
+      dssActionOpen: Set_Parameter('Action', 'o');
+      dssActionClose: Set_Parameter('Action', 'c');
+      dssActionReset: begin  // Reset means the shelf state
+        Set_Parameter('Lock', 'n');
+        Set_Parameter('Action', 'c');
+      end;
+      dssActionLock: Set_Parameter('Lock', 'y');
+      dssActionUnlock: Set_Parameter('Lock', 'n');
+      else // TapUp, TapDown, None have no effect
+    End;
+  end;
 end;
 
 procedure TSwtControls.Set_Delay(Value: Double);
 begin
-
+  Set_Parameter ('Delay', FloatToStr (Value));
 end;
 
 procedure TSwtControls.Set_IsLocked(Value: WordBool);
 begin
-
+  If Value = TRUE then
+    Set_Parameter ('Lock', 'y')
+  else
+    Set_Parameter ('Lock', 'n');
 end;
 
 procedure TSwtControls.Set_Name(const Value: WideString);
@@ -205,12 +233,12 @@ end;
 
 procedure TSwtControls.Set_SwitchedObj(const Value: WideString);
 begin
-
+  Set_Parameter ('SwitchedObj', Value);
 end;
 
 procedure TSwtControls.Set_SwitchedTerm(Value: Integer);
 begin
-
+  Set_Parameter ('SwitchedTerm', IntToStr (Value));
 end;
 
 initialization

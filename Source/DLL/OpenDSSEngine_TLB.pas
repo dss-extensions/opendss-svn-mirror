@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 10/29/2009 4:21:36 PM from Type Library described below.
+// File generated on 10/30/2009 10:34:10 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -1528,8 +1528,8 @@ type
     ['{3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}']
     function Get_kV: Double; safecall;
     procedure Set_kV(Value: Double); safecall;
-    function Get_kVAR: Double; safecall;
-    procedure Set_kVAR(Value: Double); safecall;
+    function Get_kvar: Double; safecall;
+    procedure Set_kvar(Value: Double); safecall;
     function Get_NumSteps: Integer; safecall;
     procedure Set_NumSteps(Value: Integer); safecall;
     function Get_IsDelta: WordBool; safecall;
@@ -1540,7 +1540,7 @@ type
     function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
     property kV: Double read Get_kV write Set_kV;
-    property kVAR: Double read Get_kVAR write Set_kVAR;
+    property kvar: Double read Get_kvar write Set_kvar;
     property NumSteps: Integer read Get_NumSteps write Set_NumSteps;
     property IsDelta: WordBool read Get_IsDelta write Set_IsDelta;
     property AllNames: OleVariant read Get_AllNames;
@@ -1557,7 +1557,7 @@ type
   ICapacitorsDisp = dispinterface
     ['{3C171A69-40AB-46AA-B037-9C4EBB9FBFCD}']
     property kV: Double dispid 201;
-    property kVAR: Double dispid 202;
+    property kvar: Double dispid 202;
     property NumSteps: Integer dispid 203;
     property IsDelta: WordBool dispid 204;
     property AllNames: OleVariant readonly dispid 205;
@@ -1839,8 +1839,8 @@ type
     procedure Set_Delay(Value: Double); safecall;
     function Get_TapDelay: Double; safecall;
     procedure Set_TapDelay(Value: Double); safecall;
-    function Get_MaxTapChange: Double; safecall;
-    procedure Set_MaxTapChange(Value: Double); safecall;
+    function Get_MaxTapChange: Integer; safecall;
+    procedure Set_MaxTapChange(Value: Integer); safecall;
     function Get_VoltageLimit: Double; safecall;
     procedure Set_VoltageLimit(Value: Double); safecall;
     function Get_ForwardBand: Double; safecall;
@@ -1869,7 +1869,7 @@ type
     property IsInverseTime: WordBool read Get_IsInverseTime write Set_IsInverseTime;
     property Delay: Double read Get_Delay write Set_Delay;
     property TapDelay: Double read Get_TapDelay write Set_TapDelay;
-    property MaxTapChange: Double read Get_MaxTapChange write Set_MaxTapChange;
+    property MaxTapChange: Integer read Get_MaxTapChange write Set_MaxTapChange;
     property VoltageLimit: Double read Get_VoltageLimit write Set_VoltageLimit;
     property ForwardBand: Double read Get_ForwardBand write Set_ForwardBand;
     property ForwardVreg: Double read Get_ForwardVreg write Set_ForwardVreg;
@@ -1884,7 +1884,7 @@ type
 // *********************************************************************//
   IRegControlsDisp = dispinterface
     ['{3F983AD2-B658-4CE8-B4C1-DE0A9EDD47FD}']
-    property AllNames: Integer readonly dispid 201;
+    property AllNames: OleVariant readonly dispid 201;
     property Name: WideString dispid 202;
     property First: Integer readonly dispid 203;
     property Next: Integer readonly dispid 204;
@@ -1902,7 +1902,7 @@ type
     property IsInverseTime: WordBool dispid 216;
     property Delay: Double dispid 217;
     property TapDelay: Double dispid 218;
-    property MaxTapChange: Double dispid 219;
+    property MaxTapChange: Integer dispid 219;
     property VoltageLimit: Double dispid 220;
     property ForwardBand: Double dispid 221;
     property ForwardVreg: Double dispid 222;

@@ -48,12 +48,22 @@ type
 
 implementation
 
-uses ComServ, DSSGlobals, ControlElem, CapControl, Variants, SysUtils, PointerList;
+uses ComServ, DSSGlobals, Executive, ControlElem, CapControl, Variants, SysUtils, PointerList;
 
 function ActiveCapControl: TCapControlObj;
 begin
   Result := nil;
   if ActiveCircuit <> Nil then Result := ActiveCircuit.CapControls.Active;
+end;
+
+procedure Set_Parameter(const parm: string; const val: string);
+var
+  cmd: string;
+begin
+  if not Assigned (ActiveCircuit) then exit;
+  SolutionAbort := FALSE;  // Reset for commands entered from outside
+  cmd := Format ('capcontrol.%s.%s=%s', [ActiveCapControl.Name, parm, val]);
+  DSSExecutive.Command := cmd;
 end;
 
 function TCapControls.Get_AllNames: OleVariant;
@@ -264,42 +274,53 @@ end;
 
 procedure TCapControls.Set_Capacitor(const Value: WideString);
 begin
-
+  Set_Parameter ('Capacitor', value);
 end;
 
 procedure TCapControls.Set_CTratio(Value: Double);
 begin
-
+  Set_Parameter ('CTratio', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_DeadTime(Value: Double);
 begin
-
+  Set_Parameter ('DeadTime', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_Delay(Value: Double);
 begin
-
+  Set_Parameter ('Delay', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_DelayOff(Value: Double);
 begin
-
+  Set_Parameter ('DelayOff', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_Mode(Value: CapControlModes);
+var
+  elem: TCapControlObj;
 begin
-
+  elem := ActiveCapControl;
+  if elem <> nil then begin
+    case Value of
+      dssCapControlCurrent: elem.CapControlType := CURRENTCONTROL;
+      dssCapControlVoltage: elem.CapControlType := VOLTAGECONTROL;
+      dssCapControlKvar: elem.CapControlType := KVARCONTROL;
+      dssCapControlTime: elem.CapControlType := TIMECONTROL;
+      dssCapControlPF: elem.CapControlType := PFCONTROL;
+    end;
+  end;
 end;
 
 procedure TCapControls.Set_MonitoredObj(const Value: WideString);
 begin
-
+  Set_Parameter ('Element', value);
 end;
 
 procedure TCapControls.Set_MonitoredTerm(Value: Integer);
 begin
-
+  Set_Parameter ('Terminal', IntToStr (value));
 end;
 
 procedure TCapControls.Set_Name(const Value: WideString);
@@ -334,32 +355,35 @@ end;
 
 procedure TCapControls.Set_OFFSetting(Value: Double);
 begin
-
+  Set_Parameter ('OffSetting', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_ONSetting(Value: Double);
 begin
-
+  Set_Parameter ('OnSetting', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_PTratio(Value: Double);
 begin
-
+  Set_Parameter ('PTratio', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_UseVoltOverride(Value: WordBool);
 begin
-
+  if Value = true then
+    Set_Parameter ('VoltOverride', 'Yes')
+  else
+    Set_Parameter ('VoltOverride', 'No');
 end;
 
 procedure TCapControls.Set_Vmax(Value: Double);
 begin
-
+  Set_Parameter ('Vmax', FloatToStr (value));
 end;
 
 procedure TCapControls.Set_Vmin(Value: Double);
 begin
-
+  Set_Parameter ('Vmin', FloatToStr (value));
 end;
 
 initialization
