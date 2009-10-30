@@ -70,6 +70,7 @@
     <DCCReference Include="..\Controls\RegControl.pas" />
     <DCCReference Include="..\Controls\Relay.pas" />
     <DCCReference Include="..\Controls\StorageController.pas" />
+    <DCCReference Include="..\Controls\SwtControl.pas" />
     <DCCReference Include="..\Executive\ExecCommands.pas" />
     <DCCReference Include="..\Executive\ExecHelper.pas" />
     <DCCReference Include="..\Executive\ExecOptions.pas" />
@@ -120,6 +121,7 @@
     <DCCReference Include="..\General\GrowthShape.pas" />
     <DCCReference Include="..\General\LineCode.pas" />
     <DCCReference Include="..\General\LineGeometry.pas" />
+    <DCCReference Include="..\General\LineSpacing.pas" />
     <DCCReference Include="..\General\LoadShape.pas" />
     <DCCReference Include="..\General\NamedObject.pas" />
     <DCCReference Include="..\General\OHLineConstants.pas" />
@@ -175,6 +177,12 @@
     <DCCReference Include="ImplBus.pas">
       <CoClasses>Bus</CoClasses>
     </DCCReference>
+    <DCCReference Include="ImplCapacitors.pas">
+      <CoClasses>Capacitors</CoClasses>
+    </DCCReference>
+    <DCCReference Include="ImplCapControls.pas">
+      <CoClasses>CapControls</CoClasses>
+    </DCCReference>
     <DCCReference Include="ImplCircuit.pas">
       <CoClasses>Circuit</CoClasses>
     </DCCReference>
@@ -215,14 +223,26 @@
     <DCCReference Include="ImplMonitors.pas">
       <CoClasses>Monitors</CoClasses>
     </DCCReference>
+    <DCCReference Include="ImplPlot.pas">
+      <CoClasses>Plot</CoClasses>
+    </DCCReference>
+    <DCCReference Include="ImplRegControls.pas">
+      <CoClasses>RegControls</CoClasses>
+    </DCCReference>
     <DCCReference Include="ImplSettings.pas">
       <CoClasses>Settings</CoClasses>
     </DCCReference>
     <DCCReference Include="ImplSolution.pas">
       <CoClasses>Solution</CoClasses>
     </DCCReference>
+    <DCCReference Include="ImplSwtControls.pas">
+      <CoClasses>SwtControls</CoClasses>
+    </DCCReference>
     <DCCReference Include="ImplText.pas">
       <CoClasses>Text</CoClasses>
+    </DCCReference>
+    <DCCReference Include="ImplTransformers.pas">
+      <CoClasses>Transformers</CoClasses>
     </DCCReference>
     <DCCReference Include="OpenDSSEngine_TLB.pas" />
   </ItemGroup>

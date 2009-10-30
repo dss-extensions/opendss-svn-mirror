@@ -39,6 +39,7 @@ type
     function Get_DefaultEditor: WideString; safecall;
     function Get_ActiveClass: IActiveClass; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
+    function Get_Plot: IPlot; safecall;
   end;
 
 implementation
@@ -244,6 +245,11 @@ begin
      ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
      Result := LastClassReferenced;
 
+end;
+
+function TDSS.Get_Plot: IPlot;
+begin
+     Result := FPLot as IPlot;
 end;
 
 initialization

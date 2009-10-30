@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// PASTLWTR : 1.2
-// File generated on 10/30/2009 11:43:10 AM from Type Library described below.
+// $Rev: 8291 $
+// File generated on 10/30/2009 6:09:59 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -92,6 +92,8 @@ const
   CLASS_SwtControls: TGUID = '{7D8F53AE-0D61-4B87-9BEE-12D54052F689}';
   CLASS_CapControls: TGUID = '{7D95304E-B0A8-4531-8D1B-F438287EEA6E}';
   CLASS_RegControls: TGUID = '{D3DBDE53-6397-4C36-8C87-9BEA061FBC78}';
+  IID_IPlot: TGUID = '{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}';
+  CLASS_Plot: TGUID = '{749A9035-EC8A-45F5-8BC2-B253EBBB78ED}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -222,6 +224,8 @@ type
   ICapControlsDisp = dispinterface;
   IRegControls = interface;
   IRegControlsDisp = dispinterface;
+  IPlot = interface;
+  IPlotDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -250,6 +254,7 @@ type
   SwtControls = ISwtControls;
   CapControls = ICapControls;
   RegControls = IRegControls;
+  Plot = IPlot;
 
 
 // *********************************************************************//
@@ -482,13 +487,17 @@ type
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeDistancesByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
-    function Get_Loads: Loads; safecall;
+    function Get_Loads: ILoads; safecall;
     function FirstElement: Integer; safecall;
     function NextElement: Integer; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_ActiveDSSElement: IDSSElement; safecall;
     function Get_ActiveCktElement: ICktElement; safecall;
     function Get_ActiveClass: IActiveClass; safecall;
+    function Get_Transformers: ITransformers; safecall;
+    function Get_SwtControls: ISwtControls; safecall;
+    function Get_CapControls: ICapControls; safecall;
+    function Get_RegControls: IRegControls; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -522,10 +531,14 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant read Get_AllNodeVmagPUByPhase;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant read Get_AllNodeDistancesByPhase;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant read Get_AllNodeNamesByPhase;
-    property Loads: Loads read Get_Loads;
+    property Loads: ILoads read Get_Loads;
     property ActiveDSSElement: IDSSElement read Get_ActiveDSSElement;
     property ActiveCktElement: ICktElement read Get_ActiveCktElement;
     property ActiveClass: IActiveClass read Get_ActiveClass;
+    property Transformers: ITransformers read Get_Transformers;
+    property SwtControls: ISwtControls read Get_SwtControls;
+    property CapControls: ICapControls read Get_CapControls;
+    property RegControls: IRegControls read Get_RegControls;
   end;
 
 // *********************************************************************//
@@ -580,13 +593,17 @@ type
     property AllNodeVmagPUByPhase[Phase: Integer]: OleVariant readonly dispid 205;
     property AllNodeDistancesByPhase[Phase: Integer]: OleVariant readonly dispid 206;
     property AllNodeNamesByPhase[Phase: Integer]: OleVariant readonly dispid 207;
-    property Loads: Loads readonly dispid 208;
+    property Loads: ILoads readonly dispid 208;
     function FirstElement: Integer; dispid 209;
     function NextElement: Integer; dispid 210;
     function SetActiveClass(const ClassName: WideString): Integer; dispid 211;
     property ActiveDSSElement: IDSSElement readonly dispid 212;
     property ActiveCktElement: ICktElement readonly dispid 213;
     property ActiveClass: IActiveClass readonly dispid 214;
+    property Transformers: ITransformers readonly dispid 215;
+    property SwtControls: ISwtControls readonly dispid 216;
+    property CapControls: ICapControls readonly dispid 217;
+    property RegControls: IRegControls readonly dispid 218;
   end;
 
 // *********************************************************************//
@@ -694,6 +711,7 @@ type
     function Get_DefaultEditor: WideString; safecall;
     function Get_ActiveClass: IActiveClass; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
+    function Get_Plot: IPlot; safecall;
     property NumCircuits: Integer read Get_NumCircuits;
     property Circuits[Idx: OleVariant]: ICircuit read Get_Circuits;
     property ActiveCircuit: ICircuit read Get_ActiveCircuit;
@@ -709,6 +727,7 @@ type
     property AllowForms: WordBool read Get_AllowForms write Set_AllowForms;
     property DefaultEditor: WideString read Get_DefaultEditor;
     property ActiveClass: IActiveClass read Get_ActiveClass;
+    property Plot: IPlot read Get_Plot;
   end;
 
 // *********************************************************************//
@@ -739,6 +758,7 @@ type
     property DefaultEditor: WideString readonly dispid 201;
     property ActiveClass: IActiveClass readonly dispid 202;
     function SetActiveClass(const ClassName: WideString): Integer; dispid 203;
+    property Plot: IPlot readonly dispid 204;
   end;
 
 // *********************************************************************//
@@ -1911,6 +1931,26 @@ type
   end;
 
 // *********************************************************************//
+// Interface: IPlot
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}
+// *********************************************************************//
+  IPlot = interface(IDispatch)
+    ['{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}']
+    function NewGraph: Integer; safecall;
+  end;
+
+// *********************************************************************//
+// DispIntf:  IPlotDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}
+// *********************************************************************//
+  IPlotDisp = dispinterface
+    ['{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}']
+    function NewGraph: Integer; dispid 201;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -2186,6 +2226,18 @@ type
     class function CreateRemote(const MachineName: string): IRegControls;
   end;
 
+// *********************************************************************//
+// The Class CoPlot provides a Create and CreateRemote method to          
+// create instances of the default interface IPlot exposed by              
+// the CoClass Plot. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoPlot = class
+    class function Create: IPlot;
+    class function CreateRemote(const MachineName: string): IPlot;
+  end;
+
 implementation
 
 uses ComObj;
@@ -2418,6 +2470,16 @@ end;
 class function CoRegControls.CreateRemote(const MachineName: string): IRegControls;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_RegControls) as IRegControls;
+end;
+
+class function CoPlot.Create: IPlot;
+begin
+  Result := CreateComObject(CLASS_Plot) as IPlot;
+end;
+
+class function CoPlot.CreateRemote(const MachineName: string): IPlot;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Plot) as IPlot;
 end;
 
 end.

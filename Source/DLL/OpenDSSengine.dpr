@@ -158,7 +158,8 @@ uses
   ImplCapacitors in 'ImplCapacitors.pas' {Capacitors: CoClass},
   ImplCapControls in 'ImplCapControls.pas' {CapControls: CoClass},
   ImplRegControls in 'ImplRegControls.pas' {RegControls: CoClass},
-  ImplSwtControls in 'ImplSwtControls.pas' {SwtControls: CoClass};
+  ImplSwtControls in 'ImplSwtControls.pas' {SwtControls: CoClass},
+  ImplPlot in 'ImplPlot.pas' {Plot: CoClass};
 
 exports
   DllGetClassObject,

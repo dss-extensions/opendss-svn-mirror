@@ -32,6 +32,11 @@ Uses
        ImplCtrlQueue,
        ImplLoads,
        ImplActiveClass,
+       ImplTransformers,
+       ImplSwtControls,
+       ImplCapControls,
+       ImplRegControls,
+       ImplPlot,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -56,6 +61,11 @@ Var
    FCtrlQueue   :ICtrlQueue;
    FLoads       :ILoads;
    FActiveClass :IActiveClass;
+   FTransformers:ITransformers;
+   FSwtControls :ISwtControls;
+   FCapControls :ICapControls;
+   FRegcontrols :IRegControls;
+   FPlot        :IPlot;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -97,6 +107,11 @@ Begin
      FCtrlQueue   := TCtrlQueue.Create;
      FLoads       := TLoads.Create;
      FActiveClass := TActiveClass.Create;
+     FTransformers:= TTransformers.Create;
+     FSwtControls := TSwtControls.Create;
+     FCapControls := TCapControls.Create;
+     FRegcontrols := TRegControls.Create;
+     FPlot        := TPlot.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

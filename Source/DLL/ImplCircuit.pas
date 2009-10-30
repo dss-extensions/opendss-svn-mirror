@@ -64,13 +64,17 @@ type
     function Get_AllNodeVmagByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeVmagPUByPhase(Phase: Integer): OleVariant; safecall;
     function Get_AllNodeNamesByPhase(Phase: Integer): OleVariant; safecall;
-    function Get_Loads: Loads; safecall;
+    function Get_Loads: ILoads; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function FirstElement: Integer; safecall;
     function NextElement: Integer; safecall;
     function Get_ActiveCktElement: ICktElement; safecall;
     function Get_ActiveDSSElement: IDSSElement; safecall;
     function Get_ActiveClass: IActiveClass; safecall;
+    function Get_CapControls: ICapControls; safecall;
+    function Get_RegControls: IRegControls; safecall;
+    function Get_SwtControls: ISwtControls; safecall;
+    function Get_Transformers: ITransformers; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -927,7 +931,7 @@ Begin
 end;
 
 
-function TCircuit.Get_Loads: Loads;
+function TCircuit.Get_Loads: ILoads;
 begin
      Result := FLoads as ILoads;
 end;
@@ -990,6 +994,26 @@ end;
 function TCircuit.Get_ActiveClass: IActiveClass;
 begin
     Result := FActiveClass as IActiveClass;
+end;
+
+function TCircuit.Get_CapControls: ICapControls;
+begin
+    Result := FCapControls as ICapControls;
+end;
+
+function TCircuit.Get_RegControls: IRegControls;
+begin
+     Result := FRegControls as IRegControls;
+end;
+
+function TCircuit.Get_SwtControls: ISwtControls;
+begin
+     Result := FSwtControls as ISwtControls;
+end;
+
+function TCircuit.Get_Transformers: ITransformers;
+begin
+     Result := FTransformers as ITransformers;
 end;
 
 initialization
