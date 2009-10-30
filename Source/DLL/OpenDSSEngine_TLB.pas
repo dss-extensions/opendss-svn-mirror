@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 10/30/2009 10:34:10 AM from Type Library described below.
+// File generated on 10/30/2009 11:43:10 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
