@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 10/30/2009 6:09:59 PM from Type Library described below.
+// File generated on 10/31/2009 1:18:11 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -1938,6 +1938,75 @@ type
   IPlot = interface(IDispatch)
     ['{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}']
     function NewGraph: Integer; safecall;
+    procedure NewLine(X1: Double; Y1: Double; X2: Double; Y2: Double; const Name: WideString); safecall;
+    procedure NewCurve(Xarray: OleVariant; Yarray: OleVariant; const Name: WideString); safecall;
+    procedure NewText(X1: Double; Y1: Double; const S: WideString); safecall;
+    procedure NewCircle(Xc: Double; Yc: Double; Radius: Double); safecall;
+    procedure NewMarker(X: Double; Y: Double; MarkerCode: Byte; MarkerSize: Byte); safecall;
+    procedure Set_XLabel(const Value: WideString); safecall;
+    procedure Set_YLabel(const Value: WideString); safecall;
+    procedure Set_WindowCaption(const Value: WideString); safecall;
+    procedure Set_PlotCaption(const Value: WideString); safecall;
+    procedure Set_LineWidth(Value: Integer); safecall;
+    procedure Set_DataColor(Value: Integer); safecall;
+    procedure Set_PenStyle(Value: Integer); safecall;
+    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool; 
+                           Strikeout: WordBool); safecall;
+    procedure Set_MarkNodes(Value: WordBool); safecall;
+    procedure Set_NodeMarkerCode(Value: Integer); safecall;
+    procedure Set_MarkCenter(Value: WordBool); safecall;
+    procedure Set_CenterMarkerCode(Value: Integer); safecall;
+    procedure Set_NodeMarkerWidth(Value: Integer); safecall;
+    procedure Set_MarkCurves(Value: WordBool); safecall;
+    procedure Set_CurveMarkerCode(Value: Integer); safecall;
+    procedure MoveToXY(X: Double; Y: Double); safecall;
+    procedure DrawToXY(X: Double; Y: Double); safecall;
+    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double; 
+                            YUpperRight: Double); safecall;
+    procedure Show; safecall;
+    procedure SetRange(Xlow: Double; Xhigh: Double; Ylow: Double; Yhigh: Double); safecall;
+    procedure GetRange(var Xlow: Double; var Xhigh: Double; var Ylow: Double; var Yhigh: Double); safecall;
+    procedure Set_TextSize(Value: Integer); safecall;
+    procedure Set_TextColor(Value: Integer); safecall;
+    procedure Set_TextAlign(Value: Integer); safecall;
+    function AddLabel(X: Double; Y: Double; const Txt: WideString): Integer; safecall;
+    procedure LockInLabel(TxtIndex: Integer); safecall;
+    procedure SetLabelBold(LblIndex: Integer); safecall;
+    procedure SetLabelLeft(LblIndex: Integer); safecall;
+    procedure AddCentered15(X: Double; Y: Double; const Txt: WideString); safecall;
+    procedure Set_pctRim(Value: Double); safecall;
+    procedure Set_KeepAspect(Value: WordBool); safecall;
+    procedure SetForNoScales; safecall;
+    procedure SetForClickOnDiagram; safecall;
+    procedure MarkAtXY(X: Double; Y: Double; MarkerCode: Byte; MarkerSize: Byte); safecall;
+    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer; 
+                             var Height: Integer; var TRim: Integer; var Brim: Integer); safecall;
+    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double; 
+                                 var Ymax: Double; var ChartColor: Integer; 
+                                 var WindowColor: Integer; var Isometric: WordBool; 
+                                 var Gridstyle: Integer); safecall;
+    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double; 
+                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool; 
+                                 GridStyle: Integer); safecall;
+    property XLabel: WideString write Set_XLabel;
+    property YLabel: WideString write Set_YLabel;
+    property WindowCaption: WideString write Set_WindowCaption;
+    property PlotCaption: WideString write Set_PlotCaption;
+    property LineWidth: Integer write Set_LineWidth;
+    property DataColor: Integer write Set_DataColor;
+    property PenStyle: Integer write Set_PenStyle;
+    property MarkNodes: WordBool write Set_MarkNodes;
+    property NodeMarkerCode: Integer write Set_NodeMarkerCode;
+    property MarkCenter: WordBool write Set_MarkCenter;
+    property CenterMarkerCode: Integer write Set_CenterMarkerCode;
+    property NodeMarkerWidth: Integer write Set_NodeMarkerWidth;
+    property MarkCurves: WordBool write Set_MarkCurves;
+    property CurveMarkerCode: Integer write Set_CurveMarkerCode;
+    property TextSize: Integer write Set_TextSize;
+    property TextColor: Integer write Set_TextColor;
+    property TextAlign: Integer write Set_TextAlign;
+    property pctRim: Double write Set_pctRim;
+    property KeepAspect: WordBool write Set_KeepAspect;
   end;
 
 // *********************************************************************//
@@ -1948,6 +2017,56 @@ type
   IPlotDisp = dispinterface
     ['{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}']
     function NewGraph: Integer; dispid 201;
+    procedure NewLine(X1: Double; Y1: Double; X2: Double; Y2: Double; const Name: WideString); dispid 202;
+    procedure NewCurve(Xarray: OleVariant; Yarray: OleVariant; const Name: WideString); dispid 203;
+    procedure NewText(X1: Double; Y1: Double; const S: WideString); dispid 204;
+    procedure NewCircle(Xc: Double; Yc: Double; Radius: Double); dispid 205;
+    procedure NewMarker(X: Double; Y: Double; MarkerCode: Byte; MarkerSize: Byte); dispid 206;
+    property XLabel: WideString writeonly dispid 207;
+    property YLabel: WideString writeonly dispid 208;
+    property WindowCaption: WideString writeonly dispid 209;
+    property PlotCaption: WideString writeonly dispid 210;
+    property LineWidth: Integer writeonly dispid 211;
+    property DataColor: Integer writeonly dispid 212;
+    property PenStyle: Integer writeonly dispid 213;
+    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool; 
+                           Strikeout: WordBool); dispid 214;
+    property MarkNodes: WordBool writeonly dispid 215;
+    property NodeMarkerCode: Integer writeonly dispid 216;
+    property MarkCenter: WordBool writeonly dispid 217;
+    property CenterMarkerCode: Integer writeonly dispid 218;
+    property NodeMarkerWidth: Integer writeonly dispid 219;
+    property MarkCurves: WordBool writeonly dispid 220;
+    property CurveMarkerCode: Integer writeonly dispid 221;
+    procedure MoveToXY(X: Double; Y: Double); dispid 222;
+    procedure DrawToXY(X: Double; Y: Double); dispid 223;
+    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double; 
+                            YUpperRight: Double); dispid 224;
+    procedure Show; dispid 225;
+    procedure SetRange(Xlow: Double; Xhigh: Double; Ylow: Double; Yhigh: Double); dispid 226;
+    procedure GetRange(var Xlow: Double; var Xhigh: Double; var Ylow: Double; var Yhigh: Double); dispid 227;
+    property TextSize: Integer writeonly dispid 228;
+    property TextColor: Integer writeonly dispid 229;
+    property TextAlign: Integer writeonly dispid 230;
+    function AddLabel(X: Double; Y: Double; const Txt: WideString): Integer; dispid 231;
+    procedure LockInLabel(TxtIndex: Integer); dispid 232;
+    procedure SetLabelBold(LblIndex: Integer); dispid 233;
+    procedure SetLabelLeft(LblIndex: Integer); dispid 234;
+    procedure AddCentered15(X: Double; Y: Double; const Txt: WideString); dispid 235;
+    property pctRim: Double writeonly dispid 236;
+    property KeepAspect: WordBool writeonly dispid 237;
+    procedure SetForNoScales; dispid 238;
+    procedure SetForClickOnDiagram; dispid 239;
+    procedure MarkAtXY(X: Double; Y: Double; MarkerCode: Byte; MarkerSize: Byte); dispid 240;
+    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer; 
+                             var Height: Integer; var TRim: Integer; var Brim: Integer); dispid 241;
+    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double; 
+                                 var Ymax: Double; var ChartColor: Integer; 
+                                 var WindowColor: Integer; var Isometric: WordBool; 
+                                 var Gridstyle: Integer); dispid 242;
+    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double; 
+                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool; 
+                                 GridStyle: Integer); dispid 243;
   end;
 
 // *********************************************************************//
