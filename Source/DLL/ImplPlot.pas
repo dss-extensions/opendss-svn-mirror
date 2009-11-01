@@ -171,13 +171,13 @@ end;
 procedure TPlot.Set_LineWidth(Value: Integer);
 begin
      FThickness := Value;
-     Set_LineWidth(FThickness);
+     DSSPlot.Set_LineWidth(FThickness);
 end;
 
 procedure TPlot.Set_DataColor(Value: Integer);
 begin
      FColor := TColor(Value);
-     Set_DataColor(FColor);
+     DSSPlot.Set_DataColor(FColor);
 end;
 
 procedure TPlot.Set_PenStyle(Value: Integer);
