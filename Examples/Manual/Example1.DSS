@@ -2,7 +2,8 @@
 !  OPENDSS USER'S MANUAL EXAMPLE CIRCUIT 1
 !
 
-Clearnew object=circuit.DSSLLibtestckt
+Clear
+new object=circuit.DSSLLibtestckt
 ~ basekv=115  1.00 0.0 60.0 3 20000 21000 4.0 3.0  !edit the voltage source
 
 new loadshape.day 24 1.0 
