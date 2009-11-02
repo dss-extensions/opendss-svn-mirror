@@ -1025,7 +1025,7 @@ end;
 
 function TCircuit.Get_Topology: ITopology;
 begin
-
+     Result := FTopology as ITopology;
 end;
 
 initialization

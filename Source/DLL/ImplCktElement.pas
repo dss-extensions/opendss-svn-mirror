@@ -865,18 +865,49 @@ begin
 end;
 
 function TCktElement.Get_EnergyMeter: WideString;
+var
+  pd: TPDElement;
 begin
-
+  Result := '';
+  If ActiveCircuit <> Nil Then begin
+    if ActiveCircuit.ActiveCktElement.HasEnergyMeter then begin
+      pd := ActiveCircuit.ActiveCktElement as TPDElement;
+      Result := pd.MeterObj.Name;
+    end;
+  end;
 end;
 
 function TCktElement.Get_HasVoltControl: WordBool;
+var
+  ctrl: TDSSCktElement;
 begin
-
+  Result := FALSE;
+  If ActiveCircuit <> Nil Then begin
+    ctrl := ActiveCircuit.ActiveCktElement.ControlElement;
+    if ctrl <> Nil then
+      case (ctrl.DSSObjType And CLASSMASK) of
+        CAP_CONTROL: Result := True;
+        REG_CONTROL: Result := True
+      else
+        Result := False;
+      end;
+  end;
 end;
 
 function TCktElement.Get_HasSwitchControl: WordBool;
+var
+  ctrl: TDSSCktElement;
 begin
-
+  Result := FALSE;
+  If ActiveCircuit <> Nil Then begin
+    ctrl := ActiveCircuit.ActiveCktElement.ControlElement;
+    if ctrl <> Nil then
+      case (ctrl.DSSObjType And CLASSMASK) of
+        SWT_CONTROL: Result := True;
+      else
+        Result := False;
+      end;
+  end;
 end;
 
 initialization

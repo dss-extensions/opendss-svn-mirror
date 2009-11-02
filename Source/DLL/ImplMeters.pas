@@ -58,7 +58,9 @@ uses ComServ,
      DSSGlobals,
      SysUtils,
      ucomplex,
-     Variants;
+     Variants,
+     CktElement,
+     CktTree;
 
 function TMeters.Get_AllNames: OleVariant;
 Var
@@ -555,8 +557,25 @@ begin
 end;
 
 function TMeters.Get_AllEndElements: OleVariant;
-begin
-
+Var
+  pMeterObj :TEnergyMeterObj;
+  k, last:Integer;
+  elem : TDSSCktElement;
+  node : TCktTreeNode;
+Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+    pMeterObj := EnergyMeters.Active;
+    if pMeterObj <> Nil then begin
+      last := pMeterObj.BranchList.ZoneEndsList.NumEnds - 1;
+      VarArrayRedim (Result, last);
+      for k := 0 to last do begin
+        pMeterObj.BranchList.ZoneEndsList.Get(k+1, node);
+        elem := node.CktObject;
+        Result[k] := Format ('%s.%s', [elem.ParentClass.Name, elem.Name]);
+      end;
+    end;
+  End;
 end;
 
 function TMeters.Get_CountEndElements: Integer;

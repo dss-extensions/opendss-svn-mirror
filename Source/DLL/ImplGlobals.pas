@@ -38,6 +38,7 @@ Uses
        ImplCapControls,
        ImplRegControls,
        ImplPlot,
+       ImplTopology,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -68,6 +69,7 @@ Var
    FCapControls :ICapControls;
    FRegcontrols :IRegControls;
    FPlot        :IPlot;
+   FTopology    :ITopology;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -115,6 +117,7 @@ Begin
      FCapControls := TCapControls.Create;
      FRegcontrols := TRegControls.Create;
      FPlot        := TPlot.Create;
+     FTopology    := TTopology.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;
