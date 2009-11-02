@@ -1,8 +1,4 @@
-! These commands run all of the IEEE test feeders, assuming the
-!   root installation directory is c:\opendss. If you installed
-!   to a different location, you will have to edit the paths in this
-!   file and any file named like Run_*.dss
-
+! These commands run all of the IEEE test feeders.
 ! For documentation of the test feeders, check the following URL:
 !   http://ewh.ieee.org/soc/pes/dsacom/testfeeders.html
 
@@ -14,19 +10,23 @@
 !   window for execution. Or, you can load this whole file into OpenDSS
 !   to run all of the cases at once.
 
-redirect c:\opendss\ieeetest\Run_IEEE123Bus.dss
+! You may need to change the following command to match your installation:
 
-redirect c:\opendss\ieeetest\4Bus-DY-Bal.dss
-redirect c:\opendss\ieeetest\4Bus-OYOD-Bal.dss
-redirect c:\opendss\ieeetest\4Bus-YD-Bal.dss
-redirect c:\opendss\ieeetest\4Bus-YY-Bal.dss
+cd c:\opendss\ieeetest
 
-redirect c:\opendss\ieeetest\Run_IEEE34Mod1.dss
-redirect c:\opendss\ieeetest\Run_IEEE34Mod2.dss
+redirect Run_IEEE123Bus.dss
 
-redirect c:\opendss\ieeetest\IEEE13Nodeckt.dss
+redirect 4Bus-DY-Bal.dss
+redirect 4Bus-OYOD-Bal.dss
+redirect 4Bus-YD-Bal.dss
+redirect 4Bus-YY-Bal.dss
 
-redirect c:\opendss\ieeetest\IEEE37.dss
+redirect Run_IEEE34Mod1.dss
+redirect Run_IEEE34Mod2.dss
 
-redirect c:\opendss\ieeetest\IEEELineGeometry.dss
+redirect IEEE13Nodeckt.dss
+
+redirect IEEE37.dss
+
+redirect IEEELineGeometry.dss
 

@@ -14,7 +14,7 @@
 ! 1st Script
 ! =================================================================
 
-Compile (C:\opendss\IEEETest\IEEE123Master.dss)
+Compile (IEEE123Master.dss)
 
 ! 'Compile' differs from "redirect" in that it changes the default directory 
 ! to the one in which the referenced file is located.
@@ -60,7 +60,7 @@ Redirect CircuitplottingScripts.DSS
 ! This script give results closer to the posted results by forcing 
 ! the regulators to the same tap as the solution posted
 
-Compile (C:\opendss\IEEETest\IEEE123Master.dss)
+Compile (IEEE123Master.dss)
 
 ! set regulators on same tap as Kersting computes
 ! (uses RPN inline math feature of OpenDSS)
