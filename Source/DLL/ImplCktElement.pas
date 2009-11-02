@@ -51,12 +51,16 @@ type
     function Get_GUID: WideString; safecall;
     function Get_Handle: Integer; safecall;
     procedure Set_DisplayName(const Value: WideString); safecall;
+    function Get_Controller: WideString; safecall;
+    function Get_EnergyMeter: WideString; safecall;
+    function Get_HasVoltControl: WordBool; safecall;
+    function Get_HasSwitchControl: WordBool; safecall;
   end;
 
 implementation
 
 uses ComServ, DSSClassDefs, DSSGlobals, UComplex, Sysutils,
-     PDElement, MathUtil, ImplGlobals, Variants;
+     PDElement, MathUtil, ImplGlobals, Variants, CktElement;
 
 { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
 function TCktElement.Get_BusNames: OleVariant;
@@ -846,6 +850,33 @@ procedure TCktElement.Set_DisplayName(const Value: WideString);
 begin
    If ActiveCircuit <> Nil Then
       ActiveCircuit.ActiveCktElement.DisplayName := Value;
+end;
+
+function TCktElement.Get_Controller: WideString;
+var
+  ctrl: TDSSCktElement;
+begin
+  Result := '';
+  If ActiveCircuit <> Nil Then begin
+    ctrl := ActiveCircuit.ActiveCktElement.ControlElement;
+    if ctrl <> Nil then
+      Result := Format('%s.%s', [ctrl.ParentClass.Name, ctrl.Name]);
+  end;
+end;
+
+function TCktElement.Get_EnergyMeter: WideString;
+begin
+
+end;
+
+function TCktElement.Get_HasVoltControl: WordBool;
+begin
+
+end;
+
+function TCktElement.Get_HasSwitchControl: WordBool;
+begin
+
 end;
 
 initialization

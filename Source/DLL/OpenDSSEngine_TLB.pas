@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// $Rev: 8291 $
-// File generated on 10/31/2009 9:41:28 PM from Type Library described below.
+// PASTLWTR : 1.2
+// File generated on 11/1/2009 7:04:41 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -94,6 +94,8 @@ const
   CLASS_RegControls: TGUID = '{D3DBDE53-6397-4C36-8C87-9BEA061FBC78}';
   IID_IPlot: TGUID = '{D35F8A94-9DED-443C-A7B9-62E9C3D5EB9F}';
   CLASS_Plot: TGUID = '{749A9035-EC8A-45F5-8BC2-B253EBBB78ED}';
+  IID_ITopology: TGUID = '{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}';
+  CLASS_Topology: TGUID = '{5B1B5AB3-0595-4E46-B64B-CF8877ED0857}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -226,6 +228,8 @@ type
   IRegControlsDisp = dispinterface;
   IPlot = interface;
   IPlotDisp = dispinterface;
+  ITopology = interface;
+  ITopologyDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -255,6 +259,7 @@ type
   CapControls = ICapControls;
   RegControls = IRegControls;
   Plot = IPlot;
+  Topology = ITopology;
 
 
 // *********************************************************************//
@@ -349,6 +354,10 @@ type
     procedure Set_DisplayName(const Value: WideString); safecall;
     function Get_Handle: Integer; safecall;
     function Get_GUID: WideString; safecall;
+    function Get_HasSwitchControl: WordBool; safecall;
+    function Get_HasVoltControl: WordBool; safecall;
+    function Get_EnergyMeter: WideString; safecall;
+    function Get_Controller: WideString; safecall;
     property Name: WideString read Get_Name;
     property NumTerminals: Integer read Get_NumTerminals;
     property NumConductors: Integer read Get_NumConductors;
@@ -373,6 +382,10 @@ type
     property DisplayName: WideString read Get_DisplayName write Set_DisplayName;
     property Handle: Integer read Get_Handle;
     property GUID: WideString read Get_GUID;
+    property HasSwitchControl: WordBool read Get_HasSwitchControl;
+    property HasVoltControl: WordBool read Get_HasVoltControl;
+    property EnergyMeter: WideString read Get_EnergyMeter;
+    property Controller: WideString read Get_Controller;
   end;
 
 // *********************************************************************//
@@ -409,6 +422,10 @@ type
     property DisplayName: WideString dispid 201;
     property Handle: Integer readonly dispid 202;
     property GUID: WideString readonly dispid 203;
+    property HasSwitchControl: WordBool readonly dispid 204;
+    property HasVoltControl: WordBool readonly dispid 205;
+    property EnergyMeter: WideString readonly dispid 206;
+    property Controller: WideString readonly dispid 207;
   end;
 
 // *********************************************************************//
@@ -498,6 +515,7 @@ type
     function Get_SwtControls: ISwtControls; safecall;
     function Get_CapControls: ICapControls; safecall;
     function Get_RegControls: IRegControls; safecall;
+    function Get_Capacitors: ICapacitors; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -539,6 +557,7 @@ type
     property SwtControls: ISwtControls read Get_SwtControls;
     property CapControls: ICapControls read Get_CapControls;
     property RegControls: IRegControls read Get_RegControls;
+    property Capacitors: ICapacitors read Get_Capacitors;
   end;
 
 // *********************************************************************//
@@ -604,6 +623,7 @@ type
     property SwtControls: ISwtControls readonly dispid 216;
     property CapControls: ICapControls readonly dispid 217;
     property RegControls: IRegControls readonly dispid 218;
+    property Capacitors: ICapacitors readonly dispid 219;
   end;
 
 // *********************************************************************//
@@ -1029,6 +1049,8 @@ type
     procedure SaveAll; safecall;
     procedure OpenAllDIFiles; safecall;
     procedure CloseAllDIFiles; safecall;
+    function Get_CountEndElements: Integer; safecall;
+    function Get_AllEndElements: OleVariant; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -1042,6 +1064,8 @@ type
     property MeteredElement: WideString read Get_MeteredElement write Set_MeteredElement;
     property MeteredTerminal: Integer read Get_MeteredTerminal write Set_MeteredTerminal;
     property DIFilesAreOpen: WordBool read Get_DIFilesAreOpen;
+    property CountEndElements: Integer read Get_CountEndElements;
+    property AllEndElements: OleVariant read Get_AllEndElements;
   end;
 
 // *********************************************************************//
@@ -1072,6 +1096,8 @@ type
     procedure SaveAll; dispid 208;
     procedure OpenAllDIFiles; dispid 209;
     procedure CloseAllDIFiles; dispid 210;
+    property CountEndElements: Integer readonly dispid 211;
+    property AllEndElements: OleVariant readonly dispid 212;
   end;
 
 // *********************************************************************//
@@ -2070,6 +2096,36 @@ type
   end;
 
 // *********************************************************************//
+// Interface: ITopology
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {03FADB98-4F30-416E-ACD2-9BD987A0CBC3}
+// *********************************************************************//
+  ITopology = interface(IDispatch)
+    ['{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}']
+    function Get_NumLoops: Integer; safecall;
+    function Get_NumIsolated: Integer; safecall;
+    function Get_AllLoopElements: OleVariant; safecall;
+    function Get_AllIsolatedElements: OleVariant; safecall;
+    property NumLoops: Integer read Get_NumLoops;
+    property NumIsolated: Integer read Get_NumIsolated;
+    property AllLoopElements: OleVariant read Get_AllLoopElements;
+    property AllIsolatedElements: OleVariant read Get_AllIsolatedElements;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ITopologyDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {03FADB98-4F30-416E-ACD2-9BD987A0CBC3}
+// *********************************************************************//
+  ITopologyDisp = dispinterface
+    ['{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}']
+    property NumLoops: Integer readonly dispid 201;
+    property NumIsolated: Integer readonly dispid 202;
+    property AllLoopElements: OleVariant readonly dispid 203;
+    property AllIsolatedElements: OleVariant readonly dispid 204;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -2357,6 +2413,18 @@ type
     class function CreateRemote(const MachineName: string): IPlot;
   end;
 
+// *********************************************************************//
+// The Class CoTopology provides a Create and CreateRemote method to          
+// create instances of the default interface ITopology exposed by              
+// the CoClass Topology. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoTopology = class
+    class function Create: ITopology;
+    class function CreateRemote(const MachineName: string): ITopology;
+  end;
+
 implementation
 
 uses ComObj;
@@ -2599,6 +2667,16 @@ end;
 class function CoPlot.CreateRemote(const MachineName: string): IPlot;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Plot) as IPlot;
+end;
+
+class function CoTopology.Create: ITopology;
+begin
+  Result := CreateComObject(CLASS_Topology) as ITopology;
+end;
+
+class function CoTopology.CreateRemote(const MachineName: string): ITopology;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Topology) as ITopology;
 end;
 
 end.

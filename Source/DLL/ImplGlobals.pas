@@ -33,6 +33,7 @@ Uses
        ImplLoads,
        ImplActiveClass,
        ImplTransformers,
+       ImplCapacitors,
        ImplSwtControls,
        ImplCapControls,
        ImplRegControls,
@@ -61,6 +62,7 @@ Var
    FCtrlQueue   :ICtrlQueue;
    FLoads       :ILoads;
    FActiveClass :IActiveClass;
+   FCapacitors  :ICapacitors;
    FTransformers:ITransformers;
    FSwtControls :ISwtControls;
    FCapControls :ICapControls;
@@ -107,6 +109,7 @@ Begin
      FCtrlQueue   := TCtrlQueue.Create;
      FLoads       := TLoads.Create;
      FActiveClass := TActiveClass.Create;
+     FCapacitors  := TCapacitors.Create;
      FTransformers:= TTransformers.Create;
      FSwtControls := TSwtControls.Create;
      FCapControls := TCapControls.Create;

@@ -46,6 +46,8 @@ type
     procedure OpenAllDIFiles; safecall;
     procedure SampleAll; safecall;
     procedure SaveAll; safecall;
+    function Get_AllEndElements: OleVariant; safecall;
+    function Get_CountEndElements: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -550,6 +552,24 @@ begin
      IF ActiveCircuit <> Nil THEN Begin
         EnergyMeterClass.SaveAll;
      End;
+end;
+
+function TMeters.Get_AllEndElements: OleVariant;
+begin
+
+end;
+
+function TMeters.Get_CountEndElements: Integer;
+Var
+  pMeterObj :TEnergyMeterObj;
+begin
+  Result := 0;
+  if ActiveCircuit <> Nil then begin
+    pMeterObj :=  TEnergyMeterObj(ActiveCircuit.EnergyMeters.Active);
+    If pMeterObj <> Nil Then Begin
+      Result := pMeterObj.BranchList.ZoneEndsList.NumEnds;
+    End;
+  End;
 end;
 
 initialization

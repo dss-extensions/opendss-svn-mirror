@@ -75,6 +75,8 @@ type
     function Get_RegControls: IRegControls; safecall;
     function Get_SwtControls: ISwtControls; safecall;
     function Get_Transformers: ITransformers; safecall;
+    function Get_Capacitors: ICapacitors; safecall;
+    function Get_Topology: ITopology; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -1014,6 +1016,16 @@ end;
 function TCircuit.Get_Transformers: ITransformers;
 begin
      Result := FTransformers as ITransformers;
+end;
+
+function TCircuit.Get_Capacitors: ICapacitors;
+begin
+     Result := FCapacitors as ICapacitors;
+end;
+
+function TCircuit.Get_Topology: ITopology;
+begin
+
 end;
 
 initialization
