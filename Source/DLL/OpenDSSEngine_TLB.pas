@@ -11,8 +11,8 @@ unit OpenDSSengine_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// PASTLWTR : 1.2
-// File generated on 11/1/2009 7:04:41 PM from Type Library described below.
+// $Rev: 8291 $
+// File generated on 11/2/2009 8:21:57 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -516,6 +516,7 @@ type
     function Get_CapControls: ICapControls; safecall;
     function Get_RegControls: IRegControls; safecall;
     function Get_Capacitors: ICapacitors; safecall;
+    function Get_Topology: ITopology; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -558,6 +559,7 @@ type
     property CapControls: ICapControls read Get_CapControls;
     property RegControls: IRegControls read Get_RegControls;
     property Capacitors: ICapacitors read Get_Capacitors;
+    property Topology: ITopology read Get_Topology;
   end;
 
 // *********************************************************************//
@@ -624,6 +626,7 @@ type
     property CapControls: ICapControls readonly dispid 217;
     property RegControls: IRegControls readonly dispid 218;
     property Capacitors: ICapacitors readonly dispid 219;
+    property Topology: ITopology readonly dispid 220;
   end;
 
 // *********************************************************************//
