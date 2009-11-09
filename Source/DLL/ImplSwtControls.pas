@@ -56,8 +56,8 @@ begin
   elem := ActiveSwtControl;
   if elem <> nil then begin
     Case elem.CurrentAction of
-      CLOSE: Result := dssActionOpen;
-      OPEN: Result := dssActionClose;
+      CLOSE: Result := dssActionClose;
+      OPEN: Result := dssActionOpen;
     End;
   end;
 end;
