@@ -228,7 +228,7 @@ Var
 
 begin
      Case Plottype of
-       ptCircuitPlot, ptDaisyPlot:
+       ptCircuitPlot, ptDaisyPlot, ptGeneralCircuitPlot:
           Case Quantity of
              pqVoltage: Begin
                           pBus := ActiveCircuit.Buses^[bus2Idx];
@@ -256,6 +256,8 @@ begin
              pqCapacity: Result := Color1;
           Else  {Case Quantity}
              Result := Color1;   // Default to black
+             if  (abs(pLine.GeneralPlotQuantity)/Maxscale) > 0.99 then
+               Result := Color2;
           End;
      Else  {Case Plottype}
          Result := Color1;  // Default to black
