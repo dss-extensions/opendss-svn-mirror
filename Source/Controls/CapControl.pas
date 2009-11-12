@@ -472,21 +472,28 @@ Begin
 
          Devindex := GetCktElementIndex(CapacitorName); // Global function
          IF   DevIndex>0
-         THEN Begin  // Both capacitor and monitored element must already exist
-             ControlledElement := ActiveCircuit.CktElements.Get(DevIndex);
-             ControlledCapacitor := This_Capacitor;
-             Nphases := ControlledElement.NPhases;  // Force number of phases to be same   Added 5/21/01  RCD
-             Nconds := FNphases;
-             ControlledElement.ActiveTerminalIdx := 1;  // Make the 1 st terminal active
-             IF  ControlledElement.Closed [0]      // Check state of phases of active terminal
-             THEN PresentState := CLOSE
-             ELSE PresentState := OPEN;
-         End
-         ELSE Begin
-            ControlledElement := nil;   // element not found
-            DoErrorMsg('CapControl: "' + Self.Name + '"', 'Capacitor Element "'+ CapacitorName + '" Not Found.',
-                            ' Element must be defined previously.', 361);
-         End;
+         THEN
+           Begin  // Both capacitor and monitored element must already exist
+                 ControlledElement   := ActiveCircuit.CktElements.Get(DevIndex);
+                 ControlledCapacitor := This_Capacitor;
+                 Nphases := ControlledElement.NPhases;  // Force number of phases to be same   Added 5/21/01  RCD
+                 Nconds  := FNphases;
+                 ControlledElement.ActiveTerminalIdx := 1;  // Make the 1 st terminal active
+                 // Get control synched up with capacitor
+                 With ControlledCapacitor Do
+                   If AvailableSteps = Numsteps
+                     Then ControlledElement.Closed[0] := FALSE
+                     Else ControlledElement.Closed[0] := TRUE;
+                 IF  ControlledElement.Closed [0]      // Check state of phases of active terminal
+                     THEN PresentState := CLOSE
+                     ELSE PresentState := OPEN;
+           End
+         ELSE
+           Begin
+                ControlledElement := nil;   // element not found
+                DoErrorMsg('CapControl: "' + Self.Name + '"', 'Capacitor Element "'+ CapacitorName + '" Not Found.',
+                              ' Element must be defined previously.', 361);
+           End;
 
          InitialState := PresentState;
 

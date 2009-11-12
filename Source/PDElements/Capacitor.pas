@@ -889,6 +889,8 @@ Var i:Integer;
 begin
      InterpretIntArray(Param, FNumsteps, FStates);
 
+     LastStepInService := 0;
+
      For i := FNumsteps downto 1 Do Begin
          If Fstates^[i]=1 then Begin
             LastStepInService := i;
