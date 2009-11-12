@@ -49,6 +49,9 @@ Var
   BankHash: THashList;
   BankList: array of TBankObject;
 
+Const
+  CIM_NS = 'http://iec.ch/TC57/2009/CIM-schema-cim14';
+
 constructor TBankObject.Create(MaxWdg: Integer);
 begin
   maxWindings:=MaxWdg;
@@ -279,9 +282,70 @@ begin
     Result := 'A';
 end;
 
-procedure PhasesNode (var F: TextFile; Node: String; pElem:TDSSCktElement; bus: Integer);
+procedure RegulatingControlEnum (var F: TextFile; val: String);
 begin
-  Writeln (F, Format ('  <cim:%s>%s</cim:%s>', [Node, PhaseString(pElem, bus), Node]));
+  Writeln (F, Format ('  <cim:RegulatingControl.mode rdf:resource="%s#RegulatingControlModeKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure WindingConnectionEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:WindingInfo.connectionKind rdf:resource="%s#WindingConnection.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure ConductorInsulationEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:ConductorInfo.insulationMaterial rdf:resource="%s#ConductorInsulationKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure ConductorUsageEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:ConductorInfo.usage rdf:resource="%s#ConductorUsageKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure CableShieldMaterialEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:CableInfo.shieldMaterial rdf:resource="%s#CableShieldMaterialKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure ConductorMaterialEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:WireType.material rdf:resource="%s#ConductorMaterialKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure CableOuterJacketEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:CableInfo.outerJacketKind rdf:resource="%s#CableOuterJacketKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure CableConstructionEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:CableInfo.constructionKind rdf:resource="%s#CableConstructionKind.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure TransformerControlEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:RatioTapChanger.tculControlMode rdf:resource="%s#TransformerControlMode.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure PhasesEnum (var F: TextFile; pElem:TDSSCktElement; bus: Integer);
+begin
+  Writeln (F, Format ('  <cim:ConductingEquipment.phases rdf:resource="%s#PhaseCode.%s"/>',
+    [CIM_NS, PhaseString(pElem, bus)]));
+end;
+
+procedure MonitoredPhaseNode (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:DistributionTapChanger.monitoredPhase rdf:resource="%s#PhaseCode.%s"/>',
+    [CIM_NS, val]));
 end;
 
 procedure StringNode (var F: TextFile; Node: String; val: String);
@@ -450,16 +514,16 @@ begin
       RefNode (F, 'WindingInfo.TransformerInfo', pXfmr);
       IntegerNode (F, 'WindingInfo.sequenceNumber', i);
       if pXfmr.FNPhases < 3 then begin
-        StringNode (F, 'WindingInfo.connectionKind', 'I');
+        WindingConnectionEnum (F, 'I');
         IntegerNode (F, 'WindingInfo.phaseAngle', 0)
       end else begin
         if Winding^[i].Connection = 1 then
-          StringNode (F, 'WindingInfo.connectionKind', 'D')
+          WindingConnectionEnum (F, 'D')
         else
           if (Winding^[i].Rneut > 0.0) or (Winding^[i].Xneut > 0.0) then
-            StringNode (F, 'WindingInfo.connectionKind', 'Yn')
+            WindingConnectionEnum (F, 'Yn')
           else
-            StringNode (F, 'WindingInfo.connectionKind', 'Y');
+            WindingConnectionEnum (F, 'Y');
         if Winding^[i].Connection <> Winding^[1].Connection then
           IntegerNode (F, 'WindingInfo.phaseAngle', 1)
         else
@@ -523,10 +587,10 @@ begin
   cab.GUID := id;
   cab.LocalName := '606';
   StartInstance (F, 'ConcentricNeutralCableInfo', cab);
-  StringNode (F, 'ConductorInfo.usage', 'distribution');
+  ConductorUsageEnum (F, 'distribution');
   IntegerNode (F, 'ConductorInfo.phaseCount', 3);
   BooleanNode (F, 'ConductorInfo.insulated', True);
-  StringNode (F, 'ConductorInfo.insulationMaterial', 'crosslinkedPolyethylene');
+  ConductorInsulationEnum (F, 'crosslinkedPolyethylene');
   DoubleNode (F, 'ConductorInfo.insulationThickness', 220);
   DoubleNode (F, 'CableInfo.diameterOverCore', 0.575);
   DoubleNode (F, 'CableInfo.diameterOverInsulation', 1.06);
@@ -536,6 +600,8 @@ begin
   IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', 13);
   WireDataClass.code := 'CU_#14';
   If Assigned(ActiveWireDataObj) Then RefNode (F, 'ConcentricNeutralCableInfo.WireType', ActiveWireDataObj);
+  EndInstance (F, 'ConcentricNeutralCableInfo');
+
   WireDataClass.code := 'AA_250';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
@@ -567,10 +633,10 @@ begin
   cab.GUID := id;
   cab.LocalName := '607';
   StartInstance (F, 'TapeShieldCableInfo', cab);
-  StringNode (F, 'ConductorInfo.usage', 'distribution');
+  ConductorUsageEnum (F, 'distribution');
   IntegerNode (F, 'ConductorInfo.phaseCount', 1);
   BooleanNode (F, 'ConductorInfo.insulated', True);
-  StringNode (F, 'ConductorInfo.insulationMaterial', 'crosslinkedPolyethylene');
+  ConductorInsulationEnum (F, 'crosslinkedPolyethylene');
   DoubleNode (F, 'ConductorInfo.insulationThickness', 220);
   DoubleNode (F, 'CableInfo.diameterOverCore', 0.373);
   DoubleNode (F, 'CableInfo.diameterOverInsulation', 0.82);
@@ -660,7 +726,7 @@ Begin
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
     Writeln(F,'-->');
-    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2008/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F,'<!--');
     Writeln(F,'-->');
 
@@ -715,7 +781,7 @@ Begin
 
           StartInstance (F, 'EnergySource', pVsrc);
           CircuitNode (F, ActiveCircuit);
-          PhasesNode (F, 'ConductingEquipment.phases', pVsrc, 1);
+          PhasesEnum (F, pVsrc, 1);
           DoubleNode (F, 'EnergySource.nominalVoltage', kVbase);
           DoubleNode (F, 'EnergySource.voltageMagnitude', kVbase * PerUnit);
           DoubleNode (F, 'EnergySource.voltageAngle', TwoPi * Angle / 360.0);
@@ -734,7 +800,7 @@ Begin
       with pCap do begin
         StartInstance (F, 'ShuntCompensator', pCap);
         CircuitNode (F, ActiveCircuit);
-        PhasesNode (F, 'ConductingEquipment.phases', pCap, 1);
+        PhasesEnum (F, pCap, 1);
         DoubleNode (F, 'ShuntCompensator.nomU', NomKV);
         DoubleNode (F, 'ShuntCompensator.nomQ', TotalKvar);
         DoubleNode (F, 'ShuntCompensator.reactivePerSection', TotalKvar / NumSteps);
@@ -759,11 +825,11 @@ Begin
           v2 := OffValue
         end;
         case CapControlType of
-          CURRENTCONTROL: StringNode (F, 'RegulatingControl.mode', 'currentFlow');
-          VOLTAGECONTROL: StringNode (F, 'RegulatingControl.mode', 'voltage');
-          KVARCONTROL: StringNode (F, 'RegulatingControl.mode', 'reactivePower');
-          TIMECONTROL: StringNode (F, 'RegulatingControl.mode', 'timeScheduled');
-          PFCONTROL, SRPCONTROL: StringNode (F, 'RegulatingControl.mode', 'powerFactor');
+          CURRENTCONTROL: RegulatingControlEnum (F, 'currentFlow');
+          VOLTAGECONTROL: RegulatingControlEnum (F, 'voltage');
+          KVARCONTROL: RegulatingControlEnum (F, 'reactivePower');
+          TIMECONTROL: RegulatingControlEnum (F, 'timeScheduled');
+          PFCONTROL, SRPCONTROL: RegulatingControlEnum (F, 'powerFactor');
         end;
         BooleanNode (F, 'RegulatingControl.discrete', true);
         DoubleNode (F, 'RegulatingControl.targetValue', v1);
@@ -846,7 +912,7 @@ Begin
           pTemp.LocalName := pXf.Name;
           pTemp.GUID := GetDevGuid (Wdg, pTemp.LocalName, i);
           StartInstance (F, 'DistributionTransformerWinding', pTemp);
-          PhasesNode (F, 'ConductingEquipment.phases', pXf, i);
+          PhasesEnum (F, pXf, i);
           RefNode (F, 'DistributionTransformerWinding.Transformer', pXf);
           if XfmrCode = '' then
             GuidNode (F, 'DistributionTransformerWinding.WindingInfo', GetDevGuid (WdgInf, '=' + pXf.Name, i))
@@ -893,7 +959,7 @@ Begin
         BooleanNode (F, 'TapChanger.ltcFlag', True);
         BooleanNode (F, 'TapChanger.regulationStatus', True);
 
-        StringNode (F, 'RatioTapChanger.tculControlMode', 'volt');
+        TransformerControlEnum (F, 'volt');
 
         DoubleNode (F, 'DistributionTapChanger.ptRatio', PT);
         DoubleNode (F, 'DistributionTapChanger.ctRatio', CT);
@@ -913,8 +979,7 @@ Begin
           DoubleNode (F, 'DistributionTapChanger.limitVoltage', VoltageLimit)
         else
           DoubleNode (F, 'DistributionTapChanger.limitVoltage', 0.0);
-        StringNode (F, 'DistributionTapChanger.monitoredPhase',
-          FirstPhaseString (Transformer, TrWinding));
+        MonitoredPhaseNode (F, FirstPhaseString (Transformer, TrWinding));
         EndInstance (F, 'DistributionTapChanger');
 
         StartFreeInstance (F, 'SvTapStep');
@@ -939,7 +1004,7 @@ Begin
         if IsSwitch then begin
           StartInstance (F, 'LoadBreakSwitch', pLine);
           CircuitNode (F, ActiveCircuit);
-          PhasesNode (F, 'ConductingEquipment.phases', pLine, 1);
+          PhasesEnum (F, pLine, 1);
           if pLine.Closed[0] then
             StringNode (F, 'Switch.normalOpen', 'false')
           else
@@ -951,7 +1016,7 @@ Begin
             StartInstance (F, 'ACLineSegment', pLine);
             CircuitNode (F, ActiveCircuit);
             DoubleNode (F, 'Conductor.length', Len);
-            PhasesNode (F, 'ConductingEquipment.phases', pLine, 1);
+            PhasesEnum (F, pLine, 1);
             DoubleNode (F, 'ACLineSegment.r', R1);
             DoubleNode (F, 'ACLineSegment.x', X1);
             DoubleNode (F, 'ACLineSegment.bch', C1 * val);
@@ -963,7 +1028,7 @@ Begin
             StartInstance (F, 'DistributionLineSegment', pLine);
             CircuitNode (F, ActiveCircuit);
             DoubleNode (F, 'Conductor.length', Len);
-            PhasesNode (F, 'ConductingEquipment.phases', pLine, 1);
+            PhasesEnum (F, pLine, 1);
             if GeometrySpecified then GeometryRefNode (F, clsGeom, GeometryCode);
             if LineCodeSpecified then LineCodeRefNode (F, clsCode, CondCode);
             EndInstance (F, 'DistributionLineSegment')
@@ -1018,7 +1083,7 @@ Begin
         with pLoad do begin
           StartInstance (F, 'EnergyConsumer', pLoad);
           CircuitNode (F, ActiveCircuit);
-          PhasesNode (F, 'ConductingEquipment.phases', pLoad, 1);
+          PhasesEnum (F, pLoad, 1);
           case FLoadModel of
             1: GuidNode (F, 'EnergyConsumer.LoadResponse', id1_ConstkVA);
             2: GuidNode (F, 'EnergyConsumer.LoadResponse', id2_ConstZ);
@@ -1078,15 +1143,15 @@ Begin
       with pWire do begin
         StringNode (F, 'WireType.sizeDescription', DisplayName);
         if CompareText (LeftStr (LocalName, 2), 'AA') = 0 then
-          StringNode (F, 'WireType.material', 'aluminum')
+          ConductorMaterialEnum (F, 'aluminum')
         else if CompareText (LeftStr (LocalName, 4), 'ACSR') = 0 then
-          StringNode (F, 'WireType.material', 'acsr')
+          ConductorMaterialEnum (F, 'acsr')
         else if CompareText (LeftStr (LocalName, 2), 'CU') = 0 then
-          StringNode (F, 'WireType.material', 'copper')
+          ConductorMaterialEnum (F, 'copper')
         else if CompareText (LeftStr (LocalName, 3), 'EHS') = 0 then
-          StringNode (F, 'WireType.material', 'steel')
+          ConductorMaterialEnum (F, 'steel')
         else
-          StringNode (F, 'WireType.material', 'other');
+          ConductorMaterialEnum (F, 'other');
         DoubleNode (F, 'WireType.gmr', GMR);
         DoubleNode (F, 'WireType.radius', Radius);
         DoubleNode (F, 'WireType.rDC20', Rdc);
@@ -1106,7 +1171,7 @@ Begin
     while pGeom <> nil do begin
       with pGeom do begin
         StartInstance (F, 'OverheadConductorInfo', pGeom);
-        StringNode (F, 'ConductorInfo.usage', 'distribution');
+        ConductorUsageEnum (F, 'distribution');
         IntegerNode (F, 'ConductorInfo.phaseCount', Nphases);
         BooleanNode (F, 'ConductorInfo.insulated', false);
         IntegerNode (F, 'OverheadConductorInfo.phaseConductorCount', 1);
