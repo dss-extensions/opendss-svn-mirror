@@ -1300,6 +1300,7 @@ Begin
                     End;
                'C': PlotType := ptCircuitplot;
                'G': PlotType := ptGeneralDataPlot;
+               'L': PlotType := ptLoadshape;
                'M': PlotType := ptMonitorplot;
                'D': Begin
                       PlotType := ptDaisyplot;

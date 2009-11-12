@@ -1956,15 +1956,15 @@ procedure TControlPanel.Loadshape1Click(Sender: TObject);
 begin
        If activeCircuit=nil Then Exit;
 
-       If Not Assigned(DSSPlotObj) Then DSSPlotObj := TDSSPlot.Create;
-
-       DSSPlotObj.SetDefaults;
+     {  If Not Assigned(DSSPlotObj) Then DSSPlotObj := TDSSPlot.Create;
+       DSSPlotObj.SetDefaults;  }
 
        If compareText(classbox.text, 'loadshape')=0 then
        Begin
-         Screen.Cursor := crHourglass;
+         {Screen.Cursor := crHourglass;
          DSSPlotObj.DoLoadShapePlot(elementbox.Text );
-         Screen.Cursor := crDefault;
+         Screen.Cursor := crDefault;  }
+         ActiveScriptForm.ExecuteDSSCommand(Format('plot Loadshape Object=%s',[elementbox.text]));
        End
        Else DoSimpleMsg('Select "loadshape" element before executing this command.', 216);
 

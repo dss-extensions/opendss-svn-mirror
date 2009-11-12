@@ -200,12 +200,12 @@ Begin
                          'Disable generator.*  (Disables all generators)'+CRLF+ CRLF+
                          'The item remains defined, but is not included in the solution.';
      CommandHelp[12] := 'Plots results in a variety of manners.  Implemented options (in order): ' + CRLF +
-                        'Type = {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) }'+ CRLF +
+                        'Type = {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape }'+ CRLF +
                         'Quantity = {Voltage | Current | Power | Losses | Capacity | (Value Index for General, AutoAdd, or Circuit[w/ file]) }' + CRLF +
                         'Max = {0 | value corresponding to max scale or line thickness}' + CRLF +
                         'Dots = {Y | N}' + CRLF +
                         'Labels = {Y | N}' + CRLF +
-                        'Object = [metername for Zone plot | Monitor name | File Name for General bus data or Circuit branch data]' + CRLF +
+                        'Object = [metername for Zone plot | Monitor name | LoadShape Name | File Name for General bus data or Circuit branch data]' + CRLF +
                         'ShowLoops = {Y | N} (default=N)' + CRLF +
                         'R3 = pu value for tri-color plot max range [.85] (Color C3)' + CRLF +
                         'R2 = pu value for tri-color plot mid range [.50] (Color C2)' + CRLF +
@@ -219,6 +219,7 @@ Begin
                         'Plot daisy power 5000 dots=N !! Generators by default'+CRLF+
                         'Plot daisy power 5000 dots=N Buslist=[file=MyBusList.txt]'+CRLF+
                         'Plot circuit quantity=7 Max=.010 dots=Y Object=branchdata.csv'+CRLF+
+                        'Plot Loadshape Object=LoadshapeName'+CRLF+
                         'Plot General Quantity=2 Object=valuefile.csv';
      CommandHelp[13] := '{MOnitors | MEters | Faults | Controls | Eventlog | Keeplist |(no argument) } Resets all Monitors, Energymeters, etc. ' +
                          'If no argument specified, resets all options listed.';

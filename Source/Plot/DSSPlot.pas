@@ -33,7 +33,7 @@ Const
 
 
 Type
-     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones) ;
+     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape) ;
      TPlotQuantity = (pqVoltage, pqCurrent, pqPower, pqLosses, pqCapacity, pqNone );
 
      TDSSPlot = class(TObject)
@@ -699,6 +699,10 @@ Begin
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
+         ptLoadShape: Begin
+                DoLoadShapePlot(ObjectName) ;
+                Exit;  // All we need to do here
+             End;
          ptMeterZones: Begin
                 DoMeterZonePlot;
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
@@ -716,7 +720,7 @@ Begin
                       If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                       If ShowSubs Then MarkSubTransformers;
                       DoTheDaisies;
-                    End;
+              End;
 
        ELSE   {Case PlotType}
            {Nada}
@@ -935,7 +939,10 @@ Var
 
 begin
      Load_Shape :=  LoadShapeClass.Find(LoadShapeName);
-     If Load_Shape=Nil Then Exit;
+     If Load_Shape=Nil Then Begin
+         DosimpleMsg('Loadshape object not found: "' + LoadShapeName + '"', 87341);
+         Exit;
+     End;
      
      UseXarray := FALSE;
      Xarray := Nil;
@@ -964,6 +971,8 @@ begin
      MakeNewGraph;
      S  := 'Loadshape.' + LoadshapeName;
      Set_Caption(pchar(S), Length(S));
+     S  := 'Loadshape = ' + LoadshapeName;
+     Set_ChartCaption(pchar(S), Length(S));
      Set_XaxisLabel(pchar(Xlabel), Length(Xlabel)) ;
      Set_YaxisLabel(pchar('p.u.'), 4);
 
@@ -989,6 +998,7 @@ Begin
   For i := 1 to NumEMRegisters Do RegisterArray^[i] := RegisterArray^[i] * 0.001;
 End;
 
+{---------------------------------------------------------}
 Procedure PeakDayLoadRegisters(Var F:TextFile; RegisterArray:pDoubleArray);
 Var
     iday, i       :Integer;
