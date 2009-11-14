@@ -268,7 +268,7 @@ end;
 
 procedure CircuitNode (var F: TextFile; Obj: TNamedObject);
 begin
-  Writeln(F, Format('  <cim:Equipment.MemberOf_Line rdf:resource="#%s"/>', [Obj.CIM_ID]));
+  Writeln(F, Format('  <cim:Equipment.EquipmentContainer rdf:resource="#%s"/>', [Obj.CIM_ID]));
 end;
 
 function FirstPhaseString (pElem:TDSSCktElement; bus: Integer): String;
