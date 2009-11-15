@@ -504,7 +504,7 @@ Begin
            12: kvarBase     := Parser.DblValue;
            13: Rneut        := Parser.DblValue;
            14: Xneut        := Parser.DblValue;
-           15: CASE Param[1] OF
+           15: CASE lowercase(Param)[1] OF
                   'f':Begin Fixed := TRUE;  ExemptFromLDCurve := FALSE; End;
                   'e':Begin Fixed := FALSE; ExemptFromLDCurve := TRUE;  End;
                ELSE

@@ -133,7 +133,7 @@ TYPE
         DQDVSaved       :Double;
         FForcedON       :Boolean;
         FirstSampleAfterReset  :Boolean;
-        Fixed           :Boolean;   // if Fixed, always at base value
+        IsFixed         :Boolean;   // if Fixed, always at base value
         GeneratorSolutionCount    :Integer;
         GenFundamental  :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         GenON           :Boolean;           {Indicates whether generator is currently on}
@@ -586,7 +586,7 @@ Begin
            13: Presentkvar   := Parser.DblValue;
            14: DoSimpleMsg('Rneut property has been deleted. Use external impedance.', 5611);
            15: DoSimpleMsg('Xneut property has been deleted. Use external impedance.', 5612);
-           16: If Param[1]='f' Then Fixed := TRUE ELSE Fixed := FALSE;
+           16: If lowercase(Param[1])='f' Then IsFixed := TRUE ELSE IsFixed := FALSE;
            17: GenClass     := Parser.IntValue;
            18: Vpu          := Parser.DblValue;
            19: kvarMax      := Parser.DblValue;
@@ -701,7 +701,7 @@ Begin
        DispatchValue  := OtherGenerator.DispatchValue;
        GenClass       := OtherGenerator.GenClass;
        GenModel       := OtherGenerator.GenModel;
-       Fixed          := OtherGenerator.Fixed;
+       IsFixed        := OtherGenerator.IsFixed;
        VTarget        := OtherGenerator.VTarget;
        Vpu            := OtherGenerator.Vpu;
        kvarMax        := OtherGenerator.kvarMax;
@@ -842,7 +842,7 @@ Begin
      VBase105         := Vmaxpu * Vbase;
      Yorder           := Fnterms * Fnconds;
      RandomMult       := 1.0 ;
-     Fixed            := FALSE;
+     IsFixed          := FALSE;
 
      {Machine rating stuff}
      GenVars.kVArating  := kWBase *1.2;
@@ -985,7 +985,7 @@ Begin
     ELSE
       Begin    // Generator is on, compute it's nominal watts and vars
         With Solution Do
-          If Fixed Then
+          If IsFixed Then
             Begin
                Factor := 1.0;   // for fixed generators, set constant
             End
