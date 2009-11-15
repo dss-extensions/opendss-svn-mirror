@@ -69,6 +69,8 @@ TYPE
        Function Init(Handle:Integer):Integer; override;
        Function NewObject(const ObjName:String):Integer; override;
 
+       Function Find(const ObjName:String):Pointer; override;  // Find an obj of this class by name
+
        Procedure TOPExport(ObjName:String);
 
        // Set this property to point ActiveLoadShapeObj to the right value
@@ -268,7 +270,7 @@ BEGIN
             7: DoCSVFile(Param);
             8: DoSngFile(Param);
             9: DoDblFile(Param);
-           10: IF Param[1]='n' THEN Normalize;
+           10: IF lowercase(Param[1])='n' THEN Normalize;
            11: BEGIN
                  ReAllocmem(QMultipliers, Sizeof(QMultipliers^[1])*NumPoints);
                  InterpretDblArray(Param, NumPoints, QMultipliers);   // Parser.ParseAsVector(Npts, Multipliers);
@@ -296,6 +298,12 @@ BEGIN
      END; {WHILE}
   END; {WITH}
 END;
+
+function TLoadShape.Find(const ObjName: String): Pointer;
+begin
+      If (Length(ObjName)=0) or (CompareText(ObjName, 'none')=0) Then Result := Nil
+      Else Result := Inherited Find(ObjName);
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function TLoadShape.MakeLike(Const ShapeName:String):Integer;

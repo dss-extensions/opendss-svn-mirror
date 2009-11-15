@@ -25,6 +25,7 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     procedure Set_SwitchedObj(const Value: WideString); safecall;
     procedure Set_SwitchedTerm(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -68,7 +69,11 @@ Var
   lst: TPointerList;
   k: Integer;
 Begin
-  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  Result[0] := 'NONE';
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO
+  If SwtControls.ListSize > 0 Then
+  Begin
     lst := SwtControls;
     Result := VarArrayCreate([0, lst.ListSize-1], varOleStr);
     k:=0;
@@ -78,7 +83,7 @@ Begin
       Inc(k);
       elem := lst.Next;
     End;
-  End ELSE Result := VarArrayCreate([0, 0], varOleStr);
+  End;
 end;
 
 function TSwtControls.Get_Delay: Double;
@@ -239,6 +244,12 @@ end;
 procedure TSwtControls.Set_SwitchedTerm(Value: Integer);
 begin
   Set_Parameter ('SwitchedTerm', IntToStr (Value));
+end;
+
+function TSwtControls.Get_Count: Integer;
+begin
+     If Assigned(ActiveCircuit) Then
+             Result := ActiveCircuit.SwtControls.ListSize;
 end;
 
 initialization

@@ -65,13 +65,14 @@ type
     function Get_NumCust: Integer; safecall;
     function Get_TotalCust: Integer; safecall;
     function Get_Parent: Integer; safecall;
+    function Get_Count: Integer; safecall;
     { Protected declarations }
   end;
 
 implementation
 
 uses ComServ, Line, DSSClassDefs, DSSGlobals, CktElement,
-  uComplex, ExecHelper, dialogs, Sysutils, ParserDel, Variants;
+  uComplex, ExecHelper, dialogs, Sysutils, ParserDel, Variants, Math;
 
 Function IsLine(Const CktElem:TDSSCktElement):Boolean;
 
@@ -88,10 +89,13 @@ Var
   k:Integer;
 
 Begin
+    Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
     IF ActiveCircuit <> Nil THEN
      WITH ActiveCircuit DO
+     If Lines.ListSize>0 Then
      Begin
-       Result := VarArrayCreate([0, Lines.ListSize-1], varOleStr);
+       VarArrayRedim(Result, Lines.ListSize-1);
        k:=0;
        LineElem := Lines.First;
        WHILE LineElem<>Nil DO
@@ -100,8 +104,7 @@ Begin
           Inc(k);
           LineElem := Lines.Next;
        End;
-     End
-    ELSE Result := VarArrayCreate([0, 0], varOleStr);
+     End;
 
 end;
 
@@ -837,6 +840,11 @@ Begin
               End;
           End;
      End;
+
+end;
+
+function TLines.Get_Count: Integer;
+begin
 
 end;
 

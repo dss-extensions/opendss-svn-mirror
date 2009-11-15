@@ -37,6 +37,7 @@ type
     procedure Set_kW(Value: Double); safecall;
     procedure Set_PF(Value: Double); safecall;
     procedure Set_Phases(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -65,10 +66,13 @@ Var
   k:Integer;
 
 Begin
+    Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
     IF ActiveCircuit <> Nil THEN
      WITH ActiveCircuit DO
+     If Generators.ListSize>0 Then
      Begin
-       Result := VarArrayCreate([0, Generators.ListSize-1], varOleStr);
+       VarArrayRedim(result, Generators.ListSize-1);
        k:=0;
        GenElem := Generators.First;
        WHILE GenElem<>Nil DO  Begin
@@ -76,8 +80,7 @@ Begin
           Inc(k);
           GenElem := Generators.Next;
        End;
-     End
-    ELSE Result := VarArrayCreate([0, 0], varOleStr);
+     End;
 end;
 
 
@@ -378,6 +381,12 @@ begin
            End;
        End;
    End;
+end;
+
+function TGenerators.Get_Count: Integer;
+begin
+    If Assigned(Activecircuit) Then
+          Result := ActiveCircuit.Generators.ListSize;
 end;
 
 initialization

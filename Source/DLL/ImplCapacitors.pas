@@ -23,6 +23,7 @@ type
     procedure Set_kvar(Value: Double); safecall;
     procedure Set_Name(const Value: WideString); safecall;
     procedure Set_NumSteps(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -52,9 +53,13 @@ Var
   lst: TPointerList;
   k: Integer;
 Begin
-  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  Result[0] := 'NONE';
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO
+  If ShuntCapacitors.ListSize > 0 then
+  Begin
     lst := ShuntCapacitors;
-    Result := VarArrayCreate([0, lst.ListSize-1], varOleStr);
+    VarArrayRedim(Result, lst.ListSize-1);
     k:=0;
     elem := lst.First;
     WHILE elem<>Nil DO Begin
@@ -62,7 +67,7 @@ Begin
       Inc(k);
       elem := lst.Next;
     End;
-  End ELSE Result := VarArrayCreate([0, 0], varOleStr);
+  End;
 end;
 
 function TCapacitors.Get_First: Integer;
@@ -204,6 +209,12 @@ end;
 procedure TCapacitors.Set_NumSteps(Value: Integer);
 begin
   Set_Parameter ('numsteps', IntToStr (Value));
+end;
+
+function TCapacitors.Get_Count: Integer;
+begin
+     If Assigned(ActiveCircuit) Then
+          Result := ActiveCircuit.ShuntCapacitors.ListSize;
 end;
 
 initialization

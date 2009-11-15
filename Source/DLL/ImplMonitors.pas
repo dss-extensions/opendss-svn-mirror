@@ -35,6 +35,7 @@ type
     function Get_SampleCount: Integer; safecall;
     procedure SampleAll; safecall;
     procedure SaveAll; safecall;
+    function Get_Count: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -45,7 +46,8 @@ uses ComServ,
      DSSGlobals,
      SysUtils,
      Classes,
-     Variants;
+     Variants,
+     Math;
 
 function TMonitors.Get_AllNames: OleVariant;
 Var
@@ -53,9 +55,13 @@ Var
   k:Integer;
 
 Begin
+    Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
     IF ActiveCircuit <> Nil THEN
-     WITH ActiveCircuit DO Begin
-       Result := VarArrayCreate([0, Monitors.ListSize-1], varOleStr);
+     WITH ActiveCircuit DO
+     If Monitors.ListSize>0 Then
+     Begin
+       VarArrayRedim(Result, Monitors.ListSize-1);
        k:=0;
        MonitorElem := Monitors.First;
        WHILE MonitorElem<>Nil DO Begin
@@ -63,8 +69,7 @@ Begin
           Inc(k);
           MonitorElem := Monitors.Next;
        End;
-     End
-    ELSE Result := VarArrayCreate([0, 0], varOleStr);
+     End;
 end;
 
 function TMonitors.Get_FileName: WideString;
@@ -332,6 +337,13 @@ procedure TMonitors.SaveAll;
 begin
      If ActiveCircuit <> Nil Then Begin
          MonitorClass.SaveAll;
+     End;
+end;
+
+function TMonitors.Get_Count: Integer;
+begin
+    If ActiveCircuit <> Nil Then Begin
+         Result := ActiveCircuit.Monitors.ListSize;
      End;
 end;
 

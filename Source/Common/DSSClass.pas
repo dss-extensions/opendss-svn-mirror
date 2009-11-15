@@ -73,7 +73,7 @@ TYPE
 
          Function SetActive(const ObjName:String):Boolean; Virtual;
          Function GetActiveObj:Pointer; // Get address of active obj of this class
-         Function Find(const ObjName:String):Pointer;  // Find an obj of this class by name
+         Function Find(const ObjName:String):Pointer; Virtual;  // Find an obj of this class by name
 
          Function PropertyIndex(Const Prop:String):Integer;
          Property FirstPropertyName:String read Get_FirstPropertyName;

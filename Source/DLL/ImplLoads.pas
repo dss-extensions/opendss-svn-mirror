@@ -25,6 +25,7 @@ type
     procedure Set_kvar(Value: Double); safecall;
     procedure Set_kW(Value: Double); safecall;
     procedure Set_PF(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -38,10 +39,13 @@ Var
   k:Integer;
 
 Begin
+    Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
     IF ActiveCircuit <> Nil THEN
      WITH ActiveCircuit DO
+     If Loads.ListSize > 0 Then
      Begin
-       Result := VarArrayCreate([0, Loads.ListSize-1], varOleStr);
+       VarArrayRedim(Result, Loads.ListSize-1);
        k:=0;
        LoadElem := Loads.First;
        WHILE LoadElem<>Nil DO  Begin
@@ -49,9 +53,7 @@ Begin
           Inc(k);
           LoadElem := Loads.Next;
        End;
-     End
-    ELSE Result := VarArrayCreate([0, 0], varOleStr);
-
+     End ;
 end;
 
 function TLoads.Get_First: Integer;
@@ -273,6 +275,12 @@ begin
              End;
          End;
    End;
+end;
+
+function TLoads.Get_Count: Integer;
+begin
+    If Assigned(ActiveCircuit) Then
+       Result := ActiveCircuit.Loads.ListSize ;
 end;
 
 initialization

@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 11/12/2009 7:54:22 AM from Type Library described below.
+// File generated on 11/14/2009 11:20:18 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -984,6 +984,7 @@ type
     function Get_SampleCount: Integer; safecall;
     procedure SampleAll; safecall;
     procedure SaveAll; safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -992,6 +993,7 @@ type
     property Name: WideString read Get_Name write Set_Name;
     property ByteStream: OleVariant read Get_ByteStream;
     property SampleCount: Integer read Get_SampleCount;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1016,6 +1018,7 @@ type
     property SampleCount: Integer readonly dispid 13;
     procedure SampleAll; dispid 201;
     procedure SaveAll; dispid 202;
+    property Count: Integer readonly dispid 203;
   end;
 
 // *********************************************************************//
@@ -1054,6 +1057,7 @@ type
     procedure CloseAllDIFiles; safecall;
     function Get_CountEndElements: Integer; safecall;
     function Get_AllEndElements: OleVariant; safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -1069,6 +1073,7 @@ type
     property DIFilesAreOpen: WordBool read Get_DIFilesAreOpen;
     property CountEndElements: Integer read Get_CountEndElements;
     property AllEndElements: OleVariant read Get_AllEndElements;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1101,6 +1106,7 @@ type
     procedure CloseAllDIFiles; dispid 210;
     property CountEndElements: Integer readonly dispid 211;
     property AllEndElements: OleVariant readonly dispid 212;
+    property Count: Integer readonly dispid 213;
   end;
 
 // *********************************************************************//
@@ -1129,6 +1135,7 @@ type
     procedure Set_PF(Value: Double); safecall;
     function Get_Phases: Integer; safecall;
     procedure Set_Phases(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property RegisterNames: OleVariant read Get_RegisterNames;
     property RegisterValues: OleVariant read Get_RegisterValues;
@@ -1141,6 +1148,7 @@ type
     property kvar: Double read Get_kvar write Set_kvar;
     property PF: Double read Get_PF write Set_PF;
     property Phases: Integer read Get_Phases write Set_Phases;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1162,6 +1170,7 @@ type
     property kvar: Double dispid 203;
     property PF: Double dispid 204;
     property Phases: Integer dispid 205;
+    property Count: Integer readonly dispid 206;
   end;
 
 // *********************************************************************//
@@ -1339,6 +1348,7 @@ type
     function Get_NumCust: Integer; safecall;
     function Get_TotalCust: Integer; safecall;
     function Get_Parent: Integer; safecall;
+    function Get_Count: Integer; safecall;
     property Name: WideString read Get_Name write Set_Name;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
@@ -1367,6 +1377,7 @@ type
     property NumCust: Integer read Get_NumCust;
     property TotalCust: Integer read Get_TotalCust;
     property Parent: Integer read Get_Parent;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1405,6 +1416,7 @@ type
     property NumCust: Integer readonly dispid 201;
     property TotalCust: Integer readonly dispid 202;
     property Parent: Integer readonly dispid 203;
+    property Count: Integer readonly dispid 204;
   end;
 
 // *********************************************************************//
@@ -1472,6 +1484,7 @@ type
     procedure Set_kvar(Value: Double); safecall;
     function Get_PF: Double; safecall;
     procedure Set_PF(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -1481,6 +1494,7 @@ type
     property kV: Double read Get_kV write Set_kV;
     property kvar: Double read Get_kvar write Set_kvar;
     property PF: Double read Get_PF write Set_PF;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1499,6 +1513,7 @@ type
     property kV: Double dispid 207;
     property kvar: Double dispid 208;
     property PF: Double dispid 209;
+    property Count: Integer readonly dispid 210;
   end;
 
 // *********************************************************************//
@@ -1588,6 +1603,7 @@ type
     function Get_Next: Integer; safecall;
     function Get_Name: WideString; safecall;
     procedure Set_Name(const Value: WideString); safecall;
+    function Get_Count: Integer; safecall;
     property kV: Double read Get_kV write Set_kV;
     property kvar: Double read Get_kvar write Set_kvar;
     property NumSteps: Integer read Get_NumSteps write Set_NumSteps;
@@ -1596,6 +1612,7 @@ type
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
     property Name: WideString read Get_Name write Set_Name;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1613,6 +1630,7 @@ type
     property First: Integer readonly dispid 206;
     property Next: Integer readonly dispid 207;
     property Name: WideString dispid 208;
+    property Count: Integer readonly dispid 209;
   end;
 
 // *********************************************************************//
@@ -1659,6 +1677,7 @@ type
     function Get_First: Integer; safecall;
     function Get_Next: Integer; safecall;
     function Get_AllNames: OleVariant; safecall;
+    function Get_Count: Integer; safecall;
     property NumWindings: Integer read Get_NumWindings write Set_NumWindings;
     property XfmrCode: WideString read Get_XfmrCode write Set_XfmrCode;
     property Wdg: Integer read Get_Wdg write Set_Wdg;
@@ -1679,6 +1698,7 @@ type
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
     property AllNames: OleVariant read Get_AllNames;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1708,6 +1728,7 @@ type
     property First: Integer readonly dispid 218;
     property Next: Integer readonly dispid 219;
     property AllNames: OleVariant readonly dispid 220;
+    property Count: Integer readonly dispid 221;
   end;
 
 // *********************************************************************//
@@ -1732,6 +1753,7 @@ type
     procedure Set_SwitchedObj(const Value: WideString); safecall;
     function Get_SwitchedTerm: Integer; safecall;
     procedure Set_SwitchedTerm(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property Name: WideString read Get_Name write Set_Name;
     property First: Integer read Get_First;
@@ -1741,6 +1763,7 @@ type
     property Delay: Double read Get_Delay write Set_Delay;
     property SwitchedObj: WideString read Get_SwitchedObj write Set_SwitchedObj;
     property SwitchedTerm: Integer read Get_SwitchedTerm write Set_SwitchedTerm;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1759,6 +1782,7 @@ type
     property Delay: Double dispid 207;
     property SwitchedObj: WideString dispid 208;
     property SwitchedTerm: Integer dispid 209;
+    property Count: Integer readonly dispid 210;
   end;
 
 // *********************************************************************//
@@ -1801,6 +1825,7 @@ type
     procedure Set_DelayOff(Value: Double); safecall;
     function Get_DeadTime: Double; safecall;
     procedure Set_DeadTime(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property Name: WideString read Get_Name write Set_Name;
     property First: Integer read Get_First;
@@ -1819,6 +1844,7 @@ type
     property Delay: Double read Get_Delay write Set_Delay;
     property DelayOff: Double read Get_DelayOff write Set_DelayOff;
     property DeadTime: Double read Get_DeadTime write Set_DeadTime;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1846,6 +1872,7 @@ type
     property Delay: Double dispid 216;
     property DelayOff: Double dispid 217;
     property DeadTime: Double dispid 218;
+    property Count: Integer readonly dispid 219;
   end;
 
 // *********************************************************************//
@@ -1900,6 +1927,7 @@ type
     procedure Set_ReverseBand(Value: Double); safecall;
     function Get_ReverseVreg: Double; safecall;
     procedure Set_ReverseVreg(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property Name: WideString read Get_Name write Set_Name;
     property First: Integer read Get_First;
@@ -1924,6 +1952,7 @@ type
     property ForwardVreg: Double read Get_ForwardVreg write Set_ForwardVreg;
     property ReverseBand: Double read Get_ReverseBand write Set_ReverseBand;
     property ReverseVreg: Double read Get_ReverseVreg write Set_ReverseVreg;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1957,6 +1986,7 @@ type
     property ForwardVreg: Double dispid 222;
     property ReverseBand: Double dispid 223;
     property ReverseVreg: Double dispid 224;
+    property Count: Integer readonly dispid 225;
   end;
 
 // *********************************************************************//

@@ -48,6 +48,7 @@ type
     procedure SaveAll; safecall;
     function Get_AllEndElements: OleVariant; safecall;
     function Get_CountEndElements: Integer; safecall;
+    function Get_Count: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -69,8 +70,10 @@ Var
 
 Begin
     Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
     IF ActiveCircuit <> Nil THEN
      WITH ActiveCircuit DO
+     If EnergyMeters.ListSize>0 Then
      Begin
        VarArrayRedim(Result, EnergyMeters.ListSize-1);
        k:=0;
@@ -589,6 +592,12 @@ begin
       Result := pMeterObj.BranchList.ZoneEndsList.NumEnds;
     End;
   End;
+end;
+
+function TMeters.Get_Count: Integer;
+begin
+     If Assigned(ActiveCircuit) Then
+       Result := ActiveCircuit.EnergyMeters.ListSize;
 end;
 
 initialization

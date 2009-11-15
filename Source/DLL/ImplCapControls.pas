@@ -43,6 +43,7 @@ type
     procedure Set_UseVoltOverride(Value: WordBool); safecall;
     procedure Set_Vmax(Value: Double); safecall;
     procedure Set_Vmin(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -72,9 +73,13 @@ Var
   lst: TPointerList;
   k: Integer;
 Begin
-  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  Result[0] := 'NONE';
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO
+  If CapControls.ListSize > 0 Then
+  Begin
     lst := CapControls;
-    Result := VarArrayCreate([0, lst.ListSize-1], varOleStr);
+    VarArrayRedim(Result, lst.ListSize-1);
     k:=0;
     elem := lst.First;
     WHILE elem<>Nil DO Begin
@@ -82,7 +87,7 @@ Begin
       Inc(k);
       elem := lst.Next;
     End;
-  End ELSE Result := VarArrayCreate([0, 0], varOleStr);
+  End;
 end;
 
 function TCapControls.Get_Capacitor: WideString;
@@ -384,6 +389,12 @@ end;
 procedure TCapControls.Set_Vmin(Value: Double);
 begin
   Set_Parameter ('Vmin', FloatToStr (value));
+end;
+
+function TCapControls.Get_Count: Integer;
+begin
+     If Assigned(ActiveCircuit) Then
+              Result := ActiveCircuit.CapControls.ListSize ;
 end;
 
 initialization

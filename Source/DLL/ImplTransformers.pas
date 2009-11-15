@@ -47,6 +47,7 @@ type
     procedure Set_Xht(Value: Double); safecall;
     procedure Set_Xlt(Value: Double); safecall;
     procedure Set_Xneut(Value: Double); safecall;
+    function Get_Count: Integer; safecall;
   end;
 
 implementation
@@ -76,17 +77,21 @@ Var
   lst: TPointerList;
   k: Integer;
 Begin
-  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
-    lst := Transformers;
-    Result := VarArrayCreate([0, lst.ListSize-1], varOleStr);
-    k:=0;
-    elem := lst.First;
-    WHILE elem<>Nil DO Begin
-      Result[k] := elem.Name;
-      Inc(k);
-      elem := lst.Next;
+  Result := VarArrayCreate([0, 0], varOleStr);
+  Result[0] := 'NONE';
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO
+  If Transformers.ListSize > 0 Then
+    Begin
+      lst := Transformers;
+      VarArrayRedim(Result, lst.ListSize-1);
+      k:=0;
+      elem := lst.First;
+      WHILE elem<>Nil DO Begin
+        Result[k] := elem.Name;
+        Inc(k);
+        elem := lst.Next;
+      End;
     End;
-  End ELSE Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
 function TTransformers.Get_First: Integer;
@@ -416,6 +421,12 @@ end;
 procedure TTransformers.Set_Xneut(Value: Double);
 begin
   Set_Parameter ('Xneut', FloatToStr (Value));
+end;
+
+function TTransformers.Get_Count: Integer;
+begin
+     If Assigned(ActiveCircuit) Then
+          Result := ActiveCircuit.Transformers.ListSize;
 end;
 
 initialization

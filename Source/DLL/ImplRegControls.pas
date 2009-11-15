@@ -55,6 +55,7 @@ type
     procedure Set_Transformer(const Value: WideString); safecall;
     procedure Set_VoltageLimit(Value: Double); safecall;
     procedure Set_Winding(Value: Integer); safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -84,17 +85,21 @@ Var
   lst: TPointerList;
   k: Integer;
 Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  Result[0] := 'NONE';
   IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
     lst := RegControls;
-    Result := VarArrayCreate([0, lst.ListSize-1], varOleStr);
-    k:=0;
-    elem := lst.First;
-    WHILE elem<>Nil DO Begin
-      Result[k] := elem.Name;
-      Inc(k);
-      elem := lst.Next;
+    If lst.ListSize > 0 Then Begin
+      VarArrayRedim(Result, lst.ListSize-1);
+      k:=0;
+      elem := lst.First;
+      WHILE elem<>Nil DO Begin
+        Result[k] := elem.Name;
+        Inc(k);
+        elem := lst.Next;
+      End;
     End;
-  End ELSE Result := VarArrayCreate([0, 0], varOleStr);
+  End;
 end;
 
 function TRegControls.Get_CTPrimary: Double;
@@ -464,6 +469,12 @@ end;
 procedure TRegControls.Set_Winding(Value: Integer);
 begin
   Set_Parameter ('Winding', IntToStr (Value));
+end;
+
+function TRegControls.Get_Count: Integer;
+begin
+  If Assigned(Activecircuit) Then
+     Result := ActiveCircuit.RegControls.ListSize;
 end;
 
 initialization

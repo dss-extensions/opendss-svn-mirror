@@ -319,15 +319,21 @@ Begin
      PropertyHelp[7] := 'Load shape to use for yearly simulations.  Must be previously defined '+
                         'as a Loadshape object. Defaults to Daily load shape ' +
                         ' when Daily is defined.  The daily load shape is repeated in this case. '+
-                        'Otherwise, the default is no variation.';
+                        'Set Status=Fixed to ignore Loadshape designation. ' +
+                        'Set to NONE to reset to no loadahape. ' +
+                        'The default is no variation.';
      PropertyHelp[8] := 'Load shape to use for daily simulations.  Must be previously defined '+
                         'as a Loadshape object of 24 hrs, typically. ' +
+                        'Set Status=Fixed to ignore Loadshape designation. ' +
+                        'Set to NONE to reset to no loadahape. ' +
                         'Default is no variation (constant) if not defined. ' +
                         'Side effect: Sets Yearly load shape if not already defined.';
      PropertyHelp[9] := 'Load shape to use for duty cycle simulations.  Must be previously defined '+
                         'as a Loadshape object.  Typically would have time intervals less than 1 hr. '+
                         'Designate the number of points to solve using the Set Number=xxxx command. '+
                         'If there are fewer points in the actual shape, the shape is assumed to repeat.'+
+                        'Set to NONE to reset to no loadahape. ' +
+                        'Set Status=Fixed to ignore Loadshape designation. ' +
                         ' Defaults to Daily curve If not specified.';
      PropertyHelp[10] := 'Characteristic  to use for growth factors by years.  Must be previously defined '+
                          'as a Growthshape object. Defaults to circuit default growth factor (see Set Growth command).';
@@ -931,6 +937,10 @@ Begin
     SetNominalLoad;
 
     {Now check FOR errors.  IF any of these came out nil and the string was not nil, give warning}
+    If CompareText(YearlyShape, 'none')=0    Then YearlyShape := '';
+    If CompareText(DailyShape, 'none')=0     Then DailyShape := '';
+    If CompareText(DutyShape, 'none')=0      Then DutyShape := '';
+
     IF YearlyShapeObj = Nil THEN
       IF Length(YearlyShape)>0 THEN DoSimpleMsg('WARNING! Yearly load shape: "'+ YearlyShape +'" Not Found.', 583);
     IF DailyShapeObj = Nil THEN
@@ -1889,6 +1899,9 @@ begin
          3:  Result := Format('%-g',   [kVLoadBase]);
          4:  Result := Format('%-g',   [kwBase]);
          5:  Result := Format('%-.3g', [PFNominal]);
+         7:  Result := Yearlyshape;
+         8:  Result := Dailyshape;
+         9:  Result := Dutyshape;
          12: Result := Format('%-.3g', [kvarbase]);
          22: Result := Format('%-.3g', [FkVAAllocationFactor]);
          23: Result := Format('%-g',   [kVABase]);

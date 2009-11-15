@@ -374,17 +374,21 @@ Begin
                           'Above this value, the load model reverts to a constant impedance model.');
      AddProperty('yearly', 7,  'Dispatch shape to use for yearly simulations.  Must be previously defined '+
                     'as a Loadshape object. If this is not specified, a constant value is assumed (no variation). '+
-                    'If the generator is assumed to be ON continuously, specify this value as FIXED, or '+
+                    'If the generator is assumed to be ON continuously, specify Status=FIXED, or '+
                     'designate a curve that is 1.0 per unit at all times. '+
+                    'Set to NONE to reset to no loadahape. ' +
                     'Nominally for 8760 simulations.  If there are fewer points in the designated shape than '+
                     'the number of points in the solution, the curve is repeated.');
      AddProperty('daily', 8,  'Dispatch shape to use for daily simulations.  Must be previously defined '+
                     'as a Loadshape object of 24 hrs, typically.  If generator is assumed to be '+
-                    'ON continuously, specify this value as FIXED, or designate a Loadshape object'+
-                    'that is 1.0 perunit for all hours.'); // daily dispatch (hourly)
+                    'ON continuously, specify Status=FIXED, or designate a Loadshape object'+
+                    'that is 1.0 perunit for all hours. ' +
+                    'Set to NONE to reset to no loadahape. '       ); // daily dispatch (hourly)
      AddProperty('duty', 9,  'Load shape to use for duty cycle dispatch simulations such as for wind generation. ' +
                     'Must be previously defined as a Loadshape object. '+
                     'Typically would have time intervals less than 1 hr -- perhaps, in seconds. '+
+                    'Set Status=Fixed to ignore Loadshape designation. ' +
+                    'Set to NONE to reset to no loadahape. ' +
                     'Designate the number of points to solve using the Set Number=xxxx command. '+
                     'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
      AddProperty('dispmode', 10,   '{Default | Loadlevel | Price } Default = Default. Dispatch mode. '+
@@ -399,7 +403,7 @@ Begin
      AddProperty('conn',  12,  '={wye|LN|delta|LL}.  Default is wye.');
      AddProperty('Rneut', 14, 'Removed due to causing confusion - Add neutral impedance externally.');
      AddProperty('Xneut', 15, 'Removed due to causing confusion - Add neutral impedance externally.');
-     AddProperty('status', 16,  '={Fixed|Variable}.  If Fixed, then dispatch multipliers do not apply. '+
+     AddProperty('status', 16,  '={Fixed | Variable}.  If Fixed, then dispatch multipliers do not apply. '+
                          'The generator is alway at full power when it is ON. '+
                          ' Default is Variable  (follows curves).');  // fixed or variable  // fixed or variable
      AddProperty('class', 17,   'An arbitrary integer number representing the class of Generator so that Generator values may '+
@@ -619,9 +623,9 @@ Begin
 
 
     {Set shape objects;  returns nil if not valid}
-            7: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
+            7: YearlyShapeObj    := LoadShapeClass.Find(YearlyShape);
             8: DailyDispShapeObj := LoadShapeClass.Find(DailyDispShape);
-            9: DutyShapeObj := LoadShapeClass.Find(DutyShape);
+            9: DutyShapeObj      := LoadShapeClass.Find(DutyShape);
 
             22: IF DebugTrace
                 THEN Begin
@@ -809,7 +813,7 @@ Begin
      PFNominal    := 0.88;
   //   Rneut        := 0.0;
   //   Xneut        := 0.0;
-     YearlyShape  := '';
+     YearlyShape    := '';
      YearlyShapeObj := nil;  // if YearlyShapeobj = nil then the load alway stays nominal * global multipliers
      DailyDispShape := '';
      DailyDispShapeObj := nil;  // if DaillyShapeobj = nil then the load alway stays nominal * global multipliers
@@ -1081,6 +1085,10 @@ Begin
     SetNominalGeneration;
 
     {Now check for errors.  If any of these came out nil and the string was not nil, give warning}
+    If CompareText(YearlyShape, 'none')=0    Then YearlyShape := '';
+    If CompareText(DailyDispShape, 'none')=0 Then DailyDispShape := '';
+    If CompareText(DutyShape, 'none')=0      Then DutyShape := '';
+
     If YearlyShapeObj=Nil Then
       If Length(YearlyShape)>0 Then DoSimpleMsg('WARNING! Yearly load shape: "'+ YearlyShape +'" Not Found.', 563);
     If DailyDispShapeObj=Nil Then
@@ -2508,6 +2516,9 @@ begin
          3:  Result := Format('%.6g', [Genvars.kVGeneratorBase]);
          4:  Result := Format('%.6g', [kWBase]);
          5:  Result := Format('%.6g', [PFNominal]);
+         7:  Result := Yearlyshape;
+         8:  Result := Dailydispshape;
+         9:  Result := DutyShape;
          13: Result := Format('%.6g', [kvarBase]);
          19: Result := Format('%.6g', [kvarMax]);
          20: Result := Format('%.6g', [kvarMin]);
