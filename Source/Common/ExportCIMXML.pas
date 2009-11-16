@@ -596,6 +596,7 @@ begin
   DoubleNode (F, 'CableInfo.diameterOverInsulation', 1.06);
   DoubleNode (F, 'CableInfo.diameterOverJacket', 1.16);
   DoubleNode (F, 'CableInfo.diameterOverScreen', 1.29);
+  CableShieldMaterialEnum (F, 'copper');
   DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral', 1.29);
   IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', 13);
   WireDataClass.code := 'CU_#14';
@@ -605,24 +606,24 @@ begin
   WireDataClass.code := 'AA_250';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'WireArrangment.ConductorInfo', cab);
-    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.ConductorInfo', cab);
+    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
     EndInstance (F, 'WireArrangement');
 
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'WireArrangment.ConductorInfo', cab);
-    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.ConductorInfo', cab);
+    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.5);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
     EndInstance (F, 'WireArrangement');
 
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'WireArrangment.ConductorInfo', cab);
-    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.ConductorInfo', cab);
+    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 3);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -642,14 +643,15 @@ begin
   DoubleNode (F, 'CableInfo.diameterOverInsulation', 0.82);
   DoubleNode (F, 'CableInfo.diameterOverJacket', 0.88);
   DoubleNode (F, 'CableInfo.diameterOverScreen', 1.06);
+  CableShieldMaterialEnum (F, 'copper');
   DoubleNode (F, 'TapeShieldCableInfo.tapeLap', 20.0);
   DoubleNode (F, 'TapeShieldCableInfo.tapeThickness', 5.0);
   EndInstance (F, 'TapeShieldCableInfo');
   WireDataClass.code := 'AA_1/0';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'WireArrangment.ConductorInfo', cab);
-    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.ConductorInfo', cab);
+    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -658,8 +660,8 @@ begin
   WireDataClass.code := 'CU_1/0';
   If Assigned(ActiveWireDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
-    RefNode (F, 'WireArrangment.ConductorInfo', cab);
-    RefNode (F, 'WireArrangment.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.ConductorInfo', cab);
+    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0 / 12.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -962,7 +964,8 @@ Begin
         TransformerControlEnum (F, 'volt');
 
         DoubleNode (F, 'DistributionTapChanger.ptRatio', PT);
-        DoubleNode (F, 'DistributionTapChanger.ctRatio', CT);
+        DoubleNode (F, 'DistributionTapChanger.ctRating', CT);
+        DoubleNode (F, 'DistributionTapChanger.ctRatio', CT / 0.2);
         DoubleNode (F, 'DistributionTapChanger.targetVoltage', PT * TargetVoltage);
         DoubleNode (F, 'DistributionTapChanger.bandVoltage', PT * BandVoltage);
         BooleanNode (F, 'DistributionTapChanger.lineDropCompensation', UseLineDrop);
@@ -986,8 +989,8 @@ Begin
         RefNode (F, 'SvTapStep.TapChanger', pReg);
         val := Transformer.PresentTap[TrWinding];
         i1 := Round((val - Transformer.Mintap[TrWinding]) / Transformer.TapIncrement[TrWinding]);
-        IntegerNode (F, 'position', i1);
-        DoubleNode (F, 'continuousPosition', val);
+        IntegerNode (F, 'SvTapStep.position', i1);
+        DoubleNode (F, 'SvTapStep.continuousPosition', val);
         EndInstance (F, 'SvTapStep');
       end;
       pReg := ActiveCircuit.RegControls.Next;
@@ -1179,8 +1182,8 @@ Begin
         EndInstance (F, 'OverheadConductorInfo');
         for i := 1 to NWires do begin
           StartFreeInstance (F, 'WireArrangement');
-          RefNode (F, 'WireArrangment.ConductorInfo', pGeom);
-          RefNode (F, 'WireArrangment.WireType', WireData[i]);
+          RefNode (F, 'WireArrangement.ConductorInfo', pGeom);
+          RefNode (F, 'WireArrangement.WireType', WireData[i]);
           IntegerNode (F, 'WireArrangement.position', i);
           DoubleNode (F, 'WireArrangement.mountingPointX', Xcoord[i]);
           DoubleNode (F, 'WireArrangement.mountingPointY', Ycoord[i]);
