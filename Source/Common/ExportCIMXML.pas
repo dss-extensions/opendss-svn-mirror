@@ -35,6 +35,7 @@ Type
     phaseB: array of Integer;
     phaseC: array of Integer;
     ground: array of Integer;
+    a_unit: TTransfObj;  // save this for writing the bank coordinates
 
     constructor Create(MaxWdg: Integer);
     destructor Destroy; override;
@@ -73,6 +74,7 @@ begin
   phaseB := nil;
   phaseC := nil;
   ground := nil;
+  a_unit := nil;
   Inherited Destroy;
 end;
 
@@ -127,6 +129,7 @@ var
 begin
   if pXf.NumberOfWindings > nWindings then nWindings := pXf.NumberOfWindings;
 
+  a_unit := pXf;
   for i:=1 to pXf.NumberOfWindings do begin
     phs := PhaseString (pXf, i);
     if Pos('A', phs) > 0 then phaseA[i-1] := 1;
@@ -413,24 +416,21 @@ begin
   if i = 0 then Result := False;
 end;
 
-procedure WritePositions(var F:TextFile; pElem:TDSSCktElement);
+procedure WritePositions(var F:TextFile; pElem:TDSSCktElement; geoGUID: TGuid);
 var
   Nterm, j, ref : Integer;
   BusName : String;
-  temp: TGUID;
 begin
   Nterm := pElem.Nterms;
   BusName := pElem.FirstBus;
-  CreateGUID (temp);
-  Writeln(F, Format('<cim:GeoLocation rdf:ID="%s">', [GUIDToCIMString(temp)]));
-  RefNode (F, 'GeoLocation.PowerSystemResources', pElem);
+  Writeln(F, Format('<cim:GeoLocation rdf:ID="%s">', [GUIDToCIMString(geoGUID)]));
   EndInstance (F, 'GeoLocation');
 
   for j := 1 to NTerm do begin
     if IsGroundBus (BusName) = False then begin
       ref := pElem.Terminals^[j].BusRef;
       StartFreeInstance (F, 'PositionPoint');
-      GuidNode (F, 'PositionPoint.Location', temp);
+      GuidNode (F, 'PositionPoint.Location', geoGUID);
       IntegerNode (F, 'PositionPoint.sequenceNumber', j);
       StringNode (F, 'PositionPoint.xPosition', FloatToStr (ActiveCircuit.Buses^[ref].x));
       StringNode (F, 'PositionPoint.yPosition', FloatToStr (ActiveCircuit.Buses^[ref].y));
@@ -440,11 +440,11 @@ begin
   end;
 end;
 
-procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement);
+procedure WriteTerminals(var F:TextFile; pElem:TDSSCktElement; geoGUID: TGuid);
 var
   Nterm, j, ref : Integer;
   BusName, TermName : String;
-  temp: TGUID;
+  temp: TGuid;
 begin
   Nterm := pElem.Nterms;
   BusName := pElem.FirstBus;
@@ -467,14 +467,14 @@ begin
 
     BusName := pElem.Nextbus;
   end;
-  WritePositions (F, pElem);
+  WritePositions (F, pElem, geoGUID);
 end;
 
 procedure WriteWdgTerminals(var F:TextFile; pXf:TTransfObj);
 var
   i, ref : Integer;
   TermName : String;
-  temp: TGUID;
+  temp: TGuid;
 begin
   for i := 1 to pXf.NumberOfWindings do begin
     ref := pXf.Terminals^[i].BusRef;
@@ -490,7 +490,6 @@ begin
       [ActiveCircuit.Buses[ref].CIM_ID]));
     EndInstance (F, 'Terminal');
   end;
-  WritePositions (F, pXf);
 end;
 
 Procedure WriteXfmrCode (var F: TextFile; pXfmr: TXfmrCodeObj);
@@ -715,6 +714,9 @@ Var
   id5_ConstI:       TGuid;
   id6_ConstPConstQ: TGuid;  // P can vary, Q not
   id7_ConstPConstX: TGuid;
+
+  // for CIM GeoLocations
+  geoGUID: TGuid;
 Begin
   Try
     clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
@@ -791,8 +793,10 @@ Begin
           DoubleNode (F, 'EnergySource.x', X1);
           DoubleNode (F, 'EnergySource.r0', R0);
           DoubleNode (F, 'EnergySource.x0', X0);
+          CreateGuid (geoGUID);
+          GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
           EndInstance (F, 'EnergySource');
-          WriteTerminals (F, pVsrc);
+          WriteTerminals (F, pVsrc, geoGUID);
         end;
       pVsrc := ActiveCircuit.Sources.Next;
     end;
@@ -808,8 +812,10 @@ Begin
         DoubleNode (F, 'ShuntCompensator.reactivePerSection', TotalKvar / NumSteps);
         IntegerNode (F, 'ShuntCompensator.normalSections', NumSteps);
         IntegerNode (F, 'ShuntCompensator.maximumSections', NumSteps);
+        CreateGuid (geoGUID);
+        GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
         EndInstance (F, 'ShuntCompensator');
-        WriteTerminals (F, pCap);
+        WriteTerminals (F, pCap, geoGUID);
       end;
       pCap := ActiveCircuit.ShuntCapacitors.Next;
     end;
@@ -939,10 +945,13 @@ Begin
     for i:=Low(BankList) to High(BankList) do begin
       pBank := BankList[i];
       if pBank = nil then break;
+      CreateGUID (geoGUID);
       pBank.BuildVectorGroup;
       StartInstance (F, 'TransformerBank', pBank);
       StringNode (F, 'TransformerBank.vectorGroup', pBank.vectorGroup);
+      GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
       EndInstance (F, 'TransformerBank');
+      WritePositions (F, pBank.a_unit, geoGUID);
     end;
 
     pReg := ActiveCircuit.RegControls.First;
@@ -1004,6 +1013,7 @@ Begin
     pLine := ActiveCircuit.Lines.First;
     while pLine <> nil do begin
       with pLine do begin
+        CreateGuid (geoGUID);
         if IsSwitch then begin
           StartInstance (F, 'LoadBreakSwitch', pLine);
           CircuitNode (F, ActiveCircuit);
@@ -1012,6 +1022,7 @@ Begin
             StringNode (F, 'Switch.normalOpen', 'false')
           else
             StringNode (F, 'Switch.normalOpen', 'true');
+          GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
           EndInstance (F, 'LoadBreakSwitch');
         end else begin
           if not LineCodeSpecified and not GeometrySpecified then begin
@@ -1026,6 +1037,7 @@ Begin
             DoubleNode (F, 'ACLineSegment.r0', R0);
             DoubleNode (F, 'ACLineSegment.x0', X0);
             DoubleNode (F, 'ACLineSegment.b0ch', C0 * val);
+            GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
             EndInstance (F, 'ACLineSegment')
           end else begin
             StartInstance (F, 'DistributionLineSegment', pLine);
@@ -1034,10 +1046,11 @@ Begin
             PhasesEnum (F, pLine, 1);
             if GeometrySpecified then GeometryRefNode (F, clsGeom, GeometryCode);
             if LineCodeSpecified then LineCodeRefNode (F, clsCode, CondCode);
+            GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
             EndInstance (F, 'DistributionLineSegment')
           end;
         end;
-        WriteTerminals (F, pLine);
+        WriteTerminals (F, pLine, geoGUID);
       end;
       pLine := ActiveCircuit.Lines.Next;
     end;
@@ -1099,8 +1112,10 @@ Begin
           DoubleNode (F, 'EnergyConsumer.qfixed', kvarBase);
           DoubleNode (F, 'EnergyConsumer.pfixed', kWBase);
           IntegerNode (F, 'EnergyConsumer.customerCount', NumCustomers);
+          CreateGuid (geoGUID);
+          GuidNode (F, 'PowerSystemResource.GeoLocation', geoGUID);
           EndInstance (F, 'EnergyConsumer');
-          WriteTerminals (F, pLoad);
+          WriteTerminals (F, pLoad, geoGUID);
         end;
         pLoad := ActiveCircuit.Loads.Next;
     end;
