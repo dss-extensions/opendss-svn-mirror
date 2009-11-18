@@ -394,15 +394,21 @@ END;
 Destructor  TDSSCircuit.Destroy;
 VAR
     i:Integer;
+    pCktElem :TDSSCktElement;
+    ElemName :String;
 
 BEGIN
-     TRY
-       For i := 1 to NumDevices Do TDSSCktElement(CktElements.Get(i)).Free;
+       For i := 1 to NumDevices Do Begin
+           TRY
+              pCktElem := TDSSCktElement(CktElements.Get(i));
+              ElemName := pCktElem.ParentClass.name + '.' + pCktElem.Name;
+              pCktElem.Free;
 
-     EXCEPT
-       ON E: Exception Do
-         DoSimpleMsg('Exception Freeing Circuit Element:'  + CRLF + E.Message, 423);
-     END;
+           EXCEPT
+             ON E: Exception Do
+               DoSimpleMsg('Exception Freeing Circuit Element:'  + ElemName + CRLF + E.Message, 423);
+           END;
+       End;
 
      FOR i := 1 to NumBuses Do Buses^[i].Free;  // added 10-29-00
 
