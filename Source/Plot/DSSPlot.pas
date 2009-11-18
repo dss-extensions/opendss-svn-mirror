@@ -813,8 +813,8 @@ procedure TDSSPlot.SetColorArray;
 begin
   ColorArray[1]  := TColor($000000);
   ColorArray[2]  := TColor($0000FF);
-  ColorArray[3]  := TColor($FF00FF);
-  ColorArray[4]  := TColor($FF0000);
+  ColorArray[3]  := TColor($FF0000);
+  ColorArray[4]  := TColor($FF00FF);
   ColorArray[5]  := TColor($008000);
   ColorArray[6]  := TColor($00FF80);
   ColorArray[7]  := TColor($4080FF);
@@ -982,6 +982,16 @@ begin
      Else
          AddNewCurve (Load_Shape.Hours, Load_Shape.PMultipliers, Load_Shape.NumPoints,
                       Color1, 1, psSolid, FALSE, 1, LoadShapeName);
+
+     If Assigned(Load_Shape.QMultipliers) Then  BEGIN
+       If UseXarray Then
+           AddNewCurve (Xarray, Load_Shape.QMultipliers, Load_Shape.NumPoints,
+                        Color2, 1, psSolid, FALSE, 1, LoadShapeName)
+       Else
+           AddNewCurve (Load_Shape.Hours, Load_Shape.QMultipliers, Load_Shape.NumPoints,
+                        Color2, 1, psSolid, FALSE, 1, LoadShapeName);
+     END;
+
 
      Set_KeepAspectRatio(False);
 
