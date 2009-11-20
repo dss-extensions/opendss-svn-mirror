@@ -228,7 +228,9 @@ Begin
   TRY
   If FileExists(FileNm) Then
   Begin
-      retval := WinExec(Pchar(DefaultEditor + ' ' + FileNm), SW_SHOW);
+  //    retval := WinExec(PAnsichar(DefaultEditor + ' ' + FileNm), SW_SHOW);
+      retval := ShellExecute (0, Nil,
+        PWideChar(DefaultEditor), PWideChar(FileNm), Nil, SW_SHOW);
       Case Retval of
           0: DoSimpleMsg('System out of memory. Cannot start Editor.', 700);
           ERROR_BAD_FORMAT: DoSimpleMsg('Editor File is Invalid.', 701);
@@ -1044,7 +1046,8 @@ End;
 FUNCTION  Str_Real(Const Value :Double; NumDecimals :Integer) :String;
 Begin
    Try
-         Str(Value:0:NumDecimals, Result);
+//         Str(Value:0:NumDecimals, Result);
+         Result := FloatToStrF (Value, ffFixed, 0, NumDecimals);
    Except
          Result := '*****';
    End;

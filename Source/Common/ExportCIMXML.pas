@@ -451,7 +451,8 @@ begin
   for j := 1 to NTerm do begin
     if IsGroundBus (BusName) = False then begin
       ref := pElem.Terminals^[j].BusRef;
-      Str (j, TermName);
+//      Str (j, TermName);
+      TermName := IntToStr (j);
       TermName := pElem.Name + '_T' + TermName;
       CreateGUID (temp);
 
