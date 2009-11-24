@@ -490,17 +490,19 @@ Begin
 
          Devindex := GetCktElementIndex(ElementName); // Global FUNCTION
          IF   DevIndex>0  THEN
-          Begin  // RegControled element must already exist
+         Begin  // RegControled element must already exist
              ControlledElement := ActiveCircuit.CktElements.Get(DevIndex);
-             Nphases := ControlledElement.NPhases;
-             Nconds := FNphases;
+             Nphases           := ControlledElement.NPhases;
+             Nconds            := FNphases;
              IF  Comparetext(ControlledElement.DSSClassName, 'transformer') = 0  THEN
-                Begin
-                   IF ElementTerminal>ControlledElement.Nterms  THEN Begin
-                       DoErrorMsg('RegControl: "' + Name + '"', 'Winding no. "' +'" does not exist.',
-                          'Respecify Monitored Winding no.', 122);
-                    End
-                   ELSE Begin
+             Begin
+                   IF ElementTerminal > ControlledElement.Nterms  THEN
+                   Begin
+                         DoErrorMsg('RegControl: "' + Name + '"', 'Winding no. "' +'" does not exist.',
+                                    'Respecify Monitored Winding no.', 122);
+                   End
+                   ELSE
+                   Begin
                      // Sets name of i-th terminal's connected bus in RegControl's buslist
                      // This value will be used to set the NodeRef array (see Sample function)
                        IF UsingRegulatedBus
@@ -508,21 +510,21 @@ Begin
                                             Else Setbus(1, ControlledElement.GetBus(ElementTerminal));
                        ReAllocMem(VBuffer, SizeOF(Vbuffer^[1]) * ControlledElement.NPhases );  // buffer to hold regulator voltages
                        ReAllocMem(CBuffer, SizeOF(CBuffer^[1]) * ControlledElement.Yorder );
-                    End;
-                End
-             ELSE Begin
+                   End;
+             End
+             ELSE
+             Begin
                   ControlledElement := nil;   // we get here if element not found
                   DoErrorMsg('RegControl: "' + Self.Name + '"', 'Controlled Regulator Element "'+ ElementName + '" Is not a transformer.',
                                   ' Element must be defined previously.', 123);
-               End;
-
+             End;
          End
          ELSE
-           Begin
-            ControlledElement := nil;   // element not found
-            DoErrorMsg('RegControl: "' + Self.Name + '"', 'Transformer Element "'+ ElementName + '" Not Found.',
-                            ' Element must be defined previously.', 124);
-           End;
+         Begin
+              ControlledElement := nil;   // element not found
+              DoErrorMsg('RegControl: "' + Self.Name + '"', 'Transformer Element "'+ ElementName + '" Not Found.',
+                         ' Element must be defined previously.', 124);
+         End;
 End;
 
 {--------------------------------------------------------------------------}
