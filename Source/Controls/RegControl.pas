@@ -238,7 +238,8 @@ Begin
                         'winding is connected or the R and X line drop compensator settings.  Do not specify this '+
                         'value if you wish to use the line drop compensator settings.  Default is null string. Assumes the base voltage for this '+
                         'bus is the same as the transformer winding base specified above. ' +
-                        'Note: This bus WILL BE CREATED by the regulator control upon SOLVE if not defined by some other device.' ;
+                        'Note: This bus (1-phase) WILL BE CREATED by the regulator control upon SOLVE if not defined by some other device. ' +
+                        'If specified, the RegControl is redefined as a 1-phase device since only one voltage is used.' ;
      PropertyHelp[10] := 'Time delay, in seconds, from when the voltage goes out of band to when the tap changing begins. ' +
                          'This is used to determine which regulator control will act first. Default is 15.  You may specify any '+
                          'floating point number to achieve a model of whatever condition is necessary.';
@@ -492,8 +493,9 @@ Begin
          IF   DevIndex>0  THEN
          Begin  // RegControled element must already exist
              ControlledElement := ActiveCircuit.CktElements.Get(DevIndex);
-             Nphases           := ControlledElement.NPhases;
-             Nconds            := FNphases;
+             If   UsingRegulatedBus Then  Nphases := 1     // Only need one phase
+             Else Nphases := ControlledElement.NPhases;
+             Nconds := FNphases;
              IF  Comparetext(ControlledElement.DSSClassName, 'transformer') = 0  THEN
              Begin
                    IF ElementTerminal > ControlledElement.Nterms  THEN
