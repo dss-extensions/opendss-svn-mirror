@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 11/14/2009 11:20:18 AM from Type Library described below.
+// File generated on 11/24/2009 3:42:14 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -96,6 +96,8 @@ const
   CLASS_Plot: TGUID = '{749A9035-EC8A-45F5-8BC2-B253EBBB78ED}';
   IID_ITopology: TGUID = '{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}';
   CLASS_Topology: TGUID = '{5B1B5AB3-0595-4E46-B64B-CF8877ED0857}';
+  IID_IDSS_Executive: TGUID = '{DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}';
+  CLASS_DSS_Executive: TGUID = '{D00898D0-6CC7-4A3B-BF89-DED9593579E7}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library                    
@@ -230,6 +232,8 @@ type
   IPlotDisp = dispinterface;
   ITopology = interface;
   ITopologyDisp = dispinterface;
+  IDSS_Executive = interface;
+  IDSS_ExecutiveDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -260,6 +264,7 @@ type
   RegControls = IRegControls;
   Plot = IPlot;
   Topology = ITopology;
+  DSS_Executive = IDSS_Executive;
 
 
 // *********************************************************************//
@@ -735,6 +740,7 @@ type
     function Get_ActiveClass: IActiveClass; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_Plot: IPlot; safecall;
+    function Get_Executive: IDSS_Executive; safecall;
     property NumCircuits: Integer read Get_NumCircuits;
     property Circuits[Idx: OleVariant]: ICircuit read Get_Circuits;
     property ActiveCircuit: ICircuit read Get_ActiveCircuit;
@@ -751,6 +757,7 @@ type
     property DefaultEditor: WideString read Get_DefaultEditor;
     property ActiveClass: IActiveClass read Get_ActiveClass;
     property Plot: IPlot read Get_Plot;
+    property Executive: IDSS_Executive read Get_Executive;
   end;
 
 // *********************************************************************//
@@ -782,6 +789,7 @@ type
     property ActiveClass: IActiveClass readonly dispid 202;
     function SetActiveClass(const ClassName: WideString): Integer; dispid 203;
     property Plot: IPlot readonly dispid 204;
+    property Executive: IDSS_Executive readonly dispid 205;
   end;
 
 // *********************************************************************//
@@ -2159,6 +2167,45 @@ type
   end;
 
 // *********************************************************************//
+// Interface: IDSS_Executive
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}
+// *********************************************************************//
+  IDSS_Executive = interface(IDispatch)
+    ['{DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}']
+    function Get_NumCommands: Integer; safecall;
+    function Get_NumOptions: Integer; safecall;
+    function Get_Command(i: Integer): WideString; safecall;
+    function Get_Option(i: Integer): WideString; safecall;
+    function Get_CommandHelp(i: Integer): WideString; safecall;
+    function Get_OptionHelp(i: Integer): WideString; safecall;
+    function Get_OptionValue(i: Integer): WideString; safecall;
+    property NumCommands: Integer read Get_NumCommands;
+    property NumOptions: Integer read Get_NumOptions;
+    property Command[i: Integer]: WideString read Get_Command;
+    property Option[i: Integer]: WideString read Get_Option;
+    property CommandHelp[i: Integer]: WideString read Get_CommandHelp;
+    property OptionHelp[i: Integer]: WideString read Get_OptionHelp;
+    property OptionValue[i: Integer]: WideString read Get_OptionValue;
+  end;
+
+// *********************************************************************//
+// DispIntf:  IDSS_ExecutiveDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}
+// *********************************************************************//
+  IDSS_ExecutiveDisp = dispinterface
+    ['{DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}']
+    property NumCommands: Integer readonly dispid 201;
+    property NumOptions: Integer readonly dispid 202;
+    property Command[i: Integer]: WideString readonly dispid 203;
+    property Option[i: Integer]: WideString readonly dispid 204;
+    property CommandHelp[i: Integer]: WideString readonly dispid 205;
+    property OptionHelp[i: Integer]: WideString readonly dispid 206;
+    property OptionValue[i: Integer]: WideString readonly dispid 207;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to          
 // create instances of the default interface IText exposed by              
 // the CoClass Text. The functions are intended to be used by             
@@ -2458,6 +2505,18 @@ type
     class function CreateRemote(const MachineName: string): ITopology;
   end;
 
+// *********************************************************************//
+// The Class CoDSS_Executive provides a Create and CreateRemote method to          
+// create instances of the default interface IDSS_Executive exposed by              
+// the CoClass DSS_Executive. The functions are intended to be used by             
+// clients wishing to automate the CoClass objects exposed by the         
+// server of this typelibrary.                                            
+// *********************************************************************//
+  CoDSS_Executive = class
+    class function Create: IDSS_Executive;
+    class function CreateRemote(const MachineName: string): IDSS_Executive;
+  end;
+
 implementation
 
 uses ComObj;
@@ -2710,6 +2769,16 @@ end;
 class function CoTopology.CreateRemote(const MachineName: string): ITopology;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Topology) as ITopology;
+end;
+
+class function CoDSS_Executive.Create: IDSS_Executive;
+begin
+  Result := CreateComObject(CLASS_DSS_Executive) as IDSS_Executive;
+end;
+
+class function CoDSS_Executive.CreateRemote(const MachineName: string): IDSS_Executive;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_DSS_Executive) as IDSS_Executive;
 end;
 
 end.

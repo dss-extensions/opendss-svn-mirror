@@ -39,6 +39,7 @@ Uses
        ImplRegControls,
        ImplPlot,
        ImplTopology,
+       ImplDSS_Executive,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -70,6 +71,7 @@ Var
    FRegcontrols :IRegControls;
    FPlot        :IPlot;
    FTopology    :ITopology;
+   FDSS_Executive :IDSS_Executive;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -118,6 +120,7 @@ Begin
      FRegcontrols := TRegControls.Create;
      FPlot        := TPlot.Create;
      FTopology    := TTopology.Create;
+     FDSS_Executive := TDSS_Executive.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

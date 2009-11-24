@@ -40,6 +40,7 @@ type
     function Get_ActiveClass: IActiveClass; safecall;
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_Plot: IPlot; safecall;
+    function Get_Executive: IDSS_Executive; safecall;
   end;
 
 implementation
@@ -250,6 +251,11 @@ end;
 function TDSS.Get_Plot: IPlot;
 begin
      Result := FPLot as IPlot;
+end;
+
+function TDSS.Get_Executive: IDSS_Executive;
+begin
+     Result := FDSS_Executive as IDSS_Executive;
 end;
 
 initialization

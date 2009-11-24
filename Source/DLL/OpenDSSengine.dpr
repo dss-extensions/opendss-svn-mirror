@@ -160,7 +160,8 @@ uses
   ImplRegControls in 'ImplRegControls.pas' {RegControls: CoClass},
   ImplSwtControls in 'ImplSwtControls.pas' {SwtControls: CoClass},
   ImplPlot in 'ImplPlot.pas' {Plot: CoClass},
-  ImplTopology in 'ImplTopology.pas' {Topology: CoClass};
+  ImplTopology in 'ImplTopology.pas' {Topology: CoClass},
+  ImplDSS_Executive in 'ImplDSS_Executive.pas' {DSS_Executive: CoClass};
 
 exports
   DllGetClassObject,
