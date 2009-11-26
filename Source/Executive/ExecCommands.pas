@@ -329,8 +329,11 @@ Begin
                          'Export Yprims  [Filename]     (EXP_YPRIMS.CSV)   (all YPrim matrices)' + CRLF +
                          'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +
                          'Export seqZ  [Filename]       (EXP_SEQZ.CSV) (equiv sequence Z1, Z0 to bus)' + CRLF +
-                         'Export CDPSM [Filename]       (CDPSM.XML) (IEC 61968-13, CDPSM format)' + CRLF +
+                         'Export CDPSM [Filename]        (CDPSM.XML) (IEC 61968-13, CDPSM Unbalanced load flow profile)' + CRLF +
+                         'Export CDPSMConnect [Filename] (CDPSM_Connect.XML) (IEC 61968-13, CDPSM Unbalanced connectivity profile)' + CRLF +
+                         'Export CDPSMBalanced [Filename](CDPSM_Balanced.XML) (IEC 61968-13, CDPSM Balanced profile)' + CRLF +
                          'Export Buscoords [Filename]   [EXP_BUSCOORDS.CSV]' + CRLF +
+                         'Export Losses [Filename] [EXP_LOSSES.CSV]' + CRLF +
                          CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
                          ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+

@@ -829,9 +829,11 @@ Begin
          17: Filename := 'EXP_Y.CSV';
          18: Filename := 'EXP_SEQZ.CSV';
          19: Filename := 'EXP_P_BYPHASE.CSV';
-         20: FileName := 'CDPSM.XML';
-         21: FileName := 'EXP_BUSCOORDS.CSV';
-         22: FileName := 'EXP_LOSSES.CSV';
+         20: FileName := 'CDPSM_Unbalanced.XML';
+         21: FileName := 'CDPSM_Connect.XML';
+         22: FileName := 'CDPSM_Balanced.XML';
+         23: FileName := 'EXP_BUSCOORDS.CSV';
+         24: FileName := 'EXP_LOSSES.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -863,9 +865,11 @@ Begin
      17: ExportY(Filename);
      18: ExportSeqZ(Filename);
      19: ExportPbyphase(Filename, MVAOpt);
-     20: ExportCDPSM(Filename);
-     21: ExportBusCoords(Filename);
-     22: ExportLosses(Filename);
+     20: ExportCDPSM_UnBal(Filename);        // defaults to a load-flow model
+     21: ExportCDPSM_UnBal(Filename, False); // not a load-flow model
+     22: ExportCDPSM_Bal(Filename);
+     23: ExportBusCoords(Filename);
+     24: ExportLosses(Filename);
    ELSE
          ExportVoltages(FileName);    // default
    END;
@@ -3656,7 +3660,7 @@ initialization
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
                                             'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
                                             'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM',
-                                            'Buscoords', 'Losses']);
+                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses']);
     ExportCommands.Abbrev := True;
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
