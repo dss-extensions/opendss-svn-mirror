@@ -9,23 +9,23 @@
 
 ! TODO - either enter Rac for the wires, or have OpenDSS do the skin effect correction
 
-new WireData.AA_1000     DIAM=1.150  GMRac=0.44160  Rdc=0.019886364   Runits=kft Radunits=in gmrunits=in
-new WireData.AA_500      DIAM=0.813  GMRac=0.31200  Rdc=0.039015152   Runits=kft Radunits=in gmrunits=in
-new WireData.AA_250      DIAM=0.573  GMRac=0.21720  Rdc=0.077897727   Runits=kft Radunits=in gmrunits=in
-new WireData.AA_2/0      DIAM=0.414  GMRac=0.15000  Rdc=0.145643939   Runits=kft Radunits=in gmrunits=in
-new WireData.AA_1/0      DIAM=0.368  GMRac=0.13320  Rdc=0.184204546   Runits=kft Radunits=in gmrunits=in
-new WireData.AA_#2       DIAM=0.292  GMRac=0.10596  Rdc=0.291666667   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_556_5  DIAM=0.927  GMRac=0.37320  Rdc=0.035227273   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_336_4  DIAM=0.721  GMRac=0.29280  Rdc=0.057954545   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_4/0    DIAM=0.563  GMRac=0.09768  Rdc=0.112121212   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_1/0    DIAM=0.398  GMRac=0.05352  Rdc=0.212121212   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_#2     DIAM=0.316  GMRac=0.05016  Rdc=0.320075758   Runits=kft Radunits=in gmrunits=in
-new WireData.ACSR_#4     DIAM=0.257  GMRac=0.05424  Rdc=0.482954545   Runits=kft Radunits=in gmrunits=in
-new WireData.CU_1/0      DIAM=0.368  GMRac=0.13356  Rdc=0.114962121   Runits=kft Radunits=in gmrunits=in
-new WireData.CU_#10      DIAM=0.102  GMRac=0.03972  Rdc=1.117992424   Runits=kft Radunits=in gmrunits=in
-new WireData.CU_#12      DIAM=0.081  GMRac=0.03144  Rdc=1.775568182   Runits=kft Radunits=in gmrunits=in
-new WireData.CU_#14      DIAM=0.064  GMRac=0.02496  Rdc=2.816666667   Runits=kft Radunits=in gmrunits=in
-new WireData.TS_5-mil    DIAM=0.880  GMRac=0.44000  Rdc=0.584300000   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_1000     NormAmps=698 DIAM=1.150  GMRac=0.44160  Rdc=0.019886364   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_500      NormAmps=483 DIAM=0.813  GMRac=0.31200  Rdc=0.039015152   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_250      NormAmps=329 DIAM=0.573  GMRac=0.21720  Rdc=0.077897727   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_2/0      NormAmps=230 DIAM=0.414  GMRac=0.15000  Rdc=0.145643939   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_1/0      NormAmps=310 DIAM=0.368  GMRac=0.13320  Rdc=0.184204546   Runits=kft Radunits=in gmrunits=in
+new WireData.AA_#2       NormAmps=156 DIAM=0.292  GMRac=0.10596  Rdc=0.291666667   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_556_5  NormAmps=730 DIAM=0.927  GMRac=0.37320  Rdc=0.035227273   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_336_4  NormAmps=530 DIAM=0.721  GMRac=0.29280  Rdc=0.057954545   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_4/0    NormAmps=340 DIAM=0.563  GMRac=0.09768  Rdc=0.112121212   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_1/0    NormAmps=230 DIAM=0.398  GMRac=0.05352  Rdc=0.212121212   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_#2     NormAmps=180 DIAM=0.316  GMRac=0.05016  Rdc=0.320075758   Runits=kft Radunits=in gmrunits=in
+new WireData.ACSR_#4     NormAmps=140 DIAM=0.257  GMRac=0.05424  Rdc=0.482954545   Runits=kft Radunits=in gmrunits=in
+new WireData.CU_1/0      NormAmps=100 DIAM=0.368  GMRac=0.13356  Rdc=0.114962121   Runits=kft Radunits=in gmrunits=in
+new WireData.CU_#10      NormAmps=80  DIAM=0.102  GMRac=0.03972  Rdc=1.117992424   Runits=kft Radunits=in gmrunits=in
+new WireData.CU_#12      NormAmps=75  DIAM=0.081  GMRac=0.03144  Rdc=1.775568182   Runits=kft Radunits=in gmrunits=in
+new WireData.CU_#14      NormAmps=20  DIAM=0.064  GMRac=0.02496  Rdc=2.816666667   Runits=kft Radunits=in gmrunits=in
+new WireData.TS_5-mil    NormAmps=165 DIAM=0.880  GMRac=0.44000  Rdc=0.584300000   Runits=kft Radunits=in gmrunits=in
 
 ! [cables]
 ! Dins is outside diameter over insulation
