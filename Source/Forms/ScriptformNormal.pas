@@ -60,7 +60,7 @@ type
       Procedure SetFormColor;
       function  Get_HasBeenModified: Boolean;
       procedure Set_HasBeenModified(const Value: Boolean);
-      Function  TrimParens(const S:String):String;
+      Function  TrimParens( S:String):String;
       Procedure ExtendSelection;
   public
       { Public declarations }
@@ -387,10 +387,10 @@ begin
 
 end;
 
-function TMainEditFormNormal.TrimParens(const S: String): String;
+function TMainEditFormNormal.TrimParens( S: String): String;
 begin
 {Get rid of leading and trailing Parens}
-        Result := S;
+        Result := '';
         Case S[1] of
           '(': Begin
                 Result := Copy(S, 2, Length(S)-1);
@@ -412,6 +412,8 @@ begin
                 Result := Copy(S, 2, Length(S)-1);
                 If Result[Length(Result)]='}' Then SetLength(Result, Length(Result)-1);
                End;
+        Else
+            Result := S;
         End;
 
 end;

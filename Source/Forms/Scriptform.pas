@@ -47,7 +47,7 @@ type
     Procedure SetFormColor;
     function  Get_HasBeenModified: Boolean;
     procedure Set_HasBeenModified(const Value: Boolean);
-    Function  TrimParens(const S:String):String;
+    Function  TrimParens( S:String):String;
     Procedure ExtendSelection;
   public
     { Public declarations }
@@ -148,7 +148,7 @@ begin
   for i := 0 to imax do begin
     If Not SolutionAbort Then Begin  // If script involves step that gets aborted, just flush the script
       DSSExecutive.Command := ActiveScriptForm.cmdList.Strings[i];
-      If LastCommandWasCompile Then ControlPanel.AddCompiledFile(LastFileCompiled);
+      If LastCommandWasCompile and Not IsDLL Then ControlPanel.AddCompiledFile(LastFileCompiled);
     End;
   end;
   Screen.Cursor := crDefault;
@@ -204,7 +204,7 @@ begin
      ResultForm.Editor.Clear;
      ResultForm.Editor.Lines.Add(GlobalResult);
      If Length(GlobalResult)>0 Then  ResultForm.Show;
-     ControlPanel.Edit_Result.Text := GlobalResult;
+     If Not IsDLL Then ControlPanel.Edit_Result.Text := GlobalResult;
 end;
 
 procedure TMainEditForm.UpdateSummaryForm;
@@ -267,7 +267,7 @@ begin
 
       {Status ...}
 
-      ControlPanel.UpdateStatus;
+      If Not IsDLL Then ControlPanel.UpdateStatus;
 
       Editor.Lines.EndUpdate;
   End;
@@ -364,9 +364,8 @@ End;
 
 procedure TMainEditForm.Save3Click(Sender: TObject);
 begin
-        If Not HasFileName Then  ControlPanel.SaveScriptWindow1Click(Sender)
-        Else SaveEditorContents;
-
+      If Not HasFileName Then  ControlPanel.SaveScriptWindow1Click(Sender)
+      Else SaveEditorContents;
 end;
 
 procedure TMainEditForm.ChangetothisDir1Click(Sender: TObject);
@@ -376,7 +375,7 @@ begin
     CurrDir := ExtractFileDir(Caption);
     SetCurrentDir(CurrDir);
     SetDataPath(CurrDir);  // change dssdatadirectory
-    ControlPanel.UpdateStatus;
+    If Not IsDLL Then ControlPanel.UpdateStatus;
 end;
 
 procedure TMainEditForm.CloseWindow1Click(Sender: TObject);
@@ -429,7 +428,7 @@ begin
 
 end;
 
-function TMainEditForm.TrimParens(const S: String): String;
+function TMainEditForm.TrimParens( S: String): String;
 begin
 {Get rid of leading and trailing Parens}
         Result := S;
