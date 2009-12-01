@@ -33,6 +33,7 @@ Procedure ExportY(FileNm:String);
 Procedure ExportSeqZ(FileNm:String);
 Procedure ExportBusCoords(FileNm:String);
 Procedure ExportLosses(FileNm:String);
+Procedure ExportGuids(FileNm:String);
 
 
 IMPLEMENTATION
@@ -40,7 +41,7 @@ IMPLEMENTATION
 Uses uComplex,  Arraydef, sysutils,   Circuit, DSSClassDefs, DSSGlobals,
      uCMatrix,  solution, CktElement, Utilities, Bus, MathUtil,
      PDElement, PCElement, Generator, EnergyMeter, Sensor, Load, RegControl,
-     ParserDel, Math, Ymatrix;
+     ParserDel, Math, Ymatrix, LineGeometry, WireData, LineCode, XfmrCode, NamedObject;
 
 
 
@@ -1845,6 +1846,59 @@ Begin
      CloseFile(F);
   End;
 
+End;
+
+Procedure ExportGuids(FileNm:String);
+Var
+  F       : TextFile;
+  clsCode : TLineCode;
+  clsGeom : TLineGeometry;
+  clsWire : TWireData;
+  clsXfmr : TXfmrCode;
+  pName   : TNamedObject;
+Begin
+  Try
+    clsCode := DSSClassList.Get(ClassNames.Find('linecode'));
+    clsWire := DSSClassList.Get(ClassNames.Find('wiredata'));
+    clsGeom := DSSClassList.Get(ClassNames.Find('linegeometry'));
+    clsXfmr := DSSClassList.Get(ClassNames.Find('xfmrcode'));
+
+    Assignfile(F, FileNm);
+    ReWrite(F);
+
+    pName := ActiveCircuit.CktElements.First;
+    while pName <> nil do begin
+      Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+      pName := ActiveCircuit.CktElements.Next;
+    End;
+
+    pName := clsCode.ElementList.First;
+    while pName <> nil do begin
+      Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+      pName := clsCode.ElementList.Next;
+    End;
+
+    pName := clsWire.ElementList.First;
+    while pName <> nil do begin
+      Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+      pName := clsWire.ElementList.Next;
+    End;
+
+    pName := clsGeom.ElementList.First;
+    while pName <> nil do begin
+      Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+      pName := clsGeom.ElementList.Next;
+    End;
+
+    pName := clsXfmr.ElementList.First;
+    while pName <> nil do begin
+      Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+      pName := clsXfmr.ElementList.Next;
+    End;
+
+  Finally
+    CloseFile(F);
+  End;
 End;
 
 Procedure ExportBusCoords(FileNm:String);

@@ -1,15 +1,12 @@
-// package jena.examples.rdf ;
+// package epri.com.opendss.cim ;
 
 // JENA API
+import java.io.*;
+
+import com.hp.hpl.jena.ontology.*;
+import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.util.FileManager;
-// import com.hp.hpl.jena.vocabulary.*;
-import com.hp.hpl.jena.ontology.*;
-
-// ARQ
-import com.hp.hpl.jena.query.*;
-
-import java.io.*;
 
 public class CDPSM_to_DSS extends Object {
   static final String nsCIM = "http://iec.ch/TC57/2009/CIM-schema-cim14#";
@@ -20,9 +17,14 @@ public class CDPSM_to_DSS extends Object {
   static final String unbalancedOwl = "CDPSM-unbalanced.owl";
   static final String connectOwl = "CDPSM-connectivity.owl";
 
-  static final String balancedXml = "ieee13balanceda.xml";
-  static final String unbalancedXml = "ieee13g.xml";
-  static final String connectXml = "ieee13connectb.xml";
+  static String DSS_Guid (String arg) {
+    int hash = arg.lastIndexOf ("#_");
+    return arg.substring (hash + 2);
+  }
+
+  static String DSS_Name (String arg) {
+    return arg.replace ('=', '_');
+  }
 
   static String Phase_String (String arg) {
     int hash = arg.lastIndexOf ("#PhaseCode.");
@@ -36,6 +38,32 @@ public class CDPSM_to_DSS extends Object {
       --cnt;
     }
     return cnt;
+  }
+
+  static String Bus_Phases (String arg) {
+    String phs = Phase_String (arg);
+    if (phs.contains ("ABC")) {
+      return ".1.2.3";
+    } else if (phs.contains ("AB")) {
+      return ".1.2";
+    } else if (phs.contains ("AC")) {
+      return ".1.3";
+    } else if (phs.contains ("BC")) {
+      return ".2.3";
+    } else if (phs.contains ("A")) {
+      return ".1";
+    } else if (phs.contains ("B")) {
+      return ".2";
+    } else if (phs.contains ("C")) {
+      return ".3";
+    } else {
+      return "";
+    }
+  }
+
+  static String GetWdgConnection (String arg) {
+    int hash = arg.lastIndexOf ("#WindingConnection.");
+    return arg.substring (hash + 19);
   }
 
   static String GetPropValue (Model mdl, String uri, String prop) {
@@ -62,6 +90,62 @@ public class CDPSM_to_DSS extends Object {
     return "x";
   }
 
+  static String GetXfmrBuses (Model mdl, String id) {
+    Property ptXfmr = mdl.getProperty (nsCIM, "DistributionTransformerWinding.Transformer");
+    Property ptInfo = mdl.getProperty (nsCIM, "DistributionTransformerWinding.WindingInfo");
+    Property ptPhs = mdl.getProperty (nsCIM, "ConductingEquipment.phases");
+    StringBuilder buf = new StringBuilder ("[");
+
+    Resource xfRes = mdl.getResource (id);
+    ResIterator iter = mdl.listResourcesWithProperty (ptXfmr, xfRes);
+    while (iter.hasNext()) {
+      Resource wdg = iter.nextResource();
+      String phs = wdg.getProperty(ptPhs).toString();
+      buf.append (GetBusName (mdl, wdg.toString(), 1));
+      buf.append (Bus_Phases (phs));
+      if (iter.hasNext()) {
+        buf.append (",");
+      } else {
+        buf.append ("]");
+      }
+    }
+    return buf.toString();
+  }
+
+  static String GetXfmrCode (Model mdl, String id) {
+    Property ptInfo = mdl.getProperty (nsCIM, "WindingInfo.TransformerInfo");
+    Property ptU = mdl.getProperty (nsCIM, "WindingInfo.ratedU");
+    Property ptS = mdl.getProperty (nsCIM, "WindingInfo.ratedS");
+    Property ptC = mdl.getProperty (nsCIM, "WindingInfo.connectionKind");
+    StringBuilder bufU = new StringBuilder ("kvs=[");
+    StringBuilder bufS = new StringBuilder ("kvas=[");
+    StringBuilder bufC = new StringBuilder ("conns=[");
+    String sPhases = "phases=3 ";
+
+    Resource xfRes = mdl.getResource (id);
+    ResIterator iter = mdl.listResourcesWithProperty (ptInfo, xfRes);
+    while (iter.hasNext()) {
+      Resource wdg = iter.nextResource();
+      String U = wdg.getProperty(ptU).getString();
+      String S = wdg.getProperty(ptS).getString();
+      String C = GetWdgConnection (wdg.getProperty(ptC).getObject().toString());
+      if (C.equals ("I")) {
+        sPhases = "phases=1 ";
+        C = "Y";
+      }
+      if (iter.hasNext()) {
+        bufU.append (U + ",");
+        bufS.append (S + ",");
+        bufC.append (C + ",");
+      } else {
+        bufU.append (U + "] ");
+        bufS.append (S + "] ");
+        bufC.append (C + "] ");
+      }
+    }
+    return sPhases + bufU.toString() + bufS.toString() + bufC.toString();
+  }
+
   static String GetBusPositionString (Model mdl, String id) {
     Property ptX = mdl.getProperty (nsCIM, "PositionPoint.xPosition");
     Property ptY = mdl.getProperty (nsCIM, "PositionPoint.yPosition");
@@ -84,8 +168,6 @@ public class CDPSM_to_DSS extends Object {
     Resource bankGeo = null;
 
     // first look for a terminal equipment that directly has a GeoLocation
-//    Resource trm = mdl.listResourcesWithProperty (ptNode, bus).nextResource(); // 1st terminal on this bus
-
     ResIterator terms = mdl.listResourcesWithProperty (ptNode, bus);
     while (terms.hasNext() && geo == null) {
       trm = terms.nextResource();
@@ -121,46 +203,40 @@ public class CDPSM_to_DSS extends Object {
     return "0, 0";
   }
 
-  static String Bus_Phases (String arg) {
-    String phs = Phase_String (arg);
-    if (phs.contains ("ABC")) {
-      return ".1.2.3";
-    } else if (phs.contains ("AB")) {
-      return ".1.2";
-    } else if (phs.contains ("AC")) {
-      return ".1.3";
-    } else if (phs.contains ("BC")) {
-      return ".2.3";
-    } else if (phs.contains ("A")) {
-      return ".1";
-    } else if (phs.contains ("B")) {
-      return ".2";
-    } else if (phs.contains ("C")) {
-      return ".3";
-    } else {
-      return "";
+  public static void main (String args[]) throws UnsupportedEncodingException, FileNotFoundException {
+
+    if (args.length != 3) {
+      System.out.println ("Usage: CDPSM_to_DSS -{c|u|b} input.xml output_root");
     }
-  }
+    String fProfile = "";
+    String fName = args[1];
+    String fOut = args[2] + "_base.dss";
+    String fBus = args[2] + "_busxy.dss";
+    String fGuid = args[2] + "_guids.dss";
 
-  public static void main (String args[]) throws UnsupportedEncodingException {
+    if (args[0].equals("-c")) {
+      fProfile = connectOwl;
+    } else if (args[0].equals("-b")) {
+      fProfile = balancedOwl;
+    } else if (args[0].equals("-u")) {
+      fProfile = unbalancedOwl;
+    }
 
-    ModelMaker maker = ModelFactory.createFileModelMaker (connectOwl);
+    ModelMaker maker = ModelFactory.createFileModelMaker (fProfile);
     Model tmpModel = maker.createDefaultModel();
     Model model = ModelFactory.createOntologyModel (OntModelSpec.OWL_DL_MEM, tmpModel);
        
-    InputStream in = FileManager.get().open(connectXml);
+    InputStream in = FileManager.get().open(fName);
     if (in == null) {
-      throw new IllegalArgumentException( "File: " + connectXml + " not found");
+      throw new IllegalArgumentException( "File: " + fName + " not found");
     }
         
+    PrintWriter out = new PrintWriter (fOut);
+    PrintWriter outBus = new PrintWriter (fBus);
+    PrintWriter outGuid = new PrintWriter (fGuid);
+
     model.read(new InputStreamReader(in, "UTF8"), baseURI, "RDF/XML");
         
-//    System.out.println("The model statements in\"" + connectXml + "\" are:");
-//    StmtIterator iter = model.listStatements ();
-//    while (iter.hasNext()) {
-//      System.out.println("  " + iter.nextStatement().toString());
-//    }
-
     String qPrefix = "PREFIX r: <" + nsRDF + "> PREFIX c: <" + nsCIM + "> ";
     Query query;
     QueryExecution qexec;
@@ -178,13 +254,15 @@ public class CDPSM_to_DSS extends Object {
     while (results.hasNext()) {
       soln = results.next();
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
-      System.out.println (name + ", " + GetBusPositionString (model, id));
+      name = DSS_Name (soln.get ("?name").toString());
+      outBus.println (name + ", " + GetBusPositionString (model, id));
     }
+    outBus.println ();
+    outBus.close ();
     
     // EnergySource ==> Circuit  (TODO - select the main circuit source first, then the others)
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name ?phs ?v ?ckt where {?s r:type c:EnergySource. " + 
                                  "?s c:IdentifiedObject.name ?name;" +
                                  "   c:ConductingEquipment.phases ?phs;" +
@@ -197,7 +275,7 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
+      name = DSS_Name (soln.get ("?name").toString());
       phs = soln.get ("?phs").toString();
       String vSrce = soln.get ("?v").toString();
       String ckt = soln.get ("?ckt").toString();
@@ -212,13 +290,14 @@ public class CDPSM_to_DSS extends Object {
         name = GetPropValue (model, ckt, "IdentifiedObject.name");
       }
 
-      System.out.println ("new " + srcClass + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
-                          " basekv=" + vSrce);
+      out.println ("new " + srcClass + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
+                   " basekv=" + vSrce);
+      outGuid.println (srcClass + name + "\t" + DSS_Guid (id));
     }
 
     // EnergyConsumer ==> Load
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name ?phs ?p ?q ?c where {?s r:type c:EnergyConsumer. " + 
                                  "?s c:IdentifiedObject.name ?name;" +
                                  "   c:ConductingEquipment.phases ?phs;" +
@@ -232,7 +311,7 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
+      name = DSS_Name (soln.get ("?name").toString());
       phs = soln.get ("?phs").toString();
       String pLoad = soln.get ("?p").toString();
       String qLoad = soln.get ("?q").toString();
@@ -242,13 +321,14 @@ public class CDPSM_to_DSS extends Object {
       bus_phs = Bus_Phases (phs);
       bus1 = GetBusName (model, id, 1) + bus_phs;
 
-      System.out.println ("new Load." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
-                          " kw=" + pLoad + " kvar=" + qLoad + " numcust=" + nCust);
+      out.println ("new Load." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
+                   " kw=" + pLoad + " kvar=" + qLoad + " numcust=" + nCust);
+      outGuid.println ("Load." + name + "\t" + DSS_Guid (id));
     }
 
     // ShuntCompensator ==> Capacitor
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name ?phs ?q ?u where {?s r:type c:ShuntCompensator. " + 
                                  "?s c:IdentifiedObject.name ?name;" +
                                  "   c:ConductingEquipment.phases ?phs;" +
@@ -261,7 +341,7 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
+      name = DSS_Name (soln.get ("?name").toString());
       phs = soln.get ("?phs").toString();
       String nomQ = soln.get ("?q").toString();
       String nomU = soln.get ("?u").toString();
@@ -270,13 +350,14 @@ public class CDPSM_to_DSS extends Object {
       bus_phs = Bus_Phases (phs);
       bus1 = GetBusName (model, id, 1) + bus_phs;
 
-      System.out.println ("new Capacitor." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
+      out.println ("new Capacitor." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
                           " kv=" + nomU + " kvar=" + nomQ);
+      outGuid.println ("Capacitor." + name + "\t" + DSS_Guid (id));
     }
 
     // LineCodes
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name where {?s r:type c:PerLengthPhaseImpedance. " + 
                                  "?s c:IdentifiedObject.name ?name" +
                                  "}");
@@ -286,13 +367,14 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
-      System.out.println ("new LineCode." + name + " r1=0 x1=0.001 c1=0 r0=0 x0=0.001 c0=0");
+      name = DSS_Name (soln.get ("?name").toString());
+      out.println ("new LineCode." + name + " r1=0 x1=0.001 c1=0 r0=0 x0=0.001 c0=0");
+      outGuid.println ("LineCode." + name + "\t" + DSS_Guid (id));
     }
 
     // DistributionLineSegment ==> Line
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name ?len ?phs ?zph where {?s r:type c:DistributionLineSegment. " + 
                                  "?s c:IdentifiedObject.name ?name;" +
                                  "   c:ConductingEquipment.phases ?phs;" +
@@ -305,7 +387,7 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
+      name = DSS_Name (soln.get ("?name").toString());
       phs = soln.get ("?phs").toString();
       String len = soln.get ("?len").toString();
       String zph = soln.get ("?zph").toString();
@@ -316,13 +398,14 @@ public class CDPSM_to_DSS extends Object {
       bus1 = GetBusName (model, id, 1) + bus_phs;
       bus2 = GetBusName (model, id, 2) + bus_phs;
 
-      System.out.println ("new Line." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + " bus2=" + bus2 
+      out.println ("new Line." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + " bus2=" + bus2 
                           + " length=" + len + " linecode=" + linecode);
+      outGuid.println ("Line." + name + "\t" + DSS_Guid (id));
     }
 
     // LoadBreakSwitch ==> Line switch=y
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
     query = QueryFactory.create (qPrefix + "select ?s ?name ?phs ?open where {?s r:type c:LoadBreakSwitch. " + 
                                  "?s c:IdentifiedObject.name ?name;" +
                                  "   c:ConductingEquipment.phases ?phs;" +
@@ -334,7 +417,7 @@ public class CDPSM_to_DSS extends Object {
       soln = results.next();
 
       id = soln.get ("?s").toString();
-      name = soln.get ("?name").toString();
+      name = DSS_Name (soln.get ("?name").toString());
       phs = soln.get ("?phs").toString();
       String open = soln.get ("?open").toString();
 
@@ -343,18 +426,70 @@ public class CDPSM_to_DSS extends Object {
       bus1 = GetBusName (model, id, 1) + bus_phs;
       bus2 = GetBusName (model, id, 2) + bus_phs;
 
-      System.out.println ("new Line." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + " bus2=" + bus2 
+      out.println ("new Line." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + " bus2=" + bus2 
                           + " switch=y");
       if (open.equals("false")) {
-        System.out.println ("  close Line." + name + " 1");
+        out.println ("  close Line." + name + " 1");
       } else {
-        System.out.println ("  open Line." + name + " 1");
+        out.println ("  open Line." + name + " 1");
       }
+      outGuid.println ("Line." + name + "\t" + DSS_Guid (id));
     }
 
     // Transformers and Regulators
-    System.out.println ();
-    System.out.println ();
+    out.println ();
+    out.println ();
+    query = QueryFactory.create (qPrefix + "select ?s ?name where {?s r:type c:TransformerInfo. " + 
+                                 "?s c:IdentifiedObject.name ?name" +
+                                 "}");
+    qexec = QueryExecutionFactory.create (query, model);
+    results=qexec.execSelect();
+    while (results.hasNext()) {
+      soln = results.next();
+
+      id = soln.get ("?s").toString();
+      name = DSS_Name (soln.get ("?name").toString());
+
+      out.println ("new XfmrCode." + name + " " + GetXfmrCode (model, id));
+      outGuid.println ("XfmrCode." + name + "\t" + DSS_Guid (id));
+    }
+
+    out.println ();
+    out.println ();
+    query = QueryFactory.create (qPrefix + "select ?s ?name ?bank ?code where {?s r:type c:DistributionTransformer. " + 
+                                 "?s c:IdentifiedObject.name ?name;" +
+                                 "   c:DistributionTransformer.TransformerBank ?bank;" +
+                                 "   c:DistributionTransformer.TransformerInfo ?code" +
+                                 "}");
+    qexec = QueryExecutionFactory.create (query, model);
+    results=qexec.execSelect();
+    while (results.hasNext()) {
+      soln = results.next();
+
+      id = soln.get ("?s").toString();
+      name = DSS_Name (soln.get ("?name").toString());
+      String bank = soln.get ("?bank").toString();
+      String code = soln.get ("?code").toString();
+
+      String xfmrcode = DSS_Name (GetPropValue (model, code, "IdentifiedObject.name"));
+      String xfmrbank = DSS_Name (GetPropValue (model, bank, "IdentifiedObject.name"));
+
+      out.println ("new Transformer." + name + " xfmrcode=" + xfmrcode + " bank=" + xfmrbank + " buses=" + GetXfmrBuses (model, id));
+      outGuid.println ("Transformer." + name + "\t" + DSS_Guid (id));
+    }
+
+    // wrapup
+    out.println ();
+    out.println ();
+    out.println ("// guids " + fGuid);
+    out.println ();
+    out.println ("calcv");
+    out.println ("buscoords " + fBus);
+    out.println ();
+    out.close ();
+
+    outGuid.println ();
+    outGuid.close ();
   }
 }
 

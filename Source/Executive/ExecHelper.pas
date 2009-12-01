@@ -84,6 +84,7 @@ Uses Command;
          FUNCTION DoZscRefresh:Integer;
 
          FUNCTION DoBusCoordsCmd:Integer;
+         FUNCTION DoGuidsCmd:Integer;
          FUNCTION DoVarValuesCmd:Integer;
          FUNCTION DoVarNamesCmd :Integer;
 
@@ -132,7 +133,7 @@ USES ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
-     Classes,  CktElementClass, Sensor, FileCtrl, ExportCIMXML;
+     Classes,  CktElementClass, Sensor, FileCtrl, ExportCIMXML, NamedObject;
 
 Var
    SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands, ExportCommands,
@@ -834,6 +835,7 @@ Begin
          22: FileName := 'CDPSM_Balanced.XML';
          23: FileName := 'EXP_BUSCOORDS.CSV';
          24: FileName := 'EXP_LOSSES.CSV';
+         25: FileName := 'EXP_GUIDS.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -870,6 +872,7 @@ Begin
      22: ExportCDPSM_Bal(Filename);
      23: ExportBusCoords(Filename);
      24: ExportLosses(Filename);
+     25: ExportGuids(Filename);
    ELSE
          ExportVoltages(FileName);    // default
    END;
@@ -3632,6 +3635,41 @@ Begin
 
 End;
 
+FUNCTION DoGuidsCmd:Integer;
+Var
+  F:TextFile;
+  ParamName, Param, S, NameVal, GuidVal, DevClass, DevName: String;
+  pName: TNamedObject;
+Begin
+  Result := 0;
+  ParamName := Parser.NextParam;
+  Param := Parser.StrValue;
+  Try
+    AssignFile(F, Param);
+    Reset(F);
+    While not EOF(F) Do Begin
+      Readln(F, S);
+      With AuxParser Do Begin
+        CmdString := S;
+        NextParam;  NameVal := StrValue;
+        NextParam;  GuidVal := StrValue;
+        // format the GUID properly
+        if Pos ('{', GuidVal) < 1 then
+          GuidVal := '{' + GuidVal + '}';
+        // find this object
+        ParseObjectClassAndName (NameVal, DevClass, DevName);
+        LastClassReferenced := ClassNames.Find (DevClass);
+        ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+        ActiveDSSClass.SetActive (DevName);
+        pName := ActiveDSSClass.GetActiveObj;
+        // re-assign its GUID
+        pName.GUID := StringToGuid (GuidVal);
+      End;
+    End;
+  Finally
+    CloseFile(F);
+  End;
+End;
 
 initialization
 
@@ -3660,7 +3698,7 @@ initialization
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
                                             'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
                                             'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM',
-                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses']);
+                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses', 'Guids']);
     ExportCommands.Abbrev := True;
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
