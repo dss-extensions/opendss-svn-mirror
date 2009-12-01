@@ -397,7 +397,7 @@ Begin
                         'Send specified object to TOP.  Loadshapes must be hourly fixed interval. ';
      CommandHelp[65] := 'Usage: Rotate [angle=]nnn.  Rotate circuit plotting coordinates by specified angle (degrees). ';
      CommandHelp[66] := 'Displays the difference between the present solution and the last on saved using the SAVE VOLTAGES command.';
-     CommandHelp[67] := 'Displays a power flow summary of the most recent solution.';
+     CommandHelp[67] := 'Returns a power flow summary of the most recent solution in the global result string.';
      CommandHelp[68] := 'kw=nn how={Proportional | Uniform |Random | Skip} skip=nn PF=nn file=filename MW=nn' +CRLF +
                         'Distributes generators on the system in the manner specified by "how".' + CRLF +
                         'kW = total generation to be distributed (default=1000) '+ CRLF +
