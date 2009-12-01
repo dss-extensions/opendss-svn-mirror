@@ -640,7 +640,7 @@ Begin
              End
              ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 249);
           End;
-     11: ShowControlPanel;    // see DSSGlobals
+     11: ShowControlPanel;  
      12: Begin
             ShowOptionCode := 0;
             MVAOpt := 0;
@@ -3119,35 +3119,53 @@ End;
 
 FUNCTION DoSummaryCmd:Integer;
 
+// Returns summary in global result String
+
 Var
-    S:TStringList;
-    cPower, cLosses:Complex;
+   S:String;
+   cLosses,
+   cPower :Complex;
 
 Begin
   Result := 0;
-  S := TStringList.Create;
-  Try
-       S.Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
-       S.Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
-       S.Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
-       S.Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
-       cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
-       S.Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
-       S.Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
-       cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
-			 If cPower.re <> 0.0 Then S.Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
-                           Else S.Add('Total Active Losses:   ****** MW, (**** %%)');
-       S.Add(Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]));
-       S.Add(Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]));
-       S.Add('Mode = '+GetSolutionModeID);
-       S.Add('Control Mode = '+GetControlModeID);
-       S.Add('Load Model = '+GetLoadModel);
-       ShowMessageForm(S);
-  Finally
-      S.Free;
-  End;
- 
+     S := '';
+     IF ActiveCircuit.Issolved Then S := S + 'Status = SOLVED' + CRLF
+     Else Begin
+       S := S + 'Status = NOT Solved' + CRLF;
+     End;
+     S := S + 'Solution Mode = ' + GetSolutionModeID + CRLF;
+     S := S + 'Number = ' + IntToStr(ActiveCircuit.Solution.NumberofTimes) + CRLF;
+     S := S + 'Load Mult = '+ Format('%5.3f', [ActiveCircuit.LoadMultiplier]) + CRLF;
+     S := S + 'Devices = '+ Format('%d', [ActiveCircuit.NumDevices]) + CRLF;
+     S := S + 'Buses = ' + Format('%d', [ActiveCircuit.NumBuses]) + CRLF;
+     S := S + 'Nodes = ' + Format('%d', [ActiveCircuit.NumNodes]) + CRLF;
+     S := S + 'Control Mode =' + GetControlModeID + CRLF;
+     S := S + 'Total Iterations = '+IntToStr(ActiveCircuit.Solution.Iteration) + CRLF;
+     S := S + 'Control Iterations = '+IntToStr(ActiveCircuit.Solution.ControlIteration) + CRLF;
+     S := S + 'Max Sol Iter = ' +IntToStr(ActiveCircuit.Solution.MostIterationsDone ) + CRLF;
+     S := S + ' ' + CRLF;
+     S := S + ' - Circuit Summary -' + CRLF;
+     S := S + ' ' + CRLF;
+     If ActiveCircuit <> Nil Then Begin
 
+         S := S + Format('Year = %d ',[ActiveCircuit.Solution.Year]) + CRLF;
+         S := S + Format('Hour = %d ',[ActiveCircuit.Solution.intHour]) + CRLF;
+         S := S + 'Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]) + CRLF;
+         S := S + 'Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]) + CRLF;
+         cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
+         S := S + Format('Total Active Power:   %-.6g MW',[cpower.re]) + CRLF;
+         S := S + Format('Total Reactive Power: %-.6g Mvar',[cpower.im]) + CRLF;
+         cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
+         If cPower.re <> 0.0 Then S := S + Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]) + CRLF
+                             Else S := S + 'Total Active Losses:   ****** MW, (**** %%)' + CRLF;
+         S := S + Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]) + CRLF;
+         S := S + Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]) + CRLF;
+         S := S + 'Mode = '+GetSolutionModeID + CRLF;
+         S := S + 'Control Mode = '+GetControlModeID + CRLF;
+         S := S + 'Load Model = '+GetLoadModel + CRLF;
+     End;
+
+     GlobalResult := S;
 End;
 
 Function DoDistributeCmd:Integer;
