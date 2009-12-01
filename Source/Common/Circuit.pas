@@ -304,14 +304,14 @@ BEGIN
 
      LegalVoltageBases := AllocMem(SizeOf(LegalVoltageBases^[1]) * 8);
      // Default Voltage Bases
-       LegalVoltageBases^[1] := 0.208;
-       LegalVoltageBases^[2] := 0.480;
-       LegalVoltageBases^[3] := 12.47;
-       LegalVoltageBases^[4] := 24.9;
-       LegalVoltageBases^[5] := 34.5;
-       LegalVoltageBases^[6] := 115.0;
-       LegalVoltageBases^[7] := 230.0;
-       LegalVoltageBases^[8] := 0.0;  // terminates array
+     LegalVoltageBases^[1] := 0.208;
+     LegalVoltageBases^[2] := 0.480;
+     LegalVoltageBases^[3] := 12.47;
+     LegalVoltageBases^[4] := 24.9;
+     LegalVoltageBases^[5] := 34.5;
+     LegalVoltageBases^[6] := 115.0;
+     LegalVoltageBases^[7] := 230.0;
+     LegalVoltageBases^[8] := 0.0;  // terminates array
 
      NodeBufferMax := 20;
      NodeBuffer    := AllocMem(SizeOf(NodeBuffer^[1]) * NodeBufferMax); // A place to hold the nodes

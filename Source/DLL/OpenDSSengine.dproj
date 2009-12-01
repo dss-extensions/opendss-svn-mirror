@@ -114,6 +114,9 @@
     <DCCReference Include="..\Forms\Scriptform.pas">
       <Form>MainEditForm</Form>
     </DCCReference>
+    <DCCReference Include="..\Forms\ScriptformNormal.pas">
+      <Form>MainEditFormNormal</Form>
+    </DCCReference>
     <DCCReference Include="..\Forms\TViewer.pas">
       <Form>TViewForm</Form>
     </DCCReference>

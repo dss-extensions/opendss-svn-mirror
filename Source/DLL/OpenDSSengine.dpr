@@ -105,7 +105,7 @@ uses
   RegControl in '..\Controls\RegControl.pas',
   Relay in '..\Controls\Relay.pas',
   RPN in '..\Parser\RPN.pas',
-  Scriptform in '..\Forms\Scriptform.pas' {MainEditForm},
+  ScriptformNormal in '..\Forms\ScriptformNormal.pas' {MainEditFormNormal},
   Sensor in '..\Meters\Sensor.pas',
   ShowResults in '..\Common\ShowResults.pas',
   Solution in '..\Common\Solution.pas',
@@ -161,7 +161,8 @@ uses
   ImplSwtControls in 'ImplSwtControls.pas' {SwtControls: CoClass},
   ImplPlot in 'ImplPlot.pas' {Plot: CoClass},
   ImplTopology in 'ImplTopology.pas' {Topology: CoClass},
-  ImplDSS_Executive in 'ImplDSS_Executive.pas' {DSS_Executive: CoClass};
+  ImplDSS_Executive in 'ImplDSS_Executive.pas' {DSS_Executive: CoClass},
+  Scriptform in '..\Forms\Scriptform.pas' {MainEditForm};
 
 exports
   DllGetClassObject,

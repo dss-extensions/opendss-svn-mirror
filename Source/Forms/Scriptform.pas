@@ -66,14 +66,14 @@ type
    end;
 
 var
-  MainEditForm      :TMainEditForm;
-  ActiveScriptForm  :TMainEditForm;
-  ScriptWindowList  :TObjectList;
-  RecordCommands    :Boolean;
+    MainEditForm      :TMainEditForm;
+    ActiveScriptForm  :TMainEditForm;
+    ScriptWindowList  :TObjectList;
+    RecordCommands    :Boolean;
 
 implementation
 
-Uses RichEdit, Executive, DSSGlobals, DSSForms,  Panel,Utilities, MessageForm;
+Uses RichEdit, Executive, DSSGlobals, DSSForms,  Panel,Utilities, MessageForm, uComplex;
 
 {$R *.DFM}
 
@@ -153,15 +153,17 @@ begin
   end;
   Screen.Cursor := crDefault;
 
-  UpdateResultForm;
-  UpdateSummaryForm;
-
-  With ActiveCircuit Do
-  if (SolutionWasAttempted) and (Not IsSolved) then Begin
-      Beep;
-      SummaryForm.Show;
+  If Not IsDLL Then
+  Begin
+        UpdateResultForm;
+        UpdateSummaryForm;
+        With ActiveCircuit Do
+        if (SolutionWasAttempted) and (Not IsSolved) then Begin
+            Beep;
+            SummaryForm.Show;
+        End;
+        ControlPanel.UpdateStatus;
   End;
-  ControlPanel.UpdateStatus;
 end;
 
 Procedure TMainEditForm.ExecuteDSSCommand(Const S:String);
@@ -169,9 +171,11 @@ Begin
   SolutionAbort := FALSE;
   DSSExecutive.Command := S;
   If RecordCommands then Editor.Lines.Append(S);
- 
-  UpdateResultForm;
-  UpdateSummaryForm;
+
+  If Not IsDLL Then  Begin
+      UpdateResultForm;
+      UpdateSummaryForm;
+  End;
 End;
 
 
@@ -199,10 +203,13 @@ procedure TMainEditForm.UpdateResultform;
 begin
      ResultForm.Editor.Clear;
      ResultForm.Editor.Lines.Add(GlobalResult);
+     If Length(GlobalResult)>0 Then  ResultForm.Show;
      ControlPanel.Edit_Result.Text := GlobalResult;
 end;
 
 procedure TMainEditForm.UpdateSummaryForm;
+Var
+     cLosses, cPower:Complex;
 begin
 
   With SummaryForm Do
@@ -229,7 +236,29 @@ begin
            Add('Total Iterations = '+IntToStr(ActiveCircuit.Solution.Iteration));
            Add('Control Iterations = '+IntToStr(ActiveCircuit.Solution.ControlIteration));
            Add('Max Sol Iter = ' +IntToStr(ActiveCircuit.Solution.MostIterationsDone ));
-           ControlPanel.Caption := 'DSS Main Control Panel: Active Circuit = ' + ActiveCircuit.Name;
+           Add(' ');
+           Add(' - Circuit Summary -');
+           Add(' ');
+           If ActiveCircuit <> Nil Then Begin
+
+               Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
+               Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
+               Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
+               Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
+               cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
+               Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
+               Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
+               cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
+               If cPower.re <> 0.0 Then Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
+                                   Else Add('Total Active Losses:   ****** MW, (**** %%)');
+               Add(Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]));
+               Add(Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]));
+               Add('Mode = '+GetSolutionModeID);
+               Add('Control Mode = '+GetControlModeID);
+               Add('Load Model = '+GetLoadModel);
+           End;
+
+         If Not IsDLL Then   ControlPanel.Caption := 'DSS Main Control Panel: Active Circuit = ' + ActiveCircuit.Name;
         End
       Else
         With Editor.Lines Do Begin

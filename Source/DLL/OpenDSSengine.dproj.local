@@ -13,5 +13,7 @@
     <Transaction>2009/10/02 15:37:10.015.pas,C:\OpenDSS\Source\DLL\Unit1.pas=C:\OpenDSS\Source\DLL\ImplActiveClass.pas</Transaction>
     <Transaction>2009/10/30 18:04:05.441.pas,C:\OpenDSS\Source\DLL\Unit1.pas=C:\OpenDSS\Source\DLL\ImplPlot.pas</Transaction>
     <Transaction>2009/11/24 15:15:34.205.pas,C:\OpenDSS\Source\DLL\Unit1.pas=C:\OpenDSS\Source\DLL\ImplDSS_Executive.pas</Transaction>
+    <Transaction>2009/11/30 23:45:26.390.pas,C:\OpenDSS\Source\Forms\Scriptform.pas=C:\OpenDSS\Source\Forms\ScriptformNormal.pas</Transaction>
+    <Transaction>2009/11/30 23:45:26.390.dfm,C:\OpenDSS\Source\Forms\Scriptform.dfm=C:\OpenDSS\Source\Forms\ScriptformNormal.dfm</Transaction>
   </Transactions>
 </BorlandProject>

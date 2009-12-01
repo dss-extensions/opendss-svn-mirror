@@ -49,6 +49,8 @@ uses ComServ,
      DSSClassDefs,
      DSSGlobals,
      DSSForms,
+     Forms,
+     ScriptFormNormal,
      DSSClass,
      ImplGlobals,
      Exechelper,
@@ -58,7 +60,7 @@ uses ComServ,
 
 function TDSS.Get_ActiveCircuit: ICircuit;
 begin
-   Result := FCircuit as ICircuit;
+      Result := FCircuit as ICircuit;
 end;
 
 function TDSS.Get_Circuits(Idx: OleVariant): ICircuit;
@@ -121,7 +123,17 @@ end;
 
 procedure TDSS.ShowPanel;
 begin
-    ShowControlPanel; // in DSSForms
+
+//    ShowControlPanel; // in DSSForms
+    If Not Assigned (MainEditFormNormal) Then
+    Begin
+          MainEditFormNormal := TMainEditFormnormal.Create(Nil);
+          MainEditFormNormal.Caption := 'OpenDSS Script Form';
+          MainEditFormNormal.isMainWindow := TRUE;
+    End;
+
+    MainEditFormNormal.Show;
+
 end;
 
 function TDSS.Get_Version: WideString;
@@ -161,20 +173,18 @@ Var
   i,k:Integer;
 
 Begin
-   If NumUserClasses > 0 Then
-   Begin
-     Result := VarArrayCreate([0, NumUserClasses-1], varOleStr);
-     k:=0;
-     For i := NumIntrinsicClasses+1 To DSSClassList.ListSize   Do
+     If NumUserClasses > 0 Then
      Begin
-        Result[k] := TDSSClass(DssClassList.Get(i)).Name;
-        Inc(k);
-     End;
-   End
-   Else
-   Result := VarArrayCreate([0, 0], varOleStr);
-
-
+         Result := VarArrayCreate([0, NumUserClasses-1], varOleStr);
+         k:=0;
+         For i := NumIntrinsicClasses+1 To DSSClassList.ListSize   Do
+         Begin
+            Result[k] := TDSSClass(DssClassList.Get(i)).Name;
+            Inc(k);
+         End;
+     End
+     Else
+     Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
 function TDSS.Get_NumClasses: Integer;

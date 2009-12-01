@@ -187,7 +187,7 @@ End;
 PROCEDURE ShowControlPanel;
 
 Begin
-    If NoFormsAllowed then Exit;
+    If NoFormsAllowed or IsDLL then Exit;
     If Not ControlPanelCreated Then CreateControlPanel;
     ControlPanel.Show;
 End;

@@ -222,6 +222,7 @@ type
     Buscoords1: TMenuItem;
     Sort1: TMenuItem;
     Losses2: TMenuItem;
+    ResultForm1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -373,6 +374,7 @@ type
     procedure Buscoords1Click(Sender: TObject);
     procedure Sort1Click(Sender: TObject);
     procedure Losses2Click(Sender: TObject);
+    procedure ResultForm1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -728,6 +730,11 @@ begin
     ActiveScriptForm.ExecuteDSSCommand('fileedit ['+ ResultForm.Editor.Lines.Strings[0]+']');
 end;
 
+
+procedure TControlPanel.ResultForm1Click(Sender: TObject);
+begin
+     ResultForm.Show;
+end;
 
 function TControlPanel.MakeANewEditForm(const Cap: String): TMainEditForm;
 begin
@@ -1991,7 +1998,8 @@ end;
 procedure TControlPanel.Summary1Click(Sender: TObject);
 begin
    If ActiveCircuit <> Nil Then
-      ActiveScriptForm.ExecuteDSSCommand('summary');
+      ActiveScriptForm.UpdateSummaryForm;
+   SummaryForm.show ;
 end;
 
 procedure TControlPanel.List1Click(Sender: TObject);
