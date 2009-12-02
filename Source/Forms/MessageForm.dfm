@@ -26,7 +26,5 @@ object MessageForm1: TMessageForm1
     ReadOnly = True
     ScrollBars = ssBoth
     TabOrder = 0
-    ExplicitWidth = 688
-    ExplicitHeight = 446
   end
 end

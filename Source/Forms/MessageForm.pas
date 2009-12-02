@@ -29,5 +29,8 @@ implementation
 {$R *.DFM}
 
 
-
+initialization
+   MessageForm1 := nil;
+   ResultForm   := nil;
+   SummaryForm  := nil;
 end.
