@@ -85,6 +85,7 @@ Uses Command;
 
          FUNCTION DoBusCoordsCmd:Integer;
          FUNCTION DoGuidsCmd:Integer;
+         FUNCTION DoSetLoadKVCmd:Integer;
          FUNCTION DoVarValuesCmd:Integer;
          FUNCTION DoVarNamesCmd :Integer;
 
@@ -836,6 +837,7 @@ Begin
          23: FileName := 'EXP_BUSCOORDS.CSV';
          24: FileName := 'EXP_LOSSES.CSV';
          25: FileName := 'EXP_GUIDS.CSV';
+         26: FileName := 'EXP_Counts.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -873,6 +875,7 @@ Begin
      23: ExportBusCoords(Filename);
      24: ExportLosses(Filename);
      25: ExportGuids(Filename);
+     26: ExportCounts(Filename);
    ELSE
          ExportVoltages(FileName);    // default
    END;
@@ -3653,6 +3656,32 @@ Begin
 
 End;
 
+FUNCTION DoSetLoadKVCmd:Integer;
+VAR
+  pLoad :TLoadObj;
+  pBus :TDSSBus;
+  sBus : String;
+  iBus : integer;
+  kvln : double;
+Begin
+  Result := 0;
+  pLoad := ActiveCircuit.Loads.First;
+  WHILE pLoad <> NIL Do Begin
+    ActiveLoadObj := pLoad; // for UpdateVoltageBases to work
+    sBus := StripExtension (pLoad.GetBus(1));
+    iBus := ActiveCircuit.BusList.Find (sBus);
+    pBus := ActiveCircuit.Buses^[iBus];
+    kvln := pBus.kVBase;
+    if (pLoad.Connection = 1) Or (pLoad.NPhases = 3) then
+      pLoad.kVLoadBase := kvln * sqrt (3.0)
+    else
+      pLoad.kVLoadBase := kvln;
+    pLoad.UpdateVoltageBases;
+    pLoad.RecalcElementData;
+    pLoad := ActiveCircuit.Loads.Next;
+  End;
+End;
+
 FUNCTION DoGuidsCmd:Integer;
 Var
   F:TextFile;
@@ -3668,6 +3697,7 @@ Begin
     While not EOF(F) Do Begin
       Readln(F, S);
       With AuxParser Do Begin
+        pName := nil;
         CmdString := S;
         NextParam;  NameVal := StrValue;
         NextParam;  GuidVal := StrValue;
@@ -3676,12 +3706,18 @@ Begin
           GuidVal := '{' + GuidVal + '}';
         // find this object
         ParseObjectClassAndName (NameVal, DevClass, DevName);
-        LastClassReferenced := ClassNames.Find (DevClass);
-        ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
-        ActiveDSSClass.SetActive (DevName);
-        pName := ActiveDSSClass.GetActiveObj;
+        IF CompareText (DevClass, 'circuit')=0 THEN begin
+          pName := ActiveCircuit
+        end else begin
+          LastClassReferenced := ClassNames.Find (DevClass);
+          ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+          if ActiveDSSClass <> nil then begin
+            ActiveDSSClass.SetActive (DevName);
+            pName := ActiveDSSClass.GetActiveObj;
+          end;
+        end;
         // re-assign its GUID
-        pName.GUID := StringToGuid (GuidVal);
+        if pName <> nil then pName.GUID := StringToGuid (GuidVal);
       End;
     End;
   Finally
@@ -3716,7 +3752,8 @@ initialization
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
                                             'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
                                             'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM',
-                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses', 'Guids']);
+                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses', 'Guids',
+                                            'Counts']);
     ExportCommands.Abbrev := True;
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);

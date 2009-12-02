@@ -34,12 +34,13 @@ Procedure ExportSeqZ(FileNm:String);
 Procedure ExportBusCoords(FileNm:String);
 Procedure ExportLosses(FileNm:String);
 Procedure ExportGuids(FileNm:String);
+Procedure ExportCounts(FileNm:String);
 
 
 IMPLEMENTATION
 
 Uses uComplex,  Arraydef, sysutils,   Circuit, DSSClassDefs, DSSGlobals,
-     uCMatrix,  solution, CktElement, Utilities, Bus, MathUtil,
+     uCMatrix,  solution, CktElement, Utilities, Bus, MathUtil, DSSClass,
      PDElement, PCElement, Generator, EnergyMeter, Sensor, Load, RegControl,
      ParserDel, Math, Ymatrix, LineGeometry, WireData, LineCode, XfmrCode, NamedObject;
 
@@ -1866,6 +1867,9 @@ Begin
     Assignfile(F, FileNm);
     ReWrite(F);
 
+    pName := ActiveCircuit;
+    Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
+
     pName := ActiveCircuit.CktElements.First;
     while pName <> nil do begin
       Writeln (F, Format ('%s.%s %s', [pName.DSSClassName, pName.LocalName, pName.ID]));
@@ -1896,6 +1900,26 @@ Begin
       pName := clsXfmr.ElementList.Next;
     End;
 
+  Finally
+    CloseFile(F);
+  End;
+End;
+
+Procedure ExportCounts(FileNm:String);
+Var
+  F   : TextFile;
+  cls :TDSSClass;
+Begin
+  Try
+    Assignfile(F, FileNm);
+    ReWrite(F);
+    Writeln (F, 'Format: DSS Class Name = Instance Count');
+    Writeln (F);
+    cls := DSSClassList.First;
+    while cls <> nil do begin
+      Writeln (F, Format ('%s = %d', [cls.Name, cls.ElementCount]));
+      cls := DSSClassList.Next;
+    end;
   Finally
     CloseFile(F);
   End;

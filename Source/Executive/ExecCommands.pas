@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 86;
+     NumExecCommands = 87;
 
 Var
 
@@ -122,6 +122,7 @@ Begin
      ExecCommand[85] := 'AddMarker';
 
      ExecCommand[86] := 'Guids';
+     ExecCommand[87] := 'SetLoadKV';
 
 
 
@@ -337,6 +338,7 @@ Begin
                          'Export Buscoords [Filename]   [EXP_BUSCOORDS.CSV]' + CRLF +
                          'Export Losses [Filename] [EXP_LOSSES.CSV]' + CRLF +
                          'Export Guids [Filename]   [EXP_GUIDS.CSV]' + CRLF +
+                         'Export Counts [Filename]   [EXP_Counts.CSV] (instance counts for each class)' + CRLF +
                          CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
                          ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+
@@ -447,6 +449,7 @@ Begin
      CommandHelp[84] := 'For step control of solution process: Invoke iterative power flow solution function of DSS directly.';
      CommandHelp[85] := 'Add a marker to the active plot. Example: '+CRLF+CRLF+'AddMarker Bus=busname code=nn color=$00FF0000 size=3';
      CommandHelp[86] := 'Read GUIDS for class names. Tab or comma-delimited file with full object name and GUID';
+     CommandHelp[87] := 'Set load object kv from bus voltage base and load connection type.';
 
 End;
 
@@ -649,6 +652,7 @@ Begin
        84: ActiveCircuit.Solution.DoPFLOWsolution;
        85: CmdResult := DoAddMarkerCmd;
        86: CmdResult := DoGuidsCmd;
+       87: CmdResult := DoSetLoadKVCmd;
      ELSE
        // Ignore excess parameters
      End;
