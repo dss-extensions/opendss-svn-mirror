@@ -228,6 +228,7 @@ Procedure ShowMessageForm(S:TStrings);
 
 Begin
           If NoFormsAllowed Then Exit;
+          If Not Assigned (MessageForm1) Then MessageForm1 := TMessageForm1.Create(Nil);
           MessageForm1.Editor.Clear;
           MessageForm1.Editor.Lines := S;
           MessageForm1.WindowState := wsNormal;
