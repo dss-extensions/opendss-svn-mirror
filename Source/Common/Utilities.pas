@@ -2255,6 +2255,10 @@ Begin
     End;
 
     Try
+      Writeln(F, '! Created with Distribute Command:');
+      Writeln(f, Format('! Distribute kW=%-.6g PF=%-.6g How=%s Skip=%d  file=%s', [kW, PF, How, Skip, Fname]));
+      Writeln(F);
+      Writeln(F, 'Set allowduplicates=yes');
       If Length(How)=0 Then How:='P';
       Case Uppercase(How)[1] of
           'U':  WriteUniformGenerators(F, kW, PF);
@@ -2265,6 +2269,7 @@ Begin
       End;
       GlobalResult := Fname;
     Finally
+    Writeln(F, 'Set allowduplicates=no');
     CloseFile(F);
 
     End;

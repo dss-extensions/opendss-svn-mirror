@@ -171,7 +171,7 @@ End;
 PROCEDURE CreateControlPanel;
 
 Begin
-     If NoFormsAllowed then Exit;
+     If NoFormsAllowed or isDLL then Exit;
      ControlPanel := TControlPanel.Create(Nil);
      ControlPanelCreated := True;
      ControlPanel.InitializeForm;
@@ -180,7 +180,7 @@ End;
 PROCEDURE ExitControlPanel;
 
 Begin
-     If NoFormsAllowed then Exit;
+     If NoFormsAllowed or IsDLL then Exit;
      ControlPanel.Exit1Click(nil);
 End;
 
