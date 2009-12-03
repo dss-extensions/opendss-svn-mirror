@@ -607,6 +607,7 @@ BEGIN
          IF DeviceRef^[Devindex].CktElementClass=DevClassIndex THEN   // we got a match
           BEGIN
             ActiveDSSClass := DSSClassList.Get(DevClassIndex);
+            LastClassReferenced := DevClassIndex;
             Result := DeviceRef^[Devindex].devHandle;
            // ActiveDSSClass.Active := Result;
           //  ActiveCktElement := ActiveDSSClass.GetActiveObj;
