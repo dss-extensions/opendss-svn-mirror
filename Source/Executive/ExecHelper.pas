@@ -85,7 +85,7 @@ Uses Command;
 
          FUNCTION DoBusCoordsCmd:Integer;
          FUNCTION DoGuidsCmd:Integer;
-         FUNCTION DoSetLoadKVCmd:Integer;
+         FUNCTION DoSetLoadAndGenKVCmd:Integer;
          FUNCTION DoVarValuesCmd:Integer;
          FUNCTION DoVarNamesCmd :Integer;
 
@@ -3656,12 +3656,13 @@ Begin
 
 End;
 
-FUNCTION DoSetLoadKVCmd:Integer;
+FUNCTION DoSetLoadAndGenKVCmd:Integer;
 VAR
   pLoad :TLoadObj;
+  pGen :TGeneratorObj;
   pBus :TDSSBus;
   sBus : String;
-  iBus : integer;
+  iBus, i : integer;
   kvln : double;
 Begin
   Result := 0;
@@ -3680,6 +3681,20 @@ Begin
     pLoad.RecalcElementData;
     pLoad := ActiveCircuit.Loads.Next;
   End;
+
+  For i := 1 to ActiveCircuit.Generators.ListSize Do Begin
+    pGen := ActiveCircuit.Generators.Get(i);
+    sBus := StripExtension (pGen.GetBus(1));
+    iBus := ActiveCircuit.BusList.Find (sBus);
+    pBus := ActiveCircuit.Buses^[iBus];
+    kvln := pBus.kVBase;
+    if (pGen.Connection = 1) Or (pGen.NPhases > 1) then
+      pGen.PresentKV := kvln * sqrt (3.0)
+    else
+      pGen.PresentKV := kvln;
+    pGen.RecalcElementData;
+  End;
+
 End;
 
 FUNCTION DoGuidsCmd:Integer;

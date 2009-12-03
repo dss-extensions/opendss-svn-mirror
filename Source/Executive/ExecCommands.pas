@@ -122,7 +122,7 @@ Begin
      ExecCommand[85] := 'AddMarker';
 
      ExecCommand[86] := 'Guids';
-     ExecCommand[87] := 'SetLoadKV';
+     ExecCommand[87] := 'SetLoadAndGenKV';
 
 
 
@@ -449,7 +449,7 @@ Begin
      CommandHelp[84] := 'For step control of solution process: Invoke iterative power flow solution function of DSS directly.';
      CommandHelp[85] := 'Add a marker to the active plot. Example: '+CRLF+CRLF+'AddMarker Bus=busname code=nn color=$00FF0000 size=3';
      CommandHelp[86] := 'Read GUIDS for class names. Tab or comma-delimited file with full object name and GUID';
-     CommandHelp[87] := 'Set load object kv from bus voltage base and load connection type.';
+     CommandHelp[87] := 'Set load and generator object kv from bus voltage base and connection type.';
 
 End;
 
@@ -652,7 +652,7 @@ Begin
        84: ActiveCircuit.Solution.DoPFLOWsolution;
        85: CmdResult := DoAddMarkerCmd;
        86: CmdResult := DoGuidsCmd;
-       87: CmdResult := DoSetLoadKVCmd;
+       87: CmdResult := DoSetLoadAndGenKVCmd;
      ELSE
        // Ignore excess parameters
      End;

@@ -313,6 +313,24 @@ begin
     Result := 'A';
 end;
 
+procedure GeneratorControlEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:GeneratingUnit.genControlSource rdf:resource="%s#GeneratorControlSource.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure SynchMachTypeEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:SynchronousMachine.type rdf:resource="%s#SynchronousMachineType.%s"/>',
+    [CIM_NS, val]));
+end;
+
+procedure SynchMachModeEnum (var F: TextFile; val: String);
+begin
+  Writeln (F, Format ('  <cim:SynchronousMachine.operatingMode rdf:resource="%s#SynchronousMachineOperatingMode.%s"/>',
+    [CIM_NS, val]));
+end;
+
 procedure RegulatingControlEnum (var F: TextFile; val: String);
 begin
   Writeln (F, Format ('  <cim:RegulatingControl.mode rdf:resource="%s#RegulatingControlModeKind.%s"/>',
@@ -413,6 +431,18 @@ end;
 procedure EndInstance (var F: TextFile; Root: String);
 begin
   Writeln (F, Format ('</cim:%s>', [Root]));
+end;
+
+procedure VersionInstance (var F: TextFile);
+begin
+  StartFreeInstance (F, 'IEC61970CIMVersion');
+  StringNode (F, 'IEC61970CIMVersion.version', 'IEC61970CIM14v12');
+  StringNode (F, 'IEC61970CIMVersion.date', '2009-08-19T00:00:00');
+  EndInstance (F, 'IEC61970CIMVersion');
+//  StartFreeInstance (F, 'IEC61968CIMVersion');
+//  StringNode (F, 'IEC61968CIMVersion.version', 'IEC61968CIM10v28');
+//  StringNode (F, 'IEC61968CIMVersion.date', '2009-10-24T00:00:00');
+//  EndInstance (F, 'IEC61968CIMVersion');
 end;
 
 procedure WriteLoadModel (var F: TextFile; Name: String; ID: TGuid;
@@ -878,6 +908,7 @@ Begin
     clsWire := DSSClassList.Get(ClassNames.Find('wiredata'));
     clsGeom := DSSClassList.Get(ClassNames.Find('linegeometry'));
     clsXfmr := DSSClassList.Get(ClassNames.Find('xfmrcode'));
+    pTemp := TNamedObject.Create('Temp');
 
     Assignfile(F, FileNm);
     ReWrite(F);
@@ -888,6 +919,8 @@ Begin
     Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F,'<!--');
     Writeln(F,'-->');
+
+    VersionInstance (F);
 
     StartInstance (F, 'Line', ActiveCircuit);
     EndInstance (F, 'Line');
@@ -907,13 +940,25 @@ Begin
 
     pGen := ActiveCircuit.Generators.First;
     while pGen <> nil do begin
-      with pGen do begin
-        StartInstance (F, 'EnergySource', pGen);
-        CircuitNode (F, ActiveCircuit);
-        PhasesEnum (F, pGen, 1);
-        DoubleNode (F, 'EnergySource.nominalVoltage', PresentKv);
-        EndInstance (F, 'EnergySource');
-      end;
+      pTemp.LocalName := pGen.Name + '_GenUnit';
+      CreateGUID (geoGUID);
+      pTemp.GUID := geoGUID;
+      StartInstance (F, 'GeneratingUnit', pTemp);
+      DoubleNode (F, 'GeneratingUnit.ratedNetMaxP', pGen.GenVars.kVArating / 1000.0);
+      DoubleNode (F, 'GeneratingUnit.initialP', pGen.PresentkW / 1000.0);
+      GeneratorControlEnum (F, 'plantControl');
+      EndInstance (F, 'GeneratingUnit');
+
+      StartInstance (F, 'SynchronousMachine', pGen);
+      CircuitNode (F, ActiveCircuit);
+      PhasesEnum (F, pGen, 1);
+      DoubleNode (F, 'SynchronousMachine.minQ', pGen.kvarMin / 1000.0);
+      DoubleNode (F, 'SynchronousMachine.maxQ', pGen.kvarMax / 1000.0);
+      DoubleNode (F, 'SynchronousMachine.baseQ', pGen.Presentkvar / 1000.0);
+      RefNode (F, 'SynchronousMachine.GeneratingUnit', pTemp);
+      SynchMachTypeEnum (F, 'generator');
+      SynchMachModeEnum (F, 'generator');
+      EndInstance (F, 'SynchronousMachine');
       pGen := ActiveCircuit.Generators.Next;
     end;
 
@@ -1015,7 +1060,6 @@ Begin
     i2 := ActiveCircuit.Transformers.ListSize * 11; // bank, info, 3 wdg, 3 wdg info, 3sctest
     StartGuidList (i1 + i2);
     StartBankList (ActiveCircuit.Transformers.ListSize);
-    pTemp := TNamedObject.Create('Temp');
 
     pXfmr := clsXfmr.ElementList.First;
     while pXfmr <> nil do begin
@@ -1473,6 +1517,8 @@ Begin
     Writeln(F,'<!--');
     Writeln(F,'-->');
 
+    VersionInstance (F);
+
     pTemp := TNamedObject.Create('Temp');
 
     StartInstance (F, 'Line', ActiveCircuit);
@@ -1573,11 +1619,25 @@ Begin
 
     pGen := ActiveCircuit.Generators.First;
     while pGen <> nil do begin
-      with pGen do begin
-        StartInstance (F, 'EquivalentGenerator', pGen);
-        CircuitNode (F, ActiveCircuit);
-        EndInstance (F, 'EquivalentGenerator');
-      end;
+      pTemp.LocalName := pGen.Name + '_GenUnit';
+      CreateGUID (geoGUID);
+      pTemp.GUID := geoGUID;
+      StartInstance (F, 'GeneratingUnit', pTemp);
+      DoubleNode (F, 'GeneratingUnit.ratedNetMaxP', pGen.GenVars.kVArating / 1000.0);
+      DoubleNode (F, 'GeneratingUnit.initialP', pGen.PresentkW / 1000.0);
+      GeneratorControlEnum (F, 'plantControl');
+      EndInstance (F, 'GeneratingUnit');
+
+      StartInstance (F, 'SynchronousMachine', pGen);
+      CircuitNode (F, ActiveCircuit);
+      PhasesEnum (F, pGen, 1);
+      DoubleNode (F, 'SynchronousMachine.minQ', pGen.kvarMin / 1000.0);
+      DoubleNode (F, 'SynchronousMachine.maxQ', pGen.kvarMax / 1000.0);
+      DoubleNode (F, 'SynchronousMachine.baseQ', pGen.Presentkvar / 1000.0);
+      RefNode (F, 'SynchronousMachine.GeneratingUnit', pTemp);
+      SynchMachTypeEnum (F, 'generator');
+      SynchMachModeEnum (F, 'generator');
+      EndInstance (F, 'SynchronousMachine');
       pGen := ActiveCircuit.Generators.Next;
     end;
 
@@ -1746,7 +1806,6 @@ Begin
       end;
       pXf := ActiveCircuit.Transformers.Next;
     end;
-    pTemp.Free;
 
     // write all the transformer banks
     for i:=Low(BankList) to High(BankList) do begin
@@ -1977,6 +2036,7 @@ Begin
     end;
 
     FreeGuidList;
+    pTemp.Free;
 
     Writeln (F, '</rdf:RDF>');
 

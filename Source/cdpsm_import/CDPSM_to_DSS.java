@@ -1,11 +1,10 @@
 //  ----------------------------------------------------------
-//  Copyright (c) 2009, Electric Power Research Institute, Inc.
+//  Copyright (c) 2009, MelTran, Inc.
 //  All rights reserved.
 //  ----------------------------------------------------------
 
 // package epri.com.opendss.cim ;
 
-// JENA API
 import java.io.*;
 
 import com.hp.hpl.jena.ontology.*;
@@ -597,14 +596,19 @@ public class CDPSM_to_DSS extends Object {
     Property ptTrmSeq = mdl.getProperty (nsCIM, "Terminal.sequenceNumber");
     Property ptEquip = mdl.getProperty (nsCIM, "Terminal.ConductingEquipment");
 
+    // for drilling Eq=>VoltageLevel=>Sub=>Geo, or Eq=>Line=>Geo
+    Property ptCont = mdl.getProperty (nsCIM, "Equipment.EquipmentContainer");
+    Property ptSub = mdl.getProperty (nsCIM, "VoltageLevel.Substation");
+
     Resource bus = mdl.getResource (id);
     Resource trm, eq;
     String trmSeq = "1";
 
     Resource geo = null;
-    Resource bankGeo = null;
+    Resource refGeo = null; // bank, line, or substation
 
     // first look for a terminal equipment that directly has a GeoLocation
+    //   but the GeoLocation could also be on a TransformerBank, Line, or Substation
     ResIterator terms = mdl.listResourcesWithProperty (ptNode, bus);
     while (terms.hasNext() && geo == null) {
       trm = terms.nextResource();
@@ -617,14 +621,23 @@ public class CDPSM_to_DSS extends Object {
         if (xf.hasProperty (ptBank)) {
           Resource bank = xf.getProperty(ptBank).getResource();
           if (bank.hasProperty (ptGeo)) {
-            bankGeo = bank.getProperty(ptGeo).getResource();
-            trmSeq = "1"; // because winding terminals always exported with sequence number 1
+            refGeo = bank.getProperty(ptGeo).getResource();
+          }
+        }
+      } else if (eq.hasProperty (ptCont)) {
+        Resource rcont = eq.getProperty(ptCont).getResource();
+        if (rcont.hasProperty(ptGeo)) {
+          refGeo = rcont.getProperty(ptGeo).getResource();
+        } else if (rcont.hasProperty (ptSub)) {
+          Resource rsub = eq.getProperty(ptSub).getResource();
+          if (rsub.hasProperty(ptGeo)) {
+            refGeo = rsub.getProperty(ptGeo).getResource();
           }
         }
       }
     }
     if (geo == null) {
-      geo = bankGeo;
+      geo = refGeo;
     }
 
     if (geo != null) {
@@ -639,9 +652,49 @@ public class CDPSM_to_DSS extends Object {
       if (pos != null) {
         return pos.getProperty(ptX).getString() + ", " + pos.getProperty(ptY).getString();
       }
+    } else {
+ //     System.out.println (" NO GEO FOUND");
     }
 
     return "";
+  }
+
+  static String FindConductorAmps (Model mdl, Resource res, Property ptInf, Property ptWA, Property ptWT, Property ptWTamps) {
+    double iMin = 1.0;
+    double iVal;
+    if (res.hasProperty(ptInf)) {
+      Resource rInf = res.getProperty(ptInf).getResource();
+      ResIterator it = mdl.listResourcesWithProperty (ptWA, rInf);
+      while (it.hasNext()) {
+        Resource rWA = it.nextResource();
+        if (rWA.hasProperty(ptWT)) {
+          Resource rWT = rWA.getProperty(ptWT).getResource();
+          iVal = SafeDouble (rWT, ptWTamps, 0.0);
+          if (iVal > iMin) {
+            iMin = iVal;
+          }
+        }
+      }
+    }
+    return " normamps=" + Double.toString(iMin);
+  } 
+
+  static double FindBaseVoltage (Resource res, Property ptEquip, Property ptEqBaseV, Property ptLevBaseV, Property ptBaseNomV) {
+    Resource rBase = null;
+    if (res.hasProperty (ptEqBaseV)) {
+      rBase = res.getProperty(ptEqBaseV).getResource();
+    } else if (res.hasProperty (ptEquip)) {
+      Resource rEquip = res.getProperty(ptEquip).getResource();
+      if (rEquip.hasProperty(ptEqBaseV)) {
+        rBase = rEquip.getProperty(ptEqBaseV).getResource();
+      } else if (rEquip.hasProperty(ptLevBaseV)) {
+        rBase = rEquip.getProperty(ptLevBaseV).getResource();
+      }
+    }
+    if (rBase != null) {
+      return SafeDouble (rBase, ptBaseNomV, 1.0);
+    }
+    return 1.0;
   }
 
   public static void main (String args[]) throws UnsupportedEncodingException, FileNotFoundException {
@@ -655,9 +708,11 @@ public class CDPSM_to_DSS extends Object {
     String fBus = args[2] + "_busxy.dss";
     String fGuid = args[2] + "_guids.dss";
     boolean bBalanced = false;
+    boolean bConnect = false;
 
     if (args[0].equals("-c")) {
       fProfile = connectOwl;
+      bConnect = true;
     } else if (args[0].equals("-b")) {
       fProfile = balancedOwl;
       bBalanced = true;
@@ -689,8 +744,35 @@ public class CDPSM_to_DSS extends Object {
     String id, name, phs, bus_phs, bus1, bus2, phs_conn;
     int phs_cnt;
     Property ptName = model.getProperty (nsCIM, "IdentifiedObject.name");
+    Property ptType = model.getProperty (nsRDF, "type");
     Property ptOpen = model.getProperty (nsCIM, "Switch.normalOpen");
     Property ptPhs = model.getProperty (nsCIM, "ConductingEquipment.phases");
+
+    Property ptEqBaseV = model.getProperty (nsCIM, "ConductingEquipment.BaseVoltage"); 
+    Property ptLevBaseV = model.getProperty (nsCIM, "VoltageLevel.BaseVoltage"); 
+    Property ptEquip = model.getProperty (nsCIM, "Equipment.EquipmentContainer");
+    Property ptBaseNomV = model.getProperty (nsCIM, "BaseVoltage.nominalVoltage");
+
+    // Dump all the GeoLocation references
+    /*
+    Property ptGeo = model.getProperty (nsCIM, "PowerSystemResource.GeoLocation");
+    query = QueryFactory.create (qPrefix + "select ?s where {?s r:type c:GeoLocation}");
+    qexec = QueryExecutionFactory.create (query, model);
+    results=qexec.execSelect();
+    while (results.hasNext()) {
+      soln = results.next();
+      id = soln.get ("?s").toString();
+      res = model.getResource (id);
+      name = SafeResName (res, ptName);
+      ResIterator it = model.listResourcesWithProperty (ptGeo, res);
+      while (it.hasNext()) {
+        Resource rEq = it.nextResource();
+        String sType = rEq.getProperty(ptType).getObject().toString();
+        outBus.println ("// " + name + "==>" + sType + ":" + SafeResName(rEq, ptName));
+      }
+    }
+    outBus.println ();
+    */
 
     // ConnectivityNode ==> bus coordinate CSV 
     query = QueryFactory.create (qPrefix + "select ?s where {?s r:type c:ConnectivityNode}");
@@ -705,7 +787,7 @@ public class CDPSM_to_DSS extends Object {
       if (strPos.length() > 0) {
         outBus.println (name + ", " + strPos);
       } else {
-//        outBus.println (name + ", *****");
+        outBus.println (name + ", *****");
       }
     }
     outBus.println ();
@@ -759,8 +841,10 @@ public class CDPSM_to_DSS extends Object {
       String srcClass = "Vsource.";
       if (NumCircuits < 1) { // name.equals ("source")
         srcClass = "Circuit.";
-        name = GetPropValue (model, ckt, "IdentifiedObject.name");
+        name = DSS_Name (GetPropValue (model, ckt, "IdentifiedObject.name"));
         NumCircuits = 1;
+      } else if (name.equals("source")) {
+        name = "_" + name;
       }
 
       out.println ("new " + srcClass + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
@@ -788,6 +872,46 @@ public class CDPSM_to_DSS extends Object {
                      " bus1=" + bus1 + " basekv=1");
 //        outGuid.println ("Circuit." + name + "\t" + DSS_Guid (id));
       }
+    }
+
+    // SynchronousMachine ==> Generator
+    out.println ();
+    out.println ();
+    query = QueryFactory.create (qPrefix + "select ?s where {?s r:type c:SynchronousMachine}");
+    qexec = QueryExecutionFactory.create (query, model);
+    results=qexec.execSelect();
+    Property ptGenS = model.getProperty (nsCIM, "GeneratingUnit.ratedNetMaxP");
+    Property ptGenP = model.getProperty (nsCIM, "GeneratingUnit.initialP");
+    Property ptGenRef = model.getProperty (nsCIM, "SynchronousMachine.GeneratingUnit");
+    Property ptGenQ = model.getProperty (nsCIM, "SynchronousMachine.baseQ");
+    Property ptGenQmin = model.getProperty (nsCIM, "SynchronousMachine.minQ");
+    Property ptGenQmax = model.getProperty (nsCIM, "SynchronousMachine.maxQ");
+    while (results.hasNext()) {
+      soln = results.next();
+
+      id = soln.get ("?s").toString();
+
+      res = model.getResource (id);
+      phs = SafePhases (res, ptPhs);
+      phs_cnt = Phase_Count (phs, true, bBalanced);
+      phs_conn = Phase_Conn (phs);
+      bus_phs = Bus_Phases (phs, bBalanced);
+      bus1 = GetBusName (model, id, 1) + bus_phs;
+      name = SafeResName (res, ptName);
+      Resource resUnit = res.getProperty (ptGenRef).getResource();
+
+      double genS = SafeDouble (resUnit, ptGenS, 1.0) * 1000.0;  // assume MW per CPSM
+      double genP = SafeDouble (resUnit, ptGenP, 1.0) * 1000.0;
+      double genQ = SafeDouble (res, ptGenQ, 0.0) * 1000.0;
+      double genQmin = SafeDouble (res, ptGenQmin, 0.44 * genS) * 1000.0 * -1.0;
+      double genQmax = SafeDouble (res, ptGenQmax, 0.44 * genS) * 1000.0;
+      double genKv = FindBaseVoltage (res, ptEquip, ptEqBaseV, ptLevBaseV, ptBaseNomV);
+
+      out.println ("new Generator." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + 
+                   " conn=" + phs_conn + " kva=" + Double.toString (genS) + " kw=" + Double.toString (genP) + 
+                   " kvar=" + Double.toString (genQ) + " minkvar=" + Double.toString (genQmin) + 
+                   " maxkvar=" + Double.toString (genQmax) + " kv=" + Double.toString (genKv));
+      outGuid.println ("Load." + name + "\t" + DSS_Guid (id));
     }
 
     // EnergyConsumer ==> Load
@@ -1031,7 +1155,7 @@ public class CDPSM_to_DSS extends Object {
                    " r0=" + seqR0 + " x0=" + seqX0 + " c0=" + seqC0);
       outGuid.println ("LineCode." + name + "\t" + DSS_Guid (id));
     }
-    if (NumLineCodes < 1) {
+    if ((NumLineCodes < 1) || (bConnect == true)) {
       out.println ("new LineCode.dummy_linecode_1 nphases=1 rmatrix={0} xmatrix={0.001} cmatrix={0}");
       out.println ("new LineCode.dummy_linecode_2 nphases=2 rmatrix={0|0 0} xmatrix={0.001|0 0.001} cmatrix={0|0 0}");
       out.println ("new LineCode.dummy_linecode_3 nphases=3 r1=0 x1=0.001 c1=0 r0=0 x0=0.001 c0=0");
@@ -1051,6 +1175,9 @@ public class CDPSM_to_DSS extends Object {
     Property ptSeqZ = model.getProperty (nsCIM, "DistributionLineSegment.SequenceImpedance");
     Property ptInfZ = model.getProperty (nsCIM, "DistributionLineSegment.ConductorInfo");
     Property ptLineLen = model.getProperty (nsCIM, "Conductor.length");
+    Property ptWA = model.getProperty (nsCIM, "WireArrangement.ConductorInfo");
+    Property ptWT = model.getProperty (nsCIM, "WireArrangement.WireType");
+    Property ptWTamps = model.getProperty (nsCIM, "WireType.ratedCurrent");
     while (results.hasNext()) {
       soln = results.next();
 
@@ -1069,15 +1196,25 @@ public class CDPSM_to_DSS extends Object {
       String zSequence = SafeResourceLookup (model, ptName, res, ptSeqZ, "");
       String zInfo = SafeResourceLookup (model, ptName, res, ptInfZ, "");
       String zParms = GetACLineParameters (model, res, dLen);
-      String linecode;
-      if (zPhase.length() > 0) {
-        linecode = " linecode=" + zPhase;
-      } else if (zSequence.length() > 0) {
-        linecode = " linecode=" + zSequence;
-      } else if (zParms.length() < 1 && zInfo.length() > 0) {
-        linecode = " geometry=" + zInfo;
-      } else {
+      String linecode = "";
+      if (bConnect) {
         if (phs_cnt == 1) {
+          linecode = " linecode=dummy_linecode_1";
+        } else if (phs_cnt == 2) {
+          linecode = " linecode=dummy_linecode_2";
+        } else {
+          linecode = " linecode=dummy_linecode_3";
+        }      
+      } else {
+        if (zPhase.length() > 0) {
+          linecode = " linecode=" + zPhase;
+        } else if (zSequence.length() > 0) {
+          linecode = " linecode=" + zSequence;
+        } else if (zParms.length() < 1 && zInfo.length() > 0) {
+          linecode = " geometry=" + zInfo;
+        } else if (zParms.length() > 0) {
+          linecode = zParms;
+        } else if (phs_cnt == 1) {
           linecode = " linecode=dummy_linecode_1";
         } else if (phs_cnt == 2) {
           linecode = " linecode=dummy_linecode_2";
@@ -1086,9 +1223,12 @@ public class CDPSM_to_DSS extends Object {
         }
       }
       String zAmps = "";
+      if (zInfo.length() > 0 && zParms.length () > 0) {
+        zAmps = FindConductorAmps (model, res, ptInfZ, ptWA, ptWT, ptWTamps);
+      }
 
       out.println ("new Line." + name + " phases=" + Integer.toString(phs_cnt) + " bus1=" + bus1 + " bus2=" + bus2 
-                          + " length=" + len + linecode + zParms + zAmps);
+                          + " length=" + len + linecode + zAmps);
       outGuid.println ("Line." + name + "\t" + DSS_Guid (id));
     }
 
@@ -1264,7 +1404,7 @@ public class CDPSM_to_DSS extends Object {
       outGuid.println ("RegControl." + name + "\t" + DSS_Guid (id));
     }
 
-    // unsupported stuff
+    // unsupported stuff - TODO - add Jumper and Disconnector
     out.println ();
     out.println ();
     query = QueryFactory.create (qPrefix + "select ?s where {?s r:type c:Junction}");
@@ -1306,7 +1446,6 @@ public class CDPSM_to_DSS extends Object {
     query = QueryFactory.create (qPrefix + "select ?s where {?s r:type c:BaseVoltage}");
     qexec = QueryExecutionFactory.create (query, model);
     results=qexec.execSelect();
-    Property ptBaseV = model.getProperty (nsCIM, "BaseVoltage.nominalVoltage");
     while (results.hasNext()) {
       soln = results.next();
       id = soln.get ("?s").toString();
@@ -1314,7 +1453,7 @@ public class CDPSM_to_DSS extends Object {
       phs = SafePhases (res, ptPhs);
       phs_cnt = Phase_Count (phs, false, bBalanced);
       name = SafeResName (res, ptName);
-      double vnom = SafeDouble (res, ptBaseV, 1.0);
+      double vnom = SafeDouble (res, ptBaseNomV, 1.0);
       out.println ("// new BaseVoltage." + name + " vnom=" + Double.toString(vnom));
     }
 
@@ -1324,12 +1463,12 @@ public class CDPSM_to_DSS extends Object {
     out.println ("// guids " + fGuid);
     out.println ();
     if (NumCircuits > 0) {
-      out.println ("set voltagebases=[115, 42.0, 63.0, 20.0, 4.16, 0.48]");
+      out.println ("set voltagebases=[115.0, 63.0, 42.0, 20.0, 4.16, 0.48]");
     } else {
       out.println ("set voltagebases=[1.0]");
     }
     out.println ("calcv");
-    out.println ("setloadkv");
+    out.println ("setloadandgenkv");
     out.println ("solve");
     out.println ("buscoords " + fBus);
     out.println ();
