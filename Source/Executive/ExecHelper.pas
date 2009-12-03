@@ -919,7 +919,8 @@ Begin
      ELSE
      Begin
 
-        IF CompareText(ObjType, ActiveDSSClass.Name)<>0 THEN LastClassReferenced := ClassNames.Find(ObjType);
+        IF CompareText(ObjType, ActiveDSSClass.Name)<>0 THEN
+             LastClassReferenced := ClassNames.Find(ObjType);
 
         CASE LastClassReferenced of
           0: Begin
@@ -1389,10 +1390,10 @@ End;
 FUNCTION DoOpenCmd:Integer;
 // Opens a terminal and conductor of a ckt Element
 VAR
-   retval:Integer;
-   Terminal:Integer;
-   Conductor:Integer;
-   ParamName : string;
+   retval    :Integer;
+   Terminal  :Integer;
+   Conductor :Integer;
+   ParamName :string;
 
 // syntax:  "Open class.name term=xx cond=xx"
 //  IF cond is omitted, all conductors are opened.
@@ -1402,16 +1403,16 @@ Begin
   IF retval>0 THEN
   Begin
         ParamName := Parser.NextParam;
-        Terminal := Parser.IntValue;
+        Terminal  := Parser.IntValue;
         ParamName := Parser.NextParam;
         Conductor := Parser.IntValue;
 
         With ActiveCircuit Do
-         Begin
-          ActiveCktElement.ActiveTerminalIdx := Terminal;
-          ActiveCktElement.Closed[Conductor] := FALSE;
-          With ActiveCktElement Do SetActiveBus(StripExtension(Getbus(ActiveTerminalIdx)));
-         End;
+        Begin
+              ActiveCktElement.ActiveTerminalIdx := Terminal;
+              ActiveCktElement.Closed[Conductor] := FALSE;
+              With ActiveCktElement Do SetActiveBus(StripExtension(Getbus(ActiveTerminalIdx)));
+        End;
   End
   ELSE
   Begin
