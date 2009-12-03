@@ -2035,33 +2035,23 @@ Var
    kWeach:double;
    LoadClass:TDSSClass;
    pLoad : TLoadObj;
-   Count, i, Busref :Integer;
-   BusName:String;
+   Count, i :Integer;
 
 Begin
    LoadClass := GetDSSClassPtr('load');
    Count := LoadClass.ElementList.ListSize ;
 
    kWEach := kW/Max(1.0,round(Count));
+   If ActiveCircuit.PositiveSequence Then  kWEach := kWeach/3.0;
 
    For i := 1 to Count Do Begin
       pLoad := TLoadObj(LoadClass.ElementList.Get(i));
       If pLoad.Enabled Then Begin
-        BusRef := pLoad.Terminals^[1].BusRef;
-        busName := ActiveCircuit.busList.get(BusRef);
-        Write(F, 'new "generator.DG_',Busname,'"');
-        Write(F, ' bus1="',busName,'"');
+        Write(F, Format('new generator.DG_%d  bus1=%s',[i, pLoad.GetBus(1)]));
         With ActiveCircuit Do Begin
-            If PositiveSequence then begin
-                Write(F, ' phases=1');
-                Write(F, ' kW=',Format('%-g',[kWeach/3.0]));
-                Write(F, ' PF=',Format('%-.3g',[PF]));
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
-            End Else Begin
-                Write(F, ' kW=',Format('%-g',[kWeach]));
-                Write(F, ' PF=',Format('%-.3g',[PF]));
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
-            End;
+            Write(F, Format(' phases=%d kV=%-g',[pLoad.NPhases, pLoad.kVLoadBase]));
+            Write(F, Format(' kW=%-g',[kWeach]));
+            Write(F, Format(' PF=%-.3g',[PF]));
         End;
         Write(F, ' model=1');
         Writeln(F);
@@ -2076,8 +2066,7 @@ Var
    kWeach: double;
    LoadClass: TDSSClass;
    pLoad : TLoadObj;
-   Count, i, Busref, LoadCount :Integer;
-   BusName:String;
+   Count, i,  LoadCount :Integer;
 
 Begin
    LoadClass := GetDSSClassPtr('load');
@@ -2099,19 +2088,11 @@ Begin
    For i := 1 to Count Do Begin
       pLoad := TLoadObj(LoadClass.ElementList.Get(i));
       If pLoad.Enabled Then Begin
-        BusRef := pLoad.Terminals^[1].BusRef;
-        busName := ActiveCircuit.busList.get(BusRef);
-        Write(F, 'new "generator.DG_',Busname,'"');
-        Write(F, ' bus1="',busName,'"');
+       Write(F, Format('new generator.DG_%d  bus1=%s',[i, pLoad.GetBus(1)]));
         With ActiveCircuit Do Begin
-            If PositiveSequence then begin
-                Write(F, ' phases=1');
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
-            End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
-            End;
-            Write(F, ' kW=',Format('%-g',[kWeach*random*2.0])); // random gen size
-            Write(F, ' PF=',Format('%-.3g',[PF]));
+            Write(F, Format(' phases=%d kV=%-g',[pLoad.NPhases, pLoad.kVLoadBase]));
+            Write(F, Format(' kW=%-g',[kWeach*random*2.0]));
+            Write(F, Format(' PF=%-.3g',[PF]));
         End;
         Write(F, ' model=1');
         Writeln(F);
@@ -2132,8 +2113,7 @@ Var
    kWeach, TotalkW:double;
    LoadClass:TDSSClass;
    pLoad : TLoadObj;
-   Count, i, Busref, skipcount :Integer;
-   BusName:String;
+   Count, i, skipcount :Integer;
 
 Begin
 
@@ -2160,19 +2140,11 @@ Begin
       pLoad := TLoadObj(LoadClass.ElementList.Get(i));
       If pLoad.Enabled Then
        If SkipCount=0 then Begin
-        BusRef := pLoad.Terminals^[1].BusRef;
-        busName := ActiveCircuit.busList.get(BusRef);
-        Write(F, 'new "generator.DG_',Busname,'"');
-        Write(F, ' bus1="',busName,'"');
+        Write(F, Format('new generator.DG_%d  bus1=%s',[i, pLoad.GetBus(1)]));
         With ActiveCircuit Do Begin
-            If PositiveSequence then begin
-                Write(F, ' phases=1');
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
-            End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
-            End;
-            Write(F, ' kW=',Format('%-g',[kWeach*pLoad.kWBase]));
-            Write(F, ' PF=',Format('%-.3g',[PF]));
+            Write(F, Format(' phases=%d kV=%-g',[pLoad.NPhases, pLoad.kVLoadBase]));
+            Write(F, Format(' kW=%-g ',[kWeach * pLoad.kWBase]));
+            Write(F, Format(' PF=%-.3g',[PF]));
         End;
         Write(F, ' model=1');
         Writeln(F);
@@ -2189,11 +2161,11 @@ Procedure WriteProportionalGenerators(var F:TextFile; kW, PF:Double);
 
 
 Var
-   kWeach, TotalkW:double;
-   LoadClass:TDSSClass;
-   pLoad : TLoadObj;
-   Count, i, Busref :Integer;
-   BusName:String;
+   kWeach,
+   TotalkW   :double;
+   LoadClass :TDSSClass;
+   pLoad     :TLoadObj;
+   Count, i  :Integer;
 
 Begin
    LoadClass := GetDSSClassPtr('load');
@@ -2213,19 +2185,11 @@ Begin
    For i := 1 to Count Do Begin
       pLoad := TLoadObj(LoadClass.ElementList.Get(i));
       If pLoad.Enabled Then Begin
-        BusRef := pLoad.Terminals^[1].BusRef;
-        busName := ActiveCircuit.busList.get(BusRef);
-        Write(F, 'new "generator.DG_',Busname,'"');
-        Write(F, ' bus1="',busName,'"');
+        Write(F, Format('new generator.DG_%d  bus1=%s',[i, pLoad.GetBus(1)]));
         With ActiveCircuit Do Begin
-            If PositiveSequence then begin
-                Write(F, ' phases=1');
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase]));
-            End Else Begin
-                Write(F, ' kV=',Format('%-g',[Buses^[BusRef].kVBase*SQRT3]));
-            End;
-            Write(F, ' kW=',Format('%-g',[kWeach*pLoad.kWBase]));
-            Write(F, ' PF=',Format('%-.3g',[PF]));
+            Write(F, Format(' phases=%d kV=%-g',[pLoad.NPhases, pLoad.kVLoadBase]));
+            Write(F, Format(' kW=%-g',[kWeach*pLoad.kWBase]));
+            Write(F, Format(' PF=%-.3g',[PF]));
         End;
         Write(F, ' model=1');
         Writeln(F);
@@ -2258,7 +2222,7 @@ Begin
       Writeln(F, '! Created with Distribute Command:');
       Writeln(f, Format('! Distribute kW=%-.6g PF=%-.6g How=%s Skip=%d  file=%s', [kW, PF, How, Skip, Fname]));
       Writeln(F);
-      Writeln(F, 'Set allowduplicates=yes');
+     // Writeln(F, 'Set allowduplicates=yes');
       If Length(How)=0 Then How:='P';
       Case Uppercase(How)[1] of
           'U':  WriteUniformGenerators(F, kW, PF);
@@ -2269,7 +2233,7 @@ Begin
       End;
       GlobalResult := Fname;
     Finally
-    Writeln(F, 'Set allowduplicates=no');
+   // Writeln(F, 'Set allowduplicates=no');
     CloseFile(F);
 
     End;
