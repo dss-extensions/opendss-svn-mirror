@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 12/3/2009 4:02:02 PM from Type Library described below.
+// File generated on 12/8/2009 11:24:02 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -1568,12 +1568,14 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     function Get_NumElements: Integer; safecall;
     function Get_ActiveClassName: WideString; safecall;
+    function Get_Count: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
     property Name: WideString read Get_Name write Set_Name;
     property NumElements: Integer read Get_NumElements;
     property ActiveClassName: WideString read Get_ActiveClassName;
+    property Count: Integer read Get_Count;
   end;
 
 // *********************************************************************//
@@ -1589,6 +1591,7 @@ type
     property Name: WideString dispid 204;
     property NumElements: Integer readonly dispid 205;
     property ActiveClassName: WideString readonly dispid 206;
+    property Count: Integer readonly dispid 207;
   end;
 
 // *********************************************************************//

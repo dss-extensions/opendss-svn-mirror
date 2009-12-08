@@ -17,6 +17,7 @@ type
     procedure Set_Name(const Value: WideString); safecall;
     function Get_NumElements: Integer; safecall;
     function Get_ActiveClassName: WideString; safecall;
+    function Get_Count: Integer; safecall;
 
   end;
 
@@ -102,6 +103,12 @@ function TActiveClass.Get_ActiveClassName: WideString;
 begin
      if Assigned(ActiveDSSClass) then  Result := ActiveDSSCLass.Name
      Else Result := '';
+end;
+
+function TActiveClass.Get_Count: Integer;
+begin
+     if Assigned(ActiveDSSClass) then  Result := ActiveDSSCLass.ElementCount
+     Else Result := 0;
 end;
 
 initialization

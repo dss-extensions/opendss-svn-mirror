@@ -845,7 +845,8 @@ end;
 
 function TLines.Get_Count: Integer;
 begin
-
+    If Assigned(Activecircuit) Then
+          Result := ActiveCircuit.Lines.ListSize ;
 end;
 
 initialization
