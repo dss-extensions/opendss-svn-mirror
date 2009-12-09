@@ -35,6 +35,8 @@ type
       Exit1: TMenuItem;
       OpenDialog1: TOpenDialog;
       SaveDialog1: TSaveDialog;
+    Do1: TMenuItem;
+    Selection1: TMenuItem;
       procedure EditorKeyDown(Sender: TObject; var Key: Word;
         Shift: TShiftState);
       procedure EditorSelectionChange(Sender: TObject);
@@ -54,6 +56,7 @@ type
       procedure Exit1Click(Sender: TObject);
       procedure Load1Click(Sender: TObject);
       procedure Save1Click(Sender: TObject);
+    procedure Selection1Click(Sender: TObject);
 
   private
       { Private declarations }
@@ -221,6 +224,11 @@ begin
          Action := caFree;
       End;
       *)
+end;
+
+procedure TMainEditFormNormal.Selection1Click(Sender: TObject);
+begin
+     Do2Click(Sender);
 end;
 
 procedure TMainEditFormNormal.SetFormColor;

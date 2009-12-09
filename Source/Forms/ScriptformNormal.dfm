@@ -110,6 +110,14 @@ object MainEditFormNormal: TMainEditFormNormal
         Caption = 'Fon&t'
       end
     end
+    object Do1: TMenuItem
+      Caption = '&Do'
+      object Selection1: TMenuItem
+        Caption = '&Selection'
+        ShortCut = 16452
+        OnClick = Selection1Click
+      end
+    end
   end
   object OpenDialog1: TOpenDialog
     Filter = 'DSS files|*.DSS|Txt files|*.txt|All files|*.*'
