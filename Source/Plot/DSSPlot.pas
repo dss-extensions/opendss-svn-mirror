@@ -335,7 +335,6 @@ Begin
 end;
 
 procedure TDSSPlot.DoCircuitPlot;
-
 begin
 
    {Draw the lines  }
@@ -372,6 +371,20 @@ begin
           End;
        End;
        pLine := Lines.Next;
+     End;
+
+     pTransf := ActiveCircuit.Transformers.First;
+     While pTransf <> nil Do With ActiveCircuit Do Begin
+       If pTransf.Enabled then Begin
+         Bus1Idx := pTransf.Terminals^[1].BusRef;
+         Bus2Idx := pTransf.Terminals^[2].BusRef;
+         If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
+            AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                       Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                       Color1, 1, Style(1), Dots, pTransf.Name, False, 0,
+                       NodeMarkerCode, NodeMarkerWidth );
+       End;
+       pTransf := Transformers.Next;
      End;
 end;
 

@@ -417,7 +417,7 @@ end;
 procedure StartInstance (var F: TextFile; Root: String; Obj: TNamedObject);
 begin
   Writeln(F, Format('<cim:%s rdf:ID="%s">', [Root, Obj.CIM_ID]));
-  StringNode (F, 'IdentifiedObject.name', Obj.LocalName);
+  StringNode (F, 'IdentifiedObject.localName', Obj.LocalName);
 end;
 
 procedure StartFreeInstance (var F: TextFile; Root: String);
@@ -450,7 +450,7 @@ procedure WriteLoadModel (var F: TextFile; Name: String; ID: TGuid;
   eP: Double; eQ: Double);
 begin
   Writeln(F, Format('<cim:LoadResponseCharacteristic rdf:ID="%s">', [GUIDToCIMString(ID)]));
-  StringNode (F, 'IdentifiedObject.name', Name);
+  StringNode (F, 'IdentifiedObject.localName', Name);
   if (eP > 0.0) or (eQ > 0.0) then
     BooleanNode (F, 'LoadResponseCharacteristic.exponentModel', true)
   else
@@ -527,7 +527,7 @@ begin
       CreateGUID (temp);
 
       Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToCIMString(temp)]));
-      StringNode (F, 'IdentifiedObject.name', TermName);
+      StringNode (F, 'IdentifiedObject.localName', TermName);
       IntegerNode (F, 'Terminal.sequenceNumber', j);
       Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
         [pElem.CIM_ID]));
@@ -553,7 +553,7 @@ begin
     CreateGUID (temp);
 
     Writeln(F, Format('<cim:Terminal rdf:ID="%s">', [GUIDToCIMString(temp)]));
-    StringNode (F, 'IdentifiedObject.name', TermName);
+    StringNode (F, 'IdentifiedObject.localName', TermName);
     IntegerNode (F, 'Terminal.sequenceNumber', 1);  // sequence number always 1 for a winding
     Writeln (F, Format('  <cim:Terminal.ConductingEquipment rdf:resource="#%s"/>',
       [GUIDToCIMString (GetDevGuid (Wdg, pXf.Name, i))]));
@@ -933,7 +933,7 @@ Begin
       for i := 1 to NumBuses do begin
         Writeln(F, Format('<cim:ConnectivityNode rdf:ID="%s">',
           [GUIDToCIMString (Buses^[i].GUID)]));
-        StringNode (F, 'IdentifiedObject.name', Buses^[i].LocalName);
+        StringNode (F, 'IdentifiedObject.localName', Buses^[i].LocalName);
         Writeln(F,'</cim:ConnectivityNode>');
       end;
     end;
@@ -1543,7 +1543,7 @@ Begin
       for i := 1 to NumBuses do begin
         Writeln(F, Format('<cim:ConnectivityNode rdf:ID="%s">',
           [GUIDToCIMString (Buses^[i].GUID)]));
-        StringNode (F, 'IdentifiedObject.name', Buses^[i].LocalName);
+        StringNode (F, 'IdentifiedObject.localName', Buses^[i].LocalName);
         Writeln(F,'</cim:ConnectivityNode>');
         BusBaseLL := Buses^[i].kVBase * sqrt (3.0);
 
