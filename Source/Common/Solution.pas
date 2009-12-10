@@ -875,29 +875,42 @@ PROCEDURE  TSolutionObj.SetVoltageBases;
 // Set voltage bases using voltage at first node (phase) of a bus
 
 Var
-   i:Integer;
+  i:Integer;
+  bZoneCalc, bZoneLock: Boolean;
 
 Begin
 
-    TRY
+  TRY
+    // don't allow the meter zones to auto-build in this load flow solution, because the
+    // voltage bases are not available yet
 
-       SolveZeroLoadSnapShot;
+    bZoneCalc := ActiveCircuit.MeterZonesComputed;
+    bZoneLock := ActiveCircuit.ZonesLocked;
+    ActiveCircuit.MeterZonesComputed := True;
+    ActiveCircuit.ZonesLocked := True;
 
-       WITH ActiveCircuit Do
-         FOR i := 1 to NumBuses Do
-           WITH Buses^[i] Do
-             kVBase := NearestBasekV( Cabs(NodeV^[GetRef(1)]) * 0.001732) / SQRT3;  // l-n base kV
+    SolveZeroLoadSnapShot;
 
-       InitializeNodeVbase;      // for convergence test
+    WITH ActiveCircuit Do
+      FOR i := 1 to NumBuses Do
+        WITH Buses^[i] Do
+          kVBase := NearestBasekV( Cabs(NodeV^[GetRef(1)]) * 0.001732) / SQRT3;  // l-n base kV
 
-       ActiveCircuit.Issolved := True;
+    InitializeNodeVbase;      // for convergence test
 
-    EXCEPT
-       ON E:EEsolv32Problem Do Begin
-         DoSimpleMsg('From SetVoltageBases.SolveZeroLoadSnapShot: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
-         Raise ESolveError.Create('Aborting');
-       End;
-    END;
+    ActiveCircuit.Issolved := True;
+
+    // now build the meter zones
+    ActiveCircuit.MeterZonesComputed := bZoneCalc;
+    ActiveCircuit.ZonesLocked := bZoneLock;
+    ActiveCircuit.DoResetMeterZones;
+
+  EXCEPT
+    ON E:EEsolv32Problem Do Begin
+      DoSimpleMsg('From SetVoltageBases.SolveZeroLoadSnapShot: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
+      Raise ESolveError.Create('Aborting');
+    End;
+  END;
 
 End;
 

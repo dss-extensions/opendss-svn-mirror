@@ -63,7 +63,6 @@ TYPE
           Function  AddBus(const BusName:String; NNodes:Integer):Integer;
           Procedure Set_ActiveCktElement(Value:TDSSCktElement);
           Procedure Set_BusNameRedefined(Value:Boolean);
-          Procedure DoResetMeterZones;
           Function Get_Losses:Complex; //Total Circuit losses
           Procedure Set_LoadMultiplier(Value :Double);
           Procedure SaveBusInfo;
@@ -209,6 +208,7 @@ TYPE
 
           Procedure ProcessBusDefs;
           Procedure ReProcessBusDefs;
+          Procedure DoResetMeterZones;
           Function  SetElementActive(Const FullObjectName:String):Integer;
           Procedure InvalidateAllPCElements;
 

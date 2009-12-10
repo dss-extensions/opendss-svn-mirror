@@ -119,7 +119,7 @@ Const  NumEMRegisters = 39;   // Number of energy meter registers
      Reg_Genkvarh          = 30;
      Reg_GenMaxkW          = 31;
      Reg_GenMaxkVA         = 32;
-     Reg_VBaseStart        = 32;  {This is where the Voltage base load Registers start}
+     Reg_VBaseStart        = 32;  // anchor for the voltage base loss registers
 
 
 Type
@@ -246,8 +246,11 @@ Type
        MaxZonekVA_Emerg      :Double;
 
        {Voltage bases in the Meter Zone}
-       TotalVBaseLosses      :pDoubleArray;    // allocated array
-       VBaseList             :pDoubleArray;    // allocated array
+       VBaseTotalLosses      :pDoubleArray;    // allocated array
+       VBaseLineLosses       :pDoubleArray;
+       VBaseLoadLosses       :pDoubleArray;
+       VBaseNoLoadLosses     :pDoubleArray;
+       VBaseList             :pDoubleArray;
        VBaseCount            :Integer;
        MaxVBaseCount         :Integer;
 
@@ -839,11 +842,17 @@ Begin
      F3PhaseLosses       := TRUE;
      FVBaseLosses        := TRUE;
      VbaseList           := NIL;
-     TotalVBaseLosses    := NIL;
+     VBaseTotalLosses    := NIL;
+     VBaseLineLosses     := NIL;
+     VBaseLoadLosses     := NIL;
+     VBaseNoLoadLosses   := NIL;
      VBaseCount          := 0;
-     MaxVBaseCount       := NumEMRegisters - Reg_VBaseStart;
+     MaxVBaseCount       := (NumEMRegisters - Reg_VBaseStart) div 4;
      ReallocMem(VBaseList, MaxVBaseCount * SizeOf(VBaseList^[1]));
-     ReallocMem(TotalVBaseLosses, MaxVBaseCount * SizeOf(TotalVBaseLosses^[1]));
+     ReallocMem(VBaseTotalLosses, MaxVBaseCount * SizeOf(VBaseTotalLosses^[1]));
+     ReallocMem(VBaseLineLosses, MaxVBaseCount * SizeOf(VBaseLineLosses^[1]));
+     ReallocMem(VBaseLoadLosses, MaxVBaseCount * SizeOf(VBaseLoadLosses^[1]));
+     ReallocMem(VBaseNoLoadLosses, MaxVBaseCount * SizeOf(VBaseNoLoadLosses^[1]));
 
      LocalOnly           := FALSE;
      VoltageUEOnly       := FALSE;
@@ -910,7 +919,10 @@ var
    i :Integer;
 Begin
     If Assigned (VBaseList) then Reallocmem(VBaseList, 0);
-    If Assigned (TotalVBaseLosses) then Reallocmem(TotalVBaseLosses, 0);
+    If Assigned (VBaseTotalLosses) then Reallocmem(VBaseTotalLosses, 0);
+    If Assigned (VBaseLineLosses) then Reallocmem(VBaseLineLosses, 0);
+    If Assigned (VBaseLoadLosses) then Reallocmem(VBaseLoadLosses, 0);
+    If Assigned (VBaseNoLoadLosses) then Reallocmem(VBaseNoLoadLosses, 0);
     for i := 1 to NumEMRegisters do RegisterNames[i] := '';
     BranchList.Free;
     FreeStringArray(DefinedZoneList, DefinedZoneListSize);
@@ -1129,7 +1141,12 @@ Begin
      Total1phaseLosses   := CZERO;
      TotalTransformerLosses   := CZERO;
 
-     For i := 1 to MaxVBaseCount Do TotalVBaseLosses^[i] := 0.0;
+     For i := 1 to MaxVBaseCount Do begin
+       VBaseTotalLosses^[i] := 0.0;
+       VBaseLineLosses^[i] := 0.0;
+       VBaseLoadLosses^[i] := 0.0;
+       VBaseNoLoadLosses^[i] := 0.0;
+     end;
 
      CktElem           := BranchList.First;
      MaxExcesskWNorm   := 0.0;
@@ -1263,7 +1280,13 @@ Begin
 
            If FVbaseLosses Then With BranchList.PresentBranch do
            If VoltBaseIndex >0  then Begin
-               TotalVBaseLosses^[VoltBaseIndex] := TotalVBaseLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+              VBaseTotalLosses^[VoltBaseIndex] := VBaseTotalLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+              if IsLineElement(CktElem) then
+                VBaseLineLosses^[VoltBaseIndex] := VBaseLineLosses^[VoltBaseIndex] + S_TotalLosses.re
+              else if IsTransformerElement(CktElem) then begin
+                VBaseLoadLosses^[VoltBaseIndex] := VBaseLoadLosses^[VoltBaseIndex] + S_LoadLosses.re;
+                VBaseNoLoadLosses^[VoltBaseIndex] := VBaseNoLoadLosses^[VoltBaseIndex] + S_NoLoadLosses.re
+              end;
            End;
          End;  {If FLosses}
 
@@ -1287,7 +1310,12 @@ Begin
      Integrate(Reg_3_phaseLineLoss,   Total3phaseLosses.re,    Delta_Hrs);
      Integrate(Reg_1_phaseLineLoss,   Total1phaseLosses.re,    Delta_Hrs);
      Integrate(Reg_TransformerLosseskWh,  TotalTransformerLosses.re,  Delta_Hrs);
-     for i  := 1 to MaxVBaseCount  do  Integrate(Reg_VbaseStart + i,  TotalVBaseLosses^[i],  Delta_Hrs);
+     for i  := 1 to MaxVBaseCount do begin
+        Integrate(Reg_VbaseStart + i, VBaseTotalLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + MaxVBaseCount + i, VBaseLineLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 2 * MaxVBaseCount + i, VBaseLoadLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 3 * MaxVBaseCount + i, VBaseNoLoadLosses^[i],  Delta_Hrs);
+     end;
 
 
      {--------------------------------------------------------------------------}
@@ -2387,15 +2415,32 @@ end;
 
 procedure TEnergyMeterObj.AssignVoltBaseRegisterNames;
 var
-   i: Integer;
+  i, ireg: Integer;
+  vbase: double;
 begin
-     for i := 1 to MaxVBaseCount  do   Begin
-
-          if VBaseList^[i]> 0.0 then
-               RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses ',[VBaseList^[i]* SQRT3 ])
-          Else RegisterNames[i + Reg_VBaseStart] := Format('Aux%d',[i]);
-     
-     End;
+  ireg := 1;
+  for i := 1 to MaxVBaseCount  do begin
+    if VBaseList^[i]> 0.0 then begin
+      vbase := VBaseList^[i]* SQRT3;
+      RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses', [vbase]);
+      RegisterNames[i + MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Line Loss', [vbase]);
+      RegisterNames[i + 2 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Load Loss', [vbase]);
+      RegisterNames[i + 3 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV No Load Loss', [vbase])
+    end else begin
+      RegisterNames[i + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      Inc (ireg);
+      RegisterNames[i + MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      Inc (ireg);
+      RegisterNames[i + 2 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      Inc (ireg);
+      RegisterNames[i + 3 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      Inc (ireg);
+    end;
+  end;
+  for i := 1 + Reg_VBaseStart + 4 * MaxVBaseCount to NumEMRegisters do begin
+    RegisterNames[i] := Format('Aux%d',[ireg]);
+    Inc (ireg);
+  end;
 end;
 
 procedure TEnergyMeter.AppendAllDIFiles;
