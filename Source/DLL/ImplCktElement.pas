@@ -841,7 +841,7 @@ end;
 function TCktElement.Get_Handle: Integer;
 begin
    If ActiveCircuit <> Nil Then
-      Result := Integer (Addr (ActiveCircuit.ActiveCktElement))
+      Result := ActiveCircuit.ActiveCktElement.Handle
    Else
       Result := 0;
 end;

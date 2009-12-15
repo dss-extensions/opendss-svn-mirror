@@ -1886,12 +1886,10 @@ begin
   End;
 
 
-  inherited;
-
   Parser.CmdString := S;
   Edit;
 
-
+  inherited;
 end;
 
 function TLoadObj.GetPropertyValue(Index: Integer): String;

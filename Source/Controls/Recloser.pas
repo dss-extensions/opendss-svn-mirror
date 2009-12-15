@@ -95,6 +95,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const RecloserName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
        PROCEDURE RecalcElementData; Override;
        PROCEDURE CalcYPrim; Override;    // Always Zero for a Recloser
 
@@ -537,6 +538,19 @@ Begin
                             ' Element must be defined previously.', 393);
          End;
 End;
+
+procedure TRecloserObj.MakePosSequence;
+begin
+  if MonitoredElement <> Nil then begin
+    Nphases := MonitoredElement.NPhases;
+    Nconds := FNphases;
+    Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+    // Allocate a buffer bigenough to hold everything from the monitored element
+    ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+    CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+  end;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TRecloserObj.CalcYPrim;

@@ -889,7 +889,7 @@ Begin
              nref := p_Elem.NodeRef^[k];
              Volts := ActiveCircuit.Solution.NodeV^[nref];
              S := Cmul(Volts, conjg(c_Buffer^[k]));
-             IF (p_Elem.nphases=1) and ActiveCircuit.PositiveSequence
+             IF { (p_Elem.nphases=1) and } ActiveCircuit.PositiveSequence
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
@@ -923,7 +923,7 @@ Begin
              nref := p_Elem.NodeRef^[k];
              Volts := ActiveCircuit.Solution.NodeV^[nref];
              S := Cmul(Volts, conjg(c_Buffer^[k]));
-             IF (p_Elem.nphases=1) and ActiveCircuit.PositiveSequence
+             IF { (p_Elem.nphases=1) and } ActiveCircuit.PositiveSequence
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
@@ -969,7 +969,7 @@ Begin
              nref := p_Elem.NodeRef^[k];
              Volts := ActiveCircuit.Solution.NodeV^[nref];
              S := Cmul(Volts, conjg(c_Buffer^[k]));
-             IF (p_Elem.nphases = 1) and ActiveCircuit.PositiveSequence
+             IF { (p_Elem.nphases=1) and } ActiveCircuit.PositiveSequence
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
@@ -1127,7 +1127,7 @@ Begin
            nref := CktElem.NodeRef^[k];
            Volts := ActiveCircuit.Solution.NodeV^[nref];
            S := Cmul(Volts, conjg(c_Buffer^[k]));
-           IF (CktElem.nphases=1) and ActiveCircuit.PositiveSequence
+           IF { (CktElem.nphases=1) and } ActiveCircuit.PositiveSequence
            THEN S := CmulReal(S, 3.0);
            If Opt=1 Then S := CmulReal(S, 0.001);
            Caccum(Saccum, S);

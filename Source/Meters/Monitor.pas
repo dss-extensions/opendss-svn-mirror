@@ -146,6 +146,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const MonitorName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence;    Override;  // Make a positive Sequence Model, reset nphases
        Procedure RecalcElementData;  Override;
        Procedure CalcYPrim;          Override;    // Always Zero for a monitor
        Procedure TakeSample;         Override; // Go add a sample to the buffer
@@ -579,6 +580,28 @@ Begin
                             ' Element must be defined previously.', 666);
          End;
 End;
+
+procedure TMonitorObj.MakePosSequence;
+begin
+  if MeteredElement <> Nil then begin
+    Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+    Nphases := MeteredElement.NPhases;
+    Nconds  := MeteredElement.Nconds;
+    Case (Mode and MODEMASK) of
+      3: Begin
+         NumStateVars := TPCElement(MeteredElement).Numvariables;
+         ReallocMem(StateBuffer, Sizeof(StateBuffer^[1])*NumStatevars);
+         End;
+      Else
+         ReallocMem(CurrentBuffer, SizeOf(CurrentBuffer^[1])*MeteredElement.Yorder);
+         ReallocMem(VoltageBuffer, SizeOf(VoltageBuffer^[1])*MeteredElement.NConds);
+      End;
+    ClearMonitorStream;
+    ValidMonitor := TRUE;
+  end;
+  Inherited;
+end;
+
 
 {--------------------------------------------------------------------------}
 Procedure TMonitorObj.CalcYPrim;

@@ -2557,12 +2557,10 @@ begin
       If PrpSequence^[27]>0 Then S := S + Format(' MVA=%-.5g  ',[genvars.kvarating/1000.0/Fnphases]);
   End;
 
-
-  inherited;
-
   Parser.CmdString := S;
   Edit;
 
+  inherited;
 end;
 
 procedure TGeneratorObj.Set_ConductorClosed(Index: Integer;

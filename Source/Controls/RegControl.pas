@@ -110,7 +110,7 @@ TYPE
        PROCEDURE GetCurrents(Curr: pComplexArray); Override; // Get present value of terminal Curr
        PROCEDURE GetInjCurrents(Curr: pComplexArray); Override;   // Returns Injextion currents
 
-       PROCEDURE MakePosSequence;Override;  // Make a positive Sequence Model
+       PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
@@ -890,10 +890,25 @@ end;
 
 procedure TRegControlObj.MakePosSequence;
 begin
-  // Use only if controlled element is in pos seq equivalent
-  Enabled :=   ControlledElement.Enabled;
+  if ControlledElement <> Nil then begin
+    Enabled :=   ControlledElement.Enabled;
+    If UsingRegulatedBus Then
+      Nphases := 1
+    Else
+      Nphases := ControlledElement.NPhases;
+    Nconds := FNphases;
+    IF Comparetext(ControlledElement.DSSClassName, 'transformer') = 0 THEN Begin
+      // Sets name of i-th terminal's connected bus in RegControl's buslist
+      // This value will be used to set the NodeRef array (see Sample function)
+      IF UsingRegulatedBus Then
+        Setbus(1, RegulatedBus)   // hopefully this will actually exist
+      Else
+        Setbus(1, ControlledElement.GetBus(ElementTerminal));
+      ReAllocMem(VBuffer, SizeOF(Vbuffer^[1]) * ControlledElement.NPhases );  // buffer to hold regulator voltages
+      ReAllocMem(CBuffer, SizeOF(CBuffer^[1]) * ControlledElement.Yorder );
+    End;
+  end;
   inherited;
-
 end;
 
 function TRegControlObj.ComputeTimeDelay(Vavg:Double): Double;

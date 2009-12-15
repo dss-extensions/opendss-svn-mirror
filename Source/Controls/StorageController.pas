@@ -130,6 +130,7 @@ TYPE
            constructor Create(ParClass:TDSSClass; const StorageControllerName:String);
            destructor Destroy; override;
 
+           PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
            PROCEDURE RecalcElementData; Override;
            PROCEDURE CalcYPrim; Override;    // Always Zero for a StorageController
 
@@ -783,6 +784,16 @@ Begin
        End;
 
 End;
+
+procedure TStorageControllerObj.MakePosSequence;
+begin
+  if MonitoredElement <> Nil then begin
+    Nphases := MonitoredElement.NPhases;
+    Nconds := FNphases;
+    Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+  end;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TStorageControllerObj.CalcYPrim;

@@ -2257,11 +2257,10 @@ Begin
        S := S + Format(' kWrating=%-.5g  PF=%-.5g',[kWrating/Fnphases, PFNominal]);
   End;
 
-  inherited;   // write out other properties
-
   Parser.CmdString := S;
   Edit;
 
+  inherited;   // write out other properties
 End;
 
 PROCEDURE TStorageObj.Set_ConductorClosed(Index: Integer;

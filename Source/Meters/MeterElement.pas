@@ -106,5 +106,4 @@ begin
   DoSimpleMsg('Programming Error:  Reached base Meterelement class for TakeSample.'+CRLF+'Device: '+Name, 723);
 end;
 
-
 end.

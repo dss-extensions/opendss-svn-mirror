@@ -61,6 +61,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const GenDispatcherName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
        PROCEDURE RecalcElementData; Override;
        PROCEDURE CalcYPrim; Override;    // Always Zero for a GenDispatcher
 
@@ -343,6 +344,16 @@ Begin
 
 
 End;
+
+procedure TGenDispatcherObj.MakePosSequence;
+begin
+  if MonitoredElement <> Nil then begin
+    Nphases := ControlledElement.NPhases;
+    Nconds := FNphases;
+    Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+  end;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TGenDispatcherObj.CalcYPrim;

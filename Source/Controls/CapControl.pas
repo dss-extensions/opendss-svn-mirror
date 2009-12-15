@@ -102,6 +102,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const CapControlName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
        PROCEDURE RecalcElementData; Override;
        PROCEDURE CalcYPrim; Override;    // Always Zero for a CapControl
 
@@ -520,6 +521,22 @@ Begin
 
 
 End;
+
+procedure TCapControlObj.MakePosSequence;
+begin
+  if ControlledElement <> Nil then begin
+    Enabled := ControlledElement.Enabled;
+    Nphases := ControlledElement.NPhases;
+    Nconds := FNphases;
+  end;
+  if MonitoredElement <> Nil then begin
+    Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+    // Allocate a buffer bigenough to hold everything from the monitored element
+    ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+    CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+  end;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TCapControlObj.CalcYPrim;

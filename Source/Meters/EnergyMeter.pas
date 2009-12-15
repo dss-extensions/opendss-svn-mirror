@@ -293,6 +293,7 @@ Type
         constructor Create(ParClass:TDSSClass; const EnergyMeterName:String);
         destructor Destroy; override;
 
+        PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model, reset nphases
         Procedure RecalcElementData;Override;
         Procedure CalcYPrim;Override;
         Procedure GetCurrents(Curr: pComplexArray); Override; //Get present value of terminal Curr
@@ -981,6 +982,20 @@ Begin
                         ' Element must be defined previously.', 525);
      END;
 End;
+
+procedure TEnergyMeterobj.MakePosSequence;
+begin
+  if MeteredElement <> Nil then begin
+    Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+    Nphases := MeteredElement.NPhases;
+    Nconds  := MeteredElement.Nconds;
+    AllocateSensorArrays;
+    IF BranchList <> NIL Then BranchList.Free;
+    BranchList := Nil;
+  end;
+  If HasFeeder Then MakeFeederObj;
+  Inherited;
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TEnergyMeterObj.ResetRegisters;

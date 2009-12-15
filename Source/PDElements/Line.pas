@@ -1141,56 +1141,54 @@ begin
 end;
 
 procedure TLineObj.MakePosSequence;
-
-Var  S:String;
-     C1, Cs, Cm:Double;
-     Z1, ZS, Zm:Complex;
-     i,j:Integer;
-
+Var
+  S:String;
+  C1_new, Cs, Cm:Double;
+  Z1, ZS, Zm:Complex;
+  i,j:Integer;
 begin
 // set to single phase and make sure R1, X1, C1 set.
 // If already single phase, let alone
-        If FnPhases>1 Then
-         Begin
+  If FnPhases>1 Then Begin
+    // Kill certain propertyvalue elements to get a cleaner looking save
+    PrpSequence^[3] := 0;
+    For i := 6 to 14 Do PrpSequence^[i] := 0;
 
-         { Kill certain propertyvalue elements to get a cleaner looking save}
-            PrpSequence^[3] := 0;
-            For i := 6 to 14 Do PrpSequence^[i] := 0;
+    If IsSwitch then begin
+      S := ' R1=1 X1=1 C1=1.1 Phases=1 Len=0.001'
+    end else begin
+      if SymComponentsModel then begin  // keep the same Z1 and C1
+        Z1.re := R1;
+        Z1.im := X1;
+        C1_new := C1 * 1.0e9; // convert to nF
+      end else begin // matrix was input directly, or built from physical data
+        // average the diagonal and off-dialgonal elements
+        Zs := CZERO;
+        For i := 1 to FnPhases  Do Caccum(Zs, Z.GetElement(i,i));
+        Zs := CdivReal(Zs, Fnphases);
+        Zm := CZERO;
+        For i := 1 to FnPhases-1 Do  // Corrected 6-21-04
+        For j := i+1 to FnPhases Do  Caccum(Zm, Z.GetElement(i,j));
+        Zm := CdivReal(Zm, (Fnphases*(FnPhases-1.0)/2.0));
+        Z1 := CSub(Zs, Zm);
 
-            // Average the diagonals
-            Zs := CZERO;
-            For i := 1 to FnPhases  Do Caccum(Zs, Z.GetElement(i,i));
-            Zs := CdivReal(Zs, Fnphases);
-            //Average the off-diagonals
-            Zm := CZERO;
-            For i := 1 to FnPhases-1 Do  // Corrected 6-21-04
-            For j := i+1 to FnPhases Do  Caccum(Zm, Z.GetElement(i,j));
-            Zm := CdivReal(Zm, (Fnphases*(FnPhases-1.0)/2.0));
-            Z1 := CSub(Zs, Zm);
+        // Do same for Capacitances
+        Cs := 0.0;
+        For i := 1 to FnPhases  Do Cs := Cs + Yc.GetElement(i,i).im;
+        Cm := 0.0;
+        For i := 2 to FnPhases Do
+        For j := i+1 to FnPhases Do  Cm := Cm + Yc.GetElement(i,j).im;
+        C1_new := (Cs - Cm)/TwoPi/BaseFrequency/(Fnphases*(FnPhases-1.0)/2.0) * 1.0e9; // nanofarads
+      end;
+      S := Format(' R1=%-.5g  %-.5g  C1=%-.5g Phases=1',[Z1.re, Z1.im, C1_new]);
+    end;
+    // Conductor Current Ratings
+    S := S + Format(' Normamps=%-.5g  %-.5g',[NormAmps, EmergAmps]);
+    Parser.CmdString := S;
+    Edit;
+  End;
 
-            S := Format(' R1=%-.5g  %-.5g  Phases=1',[Z1.re, Z1.im]);
-
-            // Do same for Capacitances
-            Cs := 0.0;
-            For i := 1 to FnPhases  Do Cs := Cs + Yc.GetElement(i,i).im;
-
-            Cm := 0.0;
-            For i := 2 to FnPhases Do
-            For j := i+1 to FnPhases Do  Cm := Cm + Yc.GetElement(i,j).im;
-            C1 := (Cs - Cm)/TwoPi/BaseFrequency/(Fnphases*(FnPhases-1.0)/2.0) * 1.0e9; // nanofarads
-
-            S := S + Format(' C1=%-.5g',[C1]);
-
-            // Conductor Current Ratings
-            S := S + Format(' Normamps=%-.5g  %-.5g',[NormAmps, EmergAmps]);
-
-            Parser.CmdString := S;
-            Edit;
-
-         End;
-
-        Inherited MakePosSequence;
-
+  Inherited MakePosSequence;
 end;
 
 function TLineObj.MergeWith(var OtherLine: TLineObj; Series:Boolean): Boolean;

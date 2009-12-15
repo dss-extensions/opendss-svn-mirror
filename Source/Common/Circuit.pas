@@ -677,6 +677,7 @@ BEGIN
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle
   AddDeviceHandle(CktElements.ListSize); // Handle is global index into CktElements
+  ActiveCktElement.Handle := CktElements.ListSize;
 
 END;
 

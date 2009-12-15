@@ -1594,10 +1594,10 @@ begin
       If PrpSequence^[27]>0 Then S := S + Format(' MVA=%-.5g  ',[genvars.kvarating/1000.0/Fnphases]);
   End;
 
-  inherited;
-
   Parser.CmdString := S;   // Push the string into the Parser object
   Edit;    // Invoke the Edit method for this class
+
+  inherited;  // sets the terminal bus references, must do after editing number of phases
 
 end;
 

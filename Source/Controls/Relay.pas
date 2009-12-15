@@ -153,6 +153,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const RelayName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
        PROCEDURE RecalcElementData; Override;
        PROCEDURE CalcYPrim; Override;    // Always Zero for a Relay
 
@@ -676,6 +677,25 @@ Begin
 
          PickupVolts47 := vbase * PctPickup47 * 0.01;
 End;
+
+procedure TRelayObj.MakePosSequence;
+begin
+  if MonitoredElement <> Nil then begin
+    Nphases := MonitoredElement.NPhases;
+    Nconds := FNphases;
+    Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+    // Allocate a buffer bigenough to hold everything from the monitored element
+    ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+    CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+  end;
+  CASE FNPhases of
+    1: vbase := kVBase * 1000.0;
+  ELSE
+    vbase := kVBase/SQRT3 * 1000.0 ;
+  END;
+  PickupVolts47 := vbase * PctPickup47 * 0.01;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TRelayObj.CalcYPrim;

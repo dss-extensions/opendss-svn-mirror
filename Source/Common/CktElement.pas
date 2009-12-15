@@ -28,6 +28,7 @@ TYPE
       FEnabledProperty:Integer;
       FActiveTerminal:Integer;
       FYPrimInvalid:Boolean;
+      FHandle:Integer;
 
       PROCEDURE Set_Freq(Value:Double);  // set freq and recompute YPrim.
 
@@ -63,6 +64,7 @@ TYPE
 
       PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Virtual;
       PROCEDURE Set_NTerms(Value:Integer); Virtual;
+      PROCEDURE Set_Handle(Value:Integer);
     public
 
       {Total Noderef array for element}
@@ -119,6 +121,7 @@ TYPE
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
       PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
+      Property Handle:Integer         read FHandle write Set_Handle;
       Property Enabled:Boolean        read FEnabled     write Set_Enabled;
       Property YPrimInvalid:Boolean   read FYPrimInvalid   write set_YprimInvalid;
       Property YPrimFreq:double       read FYprimFreq write Set_Freq;
@@ -155,6 +158,7 @@ Begin
      Iterminal    := nil;  // present value of terminal current
      ComplexBuffer := Nil;
 
+     FHandle     := -1;
      BusIndex    := 0;
      FNterms     := 0;
      Fnconds     := 0;
@@ -226,6 +230,11 @@ Begin
         ActiveTerminal := Terminals^[Value] ;
      End;
 End;
+
+Procedure TDSSCktElement.Set_Handle (value: Integer);
+begin
+  FHandle := value;
+end;
 
 FUNCTION TDSSCktElement.Get_ConductorClosed(Index:Integer):Boolean;
 
@@ -921,13 +930,32 @@ begin
 
 end;
 
+function IsGroundBus (const S: String) : Boolean;
+var
+  i : Integer;
+begin
+  Result := True;
+  i := pos ('.1', S);
+  if i > 0 then Result := False;
+  i := pos ('.2', S);
+  if i > 0 then Result := False;
+  i := pos ('.3', S);
+  if i > 0 then Result := False;
+  i := pos ('.', S);
+  if i = 0 then Result := False;
+end;
+
 procedure TDSSCktElement.MakePosSequence;
 Var
-        i:Integer;
+  i:Integer;
+  grnd: Boolean;
 begin
-        For i := 1 to FNterms Do Begin
-           FBusNames^[i] := StripExtension(FBusNames^[i]);
-        End;
+  For i := 1 to FNterms Do begin
+    grnd := IsGroundBus (FBusNames^[i]);
+    FBusNames^[i] := StripExtension(FBusNames^[i]);
+    if grnd then
+      FBusNames^[i] := FBusNames^[i] + '.0';
+  end;
 end;
 
 procedure TDSSCktElement.ComputeVterminal;

@@ -87,6 +87,7 @@ TYPE
        constructor Create(ParClass:TDSSClass; const SensorName:String);
        destructor Destroy; override;
 
+       PROCEDURE MakePosSequence;    Override;  // Make a positive Sequence Model, reset nphases
        Procedure RecalcElementData; Override;
        Procedure CalcYPrim; Override;    // Always Zero for a Sensor
        Procedure TakeSample; Override; // Go add a sample to the buffer
@@ -535,6 +536,21 @@ Begin
                             ' Element must be defined previously.', 666);
          End;
 End;
+
+procedure TSensorObj.MakePosSequence;
+begin
+  if MeteredElement <> Nil then begin
+    Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+    Nphases := MeteredElement.NPhases;
+    Nconds  := MeteredElement.Nconds;
+    ClearSensor;
+    ValidSensor := TRUE;
+    AllocateSensorObjArrays;
+    ZeroSensorArrays;
+    RecalcVbase;
+  end;
+  Inherited;
+end;
 
 {==============================================================================}
 

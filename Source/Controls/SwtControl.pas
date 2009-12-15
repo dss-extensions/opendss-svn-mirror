@@ -28,6 +28,7 @@ TYPE
       constructor Create(ParClass:TDSSClass; const SwtControlName:String);
       destructor Destroy; override;
 
+      PROCEDURE MakePosSequence; Override;  // Make a positive Sequence Model
       PROCEDURE RecalcElementData; Override;
       PROCEDURE CalcYPrim; Override;    // Always Zero for a SwtControl
 
@@ -246,6 +247,16 @@ Begin
              ' Element must be defined previously.', 387);
   End;
 End;
+
+procedure TSwtControlObj.MakePosSequence;
+begin
+  if ControlledElement <> Nil then begin
+    Nphases := ControlledElement.NPhases;
+    Nconds := FNphases;
+    Setbus(1, ControlledElement.GetBus(ElementTerminal));
+  end;
+  inherited;
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TSwtControlObj.CalcYPrim;
