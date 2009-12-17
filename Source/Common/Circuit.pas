@@ -56,6 +56,7 @@ TYPE
           AbortBusProcess:Boolean;
 
           Branch_List: TCktTree; // topology from the first source, lazy evaluation
+          BusAdjPC, BusAdjPD: TAdjArray; // bus adjacency lists of PD and PC elements
 
           Procedure AddDeviceHandle(Handle:Integer);
           Procedure AddABus;
@@ -217,6 +218,8 @@ TYPE
           // Access to topology from the first source
           Function GetTopology: TCktTree;
           Procedure FreeTopology;
+          Function GetBusAdjacentPDLists: TAdjArray;
+          Function GetBusAdjacentPCLists: TAdjArray;
 
           property Name             :String   Read Get_Name;
           Property CaseName         :String   Read FCaseName Write Set_CaseName;
@@ -388,6 +391,8 @@ BEGIN
    AutoAddObj := TAutoAdd.Create;
 
    Branch_List := nil;
+   BusAdjPC := nil;
+   BusAdjPD := nil;
 END;
 
 //----------------------------------------------------------------------------
@@ -1214,6 +1219,18 @@ begin
    Result:=LocalName;
 end;
 
+Function TDSSCircuit.GetBusAdjacentPDLists: TAdjArray;
+begin
+  if not Assigned (BusAdjPD) then BuildActiveBusAdjacencyLists (BusAdjPD, BusAdjPC);
+  Result := BusAdjPD;
+end;
+
+Function TDSSCircuit.GetBusAdjacentPCLists: TAdjArray;
+begin
+  if not Assigned (BusAdjPC) then BuildActiveBusAdjacencyLists (BusAdjPD, BusAdjPC);
+  Result := BusAdjPC;
+end;
+
 Function TDSSCircuit.GetTopology: TCktTree;
 var
   i: Integer;
@@ -1229,7 +1246,7 @@ begin
       elem := CktElements.Next;
     End;
     FOR i := 1 to NumBuses Do Buses^[i].BusChecked := FALSE;
-    Branch_List := GetIsolatedSubArea (Sources.First, TRUE);
+    Branch_List := GetIsolatedSubArea (Sources.First, TRUE);  // calls back to build adjacency lists
   end;
   Result := Branch_List;
 end;
@@ -1238,6 +1255,7 @@ Procedure TDSSCircuit.FreeTopology;
 begin
   if Assigned (Branch_List) then Branch_List.Free;
   Branch_List := nil;
+  if Assigned (BusAdjPC) then FreeAndNilBusAdjacencyLists (BusAdjPD, BusAdjPC);
 end;
 
 end.

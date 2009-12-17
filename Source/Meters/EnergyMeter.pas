@@ -334,8 +334,8 @@ VAR
 
    Delta_Hrs      :Double;
    // adjacency lists for PC and PD elements at each bus, built for faster searches
-   BusAdjPC : array of TList; // also includes shunt PD elements
-   BusAdjPD : array of TList;
+   BusAdjPC : TAdjArray; // also includes shunt PD elements
+   BusAdjPD : TAdjArray;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TEnergyMeter.Create;  // Creates superstructure FOR all EnergyMeter objects
@@ -614,7 +614,7 @@ VAR
   pCktElement  :TDSSCktElement;
   PDElem       :TPDElement;
   PCElem       :TPCElement;
-  i, j, nBus :Integer;
+  i        :Integer;
 
 Begin
   WITH ActiveCircuit Do Begin
@@ -647,41 +647,8 @@ Begin
       PCElem := PCElements.Next;
     End;
 
-    {Set up the bus adjacency lists for faster searching
-     when building meter zone lists.
-    }
-    nBus := ActiveCircuit.NumBuses;
-    // Circuit.Buses is effectively 1-based; bus 0 is ground
-    SetLength (BusAdjPD, nBus + 1);
-    SetLength (BusAdjPC, nBus + 1);
-    for i := 0 to nBus do begin
-      BusAdjPD[i] := TList.Create; // default capacity should be enough
-      BusAdjPC[i] := TList.Create;
-    end;
-
-    pCktElement := PCElements.First;
-    While pCktElement<> Nil Do Begin
-      If pCktElement.Enabled Then begin
-        i := pCktElement.Terminals^[1].BusRef;
-        BusAdjPC[i].Add(pCktElement);
-      end;
-      pCktElement := PCElements.Next;
-    End;
-
-    pCktElement := PDElements.First;
-    {Put only eligible PDElements in the list}
-    While pCktElement<> Nil Do Begin
-      If pCktElement.Enabled Then
-        If IsShuntElement(pCktElement) Then Begin
-          i := pCktElement.Terminals^[1].BusRef;
-          BusAdjPC[i].Add(pCktElement);
-        End Else If AllTerminalsClosed(pCktElement) then
-          for j := 1 to pCktElement.Nterms do begin
-            i := pCktElement.Terminals^[j].BusRef;
-            BusAdjPD[i].Add(pCktElement);
-          end;
-      pCktElement := PDElements.Next;
-    End;
+    // Set up the bus adjacency lists for faster searches to build meter zone lists.
+    BuildActiveBusAdjacencyLists (BusAdjPD, BusAdjPC);
 
     {Set Hasmeter flag for all cktelements}
     SetHasMeterFlag;
@@ -695,13 +662,7 @@ Begin
       IF Mtr.Enabled Then mtr.MakeMeterZoneLists;
     END;
 
-    for i := 0 to nBus do begin
-      BusAdjPD[i].Free;
-      BusAdjPC[i].Free;
-    end;
-    SetLength (BusAdjPD, 0);
-    SetLength (BusAdjPC, 0);
-
+    FreeAndNilBusAdjacencyLists (BusAdjPD, BusAdjPC);
   End;
 End;
 

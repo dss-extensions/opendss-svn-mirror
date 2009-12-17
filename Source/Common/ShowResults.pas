@@ -2553,6 +2553,15 @@ Begin
    End;
 End;
 
+Procedure TopoLevelTabs(var F: TextFile; nLevel: integer);
+var
+  nTabs, i: integer;
+begin
+  nTabs := 30;
+  if nLevel < nTabs then nTabs := nLevel;
+  for i := 1 to nTabs do Write (F, TABCHAR);
+  if nLevel > nTabs then Write (F, Format ('(* %d *)', [nLevel]));
+end;
 
 Procedure ShowTopology(FileRoot:String);
 Var
@@ -2561,7 +2570,7 @@ Var
   pdElem:TPDElement;
   LoadElem  :TLoadObj;
   topo:TCktTree;
-  nLoops, nParallel, nLevels, nIsolated, nSwitches, i: Integer;
+  nLoops, nParallel, nLevels, nIsolated, nSwitches: Integer;
 Begin
   Try
     FileNm := FileRoot + 'TopoSumm.Txt';
@@ -2588,7 +2597,7 @@ Begin
       PDElem := topo.First;
       While Assigned (PDElem) do begin
         if topo.Level > nLevels then nLevels := topo.Level;
-        For i := 1 to topo.Level Do Write (Ftree, TABCHAR);
+        TopoLevelTabs (Ftree, topo.Level);
         Write (Ftree, PDElem.ParentClass.Name,'.',PDElem.Name);
         With topo.PresentBranch Do Begin
           If IsParallel Then Begin
@@ -2615,7 +2624,7 @@ Begin
 
         LoadElem := topo.FirstObject;
         While Assigned (LoadElem) Do Begin
-          For i := 1 to topo.Level+1 Do Write(Ftree, TABCHAR);
+          TopoLevelTabs (Ftree, topo.Level + 1);
           Write(Ftree, LoadElem.ParentClass.Name,'.',LoadElem.Name);
           If LoadElem.HasSensorObj then
             Write(Ftree, Format(' (Sensor: %s.%s) ',
