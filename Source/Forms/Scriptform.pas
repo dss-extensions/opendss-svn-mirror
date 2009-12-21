@@ -239,7 +239,9 @@ begin
            Add(' ');
            Add(' - Circuit Summary -');
            Add(' ');
-           If ActiveCircuit <> Nil Then Begin
+           If ActiveCircuit <> Nil Then
+             If ActiveCircuit.Issolved Then
+             Begin
 
                Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
                Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
@@ -256,7 +258,7 @@ begin
                Add('Mode = '+GetSolutionModeID);
                Add('Control Mode = '+GetControlModeID);
                Add('Load Model = '+GetLoadModel);
-           End;
+            End;
 
          If Not IsDLL Then   ControlPanel.Caption := 'DSS Main Control Panel: Active Circuit = ' + ActiveCircuit.Name;
         End
