@@ -268,8 +268,7 @@ VAR
    i:Integer;
 Begin
 
-     IF   (Index=0)
-     THEN Begin  // Do all conductors
+     IF   (Index = 0)  THEN Begin  // Do all conductors
 
         FOR i := 1 to Fnphases DO Terminals^[FActiveTerminal].Conductors^[i].Closed := Value;
         ActiveCircuit.Solution.SystemYChanged := True;  // force Y matrix rebuild
@@ -294,11 +293,16 @@ End;
 PROCEDURE TDSSCktElement.Set_NConds(Value:Integer);
 
 Begin
-    If Value>0 THEN Begin
-        If Value <> Fnconds Then ActiveCircuit.BusNameRedefined := TRUE;
-        Fnconds := Value;
-        Set_Nterms(fNterms);  // ReallocTerminals    NEED MORE EFFICIENT WAY TO DO THIS
+// Check for an almost certain programming error
+    If  Value <= 0 Then Begin
+         DoSimpleMsg(Format('Invalid number of terminals (%d) for "%s.%s"',
+                            [Value, Parentclass.Name, name ]), 749);
+         Exit;
     End;
+
+    If Value <> Fnconds Then ActiveCircuit.BusNameRedefined := TRUE;
+    Fnconds := Value;
+    Set_Nterms(fNterms);  // ReallocTerminals    NEED MORE EFFICIENT WAY TO DO THIS
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -314,63 +318,62 @@ VAR
    NewBusNames:pStringArray;
 
 Begin
+
+// Check for an almost certain programming error
+     If  Value <= 0 Then Begin
+         DoSimpleMsg(Format('Invalid number of terminals (%d) for "%s.%s"',
+                            [Value, Parentclass.Name, name ]), 749);
+         Exit;
+     End;
+
 // If value is same as present value, no reallocation necessary;
-     IF (value > 0) and (Value * Fnconds <> Yorder) THEN Begin
+// If either Nterms or Nconds has changed then reallocate
+     IF (value <> FNterms) OR (Value * Fnconds <> Yorder) THEN Begin
 
         {Sanity Check}
-        IF Fnconds>50 THEN Begin
-            DoErrorMsg('TCkt_Element.Set_NTerms. ',
-                       'Number of conductors is very large: ' + IntToStr(Fnconds)+' for Circuit Element: "'+ name + '".',
-                       'Error in specifying the Number of Phases', 750);
-            Fnphases := 3;   // reset to some reasonable values.
-            Fnconds  := 3;
-            Yorder   := fNterms*Fnconds;
-            Exit;
+        IF Fnconds > 101 THEN Begin
+            DoSimpleMsg(Format('Warning: Number of conductors is very large (%d) for Circuit Element: "%s.%s.' +
+                       'Possible error in specifying the Number of Phases for element.',
+                       [Fnconds, Parentclass.Name, name]), 750);
         End;
 
 
          {ReAllocate BusNames    }
          // because they are Strings, we have to do it differently
 
-         If Value>0 THEN Begin
-            IF Value < fNterms THEN ReallocMem(FBusNames,Sizeof(FBusNames^[1])*Value)  // Keeps old values; truncates storage
-            ELSE Begin
-               IF FBusNames=Nil THEN Begin   // First allocation
-                {  Always allocate  arrays of strings with AllocMem so that the pointers are all nil
-                   else Delphi thinks non-zero values are pointing to an existing string.}
-                  FBusNames := AllocMem( Sizeof(FBusNames^[1])*Value); //    fill with zeros or strings will crash
-                  For i := 1 to Value DO FBusNames^[i] := Name+'_'+IntToStr(i);  // Make up a bus name to stick in.
-                   // This is so devices like transformers which may be defined on multiple commands
-                   // will have something in the BusNames array.
+          IF Value < fNterms THEN ReallocMem(FBusNames,Sizeof(FBusNames^[1])*Value)  // Keeps old values; truncates storage
+          ELSE  Begin
+               IF FBusNames=Nil THEN Begin
+                // First allocation
+                  {  Always allocate  arrays of strings with AllocMem so that the pointers are all nil
+                     else Delphi thinks non-zero values are pointing to an existing string.}
+                    FBusNames := AllocMem( Sizeof(FBusNames^[1])*Value); //    fill with zeros or strings will crash
+                    For i := 1 to Value DO FBusNames^[i] := Name+'_'+IntToStr(i);  // Make up a bus name to stick in.
+                     // This is so devices like transformers which may be defined on multiple commands
+                     // will have something in the BusNames array.
                End
                ELSE Begin
-                  NewBusNames := AllocMem( Sizeof(FBusNames^[1])*Value);  // make some new space
-                  For i := 1 to fNterms DO NewBusNames^[i] := FBusNames^[i];   // copy old into new
-                  For i := 1 to fNterms DO FBusNames^[i] := '';   // decrement usage counts by setting to nil string
-                  For i := fNterms+1 to Value DO NewBusNames^[i] := Name+'_'+IntToStr(i);  // Make up a bus name to stick in.
-                  ReAllocMem(FBusNames,0);  // dispose of old array storage
-                  FBusNames := NewBusNames;
+                    NewBusNames := AllocMem( Sizeof(FBusNames^[1])*Value);  // make some new space
+                    For i := 1 to fNterms       DO NewBusNames^[i] := FBusNames^[i];   // copy old into new
+                    For i := 1 to fNterms       DO FBusNames^[i]   := '';   // decrement usage counts by setting to nil string
+                    For i := fNterms+1 to Value DO NewBusNames^[i] := Name+'_'+IntToStr(i);  // Make up a bus name to stick in.
+                    ReAllocMem(FBusNames,0);  // dispose of old array storage
+                    FBusNames := NewBusNames;
                End;
-            End;
-
           End;
 
+         {Reallocate Terminals if Nconds or NTerms changed}
+          IF Terminals <> nil THEN FOR i := 1 to FNTerms Do Terminals^[i].Free;  // clean up old storage
 
-        {Reallocate Terminals if Nconds or NTerms changed}
-          IF Terminals<>nil THEN Begin     // clean up old storage
-              FOR i := 1 to fNTerms Do Terminals^[i].Free;
-          End;
           ReallocMem(Terminals, Sizeof(Terminals^[1]) * Value);
 
-          fNterms := Value;    // Set new number of terminals
-          Yorder  := fNterms * Fnconds;
-          ReallocMem(Vterminal,   Sizeof(Vterminal^[1])  *Yorder);
-          ReallocMem(Iterminal,   Sizeof(Iterminal^[1])  *Yorder);
-          ReallocMem(ComplexBuffer, Sizeof(ComplexBuffer^[1])*Yorder);    // used by both pD and PC elements
+          FNterms := Value;    // Set new number of terminals
+          Yorder  := FNterms * Fnconds;
+          ReallocMem(Vterminal,     Sizeof(Vterminal^[1])    *Yorder);
+          ReallocMem(Iterminal,     Sizeof(Iterminal^[1])    *Yorder);
+          ReallocMem(ComplexBuffer, Sizeof(ComplexBuffer^[1])*Yorder);    // used by both PD and PC elements
 
           FOR i := 1 to Value DO Terminals^[i] := TPowerTerminal.Create(Fnconds);
-
-
      End;
 
 End;
@@ -384,22 +387,22 @@ PROCEDURE TDSSCktElement.Set_Enabled(Value:Boolean);
 
 Begin
    WITH ActiveCircuit DO
-   IF Value<>FEnabled THEN Begin  // don't change unless this represents a change
+   IF Value <> FEnabled THEN Begin  // don't change unless this represents a change
 
-     // This code was too cute and prevented rebuilding of meter zones
-     // Removed 7/24/01
-     (*IF Value THEN Begin
+       // This code was too cute and prevented rebuilding of meter zones
+       // Removed 7/24/01
+       (*IF Value THEN Begin
      
-       NumNodesSaved := NumNodes;
-       ProcessBusDefs;     // If we create new nodes, force rebuild of bus lists
-       If NumNodes>NumNodesSaved Then BusNameRedefined := True
-       ELSE Solution.SystemYChanged:= True; //  just rebuild of yPrim
-     End
-     ELSE   BusNameRedefined := True;  // Force Rebuilding of BusLists anyway
-     *)
+         NumNodesSaved := NumNodes;
+         ProcessBusDefs;     // If we create new nodes, force rebuild of bus lists
+         If NumNodes>NumNodesSaved Then BusNameRedefined := True
+         ELSE Solution.SystemYChanged:= True; //  just rebuild of yPrim
+       End
+       ELSE   BusNameRedefined := True;  // Force Rebuilding of BusLists anyway
+       *)
 
-     FEnabled := Value;
-     BusNameRedefined := True;  // forces rebuilding of Y matrix and bus lists
+       FEnabled := Value;
+       BusNameRedefined := True;  // forces rebuilding of Y matrix and bus lists
 
    End;
 
@@ -414,8 +417,8 @@ FUNCTION TDSSCktElement.GetYPrim(Var Ymatrix:TCmatrix; Opt:Integer):Integer;
 Begin
      Case Opt of
           ALL_YPRIM: Ymatrix := Yprim;
-          SERIES: YMatrix := YPrim_Series;
-          SHUNT:  YMatrix := YPrim_Shunt;
+          SERIES:    YMatrix := YPrim_Series;
+          SHUNT:     YMatrix := YPrim_Shunt;
      End;
      Result := 0;
 End;
@@ -468,8 +471,8 @@ begin
   {For no override, Default behavior is:
     Just return total losses and set LoadLosses=total losses and noload losses =0}
 
-  TotalLosses := Losses;  // Watts, vars
-  LoadLosses  := TotalLosses;
+  TotalLosses  := Losses;  // Watts, vars
+  LoadLosses   := TotalLosses;
   NoLoadLosses := CZERO;
 
 end;
@@ -480,7 +483,7 @@ FUNCTION TDSSCktElement.InjCurrents:Integer;  // Applies to PC Elements
 Begin
     Result := 0;
     DoErrorMsg(('Improper call to InjCurrents for Element: ' + Name + '.'), '****',
-        'Called CktElement class virtual FUNCTION instead of actual.', 753)
+        'Called CktElement class base function instead of actual.', 753)
 
 End;
 
@@ -508,11 +511,10 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FUNCTION TDSSCktElement.Get_FirstBus:String;
 Begin
-   IF FNterms>0 THEN
-    Begin
+   IF FNterms > 0 THEN  Begin
        BusIndex := 1;
        Result := FBusNames^[BusIndex];
-    End
+   End
    ELSE Result := '';
 End;
 
@@ -520,12 +522,11 @@ End;
 FUNCTION TDSSCktElement.Get_NextBus:String;
 Begin
    Result := '';
-   IF FNterms>0 THEN
-     Begin
+   IF FNterms > 0 THEN Begin
        Inc(BusIndex);
-       IF BusIndex<=fNterms Then Result := FBusNames^[BusIndex]
-       ELSE BusIndex := fNterms;
-    End;
+       IF BusIndex <= FNterms Then Result := FBusNames^[BusIndex]
+       ELSE BusIndex := FNterms;
+   End;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -541,13 +542,11 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TDSSCktElement.SetBus(i:Integer; const s:String); // Set bus name by index
 Begin
-
-  IF i<=FNterms THEN
-    Begin
+  IF i <= FNterms THEN Begin
       FBusNames^[i] := lowercase(S);
       ActiveCircuit.BusNameRedefined := True;  // Set Global Flag to signal circuit to rebuild busdefs
-    End;
-
+  End
+  ELSE DoSimpleMsg(Format('Attempt to set bus name for non-existent circuit element terminal(%d): "%s"',[i, s]), 7541);
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -608,27 +607,26 @@ VAR
 
 Begin
 
-
-   cPower := cmplx(0.0,0.0);
+   cPower := CZERO;
    ActiveTerminalIdx := idxTerm;
 
    If FEnabled Then Begin
-     ComputeIterminal;
+       ComputeIterminal;
 
-  // Method: Sum complex power going into phase conductors of active terminal
-     WITH ActiveCircuit.Solution DO
-       Begin
-         k := (idxTerm -1)*Fnconds;
-         FOR i := 1 to Fnconds DO     // 11-7-08 Changed from Fnphases - was not accounting for all conductors
-           Begin
-            n := ActiveTerminal.TermNodeRef^[i]; // don't bother for grounded node
-            IF  n > 0 THEN  Caccum(cPower, Cmul(NodeV^[n], conjg(Iterminal[k+i]) ));
-           End;
-       End;
+    // Method: Sum complex power going into phase conductors of active terminal
+       WITH ActiveCircuit.Solution DO
+         Begin
+           k := (idxTerm -1)*Fnconds;
+           FOR i := 1 to Fnconds DO     // 11-7-08 Changed from Fnphases - was not accounting for all conductors
+             Begin
+              n := ActiveTerminal.TermNodeRef^[i]; // don't bother for grounded node
+              IF  n > 0 THEN  Caccum(cPower, Cmul(NodeV^[n], conjg(Iterminal[k+i]) ));
+             End;
+         End;
 
-     {If this is a positive sequence circuit, then we need to multiply by 3 to get the 3-phase power}
-      IF   ActiveCircuit.PositiveSequence
-      THEN cPower := cMulReal(cPower, 3.0);
+       {If this is a positive sequence circuit, then we need to multiply by 3 to get the 3-phase power}
+        IF   ActiveCircuit.PositiveSequence
+        THEN cPower := cMulReal(cPower, 3.0);
    End;
 
    Result := cPower;
@@ -646,22 +644,21 @@ VAR
 
 Begin
 
-   cLoss := cmplx(0.0,0.0);
+   cLoss := CZERO;
 
    If FEnabled Then Begin
+       ComputeIterminal;
 
-     ComputeIterminal;
-
-  // Method: Sum complex power going into all conductors of all terminals
-     WITH ActiveCircuit.Solution DO
-       FOR k := 1 to Yorder Do Begin
-          n := NodeRef^[k];
-          IF  n > 0 THEN Begin
-             IF   ActiveCircuit.PositiveSequence
-             THEN  Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
-             ELSE  Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
-          END;
-       End;
+    // Method: Sum complex power going into all conductors of all terminals
+       WITH ActiveCircuit.Solution DO
+         FOR k := 1 to Yorder Do Begin
+            n := NodeRef^[k];
+            IF  n > 0 THEN Begin
+               IF   ActiveCircuit.PositiveSequence
+               THEN  Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+               ELSE  Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+            END;
+         End;
    End;
 
 
@@ -691,8 +688,7 @@ Begin
             END;
          End;
      End
-     Else
-         For i := 1 to Yorder Do PowerBuffer^[i] := cZero;
+     Else  For i := 1 to Yorder Do PowerBuffer^[i] := CZERO;
 End;
 
 
@@ -712,24 +708,24 @@ Begin
      If FEnabled Then Begin
        ComputeIterminal;
 
-       WITH ActiveCircuit.Solution DO
-         For i := 1 to Num_Phases DO Begin
+       WITH ActiveCircuit.Solution Do
+          For i := 1 to Num_Phases Do Begin
              cLoss := cmplx(0.0,0.0);
-             For j := 1 to fNTerms Do Begin
-               k := (j-1)*Fnconds + i;
-               n := NodeRef^[k]; // increment through terminals
-               IF  n > 0 THEN Begin
-                  IF    ActiveCircuit.PositiveSequence
-                  THEN  Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
-                  ELSE  Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
-               END;
+             For j := 1 to FNTerms Do Begin
+                 k := (j-1)*FNconds + i;
+                 n := NodeRef^[k]; // increment through terminals
+                 If  n > 0 THEN Begin
+                     IF    ActiveCircuit.PositiveSequence
+                     THEN  Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                     ELSE  Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+                 End;
              End;
              LossBuffer^[i] := cLoss;
          End;
 
      End
      Else
-          For i := 1 to Num_Phases Do LossBuffer^[i] := cZero;
+          For i := 1 to Num_Phases Do LossBuffer^[i] := CZERO;
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROCEDURE TDSSCktElement.DumpProperties(Var F:TextFile; Complete:Boolean);
@@ -873,19 +869,15 @@ Begin
      ncond := NConds;
 
      {return Zero if terminal number improperly specified}
-     If (iTerm<1) OR (iTerm>fNterms)
+     If (iTerm < 1) OR (iTerm > fNterms)
      THEN Begin
           FOR i := 1 to Ncond DO VBuffer^[i] := CZERO;
           Exit;
      End;
 
      WITH ActiveCircuit.Solution Do
-     Begin
          FOR i := 1 to  NCond DO
-         Begin
             Vbuffer^[i] := NodeV^[Terminals^[iTerm].TermNodeRef^[i]];
-         End;
-     End;
 
   EXCEPT
      On E:Exception Do
@@ -924,8 +916,8 @@ begin
 
 {Derived classes have to supply appropriate function}
 
-   PosSeqLosses  := CZERO;
-   NegSeqLosses  := CZERO;
+   PosSeqLosses   := CZERO;
+   NegSeqLosses   := CZERO;
    ZeroModeLosses := CZERO;
 
 end;
@@ -975,7 +967,7 @@ procedure TDSSCktElement.ZeroITerminal;
 Var i:Integer;
 
 begin
-   For i := 1 to Yorder Do ITerminal^[i] := CZERO;
+     For i := 1 to Yorder Do ITerminal^[i] := CZERO;
 end;
 
 end.
