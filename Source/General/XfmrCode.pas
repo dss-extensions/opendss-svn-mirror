@@ -305,7 +305,7 @@ Begin
             1: FNphases   := Parser.IntValue;
             2: SetNumWindings(Parser.IntValue); // Reallocate stuff if bigger
             3: SetActiveWinding(Parser.IntValue);
-            4: InterpretConnection(Param);
+            4: Winding^[ActiveWinding].Connection := InterpretConnection(Param);
             5: Winding^[ActiveWinding].kvll  := parser.Dblvalue;
             6: Winding^[ActiveWinding].kVA   := parser.Dblvalue;
             7: Winding^[ActiveWinding].puTap := parser.Dblvalue;
@@ -649,7 +649,7 @@ begin
            12: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kvll]);
            13: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kVA]);
            14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].puTap]);
-           18: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g.',[ Xsc^[i]*100.0]);
+           18: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g, ',[ Xsc^[i]*100.0]);
            24: Result := Format('%.7g',[pctLoadLoss]);
            25: Result := Format('%.7g',[pctNoLoadLoss]);
            28: Result := Format('%.7g',[Winding^[ActiveWinding].MaxTap]);

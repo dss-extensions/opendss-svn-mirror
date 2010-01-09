@@ -254,4 +254,521 @@ LOG:
 4/3/06 Changed Error Handling and Error Number
 }
 
+(* Debugging for MakePosSeq
+  FUNCTION DoMakePosSeq:Integer;
+  
+  Var
+     CktElem:TDSSCktElement;
+  
+  Begin
+      Result := 0;
+  
+      ActiveCircuit.PositiveSequence := TRUE;
+  
+      CktElem := ActiveCircuit.CktElements.First;
+      While CktElem<>Nil Do
+      Begin
+         CktElem.MakePosSequence;
+         CktElem := ActiveCircuit.CktElements.Next;
+      End;
+  
+  End;
+  
+  function IsGroundBus (const S: String) : Boolean;
+  var
+    i : Integer;
+  begin
+    Result := True;
+    i := pos ('.1', S);
+    if i > 0 then Result := False;
+    i := pos ('.2', S);
+    if i > 0 then Result := False;
+    i := pos ('.3', S);
+    if i > 0 then Result := False;
+    i := pos ('.', S);
+    if i = 0 then Result := False;
+  end;
+  
+  procedure TDSSCktElement.MakePosSequence;
+  Var
+    i:Integer;
+    grnd: Boolean;
+  begin
+    For i := 1 to FNterms Do begin
+      grnd := IsGroundBus (FBusNames^[i]);
+      FBusNames^[i] := StripExtension(FBusNames^[i]);
+      if grnd then
+        FBusNames^[i] := FBusNames^[i] + '.0';
+    end;
+  end;
+  
+  procedure TSwtControlObj.MakePosSequence;
+  begin
+    if ControlledElement <> Nil then begin
+      Nphases := ControlledElement.NPhases;
+      Nconds := FNphases;
+      Setbus(1, ControlledElement.GetBus(ElementTerminal));
+    end;
+    inherited;
+  end;
+  
+  procedure TStorageControllerObj.MakePosSequence;
+  begin
+    if MonitoredElement <> Nil then begin
+      Nphases := MonitoredElement.NPhases;
+      Nconds := FNphases;
+      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+    end;
+    inherited;
+  end;
+  
+  //----------------------------------------------------------------------------
+  PROCEDURE TStorageObj.MakePosSequence;
+  
+  VAR
+      S :String;
+      V :Double;
+  
+  Begin
+  
+    S := 'Phases=1 conn=wye';
+  
+    // Make sure voltage is line-neutral
+    If (Fnphases>1) or (connection<>0)
+      Then V :=  kVStorageBase/SQRT3
+      Else V :=  kVStorageBase;
+  
+    S := S + Format(' kV=%-.5g',[V]);
+  
+    If Fnphases>1 Then
+    Begin
+         S := S + Format(' kWrating=%-.5g  PF=%-.5g',[kWrating/Fnphases, PFNominal]);
+    End;
+  
+    Parser.CmdString := S;
+    Edit;
+  
+    inherited;   // write out other properties
+  End;
+  
+  //=============================================================================
+  procedure TVsourceObj.MakePosSequence;
+  
+  Var
+          S:String;
+  begin
+  
+          S :='Phases=1 ';
+          S := S + Format('BasekV=%-.5g ', [kVbase/SQRT3]);
+          S := S + Format('R1=%-.5g ', [R1]);
+          S := S + Format('X1=%-.5g ', [X1]);
+  
+          Parser.CmdString := S;
+          Edit;
+  
+          inherited;
+  
+  end;
+  
+  procedure TSensorObj.MakePosSequence;
+  begin
+    if MeteredElement <> Nil then begin
+      Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+      Nphases := MeteredElement.NPhases;
+      Nconds  := MeteredElement.Nconds;
+      ClearSensor;
+      ValidSensor := TRUE;
+      AllocateSensorObjArrays;
+      ZeroSensorArrays;
+      RecalcVbase;
+    end;
+    Inherited;
+  end;
+  
+  
+  procedure TRelayObj.MakePosSequence;
+  begin
+    if MonitoredElement <> Nil then begin
+      Nphases := MonitoredElement.NPhases;
+      Nconds := FNphases;
+      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+      // Allocate a buffer bigenough to hold everything from the monitored element
+      ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+      CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+    end;
+    CASE FNPhases of
+      1: vbase := kVBase * 1000.0;
+    ELSE
+      vbase := kVBase/SQRT3 * 1000.0 ;
+    END;
+    PickupVolts47 := vbase * PctPickup47 * 0.01;
+    inherited;
+  end;
+  
+  procedure TRegControlObj.MakePosSequence;
+  begin
+    if ControlledElement <> Nil then begin
+      Enabled :=   ControlledElement.Enabled;
+      If UsingRegulatedBus Then
+        Nphases := 1
+      Else
+        Nphases := ControlledElement.NPhases;
+      Nconds := FNphases;
+      IF Comparetext(ControlledElement.DSSClassName, 'transformer') = 0 THEN Begin
+        // Sets name of i-th terminal's connected bus in RegControl's buslist
+        // This value will be used to set the NodeRef array (see Sample function)
+        IF UsingRegulatedBus Then
+          Setbus(1, RegulatedBus)   // hopefully this will actually exist
+        Else
+          Setbus(1, ControlledElement.GetBus(ElementTerminal));
+        ReAllocMem(VBuffer, SizeOF(Vbuffer^[1]) * ControlledElement.NPhases );  // buffer to hold regulator voltages
+        ReAllocMem(CBuffer, SizeOF(CBuffer^[1]) * ControlledElement.Yorder );
+      End;
+    end;
+    inherited;
+  end;
+  
+  procedure TRecloserObj.MakePosSequence;
+  begin
+    if MonitoredElement <> Nil then begin
+      Nphases := MonitoredElement.NPhases;
+      Nconds := FNphases;
+      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+      // Allocate a buffer bigenough to hold everything from the monitored element
+      ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+      CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+    end;
+    inherited;
+  end;
+  
+  procedure TReactorObj.MakePosSequence;
+  Var
+          S:String;
+          kvarperphase,phasekV, Rs, Rm:Double;
+          i,j:Integer;
+  
+  begin
+      If FnPhases>1 Then
+      Begin
+          CASE SpecType OF
+  
+           1:BEGIN // kvar
+                kvarPerPhase := kvarRating/Fnphases;
+                If (FnPhases>1) or ( Connection<>0) Then  PhasekV := kVRating / SQRT3
+                Else PhasekV := kVRating;
+  
+                S := 'Phases=1 ' + Format(' kV=%-.5g kvar=%-.5g',[PhasekV, kvarPerPhase]);
+                {Leave R as specified}
+  
+             END;
+           2:BEGIN // R + j X
+                S := 'Phases=1 ';
+             END;
+           3:BEGIN // Matrices
+                S := 'Phases=1 ';
+                // R1
+                Rs := 0.0;   // Avg Self
+                For i := 1 to FnPhases Do Rs := Rs + Rmatrix^[(i-1)*Fnphases + i];
+                Rs := Rs/FnPhases;
+                Rm := 0.0;     //Avg mutual
+                For i := 2 to FnPhases Do
+                For j := i to FnPhases Do Rm := Rm + Rmatrix^[(i-1)*Fnphases + j];
+                Rm := Rm/(FnPhases*(Fnphases-1.0)/2.0);
+  
+                S := S + Format(' R=%-.5g',[(Rs-Rm)]);
+  
+                // X1
+                Rs := 0.0;   // Avg Self
+                For i := 1 to FnPhases Do Rs := Rs + Xmatrix^[(i-1)*Fnphases + i];
+                Rs := Rs/FnPhases;
+                Rm := 0.0;     //Avg mutual
+                For i := 2 to FnPhases Do
+                For j := i to FnPhases Do Rm := Rm + Xmatrix^[(i-1)*Fnphases + j];
+                Rm := Rm/(FnPhases*(Fnphases-1.0)/2.0);
+  
+                S := S + Format(' X=%-.5g',[(Rs-Rm)]);
+  
+             END;
+           END;
+  
+         Parser.CmdString := S;
+         Edit;
+  
+      End;
+  
+  
+    inherited;
+  
+  end;
+  
+  procedure TMonitorObj.MakePosSequence;
+  begin
+    if MeteredElement <> Nil then begin
+      Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+      Nphases := MeteredElement.NPhases;
+      Nconds  := MeteredElement.Nconds;
+      Case (Mode and MODEMASK) of
+        3: Begin
+           NumStateVars := TPCElement(MeteredElement).Numvariables;
+           ReallocMem(StateBuffer, Sizeof(StateBuffer^[1])*NumStatevars);
+           End;
+        Else
+           ReallocMem(CurrentBuffer, SizeOf(CurrentBuffer^[1])*MeteredElement.Yorder);
+           ReallocMem(VoltageBuffer, SizeOf(VoltageBuffer^[1])*MeteredElement.NConds);
+        End;
+      ClearMonitorStream;
+      ValidMonitor := TRUE;
+    end;
+    Inherited;
+  end;
+  
+  
+  
+  procedure TLoadObj.MakePosSequence;
+  Var
+          S:String;
+          V:Double;
+  
+  begin
+  
+    S := 'Phases=1 conn=wye';
+  
+    // Make sure voltage is line-neutral
+    If (Fnphases>1) or (connection<>0) Then V :=  kVLoadBase/SQRT3
+                                       Else V :=  kVLoadBase;
+  
+    S := S + Format(' kV=%-.5g',[V]);
+  
+    // Divide the load by no. phases
+    If Fnphases>1 Then
+    Begin
+        S := S + Format(' kW=%-.5g  kvar=%-.5g',[kWbase/Fnphases, kvarbase/Fnphases]);
+        If FConnectedKVA>0.0 Then
+           S := S + Format(' xfkVA=%-.5g  ',[FConnectedkVA/Fnphases]);
+    End;
+  
+  
+    Parser.CmdString := S;
+    Edit;
+  
+    inherited;
+  end;
+  
+  procedure TLineObj.MakePosSequence;
+  Var
+    S:String;
+    C1_new, Cs, Cm:Double;
+    Z1, ZS, Zm:Complex;
+    i,j:Integer;
+  begin
+  // set to single phase and make sure R1, X1, C1 set.
+  // If already single phase, let alone
+    If FnPhases>1 Then Begin
+      // Kill certain propertyvalue elements to get a cleaner looking save
+      PrpSequence^[3] := 0;
+      For i := 6 to 14 Do PrpSequence^[i] := 0;
+  
+      If IsSwitch then begin
+        S := ' R1=1 X1=1 C1=1.1 Phases=1 Len=0.001'
+      end else begin
+        if SymComponentsModel then begin  // keep the same Z1 and C1
+          Z1.re := R1;
+          Z1.im := X1;
+          C1_new := C1 * 1.0e9; // convert to nF
+        end else begin // matrix was input directly, or built from physical data
+          // average the diagonal and off-dialgonal elements
+          Zs := CZERO;
+          For i := 1 to FnPhases  Do Caccum(Zs, Z.GetElement(i,i));
+          Zs := CdivReal(Zs, Fnphases);
+          Zm := CZERO;
+          For i := 1 to FnPhases-1 Do  // Corrected 6-21-04
+          For j := i+1 to FnPhases Do  Caccum(Zm, Z.GetElement(i,j));
+          Zm := CdivReal(Zm, (Fnphases*(FnPhases-1.0)/2.0));
+          Z1 := CSub(Zs, Zm);
+  
+          // Do same for Capacitances
+          Cs := 0.0;
+          For i := 1 to FnPhases  Do Cs := Cs + Yc.GetElement(i,i).im;
+          Cm := 0.0;
+          For i := 2 to FnPhases Do
+          For j := i+1 to FnPhases Do  Cm := Cm + Yc.GetElement(i,j).im;
+          C1_new := (Cs - Cm)/TwoPi/BaseFrequency/(Fnphases*(FnPhases-1.0)/2.0) * 1.0e9; // nanofarads
+        end;
+        S := Format(' R1=%-.5g  %-.5g  C1=%-.5g Phases=1',[Z1.re, Z1.im, C1_new]);
+      end;
+      // Conductor Current Ratings
+      S := S + Format(' Normamps=%-.5g  %-.5g',[NormAmps, EmergAmps]);
+      Parser.CmdString := S;
+      Edit;
+    End;
+  
+    Inherited MakePosSequence;
+  end;
+  
+  procedure TIsourceObj.MakePosSequence;
+  begin
+  
+    If Fnphases>1 Then
+    Begin
+       Parser.CmdString := 'phases=1';
+       Edit;
+    End;
+    inherited;
+  
+  end;
+  
+  procedure TGeneratorObj.MakePosSequence;
+  
+  Var
+      S :String;
+      V :Double;
+  
+  begin
+  
+    S := 'Phases=1 conn=wye';
+  
+    // Make sure voltage is line-neutral
+    If (Fnphases>1) or (connection<>0) Then   V :=  GenVars.kVGeneratorBase/SQRT3
+    Else V :=  GenVars.kVGeneratorBase;
+  
+    S := S + Format(' kV=%-.5g',[V]);
+  
+    // Divide the load by no. phases
+    If Fnphases>1 Then
+    Begin
+        S := S + Format(' kW=%-.5g  PF=%-.5g',[kWbase/Fnphases, PFNominal]);
+        If (PrpSequence^[19]<>0) or (PrpSequence^[20]<>0) Then S := S + Format(' maxkvar=%-.5g  minkvar=%-.5g',[kvarmax/Fnphases, kvarmin/Fnphases]);
+        If PrpSequence^[26]>0 Then S := S + Format(' kva=%-.5g  ',[genvars.kvarating/Fnphases]);
+        If PrpSequence^[27]>0 Then S := S + Format(' MVA=%-.5g  ',[genvars.kvarating/1000.0/Fnphases]);
+    End;
+  
+    Parser.CmdString := S;
+    Edit;
+  
+    inherited;
+  end;
+  
+  procedure TGenDispatcherObj.MakePosSequence;
+  begin
+    if MonitoredElement <> Nil then begin
+      Nphases := ControlledElement.NPhases;
+      Nconds := FNphases;
+      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+    end;
+    inherited;
+  end;
+  
+  procedure TEquivalentObj.MakePosSequence;
+  
+  Var
+          S:String;
+  begin
+  
+  
+  /// ????
+  
+  
+          S :='Phases=1 ';
+          S := S + Format('BasekV=%-.5g ', [kVbase/SQRT3]);
+          S := S + Format('R1=%-.5g ', [R1]);
+          S := S + Format('X1=%-.5g ', [X1]);
+  
+          Parser.CmdString := S;
+          Edit;
+  
+          inherited;
+  
+  end;
+  
+  
+  procedure TEnergyMeterobj.MakePosSequence;
+  begin
+    if MeteredElement <> Nil then begin
+      Setbus(1, MeteredElement.GetBus(MeteredTerminal));
+      Nphases := MeteredElement.NPhases;
+      Nconds  := MeteredElement.Nconds;
+      AllocateSensorArrays;
+      IF BranchList <> NIL Then BranchList.Free;
+      BranchList := Nil;
+    end;
+    If HasFeeder Then MakeFeederObj;
+    Inherited;
+  end;
+  
+  procedure TCapControlObj.MakePosSequence;
+  begin
+    if ControlledElement <> Nil then begin
+      Enabled := ControlledElement.Enabled;
+      Nphases := ControlledElement.NPhases;
+      Nconds := FNphases;
+    end;
+    if MonitoredElement <> Nil then begin
+      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+      // Allocate a buffer bigenough to hold everything from the monitored element
+      ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder );
+      CondOffset := (ElementTerminal-1) * MonitoredElement.NConds; // for speedy sampling
+    end;
+    inherited;
+  end;
+  
+  
+  procedure TCapacitorObj.MakePosSequence;
+  Var
+          S:String;
+          kvarperphase,phasekV, Cs, Cm:Double;
+          i,j:Integer;
+  
+  begin
+      If FnPhases>1 Then
+      Begin
+          CASE SpecType OF
+  
+           1:BEGIN // kvar
+  
+                If (FnPhases>1) or ( Connection <> 0) Then  PhasekV := kVRating / SQRT3
+                Else PhasekV := kVRating;
+  
+                S := 'Phases=1 ' + Format(' kV=%-.5g kvar=(',[PhasekV]);
+  
+                For i := 1 to FNumSteps Do Begin
+                  kvarPerPhase := FkvarRating^[i]/Fnphases;
+                  S := S+ Format(' %-.5g',[kvarPerPhase]);
+                End;
+  
+                S := S +')';
+  
+                {Leave R as specified}
+  
+             END;
+           2:BEGIN //
+                S := 'Phases=1 ';
+             END;
+           3:BEGIN //  C Matrix
+                S := 'Phases=1 ';
+                // R1
+                Cs := 0.0;   // Avg Self
+                For i := 1 to FnPhases Do Cs := Cs + Cmatrix^[(i-1)*Fnphases + i];
+                Cs := Cs/FnPhases;
+  
+                Cm := 0.0;     //Avg mutual
+                For i := 2 to FnPhases Do
+                For j := i to FnPhases Do Cm := Cm + Cmatrix^[(i-1)*Fnphases + j];
+                Cm := Cm/(FnPhases*(Fnphases-1.0)/2.0);
+  
+                S := S + Format(' Cuf=%-.5g',[(Cs-Cm)]);
+  
+             END;
+           END;
+  
+         Parser.CmdString := S;
+         Edit;
+  
+      End;
+  
+    inherited;
+  
+  end;
+
+*)
+
 end.

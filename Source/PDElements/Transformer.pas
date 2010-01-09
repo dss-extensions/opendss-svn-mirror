@@ -1416,6 +1416,8 @@ begin
         End;
 
         CASE Index of
+            1: Result := IntToStr(nPhases);
+            2: Result := IntToStr(NumWindings);
             3: Result := IntToStr(ActiveWinding);  // return active winding
             4: Result := Getbus(ActiveWinding);    // return bus spec for active winding
             5: CASE Winding^[ActiveWinding].Connection of
@@ -1440,7 +1442,7 @@ begin
            14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kvll]);
            15: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kVA]);
            16: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].puTap]);// InterpretAllTaps(Param);
-           20: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g.',[ Xsc^[i]*100.0]);// Parser.ParseAsVector(((NumWindings - 1)*NumWindings div 2), Xsc);
+           20: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g, ',[ Xsc^[i]*100.0]);// Parser.ParseAsVector(((NumWindings - 1)*NumWindings div 2), Xsc);
            26: Result := Format('%.7g',[pctLoadLoss]);
            27: Result := Format('%.7g',[pctNoLoadLoss]);
            31: Result := Format('%.7g',[Winding^[ActiveWinding].MaxTap]);
@@ -1850,17 +1852,19 @@ begin
     // set sizes and copy parameters
     Nphases := Obj.Fnphases;
     SetNumWindings(Obj.NumWindings);
+    PropertyValue[1] := IntToStr(nphases);   // synch up property values
+    PropertyValue[2] := IntToStr(NumWindings);
     NConds := Fnphases + 1; // forces reallocation of terminals and conductors
     for i := 1 to NumWindings do
       with Winding^[i] do begin
-        Connection := Obj.Winding^[i].Connection;
-        kvll       := Obj.Winding^[i].kvll;
-        Vbase      := Obj.Winding^[i].Vbase;
-        kva        := Obj.Winding^[i].kva;
-        puTAP      := Obj.Winding^[i].puTAP;
-        Rpu        := Obj.Winding^[i].Rpu;
-        RNeut      := Obj.Winding^[i].RNeut;
-        Xneut      := Obj.Winding^[i].Xneut;
+        Connection   := Obj.Winding^[i].Connection;
+        kvll         := Obj.Winding^[i].kvll;
+        Vbase        := Obj.Winding^[i].Vbase;
+        kva          := Obj.Winding^[i].kva;
+        puTAP        := Obj.Winding^[i].puTAP;
+        Rpu          := Obj.Winding^[i].Rpu;
+        RNeut        := Obj.Winding^[i].RNeut;
+        Xneut        := Obj.Winding^[i].Xneut;
         TapIncrement := Obj.Winding^[i].TapIncrement;
         MinTap       := Obj.Winding^[i].MinTap;
         MaxTap       := Obj.Winding^[i].MaxTap;

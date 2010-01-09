@@ -493,9 +493,17 @@ Begin
          IF   DevIndex>0  THEN
          Begin  // RegControled element must already exist
              ControlledElement := ActiveCircuit.CktElements.Get(DevIndex);
-             If   UsingRegulatedBus Then  Nphases := 1     // Only need one phase
-             Else Nphases := ControlledElement.NPhases;
-             Nconds := FNphases;
+
+             If   UsingRegulatedBus Then
+             Begin
+                   Nphases := 1;     // Only need one phase
+                   Nconds  := 2;
+             End
+             Else Begin
+                   Nphases := ControlledElement.NPhases;
+                   Nconds  := FNphases;
+             End;
+
              IF  Comparetext(ControlledElement.DSSClassName, 'transformer') = 0  THEN
              Begin
                    IF ElementTerminal > ControlledElement.Nterms  THEN
@@ -695,20 +703,22 @@ VAR
 begin
        ControlledTransformer := TTransfObj(ControlledElement);
 
-           If UsingRegulatedBus Then Begin
-              TransformerConnection := ControlledTransformer.Winding^[ElementTerminal].Connection;
-              ComputeVTerminal;   // Computes the voltage at the bus being regulated
-              FOR i := 1 to Fnphases Do Begin
-                   CASE TransformerConnection OF
-                      0:Begin      // Wye
-                           VBuffer^[i] := Vterminal^[i];
-                        End;
-                      1:Begin   // Delta
-                          ii := ControlledTransformer.RotatePhases(i);      // Get next phase in sequence using Transformer Obj rotate
-                          VBuffer^[i] := CSub(Vterminal^[i], Vterminal^[ii]);
-                        End
-                   End;
-              End;
+           If UsingRegulatedBus Then
+           Begin
+                TransformerConnection := ControlledTransformer.Winding^[ElementTerminal].Connection;
+                ComputeVTerminal;   // Computes the voltage at the bus being regulated
+                FOR i := 1 to Fnphases Do
+                Begin
+                      CASE TransformerConnection OF
+                        0:Begin      // Wye
+                               VBuffer^[i] := Vterminal^[i];
+                          End;
+                        1:Begin   // Delta
+                               ii := ControlledTransformer.RotatePhases(i);      // Get next phase in sequence using Transformer Obj rotate
+                               VBuffer^[i] := CSub(Vterminal^[i], Vterminal^[ii]);
+                          End
+                      End;
+                End;
            End
            Else ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
 
@@ -717,20 +727,21 @@ begin
            Vterm := CDivReal(VBuffer^[1], PTRatio );
 
            // Check Vlimit
-           If VlimitActive then Begin
-             If UsingRegulatedBus then ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
-             Vlocalbus := Cabs(CDivReal(VBuffer^[1], PTRatio ));
+           If VlimitActive then
+           Begin
+                If UsingRegulatedBus then ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
+                Vlocalbus := Cabs(CDivReal(VBuffer^[1], PTRatio ));
            End
            Else Vlocalbus := 0.0; // to get rid of warning message;
 
            // Check for LDC
            IF NOT UsingRegulatedBus and LDCActive Then
-             Begin
-                 ControlledElement.GetCurrents(Cbuffer);
-                 ILDC  := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1)+1], CTRating);
-                 VLDC  := Cmul(Cmplx(R, X), ILDC);
-                 Vterm := Cadd(Vterm, VLDC);   // Direction on ILDC is INTO terminal, so this is equivalent to Vterm - (R+jX)*ILDC
-             End;
+           Begin
+                ControlledElement.GetCurrents(Cbuffer);
+                ILDC  := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1)+1], CTRating);
+                VLDC  := Cmul(Cmplx(R, X), ILDC);
+                Vterm := Cadd(Vterm, VLDC);   // Direction on ILDC is INTO terminal, so this is equivalent to Vterm - (R+jX)*ILDC
+           End;
 
            Vactual := Cabs(Vterm);
 
@@ -744,38 +755,37 @@ begin
 
          If TapChangeIsNeeded then
            Begin
-              // Compute tapchange
-              Vboost := (Vreg - Vactual);
-              If Vlimitactive then If (Vlocalbus > Vlimit) then Vboost := (Vlimit - Vlocalbus);
-              BoostNeeded      := Vboost * PTRatio / BaseVoltage[ElementTerminal];  // per unit Winding boost needed
-              Increment        := TapIncrement[TapWinding];
-              PendingTapChange := Round(BoostNeeded / Increment) * Increment;  // Make sure it is an even increment
+                // Compute tapchange
+                Vboost := (Vreg - Vactual);
+                If Vlimitactive then If (Vlocalbus > Vlimit) then Vboost := (Vlimit - Vlocalbus);
+                BoostNeeded      := Vboost * PTRatio / BaseVoltage[ElementTerminal];  // per unit Winding boost needed
+                Increment        := TapIncrement[TapWinding];
+                PendingTapChange := Round(BoostNeeded / Increment) * Increment;  // Make sure it is an even increment
 
-              {If Tap is another winding, it has to move the other way to accomplish the change}
-              If TapWinding <> ElementTerminal Then PendingTapChange := -PendingTapChange;
+                {If Tap is another winding, it has to move the other way to accomplish the change}
+                If TapWinding <> ElementTerminal Then PendingTapChange := -PendingTapChange;
 
-               // Send Initial Tap Change message to control queue
-              // Add Delay time to solution control queue
-              IF (PendingTapChange <> 0.0) and Not Armed THEN
+                 // Send Initial Tap Change message to control queue
+                // Add Delay time to solution control queue
+                IF (PendingTapChange <> 0.0) and Not Armed THEN
                 Begin
-                 // Now see if any tap change is possible in desired direction  Else ignore
-                 IF PendingTapChange > 0.0 THEN
-                   Begin
-                     IF   PresentTap[TapWinding] < MaxTap[TapWinding]  THEN
-                     WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual), 0, 0, Self);
-                           Armed := TRUE;  // Armed to change taps
+                     // Now see if any tap change is possible in desired direction  Else ignore
+                     IF PendingTapChange > 0.0 THEN
+                     Begin
+                         IF   PresentTap[TapWinding] < MaxTap[TapWinding]  THEN
+                         WITH ActiveCircuit Do Begin
+                               ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual), 0, 0, Self);
+                               Armed := TRUE;  // Armed to change taps
+                         End;
+                     End
+                     ELSE
+                     Begin
+                         IF   PresentTap[TapWinding] > MinTap[TapWinding]  THEN
+                         WITH ActiveCircuit Do Begin
+                               ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual),0, 0, Self);
+                               Armed := TRUE;  // Armed to change taps
+                         End;
                      End;
-                   End
-                 ELSE
-                   Begin
-                     IF   PresentTap[TapWinding] > MinTap[TapWinding]  THEN
-                     WITH ActiveCircuit Do Begin
-                           ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + ComputeTimeDelay(Vactual),0, 0, Self);
-                           Armed := TRUE;  // Armed to change taps
-                     End;
-                   End;
-
                End;
 
            END

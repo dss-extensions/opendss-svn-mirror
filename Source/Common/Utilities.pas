@@ -15,8 +15,6 @@ interface
 
 Uses ArrayDef, CktElement, PDElement, UComplex, UcMatrix, DSSClass, Classes, StdCtrls;
 
-
-
 Function CompareTextShortest(Const S1, S2:String):Integer;
 Procedure FireOffEditor(FileNm:String);
 Procedure DoDOSCmd(CmdString:String);
@@ -29,7 +27,6 @@ Function IntArrayToString( iarray:pIntegerArray; count:integer):String;
 Function EncloseQuotes(Const s:String):String;
 Procedure ShowMessageBeep(Const s:String);
 Function FullName(pElem :TDSSCktElement):String;
-
 
 {Parsing Utilities}
 PROCEDURE ParseObjectClassandName(const FullObjName :String; Var ClassName, ObjName :String);
@@ -128,7 +125,7 @@ Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
 
-{Feeder Utilities}
+{Feeder Utilities} // not currently used
 Procedure EnableFeeders;
 Procedure DisableFeeders;
 Procedure InitializeFeeders;
@@ -148,7 +145,7 @@ EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls, PCElement;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
-      paddotsString :String=' .................................................'; //50 blanks
+      paddotsString :String=' .................................................'; //50 dots
 
 
 
