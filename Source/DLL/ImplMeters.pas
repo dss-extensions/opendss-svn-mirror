@@ -49,6 +49,8 @@ type
     function Get_AllEndElements: OleVariant; safecall;
     function Get_CountEndElements: Integer; safecall;
     function Get_Count: Integer; safecall;
+    function Get_AllBranchesInZone: OleVariant; safecall;
+    function Get_CountBranches: Integer; safecall;
     { Protected declarations }
   end;
 
@@ -598,6 +600,52 @@ function TMeters.Get_Count: Integer;
 begin
      If Assigned(ActiveCircuit) Then
        Result := ActiveCircuit.EnergyMeters.ListSize;
+end;
+
+function TMeters.Get_AllBranchesInZone: OleVariant;
+Var
+  pMeterObj   :TEnergyMeterObj;
+  k           :Integer;
+  BranchCount :Integer;
+  pElem       :TDSSCktElement;
+Begin
+  Result := VarArrayCreate([0, 0], varOleStr);
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+    pMeterObj := EnergyMeters.Active;
+    if pMeterObj <> Nil then begin
+      // Get count of branches
+      BranchCount := Get_CountBranches;
+      VarArrayRedim (Result, BranchCount-1);
+      pElem := pMeterObj.BranchList.First;
+      k := 0;
+      while pElem <> Nil do   Begin
+         Result[k] := Format ('%s.%s', [pElem.ParentClass.Name, pElem.Name]);
+         inc(k);
+         pElem := pMeterObj.BranchList.GoForward;
+      End;
+    end;
+  End;
+
+end;
+
+function TMeters.Get_CountBranches: Integer;
+
+Var
+  pMeterObj :TEnergyMeterObj;
+  pelem : TDSSCktElement;
+Begin
+  Result := 0;
+  IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
+    pMeterObj := EnergyMeters.Active;
+    if pMeterObj <> Nil then begin
+      // Get count of branches
+      pElem := pMeterObj.BranchList.First;
+      while pElem <> Nil do   Begin
+         inc(Result);
+         pElem := pMeterObj.BranchList.GoForward;
+      End;
+    end;
+  End;
 end;
 
 initialization
