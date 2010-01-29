@@ -1,7 +1,7 @@
 unit Monitor;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2010, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -1218,7 +1218,7 @@ begin
      PropertyValue[4] := ''; // 'action';  // buffer=clear|save
      PropertyValue[5] := 'NO';
      PropertyValue[6] := 'YES';
-     PropertyValue[7] := 'NO';
+     PropertyValue[7] := 'YES';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
