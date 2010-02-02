@@ -86,7 +86,7 @@ Uses DSSClass,
      Load, Generator, Command;
 
 Const
-    NumEMVbase = 5;
+    NumEMVbase = 7;
     NumEMRegisters = 32 + 4 * NumEMVbase;   // Total Number of energy meter registers
     {Fixed Registers}
      Reg_kWh               = 1;
@@ -1781,15 +1781,17 @@ var
 begin
    With ActiveCircuit.Buses^[BusRef]  Do Begin
      for i  := 1 to VBaseCount do  Begin
-       if kVBase = VBaseList^[i]  then Begin
+       if abs(1.0 - kVBase / VBaseList^[i]) < 0.01  then
+       Begin    // < 1% difference
           Result := i;
           Exit;
        End;
      End;
 
-     if (kvBase>0.0) And (VBaseCount<MaxVBaseCount) Then Begin
+     if (kvBase > 0.0) And (VBaseCount < MaxVBaseCount) Then
+     Begin
          Inc(VBaseCount);
-         VBaseList^[VBasecount] := ActiveCircuit.Buses^[BusRef].kVBase;
+         VBaseList^[VBasecount] := {ActiveCircuit.Buses^[BusRef].}kVBase;
          result := VBaseCount;
      End
      Else Result := 0;
@@ -2383,7 +2385,7 @@ var
 begin
   ireg := 1;
   for i := 1 to MaxVBaseCount  do begin
-    if VBaseList^[i]> 0.0 then begin
+    if VBaseList^[i] > 0.0 then begin
       vbase := VBaseList^[i]* SQRT3;
       RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses', [vbase]);
       RegisterNames[i + MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Line Loss', [vbase]);
