@@ -832,7 +832,7 @@ VAR
     Sum     :Double;
 Begin
       Sum := 0.0;
-      for I := 1 to FleetPointerList.ListSize Do Begin
+      for i := 1 to FleetPointerList.ListSize Do Begin
           pStorage :=  FleetPointerList.Get(i);
           sum := sum + pStorage.PresentkW;
       End;
@@ -847,7 +847,7 @@ VAR
     
 Begin
       Sum := 0.0;
-      for I := 1 to FleetPointerList.ListSize Do Begin
+      for i := 1 to FleetPointerList.ListSize Do Begin
           pStorage :=  FleetPointerList.Get(i);
           sum := sum + pStorage.kWhStored;
       End;
@@ -861,7 +861,7 @@ VAR
 
 Begin
       Sum := 0.0;
-      for I := 1 to FleetPointerList.ListSize Do Begin
+      for i := 1 to FleetPointerList.ListSize Do Begin
           pStorage :=  FleetPointerList.Get(i);
           sum := sum + pStorage.kWhRating;
       End;
@@ -875,7 +875,7 @@ VAR
 
 Begin
       Sum := 0.0;
-      for I := 1 to FleetPointerList.ListSize Do Begin
+      for i := 1 to FleetPointerList.ListSize Do Begin
           pStorage :=  FleetPointerList.Get(i);
           sum := sum + pStorage.kWRating;
       End;
@@ -960,23 +960,28 @@ Begin
 
           1:Begin
              If (DisChargeTriggerTime > 0.0)  Then
-               WITH ActiveCircuit.Solution Do Begin
-               If abs(NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime) < DynaVars.h/3600.0 Then
-               If Not (FleetState=STORE_DISCHARGING) Then
+               WITH ActiveCircuit.Solution Do
                Begin
-                  {Time is within 1 time step of the trigger time}
-                    If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging by Time Trigger');
-                    SetFleetToDischarge;
-                    DischargeInhibited := FALSE;
-                    If DischargeMode = MODEFOLLOW Then  DischargeTriggeredByTime := TRUE
-                    Else
-                      With ActiveCircuit, ActiveCircuit.Solution Do
-                      Begin
-                            LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                            // Push present time onto control queue to force re solve at new dispatch value
-                            ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
-                      End;
-               End;
+                 If abs(NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime) < DynaVars.h/3600.0 Then
+                 Begin
+                     If Not (FleetState=STORE_DISCHARGING) Then
+                     Begin
+                        {Time is within 1 time step of the trigger time}
+                          If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging by Time Trigger');
+                          SetFleetToDischarge;
+                          SetFleetkWRate;
+                          DischargeInhibited := FALSE;
+                          If DischargeMode = MODEFOLLOW Then  DischargeTriggeredByTime := TRUE
+                          Else
+                            With ActiveCircuit, ActiveCircuit.Solution Do
+                            Begin
+                                  LoadsNeedUpdating := TRUE; // Force recalc of power parms
+                                  // Push present time onto control queue to force re solve at new dispatch value
+                                  ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
+                            End;
+                     End;
+                 End
+                 Else ChargingAllowed := TRUE;
                End;
             End; // Discharge mode
           2:Begin
