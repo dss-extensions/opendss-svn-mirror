@@ -228,7 +228,7 @@ Begin
                      'forces program to use the matrix values for line impedance definition.  For balanced line models, you may '+
                      'use the standard symmetrical component data definition instead.';
      PropertyHelp[15] := '{y/n | T/F}  Default= no/false.  Designates this line as a switch for graphics and algorithmic purposes. ' +CRLF+
-                         'SIDE EFFECT: Sets R1=0.001 X1=0.0. You must reset if you want something different.';
+                         'SIDE EFFECT: Sets r1 = 1.0; x1 = 1.0; r0 = 1.0; x0 = 1.0; c1 = 1.1 ; c0 = 1.0;  length = 0.001; You must reset if you want something different.';
      PropertyHelp[16] := 'Carson earth return resistance per unit length used to compute impedance values at base frequency. ' +
                          'Default is 0.01805 = 60 Hz value in ohms per kft (matches default line impedances). ' +
                          'This value is required for harmonic solutions if you wish to adjust the earth return impedances for frequency. ' +
