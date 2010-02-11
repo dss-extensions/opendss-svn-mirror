@@ -1008,6 +1008,7 @@ begin
         CASE Index of
             1: Result := GetBus(1);
             2: Result := GetBus(2);
+            4: Result := Format('%-.7g', [Len]);
             5: Result := Format('%d', [FNphases]);
             6: If SymComponentsModel Then Result := Format('%-.7g', [R1/FUnitsConvert]) else Result := '----';
             7: If SymComponentsModel Then Result := Format('%-.7g', [X1/FUnitsConvert]) else Result := '----';

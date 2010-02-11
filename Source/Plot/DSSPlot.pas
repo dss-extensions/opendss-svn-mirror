@@ -353,7 +353,7 @@ begin
              If pLine.IsSwitch
              Then  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              clBlack, 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
 
              Else If pLine.IsIsolated
@@ -381,7 +381,7 @@ begin
          If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
             AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                        Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                       Color1, 1, Style(1), Dots, pTransf.Name, False, 0,
+                       Color1, 1, Style(1), Dots, ('transformer.' + pTransf.Name), False, 0,
                        NodeMarkerCode, NodeMarkerWidth );
        End;
        pTransf := Transformers.Next;

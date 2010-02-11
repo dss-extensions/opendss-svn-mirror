@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 8291 $
-// File generated on 1/8/2010 4:42:34 PM from Type Library described below.
+// File generated on 2/8/2010 10:59:43 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
@@ -1066,6 +1066,8 @@ type
     function Get_CountEndElements: Integer; safecall;
     function Get_AllEndElements: OleVariant; safecall;
     function Get_Count: Integer; safecall;
+    function Get_AllBranchesInZone: OleVariant; safecall;
+    function Get_CountBranches: Integer; safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -1082,6 +1084,8 @@ type
     property CountEndElements: Integer read Get_CountEndElements;
     property AllEndElements: OleVariant read Get_AllEndElements;
     property Count: Integer read Get_Count;
+    property AllBranchesInZone: OleVariant read Get_AllBranchesInZone;
+    property CountBranches: Integer read Get_CountBranches;
   end;
 
 // *********************************************************************//
@@ -1115,6 +1119,8 @@ type
     property CountEndElements: Integer readonly dispid 211;
     property AllEndElements: OleVariant readonly dispid 212;
     property Count: Integer readonly dispid 213;
+    property AllBranchesInZone: OleVariant readonly dispid 214;
+    property CountBranches: Integer readonly dispid 215;
   end;
 
 // *********************************************************************//

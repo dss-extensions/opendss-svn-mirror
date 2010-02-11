@@ -615,13 +615,15 @@ Begin
     if pMeterObj <> Nil then begin
       // Get count of branches
       BranchCount := Get_CountBranches;
-      VarArrayRedim (Result, BranchCount-1);
-      pElem := pMeterObj.BranchList.First;
-      k := 0;
-      while pElem <> Nil do   Begin
-         Result[k] := Format ('%s.%s', [pElem.ParentClass.Name, pElem.Name]);
-         inc(k);
-         pElem := pMeterObj.BranchList.GoForward;
+      If BranchCount > 0 Then Begin
+          VarArrayRedim (Result, BranchCount-1);
+          pElem := pMeterObj.BranchList.First;
+          k := 0;
+          while pElem <> Nil do   Begin
+             Result[k] := Format ('%s.%s', [pElem.ParentClass.Name, pElem.Name]);
+             inc(k);
+             pElem := pMeterObj.BranchList.GoForward;
+          End;
       End;
     end;
   End;
@@ -637,7 +639,8 @@ Begin
   Result := 0;
   IF ActiveCircuit <> Nil THEN WITH ActiveCircuit DO Begin
     pMeterObj := EnergyMeters.Active;
-    if pMeterObj <> Nil then begin
+    if pMeterObj <> Nil then
+    If pMeterObj.BranchList <> Nil then Begin
       // Get count of branches
       pElem := pMeterObj.BranchList.First;
       while pElem <> Nil do   Begin
