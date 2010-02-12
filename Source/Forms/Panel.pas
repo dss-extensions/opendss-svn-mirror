@@ -530,10 +530,10 @@ begin
     End;
 
     {Save Summary Form and Result form location & Size}
-      Writeln(F,'[Summary]');
-      With SummaryForm Do Writeln(F,'{Window}', Format(' %d, %d, %d, %d, %d',[Top, Left, Height, Width, WinStateToInt(WindowState)]));
-      Writeln(F,'[Result]');
-      With ResultForm Do Writeln(F,'{Window}', Format(' %d, %d, %d, %d, %d',[Top, Left, Height, Width, WinStateToInt(WindowState)]));
+ //     Writeln(F,'[Summary]');
+ //     With SummaryForm Do Writeln(F,'{Window}', Format(' %d, %d, %d, %d, %d',[Top, Left, Height, Width, WinStateToInt(WindowState)]));
+ //     Writeln(F,'[Result]');
+ //      With ResultForm Do Writeln(F,'{Window}', Format(' %d, %d, %d, %d, %d',[Top, Left, Height, Width, WinStateToInt(WindowState)]));
 
 
     {Write compile file combo}

@@ -242,22 +242,25 @@ begin
            If ActiveCircuit <> Nil Then
              If ActiveCircuit.Issolved Then
              Begin
-
-               Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
-               Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
-               Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
-               Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
-               cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
-               Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
-               Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
-               cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
-               If cPower.re <> 0.0 Then Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
-                                   Else Add('Total Active Losses:   ****** MW, (**** %%)');
-               Add(Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]));
-               Add(Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]));
-               Add('Mode = '+GetSolutionModeID);
-               Add('Control Mode = '+GetControlModeID);
-               Add('Load Model = '+GetLoadModel);
+               TRY
+                 Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));
+                 Add(Format('Hour = %d ',[ActiveCircuit.Solution.intHour]));
+                 Add('Max pu. voltage = '+Format('%-.5g ',[GetMaxPUVoltage]));
+                 Add('Min pu. voltage = '+Format('%-.5g ',[GetMinPUVoltage(TRUE)]));
+                 cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
+                 Add(Format('Total Active Power:   %-.6g MW',[cpower.re]));
+                 Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
+                 cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
+                 If cPower.re <> 0.0 Then Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
+                                     Else Add('Total Active Losses:   ****** MW, (**** %%)');
+                 Add(Format('Total Reactive Losses: %-.6g Mvar',[cLosses.im]));
+                 Add(Format('Frequency = %-g Hz',[ActiveCircuit.Solution.Frequency]));
+                 Add('Mode = '+GetSolutionModeID);
+                 Add('Control Mode = '+GetControlModeID);
+                 Add('Load Model = '+GetLoadModel);
+               EXCEPT
+                  On E:Exception Do Add('Error encountered. Re-solve circuit.');
+               END;
             End;
 
          If Not IsDLL Then   ControlPanel.Caption := 'DSS Main Control Panel: Active Circuit = ' + ActiveCircuit.Name;
