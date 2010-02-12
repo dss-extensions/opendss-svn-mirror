@@ -381,7 +381,7 @@ begin
          If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
             AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                        Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                       Color1, 1, Style(1), Dots, ('transformer.' + pTransf.Name), False, 0,
+                       clDkGray, 3, Style(1), Dots, ('transformer.' + pTransf.Name), False, 0,
                        NodeMarkerCode, NodeMarkerWidth );
        End;
        pTransf := Transformers.Next;
@@ -1863,7 +1863,10 @@ end;
 
 procedure TDSSPlot.MarkTheTransformers;
 Var
-   BusIdx :Integer;
+   Bus1Idx :Integer;
+   Bus2Idx :Integer;
+   Xtr, Ytr :Double;
+
 begin
       {Mark Locations of Substation Transformers}
    pTransF := ActiveCircuit.Transformers.First;
@@ -1871,11 +1874,23 @@ begin
    While pTransF <> Nil Do Begin
        If pTransF.Enabled Then
         If Not pTRansF.IsSubstation Then Begin
-          BusIdx := pTRansF.Terminals^[1].BusRef;
-          With ActiveCircuit Do  Begin
-             If Not Buses^[BusIdx].CoordDefined then BusIdx := pTRansF.Terminals^[2].BusRef; // Try the other winding
-             If Buses^[BusIdx].CoordDefined Then
-             AddNewMarker (Buses^[BusIdx].x, Buses^[BusIdx].y, clBlue, TransMarkerCode, TransMarkerSize);
+          Bus1Idx := pTRansF.Terminals^[1].BusRef;
+          Bus2Idx := pTRansF.Terminals^[2].BusRef;
+          With ActiveCircuit Do
+          If Buses^[Bus1Idx].CoordDefined OR Buses^[Bus2Idx].CoordDefined Then Begin
+             If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then  Begin
+                 Xtr :=  (Buses^[Bus1Idx].x + Buses^[Bus2Idx].x) / 2.0;
+                 Ytr :=  (Buses^[Bus1Idx].y + Buses^[Bus2Idx].y) / 2.0;
+             End
+             Else If Buses^[Bus1Idx].CoordDefined then Begin
+                 Xtr :=  Buses^[Bus1Idx].x;
+                 Ytr :=  Buses^[Bus1Idx].y;
+             End
+             Else Begin
+                 Xtr :=  Buses^[Bus2Idx].x;
+                 Ytr :=  Buses^[Bus2Idx].y;
+             End;
+             AddNewMarker (Xtr, Ytr, clRed, TransMarkerCode, TransMarkerSize);
           End;
         End;
        pTransF := ActiveCircuit.Transformers.Next;
