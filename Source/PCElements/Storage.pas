@@ -179,6 +179,7 @@ TYPE
         PROCEDURE Set_PowerFactor(const Value: Double);
         PROCEDURE Set_State(const Value: Integer);
         procedure Set_pctkvarOut(const Value: Double);
+    procedure Set_pctkWOut(const Value: Double);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
@@ -201,7 +202,7 @@ TYPE
         kWhRating       :Double;
         kWhStored       :Double;
         kWhReserve      :Double;
-        pctkWout        :Double;   // percent of kW rated output currently dispatched
+        FpctkWout       :Double;   // percent of kW rated output currently dispatched
         Fpctkvarout     :Double;
         pctkWin         :Double;
         pctReserve      :Double;
@@ -250,6 +251,7 @@ TYPE
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
 
        Property StorageState :Integer Read FState          Write Set_State;
+       Property PctkWOut     :Double  Read FpctkWOut       Write Set_pctkWOut;
        Property PctkVarOut   :Double  Read FpctkvarOut     Write Set_pctkvarOut;
 
    End;
@@ -926,7 +928,8 @@ Begin
      ChargeTrigger    := 0.0;
      pctChargeEff     := 90.0;
      pctDischargeEff  := 90.0;
-     pctkWout         := 100.0;
+     FpctkWout        := 100.0;
+     Fpctkvarout      := 100.0;
      pctkWin          := 100.0;
 
      ChargeTime       := 2.0;   // 2 AM
@@ -1122,6 +1125,37 @@ Begin
        End
      ELSE CalcDailyMult(Hr);  // Defaults to Daily curve
 End;
+
+//----------------------------------------------------------------------------
+PROCEDURE TStorageObj.SetKWandKvarOut;
+Begin
+    CASE FState of
+
+       STORE_CHARGING: Begin
+                            If kWhStored < kWhRating Then
+                            Begin
+                                 kW_out := -kWRating * pctkWin / 100.0;
+                                 If   PFNominal = 1.0 Then   kvar_out := 0.0
+                                 Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
+                            End
+                            Else Fstate := STORE_IDLING;   // all charged up
+                       End;
+
+
+       STORE_DISCHARGING: Begin
+                                If kWhStored > kWhReserve Then
+                                Begin
+                                     kW_out := kWRating * pctkWout / 100.0;
+                                     If   PFNominal = 1.0 Then   kvar_out := 0.0
+                                     Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
+                                End
+                                Else Fstate := STORE_IDLING;  // not enough storage to discharge
+
+                          End;
+
+    END;
+End;
+
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.SetNominalStorageOuput;
@@ -2274,13 +2308,17 @@ Begin
 
 End;
 
-
-
 procedure TStorageObj.Set_pctkvarOut(const Value: Double);
 begin
      FpctkvarOut := Value;
    // Force recompute of target PF and requested kVAr
-     Presentkvar := Value * kWRating / 100.0; 
+     Presentkvar := kWRating * sqrt(1.0/SQR(PFNominal) - 1.0) * FpctkvarOut  / 100.0;
+end;
+
+procedure TStorageObj.Set_pctkWOut(const Value: Double);
+begin
+     FpctkWOut := Value;
+     kW_Out    := FpctkWOut * kWRating / 100.0;
 end;
 
 //----------------------------------------------------------------------------
@@ -2308,7 +2346,6 @@ VAR
 Begin
      kvar_out := Value;
      kvarRequested := Value;
-     Fpctkvarout  := Value/kWrating;
      {Requested kVA output}
      kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out)) ;
      If kVA_Gen > kVArating Then kVA_Gen := kVARating;  // Limit kVA to rated value
@@ -2319,7 +2356,7 @@ End;
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.Set_PresentkW(const Value: Double);
 Begin
-     pctkWOut := Value/kWRating * 100.0;
+     FpctkWOut := Value/kWRating * 100.0;
      kW_Out   := Value;
      //SyncUpPowerQuantities;
 End;
@@ -2348,35 +2385,6 @@ Begin
     If Value>Registers[reg] Then Registers[Reg] := Value;
 End;
 
-//----------------------------------------------------------------------------
-PROCEDURE TStorageObj.SetKWandKvarOut;
-Begin
-    CASE FState of
-
-       STORE_CHARGING: Begin
-                            If kWhStored < kWhRating Then
-                            Begin
-                                 kW_out := -kWRating * pctkWin / 100.0;
-                                 If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                 Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
-                            End
-                            Else Fstate := STORE_IDLING;   // all charged up
-                       End;
-
-
-       STORE_DISCHARGING: Begin
-                                If kWhStored > kWhReserve Then
-                                Begin
-                                     kW_out := kWRating * pctkWout / 100.0;
-                                     If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                     Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
-                                End
-                                Else Fstate := STORE_IDLING;  // not enough storage to discharge
-
-                          End;
-
-    END;
-End;
 
 //----------------------------------------------------------------------------
 

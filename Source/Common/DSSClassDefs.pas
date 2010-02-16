@@ -229,22 +229,26 @@ VAR
     i :Integer;
     DSSObj :TDSSObject;
     TraceName :String;
+    SuccessFree :String;
 
 BEGIN
 
   TRY
-
+     SuccessFree := 'First Object';
      For i := 1 to DSSObjs.ListSize Do
      Begin
-         DSSObj := DSSObjs.Get(i);
-         TraceName := DSSObj.Name;
+         DSSObj    := DSSObjs.Get(i);
+         TraceName := DSSObj.ParentClass.Name + '.' + DSSObj.Name;
          DSSObj.Free;
+         SuccessFree := TraceName;
      End;
      TraceName := '(DSSObjs Class)';
      DSSObjs.Free;
   EXCEPT
       On E: Exception Do
-        Dosimplemsg('Exception disposing of DSS Obj "'+TraceName+'". '+CRLF + E.Message, 901);
+        Dosimplemsg('Exception disposing of DSS Obj "'+TraceName+'". '+CRLF +
+                    'Last Successful dispose was for object "' + SuccessFree + '" ' +CRLF+
+                     E.Message, 901);
   END;
 
   TRY

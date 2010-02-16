@@ -619,9 +619,13 @@ Begin
      YearlyShape := '';
      DailyShape  := '';
      DutyShape   := '';
-     YearlyShapeObj.Free;
-     DailyShapeObj.Free;
-     DutyShapeObj.Free;
+
+(*    Don't Do this here!! Disposes of actual object;
+       YearlyShapeObj.Free;
+       DailyShapeObj.Free;
+       DutyShapeObj.Free;
+*)
+
 
      FleetPointerList.Free;
      FStorageNameList.Free;
@@ -1279,6 +1283,7 @@ Begin
            ChargingAllowed := TRUE;
            pctChargeRate := Abs(LoadShapeMult.re)*100.0;
            SetFleetChargeRate;
+           SetFleetToCharge;
         End
     Else If LoadShapeMult.re = 0.0  Then  SetFleetToIdle
          Else Begin   // Set fleet to discharging at a rate
@@ -1286,6 +1291,8 @@ Begin
              pctkvarRate := LoadShapeMult.im * 100.0;
              SetFleetkWRate;
              SetFleetkvarRate;
+             SetFleetToDischarge;
+             ActiveCircuit.Solution.LoadsNeedUpdating := TRUE; // Force recalc of power parms
          End;
 
     If FleetState <> FleetStateSaved Then
