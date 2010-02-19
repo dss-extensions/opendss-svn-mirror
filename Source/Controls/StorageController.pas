@@ -966,7 +966,8 @@ Begin
              If (DisChargeTriggerTime > 0.0)  Then
                WITH ActiveCircuit.Solution Do
                Begin
-                 If abs(NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime) < DynaVars.h/3600.0 Then
+                 // turn on if time within 1/2 time step
+                 If abs(NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime) < DynaVars.h/7200.0 Then
                  Begin
                      If Not (FleetState=STORE_DISCHARGING) Then
                      Begin
@@ -991,7 +992,7 @@ Begin
           2:Begin
             If ChargeTriggerTime > 0.0 Then
                WITH ActiveCircuit.Solution Do Begin
-               If abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTriggerTime) < DynaVars.h/3600.0 Then
+               If abs(NormalizeToTOD(intHour, DynaVars.t) - ChargeTriggerTime) < DynaVars.h/7200.0 Then
                If Not (FleetState=STORE_CHARGING) Then
                Begin
                     {Time is within 1 time step of the trigger time}
