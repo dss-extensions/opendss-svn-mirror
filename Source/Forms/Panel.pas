@@ -223,6 +223,7 @@ type
     Sort1: TMenuItem;
     Losses2: TMenuItem;
     ResultForm1: TMenuItem;
+    Mismatch1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -375,6 +376,7 @@ type
     procedure Sort1Click(Sender: TObject);
     procedure Losses2Click(Sender: TObject);
     procedure ResultForm1Click(Sender: TObject);
+    procedure Mismatch1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -2481,6 +2483,11 @@ end;
 procedure TControlPanel.Meters2Click(Sender: TObject);
 begin
     ActiveScriptForm.ExecuteDSSCommand('Export meters');
+end;
+
+procedure TControlPanel.Mismatch1Click(Sender: TObject);
+begin
+    ActiveScriptForm.ExecuteDSSCommand('show mismatch');
 end;
 
 procedure TControlPanel.Monitors2Click(Sender: TObject);

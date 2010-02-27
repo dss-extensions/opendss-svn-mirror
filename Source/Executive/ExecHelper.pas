@@ -749,7 +749,8 @@ Begin
              ShowY(DSSDataDirectory + CircuitName_  + 'SystemY.txt' );
           end;
       27: If ActiveCircuit <> Nil then  ActiveCircuit.ControlQueue.ShowQueue(DSSDataDirectory + CircuitName_  + 'ControlQueue.csv');
-      28: ShowTopology(DSSDataDirectory + CircuitName_)
+      28: ShowTopology(DSSDataDirectory + CircuitName_);
+      29: ShowNodeCurrentSum(DSSDataDirectory + CircuitName_ + 'NodeMismatch.Txt');
    ELSE
    End;
 
@@ -3760,7 +3761,7 @@ initialization
                                          'panel',     'powers',   'voltages', 'zone',       'taps',
                                          'overloads', 'unserved', 'eventlog', 'variables', 'ratings',
                                           'loops',    'losses',   'busflow', 'lineconstants',  'yprim',
-                                           'y', 'controlqueue',   'topology']);
+                                           'y', 'controlqueue',   'topology', 'mismatch']);
 
     ShowCommands.Abbrev := True;
                                              {  1            2              3            4             5 }

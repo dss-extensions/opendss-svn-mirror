@@ -172,6 +172,7 @@ Begin
                          'Show Losses' +CRLF+
                          'Show MEters' +CRLF+
                          'Show Monitor Monitorname' +CRLF+
+                         'Show Mismatch   (current mismatch at nodes)' +CRLF+
                          'Show PAnel (control panel)' + CRLF +
                          'Show Powers [MVA|kVA*] [Seq* | Elements]'   +CRLF+
                          'Show Voltages [LL |LN*]  [Seq* | Nodes | Elements]' +CRLF+

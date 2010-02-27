@@ -34,6 +34,7 @@ Procedure ShowLineConstants(FileNm:String; Freq:Double; Units:Integer;Rho:Double
 Procedure ShowYPrim(Filenm:String);
 Procedure ShowY(FileNm:String);
 Procedure ShowTopology(FileRoot:String); // summary and tree-view to separate files
+Procedure ShowNodeCurrentSum(FileNm:String);
 
 implementation
 
@@ -3009,6 +3010,98 @@ Begin
     FireOffEditor(FileNm);
   End;
 
+End;
+
+Procedure ShowNodeCurrentSum(FileNm:String);
+
+Type
+   pNodeDoubleArray  = ^NodeDoubleArray;
+   NodeDoubleArray = Array[0..100] of double;
+
+Var
+   F     :Textfile;
+   i, j  :Integer;
+   nRef  :Integer;
+   Bname :String;
+
+   pCktElement    :TDSSCktElement;
+   MaxNodeCurrent :pNodeDoubleArray;
+   Ctemp          :Complex;
+   pctError       :String;
+   dTemp          :Double;
+
+Begin
+     MaxNodeCurrent := Nil;
+     Try
+        Assignfile(F,FileNm);
+        ReWrite(F);
+
+        With ActiveCircuit, ActiveCircuit.solution Do
+        Begin
+        // Zero out the nodal current array
+             FOR i := 0 to NumNodes Do Currents^[i] := CZERO;
+        // Make temp storage for max current at node
+             ReallocMem(MaxNodeCurrent, Sizeof(MaxNodeCurrent^[1]) * (NumNodes + 1));
+             FOR i := 0 to NumNodes Do MaxNodeCurrent^[i] := 0.0;
+        // Now Sum in each device current, keep track of the largest current at a node.
+            pCktElement := CktElements.First;
+            WHILE pCktElement <> nil  Do
+            Begin
+                IF   pCktElement.Enabled  THEN
+                With pCktElement Do
+                Begin
+                   ComputeIterminal;
+                   FOR i := 1 to Yorder Do Begin
+                       Ctemp :=  Iterminal^[i];
+                       nRef  :=  NodeRef^[i];
+                       Caccum(Currents^[nRef], Ctemp );  // Noderef=0 is OK
+                       If Cabs(Ctemp) > MaxNodeCurrent^[nRef] Then  MaxNodeCurrent^[nRef] := Cabs(Ctemp);
+                   End;
+                End;
+                pCktElement := CktElements.Next;
+            End;
+
+        // Now write report
+
+          SetMaxBusNameLength;
+          MaxBusNameLength := MaxBusNameLength + 2;
+          Writeln(F);
+          Writeln(F,'Node Current Mismatch Report');
+          Writeln(F);
+          Writeln(F);
+          Writeln(F, pad('Bus,', MaxBusNameLength), ' Node, "Current Sum (A)", "%error", "Max Current (A)"');
+
+          // Ground Bus
+          nref := 0;
+          dTemp := Cabs(Currents^[nref]);
+          If (MaxNodeCurrent^[nRef] = 0.0) OR (MaxNodeCurrent^[nRef] = dTemp)
+             Then pctError := Format('%10.1f',[0.0])
+             Else pctError := Format('%10.6f',[dTemp / MaxNodeCurrent^[nRef] * 100.0]);
+          BName := Pad('"System Ground"', MaxBusNameLength);
+          Writeln(F, Format('%s, %2d, %10.5f,       %s, %10.5f', [Bname, nref,  dTemp, pctError,  MaxNodeCurrent^[nRef]  ]));
+
+
+          FOR i := 1 to ActiveCircuit.NumBuses DO
+          Begin
+               For j := 1 to Buses^[i].NumNodesThisBus DO
+               Begin
+                   nref := Buses^[i].GetRef(j);
+                   dTemp := Cabs(Currents^[nref]);
+                   If (MaxNodeCurrent^[nRef] = 0.0) OR (MaxNodeCurrent^[nRef] = dTemp)
+                       Then pctError := Format('%10.1f',[0.0])
+                       Else pctError := Format('%10.6f',[dTemp / MaxNodeCurrent^[nRef] * 100.0]);
+                   If j=1 Then Bname := Paddots(EncloseQuotes(BusList.Get(i)), MaxBusNameLength)
+                   Else        BName := Pad('"   -"', MaxBusNameLength);
+                   Writeln(F, Format('%s, %2d, %10.5f,       %s, %10.5f', [Bname,  Buses^[i].GetNum(j),  dTemp, pctError,  MaxNodeCurrent^[nRef]  ]));
+               End;
+          End;
+        End;
+
+     Finally
+        CloseFile(F);
+        FireOffEditor(FileNm);
+        ReallocMem(MaxNodeCurrent,0); // Dispose of temp memory
+     End;
 End;
 
 Initialization
