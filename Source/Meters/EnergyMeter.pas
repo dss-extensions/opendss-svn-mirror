@@ -87,7 +87,7 @@ Uses DSSClass,
 
 Const
     NumEMVbase = 7;
-    NumEMRegisters = 32 + 4 * NumEMVbase;   // Total Number of energy meter registers
+    NumEMRegisters = 32 + 5 * NumEMVbase;   // Total Number of energy meter registers
     {Fixed Registers}
      Reg_kWh               = 1;
      Reg_kvarh             = 2;
@@ -252,6 +252,7 @@ Type
        VBaseLineLosses       :pDoubleArray;
        VBaseLoadLosses       :pDoubleArray;
        VBaseNoLoadLosses     :pDoubleArray;
+       VBaseLoad             :pDoubleArray;
        VBaseList             :pDoubleArray;
        VBaseCount            :Integer;
        MaxVBaseCount         :Integer;
@@ -262,7 +263,7 @@ Type
 
        Procedure Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
        Procedure SetDragHandRegister( Reg:Integer; const Value:Double);
-       Procedure Accumulate_Load(pLoad:TLoadObj; var TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE:Double);
+       Function Accumulate_Load(pLoad:TLoadObj; var TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE:Double):double;
        Procedure Accumulate_Gen(pGen:TGeneratorObj; var TotalZonekW, TotalZonekvar:Double);
        Procedure CalcBusCoordinates(StartBranch:TCktTreeNode; FirstCoordRef, SecondCoordRef, LineCount:Integer);
        Function  AddToVoltBaseList(BusRef:Integer):Integer;
@@ -816,13 +817,15 @@ Begin
      VBaseLineLosses     := NIL;
      VBaseLoadLosses     := NIL;
      VBaseNoLoadLosses   := NIL;
+     VBaseLoad         := NIL;
      VBaseCount          := 0;
-     MaxVBaseCount       := (NumEMRegisters - Reg_VBaseStart) div 4;
+     MaxVBaseCount       := (NumEMRegisters - Reg_VBaseStart) div 5;
      ReallocMem(VBaseList, MaxVBaseCount * SizeOf(VBaseList^[1]));
      ReallocMem(VBaseTotalLosses, MaxVBaseCount * SizeOf(VBaseTotalLosses^[1]));
      ReallocMem(VBaseLineLosses, MaxVBaseCount * SizeOf(VBaseLineLosses^[1]));
      ReallocMem(VBaseLoadLosses, MaxVBaseCount * SizeOf(VBaseLoadLosses^[1]));
      ReallocMem(VBaseNoLoadLosses, MaxVBaseCount * SizeOf(VBaseNoLoadLosses^[1]));
+     ReallocMem(VBaseLoad, MaxVBaseCount * SizeOf(VBaseLoad^[1]));
 
      LocalOnly           := FALSE;
      VoltageUEOnly       := FALSE;
@@ -887,6 +890,7 @@ Begin
     If Assigned (VBaseLineLosses) then Reallocmem(VBaseLineLosses, 0);
     If Assigned (VBaseLoadLosses) then Reallocmem(VBaseLoadLosses, 0);
     If Assigned (VBaseNoLoadLosses) then Reallocmem(VBaseNoLoadLosses, 0);
+    If Assigned (VBaseLoad) then Reallocmem(VBaseLoad, 0);
     for i := 1 to NumEMRegisters do RegisterNames[i] := '';
     BranchList.Free;
     FreeStringArray(DefinedZoneList, DefinedZoneListSize);
@@ -1087,7 +1091,8 @@ VAR
    TotalGenkvar,
    LoadkVA,
    GenkVA,
-   S_Local_kVA     :Double;
+   S_Local_kVA,
+   load_kw         :Double;
    S_PosSeqLosses  :Complex;
    S_ZeroSeqLosses :Complex;
    S_NegSeqLosses  :Complex;
@@ -1124,6 +1129,7 @@ Begin
        VBaseLineLosses^[i] := 0.0;
        VBaseLoadLosses^[i] := 0.0;
        VBaseNoLoadLosses^[i] := 0.0;
+       VBaseLoad^[i] := 0.0;
      end;
 
      CktElem           := BranchList.First;
@@ -1210,7 +1216,10 @@ Begin
              CASE (PCElem.DSSObjType and CLASSMASK) OF
                 LOAD_ELEMENT: If Not LocalOnly Then Begin   // Dont check for load EEN/UE if Local only
                                pLoad := PCElem as TLoadObj;
-                               Accumulate_Load(pLoad, TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE);
+                               load_kw := Accumulate_Load(pLoad, TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE);
+                               if FVbaseLosses then with BranchList.PresentBranch do
+                                 if VoltBaseIndex > 0 then
+                                    VBaseLoad^[VoltBaseIndex] := VBaseLoad^[VoltBaseIndex]  + load_kw;
                               END;
                 GEN_ELEMENT:  Begin
                                pGen := PCElem as TGeneratorObj;
@@ -1290,9 +1299,10 @@ Begin
      Integrate(Reg_TransformerLosseskWh,  TotalTransformerLosses.re,  Delta_Hrs);
      for i  := 1 to MaxVBaseCount do begin
         Integrate(Reg_VbaseStart + i, VBaseTotalLosses^[i],  Delta_Hrs);
-        Integrate(Reg_VbaseStart + MaxVBaseCount + i, VBaseLineLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 1 * MaxVBaseCount + i, VBaseLineLosses^[i],  Delta_Hrs);
         Integrate(Reg_VbaseStart + 2 * MaxVBaseCount + i, VBaseLoadLosses^[i],  Delta_Hrs);
         Integrate(Reg_VbaseStart + 3 * MaxVBaseCount + i, VBaseNoLoadLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 4 * MaxVBaseCount + i, VBaseLoad^[i],  Delta_Hrs);
      end;
 
 
@@ -1890,7 +1900,8 @@ begin
 
 end;
 
-procedure TEnergyMeterObj.Accumulate_Load(pLoad:TLoadObj; var TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE:Double);
+function TEnergyMeterObj.Accumulate_Load(pLoad:TLoadObj;
+  var TotalZonekW, TotalZonekvar, TotalLoad_EEN, TotalLoad_UE:Double):double;
 Var
    S_Load  :Complex;
    kW_Load :Double;
@@ -1902,6 +1913,7 @@ begin
        //----ActiveTerminalIdx := 1;
        S_Load        := CmulReal(pLoad.Power[1], 0.001);   // Get Power in Terminal 1
        kW_Load       := S_Load.re;
+       Result := kw_Load;
 
        {Accumulate load in zone}
        TotalZonekw   := TotalZonekW   + kW_Load;
@@ -2388,21 +2400,24 @@ begin
     if VBaseList^[i] > 0.0 then begin
       vbase := VBaseList^[i]* SQRT3;
       RegisterNames[i + Reg_VBaseStart] := Format('%.3g kV Losses', [vbase]);
-      RegisterNames[i + MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Line Loss', [vbase]);
+      RegisterNames[i + 1 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Line Loss', [vbase]);
       RegisterNames[i + 2 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Load Loss', [vbase]);
-      RegisterNames[i + 3 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV No Load Loss', [vbase])
+      RegisterNames[i + 3 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV No Load Loss', [vbase]);
+      RegisterNames[i + 4 * MaxVBaseCount + Reg_VBaseStart] := Format('%.3g kV Load Energy', [vbase])
     end else begin
       RegisterNames[i + Reg_VBaseStart] := Format('Aux%d',[ireg]);
       Inc (ireg);
-      RegisterNames[i + MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      RegisterNames[i + 1 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
       Inc (ireg);
       RegisterNames[i + 2 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
       Inc (ireg);
       RegisterNames[i + 3 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
       Inc (ireg);
+      RegisterNames[i + 4 * MaxVBaseCount + Reg_VBaseStart] := Format('Aux%d',[ireg]);
+      Inc (ireg);
     end;
   end;
-  for i := 1 + Reg_VBaseStart + 4 * MaxVBaseCount to NumEMRegisters do begin
+  for i := 1 + Reg_VBaseStart + 5 * MaxVBaseCount to NumEMRegisters do begin
     RegisterNames[i] := Format('Aux%d',[ireg]);
     Inc (ireg);
   end;
