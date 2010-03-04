@@ -35,6 +35,17 @@ if DSSStartOK
     % Get bus voltage magnitudes in pu and distances from energy meter and
     % plot in a scatter plot
     
+    DSSText.Command='set casename=ExampleCase';
+    DSSText.Command='set mode=yearly number= 24';
+    DSSText.Command='Set overloadreport=true  ! TURN OVERLOAD REPORT ON';
+    DSSText.Command='Set voltexcept=true      ! voltage exception report';
+    DSSText.Command='set demand=true          ! demand interval ON';
+    DSSText.Command='set DIVerbose=true       ! verbose mode is ON';
+    DSSText.Command='set year=1';
+    DSSText.Command='solve';
+    DSSText.Command='closedi';
+
+    
     % Get Voltage and Distances Array
     V1 = DSSCircuit.AllNodeVmagPUByPhase(1);
     Dist1 = DSSCircuit.AllNodeDistancesByPhase(1);
