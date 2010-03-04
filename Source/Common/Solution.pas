@@ -1572,7 +1572,7 @@ procedure TSolutionObj.Increment_time;
 begin
        With Dynavars do Begin
           t := t+h;
-          IF t >= 3600.0 THEN Begin
+          while t >= 3600.0 do Begin
               Inc(intHour);
               t := t - 3600.0;
           End;

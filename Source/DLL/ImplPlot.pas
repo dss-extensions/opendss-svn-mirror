@@ -141,7 +141,7 @@ VAR
    S:String;
 begin
      S := Value;
-     Set_XaxisLabel(pchar(S), Length(S));
+     Set_XaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
 end;
 
 procedure TPlot.Set_YLabel(const Value: WideString);
@@ -149,7 +149,7 @@ VAR
    S:String;
 begin
      S := Value;
-     Set_YaxisLabel(pchar(S), Length(S));
+     Set_YaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
 end;
 
 procedure TPlot.Set_WindowCaption(const Value: WideString);
@@ -157,7 +157,7 @@ VAR
    S:String;
 begin
      S := Value;
-     Set_Caption(pchar(S), Length(S));
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
 end;
 
 procedure TPlot.Set_PlotCaption(const Value: WideString);
@@ -165,7 +165,7 @@ VAR
    S:String;
 begin
      S := Value;
-     Set_ChartCaption(pchar(S), Length(S));
+     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
 end;
 
 procedure TPlot.Set_LineWidth(Value: Integer);
@@ -311,7 +311,7 @@ Var
      S:String;
 begin
      S := Txt;
-     AddTextLabel(X, Y, FTextColor, pchar(S), 0);
+     AddTextLabel(X, Y, FTextColor, pAnsiChar(AnsiString(S)), 0);
 end;
 
 procedure TPlot.LockInLabel(TxtIndex: Integer);
@@ -334,7 +334,7 @@ Var
      S:String;
 begin
      S := Txt;
-     CenteredText15(X, Y, FTextSize, pchar(S));
+     CenteredText15(X, Y, FTextSize, pAnsiChar(AnsiString(S)));
 end;
 
 procedure TPlot.Set_pctRim(Value: Double);

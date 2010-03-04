@@ -284,7 +284,7 @@ BEGIN
            3,7,8,9,10: Begin
                             CalcMeanAndStdDev;
                             PropertyValue[5] := Str_Real(Mean, 3);
-                            PropertyValue[6] := Str_Real(StdDev, 1);
+                            PropertyValue[6] := Str_Real(StdDev, 3);
                             If ParamPointer<>10 Then Begin
                                ArrayPropertyIndex := ParamPointer;
                                NumPoints := FNumPoints;  // Keep Properties in order for save command
@@ -654,7 +654,11 @@ Procedure TLoadShapeObj.CalcMeanandStdDev;
 
 BEGIN
 
-   If FNumPoints>0 Then RCDMeanandStdDev(PMultipliers, FNumPoints, Mean, StdDev);
+  If FNumPoints>0 Then
+    if Interval > 0.0 then
+      RCDMeanandStdDev(PMultipliers, FNumPoints, Mean, StdDev)
+    else
+      CurveMeanAndStdDev (PMultipliers, Hours, FNumPoints, Mean, StdDev);
    { No Action is taken on Q multipliers}
 END;
 

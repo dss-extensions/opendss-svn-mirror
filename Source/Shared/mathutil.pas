@@ -23,6 +23,7 @@ Uses Arraydef, uComplex;
          Procedure Phase2SymComp( Vph, V012:pComplexArray);
          Function  QuasiLogNormal(Mean:Double):Double;
          Procedure RCDMeanAndStdDev(pData:Pointer; Ndata:Integer; Var Mean, StdDev:Double);
+         Procedure CurveMeanAndStdDev(pY:pDoubleArray; pX:pDoubleArray; N:Integer; Var Mean, StdDev:Double);
          function  RCDSum( Data:Pointer; Count:Integer): Extended; register;
          Procedure SymComp2Phase( Vph, V012:pComplexArray);
          Function  TerminalPowerIn(V,I:pComplexArray; Nphases:Integer):Complex;
@@ -357,6 +358,31 @@ BEGIN
     S := S + Sqr(Mean - Data^[i]);
   StdDev := Sqrt(S / (Ndata - 1));
 
+END;
+
+Procedure CurveMeanAndStdDev(pY:pDoubleArray; pX:pDoubleArray; N:Integer; Var Mean, StdDev:Double);
+VAR
+  s, dy1, dy2: Double;
+  i: Integer;
+begin
+  if N = 1 then begin
+    Mean := pY[1];
+    StdDev := pY[1];
+    Exit;
+  end;
+  s := 0;
+  for i := 1 to N - 1 do begin
+    s := s + 0.5 * (pY[i] + pY[i+1]) * (pX[i+1] - pX[i]);
+  end;
+  Mean := s / (pX[N] - pX[1]);
+
+  S := 0;               // sum differences from the mean, for greater accuracy
+  for i := 1 to N - 1 do begin
+    dy1 := (pY[i] - Mean);
+    dy2 := (pY[i+1] - Mean);
+    s := s + 0.5 * (dy1 * dy1 + dy2 * dy2) * (pX[i+1] - pX[i]);
+  end;
+  StdDev := Sqrt(s / (pX[N] - pX[1]));
 END;
 
 Function GetXR(Const A:Complex):Double;

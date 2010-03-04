@@ -467,7 +467,7 @@ begin
       // Sort min to max and plot
       GenPlotItems.Sort(GenPlotItemCompare);   // sorts using user-written routine
 
-      Set_ChartCaption(pchar(FieldName), Length(FieldName));;
+      Set_ChartCaption(pAnsiChar(AnsiString(FieldName)), Length(FieldName));;
       For i := 0 to GenPlotItems.Count-1  Do Begin
          GenPlotItem := GenPlotItems.items[i];
          Idx := ActiveCircuit.BusList.Find(GenPlotItem.Name);
@@ -631,7 +631,7 @@ begin
     If (Length(ObjectName) > 0) Then S := 'Meter Zone: ' + ObjectName
                                 Else S := 'All Meter Zones';
 
-    Set_ChartCaption(pchar(s), Length(s));
+    Set_ChartCaption(pAnsiChar(AnsiString(s)), Length(s));
 end;
 
 procedure TDSSPlot.Execute;
@@ -673,8 +673,8 @@ Begin
          EnableClickonDiagram;
        End;
        Set_Properties(DSSGraphProps);
-       S := 'X'; Set_XaxisLabel(pchar(S), Length(S));
-       S := 'Y'; Set_YaxisLabel(pchar(S), Length(S));
+       S := 'X'; Set_XaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
+       S := 'Y'; Set_YaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
 
        Set_TextAlignment(1);   {Left Justify; 2 = center; 3=right}
        Set_KeyClass (DSSG_LINECLASS);  {Line for searches}
@@ -688,7 +688,7 @@ Begin
              End;
          ptCircuitPlot: Begin
                 S := ActiveCircuit.CaseName + ':' + QuantityString;
-                Set_ChartCaption(pchar(S), Length(S));
+                Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
                 SetMaxScale;
                 DoCircuitPlot;
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
@@ -706,7 +706,7 @@ Begin
          ptGeneralCircuitPlot: Begin
                 LoadGeneralLineData;
                 S := ActiveCircuit.CaseName + ':' + QuantityString;
-                Set_ChartCaption(pchar(S), Length(S));
+                Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
                 SetMaxScale;
                 DoGeneralCircuitPlot;
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
@@ -723,7 +723,7 @@ Begin
              End;
          ptDaisyPlot: Begin
                       S := 'Device Locations / ' + QuantityString;
-                      Set_ChartCaption(pchar(S), Length(S));
+                      Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
                       If Labels Then Begin
                          Labels := False;  {Temporarily turn off}
                          DoCircuitPlot;
@@ -983,11 +983,11 @@ begin
 
      MakeNewGraph;
      S  := 'Loadshape.' + LoadshapeName;
-     Set_Caption(pchar(S), Length(S));
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
      S  := 'Loadshape = ' + LoadshapeName;
-     Set_ChartCaption(pchar(S), Length(S));
-     Set_XaxisLabel(pchar(Xlabel), Length(Xlabel)) ;
-     Set_YaxisLabel(pchar('p.u.'), 4);
+     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
+     Set_XaxisLabel(pAnsiChar(AnsiString(Xlabel)), Length(Xlabel)) ;
+     Set_YaxisLabel(pAnsiChar('p.u.'), 4);
 
      If UseXarray Then
          AddNewCurve (Xarray, Load_Shape.PMultipliers, Load_Shape.NumPoints,
@@ -1094,14 +1094,14 @@ begin
      Set_Properties(ActiveGraphProps);
 
      S := CaseName + Format(', Yr=%d, ',[CaseYear]);
-     Set_Caption(pchar(S), Length(S));
-     Set_XAxisLabel(pchar('Hour'),4) ;
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
+     Set_XAxisLabel(pAnsiChar('Hour'),4) ;
      S := 'MW, MWh or MVA';
-     Set_YAxisLabel(pchar(S), Length(S)) ;
+     Set_YAxisLabel(pAnsiChar(AnsiString(S)), Length(S)) ;
 
      S := 'Registers: ';
      For i := 0 to High(iRegisters) Do S := S + Names.Strings[iRegisters[i]]+', ';
-     Set_ChartCaption(pchar(S), Length(S));
+     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
 
      {Get started - initializer Registers 1}
     Try
@@ -1261,12 +1261,12 @@ begin
      Set_Properties(ActiveGraphProps);
 
      S :=  'Comparision of Yearly Curves for case(s):' + CaseName1 + ', ' + CaseName2;
-     Set_Caption(pchar(S), Length(S));
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
 
      S := 'Total Area MW' ;
-     Set_XaxisLabel(pchar(S), Length(S));
+     Set_XaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
      S := 'MW, MWh or MVA' ;
-     Set_YaxisLabel(pchar(S), Length(S));
+     Set_YaxisLabel(pAnsiChar(AnsiString(S)), Length(S));
 
     {Loop Through Cases}
     ActiveColorStartThisCase := 0;
@@ -1308,7 +1308,7 @@ begin
                    Param := AuxParser.StrValue;
                End;
                S := 'Meter: '+WhichFile+' Register: '+Names.Strings[Reg] ;
-               Set_ChartCaption(pchar(S), length(S));
+               Set_ChartCaption(pAnsiChar(AnsiString(S)), length(S));
              End;
 
           Except
@@ -1404,18 +1404,18 @@ begin
       ActiveColorIdx := 0;
       DatColor := NextColor;  // Next color automatically increments
       Set_DataColor( DatColor); 
-      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pchar(CaseName1), 0);
+      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pAnsiChar(AnsiString(CaseName1)), 0);
       LockInTextLabel(LabelIdx);
 
       LegendY := LegendY-Yinc;
       DatColor := NextColor;  // Next color automatically increments
       Set_DataColor( DatColor);
-      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pchar(CaseName2), 0);
+      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pAnsiChar(AnsiString(CaseName2)), 0);
       LockInTextLabel(LabelIdx);
       LegendY := LegendY-Yinc;
       DatColor := NextColor;  // Next color automatically increments
       Set_DataColor( DatColor);
-      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pchar('Difference'), 0);
+      LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pAnsiChar('Difference'), 0);
       LockInTextLabel(LabelIdx);
 
      {Write Output File}
@@ -1517,7 +1517,7 @@ begin
    S        := 'Yearly Curves for case(s)';
    for i := 0 to CaseNames.Count-1 Do S := S + ', '+CaseNames.Strings[i];
 
-   Set_Caption(pchar(S), Length(S));
+   Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
    Get_Properties(ActiveGraphProps);
      With ActiveGraphProps Do Begin
        ChartColor := clWhite;
@@ -1527,9 +1527,9 @@ begin
 
 
    S := 'Total Area MW';
-   Set_XAxisLabel(pchar(S), Length(S)) ;
+   Set_XAxisLabel(pAnsiChar(AnsiString(S)), Length(S)) ;
    S := 'MW, MWh or MVA';
-   Set_YAxisLabel(pchar(S), Length(S)) ;
+   Set_YAxisLabel(pAnsiChar(AnsiString(S)), Length(S)) ;
 
    Try   { ... Finally }
 
@@ -1584,7 +1584,7 @@ begin
                      End;
                      S := 'Meter: ' + WhichFile + ', Registers: ';
                      For i := 0 to High(iRegisters) Do S := S + Names.Strings[iRegisters[i]]+', ';
-                     Set_ChartCaption(pchar(S), Length(S));
+                     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
                  End;
                Else
                   {Nada}
@@ -1674,7 +1674,7 @@ begin
                   DatColor := NextColor;
                   Set_DataColor( DatColor);
                   MarkAt(LegendX, LegendY, GetMarker(ActiveColorIdx),1);
-                  LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pchar( S), 0);
+                  LabelIdx := addTextLabel( LegendX + 0.5* Xinc, LegendY - 0.5*Yinc, DatColor, pAnsiChar(AnsiString(S)), 0);
                   Set_LeftJustifyTransparent(LabelIdx);
             End;
             LegendY := LegendY-Yinc;
@@ -1827,14 +1827,14 @@ begin
                str := 'Frequency, Hz'
            Else If Hours Then Str := 'Time, H'
                          Else Str := 'Time, s';
-           Set_XAxisLabel(pchar(Str), Length(Str)) ;
+           Set_XAxisLabel(pAnsiChar(AnsiString(Str)), Length(Str)) ;
            Str := 'Mag';
-           Set_YAxisLabel(pchar(Str), Length(Str)) ;
+           Set_YAxisLabel(pAnsiChar(AnsiString(Str)), Length(Str)) ;
 
            If Channels[0]<=Recordsize Then Str :=  ObjectName+': '+ ChannelNames[Channels[0]+1];
            For i := 1 to high(channels) Do  If Channels[i]<=Recordsize Then
                        Str := Str + Format(', %s',[ChannelNames[Channels[i]+1]]);
-           set_ChartCaption(pchar(Str), Length(str));
+           set_ChartCaption(pAnsiChar(AnsiString(Str)), Length(str));
        End; {With}
 
      End
@@ -2129,17 +2129,17 @@ VAR
            If iopt=1 Then Begin
                MoveTo(0.0, Y);
                DrawTo(100.0,Y);
-               CenteredText15(15.0, (Y+2.0), 10, pchar(Txt1));
-               CenteredText15(60.0, (Y+2.0), 10, pchar(Txt2));
-               CenteredText15(90.0, (Y+2.0), 10, pchar(ArrowRight));
+               CenteredText15(15.0, (Y+2.0), 10, pAnsiChar(AnsiString(Txt1)));
+               CenteredText15(60.0, (Y+2.0), 10, pAnsiChar(AnsiString(Txt2)));
+               CenteredText15(90.0, (Y+2.0), 10, pAnsiChar(AnsiString(ArrowRight)));
 
               // idx := AddTextLabel(50.0, (Y+1.0), clBlack, , 0);
            End Else Begin
                MoveTo(Xmx, Y);
                DrawTo(Xmx-100.0,Y);
-               CenteredText15( Xmx-90.0, (Y+2.0), 10, pchar(Arrowleft));
-               CenteredText15(Xmx-60.0, (Y+2.0), 10, pchar(Txt1));
-               CenteredText15(Xmx-20.0, (Y+2.0), 10, pchar(Txt2));
+               CenteredText15( Xmx-90.0, (Y+2.0), 10, pAnsiChar(AnsiString(Arrowleft)));
+               CenteredText15(Xmx-60.0, (Y+2.0), 10, pAnsiChar(AnsiString(Txt1)));
+               CenteredText15(Xmx-20.0, (Y+2.0), 10, pAnsiChar(AnsiString(Txt2)));
              //  idx := AddTextLabel(Xmx-50, (Y+1.0), clBlack, Arrowleft+Txt, 0);
            End;
 
@@ -2203,12 +2203,12 @@ begin
           vizCurrent: S := S1 + ' Currents';
           vizPower:   S := S1 + ' Powers';
        End;
-       Set_Caption(pchar(s), Length(S));
+       Set_Caption(pAnsiChar(AnsiString(s)), Length(S));
 
        {Draw a box}
        TopY := 10.0 + (NCond+1)*10.0;
        Rectangle(100.0, 10.0, Xmx-100.0, TopY);
-       idx := AddTextLabel(Xmx/2.0, 15.0, clBlack, pchar(S1), 0);
+       idx := AddTextLabel(Xmx/2.0, 15.0, clBlack, pAnsiChar(AnsiString(S1)), 0);
        BoldTextLabel(idx);
 
        { Draw the Ground Plane }
@@ -2255,7 +2255,7 @@ begin
               1: xx := 25;
               2: xx := xmx-25.0;
             End;
-            CenteredText15(xx,TopY, 10, pchar(Element.Getbus(i)));
+            CenteredText15(xx,TopY, 10, pAnsiChar(AnsiString(Element.Getbus(i))));
 
        End;
        Case Quantity of
@@ -2263,7 +2263,7 @@ begin
           vizCurrent: S := ' Currents';
           vizPower:   S := ' Powers';
        End;
-       Set_Caption(pchar(s), Length(s));
+       Set_Caption(pAnsiChar(AnsiString(s)), Length(s));
 
        Set_Autorange(5.0);    // 5% rim
        ShowGraph;
