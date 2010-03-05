@@ -353,19 +353,19 @@ begin
              If pLine.IsSwitch
              Then  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              clBlack, 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              clBlack, 1, Style(1), Dots, AnsiString (pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
 
              Else If pLine.IsIsolated
                   Then
                     AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              clFuchsia, 3, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              clFuchsia, 3, Style(1), Dots, AnsiString (pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
                   Else
                     AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              GetColor, Thickness, Style(1), Dots, pLine.Name, False, 0,
+                              GetColor, Thickness, Style(1), Dots, AnsiString (pLine.Name), False, 0,
                               NodeMarkerCode, NodeMarkerWidth );
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;
@@ -381,7 +381,7 @@ begin
          If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
             AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                        Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                       clDkGray, 3, Style(1), Dots, ('transformer.' + pTransf.Name), False, 0,
+                       clDkGray, 3, Style(1), Dots, AnsiString('transformer.' + pTransf.Name), False, 0,
                        NodeMarkerCode, NodeMarkerWidth );
        End;
        pTransf := Transformers.Next;
@@ -577,7 +577,7 @@ Var
       If ActiveCircuit.Buses^[Idx1].CoordDefined and ActiveCircuit.Buses^[Idx2].CoordDefined Then Begin
            AddNewLine(ActiveCircuit.Buses^[Idx1].X, ActiveCircuit.Buses^[Idx1].Y,
                             ActiveCircuit.Buses^[Idx2].X, ActiveCircuit.Buses^[Idx2].Y,
-                            Clr, Thickness, Style(1), Dots, Nam, False, 0, 0, 0);
+                            Clr, Thickness, Style(1), Dots, AnsiString(Nam), False, 0, 0, 0);
            If Labels Then DoBusLabels(Idx1, Idx2);
       End;
    End;
@@ -991,18 +991,18 @@ begin
 
      If UseXarray Then
          AddNewCurve (Xarray, Load_Shape.PMultipliers, Load_Shape.NumPoints,
-                      Color1, 1, psSolid, FALSE, 1, LoadShapeName)
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(LoadShapeName))
      Else
          AddNewCurve (Load_Shape.Hours, Load_Shape.PMultipliers, Load_Shape.NumPoints,
-                      Color1, 1, psSolid, FALSE, 1, LoadShapeName);
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(LoadShapeName));
 
      If Assigned(Load_Shape.QMultipliers) Then  BEGIN
        If UseXarray Then
            AddNewCurve (Xarray, Load_Shape.QMultipliers, Load_Shape.NumPoints,
-                        Color2, 1, psSolid, FALSE, 1, LoadShapeName)
+                        Color2, 1, psSolid, FALSE, 1, AnsiString(LoadShapeName))
        Else
            AddNewCurve (Load_Shape.Hours, Load_Shape.QMultipliers, Load_Shape.NumPoints,
-                        Color2, 1, psSolid, FALSE, 1, LoadShapeName);
+                        Color2, 1, psSolid, FALSE, 1, AnsiString(LoadShapeName));
      END;
 
 
@@ -1727,7 +1727,7 @@ begin
       For i := 1 to ActiveCircuit.NumBuses Do Begin
            If Length(BusLabels^[i])>0 Then
            If ActiveCircuit.buses^[i].CoordDefined Then
-             AddNewText( ActiveCircuit.Buses^[i].X, ActiveCircuit.Buses^[i].Y, clBlack, 8, BusLabels^[i]);
+             AddNewText( ActiveCircuit.Buses^[i].X, ActiveCircuit.Buses^[i].Y, clBlack, 8, AnsiString(BusLabels^[i]));
       End;
 end;
 
@@ -1853,7 +1853,7 @@ begin
           If    ActiveCircuit.Buses^[Bus2Idx].coorddefined Then Begin
              AddNewMarker (ActiveCircuit.Buses^[Bus2Idx].x, ActiveCircuit.Buses^[Bus2Idx].y, clRed, 36, 4);
              If Length(pTransf.SubstationName)>0 Then
-               AddNewText( ActiveCircuit.Buses^[Bus2Idx].X, ActiveCircuit.Buses^[Bus2Idx].Y, clBlack, 10, '  '+pTransf.SubstationName);
+               AddNewText( ActiveCircuit.Buses^[Bus2Idx].X, ActiveCircuit.Buses^[Bus2Idx].Y, clBlack, 10, AnsiString('  '+pTransf.SubstationName));
           End;
        End;
        pTransF := ActiveCircuit.Transformers.Next;
@@ -1984,19 +1984,19 @@ begin
              If pLine.IsSwitch
              Then  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              TColor($0080FF), 1, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              TColor($0080FF), 1, Style(1), Dots, AnsiString(pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
 
              Else If pLine.IsIsolated
              Then
                   AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              clFuchsia, 3, Style(1), Dots, pLine.Name, MarkSwitches, SwitchMarkerCode,
+                              clFuchsia, 3, Style(1), Dots, AnsiString(pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
              Else
                   AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              GetColor, Thickness, Style(1), Dots, pLine.Name, False, 0,
+                              GetColor, Thickness, Style(1), Dots, AnsiString(pLine.Name), False, 0,
                               NodeMarkerCode, NodeMarkerWidth );
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;

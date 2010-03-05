@@ -19,11 +19,11 @@
 Procedure DSSGraphInit(ptrCallBackStruct:pDSSCallBacks); StdCall;  external 'DSSGraph.dll' name 'Init';  // Call this once
 Function  MakeNewGraph:Integer;                          StdCall;  external 'DSSGraph.dll' name 'MakeNew';  // Call this to make a new graph
 
-Procedure AddNewLine(X1, Y1, X2, Y2: Double; Color:TColor;  Thickness:Byte; Style: TPenStyle; Dots: Boolean; Const LineName:String;
+Procedure AddNewLine(X1, Y1, X2, Y2: Double; Color:TColor;  Thickness:Byte; Style: TPenStyle; Dots: Boolean; Const LineName:AnsiString;
                     MarkCenter:Boolean; CenterMarkerCode, NodeMarkerCode, NodeMarkerWidth :Integer); StdCall;   external 'DSSGraph.dll';
 Procedure AddNewCurve(Xarray, Yarray: pDoubleArray; NumPoints:Integer; Color:TColor;  Thickness:Byte; Style: TPenStyle;
-                    Curvemarkers: Boolean; CurveMarker:Integer; Const CurveName:String); StdCall;  external 'DSSGraph.dll';
-Procedure AddNewText(X1,Y1:Double; Color:TColor; Size:Integer; S:String); StdCall;   external 'DSSGraph.dll';
+                    Curvemarkers: Boolean; CurveMarker:Integer; Const CurveName:AnsiString); StdCall;  external 'DSSGraph.dll';
+Procedure AddNewText(X1,Y1:Double; Color:TColor; Size:Integer; S:AnsiString); StdCall;   external 'DSSGraph.dll';
 Procedure AddNewCircle(Xc, Yc, Radius:double; LineColor, FColor:TColor);  StdCall;   external 'DSSGraph.dll';
 Procedure AddNewMarker(X, Y:Double; Color:TColor; Symbol, Size:Byte);        StdCall;   external 'DSSGraph.dll';
 

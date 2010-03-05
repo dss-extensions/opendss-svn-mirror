@@ -90,7 +90,7 @@ end;
 
 procedure TPlot.NewLine(X1, Y1, X2, Y2: Double; const Name: WideString);
 begin
-     AddNewLine(X1, Y1, X2, Y2, Fcolor, FThickness, FStyle, FMarkNodes, Name, FMarkCenter, FCenterMarkerCode, FNodeMarkerCode, FNodeMarkerWidth);
+     AddNewLine(X1, Y1, X2, Y2, Fcolor, FThickness, FStyle, FMarkNodes, AnsiString(Name), FMarkCenter, FCenterMarkerCode, FNodeMarkerCode, FNodeMarkerWidth);
 end;
 
 procedure TPlot.NewCurve(Xarray, Yarray: OleVariant; const Name: WideString);
@@ -115,7 +115,7 @@ begin
           Y^[k] := Yarray[i];
      End;
        
-     AddNewCurve(X, Y, Numpoints, Fcolor, FThickness, FStyle, FDoCurveMarkers, FCurveMarker, Name);
+     AddNewCurve(X, Y, Numpoints, Fcolor, FThickness, FStyle, FDoCurveMarkers, FCurveMarker, AnsiString(Name));
 
      Freemem(X, ArraySize);
      Freemem(Y, ArraySize);
@@ -123,7 +123,7 @@ end;
 
 procedure TPlot.NewText(X1, Y1: Double; const S: WideString);
 begin
-     AddNewText(X1, Y1, FColor, FTextSize, S);
+     AddNewText(X1, Y1, FColor, FTextSize, AnsiString(S));
 end;
 
 procedure TPlot.NewCircle(Xc, Yc, Radius: Double);
