@@ -1,9 +1,9 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2009, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2010, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 6.3.1
+Version 7.2.1
 
 Third-party Components
 ======================
@@ -72,10 +72,14 @@ See the manual, OpenDSSManual.PDF, for an overview of the program.
 The most up-to-date reference information will always be found through the 
 software's "Help / DSS Help" menu command.
 
-The DLL version in OpenDSSEngine.DLL may be automated. For the time being, 
-you would need a type library tool and some experience with COM scripting 
-to make any headway. In the future, we'll provide examples and 
-documentation.
+The DLL version in OpenDSSEngine.DLL may be automated.  You will need to 
+register the OpenDSSEngine.DLL if you intend to drive the DSS from another 
+program such as Matlab, VBA, etc.  You do this by starting a DOS window 
+(Start Run CMD ...) 
+
+Then change directories to whereever you put these files and type: 
+
+regsvr32 opendssengine.dll
 
 Source Code
 ===========
