@@ -1,43 +1,45 @@
 unit OpenDSSengine_TLB;
 
 // ************************************************************************ //
-// WARNING                                                                    
-// -------                                                                    
-// The types declared in this file were generated from data read from a       
-// Type Library. If this type library is explicitly or indirectly (via        
-// another type library referring to this type library) re-imported, or the   
-// 'Refresh' command of the Type Library Editor activated while editing the   
-// Type Library, the contents of this file will be regenerated and all        
-// manual modifications will be lost.                                         
+// WARNING
+// -------
+// The types declared in this file were generated from data read from a
+// Type Library. If this type library is explicitly or indirectly (via
+// another type library referring to this type library) re-imported, or the
+// 'Refresh' command of the Type Library Editor activated while editing the
+// Type Library, the contents of this file will be regenerated and all
+// manual modifications will be lost.
 // ************************************************************************ //
 
-// $Rev: 8291 $
-// File generated on 3/4/2010 1:50:01 PM from Type Library described below.
+// $Rev: 17244 $
+// File generated on 3/5/2010 12:19:21 PM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine.tlb (1)
+// Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
-// Helpfile: 
+// Helpfile:
 // HelpString: OpenDSS Engine
-// DepndLst: 
-//   (1) v1.0 stdole, (C:\WINDOWS\system32\stdole32.tlb)
+// DepndLst:
+//   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
+//   (2) v1.0 stdole, (stdole32.tlb)
 // ************************************************************************ //
-{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
+{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
 {$WRITEABLECONST ON}
 {$VARPROPSETTER ON}
+{$ALIGN 4}
 interface
 
-uses Windows, ActiveX, Classes, Graphics, StdVCL, Variants;
-  
+uses Windows, ActiveX, Classes, Graphics, OleServer, StdVCL, Variants;
+
 
 // *********************************************************************//
-// GUIDS declared in the TypeLibrary. Following prefixes are used:        
-//   Type Libraries     : LIBID_xxxx                                      
-//   CoClasses          : CLASS_xxxx                                      
-//   DISPInterfaces     : DIID_xxxx                                       
-//   Non-DISP interfaces: IID_xxxx                                        
+// GUIDS declared in the TypeLibrary. Following prefixes are used:
+//   Type Libraries     : LIBID_xxxx
+//   CoClasses          : CLASS_xxxx
+//   DISPInterfaces     : DIID_xxxx
+//   Non-DISP interfaces: IID_xxxx
 // *********************************************************************//
 const
   // TypeLibrary Major and minor versions
@@ -98,9 +100,12 @@ const
   CLASS_Topology: TGUID = '{5B1B5AB3-0595-4E46-B64B-CF8877ED0857}';
   IID_IDSS_Executive: TGUID = '{DD7B80E9-5EFB-4E79-96CA-9C88F5A8A11C}';
   CLASS_DSS_Executive: TGUID = '{D00898D0-6CC7-4A3B-BF89-DED9593579E7}';
+  IID_IDSSEvents: TGUID = '{3F5A5530-4E67-44BF-AE6D-561584C6BF47}';
+  DIID_IDSSEventsEvents: TGUID = '{AE501F77-F7F0-4201-A9AD-6AB385262203}';
+  CLASS_DSSEvents: TGUID = '{B734843A-08E4-42D3-9E24-C0D5F7BF6487}';
 
 // *********************************************************************//
-// Declaration of Enumerations defined in Type Library                    
+// Declaration of Enumerations defined in Type Library
 // *********************************************************************//
 // Constants for enum MonitorModes
 type
@@ -180,7 +185,7 @@ const
 type
 
 // *********************************************************************//
-// Forward declaration of types defined in TypeLibrary                    
+// Forward declaration of types defined in TypeLibrary
 // *********************************************************************//
   IText = interface;
   ITextDisp = dispinterface;
@@ -234,10 +239,13 @@ type
   ITopologyDisp = dispinterface;
   IDSS_Executive = interface;
   IDSS_ExecutiveDisp = dispinterface;
+  IDSSEvents = interface;
+  IDSSEventsDisp = dispinterface;
+  IDSSEventsEvents = dispinterface;
 
 // *********************************************************************//
-// Declaration of CoClasses defined in Type Library                       
-// (NOTE: Here we map each CoClass to its Default Interface)              
+// Declaration of CoClasses defined in Type Library
+// (NOTE: Here we map each CoClass to its Default Interface)
 // *********************************************************************//
   Text = IText;
   DSSProperty = IDSSProperty;
@@ -265,6 +273,7 @@ type
   Plot = IPlot;
   Topology = ITopology;
   DSS_Executive = IDSS_Executive;
+  DSSEvents = IDSSEvents;
 
 
 // *********************************************************************//
@@ -2026,7 +2035,7 @@ type
     procedure Set_LineWidth(Param1: Integer); safecall;
     procedure Set_DataColor(Param1: Integer); safecall;
     procedure Set_PenStyle(Param1: Integer); safecall;
-    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool; 
+    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool;
                            Strikeout: WordBool); safecall;
     procedure Set_MarkNodes(Param1: WordBool); safecall;
     procedure Set_NodeMarkerCode(Param1: Integer); safecall;
@@ -2037,7 +2046,7 @@ type
     procedure Set_CurveMarkerCode(Param1: Integer); safecall;
     procedure MoveToXY(x: Double; y: Double); safecall;
     procedure DrawToXY(x: Double; y: Double); safecall;
-    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double; 
+    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double;
                             YUpperRight: Double); safecall;
     procedure Show; safecall;
     procedure SetRange(Xlow: Double; Xhigh: Double; Ylow: Double; Yhigh: Double); safecall;
@@ -2055,14 +2064,14 @@ type
     procedure SetForNoScales; safecall;
     procedure SetForClickOnDiagram; safecall;
     procedure MarkAtXY(x: Double; y: Double; MarkerCode: Byte; MarkerSize: Byte); safecall;
-    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer; 
+    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer;
                              var Height: Integer; var TRim: Integer; var Brim: Integer); safecall;
-    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double; 
-                                 var Ymax: Double; var ChartColor: Integer; 
-                                 var WindowColor: Integer; var Isometric: WordBool; 
+    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double;
+                                 var Ymax: Double; var ChartColor: Integer;
+                                 var WindowColor: Integer; var Isometric: WordBool;
                                  var Gridstyle: Integer); safecall;
-    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double; 
-                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool; 
+    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double;
+                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool;
                                  Gridstyle: Integer); safecall;
     property XLabel: WideString write Set_XLabel;
     property YLabel: WideString write Set_YLabel;
@@ -2105,7 +2114,7 @@ type
     property LineWidth: Integer writeonly dispid 211;
     property DataColor: Integer writeonly dispid 212;
     property PenStyle: Integer writeonly dispid 213;
-    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool; 
+    procedure SetFontStyle(Bold: WordBool; Italic: WordBool; Underline: WordBool;
                            Strikeout: WordBool); dispid 214;
     property MarkNodes: WordBool writeonly dispid 215;
     property NodeMarkerCode: Integer writeonly dispid 216;
@@ -2116,7 +2125,7 @@ type
     property CurveMarkerCode: Integer writeonly dispid 221;
     procedure MoveToXY(x: Double; y: Double); dispid 222;
     procedure DrawToXY(x: Double; y: Double); dispid 223;
-    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double; 
+    procedure DrawRectangle(XLowerLeft: Double; YLowerLeft: Double; XUpperRight: Double;
                             YUpperRight: Double); dispid 224;
     procedure Show; dispid 225;
     procedure SetRange(Xlow: Double; Xhigh: Double; Ylow: Double; Yhigh: Double); dispid 226;
@@ -2134,14 +2143,14 @@ type
     procedure SetForNoScales; dispid 238;
     procedure SetForClickOnDiagram; dispid 239;
     procedure MarkAtXY(x: Double; y: Double; MarkerCode: Byte; MarkerSize: Byte); dispid 240;
-    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer; 
+    procedure GetWindowParms(var Width: Integer; var LRim: Integer; var RRim: Integer;
                              var Height: Integer; var TRim: Integer; var Brim: Integer); dispid 241;
-    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double; 
-                                 var Ymax: Double; var ChartColor: Integer; 
-                                 var WindowColor: Integer; var Isometric: WordBool; 
+    procedure GetGraphProperties(var Xmin: Double; var Xmax: Double; var Ymin: Double;
+                                 var Ymax: Double; var ChartColor: Integer;
+                                 var WindowColor: Integer; var Isometric: WordBool;
                                  var Gridstyle: Integer); dispid 242;
-    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double; 
-                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool; 
+    procedure SetGraphProperties(Xmin: Double; Xmax: Double; Ymin: Double; Ymax: Double;
+                                 ChartColor: Integer; WindowColor: Integer; Isometric: WordBool;
                                  Gridstyle: Integer); dispid 243;
   end;
 
@@ -2215,11 +2224,40 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoText provides a Create and CreateRemote method to          
-// create instances of the default interface IText exposed by              
-// the CoClass Text. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// Interface: IDSSEvents
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3F5A5530-4E67-44BF-AE6D-561584C6BF47}
+// *********************************************************************//
+  IDSSEvents = interface(IDispatch)
+    ['{3F5A5530-4E67-44BF-AE6D-561584C6BF47}']
+  end;
+
+// *********************************************************************//
+// DispIntf:  IDSSEventsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {3F5A5530-4E67-44BF-AE6D-561584C6BF47}
+// *********************************************************************//
+  IDSSEventsDisp = dispinterface
+    ['{3F5A5530-4E67-44BF-AE6D-561584C6BF47}']
+  end;
+
+// *********************************************************************//
+// DispIntf:  IDSSEventsEvents
+// Flags:     (0)
+// GUID:      {AE501F77-F7F0-4201-A9AD-6AB385262203}
+// *********************************************************************//
+  IDSSEventsEvents = dispinterface
+    ['{AE501F77-F7F0-4201-A9AD-6AB385262203}']
+    procedure InitControls; dispid 201;
+    procedure StepControls; dispid 202;
+  end;
+
+// *********************************************************************//
+// The Class CoText provides a Create and CreateRemote method to
+// create instances of the default interface IText exposed by
+// the CoClass Text. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoText = class
     class function Create: IText;
@@ -2227,11 +2265,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoDSSProperty provides a Create and CreateRemote method to          
-// create instances of the default interface IDSSProperty exposed by              
-// the CoClass DSSProperty. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDSSProperty provides a Create and CreateRemote method to
+// create instances of the default interface IDSSProperty exposed by
+// the CoClass DSSProperty. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDSSProperty = class
     class function Create: IDSSProperty;
@@ -2239,11 +2277,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoCktElement provides a Create and CreateRemote method to          
-// create instances of the default interface ICktElement exposed by              
-// the CoClass CktElement. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoCktElement provides a Create and CreateRemote method to
+// create instances of the default interface ICktElement exposed by
+// the CoClass CktElement. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoCktElement = class
     class function Create: ICktElement;
@@ -2251,11 +2289,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoError provides a Create and CreateRemote method to          
-// create instances of the default interface IError exposed by              
-// the CoClass Error. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoError provides a Create and CreateRemote method to
+// create instances of the default interface IError exposed by
+// the CoClass Error. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoError = class
     class function Create: IError;
@@ -2263,11 +2301,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoCircuit provides a Create and CreateRemote method to          
-// create instances of the default interface ICircuit exposed by              
-// the CoClass Circuit. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoCircuit provides a Create and CreateRemote method to
+// create instances of the default interface ICircuit exposed by
+// the CoClass Circuit. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoCircuit = class
     class function Create: ICircuit;
@@ -2275,11 +2313,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoBus provides a Create and CreateRemote method to          
-// create instances of the default interface IBus exposed by              
-// the CoClass Bus. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoBus provides a Create and CreateRemote method to
+// create instances of the default interface IBus exposed by
+// the CoClass Bus. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoBus = class
     class function Create: IBus;
@@ -2287,11 +2325,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoDSS provides a Create and CreateRemote method to          
-// create instances of the default interface IDSS exposed by              
-// the CoClass DSS. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDSS provides a Create and CreateRemote method to
+// create instances of the default interface IDSS exposed by
+// the CoClass DSS. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDSS = class
     class function Create: IDSS;
@@ -2299,11 +2337,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoSolution provides a Create and CreateRemote method to          
-// create instances of the default interface ISolution exposed by              
-// the CoClass Solution. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoSolution provides a Create and CreateRemote method to
+// create instances of the default interface ISolution exposed by
+// the CoClass Solution. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoSolution = class
     class function Create: ISolution;
@@ -2311,11 +2349,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoMonitors provides a Create and CreateRemote method to          
-// create instances of the default interface IMonitors exposed by              
-// the CoClass Monitors. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoMonitors provides a Create and CreateRemote method to
+// create instances of the default interface IMonitors exposed by
+// the CoClass Monitors. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoMonitors = class
     class function Create: IMonitors;
@@ -2323,11 +2361,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoMeters provides a Create and CreateRemote method to          
-// create instances of the default interface IMeters exposed by              
-// the CoClass Meters. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoMeters provides a Create and CreateRemote method to
+// create instances of the default interface IMeters exposed by
+// the CoClass Meters. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoMeters = class
     class function Create: IMeters;
@@ -2335,11 +2373,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoGenerators provides a Create and CreateRemote method to          
-// create instances of the default interface IGenerators exposed by              
-// the CoClass Generators. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoGenerators provides a Create and CreateRemote method to
+// create instances of the default interface IGenerators exposed by
+// the CoClass Generators. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoGenerators = class
     class function Create: IGenerators;
@@ -2347,11 +2385,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoDSSProgress provides a Create and CreateRemote method to          
-// create instances of the default interface IDSSProgress exposed by              
-// the CoClass DSSProgress. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDSSProgress provides a Create and CreateRemote method to
+// create instances of the default interface IDSSProgress exposed by
+// the CoClass DSSProgress. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDSSProgress = class
     class function Create: IDSSProgress;
@@ -2359,11 +2397,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoSettings provides a Create and CreateRemote method to          
-// create instances of the default interface ISettings exposed by              
-// the CoClass Settings. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoSettings provides a Create and CreateRemote method to
+// create instances of the default interface ISettings exposed by
+// the CoClass Settings. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoSettings = class
     class function Create: ISettings;
@@ -2371,11 +2409,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoLines provides a Create and CreateRemote method to          
-// create instances of the default interface ILines exposed by              
-// the CoClass Lines. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoLines provides a Create and CreateRemote method to
+// create instances of the default interface ILines exposed by
+// the CoClass Lines. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoLines = class
     class function Create: ILines;
@@ -2383,11 +2421,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoCtrlQueue provides a Create and CreateRemote method to          
-// create instances of the default interface ICtrlQueue exposed by              
-// the CoClass CtrlQueue. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoCtrlQueue provides a Create and CreateRemote method to
+// create instances of the default interface ICtrlQueue exposed by
+// the CoClass CtrlQueue. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoCtrlQueue = class
     class function Create: ICtrlQueue;
@@ -2395,11 +2433,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoLoads provides a Create and CreateRemote method to          
-// create instances of the default interface ILoads exposed by              
-// the CoClass Loads. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoLoads provides a Create and CreateRemote method to
+// create instances of the default interface ILoads exposed by
+// the CoClass Loads. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoLoads = class
     class function Create: ILoads;
@@ -2407,11 +2445,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoDSSElement provides a Create and CreateRemote method to          
-// create instances of the default interface IDSSElement exposed by              
-// the CoClass DSSElement. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDSSElement provides a Create and CreateRemote method to
+// create instances of the default interface IDSSElement exposed by
+// the CoClass DSSElement. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDSSElement = class
     class function Create: IDSSElement;
@@ -2419,11 +2457,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoActiveClass provides a Create and CreateRemote method to          
-// create instances of the default interface IActiveClass exposed by              
-// the CoClass ActiveClass. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoActiveClass provides a Create and CreateRemote method to
+// create instances of the default interface IActiveClass exposed by
+// the CoClass ActiveClass. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoActiveClass = class
     class function Create: IActiveClass;
@@ -2431,11 +2469,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoCapacitors provides a Create and CreateRemote method to          
-// create instances of the default interface ICapacitors exposed by              
-// the CoClass Capacitors. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoCapacitors provides a Create and CreateRemote method to
+// create instances of the default interface ICapacitors exposed by
+// the CoClass Capacitors. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoCapacitors = class
     class function Create: ICapacitors;
@@ -2443,11 +2481,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoTransformers provides a Create and CreateRemote method to          
-// create instances of the default interface ITransformers exposed by              
-// the CoClass Transformers. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoTransformers provides a Create and CreateRemote method to
+// create instances of the default interface ITransformers exposed by
+// the CoClass Transformers. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoTransformers = class
     class function Create: ITransformers;
@@ -2455,11 +2493,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoSwtControls provides a Create and CreateRemote method to          
-// create instances of the default interface ISwtControls exposed by              
-// the CoClass SwtControls. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoSwtControls provides a Create and CreateRemote method to
+// create instances of the default interface ISwtControls exposed by
+// the CoClass SwtControls. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoSwtControls = class
     class function Create: ISwtControls;
@@ -2467,11 +2505,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoCapControls provides a Create and CreateRemote method to          
-// create instances of the default interface ICapControls exposed by              
-// the CoClass CapControls. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoCapControls provides a Create and CreateRemote method to
+// create instances of the default interface ICapControls exposed by
+// the CoClass CapControls. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoCapControls = class
     class function Create: ICapControls;
@@ -2479,11 +2517,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoRegControls provides a Create and CreateRemote method to          
-// create instances of the default interface IRegControls exposed by              
-// the CoClass RegControls. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoRegControls provides a Create and CreateRemote method to
+// create instances of the default interface IRegControls exposed by
+// the CoClass RegControls. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoRegControls = class
     class function Create: IRegControls;
@@ -2491,11 +2529,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoPlot provides a Create and CreateRemote method to          
-// create instances of the default interface IPlot exposed by              
-// the CoClass Plot. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoPlot provides a Create and CreateRemote method to
+// create instances of the default interface IPlot exposed by
+// the CoClass Plot. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoPlot = class
     class function Create: IPlot;
@@ -2503,11 +2541,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoTopology provides a Create and CreateRemote method to          
-// create instances of the default interface ITopology exposed by              
-// the CoClass Topology. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoTopology provides a Create and CreateRemote method to
+// create instances of the default interface ITopology exposed by
+// the CoClass Topology. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoTopology = class
     class function Create: ITopology;
@@ -2515,15 +2553,27 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoDSS_Executive provides a Create and CreateRemote method to          
-// create instances of the default interface IDSS_Executive exposed by              
-// the CoClass DSS_Executive. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDSS_Executive provides a Create and CreateRemote method to
+// create instances of the default interface IDSS_Executive exposed by
+// the CoClass DSS_Executive. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDSS_Executive = class
     class function Create: IDSS_Executive;
     class function CreateRemote(const MachineName: string): IDSS_Executive;
+  end;
+
+// *********************************************************************//
+// The Class CoDSSEvents provides a Create and CreateRemote method to
+// create instances of the default interface IDSSEvents exposed by
+// the CoClass DSSEvents. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+  CoDSSEvents = class
+    class function Create: IDSSEvents;
+    class function CreateRemote(const MachineName: string): IDSSEvents;
   end;
 
 implementation
@@ -2790,4 +2840,15 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_DSS_Executive) as IDSS_Executive;
 end;
 
+class function CoDSSEvents.Create: IDSSEvents;
+begin
+  Result := CreateComObject(CLASS_DSSEvents) as IDSSEvents;
+end;
+
+class function CoDSSEvents.CreateRemote(const MachineName: string): IDSSEvents;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_DSSEvents) as IDSSEvents;
+end;
+
 end.
+
