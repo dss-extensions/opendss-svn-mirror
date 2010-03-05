@@ -850,6 +850,7 @@ Begin
          Zinv.Invert;  {Invert in place}
          If Zinv.Inverterror>0 Then  Begin
                  {If error, put in tiny series conductance}
+// TEMc - shut this up for the CDPSM connectivity profile test, or whenever else it gets annoying
             DoErrorMsg('TLineObj.CalcYPrim', 'Matrix Inversion Error for Line "' + Name + '"',
                        'Invalid impedance specified. Replaced with tiny conductance.', 183);
             Zinv.Clear;
