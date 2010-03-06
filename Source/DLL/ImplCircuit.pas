@@ -77,6 +77,7 @@ type
     function Get_Transformers: ITransformers; safecall;
     function Get_Capacitors: ICapacitors; safecall;
     function Get_Topology: ITopology; safecall;
+    function Get_Sensors: Sensors; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -1026,6 +1027,11 @@ end;
 function TCircuit.Get_Topology: ITopology;
 begin
      Result := FTopology as ITopology;
+end;
+
+function TCircuit.Get_Sensors: Sensors;
+begin
+    Result := FSensors as ISensors;
 end;
 
 initialization

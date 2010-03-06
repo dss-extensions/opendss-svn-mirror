@@ -40,6 +40,8 @@ Uses
        ImplPlot,
        ImplTopology,
        ImplDSS_Executive,
+       ImplEvents,
+       ImplSensors,
        DSSClass,
        OpenDSSengine_TLB;
 
@@ -72,6 +74,8 @@ Var
    FPlot        :IPlot;
    FTopology    :ITopology;
    FDSS_Executive :IDSS_Executive;
+   FEvents      :IDSSEvents;
+   FSensors     :ISensors;
 
    FPropIndex   :Integer;
    FPropClass   :TDSSClass;
@@ -84,10 +88,23 @@ Procedure InitializeInterfaces;
 Procedure DSS_PutCommand(S:pchar);StdCall;
 Function DSS_GetResult:pchar;Stdcall; // Returns a pointer to global result String
 
+// fire COM events using these functions from DSS code
+Procedure Fire_InitControls;
+Procedure Fire_StepControls;
 
 implementation
 
 uses DSSGlobals, Executive;
+
+Procedure Fire_InitControls;
+begin
+  if assigned(FEvents) then TDSSEvents(FEvents).Fire_InitControls;
+end;
+
+Procedure Fire_StepControls;
+begin
+  if assigned(FEvents) then TDSSEvents(FEvents).Fire_StepControls;
+end;
 
 Procedure InitializeInterfaces;
 
@@ -121,6 +138,8 @@ Begin
      FPlot        := TPlot.Create;
      FTopology    := TTopology.Create;
      FDSS_Executive := TDSS_Executive.Create;
+     FEvents      := TDSSEvents.Create;
+     FSensors     := TSensors.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

@@ -41,6 +41,7 @@ type
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_Plot: IPlot; safecall;
     function Get_Executive: IDSS_Executive; safecall;
+    function Get_Events: IDSSEvents; safecall;
   end;
 
 implementation
@@ -266,6 +267,11 @@ end;
 function TDSS.Get_Executive: IDSS_Executive;
 begin
      Result := FDSS_Executive as IDSS_Executive;
+end;
+
+function TDSS.Get_Events: IDSSEvents;
+begin
+     Result := FEvents as IDSSEvents;
 end;
 
 initialization

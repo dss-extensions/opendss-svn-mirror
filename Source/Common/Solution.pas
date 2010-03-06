@@ -209,7 +209,8 @@ USES  SolutionAlgs,
       DSSClassDefs, DSSGlobals, DSSForms, CktElement,  ControlElem, Fault,
       Executive, AutoAdd,  YMatrix,
       ParserDel, Generator,
-      Math,  Circuit, Utilities
+      Math,  Circuit, Utilities,
+      ImplGlobals  // to fire events
 ;
 
 Const NumPropsThisClass = 1;
@@ -440,6 +441,8 @@ Try
            DefaultGrowthFactor := IntPower(DefaultGrowthRate, (year-1));
        END;
     End;
+
+    Fire_InitControls;
 
     {CheckFaultStatus;  ???? needed here??}
 
@@ -974,6 +977,8 @@ Begin
    End;
 
    If ActiveCircuit.LogEvents Then LogThisEvent('Solution Done');
+
+   Fire_StepControls;
 
    Iteration := TotalIterations;  { so that it reports a more interesting number }
 

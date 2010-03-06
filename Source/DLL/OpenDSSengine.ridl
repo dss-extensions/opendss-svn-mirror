@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 3/5/2010 12:30:05 PM (- $Rev: 12980 $, 603117843).
+// File generated on 3/6/2010 5:08:56 PM (- $Rev: 12980 $, 14146779).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -75,6 +75,8 @@ library OpenDSSengine
   interface IDSSEvents;
   dispinterface IDSSEventsEvents;
   coclass DSSEvents;
+  interface ISensors;
+  coclass Sensors;
 
 
   [
@@ -218,6 +220,30 @@ library OpenDSSengine
     dssActionTapUp = 6,
     [helpstring("Move a regulator tap down\0g both manual and automatic operation\0sables this function.\0he default for a faster soluiton.\0\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     dssActionTapDown = 7
+  };
+
+  [
+    uuid(A6526195-0103-45C1-B338-B9875F0B0A96)
+  ]
+  enum LoadStatus
+  {
+    dssLoadVariable = 0,
+    dssLoadFixed = 1,
+    dssLoadExempt = 2
+  };
+
+  [
+    uuid(83BCFDCC-1FAF-4343-9930-2B6D02F6417D)
+  ]
+  enum LoadModels
+  {
+    dssLoadConstPQ = 1,
+    dssLoadConstZ = 2,
+    dssLoadMotor = 3,
+    dssLoadCVR = 4,
+    dssLoadConstI = 5,
+    dssLoadConstPFixedQ = 6,
+    dssLoadConstPFixedX = 7
   };
 
   [
@@ -484,6 +510,8 @@ library OpenDSSengine
     HRESULT _stdcall Capacitors([out, retval] ICapacitors** Value);
     [propget, id(0x000000DC), helpstring("Interface to the active circuit's topology object.\0tion.\0ActiveElement).\0it element or a general DSS element.\0s.\0ements.\0ties.\0se properties.\0s collection or AllElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall Topology([out, retval] ITopology** Value);
+    [propget, id(0x000000DD), helpstring("Interface to Sensors in the Active Circuit.")]
+    HRESULT _stdcall Sensors([out, retval] Sensors** Value);
   };
 
   [
@@ -600,6 +628,8 @@ library OpenDSSengine
     HRESULT _stdcall Plot([out, retval] IPlot** Value);
     [propget, id(0x000000CD), helpstring("Interface to DSS Executive commands and options\0ss interface. Same as SetActiveClass in Circuit interface.\0e bus.\0ments.\0ties.\0se properties.\0s collection or AllElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall Executive([out, retval] IDSS_Executive** Value);
+    [propget, id(0x000000CE), helpstring("Interface to the DSS Events")]
+    HRESULT _stdcall Events([out, retval] IDSSEvents** Value);
   };
 
   [
@@ -1150,6 +1180,10 @@ library OpenDSSengine
     HRESULT _stdcall Parent([out, retval] long* Value);
     [propget, id(0x000000CC), helpstring("Number of Line objects in Active Circuit.\0ctive line. Returns 0 if no parent or action fails.\0 Otherwise, index of the line element.\0n Load Allocation\0ion or AllElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall Count([out, retval] long* Value);
+    [propget, id(0x000000CD), helpstring("Line spacing code")]
+    HRESULT _stdcall Spacing([out, retval] BSTR* Value);
+    [propput, id(0x000000CD), helpstring("Line spacing code")]
+    HRESULT _stdcall Spacing([in] BSTR Value);
   };
 
   [
@@ -1224,6 +1258,114 @@ library OpenDSSengine
     HRESULT _stdcall PF([in] double Value);
     [propget, id(0x000000D2), helpstring("Number of Load objects in active circuit.\0leading PF as negative.\0kV. Else actual kV across terminals.\0g.\0eturns Control Queue handle.\0Load Allocation\0ion or AllElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall Count([out, retval] long* Value);
+    [propget, id(0x000000D3), helpstring("Average percent of nominal load in Monte Carlo studies; only if no loadshape defined for this load.")]
+    HRESULT _stdcall PctMean([out, retval] double* Value);
+    [propput, id(0x000000D3)]
+    HRESULT _stdcall PctMean([in] double Value);
+    [propget, id(0x000000D4), helpstring("Percent standard deviation for Monte Carlo load studies; if there is no loadshape assigned to this load.")]
+    HRESULT _stdcall PctStdDev([out, retval] double* Value);
+    [propput, id(0x000000D4)]
+    HRESULT _stdcall PctStdDev([in] double Value);
+    [propget, id(0x000000D5), helpstring("Factor for allocating loads by connected xfkva")]
+    HRESULT _stdcall AllocationFactor([out, retval] double* Value);
+    [propput, id(0x000000D5)]
+    HRESULT _stdcall AllocationFactor([in] double Value);
+    [propget, id(0x000000D6), helpstring("Factor relates average to peak kw.  Used for allocation with kwh and kwhdays/")]
+    HRESULT _stdcall Cfactor([out, retval] double* Value);
+    [propput, id(0x000000D6)]
+    HRESULT _stdcall Cfactor([in] double Value);
+    [propget, id(0x000000D7), helpstring("A code number used to separate loads by class or group. No effect on the solution.")]
+    HRESULT _stdcall Class([out, retval] long* Value);
+    [propput, id(0x000000D7)]
+    HRESULT _stdcall Class([in] long Value);
+    [propget, id(0x000000D8), helpstring("Delta loads are connected line-to-line.")]
+    HRESULT _stdcall IsDelta([out, retval] VARIANT_BOOL* Value);
+    [propput, id(0x000000D8)]
+    HRESULT _stdcall IsDelta([in] VARIANT_BOOL Value);
+    [propget, id(0x000000D9), helpstring("Name of a loadshape with both Mult and Qmult, for CVR factors as a function of time.")]
+    HRESULT _stdcall CVRcurve([out, retval] BSTR* Value);
+    [propput, id(0x000000D9)]
+    HRESULT _stdcall CVRcurve([in] BSTR Value);
+    [propget, id(0x000000DA), helpstring("Percent reduction in P for percent reduction in V. Must be used with dssLoadModelCVR.")]
+    HRESULT _stdcall CVRwatts([out, retval] double* Value);
+    [propput, id(0x000000DA)]
+    HRESULT _stdcall CVRwatts([in] double Value);
+    [propget, id(0x000000DB), helpstring("Percent reduction in Q for percent reduction in V. Must be used with dssLoadModelCVR.")]
+    HRESULT _stdcall CVRvars([out, retval] double* Value);
+    [propput, id(0x000000DB)]
+    HRESULT _stdcall CVRvars([in] double Value);
+    [propget, id(0x000000DC), helpstring("Name of the loadshape for a daily load profile.")]
+    HRESULT _stdcall daily([out, retval] BSTR* Value);
+    [propput, id(0x000000DC)]
+    HRESULT _stdcall daily([in] BSTR Value);
+    [propget, id(0x000000DD), helpstring("Name of the loadshape for a duty cycle simulation.")]
+    HRESULT _stdcall duty([out, retval] BSTR* Value);
+    [propput, id(0x000000DD)]
+    HRESULT _stdcall duty([in] BSTR Value);
+    [propget, id(0x000000DF), helpstring("Base load kva. Also defined kw and kvar or pf input, or load allocation by kwh or xfkva.")]
+    HRESULT _stdcall kva([out, retval] double* Value);
+    [propput, id(0x000000DF)]
+    HRESULT _stdcall kva([in] double Value);
+    [propget, id(0x000000E0), helpstring("kwh billed for this period. Can be used with Cfactor for load allocation.")]
+    HRESULT _stdcall kwh([out, retval] double* Value);
+    [propput, id(0x000000E0)]
+    HRESULT _stdcall kwh([in] double Value);
+    [propget, id(0x000000E1), helpstring("Length of kwh billing period for average demand calculation. Default 30.")]
+    HRESULT _stdcall kwhdays([out, retval] double* Value);
+    [propput, id(0x000000E1)]
+    HRESULT _stdcall kwhdays([in] double Value);
+    [propget, id(0x000000E2), helpstring("The Load Model defines variation of P and Q with voltage.")]
+    HRESULT _stdcall Model([out, retval] enum LoadModels* Value);
+    [propput, id(0x000000E2)]
+    HRESULT _stdcall Model([in] enum LoadModels Value);
+    [propget, id(0x000000E3), helpstring("Number of customers in this load, defaults to one.")]
+    HRESULT _stdcall NumCust([out, retval] long* Value);
+    [propput, id(0x000000E3)]
+    HRESULT _stdcall NumCust([in] long Value);
+    [propget, id(0x000000E4), helpstring("Neutral resistance for wye-connected loads.")]
+    HRESULT _stdcall Rneut([out, retval] double* Value);
+    [propput, id(0x000000E4)]
+    HRESULT _stdcall Rneut([in] double Value);
+    [propget, id(0x000000E5), helpstring("Name of harmonic current spectrrum shape.")]
+    HRESULT _stdcall Spectrum([out, retval] BSTR* Value);
+    [propput, id(0x000000E5)]
+    HRESULT _stdcall Spectrum([in] BSTR Value);
+    [propget, id(0x000000E6), helpstring("Maximum per-unit voltage to use the load model. Above this, constant Z applies.")]
+    HRESULT _stdcall Vmaxpu([out, retval] double* Value);
+    [propput, id(0x000000E6)]
+    HRESULT _stdcall Vmaxpu([in] double Value);
+    [propget, id(0x000000E7), helpstring("Minimum voltage for unserved energy (UE) evaluation.")]
+    HRESULT _stdcall Vminemerg([out, retval] double* Value);
+    [propput, id(0x000000E7)]
+    HRESULT _stdcall Vminemerg([in] double Value);
+    [propget, id(0x000000E8), helpstring("Minimum voltage for energy exceeding normal (EEN) evaluations.")]
+    HRESULT _stdcall Vminnorm([out, retval] double* Value);
+    [propput, id(0x000000E8)]
+    HRESULT _stdcall Vminnorm([in] double Value);
+    [propget, id(0x000000E9), helpstring("Minimum voltage to apply the load model. Below this, constant Z is used.")]
+    HRESULT _stdcall Vminpu([out, retval] double* Value);
+    [propput, id(0x000000E9)]
+    HRESULT _stdcall Vminpu([in] double Value);
+    [propget, id(0x000000EA), helpstring("Rated service transformer kVA for load allocation, using AllocationFactor. Affects kW, kvar, and pf.")]
+    HRESULT _stdcall xfkVA([out, retval] double* Value);
+    [propput, id(0x000000EA)]
+    HRESULT _stdcall xfkVA([in] double Value);
+    [propget, id(0x000000EB), helpstring("Neutral reactance for wye-connected loads.")]
+    HRESULT _stdcall Xneut([out, retval] double* Value);
+    [propput, id(0x000000EB)]
+    HRESULT _stdcall Xneut([in] double Value);
+    [propget, id(0x000000EC), helpstring("Name of yearly duration loadshape")]
+    HRESULT _stdcall Yearly([out, retval] BSTR* Value);
+    [propput, id(0x000000EC)]
+    HRESULT _stdcall Yearly([in] BSTR Value);
+    [propget, id(0x000000ED), helpstring("Response to load multipliers: Fixed (growth only), Exempt (no LD curve), Variable (all).")]
+    HRESULT _stdcall Status([out, retval] enum LoadStatus* Value);
+    [propput, id(0x000000ED)]
+    HRESULT _stdcall Status([in] enum LoadStatus Value);
+    [propget, id(0x000000DE), helpstring("Name of the growthshape curve for yearly load growth factors.")]
+    HRESULT _stdcall Growth([out, retval] BSTR* Value);
+    [propput, id(0x000000DE)]
+    HRESULT _stdcall Growth([in] BSTR Value);
   };
 
   [
@@ -1775,6 +1917,76 @@ library OpenDSSengine
   };
 
   [
+    uuid(E7444ECD-B491-4D8E-A1E3-E5804BD571E2),
+    helpstring("Dispatch interface for Sensors Object"),
+    dual,
+    oleautomation
+  ]
+  interface ISensors: IDispatch
+  {
+    [propget, id(0x000000C9), helpstring("Name of the active sensor.")]
+    HRESULT _stdcall Name([out, retval] BSTR* Value);
+    [propput, id(0x000000C9), helpstring("Set the active Sensor by name.")]
+    HRESULT _stdcall Name([in] BSTR Value);
+    [propget, id(0x000000CA), helpstring("Number of Sensors in Active Circuit.")]
+    HRESULT _stdcall Count([out, retval] long* Value);
+    [propget, id(0x000000CB), helpstring("Sets the first sensor active. Returns 0 if none.")]
+    HRESULT _stdcall First([out, retval] long* Value);
+    [propget, id(0x000000CC), helpstring("Sets the next Sensor active. Returns 0 if no more.")]
+    HRESULT _stdcall Next([out, retval] long* Value);
+    [propget, id(0x000000CD), helpstring("Variant array of Sensor names.")]
+    HRESULT _stdcall AllNames([out, retval] VARIANT* Value);
+    [propget, id(0x000000CE), helpstring("True if measured voltages are line-line. Currents are always line currents.")]
+    HRESULT _stdcall IsDelta([out, retval] VARIANT_BOOL* Value);
+    [propput, id(0x000000CE)]
+    HRESULT _stdcall IsDelta([in] VARIANT_BOOL Value);
+    [propget, id(0x000000CF), helpstring("True if voltage measurements are 1-3, 3-2, 2-1.")]
+    HRESULT _stdcall ReverseDelta([out, retval] VARIANT_BOOL* Value);
+    [propput, id(0x000000CF)]
+    HRESULT _stdcall ReverseDelta([in] VARIANT_BOOL Value);
+    [propget, id(0x000000D0), helpstring("Assumed percent error in the Sensor measurement. Default is 1.")]
+    HRESULT _stdcall PctError([out, retval] double* Value);
+    [propput, id(0x000000D0)]
+    HRESULT _stdcall PctError([in] double Value);
+    [propget, id(0x000000D1), helpstring("Weighting factor for this Sensor measurement with respect to other Sensors. Default is 1.")]
+    HRESULT _stdcall Weight([out, retval] double* Value);
+    [propput, id(0x000000D1)]
+    HRESULT _stdcall Weight([in] double Value);
+    [propget, id(0x000000D2), helpstring("Full Name of the measured element")]
+    HRESULT _stdcall MeteredElement([out, retval] BSTR* Value);
+    [propput, id(0x000000D2)]
+    HRESULT _stdcall MeteredElement([in] BSTR Value);
+    [propget, id(0x000000D3), helpstring("Number of the measured terminal in the measured element.")]
+    HRESULT _stdcall MeteredTerminal([out, retval] long* Value);
+    [propput, id(0x000000D3)]
+    HRESULT _stdcall MeteredTerminal([in] long Value);
+    [id(0x000000D4), helpstring("Clear the active Sensor.")]
+    HRESULT _stdcall Reset(void);
+    [id(0x000000D5), helpstring("Clear all Sensors in the Active Circuit.")]
+    HRESULT _stdcall ResetAll(void);
+    [propget, id(0x000000D6), helpstring("Voltage base for the sensor measurements. LL for 2 and 3-phase sensors, LN for 1-phase sensors.")]
+    HRESULT _stdcall kVbase([out, retval] double* Value);
+    [propput, id(0x000000D6)]
+    HRESULT _stdcall kVbase([in] double Value);
+    [propget, id(0x000000D7), helpstring("Array of doubles for the line current measurements; don't use with kWS and kVARS.")]
+    HRESULT _stdcall Currents([out, retval] VARIANT* Value);
+    [propput, id(0x000000D7)]
+    HRESULT _stdcall Currents([in] VARIANT Value);
+    [propget, id(0x000000D8), helpstring("Array of doubles for the LL or LN (depending on Delta connection) voltage measurements.")]
+    HRESULT _stdcall kVS([out, retval] VARIANT* Value);
+    [propput, id(0x000000D8)]
+    HRESULT _stdcall kVS([in] VARIANT Value);
+    [propget, id(0x000000D9), helpstring("Array of doubles for Q measurements. Overwrites Currents with a new estimate using kWS.")]
+    HRESULT _stdcall kVARS([out, retval] VARIANT* Value);
+    [propput, id(0x000000D9)]
+    HRESULT _stdcall kVARS([in] VARIANT Value);
+    [propget, id(0x000000DA), helpstring("Array of doubles for P measurements. Overwrites Currents with a new estimate using kVARS.")]
+    HRESULT _stdcall kWS([out, retval] VARIANT* Value);
+    [propput, id(0x000000DA)]
+    HRESULT _stdcall kWS([in] VARIANT Value);
+  };
+
+  [
     uuid(AE501F77-F7F0-4201-A9AD-6AB385262203),
     helpstring("Events interface for DSSEvents Object")
   ]
@@ -2056,6 +2268,15 @@ library OpenDSSengine
   {
     [default] interface IDSSEvents;
     [default, source] dispinterface IDSSEventsEvents;
+  };
+
+  [
+    uuid(FC54E9AA-1C6A-4CF8-837D-82B257D98E5A),
+    helpstring("Sensors Object")
+  ]
+  coclass Sensors
+  {
+    [default] interface ISensors;
   };
 
 };

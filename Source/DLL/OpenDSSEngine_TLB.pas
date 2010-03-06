@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 3/5/2010 12:19:21 PM from Type Library described below.
+// File generated on 3/6/2010 5:08:54 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -21,7 +21,7 @@ unit OpenDSSengine_TLB;
 // Helpfile:
 // HelpString: OpenDSS Engine
 // DepndLst:
-//   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
+//   (1) v2.0 stdole, (C:\Windows\system32\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
@@ -103,6 +103,8 @@ const
   IID_IDSSEvents: TGUID = '{3F5A5530-4E67-44BF-AE6D-561584C6BF47}';
   DIID_IDSSEventsEvents: TGUID = '{AE501F77-F7F0-4201-A9AD-6AB385262203}';
   CLASS_DSSEvents: TGUID = '{B734843A-08E4-42D3-9E24-C0D5F7BF6487}';
+  IID_ISensors: TGUID = '{E7444ECD-B491-4D8E-A1E3-E5804BD571E2}';
+  CLASS_Sensors: TGUID = '{FC54E9AA-1C6A-4CF8-837D-82B257D98E5A}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library
@@ -182,6 +184,26 @@ const
   dssActionTapUp = $00000006;
   dssActionTapDown = $00000007;
 
+// Constants for enum LoadStatus
+type
+  LoadStatus = TOleEnum;
+const
+  dssLoadVariable = $00000000;
+  dssLoadFixed = $00000001;
+  dssLoadExempt = $00000002;
+
+// Constants for enum LoadModels
+type
+  LoadModels = TOleEnum;
+const
+  dssLoadConstPQ = $00000001;
+  dssLoadConstZ = $00000002;
+  dssLoadMotor = $00000003;
+  dssLoadCVR = $00000004;
+  dssLoadConstI = $00000005;
+  dssLoadConstPFixedQ = $00000006;
+  dssLoadConstPFixedX = $00000007;
+
 type
 
 // *********************************************************************//
@@ -242,6 +264,8 @@ type
   IDSSEvents = interface;
   IDSSEventsDisp = dispinterface;
   IDSSEventsEvents = dispinterface;
+  ISensors = interface;
+  ISensorsDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library
@@ -274,6 +298,7 @@ type
   Topology = ITopology;
   DSS_Executive = IDSS_Executive;
   DSSEvents = IDSSEvents;
+  Sensors = ISensors;
 
 
 // *********************************************************************//
@@ -531,6 +556,7 @@ type
     function Get_RegControls: IRegControls; safecall;
     function Get_Capacitors: ICapacitors; safecall;
     function Get_Topology: ITopology; safecall;
+    function Get_Sensors: Sensors; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -574,6 +600,7 @@ type
     property RegControls: IRegControls read Get_RegControls;
     property Capacitors: ICapacitors read Get_Capacitors;
     property Topology: ITopology read Get_Topology;
+    property Sensors: Sensors read Get_Sensors;
   end;
 
 // *********************************************************************//
@@ -641,6 +668,7 @@ type
     property RegControls: IRegControls readonly dispid 218;
     property Capacitors: ICapacitors readonly dispid 219;
     property Topology: ITopology readonly dispid 220;
+    property Sensors: Sensors readonly dispid 221;
   end;
 
 // *********************************************************************//
@@ -750,6 +778,7 @@ type
     function SetActiveClass(const ClassName: WideString): Integer; safecall;
     function Get_Plot: IPlot; safecall;
     function Get_Executive: IDSS_Executive; safecall;
+    function Get_Events: IDSSEvents; safecall;
     property NumCircuits: Integer read Get_NumCircuits;
     property Circuits[Idx: OleVariant]: ICircuit read Get_Circuits;
     property ActiveCircuit: ICircuit read Get_ActiveCircuit;
@@ -767,6 +796,7 @@ type
     property ActiveClass: IActiveClass read Get_ActiveClass;
     property Plot: IPlot read Get_Plot;
     property Executive: IDSS_Executive read Get_Executive;
+    property Events: IDSSEvents read Get_Events;
   end;
 
 // *********************************************************************//
@@ -799,6 +829,7 @@ type
     function SetActiveClass(const ClassName: WideString): Integer; dispid 203;
     property Plot: IPlot readonly dispid 204;
     property Executive: IDSS_Executive readonly dispid 205;
+    property Events: IDSSEvents readonly dispid 206;
   end;
 
 // *********************************************************************//
@@ -1372,6 +1403,8 @@ type
     function Get_TotalCust: Integer; safecall;
     function Get_Parent: Integer; safecall;
     function Get_Count: Integer; safecall;
+    function Get_Spacing: WideString; safecall;
+    procedure Set_Spacing(const Value: WideString); safecall;
     property Name: WideString read Get_Name write Set_Name;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
@@ -1401,6 +1434,7 @@ type
     property TotalCust: Integer read Get_TotalCust;
     property Parent: Integer read Get_Parent;
     property Count: Integer read Get_Count;
+    property Spacing: WideString read Get_Spacing write Set_Spacing;
   end;
 
 // *********************************************************************//
@@ -1440,6 +1474,7 @@ type
     property TotalCust: Integer readonly dispid 202;
     property Parent: Integer readonly dispid 203;
     property Count: Integer readonly dispid 204;
+    property Spacing: WideString dispid 205;
   end;
 
 // *********************************************************************//
@@ -1508,6 +1543,60 @@ type
     function Get_PF: Double; safecall;
     procedure Set_PF(Value: Double); safecall;
     function Get_Count: Integer; safecall;
+    function Get_PctMean: Double; safecall;
+    procedure Set_PctMean(Value: Double); safecall;
+    function Get_PctStdDev: Double; safecall;
+    procedure Set_PctStdDev(Value: Double); safecall;
+    function Get_AllocationFactor: Double; safecall;
+    procedure Set_AllocationFactor(Value: Double); safecall;
+    function Get_Cfactor: Double; safecall;
+    procedure Set_Cfactor(Value: Double); safecall;
+    function Get_Class_: Integer; safecall;
+    procedure Set_Class_(Value: Integer); safecall;
+    function Get_IsDelta: WordBool; safecall;
+    procedure Set_IsDelta(Value: WordBool); safecall;
+    function Get_CVRcurve: WideString; safecall;
+    procedure Set_CVRcurve(const Value: WideString); safecall;
+    function Get_CVRwatts: Double; safecall;
+    procedure Set_CVRwatts(Value: Double); safecall;
+    function Get_CVRvars: Double; safecall;
+    procedure Set_CVRvars(Value: Double); safecall;
+    function Get_daily: WideString; safecall;
+    procedure Set_daily(const Value: WideString); safecall;
+    function Get_duty: WideString; safecall;
+    procedure Set_duty(const Value: WideString); safecall;
+    function Get_kva: Double; safecall;
+    procedure Set_kva(Value: Double); safecall;
+    function Get_kwh: Double; safecall;
+    procedure Set_kwh(Value: Double); safecall;
+    function Get_kwhdays: Double; safecall;
+    procedure Set_kwhdays(Value: Double); safecall;
+    function Get_Model: LoadModels; safecall;
+    procedure Set_Model(Value: LoadModels); safecall;
+    function Get_NumCust: Integer; safecall;
+    procedure Set_NumCust(Value: Integer); safecall;
+    function Get_Rneut: Double; safecall;
+    procedure Set_Rneut(Value: Double); safecall;
+    function Get_Spectrum: WideString; safecall;
+    procedure Set_Spectrum(const Value: WideString); safecall;
+    function Get_Vmaxpu: Double; safecall;
+    procedure Set_Vmaxpu(Value: Double); safecall;
+    function Get_Vminemerg: Double; safecall;
+    procedure Set_Vminemerg(Value: Double); safecall;
+    function Get_Vminnorm: Double; safecall;
+    procedure Set_Vminnorm(Value: Double); safecall;
+    function Get_Vminpu: Double; safecall;
+    procedure Set_Vminpu(Value: Double); safecall;
+    function Get_xfkVA: Double; safecall;
+    procedure Set_xfkVA(Value: Double); safecall;
+    function Get_Xneut: Double; safecall;
+    procedure Set_Xneut(Value: Double); safecall;
+    function Get_Yearly: WideString; safecall;
+    procedure Set_Yearly(const Value: WideString); safecall;
+    function Get_Status: LoadStatus; safecall;
+    procedure Set_Status(Value: LoadStatus); safecall;
+    function Get_Growth: WideString; safecall;
+    procedure Set_Growth(const Value: WideString); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property First: Integer read Get_First;
     property Next: Integer read Get_Next;
@@ -1518,6 +1607,33 @@ type
     property kvar: Double read Get_kvar write Set_kvar;
     property PF: Double read Get_PF write Set_PF;
     property Count: Integer read Get_Count;
+    property PctMean: Double read Get_PctMean write Set_PctMean;
+    property PctStdDev: Double read Get_PctStdDev write Set_PctStdDev;
+    property AllocationFactor: Double read Get_AllocationFactor write Set_AllocationFactor;
+    property Cfactor: Double read Get_Cfactor write Set_Cfactor;
+    property Class_: Integer read Get_Class_ write Set_Class_;
+    property IsDelta: WordBool read Get_IsDelta write Set_IsDelta;
+    property CVRcurve: WideString read Get_CVRcurve write Set_CVRcurve;
+    property CVRwatts: Double read Get_CVRwatts write Set_CVRwatts;
+    property CVRvars: Double read Get_CVRvars write Set_CVRvars;
+    property daily: WideString read Get_daily write Set_daily;
+    property duty: WideString read Get_duty write Set_duty;
+    property kva: Double read Get_kva write Set_kva;
+    property kwh: Double read Get_kwh write Set_kwh;
+    property kwhdays: Double read Get_kwhdays write Set_kwhdays;
+    property Model: LoadModels read Get_Model write Set_Model;
+    property NumCust: Integer read Get_NumCust write Set_NumCust;
+    property Rneut: Double read Get_Rneut write Set_Rneut;
+    property Spectrum: WideString read Get_Spectrum write Set_Spectrum;
+    property Vmaxpu: Double read Get_Vmaxpu write Set_Vmaxpu;
+    property Vminemerg: Double read Get_Vminemerg write Set_Vminemerg;
+    property Vminnorm: Double read Get_Vminnorm write Set_Vminnorm;
+    property Vminpu: Double read Get_Vminpu write Set_Vminpu;
+    property xfkVA: Double read Get_xfkVA write Set_xfkVA;
+    property Xneut: Double read Get_Xneut write Set_Xneut;
+    property Yearly: WideString read Get_Yearly write Set_Yearly;
+    property Status: LoadStatus read Get_Status write Set_Status;
+    property Growth: WideString read Get_Growth write Set_Growth;
   end;
 
 // *********************************************************************//
@@ -1537,6 +1653,33 @@ type
     property kvar: Double dispid 208;
     property PF: Double dispid 209;
     property Count: Integer readonly dispid 210;
+    property PctMean: Double dispid 211;
+    property PctStdDev: Double dispid 212;
+    property AllocationFactor: Double dispid 213;
+    property Cfactor: Double dispid 214;
+    property Class_: Integer dispid 215;
+    property IsDelta: WordBool dispid 216;
+    property CVRcurve: WideString dispid 217;
+    property CVRwatts: Double dispid 218;
+    property CVRvars: Double dispid 219;
+    property daily: WideString dispid 220;
+    property duty: WideString dispid 221;
+    property kva: Double dispid 223;
+    property kwh: Double dispid 224;
+    property kwhdays: Double dispid 225;
+    property Model: LoadModels dispid 226;
+    property NumCust: Integer dispid 227;
+    property Rneut: Double dispid 228;
+    property Spectrum: WideString dispid 229;
+    property Vmaxpu: Double dispid 230;
+    property Vminemerg: Double dispid 231;
+    property Vminnorm: Double dispid 232;
+    property Vminpu: Double dispid 233;
+    property xfkVA: Double dispid 234;
+    property Xneut: Double dispid 235;
+    property Yearly: WideString dispid 236;
+    property Status: LoadStatus dispid 237;
+    property Growth: WideString dispid 222;
   end;
 
 // *********************************************************************//
@@ -2253,6 +2396,88 @@ type
   end;
 
 // *********************************************************************//
+// Interface: ISensors
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {E7444ECD-B491-4D8E-A1E3-E5804BD571E2}
+// *********************************************************************//
+  ISensors = interface(IDispatch)
+    ['{E7444ECD-B491-4D8E-A1E3-E5804BD571E2}']
+    function Get_Name: WideString; safecall;
+    procedure Set_Name(const Value: WideString); safecall;
+    function Get_Count: Integer; safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_AllNames: OleVariant; safecall;
+    function Get_IsDelta: WordBool; safecall;
+    procedure Set_IsDelta(Value: WordBool); safecall;
+    function Get_ReverseDelta: WordBool; safecall;
+    procedure Set_ReverseDelta(Value: WordBool); safecall;
+    function Get_PctError: Double; safecall;
+    procedure Set_PctError(Value: Double); safecall;
+    function Get_Weight: Double; safecall;
+    procedure Set_Weight(Value: Double); safecall;
+    function Get_MeteredElement: WideString; safecall;
+    procedure Set_MeteredElement(const Value: WideString); safecall;
+    function Get_MeteredTerminal: Integer; safecall;
+    procedure Set_MeteredTerminal(Value: Integer); safecall;
+    procedure Reset; safecall;
+    procedure ResetAll; safecall;
+    function Get_kVbase: Double; safecall;
+    procedure Set_kVbase(Value: Double); safecall;
+    function Get_Currents: OleVariant; safecall;
+    procedure Set_Currents(Value: OleVariant); safecall;
+    function Get_kVS: OleVariant; safecall;
+    procedure Set_kVS(Value: OleVariant); safecall;
+    function Get_kVARS: OleVariant; safecall;
+    procedure Set_kVARS(Value: OleVariant); safecall;
+    function Get_kWS: OleVariant; safecall;
+    procedure Set_kWS(Value: OleVariant); safecall;
+    property Name: WideString read Get_Name write Set_Name;
+    property Count: Integer read Get_Count;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property AllNames: OleVariant read Get_AllNames;
+    property IsDelta: WordBool read Get_IsDelta write Set_IsDelta;
+    property ReverseDelta: WordBool read Get_ReverseDelta write Set_ReverseDelta;
+    property PctError: Double read Get_PctError write Set_PctError;
+    property Weight: Double read Get_Weight write Set_Weight;
+    property MeteredElement: WideString read Get_MeteredElement write Set_MeteredElement;
+    property MeteredTerminal: Integer read Get_MeteredTerminal write Set_MeteredTerminal;
+    property kVbase: Double read Get_kVbase write Set_kVbase;
+    property Currents: OleVariant read Get_Currents write Set_Currents;
+    property kVS: OleVariant read Get_kVS write Set_kVS;
+    property kVARS: OleVariant read Get_kVARS write Set_kVARS;
+    property kWS: OleVariant read Get_kWS write Set_kWS;
+  end;
+
+// *********************************************************************//
+// DispIntf:  ISensorsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {E7444ECD-B491-4D8E-A1E3-E5804BD571E2}
+// *********************************************************************//
+  ISensorsDisp = dispinterface
+    ['{E7444ECD-B491-4D8E-A1E3-E5804BD571E2}']
+    property Name: WideString dispid 201;
+    property Count: Integer readonly dispid 202;
+    property First: Integer readonly dispid 203;
+    property Next: Integer readonly dispid 204;
+    property AllNames: OleVariant readonly dispid 205;
+    property IsDelta: WordBool dispid 206;
+    property ReverseDelta: WordBool dispid 207;
+    property PctError: Double dispid 208;
+    property Weight: Double dispid 209;
+    property MeteredElement: WideString dispid 210;
+    property MeteredTerminal: Integer dispid 211;
+    procedure Reset; dispid 212;
+    procedure ResetAll; dispid 213;
+    property kVbase: Double dispid 214;
+    property Currents: OleVariant dispid 215;
+    property kVS: OleVariant dispid 216;
+    property kVARS: OleVariant dispid 217;
+    property kWS: OleVariant dispid 218;
+  end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to
 // create instances of the default interface IText exposed by
 // the CoClass Text. The functions are intended to be used by
@@ -2576,6 +2801,18 @@ type
     class function CreateRemote(const MachineName: string): IDSSEvents;
   end;
 
+// *********************************************************************//
+// The Class CoSensors provides a Create and CreateRemote method to
+// create instances of the default interface ISensors exposed by
+// the CoClass Sensors. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+  CoSensors = class
+    class function Create: ISensors;
+    class function CreateRemote(const MachineName: string): ISensors;
+  end;
+
 implementation
 
 uses ComObj;
@@ -2848,6 +3085,16 @@ end;
 class function CoDSSEvents.CreateRemote(const MachineName: string): IDSSEvents;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DSSEvents) as IDSSEvents;
+end;
+
+class function CoSensors.Create: ISensors;
+begin
+  Result := CreateComObject(CLASS_Sensors) as ISensors;
+end;
+
+class function CoSensors.CreateRemote(const MachineName: string): ISensors;
+begin
+  Result := CreateRemoteComObject(MachineName, CLASS_Sensors) as ISensors;
 end;
 
 end.

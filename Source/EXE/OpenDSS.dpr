@@ -138,7 +138,8 @@ uses
   StorageController in '..\Controls\StorageController.pas',
   StoreUserModel in '..\PCElements\StoreUserModel.pas',
   LineGeometry in '..\General\LineGeometry.pas',
-  SwtControl in '..\Controls\SwtControl.pas';
+  SwtControl in '..\Controls\SwtControl.pas',
+  ImplGlobals in 'ImplGlobals.pas';
 
 {$R *.RES}
 

@@ -163,7 +163,8 @@ uses
   ImplTopology in 'ImplTopology.pas' {Topology: CoClass},
   ImplDSS_Executive in 'ImplDSS_Executive.pas' {DSS_Executive: CoClass},
   Scriptform in '..\Forms\Scriptform.pas' {MainEditForm},
-  ImplEvents in 'ImplEvents.pas' {DSSEvents: CoClass};
+  ImplEvents in 'ImplEvents.pas' {DSSEvents: CoClass},
+  ImplSensors in 'ImplSensors.pas' {Sensors: CoClass};
 
 exports
   DllGetClassObject,

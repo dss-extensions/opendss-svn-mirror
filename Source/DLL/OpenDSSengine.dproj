@@ -321,6 +321,9 @@
 			<DCCReference Include="ImplEvents.pas">
 				<CoClasses>DSSEvents</CoClasses>
 			</DCCReference>
+			<DCCReference Include="ImplSensors.pas">
+				<CoClasses>Sensors</CoClasses>
+			</DCCReference>
 			<RidlCompile Include="OpenDSSengine.ridl"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

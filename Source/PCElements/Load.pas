@@ -61,7 +61,6 @@ TYPE
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    TLoadObj = class(TPCElement)
       Private
-        ExemptFromLDCurve       :Boolean;
         PFChanged               :Boolean;
         FAllocationFactor       :Double;   // For all types of allocation
         FkVAAllocationFactor    :Double;   // for connected kVA specification
@@ -70,11 +69,6 @@ TYPE
         FkWhDays                :Double;
         FCFactor                :Double;   // For kWh billed spec
         FAvgkW                  :Double;
-        Fixed                   :Boolean;   // IF Fixed, always at base value
-        FpuMean                 :Double;
-        FpuStdDev               :Double;
-        FCVRwattFactor          :Double;
-        FCVRvarFactor           :Double;
         HarmAng                 :pDoubleArray;  // References for Harmonics mode
         HarmMag                 :pDoubleArray;
         LastGrowthFactor        :Double;
@@ -89,10 +83,6 @@ TYPE
         VBase                   :Double;  // Base volts suitable for computing currents
         VBase105                :Double;
         VBase95                 :Double;
-        Vmaxpu                  :Double;
-        VminEmerg               :Double;  // overrides system settings IF <> 0.0
-        VminNormal              :Double;
-        Vminpu                  :Double;
         WNominal                :Double;  // Nominal Watts per phase
         Yeq                     :Complex;   // at nominal
         Yeq105                  :Complex;
@@ -100,6 +90,18 @@ TYPE
         Yneut                   :Complex;
         YPrimOpenCond           :TCmatrix;  // To handle cases where one conductor of load is open
         YQFixed                 :Double;   // Fixed value of y FOR type 7 load
+
+        // formerly private, now read-only properties for COM access
+        FpuMean                 :Double;
+        FpuStdDev               :Double;
+        FCVRwattFactor          :Double;
+        FCVRvarFactor           :Double;
+        Vmaxpu                  :Double;
+        VminEmerg               :Double;  // overrides system settings IF <> 0.0
+        VminNormal              :Double;
+        Vminpu                  :Double;
+        ExemptFromLDCurve       :Boolean;
+        Fixed                   :Boolean;   // IF Fixed, always at base value
 
         FUNCTION  AllTerminalsClosed:Boolean;
         PROCEDURE CalcDailyMult(Hr:double);
@@ -206,6 +208,16 @@ TYPE
         Property kWh                 :Double Read FkWh                 Write Set_kWh;
         Property kWhDays             :Double Read FkWhDays             Write Set_kWhDays;
         Property CFactor             :Double Read FCFactor             Write Set_CFactor;
+        Property puMean:Double Read FpuMean;
+        Property puStdDev:Double Read FpuStdDev;
+        Property CVRwatts:Double Read FCVRwattFactor;
+        Property CVRvars:Double Read FCVRvarFactor;
+        Property MaxPU:Double Read Vmaxpu;
+        Property MinEmerg:Double Read VminEmerg;
+        Property MinNormal:Double Read VminNormal;
+        Property MinPU:Double Read Vminpu;
+        Property ExemptLoad:Boolean Read ExemptFromLDCurve;
+        Property FixedLoad:Boolean Read Fixed;
    End;
 
 Var

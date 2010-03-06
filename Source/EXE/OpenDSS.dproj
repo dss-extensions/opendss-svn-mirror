@@ -238,6 +238,7 @@
 			<DCCReference Include="..\PCElements\StoreUserModel.pas"/>
 			<DCCReference Include="..\General\LineGeometry.pas"/>
 			<DCCReference Include="..\Controls\SwtControl.pas"/>
+			<DCCReference Include="ImplGlobals.pas"/>
 			<None Include="OpenDSS.todo"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

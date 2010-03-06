@@ -14,7 +14,7 @@ type
     { Private declarations }
     FConnectionPoints: TConnectionPoints;
     FConnectionPoint: TConnectionPoint;
-    // FEvents: IDSSEventsEvents;
+    FEvents: IDSSEventsEvents;
     { note: FEvents maintains a *single* event sink. For access to more
       than one event sink, use FConnectionPoint.SinkList, and iterate
       through the list of sinks. }
@@ -32,24 +32,49 @@ type
 
 implementation
 
-uses ComServ;
-
-procedure TDSSEvents.EventSinkChanged(const EventSink: IUnknown);
-var
-  evt: IDSSEventsEvents;
-begin
-  evt := EventSink as IDSSEventsEvents;
-  FConnectionPoint.SinkList.Add(@evt);
-end;
+uses ComServ, Dialogs;
 
 procedure TDSSEvents.Initialize;
 begin
   inherited Initialize;
+  MessageDlg ('Initialize', mtInformation, [mbOk], 0);
   FConnectionPoints := TConnectionPoints.Create(Self);
   if AutoFactory.EventTypeInfo <> nil then
     FConnectionPoint := FConnectionPoints.CreateConnectionPoint(
       AutoFactory.EventIID, ckSingle, EventConnect)
   else FConnectionPoint := nil;
+end;
+
+procedure TDSSEvents.EventSinkChanged(const EventSink: IUnknown);
+begin
+//  MessageDlg ('EventSinkChanged', mtInformation, [mbOk], 0);
+  FEvents := EventSink as IDSSEventsEvents;
+end;
+
+procedure TDSSEvents.Fire_InitControls;
+begin
+  if FEvents <> nil then begin
+//    MessageDlg ('Fire_InitControls', mtInformation, [mbOk], 0);
+    FEvents.InitControls;
+  end;
+end;
+
+procedure TDSSEvents.Fire_StepControls;
+begin
+  if FEvents <> nil then begin
+//    MessageDlg ('Fire_StepControls', mtInformation, [mbOk], 0);
+    FEvents.StepControls;
+  end;
+end;
+
+{
+procedure TDSSEvents.EventSinkChanged(const EventSink: IUnknown);
+var
+  evt: IDSSEventsEvents;
+begin
+  MessageDlg ('EventSinkChanged', mtInformation, [mbOk], 0);
+  evt := EventSink as IDSSEventsEvents;
+  FConnectionPoint.SinkList.Add(@evt);
 end;
 
 procedure TDSSEvents.Fire_InitControls;
@@ -60,7 +85,8 @@ var
 begin
   if FConnectionPoint <> nil then
   begin
-    EventSinkList :=FConnectionPoint.SinkList; {get the list of client sinks }
+    MessageDlg ('Fire_InitControls', mtInformation, [mbOk], 0);
+    EventSinkList :=FConnectionPoint.SinkList;
     for I := 0 to EventSinkList.Count - 1 do
     begin
       EventSink := IUnknown(EventSinkList[I]) as IDSSEventsEvents;
@@ -77,7 +103,8 @@ var
 begin
   if FConnectionPoint <> nil then
   begin
-    EventSinkList :=FConnectionPoint.SinkList; {get the list of client sinks }
+    MessageDlg ('Fire_StepControls', mtInformation, [mbOk], 0);
+    EventSinkList :=FConnectionPoint.SinkList;
     for I := 0 to EventSinkList.Count - 1 do
     begin
       EventSink := IUnknown(EventSinkList[I]) as IDSSEventsEvents;
@@ -85,6 +112,7 @@ begin
     end;
   end;
 end;
+}
 
 initialization
   TAutoObjectFactory.Create(ComServer, TDSSEvents, Class_DSSEvents,

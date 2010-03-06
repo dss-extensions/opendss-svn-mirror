@@ -66,6 +66,8 @@ type
     function Get_TotalCust: Integer; safecall;
     function Get_Parent: Integer; safecall;
     function Get_Count: Integer; safecall;
+    function Get_Spacing: WideString; safecall;
+    procedure Set_Spacing(const Value: WideString); safecall;
     { Protected declarations }
   end;
 
@@ -847,6 +849,29 @@ function TLines.Get_Count: Integer;
 begin
     If Assigned(Activecircuit) Then
           Result := ActiveCircuit.Lines.ListSize ;
+end;
+
+function TLines.Get_Spacing: WideString;
+begin
+  Result := '';
+  IF ActiveCircuit <> NIL
+  THEN If IsLine(ActiveCircuit.ActiveCktElement)
+  THEN Begin
+       Result := TLineObj(ActiveCircuit.ActiveCktElement).SpacingCode;
+  End
+end;
+
+procedure TLines.Set_Spacing(const Value: WideString);
+begin
+  IF ActiveCircuit <> NIL
+  THEN If IsLine(ActiveCircuit.ActiveCktElement)
+  THEN Begin
+       WITH TLineObj(ActiveCircuit.ActiveCktElement) Do Begin
+         Parser.CmdString := 'spacing='+Value;
+         Edit;
+         YprimInvalid := True;
+       END;
+  End;
 end;
 
 initialization

@@ -106,7 +106,11 @@ TYPE
        Property WLSCurrentError:Double  Read Get_WLSCurrentError;
        Property WLSVoltageError:Double  Read Get_WLSVoltageError;
 
-
+       Property BaseKV:Double Read kvbase;
+       Property DeltaDirection:Integer Read FDeltaDirection;
+       // the following two properties actually give write access, since they are pointers
+       Property SensorP:pDoubleArray Read SensorKW;
+       Property SensorQ:pDoubleArray Read SensorKVAR;
    end;
 
 {==============================================================================}
