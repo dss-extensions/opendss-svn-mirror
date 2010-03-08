@@ -37,7 +37,7 @@ uses ComServ, Dialogs;
 procedure TDSSEvents.Initialize;
 begin
   inherited Initialize;
-  MessageDlg ('Initialize', mtInformation, [mbOk], 0);
+//  MessageDlg ('Initialize', mtInformation, [mbOk], 0);
   FConnectionPoints := TConnectionPoints.Create(Self);
   if AutoFactory.EventTypeInfo <> nil then
     FConnectionPoint := FConnectionPoints.CreateConnectionPoint(
