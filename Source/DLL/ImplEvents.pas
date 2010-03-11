@@ -5,29 +5,20 @@ unit ImplEvents;
 interface
 
 uses
-  ComObj, ActiveX, AxCtrls, Classes,
-OpenDSSengine_TLB, StdVcl;
+  ComObj, ActiveX, AxCtrls, Classes, OpenDSSengine_TLB, StdVcl;
 
 type
   TDSSEvents = class(TAutoObject, IConnectionPointContainer, IDSSEvents)
   private
-    { Private declarations }
     FConnectionPoints: TConnectionPoints;
-    FConnectionPoint: TConnectionPoint;
-    FEvents: IDSSEventsEvents;
-    { note: FEvents maintains a *single* event sink. For access to more
-      than one event sink, use FConnectionPoint.SinkList, and iterate
-      through the list of sinks. }
+    function GetSinks: TInterfaceList;
   public
     procedure Initialize; override;
     procedure Fire_InitControls;
     procedure Fire_StepControls;
   protected
-    { Protected declarations }
     property ConnectionPoints: TConnectionPoints read FConnectionPoints
       implements IConnectionPointContainer;
-    procedure EventSinkChanged(const EventSink: IUnknown); override;
-
   end;
 
 implementation
@@ -37,82 +28,48 @@ uses ComServ, Dialogs;
 procedure TDSSEvents.Initialize;
 begin
   inherited Initialize;
-//  MessageDlg ('Initialize', mtInformation, [mbOk], 0);
   FConnectionPoints := TConnectionPoints.Create(Self);
   if AutoFactory.EventTypeInfo <> nil then
-    FConnectionPoint := FConnectionPoints.CreateConnectionPoint(
-      AutoFactory.EventIID, ckSingle, EventConnect)
-  else FConnectionPoint := nil;
+    FConnectionPoints.CreateConnectionPoint(AutoFactory.EventIID, ckMulti, EventConnect);
 end;
 
-procedure TDSSEvents.EventSinkChanged(const EventSink: IUnknown);
-begin
-//  MessageDlg ('EventSinkChanged', mtInformation, [mbOk], 0);
-  FEvents := EventSink as IDSSEventsEvents;
-end;
-
-procedure TDSSEvents.Fire_InitControls;
-begin
-  if FEvents <> nil then begin
-//    MessageDlg ('Fire_InitControls', mtInformation, [mbOk], 0);
-    FEvents.InitControls;
-  end;
-end;
-
-procedure TDSSEvents.Fire_StepControls;
-begin
-  if FEvents <> nil then begin
-//    MessageDlg ('Fire_StepControls', mtInformation, [mbOk], 0);
-    FEvents.StepControls;
-  end;
-end;
-
-{
-procedure TDSSEvents.EventSinkChanged(const EventSink: IUnknown);
+function TDSSEvents.GetSinks: TInterfaceList;
 var
-  evt: IDSSEventsEvents;
+  connections : IenumConnections;
+  conPoint : IconnectionPoint;
+  ConnectData : tConnectData;
+  NoFetched : cardinal;
 begin
-  MessageDlg ('EventSinkChanged', mtInformation, [mbOk], 0);
-  evt := EventSink as IDSSEventsEvents;
-  FConnectionPoint.SinkList.Add(@evt);
+  result:= tInterfaceList.Create;
+  (self as IConnectionPointContainer).FindConnectionPoint(DIID_IDSSEventsEvents, conPoint);
+  conPoint.EnumConnections(connections);
+  if connections <> nil then
+    while connections.Next(1, ConnectData, @NoFetched) = S_OK do
+      if ConnectData.pUnk <> nil then
+        result.Add(ConnectData.pUnk)
 end;
 
 procedure TDSSEvents.Fire_InitControls;
 var
-  I: Integer;
-  EventSinkList: TList;
-  EventSink: IDSSEventsEvents;
+  SinkList: TInterfaceList;
+  i: integer;
 begin
-  if FConnectionPoint <> nil then
-  begin
-    MessageDlg ('Fire_InitControls', mtInformation, [mbOk], 0);
-    EventSinkList :=FConnectionPoint.SinkList;
-    for I := 0 to EventSinkList.Count - 1 do
-    begin
-      EventSink := IUnknown(EventSinkList[I]) as IDSSEventsEvents;
-      EventSink.InitControls;
-    end;
-  end;
+  SinkList:= GetSinks;
+  for i:= 0 to SinkList.Count -1 do
+    (SinkList.Items[i] as IDSSEventsEvents).InitControls;
+  SinkList.Free;
 end;
 
 procedure TDSSEvents.Fire_StepControls;
 var
-  I: Integer;
-  EventSinkList: TList;
-  EventSink: IDSSEventsEvents;
+  SinkList: TInterfaceList;
+  i: integer;
 begin
-  if FConnectionPoint <> nil then
-  begin
-    MessageDlg ('Fire_StepControls', mtInformation, [mbOk], 0);
-    EventSinkList :=FConnectionPoint.SinkList;
-    for I := 0 to EventSinkList.Count - 1 do
-    begin
-      EventSink := IUnknown(EventSinkList[I]) as IDSSEventsEvents;
-      EventSink.StepControls;
-    end;
-  end;
+  SinkList:= GetSinks;
+  for i:= 0 to SinkList.Count -1 do
+    (SinkList.Items[i] as IDSSEventsEvents).StepControls;
+  SinkList.Free;
 end;
-}
 
 initialization
   TAutoObjectFactory.Create(ComServer, TDSSEvents, Class_DSSEvents,
