@@ -401,7 +401,7 @@ uses Executive, DSSClassDefs, DSSGlobals,
   ClipBrd,  Utilities, contnrs, MessageForm,
   DlgPlotOptions,  DSSPlot, FrmCSVchannelSelect,
   DlgComboBox,dlgNumber, ExecOptions, ExecCommands, ExecHelper, Dynamics, DSSClass, ListForm,
-  Lineunits, Monitor, FrmDoDSSCommand, Frm_RPNcalc;
+  Lineunits, Monitor, FrmDoDSSCommand, Frm_RPNcalc, DSSForms;
 
 {$R *.DFM}
 

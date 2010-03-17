@@ -35,6 +35,8 @@ VAR
    FUNCTION  GetDSSExeFile: String;
    PROCEDURE CloseDownForms;
    Procedure ShowTreeView(Const Fname:String);
+   FUNCTION  MakeChannelSelection(NumFieldsToSkip:Integer; const Filename:String):Boolean;
+
 
 implementation
 
@@ -47,7 +49,7 @@ Uses      ExecCommands, ExecOptions,
           MessageForm,
           ComCtrls,
           TViewer,
-          Sysutils, Registry;
+          Sysutils, Registry, FrmCSVchannelSelect;
 
 
 Procedure InitProgressForm;
@@ -263,6 +265,42 @@ Begin
              ControlPanel.Free;
              ControlPanelCreated := False;
          End;
+End;
+
+//----------------------------------------------------------------------------
+Function MakeChannelSelection(NumFieldsToSkip:Integer; const Filename:String):Boolean;
+Var
+    F:TextFile;
+    S:string;
+    iCounter :Integer;
+    i   :Integer;
+    SaveWhiteSpaceChars:string;
+
+Begin
+   AssignFile(F, FileName);
+   Reset(F);
+   Readln(F, S);  // Read first line in file
+   CloseFile(F);
+
+   SaveWhiteSpaceChars := AuxParser.Whitespace;
+   AuxParser.Whitespace := #9;
+   AuxParser.CmdString := S;  // Load up Parser
+   // Skip specified number of columns in CSV file
+   For i:= 1 to NumFieldsToSkip Do Auxparser.NextParam;
+   With ChannelSelectForm.ListBox1 Do Begin
+     Clear;
+     iCounter := 0;
+     Repeat
+       Auxparser.NextParam;
+       S := Auxparser.StrValue;
+       If Length(S)>0 Then Begin
+           iCounter := iCounter + 1;
+           AddItem(Format('%d. %s',[iCounter, S]), nil);
+       End;
+     Until Length(S)=0;
+   End;
+   If ChannelSelectForm.ShowModal = mrOK Then Result := TRUE Else Result := FALSE;
+   AuxParser.Whitespace := SaveWhiteSpaceChars ;
 End;
 
 
