@@ -79,7 +79,7 @@ USES
      Command, MeterClass, Meterelement, DSSClass, Arraydef, ucomplex, utilities, Classes;
 
 TYPE
-    TMonitorStrBuffer = Array[1..256] of Char;
+    TMonitorStrBuffer = Array[1..256] of AnsiChar;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    {This has to be named TDSSMonitor because Delphi has a TMonitor Class and the compiler will get confused}
@@ -621,10 +621,10 @@ VAR
     iMin        :Integer;
     IsPosSeq    :Boolean;
     IsPower     :Boolean;
-    NameOfState :String;
+    NameOfState :AnsiString;
     NumVI       :Integer;
     RecordSize  :Integer;
-    strPtr      :pchar;
+    strPtr      :pANSIchar;
 
 Begin
   Try
@@ -641,21 +641,21 @@ Begin
      fillchar(StrBuffer, Sizeof(TMonitorStrBuffer), 0);  {clear buffer}
      strPtr := @StrBuffer;
      strPtr^ := chr(0);     // Init string
-     If ActiveCircuit.Solution.IsHarmonicModel Then strLcat(strPtr, 'Freq, Harmonic, ', Sizeof(TMonitorStrBuffer))
-                                               Else strLcat(strPtr, 'hour, t(sec), ',   Sizeof(TMonitorStrBuffer));
+     If ActiveCircuit.Solution.IsHarmonicModel Then strLcat(strPtr, pAnsichar('Freq, Harmonic, '), Sizeof(TMonitorStrBuffer))
+                                               Else strLcat(strPtr, pAnsichar('hour, t(sec), '),   Sizeof(TMonitorStrBuffer));
      
      CASE (Mode and MODEMASK) of
 
      2: Begin
            RecordSize := 1;     // Transformer Taps
-           strLcat(strPtr, pchar('Tap (pu)'), Sizeof(TMonitorStrBuffer));
+           strLcat(strPtr, pAnsichar('Tap (pu)'), Sizeof(TMonitorStrBuffer));
         End;
      3: Begin
            RecordSize := NumStateVars;   // Statevariabes
            For i := 1 to NumStateVars Do Begin
-               NameofState := TpcElement(MeteredElement).VariableName(i);
-               strLcat(strPtr, pchar(NameofState), Sizeof(TMonitorStrBuffer));
-               If i<NumStateVars Then strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+               NameofState := AnsiString(TpcElement(MeteredElement).VariableName(i));
+               strLcat(strPtr, pAnsichar(NameofState), Sizeof(TMonitorStrBuffer));
+               If i<NumStateVars Then strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
            End;
         End;
      Else Begin
@@ -681,25 +681,25 @@ Begin
                    FOR i := 1 to NumVI DO Inc(RecordSize,1);
                    IF IncludeResidual Then Inc(RecordSize, 2);
                     For i := 1 to NumVI Do Begin
-                        strLcat(strPtr, pchar('|V|'+IntToStr(i)+' (volts)'), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(AnsiString(Format('|V|%d (volts)',[i]))), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                     End;
                     IF IncludeResidual Then Begin
-                        strLcat(strPtr, pchar('|VN| (volts)'), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar('|VN| (volts)'), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                     End;
                     For i := 1 to NumVI Do Begin
-                        strLcat(strPtr, pchar('|I|'+IntToStr(i)+' (amps)'), Sizeof(TMonitorStrBuffer));
-                        If i<NumVI Then strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(AnsiString('|I|'+IntToStr(i)+' (amps)')), Sizeof(TMonitorStrBuffer));
+                        If i<NumVI Then strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                     End;
                     IF IncludeResidual Then Begin
-                        strLcat(strPtr, pchar(',|IN| (volts)'), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(',|IN| (volts)'), Sizeof(TMonitorStrBuffer));
                     End;
                  End
                  Else Begin
                     For i := 1 to NumVI Do Begin
-                        strLcat(strPtr, pchar('S'+IntToStr(i)+' (kVA)'), Sizeof(TMonitorStrBuffer));
-                        If i<NumVI Then strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(AnsiString('S'+IntToStr(i)+' (kVA)')), Sizeof(TMonitorStrBuffer));
+                        If i<NumVI Then strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                     End;
                  End;
               End ;
@@ -707,23 +707,23 @@ Begin
                      RecordSize := 2;
                      IF Not IsPower THEN Begin
                         RecordSize := RecordSize+ 2;
-                        If VIPolar Then strLcat(strPtr, pchar('V1, V1ang, I1, I1ang'), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('V1.re, V1.im, I1.re, I1.im'), Sizeof(TMonitorStrBuffer));
+                        If VIPolar Then strLcat(strPtr, pAnsichar('V1, V1ang, I1, I1ang'), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar('V1.re, V1.im, I1.re, I1.im'), Sizeof(TMonitorStrBuffer));
                      End
                      Else Begin
-                        If Ppolar Then  strLcat(strPtr, pchar('S1 (kVA), Ang '), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('P1 (kW), Q1 (kvar)'), Sizeof(TMonitorStrBuffer));
+                        If Ppolar Then  strLcat(strPtr, pAnsichar('S1 (kVA), Ang '), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar('P1 (kW), Q1 (kvar)'), Sizeof(TMonitorStrBuffer));
                      End;
               End ;
             96:Begin  // Save Pos Seq or Aver magnitude of all Phases of total kVA (Magnitude)
                      RecordSize := 1;
                      IF Not IsPower THEN Begin
                        RecordSize := RecordSize+ 1;
-                       strLcat(strPtr, pchar('V, I '), Sizeof(TMonitorStrBuffer));
+                       strLcat(strPtr, pAnsichar('V, I '), Sizeof(TMonitorStrBuffer));
                      End
                      Else Begin
-                        If Ppolar Then  strLcat(strPtr, pchar('S1 (kVA)'), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('P1 (kW)'), Sizeof(TMonitorStrBuffer));
+                        If Ppolar Then  strLcat(strPtr, pAnsichar('S1 (kVA)'), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar('P1 (kW)'), Sizeof(TMonitorStrBuffer));
                      End;
               End ;
 
@@ -735,32 +735,32 @@ Begin
                      RecordSize := RecordSize + NumVI*2;
                      IF IncludeResidual Then Inc(RecordSize, 4);
                      For i := iMin to iMax Do Begin
-                        If VIPolar Then strLcat(strPtr, pchar('V'+IntToStr(i)+', VAngle'+IntToStr(i)), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('V'+IntToStr(i)+'.re, V'+IntToStr(i)+'.im'), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        If VIPolar Then strLcat(strPtr, pAnsichar(AnsiString('V'+IntToStr(i)+', VAngle'+IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar(AnsiString('V'+IntToStr(i)+'.re, V'+IntToStr(i)+'.im')), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                      End;
                      IF IncludeResidual Then Begin
-                        If VIPolar Then strLcat(strPtr, pchar('VN, VNAngle'), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('VN.re, VN.im'), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        If VIPolar Then strLcat(strPtr, pAnsichar('VN, VNAngle'), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar('VN.re, VN.im'), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                      End;
                      For i := iMin to iMax Do Begin
-                        If VIPolar Then strLcat(strPtr, pchar('I'+IntToStr(i)+', IAngle'+IntToStr(i)), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('I'+IntToStr(i)+'.re, I'+IntToStr(i)+'.im'), Sizeof(TMonitorStrBuffer));
-                        If i<NumVI Then strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        If VIPolar Then strLcat(strPtr, pAnsichar(AnsiString('I'+IntToStr(i)+', IAngle'+IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar(AnsiString('I'+IntToStr(i)+'.re, I'+IntToStr(i)+'.im')), Sizeof(TMonitorStrBuffer));
+                        If i<NumVI Then strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                      End;
                      IF IncludeResidual Then Begin
-                        If VIPolar Then strLcat(strPtr, pchar(', IN, INAngle'), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar(', IN.re, IN.im'), Sizeof(TMonitorStrBuffer));
+                        If VIPolar Then strLcat(strPtr, pAnsichar(', IN, INAngle'), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar(', IN.re, IN.im'), Sizeof(TMonitorStrBuffer));
                      End;
                 End
                 Else Begin
                     If isPosSeq then Begin iMin := 0; iMax := NumVI-1; End
                     Else Begin iMin := 1; iMax := NumVI; End;
                     For i := iMin to iMax Do Begin
-                        If Ppolar Then strLcat(strPtr, pchar('S'+IntToStr(i)+' (kVA), Ang'+IntToStr(i)), Sizeof(TMonitorStrBuffer))
-                        Else strLcat(strPtr, pchar('P'+IntToStr(i)+' (kW), Q'+IntToStr(i)+' (kvar)'), Sizeof(TMonitorStrBuffer));
-                        If i<NumVI Then strLcat(strPtr, pchar(', '), Sizeof(TMonitorStrBuffer));
+                        If Ppolar Then strLcat(strPtr, pAnsichar(AnsiString('S'+IntToStr(i)+' (kVA), Ang'+IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                        Else strLcat(strPtr, pAnsichar(AnsiString('P'+IntToStr(i)+' (kW), Q'+IntToStr(i)+' (kvar)')), Sizeof(TMonitorStrBuffer));
+                        If i<NumVI Then strLcat(strPtr, pAnsichar(', '), Sizeof(TMonitorStrBuffer));
                     End;
                 End;
           END;
@@ -1076,7 +1076,7 @@ VAR
     i           :Cardinal;
     Mode        :Integer;
     Nread       :Cardinal;
-    pStr        :pchar;
+    pStr        :pAnsichar;
     RecordBytes :Cardinal;
     RecordSize  :Cardinal;
     s           :single;
@@ -1238,7 +1238,7 @@ Var
    ObjList:TPointerList;
    Hours:Boolean;
    StrBuffer:TMonitorStrBuffer;
-   pStrBuffer:Pchar;
+   pStrBuffer:PAnsichar;
    Fversion, FSignature, iMode:Integer;
    Nread, RecordSize, RecordBytes, PositionSave:Cardinal;
    sngBuffer:Array[1..100] of Single;
@@ -1371,7 +1371,7 @@ begin
            {Go Back to where we were}
            MonitorStream.Seek(PositionSave, soFromBeginning);
 
-           TopTransferFile.WriteHeader(Time, MaxTime, Time, RecordSize, 0, 16,  'DSS (TM), Electrotek Concepts (R)');
+           TopTransferFile.WriteHeader(Time, MaxTime, Time, RecordSize, 0, 16,  'DSS (TM), EPRI (R)');
            TopTransferFile.WriteNames(NameList, CNames);
 
            {Now Process rest of monitor file}

@@ -17,7 +17,7 @@ TYPE
     time_t = LongInt;
     ToutfileHdr = Packed Record
        Size:WORD;
-       Signature:Array[0..15] of CHAR;
+       Signature:Array[0..15] of ANSICHAR;
        VersionMajor,
        VersionMinor:WORD;
        FBase,
@@ -40,7 +40,7 @@ TYPE
        Title2,
        Title3,
        Title4,
-       Title5  :Array[0..79] of CHAR;  // Fixed length 80-byte string  space
+       Title5  :Array[0..79] of ANSICHAR;  // Fixed length 80-byte string  space
     End;
 
     TOutFile32 = Class(Tobject)
@@ -54,7 +54,7 @@ TYPE
           {constructor Create(Owner: TObject);}
           Procedure Open;
           Procedure Close;
-          Procedure WriteHeader(const t_start, t_stop,h:Double; const NV, NI,NameSize:Integer; const Title:String);
+          Procedure WriteHeader(const t_start, t_stop,h:Double; const NV, NI,NameSize:Integer; const Title:AnsiString);
           Procedure WriteNames(var Vnames, Cnames:TStringList);
           Procedure WriteData(Const t:Double; Const V, Curr:pDoubleArray);
           Procedure OpenR;  {Open for Read Only}
@@ -125,7 +125,7 @@ BEGIN
 
 END;
 
-Procedure TOutFile32.WriteHeader(const t_start, t_stop, h:Double; const NV, NI,NameSize:Integer; const Title:String);
+Procedure TOutFile32.WriteHeader(const t_start, t_stop, h:Double; const NV, NI,NameSize:Integer; const Title:AnsiString);
 
 VAR
    NumWrite:Integer;
@@ -158,7 +158,7 @@ BEGIN
          IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
          IdxBaseData := 0;
 
-         StrCopy(Title1,pchar(Title));
+         StrCopy(Title1,pAnsichar(Title));
          Title2[0] := #0;
          Title3[0] := #0;
          Title4[0] := #0;
@@ -177,19 +177,19 @@ Procedure TOutFile32.WriteNames(var Vnames, Cnames:TStringList);
 VAR
    NumWrite : Integer;
    i:integer;
-   Buf:Array[0..120] of Char;  //120 char buffer to hold names  + null terminator
+   Buf:Array[0..120] of AnsiChar;  //120 char buffer to hold names  + null terminator
 
 BEGIN
 
      If Header.NVoltages > 0 Then
      For i:=0 to Vnames.Count-1 Do Begin
-        StrCopy(Buf,pchar(Vnames.Strings[i]));    // Assign string to a buffer
+        StrCopy(Buf, pAnsichar(AnsiString(Vnames.Strings[i])));    // Assign string to a buffer
         BlockWrite(Fout, Buf, Header.VoltNameSize, NumWrite);    // Strings is default property of TStrings
      END;
 
      If Header.NCurrents > 0 Then
      For i:=0 to Cnames.Count-1 Do Begin
-        StrCopy(Buf,pchar(Cnames.Strings[i]));    // Assign string to a buffer
+        StrCopy(Buf, pAnsichar(AnsiString(Cnames.Strings[i])));    // Assign string to a buffer
         BlockWrite(Fout, Buf, Header.CurrNameSize, NumWrite);
      END;
 
@@ -203,7 +203,7 @@ VAR
 BEGIN
 
      BlockWrite(Fout, t,    SizeOf(Double), NumWrite);
-     If Header.NVoltages >0 Then  BlockWrite(Fout, V^[1],  SizeOf(Double)*Header.NVoltages, NumWrite);
+     If Header.NVoltages >0 Then  BlockWrite(Fout, V^[1],    SizeOf(Double)*Header.NVoltages, NumWrite);
      If Header.NCurrents >0 Then  BlockWrite(Fout, Curr^[1], SizeOf(Double)*Header.NCurrents, NumWrite);
 
 END;
