@@ -73,8 +73,6 @@ VAR
 implementation
 
 Uses SysUtils, DSSGlobals;
-Var
-  TOP_Inited:Boolean;
 
 Procedure StartTop;
 
@@ -135,8 +133,6 @@ BEGIN
 END;
 
 Initialization
-
-    TOP_Inited := FALSE;
 
 end.
 

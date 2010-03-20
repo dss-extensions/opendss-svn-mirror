@@ -66,8 +66,6 @@ Type
        Procedure DoYearlyCurvePlot(CaseNames:TStringList; Whichfile:String; iRegisters:Array of Integer);
        Procedure DoVisualizationPlot(Element:TDSSCktElement; Quantity:Integer);
 
-     published
-
      end;
      Procedure AddNewMarker(X, Y:Double; Color:TColor; Symbol, Size:byte);
      Procedure ShowGraph;
