@@ -236,7 +236,7 @@ USES
      PDElement, CktElementClass,
      ParserDel,  DSSClassDefs, DSSGlobals, Dynamics,
      Line, Transformer,  Vsource,
-     Utilities, FileCtrl, DSSForms;
+     Utilities, {FileCtrl,} DSSForms;
 
 //----------------------------------------------------------------------------
 Constructor TDSSCircuit.Create(const aName:String);

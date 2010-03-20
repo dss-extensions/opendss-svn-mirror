@@ -134,7 +134,7 @@ USES ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
-     Classes,  CktElementClass, Sensor, FileCtrl, ExportCIMXML, NamedObject;
+     Classes,  CktElementClass, Sensor, {FileCtrl,} ExportCIMXML, NamedObject;
 
 Var
    SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands, ExportCommands,

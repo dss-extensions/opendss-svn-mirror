@@ -183,7 +183,7 @@ implementation
 
 USES  {Forms,   Controls,}
      SysUtils,
-     FileCtrl,
+{     FileCtrl,}
      Windows,
      DSSForms,
      Solution,

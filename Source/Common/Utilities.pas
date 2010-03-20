@@ -13,7 +13,7 @@ unit Utilities;
 
 interface
 
-Uses ArrayDef, CktElement, PDElement, UComplex, UcMatrix, DSSClass, Classes, StdCtrls;
+Uses ArrayDef, CktElement, PDElement, UComplex, UcMatrix, DSSClass, Classes{, StdCtrls};
 
 Function CompareTextShortest(Const S1, S2:String):Integer;
 Procedure FireOffEditor(FileNm:String);
@@ -140,7 +140,7 @@ implementation
 Uses Windows, SysUtils, ShellAPI, Dialogs,  DSSClassDefs, 
 DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
 Capacitor, Reactor, Generator, Load, Line, Fault, Feeder,
-EnergyMeter, ControlElem, math, DSSForms, ParserDel, Controls, PCElement;
+EnergyMeter, ControlElem, math, DSSForms, ParserDel, {Controls,} PCElement;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -2349,7 +2349,7 @@ End;
 Procedure ShowMessageBeep(Const s:String);
 Begin
     Beep;
-    ShowMessage(s);
+    DSSInfoMessageDlg(s);
 End;
 
 Function IsPathBetween(FromLine, ToLine:TPDElement):Boolean;

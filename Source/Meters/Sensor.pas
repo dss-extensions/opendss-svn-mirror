@@ -126,7 +126,7 @@ implementation
 USES
 
     ParserDel, DSSClassDefs, DSSGlobals, Circuit, CktElement,Transformer, PCElement, PDElement,
-    Sysutils, ucmatrix, showresults, mathUtil, PointerList, TOPExport, Dynamics;
+    Sysutils, ucmatrix, showresults, mathUtil, PointerList, {TOPExport,} Dynamics;
 
 CONST
 

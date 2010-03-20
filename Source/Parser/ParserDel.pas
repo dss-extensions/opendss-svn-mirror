@@ -18,7 +18,7 @@ unit ParserDel;
 interface
 
 Uses
-    Arraydef, classes,controls, Sysutils, RPN;
+    Arraydef, classes,{controls,} DSSForms, Sysutils, RPN;
 
 Type
      EParserProblem = class(Exception);
@@ -387,8 +387,7 @@ Begin
            TokenBuffer := GetToken(NodeBuffer,NodeBufferPos);
         End;
       Except
-          On E: Exception Do MessageDlg('Node Buffer Too Small: ' + E.Message,
-                    mtError, [mbOK], 0);
+          On E: Exception Do DSSMessageDlg('Node Buffer Too Small: ' + E.Message, TRUE);
       End;
 
       DelimChars := DelimSave;   //restore to original delimiters
@@ -432,8 +431,7 @@ BEGIN
      Result := NumElements;
 
    EXCEPT
-       On E: Exception Do MessageDlg('Vector Buffer in ParseAsVector Probably Too Small: ' + E.Message,
-                 mtError, [mbOK], 0);
+       On E: Exception Do DSSMessageDlg('Vector Buffer in ParseAsVector Probably Too Small: ' + E.Message, TRUE);
    END;
 
 
@@ -475,8 +473,7 @@ BEGIN
     END;
 
    EXCEPT
-       On E: Exception Do MessageDlg('Matrix Buffer in ParseAsMatrix Probably Too Small: ' + E.Message,
-                 mtError, [mbOK], 0);
+       On E: Exception Do DSSMessageDlg('Matrix Buffer in ParseAsMatrix Probably Too Small: ' + E.Message, TRUE);
    END;
 
    if Assigned (RowBuf) then FreeMem(RowBuf, (Sizeof(Double)*ExpectedOrder));
@@ -523,8 +520,7 @@ BEGIN
     END;
 
    EXCEPT
-       On E: Exception Do MessageDlg('Matrix Buffer in ParseAsSymMatrix Probably Too Small: ' + E.Message,
-                 mtError, [mbOK], 0);
+       On E: Exception Do DSSMessageDlg('Matrix Buffer in ParseAsSymMatrix Probably Too Small: ' + E.Message, TRUE);
    END;
 
    if Assigned (RowBuf) then FreeMem(RowBuf, (Sizeof(Double)*ExpectedOrder));

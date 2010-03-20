@@ -324,9 +324,9 @@ VAR
 
 
 implementation
-USES  ParserDel, DSSClassDefs, DSSGlobals, Bus, Sysutils, Math, MathUtil,  UCMatrix,
+USES  ParserDel, DSSClassDefs, DSSGlobals, Bus, Sysutils, MathUtil,  UCMatrix, 
       Utilities, PCElement,  StackDef, Circuit, Line, LineUnits,
-      Classes, FileCtrl, ReduceAlgs, Windows;
+      Classes, {FileCtrl,} ReduceAlgs, Windows, Math;
 
 
 Const NumPropsThisClass = 16;
@@ -1820,7 +1820,7 @@ begin
 
 
 {PREREQUISITE: EXECUTE CALCALLOCATIONFACTORS FOR ALL ENERGYMETERS AND SENSORS}
-{****Done in calling procedure  now ***   CalcAllocationFactors;     {for this meter. Inherited from Meterelement}
+{****Done in calling procedure  now ***   CalcAllocationFactors;}     {for this meter. Inherited from Meterelement}
 {See ExecHelper}
 
     { Now go through the meter's zone and adjust the loads.
@@ -2676,7 +2676,7 @@ begin
 
   Integrate(kWh, cPower.re, dkwh);
   Integrate(kvarh, cPower.im, dkvarh);
-
+  
   PeakkW := Max(cPower.re, PeakkW);
   Peakkva := Max(Cabs(cPower), Peakkva);
 
