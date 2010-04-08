@@ -643,7 +643,7 @@ BEGIN
    Inc(NumDevices);
 
    // Resize DeviceList if no. of devices greatly exceeds allocation
-   If NumDevices> 2*DeviceList.InitialAllocation Then ReAllocDeviceList;
+   If Cardinal(NumDevices)> 2*DeviceList.InitialAllocation Then ReAllocDeviceList;
    DeviceList.Add(ActiveCktElement.Name);
    CktElements.Add(ActiveCktElement);
 
@@ -868,6 +868,8 @@ BEGIN
        Write(F,'  ',i:2,' ',j:2,' (=',BusList.Get(j),'.',MapNodeToBus^[i].NodeNum:0,')');
        Writeln(F);
      END;
+
+
 
 END;
 

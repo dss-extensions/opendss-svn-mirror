@@ -245,6 +245,8 @@ Begin
                          ' Dump commands  (dumps all commands to a text file) '+CRLF+
                          ' Dump transformer.*  (dumps all transformers)'+CRLF+
                          ' Dump ALLOCationfactors  (load allocation factors)'+CRLF+
+                         ' Dump Buslist    (bus name hash list)' + CRLF +
+                         ' Dump Devicelist    (Device name hash list)' + CRLF +
                          ' Dump      (dumps all objects in circuit) ';
                          //' Dump debug';   // Debug dump
      CommandHelp[17] := 'Opens the specified terminal and conductor of the specified circuit element. ' +

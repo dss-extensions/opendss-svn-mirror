@@ -1083,6 +1083,24 @@ Begin
         Exit;
     End;
 
+    {dump bus names hash list}
+    if CompareText(Param, 'buslist')=0 then
+    If Not NoFormsAllowed Then Begin
+        FileName := DSSDataDirectory +  'Bus_Hash_List.Txt';
+        ActiveCircuit.BusList.DumpToFile(FileName);
+        FireOffEditor(FileName);
+        Exit;
+    End;
+
+    {dump device names hash list}
+    if CompareText(Param, 'devicelist')=0 then
+    If Not NoFormsAllowed Then Begin
+        FileName := DSSDataDirectory +  'Device_Hash_List.Txt';
+        ActiveCircuit.DeviceList.DumpToFile(FileName);
+        FireOffEditor(FileName);
+        Exit;
+    End;
+
     IF CompareText(Copy(lowercase(Param),1,5), 'alloc')=0 THEN
     Begin
         DumpAllocationFactors(FileName);

@@ -36,8 +36,8 @@ INTERFACE
   // StringArray = Array[1..100] of String;
 
    TSubList =  RECORD
-        Nelem:Integer;
-        NAllocated:Integer;
+        Nelem:Cardinal;
+        NAllocated:Cardinal;
         Str:pStringArray;
         Idx:pLongIntArray;
    END;
@@ -47,34 +47,34 @@ INTERFACE
 
    THashList  = CLASS(TObject)
       private
-        NumElementsAllocated:Integer;
-        NumLists:Integer;
-        NumElements:Integer;
+        NumElementsAllocated:Cardinal;
+        NumLists:Cardinal;
+        NumElements:Cardinal;
         StringPtr:pStringArray;
         ListPtr:pSubListArray;
-        AllocationInc:Integer;
-        LastFind:Integer;
-        LastHash:Integer;
+        AllocationInc:Cardinal;
+        LastFind:Cardinal;
+        LastHash:Cardinal;
         LastSearchString:String;
 
         Procedure ResizeSubList(Var SubList:TSubList);
-        Function Hash(Const S:String):Integer;
+        Function Hash(Const S:String):Cardinal;
         Procedure ResizeStrPtr;
       protected
 
       public
-        InitialAllocation:Integer;
-        Constructor Create(Nelements:Integer);
+        InitialAllocation:Cardinal;
+        Constructor Create(Nelements:Cardinal);
         Destructor Destroy;Override;
         Function   Add(Const S:String):Integer;
         Function   Find(Const S:String):Integer;
         Function   FindNext:Integer;  //  repeat find for duplicate string in same hash list
         Function   FindAbbrev(Const S:String):Integer;
-        Function   Get(i:Integer):String;
-        Procedure  Expand(NewSize:Integer);   {Expands number of elements}
-        Procedure  DumpToFile;
+        Function   Get(i:Cardinal):String;
+        Procedure  Expand(NewSize:Cardinal);   {Expands number of elements}
+        Procedure  DumpToFile(const fname:string);
         Procedure  Clear;
-        Property   ListSize:Integer read NumElements;
+        Property   ListSize:Cardinal read NumElements;
       published
 
    END;
@@ -84,10 +84,10 @@ IMPLEMENTATION
 
 USES  Sysutils, math;
 
-Constructor THashList.Create(Nelements:Integer);
+Constructor THashList.Create(Nelements:Cardinal);
 VAR
    i:Integer;
-   Elementsperlist:Integer;
+   Elementsperlist:Cardinal;
 BEGIN
      Inherited Create;
      NumElements :=0;
@@ -152,7 +152,7 @@ END;
 
 Procedure THashList.ResizeSubList(Var SubList:TSubList);
 VAR
-   OldAllocation:Integer;
+   OldAllocation:Cardinal;
 BEGIN
     // resize by reasonable amount
 
@@ -165,7 +165,7 @@ BEGIN
 
 END;
 
-(*
+(*   This one was for AnsiStrings and just moved up to 8 bytes into an integer
 Function THashList.Hash(Const S:String):Integer;
 
 VAR
@@ -179,9 +179,10 @@ BEGIN
    Result := (Hashvalue mod NumLists) + 1;
 END;
 *)
-(* OLD HASH FUNCTION  *)
 
-Function THashList.Hash(Const S:String):Integer;
+(* OLD HASH FUNCTION -- only hashes 1st 8 chars
+
+Function THashList.Hash(Const S:String):Cardinal;
 
 VAR
     Hashvalue:Word;
@@ -196,6 +197,24 @@ BEGIN
    FOR i := 1 to min(8,Length(S)) DO HashValue := HashValue*2 + ord(S[i]);
    Result := (Hashvalue mod NumLists) + 1;
 END;
+*)
+
+(*   New supposedly fast hash method      *)
+  Function THashList.Hash(Const S:String):Cardinal;
+
+  VAR
+      Hashvalue:Cardinal;
+      i:Integer;
+
+  {per Stackoverflow.com}
+  BEGIN
+     HashValue := 0;
+     FOR i := 1 to Length(S) DO Begin
+       HashValue := ((HashValue  shl 5) or (HashValue shr 27)) xor Cardinal(S[i]);
+     End;
+     Result := (Hashvalue mod NumLists) + 1;
+  END;
+
 
 
 
@@ -204,7 +223,7 @@ Procedure THashList.ResizeStrPtr;
 // make linear string list larger
 
 VAR
-   OldAllocation:Integer;
+   OldAllocation:Cardinal;
    NewPointer:pStringArray;
 BEGIN
    OldAllocation := NumelementsAllocated;
@@ -223,7 +242,7 @@ END;
 
 Function   THashList.Add(Const S:String):Integer;
 VAR
-    HashNum:Integer;
+    HashNum:Cardinal;
     SS:String;
 BEGIN
     SS := LowerCase(S);
@@ -318,12 +337,12 @@ BEGIN
 END;
 
 
-Function   THashList.Get(i:Integer):String;
+Function   THashList.Get(i:Cardinal):String;
 BEGIN
    IF (i>0) and (i<= NumElements) THEN  Result := StringPtr^[i] ELSE Result := '';
 END;
 
-Procedure  THashList.Expand(NewSize:Integer);
+Procedure  THashList.Expand(NewSize:Cardinal);
 
 {
   This procedure creates a new set of string lists and copies the
@@ -333,12 +352,12 @@ Procedure  THashList.Expand(NewSize:Integer);
 
 VAR
   NewStringPtr:pStringArray;
-  NewNumLists:Integer;
-  ElementsPerList:Integer;
+  NewNumLists:Cardinal;
+  ElementsPerList:Cardinal;
   NewListPtr:pSubListArray;
-  HashNum:Integer;
+  HashNum:Cardinal;
   S:String;
-  OldNumLists:Integer;
+  OldNumLists:Cardinal;
   i,j:Integer;
 
 BEGIN
@@ -406,26 +425,37 @@ BEGIN
    END;
 END;
 
-PROCEDURE  THashList.DumpToFile;
+PROCEDURE  THashList.DumpToFile(const fname:string);
 VAR
    F:TextFile;
    i,j:Integer;
 BEGIN
 
-   AssignFile(F,'HashDump.Txt');
+   AssignFile(F, fname);
    Rewrite(F);
-    FOR i := 1 to NumLists DO BEGIN
-        Writeln(F,'List = ',i:0);
-        WITH ListPtr^[i] DO BEGIN
+   Writeln(F, Format('Number of Hash Lists = %d, Number of Elements = %d', [NumLists, NumElements]));
+
+   Writeln(F);
+   Writeln(F, 'Hash List Distribution');
+   For i := 1 to NumLists Do Begin
+        WITH ListPtr^[i] Do Begin
+           Writeln(F,Format('List = %d, Number of elements = %d',[i, Nelem]));
+        END;
+   End;
+   Writeln(F);
+
+   For i := 1 to NumLists DO Begin
+        WITH ListPtr^[i] DO Begin
+           Writeln(F,Format('List = %d, Number of elements = %d',[i, Nelem]));
            FOR j := 1 to Nelem DO
            Writeln(F,'"', Str^[j],'"  Idx= ',Idx^[j]:0);
         END;
         Writeln(F);
-    END;
-    Writeln(F,'LINEAR LISTING...');
-    FOR i := 1 to NumElements DO BEGIN
-      Writeln(F, i:3, ' = "', Stringptr^[i], '"');
-    END;
+   End;
+   Writeln(F,'LINEAR LISTING...');
+   For i := 1 to NumElements DO Begin
+     Writeln(F, i:3, ' = "', Stringptr^[i], '"');
+   End;
    CloseFile(F);
 
 END;

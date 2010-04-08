@@ -170,7 +170,7 @@ BEGIN
     ElementList.New := Obj; // Stuff it in this collection's element list
     ElementNameList.Add(TDSSObject(Obj).Name);
 
-    If ElementList.ListSize > 2* ElementNameList.InitialAllocation Then ReallocateElementNameList;
+    If Cardinal(ElementList.ListSize) > 2* ElementNameList.InitialAllocation Then ReallocateElementNameList;
 
     ActiveElement := ElementList.ListSize;
     Result := ActiveElement; // Return index of object in list
