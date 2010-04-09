@@ -20,27 +20,28 @@ interface
             mag,ang:Double;
           end;
 
-  Function cmplx(const a,b:Double):complex;
-  Function cinv(const A:COMPLEX):COMPLEX;
-  Function cabs(const a:complex):double;
+  // 4-8-2010  added inlining selected often-used functions
+  Function cmplx(const a,b:Double):complex; inline;
+  Function cinv(const A:COMPLEX):COMPLEX; inline;
+  Function cabs(const a:complex):double; inline;
   Function cang(const a:complex):double;
   Function cdang(const a:complex):double; // angle of complex number, degrees
   Function ctopolar(const a:complex):polar;
   Function ctopolardeg(const a:complex):polar;  // complex to polar, degrees
-  Function cadd(const a,b:complex):complex;
-  procedure caccum(Var a:complex;const  b:complex); {a := a + b}
-  Function csub(const a,b:complex):complex;
-  Function cmul(const a,b:complex):complex;
+  Function cadd(const a,b:complex):complex;  inline;
+  procedure caccum(Var a:complex;const  b:complex); inline; {a := a + b}
+  Function csub(const a,b:complex):complex;  inline;
+  Function cmul(const a,b:complex):complex;  inline;
   Procedure caccumarray(a,b:pComplexArray; N:SmallInt);
-  Function cmulreal(const a:complex;const b:Double):Complex;  { := a*b }
-  Procedure cmulrealaccum(Var  a:complex;const b:Double); { a=a*b}
-  Function cdiv(const a,b:complex):complex;
-  Function cdivreal(const a:complex;const b:Double):Complex;  { := a /b}
-  Function conjg(const a:complex):complex;
-  Function cnegate(const a:complex):complex;
+  Function cmulreal(const a:complex;const b:Double):Complex; inline; { := a*b }
+  Procedure cmulrealaccum(Var  a:complex;const b:Double); inline; { a=a*b}
+  Function cdiv(const a,b:complex):complex; inline;
+  Function cdivreal(const a:complex;const b:Double):Complex; inline; { := a /b}
+  Function conjg(const a:complex):complex; inline;
+  Function cnegate(const a:complex):complex; inline;
   Function csqrt(const a:complex):complex;
   Function cln(const a:complex):complex;
-  Function topolar(const a,b:Double):polar;   // scalar to polar
+  Function topolar(const a,b:Double):polar; inline;  // scalar to polar
   Function prel(const a:polar):double;  // real part of polar number   |a| cos()
   Function pimg(const a:polar):double;  // imag part of polar number   |a| sin()
   Function ptocomplex(const a:polar):complex;
@@ -56,30 +57,30 @@ interface
 
 Implementation
 
-  Function CMPLX;
+  Function CMPLX(const a,b:Double):complex; inline;
   BEGIN
-    CMPLX.RE:=A;
-    CMPLX.IM:=B
+    Result.RE:=A;
+    Result.IM:=B
   END;
 
-  Function CInv{(A:COMPLEX):COMPLEX};
+  Function CInv(const A:COMPLEX):COMPLEX; inline;
   VAR
     DNOM:Double;
   BEGIN
     DNOM:=A.RE*A.RE+A.IM*A.IM;
-    CINV.RE:=A.RE/DNOM;
-    CINV.IM:=(-A.IM)/DNOM
+    Result.RE:=A.RE/DNOM;
+    Result.IM:=(-A.IM)/DNOM
   END;
 
-  Function Cabs{(A:COMPLEX):REAL};
+  Function Cabs(const a:complex):double; inline;
   BEGIN
-    Cabs:=SQRT(A.RE*A.RE+A.IM*A.IM)
+    Result:=SQRT(A.RE*A.RE+A.IM*A.IM)
   END;
 
-  Function Conjg{(A:Complex):Complex};
+  Function Conjg(const a:complex):complex; inline;
   BEGIN
-      Conjg.RE := A.RE;
-      Conjg.im := -A.im;
+      Result.RE := A.RE;
+      Result.im := -A.im;
   END;
   
   Function ATAN2 (x, iy : double) : double ;
@@ -87,29 +88,29 @@ Implementation
     PI=3.14159265359; { 180 DEGREES }
   BEGIN         
     if       (x < 0.0) and (iy >= 0 )
-       then ATAN2 := arctan(iy/x) + PI
+       then Result := arctan(iy/x) + PI
     else if (x < 0.0) and (iy < 0 )
-       then ATAN2 := arctan(iy/x) -PI
+       then Result := arctan(iy/x) -PI
     else if (x > 0.0)
-       then ATAN2 := arctan(iy/x)
+       then Result := arctan(iy/x)
     else if (iy < 0.0)
-       then ATAN2 := -PI/2
+       then Result := -PI/2
     else if (iy > 0.0)
-       then ATAN2 := PI/2
-    else ATAN2 := 0.0
+       then Result := PI/2
+    else Result := 0.0
   END; { ATAN2 }
-  
-  Function CANG{(A:COMPLEX):REAL};     
+
+  Function CANG(const a:complex):double;
   BEGIN
-    CANG:=ATAN2(A.RE,A.IM)
+    Result:=ATAN2(A.RE,A.IM)
   END;
 
-  Function CDANG{(A:COMPLEX):REAL};     
+  Function CDANG(const a:complex):double;
   BEGIN
-    CDANG:=ATAN2(A.RE,A.IM)*57.29577951;
+    Result:=ATAN2(A.RE,A.IM)*57.29577951;
   END;
   
-  Function CtoPOLAR{(A:COMPLEX):POLAR};
+  Function CtoPOLAR(const a:complex):polar;
   BEGIN
     With Result Do  Begin
       MAG:=Cabs(A);
@@ -117,7 +118,7 @@ Implementation
     End;
   END;
 
-  Function CtoPOLARdeg{(A:COMPLEX):POLAR};
+  Function CtoPOLARdeg(const a:complex):polar;
   BEGIN
     With Result Do  Begin
       MAG:=Cabs(A);
@@ -125,13 +126,13 @@ Implementation
     End;
   END;
 
-  Function CADD{(A,B:COMPLEX):COMPLEX};
+  Function CADD(const a,b:complex):complex;  inline;
   BEGIN
-    CADD.RE:=A.RE+B.RE;
-    CADD.IM:=A.IM+B.IM
+    Result.RE:=A.RE+B.RE;
+    Result.IM:=A.IM+B.IM
   END;
 
-  PROCEDURE CACCUM(Var a:complex; const b:complex);
+  PROCEDURE CACCUM(Var a:complex;const  b:complex); inline;
   BEGIN
       a.re := a.re + b.re;
       a.im := a.im + b.im;
@@ -147,22 +148,22 @@ Implementation
   END;
 
 
-  Function CSUB{(A,B:COMPLEX):COMPLEX};
+  Function CSUB(const a,b:complex):complex;  inline;
   BEGIN
-    CSUB.RE:=A.RE-B.RE;
-    CSUB.IM:=A.IM-B.IM
+    Result.RE:=A.RE-B.RE;
+    Result.IM:=A.IM-B.IM
   END;
-      
-  Function CMUL{(A,B:COMPLEX):COMPLEX};
+
+  Function CMUL(const a,b:complex):complex;  inline;
   BEGIN
-    CMUL.RE:=A.RE*B.RE-A.IM*B.IM;
-    CMUL.IM:=A.RE*B.IM+A.IM*B.RE
+    Result.RE:=A.RE*B.RE-A.IM*B.IM;
+    Result.IM:=A.RE*B.IM+A.IM*B.RE
   END;
 
   function cmulreal(const a:complex;const b:Double):Complex;  { := a*b }
   Begin
-      cmulreal.re := a.re * b;
-      cmulreal.im := a.im * b;
+      Result.re := a.re * b;
+      Result.im := a.im * b;
   End;
 
   Procedure cmulrealaccum(Var a:complex;const b:Double); { a=a*b}
@@ -171,26 +172,26 @@ Implementation
       a.im := a.im * b;
   End;
 
-  Function CDIV{(A,B:COMPLEX):COMPLEX};
+  Function CDIV(const a,b:complex):complex; inline;
   VAR
     DNOM:double;
   BEGIN
     DNOM:=B.RE*B.RE+B.IM*B.IM;
-    CDIV.RE:=(A.RE*B.RE+A.IM*B.IM)/DNOM;
-    CDIV.IM:=(A.IM*B.RE-A.RE*B.IM)/DNOM
+    Result.RE:=(A.RE*B.RE+A.IM*B.IM)/DNOM;
+    Result.IM:=(A.IM*B.RE-A.RE*B.IM)/DNOM
   END;
 
-  function cdivreal(const a:complex;const b:Double):Complex;  { := a /b}
+  function cdivreal(const a:complex;const b:Double):Complex; inline;  { := a /b}
   Begin
-      cdivreal.re := a.re / b;
-      cdivreal.im := a.im / b;
+      Result.re := a.re / b;
+      Result.im := a.im / b;
   End;
 
-  Function cnegate{(a:complex):complex};
+  Function cnegate(const a:complex):complex; inline;
 
   BEGIN
-      cnegate.re := -a.re;
-      cnegate.im := -a.im;
+      Result.re := -a.re;
+      Result.im := -a.im;
   END;
 
   Function csqrt(const a:complex):complex;
@@ -209,7 +210,7 @@ Implementation
       Result := cmplx(ln(x.mag), x.ang);
   END;
 
-  Function toPOLaR{(A,B:REAL):POLAR};
+  Function toPOLaR(const a,b:Double):polar; Inline;
   BEGIN
     With Result Do Begin
       MAG:=A;
@@ -217,23 +218,23 @@ Implementation
     End;
   END;
 
-  Function PREL{(A:POLAR):REAL};
+  Function PREL(const a:polar):double;
   BEGIN
-    PREL:=A.MAG * COS(A.ANG)
+    Result := A.MAG * COS(A.ANG)
   END;
 
-  Function PIMG{(A:POLAR):REAL};
+  Function PIMG(const a:polar):double;
   BEGIN
-    PIMG:=A.MAG * SIN(A.ANG)
+    Result := A.MAG * SIN(A.ANG)
   END;
-  
-  Function PCLX{(Magn,Angle:Real):COMPLEX};
+
+  Function PCLX(const magn,angle:double):complex;
   Begin
-    PCLX.RE:=Magn*Cos(Angle);
-    PCLX.IM:=Magn*Sin(Angle);
+    Result.RE:=Magn*Cos(Angle);
+    Result.IM:=Magn*Sin(Angle);
   End;
 
-  Function PDEGtoCompLeX{(Magn,Angle:Real):COMPLEX};
+  Function PDEGtoCompLeX(const magn,angle:double):complex;
   VAR
      Ang:Double;
   Begin
@@ -244,7 +245,7 @@ Implementation
     End;
   End;
 
-  Function PtoCOMPLEX{(A:POLAR):COMPLEX};
+  Function PtoCOMPLEX(const a:polar):complex;
   BEGIN
     With Result Do Begin
         RE:=A.MAG * COS(A.ANG) ;
@@ -252,26 +253,26 @@ Implementation
     End;
   END;
 
-  Function PADD{(A,B:POLAR):POLAR};
+  Function PADD(const A,B:POLAR):POLAR;
   BEGIN
-    PADD:=CtoPOLAR(CADD(PtoCOMPLEX(A),PtoCOMPLEX(B)))
+    Result:=CtoPOLAR(CADD(PtoCOMPLEX(A),PtoCOMPLEX(B)))
   END;
 
-  Function PSUB{(A,B:POLAR):POLAR};
+  Function PSUB(const a,b:polar):polar;
   BEGIN
-    PSUB:=CtoPOLAR(CSUB(PtoCOMPLEX(A),PtoCOMPLEX(B)))
+    Result:=CtoPOLAR(CSUB(PtoCOMPLEX(A),PtoCOMPLEX(B)))
   END;
 
-  Function PMUL{(A,B:POLAR):POLAR};
+  Function PMUL(const a,b:polar):polar;
   BEGIN
-    PMUL.MAG:=A.MAG*B.MAG;
-    PMUL.ANG:=A.ANG+B.ANG
+    Result.MAG:=A.MAG*B.MAG;
+    Result.ANG:=A.ANG+B.ANG
   END;
 
-  Function PDIV{(A,B:POLAR):POLAR};
+  Function PDIV(const a,b:polar):polar;
   BEGIN
-    PDIV.MAG:=A.MAG/B.MAG;
-    PDIV.ANG:=A.ANG-B.ANG
+    Result.MAG:=A.MAG/B.MAG;
+    Result.ANG:=A.ANG-B.ANG
   END;
 
 
