@@ -2223,7 +2223,7 @@ end;
 
 PROCEDURE TGeneratorObj.InitStateVars;
 Var
-    VNeut,
+    {VNeut,}
     Edp   :Complex;
     i     :Integer;
     V012,
@@ -2243,26 +2243,38 @@ begin
        Begin
 
          ComputeIterminal;
-         Phase2SymComp(ITerminal, @I012);
-         // Voltage behind Xdp  (transient reactance), volts
-         Case Connection of
-            0: Vneut :=  NodeV^[NodeRef^[Fnconds]]
+
+         case Fnphases of
+
+              1: Begin
+                      Edp      := Csub( CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]) , Cmul(ITerminal^[1], cmplx(0.0, Xdp)));
+                      VThevMag := Cabs(Edp);
+                 End;
          Else
-            Vneut :=  CZERO;
-         End;
 
-         For i := 1 to FNphases Do Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
-         Phase2SymComp(@Vabc, @V012);
-         Edp      := Csub( V012[1] , Cmul(I012[1], cmplx(0.0, Xdp)));    // Pos sequence
-         VThevMag := Cabs(Edp);
+         // Calculate Edp based on Pos Seq only
+               Phase2SymComp(ITerminal, @I012);
+               // Voltage behind Xdp  (transient reactance), volts
 
-         (*
-         VThevMag := 0.0;
-         For i := 1 to NPhases Do  Begin {Thevinen wye voltages  = V - Xd' I - Vn}
-            Vthev^[i] := Csub( Csub(NodeV^[NodeRef^[i]], Vneut) , Cmul(Iterminal^[i], cmplx(0.0, Xdp)));
-            VThevMag := VThevMag + Cabs(Vthev^[i]);
-         End;
-         VThevMag := VThevMag/Nphases;  // Average for excitation level
+               For i := 1 to FNphases Do Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
+               Phase2SymComp(@Vabc, @V012);
+               Edp      := Csub( V012[1] , Cmul(I012[1], cmplx(0.0, Xdp)));    // Pos sequence
+               VThevMag := Cabs(Edp);
+
+         end;
+
+         (*       old way
+                   Case Connection of
+                      0: Vneut :=  NodeV^[NodeRef^[Fnconds]]
+                   Else
+                      Vneut :=  CZERO;
+                   End;
+                 VThevMag := 0.0;
+                 For i := 1 to NPhases Do  Begin {Thevinen wye voltages  = V - Xd' I - Vn}
+                    Vthev^[i] := Csub( Csub(NodeV^[NodeRef^[i]], Vneut) , Cmul(Iterminal^[i], cmplx(0.0, Xdp)));
+                    VThevMag := VThevMag + Cabs(Vthev^[i]);
+                 End;
+                 VThevMag := VThevMag/Nphases;  // Average for excitation level
          *)
 
 
@@ -2287,7 +2299,7 @@ begin
          // Init User-written models
          //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
          With ActiveCircuit.Solution Do If GenModel=6 then Begin
-           If UserModel.Exists Then UserModel.FInit( Vterminal, Iterminal);
+           If UserModel.Exists  Then UserModel.FInit(  Vterminal, Iterminal);
            If ShaftModel.Exists Then ShaftModel.Finit( Vterminal, Iterminal);
          End;
 
