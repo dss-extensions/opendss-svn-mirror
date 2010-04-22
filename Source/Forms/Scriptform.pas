@@ -240,7 +240,7 @@ begin
            Add(' - Circuit Summary -');
            Add(' ');
            If ActiveCircuit <> Nil Then
-             If ActiveCircuit.Issolved Then
+             If ActiveCircuit.Issolved and not ActiveCircuit.BusNameRedefined Then
              Begin
                TRY
                  Add(Format('Year = %d ',[ActiveCircuit.Solution.Year]));

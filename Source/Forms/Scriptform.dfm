@@ -26,7 +26,7 @@ object MainEditForm: TMainEditForm
     Width = 585
     Height = 347
     Align = alClient
-    Font.Charset = DEFAULT_CHARSET
+    Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
     Font.Name = 'MS Sans Serif'

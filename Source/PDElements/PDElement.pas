@@ -100,8 +100,8 @@ Begin
   Else For i := 1 to Yorder Do Curr^[i] := cZero;
 
   EXCEPT
-    On E: Exception Do DoErrorMsg(('GetCurrents for Element: ' + Name + '.'), E.Message,
-        'Possible inadequate storage allotted for circuit element.', 660);
+    On E: Exception Do DoErrorMsg(('Trying to Get Currents for Element: ' + Name + '.'), E.Message,
+        'Has circuit been solved?', 660);
   End;
 
 End;
