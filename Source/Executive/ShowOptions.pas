@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumShowOptions = 29;
+        NumShowOptions = 30;
 
 VAR
          ShowOption,
@@ -56,6 +56,7 @@ Begin
     ShowOption[27] := 'controlqueue';
     ShowOption[28] := 'topology';
     ShowOption[29] := 'mismatch';
+    ShowOption[30] := 'kvbasemismatch';
 
 
 
@@ -125,6 +126,8 @@ Begin
     ShowHelp[27] := 'Shows the present contents of the control queue.';
     ShowHelp[28] := 'Shows the topology as seen by the SwtControl elements.';
     ShowHelp[29] := 'Shows the current mismatches at each node in amperes and percent of max currents at node.';
+    ShowHelp[30] := 'Creates a report of Load and Generator elements for which the base voltage does not match the Bus base voltage. ' +
+                    'Scripts for correcting the voltage base are suggested.';
 
 End;
 
@@ -319,6 +322,7 @@ Begin
       27: If ActiveCircuit <> Nil then  ActiveCircuit.ControlQueue.ShowQueue(DSSDataDirectory + CircuitName_  + 'ControlQueue.csv');
       28: ShowTopology(DSSDataDirectory + CircuitName_);
       29: ShowNodeCurrentSum(DSSDataDirectory + CircuitName_ + 'NodeMismatch.Txt');
+      30: ShowkVBaseMismatch(DSSDataDirectory + CircuitName_ + 'kVBaseMismatch.Txt');
    ELSE
    End;
 

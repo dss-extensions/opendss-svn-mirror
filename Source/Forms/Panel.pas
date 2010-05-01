@@ -224,6 +224,7 @@ type
     Losses2: TMenuItem;
     ResultForm1: TMenuItem;
     Mismatch1: TMenuItem;
+    kVBaseMismatch1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -377,6 +378,7 @@ type
     procedure Losses2Click(Sender: TObject);
     procedure ResultForm1Click(Sender: TObject);
     procedure Mismatch1Click(Sender: TObject);
+    procedure kVBaseMismatch1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1210,6 +1212,11 @@ end;
 procedure TControlPanel.KeepList1Click(Sender: TObject);
 begin
         ActiveScriptForm.ExecuteDSSCommand('Reset keeplist');
+end;
+
+procedure TControlPanel.kVBaseMismatch1Click(Sender: TObject);
+begin
+     ActiveScriptForm.ExecuteDSSCommand('show kvbasemismatch');
 end;
 
 procedure TControlPanel.Monitor1Click(Sender: TObject);

@@ -324,6 +324,7 @@
 			<DCCReference Include="ImplSensors.pas">
 				<CoClasses>Sensors</CoClasses>
 			</DCCReference>
+			<DCCReference Include="..\Executive\ShowOptions.pas"/>
 			<RidlCompile Include="OpenDSSengine.ridl"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

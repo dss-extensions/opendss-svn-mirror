@@ -35,6 +35,7 @@ Procedure ShowYPrim(Filenm:String);
 Procedure ShowY(FileNm:String);
 Procedure ShowTopology(FileRoot:String); // summary and tree-view to separate files
 Procedure ShowNodeCurrentSum(FileNm:String);
+Procedure ShowkVBaseMismatch(FileNm:String);
 
 implementation
 
@@ -3101,6 +3102,99 @@ Begin
         CloseFile(F);
         FireOffEditor(FileNm);
         ReallocMem(MaxNodeCurrent,0); // Dispose of temp memory
+     End;
+End;
+
+
+Procedure ShowkVBaseMismatch(FileNm:String);
+
+VAR
+    F:TextFile;
+
+    pLoad:TLoadObj;
+    pGen:TGeneratorObj;
+    pBus:TDSSBus;
+    BuskV:double;
+    BusName:String;
+
+Begin
+
+      Try
+        Assignfile(F,FileNm);
+        ReWrite(F);
+
+        {Check Loads}
+        If ActiveCircuit.Loads.ListSize >0 then  Begin
+            Writeln(F);
+            Writeln(F,'!!!  LOAD VOLTAGE BASE MISMATCHES');
+            Writeln(F);
+        End;
+
+
+        pLoad := ActiveCircuit.Loads.First;
+        while pLoad <> Nil do  Begin
+           {Find Bus To Which Load Connected}
+            pBus := ActiveCircuit.Buses^[pLoad.Terminals^[1].BusRef];
+            BusName := ActiveCircuit.BusList.Get(pLoad.Terminals^[1].BusRef);
+            If pBus.kVBase <> 0.0 then  Begin
+                If (pLoad.Nphases=1) and (pLoad.Connection=0) Then Begin
+                    If abs(pLoad.kVLoadBase - pBus.kVBase) > 0.10 * pBus.kVBase then Begin
+                          Writeln(F, Format('!!!!! Voltage Base Mismatch, Load.%s.kV=%.6g, Bus %s LN kvBase = %.6g',[pLoad.Name, pLoad.kVLoadBase, pLoad.GetBus(1), pBus.kVBase]));
+                          Writeln(F, Format('!setkvbase %s kVLN=%.6g',[Busname, pLoad.kVLoadBase]));
+                          Writeln(F, Format('!Load.%s.kV=%.6g',[pLoad.Name, pBus.kVBase ]));
+                    End;
+                End
+                else  Begin
+                    BuskV := pBus.kVBase * SQRT3;
+                    If abs(pLoad.kVLoadBase - BuskV) > 0.10 * BuskV then Begin
+                        Writeln(F, Format('!!!!! Voltage Base Mismatch, Load.%s.kV=%.6g, Bus %s kvBase = %.6g',[pLoad.Name, pLoad.kVLoadBase, pLoad.GetBus(1), BuskV]));
+                        Writeln(F, Format('!setkvbase %s kVLL=%.6g',[Busname, pLoad.kVLoadBase]));
+                        Writeln(F, Format('!Load.%s.kV=%.6g',[pLoad.Name, BuskV ]));
+                    End;
+                End;
+            End;
+            pLoad := ActiveCircuit.Loads.Next;
+        End;
+
+
+        {Check Generators}
+
+        If ActiveCircuit.Generators.ListSize >0 then  Begin
+            Writeln(F);
+            Writeln(F,'!!!  GENERATOR VOLTAGE BASE MISMATCHES');
+            Writeln(F);
+        End;
+
+
+        pGen := ActiveCircuit.Generators.First;
+        while pGen <> Nil do  Begin
+           {Find Bus To Which Generator Connected}
+            pBus := ActiveCircuit.Buses^[pGen.Terminals^[1].BusRef];
+            BusName := ActiveCircuit.BusList.Get(pGen.Terminals^[1].BusRef);
+            If pBus.kVBase <> 0.0 then  Begin
+                If (pGen.Nphases=1) and (pGen.Connection=0) Then Begin
+                    If abs(pGen.Genvars.kVGeneratorBase - pBus.kVBase) > 0.10 * pBus.kVBase then Begin
+                          Writeln(F, Format('!!! Voltage Base Mismatch, Generator.%s.kV=%.6g, Bus %s LN kvBase = %.6g',[pGen.Name, pGen.Genvars.kVGeneratorBase, pGen.GetBus(1), pBus.kVBase]));
+                          Writeln(F, Format('!setkvbase %s kVLN=%.6g',[Busname, pGen.Genvars.kVGeneratorBase]));
+                          Writeln(F, Format('!Generator.%s.kV=%.6g',[pGen.Name, pBus.kVBase]));
+                    End ;
+                End
+                else Begin
+                    BuskV := pBus.kVBase * SQRT3;
+                    If abs(pGen.Genvars.kVGeneratorBase - BuskV) > 0.10 * BuskV then Begin
+                        Writeln(F, Format('!!! Voltage Base Mismatch, Generator.%s.kV=%.6g, Bus %s kvBase = %.6g',[pGen.Name, pGen.Genvars.kVGeneratorBase, pGen.GetBus(1), BuskV]));
+                        Writeln(F, Format('!setkvbase %s kVLL=%.6g',[Busname, pGen.Genvars.kVGeneratorBase]));
+                        Writeln(F, Format('!Generator.%s.kV=%.6g',[pGen.Name, BuskV]));
+                    End;
+                End;
+            End;
+
+           pGen := ActiveCircuit.Generators.Next;
+        End;
+
+     Finally
+        CloseFile(F);
+        FireOffEditor(FileNm);
      End;
 End;
 
