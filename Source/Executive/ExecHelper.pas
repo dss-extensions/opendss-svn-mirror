@@ -22,8 +22,6 @@ unit ExecHelper;
 
 interface
 
-Uses Command;
-
 
          FUNCTION DoNewCmd:Integer;
          FUNCTION DoEditCmd:Integer;
@@ -32,7 +30,7 @@ Uses Command;
          FUNCTION DoRedirect(IsCompile:Boolean):Integer;
          FUNCTION DoSaveCmd:Integer;
          FUNCTION DoSampleCmd:Integer;
-         FUNCTION DoShowCmd:Integer;
+
          FUNCTION DoExportCmd:Integer;
          FUNCTION DoSolveCmd:Integer;
          FUNCTION DoEnableCmd:Integer;
@@ -123,11 +121,11 @@ Uses Command;
 
          FUNCTION DoPropertyDump:Integer;
 
-Var   ShowCommands:TCommandList;
+
 
 implementation
 
-USES ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
+USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      Circuit, Monitor, ShowResults, ExportResults,
      DSSClass, DSSObject, Utilities, Solution,
      EnergyMeter, Generator, LoadShape, Load, PCElement,   CktElement,
@@ -561,203 +559,6 @@ End;
 
 
 
-//----------------------------------------------------------------------------
-FUNCTION DoShowCmd:Integer;
-
-VAR
-   ParamName, Param, Filname:String;
-   ParamPointer :Integer;
-   pMon:TMonitorObj;
-
-   MVAopt :Integer;
-   LLopt:Boolean;
-   ShowResid:Boolean;
-   ShowOptionCode:Integer;
-   BusName:String;
-   Freq:Double;
-   Units:Integer;
-  Rho_line: Double;
-
-
-Begin
-
-   ParamName := Parser.NextParam;
-   Param := LowerCase(Parser.StrValue);
-   ParamPointer := ShowCommands.Getcommand (Param);
-
-   If ParamPointer=0 Then ParamPointer := 13;  {voltages}
-
-   InShowResults := True;
-
-   CASE ParamPointer OF
-     1:  Begin {Autoadded}
-           FireOffEditor(DSSDataDirectory + CircuitName_ + 'AutoAddedGenerators.Txt');
-           FireOffEditor(DSSDataDirectory + CircuitName_ + 'AutoAddedCapacitors.Txt');
-         End;
-     2: ShowBuses(DSSDataDirectory + CircuitName_ + 'Buses.Txt');
-     3: Begin
-           ShowOptionCode := 0;
-           ShowResid := FALSE;
-           ParamName := Parser.NextParam;   // Look for residual
-           Param := Uppercase(Parser.StrValue);
-           // logic handles show curr y|n|T elements or show curr elements
-           If  (Length(Param)> 0) Then
-             Case Param[1] of
-               'Y','T': ShowResid := TRUE;
-               'N': ShowResid := FALSE;
-               'E': ShowOptionCode := 1;
-             End;
-           ParamName := Parser.NextParam;   // Look for another param
-           Param := Uppercase(Parser.StrValue);
-           If (Length(Param)>0) Then
-             Case Param[1] of
-                'E':ShowOptionCode := 1;
-             END;
-           CASE ShowOptionCode of
-             0:  Filname := 'Curr_Seq';
-             1:  Filname := 'Curr_Elem';
-           END;
-           ShowCurrents(DSSDataDirectory + CircuitName_ + FilName + '.Txt', ShowResid, ShowOptionCode);
-          End;
-     4: ActiveCircuit.Solution.WriteConvergenceReport(DSSDataDirectory + CircuitName_ + 'Convergence.TXT');
-     5 : Begin
-             ParamName := Parser.NextParam;   // Look for another param
-             Param := LowerCase(Parser.StrValue);
-             ShowElements(DSSDataDirectory + CircuitName_ + 'Elements.Txt', Param);
-           End;
-     6: ShowFaultStudy(DSSDataDirectory + CircuitName_ + 'FaultStudy.Txt');
-     7: ShowIsolated(DSSDataDirectory + CircuitName_ + 'Isolated.Txt');
-     8: ShowGenMeters(DSSDataDirectory + CircuitName_ + 'GenMeterOut.Txt');
-     9: ShowMeters(DSSDataDirectory + CircuitName_ + 'EMout.Txt');
-     10:  Begin     // Show Monitor
-             ParamName := Parser.NextParam;
-             Param := Parser.StrValue;
-             IF Length(Param)>0 THEN
-             Begin
-               pMon:=MonitorClass.Find(Param);
-               IF pMon<>Nil THEN
-                 pMon.TranslateToCSV(TRUE)
-               ELSE DoSimpleMsg('Monitor "'+param+'" not found.'+ CRLF + parser.CmdString, 248);
-             End
-             ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 249);
-          End;
-     11: ShowControlPanel;  
-     12: Begin
-            ShowOptionCode := 0;
-            MVAOpt := 0;
-            FilName := 'Power';
-            Paramname := parser.nextParam;
-            Param := LowerCase(Parser.strvalue);
-            IF Length(Param) > 0 THEN
-              CASE Param[1] of
-                'm': MVAOpt := 1;
-                'e': ShowOptionCode := 1;
-              End;
-            Paramname := parser.nextParam;
-            Param := LowerCase(Parser.strvalue);
-            IF Length(Param) > 0 THEN IF Param[1]='e' THEN ShowOptionCode := 1;
-            If ShowOptionCode=1 Then FilName := FilName + '_elem'
-            Else FilName := FilName + '_seq';
-            If MVAOpt=1 Then FilName := FilName + '_MVA'
-            Else FilName := FilName + '_kVA';
-
-            ShowPowers(DSSDataDirectory + CircuitName_ + filname + '.txt', MVAOpt, ShowOptionCode);
-          End;
-     13:Begin
-            LLOpt := FALSE;      // Line-Line voltage option
-            ShowOptionCode := 0;
-            {Check for LL or LN option}
-            Paramname := parser.nextParam;
-            Param := Parser.strvalue;
-
-            FilName := 'VLN';
-            IF Length(Param) > 0 THEN IF CompareText(Param, 'LL')=0 THEN
-              Begin
-               LLopt := TRUE;
-               FilName := 'VLL';
-              End;
-            {Check for Seq | nodes | elements}
-            Paramname := parser.nextParam;
-            Param := UpperCase(Parser.strvalue);
-            If Length(Param)>0 Then
-               Case Param[1] of
-                 'N': Begin ShowOptionCode := 1;  FilName := FilName + '_Node'; End;
-                 'E': Begin ShowOptionCode := 2;  FilName := FilName + '_elem'; End;
-               Else
-                  FilName := FilName + '_seq';
-               End;
-            ShowVoltages(DSSDataDirectory + CircuitName_ + FilName + '.Txt', LLopt, ShowOptionCode);
-        End;
-     14: ShowMeterZone(DSSDataDirectory + CircuitName_ + 'ZoneOut.Txt');
-     15: ShowRegulatorTaps(DSSDataDirectory + CircuitName_ + 'RegTaps.Txt');
-     16: ShowOverloads(DSSDataDirectory + CircuitName_ + 'Overload.Txt');
-     17: Begin
-             ParamName := Parser.NextParam;
-             Param := Parser.StrValue;
-             IF Length(Param)>0
-             THEN ShowUnserved(DSSDataDirectory + CircuitName_ + 'Unserved.Txt', TRUE)
-             ELSE ShowUnserved(DSSDataDirectory + CircuitName_ + 'Unserved.Txt', FALSE);
-          End;
-     18: ShowMessageForm(EventStrings);
-     19: ShowVariables(DSSDataDirectory + CircuitName_ + 'Variables.Txt');
-     20: ShowRatings(DSSDataDirectory + CircuitName_ + 'RatingsOut.Txt');
-     21: ShowLoops(DSSDataDirectory + CircuitName_ + 'Loops.Txt');
-     22: ShowLosses(DSSDataDirectory + CircuitName_ + 'Losses.Txt');
-     23: Begin  // Show Bus Power Report
-            ShowOptionCode := 0;
-            MVAOpt := 0;
-            Paramname := parser.nextParam; // Get busname
-            Busname := Parser.strvalue;
-            If Length(BusName)>0 Then FilName := BusName
-                                 Else FilName := 'BusPower';
-            Paramname := parser.nextParam;
-            Param := LowerCase(Parser.strvalue);
-            IF Length(Param) > 0 THEN
-              CASE Param[1] of
-                'm': MVAOpt := 1;
-                'e': ShowOptionCode := 1;
-              End;
-            Paramname := parser.nextParam;
-            Param := LowerCase(Parser.strvalue);
-            IF Length(Param) > 0 THEN IF Param[1]='e' THEN ShowOptionCode := 1;
-            If ShowOptionCode=1 Then FilName := FilName + '_elem'
-            Else FilName := FilName + '_seq';
-            If MVAOpt=1 Then FilName := FilName + '_MVA'
-            Else FilName := FilName + '_kVA';
-
-            ShowBusPowers(DSSDataDirectory + CircuitName_ + FilName + '.txt', BusName, MVAOpt, ShowOptionCode);
-          End;
-      24: Begin {ShowLineConstants  Show Lineconstants 60 mi}
-             Freq := DefaultBaseFreq;  // Default
-             Units := UNITS_KFT; // 'kft'; // default
-             Rho_line   := 100.0;
-             ParamName := parser.nextparam;
-             If Length(Parser.strvalue)>0 Then Freq := Parser.dblvalue;
-             ParamName := parser.nextparam;
-             If Length(Parser.strvalue)>0 Then Units := GetUnitsCode(Parser.strvalue);
-             ParamName := parser.nextparam;
-             If Length(Parser.strvalue)>0 Then Rho_line := Parser.dblValue;
-             ShowLineConstants(DSSDataDirectory + CircuitName_ + 'LineConstants.txt', freq, units, Rho_line);
-          End;
-
-      25: If ActiveCircuit<>nil then Begin  {Yprim}
-             With ActiveCircuit.ActiveCktElement Do
-             ShowYprim(DSSDataDirectory + ParentClass.name + '_' + name + '_Yprim.txt' );
-          End;
-
-      26: Begin   {Y}
-             ShowY(DSSDataDirectory + CircuitName_  + 'SystemY.txt' );
-          end;
-      27: If ActiveCircuit <> Nil then  ActiveCircuit.ControlQueue.ShowQueue(DSSDataDirectory + CircuitName_  + 'ControlQueue.csv');
-      28: ShowTopology(DSSDataDirectory + CircuitName_);
-      29: ShowNodeCurrentSum(DSSDataDirectory + CircuitName_ + 'NodeMismatch.Txt');
-   ELSE
-   End;
-
-   Result := 0;
-   InShowResults := False;
-
-End;
 
 //----------------------------------------------------------------------------
 FUNCTION DoExportCmd:Integer;
@@ -3774,14 +3575,7 @@ initialization
                                          'r3','r2','c1','c2', 'c3','channels', 'bases', 'subs', 'thickness', 'buslist']);
     PlotCommands.Abbrev := True;
                                           {  1            2          3           4             5 }
-    ShowCommands := TCommandList.Create(['autoadded',  'buses', 'currents',   'convergence', 'elements',
-                                         'faults',   'isolated', 'generators', 'meters',    'monitor',
-                                         'panel',     'powers',   'voltages', 'zone',       'taps',
-                                         'overloads', 'unserved', 'eventlog', 'variables', 'ratings',
-                                          'loops',    'losses',   'busflow', 'lineconstants',  'yprim',
-                                           'y', 'controlqueue',   'topology', 'mismatch']);
 
-    ShowCommands.Abbrev := True;
                                              {  1            2              3            4             5 }
     ExportCommands := TCommandList.Create([ 'Voltages',   'SeqVoltages', 'Currents', 'SeqCurrents', 'Estimation',
                                             'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',

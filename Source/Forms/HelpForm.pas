@@ -41,7 +41,7 @@ implementation
 
 {$R *.DFM}
 
-Uses DSSClassDefs, DSSGlobals, ExecCommands, ExecOptions, DSSClass;
+Uses DSSClassDefs, DSSGlobals, ExecCommands, ExecOptions, ShowOptions, DSSClass;
 
 const TreeSep: String = '== classes ==';
 
@@ -199,6 +199,14 @@ begin
           AddChildObject(Node1, ExecOption[i], @OptionHelp[i]);
         End;
         Node1.AlphaSort();
+
+      // Do Show Options
+        Node1 := AddObject(nil, 'Show' ,nil);
+        FOR i := 1 to NumShowOptions Do  Begin
+          AddChildObject(Node1, ShowOption[i], @ShowHelp[i]);
+        End;
+        Node1.AlphaSort();
+
 
         // separator
         AddObject (nil, TreeSep, nil);

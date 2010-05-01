@@ -15,7 +15,7 @@ CONST
 
 VAR
          ExecOption,
-         OptionHelp :Array[1..NumExecOptions] of String;
+         OptionHelp  :Array[1..NumExecOptions] of String;
          OptionList  :TCommandList;
 
 FUNCTION DoGetCmd:Integer;

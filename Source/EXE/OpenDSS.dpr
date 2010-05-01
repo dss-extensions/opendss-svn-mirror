@@ -1,6 +1,6 @@
 program OpenDSS;
 { ----------------------------------------------------------
-  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2010, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 
@@ -139,7 +139,7 @@ uses
   StoreUserModel in '..\PCElements\StoreUserModel.pas',
   LineGeometry in '..\General\LineGeometry.pas',
   SwtControl in '..\Controls\SwtControl.pas',
-  ImplGlobals in 'ImplGlobals.pas';
+  ShowOptions in '..\Executive\ShowOptions.pas';
 
 {$R *.RES}
 

@@ -27,7 +27,7 @@ PROCEDURE ProcessCommand(Const CmdLine:String);
 
 implementation
 
-Uses DSSGlobals, ExecHelper, Executive, ExecOptions,
+Uses DSSGlobals, ExecHelper, Executive, ExecOptions, ShowOptions,
      ParserDel, LoadShape, DSSForms, sysutils;
 
 
@@ -160,37 +160,8 @@ Begin
                         'Used for VDIFF command.'+CRLF+
                         'Any class can be saved to a file.  If no filename specified, the classname is used.';
      CommandHelp[8]  := 'Writes selected results to a text file and brings '+
-                         'up the editor (see Set Editor=....) with the file for you to browse.'+CRLF+  CRLF+
-                         'Valid Options (*=default):'+CRLF+
-                         'Show Buses' +CRLF+
-                         'Show Currents  [[residual=]yes|no*] [Seq* | Elements]' +CRLF+
-                         'Show COnvergence  (convergence report)' +CRLF+
-                         'Show CONTrolQueue  ' +CRLF+
-                         'Show ELements [Classname] (shows names of all elements in circuit or all elements of a class)' +CRLF+
-                         'Show Faults (after Fault Study)' +CRLF+
-                         'Show Generators' +CRLF+
-                         'Show Losses' +CRLF+
-                         'Show MEters' +CRLF+
-                         'Show Monitor Monitorname' +CRLF+
-                         'Show Mismatch   (current mismatch at nodes)' +CRLF+
-                         'Show PAnel (control panel)' + CRLF +
-                         'Show Powers [MVA|kVA*] [Seq* | Elements]'   +CRLF+
-                         'Show Voltages [LL |LN*]  [Seq* | Nodes | Elements]' +CRLF+
-                         'Show Zone  EnergyMeterName [Treeview]' +CRLF+
-                         'Show AutoAdded  (see AutoAdd solution mode)' +CRLF+
-                         'Show Taps  (regulated transformers)' +CRLF+
-                         'Show Overloads (overloaded PD elements)' +CRLF+
-                         'Show Unserved [UEonly] (unserved loads)' +CRLF+
-                         'Show EVentlog' +CRLF+
-                         'Show VAriables' +CRLF+
-                         'Show Isolated' +CRLF+
-                         'Show Ratings  (ratings of PD Elements)' +CRLF+
-                         'Show Loops' +CRLF+
-                         'Show Topology (as seen by SwtControl algorithms)' +CRLF+
-                         'Show YPrim  (shows Yprim for active ckt element)' +CRLF+
-                         'Show Y      (shows system Y)' +CRLF+
-                         'Show BUSFlow busname [MVA|kVA*] [Seq* | Elements]' +CRLF+
-                         'Show LIneConstants [frequency] [none|mi|km|kft|m|me|ft|in|cm] [rho]' +CRLF+ CRLF+
+                         'up the default text editor (see Set Editor=....) with the file for you to browse.'+CRLF+  CRLF+
+                         'See separate help on Show command. '  +CRLF+  CRLF+
                          'Default is "show voltages LN Seq".  ';
      CommandHelp[9]  := 'Perform the solution of the present solution mode. You can set any option '+
                          'that you can set with the Set command (see Set). '+
