@@ -31,11 +31,11 @@ interface
          FUNCTION DoSaveCmd:Integer;
          FUNCTION DoSampleCmd:Integer;
 
-         FUNCTION DoExportCmd:Integer;
+
          FUNCTION DoSolveCmd:Integer;
          FUNCTION DoEnableCmd:Integer;
          FUNCTION DoDisableCmd:Integer;
-         FUNCTION DoPlotCmd:Integer;
+
          FUNCTION DoOpenCmd:Integer;
          FUNCTION DoResetCmd:Integer;
          FUNCTION DoNextCmd:Integer;
@@ -126,16 +126,16 @@ interface
 implementation
 
 USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
-     Circuit, Monitor, ShowResults, ExportResults,
+     Circuit, Monitor, {ShowResults, ExportResults,}
      DSSClass, DSSObject, Utilities, Solution,
      EnergyMeter, Generator, LoadShape, Load, PCElement,   CktElement,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
-     Classes,  CktElementClass, Sensor, {FileCtrl,} ExportCIMXML, NamedObject;
+     Classes,  CktElementClass, Sensor, {FileCtrl,} { ExportCIMXML,} NamedObject;
 
 Var
-   SaveCommands, DistributeCommands, PlotCommands, DI_PlotCommands, ExportCommands,
+   SaveCommands, DistributeCommands,  DI_PlotCommands,
    ReconductorCommands, AddMarkerCommands :TCommandList;
 
 
@@ -560,135 +560,6 @@ End;
 
 
 
-//----------------------------------------------------------------------------
-FUNCTION DoExportCmd:Integer;
-
-VAR
-   ParamName,
-   Parm1,
-   Parm2,
-   FileName :String;
-
-   MVAopt :Integer;
-   UEonlyOpt:Boolean;
-   pMon      :TMonitorObj;
-   ParamPointer :Integer;
-
-Begin
-
-   ParamName := Parser.NextParam;
-   Parm1 := LowerCase(Parser.StrValue);
-   ParamPointer := ExportCommands.Getcommand (Parm1);
-
-   MVAOpt := 0;
-   UEonlyOpt := FALSE;
-
-   CASE ParamPointer OF
-      9, 19: Begin { Trap export powers command and look for MVA/kVA option }
-            ParamName := parser.nextParam;
-            Parm2 := LowerCase(Parser.strvalue);
-            MVAOpt := 0;
-            IF Length(Parm2) > 0 THEN IF Parm2[1]='m' THEN MVAOpt := 1;
-          End;
-
-      8: Begin { Trap UE only flag  }
-            ParamName := parser.nextParam;
-            Parm2 := LowerCase(Parser.strvalue);
-            UEonlyOpt := FALSE;
-            IF Length(Parm2) > 0 THEN IF Parm2[1]='u' THEN UEonlyOpt := TRUE;
-          End;
-
-      15: Begin {Get monitor name for export monitors command}
-             ParamName := Parser.NextParam;
-             Parm2 := Parser.StrValue;
-          End;
-
-   End;
-
-   {Pick up last parameter on line, alternate file name, if any}
-   ParamName := Parser.NextParam;
-   FileName := LowerCase(Parser.StrValue);    // should be full path name to work universally
-
-   InShowResults := True;
-
-   {Assign default file name if alternate not specified}
-   IF Length(FileName) = 0 then Begin
-       CASE ParamPointer OF
-          1: FileName := 'EXP_VOLTAGES.CSV';
-          2: FileName := 'EXP_SEQVOLTAGES.CSV';
-          3: FileName := 'EXP_CURRENTS.CSV';
-          4: FileName := 'EXP_SEQCURRENTS.CSV';
-          5: FileName := 'EXP_ESTIMATION.CSV';   // Estimation error
-          6: FileName := 'EXP_CAPACITY.CSV';
-          7: FileName := 'EXP_OVERLOADS.CSV';
-          8: FileName := 'EXP_UNSERVED.CSV';
-          9: FileName := 'EXP_POWERS.CSV';
-         10: FileName := 'EXP_SEQPOWERS.CSV';
-         11: FileName := 'EXP_FAULTS.CSV';
-         12: FileName := 'EXP_GENMETERS.CSV';
-         13: FileName := 'EXP_LOADS.CSV';
-         14: FileName := 'EXP_METERS.CSV';
-         {15: Filename is assigned}
-         16: Filename := 'EXP_YPRIM.CSV';
-         17: Filename := 'EXP_Y.CSV';
-         18: Filename := 'EXP_SEQZ.CSV';
-         19: Filename := 'EXP_P_BYPHASE.CSV';
-         20: FileName := 'CDPSM_Unbalanced.XML';
-         21: FileName := 'CDPSM_Connect.XML';
-         22: FileName := 'CDPSM_Balanced.XML';
-         23: FileName := 'EXP_BUSCOORDS.CSV';
-         24: FileName := 'EXP_LOSSES.CSV';
-         25: FileName := 'EXP_GUIDS.CSV';
-         26: FileName := 'EXP_Counts.CSV';
-       ELSE
-             FileName := 'EXP_VOLTAGES.CSV';    // default
-       END;
-       FileName := DSSDataDirectory + CircuitName_ + FileName;  // Explicitly define directory
-   End;
-
-   CASE ParamPointer OF
-      1: ExportVoltages(FileName);
-      2: ExportSeqVoltages(FileName);
-      3: ExportCurrents(FileName);
-      4: ExportSeqCurrents(FileName);
-      5: ExportEstimation(FileName);   // Estimation error
-      6: ExportCapacity(FileName);
-      7: ExportOverLoads(FileName);
-      8: ExportUnserved(FileName, UEOnlyOpt);
-      9: ExportPowers(FileName, MVAOpt);
-     10: ExportSeqPowers(FileName, MVAopt);
-     11: ExportFaultStudy(FileName);
-     12: ExportGenMeters(FileName);
-     13: ExportLoads(FileName);
-     14: ExportMeters(FileName);
-     15: IF   Length(Parm2) > 0 THEN Begin
-           pMon:=MonitorClass.Find(Parm2);
-           IF   pMon <> NIL  THEN pMon.TranslateToCSV(FALSE)
-                             ELSE DoSimpleMsg('Monitor "'+Parm2+'" not found.'+ CRLF + parser.CmdString, 250);
-         End
-         ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 251);
-     16: ExportYprim(Filename);
-     17: ExportY(Filename);
-     18: ExportSeqZ(Filename);
-     19: ExportPbyphase(Filename, MVAOpt);
-     20: ExportCDPSM_UnBal(Filename);        // defaults to a load-flow model
-     21: ExportCDPSM_UnBal(Filename, False); // not a load-flow model
-     22: ExportCDPSM_Bal(Filename);
-     23: ExportBusCoords(Filename);
-     24: ExportLosses(Filename);
-     25: ExportGuids(Filename);
-     26: ExportCounts(Filename);
-   ELSE
-         ExportVoltages(FileName);    // default
-   END;
-
-   Result := 0;
-   InShowResults := False;
-
-   If AutoShowExport then  FireOffEditor(FileName);
-
-End;
-
 
 //----------------------------------------------------------------------------
 FUNCTION DoSolveCmd:Integer;
@@ -1087,123 +958,6 @@ Begin
      Reallocmem(Dummy, 0);
 End;
 
-//----------------------------------------------------------------------------
-FUNCTION DoPlotCmd:Integer;
-
-{
-  Produce a plot with the DSSGraphX object
-}
-
-Var
-
-   ParamName, Param:String;
-   ParamPointer, i:Integer;
-   DblBuffer:Array[0..50] of Double;
-   NumChannels:Integer;
-
-Begin
-    Result := 0;
-
-    If NoFormsAllowed Then Begin Result :=1; Exit; End;
-
-    If Not Assigned(DSSPlotObj) Then DSSPlotObj := TDSSPlot.Create;
-
-    DSSPlotObj.SetDefaults;
-
-    {Get next parameter on command line}
-    ParamPointer := 0;
-    ParamName := Uppercase(Parser.NextParam);
-    Param := Uppercase(Parser.StrValue);
-    While Length(Param) > 0 Do
-     Begin
-      {Interpret Parameter}
-       IF   (Length(ParamName) = 0)  THEN Inc(ParamPointer)
-       ELSE  ParamPointer := PlotCommands.Getcommand (ParamName);
-
-       With DSSPlotObj Do
-       Case ParamPointer of
-
-         1: Case Param[1] of
-               'A': Begin
-                     PlotType   := ptAutoAddLogPlot;
-                     ObjectName := CircuitName_ + 'AutoAddLog.CSV';
-                     ValueIndex := 2;
-                    End;
-               'C': PlotType := ptCircuitplot;
-               'G': PlotType := ptGeneralDataPlot;
-               'L': PlotType := ptLoadshape;
-               'M': PlotType := ptMonitorplot;
-               'D': Begin
-                      PlotType := ptDaisyplot;
-                      DaisyBusList.Clear;
-                    End;
-               'Z': PlotType := ptMeterZones;
-            Else
-            End;
-         2: Case Param[1] of
-               'V': Quantity := pqVoltage;
-               'C': Case Param[2] of
-                    'A': Quantity := pqcapacity;
-                    'U': Quantity := pqcurrent;
-                    End;
-               'P': Quantity := pqpower;
-               'L': Quantity := pqlosses;
-             Else
-               Quantity := pqNone;
-               Valueindex := Parser.IntValue;
-             End;
-         3:  Begin
-                 MaxScale := Parser.DblValue;
-                 If MaxScale>0.0 Then MaxScaleIsSpecified := TRUE;    // Indicate the user wants a particular value
-             End;
-         4:  Dots := InterpretYesNo(Param);
-         5:  Labels := InterpretYesNo(Param);
-         6:  ObjectName := Parser.StrValue;
-         7:   Begin
-                ShowLoops := InterpretYesNo(Param);
-                If ShowLoops then PlotType := ptMeterzones;
-              End;
-         8:   TriColorMax := Parser.DblValue;
-         9:   TriColorMid := Parser.DblValue;
-         10:  Color1 := Parser.IntValue;
-         11:  Color2 := Parser.IntValue;
-         12:  Color3 := Parser.IntValue;
-         13: Begin    {Channel definitions for Plot Monitor}
-               NumChannels := Parser.ParseAsVector(51, @DblBuffer);  // allow up to 50 channels
-               If NumChannels>0 Then Begin   // Else take the defaults
-                 SetLength(Channels, NumChannels);
-                 For i := 0 to NumChannels-1 Do Channels[i] := Round(DblBuffer[i]);
-                 SetLength(Bases, NumChannels);
-                 For i := 0 to NumChannels-1 Do Bases[i] :=1.0;
-               End;
-             End;
-         14: Begin
-               NumChannels  := Parser.ParseAsVector(51, @DblBuffer);  // allow up to 50 channels
-               If NumChannels>0 Then Begin
-                  SetLength(Bases, NumChannels);
-                 For i := 0 to NumChannels-1 Do Bases[i] := DblBuffer[i];
-               End;
-             End;
-         15: ShowSubs := InterpretYesNo(Param);
-         16: MaxLineThickness := Parser.IntValue ;
-         17: InterpretTStringListArray(Param,  DaisyBusList);  {read in Bus list}
-       Else
-       End;
-
-
-      ParamName := Uppercase(Parser.NextParam);
-      Param := Uppercase(Parser.StrValue);
-     End;
-
-     If Not ActiveCircuit.Issolved Then DSSPlotObj.Quantity := pqNone;
-
-     With DSSPlotObj Do Begin
-
-        Execute;   // makes a new plot based on these options
-
-     End;
-
-End;
 
 
 //----------------------------------------------------------------------------
@@ -3571,19 +3325,7 @@ initialization
     DistributeCommands := TCommandList.Create(['kW','how','skip','pf','file','MW']);
     DistributeCommands.Abbrev := True;
 
-    PlotCommands := TCommandList.Create(['type', 'quantity', 'max', 'dots', 'labels', 'object','showloops',
-                                         'r3','r2','c1','c2', 'c3','channels', 'bases', 'subs', 'thickness', 'buslist']);
-    PlotCommands.Abbrev := True;
-                                          {  1            2          3           4             5 }
-
-                                             {  1            2              3            4             5 }
-    ExportCommands := TCommandList.Create([ 'Voltages',   'SeqVoltages', 'Currents', 'SeqCurrents', 'Estimation',
-                                            'Capacity',   'Overloads',   'Unserved', 'Powers',      'SeqPowers',
-                                            'Faultstudy', 'Generators',  'Loads',    'Meters',      'Monitors',
-                                            'Yprims',     'Y',           'seqz',     'P_byphase',   'CDPSM',
-                                            'CDPSMConnect','CDPSMBalanced','Buscoords', 'Losses', 'Guids',
-                                            'Counts']);
-    ExportCommands.Abbrev := True;
+                                               {  1            2              3            4             5 }
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
     ReconductorCommands.Abbrev := True;
@@ -3595,6 +3337,5 @@ finalization
 
     DistributeCommands.Free;
     SaveCommands.Free;
-    PlotCommands.Free;
 
 end.

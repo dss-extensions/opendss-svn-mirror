@@ -139,7 +139,9 @@ uses
   StoreUserModel in '..\PCElements\StoreUserModel.pas',
   LineGeometry in '..\General\LineGeometry.pas',
   SwtControl in '..\Controls\SwtControl.pas',
-  ShowOptions in '..\Executive\ShowOptions.pas';
+  ShowOptions in '..\Executive\ShowOptions.pas',
+  PlotOptions in '..\Executive\PlotOptions.pas',
+  ExportOptions in '..\Executive\ExportOptions.pas';
 
 {$R *.RES}
 

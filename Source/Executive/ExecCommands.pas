@@ -27,8 +27,8 @@ PROCEDURE ProcessCommand(Const CmdLine:String);
 
 implementation
 
-Uses DSSGlobals, ExecHelper, Executive, ExecOptions, ShowOptions,
-     ParserDel, LoadShape, DSSForms, sysutils;
+Uses DSSGlobals, ExecHelper, Executive, ExecOptions, ShowOptions,  PlotOptions,
+     ExportOptions, ParserDel, LoadShape, DSSForms, sysutils;
 
 
 PROCEDURE DefineCommands;
@@ -174,28 +174,7 @@ Begin
                          'Disable load.loadxxx'+CRLF+
                          'Disable generator.*  (Disables all generators)'+CRLF+ CRLF+
                          'The item remains defined, but is not included in the solution.';
-     CommandHelp[12] := 'Plots results in a variety of manners.  Implemented options (in order): ' + CRLF +
-                        'Type = {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape }'+ CRLF +
-                        'Quantity = {Voltage | Current | Power | Losses | Capacity | (Value Index for General, AutoAdd, or Circuit[w/ file]) }' + CRLF +
-                        'Max = {0 | value corresponding to max scale or line thickness}' + CRLF +
-                        'Dots = {Y | N}' + CRLF +
-                        'Labels = {Y | N}' + CRLF +
-                        'Object = [metername for Zone plot | Monitor name | LoadShape Name | File Name for General bus data or Circuit branch data]' + CRLF +
-                        'ShowLoops = {Y | N} (default=N)' + CRLF +
-                        'R3 = pu value for tri-color plot max range [.85] (Color C3)' + CRLF +
-                        'R2 = pu value for tri-color plot mid range [.50] (Color C2)' + CRLF +
-                        'C1, C2, C3 = {RGB color number} '+CRLF+
-                        'Channels=(array of channel numbers for monitor plot)' +CRLF+
-                        'Bases=(array of base values for each channel for monitor plot).  Default is 1.0 for each.  Set Base= after defining channels.' +CRLF+
-                        'Subs={Y | N} (default=N) (show substations)'+CRLF+
-                        'Thickness=max thickness allowed for lines in circuit plots (default=7)'+CRLF +
-                        'Buslist=[Array of Bus Names | File=filename ] (for Daisy plot)' +CRLF+CRLF+
-                        'Power and Losses in kW.  C1 used for default color.  C2, C3 used for gradients, tri-color plots. Scale determined automatically of Max = 0 or not specified.  Example:'+CRLF+CRLF+
-                        'Plot daisy power 5000 dots=N !! Generators by default'+CRLF+
-                        'Plot daisy power 5000 dots=N Buslist=[file=MyBusList.txt]'+CRLF+
-                        'Plot circuit quantity=7 Max=.010 dots=Y Object=branchdata.csv'+CRLF+
-                        'Plot Loadshape Object=LoadshapeName'+CRLF+
-                        'Plot General Quantity=2 Object=valuefile.csv';
+     CommandHelp[12] := 'Plots circuits and results in a variety of manners.  See separate Plot command help.';
      CommandHelp[13] := '{MOnitors | MEters | Faults | Controls | Eventlog | Keeplist |(no argument) } Resets all Monitors, Energymeters, etc. ' +
                          'If no argument specified, resets all options listed.';
      CommandHelp[14] := 'Reads the designated file name containing DSS commands ' +
@@ -281,40 +260,15 @@ Begin
      CommandHelp[34] := 'Export various solution values to CSV (or XML) files for import into other programs. ' +
                          'Creates a new file except for Energymeter and Generator objects, for which ' +
                          'the results for each device of this class are APPENDED to the CSV File. You may export to '+
-                         'a specific file by specifying the file name as the LAST parameter on the line. '+
-                         'Otherwise, the default file names shown below are used. ' +
+                         'a specific file by specifying the file name as the LAST parameter on the line. For example:'+ CRLF+CRLF+
+                         '  Export Voltage Myvoltagefile.CSV' +CRLF+CRLF+
+                         'Otherwise, the default file names shown in the Export help are used. ' +
                          'For Energymeter and Generator, specifying the switch "/multiple" (or /m) for the file name will cause ' +
                          'a separate file to be written for each meter or generator. ' +
-                         'The default is for a single file containing all elements.' +  CRLF +CRLF +
-                         'Syntax for Implemented Exports:' + CRLF +CRLF +
-                         'Export Voltages  [Filename]   (EXP_VOLTAGES.CSV)' + CRLF +
-                         'Export SeqVoltages [Filename] (EXP_SEQVOLTAGES.CSV)' + CRLF +
-                         'Export Currents [Filename]    (EXP_CURRENTS.CSV)' + CRLF +
-                         'Export Estimation [Filename]  (EXP_ESTIMATION.CSV)' + CRLF +
-                         'Export Capacity [Filename]    (EXP_CAPACITY.CSV)' + CRLF +
-                         'Export Overloads [Filename]    EXP_OVERLOADS.CSV)' + CRLF +
-                         'Export Unserved  [UEonly] [Filename]   EXP_UNSERVED.CSV)' + CRLF +
-                         'Export SeqCurrents [Filename] (EXP_SEQCURRENTS.CSV)' + CRLF +
-                         'Export Powers [MVA] [Filename](EXP_POWERS.CSV)' + CRLF +
-                         'Export P_Byphase [MVA] [Filename](EXP_P_BYPHASE.CSV)' + CRLF +
-                         'Export SeqPowers [MVA] [Filename](EXP_SEQPOWERS.CSV)' + CRLF +
-                         'Export Faultstudy [Filename]  (EXP_FAULTS.CSV)' + CRLF +
-                         'Export Generators [Filename | /m ]  (EXP_GENMETERS.CSV)' + CRLF +
-                         'Export Loads [Filename]       (EXP_LOADS.CSV)' + CRLF +
-                         'Export Meters [Filename |/m ] (EXP_METERS.CSV)' + CRLF +
-                         'Export Monitors monitorname   (file name is assigned) ' + CRLF +
-                         'Export Yprims  [Filename]     (EXP_YPRIMS.CSV)   (all YPrim matrices)' + CRLF +
-                         'Export Y  [Filename]          (EXP_Y.CSV)   (system Y matrix)' + CRLF +
-                         'Export seqZ  [Filename]       (EXP_SEQZ.CSV) (equiv sequence Z1, Z0 to bus)' + CRLF +
-                         'Export CDPSM [Filename]        (CDPSM.XML) (IEC 61968-13, CDPSM Unbalanced load flow profile)' + CRLF +
-                         'Export CDPSMConnect [Filename] (CDPSM_Connect.XML) (IEC 61968-13, CDPSM Unbalanced connectivity profile)' + CRLF +
-                         'Export CDPSMBalanced [Filename](CDPSM_Balanced.XML) (IEC 61968-13, CDPSM Balanced profile)' + CRLF +
-                         'Export Buscoords [Filename]   [EXP_BUSCOORDS.CSV]' + CRLF +
-                         'Export Losses [Filename] [EXP_LOSSES.CSV]' + CRLF +
-                         'Export Guids [Filename]   [EXP_GUIDS.CSV]' + CRLF +
-                         'Export Counts [Filename]   [EXP_Counts.CSV] (instance counts for each class)' + CRLF +
-                         CRLF + 'May be abreviated Export V, Export C, etc.  Default is "V".'+
-                         ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor.';
+                         'The default is for a single file containing all elements.' +  CRLF + CRLF+
+                         'May be abreviated Export V, Export C, etc.  Default is "V" for voltages.'+
+                         ' If Set ShowExport=Yes, the output file will be automatically displayed in the default editor. '+
+                         'Otherwise, you must open the file separately. The name appears in the Result window.';
      CommandHelp[35] := 'Edit specified file in default text file editor (see Set Editor= option).'+CRLF+CRLF+
                          'Fileedit EXP_METERS.CSV (brings up the meters export file)' + CRLF+CRLF+
                          '"FileEdit" may be abbreviated to a unique character string.';

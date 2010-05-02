@@ -7,14 +7,13 @@ Uses Command;
 CONST
         NumShowOptions = 30;
 
+FUNCTION DoShowCmd:Integer;
+
+
 VAR
          ShowOption,
          ShowHelp :Array[1..NumShowOptions] of String;
-
-
-FUNCTION DoShowCmd:Integer;
-
-Var   ShowCommands:TCommandList;
+         ShowCommands:TCommandList;
 
 implementation
 
@@ -352,6 +351,6 @@ Initialization
 Finalization
 
     DisposeStrings;
-
+    ShowCommands.Free;
 
 end.

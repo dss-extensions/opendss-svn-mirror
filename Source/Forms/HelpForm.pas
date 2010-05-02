@@ -41,7 +41,8 @@ implementation
 
 {$R *.DFM}
 
-Uses DSSClassDefs, DSSGlobals, ExecCommands, ExecOptions, ShowOptions, DSSClass;
+Uses DSSClassDefs, DSSGlobals, ExecCommands,
+     ExecOptions, ShowOptions, PlotOptions, ExportOptions, DSSClass;
 
 const TreeSep: String = '== classes ==';
 
@@ -205,8 +206,22 @@ begin
         FOR i := 1 to NumShowOptions Do  Begin
           AddChildObject(Node1, ShowOption[i], @ShowHelp[i]);
         End;
-        Node1.AlphaSort();
+        Node1.AlphaSort();    // always sort
 
+
+      // Do Export Options
+        Node1 := AddObject(nil, 'Export' ,nil);
+        FOR i := 1 to NumExportOptions Do  Begin
+          AddChildObject(Node1, ExportOption[i], @ExportHelp[i]);
+        End;
+        Node1.AlphaSort();    // always sort
+
+      // Do Plot Options
+        Node1 := AddObject(nil, 'Plot' ,nil);
+        FOR i := 1 to NumPlotOptions Do  Begin
+            AddChildObject(Node1, PlotOption[i], @PlotHelp[i]);
+        End;
+        If rdoAlphabetical.Checked Then Node1.AlphaSort();
 
         // separator
         AddObject (nil, TreeSep, nil);
@@ -224,7 +239,7 @@ begin
         for i := 1 to HelpList.Count do begin
           pDSSClass := HelpList.Items[i-1];
           Node1 := AddObject(Node1,pDSSClass.name,nil);
-          if rdoAlphabetical.Checked = true then begin
+          if rdoAlphabetical.Checked then begin
             FOR j := 1 to pDSSClass.NumProperties DO
                AddChildObject(Node1, pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
             Node1.AlphaSort();
