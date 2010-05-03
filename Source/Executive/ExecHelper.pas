@@ -103,6 +103,7 @@ interface
          FUNCTION DoEstimateCmd:Integer;
          FUNCTION DoReconductorCmd:Integer;
          FUNCTION DoAddMarkerCmd:Integer;
+         FUNCTION DoCvrtLoadshapesCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -3315,6 +3316,50 @@ Begin
   End;
 End;
 
+FUNCTION DoCvrtLoadshapesCmd:Integer;
+Var
+   pLoadshape :TLoadShapeObj;
+   iLoadshape :Integer;
+   LoadShapeClass :TLoadShape;
+   ParamName      :String;
+   Param          :String;
+   Action         :String;
+   F              :TextFile;
+   Fname          :String;
+
+Begin
+    ParamName := Parser.NextParam;
+    Param := Parser.StrValue;
+
+    If length(param)=0 then  Param := 's';
+
+    {Double file or Single file?}
+    CASE lowercase(param)[1] of
+        'd': Action := 'action=dblsave';
+    ELSE
+        Action := 'action=sngsave';   // default
+    END;
+
+     LoadShapeClass := GetDSSClassPtr('loadshape') as TLoadShape;
+
+     Fname := 'ReloadLoadshapes.DSS';
+     AssignFile(F, Fname);
+     Rewrite(F);
+
+     iLoadshape := LoadShapeClass.First;
+     while iLoadshape > 0 do  Begin
+        pLoadShape := LoadShapeClass.GetActiveObj;
+        Parser.CmdString := Action;
+        pLoadShape.Edit;
+        Writeln(F, Format('New Loadshape.%s Npts=%d Interval=%.8g %s',[pLoadShape.Name, pLoadShape.NumPoints, pLoadShape.Interval, GlobalResult]));
+        iLoadshape := LoadShapeClass.Next;
+     End;
+
+     CloseFile(F);
+     FireOffEditor(Fname);
+     Result := 0;
+End;
+
 initialization
 
 {Initialize Command lists}
@@ -3324,8 +3369,6 @@ initialization
     DI_PlotCommands := TCommandList.Create(['case','year','registers','peak','meter']);
     DistributeCommands := TCommandList.Create(['kW','how','skip','pf','file','MW']);
     DistributeCommands.Abbrev := True;
-
-                                               {  1            2              3            4             5 }
 
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
     ReconductorCommands.Abbrev := True;

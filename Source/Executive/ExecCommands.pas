@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 87;
+     NumExecCommands = 88;
 
 Var
 
@@ -123,6 +123,7 @@ Begin
 
      ExecCommand[86] := 'Guids';
      ExecCommand[87] := 'SetLoadAndGenKV';
+     ExecCommand[88] := 'CvrtLoadshapes';
 
 
 
@@ -378,6 +379,11 @@ Begin
      CommandHelp[85] := 'Add a marker to the active plot. Example: '+CRLF+CRLF+'AddMarker Bus=busname code=nn color=$00FF0000 size=3';
      CommandHelp[86] := 'Read GUIDS for class names. Tab or comma-delimited file with full object name and GUID';
      CommandHelp[87] := 'Set load and generator object kv from bus voltage base and connection type.';
+     CommandHelp[88] := 'Convert all Loadshapes presently loaded into either files of single or files of double. '+
+                        'Usually files of singles are adequate precision for loadshapes.  Syntax:'+CRLF+CRLF+
+                        'cvrtloadshapes type=sng  (this is the default)'+crlf+
+                        'cvrtloadshapes type=dbl'+CRLF+CRLF+
+                        'A DSS script for loading the loadshapes from the created files is produced and displayed in the default editor. ';
 
 End;
 
@@ -461,6 +467,7 @@ Begin
             Else DoSimpleMsg('Directory "'+Param+'" not found.', 282);
            End;
        75: DoADosCmd;
+       88: DoCvrtLoadshapesCmd;
 
 
 
@@ -581,6 +588,7 @@ Begin
        85: CmdResult := DoAddMarkerCmd;
        86: CmdResult := DoGuidsCmd;
        87: CmdResult := DoSetLoadAndGenKVCmd;
+//       88:;
      ELSE
        // Ignore excess parameters
      End;
