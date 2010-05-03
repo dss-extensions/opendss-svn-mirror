@@ -87,7 +87,9 @@ TYPE
         // Function Get_FirstMult:Double;
         // Function Get_NextMult :Double;
         Function Get_Interval :Double;
-    procedure Set_NumPoints(const Value: Integer);
+        procedure Set_NumPoints(const Value: Integer);
+        Procedure SaveToDblFile;
+        Procedure SaveToSngFile;
 
       public
 
@@ -180,14 +182,17 @@ Begin
      PropertyHelp[1] := 'Max number of points to expect in load shape vectors. This gets reset to the number of multiplier values found (in files only) if less than specified.';     // Number of points to expect
      PropertyHelp[2] := 'Time interval for fixed interval data. (hrs) Default = 1. '+
                         'If set = 0 then time data (in hours) is expected using either the Hour property or input files.'; // default = 1.0;
-     PropertyHelp[3] := 'Array of multiplier values for active power (P).  Can also use the syntax: '+CRLF+
-                        'mult = (file=filename)'+CRLF+
-                        'where the file contains one value per line. In "file=" syntax, the number of points may be altered.';     // vector of multiplier values
+     PropertyHelp[3] := 'Array of multiplier values for active power (P).  You can also use the syntax: '+CRLF+
+                        'mult = (file=filename)     !for text file one value per line'+CRLF+
+                        'mult = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        'mult = (sngfile=filename)  !for packed file of singles '+CRLF+CRLF+
+                        'Note: this property will reset Npts if the  number of values in the files are fewer.';     // vextor of hour values
      PropertyHelp[4] := 'Array of hour values. Only necessary to define for variable interval data.'+
                     ' If the data are fixed interval, do not use this property. ' +
-                    'Can also use the syntax: '+CRLF+
-                        'mult = (file=filename)'+CRLF+
-                        'where the file contains one value per line.';     // vextor of hour values
+                    'You can also use the syntax: '+CRLF+
+                        'hour = (file=filename)     !for text file one value per line'+CRLF+
+                        'hour = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        'hour = (sngfile=filename)  !for packed file of singles ';     // vextor of hour values
      PropertyHelp[5] := 'Mean of the active power multipliers.  Automatically computed when a curve is defined.'+
                     'However, you may set it independently.  Used for Monte Carlo load simulations.';     // set the mean (otherwise computed)
      PropertyHelp[6] := 'Standard deviation of active power multipliers.  This is automatically computed when a '+
@@ -203,12 +208,16 @@ Begin
      PropertyHelp[9] := 'Switch input of active power load curve data to a binary file of doubles '+
                         'containing (hour, mult) points, or simply (mult) values for fixed time interval data, packed one after another. ' +
                         'NOTE: This action may reset the number of points to a lower value.';   // switch input to a binary file of singles
-     PropertyHelp[10] := 'NORMALIZE is only defined action. After defining load curve data, setting action=normalize '+
+     PropertyHelp[10] := '{NORMALIZE | DblSave | SngSave} After defining load curve data, setting action=normalize '+
                      'will modify the multipliers so that the peak is 1.0. ' +
-                     'The mean and std deviation are recomputed.'; // Action
-     PropertyHelp[11] := 'Array of multiplier values for reactive power (Q).  Can also use the syntax: '+CRLF+
-                        'qmult = (file=filename)'+CRLF+
-                        'where the file contains one value per line.';     // vector of multiplier values
+                     'The mean and std deviation are recomputed.' +  CRLF + CRLF +
+                     'Setting action=DblSave or SngSave will cause the present mult and qmult values to be written to ' +
+                     'either a packed file of double or single. The filename is the loadshape name. The mult array will have a '+
+                     '"_P" appended on the file name and the qmult array, if it exists, will have "_Q" appended.'; // Action
+     PropertyHelp[11] := 'Array of multiplier values for reactive power (Q).  You can also use the syntax: '+CRLF+
+                        'qmult = (file=filename)     !for text file one value per line'+CRLF+
+                        'qmult = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        'qmult = (sngfile=filename)  !for packed file of singles ';     // vector of qmultiplier values
 
 
      ActiveProperty := NumPropsThisClass;
@@ -270,7 +279,11 @@ BEGIN
             7: DoCSVFile(Param);
             8: DoSngFile(Param);
             9: DoDblFile(Param);
-           10: IF lowercase(Param[1])='n' THEN Normalize;
+           10: CASE lowercase(Param)[1] of
+                 'n': Normalize;
+                 'd': SaveToDblFile;
+                 's': SaveToSngFile;
+               END;
            11: BEGIN
                  ReAllocmem(QMultipliers, Sizeof(QMultipliers^[1])*NumPoints);
                  InterpretDblArray(Param, NumPoints, QMultipliers);   // Parser.ParseAsVector(Npts, Multipliers);
@@ -897,6 +910,84 @@ begin
      ObjList.Free;
      NameList.Free;
      CNames.Free;
+end;
+
+procedure TLoadShapeObj.SaveToDblFile;
+
+Var
+   F:File of Double;
+   i:Integer;
+   Fname :String;
+begin
+   If Assigned(PMultipliers) then  Begin
+    TRY
+      FName := Format('%s_P.dbl',[Name]);
+      AssignFile(F, Fname);
+      Rewrite(F);
+      For i := 1 to NumPoints Do  Write(F, PMultipliers^[i]);
+      GlobalResult := 'mult=[dblfile='+FName+']';
+    FINALLY
+      CloseFile(F);
+    END;
+
+      If Assigned(QMultipliers) then  Begin
+        TRY
+          FName := Format('%s_Q.dbl',[Name]);
+          AssignFile(F, Fname);
+          Rewrite(F);
+          For i := 1 to NumPoints Do  Write(F, QMultipliers^[i]);
+          AppendGlobalResult(' Qmult=[dblfile='+FName+']');
+        FINALLY
+          CloseFile(F);
+        END;
+      End;
+
+   End
+   Else DoSimpleMsg('Loadshape.'+Name + ' P multipliers not defined.', 622);
+end;
+
+procedure TLoadShapeObj.SaveToSngFile;
+
+Var
+   F:File of Single;
+   i:Integer;
+   Fname :String;
+   Temp  :Single;
+
+begin
+   If Assigned(PMultipliers) then  Begin
+    TRY
+      FName := Format('%s_P.sng',[Name]);
+      AssignFile(F, Fname);
+      Rewrite(F);
+      For i := 1 to NumPoints Do  Begin
+          Temp := PMultipliers^[i] ;
+          Write(F, Temp);
+      End;
+      GlobalResult := 'mult=[sngfile='+FName+']';
+    FINALLY
+      CloseFile(F);
+    END;
+
+      If Assigned(QMultipliers) then  Begin
+        TRY
+          FName := Format('%s_Q.sng',[Name]);
+          AssignFile(F, Fname);
+          Rewrite(F);
+          For i := 1 to NumPoints Do  Begin
+              Temp := QMultipliers^[i] ;
+              Write(F, Temp);
+          End;
+          AppendGlobalResult(' Qmult=[sngfile='+FName+']');
+        FINALLY
+          CloseFile(F);
+        END;
+      End;
+
+   End
+   Else DoSimpleMsg('Loadshape.'+Name + ' P multipliers not defined.', 623);
+
+
 end;
 
 procedure TLoadShapeObj.Set_NumPoints(const Value: Integer);

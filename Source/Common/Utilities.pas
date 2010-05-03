@@ -513,9 +513,12 @@ VAR
    ParmName,
    Param    :String;
    F        :Textfile;
+   MyStream :TMemoryStream;
    i        :Integer;
+   Temp     :Single;
 
 Begin
+
      Auxparser.CmdString := S;
      ParmName := Auxparser.NextParam ;
      Param := AuxParser.StrValue;
@@ -524,7 +527,7 @@ Begin
      {Syntax can be either a list of numeric values or a file specification:  File= ...}
 
      If CompareText(Parmname, 'file') = 0  THEN
-       Begin
+     Begin
          // load the list from a file
          TRY
              AssignFile(F, Param);
@@ -555,7 +558,42 @@ Begin
              CloseFile(F);
 
          END;
-       End
+     End
+
+     ELSE If (Length(Parmname)>0) and (CompareTextShortest(Parmname, 'dblfile') = 0)  THEN
+     Begin
+         // load the list from a file of doubles (no checking done on type of data)
+             MyStream := TMemoryStream.Create;
+
+             If FileExists(Param) then  Begin
+                MyStream.LoadFromFile(Param);
+            // Now move the doubles from the file into the destination array
+                Result := Min(Maxvalues, MyStream.Size div sizeof(ResultArray^[1]));  // no. of doubles
+                MyStream.ReadBuffer(ResultArray^[1], SizeOf(ResultArray^[1])*Result);
+             End
+             Else DoSimpleMsg(Format('File of doubles "%s" not found.',[Param]), 7051);
+             MyStream.Free;
+     End
+
+     ELSE If (Length(Parmname)>0) and (CompareTextShortest(Parmname, 'sngfile') = 0)  THEN
+     Begin
+         // load the list from a file of singles (no checking done on type of data)
+             MyStream := TMemoryStream.Create;
+
+             If FileExists(Param) then  Begin
+                MyStream.LoadFromFile(Param);
+            // Now move the singles from the file into the destination array
+                Result := Min(Maxvalues, MyStream.Size div sizeof(Single));  // no. of singles
+                For i  := 1 to Result Do Begin
+                    MyStream.Read(Temp, Sizeof(Single));
+                    ResultArray^[i] := Temp;  // Single to Double
+                End;
+             End
+             Else DoSimpleMsg(Format('File of Singles "%s" not found.',[Param]), 7052);
+             MyStream.Free;
+
+     End
+
      ELSE
        Begin  // Parse list of values off input string
 

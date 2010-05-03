@@ -155,7 +155,7 @@ Begin
      PropertyHelp[3] := 'Array of growth multiplier values, or a text file spec, corresponding to the year values. '+
                     'Enter the multiplier by which you would multiply the previous year''s load to get the present year''s.'+
                     CRLF+CRLF+'Examples:'+CRLF+CRLF+
-                    '  Year = "1, 2, 5"   Mult="1.05, 1.025, 1.02".'+CRLF+
+                    '  Year = [1, 2, 5]   Mult=[1.05, 1.025, 1.02].'+CRLF+
                     '  Year= (File=years.txt) Mult= (file=mults.txt).'+ CRLF+CRLF+
                     'Text files contain one value per line.';
      PropertyHelp[4] := 'Switch input of growth curve data to a csv file containing (year, mult) points, one per line.';

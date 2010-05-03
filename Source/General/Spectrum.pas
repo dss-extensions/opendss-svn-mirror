@@ -115,9 +115,18 @@ Begin
      PropertyName[5] := 'CSVFile';
 
      PropertyHelp[1] := 'Number of frequencies in this spectrum. (See CSVFile)';
-     PropertyHelp[2] := 'Array of harmonic values.';
-     PropertyHelp[3] := 'Array of magnitude values, assumed to be in PERCENT.';
-     PropertyHelp[4] := 'Array of phase angle values, degrees.';
+     PropertyHelp[2] := 'Array of harmonic values. You can also use the syntax' + CRLF +
+                        'harmonic = (file=filename)     !for text file one value per line'+CRLF+
+                        'harmonic = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        'harmonic = (sngfile=filename)  !for packed file of singles ';
+     PropertyHelp[3] := 'Array of magnitude values, assumed to be in PERCENT. You can also use the syntax' + CRLF +
+                        '%mag = (file=filename)     !for text file one value per line'+CRLF+
+                        '%mag = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        '%mag = (sngfile=filename)  !for packed file of singles ';
+     PropertyHelp[4] := 'Array of phase angle values, degrees.You can also use the syntax' + CRLF +
+                        'angle = (file=filename)     !for text file one value per line'+CRLF+
+                        'angle = (dblfile=filename)  !for packed file of doubles'+CRLF+
+                        'angle = (sngfile=filename)  !for packed file of singles ';
      PropertyHelp[5] := 'File of spectrum points with (harmonic, magnitude-percent, angle-degrees) values, one set of 3 per line, in CSV format. '+
                         'If fewer than NUMHARM frequencies found in the file, NUMHARM is set to the smaller value.';
 
