@@ -82,8 +82,13 @@ Uses DSSClass,
      CktElement,
      PDElement,
      arrayDef,
-     PointerList, CktTree, ucomplex, Feeder,
-     Load, Generator, Command;
+     PointerList,
+     CktTree,
+     ucomplex,
+     Feeder,
+     Load,
+     Generator,
+     Command;
 
 Const
     NumEMVbase = 7;
@@ -190,6 +195,7 @@ Type
         Function  MakeLike(Const EnergyMeterName:String):Integer;   Override;
         procedure SetHasMeterFlag;
      public
+
 
        DI_RegisterTotals   :TRegisterArray;
        DI_Dir              :String;
@@ -2301,7 +2307,7 @@ begin
   Try
       IF This_Meter_DIFileIsOpen Then CloseDemandIntervalFile;
 
-      If EnergyMeterClass.FDI_Verbose Then Begin
+      If (EnergyMeterClass.DI_Verbose) Then Begin
           AssignFile(DI_File, MakeDIFileName);
           Rewrite(DI_File);
           This_Meter_DIFileIsOpen := TRUE;
@@ -2319,7 +2325,7 @@ procedure TEnergyMeterObj.WriteDemandIntervalData;
 Var i:Integer;
 
 begin
-      If EnergyMeterClass.FDI_Verbose and This_Meter_DIFileIsOpen Then Begin
+      If EnergyMeterClass.DI_Verbose and This_Meter_DIFileIsOpen Then Begin
           With ActiveCircuit.Solution Do Write(DI_File, Format('%-.6g',[dblHour]));
           For i := 1 to NumEMRegisters Do Write(DI_File, Format(', %-.6g',[Derivatives[i]]));
           Writeln(DI_File);

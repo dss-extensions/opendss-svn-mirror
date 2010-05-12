@@ -1606,8 +1606,13 @@ End;
 PROCEDURE LogThisEvent(Const EventName:String);
 
 Begin
-    EventStrings.Add('Time=' + TimeToStr(Time)+': '+EventName);
-    ShowMessageForm(EventStrings);
+
+    With ActiveCircuit.Solution do
+    EventStrings.Add(Format('Hour=%d, Sec=%-.8g, Iteration=%d, ControlIter=%d, Event=%s',
+          [intHour, Dynavars.t, iteration, ControlIteration, EventName ]));
+
+     //     'Time=' + TimeToStr(Time)+': '+EventName);
+   // ShowMessageForm(EventStrings);
 End;
 
 PROCEDURE AppendToEventLog(const opdev:string; Const action:String);
