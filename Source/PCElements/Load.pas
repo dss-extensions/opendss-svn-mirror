@@ -102,6 +102,7 @@ TYPE
         Vminpu                  :Double;
         ExemptFromLDCurve       :Boolean;
         Fixed                   :Boolean;   // IF Fixed, always at base value
+        ShapeIsActual           :Boolean;
 
         FUNCTION  AllTerminalsClosed:Boolean;
         PROCEDURE CalcDailyMult(Hr:double);
@@ -133,6 +134,7 @@ TYPE
         procedure Set_kWh(const Value: Double);
         procedure Set_kWhDays(const Value: Double);
         procedure Set_AllocationFactor(const Value: Double);
+        PROCEDURE SetkWkvar(const PkW, Qkvar:Double);
 
 
       Protected
@@ -555,14 +557,25 @@ Begin
 
             4: LoadSpecType := 0;
             5: PFChanged := TRUE;
-    {Set shape objects;  returns nil IF not valid}
-            7: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
+    {Set shape objects;  returns nil if not valid}
+    {Sets the kW and kvar properties to match the peak kW demand from the Loadshape}
+            7: Begin
+                    YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
+                    If Assigned(YearlyShapeObj) then With YearlyShapeObj Do
+                        If UseActual then SetkWkvar(MaxP, MaxQ);
+               End;
             8: Begin
-                DailyShapeObj := LoadShapeClass.Find(DailyShape);
+                    DailyShapeObj := LoadShapeClass.Find(DailyShape);
+                      If Assigned(DailyShapeObj) then With DailyShapeObj Do
+                        If UseActual then SetkWkvar(MaxP, MaxQ);
                 {If Yearly load shape is not yet defined, make it the same as Daily}
                 IF YearlyShapeObj=Nil THEN YearlyShapeObj := DailyShapeObj;
                End;
-            9: DutyShapeObj := LoadShapeClass.Find(DutyShape);
+            9: Begin
+                    DutyShapeObj := LoadShapeClass.Find(DutyShape);
+                    If Assigned(DutyShapeObj) then With DutyShapeObj Do
+                        If UseActual then SetkWkvar(MaxP, MaxQ);
+               End;
             10: GrowthShapeObj := GrowthShapeClass.Find(GrowthShape);
 
             12: LoadSpecType := 1;  // kW, kvar
@@ -638,6 +651,7 @@ Begin
        FConnectedkVA     := OtherLoad.FConnectedkVA;
        FCVRwattFactor    := OtherLoad.FCVRwattFactor;
        FCVRvarFactor     := OtherLoad.FCVRvarFactor;
+       ShapeIsActual     := OtherLoad.ShapeIsActual;
 
        ClassMakeLike(OtherLoad);  // Take care of inherited class properties
 
@@ -716,6 +730,7 @@ Begin
      FAllocationFactor := FkVAAllocationFactor;
      HasBeenAllocated  := FALSE;
      PFChanged         := FALSE;
+     ShapeIsActual     := FALSE;
 
      LoadSolutionCount     := -1;  // for keeping track of the present solution in Injcurrent calcs
      OpenLoadSolutionCount := -1;
@@ -784,7 +799,8 @@ Procedure TLoadObj.CalcDailyMult(Hr:Double);
 
 Begin
      IF DailyShapeObj <> Nil THEN Begin
-       ShapeFactor := DailyShapeObj.GetMult(Hr);
+       ShapeFactor   := DailyShapeObj.GetMult(Hr);
+       ShapeIsActual := DailyShapeObj.UseActual;
      End
      ELSE ShapeFactor := Cmplx(1.0, 1.0);  // Default to no daily variation
 End;
@@ -795,7 +811,8 @@ Procedure TLoadObj.CalcDutyMult(Hr:double);
 
 Begin
      IF DutyShapeObj <> Nil THEN Begin
-       ShapeFactor := DutyShapeObj.GetMult(Hr);
+       ShapeFactor   := DutyShapeObj.GetMult(Hr);
+       ShapeIsActual := DutyShapeObj.UseActual;
      End
      ELSE CalcDailyMult(Hr);  // Default to Daily Mult IF no duty curve specified
 End;
@@ -805,8 +822,11 @@ Procedure TLoadObj.CalcYearlyMult(Hr:double);
 
 Begin
 {Yearly curve is assumed to be hourly only}
- IF   YearlyShapeObj<>Nil THEN ShapeFactor := YearlyShapeObj.GetMult(Hr)
-                          ELSE ShapeFactor := Cmplx(1.0, 1.0);
+     IF   YearlyShapeObj<>Nil THEN Begin
+           ShapeFactor   := YearlyShapeObj.GetMult(Hr);
+           ShapeIsActual := YearlyShapeObj.UseActual;
+     End
+     ELSE ShapeFactor := Cmplx(1.0, 1.0);
                           // Defaults to no variation
 End;
 
@@ -845,15 +865,23 @@ End;
 
 
 //----------------------------------------------------------------------------
+procedure TLoadObj.SetkWkvar(const PkW, Qkvar: Double);
+begin
+     kWBase := PkW;
+     kvarbase := Qkvar;
+     LoadSpecType := 1;
+end;
+
 PROCEDURE TLoadObj.SetNominalLoad;
 Var
    Factor:Double;
 
 Begin
   ShapeFactor := CDOUBLEONE;
+  ShapeIsActual := FALSE;
   WITH ActiveCircuit.Solution DO
     IF Fixed THEN Begin
-       Factor := GrowthFactor(Year);   // FOR fixed loads, consider only growth factor
+       Factor := GrowthFactor(Year);   // For fixed loads, consider only growth factor
     End
     ELSE
        CASE Mode OF
@@ -893,8 +921,13 @@ Begin
          Factor := GrowthFactor(Year)    // defaults to Base kW * growth
        End;
 
-    WNominal   := 1000.0 * kWBase   * Factor * ShapeFactor.re / Fnphases ;
-    varNominal := 1000.0 * kvarBase * Factor * ShapeFactor.im / Fnphases;
+    If ShapeIsActual then Begin
+        WNominal   := 1000.0 * ShapeFactor.re / Fnphases ;
+        varNominal := 1000.0 * ShapeFactor.im / Fnphases;
+    End Else Begin
+        WNominal   := 1000.0 * kWBase   * Factor * ShapeFactor.re / Fnphases ;
+        varNominal := 1000.0 * kvarBase * Factor * ShapeFactor.im / Fnphases;
+    End;
 
     Yeq := CDivReal(Cmplx(WNominal, -VarNominal), Sqr(Vbase));
     IF   (Vminpu <> 0.0) THEN Yeq95 := CDivReal(Yeq, sqr(Vminpu))   // at 95% voltage

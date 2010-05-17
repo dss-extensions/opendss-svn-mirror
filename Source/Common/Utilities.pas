@@ -79,6 +79,8 @@ FUNCTION GetNodeNum(NodeRef:Integer):Integer;
 PROCEDURE InitStringToNull(Var S:String);
 FUNCTION CmulReal_im(const a:Complex; const Mult:Double):Complex;  // Multiply only imaginary part by a real
 //FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
+FUNCTION MaxdblArrayValue(npts:Integer; dbls:pDoubleArray):Double;
+FUNCTION iMaxAbsdblArrayValue(npts:Integer; dbls:pDoubleArray):Integer;
 
 
 {Save Function Helper}
@@ -2423,6 +2425,37 @@ Begin
      pLine := pLine.ParentPDElement;
    End;
 End;
+
+FUNCTION MaxdblArrayValue(npts:Integer; dbls:pDoubleArray):Double;
+// returns max value of an array of doubles
+VAR
+   i:Integer;
+Begin
+     Result := 0.0;
+     If npts=0 then exit;
+
+     Result := dbls^[1];
+     For i := 2 to npts Do  Result := max(Result, dbls^[i]);
+End;
+
+FUNCTION iMaxAbsdblArrayValue(npts:Integer; dbls:pDoubleArray):Integer;
+// Returns index of max array value  in abs value
+VAR
+   i:Integer;
+   MaxValue:Double;
+Begin
+     Result := 0;
+     If npts=0 then exit;
+
+     Result := 1;
+     MaxValue := abs(dbls^[1]);
+     For i := 2 to npts Do
+       if abs(dbls^[i]) > Maxvalue Then Begin
+          Maxvalue := abs(dbls^[i]);
+          Result := i;   // save index
+       End;
+End;
+
 
 initialization
 

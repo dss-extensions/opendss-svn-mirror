@@ -36,7 +36,7 @@ Interface
 
  For variable interval data, (hour, multiplier) pairs are expected in both formats.
 
- The Mean and Std Deviation are automatically computed when a new series of points is entered.
+ The Mean and Std Deviation are automatically computed upon demand when new series of points is entered.
 
  The data may also be entered in unnormalized form.  The normalize=Yes command will force normalization.  That
  is, the multipliers are scaled so that the maximum value is 1.0.
@@ -84,12 +84,25 @@ TYPE
         FNumPoints :Integer;  // Number of points in curve
         ArrayPropertyIndex:Integer;
 
+        iMaxP:integer;
+
+        FStdDevCalculated :Boolean;
+        FMean,
+        FStdDev :Double;
+
         // Function Get_FirstMult:Double;
         // Function Get_NextMult :Double;
         Function Get_Interval :Double;
         procedure Set_NumPoints(const Value: Integer);
         Procedure SaveToDblFile;
         Procedure SaveToSngFile;
+        Procedure CalcMeanandStdDev;
+        Procedure Normalize;
+        function Get_Mean: Double;
+        function Get_StdDev: Double;
+        procedure Set_Mean(const Value: Double);
+        procedure Set_StdDev(const Value: Double);  // Normalize the curve presently in memory
+        Procedure SetMaxPandQ;
 
       public
 
@@ -98,8 +111,10 @@ TYPE
         PMultipliers,
         QMultipliers :pDoubleArray;  // Multipliers
 
-        Mean,
-        StdDev :Double;
+        MaxP,
+        MaxQ :Double;
+
+        UseActual :Boolean;
 
         constructor Create(ParClass:TDSSClass; const LoadShapeName:String);
         destructor  Destroy; override;
@@ -107,8 +122,8 @@ TYPE
         Function  GetMult(hr:double):Complex;  // Get multiplier at specified time
         Function  Mult(i:Integer):Double;  // get multiplier by index
         Function  Hour(i:Integer):Double;  // get hour corresponding to point index
-        Procedure Normalize;  // Normalize the curve presently in memory
-        Procedure CalcMeanandStdDev;
+
+
 
         FUNCTION  GetPropertyValue(Index:Integer):String;Override;
         PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
@@ -116,6 +131,8 @@ TYPE
 
         Property NumPoints :Integer Read FNumPoints Write Set_NumPoints;
         Property PresentInterval :Double Read Get_Interval;
+        Property Mean :Double   Read Get_Mean Write Set_Mean;
+        Property StdDev :Double  Read Get_StdDev Write Set_StdDev;
         {Property FirstMult :Double Read Get_FirstMult;}
         {Property NextMult  :Double Read Get_NextMult;}
 
@@ -128,7 +145,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  MathUtil, Utilities, Classes, TOPExport, Math, PointerList;
 
-Const NumPropsThisClass = 11;
+Const NumPropsThisClass = 14;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLoadShape.Create;  // Creates superstructure for all Line objects
@@ -143,9 +160,6 @@ BEGIN
 
      CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
      CommandList.Abbrev := TRUE;
-
-
-
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,6 +190,9 @@ Begin
      PropertyName[9] := 'dblfile';   // switch input to a binary file of singles
      PropertyName[10] := 'action'; // actions  Normalize
      PropertyName[11] := 'qmult'; // Q multiplier
+     PropertyName[12] := 'UseActual'; // Flag to signify to use actual value
+     PropertyName[13] := 'Pmax'; // MaxP value
+     PropertyName[14] := 'Qmax'; // MaxQ
 
      // define Property help values
 
@@ -193,10 +210,11 @@ Begin
                         'hour = (file=filename)     !for text file one value per line'+CRLF+
                         'hour = (dblfile=filename)  !for packed file of doubles'+CRLF+
                         'hour = (sngfile=filename)  !for packed file of singles ';     // vextor of hour values
-     PropertyHelp[5] := 'Mean of the active power multipliers.  Automatically computed when a curve is defined.'+
-                    'However, you may set it independently.  Used for Monte Carlo load simulations.';     // set the mean (otherwise computed)
-     PropertyHelp[6] := 'Standard deviation of active power multipliers.  This is automatically computed when a '+
-                     'vector or file of multipliers is entered.  However, you may set it to another value indepently.'+
+     PropertyHelp[5] := 'Mean of the active power multipliers.  This is computed on demand the first time a '+
+                     'value is needed.  However, you may set it to another value independently. '+
+                     'Used for Monte Carlo load simulations.';     // set the mean (otherwise computed)
+     PropertyHelp[6] := 'Standard deviation of active power multipliers.  This is computed on demand the first time a '+
+                     'value is needed.  However, you may set it to another value independently.'+
                      'Is overwritten if you subsequently read in a curve' + CRLF + CRLF +
                      'Used for Monte Carlo load simulations.';   // set the std dev (otherwise computed)
      PropertyHelp[7] := 'Switch input of active power load curve data to a csv file '+
@@ -218,6 +236,12 @@ Begin
                         'qmult = (file=filename)     !for text file one value per line'+CRLF+
                         'qmult = (dblfile=filename)  !for packed file of doubles'+CRLF+
                         'qmult = (sngfile=filename)  !for packed file of singles ';     // vector of qmultiplier values
+     PropertyHelp[12] := '{Yes | No* | True | False*} If true, signals to Load, Generator, or other objects to ' +
+                         'use the return value as the actual kW, kvar value rather than a multiplier. Nominally for AMI data.';
+     PropertyHelp[13] := 'kW value at the time of max power. Is automatically set upon reading in a loadshape. '+
+                         'Use this property to override the value automatically computed or to retrieve the value computed.';
+     PropertyHelp[14] := 'kvar value at the time of max kW power. Is automatically set upon reading in a loadshape. '+
+                         'Use this property to override the value automatically computed or to retrieve the value computed.';
 
 
      ActiveProperty := NumPropsThisClass;
@@ -288,20 +312,19 @@ BEGIN
                  ReAllocmem(QMultipliers, Sizeof(QMultipliers^[1])*NumPoints);
                  InterpretDblArray(Param, NumPoints, QMultipliers);   // Parser.ParseAsVector(Npts, Multipliers);
                END;
+           12: UseActual := InterpretYesNo(Param);
+           13: MaxP := Parser.DblValue;
+           14: MaxQ := Parser.DblValue;
          ELSE
            // Inherited parameters
              ClassEdit( ActiveLoadShapeObj, ParamPointer - NumPropsThisClass)
          END;
 
          CASE ParamPointer OF
-           3,7,8,9,10: Begin
-                            CalcMeanAndStdDev;
-                            PropertyValue[5] := Str_Real(Mean, 3);
-                            PropertyValue[6] := Str_Real(StdDev, 3);
-                            If ParamPointer<>10 Then Begin
-                               ArrayPropertyIndex := ParamPointer;
-                               NumPoints := FNumPoints;  // Keep Properties in order for save command
-                            End;
+           3,7,8,9,11: Begin
+                            FStdDevCalculated := FALSE;   // now calculated on demand
+                            ArrayPropertyIndex := ParamPointer;
+                            NumPoints := FNumPoints;  // Keep Properties in order for save command
                        END;
 
          END;
@@ -309,6 +332,8 @@ BEGIN
          ParamName := Parser.NextParam;
          Param := Parser.StrValue;
      END; {WHILE}
+
+     If Assigned(PMultipliers) then  SetMaxPandQ;
   END; {WITH}
 END;
 
@@ -342,8 +367,15 @@ BEGIN
           ReallocMem(Hours, SizeOf(Hours^[1])*NumPoints);
           FOR i := 1 To NumPoints DO Hours^[i] := OtherLoadShape.Hours^[i];
         END;
+        SetMaxPandQ;
+        UseActual := OtherLoadShape.UseActual;
+
+
+       { MaxP :=  OtherLoadShape.MaxP;
+        MaxQ :=  OtherLoadShape.MaxQ;
         Mean :=  OtherLoadShape.Mean;
         StdDev := OtherLoadShape.StdDev;
+       }
 
        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherLoadShape.PropertyValue[i];
     END
@@ -534,11 +566,16 @@ BEGIN
      DSSObjType := ParClass.DSSClassType;
 
      LastValueAccessed := 1;
-     FNumPoints := 0;
-     Interval := 1.0;  // hr
-     Hours := Nil;
+
+     FNumPoints   := 0;
+     Interval     := 1.0;  // hr
+     Hours        := Nil;
      PMultipliers := Nil;
      QMultipliers := Nil;
+     MaxP         := 1.0;
+     MaxQ         := 0.0;
+     UseActual    := FALSE;
+     FStdDevCalculated := FALSE;  // calculate on demand
 
      ArrayPropertyIndex := 0;
 
@@ -570,6 +607,13 @@ Function TLoadShapeObj.GetMult(hr:double):Complex;
 VAR
    Index, i:Integer;
 
+   Function Set_Result_im(const realpart:double):Double;
+   {Set imaginary part of Result when Qmultipliers not defined}
+   Begin
+         If UseActual Then Set_Result_im := 0.0       // if actual, assume zero
+                      Else Set_Result_im := realpart; // same as real otherwise
+   End;
+
 BEGIN
 
   Result.re := 1.0;
@@ -578,7 +622,8 @@ BEGIN
   IF FNumPoints>0 THEN         // Handle Exceptional cases
   IF FNumPoints=1 THEN Begin
     Result.re := PMultipliers^[1];
-    If Assigned(QMultipliers) Then Result.im := QMultipliers^[1] Else Result.im := Result.re;
+    If Assigned(QMultipliers) Then Result.im := QMultipliers^[1]
+    Else Result.im := Set_Result_im(Result.re);
   End
   ELSE
     BEGIN
@@ -587,7 +632,8 @@ BEGIN
            IF Index>FNumPoints Then Index := Index Mod FNumPoints;  // Wrap around using remainder
            IF Index=0 THEN Index := FNumPoints;
            Result.Re := PMultipliers^[Index];
-           If Assigned(QMultipliers) Then Result.im := QMultipliers^[Index] Else Result.im := Result.re;
+           If Assigned(QMultipliers) Then Result.im := QMultipliers^[Index]
+           Else  Result.im := Set_Result_im(Result.re);
         END
       ELSE  BEGIN
           // For random interval
@@ -606,7 +652,8 @@ BEGIN
                IF Abs(Hours^[i]-Hr)<0.00001 THEN  // If close to an actual point, just use it.
                  BEGIN
                    Result.re := PMultipliers^[i];
-                   If Assigned(QMultipliers) Then Result.im := QMultipliers^[i] Else Result.im := Result.re;
+                   If Assigned(QMultipliers) Then Result.im := QMultipliers^[i]
+                   Else  Result.im := Set_Result_im(Result.re);
                    LastValueAccessed := i;
                    Exit;
                  END
@@ -620,7 +667,7 @@ BEGIN
                         Result.im := QMultipliers^[LastValueAccessed] +
                              (Hr - Hours^[LastValueAccessed]) / (Hours^[i] - Hours^[LastValueAccessed])*
                              (QMultipliers^[i] -QMultipliers^[LastValueAccessed])
-                        Else Result.im := Result.re;
+                   Else Result.im := Set_Result_im(Result.re);
                    Exit ;
                  END;
              END;
@@ -628,7 +675,8 @@ BEGIN
            // If we fall through the loop, just use last value
            LastValueAccessed := FNumPoints-1;
            Result.re := PMultipliers^[FNumPoints];
-           If Assigned(QMultipliers) Then Result.im := QMultipliers^[FNumPoints] Else Result.im := Result.re;
+           If Assigned(QMultipliers) Then Result.im := QMultipliers^[FNumPoints]
+           Else  Result.im := Set_Result_im(Result.re);
         END;
     END;
 
@@ -647,19 +695,16 @@ VAR
  Begin
    If FNumPoints>0 THEN BEGIN
      MaxMult := Abs(Multipliers^[1]);
-     FOR i := 2 TO FNumPoints DO BEGIN
-        IF Abs(Multipliers^[i]) > MaxMult THEN MaxMult := Abs(Multipliers^[i]);
-     END;
-     IF MaxMult = 0.0 THEN MaxMult := 1.0;
-     FOR i := 1 TO FNumPoints DO BEGIN
-        Multipliers^[i] := Multipliers^[i]/MaxMult;
-     END;
+     FOR i := 2 TO FNumPoints DO   MaxMult := Max(MaxMult, Abs(Multipliers^[i]));
+     IF MaxMult = 0.0 THEN MaxMult := 1.0; // Avoid divide by zero
+     FOR i := 1 TO FNumPoints DO Multipliers^[i] := Multipliers^[i]/MaxMult;
    END;
  End;
 
 BEGIN
    DoNormalize(PMultipliers);
    If Assigned(QMultipliers) Then  DoNormalize(QMultipliers);
+   UseActual := FALSE;  // not likely that you would want to use the actual if you normalized it.
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -669,9 +714,14 @@ BEGIN
 
   If FNumPoints>0 Then
     if Interval > 0.0 then
-      RCDMeanandStdDev(PMultipliers, FNumPoints, Mean, StdDev)
+      RCDMeanandStdDev(PMultipliers, FNumPoints, FMean, FStdDev)
     else
-      CurveMeanAndStdDev (PMultipliers, Hours, FNumPoints, Mean, StdDev);
+      CurveMeanAndStdDev (PMultipliers, Hours, FNumPoints, FMean, FStdDev);
+
+    PropertyValue[5] := Format('%.8g', [FMean]);
+    PropertyValue[6] := Format('%.8g', [FStdDev]);
+
+    FStdDevCalculated := TRUE;
    { No Action is taken on Q multipliers}
 END;
 
@@ -718,6 +768,18 @@ Begin
 
 
 End;
+
+function TLoadShapeObj.Get_Mean: Double;
+begin
+     If Not FStdDevCalculated then  CalcMeanandStdDev;
+     Result := FMean;
+end;
+
+function TLoadShapeObj.Get_StdDev: Double;
+begin
+    If Not FStdDevCalculated then  CalcMeanandStdDev;
+    Result := FStdDev;
+end;
 
 Function TLoadShapeObj.Mult(i:Integer) :Double;
 Begin
@@ -781,11 +843,17 @@ begin
         CASE Index of
           3: FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [PMultipliers^[i]]);
           4: IF Hours <> Nil THEN FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [Hours^[i]]) ;
+          5: Result := Format('%.8g', [Mean ]);
+          6: Result := Format('%.8g', [StdDev ]);
           11: IF Assigned(QMultipliers) Then Begin
                 Result := '(';
                 FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [QMultipliers^[i]]);
                 Result := Result + ')';
               End;
+          12: If UseActual then Result := 'Yes' else Result := 'No';
+          13: Result := Format('%.8g', [MaxP ]);
+          14: Result := Format('%.8g', [MaxQ ]);
+
         ELSE
            Result := Inherited GetPropertyValue(index);
         END;
@@ -808,8 +876,12 @@ begin
      PropertyValue[7] := '';   // Switch input to a csvfile
      PropertyValue[8] := '';  // switch input to a binary file of singles
      PropertyValue[9] := '';   // switch input to a binary file of singles
-     PropertyValue[10] := 'normalize'; // action option .
+     PropertyValue[10] := ''; // action option .
      PropertyValue[11] := ''; // Qmult.
+     PropertyValue[12] := 'No';
+     PropertyValue[13] := '0';
+     PropertyValue[14] := '0';
+
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -990,6 +1062,22 @@ begin
 
 end;
 
+procedure TLoadShapeObj.SetMaxPandQ;
+begin
+       iMaxP := iMaxAbsdblArrayValue(NumPoints, PMultipliers);
+       If iMaxP > 0 Then Begin
+          MaxP := PMultipliers^[iMaxP];
+          If Assigned(QMultipliers) then  MaxQ := QMultipliers^[iMaxP]
+          else MaxQ := 0.0;
+       End;
+end;
+
+procedure TLoadShapeObj.Set_Mean(const Value: Double);
+begin
+      FStdDevCalculated := TRUE;
+      FMean := Value;
+end;
+
 procedure TLoadShapeObj.Set_NumPoints(const Value: Integer);
 begin
 
@@ -997,11 +1085,17 @@ begin
 
         // Reset array property values to keep them in propoer order in Save
 
-        If ArrayPropertyIndex>0  Then  PropertyValue[ArrayPropertyIndex] := PropertyValue[ArrayPropertyIndex];
+        If ArrayPropertyIndex>0   Then  PropertyValue[ArrayPropertyIndex] := PropertyValue[ArrayPropertyIndex];
         If Assigned(Qmultipliers) Then  PropertyValue[11] := PropertyValue[11];
 
         FNumPoints := Value;   // Now assign the value
 
+end;
+
+procedure TLoadShapeObj.Set_StdDev(const Value: Double);
+begin
+      FStdDevCalculated := TRUE;
+      FStdDev := Value;
 end;
 
 end.

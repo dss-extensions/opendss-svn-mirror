@@ -987,7 +987,8 @@ begin
      S  := 'Loadshape = ' + LoadshapeName;
      Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
      Set_XaxisLabel(pAnsiChar(AnsiString(Xlabel)), Length(Xlabel)) ;
-     Set_YaxisLabel(pAnsiChar('p.u.'), 4);
+     If Load_Shape.UseActual then Set_YaxisLabel(pAnsiChar('kW, kvar'), 8)
+                             else Set_YaxisLabel(pAnsiChar('p.u.'), 4);
 
      If UseXarray Then
          AddNewCurve (Xarray, Load_Shape.PMultipliers, Load_Shape.NumPoints,
