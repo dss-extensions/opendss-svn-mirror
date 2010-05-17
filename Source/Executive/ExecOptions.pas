@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 79;
+        NumExecOptions = 80;
 
 VAR
          ExecOption,
@@ -112,6 +112,7 @@ Begin
      ExecOption[77] := 'Marktransformers';
      ExecOption[78] := 'TransMarkerCode';
      ExecOption[79] := 'TransMarkerSize';
+     ExecOption[80] := 'LoadShapeClass';
 
 
 
@@ -131,15 +132,16 @@ Begin
      OptionHelp[8]  := 'Set the solution Mode: One of'+
                     CRLF+'  Snapshot,'+
                     CRLF+'  Daily,'+
+                    CRLF+'  Yearly (follow Yearly curve),'+
                     CRLF+'  DIrect,'+
                     CRLF+'  DUtycycle,'+
+                    CRLF+'  Time, (also set LoadShapeClass option)' +
                     CRLF+'  DYnamic,'+
                     CRLF+'  Harmonic,'+
                     CRLF+'  M1 (Monte Carlo 1),'+
                     CRLF+'  M2 (Monte Carlo 2),'+
                     CRLF+'  M3 (Monte Carlo 3),'+
                     CRLF+'  Faultstudy,'+
-                    CRLF+'  Yearly (follow Yearly curve),'+
                     CRLF+'  MF (monte carlo fault study)'+
                     CRLF+'  Peakday,'+
                     CRLF+'  LD1 (load-duration 1)'+
@@ -315,6 +317,8 @@ Begin
                        'The coordinate of one of the buses for winding 1 or 2 must be defined for the symbol to show';
      OptionHelp[78] := 'Numeric marker code for transformers. Default is 35. See markstransformers option.';
      OptionHelp[79] := 'Size of transformer marker. Default is 1.';
+     OptionHelp[80] := '={Daily | Yearly | Duty | None*} Default loadshape class to use for general sequential time simulations. Loads and generators, etc., will follow ' +
+                       'this shape as time is advanced. Default value is None. That is, Load will not vary with time.';
 
 End;
 //----------------------------------------------------------------------------
@@ -506,6 +510,7 @@ Begin
            77: ActiveCircuit.MarkTransformers := InterpretYesNo(Param);
            78: ActiveCircuit.TransMarkerCode  := Parser.IntValue;
            79: ActiveCircuit.TransMarkerSize  := Parser.IntValue;
+           80: ActiveCircuit.ActiveLoadShapeClass := InterpretLoadShapeClass(Param);
          ELSE
            // Ignore excess parameters
          End;
@@ -645,7 +650,11 @@ Begin
            73: AppendGlobalResult(Format('%d', [Round(DefaultBaseFreq)]));
            74: If ActiveCircuit.MarkSwitches  Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
            75: AppendGlobalResult(Format('%d' ,[ActiveCircuit.SwitchMarkerCode]));
-           76: AppendGlobalResult(Format('%-.6g' ,[DaisySize]))
+           76: AppendGlobalResult(Format('%-.6g' ,[DaisySize]));
+           77: If ActiveCircuit.MarkTransformers  Then  AppendGlobalResult('Yes') else AppendGlobalResult('No');
+           78: AppendGlobalResult(Format('%d' ,[ActiveCircuit.TransMarkerCode]));
+           79: AppendGlobalResult(Format('%d' ,[ActiveCircuit.TransMarkerSize]));
+           80: AppendGlobalResult(GetActiveLoadShapeClass);
          ELSE
            // Ignore excess parameters
          End;

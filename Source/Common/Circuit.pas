@@ -197,6 +197,8 @@ TYPE
           MarkSwitches:Boolean;
           MarkTransformers:Boolean;
 
+          ActiveLoadShapeClass: Integer;
+
           Constructor Create(const aName:String);
           Destructor Destroy; Override;
 
@@ -315,6 +317,8 @@ BEGIN
      LegalVoltageBases^[6] := 115.0;
      LegalVoltageBases^[7] := 230.0;
      LegalVoltageBases^[8] := 0.0;  // terminates array
+
+     ActiveLoadShapeClass := USENONE; // Signify not set
 
      NodeBufferMax := 20;
      NodeBuffer    := AllocMem(SizeOf(NodeBuffer^[1]) * NodeBufferMax); // A place to hold the nodes

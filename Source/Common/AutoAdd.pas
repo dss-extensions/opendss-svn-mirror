@@ -501,7 +501,7 @@ Begin
                    End;
 
                    {Put Control mode back to default before inserting Generator for real}
-                   ControlMode := STATIC;
+                   ControlMode    := CTRLSTATIC;
                    UseAuxCurrents := FALSE;
 
                    If MinLossBus > 0 Then
@@ -616,7 +616,7 @@ Begin
 
 
                    {Put Control mode back to default before inserting Capacitor for real}
-                   ControlMode := STATIC;
+                   ControlMode    := CTRLSTATIC;
                    UseAuxCurrents := FALSE;
 
                    If MinLossBus > 0 Then

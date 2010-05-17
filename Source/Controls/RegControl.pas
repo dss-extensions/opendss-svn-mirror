@@ -653,7 +653,7 @@ begin
          WITH ActiveCircuit, ActiveCircuit.Solution Do
          Begin
              CASE ControlMode of
-               STATIC:
+               CTRLSTATIC:
                   Begin
                       If (DebugTrace) Then WriteTraceRecord(AtLeastOneTap(PendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + AtLeastOneTap(PendingTapChange, TapIncrement[TapWinding]);

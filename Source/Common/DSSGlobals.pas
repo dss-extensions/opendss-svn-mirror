@@ -62,7 +62,7 @@ CONST
       CONTROLSOFF = -1;
       EVENTDRIVEN =  1;
       TIMEDRIVEN  =  2;
-      STATIC      =  0;
+      CTRLSTATIC  =  0;
 
       {Randomization Constants}
       GAUSSIAN  = 1;
@@ -75,6 +75,13 @@ CONST
 
       {ERRORS}
       SOLUTION_ABORT = 99;
+
+      {For General Sequential Time Simulations}
+      USEDAILY  = 0;
+      USEYEARLY = 1;
+      USEDUTY   = 2;
+      USENONE   =-1;
+
 
 
 VAR

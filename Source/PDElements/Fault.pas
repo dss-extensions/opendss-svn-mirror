@@ -596,7 +596,7 @@ begin
 
      CASE ControlMode of
 
-        STATIC:   {Leave it however it is defined by other processes}
+        CTRLSTATIC:   {Leave it however it is defined by other processes}
            Begin
            End;
         EVENTDRIVEN,

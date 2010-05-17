@@ -350,9 +350,9 @@ Begin
     SolutionCount := 0;
 
     Dynavars.SolutionMode := SNAPSHOT;
-    ControlMode := STATIC;
-    DefaultControlMode := ControlMode;
-    Algorithm   := NORMALSOLVE;                  
+    ControlMode           := CTRLSTATIC;
+    DefaultControlMode    := ControlMode;
+    Algorithm             := NORMALSOLVE;
 
     RandomType    := GAUSSIAN;  // default to gaussian
     NumberOfTimes := 100;
@@ -1279,7 +1279,7 @@ Begin
     With ActiveCircuit Do Begin
         CASE ControlMode of
             //  execute the nearest set of control actions time-wise
-            STATIC:
+            CTRLSTATIC:
                Begin
                   IF   ControlQueue.IsEmpty
                   THEN ControlActionsDone := TRUE
@@ -1353,7 +1353,7 @@ PROCEDURE TSolutionObj.Set_Mode(const Value: Integer);
 begin
 
  
-   intHour          := 0;
+   intHour       := 0;
    DynaVars.t    := 0.0;
    UpdatedblHour;
    ActiveCircuit.TrapezoidalIntegration := FALSE;
@@ -1398,6 +1398,11 @@ begin
                          ControlMode    := TIMEDRIVEN;
                          IsDynamicModel := TRUE;
                          PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
+                      End;
+       GENERALTIME:   Begin
+                           DynaVars.h    := 3600.0;
+                           ControlMode   := TIMEDRIVEN;
+                           NumberOfTimes := 1;  // just one time step per Solve call expected
                       End;
        MONTECARLO1:   Begin IntervalHrs    := 1.0;  End;
        MONTECARLO2:   Begin DynaVars.h     := 3600.0;   End;

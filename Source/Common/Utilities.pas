@@ -47,12 +47,14 @@ FUNCTION  InterpretIntArray(const s: string; MaxValues:Integer; ResultArray :pIn
 PROCEDURE InterpretAndAllocStrArray(const s: string; var Size:Integer;var ResultArray :pStringArray);
 PROCEDURE InterpretTStringListArray(const s: string; var ResultList :TStringList);
 FUNCTION  InterpretTimeStepSize(const s:string):double;
+FUNCTION  InterpretLoadShapeClass(const s:string):Integer;
 
 FUNCTION GetSolutionModeID:String;
 FUNCTION GetSolutionModeIDName(idx:Integer):String;
 FUNCTION GetControlModeID:String;
 FUNCTION GetRandomModeID:String;
 FUNCTION GetLoadModel:String;
+FUNCTION GetActiveLoadShapeClass:String;
 FUNCTION GetDSSArray_Real(n:Integer; dbls:pDoubleArray):String;
 FUNCTION GetDSSArray_Integer(n:Integer; ints:pIntegerArray):String;
 
@@ -336,6 +338,7 @@ Begin
            ELSE
              Result := LOADDURATION1;
            End;
+      't': Result := GENERALTIME;
 
    ELSE
      Result := SNAPSHOT;
@@ -359,7 +362,7 @@ Begin
       'e': Result := EVENTDRIVEN;    // "event"
       't': Result := TIMEDRIVEN;     // "time"
     ELSE
-       Result := STATIC;
+       Result := CTRLSTATIC;
     End;
 
 
@@ -908,6 +911,7 @@ Begin
       FAULTSTUDY:   Result := 'Faultstudy';
       AUTOADDFLAG:  Result := 'Autoadd';
       HARMONICMODE: Result := 'Harmonic';
+      GENERALTIME:  Result := 'Time';
     ELSE
                     Result := 'UNKNOWN'
     End;
@@ -928,7 +932,7 @@ Begin
    Result := 'Unknown';
    If ActiveCircuit <> Nil Then
     CASE ActiveCircuit.Solution.Controlmode OF
-      STATIC:        Result := 'STATIC';
+      CTRLSTATIC:    Result := 'STATIC';
       EVENTDRIVEN:   Result := 'EVENT';
       TIMEDRIVEN:    Result := 'TIME';
       CONTROLSOFF:   Result := 'OFF';
@@ -2454,6 +2458,36 @@ Begin
           Maxvalue := abs(dbls^[i]);
           Result := i;   // save index
        End;
+End;
+
+FUNCTION  InterpretLoadShapeClass(const s:string):Integer;
+Var
+   ss:String;
+Begin
+     ss := lowercase(s);
+     Result := USENONE;
+
+     Case ss[1] of
+          'd': Case ss[2] of
+                 'a': Result := USEDAILY;
+                 'u': Result := USEDUTY;
+               End;
+          'y': Result := USEYEARLY;
+          'n': Result := USENONE;
+     End;
+
+End;
+
+FUNCTION GetActiveLoadShapeClass:String;
+
+Begin
+      case ActiveCircuit.ActiveLoadShapeClass  of
+            USEDAILY: Result := 'Daily';
+            USEYEARLY:Result := 'Yearly';
+            USEDUTY:  Result := 'Duty';
+            USENONE:  Result := 'None';
+      end;
+
 End;
 
 
