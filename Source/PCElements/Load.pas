@@ -910,11 +910,11 @@ Begin
                            IF Not ExemptFromLDCurve Then Factor := Factor * ActiveCircuit.LoadMultiplier;
                            // This mode allows use of one class of load shape
                            case ActiveCircuit.ActiveLoadShapeClass of
-                                USEDAILY: CalcDailyMult(dblHour);
+                                USEDAILY:  CalcDailyMult(dblHour);
                                 USEYEARLY: CalcYearlyMult(dblHour);
-                                USEDUTY: CalcDutyMult(dblHour);
+                                USEDUTY:   CalcDutyMult(dblHour);
                            else
-                                ShapeFactor := CONE     // default to 1 + j1 if not known
+                                ShapeFactor := cONE     // default to 1 + j1 if not known
                            end;
                       End;
          MONTECARLO1: Begin

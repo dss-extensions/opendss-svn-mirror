@@ -30,6 +30,7 @@ interface
  FUNCTION SolveLD1:Integer;      // solve Load-Duration Curve, 1
  FUNCTION SolveLD2:Integer;      // solve Load-Duration Curve, 2
  FUNCTION SolveHarmonic:Integer;
+ FUNCTION SolveGeneralTime:Integer;
 
   PROCEDURE ComputeYsc(iB:integer);
   PROCEDURE ComputeAllYsc;
@@ -224,6 +225,36 @@ Begin
       End;
     End;
 End;
+
+FUNCTION SolveGeneralTime:Integer;
+
+{
+   For Rolling your own solution modes
+}
+VAR
+   N:Integer;
+
+Begin
+   Result := 0;
+
+   WITH ActiveCircuit, ActiveCircuit.Solution Do
+   Begin
+        IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
+        FOR N := 1 TO NumberOfTimes Do
+          IF Not SolutionAbort Then With DynaVars Do
+          Begin
+              {Compute basic multiplier from Default loadshape to use in generator dispatch, if any}
+                DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
+
+                SolveSnap;
+                MonitorClass.SampleAll;  // Make all monitors take a sample
+                StorageClass.UpdateAll;
+                Increment_time;
+          End;
+    End;
+End;
+
+
 
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

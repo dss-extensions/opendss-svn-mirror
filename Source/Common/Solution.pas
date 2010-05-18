@@ -463,6 +463,7 @@ Try
          FAULTSTUDY:   SolveFaultStudy;
          AUTOADDFLAG:  ActiveCircuit.AutoAddObj.Solve;
          HARMONICMODE: SolveHarmonic;
+         GENERALTIME:  SolveGeneralTime;
 
      Else
          DosimpleMsg('Unknown solution mode.', 481);
@@ -590,6 +591,7 @@ Begin
          YEARLYMODE:   GeneratorDispatchReference := DefaultGrowthFactor * DefaultHourMult.re;
          DAILYMODE:    GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor * DefaultHourMult.re;
          DUTYCYCLE:    GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor * DefaultHourMult.re;
+         GENERALTIME:  GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor * DefaultHourMult.re;
          DYNAMICMODE:  GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor;
          HARMONICMODE: GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor;
          MONTECARLO1:  GeneratorDispatchReference := LoadMultiplier * DefaultGrowthFactor;
@@ -1377,31 +1379,31 @@ begin
    Case Dynavars.SolutionMode of
        PEAKDAY,
        DAILYMODE:     Begin
-                         DynaVars.h    := 3600.0;
-                         NumberOfTimes := 24;
+                           DynaVars.h    := 3600.0;
+                           NumberOfTimes := 24;
                       End;
        SNAPSHOT:      Begin
-                         IntervalHrs   := 1.0;
-                         NumberOfTimes := 1;
+                           IntervalHrs   := 1.0;
+                           NumberOfTimes := 1;
                       End;
        YEARLYMODE:    Begin
-                         IntervalHrs   := 1.0;
-                         DynaVars.h    := 3600.0;
-                         NumberOfTimes := 8760;
+                           IntervalHrs   := 1.0;
+                           DynaVars.h    := 3600.0;
+                           NumberOfTimes := 8760;
                       End;
        DUTYCYCLE:     Begin
-                         DynaVars.h  := 1.0;
-                         ControlMode := TIMEDRIVEN;
+                           DynaVars.h  := 1.0;
+                           ControlMode := TIMEDRIVEN;
                       End;
        DYNAMICMODE:   Begin
-                         DynaVars.h     := 0.001;
-                         ControlMode    := TIMEDRIVEN;
-                         IsDynamicModel := TRUE;
-                         PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
+                           DynaVars.h     := 0.001;
+                           ControlMode    := TIMEDRIVEN;
+                           IsDynamicModel := TRUE;
+                           PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
                       End;
        GENERALTIME:   Begin
+                           IntervalHrs   := 1.0;
                            DynaVars.h    := 3600.0;
-                           ControlMode   := TIMEDRIVEN;
                            NumberOfTimes := 1;  // just one time step per Solve call expected
                       End;
        MONTECARLO1:   Begin IntervalHrs    := 1.0;  End;
@@ -1409,25 +1411,25 @@ begin
        MONTECARLO3:   Begin IntervalHrs    := 1.0;   End;
        MONTEFAULT:    Begin IsDynamicModel := TRUE;  END;
        FAULTSTUDY:    Begin
-                        IsDynamicModel := TRUE;
+                            IsDynamicModel := TRUE;
                       END;
        LOADDURATION1: Begin
-                         DynaVars.h := 3600.0;
-                         ActiveCircuit.TrapezoidalIntegration := TRUE;
+                           DynaVars.h := 3600.0;
+                           ActiveCircuit.TrapezoidalIntegration := TRUE;
                       End;
        LOADDURATION2: Begin
-                         intHour := 1;
-                         ActiveCircuit.TrapezoidalIntegration := TRUE;
+                           intHour := 1;
+                           ActiveCircuit.TrapezoidalIntegration := TRUE;
                       End;
        AUTOADDFLAG :  Begin
-                         IntervalHrs := 1.0;
-                         ActiveCircuit.AutoAddObj.ModeChanged := TRUE;
+                           IntervalHrs := 1.0;
+                           ActiveCircuit.AutoAddObj.ModeChanged := TRUE;
                       End;
        HARMONICMODE:  Begin
-                        ControlMode     := CONTROLSOFF;
-                        IsHarmonicModel := TRUE;
-                        LoadModel       := ADMITTANCE;
-                        PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
+                          ControlMode     := CONTROLSOFF;
+                          IsHarmonicModel := TRUE;
+                          LoadModel       := ADMITTANCE;
+                          PreserveNodeVoltages := TRUE;  // need to do this in case Y changes during this mode
                       End;
    End;
 

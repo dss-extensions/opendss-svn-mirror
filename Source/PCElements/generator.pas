@@ -394,21 +394,21 @@ Begin
                     'Set to NONE to reset to no loadahape. ' +
                     'Designate the number of points to solve using the Set Number=xxxx command. '+
                     'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
-     AddProperty('dispmode', 10,   '{Default | Loadlevel | Price } Default = Default. Dispatch mode. '+
+     AddProperty('dispmode', 10,   '{Default* | Loadlevel | Price } Default = Default. Dispatch mode. '+
                       'In default mode, gen is either always on or follows dispatch curve as specified. '+
-                      'Otherwise, the gen comes on when either the global default load level or the price level '+
+                      'Otherwise, the gen comes on when either the global default load level (Loadshape "default") or the price level '+
                       'exceeds the dispatch value.'); // = 0 | >0
      AddProperty('dispvalue', 11,  'Dispatch value. '+CRLF+
-                     'If = 0.0 Then Generator follow dispatch curves, if any. ' +CRLF+
-                     'If > 0  Then Generator is ON only when either the price signal exceeds this value or the load multiplier '+
-                     '(set loadmult=) times the default yearly growth factor ' +
-                     'exceeds this value.  Then the generator follows dispatch curves, if any (see also Status).');  // = 0 | >0
+                     'If = 0.0 (default) then Generator follow dispatch curves, if any. ' +CRLF+
+                     'If > 0  then Generator is ON only when either the price signal (in Price dispatch mode) '+
+                     'exceeds this value or the active circuit load multiplier * "default" loadshape value * the default yearly growth factor ' +
+                     'exceeds this value.  Then the generator follows dispatch curves (duty, daily, or yearly), if any (see also Status).');  // = 0 | >0
      AddProperty('conn',  12,  '={wye|LN|delta|LL}.  Default is wye.');
      AddProperty('Rneut', 14, 'Removed due to causing confusion - Add neutral impedance externally.');
      AddProperty('Xneut', 15, 'Removed due to causing confusion - Add neutral impedance externally.');
-     AddProperty('status', 16,  '={Fixed | Variable}.  If Fixed, then dispatch multipliers do not apply. '+
+     AddProperty('status', 16,  '={Fixed | Variable*}.  If Fixed, then dispatch multipliers do not apply. '+
                          'The generator is alway at full power when it is ON. '+
-                         ' Default is Variable  (follows curves).');  // fixed or variable  // fixed or variable
+                         ' Default is Variable  (follows curves).');  // fixed or variable
      AddProperty('class', 17,   'An arbitrary integer number representing the class of Generator so that Generator values may '+
                          'be segregated by class.'); // integer
      AddProperty('Vpu', 18,  'Per Unit voltage set point for Model = 3  (typical power flow model).  Default is 1.0. '); // per unit set point voltage for power flow model
@@ -1011,10 +1011,22 @@ Begin
                 CASE Mode OF
                     SNAPSHOT:     Factor := ActiveCircuit.GenMultiplier * 1.0;
                     DAILYMODE:    Begin
-                                      Factor := ActiveCircuit.GenMultiplier  ;
-                                      CalcDailyMult(dblHour) // Daily dispatch curve
+                                       Factor := ActiveCircuit.GenMultiplier  ;
+                                       CalcDailyMult(dblHour) // Daily dispatch curve
                                   End;
                     YEARLYMODE:   Begin Factor := ActiveCircuit.GenMultiplier; CalcYearlyMult(dblHour);  End;
+                    DUTYCYCLE:    Begin Factor := ActiveCircuit.GenMultiplier; CalcDutyMult(dblHour) ; End;
+                    GENERALTIME:  Begin   // General sequential time simulation
+                                       Factor := ActiveCircuit.GenMultiplier;
+                                       // This mode allows use of one class of load shape
+                                       case ActiveCircuit.ActiveLoadShapeClass of
+                                            USEDAILY:  CalcDailyMult(dblHour);
+                                            USEYEARLY: CalcYearlyMult(dblHour);
+                                            USEDUTY:   CalcDutyMult(dblHour);
+                                       else
+                                            ShapeFactor := cONE     // default to 1 + j1 if not known
+                                       end;
+                                  End;
                     MONTECARLO1,
                     MONTEFAULT,
                     FAULTSTUDY,
@@ -1024,7 +1036,6 @@ Begin
                     LOADDURATION1,
                     LOADDURATION2:Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
                     PEAKDAY:      Begin Factor := ActiveCircuit.GenMultiplier; CalcDailyMult(dblHour); End;
-                    DUTYCYCLE:    Begin Factor := ActiveCircuit.GenMultiplier; CalcDutyMult(dblHour) ; End;
                     AUTOADDFLAG:  Factor := 1.0;
                 ELSE
                     Factor := 1.0
