@@ -354,8 +354,11 @@ Begin
      PropertyHelp[11] := '={wye or LN | delta or LL}.  Default is wye.';
      PropertyHelp[12] := 'Specify the base kvar for specifying load as kW & kvar.  Assumes kW has been already defined.  Alternative to specifying the power factor.  Side effect: '+
                          ' the power factor and kVA is altered to agree.';
-     PropertyHelp[13] := 'Neutral resistance of wye (star)-connected load in actual ohms.' +
-                         'If entered as a negative value, the neutral is assumed to be open, or floating.';
+     PropertyHelp[13] := 'Default is -1. Neutral resistance of wye (star)-connected load in actual ohms. ' +
+                         'If entered as a negative value, the neutral can be open, or floating, or it can be connected to '+
+                         'node 0 (ground), which is the usual default. ' +
+                         'If >=0 be sure to explicitly specify the node connection for the neutral, or last, conductor. ' +
+                         'Otherwise, the neutral impedance will be shorted to ground.';
      PropertyHelp[14] := 'Neutral reactance of wye(star)-connected load in actual ohms.  May be + or -.';
      PropertyHelp[15] := '={Variable | Fixed | Exempt}.  Default is variable. If Fixed, no load multipliers apply;  however, growth '+
                          'multipliers do apply.  All multipliers apply to Variable loads.  Exempt loads are not '+
