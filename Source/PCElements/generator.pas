@@ -1707,25 +1707,38 @@ Begin
      End
 
    Else  {No user model, use default Thevinen equivalent}
-      With Genvars Do Begin
 
-        Phase2SymComp(Vterminal, @V012);
+      CASE Fnphases of
+            1: With Genvars Do
+               Begin
+                    CalcVthev_Dyn;  // Update for latest phase angle
 
-        // Positive Sequence Contribution to Iterminal
-        CalcVthev_Dyn;  // Update for latest phase angle
-    //  For i := 1 to Yorder Do cBuffer[i] := Csub(Vterminal^[i], Vthev^[i]);
-    //  YPrim.MVMult(Iterminal, @cBuffer); {I = Y V  }
-        // Positive Sequence Contribution to Iterminal
+                    ITerminal^[1] := CDiv(CSub(Csub(VTerminal^[1], Vthev), VTerminal^[2]), Cmplx(0.0, Xdp));
+                    ITerminal^[2] := Cnegate(ITerminal^[1]);
+              End;
 
-        I012[1] := CDiv(Csub(V012[1], Vthev), Cmplx(0.0, Xdp));
-        I012[2] := Cdiv(V012[2], Cmplx(0.0, Xdpp));
-        If Connection=1 Then I012[0] := CZERO
-                        Else I012[0] := Cdiv(V012[0], Cmplx(0.0, Xdpp));
-        SymComp2Phase(ITerminal, @I012);
+            3: With Genvars Do
+               Begin
+                    Phase2SymComp(Vterminal, @V012);
 
-        If Connection=0 Then ITerminal^[FnConds] := Cnegate(CmulReal(I012[0], 3.0));
+                    // Positive Sequence Contribution to Iterminal
+                    CalcVthev_Dyn;  // Update for latest phase angle
 
-      End;
+                    // Positive Sequence Contribution to Iterminal
+                    I012[1] := CDiv(Csub(V012[1], Vthev), Cmplx(0.0, Xdp));
+                    I012[2] := Cdiv(V012[2], Cmplx(0.0, Xdpp));
+                    If Connection=1 Then I012[0] := CZERO
+                                    Else I012[0] := Cdiv(V012[0], Cmplx(0.0, Xdpp));
+                    SymComp2Phase(ITerminal, @I012);  // Convert back to phase components
+
+                    // Neutral current
+                    If Connection=0 Then ITerminal^[FnConds] := Cnegate(CmulReal(I012[0], 3.0));
+              End;
+      Else
+              DoSimpleMsg(Format('Dynamics mode is implemented only for 1- or 3-phase Generators. Generator.'+name+' has %d phases.', [Fnphases]), 5671);
+              SolutionAbort := TRUE;
+      END;
+
    IterminalUpdated := TRUE;
 
     {Add it into inj current array}
@@ -2272,35 +2285,22 @@ begin
                       Edp      := Csub( CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]) , Cmul(ITerminal^[1], cmplx(0.0, Xdp)));
                       VThevMag := Cabs(Edp);
                  End;
+
+              3: Begin
+                 // Calculate Edp based on Pos Seq only
+                     Phase2SymComp(ITerminal, @I012);
+                     // Voltage behind Xdp  (transient reactance), volts
+
+                     For i := 1 to FNphases Do Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
+                     Phase2SymComp(@Vabc, @V012);
+                     Edp      := Csub( V012[1] , Cmul(I012[1], cmplx(0.0, Xdp)));    // Pos sequence
+                     VThevMag := Cabs(Edp);
+                 End;
          Else
-
-         // Calculate Edp based on Pos Seq only
-               Phase2SymComp(ITerminal, @I012);
-               // Voltage behind Xdp  (transient reactance), volts
-
-               For i := 1 to FNphases Do Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
-               Phase2SymComp(@Vabc, @V012);
-               Edp      := Csub( V012[1] , Cmul(I012[1], cmplx(0.0, Xdp)));    // Pos sequence
-               VThevMag := Cabs(Edp);
-
+              DoSimpleMsg(Format('Dynamics mode is implemented only for 1- or 3-phase Generators. Generator.'+name+' has %d phases.', [Fnphases]), 5672);
+              SolutionAbort := TRUE;
          end;
 
-         (*       old way
-                   Case Connection of
-                      0: Vneut :=  NodeV^[NodeRef^[Fnconds]]
-                   Else
-                      Vneut :=  CZERO;
-                   End;
-                 VThevMag := 0.0;
-                 For i := 1 to NPhases Do  Begin {Thevinen wye voltages  = V - Xd' I - Vn}
-                    Vthev^[i] := Csub( Csub(NodeV^[NodeRef^[i]], Vneut) , Cmul(Iterminal^[i], cmplx(0.0, Xdp)));
-                    VThevMag := VThevMag + Cabs(Vthev^[i]);
-                 End;
-                 VThevMag := VThevMag/Nphases;  // Average for excitation level
-         *)
-
-
-         // If Connection=0 Then Vthev^[Fnconds] := cZERO;
 
          // Shaft variables
          // Theta is angle on Vthev[1] relative to system reference
