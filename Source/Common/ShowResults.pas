@@ -2289,7 +2289,7 @@ Begin
 
      WHILE pcElem<>nil DO
        Begin
-         IF pcElem.Enabled THEN
+         IF pcElem.Enabled and (pcElem.Numvariables>0) THEN
            Begin
               Writeln(F, 'ELEMENT: ', pcElem.ParentClass.Name,'.',pcElem.Name);
               Writeln(F, 'No. of variables: ', pcElem.Numvariables:0);

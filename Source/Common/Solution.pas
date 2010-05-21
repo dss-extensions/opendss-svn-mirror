@@ -1354,7 +1354,6 @@ PROCEDURE TSolutionObj.Set_Mode(const Value: Integer);
 
 begin
 
- 
    intHour       := 0;
    DynaVars.t    := 0.0;
    UpdatedblHour;
@@ -1362,7 +1361,6 @@ begin
 
    IF Not OK_for_Dynamics(Value)  Then Exit;
    IF Not OK_for_Harmonics(Value) Then Exit;
-
 
    Dynavars.SolutionMode := Value;
 

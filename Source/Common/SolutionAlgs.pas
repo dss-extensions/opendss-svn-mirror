@@ -293,7 +293,7 @@ Begin
         IF Not SolutionAbort Then With DynaVars Do Begin
           Increment_time;
           DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
-          // Assume price signal stays constant for dutycycle calcs
+          // Assume price signal stays constant for dynamic calcs
        {Predictor}
           IterationFlag := 0;
           IntegratePCStates;
