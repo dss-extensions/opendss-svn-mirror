@@ -890,8 +890,7 @@ Begin
     ELSE
        CASE Mode OF
          SNAPSHOT,
-         HARMONICMODE,
-         DYNAMICMODE: IF   ExemptFromLDCurve THEN Factor := GrowthFactor(Year)
+         HARMONICMODE: IF   ExemptFromLDCurve THEN Factor := GrowthFactor(Year)
                                              ELSE Factor := ActiveCircuit.LoadMultiplier * GrowthFactor(Year);
          DAILYMODE:   Begin
                             Factor := GrowthFactor(Year);
@@ -908,7 +907,8 @@ Begin
                            IF Not ExemptFromLDCurve Then Factor := Factor * ActiveCircuit.LoadMultiplier;
                            CalcDutyMult(dblHour);
                       End;
-         GENERALTIME: Begin
+         GENERALTIME,
+         DYNAMICMODE: Begin
                            Factor := GrowthFactor(Year);
                            IF Not ExemptFromLDCurve Then Factor := Factor * ActiveCircuit.LoadMultiplier;
                            // This mode allows use of one class of load shape

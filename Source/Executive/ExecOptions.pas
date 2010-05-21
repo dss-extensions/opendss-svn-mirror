@@ -135,8 +135,8 @@ Begin
                     CRLF+'  Yearly (follow Yearly curve),'+
                     CRLF+'  DIrect,'+
                     CRLF+'  DUtycycle,'+
-                    CRLF+'  Time, (also set LoadShapeClass option)' +
-                    CRLF+'  DYnamic,'+
+                    CRLF+'  Time, ( see LoadShapeClass option)' +
+                    CRLF+'  DYnamic,  ( see LoadShapeClass option)'+
                     CRLF+'  Harmonic,'+
                     CRLF+'  M1 (Monte Carlo 1),'+
                     CRLF+'  M2 (Monte Carlo 2),'+
@@ -317,7 +317,7 @@ Begin
                        'The coordinate of one of the buses for winding 1 or 2 must be defined for the symbol to show';
      OptionHelp[78] := 'Numeric marker code for transformers. Default is 35. See markstransformers option.';
      OptionHelp[79] := 'Size of transformer marker. Default is 1.';
-     OptionHelp[80] := '={Daily | Yearly | Duty | None*} Default loadshape class to use for general sequential time simulations. Loads and generators, etc., will follow ' +
+     OptionHelp[80] := '={Daily | Yearly | Duty | None*} Default loadshape class to use for mode=time and mode=dynamic simulations. Loads and generators, etc., will follow ' +
                        'this shape as time is advanced. Default value is None. That is, Load will not vary with time.';
 
 End;
