@@ -35,6 +35,7 @@ Procedure ExportBusCoords(FileNm:String);
 Procedure ExportLosses(FileNm:String);
 Procedure ExportGuids(FileNm:String);
 Procedure ExportCounts(FileNm:String);
+Procedure ExportSummary(FileNm:String);
 
 
 IMPLEMENTATION
@@ -1920,6 +1921,69 @@ Begin
       Writeln (F, Format ('%s = %d', [cls.Name, cls.ElementCount]));
       cls := DSSClassList.Next;
     end;
+  Finally
+    CloseFile(F);
+  End;
+End;
+
+Procedure ExportSummary(FileNm:String);
+Var
+  F   : TextFile;
+  cPower, cLosses :Complex;
+
+Begin
+  Try
+    Assignfile(F, FileNm);
+    ReWrite(F);
+    Write(F, 'DateTime, CaseName, ');
+    Write (F, 'Status, Mode, Number, LoadMult, NumDevices, NumBuses, NumNodes');
+    Write (F, ', Iterations, ControlMode, ControlIterations');
+    Write (F, ', MostIterationsDone');
+    If ActiveCircuit <> Nil Then
+      If ActiveCircuit.Issolved and not ActiveCircuit.BusNameRedefined Then
+      Begin
+          Write(F, ', Year, Hour, MaxPuVoltage, MinPuVoltage, TotalMW, TotalMvar');
+          Write(F, ', kWLosses, pctLosses, kvarLosses, Frequency');
+      End;
+
+    Writeln (F);
+
+    Write(F, Format('"%s", ',  [DateTimeToStr(Now)]));
+    If ActiveCircuit <> Nil Then Write(F, Format('%s, ',  [ActiveCircuit.FCaseName]))
+                            Else Write(F, 'NONE, ');
+
+    IF ActiveCircuit.Issolved Then Write(F,'SOLVED')
+                              Else Write(F,'UnSolved');
+
+    Write(F, Format(', %s',    [GetSolutionModeID]));
+    Write(F, Format(', %d',    [ActiveCircuit.Solution.NumberofTimes]));
+    Write(F, Format(', %8.3f', [ActiveCircuit.LoadMultiplier]));
+    Write(F, Format(', %d',    [ActiveCircuit.NumDevices]));
+    Write(F, Format(', %d',    [ActiveCircuit.NumBuses]));
+    Write(F, Format(', %d',    [ActiveCircuit.NumNodes]));
+    Write(F, Format(', %d',    [ActiveCircuit.Solution.Iteration]));
+    Write(F, Format(', %s',    [GetControlModeID]));
+    Write(F, Format(', %d',    [ActiveCircuit.Solution.ControlIteration]));
+    Write(F, Format(', %d',    [ActiveCircuit.Solution.MostIterationsDone ]));
+    If ActiveCircuit <> Nil Then
+      If ActiveCircuit.Issolved and not ActiveCircuit.BusNameRedefined Then
+      Begin
+          Write(F, Format(', %d',    [ActiveCircuit.Solution.Year]));
+          Write(F, Format(', %d',    [ActiveCircuit.Solution.intHour]));
+          Write(F, Format(', %-.5g', [GetMaxPUVoltage]));
+          Write(F, Format(', %-.5g', [GetMinPUVoltage(TRUE)]));
+          cPower :=  CmulReal(GetTotalPowerFromSources, 0.000001);  // MVA
+          Write(F, Format(', %-.6g', [cPower.re]));
+          Write(F, Format(', %-.6g', [cPower.im]));
+          cLosses := CmulReal(ActiveCircuit.Losses, 0.000001);
+          If cPower.re <> 0.0 Then Write(F, Format(', %-.6g, %-.4g',[cLosses.re,(Closses.re/cPower.re*100.0)]))
+          Else Write(F, 'Total Active Losses:   ****** MW, (**** %%)');
+          Write(F, Format(', %-.6g',  [cLosses.im]));
+          Write(F, Format(', %-g',    [ActiveCircuit.Solution.Frequency]));
+      End;
+
+  GlobalResult := FileNm;
+
   Finally
     CloseFile(F);
   End;

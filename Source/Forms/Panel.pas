@@ -225,6 +225,7 @@ type
     ResultForm1: TMenuItem;
     Mismatch1: TMenuItem;
     kVBaseMismatch1: TMenuItem;
+    Summary2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -379,6 +380,7 @@ type
     procedure ResultForm1Click(Sender: TObject);
     procedure Mismatch1Click(Sender: TObject);
     procedure kVBaseMismatch1Click(Sender: TObject);
+    procedure Summary2Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -2009,6 +2011,11 @@ begin
    If ActiveCircuit <> Nil Then
       ActiveScriptForm.UpdateSummaryForm;
    SummaryForm.show ;
+end;
+
+procedure TControlPanel.Summary2Click(Sender: TObject);
+begin
+     ActiveScriptForm.ExecuteDSSCommand('Export Summary');
 end;
 
 procedure TControlPanel.List1Click(Sender: TObject);

@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExportOptions = 26;
+        NumExportOptions = 27;
 
 FUNCTION DoExportCmd:Integer;
 
@@ -50,6 +50,7 @@ Begin
       ExportOption[24] := 'Losses';
       ExportOption[25] := 'Guids';
       ExportOption[26] := 'Counts';
+      ExportOption[27] := 'Summary';
 
       ExportHelp[ 1] := '(Default file = EXP_VOLTAGES.CSV) Voltages to ground by bus/node.';
       ExportHelp[ 2] := '(Default file = EXP_SEQVOLTAGES.CSV) Sequence voltages.';
@@ -79,7 +80,7 @@ Begin
       ExportHelp[24] := '[Default file = EXP_LOSSES.CSV] Losses for each element.';
       ExportHelp[25] := '[Default file = EXP_GUIDS.CSV] Guids for each element.';
       ExportHelp[26] := '[Default file = EXP_Counts.CSV] (instance counts for each class)';
-
+      ExportHelp[27] := '[Default file = EXP_Summary.CSV] Solution summary.';
 End;
 
 //----------------------------------------------------------------------------
@@ -162,6 +163,7 @@ Begin
          24: FileName := 'EXP_LOSSES.CSV';
          25: FileName := 'EXP_GUIDS.CSV';
          26: FileName := 'EXP_Counts.CSV';
+         27: FileName := 'EXP_Summary.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -200,6 +202,7 @@ Begin
      24: ExportLosses(Filename);
      25: ExportGuids(Filename);
      26: ExportCounts(Filename);
+     27: ExportSummary(Filename);
    ELSE
          ExportVoltages(FileName);    // default
    END;
