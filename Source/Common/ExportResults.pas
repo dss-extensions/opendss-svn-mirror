@@ -1933,20 +1933,24 @@ Var
 
 Begin
   Try
-    Assignfile(F, FileNm);
-    ReWrite(F);
-    Write(F, 'DateTime, CaseName, ');
-    Write (F, 'Status, Mode, Number, LoadMult, NumDevices, NumBuses, NumNodes');
-    Write (F, ', Iterations, ControlMode, ControlIterations');
-    Write (F, ', MostIterationsDone');
-    If ActiveCircuit <> Nil Then
-      If ActiveCircuit.Issolved and not ActiveCircuit.BusNameRedefined Then
-      Begin
-          Write(F, ', Year, Hour, MaxPuVoltage, MinPuVoltage, TotalMW, TotalMvar');
-          Write(F, ', kWLosses, pctLosses, kvarLosses, Frequency');
-      End;
 
-    Writeln (F);
+    Assignfile(F, FileNm);
+    If FileExists(FileNm) then Append(F) Else
+    Begin    // Create and write the header
+        ReWrite(F);
+        Write(F, 'DateTime, CaseName, ');
+        Write (F, 'Status, Mode, Number, LoadMult, NumDevices, NumBuses, NumNodes');
+        Write (F, ', Iterations, ControlMode, ControlIterations');
+        Write (F, ', MostIterationsDone');
+        If ActiveCircuit <> Nil Then
+          If ActiveCircuit.Issolved and not ActiveCircuit.BusNameRedefined Then
+          Begin
+              Write(F, ', Year, Hour, MaxPuVoltage, MinPuVoltage, TotalMW, TotalMvar');
+              Write(F, ', kWLosses, pctLosses, kvarLosses, Frequency');
+          End;
+
+        Writeln (F);
+    End;
 
     Write(F, Format('"%s", ',  [DateTimeToStr(Now)]));
     If ActiveCircuit <> Nil Then Write(F, Format('%s, ',  [ActiveCircuit.FCaseName]))
@@ -1982,7 +1986,9 @@ Begin
           Write(F, Format(', %-g',    [ActiveCircuit.Solution.Frequency]));
       End;
 
-  GlobalResult := FileNm;
+    Writeln(F);
+
+    GlobalResult := FileNm;
 
   Finally
     CloseFile(F);
