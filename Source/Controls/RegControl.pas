@@ -671,7 +671,7 @@ begin
                   Begin
                       If (DebugTrace) Then WriteTraceRecord(OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
-                      AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.4g.',[Lastchange,PresentTap[TapWinding]]));
+                      AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
                       IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, DynaVars.t + TapDelay, 0, 0, Self)
                       ELSE Armed := FALSE;
                   End;
