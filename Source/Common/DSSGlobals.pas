@@ -21,7 +21,7 @@ unit DSSGlobals;
 
 interface
 
-Uses DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
+Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerList,
      UComplex, Arraydef, CktElement, Circuit, IniRegSave,
      {Some units which have global vars defined here}
      Spectrum,
@@ -160,6 +160,10 @@ VAR
    WireDataClass      :TWireData;
    LineSpacingClass   :TLineSpacing;
    StorageClass       :TStorage;
+
+   EventStrings: TStringList;
+   SavedFileList:TStringList;
+
 
 
 PROCEDURE DoErrorMsg(Const S, Emsg, ProbCause :String; ErrNum:Integer);
@@ -559,12 +563,18 @@ initialization
    DefaultEditor  := 'NotePad';
    NoFormsAllowed := FALSE;
 
+   EventStrings  := TStringList.Create;
+   SavedFileList := TStringList.Create;
+
    //WriteDLLDebugFile('DSSGlobals');
 
 Finalization
 
   // Dosimplemsg('Enter DSSGlobals Unit Finalization.');
   Auxparser.Free;
+
+  EventStrings.Free;
+  SavedFileList.Free;
 
   With DSSExecutive Do If RecorderOn Then Recorderon := FALSE;
 

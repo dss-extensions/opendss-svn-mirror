@@ -15,18 +15,18 @@ interface
 
 Uses ArrayDef, CktElement, PDElement, UComplex, UcMatrix, DSSClass, Classes{, StdCtrls};
 
-Function CompareTextShortest(Const S1, S2:String):Integer;
+Function  CompareTextShortest(Const S1, S2:String):Integer;
 Procedure FireOffEditor(FileNm:String);
 Procedure DoDOSCmd(CmdString:String);
-Function StripExtension(const S:String):String;
-Function StripClassName(const S:String):String;  // Return only element name sans class.
-Function Pad(Const S:String; Width:Integer):String;
-Function PadDots(Const S:String; Width:Integer):String;
-Function PadTrunc(Const S:String; Width:Integer):String;
-Function IntArrayToString( iarray:pIntegerArray; count:integer):String;
-Function EncloseQuotes(Const s:String):String;
+Function  StripExtension(const S:String):String;
+Function  StripClassName(const S:String):String;  // Return only element name sans class.
+Function  Pad(Const S:String; Width:Integer):String;
+Function  PadDots(Const S:String; Width:Integer):String;
+Function  PadTrunc(Const S:String; Width:Integer):String;
+Function  IntArrayToString( iarray:pIntegerArray; count:integer):String;
+Function  EncloseQuotes(Const s:String):String;
 Procedure ShowMessageBeep(Const s:String);
-Function FullName(pElem :TDSSCktElement):String;
+Function  FullName(pElem :TDSSCktElement):String;
 
 {Parsing Utilities}
 PROCEDURE ParseObjectClassandName(const FullObjName :String; Var ClassName, ObjName :String);
@@ -60,37 +60,37 @@ FUNCTION GetDSSArray_Integer(n:Integer; ints:pIntegerArray):String;
 
 
 {misc functions}
-Function DoExecutiveCommand(const s:String):Integer;
-FUNCTION GetCktElementIndex(const FullObjName :String) :Integer;
-FUNCTION IsShuntElement(const Elem:TDSSCktElement):Boolean;
-FUNCTION IsLineElement(const Elem:TDSSCktElement):Boolean;
-FUNCTION IsTransformerElement(const Elem:TDSSCktElement):Boolean;
-Function IsStubLine(const Elem:TDSSCktElement):Boolean;
-FUNCTION CheckParallel(const Line1, Line2:TDSSCktElement): Boolean;
-FUNCTION AllTerminalsClosed(ThisElement:TDSSCktElement):Boolean;
+Function  DoExecutiveCommand(const s:String):Integer;
+FUNCTION  GetCktElementIndex(const FullObjName :String) :Integer;
+FUNCTION  IsShuntElement(const Elem:TDSSCktElement):Boolean;
+FUNCTION  IsLineElement(const Elem:TDSSCktElement):Boolean;
+FUNCTION  IsTransformerElement(const Elem:TDSSCktElement):Boolean;
+Function  IsStubLine(const Elem:TDSSCktElement):Boolean;
+FUNCTION  CheckParallel(const Line1, Line2:TDSSCktElement): Boolean;
+FUNCTION  AllTerminalsClosed(ThisElement:TDSSCktElement):Boolean;
 FUNCTION  Str_Real(Const Value :Double; NumDecimals :Integer) :String;
 PROCEDURE DumpAllDSSCommands(Var Filename:String);
 PROCEDURE DumpAllocationFactors(Var Filename:String);
 PROCEDURE DumpComplexMatrix(Var F:TextFile; AMatrix:TcMatrix);
-FUNCTION NearestBasekV(kV:Double):Double;
-FUNCTION PresentTimeInSec:Double;
-FUNCTION DoResetFaults:Integer;
-FUNCTION DoResetControls:Integer;
+FUNCTION  NearestBasekV(kV:Double):Double;
+FUNCTION  PresentTimeInSec:Double;
+FUNCTION  DoResetFaults:Integer;
+FUNCTION  DoResetControls:Integer;
 PROCEDURE DoResetKeepList;
-FUNCTION GetNodeNum(NodeRef:Integer):Integer;
+FUNCTION  GetNodeNum(NodeRef:Integer):Integer;
 PROCEDURE InitStringToNull(Var S:String);
-FUNCTION CmulReal_im(const a:Complex; const Mult:Double):Complex;  // Multiply only imaginary part by a real
+FUNCTION  CmulReal_im(const a:Complex; const Mult:Double):Complex;  // Multiply only imaginary part by a real
 //FUNCTION IsValidNumericField(const NumberField:TEdit):Boolean;
-FUNCTION MaxdblArrayValue(npts:Integer; dbls:pDoubleArray):Double;
-FUNCTION iMaxAbsdblArrayValue(npts:Integer; dbls:pDoubleArray):Integer;
+FUNCTION  MaxdblArrayValue(npts:Integer; dbls:pDoubleArray):Double;
+FUNCTION  iMaxAbsdblArrayValue(npts:Integer; dbls:pDoubleArray):Integer;
 
 
 {Save Function Helper}
-Function WriteClassFile(Const DSS_Class:TDSSClass; FileName:String; IsCktElement:Boolean):Boolean;
-Function WriteVsourceClassFile(Const DSS_Class:TDSSClass; IsCktElement:Boolean):Boolean;
+Function  WriteClassFile(Const DSS_Class:TDSSClass; FileName:String; IsCktElement:Boolean):Boolean;
+Function  WriteVsourceClassFile(Const DSS_Class:TDSSClass; IsCktElement:Boolean):Boolean;
 Procedure WriteActiveDSSObject(Var F:TextFile; const NeworEdit:String);
-Function checkforblanks(const S:String): String;
-Function RewriteAlignedFile(const Filename:String):Boolean;
+Function  checkforblanks(const S:String): String;
+Function  RewriteAlignedFile(const Filename:String):Boolean;
 
 {Event Log}
 PROCEDURE ClearEventLog;
@@ -102,19 +102,19 @@ PROCEDURE RotatePhasorDeg(Var Phasor:Complex; const  h, AngleDeg:Double);
 PROCEDURE RotatePhasorRad(Var Phasor:Complex; const  h, AngleRad:Double);
 Procedure ConvertComplexArrayToPolar(Const Buffer:pComplexArray; N:Integer);
 Procedure ConvertComplexArrayToPowerandPF(Const Buffer:pComplexArray;N:Integer);
-FUNCTION Residual(p: Pointer; Nph:Integer):Complex;
-FUNCTION ResidualPolar(p: Pointer; Nph:Integer):Complex;
-FUNCTION Powerfactor(Const S:Complex):Double;
-FUNCTION ConvertPFToPFRange2(const value:double):Double;
-FUNCTION ConvertPFRange2ToPF(const value:double):Double;
+FUNCTION  Residual(p: Pointer; Nph:Integer):Complex;
+FUNCTION  ResidualPolar(p: Pointer; Nph:Integer):Complex;
+FUNCTION  Powerfactor(Const S:Complex):Double;
+FUNCTION  ConvertPFToPFRange2(const value:double):Double;
+FUNCTION  ConvertPFRange2ToPF(const value:double):Double;
 PROCEDURE CmulArray(pc:pcomplexarray; Multiplier:double; size:Integer);  // Multiply a complex array times a double
 
 {Support for going in and out of Dynamics Mode and Harmonics Mode}
 PROCEDURE CalcInitialMachineStates;
 PROCEDURE InvalidateAllMachines;
-FUNCTION InitializeForHarmonics:Boolean;
-FUNCTION SavePresentVoltages:Boolean;
-FUNCTION RetrieveSavedVoltages:Boolean;
+FUNCTION  InitializeForHarmonics:Boolean;
+FUNCTION  SavePresentVoltages:Boolean;
+FUNCTION  RetrieveSavedVoltages:Boolean;
 
 Function GetMaxPUVoltage:Double;
 Function GetMinPUVoltage(IgnoreNeutrals:Boolean):Double;
@@ -123,7 +123,7 @@ Function GetMaxCktElementSize:Integer;
 Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 
 {TraceBack Functions}
-Function IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
+Function  IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
 Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
@@ -135,16 +135,16 @@ Procedure InitializeFeeders;
 Procedure ForwardSweepAllFeeders;
 Procedure BackwardSweepAllFeeders;
 
-VAR
-  EventStrings: TStringList;
-  SavedFileList:TStringList;
+
 
 implementation
 
-Uses Windows, SysUtils, ShellAPI, Dialogs,  DSSClassDefs, 
-DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions, Solution, DSSObject,
-Capacitor, Reactor, Generator, Load, Line, Fault, Feeder,
-EnergyMeter, ControlElem, math, DSSForms, ParserDel, {Controls,} PCElement;
+Uses Windows,    SysUtils, ShellAPI,  Dialogs,      DSSClassDefs,
+     DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions,
+     Solution,   DSSObject,math,      DSSForms,     ParserDel,
+     Capacitor,  Reactor,  Generator, Load,
+     Line,       Fault,    Feeder,
+     EnergyMeter,PCElement,ControlElem;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -160,13 +160,13 @@ BEGIN
 
    IF Length(S1)<Length(S2) THEN
      BEGIN
-       TestStr := Copy(S2,1,Length(S1));
-       Result := CompareText(TestStr,S1);
+         TestStr := Copy(S2,1,Length(S1));
+         Result  := CompareText(TestStr,S1);
      END
    ELSE
      BEGIN
-       TestStr:=Copy(S1,1,Length(S2));
-       Result := CompareText(TestStr,S2);
+         TestStr := Copy(S1,1,Length(S2));
+         Result  := CompareText(TestStr,S2);
      END;
 
 END;
@@ -263,8 +263,7 @@ Begin
 
   EXCEPT
       On E: Exception DO
-        DoErrorMsg('DoDOSCmd.', E.Message,
-                   'Error in Command ???', 704);
+        DoSimpleMsg(Format('DoDOSCmd Error:%s. Error in Command "%s"',[E.Message, CmdString]), 704);
   END;
 End;
 
@@ -1606,19 +1605,25 @@ End;
 PROCEDURE ClearEventLog;
 
 Begin
-    EventStrings.Clear;
+  Try
+{****  WriteDLLDebugFile(Format('ClearEventLog: EventStrings= %p', [@EventStrings])); }
+       EventStrings.Clear;
+  Except
+       On E:Exception Do
+          Dosimplemsg(Format('Exception clearing event log: %s, @EventStrings=%p', [E.Message, @EventStrings]), 7151);
+  End;
 End;
 
 PROCEDURE LogThisEvent(Const EventName:String);
 
 Begin
-
+    {****  WriteDLLDebugFile(Format('LogThisEvent: EventStrings= %p', [@EventStrings])); }
     With ActiveCircuit.Solution do
     EventStrings.Add(Format('Hour=%d, Sec=%-.8g, Iteration=%d, ControlIter=%d, Event=%s',
           [intHour, Dynavars.t, iteration, ControlIteration, EventName ]));
 
      //     'Time=' + TimeToStr(Time)+': '+EventName);
-   // ShowMessageForm(EventStrings);
+ {****  ShowMessageForm(EventStrings); }
 End;
 
 PROCEDURE AppendToEventLog(const opdev:string; Const action:String);
@@ -1626,11 +1631,12 @@ VAR
         S:String;
 
 Begin
-
+  {****  WriteDLLDebugFile(Format('LogThisEvent: EventStrings= %p', [@EventStrings])); }
           With  ActiveCircuit.Solution  Do
           S :=  Format('Hour=%d, Sec=%-.5g, ControlIter=%d, Element=%s, Action=%s',
           [intHour, Dynavars.t, ControlIteration, OpDev, Uppercase(action) ]);
           EventStrings.Add(S);
+  {****  ShowMessageForm(EventStrings); }
 End;
 
 
@@ -2493,12 +2499,8 @@ End;
 
 initialization
 
-  EventStrings := TStringList.Create;
-  SavedFileList := TStringList.Create;
-
 Finalization
 
-  EventStrings.Free;
-  SavedFileList.Free;
+
 
 end.
