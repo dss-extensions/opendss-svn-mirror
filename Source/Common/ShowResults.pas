@@ -36,6 +36,7 @@ Procedure ShowY(FileNm:String);
 Procedure ShowTopology(FileRoot:String); // summary and tree-view to separate files
 Procedure ShowNodeCurrentSum(FileNm:String);
 Procedure ShowkVBaseMismatch(FileNm:String);
+Procedure ShowDeltaV(FileNm:String);
 
 implementation
 
@@ -208,6 +209,31 @@ Begin
     BusName := Pad(StripExtension(pElem.Nextbus),MaxBusNameLength);
   End;
 End;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+PROCEDURE WriteElementDeltaVoltages(Var F:TextFile; pElem:TDSSCktElement);
+Var
+     NCond,
+     i        :Integer;
+     Volts1,
+     Volts2   :Complex;
+     ElemName :String;
+
+Begin
+  NCond := pElem.NConds;
+
+  ElemName := Pad( pElem.dssclassname + '.' + pElem.Name, MaxDeviceNameLength);
+    For i := 1 to NCond Do Begin
+
+       Volts1 := ActiveCircuit.Solution.NodeV^[pElem.NodeRef^[i]];
+       Volts2 := ActiveCircuit.Solution.NodeV^[pElem.NodeRef^[i+Ncond]];
+       Volts1 := Csub(Volts1, Volts2);   // diff voltage
+       Writeln(F, Format('%s,  %4d,    %10.5g, %6.1f',[ElemName, i, Cabs(Volts1),  cdang(Volts1) ]));
+
+  End;
+End;
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure ShowVoltages(FileNm:String; LL:Boolean; ShowOptionCode:Integer);
@@ -3196,6 +3222,79 @@ Begin
         CloseFile(F);
         FireOffEditor(FileNm);
      End;
+End;
+
+Procedure ShowDeltaV(FileNm:String);
+
+VAR
+    F      :TextFile;
+    pElem  :TDSSCktElement;
+
+
+Begin
+
+     Try
+         Assignfile(F,FileNm);
+         ReWrite(F);
+
+         SetMaxDeviceNameLength;
+
+         Writeln(F);
+         Writeln(F,'VOLTAGES ACROSS CIRCUIT ELEMENTS WITH 2 TERMINALS');
+         Writeln(F);
+         Writeln(F, 'Source Elements');
+         Writeln(F);
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F);
+
+
+         // SOURCES first
+         pElem := ActiveCircuit.sources.First;
+
+         WHILE pElem<>nil DO Begin
+            IF pElem.Enabled and (pElem.NTerms = 2) then WriteElementDeltaVoltages(F, pElem);
+            Writeln(F);
+            pElem := ActiveCircuit.sources.Next;
+         End;
+
+         Writeln(F);
+         Writeln(F, 'Power Delivery Elements');
+         Writeln(F);
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F);
+
+
+         // PDELEMENTS next
+         pElem := ActiveCircuit.PDElements.First;
+
+         WHILE pElem<>nil DO Begin
+            IF pElem.Enabled and (pElem.NTerms = 2) then WriteElementDeltaVoltages(F, pElem);
+            Writeln(F);
+            pElem := ActiveCircuit.PDElements.Next;
+         End;
+
+         Writeln(F,'= = = = = = = = = = = = = = = = = = =  = = = = = = = = = = =  = =');
+         Writeln(F);
+         Writeln(F, 'Power Conversion Elements');
+         Writeln(F);
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F);
+
+         // PCELEMENTS next
+         pElem := ActiveCircuit.PCElements.First;
+
+         WHILE pElem<>nil DO Begin
+           IF pElem.Enabled and (pElem.NTerms = 2) THEN WriteElementDeltaVoltages(F, pElem);
+            pElem := ActiveCircuit.PCElements.Next;
+            Writeln(F);
+         End;
+
+
+     Finally
+        CloseFile(F);
+        FireOffEditor(FileNm);
+     End;
+
 End;
 
 Initialization

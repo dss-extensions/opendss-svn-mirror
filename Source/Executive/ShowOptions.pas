@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumShowOptions = 30;
+        NumShowOptions = 31;
 
 FUNCTION DoShowCmd:Integer;
 
@@ -56,6 +56,7 @@ Begin
     ShowOption[28] := 'topology';
     ShowOption[29] := 'mismatch';
     ShowOption[30] := 'kvbasemismatch';
+    ShowOption[31] := 'deltaV';
 
 
 
@@ -127,6 +128,7 @@ Begin
     ShowHelp[29] := 'Shows the current mismatches at each node in amperes and percent of max currents at node.';
     ShowHelp[30] := 'Creates a report of Load and Generator elements for which the base voltage does not match the Bus base voltage. ' +
                     'Scripts for correcting the voltage base are suggested.';
+    ShowHelp[31] := 'Show voltages ACROSS each 2-terminal element, phase-by-phase. ';
 
 End;
 
@@ -322,6 +324,7 @@ Begin
       28: ShowTopology(DSSDataDirectory + CircuitName_);
       29: ShowNodeCurrentSum(DSSDataDirectory + CircuitName_ + 'NodeMismatch.Txt');
       30: ShowkVBaseMismatch(DSSDataDirectory + CircuitName_ + 'kVBaseMismatch.Txt');
+      31: ShowDeltaV(DSSDataDirectory + CircuitName_ + 'DeltaV.Txt');
    ELSE
    End;
 
