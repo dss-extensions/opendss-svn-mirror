@@ -320,7 +320,7 @@ BEGIN
 
      ActiveLoadShapeClass := USENONE; // Signify not set
 
-     NodeBufferMax := 20;
+     NodeBufferMax := 50;
      NodeBuffer    := AllocMem(SizeOf(NodeBuffer^[1]) * NodeBufferMax); // A place to hold the nodes
 
      // Init global circuit load and harmonic source multipliers

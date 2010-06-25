@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 88;
+     NumExecCommands = 89;
 
 Var
 
@@ -124,6 +124,7 @@ Begin
      ExecCommand[86] := 'Guids';
      ExecCommand[87] := 'SetLoadAndGenKV';
      ExecCommand[88] := 'CvrtLoadshapes';
+     ExecCommand[89] := 'NodeDiff';
 
 
 
@@ -384,6 +385,8 @@ Begin
                         'cvrtloadshapes type=sng  (this is the default)'+crlf+
                         'cvrtloadshapes type=dbl'+CRLF+CRLF+
                         'A DSS script for loading the loadshapes from the created files is produced and displayed in the default editor. ';
+     CommandHelp[89] := 'Global result is set to voltage difference, volts and degrees, (Node1 - Node2) between any two nodes. Syntax:' +CRLF+CRLF+
+                        '   NodeDiff Node1=MyBus.1 Node2=MyOtherBus.1';
 
 End;
 
@@ -589,6 +592,7 @@ Begin
        86: CmdResult := DoGuidsCmd;
        87: CmdResult := DoSetLoadAndGenKVCmd;
 //       88:;
+       89: CmdResult := DoNodeDiffCmd;
      ELSE
        // Ignore excess parameters
      End;

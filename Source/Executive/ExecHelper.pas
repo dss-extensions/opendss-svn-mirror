@@ -104,6 +104,7 @@ interface
          FUNCTION DoReconductorCmd:Integer;
          FUNCTION DoAddMarkerCmd:Integer;
          FUNCTION DoCvrtLoadshapesCmd:Integer;
+         FUNCTION DoNodeDiffCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -151,11 +152,11 @@ Begin
 
 {We're looking for Object Definition:
 
-  ParamName = 'object' IF given
- and the name of the object
+      ParamName = 'object' IF given
+     and the name of the object
 
- Object=Capacitor.C1
-or just Capacitor.C1
+     Object=Capacitor.C1
+    or just Capacitor.C1
 
 If no dot, last class is assumed
 }
@@ -3358,6 +3359,71 @@ Begin
      CloseFile(F);
      FireOffEditor(Fname);
      Result := 0;
+End;
+
+FUNCTION DoNodeDiffCmd:Integer;
+
+Var
+   ParamName      :String;
+   Param          :String;
+   sNode1, sNode2   :String;
+   SBusName       :String;
+   V1, V2,
+   VNodeDiff      :Complex;
+   iBusidx        :Integer;
+   B1ref          :integer;
+   B2ref          :Integer;
+   NumNodes       :Integer;
+   NodeBuffer     :Array[1..50] of Integer;
+
+
+Begin
+
+    Result := 0;
+    ParamName := Parser.NextParam;
+    Param := Parser.StrValue;
+    sNode1 := Param;
+    If Pos('2',ParamName)>0 then sNode2 := Param;
+
+    ParamName := Parser.NextParam;
+    Param := Parser.StrValue;
+    sNode2 := Param;
+    If Pos('1',ParamName)>0 then sNode1 := Param;
+
+    // Get first node voltage
+    AuxParser.Token := sNode1;
+    NodeBuffer[1] := 1;
+    sBusName := AuxParser.ParseAsBusName (numNodes,  @NodeBuffer);
+    iBusidx := ActiveCircuit.Buslist.Find(sBusName);
+    If iBusidx>0 Then Begin
+        B1Ref := ActiveCircuit.Buses^[iBusidx].Find(NodeBuffer[1])
+    End Else Begin
+        DoSimpleMsg(Format('Bus %s not found.',[sBusName]), 28709);
+        Exit;
+    End;
+
+    V1 := ActiveCircuit.Solution.NodeV^[B1Ref];
+
+    // Get 2nd node voltage
+    AuxParser.Token := sNode2;
+    NodeBuffer[1] := 1;
+    sBusName := AuxParser.ParseAsBusName (numNodes,  @NodeBuffer);
+    iBusidx := ActiveCircuit.Buslist.Find(sBusName);
+    If iBusidx>0 Then Begin
+        B2Ref := ActiveCircuit.Buses^[iBusidx].Find(NodeBuffer[1])
+    End Else Begin
+        DoSimpleMsg(Format('Bus %s not found.',[sBusName]), 28710);
+        Exit;
+    End;
+
+    V2 := ActiveCircuit.Solution.NodeV^[B2Ref];
+
+    VNodeDiff := CSub(V1, V2);
+    GlobalResult := Format('%.7g, V,    %.7g, deg  ',[Cabs(VNodeDiff), CDang(VNodeDiff) ]);
+
+
+
+
 End;
 
 initialization
