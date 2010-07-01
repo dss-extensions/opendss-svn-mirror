@@ -18,6 +18,7 @@ if DSSStartOK
     % Solve executes the solution for the present solution mode, which is "snapshot".
 
     DSSSolution.SolveNoControl;
+    disp(['Result='  DSSText.Result])
     if DSSSolution.Converged 
        a = 'Solution Converged';
        disp(a)
@@ -25,14 +26,17 @@ if DSSStartOK
        a = 'Solution did not Converge';
        disp(a)    
     end
+    
+    DSSText.Command='Export Voltages';
+    disp(DSSText.Result)
 
     DSSSolution.SampleControlDevices;
     DSSCircuit.CtrlQueue.Show;
     disp(DSSText.Result)
     DSSSolution.DoControlActions;
     DSSCircuit.CtrlQueue.Show;
-    DSSText.Command='Buscoords Buscoords.txt   ! load in bus coordinates';
+    DSSText.Command='Buscoords Buscoords.dat   ! load in bus coordinates';
 else
-    a='DSS Did Not Start'
+    a = 'DSS Did Not Start'
     disp(a)
 end
