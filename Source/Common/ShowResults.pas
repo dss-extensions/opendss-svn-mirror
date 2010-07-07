@@ -1740,10 +1740,10 @@ Begin
 
   Finally
 
-     CloseFile(FDisabled);
-     FireOffEditor(DisabledFileNm);
-     CloseFile(F);
-     FireOffEditor(FileNm);
+       CloseFile(FDisabled);
+       FireOffEditor(DisabledFileNm);
+       CloseFile(F);
+       FireOffEditor(FileNm);
 
   End;
 
@@ -1756,9 +1756,9 @@ Procedure ShowBuses(FileNm:String);
 // Show bus names and nodes in uses
 
 Var
-   F:TextFile;
-   i,j :Integer;
-   pBus:TDSSBus;
+   F    :TextFile;
+   i,j  :Integer;
+   pBus :TDSSBus;
 
 Begin
 
@@ -1775,23 +1775,23 @@ Begin
      Writeln(F,Pad('  Bus', MaxBusNameLength), '    Base kV             (x, y)            Keep?       Nodes      connected ...');
      Writeln(F);
      WITH ActiveCircuit DO Begin
-       FOR i := 1 to NumBuses DO Begin
-           Write(F, Pad(EncloseQuotes(BusList.Get(i)), MaxBusNameLength),' ');
-           pBus := Buses^[i];
-           If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:2)
-           Else Write(F, '   NA ');
-           Write(F,'          (');
-           If pBus.CoordDefined then Write(F, Format(' %-13.11g, %-13.11g)',[pBus.x, pBus.y] )) Else Write(F,'           NA,            NA )');
-           If pBus.Keep then Write(F,'     Yes  ') Else Write(F,'     No  ');
-           Write(F,'     ');
-           Write(F, pBus.NumNodesThisBus:5);
-           Write(F,'       ');
-           For j := 1 to pBus.NumNodesThisBus DO Begin
-             Write(F,pBus.GetNum(j):4,' ');
-           End;
-           Writeln(F);
+         FOR i := 1 to NumBuses DO Begin
+             Write(F, Pad(EncloseQuotes(BusList.Get(i)), MaxBusNameLength),' ');
+             pBus := Buses^[i];
+             If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:2)
+             Else Write(F, '   NA ');
+             Write(F,'          (');
+             If pBus.CoordDefined then Write(F, Format(' %-13.11g, %-13.11g)',[pBus.x, pBus.y] )) Else Write(F,'           NA,            NA )');
+             If pBus.Keep then Write(F,'     Yes  ') Else Write(F,'     No  ');
+             Write(F,'     ');
+             Write(F, pBus.NumNodesThisBus:5);
+             Write(F,'       ');
+             For j := 1 to pBus.NumNodesThisBus DO Begin
+               Write(F,pBus.GetNum(j):4,' ');
+             End;
+             Writeln(F);
+         End;
        End;
-     End;
 
   Finally
 
@@ -1825,26 +1825,32 @@ Begin
      Writeln(F,'Registers:');
      MeterClass := TEnergyMeter(GetDSSClassPtr('Energymeter'));
      If MeterClass = nil THEN Exit;  // oops somewhere!!
-     pElem := ActiveCircuit.energyMeters.First;   // write registernames for first meter only
-     For i := 1 to NumEMRegisters Do Writeln(F, 'Reg ' + IntToStr(i) + ' = ', pElem.RegisterNames[i]);
-     Writeln(F);
+     If MeterClass.ElementCount =0 then  Begin
+       Writeln(F, 'No Energymeter Elements Defined.');
+     End Else Begin;
 
-     pElem := ActiveCircuit.energyMeters.First;
-     If pElem<>nil Then Begin
-        Write(F,'Meter        ');
-        For i := 1 to NumEMRegisters Do Write(F,Pad('   Reg ' + IntToStr(i), 11));
-        Writeln(F);
-        Writeln(F);
-        WHILE pElem<>nil DO Begin
-         IF pElem.Enabled THEN Begin
-           Write(F, Pad(pElem.Name, 12));
-           FOR j := 1 to NumEMRegisters Do Begin
-             Write(F, PElem.Registers[j]:10:0,' ');
-           End;
-         End;
-         pElem := ActiveCircuit.EnergyMeters.Next;
+         pElem := ActiveCircuit.energyMeters.First;   // write registernames for first meter only
+         For i := 1 to NumEMRegisters Do Writeln(F, 'Reg ' + IntToStr(i) + ' = ', pElem.RegisterNames[i]);
          Writeln(F);
-        End;
+
+         pElem := ActiveCircuit.energyMeters.First;
+         If pElem<>nil Then Begin
+            Write(F,'Meter        ');
+            For i := 1 to NumEMRegisters Do Write(F,Pad('   Reg ' + IntToStr(i), 11));
+            Writeln(F);
+            Writeln(F);
+            WHILE pElem<>nil DO Begin
+             IF pElem.Enabled THEN Begin
+               Write(F, Pad(pElem.Name, 12));
+               FOR j := 1 to NumEMRegisters Do Begin
+                 Write(F, PElem.Registers[j]:10:0,' ');
+               End;
+             End;
+             pElem := ActiveCircuit.EnergyMeters.Next;
+             Writeln(F);
+            End;
+         End;
+
      End;
 
   Finally
