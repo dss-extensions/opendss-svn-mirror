@@ -36,7 +36,7 @@ TYPE
 
       public
 
-        FEdit:         Procedure(s:pchar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
+        FEdit:         Procedure(s:pAnsichar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
         FInit:         procedure(V, I:pComplexArray);Stdcall;   // For dynamics
         FCalc:         Procedure(V, I:pComplexArray); stdcall; // returns Currents or sets Pshaft
         FIntegrate:    Procedure; stdcall; // Integrates any state vars
@@ -52,7 +52,7 @@ TYPE
         FGetAllVars:  Procedure(Vars:pDoubleArray);StdCall;  // Get all vars
         FGetVariable: Function(var I:Integer):Double;StdCall;// Get a particular var
         FSetVariable: Procedure(var i:Integer; var value:Double); StdCall;
-        FGetVarName:  Procedure(var VarNum:Integer; VarName:pchar; maxlen:Cardinal);StdCall;
+        FGetVarName:  Procedure(var VarNum:Integer; VarName:pAnsichar; maxlen:Cardinal);StdCall;
 
         // this property loads library (if needed), sets the procedure variables, and makes a new instance
         // old reference is freed first
@@ -101,8 +101,8 @@ begin
 
   If FID <> 0 Then
     Begin
-      FDelete(FID);       // Clean up all memory associated with this instance
-      FreeLibrary(FHandle);
+        FDelete(FID);       // Clean up all memory associated with this instance
+        FreeLibrary(FHandle);
     End;
 
 end;
@@ -111,8 +111,8 @@ function TStoreUserModel.Get_Exists: Boolean;
 begin
         If FID <> 0 Then
          Begin
-          Result := True;
-          Select;    {Automatically select if true}
+              Result := True;
+              Select;    {Automatically select if true}
          End
         Else Result := False;
 end;
@@ -130,12 +130,11 @@ end;
 
 procedure TStoreUserModel.Set_Edit(const Value: String);
 begin
-        If FID <> 0 Then FEdit(pchar(Value), Length(Value));
+        If FID <> 0 Then FEdit(pansichar(AnsiString(Value)), Length(Value));
         // Else Ignore
 end;
 
 procedure TStoreUserModel.Set_Name(const Value:String);
-
 
 begin
 
@@ -154,14 +153,18 @@ begin
         If (Length(Value)=0) or (Length(TrimLeft(Value))=0) Then Exit;
         If comparetext(value, 'none')=0 Then Exit;
 
-        FHandle := LoadLibrary(pchar(Value));
-        IF FHandle = 0 Then Begin // Try again with full path name
-           FHandle := LoadLibrary(pchar(DSSDirectory + Value));
+        FHandle := LoadLibrary(pwidechar(Value));
+        IF FHandle = 0 Then
+        Begin
+             // Try again with full path name
+              FHandle := LoadLibrary(pwidechar(DSSDirectory + Value));
         End;
 
         If FHandle = 0 Then
               DoSimpleMsg('Generator User Model ' + Value + ' Not Loaded. DSS Directory = '+DSSDirectory, 570)
-        Else Begin
+        Else
+        Begin
+
             FName := Value;
 
             // Now set up all the procedure variables

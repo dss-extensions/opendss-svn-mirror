@@ -2238,8 +2238,8 @@ Const
 VAR
     n,
     i2    :integer;
-    Buff  :Array[0..BuffSize] of Char;
-    pName :pchar;
+    Buff  :Array[0..BuffSize] of AnsiChar;
+    pName :pAnsichar;
 
 Begin
       If i<1 Then Exit;  // Someone goofed
@@ -2259,7 +2259,7 @@ Begin
                   If i2 <= n Then
                   Begin
                        UserModel.FGetVarName(i2, pName, BuffSize);
-                       Result := pName;
+                       Result := String(pName);
                        Exit;
                   End;
             End;

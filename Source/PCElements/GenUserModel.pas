@@ -6,6 +6,12 @@ unit GenUserModel;
   Copyright (c) 2008, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
+
+  7-7-10
+  Modified to allow DLLS to retain ANSI string type in Edit function and Var names
+  Nominally all strings passed to DLLS are ASCII to make it easier to write code in other languages
+  and legacy defaults
+
 }
 
 interface
@@ -20,6 +26,7 @@ TYPE
       private
          FHandle: Integer;  // Handle to DLL containing user model
          FID : Integer;    // ID of this instance of the user model
+         // OK for this to be Wide String, since not passed to DLLs
          Fname: String;    // Name of the DLL file containing user model
          FuncError:Boolean;
 
@@ -31,14 +38,15 @@ TYPE
 
          Procedure Set_Name(const Value:String);
          Function CheckFuncError(Addr:Pointer; FuncName:String):Pointer;
+
          procedure Set_Edit(const Value: String);
          function Get_Exists: Boolean;
-         
+
       protected
 
       public
 
-        FEdit:         Procedure(s:pchar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
+        FEdit:         Procedure(s:pAnsichar; Maxlen:Cardinal); Stdcall; // send string to user model to handle
         FInit:         procedure(V, I:pComplexArray);Stdcall;   // For dynamics
         FCalc:         Procedure(V, I:pComplexArray); stdcall; // returns Currents or sets Pshaft
         FIntegrate:    Procedure; stdcall; // Integrates any state vars
@@ -55,12 +63,13 @@ TYPE
         FGetAllVars:  Procedure(Vars:pDoubleArray);StdCall;  // Get all vars
         FGetVariable: Function(var I:Integer):Double;StdCall;// Get a particular var
         FSetVariable: Procedure(var i:Integer; var value:Double); StdCall;
-        FGetVarName:  Procedure(var VarNum:Integer; VarName:pchar; maxlen:Cardinal);StdCall;
+        FGetVarName:  Procedure(var VarNum:Integer; VarName:pAnsiChar; maxlen:Cardinal);StdCall;
 
         // this property loads library (if needed), sets the procedure variables, and makes a new instance
         // old reference is freed first
+        // Wide string OK here
         property Name:String read Fname write Set_Name;
-        property Edit:String write Set_Edit;
+        property Edit:String write Set_Edit;  // Converted to Ansi string  in Set_Edit
         property Exists:Boolean read Get_Exists;
 
         Procedure Select;
@@ -93,11 +102,11 @@ end;
 constructor TGenUserModel.Create( ActiveGeneratorVars:pTGeneratorVars);
 begin
 
-  FID := 0;
-  Fhandle := 0;
-  FName := '';
+    FID     := 0;
+    Fhandle := 0;
+    FName   := '';
 
-  FActiveGeneratorVars := ActiveGeneratorVars;
+    FActiveGeneratorVars := ActiveGeneratorVars;
 
 end;
 
@@ -107,8 +116,8 @@ begin
 
   If FID <> 0 Then
     Begin
-      FDelete(FID);       // Clean up all memory associated with this instance
-      FreeLibrary(FHandle);
+          FDelete(FID);       // Clean up all memory associated with this instance
+          FreeLibrary(FHandle);
     End;
 
 end;
@@ -117,8 +126,8 @@ function TGenUserModel.Get_Exists: Boolean;
 begin
         If FID <> 0 Then
          Begin
-          Result := True;
-          Select;    {Automatically select if true}
+              Result := True;
+              Select;    {Automatically select if true}
          End
         Else Result := False;
 end;
@@ -136,7 +145,7 @@ end;
 
 procedure TGenUserModel.Set_Edit(const Value: String);
 begin
-        If FID <> 0 Then FEdit(pchar(Value), Length(Value));
+        If FID <> 0 Then FEdit(pAnsichar(AnsiString(Value)), Length(Value));
         // Else Ignore
 end;
 
@@ -147,27 +156,31 @@ begin
 
     {If Model already points to something, then free it}
 
-        IF FHandle <> 0 Then Begin
-           If FID <> 0 Then Begin
-               FDelete(FID);
-               FName := '';
-               FID := 0;
-           End;
-           FreeLibrary(FHandle);
+        IF FHandle <> 0 Then
+        Begin
+             If FID <> 0 Then
+             Begin
+                   FDelete(FID);
+                   FName := '';
+                   FID := 0;
+             End;
+             FreeLibrary(FHandle);
         End;
 
         {If Value is blank or zero-length, bail out.}
         If (Length(Value)=0) or (Length(TrimLeft(Value))=0) Then Exit;
         If comparetext(value, 'none')=0 Then Exit;
 
-        FHandle := LoadLibrary(pchar(Value));
-        IF FHandle = 0 Then Begin // Try again with full path name
-           FHandle := LoadLibrary(pchar(DSSDirectory + Value));
-        End;
+        FHandle := LoadLibrary(pWideChar(Value));   // the default LoadLibrary function is expecting a wide char
+        IF FHandle = 0 Then
+          Begin // Try again with full path name
+               FHandle := LoadLibrary(pWideChar(DSSDirectory + Value));
+          End;
 
         If FHandle = 0 Then
               DoSimpleMsg('Generator User Model ' + Value + ' Not Loaded. DSS Directory = '+DSSDirectory, 570)
-        Else Begin
+        Else
+        Begin
             FName := Value;
 
             // Now set up all the procedure variables

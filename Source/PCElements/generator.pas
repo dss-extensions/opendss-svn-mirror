@@ -2499,8 +2499,8 @@ Const
 Var
     n,
     i2    :integer;
-    Buff  :Array[0..BuffSize] of Char;
-    pName :pchar;
+    Buff  :Array[0..BuffSize] of AnsiChar;
+    pName :pAnsichar;
     
 begin
     n:=0;
@@ -2520,8 +2520,9 @@ begin
               i2 := i-NumGenVariables;
               If i2 <= n Then
                 Begin
+                 // DLL functions require AnsiString type
                  UserModel.FGetVarName(i2, pName, BuffSize);
-                 Result := pName;
+                 Result := String(pName);
                  Exit;
                 End;
             End;
@@ -2531,7 +2532,7 @@ begin
               pName := @Buff;
               i2 := i-NumGenVariables-n;
               If i2>0 Then UserModel.FGetVarName(i2, pName, BuffSize);
-              Result := pName;
+              Result := String(pName);
             End;
         End;
     End;
