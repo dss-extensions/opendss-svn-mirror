@@ -644,11 +644,12 @@ VAR
    Cmax,
    cmag,
    Vavg,
-   t_value,
+   NormalizedTime,
    Q       :Double;
    S       :Complex;
    PF      :Double;
    Sabs    :Double;
+
 
    Function PF1to2(Const Spower:Complex):Double;   // return PF in range of 1 to 2
    Begin
@@ -663,7 +664,6 @@ begin
      IF  ControlledElement.Closed [0]      // Check state of phases of active terminal
      THEN PresentState := CLOSE
      ELSE PresentState := OPEN;
-
 
      WITH   MonitoredElement Do
      Begin
@@ -853,36 +853,39 @@ begin
                  End;
 
               TIMECONTROL: {time}
+              {7-8-10  NormalizeToTOD Algorithm modified to close logic hole between 11 PM and midnight}
                  Begin
-                    WITH ActiveCircuit.Solution Do t_Value := NormalizeToTOD(intHour, DynaVars.t);
-                    // 1/28/09 Code modified to accommodate OFF_Value < ON_Value
+                    WITH ActiveCircuit.Solution Do Begin
+                         NormalizedTime := NormalizeToTOD(intHour, DynaVars.t);
+                    End;
+                    { 1/28/09 Code modified to accommodate OFF_Value < ON_Value }
                     CASE PresentState OF
                           OPEN:   IF OFF_Value > ON_Value Then Begin
-                                    IF (t_Value >= ON_Value) and (t_Value < OFF_Value)
+                                    IF (NormalizedTime >= ON_Value) and (NormalizedTime < OFF_Value)
                                     THEN  Begin
                                           PendingChange := CLOSE;
-                                          ShouldSwitch := TRUE;
+                                          ShouldSwitch  := TRUE;
                                     End
                                     ELSE // Reset
                                           PendingChange := NONE;
                                   End ELSE Begin    // OFF time is next day
-                                    IF (t_Value >= ON_Value) and (t_Value < 24)
+                                    IF (NormalizedTime >= ON_Value) and (NormalizedTime < 24.0)
                                     THEN  Begin
                                           PendingChange := CLOSE;
-                                          ShouldSwitch := TRUE;
+                                          ShouldSwitch  := TRUE;
                                     End
                                     ELSE // Reset
                                           PendingChange := NONE;
                                   End;
 
                           CLOSE:  IF OFF_Value > ON_Value Then Begin
-                                      IF t_Value >= OFF_Value
+                                      IF (NormalizedTime ) >= OFF_Value
                                       THEN Begin
                                              PendingChange := OPEN;
                                              ShouldSwitch := TRUE;
                                       End
                                       ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
-                                          IF (t_Value >= ON_Value) and (T_Value < OFF_Value) Then Begin
+                                          IF (NormalizedTime >= ON_Value) and (NormalizedTime < OFF_Value) Then Begin
                                              PendingChange := CLOSE;  // We can go some more
                                              ShouldSwitch := TRUE;
                                           End;
@@ -890,13 +893,13 @@ begin
                                       ELSE // Reset
                                             PendingChange := NONE;
                                   End ELSE Begin  // OFF time is next day
-                                      IF (t_Value >= OFF_Value) and (t_Value < ON_Value)
+                                      IF (NormalizedTime >= OFF_Value) and (NormalizedTime < ON_Value)
                                       THEN Begin
                                              PendingChange := OPEN;
                                              ShouldSwitch := TRUE;
                                       End
                                       ELSE IF ControlledCapacitor.AvailableSteps > 0 Then Begin
-                                          IF (t_Value >= ON_Value) and (T_Value < 24) Then Begin
+                                          IF (NormalizedTime >= ON_Value) and (NormalizedTime < 24.0) Then Begin
                                              PendingChange := CLOSE;  // We can go some more
                                              ShouldSwitch := TRUE;
                                           End;
@@ -945,26 +948,26 @@ begin
      End;
      WITH ActiveCircuit Do
       Begin
-         IF   ShouldSwitch and Not Armed THEN
-           Begin
-            If PendingChange = CLOSE Then Begin
-               If (Solution.DynaVars.t + Solution.intHour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
-                    {2-6-09 Added ONDelay to Deadtime so that all caps do not close back in at same time}
-                    TimeDelay := Max(ONDelay , (Deadtime + ONDelay) - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
-               Else TimeDelay := ONDelay;
-            End Else TimeDelay := OFFDelay;
-            ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay, PendingChange, 0, Self);
-            Armed := TRUE;
-            AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
-           End;
+           IF   ShouldSwitch and Not Armed THEN
+             Begin
+              If PendingChange = CLOSE Then Begin
+                 If (Solution.DynaVars.t + Solution.intHour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
+                      {2-6-09 Added ONDelay to Deadtime so that all caps do not close back in at same time}
+                      TimeDelay := Max(ONDelay , (Deadtime + ONDelay) - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
+                 Else TimeDelay := ONDelay;
+              End Else TimeDelay := OFFDelay;
+              ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay , PendingChange, 0, Self);
+              Armed := TRUE;
+              AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
+             End;
 
-        IF Armed and (PendingChange = NONE) Then
-          Begin
-              ControlQueue.Delete(ControlActionHandle);
-              Armed := FALSE;
-              AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Reset**');
-          End;
-      End;  {With}
+          IF Armed and (PendingChange = NONE) Then
+            Begin
+                ControlQueue.Delete(ControlActionHandle);
+                Armed := FALSE;
+                AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Reset**');
+            End;
+        End;  {With}
 end;
 
 FUNCTION TCapControlObj.Get_Capacitor: TCapacitorObj;
@@ -976,19 +979,20 @@ end;
 
 FUNCTION TCapControlObj.NormalizeToTOD(h: Integer; sec: Double): Double;
 // Normalize time to a floating point number representing time of day if Hour > 24
-// time should be 0 to 24.
+// Resulting time should be 0:00+ to 24:00 inclusive.
 VAR
     HourOfDay :Integer;
 
 Begin
 
-   IF    h > 23
-   THEN  HourOfDay := (h - (h div 24)*24)
+   IF    h > 24
+   THEN  HourOfDay := (h - ((h-1) div 24)*24)  // creates numbers 1..24
    ELSE  HourOfDay := h;
 
    Result := HourOfDay + sec/3600.0;
 
-   If   Result > 24.0
+   // If the TOD is at least slightly greater than 24:00 wrap around to 0:00
+   If   Result-24.0 > Epsilon
    THEN Result := Result - 24.0;   // Wrap around
 
 End;
