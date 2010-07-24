@@ -1319,7 +1319,7 @@ Begin
         // Linear factor adjustment does not converge for some reason while power adjust does easily
            // WattFactor := (1.0 + FCVRwattFactor*(Vmag/VBase - 1.0));
         If FCVRWattFactor <> 1.0 then WattFactor := math.power(VRatio, FCVRWattFactor)
-                                 else WattFactor := 1.0;
+                                 else WattFactor := Vratio;  // old value (in error): 1.0;
         If WattFactor > 0.0 Then Curr := Conjg(Cdiv(Cmplx(WNominal * WattFactor, 0.0), V))
                             Else Curr := CZERO; // P component of current
 
