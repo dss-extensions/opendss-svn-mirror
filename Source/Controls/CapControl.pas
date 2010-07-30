@@ -66,6 +66,10 @@ TYPE
      private
             ControlType :ECapControlType;
 
+
+            FCTPhase,
+            FPTPhase  :Integer;   // "ALL" is -1
+
             ON_Value,
             OFF_Value,
             PFON_Value,
@@ -96,6 +100,8 @@ TYPE
             FUNCTION Get_Capacitor: TCapacitorObj;
             FUNCTION NormalizeToTOD(h:Integer; sec:Double) :Double;
             procedure Set_PendingChange(const Value: EControlAction);
+            Procedure GetControlVoltage(Var ControlVoltage:Double);
+            Procedure GetControlCurrent(Var ControlCurrent:Double);
 
      public
 
@@ -148,8 +154,10 @@ USES
     ParserDel, DSSClassDefs, DSSGlobals, Circuit,   Sysutils, uCmatrix, MathUtil, Math;
 
 CONST
-
-    NumPropsThisClass = 14;
+    AVGPHASES = -1;
+    MAXPHASE  = -2;
+    MINPHASE  = -3;
+    NumPropsThisClass = 16;
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -180,7 +188,6 @@ Begin
      CountProperties;   // Get inherited property count
      AllocatePropertyArrays;
 
-
      // Define Property names
 
      PropertyName[1] := 'element';
@@ -197,6 +204,8 @@ Begin
      PropertyName[12] := 'Vmin';
      PropertyName[13] := 'DelayOFF';
      PropertyName[14] := 'DeadTime';
+     PropertyName[15] := 'CTPhase';
+     PropertyName[16] := 'PTPhase';
 
      PropertyHelp[1] := 'Full object name of the circuit element, typically a line or transformer, '+
                         'to which the capacitor control''s PT and/or CT are connected.' +
@@ -236,6 +245,12 @@ Begin
                          'Default is 115 (goes with a PT ratio of 60 for 12.47 kV system).';
      PropertyHelp[13] := 'Time delay, in seconds, for control to turn OFF when present state is ON. Default is 15.';
      PropertyHelp[14] := 'Dead time after capacitor is turned OFF before it can be turned back ON. Default is 300 sec.';
+     PropertyHelp[15] := 'Number of the phase being monitored for CURRENT control or one of {AVG | MAX | MIN} for all phases. Default=1. ' +
+                         'If delta or L-L connection, enter the first or the two phases being monitored [1-2, 2-3, 3-1]. ' +
+                         'Must be less than the number of phases. Does not apply to kvar control which uses all phases by default.';
+     PropertyHelp[16] := 'Number of the phase being monitored for VOLTAGE control or one of {AVG | MAX | MIN} for all phases. Default=1. ' +
+                         'If delta or L-L connection, enter the first or the two phases being monitored [1-2, 2-3, 3-1]. ' +
+                         'Must be less than the number of phases. Does not apply to kvar control which uses all phases by default.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -305,6 +320,14 @@ Begin
            12: Vmin      := Parser.DblValue;
            13: OFFDelay  := Parser.DblValue;
            14: DeadTime  := Parser.DblValue;
+           15: If      CompareTextShortest(param, 'avg') = 0 Then FCTPhase := AVGPHASES
+               Else If CompareTextShortest(param, 'max') = 0 Then FCTPhase := MAXPHASE
+               Else If CompareTextShortest(param, 'min') = 0 Then FCTPhase := MINPHASE
+                                                             Else FCTPhase := max(1, Parser.IntValue);
+           16: If      CompareTextShortest(param, 'avg') = 0 Then FPTPhase := AVGPHASES
+               Else If CompareTextShortest(param, 'max') = 0 Then FPTPhase := MAXPHASE
+               Else If CompareTextShortest(param, 'min') = 0 Then FPTPhase := MINPHASE
+                                                             Else FPTPhase := max(1, Parser.IntValue);
 
          ELSE
            // Inherited parameters
@@ -317,24 +340,34 @@ Begin
          Case ParamPointer of
 
             4: Begin
-                  PFON_Value := 0.95;     // defaults
-                  PFOFF_Value := 1.05;
+                    PFON_Value := 0.95;     // defaults
+                    PFOFF_Value := 1.05;
                End;
 
             7: Begin
-                 If (ON_Value >= -1.0) and (ON_Value <= 1.0) then Begin
-                    If ON_Value < 0.0 then PFON_Value := 2.0 + ON_Value else PFON_Value := ON_Value;
-                 End Else Begin
-                    DoSimpleMsg('Invalid PF ON value for CapControl.'+ActiveCapControlObj.Name, 353);
-                 End;
+                   If (ON_Value >= -1.0) and (ON_Value <= 1.0) then Begin
+                      If ON_Value < 0.0 then PFON_Value := 2.0 + ON_Value else PFON_Value := ON_Value;
+                   End Else Begin
+                      DoSimpleMsg('Invalid PF ON value for CapControl.'+ActiveCapControlObj.Name, 353);
+                   End;
                End;
             8: Begin
-                 If (OFF_Value >= -1.0) and (OFF_Value <= 1.0) then Begin
-                    If OFF_Value < 0.0 then PFOFF_Value := 2.0 + OFF_Value else PFOFF_Value :=  OFF_Value;
-                 End Else Begin
-                    DoSimpleMsg('Invalid PF OFF value for CapControl.'+ActiveCapControlObj.Name, 353);
-                 End;
+                   If (OFF_Value >= -1.0) and (OFF_Value <= 1.0) then Begin
+                      If OFF_Value < 0.0 then PFOFF_Value := 2.0 + OFF_Value else PFOFF_Value :=  OFF_Value;
+                   End Else Begin
+                      DoSimpleMsg('Invalid PF OFF value for CapControl.'+ActiveCapControlObj.Name, 35301);
+                   End;
                End;
+
+            15: If FCTPhase > FNphases Then Begin
+                     DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FCTPhase, FNphases]), 35302);
+                     FCTPhase := 1;
+                End;
+
+            16: If FPTPhase > FNphases Then Begin
+                     DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FPTPhase, FNphases]), 35303);
+                     FPTPhase := 1;
+                End;
          End;
 
          ParamName := Parser.NextParam;
@@ -379,6 +412,9 @@ Begin
         PFON_Value        := OtherCapControl.PFON_Value;
         PFOFF_Value       := OtherCapControl.PFOFF_Value;
 
+        FCTPhase          := OtherCapControl.FCTPhase;
+        FPTPhase          := OtherCapControl.FPTPhase;
+
 
         For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherCapControl.PropertyValue[i];
 
@@ -406,6 +442,8 @@ Begin
      Nterms := 1;  // this forces allocation of terminals and conductors
                          // in base class
 
+      FCTPhase := 1;
+      FPTPhase := 1;
 
       PTRatio      := 60.0;
       CTRatio      := 60.0;
@@ -443,8 +481,6 @@ Begin
      DSSObjType := ParClass.DSSClassType; //cap_CONTROL;
 
      InitPropertyValues(0);
-
-
 
    //  RecalcElementData;
 
@@ -549,6 +585,42 @@ End;
 
 
 {--------------------------------------------------------------------------}
+procedure TCapControlObj.GetControlCurrent(var ControlCurrent: Double);
+
+// Get current to control on based on type of control specified.
+
+Var
+   i  :Integer;
+
+Begin
+
+     CASE FCTphase of
+       AVGPHASES: Begin
+                        ControlCurrent := 0.0;     // Get avg of all phases
+                        FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+                                        ControlCurrent := ControlCurrent + Cabs( cBuffer^[i] );
+                        ControlCurrent := ControlCurrent / Fnphases/ CTRatio;
+                  End;
+       MAXPHASE:  Begin
+                        ControlCurrent := 0.0;     // Get max of all phases
+                        FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+                                        ControlCurrent := max(ControlCurrent, Cabs( cBuffer^[i] ));
+                        ControlCurrent := ControlCurrent / CTRatio;
+                  End;
+       MINPHASE:  Begin
+                        ControlCurrent := 1.0e50;     // Get min of all phases
+                        FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+                                        ControlCurrent := min(ControlCurrent, Cabs( cBuffer^[i] ));
+                        ControlCurrent := ControlCurrent / CTRatio;
+                  End;
+    Else
+    {Just use one phase because that's what most controls do.}
+        ControlCurrent := Cabs(Cbuffer^[FCTphase])/CTRatio;  // monitored phase only
+    End;
+
+
+End;
+
 PROCEDURE TCapControlObj.GetCurrents(Curr: pComplexArray);
 VAR
    i:Integer;
@@ -559,7 +631,9 @@ Begin
 End;
 
 PROCEDURE TCapControlObj.GetInjCurrents(Curr: pComplexArray);
-Var i:Integer;
+Var
+    i:Integer;
+
 Begin
      FOR i := 1 to Fnconds Do Curr^[i] := CZERO;
 End;
@@ -636,14 +710,53 @@ begin
          Armed        := FALSE;   // reset control
 end;
 
+Procedure TCapControlObj.GetControlVoltage(Var ControlVoltage:Double);
+
+// Get Voltage used for voltage control based on specified options
+
+Var
+    i   :Integer;
+
+       Function NextDeltaPhase(iphs:Integer):Integer;
+       Begin
+            Result := iphs + 1;
+            If Result > Fnphases then Result := 1;
+       End;
+
+begin
+     CASE FPTphase of
+       AVGPHASES: Begin
+                      ControlVoltage := 0.0;
+                      FOR i := 1 to MonitoredElement.NPhases Do ControlVoltage := ControlVoltage + Cabs(cBuffer^[i]);
+                      ControlVoltage := ControlVoltage/MonitoredElement.NPhases/PTRatio;
+                  End;
+       MAXPHASE:  Begin
+                      ControlVoltage := 0.0;
+                      FOR i := 1 to MonitoredElement.NPhases Do ControlVoltage := Max(ControlVoltage, Cabs(cBuffer^[i]));
+                      ControlVoltage := ControlVoltage/PTRatio;
+                  End;
+       MINPHASE:  Begin
+                      ControlVoltage := 1.0E50;
+                      FOR i := 1 to MonitoredElement.NPhases Do ControlVoltage := Min(ControlVoltage, Cabs(cBuffer^[i]));
+                      ControlVoltage := ControlVoltage/PTRatio;
+                  End;
+    Else
+    {Just use one phase because that's what most controls do.}
+    // Use L-L aB if capacitor is delta connected!!
+        Case TCapacitorObj(ControlledElement).Connection of
+             1: ControlVoltage := Cabs(Csub(cBuffer^[FPTPhase], cBuffer^[NextDeltaPhase(FPTPhase)]))/PTRatio;   // Delta
+        Else
+                ControlVoltage := Cabs(cBuffer^[FPTPhase])/PTRatio;     // Wye - Default
+        End;
+    End;
+end;
+
 {--------------------------------------------------------------------------}
 PROCEDURE TCapControlObj.Sample;
 
 VAR
-   i       :Integer;
-   Cmax,
-   cmag,
-   Vavg,
+   CurrTest,
+   Vtest,
    NormalizedTime,
    Q       :Double;
    S       :Complex;
@@ -657,6 +770,7 @@ VAR
        If Sabs <> 0.0 then Result := abs(Spower.re) / Sabs else Result := 1.0;  // default to unity
        If Spower.im < 0.0 Then Result := 2.0 - Result;
    End;
+
 
 begin
 
@@ -674,31 +788,22 @@ begin
           IF ControlType <> VOLTAGECONTROL THEN Begin  // Don't bother for voltage control
 
               MonitoredElement.GetTermVoltages (ElementTerminal, cBuffer);
-              //Vavg := 0.0;
-              //FOR i := 1 to MonitoredElement.NPhases Do Vavg := Vavg + Cabs(cBuffer^[i]);
-              //Vavg := Vavg/MonitoredElement.NPhases/PTRatio;
-              {Just use phase 1 because that's what most controls do.}
-              // Use L-L aB if capacitor is delta connected!!
-              With TCapacitorObj(ControlledElement) Do
-              Case Connection of
-                1: Vavg := Cabs(Csub(cBuffer^[1], cBuffer^[2]))/PTRatio;   // Delta
-              Else
-                Vavg := Cabs(cBuffer^[1])/PTRatio;     // Wye - Default
-              End;
+
+              GetControlVoltage(Vtest);
 
              CASE PresentState of
-               OPEN:
-                    IF   Vavg < VMin
-                    THEN Begin
-                        PendingChange := CLOSE;
-                        ShouldSwitch := TRUE;
-                    End;
-               CLOSE:
-                    IF   Vavg > Vmax
-                    THEN Begin
-                        PendingChange := OPEN;
-                        ShouldSwitch := TRUE;
-                    End;
+                 OPEN:
+                      IF   Vtest < VMin
+                      THEN Begin
+                          PendingChange := CLOSE;
+                          ShouldSwitch := TRUE;
+                      End;
+                 CLOSE:
+                      IF   Vtest > Vmax
+                      THEN Begin
+                          PendingChange := OPEN;
+                          ShouldSwitch := TRUE;
+                      End;
              End;
          End;
 
@@ -711,30 +816,25 @@ begin
 
                      // Check largest Current of all phases of monitored element
                      MonitoredElement.GetCurrents(cBuffer);
-                     Cmax := 0.0;
 
-                     FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
-                     Begin
-                         cmag := Cabs( cBuffer^[i] );
-                         If cmag > Cmax THEN Cmax := cmag;
-                     End;
-                     Cmax := Cmax / CTRatio;
+                     GetControlCurrent(CurrTest);
+
 
                      CASE PresentState of
-                          OPEN:   IF Cmax > ON_Value
+                          OPEN:   IF CurrTest > ON_Value
                                   THEN  Begin
                                         PendingChange := CLOSE;
                                         ShouldSwitch := TRUE;
                                   End
                                   ELSE // Reset
                                         PendingChange := NONE;
-                          CLOSE:  IF Cmax < OFF_Value
+                          CLOSE:  IF CurrTest < OFF_Value
                                   THEN Begin
                                          PendingChange := OPEN;
                                          ShouldSwitch := TRUE;
                                   End
                                   ELSE  If ControlledCapacitor.AvailableSteps >0 Then Begin
-                                    IF Cmax > ON_Value THEN  Begin
+                                    IF CurrTest > ON_Value THEN  Begin
                                             PendingChange := CLOSE;
                                             ShouldSwitch := TRUE;
                                     End;
@@ -749,37 +849,23 @@ begin
                  Begin
                      MonitoredElement.GetTermVoltages(ElementTerminal, cBuffer);
 
-                    // Average the voltage on all phases
-                    //Vavg := 0.0;
-                    // FOR i := 1 to MonitoredElement.NPhases Do
-                    //Begin
-                    //    Vavg := Vavg + Cabs(cBuffer^[i]);
-                    // End;
-                    // Vavg := Vavg/MonitoredElement.NPhases/PTRatio;
-                    // Just use Phase 1 because that is what most controls do
-                    
-                    With TCapacitorObj(ControlledElement) Do
-                    Case Connection of
-                      1: Vavg := Cabs(Csub(cBuffer^[1], cBuffer^[2]))/PTRatio;   // Delta
-                    Else
-                      Vavg := Cabs(cBuffer^[1])/PTRatio;     // Wye - Default
-                    End;
+                     GetControlVoltage(Vtest);
 
                      CASE PresentState of
-                          OPEN:   IF Vavg < ON_Value
+                          OPEN:   IF Vtest < ON_Value
                                   THEN  Begin
                                         PendingChange := CLOSE;
                                         ShouldSwitch := TRUE;
                                   End
                                   ELSE // Reset
                                         PendingChange := NONE;
-                          CLOSE:  IF Vavg > OFF_Value
+                          CLOSE:  IF Vtest > OFF_Value
                                   THEN Begin
                                          PendingChange := OPEN;
                                          ShouldSwitch := TRUE;
                                   End
                                   ELSE  If ControlledCapacitor.AvailableSteps >0 Then Begin
-                                   IF Vavg < ON_Value THEN  Begin
+                                   IF Vtest < ON_Value THEN  Begin
                                             PendingChange := CLOSE;
                                             ShouldSwitch := TRUE;
                                     End;
@@ -1027,6 +1113,8 @@ begin
      PropertyValue[12] := '115';
      PropertyValue[13] := '15';
      PropertyValue[14] := '300';
+     PropertyValue[15] := '1';
+     PropertyValue[16] := '1';
 
 
   inherited  InitPropertyValues(NumPropsThisClass);

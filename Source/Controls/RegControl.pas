@@ -81,6 +81,9 @@ TYPE
             Vlimit           :Double;
             VLimitActive      :Boolean;
 
+            FPTphase          :Integer;
+            ControlledPhase   :Integer;
+
             VBuffer, CBuffer  :pComplexArray;
             FUNCTION Get_Transformer  :TTransfObj;
             FUNCTION Get_Winding      :Integer;
@@ -94,6 +97,8 @@ TYPE
             procedure set_PendingTapChange(const Value: Double);
             FUNCTION AtLeastOneTap(Const ProposedChange:Double; Increment:Double):Double;
             Function ComputeTimeDelay(Vavg:Double):Double;
+            Function GetControlVoltage(VBuffer:pComplexArray; Nphs:Integer; PTRatio:Double ):Complex;
+
      public
 
        constructor Create(ParClass:TDSSClass; const RegControlName:String);
@@ -157,8 +162,11 @@ USES
     ParserDel, DSSClassDefs, DSSGlobals, Circuit, CktElement,  Sysutils, uCmatrix, MathUtil, Math;
 
 CONST
+    AVGPHASES = -1;
+    MAXPHASE  = -2;
+    MINPHASE  = -3;
 
-    NumPropsThisClass = 21;
+    NumPropsThisClass = 22;
 
 Var
     LastChange:Integer;
@@ -216,6 +224,7 @@ Begin
      PropertyName[19] := 'inversetime';
      PropertyName[20] := 'tapwinding';
      PropertyName[21] := 'vlimit';
+     PropertyName[22] := 'PTphase';
 
      PropertyHelp[1] := 'Name of Transformer element to which the RegControl is connected. '+
                         'Do not specify the full object name; "Transformer" is assumed for '  +
@@ -260,6 +269,8 @@ Begin
      PropertyHelp[20] := 'Winding containing the actual taps, if different than the WINDING property. Defaults to the same winding as specified by the WINDING property.';
      PropertyHelp[21] := 'Voltage Limit for bus to which regulated winding is connected (e.g. first customer). Default is 0.0. ' +
                          'Set to a value greater then zero to activate this function.';
+     PropertyHelp[22] := 'For multi-phase transformers, the number of the phase being monitored or one of { MAX | MIN} for all phases. Default=1. ' +
+                         'Must be less than or equal to the number of phases. Ignored for regulated bus.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -334,6 +345,9 @@ Begin
                   Vlimit      := Parser.DblValue;
                   If VLimit > 0.0 then  VLimitActive := TRUE else VLimitActive := FALSE;
                 End;
+            22: If      CompareTextShortest(param, 'max') = 0 Then FPTPhase := MAXPHASE
+                Else If CompareTextShortest(param, 'min') = 0 Then FPTPhase := MINPHASE
+                                                              Else FPTPhase := max(1, Parser.IntValue);
 
          ELSE
            // Inherited parameters
@@ -403,6 +417,8 @@ Begin
         FInversetime := OtherRegControl.FInversetime;
     //    DebugTrace     := OtherRegControl.DebugTrace;  Always default to NO
 
+        FPTphase     := OtherRegControl.FPTphase;
+
         For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherRegControl.PropertyValue[i];
 
    End
@@ -444,6 +460,8 @@ Begin
     revBandwidth :=  3.0;
     revR         :=  0.0;
     revX         :=  0.0;
+
+    FPTphase     := 1;
 
     IsReversible := FALSE;
     LDCActive    := FALSE;
@@ -502,6 +520,10 @@ Begin
              Else Begin
                    Nphases := ControlledElement.NPhases;
                    Nconds  := FNphases;
+                   If FPTphase > FNphases then Begin
+                      FPTphase := 1;
+                      PropertyValue[22] := '1';
+                   End;
              End;
 
              IF  Comparetext(ControlledElement.DSSClassName, 'transformer') = 0  THEN
@@ -551,6 +573,50 @@ End;
 
 
 {--------------------------------------------------------------------------}
+function TRegControlObj.GetControlVoltage(VBuffer: pComplexArray;   Nphs:Integer;  PTRatio: Double): Complex;
+
+Var
+   i:Integer;
+   V :Double;
+
+begin
+
+
+     CASE FPTphase of
+{
+         AVGPHASES: Begin
+                        Result := CZERO;
+                        FOR i := 1 to Nphs Do Result := Result + Cabs(VBuffer^[i]);
+                        Result := CdivReal(Result, (Nphs*PTRatio));
+                    End;
+
+}       MAXPHASE:  Begin
+                      ControlledPhase := 1;
+                      V := Cabs(VBuffer^[ControlledPhase]);
+                      FOR i := 2 to Nphs Do If Cabs(VBuffer^[i]) > V Then Begin
+                         V := Cabs(VBuffer^[i]);
+                         ControlledPhase := i;
+                      End ;
+                      Result := CDivReal(VBuffer^[ControlledPhase], PTRatio);
+                  End;
+       MINPHASE:  Begin
+                      ControlledPhase := 1;
+                      V := Cabs(VBuffer^[ControlledPhase]);
+                      FOR i := 2 to Nphs Do If Cabs(VBuffer^[i]) < V Then Begin
+                         V := Cabs(VBuffer^[i]);
+                         ControlledPhase := i;
+                      End ;
+                      Result := CDivReal(VBuffer^[ControlledPhase], PTRatio);
+                  End;
+    Else
+    {Just use one phase because that's what most controls do.}
+                Result := CDivReal(VBuffer^[FPTPhase], PTRatio);
+                ControlledPhase := FPTPhase;
+    End;
+
+
+end;
+
 PROCEDURE TRegControlObj.GetCurrents(Curr: pComplexArray);
 VAR
    i:Integer;
@@ -692,7 +758,7 @@ VAR
    Vactual,
    Vboost    :Double;
    VlocalBus :Double;
-   Vterm,
+   Vcontrol,
    VLDC,
    ILDC      :Complex;
    TapChangeIsNeeded :Boolean;
@@ -722,15 +788,18 @@ begin
            End
            Else ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
 
-           // Changed to first phase only  12-17-01 (way most LTCs work)
-
-           Vterm := CDivReal(VBuffer^[1], PTRatio );
+           Vcontrol := GetControlVoltage(VBuffer, Fnphases, PTRatio );
 
            // Check Vlimit
            If VlimitActive then
            Begin
-                If UsingRegulatedBus then ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
-                Vlocalbus := Cabs(CDivReal(VBuffer^[1], PTRatio ));
+                If UsingRegulatedBus then Begin
+                   ControlledTransformer.GetWindingVoltages(ElementTerminal, VBuffer);
+                   Vlocalbus := Cabs(CDivReal(VBuffer^[1], PTRatio ));
+                End
+                Else Begin
+                    Vlocalbus := Cabs(Vcontrol);
+                End;
            End
            Else Vlocalbus := 0.0; // to get rid of warning message;
 
@@ -738,12 +807,12 @@ begin
            IF NOT UsingRegulatedBus and LDCActive Then
            Begin
                 ControlledElement.GetCurrents(Cbuffer);
-                ILDC  := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1)+1], CTRating);
+                ILDC  := CDivReal(CBuffer^[ControlledElement.Nconds*(ElementTerminal-1) + ControlledPhase], CTRating);
                 VLDC  := Cmul(Cmplx(R, X), ILDC);
-                Vterm := Cadd(Vterm, VLDC);   // Direction on ILDC is INTO terminal, so this is equivalent to Vterm - (R+jX)*ILDC
+                Vcontrol := Cadd(Vcontrol, VLDC);   // Direction on ILDC is INTO terminal, so this is equivalent to Vterm - (R+jX)*ILDC
            End;
 
-           Vactual := Cabs(Vterm);
+           Vactual := Cabs(Vcontrol);
 
      WITH   ControlledTransformer Do
      Begin
@@ -787,7 +856,6 @@ begin
                          End;
                      End;
                End;
-
            END
          ELSE PendingTapChange := 0.0;
      End;
@@ -887,6 +955,7 @@ begin
      PropertyValue[19] := 'no';
      PropertyValue[20] := '1';
      PropertyValue[21] := '0.0';
+     PropertyValue[22] := '1';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
