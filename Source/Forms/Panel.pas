@@ -888,8 +888,14 @@ begin
           While Not Eof(F) Do Begin
               Readln(F, TextLine);
               If Length(TextLine)>0 Then
-              If TextLine[1]='{' Then ProcessWindowState( Self, TextLine, FormOnTop)
-              Else If TextLine[1]='[' Then Break;
+              Begin
+                 If TextLine[1]='{' Then Begin
+                    ProcessWindowState( Self, TextLine, FormOnTop);
+                    {Make sure this form is on screen}
+                    If (Self.Left > Screen.Width) or (Self.Left < 0)  then  Self.Left := 0;
+                 End
+                 Else If TextLine[1]='[' Then Break;
+              End;
           End;
       End;
 

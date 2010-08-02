@@ -172,6 +172,7 @@ begin
       ControlPanel.InitializeForm;
       MessageForm1.Editor.Clear;
       MessageForm1.WindowState := wsMinimized;
+      ControlPanel.Show;
       Application.Run;
 
 end.
