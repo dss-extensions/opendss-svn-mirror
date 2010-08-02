@@ -3258,8 +3258,11 @@ Begin
          pElem := ActiveCircuit.sources.First;
 
          WHILE pElem<>nil DO Begin
-            IF pElem.Enabled and (pElem.NTerms = 2) then WriteElementDeltaVoltages(F, pElem);
-            Writeln(F);
+            IF pElem.Enabled and (pElem.NTerms = 2) then
+            Begin
+                WriteElementDeltaVoltages(F, pElem);
+                Writeln(F);
+            End;
             pElem := ActiveCircuit.sources.Next;
          End;
 
@@ -3274,8 +3277,11 @@ Begin
          pElem := ActiveCircuit.PDElements.First;
 
          WHILE pElem<>nil DO Begin
-            IF pElem.Enabled and (pElem.NTerms = 2) then WriteElementDeltaVoltages(F, pElem);
-            Writeln(F);
+            IF pElem.Enabled and (pElem.NTerms = 2) then
+            Begin
+                WriteElementDeltaVoltages(F, pElem);
+                Writeln(F);
+            End;
             pElem := ActiveCircuit.PDElements.Next;
          End;
 
@@ -3290,9 +3296,12 @@ Begin
          pElem := ActiveCircuit.PCElements.First;
 
          WHILE pElem<>nil DO Begin
-           IF pElem.Enabled and (pElem.NTerms = 2) THEN WriteElementDeltaVoltages(F, pElem);
-            pElem := ActiveCircuit.PCElements.Next;
-            Writeln(F);
+           IF pElem.Enabled and (pElem.NTerms = 2) THEN
+           Begin
+                WriteElementDeltaVoltages(F, pElem);
+                Writeln(F);
+           End;
+           pElem := ActiveCircuit.PCElements.Next;
          End;
 
 
