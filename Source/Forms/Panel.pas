@@ -226,6 +226,7 @@ type
     Mismatch1: TMenuItem;
     kVBaseMismatch1: TMenuItem;
     Summary2: TMenuItem;
+    OpenDSSWiki1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DSSHelp1Click(Sender: TObject);
     procedure AboutDSS1Click(Sender: TObject);
@@ -381,6 +382,7 @@ type
     procedure Mismatch1Click(Sender: TObject);
     procedure kVBaseMismatch1Click(Sender: TObject);
     procedure Summary2Click(Sender: TObject);
+    procedure OpenDSSWiki1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -405,7 +407,7 @@ uses Executive, DSSClassDefs, DSSGlobals,
   ClipBrd,  Utilities, contnrs, MessageForm,
   DlgPlotOptions,  DSSPlot, FrmCSVchannelSelect,
   DlgComboBox,dlgNumber, ExecOptions, ExecCommands, ExecHelper, Dynamics, DSSClass, ListForm,
-  Lineunits, Monitor, FrmDoDSSCommand, Frm_RPNcalc, DSSForms, showOptions;
+  Lineunits, Monitor, FrmDoDSSCommand, Frm_RPNcalc, DSSForms, showOptions, ShellAPI;
 
 {$R *.DFM}
 
@@ -2143,6 +2145,11 @@ begin
         End; {Execute}
    End;  {WITH}
 
+end;
+
+procedure TControlPanel.OpenDSSWiki1Click(Sender: TObject);
+begin
+      shellexecute(handle,'open','http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=Main_Page',nil,nil,1);
 end;
 
 procedure TControlPanel.Save2Click(Sender: TObject);
