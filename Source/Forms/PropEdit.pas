@@ -86,10 +86,10 @@ begin
      StringGrid1.Cells[0, 0] := 'Property';
      StringGrid1.Cells[1, 0] := 'Value';
 
-     StringGrid1.Height := StringGrid1.DefaultRowHeight * (StringGrid1.RowCount+2);
+     StringGrid1.Height := min(StringGrid1.DefaultRowHeight * (StringGrid1.RowCount+2), (Screen.Height div 10) * 7);
      Height := StringGrid1.Height + Button1.Height +  Edit1.Height + 50;
-     Button1.Top := Height - 60;
-     Button2.Top := Button1.Top;
+     Button1.Top := 25;
+     Button2.Top := Button1.Top ;
      With  ObjectBeingEdited.ParentClass Do
      For i := 1 to NumProperties Do Begin
          StringGrid1.Cells[0, i] := ObjectBeingEdited.ParentClass.PropertyName^[i];
@@ -99,6 +99,10 @@ begin
      SelectedRow := 0;
      CellEdited  := FALSE;
      strActiveCellValue := '';
+
+     {Make sure it is on screen}
+ //       Top := 50;
+ //       If Height > Screen.Height  then  Height := (Screen.Height div 10) * 9;
    EXCEPT
        On E:Exception Do Begin
             DoSimpleMsg('Error attempting to show editing Form: '+E.Message, 143);

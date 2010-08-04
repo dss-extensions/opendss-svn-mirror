@@ -14,7 +14,7 @@ object PropEditForm: TPropEditForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poDesigned
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
@@ -24,7 +24,7 @@ object PropEditForm: TPropEditForm
   TextHeight = 13
   object StringGrid1: TStringGrid
     Left = 8
-    Top = 32
+    Top = 56
     Width = 201
     Height = 32
     ColCount = 2
@@ -45,8 +45,8 @@ object PropEditForm: TPropEditForm
     OnSetEditText = StringGrid1SetEditText
   end
   object Button1: TButton
-    Left = 104
-    Top = 142
+    Left = 95
+    Top = 25
     Width = 81
     Height = 25
     Anchors = [akLeft]
@@ -56,7 +56,7 @@ object PropEditForm: TPropEditForm
   end
   object Button2: TButton
     Left = 8
-    Top = 142
+    Top = 25
     Width = 81
     Height = 25
     Anchors = [akLeft]
