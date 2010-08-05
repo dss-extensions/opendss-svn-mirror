@@ -383,6 +383,7 @@ type
     procedure kVBaseMismatch1Click(Sender: TObject);
     procedure Summary2Click(Sender: TObject);
     procedure OpenDSSWiki1Click(Sender: TObject);
+    procedure TechNotes1Click(Sender: TObject);
   private
     { Private declarations }
     PlotOptionString:String;
@@ -1836,6 +1837,11 @@ begin
        DuplicatesAllowed1.Checked := NOT DuplicatesAllowed1.Checked;
        DuplicatesAllowed := DuplicatesAllowed1.Checked;
      End;
+end;
+
+procedure TControlPanel.TechNotes1Click(Sender: TObject);
+begin
+     shellexecute(handle,'open','http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=List_of_DSS_tech_notes',nil,nil,1);
 end;
 
 procedure TControlPanel.TraceLog1Click(Sender: TObject);
