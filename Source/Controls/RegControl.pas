@@ -672,9 +672,14 @@ Begin
 
      If NumTaps > TapLimitPerChange Then NumTaps := TapLimitPerChange;
 
+     LastChange := NumTaps;
+
      IF ProposedChange > 0.0    // check sign on change
      THEN  Result := NumTaps * Increment
-     ELSE  Result := -NumTaps * Increment;
+     ELSE  Begin
+        Result := -NumTaps * Increment;
+        LastChange := -NumTaps;
+     End;
 
 End;
 
@@ -724,6 +729,7 @@ begin
                   Begin
                       If (DebugTrace) Then WriteTraceRecord(AtLeastOneTap(PendingTapChange, TapIncrement[TapWinding]));
                       PresentTap[TapWinding] := PresentTap[TapWinding] + AtLeastOneTap(PendingTapChange, TapIncrement[TapWinding]);
+                      AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d taps to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
                       PendingTapChange := 0.0;  // Reset to no change.  Program will determine if another needed.
                       Armed := FALSE;
                   End;
