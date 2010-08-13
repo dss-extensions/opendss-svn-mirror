@@ -784,6 +784,7 @@ end;
 function TVsourceObj.GetPropertyValue(Index: Integer): String;
 begin
         Case Index of
+          1 : Result  := GetBus(1);
           7 : Result  := Format('%-.5g',[MVAsc3]);
           8 : Result  := Format('%-.5g',[MVAsc1]);
           11 : Result := Format('%-.5g',[Isc3]);
@@ -792,6 +793,7 @@ begin
           14 : Result := Format('%-.5g',[X1]);
           15 : Result := Format('%-.5g',[R0]);
           16 : Result := Format('%-.5g',[X0]);
+          18 : Result := GetBus(2);
         Else
           Result := Inherited GetPropertyValue(Index);
         End;

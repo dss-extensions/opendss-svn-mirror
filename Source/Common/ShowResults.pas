@@ -215,7 +215,10 @@ End;
 PROCEDURE WriteElementDeltaVoltages(Var F:TextFile; pElem:TDSSCktElement);
 Var
      NCond,
+     Node1, Node2,
+     Bus1, Bus2,
      i        :Integer;
+     Vmag     :Double;
      Volts1,
      Volts2   :Complex;
      ElemName :String;
@@ -224,13 +227,22 @@ Begin
   NCond := pElem.NConds;
 
   ElemName := Pad( pElem.dssclassname + '.' + pElem.Name, MaxDeviceNameLength);
-    For i := 1 to NCond Do Begin
-
-       Volts1 := ActiveCircuit.Solution.NodeV^[pElem.NodeRef^[i]];
-       Volts2 := ActiveCircuit.Solution.NodeV^[pElem.NodeRef^[i+Ncond]];
+  For i := 1 to NCond Do Begin
+       Node1 := pElem.NodeRef^[i];
+       Node2 := pElem.NodeRef^[i+Ncond];
+       Bus1  := ActiveCircuit.MapNodeToBus^[Node1].BusRef ;
+       Bus2  := ActiveCircuit.MapNodeToBus^[Node2].BusRef ;
+       Volts1 := ActiveCircuit.Solution.NodeV^[Node1];
+       Volts2 := ActiveCircuit.Solution.NodeV^[Node2];
        Volts1 := Csub(Volts1, Volts2);   // diff voltage
-       Writeln(F, Format('%s,  %4d,    %10.5g, %6.1f',[ElemName, i, Cabs(Volts1),  cdang(Volts1) ]));
-
+       If (Bus1 > 0) and (Bus2 > 0) Then
+       With ActiveCircuit Do Begin
+            If Buses^[Bus1].kVBase <> Buses^[Bus2].kVBase Then Vmag := 0.0
+            Else Begin
+               If Buses^[Bus1].kVBase > 0.0 Then Vmag   := Cabs(Volts1)/(1000.0 * Buses^[Bus1].kVBase)*100.0 Else Vmag := 0.0;
+            End;
+            Writeln(F, Format('%s,  %4d,    %12.5g, %12.5g, %12.5g, %6.1f',[ElemName, i, Cabs(Volts1),  Vmag,   Buses^[Bus1].kVBase,  cdang(Volts1) ]));
+       End;
   End;
 End;
 
@@ -3250,7 +3262,7 @@ Begin
          Writeln(F);
          Writeln(F, 'Source Elements');
          Writeln(F);
-         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,   Percent,           kVBase,  Angle');
          Writeln(F);
 
 
@@ -3269,7 +3281,7 @@ Begin
          Writeln(F);
          Writeln(F, 'Power Delivery Elements');
          Writeln(F);
-         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,   Percent,           kVBase,  Angle');
          Writeln(F);
 
 
@@ -3289,7 +3301,7 @@ Begin
          Writeln(F);
          Writeln(F, 'Power Conversion Elements');
          Writeln(F);
-         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,  Angle');
+         Writeln(F, pad('Element,', MaxDeviceNameLength), ' Conductor,     Volts,   Percent,           kVBase,  Angle');
          Writeln(F);
 
          // PCELEMENTS next
