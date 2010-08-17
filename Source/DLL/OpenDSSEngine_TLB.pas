@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 4/20/2010 8:31:35 AM from Type Library described below.
+// File generated on 8/17/2010 4:36:17 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -916,6 +916,8 @@ type
     procedure Set_Converged(Value: WordBool); safecall;
     function Get_Totaliterations: Integer; safecall;
     function Get_MostIterationsDone: Integer; safecall;
+    function Get_ControlActionsDone: WordBool; safecall;
+    procedure Set_ControlActionsDone(Value: WordBool); safecall;
     property Mode: Integer read Get_Mode write Set_Mode;
     property Frequency: Double read Get_Frequency write Set_Frequency;
     property Hour: Integer read Get_Hour write Set_Hour;
@@ -951,6 +953,7 @@ type
     property Converged: WordBool read Get_Converged write Set_Converged;
     property Totaliterations: Integer read Get_Totaliterations;
     property MostIterationsDone: Integer read Get_MostIterationsDone;
+    property ControlActionsDone: WordBool read Get_ControlActionsDone write Set_ControlActionsDone;
   end;
 
 // *********************************************************************//
@@ -1008,6 +1011,7 @@ type
     property Converged: WordBool dispid 219;
     property Totaliterations: Integer readonly dispid 220;
     property MostIterationsDone: Integer readonly dispid 221;
+    property ControlActionsDone: WordBool dispid 222;
   end;
 
 // *********************************************************************//

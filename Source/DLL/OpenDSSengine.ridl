@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 8/5/2010 1:58:35 PM (- $Rev: 12980 $, 158101312).
+// File generated on 8/17/2010 4:56:54 PM (- $Rev: 12980 $, 14771281).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -792,6 +792,10 @@ library OpenDSSengine
     HRESULT _stdcall Totaliterations([out, retval] long* Value);
     [propget, id(0x000000DD), helpstring("Max number of iterations required to converge at any control iteration of the most recent solution.\0eue.\0y.\0g control actions.\0se properties.\0s collection or AllElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall MostIterationsDone([out, retval] long* Value);
+    [propget, id(0x000000DE), helpstring("Flag indicating the control actions are done.")]
+    HRESULT _stdcall ControlActionsDone([out, retval] VARIANT_BOOL* Value);
+    [propput, id(0x000000DE)]
+    HRESULT _stdcall ControlActionsDone([in] VARIANT_BOOL Value);
   };
 
   [

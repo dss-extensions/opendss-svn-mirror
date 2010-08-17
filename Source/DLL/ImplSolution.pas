@@ -89,6 +89,8 @@ type
     procedure Set_Converged(Value: WordBool); safecall;
     function Get_Totaliterations: Integer; safecall;
     function Get_MostIterationsDone: Integer; safecall;
+    function Get_ControlActionsDone: WordBool; safecall;
+    procedure Set_ControlActionsDone(Value: WordBool); safecall;
   end;
 
 implementation
@@ -621,6 +623,16 @@ function TSolution.Get_MostIterationsDone: Integer;
 begin
    If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.MostIterationsDone
      Else Result := 0;
+end;
+
+function TSolution.Get_ControlActionsDone: WordBool;
+begin
+     If ActiveCircuit <> Nil Then Result := ActiveCircuit.Solution.ControlActionsDone;
+end;
+
+procedure TSolution.Set_ControlActionsDone(Value: WordBool);
+begin
+     If ActiveCircuit <> Nil Then ActiveCircuit.Solution.ControlActionsDone := Value;
 end;
 
 initialization
