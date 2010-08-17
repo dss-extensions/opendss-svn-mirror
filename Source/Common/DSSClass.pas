@@ -17,6 +17,20 @@ USES
 
 TYPE
 
+   // Collection of all DSS Classes
+   TDSSClasses = class(Tobject)
+   private
+     PROCEDURE Set_New(Value:Pointer);
+
+   public
+     constructor Create;
+     destructor Destroy; override;
+
+     Property New :pointer Write Set_New;
+
+   End;
+
+   // Base for all collection classes
    TDSSClass = class(TObject)
      private
          
@@ -86,11 +100,42 @@ TYPE
          Property Name:String read Class_Name;
    END;
 
+VAR
+   DSSClasses         :TDSSClasses;
+
+
 implementation
 
 
 USES DSSGlobals, SysUtils, DSSObject, ParserDel, CktElement;
 
+{--------------------------------------------------------------}
+{ DSSClasses Implementation
+{--------------------------------------------------------------}
+Constructor TDSSClasses.Create;
+
+Begin
+     Inherited Create;
+End;
+
+{--------------------------------------------------------------}
+Destructor TDSSClasses.Destroy;
+Begin
+     Inherited Destroy;
+End;
+
+{--------------------------------------------------------------}
+PROCEDURE TDSSClasses.Set_New(Value:Pointer);
+
+Begin
+    DSSClassList.New := Value; // Add to pointer list
+    ActiveDSSClass := Value;   // Declare to be active
+    ClassNames.Add(ActiveDSSClass.Name); // Add to classname list
+End;
+
+{--------------------------------------------------------------}
+{  DSSClass Implementation
+{--------------------------------------------------------------}
 Constructor TDSSClass.Create;
 
 BEGIN
@@ -110,6 +155,7 @@ BEGIN
 
 END;
 
+{--------------------------------------------------------------}
 Destructor TDSSClass.Destroy;
 
 VAR
@@ -130,6 +176,7 @@ BEGIN
 END;
 
 
+{--------------------------------------------------------------}
 Function TDSSClass.NewObject(const ObjName:String):Integer;
 BEGIN
     Result := 0;

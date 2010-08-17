@@ -7,6 +7,7 @@ USES
      PointerList,
      HashList;
 
+
 CONST
 
       BASECLASSMASK: Cardinal = $00000007;
@@ -45,8 +46,6 @@ CONST
       SWT_CONTROL      = 23 * 8;
 
 VAR
-   ClassNames         :THashList;
-   DSSClassList       :TPointerList; // pointers to the base class types
    NumIntrinsicClasses,
    NumUserClasses     :Integer;
 
@@ -63,6 +62,7 @@ USES
      DSSGlobals,
      DSSObject,
      ParserDel,
+     MyDSSClassDefs,
 
      Solution,
      Bus,
@@ -99,48 +99,6 @@ USES
      SwtControl
 ;
 
-TYPE
-
-   // Class for instantiating DSS Classes
-   TDSSClasses = class(Tobject)
-   private
-     PROCEDURE Set_New(Value:Pointer);
-
-   public
-     constructor Create;
-     destructor Destroy; override;
-
-     Property New :pointer Write Set_New;
-
-   End;
-
-
-VAR
-   DSSClasses         :TDSSClasses;
-
-
-
-{--------------------------------------------------------------}
-Constructor TDSSClasses.Create;
-
-Begin
-     Inherited Create;
-End;
-
-{--------------------------------------------------------------}
-Destructor TDSSClasses.Destroy;
-Begin
-     Inherited Destroy;
-End;
-
-{--------------------------------------------------------------}
-PROCEDURE TDSSClasses.Set_New(Value:Pointer);
-
-Begin
-    DSSClassList.New := Value; // Add to pointer list
-    ActiveDSSClass := Value;   // Declare to be active
-    ClassNames.Add(ActiveDSSClass.Name); // Add to classname list
-End;
 
 {--------------------------------------------------------------}
 PROCEDURE CreateDSSClasses;
@@ -206,11 +164,16 @@ Begin
      SensorClass    := TSensor.Create;      // Create state estimation sensors
      DSSClasses.New := SensorClass;
 
+
+ { Create Classes for custom implementations }
+     CreateMyDSSClasses;
+
      NumIntrinsicClasses := DSSClassList.ListSize;
      NumUserClasses := 0;
 
-
    {Add user-defined objects}
+
+
 
    {This feature has been disabled - doesn't work in IIS}
 
@@ -278,7 +241,7 @@ Begin
        the user.}
 
 
-     {Needs to be re-done}
+     { ***** Needs to be re-done ****** }
 
 
 End;

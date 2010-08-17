@@ -164,6 +164,8 @@ VAR
    EventStrings: TStringList;
    SavedFileList:TStringList;
 
+   DSSClassList       :TPointerList; // pointers to the base class types
+   ClassNames         :THashList;
 
 
 PROCEDURE DoErrorMsg(Const S, Emsg, ProbCause :String; ErrNum:Integer);

@@ -327,6 +327,7 @@
 			<DCCReference Include="..\Executive\ShowOptions.pas"/>
 			<DCCReference Include="..\Executive\PlotOptions.pas"/>
 			<DCCReference Include="..\Executive\ExportOptions.pas"/>
+			<DCCReference Include="..\EXE\MyDSSClassDefs.Pas"/>
 			<RidlCompile Include="OpenDSSengine.ridl"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

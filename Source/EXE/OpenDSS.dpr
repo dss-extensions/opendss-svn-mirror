@@ -141,7 +141,8 @@ uses
   SwtControl in '..\Controls\SwtControl.pas',
   ShowOptions in '..\Executive\ShowOptions.pas',
   PlotOptions in '..\Executive\PlotOptions.pas',
-  ExportOptions in '..\Executive\ExportOptions.pas';
+  ExportOptions in '..\Executive\ExportOptions.pas',
+  MyDSSClassDefs in 'MyDSSClassDefs.Pas';
 
 {$R *.RES}
 
