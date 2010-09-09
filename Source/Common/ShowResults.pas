@@ -230,18 +230,20 @@ Begin
   For i := 1 to NCond Do Begin
        Node1 := pElem.NodeRef^[i];
        Node2 := pElem.NodeRef^[i+Ncond];
-       Bus1  := ActiveCircuit.MapNodeToBus^[Node1].BusRef ;
-       Bus2  := ActiveCircuit.MapNodeToBus^[Node2].BusRef ;
-       Volts1 := ActiveCircuit.Solution.NodeV^[Node1];
-       Volts2 := ActiveCircuit.Solution.NodeV^[Node2];
-       Volts1 := Csub(Volts1, Volts2);   // diff voltage
+       If Node1 > 0 then Bus1  := ActiveCircuit.MapNodeToBus^[Node1].BusRef else Bus1 := 0;
+       If Node2 > 0 then Bus2  := ActiveCircuit.MapNodeToBus^[Node2].BusRef else Bus2 := 0;
        If (Bus1 > 0) and (Bus2 > 0) Then
-       With ActiveCircuit Do Begin
-            If Buses^[Bus1].kVBase <> Buses^[Bus2].kVBase Then Vmag := 0.0
-            Else Begin
-               If Buses^[Bus1].kVBase > 0.0 Then Vmag   := Cabs(Volts1)/(1000.0 * Buses^[Bus1].kVBase)*100.0 Else Vmag := 0.0;
-            End;
-            Writeln(F, Format('%s,  %4d,    %12.5g, %12.5g, %12.5g, %6.1f',[ElemName, i, Cabs(Volts1),  Vmag,   Buses^[Bus1].kVBase,  cdang(Volts1) ]));
+       Begin
+           Volts1 := ActiveCircuit.Solution.NodeV^[Node1];   // OK if Node1 or Node2 = 0
+           Volts2 := ActiveCircuit.Solution.NodeV^[Node2];
+           Volts1 := Csub(Volts1, Volts2);   // diff voltage
+           With ActiveCircuit Do Begin
+                If Buses^[Bus1].kVBase <> Buses^[Bus2].kVBase Then Vmag := 0.0
+                Else Begin
+                   If Buses^[Bus1].kVBase > 0.0 Then Vmag   := Cabs(Volts1)/(1000.0 * Buses^[Bus1].kVBase)*100.0 Else Vmag := 0.0;
+                End;
+                Writeln(F, Format('%s,  %4d,    %12.5g, %12.5g, %12.5g, %6.1f',[ElemName, i, Cabs(Volts1),  Vmag,   Buses^[Bus1].kVBase,  cdang(Volts1) ]));
+           End;
        End;
   End;
 End;
