@@ -209,8 +209,10 @@ USES  SolutionAlgs,
       DSSClassDefs, DSSGlobals, DSSForms, CktElement,  ControlElem, Fault,
       Executive, AutoAdd,  YMatrix,
       ParserDel, Generator,
-      Math,  Circuit, Utilities,
-      ImplGlobals  // to fire events
+{$IFDEF DLL_ENGINE}
+      ImplGlobals,  // to fire events
+{$ENDIF}
+      Math,  Circuit, Utilities
 ;
 
 Const NumPropsThisClass = 1;
@@ -442,7 +444,9 @@ Try
        END;
     End;
 
+{$IFDEF DLL_ENGINE}
     Fire_InitControls;
+{$ENDIF}
 
     {CheckFaultStatus;  ???? needed here??}
 
@@ -964,6 +968,9 @@ Begin
        Result := SolveCircuit;  // Do circuit solution w/o checking controls
 
        {Now Check controls}
+{$IFDEF DLL_ENGINE}
+       Fire_CheckControls;
+{$ENDIF}
        CheckControls;
 
        {For reporting max iterations per control iteration}
@@ -980,7 +987,9 @@ Begin
 
    If ActiveCircuit.LogEvents Then LogThisEvent('Solution Done');
 
+{$IFDEF DLL_ENGINE}
    Fire_StepControls;
+{$ENDIF}
 
    Iteration := TotalIterations;  { so that it reports a more interesting number }
 

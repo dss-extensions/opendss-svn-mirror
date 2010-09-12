@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 8/17/2010 4:36:17 PM from Type Library described below.
+// File generated on 9/12/2010 11:05:26 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -21,7 +21,7 @@ unit OpenDSSengine_TLB;
 // Helpfile:
 // HelpString: OpenDSS Engine
 // DepndLst:
-//   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
+//   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // Errors:
 //   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
@@ -2399,6 +2399,7 @@ type
     ['{AE501F77-F7F0-4201-A9AD-6AB385262203}']
     procedure InitControls; dispid 201;
     procedure StepControls; dispid 202;
+    procedure CheckControls; dispid 203;
   end;
 
 // *********************************************************************//

@@ -91,6 +91,7 @@ Function DSS_GetResult:pchar;Stdcall; // Returns a pointer to global result Stri
 // fire COM events using these functions from DSS code
 Procedure Fire_InitControls;
 Procedure Fire_StepControls;
+Procedure Fire_CheckControls;
 
 implementation
 
@@ -104,6 +105,11 @@ end;
 Procedure Fire_StepControls;
 begin
   if assigned(FEvents) then TDSSEvents(FEvents).Fire_StepControls;
+end;
+
+Procedure Fire_CheckControls;
+begin
+  if assigned(FEvents) then TDSSEvents(FEvents).Fire_CheckControls;
 end;
 
 Procedure InitializeInterfaces;

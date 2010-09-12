@@ -16,6 +16,7 @@ type
     procedure Initialize; override;
     procedure Fire_InitControls;
     procedure Fire_StepControls;
+    procedure Fire_CheckControls;
   protected
     property ConnectionPoints: TConnectionPoints read FConnectionPoints
       implements IConnectionPointContainer;
@@ -68,6 +69,17 @@ begin
   SinkList:= GetSinks;
   for i:= 0 to SinkList.Count -1 do
     (SinkList.Items[i] as IDSSEventsEvents).StepControls;
+  SinkList.Free;
+end;
+
+procedure TDSSEvents.Fire_CheckControls;
+var
+  SinkList: TInterfaceList;
+  i: integer;
+begin
+  SinkList:= GetSinks;
+  for i:= 0 to SinkList.Count -1 do
+    (SinkList.Items[i] as IDSSEventsEvents).CheckControls;
   SinkList.Free;
 end;
 
