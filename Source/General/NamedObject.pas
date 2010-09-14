@@ -17,6 +17,7 @@ TYPE
     DName: String;  // for optional display, does not have to be unique
     pGuid: ^TGuid;
 
+    function Get_QualifiedName: String;
     function Get_DisplayName: String;
     procedure Set_DisplayName(const Value: String);
     function Get_GUID: TGuid;
@@ -29,6 +30,7 @@ TYPE
 
     Property DSSClassName:String Read PName Write PName;
     Property LocalName:String Read LName Write LName;
+    Property QualifiedName:String Read Get_QualifiedName;
     Property DisplayName:String Read Get_DisplayName Write Set_DisplayName;
     Property GUID:TGuid Read Get_GUID Write Set_GUID;
     Property ID:String read Get_ID;
@@ -76,6 +78,11 @@ begin
     Result := PName + '_' + LName
   else
     Result := DName;
+end;
+
+function TNamedObject.Get_QualifiedName: String;
+begin
+  Result := PName + '.' + LName
 end;
 
 procedure TNamedObject.Set_GUID(const Value: TGUID);

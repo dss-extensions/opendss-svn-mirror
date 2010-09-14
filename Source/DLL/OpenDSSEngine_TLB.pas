@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 9/12/2010 11:05:26 AM from Type Library described below.
+// File generated on 9/13/2010 9:17:24 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -21,7 +21,7 @@ unit OpenDSSengine_TLB;
 // Helpfile:
 // HelpString: OpenDSS Engine
 // DepndLst:
-//   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
+//   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // Errors:
 //   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
@@ -2311,13 +2311,38 @@ type
   ITopology = interface(IDispatch)
     ['{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}']
     function Get_NumLoops: Integer; safecall;
-    function Get_NumIsolated: Integer; safecall;
-    function Get_AllLoopElements: OleVariant; safecall;
-    function Get_AllIsolatedElements: OleVariant; safecall;
+    function Get_NumIsolatedBranches: Integer; safecall;
+    function Get_AllLoopedPairs: OleVariant; safecall;
+    function Get_AllIsolatedBranches: OleVariant; safecall;
+    function Get_NumIsolatedLoads: Integer; safecall;
+    function Get_AllIsolatedLoads: OleVariant; safecall;
+    function Get_BranchName: WideString; safecall;
+    procedure Set_BranchName(const Value: WideString); safecall;
+    function Get_First: Integer; safecall;
+    function Get_Next: Integer; safecall;
+    function Get_ActiveBranch: Integer; safecall;
+    function Get_ForwardBranch: Integer; safecall;
+    function Get_BackwardBranch: Integer; safecall;
+    function Get_LoopedBranch: Integer; safecall;
+    function Get_ParallelBranch: Integer; safecall;
+    function Get_FirstLoad: Integer; safecall;
+    function Get_NextLoad: Integer; safecall;
     property NumLoops: Integer read Get_NumLoops;
-    property NumIsolated: Integer read Get_NumIsolated;
-    property AllLoopElements: OleVariant read Get_AllLoopElements;
-    property AllIsolatedElements: OleVariant read Get_AllIsolatedElements;
+    property NumIsolatedBranches: Integer read Get_NumIsolatedBranches;
+    property AllLoopedPairs: OleVariant read Get_AllLoopedPairs;
+    property AllIsolatedBranches: OleVariant read Get_AllIsolatedBranches;
+    property NumIsolatedLoads: Integer read Get_NumIsolatedLoads;
+    property AllIsolatedLoads: OleVariant read Get_AllIsolatedLoads;
+    property BranchName: WideString read Get_BranchName write Set_BranchName;
+    property First: Integer read Get_First;
+    property Next: Integer read Get_Next;
+    property ActiveBranch: Integer read Get_ActiveBranch;
+    property ForwardBranch: Integer read Get_ForwardBranch;
+    property BackwardBranch: Integer read Get_BackwardBranch;
+    property LoopedBranch: Integer read Get_LoopedBranch;
+    property ParallelBranch: Integer read Get_ParallelBranch;
+    property FirstLoad: Integer read Get_FirstLoad;
+    property NextLoad: Integer read Get_NextLoad;
   end;
 
 // *********************************************************************//
@@ -2328,9 +2353,21 @@ type
   ITopologyDisp = dispinterface
     ['{03FADB98-4F30-416E-ACD2-9BD987A0CBC3}']
     property NumLoops: Integer readonly dispid 201;
-    property NumIsolated: Integer readonly dispid 202;
-    property AllLoopElements: OleVariant readonly dispid 203;
-    property AllIsolatedElements: OleVariant readonly dispid 204;
+    property NumIsolatedBranches: Integer readonly dispid 202;
+    property AllLoopedPairs: OleVariant readonly dispid 203;
+    property AllIsolatedBranches: OleVariant readonly dispid 204;
+    property NumIsolatedLoads: Integer readonly dispid 205;
+    property AllIsolatedLoads: OleVariant readonly dispid 206;
+    property BranchName: WideString dispid 207;
+    property First: Integer readonly dispid 208;
+    property Next: Integer readonly dispid 209;
+    property ActiveBranch: Integer readonly dispid 210;
+    property ForwardBranch: Integer readonly dispid 211;
+    property BackwardBranch: Integer readonly dispid 212;
+    property LoopedBranch: Integer readonly dispid 213;
+    property ParallelBranch: Integer readonly dispid 214;
+    property FirstLoad: Integer readonly dispid 215;
+    property NextLoad: Integer readonly dispid 217;
   end;
 
 // *********************************************************************//

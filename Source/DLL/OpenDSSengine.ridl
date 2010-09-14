@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 9/12/2010 11:07:03 AM (- $Rev: 12980 $, 729886464).
+// File generated on 9/13/2010 9:18:16 PM (- $Rev: 12980 $, 8915515).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -1877,12 +1877,38 @@ library OpenDSSengine
   {
     [propget, id(0x000000C9), helpstring("Number of loops\0raphProperties; Do GetGraphProperties first to initialize values. GridStyle = [1..8] = [none, points, vertical lines, horiz lines, Lines, horiz dotlines, vert dotlines, dotlines].")]
     HRESULT _stdcall NumLoops([out, retval] long* Value);
-    [propget, id(0x000000CA), helpstring("Number of isolated elements.\0s; Do GetGraphProperties first to initialize values. GridStyle = [1..8] = [none, points, vertical lines, horiz lines, Lines, horiz dotlines, vert dotlines, dotlines].")]
-    HRESULT _stdcall NumIsolated([out, retval] long* Value);
-    [propget, id(0x000000CB), helpstring("Variant array of all looped element names.\0Properties first to initialize values. GridStyle = [1..8] = [none, points, vertical lines, horiz lines, Lines, horiz dotlines, vert dotlines, dotlines].")]
-    HRESULT _stdcall AllLoopElements([out, retval] VARIANT* Value);
-    [propget, id(0x000000CC), helpstring("Variant array of all isolated element names.\0operties first to initialize values. GridStyle = [1..8] = [none, points, vertical lines, horiz lines, Lines, horiz dotlines, vert dotlines, dotlines].")]
-    HRESULT _stdcall AllIsolatedElements([out, retval] VARIANT* Value);
+    [propget, id(0x000000CA), helpstring("Number of isolated branches (PD elements).")]
+    HRESULT _stdcall NumIsolatedBranches([out, retval] long* Value);
+    [propget, id(0x000000CB), helpstring("Variant array of all looped element names, by pairs.")]
+    HRESULT _stdcall AllLoopedPairs([out, retval] VARIANT* Value);
+    [propget, id(0x000000CC), helpstring("Variant array of all isolated branch names.")]
+    HRESULT _stdcall AllIsolatedBranches([out, retval] VARIANT* Value);
+    [propget, id(0x000000CD), helpstring("Number of isolated loads")]
+    HRESULT _stdcall NumIsolatedLoads([out, retval] long* Value);
+    [propget, id(0x000000CE), helpstring("Variant array of all isolated load names.")]
+    HRESULT _stdcall AllIsolatedLoads([out, retval] VARIANT* Value);
+    [propget, id(0x000000CF), helpstring("Name of the active branch.")]
+    HRESULT _stdcall BranchName([out, retval] BSTR* Value);
+    [propput, id(0x000000CF)]
+    HRESULT _stdcall BranchName([in] BSTR Value);
+    [propget, id(0x000000D0), helpstring("Sets the first branch active, returns 0 if none.")]
+    HRESULT _stdcall First([out, retval] long* Value);
+    [propget, id(0x000000D1), helpstring("Sets the next branch active, returns 0 if no more.")]
+    HRESULT _stdcall Next([out, retval] long* Value);
+    [propget, id(0x000000D2)]
+    HRESULT _stdcall ActiveBranch([out, retval] long* Value);
+    [propget, id(0x000000D3)]
+    HRESULT _stdcall ForwardBranch([out, retval] long* Value);
+    [propget, id(0x000000D4)]
+    HRESULT _stdcall BackwardBranch([out, retval] long* Value);
+    [propget, id(0x000000D5)]
+    HRESULT _stdcall LoopedBranch([out, retval] long* Value);
+    [propget, id(0x000000D6)]
+    HRESULT _stdcall ParallelBranch([out, retval] long* Value);
+    [propget, id(0x000000D7), helpstring("First load at the active branch")]
+    HRESULT _stdcall FirstLoad([out, retval] long* Value);
+    [propget, id(0x000000D9), helpstring("Next load at the active branch")]
+    HRESULT _stdcall NextLoad([out, retval] long* Value);
   };
 
   [
