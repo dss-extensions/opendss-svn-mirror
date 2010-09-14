@@ -27,11 +27,12 @@ Uses Arraydef, uComplex;
          function  RCDSum( Data:Pointer; Count:Integer): Extended; register;
          Procedure SymComp2Phase( Vph, V012:pComplexArray);
          Function  TerminalPowerIn(V,I:pComplexArray; Nphases:Integer):Complex;
+         Function  PctNemaUnbalance(Vph:pComplexArray):Double;
 
 implementation
 
 uses
-    uCmatrix;
+    uCmatrix, Math;
 
 Var
    As2p, Ap2s, ClarkeF, ClarkeR:TcMatrix; {Symmetrical Component Conversion Matrices}
@@ -459,6 +460,30 @@ Begin
        inc(i,2);
        SizeSqr := SQR(term.re) + SQR(term.im)
     UNTIL (i > MaxTerm) OR (SizeSqr < EpsilonSqr)
+
+End;
+
+Function  PctNemaUnbalance(Vph:pComplexArray):Double;
+
+{Return Nema unbalance }
+Var
+   i:Integer;
+   Vavg :Double;
+   MaxDiff :Double;
+   VMag: Array[1..3] of Double;
+
+Begin
+     For i := 1 to 3 Do VMag[i] := cabs( Vph^[i] );
+
+     Vavg := 0.0;
+     For i := 1 to 3 Do Vavg := Vavg + VMag[i];
+     Vavg := Vavg / 3.0;
+
+     MaxDiff := 0.0;
+     For i := 1 to 3 Do MaxDiff := Max( MaxDiff, abs( Vmag[i] - Vavg ));
+
+     If Vavg <> 0.0 Then Result := MaxDiff/Vavg * 100.0  // pct difference
+     Else Result := 0.0;
 
 End;
 

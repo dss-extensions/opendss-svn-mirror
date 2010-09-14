@@ -61,6 +61,7 @@ Var
    V0, V1, V2,
    Vpu, V2V1 ,V0V1  : Double;
    Vresidual        : Complex;
+   V_NEMA           : Double;
 
 Begin
 
@@ -68,7 +69,7 @@ Begin
      Assignfile(F, FileNm);
      ReWrite(F);
 
-     Writeln(F,'Bus,  V1,  p.u.,Base kV, V2, %V2/V1, V0, %V0/V1, Vresidual');
+     Writeln(F,'Bus,  V1,  p.u.,Base kV, V2, %V2/V1, V0, %V0/V1, Vresidual, %NEMA');
      WITH ActiveCircuit DO
      BEGIN
        FOR i := 1 to NumBuses DO
@@ -78,6 +79,7 @@ Begin
            THEN BEGIN
                 V0 := 0.0;
                 V2 := 0.0;
+                V_NEMA := 0.0;
                 IF (Buses^[i].NumNodesThisBus = 1) and PositiveSequence
                 THEN  BEGIN // first node
                    nref := Buses^[i].GetRef(1);
@@ -99,6 +101,8 @@ Begin
              V0 := Cabs(V012[1]);
              V1 := Cabs(V012[2]);
              V2 := Cabs(V012[3]);
+
+             V_NEMA := PctNemaUnbalance(@Vph);
          END;
 
          IF   Buses^[i].kvbase <> 0.0
@@ -118,8 +122,8 @@ Begin
          For j := 1 to Buses^[i].NumNodesThisBus Do Caccum(Vresidual, NodeV^[Buses^[i].GetRef(j)]);
 
          Writeln(F,
-         Format('"%s", %10.6g, %9.5g, %8.2f, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g',
-                [BusList.Get(i), V1, Vpu, (Buses^[i].kvbase*SQRT3), V2, V2V1, V0, V0V1, Cabs(Vresidual)]
+         Format('"%s", %10.6g, %9.5g, %8.2f, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g',
+                [BusList.Get(i), V1, Vpu, (Buses^[i].kvbase*SQRT3), V2, V2V1, V0, V0V1, Cabs(Vresidual), V_NEMA]
          ));
 
 
@@ -215,6 +219,7 @@ VAR
   i,k,NCond:integer;
   Iph, I012 : Array[1..3] of Complex;
   Iresidual:Complex;
+  I_NEMA  :Double;
 
 
 Begin
@@ -232,11 +237,14 @@ Begin
       I1 := Cabs(I012[2]);
       I2 := Cabs(I012[3]);
 
+      I_NEMA := PctNemaUnbalance(@Iph);
+
   END
   ELSE BEGIN
      I0 := 0.0;
      I1 := 0.0;
      I2 := 0.0;
+     I_NEMA := 0.0;
      IF ActiveCircuit.PositiveSequence    // Use phase 1 only
      THEN I1 := Cabs(Iph[1]);
 
@@ -266,8 +274,8 @@ Begin
    For i := 1 to Ncond Do Caccum(Iresidual, cBuffer^[i]);
 
 
-  Writeln(F, Format('"%s", %3d, %10.6g, %8.4g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g',
-                    [(pelem.DSSClassName + '.' + pelem.Name),j,I1,iNormal,iEmerg,I2,I2I1,I0,I0I1, Cabs(Iresidual)]));
+  Writeln(F, Format('"%s", %3d, %10.6g, %8.4g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g',
+                    [(pelem.DSSClassName + '.' + pelem.Name),j,I1,iNormal,iEmerg,I2,I2I1,I0,I0I1, Cabs(Iresidual), I_NEMA]));
 End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -291,7 +299,7 @@ Begin
 
 
      {Sequence Currents}
-     Writeln(F,'Element, Terminal,  I1, %Normal, %Emergency, I2, %I2/I1, I0, %I0/I1, Iresidual');
+     Writeln(F,'Element, Terminal,  I1, %Normal, %Emergency, I2, %I2/I1, I0, %I0/I1, Iresidual, %NEMA');
 
      {Allocate cBuffer big enough for largest circuit element}
      Getmem(cbuffer, sizeof(cBuffer^[1])* GetMaxCktElementSize);
