@@ -13,24 +13,23 @@ type
     function Get_NumLoops: Integer; safecall;
     function Get_ActiveBranch: Integer; safecall;
     function Get_AllIsolatedBranches: OleVariant; safecall;
- //   function Get_AllIsolatedShunts: OleVariant; safecall;
     function Get_AllLoopedPairs: OleVariant; safecall;
     function Get_BackwardBranch: Integer; safecall;
     function Get_BranchName: WideString; safecall;
     function Get_First: Integer; safecall;
- //   function Get_FirstShunt: Integer; safecall;
     function Get_ForwardBranch: Integer; safecall;
     function Get_LoopedBranch: Integer; safecall;
     function Get_Next: Integer; safecall;
-//    function Get_NextShunt: Integer; safecall;
     function Get_NumIsolatedBranches: Integer; safecall;
- //   function Get_NumIsolatedShunts: Integer; safecall;
     function Get_ParallelBranch: Integer; safecall;
     procedure Set_BranchName(const Value: WideString); safecall;
     function Get_AllIsolatedLoads: OleVariant; safecall;
     function Get_FirstLoad: Integer; safecall;
     function Get_NextLoad: Integer; safecall;
     function Get_NumIsolatedLoads: Integer; safecall;
+    function Get_ActiveLevel: Integer; safecall;
+    function Get_BusName: WideString; safecall;
+    procedure Set_BusName(const Value: WideString); safecall;
 
   end;
 
@@ -344,6 +343,58 @@ begin
   end;
   if not Found then Begin
     DoSimpleMsg('Branch "'+S+'" Not Found in Active Circuit Topology.', 5003);
+    if assigned(elem) then ActiveCircuit.ActiveCktElement := elem;
+  end;
+end;
+
+function TTopology.Get_ActiveLevel: Integer;
+begin
+  Result := Get_ActiveBranch;
+end;
+
+function TTopology.Get_BusName: WideString;
+var
+  node: TCktTreeNode;
+  elm: TDSSCktElement;
+begin
+  Result := '';
+  node := ActiveTreeNode;
+  if assigned(node) then begin
+    elm := node.CktObject;
+    if assigned(elm) then Result := elm.FirstBus;
+  end;
+end;
+
+procedure TTopology.Set_BusName(const Value: WideString);
+var
+  topo: TCktTree;
+  S, B: String;
+  Found :Boolean;
+  elem: TDSSCktElement;
+  pdElem: TPDElement;
+begin
+  Found := FALSE;
+  elem := nil;
+  S := Value;  // Convert to Pascal String
+  topo := ActiveTree;
+  if assigned(topo) then begin
+    elem := ActiveCircuit.ActiveCktElement;
+    pdElem := topo.First;
+    while Assigned (pdElem) and (not found) do begin
+      B := pdElem.FirstBus;
+      while Length(B) > 0 do begin
+        if (CompareText(B, S) = 0) then begin
+          ActiveCircuit.ActiveCktElement := pdElem;
+          Found := TRUE;
+          Break;
+        end;
+        B := pdElem.NextBus;
+      end;
+      pdElem := topo.GoForward;
+    end;
+  end;
+  if not Found then Begin
+    DoSimpleMsg('Bus "'+S+'" Not Found in Active Circuit Topology.', 5003);
     if assigned(elem) then ActiveCircuit.ActiveCktElement := elem;
   end;
 end;

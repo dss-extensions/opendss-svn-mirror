@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 9/13/2010 9:18:16 PM (- $Rev: 12980 $, 8915515).
+// File generated on 9/14/2010 10:11:16 AM (- $Rev: 12980 $, 55295921).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -1877,7 +1877,7 @@ library OpenDSSengine
   {
     [propget, id(0x000000C9), helpstring("Number of loops\0raphProperties; Do GetGraphProperties first to initialize values. GridStyle = [1..8] = [none, points, vertical lines, horiz lines, Lines, horiz dotlines, vert dotlines, dotlines].")]
     HRESULT _stdcall NumLoops([out, retval] long* Value);
-    [propget, id(0x000000CA), helpstring("Number of isolated branches (PD elements).")]
+    [propget, id(0x000000CA), helpstring("Number of isolated branches (PD elements and capacitors).")]
     HRESULT _stdcall NumIsolatedBranches([out, retval] long* Value);
     [propget, id(0x000000CB), helpstring("Variant array of all looped element names, by pairs.")]
     HRESULT _stdcall AllLoopedPairs([out, retval] VARIANT* Value);
@@ -1895,20 +1895,26 @@ library OpenDSSengine
     HRESULT _stdcall First([out, retval] long* Value);
     [propget, id(0x000000D1), helpstring("Sets the next branch active, returns 0 if no more.")]
     HRESULT _stdcall Next([out, retval] long* Value);
-    [propget, id(0x000000D2)]
+    [propget, id(0x000000D2), helpstring("Returns index of the active branch")]
     HRESULT _stdcall ActiveBranch([out, retval] long* Value);
-    [propget, id(0x000000D3)]
+    [propget, id(0x000000D3), helpstring("Move forward in the tree, return index of new active branch or 0 if no more")]
     HRESULT _stdcall ForwardBranch([out, retval] long* Value);
-    [propget, id(0x000000D4)]
+    [propget, id(0x000000D4), helpstring("MOve back toward the source, return index of new active branch, or 0 if no more.")]
     HRESULT _stdcall BackwardBranch([out, retval] long* Value);
-    [propget, id(0x000000D5)]
+    [propget, id(0x000000D5), helpstring("Move to looped branch, return index or 0 if none.")]
     HRESULT _stdcall LoopedBranch([out, retval] long* Value);
-    [propget, id(0x000000D6)]
+    [propget, id(0x000000D6), helpstring("Move to directly parallel branch, return index or 0 if none.")]
     HRESULT _stdcall ParallelBranch([out, retval] long* Value);
-    [propget, id(0x000000D7), helpstring("First load at the active branch")]
+    [propget, id(0x000000D7), helpstring("First load at the active branch, return index or 0 if none.")]
     HRESULT _stdcall FirstLoad([out, retval] long* Value);
-    [propget, id(0x000000D9), helpstring("Next load at the active branch")]
+    [propget, id(0x000000D9), helpstring("Next load at the active branch, return index or 0 if no more.")]
     HRESULT _stdcall NextLoad([out, retval] long* Value);
+    [propget, id(0x000000D8), helpstring("Topological depth of the active branch")]
+    HRESULT _stdcall ActiveLevel([out, retval] long* Value);
+    [propget, id(0x000000DA)]
+    HRESULT _stdcall BusName([out, retval] BSTR* Value);
+    [propput, id(0x000000DA), helpstring("Set the active branch to one containing this bus, return index or 0 if not found")]
+    HRESULT _stdcall BusName([in] BSTR Value);
   };
 
   [

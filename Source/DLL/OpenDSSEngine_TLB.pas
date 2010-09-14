@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 9/13/2010 9:17:24 PM from Type Library described below.
+// File generated on 9/14/2010 10:11:21 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -2327,6 +2327,9 @@ type
     function Get_ParallelBranch: Integer; safecall;
     function Get_FirstLoad: Integer; safecall;
     function Get_NextLoad: Integer; safecall;
+    function Get_ActiveLevel: Integer; safecall;
+    function Get_BusName: WideString; safecall;
+    procedure Set_BusName(const Value: WideString); safecall;
     property NumLoops: Integer read Get_NumLoops;
     property NumIsolatedBranches: Integer read Get_NumIsolatedBranches;
     property AllLoopedPairs: OleVariant read Get_AllLoopedPairs;
@@ -2343,6 +2346,8 @@ type
     property ParallelBranch: Integer read Get_ParallelBranch;
     property FirstLoad: Integer read Get_FirstLoad;
     property NextLoad: Integer read Get_NextLoad;
+    property ActiveLevel: Integer read Get_ActiveLevel;
+    property BusName: WideString read Get_BusName write Set_BusName;
   end;
 
 // *********************************************************************//
@@ -2368,6 +2373,8 @@ type
     property ParallelBranch: Integer readonly dispid 214;
     property FirstLoad: Integer readonly dispid 215;
     property NextLoad: Integer readonly dispid 217;
+    property ActiveLevel: Integer readonly dispid 216;
+    property BusName: WideString dispid 218;
   end;
 
 // *********************************************************************//
