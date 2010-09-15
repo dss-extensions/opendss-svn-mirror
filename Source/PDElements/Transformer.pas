@@ -1442,12 +1442,17 @@ begin
            14: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kvll]);
            15: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].kVA]);
            16: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].puTap]);// InterpretAllTaps(Param);
+           17: Result := Format('%.7g', [XHL * 100.0]);
+           18: Result := Format('%.7g', [XHT * 100.0]);
+           19: Result := Format('%.7g', [XLT * 100.0]);
            20: FOR i := 1 to (NumWindings-1)*NumWindings div 2 Do Result := Result + Format('%-g, ',[ Xsc^[i]*100.0]);// Parser.ParseAsVector(((NumWindings - 1)*NumWindings div 2), Xsc);
            26: Result := Format('%.7g',[pctLoadLoss]);
            27: Result := Format('%.7g',[pctNoLoadLoss]);
            31: Result := Format('%.7g',[Winding^[ActiveWinding].MaxTap]);
            32: Result := Format('%.7g',[Winding^[ActiveWinding].MinTap]);
            33: Result := Format('%-d',[Winding^[ActiveWinding].NumTaps]);
+           35: Result := Format('%.7g', [pctImag]);
+           36: Result := Format('%.7g', [ppm_FloatFactor / 1.0e-6]);
            37: FOR i := 1 to NumWindings Do Result := Result + Format('%.7g, ',[Winding^[i].rpu * 100.0]);
 
 
