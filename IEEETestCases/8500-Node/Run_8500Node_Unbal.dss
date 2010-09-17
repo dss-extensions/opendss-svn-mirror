@@ -12,9 +12,11 @@
 
 ! Edit the path name to indicate the correct location of the Master file.
 
-Compile (C:\DSSdata\IEEETest\8500Node\Master-unbal.dss)     ! unbalanced load master
+Compile (Master-unbal.dss)     ! unbalanced load master
 
 !New Energymeter.m1 Line.ln5815900-1 1
+New Monitor.m1 Line.ln5815900-1 1
+
 
 Set Maxiterations=20     ! Sometimes the solution takes more than the default 15 iterations
 
