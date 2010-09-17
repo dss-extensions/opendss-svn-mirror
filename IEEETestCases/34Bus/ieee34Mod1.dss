@@ -49,7 +49,8 @@ New Transformer.XFM1  Phases=3 Windings=2 Xhl=4.08
 
 New Line.L26    Phases=1 Bus1=854.2      Bus2=856.2      LineCode=303  Length=23.33
 New Line.L27    Phases=3 Bus1=854.1.2.3  Bus2=852.1.2.3  LineCode=301  Length=36.83
-New Line.L28    Phases=1 Bus1=858.2      Bus2=864.2      LineCode=303  Length=1.62
+! 9-17-10 858-864 changed to phase A per error report
+New Line.L28    Phases=1 Bus1=858.1      Bus2=864.1      LineCode=303  Length=1.62
 New Line.L29    Phases=3 Bus1=858.1.2.3  Bus2=834.1.2.3  LineCode=301  Length=5.83
 New Line.L30    Phases=3 Bus1=860.1.2.3  Bus2=836.1.2.3  LineCode=301  Length=2.68
 New Line.L31    Phases=1 Bus1=862.2      Bus2=838.2      LineCode=304  Length=4.86
@@ -123,8 +124,9 @@ New Load.D832_858rb Bus1=858.2 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   1.0 
 New Load.D832_858sc Bus1=832.3 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   3.0 kVAR=   1.5
 New Load.D832_858rc Bus1=858.3 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   3.0 kVAR=   1.5
 
-New Load.D858_864sb Bus1=858.2 Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   1.0 kVAR=   0.5
-New Load.D858_864rb Bus1=864.2 Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   1.0 kVAR=   0.5
+! 9-17-10 858-864 changed to phase A per error report
+New Load.D858_864sb Bus1=858.1 Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   1.0 kVAR=   0.5
+New Load.D858_864rb Bus1=864.1 Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   1.0 kVAR=   0.5
 
 New Load.D858_834sa Bus1=858.1.2 Phases=1 Conn=Delta Model=1 kV= 24.900 kW=   2.0 kVAR=   1.0
 New Load.D858_834ra Bus1=834.1.2 Phases=1 Conn=Delta Model=1 kV= 24.900 kW=   2.0 kVAR=   1.0

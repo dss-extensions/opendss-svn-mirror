@@ -66,8 +66,9 @@ New Transformer.XFM1  Phases=3 Windings=2 Xhl=4.08
 ~ wdg=1 bus=832  conn=wye kv=24.9  kva=500    %r=0.95
 ~ wdg=2 bus=888  conn=Wye kv=4.16  kva=500    %r=0.95
 
-New Line.L28a    Phases=1 Bus1=858.2         Bus2=mid864.2      LineCode=303  Length=(1.62 2 /)
-New Line.L28b    Phases=1 Bus1=mid864.2      Bus2=864.2         LineCode=303  Length=(1.62 2 /)
+! 9-17-10 858-864 changed to phase A per error report
+New Line.L28a    Phases=1 Bus1=858.1         Bus2=mid864.1      LineCode=303  Length=(1.62 2 /)
+New Line.L28b    Phases=1 Bus1=mid864.1      Bus2=864.1         LineCode=303  Length=(1.62 2 /)
 New Line.L17a    Phases=3 Bus1=834.1.2.3     Bus2=mid860.1.2.3  LineCode=301  Length=(2.02 2 /)
 New Line.L17b    Phases=3 Bus1=mid860.1.2.3  Bus2=860.1.2.3     LineCode=301  Length=(2.02 2 /)
 New Line.L30a    Phases=3 Bus1=860.1.2.3     Bus2=mid836.1.2.3  LineCode=301  Length=(2.68 2 /)
@@ -128,7 +129,7 @@ New Load.D854_856b Bus1=mid856.2   Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   
 New Load.D832_858a Bus1=mid858.1.2 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   7   kVAR=   3
 New Load.D832_858b Bus1=mid858.2.3 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   2   kVAR=   1
 New Load.D832_858c Bus1=mid858.3.1 Phases=1 Conn=Delta Model=2 kV= 24.900 kW=   6   kVAR=   3
-New Load.D858_864b Bus1=mid864.2   Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   2   kVAR=   1
+New Load.D858_864a Bus1=mid864.1   Phases=1 Conn=Wye   Model=1 kV= 14.376 kW=   2   kVAR=   1
 New Load.D858_834a Bus1=mid834.1.2 Phases=1 Conn=Delta Model=1 kV= 24.900 kW=   4.0 kVAR=   2.0
 New Load.D858_834b Bus1=mid834.2.3 Phases=1 Conn=Delta Model=1 kV= 24.900 kW=  15   kVAR=   8
 New Load.D858_834c Bus1=mid834.3.1 Phases=1 Conn=Delta Model=1 kV= 24.900 kW=  13   kVAR=   7
@@ -169,7 +170,7 @@ Load.d854_856b.vminpu=0.85 daily=default
 Load.d832_858a.vminpu=0.85 daily=default
 Load.d832_858b.vminpu=0.85 daily=default
 Load.d832_858c.vminpu=0.85 daily=default
-Load.d858_864b.vminpu=0.85 daily=default
+Load.d858_864a.vminpu=0.85 daily=default
 Load.d858_834a.vminpu=0.85 daily=default
 Load.d858_834b.vminpu=0.85 daily=default
 Load.d858_834c.vminpu=0.85 daily=default
