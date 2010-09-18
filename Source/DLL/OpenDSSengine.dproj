@@ -61,11 +61,11 @@
 					</Parameters>
 					<VersionInfo>
 						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">3</VersionInfo>
 						<VersionInfo Name="Release">3</VersionInfo>
-						<VersionInfo Name="Build">5</VersionInfo>
+						<VersionInfo Name="Build">50</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -77,7 +77,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">DSS Engine</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.3.3.5</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.3.3.50</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSSEngine</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright 2010 EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>

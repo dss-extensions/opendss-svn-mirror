@@ -769,7 +769,7 @@ Begin
          For i := 1 to  NTerms DO
          Begin
             cResid := CZERO;
-            k :=0;
+            k :=(i-1)*Nconds;
             For j := 1 to Nconds Do Begin
                 inc(k);
                 Caccum(cResid, CBuffer^[k]);

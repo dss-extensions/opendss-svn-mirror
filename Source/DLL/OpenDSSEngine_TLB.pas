@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 9/14/2010 10:11:21 AM from Type Library described below.
+// File generated on 9/16/2010 4:10:00 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -23,8 +23,6 @@ unit OpenDSSengine_TLB;
 // DepndLst:
 //   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
-// Errors:
-//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
