@@ -296,7 +296,7 @@ BEGIN
                ActiveCircuit.BusNameRedefined := True;  // Set Global Flag to signal circuit to rebuild busdefs
              END;
           4: SpecType := 1;
-          6: SpecType := 3;
+          6: SpecType := 2;
           7: If ON_Time>0.0 THEN Is_ON := FALSE;   // Assume fault will be on later
          ELSE
          END;
@@ -564,7 +564,7 @@ BEGIN
         Writeln(F,'~ ',PropertyName^[5],'=',(StdDev*100.0):0:1);
         IF Gmatrix<>Nil
         THEN BEGIN
-         Write(F, PropertyName^[6],'= (');
+         Write(F, '~ ', PropertyName^[6],'= (');
          FOR i := 1 to Fnphases DO BEGIN
           FOR j := 1 to i DO Write(F, (Gmatrix^[(i-1)*Fnphases + j] ):0:3,' ');
           IF i<>Fnphases THEN Write(F, '|');
