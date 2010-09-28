@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 80;
+        NumExecOptions = 81;
 
 VAR
          ExecOption,
@@ -113,6 +113,7 @@ Begin
      ExecOption[78] := 'TransMarkerCode';
      ExecOption[79] := 'TransMarkerSize';
      ExecOption[80] := 'LoadShapeClass';
+     ExecOption[81] := 'EarthModel';
 
 
 
@@ -319,6 +320,11 @@ Begin
      OptionHelp[79] := 'Size of transformer marker. Default is 1.';
      OptionHelp[80] := '={Daily | Yearly | Duty | None*} Default loadshape class to use for mode=time and mode=dynamic simulations. Loads and generators, etc., will follow ' +
                        'this shape as time is advanced. Default value is None. That is, Load will not vary with time.';
+     OptionHelp[81] := 'One of {Carson | FullCarson | Deri}.  Default is Carson, which is the simple Carson ' +
+                       'typically used for power flow calculations. FullCarson is more accurate but takes longer to compute. ' +
+                       'The Deri or Dubanton method is ' +
+                       'a simplified fit to the Full Carson that works well into high frequencies and was the DSS standard prior to ' +
+                       'October 2010. Applies only to Line objects that use LineGeometry objects to compute impedances.';
 
 End;
 //----------------------------------------------------------------------------
@@ -511,6 +517,7 @@ Begin
            78: ActiveCircuit.TransMarkerCode  := Parser.IntValue;
            79: ActiveCircuit.TransMarkerSize  := Parser.IntValue;
            80: ActiveCircuit.ActiveLoadShapeClass := InterpretLoadShapeClass(Param);
+           81: DefaultEarthModel := InterpretEarthModel(Param);
          ELSE
            // Ignore excess parameters
          End;
@@ -655,6 +662,7 @@ Begin
            78: AppendGlobalResult(Format('%d' ,[ActiveCircuit.TransMarkerCode]));
            79: AppendGlobalResult(Format('%d' ,[ActiveCircuit.TransMarkerSize]));
            80: AppendGlobalResult(GetActiveLoadShapeClass);
+           81: AppendGlobalResult(GetEarthModel(DefaultEarthModel));
          ELSE
            // Ignore excess parameters
          End;

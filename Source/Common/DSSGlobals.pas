@@ -37,7 +37,6 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      Storage;
 
 
-
 CONST
       CRLF = #13#10;
 
@@ -82,7 +81,10 @@ CONST
       USEDUTY   = 2;
       USENONE   =-1;
 
-
+      {Earth Model}
+      SIMPLECARSON  = 1;
+      FULLCARSON    = 2;
+      DERI          = 3;
 
 VAR
 
@@ -115,6 +117,9 @@ VAR
    ErrorNumber        :Integer;
    LastErrorMessage   :String;
 
+   DefaultEarthModel  :Integer;
+   ActiveEarthModel   :Integer;
+
    LastFileCompiled   :String;
    LastCommandWasCompile :Boolean;
 
@@ -130,7 +135,6 @@ VAR
    DIFilesAreOpen     :Boolean;
    AutoShowExport     :Boolean;
    SolutionWasAttempted :Boolean;
-
 
    GlobalHelpString   :String;
    GlobalPropertyValue:String;
@@ -549,6 +553,8 @@ initialization
 
    DefaultBaseFreq       := 60.0;
    DaisySize             := 1.0;
+   DefaultEarthModel     := SIMPLECARSON;
+   ActiveEarthModel      := DefaultEarthModel;
 
    {Initialize filenames and directories}
 

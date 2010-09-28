@@ -42,6 +42,7 @@ TOHLineConstants = class(TObject)
       FX             :pDoubleArray;
       FY             :pDoubleArray;
       FRdc           :pDoubleArray;   // ohms/m
+      FRac           :pDoubleArray;   // ohms/m
       FGMR           :pDoubleArray;   // m
       Fradius        :pDoubleArray;
 
@@ -60,6 +61,7 @@ TOHLineConstants = class(TObject)
     function Get_GMR(i, units: Integer): Double;
     function Get_radius(i, units: Integer): Double;
     function Get_Rdc(i, units: Integer): Double;
+    function Get_Rac(i, units: Integer): Double;
     function Get_X(i, units: Integer): Double;
     function Get_Y(i, units: Integer): Double;
     function Get_YCmatrix(f, Lngth: double; Units: Integer): Tcmatrix;
@@ -69,6 +71,7 @@ TOHLineConstants = class(TObject)
     procedure Set_GMR(i, units: Integer; const Value: Double);
     procedure Set_radius(i, units: Integer; const Value: Double);
     procedure Set_Rdc(i, units: Integer; const Value: Double);
+    procedure Set_Rac(i, units: Integer; const Value: Double);
     procedure Set_X(i, units: Integer; const Value: Double);
     procedure Set_Y(i, units: Integer; const Value: Double);
     procedure Set_Frequency(const Value: Double);
@@ -92,6 +95,7 @@ TOHLineConstants = class(TObject)
      Property X[i, units:Integer]:Double      Read Get_X      Write Set_X;
      Property Y[i, units:Integer]:Double      Read Get_Y      Write Set_Y;
      Property Rdc[i, units:Integer]:Double    Read Get_Rdc    Write Set_Rdc;
+     Property Rac[i, units:Integer]:Double    Read Get_Rac    Write Set_Rac;
      Property radius[i, units:Integer]:Double Read Get_radius Write Set_radius;
      Property GMR[i, units:Integer]:Double    Read Get_GMR    Write Set_GMR;
      Property Zint[i:Integer]:Complex         Read Get_Zint;  // Internal impedance of i-th conductor for present frequency
@@ -113,7 +117,7 @@ end;
 
 implementation
 
-Uses mathutil, sysutils;
+Uses DSSGlobals, mathutil, sysutils;
 
 Const
 
@@ -176,7 +180,7 @@ begin
       For i := 1 to FNumConds Do Begin
         For j := 1 to i-1 Do Begin
           Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
-          FZmatrix.SetElemSym(i,j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
+          FZmatrix.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
         End;
       End;
 
@@ -253,6 +257,7 @@ begin
      FGMR    := Allocmem(Sizeof(FGMR^[1])*FNumConds);
      Fradius := Allocmem(Sizeof(Fradius^[1])*FNumConds);
      FRdc    := Allocmem(Sizeof(FRdc^[1])*FNumConds);
+     FRac    := Allocmem(Sizeof(FRac^[1])*FNumConds);
 
 
      {Initialize to  not set}
@@ -286,12 +291,18 @@ begin
   Reallocmem(FGMR, 0);
   Reallocmem(Fradius, 0);
   Reallocmem(FRdc, 0);
+  Reallocmem(FRac, 0);
 
 end;
 
 function TOHLineConstants.Get_GMR(i, units: Integer): Double;
 begin
     Result := FGMR^[i] * From_Meters(Units);
+end;
+
+function TOHLineConstants.Get_Rac(i, units: Integer): Double;
+begin
+    Result := FRAC^[i] * From_per_Meter(Units);
 end;
 
 function TOHLineConstants.Get_radius(i, units: Integer): Double;
@@ -346,27 +357,44 @@ Var
    LnArg, hterm, xterm:Complex;
 begin
 
-    If i<>j Then Begin
-        hterm  := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
-        xterm  := cmplx(Fx^[i] - Fx^[j], 0.0);
-        LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm,xterm)));
-        Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
-    End Else Begin
-        hterm  := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
-        Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
-    End;
+    CASE ActiveEarthModel of
+        SIMPLECARSON:Begin
+             Result := cmplx(Fw*Mu0/8.0, (Fw*Mu0/twopi) * ln(658.5 * sqrt(Frhoearth/FFrequency)) );
+        End;
+        FULLCARSON: ;
+        DERI: Begin
+            If i<>j Then Begin
+                hterm  := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
+                xterm  := cmplx(Fx^[i] - Fx^[j], 0.0);
+                LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm,xterm)));
+                Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
+            End Else Begin
+                hterm  := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
+                Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
+            End;
+        End;
+    END;
 end;
 
 function TOHLineConstants.Get_Zint(i: Integer): Complex;
 VAR
    Alpha, I0I1:Complex;
 begin
-      {Assume round conductor}
-      Alpha := CmulReal(c1_j1, sqrt(FFrequency*mu0/FRDC^[i]));
-      If Cabs(Alpha)>35.0 Then I0I1 := CONE
-      ELSE I0I1 := CDiv(Bessel_I0(Alpha), Bessel_I1(Alpha));
 
-      Result := CmulReal(Cmul(C1_j1, I0I1), Sqrt(FRdc^[i]*FFrequency*mu0)/2.0);
+    CASE ActiveEarthModel of
+        SIMPLECARSON:Begin
+            Result := cmplx(FRac^[i], Fw*Mu0/(8*pi) );
+        End;
+        FULLCARSON:;
+        DERI: Begin
+        {Assume round conductor}
+            Alpha := CmulReal(c1_j1, sqrt(FFrequency*mu0/FRDC^[i]));
+            If Cabs(Alpha)>35.0 Then I0I1 := CONE
+            ELSE I0I1 := CDiv(Bessel_I0(Alpha), Bessel_I1(Alpha));
+
+            Result := CmulReal(Cmul(C1_j1, I0I1), Sqrt(FRdc^[i]*FFrequency*mu0)/2.0);
+        End;
+    END;
 end;
 
 function TOHLineConstants.Get_Zmatrix(f, Lngth: double;
@@ -477,6 +505,11 @@ end;
 procedure TOHLineConstants.set_Nphases(const Value: Integer);
 begin
      FNumPhases := Value;
+end;
+
+procedure TOHLineConstants.Set_Rac(i, units: Integer; const Value: Double);
+begin
+    If (i>0) and (i<=FNumConds) Then FRac^[i] := Value * To_per_Meter(units);
 end;
 
 procedure TOHLineConstants.Set_radius(i, units: Integer;

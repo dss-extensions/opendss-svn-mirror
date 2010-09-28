@@ -137,8 +137,8 @@ Begin
 
 
 
-     PropertyHelp[1] := 'dc Resistance, ohms per unit length (see Runits). Defaults to Rac if not specified.';
-     PropertyHelp[2] := 'Resistance at 60 Hz per unit length. Defaults to Rdc if not specified.';
+     PropertyHelp[1] := 'dc Resistance, ohms per unit length (see Runits). Defaults to Rac/1.02 if not specified.';
+     PropertyHelp[2] := 'Resistance at 60 Hz per unit length. Defaults to 1.02*Rdc if not specified.';
      PropertyHelp[3] := 'Length units for resistance: ohms per {mi|kft|km|m|Ft|in|cm } Default=none.';
      PropertyHelp[4] := 'GMR at 60 Hz. Defaults to .7788*radius if not specified.';
      PropertyHelp[5] := 'Units for GMR: {mi|kft|km|m|Ft|in|cm } Default=none.';

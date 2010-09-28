@@ -48,6 +48,7 @@ PROCEDURE InterpretAndAllocStrArray(const s: string; var Size:Integer;var Result
 PROCEDURE InterpretTStringListArray(const s: string; var ResultList :TStringList);
 FUNCTION  InterpretTimeStepSize(const s:string):double;
 FUNCTION  InterpretLoadShapeClass(const s:string):Integer;
+FUNCTION  InterpretEarthModel(const s:string):Integer;
 
 FUNCTION GetSolutionModeID:String;
 FUNCTION GetSolutionModeIDName(idx:Integer):String;
@@ -57,6 +58,7 @@ FUNCTION GetLoadModel:String;
 FUNCTION GetActiveLoadShapeClass:String;
 FUNCTION GetDSSArray_Real(n:Integer; dbls:pDoubleArray):String;
 FUNCTION GetDSSArray_Integer(n:Integer; ints:pIntegerArray):String;
+FUNCTION GetEarthModel(n:Integer):String;
 
 
 {misc functions}
@@ -2484,6 +2486,21 @@ Begin
 
 End;
 
+FUNCTION InterpretEarthModel(const s:string):Integer;
+
+Var
+   ss:String;
+Begin
+     ss := lowercase(s);
+     Result := SIMPLECARSON;
+      case ss[1] of
+          'c':Result := SIMPLECARSON;
+          'f':Result := FULLCARSON;
+          'd':Result := DERI;
+      end;
+
+End;
+
 FUNCTION GetActiveLoadShapeClass:String;
 
 Begin
@@ -2492,6 +2509,17 @@ Begin
             USEYEARLY:Result := 'Yearly';
             USEDUTY:  Result := 'Duty';
             USENONE:  Result := 'None';
+      end;
+
+End;
+
+FUNCTION GetEarthModel(n:integer):String;
+
+Begin
+      case n of
+            SIMPLECARSON: Result := 'Carson';
+            FULLCARSON:Result := 'FullCarson';
+            DERI:  Result := 'Deri';
       end;
 
 End;

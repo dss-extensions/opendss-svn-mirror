@@ -639,6 +639,7 @@ begin
          FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
          FLineData.GMR[i, FWireData^[i].GMRUnits]       := FWireData^[i].GMR;
          FLineData.Rdc[i, FWireData^[i].ResUnits]       := FWireData^[i].Rdc;
+         FLineData.Rac[i, FWireData^[i].ResUnits]       := FWireData^[i].Rac;
      End;
 
      FLineData.Nphases := FNphases;

@@ -2751,12 +2751,10 @@ Begin
      Assignfile(F,FileNm);
      ReWrite(F);
 
-     
-
      Writeln(F,'LINE CONSTANTS');
      Writeln(F,Format('Frequency = %.6g Hz, Earth resistivity = %.6g ohm-m',[Freq, Rho]));
+     Writeln(F, 'Earth Model = ', GetEarthModel(DefaultEarthModel));
      Writeln(F);
-
 
      LineCodesFileNm := 'LineConstantsCode.DSS';
      Assignfile(F2, LineCodesFileNm);
@@ -2764,10 +2762,13 @@ Begin
 
      Writeln(F2, '!--- OpenDSS Linecodes file generated from Show LINECONSTANTS command');
      Writeln(F2, Format('!--- Frequency = %.6g Hz, Earth resistivity = %.6g ohm-m',[Freq, Rho]));
+     Writeln(F2, '!--- Earth Model = ', GetEarthModel(DefaultEarthModel));
 
          LineGeometryClass := DSSClassList.Get(ClassNames.Find('LineGeometry'));
          Z:=Nil;
          YC:=Nil;
+
+         ActiveEarthModel := DefaultEarthModel;
 
          p := LineGeometryClass.first;
          While p>0 Do

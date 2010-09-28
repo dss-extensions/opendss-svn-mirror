@@ -13,7 +13,8 @@ unit Line;
 interface
 
 USES
-   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode, LineGeometry, LineSpacing, WireData, PDClass, Ucomplex;
+   Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode,
+   LineGeometry, LineSpacing, WireData, PDClass, Ucomplex;
 
 
 TYPE
@@ -49,6 +50,7 @@ TYPE
         FWireData          :pWireDataArray;
         FrhoSpecified      :Boolean;
         FLineCodeSpecified :Boolean;
+        FEarthModel        :Integer;
 
         Procedure FMakeZFromGeometry(f:Double); // make new Z, Zinv, Yc, etc
         Procedure KillGeometrySpecified;
@@ -120,9 +122,10 @@ VAR
 
 IMPLEMENTATION
 
-USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  ArrayDef, Utilities, Mathutil, ControlElem, LineUnits;
+USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  ArrayDef,
+      Utilities, Mathutil, ControlElem, LineUnits;
 
-Const NumPropsThisClass = 22;
+Const NumPropsThisClass = 23;
     //  MaxPhases = 20; // for fixed buffers
 
 VAR
@@ -189,6 +192,7 @@ Begin
      PropertyName[20] := 'units';
      PropertyName[21] := 'spacing';
      PropertyName[22] := 'wires';
+     PropertyName[23] := 'EarthModel';
 
      // define Property help values
 
@@ -248,6 +252,9 @@ Begin
      PropertyHelp[22] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
                           'Must be used in conjunction with the Spacing property.' + CRLF +
                           'Specify the Spacing first.';
+     PropertyHelp[23] := 'One of {Carson | FullCarson | Deri}. Default is the global value established with the Set EarthModel command. ' +
+                         'See the Options Help on EarthModel option. This is used to override the global value for this line. This ' +
+                         'option applies only when the "geometry" property is used.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -511,6 +518,7 @@ Begin
                END;
            21: FetchLineSpacing(Param);
            22: FetchWireList(Param);
+           23: FEarthModel := InterpretEarthModel(Param);
          ELSE
             // Inherited Property Edits
              ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass)
@@ -686,6 +694,7 @@ Begin
      FUnitsConvert     := 1.0;
      FLineCodeUnits    := UNITS_NONE;
      FLineCodeSpecified := FALSE;
+     FEarthModel        := DefaultEarthModel;
 
      SpacingSpecified := False;
      FLineSpacingObj := Nil;
@@ -1054,6 +1063,7 @@ begin
            16: Result := Format('%-g', [Rg]);
            17: Result := Format('%-g', [Xg]);
            18: Result := Format('%-g', [Rho]);
+           23: Result := GetEarthModel(FEarthModel);
         ELSE
            Result := Inherited GetPropertyValue(index);
         END;
@@ -1129,6 +1139,9 @@ begin
      PropertyValue[18] := '100';
      PropertyValue[19] := '';
      PropertyValue[20] := 'NONE';
+     PropertyValue[21] := '';
+     PropertyValue[22] := '';
+     PropertyValue[23] := GetEarthModel(SIMPLECARSON);
 
     inherited InitPropertyValues(NumPropsThisClass);
 
@@ -1474,6 +1487,8 @@ Begin
         IF assigned(Zinv) THEN Begin Zinv.Free; Zinv := nil; End;
         IF assigned(Yc)   THEN Begin Yc.Free;   Yc   := nil; End;
 
+        ActiveEarthModel := FEarthModel;
+
         Z    := FLineGeometryObj.Zmatrix[ f, len, LengthUnits];
         Yc   := FLineGeometryObj.YCmatrix[f, len, LengthUnits];
         {Init Zinv}
@@ -1507,6 +1522,8 @@ Begin
   NormAmps      := pGeo.NormAmps;
   EmergAmps     := pGeo.EmergAmps;
   UpdatePDProperties;
+
+  ActiveEarthModel := FEarthModel;
 
   Z    := pGeo.Zmatrix[ f, len, LengthUnits];
   Yc   := pGeo.YCmatrix[f, len, LengthUnits];
