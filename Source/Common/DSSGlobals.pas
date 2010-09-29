@@ -375,7 +375,7 @@ End;
 PROCEDURE ClearAllCircuits;
 
 Begin
-     
+
     ActiveCircuit := Circuits.First;
      WHILE ActiveCircuit<>nil DO
      Begin
@@ -385,6 +385,7 @@ Begin
     Circuits.Free;
     Circuits := TPointerList.Create(2);   // Make a new list of circuits
     NumCircuits := 0;
+    DefaultEarthModel     := SIMPLECARSON;  //original state
 End;
 
 

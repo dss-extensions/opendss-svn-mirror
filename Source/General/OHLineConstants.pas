@@ -117,7 +117,7 @@ end;
 
 implementation
 
-Uses DSSGlobals, mathutil, sysutils;
+Uses DSSGlobals, mathutil, sysutils, math;
 
 Const
 
@@ -127,6 +127,7 @@ Const
 
 VAR
     C1_j1:Complex;
+    b1, b2, b3, b4, d2, d4,c2, c4 :double;
 
 
 
@@ -355,23 +356,56 @@ end;
 function TOHLineConstants.Get_Ze(i, j: Integer): Complex;
 Var
    LnArg, hterm, xterm:Complex;
+   mij , thetaij, Dij:double;
+   term1, term2, term3, term4, term5:double;
 begin
 
     CASE ActiveEarthModel of
+
         SIMPLECARSON:Begin
              Result := cmplx(Fw*Mu0/8.0, (Fw*Mu0/twopi) * ln(658.5 * sqrt(Frhoearth/FFrequency)) );
+ // {****}             WriteDLLDebugFile(Format('Simple: Z(%d,%d) = %.8g +j %.8g',[i,j, Result.re, result.im]));
         End;
-        FULLCARSON: ;
+
+        FULLCARSON: Begin
+         {notation from Tleis book Power System Modelling and Fault Analysis}
+          If i=j  then begin
+              thetaij := 0.0;
+              Dij := 2.0*Fy^[i];
+          end else begin
+              Dij := sqrt(sqr((Fy^[i] + Fy^[j]) + sqr(Fx^[i] - Fx^[j])));
+              thetaij := ArcCos( (Fy^[i] + Fy^[j])/ Dij);
+          End;
+          mij := 2.8099e-3 * Dij * sqrt(FFrequency/Frhoearth);
+
+          Result.re := pi/8.0 - b1*mij*cos(thetaij) + b2*sqr(mij)*(ln(exp(c2)/mij)*cos(2.0*thetaij) + thetaij*sin(2.0*thetaij))
+                       + b3*mij*mij*mij*cos(3.0*thetaij) - d4*mij*mij*mij*mij*cos(4.0*thetaij);
+
+          term1 := 0.5*ln(1.85138/mij);
+          term2 := b1*mij*cos(thetaij);
+          term3 := - d2*sqr(mij)*cos(2.0*thetaij);
+          term4 := b3*mij*mij*mij*cos(3.0*thetaij);
+          term5 := - b4*mij*mij*mij*mij*(ln(exp(c4)/mij)*cos(4.0*thetaij) + thetaij*sin(4.0*thetaij));
+          Result.im := term1 + term2 + term3 + term4 + term5;
+          Result.im := Result.im + 0.5*ln(Dij);  // correction term to work with DSS structure
+
+          Result := CmulReal(Result, Fw*Mu0/pi);
+
+ //  {****}         WriteDLLDebugFile(Format('Full: Z(%d,%d) = %.8g +j %.8g; Dij=%.8g, thetaij=%.8g, mij=%.8g, Terms= %.8g, %.8g, %.8g, %.8g, %.8g',[i,j, Result.re, result.im, Dij, thetaij*180.0/pi, mij, term1, term2, term3, term4, term5]));
+
+        End;
+
         DERI: Begin
             If i<>j Then Begin
                 hterm  := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
                 xterm  := cmplx(Fx^[i] - Fx^[j], 0.0);
-                LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm,xterm)));
+                LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm, xterm)));
                 Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
             End Else Begin
                 hterm  := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
                 Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
             End;
+ // {****}          WriteDLLDebugFile(Format('Deri: Z(%d,%d) = %.8g +j %.8g; hterm= %.8g + j %.8g',[i,j, Result.re, result.im, hterm.re, hterm.im]));
         End;
     END;
 end;
@@ -385,8 +419,10 @@ begin
         SIMPLECARSON:Begin
             Result := cmplx(FRac^[i], Fw*Mu0/(8*pi) );
         End;
-        FULLCARSON:;
-        DERI: Begin
+        FULLCARSON:Begin      // no skin effect
+            Result := cmplx(FRac^[i], Fw*Mu0/(8*pi) );
+        End;
+        DERI: Begin   // with skin effect model
         {Assume round conductor}
             Alpha := CmulReal(c1_j1, sqrt(FFrequency*mu0/FRDC^[i]));
             If Cabs(Alpha)>35.0 Then I0I1 := CONE
@@ -538,6 +574,16 @@ end;
 
 initialization
 
-C1_j1 := Cmplx(1.0, 1.0);
+    C1_j1 := Cmplx(1.0, 1.0);
+
+    b1 := 1.0/(3.0 * sqrt(2.0));
+    b2 := 1.0/16.0;
+    b3 := b1/3.0/5.0;
+    b4 := b2/4.0/6.0;
+    d2 := b2 * pi / 4.0;
+    d4 := b4 * pi / 4.0;
+    c2 := 1.3659315;
+    c4 := c2 + 1.0/4.0 + 1.0/6.0;
+
 
 end.
