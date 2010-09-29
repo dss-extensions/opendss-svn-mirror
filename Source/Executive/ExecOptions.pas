@@ -320,11 +320,10 @@ Begin
      OptionHelp[79] := 'Size of transformer marker. Default is 1.';
      OptionHelp[80] := '={Daily | Yearly | Duty | None*} Default loadshape class to use for mode=time and mode=dynamic simulations. Loads and generators, etc., will follow ' +
                        'this shape as time is advanced. Default value is None. That is, Load will not vary with time.';
-     OptionHelp[81] := 'One of {Carson | FullCarson | Deri}.  Default is Carson, which is the simple Carson ' +
-                       'typically used for power flow calculations. FullCarson is more accurate but takes longer to compute. ' +
-                       'The Deri or Dubanton method is ' +
-                       'a simplified fit to the Full Carson that works well into high frequencies and was the DSS standard prior to ' +
-                       'October 2010. Applies only to Line objects that use LineGeometry objects to compute impedances.';
+     OptionHelp[81] := 'One of {Carson | FullCarson | Deri*}.  Default is Deri, which is' +
+                       'a  fit to the Full Carson that works well into high frequencies. ' +
+                       '"Carson" is the simplified Carson method that is typically used for 50/60 Hz power flow programs. ' +
+                       'Applies only to Line objects that use LineGeometry objects to compute impedances.';
 
 End;
 //----------------------------------------------------------------------------

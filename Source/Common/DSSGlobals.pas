@@ -385,7 +385,7 @@ Begin
     Circuits.Free;
     Circuits := TPointerList.Create(2);   // Make a new list of circuits
     NumCircuits := 0;
-    DefaultEarthModel     := SIMPLECARSON;  //original state
+    DefaultEarthModel     := DERI;  //original state
 End;
 
 
@@ -554,7 +554,7 @@ initialization
 
    DefaultBaseFreq       := 60.0;
    DaisySize             := 1.0;
-   DefaultEarthModel     := SIMPLECARSON;
+   DefaultEarthModel     := DERI;
    ActiveEarthModel      := DefaultEarthModel;
 
    {Initialize filenames and directories}
