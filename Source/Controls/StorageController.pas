@@ -1264,9 +1264,14 @@ End;
 PROCEDURE TStorageControllerObj.DoLoadShapeMode;
 VAR
      FleetStateSaved  :Integer;
+     RateChanged      :Boolean;
+     NewChargeRate    :Double;
+     NewkWRate,
+     NewkvarRate      :Double;
 Begin
 
     FleetStateSaved := FleetState;
+    RateChanged     := FALSE;
 
     // Get multiplier
 
@@ -1282,21 +1287,26 @@ Begin
     If LoadShapeMult.re < 0.0 Then
         Begin
            ChargingAllowed := TRUE;
-           pctChargeRate := Abs(LoadShapeMult.re)*100.0;
+           NewChargeRate := Abs(LoadShapeMult.re) * 100.0;
+           If NewChargeRate <> pctChargeRate then RateChanged := TRUE;
+           pctChargeRate  := NewChargeRate;
            SetFleetChargeRate;
            SetFleetToCharge;
         End
     Else If LoadShapeMult.re = 0.0  Then  SetFleetToIdle
          Else Begin   // Set fleet to discharging at a rate
-             pctkWRate := LoadShapeMult.re*100.0;
-             pctkvarRate := LoadShapeMult.im * 100.0;
+             NewkWRate   := LoadShapeMult.re * 100.0;
+             NewkvarRate := LoadShapeMult.im * 100.0;
+             If (NewkWRate <> pctkWRate) or (NewkvarRate <> pctkvarRate) then RateChanged := TRUE;
+             pctkWRate   := NewkWRate;
+             pctkvarRate := NewkvarRate;
              SetFleetkWRate;
              SetFleetkvarRate;
              SetFleetToDischarge;
              ActiveCircuit.Solution.LoadsNeedUpdating := TRUE; // Force recalc of power parms
          End;
 
-    If FleetState <> FleetStateSaved Then
+    If (FleetState <> FleetStateSaved) or RateChanged Then
     With ActiveCircuit, ActiveCircuit.Solution Do
     Begin
           LoadsNeedUpdating := TRUE; // Force recalc of power parms

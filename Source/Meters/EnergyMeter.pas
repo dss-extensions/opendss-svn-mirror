@@ -1131,11 +1131,11 @@ Begin
      TotalTransformerLosses   := CZERO;
 
      For i := 1 to MaxVBaseCount Do begin
-       VBaseTotalLosses^[i] := 0.0;
-       VBaseLineLosses^[i] := 0.0;
-       VBaseLoadLosses^[i] := 0.0;
+       VBaseTotalLosses^[i]  := 0.0;
+       VBaseLineLosses^[i]   := 0.0;
+       VBaseLoadLosses^[i]   := 0.0;
        VBaseNoLoadLosses^[i] := 0.0;
-       VBaseLoad^[i] := 0.0;
+       VBaseLoad^[i]         := 0.0;
      end;
 
      CktElem           := BranchList.First;
@@ -1252,7 +1252,7 @@ Begin
 
            {Line and Transformer Elements}
            If IsLineElement(Cktelem) and FLineLosses then Begin
-               Caccum(TotalLineLosses,       S_TotalLosses); // Accumulate total losses in meter zone
+               Caccum(TotalLineLosses,   S_TotalLosses); // Accumulate total losses in meter zone
                If FseqLosses then  Begin
                    CktElem.GetSeqLosses(S_PosSeqLosses, S_NegSeqLosses, S_ZeroSeqLosses);
                    Caccum(S_PosSeqLosses, S_NegSeqLosses);  // add line modes together
@@ -1273,11 +1273,11 @@ Begin
 
            If FVbaseLosses Then With BranchList.PresentBranch do
            If VoltBaseIndex >0  then Begin
-              VBaseTotalLosses^[VoltBaseIndex] := VBaseTotalLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+              VBaseTotalLosses^[VoltBaseIndex]    := VBaseTotalLosses^[VoltBaseIndex]  + S_TotalLosses.re;
               if IsLineElement(CktElem) then
-                VBaseLineLosses^[VoltBaseIndex] := VBaseLineLosses^[VoltBaseIndex] + S_TotalLosses.re
+                VBaseLineLosses^[VoltBaseIndex]   := VBaseLineLosses^[VoltBaseIndex]   + S_TotalLosses.re
               else if IsTransformerElement(CktElem) then begin
-                VBaseLoadLosses^[VoltBaseIndex] := VBaseLoadLosses^[VoltBaseIndex] + S_LoadLosses.re;
+                VBaseLoadLosses^[VoltBaseIndex]   := VBaseLoadLosses^[VoltBaseIndex]   + S_LoadLosses.re;
                 VBaseNoLoadLosses^[VoltBaseIndex] := VBaseNoLoadLosses^[VoltBaseIndex] + S_NoLoadLosses.re
               end;
            End;
@@ -1305,10 +1305,10 @@ Begin
      Integrate(Reg_TransformerLosseskWh,  TotalTransformerLosses.re,  Delta_Hrs);
      for i  := 1 to MaxVBaseCount do begin
         Integrate(Reg_VbaseStart + i, VBaseTotalLosses^[i],  Delta_Hrs);
-        Integrate(Reg_VbaseStart + 1 * MaxVBaseCount + i, VBaseLineLosses^[i],  Delta_Hrs);
-        Integrate(Reg_VbaseStart + 2 * MaxVBaseCount + i, VBaseLoadLosses^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 1 * MaxVBaseCount + i, VBaseLineLosses^[i],    Delta_Hrs);
+        Integrate(Reg_VbaseStart + 2 * MaxVBaseCount + i, VBaseLoadLosses^[i],    Delta_Hrs);
         Integrate(Reg_VbaseStart + 3 * MaxVBaseCount + i, VBaseNoLoadLosses^[i],  Delta_Hrs);
-        Integrate(Reg_VbaseStart + 4 * MaxVBaseCount + i, VBaseLoad^[i],  Delta_Hrs);
+        Integrate(Reg_VbaseStart + 4 * MaxVBaseCount + i, VBaseLoad^[i],          Delta_Hrs);
      end;
 
 
