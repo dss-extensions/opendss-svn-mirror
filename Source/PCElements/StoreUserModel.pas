@@ -79,7 +79,7 @@ function TStoreUserModel.CheckFuncError(Addr: Pointer;  FuncName: String): Point
 begin
         If Addr=nil then
           Begin
-            DoSimpleMsg('Storage User Model Does Not Have Required Function: ' + FuncName, 569);
+            DoSimpleMsg('Storage User Model Does Not Have Required Function: ' + FuncName, 1569);
             FuncError := True;
           End;
         Result := Addr;
@@ -153,15 +153,15 @@ begin
         If (Length(Value)=0) or (Length(TrimLeft(Value))=0) Then Exit;
         If comparetext(value, 'none')=0 Then Exit;
 
-        FHandle := LoadLibrary(pwidechar(Value));
+        FHandle := LoadLibrary(PChar(Value));      // Default LoadLibrary and PChar must agree in expected type
         IF FHandle = 0 Then
         Begin
              // Try again with full path name
-              FHandle := LoadLibrary(pwidechar(DSSDirectory + Value));
+              FHandle := LoadLibrary(PChar(DSSDirectory + Value));
         End;
 
         If FHandle = 0 Then
-              DoSimpleMsg('Generator User Model ' + Value + ' Not Loaded. DSS Directory = '+DSSDirectory, 570)
+              DoSimpleMsg('Storage User Model ' + Value + ' Not Loaded. DSS Directory = '+DSSDirectory, 1570)
         Else
         Begin
 

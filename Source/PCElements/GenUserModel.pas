@@ -171,10 +171,10 @@ begin
         If (Length(Value)=0) or (Length(TrimLeft(Value))=0) Then Exit;
         If comparetext(value, 'none')=0 Then Exit;
 
-        FHandle := LoadLibrary(pWideChar(Value));   // the default LoadLibrary function is expecting a wide char
+        FHandle := LoadLibrary(PChar(Value));   // Default LoadLibrary and PChar must agree in expected type
         IF FHandle = 0 Then
           Begin // Try again with full path name
-               FHandle := LoadLibrary(pWideChar(DSSDirectory + Value));
+               FHandle := LoadLibrary(PChar(DSSDirectory + Value));
           End;
 
         If FHandle = 0 Then

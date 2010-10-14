@@ -226,19 +226,12 @@ End;
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Procedure FireOffEditor(FileNm:String);
 Var retval:Word;
-    DefaultEditorW :WideString;
-    FileNmW        :WideString;
 Begin
   TRY
   If FileExists(FileNm) Then
   Begin
-  //    retval := WinExec(PAnsichar(DefaultEditor + ' ' + FileNm), SW_SHOW);
-// function ShellExecuteW(hWnd: HWND; Operation, FileName, Parameters,
-//                        Directory: PWideChar; ShowCmd: Integer): HINST; stdcall;
-      DefaultEditorW := DefaultEditor;
-      FilenmW        := FileNm;
-      retval := ShellExecuteW (0, Nil,
-        PWideChar(DefaultEditorW), PWideChar(FileNmW), Nil, SW_SHOW);
+      retval := ShellExecute (0, Nil,
+        PChar(DefaultEditor), PChar(FileNm), Nil, SW_SHOW);
       Case Retval of
           0: DoSimpleMsg('System out of memory. Cannot start Editor.', 700);
           ERROR_BAD_FORMAT: DoSimpleMsg('Editor File is Invalid.', 701);
