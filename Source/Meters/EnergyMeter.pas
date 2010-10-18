@@ -243,6 +243,7 @@ Type
        FSeqLosses            :Boolean;
        F3PhaseLosses         :Boolean;
        FVBaseLosses          :Boolean;
+       FPhaseVoltageReport   :Boolean;
 
        FeederObj             :TFeederObj;   // not used at present
        DefinedZoneList       :pStringArray;
@@ -263,6 +264,14 @@ Type
        VBaseCount            :Integer;
        MaxVBaseCount         :Integer;
 
+       { Arrays for phase voltage report  }
+       VphaseMax             :pDoubleArray;
+       VPhaseMin             :pDoubleArray;
+       VPhaseAccum           :pDoubleArray;
+       VPhaseAccumCount      :pIntegerArray;
+       VPhase_File           :TextFile;
+       VPhaseReportFileIsOpen:Boolean;
+
        {Demand Interval File variables}
        DI_File                 :TextFile;
        This_Meter_DIFileIsOpen :Boolean;
@@ -274,6 +283,7 @@ Type
        Procedure CalcBusCoordinates(StartBranch:TCktTreeNode; FirstCoordRef, SecondCoordRef, LineCount:Integer);
        Function  AddToVoltBaseList(BusRef:Integer):Integer;
        Function  MakeDIFileName:String;
+       Function  MakeVPhaseReportFileName:String;
        Procedure AssignVoltBaseRegisterNames;
 
        Procedure MakeFeederObj;
@@ -335,7 +345,7 @@ USES  ParserDel, DSSClassDefs, DSSGlobals, Bus, Sysutils, MathUtil,  UCMatrix,
       Classes, {FileCtrl,} ReduceAlgs, Windows, Math;
 
 
-Const NumPropsThisClass = 16;
+Const NumPropsThisClass = 17;
 
 VAR
 
@@ -343,6 +353,12 @@ VAR
    // adjacency lists for PC and PD elements at each bus, built for faster searches
    BusAdjPC : TAdjArray; // also includes shunt PD elements
    BusAdjPD : TAdjArray;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+FUNCTION  jiIndex(j,i:Integer):Integer; Inline;
+Begin
+    Result := (j-1)*3 + i;
+End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TEnergyMeter.Create;  // Creates superstructure FOR all EnergyMeter objects
@@ -411,6 +427,7 @@ Begin
      PropertyName^[14] := 'SeqLosses';
      PropertyName^[15] := '3phaseLosses';
      PropertyName^[16] := 'VbaseLosses'; // segregate losses by voltage base
+     PropertyName^[17] := 'PhaseVoltageReport'; // Compute Avg phase voltages in zone
 
 {     PropertyName^[11] := 'Feeder';  **** removed - not used}
 
@@ -458,7 +475,11 @@ Begin
       PropertyHelp[14]:= '{Yes | No}  Default is YES. Compute Sequence losses in lines and segregate by line mode losses and zero mode losses.';
       PropertyHelp[15]:= '{Yes | No}  Default is YES. Compute Line losses and segregate by 3-phase and other (1- and 2-phase) line losses. ';
       PropertyHelp[16]:= '{Yes | No}  Default is YES. Compute losses and segregate by voltage base. If NO, then voltage-based tabulation is not reported.';
-(**** Not used in present version      PropertyHelp[11]:= '{Yes/True | No/False}  Default is NO. If set to Yes, a Feeder object is created corresponding to ' +
+      PropertyHelp[17]:= '{Yes | No}  Default is NO.  Report min, max, and average phase voltages for the zone and tabulate by voltage base. ' +
+                         'Demand Intervals must be turned on (Set Demand=true) and voltage bases must be defined for this property to take effect. '+
+                         'Result is in a separate report file.';
+
+      (**** Not used in present version      PropertyHelp[11]:= '{Yes/True | No/False}  Default is NO. If set to Yes, a Feeder object is created corresponding to ' +
                          'the energymeter.  Feeder is enabled if Radial=Yes; diabled if Radial=No.  Feeder is ' +
                          'synched automatically with the meter zone.  Do not create feeders for zones in meshed transmission systems.';
 *****)
@@ -538,12 +559,13 @@ Begin
             8: InterpretAndAllocStrArray(Param, DefinedZoneListSize, DefinedZoneList);
             9: LocalOnly := InterpretYesNo(Param);
            10: InterpretRegisterMaskArray(TotalsMask);
-           11: FLosses      := InterpretYesNo(Param);
-           12: FLineLosses  := InterpretYesNo(Param);
-           13: FXfmrLosses  := InterpretYesNo(Param);
-           14: FSeqLosses   := InterpretYesNo(Param);
-           15: F3PhaseLosses := InterpretYesNo(Param);
-           16: FVBaseLosses := InterpretYesNo(Param);
+           11: FLosses        := InterpretYesNo(Param);
+           12: FLineLosses    := InterpretYesNo(Param);
+           13: FXfmrLosses    := InterpretYesNo(Param);
+           14: FSeqLosses     := InterpretYesNo(Param);
+           15: F3PhaseLosses  := InterpretYesNo(Param);
+           16: FVBaseLosses   := InterpretYesNo(Param);
+           17: FPhaseVoltageReport := InterpretYesNo(Param);
            (****11: HasFeeder := InterpretYesNo(Param); ***)
          ELSE
            ClassEdit(ActiveEnergyMeterObj, ParamPointer - NumPropsthisClass)
@@ -597,6 +619,15 @@ Begin
 
        LocalOnly       := OtherEnergyMeter.LocalOnly;
        VoltageUEOnly   := OtherEnergyMeter.VoltageUEOnly;
+
+       {Boolean Flags}
+       FLosses        := OtherEnergyMeter.FLosses;
+       FLineLosses    := OtherEnergyMeter.FLineLosses;
+       FXfmrLosses    := OtherEnergyMeter.FXfmrLosses;
+       FSeqLosses     := OtherEnergyMeter.FSeqLosses;
+       F3PhaseLosses  := OtherEnergyMeter.F3PhaseLosses;
+       FVBaseLosses   := OtherEnergyMeter.FVBaseLosses;
+       FPhaseVoltageReport  := OtherEnergyMeter.FPhaseVoltageReport;
 
        FOR i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherEnergyMeter.PropertyValue[i];
 
@@ -800,6 +831,7 @@ Begin
      BranchList     := NIL;  // initialize to NIL, set later when inited
 
      This_Meter_DIFileIsOpen := FALSE;
+     VPhaseReportFileIsOpen  := FALSE;
 
      InitPropertyValues(0);
 
@@ -818,6 +850,7 @@ Begin
      FSeqLosses          := TRUE;
      F3PhaseLosses       := TRUE;
      FVBaseLosses        := TRUE;
+     FPhaseVoltageReport      := FALSE;
      VbaseList           := NIL;
      VBaseTotalLosses    := NIL;
      VBaseLineLosses     := NIL;
@@ -832,6 +865,12 @@ Begin
      ReallocMem(VBaseLoadLosses, MaxVBaseCount * SizeOf(VBaseLoadLosses^[1]));
      ReallocMem(VBaseNoLoadLosses, MaxVBaseCount * SizeOf(VBaseNoLoadLosses^[1]));
      ReallocMem(VBaseLoad, MaxVBaseCount * SizeOf(VBaseLoad^[1]));
+
+     // Arrays for phase voltage report
+     ReallocMem(VphaseMax, MaxVBaseCount * 3 * SizeOf(double));
+     ReallocMem(VPhaseMin, MaxVBaseCount * 3 * SizeOf(double));
+     ReallocMem(VPhaseAccum, MaxVBaseCount * 3 * SizeOf(double));
+     ReallocMem(VPhaseAccumCount, MaxVBaseCount * 3 * SizeOf(Integer));
 
      LocalOnly           := FALSE;
      VoltageUEOnly       := FALSE;
@@ -897,6 +936,11 @@ Begin
     If Assigned (VBaseLoadLosses) then Reallocmem(VBaseLoadLosses, 0);
     If Assigned (VBaseNoLoadLosses) then Reallocmem(VBaseNoLoadLosses, 0);
     If Assigned (VBaseLoad) then Reallocmem(VBaseLoad, 0);
+     // Arrays for phase voltage report
+    If Assigned (VphaseMax) then  ReallocMem(VphaseMax, 0);
+    If Assigned (VPhaseMin) then  ReallocMem(VPhaseMin, 0);
+    If Assigned (VPhaseAccum) then  ReallocMem(VPhaseAccum, 0);
+    If Assigned (VPhaseAccumCount) then  ReallocMem(VPhaseAccumCount, 0);
     for i := 1 to NumEMRegisters do RegisterNames[i] := '';
     BranchList.Free;
     FreeStringArray(DefinedZoneList, DefinedZoneListSize);
@@ -966,6 +1010,11 @@ begin
   end;
   If HasFeeder Then MakeFeederObj;
   Inherited;
+end;
+
+function TEnergyMeterObj.MakeVPhaseReportFileName: String;
+begin
+    Result := EnergyMeterClass.DI_Dir + '\' + Name + '_PhaseVoltageReport.CSV';
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1062,7 +1111,7 @@ Procedure TEnergyMeterObj.TakeSample;
 // Assumes one time period has taken place since last sample.
 
 VAR
-   i :Integer;
+   i,j :Integer;
    
    S_Local,
    S_Totallosses,
@@ -1103,6 +1152,8 @@ VAR
    S_ZeroSeqLosses :Complex;
    S_NegSeqLosses  :Complex;
 
+   puV  :Double;
+
 Begin
 
 // Compute energy in branch  to which meter is connected
@@ -1130,13 +1181,26 @@ Begin
      Total1phaseLosses   := CZERO;
      TotalTransformerLosses   := CZERO;
 
-     For i := 1 to MaxVBaseCount Do begin
+     // Init all voltage base loss accumulators
+     For i := 1 to MaxVBaseCount Do Begin
        VBaseTotalLosses^[i]  := 0.0;
        VBaseLineLosses^[i]   := 0.0;
        VBaseLoadLosses^[i]   := 0.0;
        VBaseNoLoadLosses^[i] := 0.0;
        VBaseLoad^[i]         := 0.0;
      end;
+
+     // Phase Voltage arrays
+     If FPhaseVoltageReport then
+     For i := 1 to MaxVBaseCount Do
+     If VBaseList^[i] > 0.0 then Begin
+        For j := 1 to 3 Do  Begin
+          VphaseMax^[jiIndex(j, i)]        := 0.0;
+          VphaseMin^[jiIndex(j, i)]        := 9999.0;
+          VphaseAccum^[jiIndex(j, i)]      := 0.0;
+          VphaseAccumCount^[jiIndex(j, i)] := 0;   // Keep track of counts for average
+        End;
+     End;
 
      CktElem           := BranchList.First;
      MaxExcesskWNorm   := 0.0;
@@ -1271,16 +1335,34 @@ Begin
                Caccum(TotalTransformerLosses,  S_TotalLosses); // Accumulate total losses in meter zone
            End;
 
-           If FVbaseLosses Then With BranchList.PresentBranch do
-           If VoltBaseIndex >0  then Begin
-              VBaseTotalLosses^[VoltBaseIndex]    := VBaseTotalLosses^[VoltBaseIndex]  + S_TotalLosses.re;
-              if IsLineElement(CktElem) then
-                VBaseLineLosses^[VoltBaseIndex]   := VBaseLineLosses^[VoltBaseIndex]   + S_TotalLosses.re
-              else if IsTransformerElement(CktElem) then begin
-                VBaseLoadLosses^[VoltBaseIndex]   := VBaseLoadLosses^[VoltBaseIndex]   + S_LoadLosses.re;
-                VBaseNoLoadLosses^[VoltBaseIndex] := VBaseNoLoadLosses^[VoltBaseIndex] + S_NoLoadLosses.re
-              end;
-           End;
+           If FVbaseLosses Then
+           With BranchList.PresentBranch do
+             If VoltBaseIndex >0  then Begin
+                VBaseTotalLosses^[VoltBaseIndex]    := VBaseTotalLosses^[VoltBaseIndex]  + S_TotalLosses.re;
+                if IsLineElement(CktElem) then
+                  VBaseLineLosses^[VoltBaseIndex]   := VBaseLineLosses^[VoltBaseIndex]   + S_TotalLosses.re
+                else if IsTransformerElement(CktElem) then begin
+                  VBaseLoadLosses^[VoltBaseIndex]   := VBaseLoadLosses^[VoltBaseIndex]   + S_LoadLosses.re;
+                  VBaseNoLoadLosses^[VoltBaseIndex] := VBaseNoLoadLosses^[VoltBaseIndex] + S_NoLoadLosses.re
+                end;
+             End;
+
+           // Compute min, max, and average pu voltages for 1st 3 phases  (nodes designated 1, 2, or 3)
+           If FPhaseVoltageReport then
+           With BranchList.PresentBranch do
+             If VoltBaseIndex > 0  then With ActiveCircuit Do
+             If Buses^[FromBusReference].kVBase > 0.0 Then Begin
+                For i := 1 to Buses^[FromBusReference].NumNodesThisBus Do Begin
+                    j := Buses^[FromBusReference].GetNum(i);
+                    If (j>0) and (j<4) then Begin
+                      puV := Cabs(Solution.NodeV^[Buses^[FromBusReference].GetRef(i)])/Buses^[FromBusReference].kVBase;
+                      VphaseMax^[jiIndex(j, VoltBaseIndex)] := Max(VphaseMax^[jiIndex(j, VoltBaseIndex)], puV);
+                      VphaseMin^[jiIndex(j, VoltBaseIndex)] := Min(VphaseMin^[jiIndex(j, VoltBaseIndex)], puV);
+                      DblInc(VphaseAccum^[jiIndex(j, VoltBaseIndex)],  puV);
+                      Inc(VphaseAccumCount^[jiIndex(j, VoltBaseIndex)]);   // Keep track of counts for average
+                    End;
+                End;
+             End;
          End;  {If FLosses}
 
      CktElem := BranchList.GoForward;
@@ -1890,6 +1972,7 @@ begin
      PropertyValue[14] := 'Yes';
      PropertyValue[15] := 'Yes'; // segregate losses by voltage base
      PropertyValue[16] := 'Yes';
+     PropertyValue[17] := 'No';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -2288,6 +2371,8 @@ begin
      IF This_Meter_DIFileIsOpen Then Begin
        CloseFile(DI_File);
        This_Meter_DIFileIsOpen := FALSE;
+       If VPhaseReportFileIsOpen then CloseFile(VPhase_File);
+       VPhaseReportFileIsOpen := FALSE;
      End;
   Except
      ON E:Exception Do DoSimpleMsg('Error Closing Demand Interval file for Meter "'+Name+'"', 534   );
@@ -2301,19 +2386,39 @@ begin
 end;
 
 procedure TEnergyMeterObj.OpenDemandIntervalFile;
-Var i:Integer;
+Var i,j :Integer;
+    vbase :double;
 begin
 
   Try
       IF This_Meter_DIFileIsOpen Then CloseDemandIntervalFile;
 
       If (EnergyMeterClass.DI_Verbose) Then Begin
+
           AssignFile(DI_File, MakeDIFileName);
           Rewrite(DI_File);
           This_Meter_DIFileIsOpen := TRUE;
           Write(DI_File,'"Hour"');
           For i := 1 to NumEMRegisters Do Write(DI_File,', "', RegisterNames[i], '"');
           Writeln(DI_File);
+
+         {Phase Voltage Report, if requested}
+          If FPhaseVoltageReport Then Begin
+              AssignFile(VPhase_File, MakeVPhaseReportFileName);
+              Rewrite(VPhase_File);
+              VPhaseReportFileIsOpen := TRUE;
+              Write(VPhase_File,'"Hour"');
+              For i := 1 to MaxVBaseCount Do Begin
+                vbase := VBaseList^[i] * SQRT3;
+                If Vbase > 0.0 then   Begin
+                  For j := 1 to 3 Do Write(VPhase_File, Format(', %.3gkV_Phs_%d_Max', [vbase, j]));
+                  For j := 1 to 3 Do Write(VPhase_File, Format(', %.3gkV_Phs_%d_Min', [vbase, j]));
+                  For j := 1 to 3 Do Write(VPhase_File, Format(', %.3gkV_Phs_%d_Avg', [vbase, j]));
+                End;
+              End;
+              Writeln(VPhase_File);
+          End;
+
       End;
   Except
       On E:Exception Do DosimpleMsg('Error opening demand interval file "' + Name + '.CSV' +' for writing.'+CRLF+E.Message, 535);
@@ -2322,7 +2427,13 @@ begin
 end;
 
 procedure TEnergyMeterObj.WriteDemandIntervalData;
-Var i:Integer;
+Var i,j:Integer;
+
+     Function MyCount_Avg(const Value:Double; const count:Integer): double;
+     Begin
+         If Count=0 then Result := 0.0
+         Else            Result := Value/count;
+     End;
 
 begin
       If EnergyMeterClass.DI_Verbose and This_Meter_DIFileIsOpen Then Begin
@@ -2333,6 +2444,19 @@ begin
 
       {Add to Class demand interval registers}
       With EnergyMeterClass Do For i := 1 to NumEMRegisters Do DI_RegisterTotals[i] := DI_RegisterTotals[i] + Derivatives[i]*TotalsMask[i];
+
+
+      {Phase Voltage Report, if requested}
+      If VPhaseReportFileIsOpen Then Begin
+          With ActiveCircuit.Solution Do Write(VPhase_File, Format('%-.6g',[dblHour]));
+          For i := 1 to MaxVBaseCount Do
+          If VBaseList^[i] > 0.0 then  Begin
+              For j := 1 to 3 Do Write(VPhase_File, Format( ', %-.6g', [0.001 * VPhaseMax^[jiIndex(j, i)]]));
+              For j := 1 to 3 Do Write(VPhase_File, Format( ', %-.6g', [0.001 * VPhaseMin^[jiIndex(j, i)]]));
+              For j := 1 to 3 Do Write(VPhase_File, Format( ', %-.6g', [0.001 * MyCount_Avg(VPhaseAccum^[jiIndex(j, i)], VPhaseAccumCount^[jiIndex(j, i)])]));
+          End;
+          Writeln(VPhase_File);
+      End;
 
 end;
 
@@ -2642,7 +2766,7 @@ begin
  Try
        CSVName := 'SystemMeter.CSV';
        {If we are doing a simulation and saving interval data, create this in the
-        same directortory as the demand interval data}
+        same directory as the demand interval data}
        If  energyMeterClass.SaveDemandInterval Then
           Folder := energyMeterClass.DI_DIR + '\'
        Else

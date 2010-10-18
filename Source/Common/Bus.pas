@@ -37,8 +37,8 @@ TYPE
        Ysc          :TCMatrix;
 
        x,y,              // coordinates
-       kVBase,
-       DistFromMeter       :Double;  // Base kV for each node to ground (0)
+       kVBase,           // Base kV for each node to ground (0)
+       DistFromMeter       :Double;
 
        CoordDefined,
        BusChecked,

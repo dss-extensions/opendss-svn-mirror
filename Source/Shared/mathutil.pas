@@ -28,6 +28,7 @@ Uses Arraydef, uComplex;
          Procedure SymComp2Phase( Vph, V012:pComplexArray);
          Function  TerminalPowerIn(V,I:pComplexArray; Nphases:Integer):Complex;
          Function  PctNemaUnbalance(Vph:pComplexArray):Double;
+         Procedure DblInc(Var x:double; Const y:double); Inline; // increment a double
 
 implementation
 
@@ -485,6 +486,12 @@ Begin
      If Vavg <> 0.0 Then Result := MaxDiff/Vavg * 100.0  // pct difference
      Else Result := 0.0;
 
+End;
+
+Procedure DblInc(Var x:double; Const y:double); Inline;
+
+Begin
+      x := x + y;
 End;
 
 initialization
