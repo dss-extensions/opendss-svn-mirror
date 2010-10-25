@@ -61,6 +61,8 @@ TYPE
             FleetPointerList  :PointerList.TPointerList;
             FWeights          :pDoubleArray;
 
+            FElementListSpecified :Boolean;
+
             DischargeMode         :Integer;
             ChargeMode            :Integer;
             DischargeTriggerTime  :Double;
@@ -290,7 +292,8 @@ Begin
       'Bandwidth of the Target power factor of the monitored element. of the dead band around the kvar target value. Default is 0.04 (+/- 0.02).' +
       'No dispatch changes of the kvar are attempted If the power factor of the monitored terminal stays within this band.';
     PropertyHelp[propELEMENTLIST]         :=
-      'Array list of Storage elements to be controlled.  If not specified, all storage elements in the circuit are assumed dispatched by this controller.';
+      'Array list of Storage elements to be controlled.  If not specified, all storage elements in the circuit not presently dispatched by another controller ' +
+      'are assumed dispatched by this controller.';
     PropertyHelp[propWEIGHTS]             := 
      'Array of proportional weights corresponding to each storage element in the ElementList. ' +
      'The needed kW or kvar to get back to center band is dispatched to each storage element according to these weights. ' +
@@ -453,7 +456,9 @@ Begin
                    Begin   // levelize the list
                        FleetPointerList.Clear;  // clear this for resetting on first sample
                        FleetListChanged := TRUE;
+                       FElementListSpecified := TRUE;
                        FleetSize := FStorageNameList.count;
+                       // Realloc weights to be same size as possible number of storage elements
                        Reallocmem(FWeights, Sizeof(FWeights^[1])*FleetSize);
                        For i := 1 to FleetSize Do FWeights^[i] := 1.0;
                    End;
@@ -596,6 +601,7 @@ Begin
 
      DischargeTriggerTime := -1.0;  // disabled
      ChargeTriggerTime    := 2.0;   // 2 AM
+     FElementListSpecified:= FALSE;
      FleetListChanged     := TRUE;  // force building of list
      pctkWRate            := 20.0;
      pctkvarRate          := 20.0;
@@ -776,7 +782,8 @@ Begin
          End
          ELSE DoSimpleMsg('Monitored Element in StorageController.'+Name+ ' Does not exist:"'+ElementName+'"', 372);
 
-       If FleetListChanged Then MakeFleetList; // Need error message ??
+       If FleetListChanged Then
+         If Not MakeFleetList Then DoSimpleMsg('No unassigned Storage Elements found to assign to StorageController.'+Name, 37201);
 
        GetkWTotal(TotalkWCapacity);
        GetkWhTotal(TotalkWhCapacity);
@@ -1453,7 +1460,7 @@ End;
 //----------------------------------------------------------------------------
 FUNCTION TStorageControllerObj.MakeFleetList:Boolean;
 
-VAR
+Var
    StorageObj:TStorageObj;
    i:Integer;
 
@@ -1461,7 +1468,8 @@ Begin
 
    Result := FALSE;
 
-   If FleetSize>0 Then Begin    // Name list is defined - Use it
+   If FElementListSpecified Then Begin    // Name list is defined - Use it
+
      FleetPointerList.Clear;
      For i := 1 to FleetSize Do
        Begin
@@ -1475,13 +1483,19 @@ Begin
        End;
 
    End
+
    Else Begin
+
      {Search through the entire circuit for enabled Storage Elements and add them to the list}
      FStorageNameList.Clear;
+     FleetPointerList.Clear;
      For i := 1 to StorageClass.ElementCount Do Begin
         StorageObj :=  StorageClass.ElementList.Get(i);
-        FStorageNameList.Add(StorageObj.Name);  // Add to list of names
-        If StorageObj.Enabled Then FleetPointerList.New := StorageObj;
+        // Look for a storage element not already assigned
+        If StorageObj.Enabled and (StorageObj.DispatchMode <> STORE_EXTERNALMODE) Then Begin
+           FStorageNameList.Add(StorageObj.Name);  // Add to list of names
+           FleetPointerList.New := StorageObj;
+        End;
      End;
 
      {Allocate uniform weights}

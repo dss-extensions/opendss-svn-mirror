@@ -193,7 +193,7 @@ TYPE
         DutyShape       :String;  // Duty cycle load shape for changes typically less than one hour
         DutyShapeObj    :TLoadShapeObj;  // Shape for this Storage element
         StorageClass    :Integer;
-        VoltageModel    :Integer;   // VARiation with voltage
+        VoltageModel    :Integer;   // Variation with voltage
         PFNominal       :Double;
         YearlyShape     :String;  // ='fixed' means no variation  on all the time
         YearlyShapeObj  :TLoadShapeObj;  // Shape for this Storage element
