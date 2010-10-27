@@ -807,7 +807,8 @@ PROCEDURE InterpretTStringListArray(const s: string; var ResultList :TStringList
 
 VAR
    ParmName,
-   Param    :String;
+   Param,
+   NextParam    :String;
    F        :Textfile;
 
 
@@ -834,9 +835,12 @@ Begin
              While Not EOF(F) Do
                Begin
                   Readln(F, Param);
-                  IF Param <> '' Then
+                  Auxparser.CmdString := Param;
+                  ParmName := Auxparser.NextParam ;
+                  NextParam := AuxParser.StrValue;
+                  IF Length(NextParam) > 0 Then
                     Begin     // Ignore Blank Lines in File
-                      ResultList.Add(Param);
+                      ResultList.Add(NextParam);
                     End;
                End;
              CloseFile(F);
