@@ -127,6 +127,7 @@ Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 {TraceBack Functions}
 Function  IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
 Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
+Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String);
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
 
@@ -2429,6 +2430,115 @@ Begin
      If pLine = ToLine then Break;
      pLine := pLine.ParentPDElement;
    End;
+End;
+
+Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String);
+{Trace forward down a tree and Generate a script file to change the phase}
+Var
+   pPDelem :TPDElement;
+   pShuntObject :TDSSCktElement;
+   pMeter  :TEnergyMeterObj;
+   i       :Integer;
+   S       :String;
+   Fout    :Textfile;
+   FileName :String;
+   XfmrLevel:Integer;
+
+Begin
+
+   pMeter := FromLine.MeterObj as TEnergyMeterObj;
+
+   {Search for starting line in branchlist}
+   pPDelem := pMeter.BranchList.first;
+   while pPDelem <> Nil do  Begin
+        If (FromLine = pPDelem) then Begin
+            Break;
+        End;
+        pPDelem := pMeter.BranchList.GoForward;
+   End;
+
+   {Error check}
+   If pPDelem=nil then Begin
+       DosimpleMsg(FromLine.ParentClass.Name + '.' + FromLine.Name + ' Not found in Meter Zone.', 723);
+       Exit;
+   End;
+
+try
+   FileName := DSSDatadirectory + CircuitName_ + ScriptFileName;
+   GlobalResult := FileName;
+
+   Assignfile(Fout, fileName);
+   Rewrite(Fout);
+
+   pMeter.BranchList.StartHere;
+   pPDelem := pMeter.BranchList.GoForward;
+
+   While pPDelem <> NIL do Begin
+     S := 'edit ' + pPDelem.ParentClass.Name + '.' + pPDElem.Name;
+
+{----------------LINES---------------------------------------------------}
+
+     If IsLineElement(pPDelem) then  Begin
+
+         For i := 1 to pPDElem.NTerms  Do Begin
+             S := S + Format(' Bus%d=%s%s',[i, StripExtension(pPDelem.GetBus(i)), PhaseString]);
+           //  Parser.CmdString := Format('Bus$d=%s%s',[i, StripExtension(pPDelem.GetBus(i)), PhaseString]);
+           //  pPDelem.Edit;
+         End;
+
+         {When we're done with that, we'll send the Edit string}
+         If Length(EditStr)>0 then  Begin
+           S := S + '  ' + EditStr;
+           //  Parser.CmdString := EditStr;
+           //  pPDelem.Edit;   // Uses Parser
+         End;
+
+         Writeln(Fout, S);
+
+         {Now get all shunt objects connected to this branch}
+           pShuntObject := pMeter.BranchList.FirstObject;
+           While pShuntObject <> NIL Do Begin
+               {1st Terminal Only}
+               i := 1;
+               S := 'edit ' + pShuntObject.ParentClass.Name + '.' + pShuntObject.Name;
+               S := S + Format(' Bus%d=%s%s',[i, StripExtension(pShuntObject.GetBus(i)), PhaseString]);
+               If Length(EditStr)>0 then  S := S + '  ' + EditStr;
+               Writeln(Fout, S);
+             //  Parser.CmdString := Format('Bus$d=%s%s',[i, StripExtension(pShuntObject.GetBus(1)), PhaseString]);
+             //  pShuntObject.Edit;
+               pShuntObject := pMeter.BranchList.NextObject
+           End;
+     pPDelem := pMeter.BranchList.GoForward;
+     End    {IsLine}
+
+{----------------TRANSFORMERS---------------------------------------------------}
+
+     Else If IsTransformerElement(pPDELEM) Then Begin
+
+     {
+       We'll stop at transformers and change only the primary winding.
+       Then we'll cycle forward until the lexical level is less or we're done
+     }
+          XFmrLevel := pMeter.BranchList.Level;
+          S := S + Format(' wdg=1 Bus=%s%s  %s',[StripExtension(pPDelem.GetBus(1)), PhaseString, EditStr]);
+          Writeln(Fout, S);
+
+     {Go forward in the tree until we bounce back up to a line section above the transformer}
+     Repeat
+           pPDelem := pMeter.BranchList.GoForward;
+     Until (pPDelem = Nil) or (pMeter.BranchList.Level <= XfmrLevel);
+     End;
+
+   End;
+
+finally
+
+   Closefile(Fout);
+   FireOffEditor(FileName);
+
+end;
+
+
 End;
 
 FUNCTION MaxdblArrayValue(npts:Integer; dbls:pDoubleArray):Double;

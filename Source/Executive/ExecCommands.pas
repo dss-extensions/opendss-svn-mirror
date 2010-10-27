@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 89;
+     NumExecCommands = 90;
 
 Var
 
@@ -125,6 +125,7 @@ Begin
      ExecCommand[87] := 'SetLoadAndGenKV';
      ExecCommand[88] := 'CvrtLoadshapes';
      ExecCommand[89] := 'NodeDiff';
+     ExecCommand[90] := 'Rephase';
 
 
 
@@ -365,9 +366,10 @@ Begin
                         'To keep the DOS window open, use /k switch.';
      CommandHelp[76] := 'Execute state estimator on present circuit given present sensor values.';
      CommandHelp[77] := 'Reconductor a line section. Must be in an EnergyMeter zone. ' + CRLF +
-                        'Syntax: Reconductor Line1=... Line2=... [LineCode= | Geometry = ] ' +CRLF+
+                        'Syntax: Reconductor Line1=... Line2=... {LineCode= | Geometry = } EditString="..." ' +CRLF+
                         'Line1 and Line2 may be given in any order. All lines in the path between the two are redefined ' +
-                        'with either the LineCode or Geometry.';
+                        'with either the LineCode or Geometry (not both). You may also add an optional string the alter any other line properties. '+
+                        'The edit string should be enclosed in quotes or parens or brackets.';
      CommandHelp[78] := 'For step control of solution process: Intialize iteration counters, etc. that normally occurs at the ' +
                         'start of a snapshot solution process.';
      CommandHelp[79] := 'For step control of solution process: Solves the circuit in present state but does not check for control actions.';
@@ -387,6 +389,13 @@ Begin
                         'A DSS script for loading the loadshapes from the created files is produced and displayed in the default editor. ';
      CommandHelp[89] := 'Global result is set to voltage difference, volts and degrees, (Node1 - Node2) between any two nodes. Syntax:' +CRLF+CRLF+
                         '   NodeDiff Node1=MyBus.1 Node2=MyOtherBus.1';
+     CommandHelp[90] := 'Generates a script to change the phase designation of all lines downstream from a start in line. Useful for such things as moving a single-phase ' +
+                        'lateral from one phase to another and keep the phase designation consistent for reporting functions that need it to be ' +
+                        '(not required for simply solving). '+CRLF+CRLF+
+                        'StartLine=... PhaseDesignation="..."  EditString="..." ScriptFileName=...' +CRLF+CRLF+
+                        'Enclose the PhaseDesignation in quotes since it contains periods (dots).' + CRLF +
+                        'You may add and optional EditString to edit any other line properties.'+CRLF+CRLF+
+                        'Rephase StartLine=Line.L100  PhaseDesignation=".2"  EditString="phases=1" ScriptFile=Myphasechangefile.DSS';
 
 End;
 
@@ -593,6 +602,7 @@ Begin
        87: CmdResult := DoSetLoadAndGenKVCmd;
 //       88:;
        89: CmdResult := DoNodeDiffCmd;
+       90: CmdResult := DoRephaseCmd;
      ELSE
        // Ignore excess parameters
      End;

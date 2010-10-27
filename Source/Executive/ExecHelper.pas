@@ -105,6 +105,7 @@ interface
          FUNCTION DoAddMarkerCmd:Integer;
          FUNCTION DoCvrtLoadshapesCmd:Integer;
          FUNCTION DoNodeDiffCmd:Integer;
+         FUNCTION DoRephaseCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -138,7 +139,7 @@ USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
 
 Var
    SaveCommands, DistributeCommands,  DI_PlotCommands,
-   ReconductorCommands, AddMarkerCommands :TCommandList;
+   ReconductorCommands, RephaseCommands, AddMarkerCommands :TCommandList;
 
 
 
@@ -3092,7 +3093,8 @@ Var
      Line1, Line2,
      Linecode,
      Geometry,
-     EditString:String;
+     EditString,
+     MyEditString:String;
      LineCodeSpecified,
      GeometrySpecified :Boolean;
      pLine1, pLine2 :TLineObj;
@@ -3107,6 +3109,7 @@ Begin
      GeometrySpecified := FALSE;
      Line1 := '';
      Line2 := '';
+     MyEditString := '';
      ParamName := Parser.NextParam;
      Param := Parser.StrValue;
      while Length(Param) > 0 do Begin
@@ -3118,6 +3121,7 @@ Begin
           2: Line2 := Param;
           3: Begin Linecode := Param; LineCodeSpecified := TRUE; GeometrySpecified := FALSE; End;
           4: Begin Geometry := Param; LineCodeSpecified := FALSE; GeometrySpecified := TRUE; End;
+          5: MyEditString := Param;
        Else
           DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28701);
        End;
@@ -3170,7 +3174,10 @@ Begin
      If IsPathBetween(pLine2, pLine1) then TraceDirection := 2;
 
      If LineCodeSpecified Then EditString := 'Linecode=' + LineCode
-     Else EditString := 'Geometry=' + Geometry;
+     Else                      EditString := 'Geometry=' + Geometry;
+
+     // Append MyEditString onto the end of the edit string to change the linecode  or geometry
+     EditString := Format('%s  $s',[EditString, MyEditString]);
 
      case TraceDirection of
           1: TraceAndEdit(pLine1, pLine2, Editstring);
@@ -3421,8 +3428,62 @@ Begin
     VNodeDiff := CSub(V1, V2);
     GlobalResult := Format('%.7g, V,    %.7g, deg  ',[Cabs(VNodeDiff), CDang(VNodeDiff) ]);
 
+End;
 
+FUNCTION DoRephaseCmd:Integer;
+Var
+     Param       :String;
+     ParamName   :String;
+     ParamPointer:Integer;
+     StartLine   :String;
+     NewPhases   :String;
+     MyEditString:String;
+     ScriptfileName :String;
+     pStartLine  :TLineObj;
+     LineClass :TLine;
 
+Begin
+     Result := 0;
+     ParamPointer := 0;
+     MyEditString := '';
+     ScriptfileName := 'RephaseEditScript.DSS';
+     ParamName := Parser.NextParam;
+     Param := Parser.StrValue;
+     while Length(Param) > 0 do Begin
+       IF Length(ParamName) = 0 THEN Inc(ParamPointer)
+       ELSE ParamPointer := RephaseCommands.GetCommand(ParamName);
+
+       Case ParamPointer of
+          1: StartLine := Param;
+          2: NewPhases := Param;
+          3: MyEditString := Param;
+          4: ScriptFileName := Param;
+       Else
+          DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28711);
+       End;
+
+      ParamName := Parser.NextParam;
+      Param := Parser.StrValue;
+     End;
+
+     LineClass := DSSClassList.Get(ClassNames.Find('Line'));
+     pStartLine := LineClass.Find(StripClassName(StartLine));
+     If pStartLine=Nil then  Begin
+         DosimpleMsg('Starting Line ('+StartLine+') not found.', 28712);
+         Exit;
+     End;
+     {Check for some error conditions and abort if necessary}
+     If pStartLine.MeterObj=Nil then  Begin
+         DosimpleMsg('Starting Line must be in an EnergyMeter zone.', 28713);
+         Exit;
+     End;
+
+     If not (pStartLine.MeterObj is TEnergyMeterObj) then  Begin
+         DosimpleMsg('Starting Line must be in an EnergyMeter zone.', 28713);
+         Exit;
+     End;
+
+     GoForwardandRephase(pStartLine, NewPhases, MyEditString, ScriptfileName);
 
 End;
 
@@ -3436,8 +3497,11 @@ initialization
     DistributeCommands := TCommandList.Create(['kW','how','skip','pf','file','MW']);
     DistributeCommands.Abbrev := True;
 
-    ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry']);
+    ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry', 'EditString']);
     ReconductorCommands.Abbrev := True;
+
+    RephaseCommands := TCommandList.Create(['StartLine', 'PhaseDesignation', 'EditString', 'ScriptFileName']);
+    RephaseCommands.Abbrev := True;
 
     AddMarkerCommands := TCommandList.Create(['Bus', 'code', 'color', 'size']);
     AddMarkerCommands.Abbrev := True;
