@@ -85,7 +85,8 @@ Type
      public
 
        PlotType          :TPlotType;
-       MaxScale          :Double;
+       MaxScale,
+       MinScale          :Double;
        Dots,
        Labels,
        ShowLoops,         { applies to Meterzone plots only }
@@ -108,6 +109,7 @@ Type
        TriColorMid       :Double;
 
        MaxScaleIsSpecified  :Boolean;
+       MinScaleIsSpecified  :Boolean;
 
        DaisyBusList:    TStringList;
 
@@ -459,6 +461,7 @@ begin
       End;
 
       If MaxScaleIsSpecified then MaxValue := MaxScale;  // Override with user specified value
+      If MinScaleIsSpecified then MinValue := MinScale;  // Override with user specified value
 
       Diff := MaxValue - MinValue;
       If Diff=0.0 then Diff := MaxValue;
@@ -782,14 +785,15 @@ const
 Var
    R1, G1, B1,
    R2, G2, B2:Integer;
+   RatioToUse :Double;
 
     Function InterpByte(b1, b2:Integer):Integer; Begin
-        Result := Round(b1 + Ratio * (b2 - b1));
+        Result := Round(b1 + RatioToUse * (b2 - b1));
     End;
 
 begin
 
-    Ratio := Min(1.0, Ratio);  // Limit to 1.0
+    RatioToUse := Max(0.0, Min(1.0, Ratio));  // Limit to 0.0 .. 1.0
 
     R1 :=  Color1 and Redmask;
     G1 := (Color1 and Greenmask) shr 8;
@@ -848,6 +852,8 @@ begin
 
     MaxScale  := 0.0;   // Find MaxScale
     MaxScaleIsSpecified := FALSE;  // indicates take the default
+    MinScale  := 0.0;   // Find MinScale
+    MinScaleIsSpecified := FALSE;  // indicates take the default
 
     Dots       := FALSE;
     Labels     := FALSE;

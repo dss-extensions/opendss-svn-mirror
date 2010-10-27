@@ -7,7 +7,7 @@ Uses Command;
 
 
 CONST
-        NumPlotOptions = 17;
+        NumPlotOptions = 18;
 
 FUNCTION DoPlotCmd:Integer;
 
@@ -46,6 +46,7 @@ Begin
       PlotOption[15] := 'subs';
       PlotOption[16] := 'thickness';
       PlotOption[17] := 'buslist';
+      PlotOption[18] := 'min';
 
 
       PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape } ' +
@@ -62,8 +63,8 @@ Begin
                       'Plot General quantity=1 object=mybusdata.csv' +CRLF+
                       'Plot Loadshape object=myloadshape' ;
       PlotHelp[ 2] := 'One of {Voltage | Current | Power | Losses | Capacity | (Value Index for General, AutoAdd, or Circuit[w/ file]) }';
-      PlotHelp[ 3] := 'Enter 0 or the value corresponding to max scale or line thickness in the circuit plots. '+
-                      'Power and Losses in kW.';
+      PlotHelp[ 3] := 'Enter 0 (the default value) or the value corresponding to max scale or line thickness in the circuit plots. '+
+                      'Power and Losses in kW. Also, use this to specify the max value corresponding to color C2 in General plots.';
       PlotHelp[ 4] := 'Yes or No*. Places a marker on the circuit plot at the bus location. See Set Markercode under options.';
       PlotHelp[ 5] := 'Yes or No*. If yes, bus labels (abbreviated) are printed on the circuit plot.';
       PlotHelp[ 6] := 'Object to be plotted. One of [Meter Name (zones plot) | Monitor Name | LoadShape Name | File Name for General bus data | File Name Circuit branch data]';
@@ -88,6 +89,7 @@ Begin
                       'A "daisy" marker is plotted for ' +
                       'each bus in the list. Bus name may be repeated, which results in multiple markers distributed around the bus location. ' +
                       'This gives the appearance of a daisy if there are several symbols at a bus. Not needed for plotting active generators.';
+      PlotHelp[18] := 'Enter 0 (the default value) or the value corresponding to min value corresponding to color C1 in General bus data plots.';
 
 
 
@@ -194,6 +196,11 @@ Begin
          15: ShowSubs := InterpretYesNo(Param);
          16: MaxLineThickness := Parser.IntValue ;
          17: InterpretTStringListArray(Param,  DaisyBusList);  {read in Bus list}
+         18: Begin
+                 MinScale := Parser.DblValue;
+                 If MinScale>0.0 Then MinScaleIsSpecified := TRUE;    // Indicate the user wants a particular value
+             End;
+
        Else
        End;
 
