@@ -392,10 +392,10 @@ Begin
      CommandHelp[90] := 'Generates a script to change the phase designation of all lines downstream from a start in line. Useful for such things as moving a single-phase ' +
                         'lateral from one phase to another and keep the phase designation consistent for reporting functions that need it to be ' +
                         '(not required for simply solving). '+CRLF+CRLF+
-                        'StartLine=... PhaseDesignation="..."  EditString="..." ScriptFileName=...' +CRLF+CRLF+
+                        'StartLine=... PhaseDesignation="..."  EditString="..." ScriptFileName=... StopAtTransformers=Y/N/T/F' +CRLF+CRLF+
                         'Enclose the PhaseDesignation in quotes since it contains periods (dots).' + CRLF +
                         'You may add and optional EditString to edit any other line properties.'+CRLF+CRLF+
-                        'Rephase StartLine=Line.L100  PhaseDesignation=".2"  EditString="phases=1" ScriptFile=Myphasechangefile.DSS';
+                        'Rephase StartLine=Line.L100  PhaseDesignation=".2"  EditString="phases=1" ScriptFile=Myphasechangefile.DSS  Stop=No';
 
 End;
 

@@ -127,7 +127,7 @@ Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 {TraceBack Functions}
 Function  IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
 Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
-Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String);
+Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String; TransStop:Boolean);
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
 
@@ -2432,7 +2432,7 @@ Begin
    End;
 End;
 
-Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String);
+Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String; TransStop:Boolean);
 {Trace forward down a tree and Generate a script file to change the phase}
 Var
    pPDelem :TPDElement;
@@ -2523,10 +2523,13 @@ try
           S := S + Format(' wdg=1 Bus=%s%s  %s',[StripExtension(pPDelem.GetBus(1)), PhaseString, EditStr]);
           Writeln(Fout, S);
 
-     {Go forward in the tree until we bounce back up to a line section above the transformer}
-     Repeat
-           pPDelem := pMeter.BranchList.GoForward;
-     Until (pPDelem = Nil) or (pMeter.BranchList.Level <= XfmrLevel);
+     {Be default Go forward in the tree until we bounce back up to a line section above the transformer}
+       If TransStop then Begin
+           Repeat
+                 pPDelem := pMeter.BranchList.GoForward;
+           Until (pPDelem = Nil) or (pMeter.BranchList.Level <= XfmrLevel);
+       End
+       Else pPDelem := pMeter.BranchList.GoForward;  {Then we get lines and loads beyond transformer}
      End;
 
    End;

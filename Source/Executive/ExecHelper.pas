@@ -3441,12 +3441,14 @@ Var
      ScriptfileName :String;
      pStartLine  :TLineObj;
      LineClass :TLine;
+     TransfStop  :Boolean;
 
 Begin
      Result := 0;
      ParamPointer := 0;
      MyEditString := '';
      ScriptfileName := 'RephaseEditScript.DSS';
+     TransfStop := TRUE;  // Stop Transformers
      ParamName := Parser.NextParam;
      Param := Parser.StrValue;
      while Length(Param) > 0 do Begin
@@ -3458,6 +3460,7 @@ Begin
           2: NewPhases := Param;
           3: MyEditString := Param;
           4: ScriptFileName := Param;
+          5: TransfStop := InterpretYesNo(Param);
        Else
           DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28711);
        End;
@@ -3483,7 +3486,7 @@ Begin
          Exit;
      End;
 
-     GoForwardandRephase(pStartLine, NewPhases, MyEditString, ScriptfileName);
+     GoForwardandRephase(pStartLine, NewPhases, MyEditString, ScriptfileName, TransfStop);
 
 End;
 
@@ -3500,7 +3503,7 @@ initialization
     ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry', 'EditString']);
     ReconductorCommands.Abbrev := True;
 
-    RephaseCommands := TCommandList.Create(['StartLine', 'PhaseDesignation', 'EditString', 'ScriptFileName']);
+    RephaseCommands := TCommandList.Create(['StartLine', 'PhaseDesignation', 'EditString', 'ScriptFileName', 'StopAtTransformers']);
     RephaseCommands.Abbrev := True;
 
     AddMarkerCommands := TCommandList.Create(['Bus', 'code', 'color', 'size']);
