@@ -2521,6 +2521,8 @@ try
      }
           XFmrLevel := pMeter.BranchList.Level;
           S := S + Format(' wdg=1 Bus=%s%s  %s',[StripExtension(pPDelem.GetBus(1)), PhaseString, EditStr]);
+          If not TransStop then
+          S := S + Format(' wdg=2 Bus=%s%s  %s',[StripExtension(pPDelem.GetBus(2)), PhaseString, EditStr]);
           Writeln(Fout, S);
 
      {Be default Go forward in the tree until we bounce back up to a line section above the transformer}
