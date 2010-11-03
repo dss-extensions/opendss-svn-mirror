@@ -701,7 +701,7 @@ Begin
                 Dots := FALSE;
                 DoCircuitPlot;
                 Set_KeyClass (DSSG_MARKERCLASS); {Marker}
-                MarkerIdx := 24;
+                MarkerIdx := ActiveCircuit.NodeMarkerCode; //24;
                 DoGeneralPlot;
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;

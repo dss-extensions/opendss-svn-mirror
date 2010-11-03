@@ -198,7 +198,7 @@ Begin
          17: InterpretTStringListArray(Param,  DaisyBusList);  {read in Bus list}
          18: Begin
                  MinScale := Parser.DblValue;
-                 If MinScale>0.0 Then MinScaleIsSpecified := TRUE;    // Indicate the user wants a particular value
+                 MinScaleIsSpecified := TRUE;    // Indicate the user wants a particular value
              End;
 
        Else
