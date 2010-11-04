@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 90;
+     NumExecCommands = 91;
 
 Var
 
@@ -126,6 +126,7 @@ Begin
      ExecCommand[88] := 'CvrtLoadshapes';
      ExecCommand[89] := 'NodeDiff';
      ExecCommand[90] := 'Rephase';
+     ExecCommand[91] := 'SetBusXY';
 
 
 
@@ -381,7 +382,7 @@ Begin
      CommandHelp[84] := 'For step control of solution process: Invoke iterative power flow solution function of DSS directly.';
      CommandHelp[85] := 'Add a marker to the active plot. Example: '+CRLF+CRLF+'AddMarker Bus=busname code=nn color=$00FF0000 size=3';
      CommandHelp[86] := 'Read GUIDS for class names. Tab or comma-delimited file with full object name and GUID';
-     CommandHelp[87] := 'Set load and generator object kv from bus voltage base and connection type.';
+     CommandHelp[87] := 'Set load and generator object kv to agree with the bus they are connected to using the bus voltage base and connection type.';
      CommandHelp[88] := 'Convert all Loadshapes presently loaded into either files of single or files of double. '+
                         'Usually files of singles are adequate precision for loadshapes.  Syntax:'+CRLF+CRLF+
                         'cvrtloadshapes type=sng  (this is the default)'+crlf+
@@ -396,6 +397,7 @@ Begin
                         'Enclose the PhaseDesignation in quotes since it contains periods (dots).' + CRLF +
                         'You may add and optional EditString to edit any other line properties.'+CRLF+CRLF+
                         'Rephase StartLine=Line.L100  PhaseDesignation=".2"  EditString="phases=1" ScriptFile=Myphasechangefile.DSS  Stop=No';
+     CommandHelp[91] := 'Bus=...  X=...  Y=... Set the X, Y coordinates for a single bus. Prerequisite: Bus must exist as a result of a Solve, CalcVoltageBases, or MakeBusList command.';
 
 End;
 
@@ -603,6 +605,7 @@ Begin
 //       88:;
        89: CmdResult := DoNodeDiffCmd;
        90: CmdResult := DoRephaseCmd;
+       91: CmdResult := DoSetBusXYCmd;
      ELSE
        // Ignore excess parameters
      End;

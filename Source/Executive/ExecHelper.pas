@@ -106,6 +106,7 @@ interface
          FUNCTION DoCvrtLoadshapesCmd:Integer;
          FUNCTION DoNodeDiffCmd:Integer;
          FUNCTION DoRephaseCmd:Integer;
+         FUNCTION DoSetBusXYCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -139,7 +140,8 @@ USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
 
 Var
    SaveCommands, DistributeCommands,  DI_PlotCommands,
-   ReconductorCommands, RephaseCommands, AddMarkerCommands :TCommandList;
+   ReconductorCommands, RephaseCommands, AddMarkerCommands,
+   SetBusXYCommands :TCommandList;
 
 
 
@@ -3432,25 +3434,26 @@ End;
 
 FUNCTION DoRephaseCmd:Integer;
 Var
-     Param       :String;
-     ParamName   :String;
-     ParamPointer:Integer;
-     StartLine   :String;
-     NewPhases   :String;
-     MyEditString:String;
+     Param          :String;
+     ParamName      :String;
+     ParamPointer   :Integer;
+     StartLine      :String;
+     NewPhases      :String;
+     MyEditString   :String;
      ScriptfileName :String;
-     pStartLine  :TLineObj;
-     LineClass :TLine;
-     TransfStop  :Boolean;
+     pStartLine     :TLineObj;
+     LineClass      :TLine;
+     TransfStop     :Boolean;
 
 Begin
-     Result := 0;
+     Result       := 0;
      ParamPointer := 0;
      MyEditString := '';
      ScriptfileName := 'RephaseEditScript.DSS';
-     TransfStop := TRUE;  // Stop Transformers
-     ParamName := Parser.NextParam;
-     Param := Parser.StrValue;
+     TransfStop     := TRUE;  // Stop at Transformers
+
+     ParamName      := Parser.NextParam;
+     Param          := Parser.StrValue;
      while Length(Param) > 0 do Begin
        IF Length(ParamName) = 0 THEN Inc(ParamPointer)
        ELSE ParamPointer := RephaseCommands.GetCommand(ParamName);
@@ -3490,6 +3493,54 @@ Begin
 
 End;
 
+FUNCTION DoSetBusXYCmd:Integer;
+
+Var
+     Param          :String;
+     ParamName      :String;
+     ParamPointer   :Integer;
+     BusName        :String;
+     Xval           :Double;
+     Yval           :Double;
+     iB             :Integer;
+
+Begin
+
+     Result := 0;
+     ParamName      := Parser.NextParam;
+     Param          := Parser.StrValue;
+     ParamPointer   := 0;
+     Xval := 0.0;  Yval := 0.0;
+     while Length(Param) > 0 do Begin
+       IF Length(ParamName) = 0 THEN Inc(ParamPointer)
+       ELSE ParamPointer := SetBusXYCommands.GetCommand(ParamName);
+
+       Case ParamPointer of
+          1: BusName := Param;
+          2: Xval := Parser.DblValue;
+          3: Yval := Parser.DblValue;
+       Else
+          DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28721);
+       End;
+
+       iB := ActiveCircuit.Buslist.Find(BusName);
+       If iB >0 Then  Begin
+           With ActiveCircuit.Buses^[iB] Do Begin     // Returns TBus object
+             x := Xval;
+             y := Yval;
+             CoordDefined := TRUE;
+           End;
+       End Else Begin
+           DosimpleMsg('Error: Bus "' + BusName + '" Not Found.', 28722);
+       End;
+
+      ParamName := Parser.NextParam;
+      Param := Parser.StrValue;
+     End;
+
+
+End;
+
 initialization
 
 {Initialize Command lists}
@@ -3509,9 +3560,17 @@ initialization
     AddMarkerCommands := TCommandList.Create(['Bus', 'code', 'color', 'size']);
     AddMarkerCommands.Abbrev := True;
 
+    SetBusXYCommands := TCommandList.Create(['Bus', 'x', 'y']);
+    SetBusXYCommands.Abbrev := True;
+
 finalization
 
     DistributeCommands.Free;
+    DI_PlotCommands.Free;
     SaveCommands.Free;
+    AddMarkerCommands.Free;
+    ReconductorCommands.Free;
+    RephaseCommands.Free;
+    SetBusXYCommands.Free;
 
 end.
