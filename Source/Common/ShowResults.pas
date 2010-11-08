@@ -2460,8 +2460,8 @@ Try
 
        {Mark all controls, energy meters and monitors as checked so they don't show up}
 
-       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(DSSControls.Get(i)).Checked := TRue;
-       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(MeterElements.Get(i)).Checked := TRue;
+       For i := 1 to DSSControls.ListSize Do TDSSCktElement(DSSControls.Get(i)).Checked := TRue;
+       For i := 1 to MeterElements.ListSize Do TDSSCktElement(MeterElements.Get(i)).Checked := TRue;
 
        TestElement := CktElements.First;
 
