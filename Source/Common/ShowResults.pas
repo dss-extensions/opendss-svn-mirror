@@ -2458,13 +2458,10 @@ Try
      With ActiveCircuit Do
       Begin
 
-       {Mark all energy meters and monitors as checked so they don't show up}
+       {Mark all controls, energy meters and monitors as checked so they don't show up}
 
-       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(EnergyMeters.Get(i)).Checked := TRue;
-       For i := 1 to Monitors.ListSize Do TDSSCktElement(Monitors.Get(i)).Checked := TRue;
-       For i := 1 to CapControls.ListSize Do TDSSCktElement(CapControls.Get(i)).Checked := TRue;
-       For i := 1 to SwtControls.ListSize Do TDSSCktElement(SwtControls.Get(i)).Checked := TRue;
-       For i := 1 to RegControls.ListSize Do TDSSCktElement(RegControls.Get(i)).Checked := TRue;
+       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(DSSControls.Get(i)).Checked := TRue;
+       For i := 1 to EnergyMeters.ListSize Do TDSSCktElement(MeterElements.Get(i)).Checked := TRue;
 
        TestElement := CktElements.First;
 
