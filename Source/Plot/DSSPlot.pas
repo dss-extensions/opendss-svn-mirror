@@ -157,6 +157,8 @@ Var
      DSSPlotObj :TDSSPlot;
      AddMarkerColor :TColor;
      AddMarkerCode, AddMarkerSize:Integer;
+     SinglePhLineStyle:Integer;
+     ThreePhLineStyle:Integer;
 
 implementation
 
@@ -337,6 +339,10 @@ Begin
 end;
 
 procedure TDSSPlot.DoCircuitPlot;
+
+Var
+    LineStyleType :TPenStyle;
+
 begin
 
    {Draw the lines  }
@@ -364,11 +370,14 @@ begin
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
                               clFuchsia, 3, Style(1), Dots, AnsiString (pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
-                  Else
-                    AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
-                              Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              GetColor, Thickness, Style(1), Dots, AnsiString (pLine.Name), False, 0,
-                              NodeMarkerCode, NodeMarkerWidth );
+                  Else Begin
+                        If pLine.NPhases =1 Then LineStyleType := Style(SinglePhLineStyle)
+                        Else                     LineStyleType := Style(ThreePhLineStyle);
+                        AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                                  Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                                  GetColor, Thickness, LineStyleType, Dots, AnsiString (pLine.Name), False, 0,
+                                  NodeMarkerCode, NodeMarkerWidth );
+                  End;
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;
        End;
@@ -887,6 +896,9 @@ begin
 
     ActivecolorIdx := 0;
     SetColorArray;
+
+    ThreePhLineStyle  := 1;
+    SinglePhLineStyle := 1;
 
 end;
 
@@ -1975,6 +1987,9 @@ begin
 end;
 
 procedure TDSSPlot.DoGeneralCircuitPlot;
+Var
+    LineStyleType :TPenStyle;
+
 begin
 
  {Draw the lines With the thickness proportional to the data loaded in the general line data file }
@@ -2000,11 +2015,15 @@ begin
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
                               clFuchsia, 3, Style(1), Dots, AnsiString(pLine.Name), MarkSwitches, SwitchMarkerCode,
                               NodeMarkerCode, NodeMarkerWidth )
-             Else
-                  AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+             Else  Begin
+                   If pLine.NPhases = 1 Then LineStyleType := Style(SinglePhLineStyle)
+                   Else                      LineStyleType := Style(ThreePhLineStyle);
+
+                   AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
                               Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
-                              GetColor, Thickness, Style(1), Dots, AnsiString(pLine.Name), False, 0,
+                              GetColor, Thickness, LineStyleType, Dots, AnsiString(pLine.Name), False, 0,
                               NodeMarkerCode, NodeMarkerWidth );
+                  End;
              If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
           End;
        End;
@@ -2289,10 +2308,12 @@ end;
 
 initialization
 
-    DSSPlotObj := nil;   // Instantiate only if Plot command issued
-    AddMarkerColor := clBlack;
-    AddMarkerCode := 4;
-    AddMarkerSize := 1;
+    DSSPlotObj        := nil;   // Instantiate only if Plot command issued
+    AddMarkerColor    := clBlack;
+    AddMarkerCode     := 4;
+    AddMarkerSize     := 1;
+    SinglePhLineStyle := 1;
+    ThreePhLineStyle  := 1;
 
 finalization
 

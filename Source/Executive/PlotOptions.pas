@@ -7,7 +7,7 @@ Uses Command;
 
 
 CONST
-        NumPlotOptions = 18;
+        NumPlotOptions = 20;
 
 FUNCTION DoPlotCmd:Integer;
 
@@ -47,6 +47,8 @@ Begin
       PlotOption[16] := 'thickness';
       PlotOption[17] := 'buslist';
       PlotOption[18] := 'min';
+      PlotOption[19] := '3phLinestyle';
+      PlotOption[20] := '1phLinestyle';
 
 
       PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape } ' +
@@ -90,6 +92,8 @@ Begin
                       'each bus in the list. Bus name may be repeated, which results in multiple markers distributed around the bus location. ' +
                       'This gives the appearance of a daisy if there are several symbols at a bus. Not needed for plotting active generators.';
       PlotHelp[18] := 'Enter 0 (the default value) or the value corresponding to min value corresponding to color C1 in General bus data plots.';
+      PlotHelp[19] := 'Line style for drawing 3-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
+      PlotHelp[20] := 'Line style for drawing 1-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
 
 
 
@@ -200,6 +204,8 @@ Begin
                  MinScale := Parser.DblValue;
                  MinScaleIsSpecified := TRUE;    // Indicate the user wants a particular value
              End;
+         19: ThreePhLineStyle  := Parser.IntValue;
+         20: SinglePhLineStyle := Parser.IntValue;
 
        Else
        End;
