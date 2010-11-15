@@ -3179,7 +3179,7 @@ Begin
      Else                      EditString := 'Geometry=' + Geometry;
 
      // Append MyEditString onto the end of the edit string to change the linecode  or geometry
-     EditString := Format('%s  $s',[EditString, MyEditString]);
+     EditString := Format('%s  %s',[EditString, MyEditString]);
 
      case TraceDirection of
           1: TraceAndEdit(pLine1, pLine2, Editstring);
