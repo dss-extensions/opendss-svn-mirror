@@ -227,7 +227,7 @@ Begin
      CommandHelp[24] := '{Year | Hour | t}  Increments year, hour, or time as specified.  If "t" is ' +
                          'specified, then increments time by current step size.';
      CommandHelp[25] := 'Displays main control panel window.';
-     CommandHelp[26] := 'Force all monitors and meters to take a sample now.';
+     CommandHelp[26] := 'Force all monitors and meters to take a sample for the most recent solution. Keep in mind that meters will perform integration.';
      CommandHelp[27] := 'Clear all circuits currently in memory.';
      CommandHelp[28] := 'Display "About Box".  (Result string set to Version string.)';
      CommandHelp[29] := 'Calculates voltagebase for buses based on voltage bases defined '+
