@@ -63,6 +63,7 @@ End;
 PROCEDURE ShowPctProgress(Count:Integer);
 
 Begin
+     If NoFormsAllowed Then Exit;      // added RCD 12-5-2010
      Progress.PctProgress := Count;
      Application.ProcessMessages;
 End;
