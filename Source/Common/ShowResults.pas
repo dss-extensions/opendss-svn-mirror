@@ -1792,7 +1792,7 @@ Begin
          FOR i := 1 to NumBuses DO Begin
              Write(F, Pad(EncloseQuotes(BusList.Get(i)), MaxBusNameLength),' ');
              pBus := Buses^[i];
-             If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:2)
+             If pBus.kVBase>0.0 then Write(F, (pBus.kVbase*SQRT3):7:3)
              Else Write(F, '   NA ');
              Write(F,'          (');
              If pBus.CoordDefined then Write(F, Format(' %-13.11g, %-13.11g)',[pBus.x, pBus.y] )) Else Write(F,'           NA,            NA )');
