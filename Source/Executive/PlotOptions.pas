@@ -73,9 +73,30 @@ Begin
       PlotHelp[ 7] := '{Yes | No*} Shows loops on Circuit plot. Requires an EnergyMeter to be defined.';
       PlotHelp[ 8] := 'pu value for tri-color plot max range [default=.85 of max scale]. Corresponds to color C3.';
       PlotHelp[ 9] := 'pu value for tri-color plot mid range [default=.50 of max scale]. Corresponds to color C2.';
-      PlotHelp[10] := 'RGB color number for color C1. This is the default color for circuit plots. Default is blue. See options in the Plot menu.';
-      PlotHelp[11] := 'RGB color number for color C2. Used for gradients and tricolor plots such as circuit voltage.';
-      PlotHelp[12] := 'RGB color number for color C3. Used for gradients and tricolor plots such a circuit voltage.';
+      PlotHelp[10] := 'RGB color number or standard color name for color C1. This is the default color for circuit plots. Default is blue. See options in the Plot menu.' + CRLF + CRLF +
+                      'Standard color names are: '+CRLF+CRLF+
+                      ' Black  ' +CRLF+
+                      ' Maroon ' +CRLF+
+                      ' Green  ' +CRLF+
+                      ' Olive  ' +CRLF+
+                      ' Navy   ' +CRLF+
+                      ' Purple ' +CRLF+
+                      ' Teal   ' +CRLF+
+                      ' Gray   ' +CRLF+
+                      ' Silver ' +CRLF+
+                      ' Red    ' +CRLF+
+                      ' Lime   ' +CRLF+
+                      ' Yellow ' +CRLF+
+                      ' Blue   ' +CRLF+
+                      ' Fuchsia' +CRLF+
+                      ' Aqua   ' +CRLF+
+                      ' LtGray ' +CRLF+
+                      ' DkGray ' +CRLF+
+                      ' White  ';
+      PlotHelp[11] := 'RGB color number or standard color name for color C2. Used for gradients and tricolor plots such as circuit voltage.' + CRLF+CRLF+
+                      'See Help on C1 for list of standard color names.';
+      PlotHelp[12] := 'RGB color number or standard color name for color C3. Used for gradients and tricolor plots such a circuit voltage.' + CRLF+CRLF+
+                      'See Help on C1 for list of standard color names.';
       PlotHelp[13] := 'Array of channel numbers for monitor plot. Example' +CRLF+CRLF+
                       'Plot Type=Monitor Object=MyMonitor Channels=[1, 3, 5]'+CRLF+CRLF+
                       'Do "Show Monitor MyMonitor" to see channel definitions.';
@@ -178,9 +199,9 @@ Begin
               End;
          8:   TriColorMax := Parser.DblValue;
          9:   TriColorMid := Parser.DblValue;
-         10:  Color1 := Parser.IntValue;
-         11:  Color2 := Parser.IntValue;
-         12:  Color3 := Parser.IntValue;
+         10:  Color1 := InterpretColorName(Param);
+         11:  Color2 := InterpretColorName(Param);
+         12:  Color3 := InterpretColorName(Param);
          13: Begin    {Channel definitions for Plot Monitor}
                NumChannels := Parser.ParseAsVector(51, @DblBuffer);  // allow up to 50 channels
                If NumChannels>0 Then Begin   // Else take the defaults

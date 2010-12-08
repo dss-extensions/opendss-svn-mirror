@@ -49,6 +49,7 @@ PROCEDURE InterpretTStringListArray(const s: string; var ResultList :TStringList
 FUNCTION  InterpretTimeStepSize(const s:string):double;
 FUNCTION  InterpretLoadShapeClass(const s:string):Integer;
 FUNCTION  InterpretEarthModel(const s:string):Integer;
+FUNCTION  InterpretColorName(const s:string):Integer;
 
 FUNCTION GetSolutionModeID:String;
 FUNCTION GetSolutionModeIDName(idx:Integer):String;
@@ -147,7 +148,7 @@ Uses Windows,    SysUtils, ShellAPI,  Dialogs,      DSSClassDefs,
      Solution,   DSSObject,math,      DSSForms,     ParserDel,
      Capacitor,  Reactor,  Generator, Load,
      Line,       Fault,    Feeder,
-     EnergyMeter,PCElement,ControlElem;
+     EnergyMeter,PCElement,ControlElem, Graphics;
 
 Const ZERONULL      :Integer=0;
       padString     :String='                                                  '; //50 blanks
@@ -2636,6 +2637,36 @@ Begin
 
 End;
 
+
+FUNCTION  InterpretColorName(const s:string):Integer;
+
+Begin
+        Result := clBlue;  // default color
+        Try
+            if      CompareTextShortest(S,'black')=0  then Result := clBlack
+            else if CompareTextShortest(S,'Maroon')=0 then Result := clMaroon
+            else if CompareTextShortest(S,'Green')=0  then Result := clGreen
+            else if CompareTextShortest(S,'Olive')=0  then Result := clOlive
+            else if CompareTextShortest(S,'Navy')=0   then Result := clNavy
+            else if CompareTextShortest(S,'Purple')=0 then Result := clPurple
+            else if CompareTextShortest(S,'Teal')=0   then Result := clTeal
+            else if CompareTextShortest(S,'Gray')=0   then Result := clGray
+            else if CompareTextShortest(S,'Silver')=0 then Result := clSilver
+            else if CompareTextShortest(S,'Red')=0    then Result := clRed
+            else if CompareTextShortest(S,'Lime')=0   then Result := clLime
+            else if CompareTextShortest(S,'Yellow')=0 then Result := clYellow
+            else if CompareTextShortest(S,'Blue')=0   then Result := clBlue
+            else if CompareTextShortest(S,'Fuchsia')=0 then Result := clFuchsia
+            else if CompareTextShortest(S,'Aqua')=0   then Result := clAqua
+            else if CompareTextShortest(S,'LtGray')=0 then Result := clLtGray
+            else if CompareTextShortest(S,'DkGray')=0 then Result := clDkGray
+            else if CompareTextShortest(S,'White')=0  then Result := clWhite
+            else Result := StrToInt(S);
+        Except
+           On E:Exception Do DoSimpleMsg('Invalid Color Specification: "' + S + '".', 724);
+        End;
+
+End;
 
 initialization
 

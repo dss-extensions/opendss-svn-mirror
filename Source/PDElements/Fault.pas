@@ -152,7 +152,7 @@ Begin
                      'bus1=busname'+CRLF+
                      'bus1=busname.1.2.3';
      PropertyHelp[2] := 'Name of 2nd bus. Defaults to all phases connected '+
-                     'to first bus, node 0. (Shunt Wye Connection)';
+                     'to first bus, node 0, if not specified. (Shunt Wye Connection to ground reference)';
      PropertyHelp[3] := 'Number of Phases. Default is 1.';
      PropertyHelp[4] := 'Resistance, each phase, ohms. Default is 0.0001. Assumed to be Mean value if gaussian random mode.'+
                     'Max value if uniform mode.  A Fault is actually a series resistance '+
@@ -242,7 +242,6 @@ END;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function TFault.Edit:Integer;
 
-
 VAR
    ParamPointer:Integer;
    ParamName:String;
@@ -253,7 +252,6 @@ BEGIN
   // continue parsing with contents of Parser
   ActiveFaultObj := ElementList.Active;
   ActiveCircuit.ActiveCktElement := ActiveFaultObj;  // use property to set this value
-
 
   WITH ActiveFaultObj DO BEGIN
 
@@ -270,7 +268,7 @@ BEGIN
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 350);
             1: FltSetbus1(param);
             2: Setbus(2, param);
-            3:;{Numphases := Parser.IntValue;}  // see below
+            3: ;{Numphases := Parser.IntValue;}  // see below
             4: BEGIN
                  G := Parser.Dblvalue;
                  IF G<>0.0 THEN G := 1.0/G ELSE G := 10000.0;  // Default to a low resistance
