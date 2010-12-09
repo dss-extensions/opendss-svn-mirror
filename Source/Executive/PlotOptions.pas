@@ -7,7 +7,7 @@ Uses Command;
 
 
 CONST
-        NumPlotOptions = 20;
+        NumPlotOptions = 21;
 
 FUNCTION DoPlotCmd:Integer;
 
@@ -49,9 +49,10 @@ Begin
       PlotOption[18] := 'min';
       PlotOption[19] := '3phLinestyle';
       PlotOption[20] := '1phLinestyle';
+      PlotOption[21] := 'phases';
 
 
-      PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape } ' +
+      PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape | Profile} ' +
                       'A "Daisy" plot is a special circuit plot that places a marker at each Generator location ' +
                       'or at buses in the BusList property, if defined. ' +
                       'A Zones plot shows the meter zones (see help on Object). ' +
@@ -115,6 +116,11 @@ Begin
       PlotHelp[18] := 'Enter 0 (the default value) or the value corresponding to min value corresponding to color C1 in General bus data plots.';
       PlotHelp[19] := 'Line style for drawing 3-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
       PlotHelp[20] := 'Line style for drawing 1-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
+      PlotHelp[21] := '{default | ALL | (phase number)} For Profile plot. Specify which phases you want plotted.' + CRLF+CRLF+
+                      'default = plot only nodes 1-3 at 3-phase buses (default)' +CRLF+
+                      'ALL = plot all nodes' +CRLF+
+                      '(phase number) = plot all nodes on selected phase'+CRLF+CRLF+
+                      'Note: Only nodes downline from an energy meter are plotted.';
 
 
 
@@ -167,6 +173,7 @@ Begin
                'G': PlotType := ptGeneralDataPlot;
                'L': PlotType := ptLoadshape;
                'M': PlotType := ptMonitorplot;
+               'P': PlotType := ptProfile;
                'D': Begin
                       PlotType := ptDaisyplot;
                       DaisyBusList.Clear;
@@ -227,6 +234,12 @@ Begin
              End;
          19: ThreePhLineStyle  := Parser.IntValue;
          20: SinglePhLineStyle := Parser.IntValue;
+         21: Begin  // Parse off phase(s) to plot
+                  PhasesToPlot := PROFILE3PH; // the default
+                  if      CompareTextShortest(Param, 'default')=0 then PhasesToPlot := PROFILE3PH
+                  Else if CompareTextShortest(Param, 'all')=0     then PhasesToPlot := PROFILEALL
+                  Else If Length(Param)=1 then PhasesToPlot := Parser.IntValue;
+             End;
 
        Else
        End;

@@ -30,10 +30,11 @@ Const
      vizCURRENT = 1;
      vizVOLTAGE = 2;
      vizPOWER   = 3;
-
+     PROFILE3PH = 9999; // some big number > likely no. of phases
+     PROFILEALL = 9998;
 
 Type
-     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape) ;
+     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptProfile) ;
      TPlotQuantity = (pqVoltage, pqCurrent, pqPower, pqLosses, pqCapacity, pqNone );
 
      TDSSPlot = class(TObject)
@@ -56,6 +57,7 @@ Type
        Procedure DoGeneralCircuitPlot;
        Procedure DoMeterZonePlot;
        Procedure DoMonitorPlot;
+       Procedure DoProfilePlot;
 
        {Misc support procedures}
        Procedure MarkSubTransformers;
@@ -96,6 +98,8 @@ Type
        FeederName        :String;
        ValueIndex,
        MarkerIdx         :Integer;  {For General & AutoAdd}
+
+       PhasesToPlot      :Integer;  // Profile Plot
 
        Channels          :Array of Cardinal;  // for Monitor Plot
        Bases             :Array of Double;  // for Monitor Plot
@@ -290,6 +294,7 @@ begin
      DaisyBusList := TSTringList.Create;
      {Initialize Plotting DLL}
      DSSGraphInit(@CallBackRoutines);  // send a pointer to the DSS Callback routines struct
+     PhasesToPlot := PROFILE3PH;
 end;
 
 destructor TDSSPlot.Destroy;
@@ -664,24 +669,34 @@ Begin
         (Quantity=pqNone) and
         (FileExists(ObjectName)) Then
            PlotType := ptGeneralCircuitPlot;
-     { Make a New DSSGraph Plot}
+
+     {*** Make a New DSSGraph Plot ***}
      If MakeNewGraph = 0 Then Begin
          DoSimpleMsg('Make New Plot failed in DSSPlot.', 8734);
          Exit;
      End;
+
      Case PlotType of
         ptMonitorPlot: Begin
                          DoMonitorPlot;
                          Set_Autorange(2.0);    // 2% rim
                        End;
-     ELSE  {All except Monitors}
+         ptLoadShape: Begin
+                DoLoadShapePlot(ObjectName) ;
+                Exit;  // All we need to do here
+             End;
+         ptProfile: Begin
+                DoProfilePlot;
+                Exit;
+             End;
+     ELSE  {All other plots}
        AllocateBusLabels;
        Get_Properties(DSSGraphProps);
        With DSSGraphProps Do Begin
          GridStyle       := gsNone;
          ChartColor      := clWhite;
          WindColor       := clWhite;
-         Isometric       := True;
+         Isometric       := TRUE;
          EnableClickonDiagram;
        End;
        Set_Properties(DSSGraphProps);
@@ -724,10 +739,6 @@ Begin
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
                 If ShowSubs Then MarkSubTransformers;
              End;
-         ptLoadShape: Begin
-                DoLoadShapePlot(ObjectName) ;
-                Exit;  // All we need to do here
-             End;
          ptMeterZones: Begin
                 DoMeterZonePlot;
                 If ActiveCircuit.MarkTransformers Then MarktheTransformers;
@@ -755,29 +766,29 @@ Begin
 
        FreeBusLabels;
 
-        {Make sure both X and Y have the same scale}
-          Get_PlotWindowParms(Width, LRim, RRim, Height, Trim, Brim);
-          Aspect :=  (Width - LRim - RRim)/(Height - Trim - Brim);
-          Get_Properties(DSSGraphProps);
-          With DSSGraphProps Do Begin
-              Xrange := Max((Xmax-Xmin), (Ymax-Ymin)*Aspect);
-              {Add 2%Margin}
-              XRange   := 1.02 * Xrange;
-              Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
-              RangeLoX := (Xmin+Xmax - Xrange)/2.0; // Xmin - Mar;    {Isometric=true forces Y to have same range as X}
-              RangeHiX := (Xmin+Xmax + Xrange)/2.0; // Xmin + HiX + Mar;
-              RangeLoY :=  YMin - 0.02 * Xrange/Aspect;
-              RangeHiY := RangeLoY +  (Xrange/Aspect);
-              Set_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
+      {Make sure both X and Y have the same scale}
+        Get_PlotWindowParms(Width, LRim, RRim, Height, Trim, Brim);
+        Aspect :=  (Width - LRim - RRim)/(Height - Trim - Brim);
+        Get_Properties(DSSGraphProps);
+        With DSSGraphProps Do Begin
+            Xrange := Max((Xmax-Xmin), (Ymax-Ymin)*Aspect);
+            {Add 2%Margin}
+            XRange   := 1.02 * Xrange;
+            Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
+            RangeLoX := (Xmin+Xmax - Xrange)/2.0; // Xmin - Mar;    {Isometric=true forces Y to have same range as X}
+            RangeHiX := (Xmin+Xmax + Xrange)/2.0; // Xmin + HiX + Mar;
+            RangeLoY :=  YMin - 0.02 * Xrange/Aspect;
+            RangeHiY := RangeLoY +  (Xrange/Aspect);
+            Set_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
 
-              {Keep this range for quick resetting}
-              Xmin := RangeLoX;
-              Xmax := RangeHiX;
-              Ymin := RangeLoY;
-              Ymax := RangeHiY;
-              Set_Properties(DSSGraphProps);
-          End;
-          set_KeepAspectRatio(True);
+            {Keep this range for quick resetting}
+            Xmin := RangeLoX;
+            Xmax := RangeHiX;
+            Ymin := RangeLoY;
+            Ymax := RangeHiY;
+            Set_Properties(DSSGraphProps);
+        End;
+        set_KeepAspectRatio(True);
 
      End; {CASE}
 
@@ -999,7 +1010,7 @@ begin
         End;
      End;
 
-     MakeNewGraph;
+    // ** already exists MakeNewGraph;
      S  := 'Loadshape.' + LoadshapeName;
      Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
      S  := 'Loadshape = ' + LoadshapeName;
@@ -1023,7 +1034,6 @@ begin
            AddNewCurve (Load_Shape.Hours, Load_Shape.QMultipliers, Load_Shape.NumPoints,
                         Color2, 1, psSolid, FALSE, 1, AnsiString(LoadShapeName));
      END;
-
 
      Set_KeepAspectRatio(False);
 
@@ -1833,7 +1843,7 @@ begin
                      Time1 := Time;
                   End Else Begin
                     AddNewLine(time1, HoldArray[i],Time, Sngbuffer[Channels[i]]/Bases[i],
-                                      NextColor, 3, psSolid, FALSE, '', False, 0,0,0);
+                                      NextColor, 2, psSolid, FALSE, '', False, 0,0,0);
                   End;
                   HoldArray[i] := SngBuffer[Channels[i]]/Bases[i];
               End;
@@ -1858,6 +1868,119 @@ begin
 
      End
      Else DoSimpleMsg('Monitor "'+ObjectName+'" not found.', 200);
+end;
+
+procedure TDSSPlot.DoProfilePlot;
+
+{Voltage profile plot. Tom Short Plot with lines}
+
+Var
+   iEnergyMeter       :Integer;
+   ActiveEnergyMeter  :TEnergyMeterObj;
+   PresentCktElement  :TDSSCktElement;
+   Bus1, Bus2         :TDSSbus;
+   puV1, puV2         :Double;
+   iphs               :Integer;
+   S                  :String;
+   MyColor            :Tcolor;
+   DSSGraphProps      :TDSSGraphProperties;
+   RangeLoX, RangeHiX, RangeLoY, RangeHiY :Double;
+
+begin
+
+    {New graph created before this routine is entered}
+       S  := 'Voltage Profile';
+       Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
+       Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
+       S := 'Distance (km)';
+       Set_XaxisLabel(pAnsiChar(AnsiString(S)), Length(S)) ;
+       Set_YaxisLabel(pAnsiChar('p.u. Voltage'), 12);
+
+       Get_Properties(DSSGraphProps);
+       With DSSGraphProps Do Begin
+         GridStyle       := gsNone;
+         ChartColor      := clWhite;
+         WindColor       := clWhite;
+         Isometric       := FALSE;
+         EnableClickonDiagram;
+       End;
+       Set_Properties(DSSGraphProps);
+       Set_TextAlignment(1);
+       Set_KeyClass (DSSG_LINECLASS);  {Line for searches}
+
+      iEnergyMeter := EnergyMeterClass.First;
+      while iEnergyMeter >0  do  Begin
+
+          ActiveEnergyMeter := EnergyMeterClass.GetActiveObj;
+          {Go down each branch list and draw a line}
+          PresentCktElement := ActiveEnergyMeter.BranchList.First;
+          while PresentCktElement <> Nil Do Begin
+          If IslineElement(PresentCktElement) Then  With ActiveCircuit Do Begin
+              Bus1 := Buses^[PresentCktElement.Terminals^[1].BusRef];
+              Bus2 := Buses^[PresentCktElement.Terminals^[2].BusRef];
+            {Now determin which phase to plot}
+              If (Bus1.kVBase > 0.0) and (Bus2.kVBase > 0.0) then
+              CASE PhasesToPlot of
+                  {3ph only}
+                  PROFILE3PH: If PresentCktElement.NPhases >= 3 then
+                                For iphs := 1 to 3 do Begin
+                                  puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                  puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                  AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                         ColorArray[iphs], 2, psSolid, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                  {Plot all phases present (between 1 and 3)}
+                  PROFILEALL: Begin
+                                For iphs := 1 to 3 do
+                                  if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then Begin
+                                    if Bus1.kVBase < 1.0 then MyColor := ColorArray[iphs + 3] else MyColor := ColorArray[iphs];
+                                    puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                    puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                    AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                           MyColor, 2, psSolid, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                              End;
+                  ELSE     // plot just the selected phase
+                      iphs := PhasesToPlot;
+                      if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then  Begin
+                          if Bus1.kVBase < 1.0 then MyColor := ColorArray[iphs + 3] else MyColor := ColorArray[iphs];
+                          puV1 := CABS(ActiveCircuit.Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                          puV2 := CABS(ActiveCircuit.Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                          AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                             MyColor, 2, psSolid, dots, AnsiString (PresentCktElement.Name), False, 0,
+                                  NodeMarkerCode, NodeMarkerWidth);
+                      End;
+
+              END;
+
+            End;
+
+             PresentCktElement := ActiveEnergyMeter.BranchList.GoForward;
+          End;
+          iEnergyMeter := EnergyMeterClass.Next;
+      End;
+
+       Get_Properties(DSSGraphProps);
+       With  DSSGraphProps, Activecircuit Do Begin
+             AddNewLine(0.0, NormalMaxVolts, Xmax, NormalMaxVolts, ColorArray[1], 1, psDash, FALSE, 'Upper', False, 0,0,0);
+             AddNewLine(0.0, NormalMinvolts, Xmax, NormalMinvolts, ColorArray[1], 1, psDash, FALSE, 'Lower', False, 0,0,0);
+
+             Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
+             RangeLoY := 0.90;
+             RangeHiY := 1.10;
+             Set_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
+
+            {Keep this range for quick resetting}
+             Xmin := RangeLoX;
+             Xmax := RangeHiX;
+             Ymin := RangeLoY;
+             Ymax := RangeHiY;
+
+       End;
+       Set_Properties(DSSGraphProps);
+       Set_KeepAspectRatio(False);
+      //Set_Autorange(2.0);    // 2% rim
+       ShowGraph;    {Form Freed on close}
 end;
 
 procedure TDSSPlot.MarkSubTransformers;
