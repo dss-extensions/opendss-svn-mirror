@@ -277,13 +277,14 @@ End;
 Function        IsBusCoordinateDefinedCallback (BusRef:Integer):Boolean; StdCall;
 Begin
         Result := False;
-        If Assigned(ActiveCircuit) Then Result := ActiveCircuit.Buses^[BusRef].CoordDefined;
+        If Assigned(ActiveCircuit) and (busRef > 0) Then Result := ActiveCircuit.Buses^[BusRef].CoordDefined;
 End;
 
 {====================================================================================================================}
 Procedure       GetBusCoordinateCallback       (BusRef:Integer; Var X, Y:Double); StdCall;
 Begin
-       If Assigned(ActiveCircuit) Then Begin
+       X := 0.0;  Y := 0.0;
+       If Assigned(ActiveCircuit) and (busRef > 0) Then Begin
           X := ActiveCircuit.Buses^[BusRef].X;
           Y := ActiveCircuit.Buses^[BusRef].Y;
        End;
@@ -293,7 +294,7 @@ End;
 Function       GetBuskVBaseCallback           (BusRef:Integer):Double; StdCall;
 Begin
        Result := 0.0;
-       If Assigned(ActiveCircuit) Then Begin
+       If Assigned(ActiveCircuit) and (busRef > 0) Then Begin
           Result := ActiveCircuit.Buses^[BusRef].kVBase;
        End;
 End;
@@ -302,7 +303,7 @@ End;
 Function       GetBusDistFromMeterCallback      (BusRef:Integer):Double; StdCall;
 Begin
        Result := 0.0;
-       If Assigned(ActiveCircuit) Then Begin
+       If Assigned(ActiveCircuit) and (busRef > 0) Then Begin
           Result := ActiveCircuit.Buses^[BusRef].DistFromMeter;
        End;
 End;

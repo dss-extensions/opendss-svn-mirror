@@ -32,6 +32,7 @@ Const
      vizPOWER   = 3;
      PROFILE3PH = 9999; // some big number > likely no. of phases
      PROFILEALL = 9998;
+     PROFILEALLPRI = 9997;
 
 Type
      TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptProfile) ;
@@ -198,8 +199,6 @@ Var  BusLabels:pStringArray;
 {
   TDSSPlot
 }
-
-
 
 Procedure AllocateBusLabels;
 Var i:Integer;
@@ -1883,6 +1882,7 @@ Var
    iphs               :Integer;
    S                  :String;
    MyColor            :Tcolor;
+   LineType           :TPenStyle;
    DSSGraphProps      :TDSSGraphProperties;
    RangeLoX, RangeHiX, RangeLoY, RangeHiY :Double;
 
@@ -1898,7 +1898,7 @@ begin
 
        Get_Properties(DSSGraphProps);
        With DSSGraphProps Do Begin
-         GridStyle       := gsNone;
+         GridStyle       := gsDotLines;
          ChartColor      := clWhite;
          WindColor       := clWhite;
          Isometric       := FALSE;
@@ -1922,7 +1922,7 @@ begin
               If (Bus1.kVBase > 0.0) and (Bus2.kVBase > 0.0) then
               CASE PhasesToPlot of
                   {3ph only}
-                  PROFILE3PH: If PresentCktElement.NPhases >= 3 then
+                  PROFILE3PH: If (PresentCktElement.NPhases >= 3) and (Bus1.kVBase > 1.0) then
                                 For iphs := 1 to 3 do Begin
                                   puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
                                   puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
@@ -1933,21 +1933,36 @@ begin
                   PROFILEALL: Begin
                                 For iphs := 1 to 3 do
                                   if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then Begin
-                                    if Bus1.kVBase < 1.0 then MyColor := ColorArray[iphs + 3] else MyColor := ColorArray[iphs];
+                                    if Bus1.kVBase < 1.0 then  Linetype := psDot else Linetype := psSolid;
+                                    MyColor := ColorArray[iphs];
                                     puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
                                     puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
                                     AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
-                                           MyColor, 2, psSolid, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                           MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                              End;
+                  {Plot all phases present (between 1 and 3) for Primary only}
+                  PROFILEALLPRI: Begin
+                                If Bus1.kVBase > 1.0 then
+                                For iphs := 1 to 3 do
+                                  if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then Begin
+                                    if Bus1.kVBase < 1.0 then Linetype := psDot else Linetype := psSolid;
+                                    MyColor := ColorArray[iphs];
+                                    puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                    puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                    AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                           MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
                                 End;
                               End;
                   ELSE     // plot just the selected phase
                       iphs := PhasesToPlot;
                       if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then  Begin
-                          if Bus1.kVBase < 1.0 then MyColor := ColorArray[iphs + 3] else MyColor := ColorArray[iphs];
+                          if Bus1.kVBase < 1.0 then Linetype := psDot else Linetype := psSolid;
+                          MyColor := ColorArray[iphs];
                           puV1 := CABS(ActiveCircuit.Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
                           puV2 := CABS(ActiveCircuit.Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
                           AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
-                             MyColor, 2, psSolid, dots, AnsiString (PresentCktElement.Name), False, 0,
+                             MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,
                                   NodeMarkerCode, NodeMarkerWidth);
                       End;
 
@@ -1962,8 +1977,8 @@ begin
 
        Get_Properties(DSSGraphProps);
        With  DSSGraphProps, Activecircuit Do Begin
-             AddNewLine(0.0, NormalMaxVolts, Xmax, NormalMaxVolts, ColorArray[1], 1, psDash, FALSE, 'Upper', False, 0,0,0);
-             AddNewLine(0.0, NormalMinvolts, Xmax, NormalMinvolts, ColorArray[1], 1, psDash, FALSE, 'Lower', False, 0,0,0);
+            // AddNewLine(0.0, NormalMaxVolts, Xmax, NormalMaxVolts, ColorArray[1], 1, psDash, FALSE, 'Upper Limit', False, 0,0,0);
+            // AddNewLine(0.0, NormalMinvolts, Xmax, NormalMinvolts, ColorArray[1], 1, psDash, FALSE, 'Lower Limit', False, 0,0,0);
 
              Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
              RangeLoY := 0.90;
@@ -1975,7 +1990,10 @@ begin
              Xmax := RangeHiX;
              Ymin := RangeLoY;
              Ymax := RangeHiY;
-
+             Set_LineWidth(3);
+             Set_DataColor(clRed);
+             Moveto(0.0, NormalMaxVolts); Drawto(Xmax, NormalMaxVolts);
+             Moveto(0.0, NormalMinVolts); Drawto(Xmax, NormalMinVolts);
        End;
        Set_Properties(DSSGraphProps);
        Set_KeepAspectRatio(False);
