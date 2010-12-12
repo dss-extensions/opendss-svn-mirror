@@ -422,6 +422,7 @@ begin
             Result := cmplx(FRac^[i], Fw*Mu0/(8*pi) );
         End;
         DERI: Begin   // with skin effect model
+
         {Assume round conductor}
             Alpha := CmulReal(c1_j1, sqrt(FFrequency*mu0/FRDC^[i]));
             If Cabs(Alpha)>35.0 Then I0I1 := CONE
