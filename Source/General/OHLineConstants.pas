@@ -156,23 +156,23 @@ begin
       FZmatrix.Clear;
       FYCMatrix.Clear;
 
-      {For 50 or 60 Hz use GMR to match published data}
+      {For less than 1 kHz use GMR to better match published data}
 
       LFactor := Cmplx(0.0, Fw*mu0/twopi );
-      If  (f<61.0)and(f>49.0) Then PowerFreq:= TRUE Else PowerFreq:= FALSE;
+      If  (f < 1000.0)and(f > 40.0) Then PowerFreq:= TRUE Else PowerFreq:= FALSE;
 
       {Self Impedances}
 
       For i := 1 to FNumConds Do Begin
          Zi := Get_Zint(i);
-         If PowerFreq Then Begin // for standard power frequencies
-           Zi.im := 0.0;
-           Zspacing := CmulReal(Lfactor, ln(1.0/FGMR^[i]));  // use GMR
+         If PowerFreq Then Begin // for less than 1 kHz, use published GMR
+             Zi.im := 0.0;
+             Zspacing := CmulReal(Lfactor, ln( 1.0/FGMR^[i] ));  // use GMR
          End Else Begin
-           Zspacing := CmulReal(Lfactor, ln(1.0/Fradius^[i]));
+             Zspacing := CmulReal(Lfactor, ln( 1.0/Fradius^[i] ));
          End;
 
-         FZmatrix.SetElement(i, i, Cadd(Zi, Cadd(Zspacing, Get_Ze(i,i)) ) );
+         FZmatrix.SetElement(i, i, Cadd(Zi, Cadd( Zspacing, Get_Ze(i,i) ) ) );
 
       End;
 
@@ -184,7 +184,6 @@ begin
           FZmatrix.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
         End;
       End;
-
 
       {Capacitance Matrix}
 

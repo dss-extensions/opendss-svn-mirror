@@ -42,10 +42,14 @@ Set MaxControlIter=30
 
 ! Solve executes the solution for the present solution mode, which is "snapshot".
 
+New EnergyMeter.Feeder Line.L115 1
+
 solve
 Buscoords Buscoords.dat   ! load in bus coordinates
 
 ! Show some selected results
+
+Plot Profile
 
 Show Voltage LN Nodes     ! this shows the voltages by node, Line-to-Neutral voltage.
 Show Currents Elements    ! this produces a report of the currents, element-by-element.
@@ -89,10 +93,14 @@ RegControl.creg4c.maxtapchange=0  !Fixed at present tap
 ! No need to revise the MaxControlIter option in this case;
 ! there will be only one control iteration
 
-solve  
+New EnergyMeter.Feeder Line.L115 1
+
+solve
 Buscoords Buscoords.dat   ! load in bus coordinates
 
-! Show Results
+! Show some selected results
+
+Plot Profile
 
 Show Voltage LN Nodes
 Show Currents Elements

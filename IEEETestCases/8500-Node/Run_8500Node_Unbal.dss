@@ -14,8 +14,8 @@
 
 Compile (Master-unbal.dss)     ! unbalanced load master
 
-!New Energymeter.m1 Line.ln5815900-1 1
-New Monitor.m1 Line.ln5815900-1 1
+New Energymeter.m1 Line.ln5815900-1 1
+// New Monitor.m1 Line.ln5815900-1 1
 
 
 Set Maxiterations=20     ! Sometimes the solution takes more than the default 15 iterations
@@ -31,7 +31,7 @@ Export Currents
 Export Powers
 Export voltages
 
-Plot Circuit Power Max=2000 dots=n labels=n  C1=$00FF0000
+Plot Circuit Power Max=2000 dots=y labels=n  C1=$00FF0000
 
 Plot Circuit voltage Max=0 n n  C1=$00FF0000 C2=$FF00FF
 

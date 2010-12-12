@@ -1974,7 +1974,8 @@ begin
           End;
           iEnergyMeter := EnergyMeterClass.Next;
       End;
-
+       Set_KeepAspectRatio(False);
+       Set_Autorange(2.0);    // 2% rim
        Get_Properties(DSSGraphProps);
        With  DSSGraphProps, Activecircuit Do Begin
             // AddNewLine(0.0, NormalMaxVolts, Xmax, NormalMaxVolts, ColorArray[1], 1, psDash, FALSE, 'Upper Limit', False, 0,0,0);
@@ -1996,8 +1997,7 @@ begin
              Moveto(0.0, NormalMinVolts); Drawto(Xmax, NormalMinVolts);
        End;
        Set_Properties(DSSGraphProps);
-       Set_KeepAspectRatio(False);
-      //Set_Autorange(2.0);    // 2% rim
+
        ShowGraph;    {Form Freed on close}
 end;
 
