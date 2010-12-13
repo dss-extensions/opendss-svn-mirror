@@ -142,6 +142,7 @@ VAR
    VersionString      :String;
 
    DefaultEditor    :String;     // normally, Notepad
+   DefaultFontSize  :Integer;
    DSSFileName      :String;     // Name of current exe or DLL
    DSSDirectory     :String;     // where the current exe resides
    StartupDirectory :String;     // Where we started
@@ -512,6 +513,7 @@ END;
 PROCEDURE ReadDSS_Registry;
 Begin
       DefaultEditor    := DSS_Registry.ReadString('Editor', 'Notepad.exe' );
+      DefaultFontSize  := StrToInt(DSS_Registry.ReadString('ScriptFontSize', '8' ));
       DefaultBaseFreq  := StrToInt(DSS_Registry.ReadString('BaseFrequency', '60' ));
       LastFileCompiled := DSS_Registry.ReadString('LastFile', '' );
 End;
@@ -520,6 +522,7 @@ End;
 PROCEDURE WriteDSS_Registry;
 Begin
      DSS_Registry.WriteString('Editor',        DefaultEditor);
+     DSS_Registry.WriteString('ScriptFontSize', Format('%d',[DefaultFontSize]));
      DSS_Registry.WriteString('BaseFrequency', Format('%d',[Round(DefaultBaseFreq)]));
      DSS_Registry.WriteString('LastFile',      LastFileCompiled);
 End;
@@ -570,6 +573,7 @@ initialization
 
    AuxParser      := TParser.Create;
    DefaultEditor  := 'NotePad';
+   DefaultFontSize := 8;
    NoFormsAllowed := FALSE;
 
    EventStrings  := TStringList.Create;

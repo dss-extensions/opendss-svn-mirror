@@ -60,11 +60,13 @@ Begin
                       'using gradient colors between C1 and C2. Values are read from a file (see Object). ' +
                       'Loadshape plots the specified loadshape. Examples:'+CRLF+CRLF+
                       'Plot type=circuit quantity=power' +CRLF+
-                      'Plot Circuit Losses' +CRLF+
+                      'Plot Circuit Losses 1phlinestyle=3' +CRLF+
                       'Plot Circuit quantity=3 object=mybranchdata.csv' +CRLF+
                       'Plot daisy power max=5000 dots=N Buslist=[file=MyBusList.txt]' +CRLF+
                       'Plot General quantity=1 object=mybusdata.csv' +CRLF+
-                      'Plot Loadshape object=myloadshape' ;
+                      'Plot Loadshape object=myloadshape'  +CRLF+
+                      'Plot Profile'  +CRLF+
+                      'Plot Profile Phases=Primary';
       PlotHelp[ 2] := 'One of {Voltage | Current | Power | Losses | Capacity | (Value Index for General, AutoAdd, or Circuit[w/ file]) }';
       PlotHelp[ 3] := 'Enter 0 (the default value) or the value corresponding to max scale or line thickness in the circuit plots. '+
                       'Power and Losses in kW. Also, use this to specify the max value corresponding to color C2 in General plots.';

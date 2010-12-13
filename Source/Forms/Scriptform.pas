@@ -192,6 +192,7 @@ begin
    UpdateCursorPos;
    HasFileName := FALSE;
    IsMainWindow := FALSE;
+   Editor.Font.Size := DefaultFontSize;
 end;
 
 procedure TMainEditForm.FormDestroy(Sender: TObject);
@@ -501,10 +502,22 @@ begin
 end;
 
 procedure TMainEditForm.FontBtnClick(Sender: TObject);
+Var
+    FontSave :TFont;
 begin
+        // First select all
+        Editor.SelStart := 0;
+        Editor.SelLength := Editor.GetTextLen;
         With FontDialog1 do  Begin
+           FontSave := Editor.Font;
+           Font := Editor.Font;
            Options := Options + [fdApplyButton];
-           Execute;
+           If Execute then Begin
+              Editor.SelAttributes.Assign(Font);
+              Editor.Font := Font;
+              DefaultFontSize := Editor.Font.Size;
+           End
+           Else Editor.Font :=FontSave;
         End;
 end;
 
