@@ -12,7 +12,7 @@
 
 ! Edit the path name to indicate the correct location of the Master file.
 
-Compile (C:\DSSdata\IEEETest\8500Node\master.dss)
+Compile (master.dss)
 
 New Energymeter.m1 Line.ln5815900-1 1
 
@@ -29,11 +29,11 @@ Export Currents
 Export Powers
 Export voltages
 
-Plot Circuit Power Max=2000 dots=n labels=n  C1=$00FF0000
+Plot Circuit Power Max=2000 dots=n labels=n  C1=Blue  ! $00FF0000
 
-Plot Circuit voltage Max=0 n n  C1=$00FF0000 C2=$FF00FF
+Plot Circuit voltage Max=0 n n  C1=Blue C2=$FF00FF
 
-plot circuit Losses Max=20 dots=n labels=n subs=y C1=$00FF0000
+plot circuit Losses Max=20 dots=n labels=n subs=y C1=Blue
 
 summary
 
