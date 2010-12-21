@@ -355,7 +355,7 @@ VAR
    BusAdjPD : TAdjArray;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-FUNCTION  jiIndex(j,i:Integer):Integer; Inline;
+FUNCTION  jiIndex(i, j:Integer):Integer; Inline;
 Begin
     Result := (j-1)*3 + i;
 End;
