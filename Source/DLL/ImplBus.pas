@@ -35,6 +35,7 @@ type
     procedure Set_y(Value: Double); safecall;
     function Get_Distance: Double; safecall;
     function GetUniqueNodeNumber(StartNumber: Integer): Integer; safecall;
+    function Get_CplxSeqVoltages: OleVariant; safecall;
   end;
 
 implementation
@@ -483,6 +484,50 @@ begin
 
     if ActiveBusIndex > 0 then
       Result := Utilities.GetUniqueNodeNumber(BusList.Get(ActiveBusIndex), StartNumber);
+end;
+
+function TBus.Get_CplxSeqVoltages: OleVariant;
+
+// Compute sequence voltages for Active Bus
+// Complex values
+// returns a set of seq voltages (3) in 0, 1, 2 order
+
+VAR
+  Nvalues,i, iV:Integer;
+  VPh, V012 : Array[1..3] of Complex;
+
+Begin
+   IF ActiveCircuit = nil Then Begin
+        Result := VarArrayCreate([0, 0], varDouble)
+   End
+   ELSE With ActiveCircuit Do
+   IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
+   Begin
+      Nvalues := Buses^[ActiveBusIndex].NumNodesThisBus;
+      If Nvalues > 3 then Nvalues := 3;
+
+      // Assume nodes labelled 1, 2, and 3 are the 3 phases
+      Result := VarArrayCreate( [0, 5], varDouble);
+      IF Nvalues <> 3 THEN
+          For i := 1 to 6 DO Result[i-1] := -1.0  // Signify seq voltages n/A for less then 3 phases
+      ELSE
+      Begin
+          iV := 0;
+          FOR i := 1 to 3 DO Vph[i] := Solution.NodeV^[Buses^[ActiveBusIndex].Find(i)];
+
+          Phase2SymComp(@Vph, @V012);   // Compute Symmetrical components
+
+          For i := 1 to 3 DO  // Stuff it in the result
+          Begin
+             Result[iV] := V012[i].re;
+             Inc(iV);
+             Result[iV] := V012[i].im;
+             Inc(iV);
+          End;
+      End;
+   End
+  ELSE Result := VarArrayCreate([0, 0], varDouble);
+
 end;
 
 initialization

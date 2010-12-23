@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 9/16/2010 4:10:00 PM from Type Library described below.
+// File generated on 12/23/2010 12:45:55 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -23,6 +23,8 @@ unit OpenDSSengine_TLB;
 // DepndLst:
 //   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
+// Errors:
+//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -397,6 +399,8 @@ type
     function Get_HasVoltControl: WordBool; safecall;
     function Get_EnergyMeter: WideString; safecall;
     function Get_Controller: WideString; safecall;
+    function Get_CplxSeqVoltages: OleVariant; safecall;
+    function Get_CplxSeqCurrents: OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumTerminals: Integer read Get_NumTerminals;
     property NumConductors: Integer read Get_NumConductors;
@@ -425,6 +429,8 @@ type
     property HasVoltControl: WordBool read Get_HasVoltControl;
     property EnergyMeter: WideString read Get_EnergyMeter;
     property Controller: WideString read Get_Controller;
+    property CplxSeqVoltages: OleVariant read Get_CplxSeqVoltages;
+    property CplxSeqCurrents: OleVariant read Get_CplxSeqCurrents;
   end;
 
 // *********************************************************************//
@@ -465,6 +471,8 @@ type
     property HasVoltControl: WordBool readonly dispid 205;
     property EnergyMeter: WideString readonly dispid 206;
     property Controller: WideString readonly dispid 207;
+    property CplxSeqVoltages: OleVariant readonly dispid 208;
+    property CplxSeqCurrents: OleVariant readonly dispid 209;
   end;
 
 // *********************************************************************//
@@ -699,6 +707,7 @@ type
     procedure Set_y(Value: Double); safecall;
     function Get_Distance: Double; safecall;
     function GetUniqueNodeNumber(StartNumber: Integer): Integer; safecall;
+    function Get_CplxSeqVoltages: OleVariant; safecall;
     property Name: WideString read Get_Name;
     property NumNodes: Integer read Get_NumNodes;
     property Voltages: OleVariant read Get_Voltages;
@@ -716,6 +725,7 @@ type
     property x: Double read Get_x write Set_x;
     property y: Double read Get_y write Set_y;
     property Distance: Double read Get_Distance;
+    property CplxSeqVoltages: OleVariant read Get_CplxSeqVoltages;
   end;
 
 // *********************************************************************//
@@ -744,6 +754,7 @@ type
     property y: Double dispid 203;
     property Distance: Double readonly dispid 204;
     function GetUniqueNodeNumber(StartNumber: Integer): Integer; dispid 205;
+    property CplxSeqVoltages: OleVariant readonly dispid 206;
   end;
 
 // *********************************************************************//

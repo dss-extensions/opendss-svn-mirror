@@ -55,6 +55,8 @@ type
     function Get_EnergyMeter: WideString; safecall;
     function Get_HasVoltControl: WordBool; safecall;
     function Get_HasSwitchControl: WordBool; safecall;
+    function Get_CplxSeqVoltages: OleVariant; safecall;
+    function Get_CplxSeqCurrents: OleVariant; safecall;
   end;
 
 implementation
@@ -333,10 +335,10 @@ Begin
       GetPhaseLosses( NValues, cBuffer);
       iV :=0;
       For i := 1 to  NValues DO Begin
-         Result[iV] := cBuffer^[i].re*0.001;
-         Inc(iV);
-         Result[iV] := cBuffer^[i].im*0.001;
-         Inc(iV);
+           Result[iV] := cBuffer^[i].re*0.001;
+           Inc(iV);
+           Result[iV] := cBuffer^[i].im*0.001;
+           Inc(iV);
       End;
       Reallocmem(cBuffer,0);
   End
@@ -351,8 +353,10 @@ function TCktElement.Get_Powers: OleVariant;
 // Return complex kW, kvar in each conductor for each terminal
 
 VAR
-  cBuffer:pComplexArray;
-  NValues, i,iV : Integer;
+   cBuffer:pComplexArray;
+   NValues,
+   i,
+   iV : Integer;
 
 Begin
 
@@ -365,10 +369,10 @@ Begin
       GetPhasePower(cBuffer);
       iV :=0;
       For i := 1 to  NValues DO Begin
-         Result[iV] := cBuffer^[i].re*0.001;
-         Inc(iV);
-         Result[iV] := cBuffer^[i].im*0.001;
-         Inc(iV);
+           Result[iV] := cBuffer^[i].re*0.001;
+           Inc(iV);
+           Result[iV] := cBuffer^[i].im*0.001;
+           Inc(iV);
       End;
       Reallocmem(cBuffer,0);
   End
@@ -378,70 +382,106 @@ Begin
 end;
 
 { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
+Procedure CalcSeqCurrents(pActiveElement:TDSSCktElement; i012:pComplexArray);
+{Assumes V012 is properly allocated before call.}
+VAR
+    Nvalues,i,j,k,iV  :Integer;
+    IPh, I012a        :Array[1..3] of Complex;
+    cBuffer:pComplexArray;
+
+BEGIN
+    With pActiveElement, ActiveCircuit Do BEGIN
+      Nvalues := NPhases;
+      IF Nvalues <> 3 THEN Begin
+        {Handle non-3 phase elements}
+           IF (Nphases = 1) and PositiveSequence THEN
+           Begin
+                NValues := NConds*NTerms;
+                cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
+                GetCurrents(cBuffer);
+
+                For i := 1 to  3*NTerms DO i012^[i] := CZERO;   // Initialize Result
+                iV := 2;  // pos seq is 2nd element in array
+                {Populate only phase 1 quantities in Pos seq}
+                FOR j := 1 to NTerms Do Begin
+                    k := (j - 1) * NConds;
+                    i012^[iV] := cBuffer^[1 + k];
+                    Inc(iV, 3);  // inc to pos seq of next terminal
+                End;
+                Reallocmem(cBuffer, 0);
+           END
+           // if neither 3-phase or pos seq model, just put in -1.0 for each element
+           ELSE  For i := 1 to  3*NTerms Do i012^[i] := Cmplx(-1.0, 0.0);  // Signify n/A
+      End
+      ELSE Begin    // for 3-phase elements
+           iV := 1;
+           NValues := NConds * NTerms;
+           cBuffer := Allocmem(sizeof(cBuffer^[1]) * NValues);
+           GetCurrents(cBuffer);
+           FOR j := 1 to NTerms Do
+           Begin
+                k := (j-1)*NConds;
+                For i := 1 to  3 DO Iph[i] := cBuffer^[k+i];
+                Phase2SymComp(@Iph, @I012a);
+
+                For i := 1 to 3 DO  Begin     // Stuff it in the result array
+                   i012^[iV] := i012a[i];
+                   Inc(iV);
+                End;
+           End;
+           Reallocmem(cBuffer, 0);
+      End;
+    END;
+END;
+
+
+{ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
 function TCktElement.Get_SeqCurrents: OleVariant;
 
 // All sequence currents of active ciruit element
 // returns magnitude only.
 
 VAR
-  Nvalues,i,j,k, iV:Integer;
-  IPh, I012 : Array[1..3] of Complex;
-  cBuffer:pComplexArray;
+    i  :Integer;
+    i012 :pComplexArray;
+    S :String;
 
 Begin
-   IF ActiveCircuit <> Nil THEN
-     WITH ActiveCircuit DO
+  IF   ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement <> Nil THEN
+     WITH ActiveCktElement DO
+     If Enabled Then
      Begin
-       If ActiveCktElement<>Nil THEN
-       WITH ActiveCktElement DO
-       Begin
-        Result := VarArrayCreate([0, 3*NTerms-1], varDouble);
-        IF NPhases <> 3
-        THEN Begin
-           IF (Nphases = 1) and PositiveSequence
-           THEN Begin
-              NValues := NConds*NTerms;
-              cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
-              GetCurrents(cBuffer);
+         TRY
+            Result := VarArrayCreate([0, 3*NTerms-1], varDouble);
 
-              For i := 0 to  3*NTerms-1 DO Result[i] := 0.0;   // Initialize Result
-              iV := 1;
-              {Put only phase 1 quantities in Pos seq}
-              FOR j := 1 to NTerms Do
-              Begin
-                  k := (j-1)*NConds;
-                  Result[iV] := Cabs(cBuffer^[k+1]);
-                  Inc(iV, 3);
-              End;
-              Reallocmem(cBuffer,0);
-           END
-           ELSE  For i := 0 to  3*NTerms-1 DO Result[i] := -1.0;  // Signify n/A
+            i012 := Allocmem(Sizeof(i012^[1]) * 3 * Nterms);
+            // get complex seq voltages
+            CalcSeqCurrents(ActiveCktElement, i012);
+            // return 0 based array
+            For i := 1 to 3*Nterms do Result[i-1] := Cabs(i012^[i]);  // return mag only
 
-        END
-        ELSE Begin
-          iV := 0;
-          NValues := NConds * NTerms;
-          cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
-          GetCurrents(cBuffer);
-          For j := 1 to NTerms Do
-            Begin
-              k := (j-1)*NConds;
-              For i := 1 to  3 DO
-              Begin
-                Iph[i] := cBuffer^[k+i];
+            Reallocmem(i012, 0);  // throw away temp memory
+
+          EXCEPT
+             On E:Exception Do
+             Begin
+                S:= E.message + CRLF +
+                    'Element='+ ActiveCktElement.Name + CRLF+
+                    'Nphases=' + IntToStr(Nphases) + CRLF +
+                    'NTerms=' + IntToStr(NTerms) + CRLF +
+                    'NConds =' + IntToStr(NConds);
+                DoSimpleMsg(S, 5012);
               End;
-              Phase2SymComp(@Iph, @I012);
-              For i := 1 to 3 DO
-              Begin
-                Result[iV] := Cabs(I012[i]);
-                Inc(iV);
-              End;
-            End;
-          Reallocmem(cBuffer,0);
-        End;
-       End;
+          END;
      End
-   ELSE Result := VarArrayCreate([0, 0], varDouble);
+     Else
+         Result := VarArrayCreate([0, 0], varDouble);  // Disabled
+
+   End
+  ELSE Result := VarArrayCreate([0, 0], varDouble);
 
 end;
 
@@ -465,59 +505,54 @@ Begin
    WITH ActiveCircuit DO Begin
      If ActiveCktElement<>Nil THEN
      WITH ActiveCktElement DO Begin
-      Result := VarArrayCreate([0, 2*3*NTerms-1], varDouble);
-      IF NPhases<>3
-      THEN  Begin
-           IF (Nphases = 1) and PositiveSequence
-           THEN Begin
-              NValues := NConds*NTerms;
-              cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
-              GetCurrents(cBuffer);
+      Result := VarArrayCreate([0, 2*3*NTerms-1], varDouble); // allocate for kW and kvar
+      IF NPhases <> 3 THEN
+      Begin
+           IF (Nphases = 1) and PositiveSequence THEN
+           Begin
+                NValues := NConds*NTerms;
+                cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
+                GetCurrents(cBuffer);
 
-              For i := 0 to  2*3*NTerms-1 DO Result[i] := 0.0;   // Initialize Result
-              iCount := 2;  // Start with kW1
-              {Put only phase 1 quantities in Pos seq}
-              FOR j := 1 to NTerms Do
-              Begin
-                  k := (j-1)*NConds;
-                  n := NodeRef^[k+1];
-                  Vph[1] := Solution.NodeV^[n];  // Get voltage at node
-                  S := Cmul(Vph[1], conjg(cBuffer^[k+1]));   // Computer power per phase
-                  Result[icount] := S.re*0.003; // 3-phase kW conversion
-                  inc(icount);
-                  Result[icount] := S.im*0.003; // 3-phase kvar conversion
-                  inc(icount, 6);
-              End;
-              Reallocmem(cBuffer,0);
+                For i := 0 to  2*3*NTerms-1 DO Result[i] := 0.0;   // Initialize Result
+                iCount := 2;  // Start with kW1
+                {Put only phase 1 quantities in Pos seq}
+                FOR j := 1 to NTerms Do
+                Begin
+                    k := (j-1)*NConds;
+                    n := NodeRef^[k+1];
+                    Vph[1] := Solution.NodeV^[n];  // Get voltage at node
+                    S := Cmul(Vph[1], conjg(cBuffer^[k+1]));   // Compute power per phase
+                    Result[icount] := S.re*0.003; // 3-phase kW conversion
+                    inc(icount);
+                    Result[icount] := S.im*0.003; // 3-phase kvar conversion
+                    inc(icount, 6);
+                End;
+                Reallocmem(cBuffer,0);
            END
 
            ELSE  For i := 0 to  2*3*NTerms-1 DO Result[i] := -1.0;  // Signify n/A
       END
       ELSE Begin
-        NValues := NConds*NTerms;
-        cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
-        GetCurrents(cBuffer);
-        icount := 0;
-        FOR j := 1 to NTerms Do Begin
-         k :=(j-1)*NConds;
-         FOR i := 1 to  3 DO Begin
-            n := NodeRef^[i+k];
-            Vph[i]  := Solution.NodeV^[n];
-         End;
-         For i := 1 to  3 DO Begin
-           Iph[i] := cBuffer^[k+i];
-         End;
-         Phase2SymComp(@Iph, @I012);
-         Phase2SymComp(@Vph, @V012);
-         For i := 1 to 3 DO  Begin
-           S := Cmul(V012[i], conjg(I012[i]));
-           Result[icount] := S.re*0.003; // 3-phase kW conversion
-           inc(icount);
-           Result[icount] := S.im*0.003; // 3-phase kW conversion
-           inc(icount);
-         End;
-        End;
-        Reallocmem(cBuffer,0);
+          NValues := NConds*NTerms;
+          cBuffer := Allocmem(sizeof(cBuffer^[1])*NValues);
+          GetCurrents(cBuffer);
+          icount := 0;
+          FOR j := 1 to NTerms Do Begin
+             k :=(j-1)*NConds;
+             FOR i := 1 to  3 DO Vph[i] := Solution.NodeV^[NodeRef^[i+k]];
+             For i := 1 to  3 DO Iph[i] := cBuffer^[k+i];
+             Phase2SymComp(@Iph, @I012);
+             Phase2SymComp(@Vph, @V012);
+             For i := 1 to 3 DO  Begin
+                 S := Cmul(V012[i], conjg(I012[i]));
+                 Result[icount] := S.re*0.003; // 3-phase kW conversion
+                 inc(icount);
+                 Result[icount] := S.im*0.003; // 3-phase kW conversion
+                 inc(icount);
+             End;
+          End;
+          Reallocmem(cBuffer,0);
       End;
      End;
    End
@@ -527,6 +562,48 @@ Begin
 end;
 
 { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
+Procedure CalcSeqVoltages(pActiveElement:TDSSCktElement; V012:pComplexArray);
+{Assumes V012 is properly allocated before call.}
+VAR
+    Nvalues,i,j,k,iV  :Integer;
+    VPh, V012a        :Array[1..3] of Complex;
+BEGIN
+    With pActiveElement, ActiveCircuit Do BEGIN
+      Nvalues := NPhases;
+      IF Nvalues <> 3 THEN Begin
+        {Handle non-3 phase elements}
+           IF (Nphases = 1) and PositiveSequence THEN
+           Begin
+                For i := 1 to  3*NTerms DO V012^[i] := CZERO;   // Initialize Result
+                iV := 2;  // pos seq is 2nd element in array
+                {Populate only phase 1 quantities in Pos seq}
+                FOR j := 1 to NTerms Do Begin
+                    k := (j - 1) * NConds;
+                    V012^[iV] := Solution.NodeV^[NodeRef^[1 + k]];
+                    Inc(iV, 3);  // inc to pos seq of next terminal
+                End;
+           END
+           // if neither 3-phase or pos seq model, just put in -1.0 for each element
+           ELSE  For i := 1 to  3*NTerms Do V012^[i] := Cmplx(-1.0, 0.0);  // Signify n/A
+      End
+      ELSE Begin    // for 3-phase elements
+           iV := 1;
+           FOR j := 1 to NTerms Do
+           Begin
+                k :=(j-1)*NConds;
+                FOR i := 1 to  3 DO Vph[i] := Solution.NodeV^[NodeRef^[i+k]];
+                Phase2SymComp(@Vph, @V012a);   // Compute Symmetrical components
+
+                For i := 1 to 3 DO  Begin     // Stuff it in the result array
+                   V012^[iV] := V012a[i];
+                   Inc(iV);
+                End;
+           End;
+      End;
+    END;
+END;
+
+{ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
 function TCktElement.Get_SeqVoltages: OleVariant;
 // All voltages of active ciruit element
 // magnitude only
@@ -534,76 +611,40 @@ function TCktElement.Get_SeqVoltages: OleVariant;
 // 0, 1, 2 sequence  (0, +, -)
 
 VAR
-  Nvalues,i,j,k,n, iV:Integer;
-  VPh, V012 : Array[1..3] of Complex;
-  S:String;
+    i  :Integer;
+    V012 :pComplexArray;
+    S :String;
 
 Begin
-  n := -1; // unassigned flags for exception message
-  Nvalues := -1;
   IF   ActiveCircuit <> Nil THEN
    WITH ActiveCircuit DO
    Begin
-     If ActiveCktElement<>Nil THEN
+     If ActiveCktElement <> Nil THEN
      WITH ActiveCktElement DO
      If Enabled Then
      Begin
-     TRY
-      Nvalues := NPhases;
-      Result := VarArrayCreate([0, 3*NTerms-1], varDouble);
-      IF Nvalues<>3
-      THEN Begin
-           IF (Nphases = 1) and PositiveSequence
-           THEN Begin
+         TRY
+            Result := VarArrayCreate([0, 3*NTerms-1], varDouble);
 
-              For i := 0 to  3*NTerms-1 DO Result[i] := 0.0;   // Initialize Result
-              iV := 1;
-              {Put only phase 1 quantities in Pos seq}
-              FOR j := 1 to NTerms Do
-              Begin
-                  k := (j - 1) * NConds;
-                  Vph[1] := Solution.NodeV^[NodeRef^[1 + k]];
-                  Result[iV] := Cabs(Vph[1]);
-                  Inc(iV, 3);
+            V012 := Allocmem(Sizeof(V012^[1]) * 3 * Nterms);
+            // get complex seq voltages
+            CalcSeqVoltages(ActiveCktElement, V012);
+            // return 0 based array
+            For i := 1 to 3*Nterms do Result[i-1] := Cabs(V012^[i]);  // return mag only
+
+            Reallocmem(V012, 0);  // throw away temp memory
+
+          EXCEPT
+             On E:Exception Do
+             Begin
+                S:= E.message + CRLF +
+                    'Element='+ ActiveCktElement.Name + CRLF+
+                    'Nphases=' + IntToStr(Nphases) + CRLF +
+                    'NTerms=' + IntToStr(NTerms) + CRLF +
+                    'NConds =' + IntToStr(NConds);
+                DoSimpleMsg(S, 5012);
               End;
-           END
-
-           ELSE     For i := 0 to  3*NTerms-1 DO Result[i] := -1.0;  // Signify n/A
-      End
-      ELSE Begin
-       iV := 0;
-
-       FOR j := 1 to NTerms Do
-       Begin
-
-          k :=(j-1)*NConds;
-          FOR i := 1 to  3 DO
-          Begin
-             Vph[i]  := Solution.NodeV^[NodeRef^[i+k]];
-          End;
-          Phase2SymComp(@Vph, @V012);   // Compute Symmetrical components
-
-          For i := 1 to 3 DO  // Stuff it in the result
-          Begin
-             Result[iV] := Cabs(V012[i]);
-             Inc(iV);
-          End;
-
-       End;
-      End;
-
-      EXCEPT
-         On E:Exception Do
-         Begin
-            S:= E.message + CRLF +
-                'Element='+ ActiveCktElement.Name + CRLF+
-                'Nvalues=' + IntToStr(NValues) + CRLF +
-                'NTerms=' + IntToStr(NTerms) + CRLF +
-                'NConds =' + IntToStr(NConds) + CRLF +
-                'noderef=' + IntToStr(N) ;
-            DoSimpleMsg(S, 5012);
-          End;
-      END;
+          END;
      End
      Else
          Result := VarArrayCreate([0, 0], varDouble);  // Disabled
@@ -908,6 +949,113 @@ begin
         Result := False;
       end;
   end;
+end;
+
+function TCktElement.Get_CplxSeqVoltages: OleVariant;
+{returns Seq Voltages as array of complex values}
+VAR
+    i, iV  :Integer;
+    V012 :pComplexArray;
+    S :String;
+
+Begin
+
+  IF   ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement <> Nil THEN
+     WITH ActiveCktElement DO
+     If Enabled Then
+     Begin
+         TRY
+            Result := VarArrayCreate([0, 2*3*NTerms-1], varDouble);
+
+            V012 := Allocmem(Sizeof(V012^[1]) * 3 * Nterms);
+            // get complex seq voltages
+            CalcSeqVoltages(ActiveCktElement, V012);
+            // return 0 based array
+            iV := 0;
+            For i := 1 to 3*Nterms do Begin
+                Result[iV] := V012^[i].re;
+                inc(iV);
+                Result[iV] := V012^[i].im;
+                inc(iV);
+            End;
+
+            Reallocmem(V012, 0);  // throw away temp memory
+
+          EXCEPT
+             On E:Exception Do
+             Begin
+                S:= E.message + CRLF +
+                    'Element='+ ActiveCktElement.Name + CRLF+
+                    'Nphases=' + IntToStr(Nphases) + CRLF +
+                    'NTerms=' + IntToStr(NTerms) + CRLF +
+                    'NConds =' + IntToStr(NConds);
+                DoSimpleMsg(S, 5012);
+              End;
+          END;
+     End
+     Else
+         Result := VarArrayCreate([0, 0], varDouble);  // Disabled
+
+   End
+  ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCktElement.Get_CplxSeqCurrents: OleVariant;
+{returns Seq Voltages as array of complex values}
+VAR
+    i, iV  :Integer;
+    i012 :pComplexArray;
+    S :String;
+
+Begin
+
+  IF   ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement <> Nil THEN
+     WITH ActiveCktElement DO
+     If Enabled Then
+     Begin
+         TRY
+            Result := VarArrayCreate([0, 2*3*NTerms-1], varDouble);
+
+            i012 := Allocmem(Sizeof(i012^[1]) * 3 * Nterms);
+            // get complex seq voltages
+            CalcSeqCurrents(ActiveCktElement, i012);
+            // return 0 based array
+            iV := 0;
+            For i := 1 to 3*Nterms do Begin
+                Result[iV] := i012^[i].re;
+                inc(iV);
+                Result[iV] := i012^[i].im;
+                inc(iV);
+            End;
+
+            Reallocmem(i012, 0);  // throw away temp memory
+
+          EXCEPT
+             On E:Exception Do
+             Begin
+                S:= E.message + CRLF +
+                    'Element='+ ActiveCktElement.Name + CRLF+
+                    'Nphases=' + IntToStr(Nphases) + CRLF +
+                    'NTerms=' + IntToStr(NTerms) + CRLF +
+                    'NConds =' + IntToStr(NConds);
+                DoSimpleMsg(S, 5012);
+              End;
+          END;
+     End
+     Else
+         Result := VarArrayCreate([0, 0], varDouble);  // Disabled
+
+   End
+  ELSE Result := VarArrayCreate([0, 0], varDouble);
+
+
 end;
 
 initialization
