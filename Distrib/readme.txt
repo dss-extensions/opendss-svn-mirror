@@ -3,7 +3,7 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2010, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 7.2.1
+Version 7.4.1
 
 Third-party Components
 ======================
@@ -56,8 +56,11 @@ efforts currently underway in the electric utility industry, at
 http://cimug.ucaiug.org and http://www.multispeak.org.  
 
 OpenDSS runs on 32-bit Windows, and the programming language is Delphi 
-(http://www.codegear.com).  Some of the supporting modules may require a 
-C++ compiler to build from source.  
+(http://www.codegear.com).  The present version of OpenDSS is compiled with
+Delphi 2010. There is also a Free Pascal version of the program.
+
+Some of the supporting modules may require a C++ compiler to build from 
+source.  
 
 Installation
 ============
@@ -87,6 +90,54 @@ Source Code
 OpenDSS source code is available from the following SVN repository:
 
 https://electricdss.svn.sourceforge.net/svnroot/electricdss
+
+
+Other convenient Sourceforge.net Links
+======================================
+
+OpenDSS Download Files:
+
+http://sourceforge.net/projects/electricdss/files/
+
+Getting Started
+
+http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=Getting_Started
+
+Latest Tech Notes in Wiki
+
+http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=List_of_DSS_tech_notes
+
+Questions and Answers
+
+http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=Questions_and_Answers
+
+OpenDSS Forum
+
+http://sourceforge.net/projects/electricdss/forums/forum/861976
+
+What is Unique About OpenDSS?
+
+http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=OpenDSS_Uniqueness
+
+Main Page in Wiki
+
+http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=Main_Page
+
+IEEE Test Cases
+
+http://electricdss.svn.sourceforge.net/viewvc/electricdss/IEEETestCases/
+
+Source Code
+
+http://electricdss.svn.sourceforge.net/viewvc/electricdss/Source/
+
+Top level of Distribution area (Releases)
+
+http://electricdss.svn.sourceforge.net/viewvc/electricdss/Distrib/
+
+Examples
+
+http://electricdss.svn.sourceforge.net/viewvc/electricdss/Examples/
 
 
 License
