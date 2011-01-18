@@ -21,3 +21,5 @@ Set emergvminpu=1.0
 plot circuit voltage dots=y labels=n  
 
 
+plot daisy Power Max=2000 dots=n labels=n subs=n C1= $00C5AC23 ! $00FF0000
+help
