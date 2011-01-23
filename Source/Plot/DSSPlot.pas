@@ -33,6 +33,9 @@ Const
      PROFILE3PH = 9999; // some big number > likely no. of phases
      PROFILEALL = 9998;
      PROFILEALLPRI = 9997;
+     PROFILELLALL = 9996;
+     PROFILELLPRI = 9995;
+     PROFILELL    = 9994;
 
 Type
      TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptProfile) ;
@@ -1880,6 +1883,7 @@ Var
    Bus1, Bus2         :TDSSbus;
    puV1, puV2         :Double;
    iphs               :Integer;
+   iphs2              :Integer;
    S                  :String;
    MyColor            :Tcolor;
    LineType           :TPenStyle;
@@ -1889,7 +1893,12 @@ Var
 begin
 
     {New graph created before this routine is entered}
-       S  := 'Voltage Profile';
+       case phasesToPlot of
+           PROFILELL, PROFILELLALL, PROFILELLPRI:  S  := 'L-L Voltage Profile';
+       else
+            S  := 'L-N Voltage Profile';
+       end;
+
        Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
        Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
        S := 'Distance (km)';
@@ -1952,6 +1961,59 @@ begin
                                     puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
                                     AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
                                            MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                              End;
+                  PROFILELL: Begin
+                                If (PresentCktElement.NPhases >= 3)  then
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := psDot else Linetype := psSolid;
+                                      MyColor := ColorArray[iphs];
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
+                                End;
+                              End;
+                  PROFILELLALL: Begin
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := psDot else Linetype := psSolid;
+                                      MyColor := ColorArray[iphs];
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
+                                End;
+                              End;
+                  PROFILELLPRI: Begin
+                                If Bus1.kVBase > 1.0 then
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := psDot else Linetype := psSolid;
+                                      MyColor := ColorArray[iphs];
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      AddNewLine(Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             MyColor, 2, Linetype, dots, AnsiString (PresentCktElement.Name), False, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
                                 End;
                               End;
                   ELSE     // plot just the selected phase
@@ -2371,6 +2433,7 @@ begin
           vizPower:   S := S1 + ' Powers';
        End;
        Set_Caption(pAnsiChar(AnsiString(s)), Length(S));
+       Set_ChartCaption(pAnsiChar(AnsiString(s)), Length(S));
 
        {Draw a box}
        TopY := 10.0 + (NCond+1)*10.0;

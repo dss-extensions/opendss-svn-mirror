@@ -118,10 +118,13 @@ Begin
       PlotHelp[18] := 'Enter 0 (the default value) or the value corresponding to min value corresponding to color C1 in General bus data plots.';
       PlotHelp[19] := 'Line style for drawing 3-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
       PlotHelp[20] := 'Line style for drawing 1-phase lines. A number in the range of [1..7].Default is 1 (solid). Use 3 for dotted; 2 for dashed.';
-      PlotHelp[21] := '{default | ALL | PRIMARY | (phase number)} For Profile plot. Specify which phases you want plotted.' + CRLF+CRLF+
+      PlotHelp[21] := '{default* | ALL | PRIMARY | LL3ph | LLALL | LLPRIMARY | (phase number)} For Profile plot. Specify which phases you want plotted.' + CRLF+CRLF+
                       'default = plot only nodes 1-3 at 3-phase buses (default)' +CRLF+
                       'ALL = plot all nodes' +CRLF+
                       'PRIMARY = plot all nodes -- primary only (voltage > 1kV)' +CRLF+
+                      'LL3ph = 3-ph buses only -- L-L voltages)' +CRLF+
+                      'LLALL = plot all nodes -- L-L voltages)' +CRLF+
+                      'LLPRIMARY = plot all nodes -- L-L voltages primary only)' +CRLF+
                       '(phase number) = plot all nodes on selected phase'+CRLF+CRLF+
                       'Note: Only nodes downline from an energy meter are plotted.';
 
@@ -239,7 +242,10 @@ Begin
                   PhasesToPlot := PROFILE3PH; // the default
                   if      CompareTextShortest(Param, 'default')=0 then PhasesToPlot := PROFILE3PH
                   Else if CompareTextShortest(Param, 'all')=0     then PhasesToPlot := PROFILEALL
-                  Else if CompareTextShortest(Param, 'primary')=0     then PhasesToPlot := PROFILEALLPRI
+                  Else if CompareTextShortest(Param, 'primary')=0 then PhasesToPlot := PROFILEALLPRI
+                  Else if CompareTextShortest(Param, 'll3ph')=0      then PhasesToPlot := PROFILELL
+                  Else if CompareTextShortest(Param, 'llall')=0   then PhasesToPlot := PROFILELLALL
+                  Else if CompareTextShortest(Param, 'llprimary')=0 then PhasesToPlot := PROFILELLPRI
                   Else If Length(Param)=1 then PhasesToPlot := Parser.IntValue;
              End;
 
