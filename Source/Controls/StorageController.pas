@@ -79,6 +79,13 @@ TYPE
             DischargeInhibited       :Boolean;
             OutOfOomph               :Boolean;
             InhibitHrs            :Integer;
+            UpRamptime            :Double;
+            FlatTime              :Double;
+            DnrampTime            :Double;
+            UpPlusFlat            :Double;
+            UpPlusFlatPlusDn      :Double;
+            LastpctDischargeRate  :Double;
+
 
             TotalkWCapacity       :Double;
             TotalkWhCapacity      :Double;
@@ -96,8 +103,8 @@ TYPE
 
            // PROCEDURE SetPctReserve;
             PROCEDURE SetAllFleetValues;
-            PROCEDURE SetFleetkWRate;
-            PROCEDURE SetFleetkvarRate;
+            PROCEDURE SetFleetkWRate(pctkw:Double);
+            PROCEDURE SetFleetkvarRate(pctkvar:Double);
             PROCEDURE SetFleetChargeRate;
             PROCEDURE SetFleetToCharge;
             PROCEDURE SetFleetToDisCharge;
@@ -121,6 +128,7 @@ TYPE
             PROCEDURE DoLoadFollowMode;
             PROCEDURE DoLoadShapeMode;
             PROCEDURE DoTimeMode (Opt:Integer);
+            PROCEDURE DoScheduleMode;
             FUNCTION NormalizeToTOD(h: Integer; sec: Double): Double;
             procedure Set_PFBand(const Value: Double);
             function  Get_FleetkW: Double;
@@ -147,15 +155,15 @@ TYPE
            PROCEDURE DumpProperties(VAR F:TextFile; Complete:Boolean);Override;
            FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
-           Property PFBand  :Double   Read FPFBand  Write  Set_PFBand;
-           Property FleetkW :Double   Read Get_FleetkW;
-           Property FleetkWh :Double  Read Get_FleetkWh;
+           Property PFBand   :Double   Read FPFBand  Write  Set_PFBand;
+           Property FleetkW  :Double   Read Get_FleetkW;
+           Property FleetkWh :Double   Read Get_FleetkWh;
            Property FleetReservekWh :Double Read Get_FleetReservekWh;
    End;
 
 
 VAR
-    ActiveStorageControllerObj:TStorageControllerObj;
+    ActiveStorageControllerObj:   TStorageControllerObj;
 
 {--------------------------------------------------------------------------}
 IMPLEMENTATION
@@ -194,17 +202,21 @@ CONST
     propEVENTLOG      = 26;
     propVARDISPATCH   = 27;
     propINHIBITTIME   = 28;
+    propTUPRAMP       = 29;
+    propTFLAT         = 30;
+    propTDNRAMP       = 31;
 
 
-    NumPropsThisClass = 28;
+    NumPropsThisClass = 31;
 
-//= = = = = = = = = = = = = = DEFINE CONTROL MODES = = = = = = = = = = = = = = = = = = = = = = = = =
+//= = = = = = = = = = = = = = DEFINE CONTROL MODE CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
 
     MODEFOLLOW      = 1;
     MODELOADSHAPE   = 2;
     MODESUPPORT     = 3;
     MODETIME        = 4;
     MODEPEAKSHAVE   = 5;
+    MODESCHEDULE    = 6;
 
 //= = = = = = = = = = = = = = DEFINE OTHER CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
     RELEASE_INHIBIT = 999;
@@ -271,6 +283,9 @@ Begin
      PropertyName[propEVENTLOG]               := 'EventLog';
      PropertyName[propVARDISPATCH]            := 'VarDispatch';
      PropertyName[propINHIBITTIME]            := 'InhibitTime';
+     PropertyName[propTUPRAMP]                := 'Tup';
+     PropertyName[propTFLAT]                  := 'TFlat';
+     PropertyName[propTDNRAMP]                := 'Tdn';
 
 
     PropertyHelp[propELEMENT]             :=
@@ -299,14 +314,16 @@ Begin
      'The needed kW or kvar to get back to center band is dispatched to each storage element according to these weights. ' +
      'Default is to set all weights to 1.0.';
     PropertyHelp[propMODEDISCHARGE]       :=
-     '{PeakShave* | Follow | Support | Loadshape | Time} Mode of operation for the DISCHARGE FUNCTION of this controller. ' +
+     '{PeakShave* | Follow | Support | Loadshape | Time | Schedule} Mode of operation for the DISCHARGE FUNCTION of this controller. ' +
      'In PeakShave mode (Default), the control attempts to discharge storage to keep power in the monitored element below the kWTarget. ' +
      'In Follow mode, the control is triggered by time and resets the kWTarget value to the present monitored element power. ' +
      'It then attempts to discharge storage to keep power in the monitored element below the new kWTarget. See TimeDischargeTrigger.' +
      'In Support mode, the control operates oppositely of PeakShave mode: storage is discharged to keep kW power output up near the target. ' +
      'In Loadshape mode, both charging and discharging precisely follows the per unit loadshape. ' +
      'Storage is discharged when the loadshape value is positive. ' +
-     'In Time mode, the storage discharge is turned on at the specified %RatekW and %Ratekvar at the specified discharge trigger time in fractional hours.';
+     'In Time mode, the storage discharge is turned on at the specified %RatekW and %Ratekvar at the specified discharge trigger time in fractional hours.' +
+     'In Schedule mode, the Tup, TFlat, and Tdn properties specify the up ramp duration, flat duration, and down ramp duration for the schedule. ' +
+     'The schedule start time is set by TimeDischargeTrigger and the rate of discharge for the flat part is determined by RatekW.';
     PropertyHelp[propMODECHARGE]          :=
      '{Loadshape | Time*} Mode of operation for the CHARGE FUNCTION of this controller. ' +
      'In Loadshape mode, both charging and discharging precisely follows the per unit loadshape. ' +
@@ -322,7 +339,7 @@ Begin
      'When this value is >0 the storage fleet is set to charging at this time regardless of other control criteria to make sure storage is ' +
      'topped off for the next discharge cycle.';
     PropertyHelp[propRATEKW]              :=
-      'Sets the kW discharge rate in % of rated capacity for each element of the fleet. Applies to TIME control mode or anytime discharging is triggered ' +
+      'Sets the kW discharge rate in % of rated capacity for each element of the fleet. Applies to TIME control mode, SCHEDULE mode, or anytime discharging is triggered ' +
       'by time.';
     PropertyHelp[propRATEKVAR]            :=
       'Sets the kvar discharge rate in % of rated capacity for each element of the fleet. Applies to TIME control mode or anytime discharging is triggered ' +
@@ -357,6 +374,9 @@ Begin
       '{Yes/True | No/False} Default is No. Flag to indicate whether or not to disatch vars as well as watts.';
     PropertyHelp[propINHIBITTIME]         :=
       'Hours (integer) to inhibit Discharging after going into Charge mode. Default is 5';
+     PropertyHelp[propTUPRAMP]  := 'Duration, hrs, of upramp part for SCHEDULE mode. Default is 0.25.';
+     PropertyHelp[propTFLAT]    := 'Duration, hrs, of flat part for SCHEDULE mode. Default is 2.0.';
+     PropertyHelp[propTDNRAMP]  := 'Duration, hrs, of downramp part for SCHEDULE mode. Default is 0.25.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -438,6 +458,9 @@ Begin
             propEVENTLOG: ShowEventLog := InterpretYesNo(Param);
             propVARDISPATCH: DispatchVars := InterpretYesNo(Param);
             propINHIBITTIME: Inhibithrs   := Max(1, Parser.IntValue);  // >=1
+            propTUPRAMP: UpRamptime    := Parser.DblValue;
+            propTFLAT:   FlatTime      := Parser.DblValue;
+            propTDNRAMP: DnrampTime    := Parser.DblValue;
 
          ELSE
            // Inherited parameters
@@ -545,6 +568,10 @@ Begin
         ShowEventLog         := OtherStorageController.ShowEventLog;
         Inhibithrs           := OtherStorageController.Inhibithrs;
 
+        UpRamptime    := OtherStorageController.UpRamptime;
+        FlatTime      := OtherStorageController.FlatTime;
+        DnrampTime    := OtherStorageController.DnrampTime;
+
 
 
 //**** fill in private properties
@@ -615,6 +642,12 @@ Begin
      OutOfOomph           := FALSE;
      InhibitHrs           := 5;   // No. Hours to inhibit discharging after going into charge mode
 
+     UpRamptime    := 0.25; // hr
+     FlatTime      := 2.0;
+     DnrampTime    := 0.25;
+     LastpctDischargeRate := 0.0;
+
+
      InitPropertyValues(0);
 
 End;
@@ -670,6 +703,9 @@ Begin
      PropertyValue[propDUTY]                 :='';
      PropertyValue[propEVENTLOG]             :='No';
      PropertyValue[propINHIBITTIME]          := '5';
+     PropertyValue[propTUPRAMP]              := '0.25';
+     PropertyValue[propTFLAT]                := '2.0';
+     PropertyValue[propTDNRAMP]              := '0.25';
 
 
   inherited  InitPropertyValues(NumPropsThisClass);
@@ -707,6 +743,9 @@ Begin
           propEVENTLOG             : If ShowEventLog Then Result := 'Yes' Else Result := 'No';
           propVARDISPATCH          : If DispatchVars Then Result := 'Yes' Else Result := 'No';
           propINHIBITTIME          : Result := Format('%d', [InhibitHrs]);
+          propTUPRAMP              : Result := Format('%.6g', [UpRamptime]);
+          propTFLAT                : Result := Format('%.6g', [FlatTime]);
+          propTDNRAMP              : Result := Format('%.6g', [DnrampTime]);
 
      ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
@@ -793,6 +832,9 @@ Begin
             SetFleetToExternal;
             SetAllFleetValues;
        End;
+
+       UpPlusFlat := UpRampTime + FlatTime;
+       UpPlusFlatPlusDn := UpPlusFlat + DnRampTime;
 
 End;
 
@@ -959,6 +1001,90 @@ Begin
         
 End;
 
+procedure TStorageControllerObj.DoScheduleMode;
+{
+  In SCHEDULE mode we ramp up the storage from zero to the specified pctkWRate.
+  This value is held for the flattime or until they  turn themselves
+  off when they are either fully discharged, or ramped down
+
+  The discharge trigger time must be greater than 0
+}
+
+Var
+   TDiff :Double;
+   pctDischargeRate :Double;
+Begin
+       pctDischargeRate := 0.0;   // init for test
+       If (DisChargeTriggerTime > 0.0)  Then
+         WITH ActiveCircuit.Solution Do
+         Begin
+           // turn on if time within 1/2 time step
+               If Not (FleetState=STORE_DISCHARGING) Then
+               Begin
+                    ChargingAllowed := TRUE;
+                    TDiff := NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime;
+                    If abs(TDiff) < DynaVars.h/7200.0 Then
+                    Begin
+                        {Time is within 1 time step of the trigger time}
+                          If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging (up ramp)by Schedule');
+                          SetFleetToDischarge;
+                          ChargingAllowed := FALSE;
+                          pctDischargeRate :=  min(pctkWRate, max(pctKWRate * Tdiff/UpRampTime, 0.0));
+                          SetFleetkWRate(pctDischargeRate);
+                          DischargeInhibited := FALSE;
+                          With ActiveCircuit, ActiveCircuit.Solution Do
+                          Begin
+                                LoadsNeedUpdating := TRUE; // Force recalc of power parms
+                                // Push present time onto control queue to force re solve at new dispatch value
+                                ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
+                          End;
+                    End;
+               End
+
+               Else Begin    // fleet is already discharging
+                    TDiff := NormalizeToTOD(intHour, DynaVars.t) - DisChargeTriggerTime;
+                    If TDiff < UpRampTime Then Begin
+
+                          pctDischargeRate :=  min(pctkWRate, max(pctKWRate * Tdiff/UpRampTime, 0.0));
+                          SetFleetkWRate(pctDischargeRate);
+
+                    end Else Begin
+
+                          If TDiff < UpPlusFlat Then  Begin
+
+                              pctDischargeRate := pctkWRate;
+                              If PctDischargeRate <> LastpctDischargeRate Then
+                                 SetFleetkWRate(pctkWRate);  // on the flat part
+
+                          End Else If TDiff > UpPlusFlatPlusDn Then Begin
+
+                              SetFleetToIdle;
+                              ChargingAllowed := TRUE;
+                              pctDischargeRate := 0.0;
+                              If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Idling by Schedule');
+
+                          End Else Begin  // We're on the down ramp
+
+                              TDiff := UpPlusFlatPlusDn - TDiff;
+                              pctDischargeRate :=  max(0.0, min(pctKWRate * Tdiff/DnRampTime, pctKWRate));
+                              SetFleetkWRate(pctDischargeRate);
+
+                          End;
+
+                    End;
+
+                    If pctDischargeRate <> LastpctDischargeRate Then
+                    With ActiveCircuit, ActiveCircuit.Solution Do
+                    Begin
+                          LoadsNeedUpdating := TRUE; // Force recalc of power parms
+                          // Push present time onto control queue to force re solve at new dispatch value
+                          ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
+                    End;
+               End;  {If not fleetstate ...}
+         End;
+         LastpctDischargeRate := pctDischargeRate;   // remember this value
+end;
+
 PROCEDURE TStorageControllerObj.DoTimeMode(Opt: Integer);
 {
   In Time mode we need to only turn the storage elements on. They will turn themselves
@@ -981,7 +1107,7 @@ Begin
                         {Time is within 1 time step of the trigger time}
                           If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging by Time Trigger');
                           SetFleetToDischarge;
-                          SetFleetkWRate;
+                          SetFleetkWRate(pctKWRate);
                           DischargeInhibited := FALSE;
                           If DischargeMode = MODEFOLLOW Then  DischargeTriggeredByTime := TRUE
                           Else
@@ -1203,7 +1329,6 @@ PROCEDURE TStorageControllerObj.Sample;
 
 Begin
        ChargingAllowed := FALSE;
-
 {
   Check discharge mode first. Then if not discharging, we can check for charging
 }
@@ -1217,6 +1342,7 @@ Begin
             MODESUPPORT:   DoLoadFollowMode;
             MODETIME:      DoTimeMode(1);
             MODEPEAKSHAVE: DoLoadFollowMode;
+            MODESCHEDULE:  DoScheduleMode;
        ELSE
            DoSimpleMsg(Format('Invalid DisCharging Mode: %d',[DisChargeMode]), 14408);
        END;
@@ -1307,8 +1433,8 @@ Begin
              If (NewkWRate <> pctkWRate) or (NewkvarRate <> pctkvarRate) then RateChanged := TRUE;
              pctkWRate   := NewkWRate;
              pctkvarRate := NewkvarRate;
-             SetFleetkWRate;
-             SetFleetkvarRate;
+             SetFleetkWRate(pctKWRate);
+             SetFleetkvarRate(pctkvarRate);
              SetFleetToDischarge;
              ActiveCircuit.Solution.LoadsNeedUpdating := TRUE; // Force recalc of power parms
          End;
@@ -1359,12 +1485,12 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-PROCEDURE TStorageControllerObj.SetFleetkWRate;
+PROCEDURE TStorageControllerObj.SetFleetkWRate(pctkw:Double);
 VAR
       i   :Integer;
 Begin
       For i := 1 to FleetPointerList.ListSize Do
-            TStorageObj(FleetPointerList.Get(i)).pctkWout := pctkWRate;
+            TStorageObj(FleetPointerList.Get(i)).pctkWout := pctkw;
 End;
 
 //----------------------------------------------------------------------------
@@ -1439,7 +1565,8 @@ Begin
                   'f': Result := MODEFOLLOW;
                   'l': Result := MODELOADSHAPE;
                   'p': Result := MODEPEAKSHAVE;
-                  's': Result := MODESUPPORT;
+                  's': If LowerCase(S)[2] = 'c' Then Result := MODESCHEDULE
+                                                Else Result := MODESUPPORT;
                   't': Result := MODETIME;
               ELSE
                   DoSimpleMsg('Discharge Mode "' + S + '" not recognized.', 14402);
