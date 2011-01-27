@@ -47,6 +47,7 @@ TYPE
      private
 
             FkWTarget,
+            FkWThreshold,
             FpctkWBand,
             HalfkWBand,
             FPFTarget,    // Range on this is 0..2 where 1..2 is leading
@@ -159,6 +160,7 @@ TYPE
            Property FleetkW  :Double   Read Get_FleetkW;
            Property FleetkWh :Double   Read Get_FleetkWh;
            Property FleetReservekWh :Double Read Get_FleetReservekWh;
+
    End;
 
 
@@ -205,9 +207,10 @@ CONST
     propTUPRAMP       = 29;
     propTFLAT         = 30;
     propTDNRAMP       = 31;
+    propKWTHRESHOLD   = 32;
 
 
-    NumPropsThisClass = 31;
+    NumPropsThisClass = 32;
 
 //= = = = = = = = = = = = = = DEFINE CONTROL MODE CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -286,6 +289,7 @@ Begin
      PropertyName[propTUPRAMP]                := 'Tup';
      PropertyName[propTFLAT]                  := 'TFlat';
      PropertyName[propTDNRAMP]                := 'Tdn';
+     PropertyName[propKWTHRESHOLD]            := 'kWThreshold';
 
 
     PropertyHelp[propELEMENT]             :=
@@ -377,6 +381,9 @@ Begin
      PropertyHelp[propTUPRAMP]  := 'Duration, hrs, of upramp part for SCHEDULE mode. Default is 0.25.';
      PropertyHelp[propTFLAT]    := 'Duration, hrs, of flat part for SCHEDULE mode. Default is 2.0.';
      PropertyHelp[propTDNRAMP]  := 'Duration, hrs, of downramp part for SCHEDULE mode. Default is 0.25.';
+     PropertyHelp[propKWTHRESHOLD] := 'Threshold, kW, for Follow mode. kW has to be above this value for the Storage element ' +
+                                      'to be dispatched on. Defaults to 75% of the kWTarget value. Must reset this property after ' +
+                                      'setting kWTarget if you want a different value.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -461,6 +468,7 @@ Begin
             propTUPRAMP: UpRamptime    := Parser.DblValue;
             propTFLAT:   FlatTime      := Parser.DblValue;
             propTDNRAMP: DnrampTime    := Parser.DblValue;
+            propKWTHRESHOLD: FkWThreshold := Parser.DblValue;
 
          ELSE
            // Inherited parameters
@@ -471,7 +479,7 @@ Begin
 
          CASE ParamPointer OF
             propKWTARGET,
-            propKWBAND: HalfkWBand := FpctkWBand / 200.0 * FkWTarget;
+            propKWBAND: Begin HalfkWBand := FpctkWBand / 200.0 * FkWTarget; FkWThreshold := FkWTarget*0.75; End;
             propPFBAND: HalfPFBand := FPFBand / 2.0;
             propMODEDISCHARGE: If DischargeMode = MODEFOLLOW Then  DischargeTriggerTime := 12.0; // Noon
 
@@ -537,6 +545,7 @@ Begin
         ElementTerminal   := OtherStorageController.ElementTerminal;
 
         FkWTarget         := OtherStorageController.FkWTarget;
+        FkWThreshold      := OtherStorageController.FkWThreshold;
         FpctkWBand        := OtherStorageController.FpctkWBand;
         FPFTarget         := OtherStorageController.FPFTarget;
         FPFBand           := OtherStorageController.FPFBand;
@@ -615,6 +624,7 @@ Begin
      FleetSize        := 0;
      FleetState       := STORE_IDLING;
      FkWTarget        := 8000.0;
+     FkWThreshold     := 6000.0;
      FpctkWBand       := 2.0;
      TotalWeight      := 1.0;
      HalfkWBand       := FpctkWBand/200.0 * FkWTarget;
@@ -706,6 +716,7 @@ Begin
      PropertyValue[propTUPRAMP]              := '0.25';
      PropertyValue[propTFLAT]                := '2.0';
      PropertyValue[propTDNRAMP]              := '0.25';
+     PropertyValue[propKWTHRESHOLD]          := '4000';
 
 
   inherited  InitPropertyValues(NumPropsThisClass);
@@ -746,6 +757,7 @@ Begin
           propTUPRAMP              : Result := Format('%.6g', [UpRamptime]);
           propTFLAT                : Result := Format('%.6g', [FlatTime]);
           propTDNRAMP              : Result := Format('%.6g', [DnrampTime]);
+          propKWTHRESHOLD          : Result := Format('%.6g', [FkWThreshold]);
 
      ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
@@ -1204,7 +1216,7 @@ Begin
                               If DischargeTriggeredByTime Then Begin
                                   If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name,
                                      Format('Fleet Set to Discharging by Time Trigger; Old kWTarget = %-.6g; New = 5-.6g',[FkwTarget, S.re * 0.001]));
-                                  FkwTarget := S.re * 0.001;  // Capture present kW and reset target
+                                  FkwTarget := Max(FkWThreshold, S.re * 0.001);  // Capture present kW and reset target
                                   DischargeTriggeredByTime := FALSE;  // so we don't come back in here right away
                                   SetFleetToIdle;
                               End;
