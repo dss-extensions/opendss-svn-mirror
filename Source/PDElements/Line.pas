@@ -51,6 +51,7 @@ TYPE
         FrhoSpecified      :Boolean;
         FLineCodeSpecified :Boolean;
         FEarthModel        :Integer;
+        FCapSpecified      :Boolean; // To make sure user specifies C in some form
 
         Procedure FMakeZFromGeometry(f:Double); // make new Z, Zinv, Yc, etc
         Procedure KillGeometrySpecified;
@@ -573,6 +574,11 @@ Begin
          ELSE
          End;
 
+         CASE ParamPointer OF
+              10, 11, 14:FCapSpecified := TRUE;
+         ELSE
+         END;
+
 
          ParamName := Parser.NextParam;
          Param     := Parser.StrValue;
@@ -626,6 +632,7 @@ Begin
        C0:= OtherLine.C0;
        Len := OtherLine.Len;
        SymComponentsModel := OtherLine.SymComponentsModel;
+       FCapSpecified := OtherLine.FCapSpecified;
 
        ClassMakeLike(OtherLine);  // Take care of inherited class properties
 
@@ -677,6 +684,7 @@ Begin
      rho := 100.0;
      Kxg := Xg/ln(658.5*sqrt(rho/BaseFrequency));
      FrhoSpecified :=FALSE;
+     FCapSpecified := FALSE;
 
      {Basefrequency := 60.0;}  // set in base class
      Normamps := 400.0;
@@ -776,6 +784,13 @@ Begin
     End;
     Zs := CmulReal(CAdd(Ztemp, Cmplx(R0, X0)), OneThird);
     Zm := CmulReal(Csub(cmplx(R0, X0), Cmplx(R1, X1)), OneThird);
+
+    {Check to see if user has spec'd C1 and C0. If not, adjust default values for new length units}
+    If not FCapSpecified Then Begin
+        C1 := FUnitsConvert * C1;
+        C0 := FUnitsConvert * C0;
+        FCapSpecified := TRUE;   // so we don't do it again
+    End;
 
     Yc1 := TwoPi * BaseFrequency * C1;
     Yc0 := TwoPi * BaseFrequency * C0;

@@ -168,7 +168,9 @@ uses
   ShowOptions in '..\Executive\ShowOptions.pas',
   PlotOptions in '..\Executive\PlotOptions.pas',
   ExportOptions in '..\Executive\ExportOptions.pas',
-  MyDSSClassDefs in '..\EXE\MyDSSClassDefs.Pas';
+  MyDSSClassDefs in '..\EXE\MyDSSClassDefs.Pas',
+  PVSystemUserModel in '..\PCElements\PVSystemUserModel.pas',
+  PVsystem in '..\PCElements\PVsystem.pas';
 
 exports
   DllGetClassObject,

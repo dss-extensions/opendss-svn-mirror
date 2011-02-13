@@ -44,6 +44,7 @@ CONST
       STORAGE_ELEMENT  = 21 * 8;
       STORAGE_CONTROL  = 22 * 8;
       SWT_CONTROL      = 23 * 8;
+      PVSYSTEM_ELEMENT = 24 * 8;
 
 VAR
    NumIntrinsicClasses,
@@ -96,7 +97,8 @@ USES
      XfmrCode,
      Storage,
      StorageController,
-     SwtControl
+     SwtControl,
+     PVSystem
 ;
 
 
@@ -156,6 +158,8 @@ Begin
      FeederClass    := TFeeder.Create;
      DSSClasses.New := FeederClass;
      DSSClasses.New := TSwtControl.Create;
+//     PVSystemClass  := TPVSystem.Create;
+//     DSSClasses.New := PVSystemClass;
 
      MonitorClass   := TDSSMonitor.Create;  // Have to do this AFTER Generator
      DSSClasses.New := MonitorClass;

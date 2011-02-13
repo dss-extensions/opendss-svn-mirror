@@ -389,7 +389,7 @@ Begin
      AddProperty('conn',      propCONNECTION,
                               '={wye|LN|delta|LL}.  Default is wye.');
      AddProperty('kvar',      propKVAR,
-                              'Get/set the present kW value.  Alternative to specifying the power factor.  Side effect: '+
+                              'Get/set the present kvar value.  Alternative to specifying the power factor.  Side effect: '+
                               ' the power factor value is altered to agree based on present value of kW.');
      AddProperty('kVA',       propKVA,
                               'kVA rating of power output. Defaults to rated kW. Used as the base for Dynamics mode and Harmonics mode values.');
@@ -437,7 +437,7 @@ Begin
                               ' for harmonics and dynamics modes. (Limits fault current to 2 pu.) ' +
                               'Use %Idlekvar and kvar properties to account for any reactive power during power flow solutions.');
      AddProperty('model',     propMODEL,
-                              'Integer code for the model to use for powet output variation with voltage. '+
+                              'Integer code (default=1) for the model to use for powet output variation with voltage. '+
                               'Valid values are:' +CRLF+CRLF+
                               '1:Storage element injects a CONSTANT kW at specified power factor.'+CRLF+
                               '2:Storage element is modeled as a CONSTANT ADMITTANCE.'  +CRLF+
@@ -814,7 +814,7 @@ Begin
 
          Result := 1;
      End
-     ELSE  DoSimpleMsg('Error in Load MakeLike: "' + OtherStorageObjName + '" Not Found.', 562);
+     ELSE  DoSimpleMsg('Error in Storage MakeLike: "' + OtherStorageObjName + '" Not Found.', 562);
 
 End;
 

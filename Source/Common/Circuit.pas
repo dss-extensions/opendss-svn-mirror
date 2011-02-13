@@ -106,6 +106,7 @@ TYPE
           EnergyMeters,
           Generators,
           StorageElements,
+          PVSystems,
           Substations,
           Transformers,
           CapControls,
@@ -291,6 +292,7 @@ BEGIN
      Sensors      := TPointerList.Create(5);
      Generators   := TPointerList.Create(5);
      StorageElements := TPointerList.Create(5);
+     PVSystems := TPointerList.Create(5);
      Feeders   := TPointerList.Create(10);
      Substations  := TPointerList.Create(5);
      Transformers := TPointerList.Create(10);
@@ -445,6 +447,7 @@ BEGIN
      Sensors.Free;
      Generators.Free;
      StorageElements.Free;
+     PVSystems.Free;
      Feeders.Free;
      Substations.Free;
      Transformers.Free;
@@ -682,6 +685,7 @@ BEGIN
        FEEDER_ELEMENT :Feeders.Add(ActiveCktElement);
 
        STORAGE_ELEMENT:StorageElements.Add(ActiveCktElement);
+       PVSYSTEM_ELEMENT:PVSystems.Add(ActiveCktElement);
    END;
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle
