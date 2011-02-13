@@ -145,7 +145,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  MathUtil, Utilities, Classes, TOPExport, Math, PointerList;
 
-Const NumPropsThisClass = 14;
+Const NumPropsThisClass = 16;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLoadShape.Create;  // Creates superstructure for all Line objects
@@ -193,12 +193,15 @@ Begin
      PropertyName[12] := 'UseActual'; // Flag to signify to use actual value
      PropertyName[13] := 'Pmax'; // MaxP value
      PropertyName[14] := 'Qmax'; // MaxQ
+     PropertyName[15] := 'sinterval'; // Interval in seconds
+     PropertyName[16] := 'minterval'; // Interval in minutes
 
      // define Property help values
 
      PropertyHelp[1] := 'Max number of points to expect in load shape vectors. This gets reset to the number of multiplier values found (in files only) if less than specified.';     // Number of points to expect
-     PropertyHelp[2] := 'Time interval for fixed interval data. (hrs) Default = 1. '+
-                        'If set = 0 then time data (in hours) is expected using either the Hour property or input files.'; // default = 1.0;
+     PropertyHelp[2] := 'Time interval for fixed interval data, hrs. Default = 1. '+
+                        'If set = 0 then time data (in hours) is expected using either the Hour property or input files. ' +CRLF+CRLF+
+                        'See also "sinterval" and "minterval".'; // default = 1.0;
      PropertyHelp[3] := 'Array of multiplier values for active power (P).  You can also use the syntax: '+CRLF+
                         'mult = (file=filename)     !for text file one value per line'+CRLF+
                         'mult = (dblfile=filename)  !for packed file of doubles'+CRLF+
@@ -242,6 +245,8 @@ Begin
                          'Use this property to override the value automatically computed or to retrieve the value computed.';
      PropertyHelp[14] := 'kvar value at the time of max kW power. Is automatically set upon reading in a loadshape. '+
                          'Use this property to override the value automatically computed or to retrieve the value computed.';
+     PropertyHelp[15] := 'Specify fixed interval in SECONDS. Alternate way to specify Interval property.';
+     PropertyHelp[16] := 'Specify fixed interval in MINUTES. Alternate way to specify Interval property.';
 
 
      ActiveProperty := NumPropsThisClass;
@@ -315,6 +320,8 @@ BEGIN
            12: UseActual := InterpretYesNo(Param);
            13: MaxP := Parser.DblValue;
            14: MaxQ := Parser.DblValue;
+           15: Interval := Parser.DblValue / 3600.0;  // Convert seconds to hr
+           16: Interval := Parser.DblValue / 60.0;  // Convert minutes to hr
          ELSE
            // Inherited parameters
              ClassEdit( ActiveLoadShapeObj, ParamPointer - NumPropsThisClass)
@@ -841,6 +848,7 @@ begin
         End;
 
         CASE Index of
+          2: Result := Format('%.8g', [Interval]);
           3: FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [PMultipliers^[i]]);
           4: IF Hours <> Nil THEN FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [Hours^[i]]) ;
           5: Result := Format('%.8g', [Mean ]);
@@ -853,7 +861,8 @@ begin
           12: If UseActual then Result := 'Yes' else Result := 'No';
           13: Result := Format('%.8g', [MaxP ]);
           14: Result := Format('%.8g', [MaxQ ]);
-
+          15: Result := Format('%.8g', [Interval * 3600.0 ]);
+          16: Result := Format('%.8g', [Interval * 60.0 ]);
         ELSE
            Result := Inherited GetPropertyValue(index);
         END;
@@ -868,7 +877,7 @@ procedure TLoadShapeObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
      PropertyValue[1] := '0';     // Number of points to expect
-     PropertyValue[2] := '1'; // default = 1.0;
+     PropertyValue[2] := '1'; // default = 1.0 hr;
      PropertyValue[3] := '';     // vector of multiplier values
      PropertyValue[4] := '';     // vextor of hour values
      PropertyValue[5] := '0';     // set the mean (otherwise computed)
@@ -881,6 +890,9 @@ begin
      PropertyValue[12] := 'No';
      PropertyValue[13] := '0';
      PropertyValue[14] := '0';
+     PropertyValue[15] := '3600';   // seconds
+     PropertyValue[16] := '60';     // minutes
+
 
 
     inherited  InitPropertyValues(NumPropsThisClass);
