@@ -785,12 +785,6 @@ Begin
     Zs := CmulReal(CAdd(Ztemp, Cmplx(R0, X0)), OneThird);
     Zm := CmulReal(Csub(cmplx(R0, X0), Cmplx(R1, X1)), OneThird);
 
-    {Check to see if user has spec'd C1 and C0. If not, adjust default values for new length units}
-    If not FCapSpecified Then Begin
-        C1 := FUnitsConvert * C1;
-        C0 := FUnitsConvert * C0;
-        FCapSpecified := TRUE;   // so we don't do it again
-    End;
 
     Yc1 := TwoPi * BaseFrequency * C1;
     Yc0 := TwoPi * BaseFrequency * C0;
@@ -832,7 +826,17 @@ Begin
     FreqMultiplier := 1.0;
     LengthMultiplier := 1.0;
 
-    IF SymComponentsChanged  THEN RecalcElementData;
+    IF SymComponentsChanged  THEN BEGIN
+      {Try to catch inadvertent user error when they forget to specify C1 and C0 }
+      {Check to see if user has spec'd C1 and C0. If not, adjust default values for new length units}
+      If not FCapSpecified Then Begin
+          C1 := C1 / ConvertLineUnits(UNITS_KFT, LengthUnits) ; // were defined in kft
+          C0 := C0 / ConvertLineUnits(UNITS_KFT, LengthUnits) ;
+          FCapSpecified := TRUE;   // so we don't do it again
+      End;
+
+      RecalcElementData;
+    END;
 
     ClearYPrim;
 
