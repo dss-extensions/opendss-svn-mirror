@@ -18,8 +18,8 @@ Interface
 
  The values are set by the normal New and Edit PROCEDUREs for any DSS object.
 
- The values may be retrieved by setting the Code Property in the LoadShape Class.
- This sets the active LoadShape object to be the one referenced by the Code Property;
+ The values may be retrieved by setting the Code Property in the Tshape Class.
+ This sets the active Tshape object to be the one referenced by the Code Property;
 
  Then the values of that code can be retrieved via the public variables.  Or you
  can pick up the ActiveTShapeObj object and save the direct reference to the object.
@@ -714,7 +714,7 @@ VAR
    i: Integer;
 Begin
         Case Index of
-        3,4: Result := '(';
+        3,4: Result := '[';
         ELSE
         Result := '';
         End;
@@ -732,7 +732,7 @@ Begin
         End;
 
         Case Index of
-        3,4: Result := Result + ')';
+        3,4: Result := Result + ']';
         ELSE
         End;
 End;

@@ -145,9 +145,8 @@ uses
   WireData in '..\General\WireData.pas',
   XfmrCode in '..\General\XfmrCode.pas',
   Ymatrix in '..\Common\Ymatrix.pas' ,
-  TempShape in '..\General\TempShape.pas';
-
-
+  TempShape in '..\General\TempShape.pas',
+  XYcurve in '..\General\XYcurve.pas';
 
 {$R *.RES}
 
