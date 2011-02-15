@@ -26,6 +26,7 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      {Some units which have global vars defined here}
      Spectrum,
      LoadShape,
+     TempShape,
      GrowthShape,
      Monitor,
      EnergyMeter,
@@ -155,6 +156,7 @@ VAR
 
    // Some commonly used classes   so we can find them easily
    LoadShapeClass     :TLoadShape;
+   TShapeClass        :TTshape;
    GrowthShapeClass   :TGrowthShape;
    SpectrumClass      :TSpectrum;
    SolutionClass      :TDSSClass;
@@ -167,6 +169,7 @@ VAR
    LineSpacingClass   :TLineSpacing;
    StorageClass       :TStorage;
    PVSystemClass      :TPVSystem;
+
 
    EventStrings: TStringList;
    SavedFileList:TStringList;

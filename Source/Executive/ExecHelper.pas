@@ -2551,6 +2551,7 @@ Begin
 
     Case  Param[1] of
         'L': LoadShapeClass.TOPExport(ObjName);
+        'T': TshapeClass.TOPExport(ObjName);
         {
           'G': GrowthShapeClass.TOPExportAll;
           'T': TCC_CurveClass.TOPExportAll;

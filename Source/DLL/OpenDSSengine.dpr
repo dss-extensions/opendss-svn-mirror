@@ -170,7 +170,8 @@ uses
   ExportOptions in '..\Executive\ExportOptions.pas',
   MyDSSClassDefs in '..\EXE\MyDSSClassDefs.Pas',
   PVSystemUserModel in '..\PCElements\PVSystemUserModel.pas',
-  PVsystem in '..\PCElements\PVsystem.pas';
+  PVsystem in '..\PCElements\PVsystem.pas',
+  TShape in '..\General\TShape.pas';
 
 exports
   DllGetClassObject,

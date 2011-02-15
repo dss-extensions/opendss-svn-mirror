@@ -65,7 +65,7 @@
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">1</VersionInfo>
-						<VersionInfo Name="Build">16</VersionInfo>
+						<VersionInfo Name="Build">17</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -77,7 +77,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">DSS Engine</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.4.1.16</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.4.1.17</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSSEngine</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright 2010 EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
@@ -336,6 +336,7 @@
 			<DCCReference Include="..\EXE\MyDSSClassDefs.Pas"/>
 			<DCCReference Include="..\PCElements\PVSystemUserModel.pas"/>
 			<DCCReference Include="..\PCElements\PVsystem.pas"/>
+			<DCCReference Include="..\General\TShape.pas"/>
 			<RidlCompile Include="OpenDSSengine.ridl"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

@@ -77,6 +77,7 @@ USES
      LineSpacing,
      Load,
      LoadShape,
+     TempShape,
      Monitor,
      EnergyMeter,
      GrowthShape,
@@ -123,6 +124,8 @@ Begin
      DSSClasses.New := TLineCode.Create;
      LoadShapeClass := TLoadShape.Create;
      DSSClasses.New := LoadShapeClass;
+     TShapeClass    := TTShape.Create;
+     DSSClasses.New := TShapeClass;
      GrowthShapeClass := TGrowthShape.Create;
      DSSClasses.New := GrowthShapeClass;
      TCC_CurveClass := TTCC_Curve.Create;

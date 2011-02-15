@@ -144,8 +144,10 @@ uses
   VSource in '..\PCElements\VSource.pas',
   WireData in '..\General\WireData.pas',
   XfmrCode in '..\General\XfmrCode.pas',
-  Ymatrix in '..\Common\Ymatrix.pas'
-  ;
+  Ymatrix in '..\Common\Ymatrix.pas' ,
+  TempShape in '..\General\TempShape.pas';
+
+
 
 {$R *.RES}
 
