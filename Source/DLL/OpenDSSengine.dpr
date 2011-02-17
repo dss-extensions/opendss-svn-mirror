@@ -171,7 +171,8 @@ uses
   MyDSSClassDefs in '..\EXE\MyDSSClassDefs.Pas',
   PVSystemUserModel in '..\PCElements\PVSystemUserModel.pas',
   PVsystem in '..\PCElements\PVsystem.pas',
-  TShape in '..\General\TShape.pas';
+  TempShape in '..\General\TempShape.pas',
+  XYcurve in '..\General\XYcurve.pas';
 
 exports
   DllGetClassObject,

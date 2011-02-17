@@ -30,6 +30,7 @@ type
     procedure rdoNumericalClick(Sender: TObject);
   private
     { Private declarations }
+    PROCEDURE AddHelpForClasses(BaseClass:Word);
   public
     { Public declarations }
   end;
@@ -174,13 +175,54 @@ begin
   BuildTreeViewList;
 end;
 
+procedure THelpForm1.AddHelpForClasses(BaseClass: WORD);
+Var
+    HelpList  : TList;
+    Node1     :TTreeNode;
+    pDSSClass :TDSSClass;
+    i,j       :Integer;
+begin
+
+     WITH Treeview1.Items DO
+     Begin
+
+ // put the other DSS Classes in alphabetical order within Base Class
+        HelpList := TList.Create();
+        pDSSClass := DSSClassList.First;
+        WHILE pDSSClass<>Nil DO Begin
+          If (pDSSClass.DSSClassType AND BASECLASSMASK) = BaseClass
+           Then HelpList.Add (pDSSClass);
+          pDSSClass := DSSClassList.Next;
+        End;
+        HelpList.Sort(@CompareClassNames);
+
+        // now display the other DSS classes
+        for i := 1 to HelpList.Count do begin
+          pDSSClass := HelpList.Items[i-1];
+          Node1 := AddObject(nil, pDSSClass.name,nil);
+          if rdoAlphabetical.Checked then begin
+            FOR j := 1 to pDSSClass.NumProperties DO
+               AddChildObject(Node1, pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
+            Node1.AlphaSort();
+          end
+          else begin
+            FOR j := 1 to pDSSClass.NumProperties DO
+               AddChildObject(Node1, '(' + IntToStr(j)  + ') ' + pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
+          end;
+        End;
+        HelpList.Free;
+
+      End;
+
+end;
+
 procedure THelpForm1.BuildTreeViewList;
 
 Var
    Node1:TTreeNode;
-   i,j:Integer;
-   pDSSClass:TDSSClass;
-   HelpList: TList;
+   i:Integer;
+
+
 
 begin
      Treeview1.Items.Clear;
@@ -224,32 +266,20 @@ begin
         If rdoAlphabetical.Checked Then Node1.AlphaSort();
 
         // separator
-        AddObject (nil, TreeSep, nil);
+        // AddObject (nil, TreeSep, nil);
 
-        // put the other DSS Classes in alphabetical order
-        HelpList := TList.Create();
-        pDSSClass := DSSClassList.First;
-        WHILE pDSSClass<>Nil DO Begin
-          HelpList.Add (pDSSClass);
-          pDSSClass := DSSClassList.Next;
-        End;
-        HelpList.Sort(@CompareClassNames);
-
-        // now display the other DSS classes
-        for i := 1 to HelpList.Count do begin
-          pDSSClass := HelpList.Items[i-1];
-          Node1 := AddObject(Node1,pDSSClass.name,nil);
-          if rdoAlphabetical.Checked then begin
-            FOR j := 1 to pDSSClass.NumProperties DO
-               AddChildObject(Node1, pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
-            Node1.AlphaSort();
-          end
-          else begin
-            FOR j := 1 to pDSSClass.NumProperties DO
-               AddChildObject(Node1, '(' + IntToStr(j)  + ') ' + pDSSClass.PropertyName[j], @pDSSClass.PropertyHelp^[j]);
-          end;
-        End;
-        HelpList.Free;
+        AddObject (nil, '=== PD Elements ===', nil);
+        AddHelpForClasses(PD_ELEMENT);
+        AddObject (nil, '=== PC Elements ===', nil);
+        AddHelpForClasses(PC_ELEMENT);
+        AddObject (nil, '=== Controls ===', nil);
+        AddHelpForClasses(CTRL_ELEMENT);
+        AddObject (nil, '=== General ===', nil);
+        AddHelpForClasses(0);
+        AddObject (nil, '=== Meters ===', nil);
+        AddHelpForClasses(METER_ELEMENT);
+        AddObject (nil, '=== Other ===', nil);
+        AddHelpForClasses(NON_PCPD_ELEM);
 
      End;
      Caption := 'DSS Commands & Properties';

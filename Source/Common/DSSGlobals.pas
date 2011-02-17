@@ -27,6 +27,7 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      Spectrum,
      LoadShape,
      TempShape,
+     XYCurve,
      GrowthShape,
      Monitor,
      EnergyMeter,
@@ -157,6 +158,7 @@ VAR
    // Some commonly used classes   so we can find them easily
    LoadShapeClass     :TLoadShape;
    TShapeClass        :TTshape;
+   XYCurveClass       :TXYCurve;
    GrowthShapeClass   :TGrowthShape;
    SpectrumClass      :TSpectrum;
    SolutionClass      :TDSSClass;

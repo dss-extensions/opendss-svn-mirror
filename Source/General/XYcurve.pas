@@ -47,7 +47,7 @@ TYPE
 
    TXYcurve = class(TDSSClass)
      private
-
+       TempPointsBuffer:pDoubleArray;
        FUNCTION  Get_Code:String;  // Returns active TShape string
        PROCEDURE Set_Code(const Value:String);  // sets the  active TShape
 
@@ -76,8 +76,12 @@ TYPE
    TXYcurveObj = class(TDSSObject)
      private
         LastValueAccessed,
-        FNumPoints :Integer;  // Number of points in curve
+        FNumPoints  :Integer;  // Number of points in curve
         ArrayPropertyIndex:Integer;
+        FX,
+        FY  :Double;
+        XValues,
+        YValues :pDoubleArray;
 
         PROCEDURE Set_NumPoints(const Value: Integer);
         FUNCTION  InterpolatePoints(i,j:Integer; X:double; Xarray, Yarray:pDoubleArray):Double;
@@ -86,10 +90,8 @@ TYPE
 
       public
 
-        XValues,          // Time values (hr) if Interval > 0.0  Else nil
-        YValues :pDoubleArray;  // Temperatures
 
-        constructor Create(ParClass:TDSSClass; const TShapeName:String);
+        constructor Create(ParClass:TDSSClass; const XYCurveName:String);
         destructor  Destroy; override;
 
         FUNCTION  GetYValue(X:double):Double;  // Get Y value at specified X Value
@@ -112,13 +114,13 @@ implementation
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  MathUtil, Utilities, Classes,  Math, PointerList;
 
-Const NumPropsThisClass = 12;
+Const NumPropsThisClass = 9;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TXYcurve.Create;  // Creates superstructure for all Line objects
 Begin
      Inherited Create;
-     Class_Name := 'XYcurve';
+     Class_Name   := 'XYcurve';
      DSSClassType := DSS_OBJECT;
 
      ActiveElement := 0;
@@ -153,15 +155,17 @@ Begin
      PropertyName[5]  := 'csvfile';  // Switch input to a csvfile
      PropertyName[6]  := 'sngfile';  // switch input to a binary file of singles
      PropertyName[7]  := 'dblfile';    // switch input to a binary file of singles
+     PropertyName[8]  := 'x';
+     PropertyName[9]  := 'y';
 
      // define Property help values
 
      PropertyHelp[1] := 'Max number of points to expect in curve. This could get reset to the actual number of points defined ' +
                         'if less than specified.';     // Number of points to expect
      PropertyHelp[2] := 'One way to enter the points in a curve. Enter x and y values as one array '+
-                        'in the order [x1, y1, x2, y2, ...]. FOR example:'+CRLF+CRLF+
+                        'in the order [x1, y1, x2, y2, ...]. For example:'+CRLF+CRLF+
                         'Points=[1,100 2,200 3, 300] '+CRLF+CRLF+
-                        'Values separated by commas or white space.';
+                        'Values separated by commas or white space. Zero fills arrays if insufficient number of values.';
      PropertyHelp[3] := 'Alternate way to enter Y values. Enter an array of Y values corresponding to the X values.  '+
                         'You can also use the syntax: '+CRLF+
                         'Yarray = (file=filename)     !for text file one value per line'+CRLF+
@@ -183,6 +187,8 @@ Begin
      PropertyHelp[7] := 'Switch input of  X-Y  curve data to a binary file of DOUBLES '+
                         'containing X, Y points packed one after another. ' +
                         'NOTE: This action may reset the number of points to a lower value.';   // switch input to a binary file of singles
+     PropertyHelp[8] := 'Enter an value and then retrieve the interpolated Y value from the Y property.';
+     PropertyHelp[9] := 'Enter an value and then retrieve the interpolated X value from the X property.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -208,7 +214,6 @@ VAR
    ParamName    :String;
    Param        :String;
 
-   pTempArray   :pDoubleArray;
    i            :Integer;
 
 Begin
@@ -233,39 +238,52 @@ Begin
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 610);
             1: NumPoints := Parser.Intvalue;
             2: Begin
-                 ReAllocmem(YValues, Sizeof(YValues^[1]) * NumPoints);
-                 ReAllocmem(XValues, Sizeof(XValues^[1]) * NumPoints);
-                 ReAllocmem(pTempArray, Sizeof(pTempArray^[1]) * NumPoints*2);
+                 ReAllocmem(TempPointsBuffer, Sizeof(TempPointsBuffer^[1]) * FNumPoints * 2);
                  // Allow possible Resetting (to a lower value) of num points when specifying temperatures not Hours
-                 NumPoints := InterpretDblArray(Param, (NumPoints * 2), pTempArray) div 2;  // Parser.ParseAsVector(Npts, Temperatures);
-                 FOR i := 1 to NumPoints Do Begin
-                     XValues^[i] := pTempArray^[2*i-1];
-                     YValues^[i] := pTempArray^[2*i];
+                 NumPoints := InterpretDblArray(Param, (FNumPoints * 2), TempPointsBuffer) div 2;  // Parser.ParseAsVector(Npts, Temperatures);
+                 ReAllocmem(YValues, Sizeof(YValues^[1]) * FNumPoints);
+                 ReAllocmem(XValues, Sizeof(XValues^[1]) * FNumPoints);
+                 FOR i := 1 to FNumPoints Do Begin
+                     XValues^[i] := TempPointsBuffer^[2*i-1];
+                     YValues^[i] := TempPointsBuffer^[2*i];
                  End;
-                 ReAllocmem(pTempArray, 0);  // Throw away temp array
+                 FX := Xvalues^[1];
+                 FY := Yvalues^[1];
+                 ReAllocmem(TempPointsBuffer, 0);  // Throw away temp array
                End;
             3: Begin
-                   ReAllocmem(XValues, Sizeof(XValues^[1]) * NumPoints);
-                   NumPoints := InterpretDblArray(Param, NumPoints, XValues);
-               End;
-            4: Begin
                    ReAllocmem(YValues, Sizeof(YValues^[1]) * NumPoints);
                    NumPoints := InterpretDblArray(Param, NumPoints, YValues);
+                   FY := Yvalues^[1];
+               End;
+            4: Begin
+                   ReAllocmem(XValues, Sizeof(XValues^[1]) * NumPoints);
+                   NumPoints := InterpretDblArray(Param, NumPoints, XValues);
+                   FX := Xvalues^[1];
                End;
             5: DoCSVFile(Param);   // file of x,y points, one to a line
             6: DoSngFile(Param);
             7: DoDblFile(Param);
+            8: FX := Parser.dblvalue;
+            9: FY := Parser.dblvalue;
          ELSE
            // Inherited parameters
-             ClassEdit( ActiveXYcurveObj, ParamPointer - NumPropsThisClass)
+               ClassEdit( ActiveXYcurveObj, ParamPointer - NumPropsThisClass)
+         End;
+
+         CASE ParamPointer OF
+           5..7: Begin
+                     FX := Xvalues^[1];
+                     FY := Yvalues^[1];
+                 End;
          End;
 
          CASE ParamPointer OF
            2..7: Begin
-                          ArrayPropertyIndex := ParamPointer;
-                          NumPoints          := FNumPoints;  // Keep Properties in order for save command
-                    End;
-
+                      ArrayPropertyIndex := ParamPointer;
+                      NumPoints          := FNumPoints;  // Keep Properties in order for save command
+                      LastValueAccessed  := 1;
+                 End;
          End;
 
          ParamName := Parser.NextParam;
@@ -289,14 +307,14 @@ VAR
    i:Integer;
 Begin
    Result := 0;
-   {See if we can find this line code in the present collection}
+   {See if we can find this curve in the present collection}
    OtherXYCurve := Find(CurveName);
    IF OtherXYCurve <> Nil Then
     WITH ActiveXYcurveObj DO
     Begin
         NumPoints := OtherXYCurve.NumPoints;
-        ReAllocmem(XValues, Sizeof(XValues^[1])*NumPoints);
-        ReAllocmem(YValues, Sizeof(YValues^[1])*NumPoints);
+        ReAllocmem(XValues, Sizeof(XValues^[1]) * NumPoints);
+        ReAllocmem(YValues, Sizeof(YValues^[1]) * NumPoints);
         FOR i := 1 To NumPoints DO XValues^[i] := OtherXYCurve.XValues^[i];
         FOR i := 1 To NumPoints DO YValues^[i] := OtherXYCurve.YValues^[i];
 
@@ -318,12 +336,12 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FUNCTION TXYcurve.Get_Code:String;  // Returns active line code string
 VAR
-  TShapeObj:TXYcurveObj;
+  XYCurveObj:TXYcurveObj;
 
 Begin
 
-    TShapeObj    := ElementList.Active;
-    Result       := TShapeObj.Name;
+    XYCurveObj   := ElementList.Active;
+    Result       := XYCurveObj.Name;
 
 End;
 
@@ -331,24 +349,24 @@ End;
 PROCEDURE TXYcurve.Set_Code(const Value:String);  // sets the  active TShape
 
 VAR
-  TShapeObj:TXYcurveObj;
+  XYCurveObj:TXYcurveObj;
 
 Begin
 
     ActiveXYcurveObj := Nil;
-    TShapeObj := ElementList.First;
-    While TShapeObj<>Nil DO Begin
+    XYCurveObj := ElementList.First;
+    While XYCurveObj<>Nil DO Begin
 
-       IF CompareText(TShapeObj.Name, Value)=0 Then
+       IF CompareText(XYCurveObj.Name, Value)=0 Then
        Begin
-            ActiveXYcurveObj := TShapeObj;
+            ActiveXYcurveObj := XYCurveObj;
             Exit;
        End;
 
-       TShapeObj := ElementList.Next;
+       XYCurveObj := ElementList.Next;
     End;
 
-    DoSimpleMsg('TShape: "' + Value + '" not Found.', 612);
+    DoSimpleMsg('XYCurve: "' + Value + '" not Found.', 612);
 
 End;
 
@@ -481,11 +499,11 @@ End;
 //      TTShape Obj
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONSTRUCTOR TXYcurveObj.Create(ParClass:TDSSClass; const TShapeName:String);
+CONSTRUCTOR TXYcurveObj.Create(ParClass:TDSSClass; const XYCurveName:String);
 
 Begin
      Inherited Create(ParClass);
-     Name := LowerCase(TShapeName);
+     Name := LowerCase(XYCurveName);
      DSSObjType := ParClass.DSSClassType;
 
      LastValueAccessed := 1;
@@ -493,6 +511,9 @@ Begin
      FNumPoints   := 0;
      XValues      := Nil;
      YValues      := Nil;
+
+     FX := 0.0;
+     FY := 0.0;
 
      ArrayPropertyIndex := 0;
 
@@ -512,7 +533,7 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FUNCTION TXYcurveObj.GetYValue(X:double):Double;
 
-// This FUNCTION returns the interpolate Y value for the given X.
+// This function returns the interpolated Y value for the given X.
 // If no points exist in the curve, the result is  0.0
 // If Xvalue is outside the range of defined X values,
 // the curve is extrapolated from the Ends.
@@ -530,10 +551,17 @@ Begin
     Begin
 
     { Start with previous value accessed under the assumption that most
-      of the time, this FUNCTION will be called sequentially}
+      of the time, the values won't change much}
 
      IF (XValues^[LastValueAccessed] > X) Then LastValueAccessed := 1; // Start over from Beginning
 
+     // if off the curve for the first point, extrapolate from the first two points
+     IF (LastValueAccessed = 1) AND (XValues[1] > X) Then Begin
+         Result := InterpolatePoints(1, 2, X, XValues, YValues);
+         Exit;
+     End;
+
+     // In the middle of the arrays
      FOR i := LastValueAccessed+1 TO FNumPoints do
        Begin
          IF (Abs(XValues^[i]-X) < 0.00001) Then  // If close to an actual point, just use it.
@@ -543,7 +571,7 @@ Begin
                Exit;
            End
          ELSE IF (XValues^[i] > X) Then
-// INTERPOLATE
+         // INTERPOLATE between two values
            Begin
              LastValueAccessed := i-1;
              Result := InterpolatePoints(i, LastValueAccessed, X, XValues, YValues);
@@ -551,9 +579,9 @@ Begin
            End;
        End;
 
-     // If we fall through the loop, just use last value
+     // If we fall through the loop, Extrapolate from last two points
      LastValueAccessed := FNumPoints-1;
-     Result            := YValues^[FNumPoints];
+     Result := InterpolatePoints(FNumPoints, LastValueAccessed,  X, XValues, YValues);
     End;
 End;
 
@@ -615,9 +643,14 @@ Begin
         End;
 
         CASE Index of
-          2: FOR i := 1 to FNumPoints Do Result := Result + FORmat('%.8g, %.8g ', [XValues^[i], YValues^[i] ]);
-          3: FOR i := 1 to FNumPoints Do Result := Result + FORmat('%-g, ' , [YValues^[i]]);
-          4: FOR i := 1 to FNumPoints Do Result := Result + FORmat('%-g, ' , [XValues^[i]]);
+          2: IF (XValues<>Nil) AND (YValues <> Nil) Then FOR i := 1 to FNumPoints Do Result := Result + Format('%.8g, %.8g ', [XValues^[i], YValues^[i] ])
+             ELSE Result := '0, 0';
+          3: If (YValues <> Nil) Then FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [YValues^[i]])
+             ELSE Result := '0';
+          4: If (XValues <> Nil) Then FOR i := 1 to FNumPoints Do Result := Result + Format('%-g, ' , [XValues^[i]])
+             ELSE Result := '0';
+          8: Result := Format('%.8g',[GetXValue(FY)]);
+          9: Result := Format('%.8g',[GetYValue(FX)]);
         ELSE
            Result := Inherited GetPropertyValue(index);
         End;
@@ -651,6 +684,12 @@ Begin
 
      IF (YValues^[LastValueAccessed] > Y) Then LastValueAccessed := 1; // Start over from Beginning
 
+     // if off the curve for the first point, extrapolate from the first two points
+     IF (LastValueAccessed = 1) AND (YValues[1] > Y) Then Begin
+         Result := InterpolatePoints(1, 2, Y, YValues, XValues);
+         Exit;
+     End;
+
      FOR i := LastValueAccessed+1 TO FNumPoints do
        Begin
          IF (Abs(YValues^[i]-Y) < 0.00001) Then  // If close to an actual point, just use it.
@@ -668,9 +707,9 @@ Begin
            End;
        End;
 
-     // If we fall through the loop, just use last value
+     // If we fall through the loop, Extrapolate from last two points
      LastValueAccessed := FNumPoints-1;
-     Result            := XValues^[FNumPoints];
+     Result := InterpolatePoints(FNumPoints, LastValueAccessed,  Y, YValues, XValues);
     End;
 End;
 
@@ -712,7 +751,7 @@ Var
 Begin
    If Assigned(TValues) then  Begin
     TRY
-      FName := FORmat('%s.dbl',[Name]);
+      FName := Format('%s.dbl',[Name]);
       AssignFile(F, Fname);
       Rewrite(F);
       FOR i := 1 to NumPoints Do  Write(F, TValues^[i]);
@@ -736,7 +775,7 @@ Var
 Begin
    If Assigned(TValues) then  Begin
     TRY
-        FName := FORmat('%s.sng',[Name]);
+        FName := Format('%s.sng',[Name]);
         AssignFile(F, Fname);
         Rewrite(F);
         FOR i := 1 to NumPoints Do  Begin

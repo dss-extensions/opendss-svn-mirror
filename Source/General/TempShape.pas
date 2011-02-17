@@ -141,7 +141,7 @@ Const NumPropsThisClass = 12;
 constructor TTShape.Create;  // Creates superstructure for all Line objects
 Begin
      Inherited Create;
-     Class_Name := 'TShape';
+     Class_Name   := 'TShape';
      DSSClassType := DSS_OBJECT;
 
      ActiveElement := 0;

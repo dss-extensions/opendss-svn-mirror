@@ -38,7 +38,7 @@ Const
      PROFILELL    = 9994;
 
 Type
-     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptProfile) ;
+     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptTShape, ptProfile) ;
      TPlotQuantity = (pqVoltage, pqCurrent, pqPower, pqLosses, pqCapacity, pqNone );
 
      TDSSPlot = class(TObject)
@@ -128,6 +128,7 @@ Type
        Procedure SetDefaults;
 
        Procedure DoLoadShapePlot(Const LoadShapeName:String);
+       Procedure DoTempShapePlot(Const TempShapeName:String);
        Procedure DoDI_Plot(Const CaseName: String; CaseYear: Integer; iRegisters: array of integer; PeakDay: Boolean;const MeterName:String);
        Procedure DoCompareCases(CaseName1, CaseName2, WhichFile:String;  Reg:Integer);
        Procedure DoYearlyCurvePlot(CaseNames:TStringList; WhichFile:String; iRegisters:Array of Integer);
@@ -178,6 +179,7 @@ Uses  Comobj,
       energyMeter,
       utilities,
       LoadShape,
+      Tempshape,
       SysUtils,
       FileCtrl,
       math,
@@ -512,6 +514,8 @@ begin
   End;
 end;
 
+
+
 procedure TDSSPlot.DoTheDaisies;
 
 Var
@@ -685,6 +689,10 @@ Begin
                        End;
          ptLoadShape: Begin
                 DoLoadShapePlot(ObjectName) ;
+                Exit;  // All we need to do here
+             End;
+         ptTShape: Begin
+                DoTempShapePlot(ObjectName) ;
                 Exit;  // All we need to do here
              End;
          ptProfile: Begin
@@ -967,6 +975,71 @@ begin
 
     If Result <= 0                then Result := 1;
     If Result > FMaxLineThickness Then Result := FMaxLineThickness;
+end;
+
+procedure TDSSPlot.DoTempShapePlot(const TempShapeName: String);
+Var
+    Temp_Shape :TTShapeObj;
+    Xarray     :pdoubleArray ;
+    X, Xinc    :Double;
+    i          :integer;
+    Xsize      :Integer ;
+    XLabel     :string;
+    UseXarray  :Boolean;
+    S          :String;
+
+begin
+     Temp_Shape :=  TShapeClass.Find(TempShapeName);
+     If Temp_Shape=Nil Then Begin
+         DosimpleMsg('Tshape object not found: "' + TempShapeName + '"', 87341);
+         Exit;
+     End;
+
+     UseXarray := FALSE;
+     Xarray := Nil;
+     XSize := 0;  //Init
+
+     If Temp_Shape.Interval <> 0.0 Then
+     With Temp_Shape Do Begin // have to gen up Xarray
+        UseXarray := TRUE;
+        XSize :=Sizeof(Xarray^[1])*NumPoints ;
+        GetMem(Xarray, XSize);  //SetLength(Xarray, Numpoints);
+        X := 0.0;
+        If Interval*Numpoints < 1.0 Then Begin
+           Xinc   := Interval * 3600.0;  // Plot secs
+           XLabel := 'Seconds';
+        End
+        Else Begin
+           Xinc   := Interval;
+           Xlabel := 'Hours';
+        End;
+        For i := 1 to NumPoints Do Begin
+            Xarray[i] := X;
+            X         := X + Xinc;
+        End;
+     End;
+
+    // ** already exists MakeNewGraph;
+     S  := 'TShape.' + TempShapeName;
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
+     S  := 'TShape = ' + TempShapeName;
+     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
+     Set_XaxisLabel(pAnsiChar(AnsiString(Xlabel)), Length(Xlabel)) ;
+     Set_YaxisLabel(pAnsiChar('Temperature'), 11);
+
+     If UseXarray Then
+         AddNewCurve (Xarray, Temp_Shape.TValues , Temp_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(TempShapeName))
+     Else
+         AddNewCurve (Temp_Shape.Hours, Temp_Shape.TValues, Temp_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(TempShapeName));
+
+
+     Set_KeepAspectRatio(False);
+
+     If UseXarray Then FreeMem(Xarray, Xsize);
+     Set_Autorange(2.0);    // 2% rim
+     ShowGraph;    {Form Freed on close}
 end;
 
 procedure TDSSPlot.DoLoadShapePlot(const LoadShapeName: String);

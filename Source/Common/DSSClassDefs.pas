@@ -19,6 +19,7 @@ CONST
       PC_ELEMENT    = 3;
       CTRL_ELEMENT  = 4;
       METER_ELEMENT = 5;
+      HIDDEN_ELEMENT= 6;
 
       {Specific element Types}
       MON_ELEMENT  =  1 * 8;
@@ -78,6 +79,7 @@ USES
      Load,
      LoadShape,
      TempShape,
+     XYCurve,
      Monitor,
      EnergyMeter,
      GrowthShape,
@@ -126,6 +128,8 @@ Begin
      DSSClasses.New := LoadShapeClass;
      TShapeClass    := TTShape.Create;
      DSSClasses.New := TShapeClass;
+     XYCurveClass   := TXYCurve.Create;
+     DSSClasses.New := XYCurveClass;
      GrowthShapeClass := TGrowthShape.Create;
      DSSClasses.New := GrowthShapeClass;
      TCC_CurveClass := TTCC_Curve.Create;
@@ -158,8 +162,8 @@ Begin
      DSSClasses.New := TRelay.Create;
      DSSClasses.New := TRecloser.Create;
      DSSClasses.New := TFuse.Create;
-     FeederClass    := TFeeder.Create;
-     DSSClasses.New := FeederClass;
+//     FeederClass    := TFeeder.Create;
+//     DSSClasses.New := FeederClass;
      DSSClasses.New := TSwtControl.Create;
 //     PVSystemClass  := TPVSystem.Create;
 //     DSSClasses.New := PVSystemClass;

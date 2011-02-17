@@ -231,7 +231,7 @@ constructor TDSSSolution.Create;  // Collection of all solution objects
 Begin
      Inherited Create;
      Class_Name := 'Solution';
-     DSSClassType := DSS_OBJECT;
+     DSSClassType := DSS_OBJECT + HIDDEN_ELEMENT;
 
      ActiveElement := 0;
 
