@@ -38,7 +38,7 @@ Const
      PROFILELL    = 9994;
 
 Type
-     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptTShape, ptProfile) ;
+     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptTShape, ptPriceShape, ptProfile) ;
      TPlotQuantity = (pqVoltage, pqCurrent, pqPower, pqLosses, pqCapacity, pqNone );
 
      TDSSPlot = class(TObject)
@@ -129,6 +129,7 @@ Type
 
        Procedure DoLoadShapePlot(Const LoadShapeName:String);
        Procedure DoTempShapePlot(Const TempShapeName:String);
+       Procedure DoPriceShapePlot(Const PriceShapeName:String);
        Procedure DoDI_Plot(Const CaseName: String; CaseYear: Integer; iRegisters: array of integer; PeakDay: Boolean;const MeterName:String);
        Procedure DoCompareCases(CaseName1, CaseName2, WhichFile:String;  Reg:Integer);
        Procedure DoYearlyCurvePlot(CaseNames:TStringList; WhichFile:String; iRegisters:Array of Integer);
@@ -180,6 +181,7 @@ Uses  Comobj,
       utilities,
       LoadShape,
       Tempshape,
+      PriceShape,
       SysUtils,
       FileCtrl,
       math,
@@ -695,6 +697,10 @@ Begin
                 DoTempShapePlot(ObjectName) ;
                 Exit;  // All we need to do here
              End;
+         ptPriceShape: Begin
+                DoPriceShapePlot(ObjectName) ;
+                Exit;  // All we need to do here
+             End;
          ptProfile: Begin
                 DoProfilePlot;
                 Exit;
@@ -1060,7 +1066,7 @@ begin
          DosimpleMsg('Loadshape object not found: "' + LoadShapeName + '"', 87341);
          Exit;
      End;
-     
+
      UseXarray := FALSE;
      Xarray := Nil;
      XSize := 0;  //Init
@@ -1943,6 +1949,71 @@ begin
 
      End
      Else DoSimpleMsg('Monitor "'+ObjectName+'" not found.', 200);
+end;
+
+procedure TDSSPlot.DoPriceShapePlot(const PriceShapeName: String);
+Var
+    Price_Shape :TPriceShapeObj;
+    Xarray     :pdoubleArray ;
+    X, Xinc    :Double;
+    i          :integer;
+    Xsize      :Integer ;
+    XLabel     :string;
+    UseXarray  :Boolean;
+    S          :String;
+
+begin
+     Price_Shape :=  PriceShapeClass.Find(PriceShapeName);
+     If Price_Shape=Nil Then Begin
+         DosimpleMsg('PriceShape object not found: "' + PriceShapeName + '"', 87341);
+         Exit;
+     End;
+
+     UseXarray := FALSE;
+     Xarray := Nil;
+     XSize := 0;  //Init
+
+     If Price_Shape.Interval <> 0.0 Then
+     With Price_Shape Do Begin // have to gen up Xarray
+        UseXarray := TRUE;
+        XSize :=Sizeof(Xarray^[1])*NumPoints ;
+        GetMem(Xarray, XSize);  //SetLength(Xarray, Numpoints);
+        X := 0.0;
+        If Interval*Numpoints < 1.0 Then Begin
+           Xinc   := Interval * 3600.0;  // Plot secs
+           XLabel := 'Seconds';
+        End
+        Else Begin
+           Xinc   := Interval;
+           Xlabel := 'Hours';
+        End;
+        For i := 1 to NumPoints Do Begin
+            Xarray[i] := X;
+            X         := X + Xinc;
+        End;
+     End;
+
+    // ** already exists MakeNewGraph;
+     S  := 'PriceShape.' + PriceShapeName;
+     Set_Caption(pAnsiChar(AnsiString(S)), Length(S));
+     S  := 'PriceShape = ' + PriceShapeName;
+     Set_ChartCaption(pAnsiChar(AnsiString(S)), Length(S));
+     Set_XaxisLabel(pAnsiChar(AnsiString(Xlabel)), Length(Xlabel)) ;
+     Set_YaxisLabel(pAnsiChar('Price'), 11);
+
+     If UseXarray Then
+         AddNewCurve (Xarray, Price_Shape.PriceValues , Price_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(PriceShapeName))
+     Else
+         AddNewCurve (Price_Shape.Hours, Price_Shape.PriceValues, Price_Shape.NumPoints,
+                      Color1, 1, psSolid, FALSE, 1, AnsiString(PriceShapeName));
+
+
+     Set_KeepAspectRatio(False);
+
+     If UseXarray Then FreeMem(Xarray, Xsize);
+     Set_Autorange(2.0);    // 2% rim
+     ShowGraph;    {Form Freed on close}
 end;
 
 procedure TDSSPlot.DoProfilePlot;

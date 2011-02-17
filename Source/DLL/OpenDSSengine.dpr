@@ -172,7 +172,8 @@ uses
   PVSystemUserModel in '..\PCElements\PVSystemUserModel.pas',
   PVsystem in '..\PCElements\PVsystem.pas',
   TempShape in '..\General\TempShape.pas',
-  XYcurve in '..\General\XYcurve.pas';
+  XYcurve in '..\General\XYcurve.pas',
+  PriceShape in '..\General\PriceShape.pas';
 
 exports
   DllGetClassObject,

@@ -146,7 +146,8 @@ uses
   XfmrCode in '..\General\XfmrCode.pas',
   Ymatrix in '..\Common\Ymatrix.pas' ,
   TempShape in '..\General\TempShape.pas',
-  XYcurve in '..\General\XYcurve.pas';
+  XYcurve in '..\General\XYcurve.pas',
+  PriceShape in '..\General\PriceShape.pas';
 
 {$R *.RES}
 

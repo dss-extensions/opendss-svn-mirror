@@ -52,7 +52,8 @@ Begin
       PlotOption[21] := 'phases';
 
 
-      PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | General (bus data) | Loadshape | Tshape | Profile} ' +
+      PlotHelp[ 1] := 'One of {Circuit | Monitor | Daisy | Zones | AutoAdd | '+ CRLF +
+                      'General (bus data) | Loadshape | Tshape | Priceshape |Profile} ' +   CRLF +
                       'A "Daisy" plot is a special circuit plot that places a marker at each Generator location ' +
                       'or at buses in the BusList property, if defined. ' +
                       'A Zones plot shows the meter zones (see help on Object). ' +
@@ -66,6 +67,7 @@ Begin
                       'Plot General quantity=1 object=mybusdata.csv' +CRLF+
                       'Plot Loadshape object=myloadshape'  +CRLF+
                       'Plot Tshape object=mytemperatureshape'  +CRLF+
+                      'Plot Priceshape object=mypriceshape'  +CRLF+
                       'Plot Profile'  +CRLF+
                       'Plot Profile Phases=Primary';
       PlotHelp[ 2] := 'One of {Voltage | Current | Power | Losses | Capacity | (Value Index for General, AutoAdd, or Circuit[w/ file]) }';
@@ -178,7 +180,8 @@ Begin
                'G': PlotType := ptGeneralDataPlot;
                'L': PlotType := ptLoadshape;
                'M': PlotType := ptMonitorplot;
-               'P': PlotType := ptProfile;
+               'P': IF CompareTextShortest('pro', Param)=0 Then PlotType := ptProfile
+                    ELSE PlotType := ptPriceShape;
                'T': PlotType := ptTshape;
                'D': Begin
                       PlotType := ptDaisyplot;

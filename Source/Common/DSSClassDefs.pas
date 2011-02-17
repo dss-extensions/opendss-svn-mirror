@@ -79,6 +79,7 @@ USES
      Load,
      LoadShape,
      TempShape,
+     PriceShape,
      XYCurve,
      Monitor,
      EnergyMeter,
@@ -128,6 +129,8 @@ Begin
      DSSClasses.New := LoadShapeClass;
      TShapeClass    := TTShape.Create;
      DSSClasses.New := TShapeClass;
+     PriceShapeClass:= TPriceShape.Create;
+     DSSClasses.New := PriceShapeClass;
      XYCurveClass   := TXYCurve.Create;
      DSSClasses.New := XYCurveClass;
      GrowthShapeClass := TGrowthShape.Create;
