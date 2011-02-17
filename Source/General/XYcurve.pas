@@ -124,6 +124,7 @@ Begin
      DSSClassType := DSS_OBJECT;
 
      ActiveElement := 0;
+     TempPointsBuffer := Nil;  // Has to start off Nil for Reallocmem call
 
      DefineProperties;
 

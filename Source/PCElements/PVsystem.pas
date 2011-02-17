@@ -30,7 +30,8 @@ unit PVsystem;
 
 interface
 
-USES  PVsystemUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadShape, Spectrum, ArrayDef, Dynamics;
+USES  PVsystemUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex,
+      LoadShape, TempShape, XYCurve, Spectrum, ArrayDef, Dynamics;
 
 Const  NumPVSystemRegisters = 5;    // Number of energy meter registers
        NumPVSystemVariables = 4;    // No state variables that need integrating.
@@ -156,12 +157,24 @@ TYPE
       public
 
         Connection      :Integer;  {0 = line-neutral; 1=Delta}
-        DailyShape      :String;  // Daily (24 HR) PVSystem element shape
-        DailyShapeObj   :TLoadShapeObj;  // Daily PVSystem element Shape for this load
-        DutyShape       :String;  // Duty cycle load shape for changes typically less than one hour
-        DutyShapeObj    :TLoadShapeObj;  // Shape for this PVSystem element
-        YearlyShape     :String;  // ='fixed' means no variation  on all the time
-        YearlyShapeObj  :TLoadShapeObj;  // Shape for this PVSystem element
+        DailyShape      :String;  // Daily (24 HR) PVSystem element irradiance shape
+        DailyShapeObj   :TLoadShapeObj;  // Daily PVSystem element irradianceShape for this load
+        DutyShape       :String;  // Duty cycle irradiance shape for changes typically less than one hour
+        DutyShapeObj    :TLoadShapeObj;  // irradiance Shape for this PVSystem element
+        YearlyShape     :String;  //
+        YearlyShapeObj  :TLoadShapeObj;  // Yearly irradiance Shape for this PVSystem element
+
+        DailyTShape      :String;
+        DailyTShapeObj   :TLoadShapeObj;
+        DutyTShape       :String;
+        DutyTShapeObj    :TLoadShapeObj;
+        YearlyTShape     :String;
+        YearlyTShapeObj  :TLoadShapeObj;
+
+        InverterCurve         :String;
+        InverterCurveObj      :TXYCurveObj;
+        Temp_PowerCurve       :String;
+        Temp_PowerCurveObj    :TXYCurveObj;
 
         FClass   :Integer;
         VoltageModel    :Integer;   // Variation with voltage
@@ -242,25 +255,28 @@ Const
   propYEARLY     =  7;
   propDAILY      =  8;
   propDUTY       =  9;
-  propCONNECTION = 10;
-  propKVAR       = 11;
-  propPCTR       = 12;
-  propPCTX       = 13;
-  propCLASS      = 14;
-  propInvEffCurve= 15;
-  propTemp       = 16;
-  propPmpp       = 17;
-  propP_T_Curve  = 18;
-  propCutin      = 19;
-  propCutout     = 20;
-  propVMINPU     = 21;
-  propVMAXPU     = 22;
-  propKVA        = 23;
-  propUSERMODEL  = 24;
-  propUSERDATA   = 25;
-  propDEBUGTRACE = 26;
+  propTYEARLY    = 10;
+  propTDAILY     = 11;
+  propTDUTY      = 12;
+  propCONNECTION = 13;
+  propKVAR       = 14;
+  propPCTR       = 15;
+  propPCTX       = 16;
+  propCLASS      = 17;
+  propInvEffCurve= 18;
+  propTemp       = 19;
+  propPmpp       = 20;
+  propP_T_Curve  = 21;
+  propCutin      = 22;
+  propCutout     = 23;
+  propVMINPU     = 24;
+  propVMAXPU     = 25;
+  propKVA        = 26;
+  propUSERMODEL  = 27;
+  propUSERDATA   = 28;
+  propDEBUGTRACE = 29;
 
-  NumPropsThisClass = 26; // Make this agree with the last property constant
+  NumPropsThisClass = 29; // Make this agree with the last property constant
 
 VAR cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
     CDOUBLEONE: Complex;
@@ -550,8 +566,12 @@ Begin
 
         {Set loadshape objects;  returns nil If not valid}
                 propYEARLY: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
-                propDAILY:  DailyShapeObj := LoadShapeClass.Find(DailyShape);
-                propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
+                propDAILY:  DailyShapeObj  := LoadShapeClass.Find(DailyShape);
+                propDUTY:   DutyShapeObj   := LoadShapeClass.Find(DutyShape);
+
+                propTYEARLY: YearlyTShapeObj := TShapeClass.Find(YearlyTShape);
+                propTDAILY:  DailyTShapeObj  := TShapeClass.Find(DailyTShape);
+                propTDUTY:   DutyTShapeObj   := TShapeClass.Find(DutyTShape);
 
                 propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
                        AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
@@ -618,6 +638,12 @@ Begin
          DailyShapeObj  := OtherPVsystemObj.DailyShapeObj;
          DutyShape      := OtherPVsystemObj.DutyShape;
          DutyShapeObj   := OtherPVsystemObj.DutyShapeObj;
+         YearlyTShape    := OtherPVsystemObj.YearlyTShape;
+         YearlyTShapeObj := OtherPVsystemObj.YearlyTShapeObj;
+         DailyTShape     := OtherPVsystemObj.DailyTShape;
+         DailyTShapeObj  := OtherPVsystemObj.DailyTShapeObj;
+         DutyTShape      := OtherPVsystemObj.DutyTShape;
+         DutyTShapeObj   := OtherPVsystemObj.DutyTShapeObj;
          FClass   := OtherPVsystemObj.FClass;
          VoltageModel   := OtherPVsystemObj.VoltageModel;
 
@@ -714,6 +740,12 @@ Begin
      DailyShapeObj     := nil;  // If DaillyShapeobj = nil Then the load alway stays nominal * global multipliers
      DutyShape         := '';
      DutyShapeObj      := nil;  // If DutyShapeobj = nil Then the load alway stays nominal * global multipliers
+     YearlyTShape       := '';
+     YearlyTShapeObj    := nil;  // If YearlyShapeobj = nil Then the load alway stays nominal * global multipliers
+     DailyTShape        := '';
+     DailyTShapeObj     := nil;  // If DaillyShapeobj = nil Then the load alway stays nominal * global multipliers
+     DutyTShape         := '';
+     DutyTShapeObj      := nil;  // If DutyShapeobj = nil Then the load alway stays nominal * global multipliers
      Connection        := 0;    // Wye (star)
      VoltageModel      := 1;  {Typical fixed kW negative load}
      FClass      := 1;
@@ -819,6 +851,10 @@ Begin
           propYEARLY     : Result := YearlyShape;
           propDAILY      : Result := DailyShape;
           propDUTY       : Result := DutyShape;
+
+          propTYEARLY     : Result := YearlyTShape;
+          propTDAILY      : Result := DailyTShape;
+          propTDUTY       : Result := DutyTShape;
 
           {propCONNECTION :;}
           propKVAR       : Result := Format('%.6g', [kvar_out]);
