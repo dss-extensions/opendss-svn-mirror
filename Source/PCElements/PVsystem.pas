@@ -66,23 +66,33 @@ TYPE
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    TPVsystemObj = class(TPCElement)
       Private
-        Yeq             :Complex;   // at nominal
-        Yeq95           :Complex;   // at 95%
-        Yeq105          :Complex;   // at 105%
-        YeqIdling       :Complex;   // in shunt representing idle impedance
+        YEQ             :Complex;   // at nominal
+        YEQ95           :Complex;   // at Vmin
+        YEQ105          :Complex;   // at VMax
 
         DebugTrace      :Boolean;
         PVSystemSolutionCount   :Integer;
         PVSystemFundamental     :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         PVsystemObjSwitchOpen   :Boolean;
         FirstSampleAfterReset   :Boolean;
+        PFSpecified             :Boolean;
+        kvarSpecified           :Boolean;
 
         kVArating       :Double;
-        kVPVSystemBase   :Double;
+        kVPVSystemBase  :Double;
         kvar_out        :Double;
         kW_out          :Double;
-        Irradiance      :Double;
+        PanelkW         :Double; //computed
+        FIrradiance     :Double;
         kvarRequested   :Double;
+        FTemperature    :Double;
+        FPmpp           :Double;
+
+        InverterON      :Boolean;
+        FpctCutIn       :Double;
+        FpctCutOut      :Double;
+        CutInkW         :Double;
+        CutOutkW        :Double;
 
         pctR            :Double;
         pctX            :Double;
@@ -99,6 +109,7 @@ TYPE
         Reg_MaxkW       :Integer;
         Reg_Price       :Integer;
         ShapeFactor     :Complex;
+        TShapeValue     :Double;
         Thetaharm       :Double;  {Thevinen equivalent voltage mag and angle reference for Harmonic model}
         Tracefile       :TextFile;
         UserModel       :TPVsystemUserModel;   {User-Written Models}
@@ -114,14 +125,23 @@ TYPE
         RThev           :Double;
         XThev           :Double;
 
-
         PROCEDURE CalcDailyMult(Hr:double);
         PROCEDURE CalcDutyMult(Hr:double);
-        PROCEDURE CalcPVSystemModelContribution;
+        PROCEDURE CalcYearlyMult(Hr:double);
+
+        PROCEDURE CalcDailyTMult(Hr:double);
+        PROCEDURE CalcDutyTMult(Hr:double);
+        PROCEDURE CalcYearlyTMult(Hr:double);
+
+        PROCEDURE ComputePanelPower;
+        PROCEDURE ComputeInverterPower;
+
+        PROCEDURE ComputekWkvar;
+        PROCEDURE CalcPVSystemModelContribution;   // This is where the power gets computed
         PROCEDURE CalcInjCurrentArray;
         (*PROCEDURE CalcVterminal;*)
         PROCEDURE CalcVTerminalPhase;
-        PROCEDURE CalcYearlyMult(Hr:double);
+
         PROCEDURE CalcYPrimMatrix(Ymatrix:TcMatrix);
 
         PROCEDURE DoConstantPQPVsystemObj;
@@ -136,19 +156,18 @@ TYPE
 
         PROCEDURE WriteTraceRecord(const s:string);
 
-        PROCEDURE SyncUpPowerQuantities;
         // PROCEDURE SetKWandKvarOut;
         PROCEDURE UpdatePVSystem;    // Update PVSystem elements based on present kW and IntervalHrs variable
 
         FUNCTION Get_PresentkW:Double;
         FUNCTION Get_Presentkvar:Double;
         FUNCTION Get_PresentkV: Double;
+        FUNCTION Get_PresentIrradiance: Double;
+
         PROCEDURE Set_PresentkV(const Value: Double);
         PROCEDURE Set_Presentkvar(const Value: Double);
-        PROCEDURE Set_PresentkW(const Value: Double);
         PROCEDURE Set_PowerFactor(const Value: Double);
-        procedure Set_pctkvarOut(const Value: Double);
-         procedure Set_pctkWOut(const Value: Double);
+        PROCEDURE Set_PresentIrradiance(const Value: Double);
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
@@ -165,23 +184,20 @@ TYPE
         YearlyShapeObj  :TLoadShapeObj;  // Yearly irradiance Shape for this PVSystem element
 
         DailyTShape      :String;
-        DailyTShapeObj   :TLoadShapeObj;
+        DailyTShapeObj   :TTShapeObj;
         DutyTShape       :String;
-        DutyTShapeObj    :TLoadShapeObj;
+        DutyTShapeObj    :TTShapeObj;
         YearlyTShape     :String;
-        YearlyTShapeObj  :TLoadShapeObj;
+        YearlyTShapeObj  :TTShapeObj;
 
-        InverterCurve         :String;
-        InverterCurveObj      :TXYCurveObj;
-        Temp_PowerCurve       :String;
-        Temp_PowerCurveObj    :TXYCurveObj;
+        InverterCurve      :String;
+        InverterCurveObj   :TXYCurveObj;
+        Power_TempCurve    :String;
+        Power_TempCurveObj :TXYCurveObj;
 
-        FClass   :Integer;
-        VoltageModel    :Integer;   // Variation with voltage
-        PFNominal       :Double;
-
-        FpctkWout       :Double;   // percent of kW rated output currently dispatched
-        Fpctkvarout     :Double;
+        FClass        :Integer;
+        VoltageModel  :Integer;   // Variation with voltage
+        PFnominal     :Double;
 
         Registers,  Derivatives         :Array[1..NumPVSystemRegisters] of Double;
 
@@ -219,13 +235,11 @@ TYPE
        PROCEDURE DumpProperties(VAR F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
 
-       Property PresentkW    :Double  Read Get_PresentkW   Write Set_PresentkW;
+       Property PresentIrradiance    :Double  Read Get_PresentIrradiance Write Set_PresentIrradiance  ;
+       Property PresentkW    :Double  Read Get_PresentkW   ;
        Property Presentkvar  :Double  Read Get_Presentkvar Write Set_Presentkvar;
        Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
-       Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
-
-       Property PctkWOut     :Double  Read FpctkWOut       Write Set_pctkWOut;
-       Property PctkVarOut   :Double  Read FpctkvarOut     Write Set_pctkvarOut;
+       Property PowerFactor  :Double  Read PFnominal       Write Set_PowerFactor;
 
    End;
 
@@ -278,8 +292,10 @@ Const
 
   NumPropsThisClass = 29; // Make this agree with the last property constant
 
-VAR cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
-    CDOUBLEONE: Complex;
+VAR
+
+   cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
+   CDOUBLEONE :Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TPVsystem.Create;  // Creates superstructure for all PVSystem elements
@@ -339,21 +355,44 @@ Begin
                               'If 1-phase delta or phase-phase connected, specify phase-phase kV.');  // line-neutral voltage//  base voltage
      AddProperty('irradiance', propIrradiance,
                               'Get/set the present irradiance value in kW/sq-m. Used as base value for shape multipliers. '+
-                              'Generally entered as peak value for the time period of interest and the load shape objects defined as per unit.' );
+                              'Generally entered as peak value for the time period of interest and the yearly, daily, and duty load shape ' +
+                              'objects are defined as per unit multipliers (just like Loads/Generators).' );
+     AddProperty('Pmpp',      propPmpp,
+                              'Get/set the rated max power of the PV array for 1.0 kW/sq-m irradiance and a user-selected array temperature. ' +
+                              'The P-TCurve should be defined relative to the selected array temperature.' );
+     AddProperty('Temperature', propTemp,
+                              'Get/set the present Temperature. Used as fixed value corresponding to PTCurve property. '+
+                              'A multiplier is obtained from the Pmpp-Temp curve and applied to the nominal Pmpp from the irradiance ' +
+                              'to determine the net array output.' );
      AddProperty('pf',        propPF,
                               'Nominally, the power factor for the output power. Default is 1.0. ' +
-                              'Setting this property will also set the kvar property.' +
+                              'Setting this property will cause the inverter to operate in constant power factor mode.' +
                               'Enter negative when kW and kvar have opposite signs.'+CRLF+
                               'A positive power factor signifies that the PVSystem element produces vars ' + CRLF +
                               'as is typical for a generator.  ');
      AddProperty('conn',      propCONNECTION,
                               '={wye|LN|delta|LL}.  Default is wye.');
      AddProperty('kvar',      propKVAR,
-                              'Get/set the present kvar value.  Alternative to specifying the power factor.  Side effect: '+
-                              ' the power factor value is altered to agree based on present value of output kW.');
+                              'Get/set the present kvar value.  Setting this property forces the inverter to operate in constant kvar mode.');
      AddProperty('kVA',       propKVA,
-                              'kVA rating of inveerter. Used as the base for Dynamics mode and Harmonics mode values.');
+                              'kVA rating of inverter. Used as the base for Dynamics mode and Harmonics mode values.');
+     AddProperty('%Cutin',     propCutin,
+                              '% cut in power -- % of kVA rating of inverter. ' +
+                              'When the inverter is OFF, the power from the array must be greater than this for the inverter to turn on.');
+     AddProperty('%Cutout',    propCutout,
+                              '% cut in power -- % of kVA rating of inverter. '+
+                              'When the inverter is ON, the inverter turns OFF when the power from the array drops below this valye.');
 
+     AddProperty('EffCurve',  propInvEffCurve,
+                              'An XYCurve object, previously defined, that describes the PER UNIT efficiency vs PER UNIT of rated kVA for the inverter. ' +
+                              'Inverter output power is discounted by the multiplier obtained from this curve.');
+
+     AddProperty('P-TCurve',   propP_T_Curve,
+                              'An XYCurve object, previously defined, that describes the PV array PER UNIT Pmpp vs Temperature curve. ' +
+                              'Temperature units must agree with the Temperature property and the Temperature shapes used for simulations. ' +
+                              'The Pmpp values are specified in per unit of the Pmpp value for 1 kW/sq-m irradiance. ' +
+                              'The value for the temperature at which Pmpp is defined should be 1.0. ' +
+                              'The net array power is determined by the irradiance * Pmpp * f(Temperature)');
      AddProperty('%R',        propPCTR,
                               'Equivalent percent internal resistance, ohms. Default is 0. Placed in series with internal voltage source' +
                               ' for harmonics and dynamics modes. Use a combination of %IdlekW and %EffCharge and %EffDischarge to account for ' +
@@ -391,6 +430,25 @@ Begin
                                  'Designate the number of points to solve using the Set Number=xxxx command. '+
                                  'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
 
+     AddProperty('Tyearly',       propTYEARLY,
+                                 'Temperature shape to use for yearly simulations.  Must be previously defined '+
+                                 'as a TShape object. If this is not specified, the Daily dispatch shape, If any, is repeated '+
+                                 'during Yearly solution modes. ' +
+                                 'The PVSystem element uses this TShape to determine the Pmpp from the Pmpp vs T curve. ' +
+                                 'Units must agree with the Pmpp vs T curve.');
+     AddProperty('Tdaily',        propTDAILY,
+                                 'Temperature shape to use for daily simulations.  Must be previously defined '+
+                                 'as a TShape object of 24 hrs, typically.  '+
+                                 'The PVSystem element uses this TShape to determine the Pmpp from the Pmpp vs T curve. ' +
+                                 'Units must agree with the Pmpp vs T curve.'); // daily dispatch (hourly)
+     AddProperty('Tduty',          propTDUTY,
+                                 'Temperature shape to use for duty cycle dispatch simulations such as for solar ramp rate studies. ' +
+                                 'Must be previously defined as a TShape object. '+
+                                 'Typically would have time intervals of 1-5 seconds. '+
+                                 'Designate the number of points to solve using the Set Number=xxxx command. '+
+                                 'If there are fewer points in the actual shape, the shape is assumed to repeat. ' +
+                                 'The PVSystem model uses this TShape to determine the Pmpp from the Pmpp vs T curve. ' +
+                                 'Units must agree with the Pmpp vs T curve.');  // Cloud transient simulation
      AddProperty('class',       propCLASS,
                                 'An arbitrary integer number representing the class of PVSystem element so that PVSystem values may '+
                                 'be segregated by class.'); // integer
@@ -535,18 +593,35 @@ Begin
                 0               : DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
                 1               : NPhases    := Parser.Intvalue; // num phases
                 2               : SetBus(1, param);
-               propKV           : PresentkV    := Parser.DblValue;
-               propIrradiance   : Irradiance   := Parser.DblValue;
-               propPF           : PFNominal    := Parser.DblValue;
+               propKV           : PresentkV     := Parser.DblValue;
+               propIrradiance   : FIrradiance   := Parser.DblValue;
+               propPF           : begin
+                                    PFSpecified   := TRUE;
+                                    kvarSpecified := FALSE;
+                                    PFnominal     := Parser.DblValue;
+                                  end;
                propMODEL        : VoltageModel := Parser.IntValue;
                propYEARLY       : YearlyShape  := Param;
-               propDAILY        : DailyShape  := Param;
-               propDUTY         : DutyShape     := Param;
+               propDAILY        : DailyShape   := Param;
+               propDUTY         : DutyShape    := Param;
+               propTYEARLY      : YearlyTShape := Param;
+               propTDAILY       : DailyTShape  := Param;
+               propTDUTY        : DutyTShape   := Param;
                propCONNECTION   : InterpretConnection(Param);
-               propKVAR         : Presentkvar   := Parser.DblValue;
-               propPCTR         : pctR          := Parser.DblValue;
-               propPCTX         : pctX          := Parser.DblValue;
+               propKVAR         : Begin
+                                    kvarSpecified := TRUE;
+                                    PFSpecified   := FALSE;
+                                    Presentkvar   := Parser.DblValue;
+                                  End;
+               propPCTR         : pctR         := Parser.DblValue;
+               propPCTX         : pctX         := Parser.DblValue;
                propCLASS        : FClass       := Parser.IntValue;
+               propInvEffCurve  : InverterCurve:= Param;
+               propTemp         : FTemperature := Parser.DblValue ;
+               propPmpp         : FPmpp        := Parser.DblValue ;
+               propP_T_Curve    : Power_TempCurve := Param;
+               propCutin        : FpctCutIn    := Parser.DblValue ;
+               propCutout       : FpctCutOut   := Parser.DblValue ;
                propVMINPU       : VMinPu       := Parser.DblValue;
                propVMAXPU       : VMaxPu       := Parser.DblValue;
                propKVA          : kVArating    := Parser.DblValue;
@@ -562,9 +637,8 @@ Begin
 
              CASE iCase OF
                 1: SetNcondsForConnection;  // Force Reallocation of terminal info
-                propPF: SyncUpPowerQuantities;   // keep kvar nominal up to date with kW and PF
 
-        {Set loadshape objects;  returns nil If not valid}
+                {Set loadshape objects;  returns nil If not valid}
                 propYEARLY: YearlyShapeObj := LoadShapeClass.Find(YearlyShape);
                 propDAILY:  DailyShapeObj  := LoadShapeClass.Find(DailyShape);
                 propDUTY:   DutyShapeObj   := LoadShapeClass.Find(DutyShape);
@@ -572,6 +646,9 @@ Begin
                 propTYEARLY: YearlyTShapeObj := TShapeClass.Find(YearlyTShape);
                 propTDAILY:  DailyTShapeObj  := TShapeClass.Find(DailyTShape);
                 propTDUTY:   DutyTShapeObj   := TShapeClass.Find(DutyTShape);
+
+                propInvEffCurve  : InverterCurveObj   := XYCurveClass.Find(InverterCurve);
+                propP_T_Curve    : Power_TempCurveObj := XYCurveClass.Find(Power_TempCurve);
 
                 propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
                        AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
@@ -620,43 +697,51 @@ Begin
            YPrimInvalid := True;
          End;
 
-         kVPVSystemBase := OtherPVsystemObj.kVPVSystemBase;
-         Vbase          := OtherPVsystemObj.Vbase;
-         Vminpu         := OtherPVsystemObj.Vminpu;
-         Vmaxpu         := OtherPVsystemObj.Vmaxpu;
-         Vbase95        := OtherPVsystemObj.Vbase95;
-         Vbase105       := OtherPVsystemObj.Vbase105;
-         kW_out         := OtherPVsystemObj.kW_out;
-         kvar_out       := OtherPVsystemObj.kvar_out;
-         Pnominalperphase   := OtherPVsystemObj.Pnominalperphase;
-         PFNominal      := OtherPVsystemObj.PFNominal;
-         Qnominalperphase   := OtherPVsystemObj.Qnominalperphase;
-         Connection     := OtherPVsystemObj.Connection;
-         YearlyShape    := OtherPVsystemObj.YearlyShape;
-         YearlyShapeObj := OtherPVsystemObj.YearlyShapeObj;
-         DailyShape     := OtherPVsystemObj.DailyShape;
-         DailyShapeObj  := OtherPVsystemObj.DailyShapeObj;
-         DutyShape      := OtherPVsystemObj.DutyShape;
-         DutyShapeObj   := OtherPVsystemObj.DutyShapeObj;
-         YearlyTShape    := OtherPVsystemObj.YearlyTShape;
-         YearlyTShapeObj := OtherPVsystemObj.YearlyTShapeObj;
-         DailyTShape     := OtherPVsystemObj.DailyTShape;
-         DailyTShapeObj  := OtherPVsystemObj.DailyTShapeObj;
-         DutyTShape      := OtherPVsystemObj.DutyTShape;
-         DutyTShapeObj   := OtherPVsystemObj.DutyTShapeObj;
-         FClass   := OtherPVsystemObj.FClass;
-         VoltageModel   := OtherPVsystemObj.VoltageModel;
+         kVPVSystemBase    := OtherPVsystemObj.kVPVSystemBase;
+         Vbase             := OtherPVsystemObj.Vbase;
+         Vminpu            := OtherPVsystemObj.Vminpu;
+         Vmaxpu            := OtherPVsystemObj.Vmaxpu;
+         Vbase95           := OtherPVsystemObj.Vbase95;
+         Vbase105          := OtherPVsystemObj.Vbase105;
+         kW_out            := OtherPVsystemObj.kW_out;
+         kvar_out          := OtherPVsystemObj.kvar_out;
+         Pnominalperphase  := OtherPVsystemObj.Pnominalperphase;
+         PFnominal         := OtherPVsystemObj.PFnominal;
+         Qnominalperphase  := OtherPVsystemObj.Qnominalperphase;
+         Connection        := OtherPVsystemObj.Connection;
+         YearlyShape       := OtherPVsystemObj.YearlyShape;
+         YearlyShapeObj    := OtherPVsystemObj.YearlyShapeObj;
+         DailyShape        := OtherPVsystemObj.DailyShape;
+         DailyShapeObj     := OtherPVsystemObj.DailyShapeObj;
+         DutyShape         := OtherPVsystemObj.DutyShape;
+         DutyShapeObj      := OtherPVsystemObj.DutyShapeObj;
+         YearlyTShape      := OtherPVsystemObj.YearlyTShape;
+         YearlyTShapeObj   := OtherPVsystemObj.YearlyTShapeObj;
+         DailyTShape       := OtherPVsystemObj.DailyTShape;
+         DailyTShapeObj    := OtherPVsystemObj.DailyTShapeObj;
+         DutyTShape        := OtherPVsystemObj.DutyTShape;
+         DutyTShapeObj     := OtherPVsystemObj.DutyTShapeObj;
+         InverterCurve      := OtherPVsystemObj.InverterCurve;
+         InverterCurveObj   := OtherPVsystemObj.InverterCurveObj;
+         Power_TempCurve    := OtherPVsystemObj.Power_TempCurve;
+         Power_TempCurveObj := OtherPVsystemObj.Power_TempCurveObj;
+         FClass             := OtherPVsystemObj.FClass;
+         VoltageModel       := OtherPVsystemObj.VoltageModel;
 
-         kVArating      := OtherPVsystemObj.kVArating;
+         FTemperature       := OtherPVsystemObj.FTemperature;
+         FPmpp              := OtherPVsystemObj.FPmpp;
+         FpctCutin          := OtherPVsystemObj.FpctCutin;
+         FpctCutout         := OtherPVsystemObj.FpctCutout;
+         Firradiance        := OtherPVsystemObj.Firradiance;
 
-         pctkWout        := OtherPVsystemObj.pctkWout;
+         kVArating          := OtherPVsystemObj.kVArating;
 
-         pctR            := OtherPVsystemObj.pctR;
-         pctX            := OtherPVsystemObj.pctX;
+         pctR               := OtherPVsystemObj.pctR;
+         pctX               := OtherPVsystemObj.pctX;
 
-         RandomMult      :=  OtherPVsystemObj.RandomMult;
+         RandomMult         := OtherPVsystemObj.RandomMult;
 
-         UserModel.Name   := OtherPVsystemObj.UserModel.Name;  // Connect to user written models
+         UserModel.Name     := OtherPVsystemObj.UserModel.Name;  // Connect to user written models
 
          ClassMakeLike(OtherPVsystemObj);
 
@@ -734,49 +819,60 @@ Begin
      Yorder     := 0;  // To trigger an initial allocation
      Nterms     := 1;  // forces allocations
 
-     YearlyShape       := '';
-     YearlyShapeObj    := nil;  // If YearlyShapeobj = nil Then the load alway stays nominal * global multipliers
-     DailyShape        := '';
-     DailyShapeObj     := nil;  // If DaillyShapeobj = nil Then the load alway stays nominal * global multipliers
-     DutyShape         := '';
-     DutyShapeObj      := nil;  // If DutyShapeobj = nil Then the load alway stays nominal * global multipliers
+     YearlyShape        := '';
+     YearlyShapeObj     := nil;  // If YearlyShapeobj = nil Then the Irradiance alway stays nominal
+     DailyShape         := '';
+     DailyShapeObj      := nil;  // If DaillyShapeobj = nil Then the Irradiance alway stays nominal
+     DutyShape          := '';
+     DutyShapeObj       := nil;  // If DutyShapeobj = nil Then the Irradiance alway stays nominal
+
      YearlyTShape       := '';
-     YearlyTShapeObj    := nil;  // If YearlyShapeobj = nil Then the load alway stays nominal * global multipliers
+     YearlyTShapeObj    := nil;  // If YearlyShapeobj = nil Then the Temperature always stays nominal
      DailyTShape        := '';
-     DailyTShapeObj     := nil;  // If DaillyShapeobj = nil Then the load alway stays nominal * global multipliers
+     DailyTShapeObj     := nil;  // If DaillyShapeobj = nil Then the Temperature always stays nominal
      DutyTShape         := '';
-     DutyTShapeObj      := nil;  // If DutyShapeobj = nil Then the load alway stays nominal * global multipliers
-     Connection        := 0;    // Wye (star)
-     VoltageModel      := 1;  {Typical fixed kW negative load}
-     FClass      := 1;
+     DutyTShapeObj      := nil;  // If DutyShapeobj = nil Then the Temperature always stays nominal
+
+     InverterCurveObj   := Nil;
+     Power_TempCurveObj := Nil;
+     InverterCurve      := '';
+     Power_TempCurve    := '';
+
+     Connection         := 0;    // Wye (star, L-N)
+     VoltageModel       := 1;  {Typical fixed kW negative load}
+     FClass             := 1;
 
      PVSystemSolutionCount     := -1;  // For keep track of the present solution in Injcurrent calcs
      OpenPVSystemSolutionCount := -1;
-     YPrimOpenCond            := nil;
+     YPrimOpenCond             := nil;
 
-     kVPVSystemBase    := 12.47;
+     kVPVSystemBase   := 12.47;
      VBase            := 7200.0;
      Vminpu           := 0.90;
      Vmaxpu           := 1.10;
-     VBase95          := Vminpu * Vbase;
-     VBase105         := Vmaxpu * Vbase;
+     VBase95          := Vminpu  * Vbase;
+     VBase105         := Vmaxpu  * Vbase;
      Yorder           := Fnterms * Fnconds;
      RandomMult       := 1.0 ;
 
+     PFSpecified      := TRUE;
+     kvarSpecified    := FALSE;
+     InverterON       := TRUE; // start with inverterON
+
+     FTemperature     := 25.0;
+     FIrradiance      := 1.0;  // kW/sq-m
+     FpctCutIn        := 20.0;
+     FpctCutOut       := 20.0;
+
       {Output rating stuff}
-     kW_out       := 25.0;
+     kW_out       := 500.0;
      kvar_out     := 0.0;
-     PFNominal    := 1.0;
-     kVArating    := 25.0;
+     PFnominal    := 1.0;
+     kVArating    := 500.0;
+     FPmpp        := 500.0;
 
-     pctR            := 0.0;;
-     pctX            := 50.0;
-
-     FpctkWout        := 100.0;
-     Fpctkvarout      := 100.0;
-
-
-     // kVANotSet    := TRUE;  // Flag to set the default value for kVA
+     pctR         := 0.0;;
+     pctX         := 50.0;
 
      UserModel  := TPVsystemUserModel.Create;
 
@@ -809,20 +905,30 @@ Begin
      PropertyValue[1]      := '3';         //'phases';
      PropertyValue[2]      := Getbus(1);   //'bus1';
 
-     PropertyValue[propKV]      := Format('%-g', [kVPVSystemBase]);
-     PropertyValue[propIrradiance]      := Format('%-g', [Irradiance]);
-     PropertyValue[propPF]      := Format('%-g', [PFNominal]);
-     PropertyValue[propMODEL]     := '1';
-     PropertyValue[propYEARLY]    := '';
-     PropertyValue[propDAILY]     := '';
-     PropertyValue[propDUTY]      := '';
-     PropertyValue[propCONNECTION]:= 'wye';
-     PropertyValue[propKVAR]      := Format('%-g', [Presentkvar]);
+     PropertyValue[propKV]         := Format('%-g', [kVPVSystemBase]);
+     PropertyValue[propIrradiance] := Format('%-g', [FIrradiance]);
+     PropertyValue[propPF]         := Format('%-g', [PFnominal]);
+     PropertyValue[propMODEL]      := '1';
+     PropertyValue[propYEARLY]     := '';
+     PropertyValue[propDAILY]      := '';
+     PropertyValue[propDUTY]       := '';
+     PropertyValue[propTYEARLY]    := '';
+     PropertyValue[propTDAILY]     := '';
+     PropertyValue[propTDUTY]      := '';
+     PropertyValue[propCONNECTION] := 'wye';
+     PropertyValue[propKVAR]       := Format('%-g', [Presentkvar]);
 
      PropertyValue[propPCTR]      := Format('%-g', [pctR]);
      PropertyValue[propPCTX]      := Format('%-g', [pctX]);
 
      PropertyValue[propCLASS]     := '1'; //'class'
+
+     PropertyValue[propInvEffCurve] := '';
+     PropertyValue[propTemp]        := Format('%-g', [FTemperature]);
+     PropertyValue[propPmpp]        := Format('%-g', [FPmpp]);
+     PropertyValue[propP_T_Curve]   := '';
+     PropertyValue[propCutin]       := '20';
+     PropertyValue[propCutout]      := '20';
 
      PropertyValue[propVMINPU]    := '0.90';
      PropertyValue[propVMAXPU]    := '1.10';
@@ -845,22 +951,28 @@ Begin
       Result := '';
       CASE Index of
           propKV         : Result := Format('%.6g', [kVPVSystemBase]);
-          propIrradiance : Result := Format('%.6g', [Irradiance]);
-          propPF         : Result := Format('%.6g', [PFNominal]);
+          propIrradiance : Result := Format('%.6g', [FIrradiance]);
+          propPF         : Result := Format('%.6g', [PFnominal]);
           propMODEL      : Result := Format('%d',   [VoltageModel]);
           propYEARLY     : Result := YearlyShape;
           propDAILY      : Result := DailyShape;
           propDUTY       : Result := DutyShape;
 
-          propTYEARLY     : Result := YearlyTShape;
-          propTDAILY      : Result := DailyTShape;
-          propTDUTY       : Result := DutyTShape;
+          propTYEARLY    : Result := YearlyTShape;
+          propTDAILY     : Result := DailyTShape;
+          propTDUTY      : Result := DutyTShape;
 
           {propCONNECTION :;}
           propKVAR       : Result := Format('%.6g', [kvar_out]);
           propPCTR       : Result := Format('%.6g', [pctR]);
           propPCTX       : Result := Format('%.6g', [pctX]);
           {propCLASS      = 17;}
+          propInvEffCurve: Result := InverterCurve;
+          propTemp       : Result := Format('%.6g', [FTemperature]);
+          propPmpp       : Result := Format('%.6g', [FPmpp]);
+          propP_T_Curve  : Result := Power_TempCurve;
+          propCutin      : Result := Format('%.6g', [FpctCutin]);
+          propCutOut     : Result := Format('%.6g', [FpctCutOut]);
           propVMINPU     : Result := Format('%.6g', [VMinPu]);
           propVMAXPU     : Result := Format('%.6g', [VMaxPu]);
           propKVA        : Result := Format('%.6g', [kVArating]);
@@ -908,6 +1020,15 @@ End;
 
 
 //----------------------------------------------------------------------------
+procedure TPVsystemObj.CalcDailyTMult(Hr: double);
+begin
+     If (DailyTShapeObj <> Nil) Then
+       Begin
+            TShapeValue := DailyTShapeObj.GetTemperature(Hr);
+       End
+     ELSE TShapeValue := 1.0;  // Default to no  variation
+end;
+
 PROCEDURE TPVsystemObj.CalcDutyMult(Hr:Double);
 
 Begin
@@ -917,6 +1038,15 @@ Begin
        End
      ELSE CalcDailyMult(Hr);  // Default to Daily Mult If no duty curve specified
 End;
+
+procedure TPVsystemObj.CalcDutyTMult(Hr: double);
+begin
+     If DutyTShapeObj <> Nil Then
+       Begin
+             TShapeValue := DutyTShapeObj.GetTemperature(Hr);
+       End
+     ELSE CalcDailyTMult(Hr);  // Default to Daily Mult If no duty curve specified
+end;
 
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.CalcYearlyMult(Hr:Double);
@@ -931,12 +1061,24 @@ End;
 
 
 
+procedure TPVsystemObj.CalcYearlyTMult(Hr: double);
+begin
+     If YearlyTShapeObj<>Nil Then
+       Begin
+            TShapeValue := YearlyTShapeObj.GetTemperature(Hr) ;
+       End
+     ELSE CalcDailyTMult(Hr);  // Defaults to Daily curve
+
+end;
+
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.SetNominalPVSystemOuput;
 
 Begin
 
-   ShapeFactor := CDOUBLEONE;  // init here; changed by curve routine
+   ShapeFactor  := CDOUBLEONE;  // init here; changed by curve routine
+   TShapeValue  := 25.0;  // init here; changed by curve routine
+
     // Check to make sure the PVSystem element is ON
    With ActiveCircuit, ActiveCircuit.Solution Do
    Begin
@@ -947,8 +1089,8 @@ Begin
            With Solution Do
             CASE Mode OF
                 SNAPSHOT:    ; {Just solve for the present kW, kvar}  // Don't check for state change
-                DAILYMODE:    CalcDailyMult(dblHour); // Daily dispatch curve
-                YEARLYMODE:   CalcYearlyMult(dblHour);
+                DAILYMODE:  Begin  CalcDailyMult(dblHour);  CalcDailyTMult(dblHour); End;
+                YEARLYMODE: Begin  CalcYearlyMult(dblHour); CalcYearlyTMult(dblHour); End;
              (*
                 MONTECARLO1,
                 MONTEFAULT,
@@ -959,28 +1101,35 @@ Begin
                 MONTECARLO2,
                 MONTECARLO3,
                 LOADDURATION1,
-                LOADDURATION2: CalcDailyMult(dblHour);
-                PEAKDAY:       CalcDailyMult(dblHour);
+                LOADDURATION2: Begin CalcDailyMult(dblHour); CalcDailyTMult(dblHour); End;
+                PEAKDAY:       Begin CalcDailyMult(dblHour); CalcDailyTMult(dblHour); End;
 
-                DUTYCYCLE:     CalcDutyMult(dblHour) ;
+                DUTYCYCLE:     Begin CalcDutyMult(dblHour) ; CalcDutyTMult(dblHour) ;  End;
                 {AUTOADDFLAG:  ; }
             END;
 
+          ComputekWkvar;
           Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
           Qnominalperphase   := 1000.0 * kvar_out  / Fnphases;
 
           CASE VoltageModel  of
-//****  Fix this when user model gets connected in
-               3: // Yeq := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
-          ELSE
-              Yeq  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
-              If   (Vminpu <> 0.0) Then Yeq95 := CDivReal(Yeq, SQR(Vminpu))  // at 95% voltage
-                                   Else Yeq95 := Yeq; // Always a constant Z model
 
-              If   (Vmaxpu <> 0.0) Then  Yeq105 := CDivReal(Yeq, SQR(Vmaxpu))   // at 105% voltage
-                                   Else  Yeq105 := Yeq;
+//****  Fix this when user model gets connected in
+               3: // YEQ := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
+
+          ELSE
+
+              YEQ  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
+
+              If   (Vminpu <> 0.0) Then YEQ95 := CDivReal(YEQ, SQR(Vminpu))  // at 95% voltage
+                                   Else YEQ95 := YEQ; // Always a constant Z model
+
+              If   (Vmaxpu <> 0.0) Then  YEQ105 := CDivReal(YEQ, SQR(Vmaxpu))   // at 105% voltage
+                                   Else  YEQ105 := YEQ;
+
+
           END;
-              { When we leave here, all the Yeq's are in L-N values}
+{ When we leave here, all the YEQ's are in L-N values}
 
      End;  {If  NOT (IsDynamicModel or IsHarmonicModel)}
    End;  {With ActiveCircuit}
@@ -1002,6 +1151,8 @@ Begin
     RThev := pctR * 0.01 * SQR(PresentkV)/kVARating * 1000.0;
     XThev := pctX * 0.01 * SQR(PresentkV)/kVARating * 1000.0;
 
+    CutInkW := FpctCutin * kVARating / 100.0;
+    CutOutkW := FpctCutOut * kVARating / 100.0;
 
     SetNominalPVSystemOuput;
 
@@ -1045,8 +1196,8 @@ Begin
    With  ActiveCircuit.solution  Do
    IF {IsDynamicModel or} IsHarmonicModel Then
      Begin
-       {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
-           Y  := Yeq;   // L-N value computed in initialization routines
+       {YEQ is computed from %R and %X -- inverse of Rthev + j Xthev}
+           Y  := YEQ;   // L-N value computed in initialization routines
 
            IF Connection=1 Then Y := CDivReal(Y, 3.0); // Convert to delta impedance
            Y.im := Y.im / FreqMultiplier;
@@ -1071,10 +1222,10 @@ Begin
    ELSE
      Begin  //  Regular power flow PVSystem element model
 
-       {Yeq is always expected as the equivalent line-neutral admittance}
+       {YEQ is always expected as the equivalent line-neutral admittance}
 
 
-       Y := Cadd(cnegate(Yeq), YeqIdling);   // negate for generation    Yeq is L-N quantity
+       Y := cnegate(YEQ);   // negate for generation    YEQ is L-N quantity
 
        // ****** Need to modify the base admittance for real harmonics calcs
        Y.im           := Y.im / FreqMultiplier;
@@ -1112,6 +1263,83 @@ Begin
 End;
 
 
+
+procedure TPVsystemObj.ComputeInverterPower;
+VAR
+   EffFactor  :Double;
+   kVA_Gen :Double;
+begin
+
+    EffFactor := 1.0;
+    kW_Out := 0.0;
+
+    // Determine state of the inverter
+    If InverterON Then  Begin
+       If Panelkw < CutOutkW  Then  Begin
+         InverterON := FALSE;
+       End;
+    End
+    ELSE Begin
+       If Panelkw >= CutInkW  Then  Begin
+         InverterON := TRUE;
+       End;
+    End;
+
+    // set inverter output. Defaults to 100% of the panelkW if no efficiency curve spec'd
+    If InverterON Then Begin
+        If Assigned(InverterCurveObj) Then
+            EffFactor := InverterCurveObj.GetYValue(PanelkW/kVArating);  // pu eff vs pu power
+        kW_Out := PanelkW * EffFactor;
+    End
+    ELSE Begin
+        kW_Out := 0.0;
+    End;
+
+    // kvar value
+    If PFSpecified Then Begin
+         IF   PFnominal = 1.0 Then   kvar_out := 0.0
+         ELSE kvar_out := kW_out * sqrt(1.0/SQR(PFnominal) - 1.0) * sign(PFnominal);
+         // if pf is negative, make sure kvar has opposite sign of kW
+         // kW will always be positive
+    End
+    ELSE Begin  // kvar is specified
+         kvar_Out := kvarRequested;
+    End;
+
+    // Limit kvar so that kVA of inverter is not exceeded
+     kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out));
+     If kVA_Gen > kVArating Then Begin
+         If kW_out > kVArating Then Begin
+              kW_out   := kVARating;
+              kvar_out := 0.0;
+         End
+         ELSE kvar_Out :=  Sqrt(SQR(kVARating) - SQR(kW_Out)) * sign(kvar_Out);
+     End;
+
+end;
+
+procedure TPVsystemObj.ComputekWkvar;
+begin
+
+     ComputePanelPower;   // apply irradiance
+     ComputeInverterPower; // apply inverter eff after checking for cutin/cutout
+
+end;
+
+procedure TPVsystemObj.ComputePanelPower;
+VAR
+   TempFactor  :Double;
+
+begin
+
+    TempFactor := 1.0;
+    If Assigned(Power_TempCurveObj) Then Begin
+        TempFactor := Power_TempCurveObj.GetYValue(TshapeValue);  // pu Pmpp vs T (actual)
+    End;
+
+    PanelkW := Firradiance * ShapeFactor.re * FPmpp * TempFactor;
+
+end;
 
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.CalcYPrim;
@@ -1233,18 +1461,18 @@ Begin
 
              0: Begin  {Wye}
                   IF   VMag <= VBase95
-                  THEN Curr := Cmul(Yeq95, V)  // Below 95% use an impedance model
+                  THEN Curr := Cmul(YEQ95, V)  // Below 95% use an impedance model
                   ELSE If VMag > VBase105
-                  THEN Curr := Cmul(Yeq105, V)  // above 105% use an impedance model
+                  THEN Curr := Cmul(YEQ105, V)  // above 105% use an impedance model
                   ELSE Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
                 End;
 
               1: Begin  {Delta}
                   VMag := VMag/SQRT3;  // L-N magnitude
                   IF   VMag <= VBase95
-                  THEN Curr := Cmul(CdivReal(Yeq95, 3.0), V)  // Below 95% use an impedance model
+                  THEN Curr := Cmul(CdivReal(YEQ95, 3.0), V)  // Below 95% use an impedance model
                   ELSE If VMag > VBase105
-                  THEN Curr := Cmul(CdivReal(Yeq105, 3.0), V)  // above 105% use an impedance model
+                  THEN Curr := Cmul(CdivReal(YEQ105, 3.0), V)  // above 105% use an impedance model
                   ELSE  Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
                 End;
 
@@ -1264,19 +1492,19 @@ PROCEDURE TPVsystemObj.DoConstantZPVsystemObj;
 VAR
    i    :Integer;
    Curr,
-   Yeq2 :Complex;
+   YEQ2 :Complex;
 
 Begin
 
-// Assume Yeq is kept up to date
+// Assume YEQ is kept up to date
     CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
-    If Connection=0 Then Yeq2 := Yeq Else Yeq2 := CdivReal(Yeq, 3.0);
+    If Connection=0 Then YEQ2 := YEQ Else YEQ2 := CdivReal(YEQ, 3.0);
 
      FOR i := 1 to Fnphases Do Begin
 
-        Curr := Cmul(Yeq2, Vterminal^[i]);   // Yeq is always line to neutral
+        Curr := Cmul(YEQ2, Vterminal^[i]);   // YEQ is always line to neutral
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
         IterminalUpdated := TRUE;
         StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
@@ -1490,7 +1718,7 @@ PROCEDURE TPVsystemObj.GetInjCurrents(Curr:pComplexArray);
 
 // Gives the currents for the last solution performed
 
-// Do not call SetNominalLoad, as that may change the load values
+// Do not call SetNominal, as that may change the load values
 
 VAR
    i:Integer;
@@ -1499,16 +1727,16 @@ Begin
 
    CalcInjCurrentArray;  // Difference between currents in YPrim and total current
 
-   TRY
-   // Copy into buffer array
-     FOR i := 1 TO Yorder Do Curr^[i] := InjCurrent^[i];
+       TRY
+       // Copy into buffer array
+         FOR i := 1 TO Yorder Do Curr^[i] := InjCurrent^[i];
 
-   EXCEPT
-     ON E: Exception Do
-        DoErrorMsg('PVSystem Object: "' + Name + '" in GetInjCurrents FUNCTION.',
-                    E.Message,
-                   'Current buffer not big enough.', 568);
-   End;
+       EXCEPT
+         ON E: Exception Do
+            DoErrorMsg('PVSystem Object: "' + Name + '" in GetInjCurrents FUNCTION.',
+                        E.Message,
+                       'Current buffer not big enough.', 568);
+       End;
 
 End;
 
@@ -1594,6 +1822,11 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+FUNCTION TPVsystemObj.Get_PresentIrradiance: Double;
+Begin
+     Result := Pnominalperphase * 0.001 * Fnphases;
+End;
+
 FUNCTION TPVsystemObj.Get_PresentkV: Double;
 Begin
      Result := kVPVSystemBase;
@@ -1641,7 +1874,7 @@ Begin
      YPrimInvalid       := TRUE;  // Force rebuild of YPrims
      PVSystemFundamental := ActiveCircuit.Solution.Frequency ;  // Whatever the frequency is when we enter here.
 
-     Yeq := Cinv(Cmplx(RThev, XThev));      // used for current calcs  Always L-N
+     YEQ := Cinv(Cmplx(RThev, XThev));      // used for current calcs  Always L-N
 
      {Compute reference Thevinen voltage from phase 1 current}
 
@@ -1682,7 +1915,7 @@ Begin
 
 (*
 
-//****     Yeq := Cinv(Cmplx(0.0, Xdp));
+//****     YEQ := Cinv(Cmplx(0.0, Xdp));
 
      {Compute nominal Positive sequence voltage behind transient reactance}
 
@@ -1781,7 +2014,7 @@ Begin
 End;
 
 
-
+{****DEFINE VARIABLE VALUES ****}
 //----------------------------------------------------------------------------
 FUNCTION TPVsystemObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
@@ -1796,7 +2029,7 @@ Begin
     CASE i of
        1: Result := -1.0;      // NEED TO DEFINE THESE
        2: Result := -1.0;
-       3: Result := pctkWout;
+       3: Result := -1.0;
        4: Result := -1.0;
      ELSE
         Begin
@@ -1813,6 +2046,8 @@ Begin
      END;
 End;
 
+{****DEFINE VARIABLE NAMES ****}
+
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.Set_Variable(i: Integer;  Value: Double);
 var N, k:Integer;
@@ -1823,7 +2058,7 @@ Begin
     CASE i of
        1: {kWhStored := Value};
        2: ; // DEFINE SOMETHING FOR THIS
-       3: pctkWout  := Value;
+       3: ;
        4: {pctkWin   := Value};
      ELSE
        Begin
@@ -1920,7 +2155,7 @@ Begin
 
   If Fnphases>1 Then
   Begin
-       S := S + Format(' kva=%-.5g  PF=%-.5g',[kVArating/Fnphases, PFNominal]);
+       S := S + Format(' kva=%-.5g  PF=%-.5g',[kVArating/Fnphases, PFnominal]);
   End;
 
   Parser.CmdString := S;
@@ -1940,27 +2175,19 @@ Begin
 
 End;
 
-procedure TPVsystemObj.Set_pctkvarOut(const Value: Double);
-begin
-     FpctkvarOut := Value;
-   // Force recompute of target PF and requested kVAr
-     Presentkvar := kVARating * sqrt(1.0/SQR(PFNominal) - 1.0) * FpctkvarOut  / 100.0;
-end;
-
-procedure TPVsystemObj.Set_pctkWOut(const Value: Double);
-begin
-     FpctkWOut := Value;
-     kW_Out    := FpctkWOut * kVARating / 100.0;
-end;
-
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.Set_PowerFactor(const Value: Double);
 Begin
-     PFNominal := Value;
-     SyncUpPowerQuantities;
+     PFnominal := Value;
+     PFSpecified := TRUE;
 End;
 
 //----------------------------------------------------------------------------
+procedure TPVsystemObj.Set_PresentIrradiance(const Value: Double);
+begin
+
+end;
+
 PROCEDURE TPVsystemObj.Set_PresentkV(const Value: Double);
 Begin
       kVPVSystemBase := Value ;
@@ -1973,38 +2200,11 @@ End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.Set_Presentkvar(const Value: Double);
-VAR
-     kVA_Gen :Double;
+
 Begin
-     kvar_out := Value;
      kvarRequested := Value;
-     {Requested kVA output}
-     kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out)) ;
-     If kVA_Gen > kVArating Then kVA_Gen := kVARating;  // Limit kVA to rated value
-     IF kVA_Gen <> 0.0 THEN PFNominal := kW_out / kVA_Gen ELSE PFNominal := 1.0;
-     If (kW_out*kvar_out) < 0.0 Then PFNominal := -PFNominal;
 End;
 
-//----------------------------------------------------------------------------
-PROCEDURE TPVsystemObj.Set_PresentkW(const Value: Double);
-Begin
-     FpctkWOut := Value/kVARating * 100.0;
-     kW_Out   := Value;
-     //SyncUpPowerQuantities;
-End;
-
-//----------------------------------------------------------------------------
-PROCEDURE TPVsystemObj.SyncUpPowerQuantities;
-Begin
-     // keep kvar nominal up to date with kW and PF
-     If (PFNominal <> 0.0)  Then
-     Begin
-          kvar_out := kW_out* sqrt(1.0/Sqr(PFNominal) - 1.0);
-          Qnominalperphase := 1000.0* kvar_out / Fnphases;
-          If PFNominal<0.0 Then kvar_out := -kvar_out;
-          // If kVANotSet Then kVARating := kWrating;
-     End;
-End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.SetDragHandRegister(Reg: Integer; const Value: Double);
@@ -2017,6 +2217,6 @@ End;
 
 initialization
 
-   CDOUBLEONE := CMPLX(1.0, 1.0);
+     CDOUBLEONE := Cmplx(1.0, 1.0);
 
 end.

@@ -168,8 +168,8 @@ Begin
 //     FeederClass    := TFeeder.Create;
 //     DSSClasses.New := FeederClass;
      DSSClasses.New := TSwtControl.Create;
-//     PVSystemClass  := TPVSystem.Create;
-//     DSSClasses.New := PVSystemClass;
+     PVSystemClass  := TPVSystem.Create;
+     DSSClasses.New := PVSystemClass;
 
      MonitorClass   := TDSSMonitor.Create;  // Have to do this AFTER Generator
      DSSClasses.New := MonitorClass;
