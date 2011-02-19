@@ -88,6 +88,9 @@ TYPE
         FTemperature    :Double;
         FPmpp           :Double;
 
+        EffFactor       :Double;
+        TempFactor      :Double;
+
         InverterON      :Boolean;
         FpctCutIn       :Double;
         FpctCutOut      :Double;
@@ -129,9 +132,9 @@ TYPE
         PROCEDURE CalcDutyMult(Hr:double);
         PROCEDURE CalcYearlyMult(Hr:double);
 
-        PROCEDURE CalcDailyTMult(Hr:double);
-        PROCEDURE CalcDutyTMult(Hr:double);
-        PROCEDURE CalcYearlyTMult(Hr:double);
+        PROCEDURE CalcDailyTemperature(Hr:double);
+        PROCEDURE CalcDutyTemperature(Hr:double);
+        PROCEDURE CalcYearlyTemperature(Hr:double);
 
         PROCEDURE ComputePanelPower;
         PROCEDURE ComputeInverterPower;
@@ -595,7 +598,7 @@ Begin
                 2               : SetBus(1, param);
                propKV           : PresentkV     := Parser.DblValue;
                propIrradiance   : FIrradiance   := Parser.DblValue;
-               propPF           : begin
+               propPF           : Begin
                                     PFSpecified   := TRUE;
                                     kvarSpecified := FALSE;
                                     PFnominal     := Parser.DblValue;
@@ -732,7 +735,7 @@ Begin
          FPmpp              := OtherPVsystemObj.FPmpp;
          FpctCutin          := OtherPVsystemObj.FpctCutin;
          FpctCutout         := OtherPVsystemObj.FpctCutout;
-         Firradiance        := OtherPVsystemObj.Firradiance;
+         FIrradiance        := OtherPVsystemObj.FIrradiance;
 
          kVArating          := OtherPVsystemObj.kVArating;
 
@@ -1020,8 +1023,8 @@ End;
 
 
 //----------------------------------------------------------------------------
-procedure TPVsystemObj.CalcDailyTMult(Hr: double);
-begin
+PROCEDURE TPVsystemObj.CalcDailyTemperature(Hr: double);
+Begin
      If (DailyTShapeObj <> Nil) Then
        Begin
             TShapeValue := DailyTShapeObj.GetTemperature(Hr);
@@ -1039,13 +1042,13 @@ Begin
      ELSE CalcDailyMult(Hr);  // Default to Daily Mult If no duty curve specified
 End;
 
-procedure TPVsystemObj.CalcDutyTMult(Hr: double);
-begin
+PROCEDURE TPVsystemObj.CalcDutyTemperature(Hr: double);
+Begin
      If DutyTShapeObj <> Nil Then
        Begin
              TShapeValue := DutyTShapeObj.GetTemperature(Hr);
        End
-     ELSE CalcDailyTMult(Hr);  // Default to Daily Mult If no duty curve specified
+     ELSE CalcDailyTemperature(Hr);  // Default to Daily Mult If no duty curve specified
 end;
 
 //----------------------------------------------------------------------------
@@ -1061,13 +1064,13 @@ End;
 
 
 
-procedure TPVsystemObj.CalcYearlyTMult(Hr: double);
-begin
+PROCEDURE TPVsystemObj.CalcYearlyTemperature(Hr: double);
+Begin
      If YearlyTShapeObj<>Nil Then
        Begin
             TShapeValue := YearlyTShapeObj.GetTemperature(Hr) ;
        End
-     ELSE CalcDailyTMult(Hr);  // Defaults to Daily curve
+     ELSE CalcDailyTemperature(Hr);  // Defaults to Daily curve
 
 end;
 
@@ -1089,8 +1092,8 @@ Begin
            With Solution Do
             CASE Mode OF
                 SNAPSHOT:    ; {Just solve for the present kW, kvar}  // Don't check for state change
-                DAILYMODE:  Begin  CalcDailyMult(dblHour);  CalcDailyTMult(dblHour); End;
-                YEARLYMODE: Begin  CalcYearlyMult(dblHour); CalcYearlyTMult(dblHour); End;
+                DAILYMODE:  Begin  CalcDailyMult(dblHour);  CalcDailyTemperature(dblHour); End;
+                YEARLYMODE: Begin  CalcYearlyMult(dblHour); CalcYearlyTemperature(dblHour); End;
              (*
                 MONTECARLO1,
                 MONTEFAULT,
@@ -1101,10 +1104,10 @@ Begin
                 MONTECARLO2,
                 MONTECARLO3,
                 LOADDURATION1,
-                LOADDURATION2: Begin CalcDailyMult(dblHour); CalcDailyTMult(dblHour); End;
-                PEAKDAY:       Begin CalcDailyMult(dblHour); CalcDailyTMult(dblHour); End;
+                LOADDURATION2: Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
+                PEAKDAY:       Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
 
-                DUTYCYCLE:     Begin CalcDutyMult(dblHour) ; CalcDutyTMult(dblHour) ;  End;
+                DUTYCYCLE:     Begin CalcDutyMult(dblHour) ; CalcDutyTemperature(dblHour) ;  End;
                 {AUTOADDFLAG:  ; }
             END;
 
@@ -1163,6 +1166,12 @@ Begin
       If Length(DailyShape)>0 Then DoSimpleMsg('WARNING! Daily load shape: "'+ DailyShape +'" Not Found.', 564);
     If DutyShapeObj=Nil Then
       If Length(DutyShape)>0 Then DoSimpleMsg('WARNING! Duty load shape: "'+ DutyShape +'" Not Found.', 565);
+    If YearlyTShapeObj=Nil Then
+      If Length(YearlyTShape)>0 Then DoSimpleMsg('WARNING! Yearly temperature shape: "'+ YearlyTShape +'" Not Found.', 5631);
+    If DailyTShapeObj=Nil Then
+      If Length(DailyTShape)>0 Then DoSimpleMsg('WARNING! Daily temperature shape: "'+ DailyTShape +'" Not Found.', 5641);
+    If DutyTShapeObj=Nil Then
+      If Length(DutyTShape)>0 Then DoSimpleMsg('WARNING! Duty temperature shape: "'+ DutyTShape +'" Not Found.', 5651);
 
     If Length(Spectrum)> 0 Then Begin
           SpectrumObj := SpectrumClass.Find(Spectrum);
@@ -1264,11 +1273,11 @@ End;
 
 
 
-procedure TPVsystemObj.ComputeInverterPower;
+PROCEDURE TPVsystemObj.ComputeInverterPower;
 VAR
-   EffFactor  :Double;
+
    kVA_Gen :Double;
-begin
+Begin
 
     EffFactor := 1.0;
     kW_Out := 0.0;
@@ -1318,26 +1327,25 @@ begin
 
 end;
 
-procedure TPVsystemObj.ComputekWkvar;
-begin
+PROCEDURE TPVsystemObj.ComputekWkvar;
+Begin
 
      ComputePanelPower;   // apply irradiance
      ComputeInverterPower; // apply inverter eff after checking for cutin/cutout
 
 end;
 
-procedure TPVsystemObj.ComputePanelPower;
-VAR
-   TempFactor  :Double;
+PROCEDURE TPVsystemObj.ComputePanelPower;
 
-begin
+
+Begin
 
     TempFactor := 1.0;
     If Assigned(Power_TempCurveObj) Then Begin
         TempFactor := Power_TempCurveObj.GetYValue(TshapeValue);  // pu Pmpp vs T (actual)
     End;
 
-    PanelkW := Firradiance * ShapeFactor.re * FPmpp * TempFactor;
+    PanelkW := FIrradiance * ShapeFactor.re * FPmpp * TempFactor;
 
 end;
 
@@ -1824,7 +1832,7 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 FUNCTION TPVsystemObj.Get_PresentIrradiance: Double;
 Begin
-     Result := Pnominalperphase * 0.001 * Fnphases;
+     Result := FIrradiance * ShapeFactor.re;
 End;
 
 FUNCTION TPVsystemObj.Get_PresentkV: Double;
@@ -2014,7 +2022,6 @@ Begin
 End;
 
 
-{****DEFINE VARIABLE VALUES ****}
 //----------------------------------------------------------------------------
 FUNCTION TPVsystemObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
@@ -2027,10 +2034,10 @@ Begin
     If i < 1 Then Exit;
 // for now, report kWhstored and mode
     CASE i of
-       1: Result := -1.0;      // NEED TO DEFINE THESE
-       2: Result := -1.0;
-       3: Result := -1.0;
-       4: Result := -1.0;
+       1: Result := PresentIrradiance;      // NEED TO DEFINE THESE
+       2: Result := PanelkW;
+       3: Result := TempFactor;
+       4: Result := EffFactor;
      ELSE
         Begin
              If UserModel.Exists Then
@@ -2046,7 +2053,6 @@ Begin
      END;
 End;
 
-{****DEFINE VARIABLE NAMES ****}
 
 //----------------------------------------------------------------------------
 PROCEDURE TPVsystemObj.Set_Variable(i: Integer;  Value: Double);
@@ -2056,10 +2062,10 @@ Begin
   If i<1 Then Exit;  // No variables to set
 
     CASE i of
-       1: {kWhStored := Value};
-       2: ; // DEFINE SOMETHING FOR THIS
-       3: ;
-       4: {pctkWin   := Value};
+       1: FIrradiance := Value;
+       2: ; // Setting this has no effect Read only
+       3: ; // Setting this has no effect Read only
+       4: ; // Setting this has no effect Read only
      ELSE
        Begin
          If UserModel.Exists Then
@@ -2112,10 +2118,10 @@ Begin
       If i<1 Then Exit;  // Someone goofed
 
       CASE i of
-          1:Result := 'undefined';
-          2:Result := 'UNDEFINED';
-          3:Result := '% POWER OUTPUT';
-          4:Result := 'UNDEFINED';
+          1:Result := 'Irradiance';
+          2:Result := 'PanelkW';
+          3:Result := 'P_TFactor';
+          4:Result := 'Efficiency';
       ELSE
           Begin
             If UserModel.Exists Then
@@ -2183,8 +2189,10 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-procedure TPVsystemObj.Set_PresentIrradiance(const Value: Double);
-begin
+PROCEDURE TPVsystemObj.Set_PresentIrradiance(const Value: Double);
+Begin
+
+     FIrradiance := Value;
 
 end;
 
