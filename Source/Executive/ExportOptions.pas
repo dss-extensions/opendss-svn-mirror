@@ -187,7 +187,7 @@ Begin
      14: ExportMeters(FileName);
      15: IF   Length(Parm2) > 0 THEN Begin
            pMon:=MonitorClass.Find(Parm2);
-           IF   pMon <> NIL  THEN pMon.TranslateToCSV(FALSE)
+           IF   pMon <> NIL  THEN Begin pMon.TranslateToCSV(FALSE); FileName := GlobalResult; End
                              ELSE DoSimpleMsg('Monitor "'+Parm2+'" not found.'+ CRLF + parser.CmdString, 250);
          End
          ELSE   DoSimpleMsg('Monitor Name Not Specified.'+ CRLF + parser.CmdString, 251);

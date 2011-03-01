@@ -380,10 +380,10 @@ Begin
      AddProperty('kVA',       propKVA,
                               'kVA rating of inverter. Used as the base for Dynamics mode and Harmonics mode values.');
      AddProperty('%Cutin',     propCutin,
-                              '% cut in power -- % of kVA rating of inverter. ' +
+                              '% cut-in power -- % of kVA rating of inverter. ' +
                               'When the inverter is OFF, the power from the array must be greater than this for the inverter to turn on.');
      AddProperty('%Cutout',    propCutout,
-                              '% cut in power -- % of kVA rating of inverter. '+
+                              '% cut-out power -- % of kVA rating of inverter. '+
                               'When the inverter is ON, the inverter turns OFF when the power from the array drops below this valye.');
 
      AddProperty('EffCurve',  propInvEffCurve,
@@ -2034,7 +2034,7 @@ Begin
     If i < 1 Then Exit;
 // for now, report kWhstored and mode
     CASE i of
-       1: Result := PresentIrradiance;      // NEED TO DEFINE THESE
+       1: Result := PresentIrradiance;
        2: Result := PanelkW;
        3: Result := TempFactor;
        4: Result := EffFactor;
