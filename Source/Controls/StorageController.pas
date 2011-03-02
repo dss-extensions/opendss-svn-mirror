@@ -891,32 +891,14 @@ Begin
 End;
 
 FUNCTION TStorageControllerObj.GetkWActual: String;
-VAR
-    pStorage:TStorageObj;
-    i       :Integer;
-    Sum     :Double;
 Begin
-      Sum := 0.0;
-      for i := 1 to FleetPointerList.ListSize Do Begin
-          pStorage :=  FleetPointerList.Get(i);
-          sum := sum + pStorage.PresentkW;
-      End;
-      Result := Format('%-.8g',[sum]);
+      Result := Format('%-.8g',[FleetkW]);
 End;
 
 FUNCTION TStorageControllerObj.GetkWhActual: String;
-VAR
-    pStorage:TStorageObj;
-    i       :Integer;
-    Sum     :Double;
-    
+
 Begin
-      Sum := 0.0;
-      for i := 1 to FleetPointerList.ListSize Do Begin
-          pStorage :=  FleetPointerList.Get(i);
-          sum := sum + pStorage.kWhStored;
-      End;
-      Result := Format('%-.8g',[sum]);
+      Result := Format('%-.8g',[FleetkWh]);
 End;
 
 FUNCTION TStorageControllerObj.GetkWhTotal(Var Sum:Double): String;
