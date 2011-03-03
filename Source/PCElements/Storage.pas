@@ -36,7 +36,7 @@ interface
 USES  StoreUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadShape, Spectrum, ArrayDef, Dynamics;
 
 Const  NumStorageRegisters = 6;    // Number of energy meter registers
-       NumStorageVariables = 4;    // No state variables that need integrating.
+       NumStorageVariables = 6;    // No state variables that need integrating.
        
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -178,8 +178,10 @@ TYPE
         PROCEDURE Set_PresentkW(const Value: Double);
         PROCEDURE Set_PowerFactor(const Value: Double);
         PROCEDURE Set_State(const Value: Integer);
-        procedure Set_pctkvarOut(const Value: Double);
-    procedure Set_pctkWOut(const Value: Double);
+        PROCEDURE Set_pctkvarOut(const Value: Double);
+        PROCEDURE Set_pctkWOut(const Value: Double);
+        FUNCTION Get_kWChargeLosses: Double;
+        FUNCTION Get_kWIdlingLosses: Double;
 
       Protected
         PROCEDURE Set_ConductorClosed(Index:Integer; Value:Boolean); Override;
@@ -253,6 +255,9 @@ TYPE
        Property StorageState :Integer Read FState          Write Set_State;
        Property PctkWOut     :Double  Read FpctkWOut       Write Set_pctkWOut;
        Property PctkVarOut   :Double  Read FpctkvarOut     Write Set_pctkvarOut;
+
+       Property kWChargeLosses :Double  Read Get_kWChargeLosses;
+       Property kWIdlingLosses :Double  Read Get_kWIdlingLosses;
 
    End;
 
@@ -677,7 +682,7 @@ Begin
                propVMAXPU       : VMaxPu       := Parser.DblValue;
                propSTATE        : FState       := InterpretState(Param); //****
                propKVA          : kVArating    := Parser.DblValue;
-               propKWRATED      : kwrating      := Parser.DblValue ;
+               propKWRATED      : kWrating      := Parser.DblValue ;
                propKWHRATED     : kWhrating    := Parser.DblValue;
                propKWHSTORED    : kWhstored    := Parser.DblValue;
                propPCTRESERVE   : pctReserve    := Parser.DblValue;
@@ -1922,18 +1927,18 @@ Begin
         STORE_DISCHARGING: Begin
                                kWhStored := kWhStored - PresentkW * IntervalHrs / DischargeEff;
                                If kWhStored < kWhReserve Then Begin
-                                  kWhStored := kWhReserve;
-                                  Fstate := STORE_IDLING;  // It's empty Turn it off
-                                  FstateChanged := TRUE;
+                                   kWhStored := kWhReserve;
+                                   Fstate := STORE_IDLING;  // It's empty Turn it off
+                                   FstateChanged := TRUE;
                                End;
                            End;
 
         STORE_CHARGING:    Begin
                                kWhStored := kWhStored - PresentkW * IntervalHrs * ChargeEff;
                                If kWhStored > kWhRating Then Begin
-                                  kWhStored := kWhRating;
-                                  Fstate := STORE_IDLING;  // It's full Turn it off
-                                  FstateChanged := TRUE;
+                                   kWhStored := kWhRating;
+                                   Fstate := STORE_IDLING;  // It's full Turn it off
+                                   FstateChanged := TRUE;
                                End;
                            End;
     End;
@@ -1946,6 +1951,21 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+FUNCTION TStorageObj.Get_kWChargeLosses: Double;
+begin
+     Result := 0.0;
+     CASE StorageState of
+          STORE_CHARGING:   Result := abs(Power[1].re * (100.0 - pctChargeEff)/100000.0); // kW
+          STORE_IDLING:     Result := kWIdlingLosses;
+          STORE_DISCHARGING:Result := abs(Power[1].re * (100.0 - pctDisChargeEff)/100000.0);  // kW
+     END;
+end;
+
+FUNCTION TStorageObj.Get_kWIdlingLosses: Double;
+begin
+      Result := pctIdlekW * kWrating / 100.0;
+end;
+
 FUNCTION TStorageObj.Get_PresentkV: Double;
 Begin
      Result := kVStorageBase;
@@ -2164,8 +2184,10 @@ Begin
     CASE i of
        1: Result := kWhStored;
        2: Result := FState;
-       3: Result := pctkWout;
-       4: Result := pctkWin;
+       3: If Not (FState=STORE_DISCHARGING) Then Result := 0.0 Else Result := kW_Out; // pctkWout;
+       4: If Not (FState=STORE_CHARGING)    Then Result := 0.0 Else Result := kW_Out; // pctkWin;
+       5: Result := kWChargeLosses; {Present kW charge or discharge loss}
+       6: Result := kWIdlingLosses; {Present Idling Loss}
      ELSE
         Begin
              If UserModel.Exists Then
@@ -2193,6 +2215,8 @@ Begin
        2: Fstate    := Trunc(Value);
        3: pctkWout  := Value;
        4: pctkWin   := Value;
+       5:; {Do Nothing; read only}
+       6:; {Do Nothing; Read only}
      ELSE
        Begin
          If UserModel.Exists Then
@@ -2247,8 +2271,10 @@ Begin
       CASE i of
           1:Result := 'kWh Stored';
           2:Result := 'Storage State Flag';
-          3:Result := '% discharge level';
-          4:Result := '% charge level';
+          3:Result := 'kW Discharging';
+          4:Result := 'kW Charging';
+          5:Result := 'kW Losses';
+          6:Result := 'kW Idling Losses';
       ELSE
           Begin
             If UserModel.Exists Then
@@ -2308,14 +2334,14 @@ Begin
 
 End;
 
-procedure TStorageObj.Set_pctkvarOut(const Value: Double);
+PROCEDURE TStorageObj.Set_pctkvarOut(const Value: Double);
 begin
      FpctkvarOut := Value;
    // Force recompute of target PF and requested kVAr
      Presentkvar := kWRating * sqrt(1.0/SQR(PFNominal) - 1.0) * FpctkvarOut  / 100.0;
 end;
 
-procedure TStorageObj.Set_pctkWOut(const Value: Double);
+PROCEDURE TStorageObj.Set_pctkWOut(const Value: Double);
 begin
      FpctkWOut := Value;
      kW_Out    := FpctkWOut * kWRating / 100.0;
