@@ -1857,8 +1857,6 @@ begin
     // set sizes and copy parameters
     Nphases := Obj.Fnphases;
     SetNumWindings(Obj.NumWindings);
-    PropertyValue[1] := IntToStr(nphases);   // synch up property values
-    PropertyValue[2] := IntToStr(NumWindings);
     NConds := Fnphases + 1; // forces reallocation of terminals and conductors
     for i := 1 to NumWindings do
       with Winding^[i] do begin

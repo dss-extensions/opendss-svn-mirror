@@ -2964,11 +2964,11 @@ end;
 procedure TEnergyMeterObj.MakeFeederObj;
 begin
   If Assigned(MeteredElement) Then Begin
-    FeederClass.NewObject(Name);  // NewObject creates only if not existent. Else Inits  and desynchs
-    FeederObj := ActiveCircuit.ActiveCktElement as TFeederObj;
-    FeederObj.SetBus (1, MeteredElement.GetBus(MeteredTerminal));
-    FeederObj.Nphases := MeteredElement.NPhases;
-    FeederObj.Nconds  := MeteredElement.Nconds;
+//    FeederClass.NewObject(Name);  // NewObject creates only if not existent. Else Inits  and desynchs
+//    FeederObj := ActiveCircuit.ActiveCktElement as TFeederObj;
+//    FeederObj.SetBus (1, MeteredElement.GetBus(MeteredTerminal));
+//    FeederObj.Nphases := MeteredElement.NPhases;
+//    FeederObj.Nconds  := MeteredElement.Nconds;
     // FeederObj.Enabled := ActiveCircuit.RadialSolution;
   End
   Else DoSimpleMsg('Error: Attempted to make Feeder Obj without instantiating Metered Element in Energymeter.'+name,544);

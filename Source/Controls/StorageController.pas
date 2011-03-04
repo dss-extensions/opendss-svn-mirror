@@ -1258,15 +1258,20 @@ Begin
                        If Not (FleetState=STORE_DISCHARGING) Then SetFleetToDischarge;
                        If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g reserve.', [kWneeded, RemainingkWh, ReservekWh]));
                        For i := 1 to FleetSize Do
-                          Begin StorageObj := FleetPointerList.Get(i);
-                                // compute new dispatch value for this storage element ...
-                                DispatchkW := Min(StorageObj.kWrating, (StorageObj.PresentkW + PDiff *(FWeights^[i]/TotalWeight)));
-                                If DispatchkW <> StorageObj.PresentkW Then
-                                  Begin  // Attempt to set discharge kW;  Storage element will revert to idling if out of capacity
-                                        StorageObj.PresentkW  := DispatchkW;
-                                        StorekWChanged        := TRUE;
-                                  End;
-                          End;
+                       Begin
+                            StorageObj := FleetPointerList.Get(i);
+                            WITH StorageObj Do
+                            Begin
+                            // compute new dispatch value for this storage element ...
+                                DispatchkW := Min(kWrating, (PresentkW + PDiff *(FWeights^[i]/TotalWeight)));
+                                If DispatchkW <> PresentkW Then    // redispatch only if change requested
+                                  If kWhStored > kWhReserve Then
+                                      Begin  // Attempt to set discharge kW;  Storage element will revert to idling if out of capacity
+                                           StorageObj.PresentkW  := DispatchkW;
+                                           StorekWChanged        := TRUE;     // This is what keeps the control iterations going
+                                      End;
+                            End;
+                       End;
                 End
             End
             Else

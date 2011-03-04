@@ -165,7 +165,7 @@ VAR
    SpectrumClass      :TSpectrum;
    SolutionClass      :TDSSClass;
    EnergyMeterClass   :TEnergyMeter;
-   FeederClass        :TFeeder;
+   // FeederClass        :TFeeder;
    MonitorClass       :TDSSMonitor;
    SensorClass        :TSensor;
    TCC_CurveClass     :TTCC_Curve;

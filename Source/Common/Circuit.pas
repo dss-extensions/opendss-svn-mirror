@@ -1045,7 +1045,7 @@ begin
     For i := 1 to DSSClassList.ListSize Do TDssClass(DSSClassList.Get(i)).Saved := FALSE;
 
     {Ignore Feeder Class -- gets saved with Energymeters}
-    FeederClass.Saved := TRUE;  // will think this class is already saved
+   // FeederClass.Saved := TRUE;  // will think this class is already saved
 
     {Define voltage sources first}
     Success :=  WriteVsourceClassFile(GetDSSClassPtr('vsource'), TRUE);
