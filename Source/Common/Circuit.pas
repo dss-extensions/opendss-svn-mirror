@@ -13,7 +13,7 @@ unit Circuit;
    12-15-99 Added Default load shapes and generator dispatch reference
    4-17=00  Add Loads List
    5-30-00  Added Positive Sequence Flag
-   8-24-00  Added PriceCurve stuff
+   8-24-00  Added PriceCurve stuff   Updated 3-6-11
    8-1-01  Modified Compute Capacity to report up to loadmult=1
 }
 
@@ -23,7 +23,7 @@ interface
 
 USES
      Solution, SysUtils, ArrayDef, HashList, PointerList, CktElement,
-     DSSClass, {DSSObject,} Bus, LoadShape, ControlQueue, uComplex,
+     DSSClass, {DSSObject,} Bus, LoadShape, PriceShape, ControlQueue, uComplex,
      AutoAdd, EnergyMeter, NamedObject, CktTree;
 
 
@@ -140,7 +140,7 @@ TYPE
           LoadDurCurve:String;
           LoadDurCurveObj:TLoadShapeObj;
           PriceCurve:String;
-          PriceCurveObj:TLoadShapeObj;
+          PriceCurveObj:TPriceShapeObj;
 
           NumDevices, NumBuses, NumNodes:Integer;
           MaxDevices, MaxBuses, MaxNodes:Integer;

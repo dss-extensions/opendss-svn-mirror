@@ -181,7 +181,7 @@ Begin
      PropertyName[9]  := 'dblfile';    // switch input to a binary file of singles
      PropertyName[10] := 'sinterval'; // Interval in seconds
      PropertyName[11] := 'minterval'; // Interval in minutes
-     PropertyName[12] := 'action';    // Interval in minutes
+     PropertyName[12] := 'action';    //
 
      // define Property help values
 

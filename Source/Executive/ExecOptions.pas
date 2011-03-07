@@ -256,11 +256,11 @@ Begin
      OptionHelp[48] := 'Sets the connected kVA allocation factors for all loads in the active circuit to the value given.';
      OptionHelp[49] := '{Multiphase | Positive}  Default = Multiphase.  Designates whether circuit model is to interpreted as a normal multi-phase '+
                         'model or a positive-sequence only model';
-     OptionHelp[50] := 'Sets the price signal ($/MWh) for the circuit.  Initial value is 25.';
-     OptionHelp[51] := 'Sets the curve to use to obtain for price signal. Default is none (null string). If none, ' +
-                        'price signal either remains constant or is set by an external process. ' +
-                        'Curve is defined as a loadshape (not normalized) and should correspond to ' +
-                        'the type of analysis being performed (daily, yearly, load-duration, etc.).';
+     OptionHelp[50] := 'Sets the present price signal ($/MWh) for the circuit.  Default value is 25.';
+     OptionHelp[51] := 'Sets the PRICESHAPE object to use to obtain for price signal. Default is none (null string). If none, ' +
+                        'price signal either remains constant or is set by an external process using Set Price= option. ' +
+                        'Curve is defined as a PRICESHAPE  in actual values (not normalized) and should be defined to correspond to ' +
+                        'the type of analysis being performed (daily, yearly, etc.).';
      OptionHelp[52] := 'Set the active terminal of the active circuit element. May also be done with Select command.';
      OptionHelp[53] := 'Default = 60. Set the fundamental frequency for harmonic solution and the default base frequency for all impedance quantities. ' +
                         'Side effect: also changes the value of the solution frequency. Saved as default for next circuit.';
@@ -469,9 +469,9 @@ Begin
            50: ActiveCircuit.PriceSignal := Parser.DblValue ;
            51: WITH ActiveCircuit DO  Begin
                   PriceCurve    := Param;
-                  PriceCurveObj := LoadShapeClass.Find(Param);
+                  PriceCurveObj := PriceShapeClass.Find(Param);
                   IF PriceCurveObj=nil THEN
-                   DoSimpleMsg('Price Curve: "' +param+ '" not found.', 132);
+                   DoSimpleMsg('Priceshape.' +param+ ' not found.', 132);
                End;
            52: With ActiveCircuit DO IF ActiveCktElement<> NIL THEN With ActiveCktElement Do
                 Begin

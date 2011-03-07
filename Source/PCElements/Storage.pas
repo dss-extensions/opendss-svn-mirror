@@ -49,6 +49,7 @@ Const  NumStorageRegisters = 6;    // Number of energy meter registers
   STORE_LOADMODE = 1;
   STORE_PRICEMODE = 2;
   STORE_EXTERNALMODE = 3;
+  STORE_FOLLOW = 4;
 
 TYPE
 
@@ -128,7 +129,7 @@ TYPE
         Tracefile       :TextFile;
         UserModel       :TStoreUserModel;   {User-Written Models}
 
-        varBase         :Double; // Base vars per phase
+        kvarBase        :Double;  // Base vars per phase
         VBase           :Double;  // Base volts suitable for computing currents
         VBase105        :Double;
         VBase95         :Double;
@@ -377,19 +378,19 @@ Begin
                               'Bus to which the Storage element is connected.  May include specific node specification.');
      AddProperty('kv',        propKV,
                               'Nominal rated (1.0 per unit) voltage, kV, for Storage element. For 2- and 3-phase Storage elements, specify phase-phase kV. '+
-                              'Otherwise, specify actual kV across each branch of the Storage element. '+
-                              'If wye (star), specify phase-neutral kV. '+
+                              'Otherwise, specify actual kV across each branch of the Storage element. '+  CRLF + CRLF +
+                              'If wye (star), specify phase-neutral kV. '+  CRLF + CRLF +
                               'If delta or phase-phase connected, specify phase-phase kV.');  // line-neutral voltage//  base voltage
      AddProperty('kW',        propKW,
-                              'Get/set the present kW value.  A positive value denotes power coming OUT of the element, '+CRLF+
+                              'Get/set the present kW value.  A positive value denotes power coming OUT of the element, '+
                               'which is the opposite of a Load element. A negative value indicates the Storage element is in Charging state. ' +
                               'This value is modified internally depending on the dispatch mode. ' );
      AddProperty('pf',        propPF,
-                              'Nominally, the power factor for discharging (acting as a generator). Default is 1.0. ' +
+                              'Nominally, the power factor for discharging (acting as a generator). Default is 1.0. ' + CRLF + CRLF +
                               'Setting this property will also set the kvar property.' +
                               'Enter negative for leading powerfactor '+
-                              '(when kW and kvar have opposite signs.)'+CRLF+
-                              'A positive power factor for a generator signifies that the Storage element produces vars ' + CRLF +
+                              '(when kW and kvar have opposite signs.)'+CRLF + CRLF +
+                              'A positive power factor for a generator signifies that the Storage element produces vars ' +
                               'as is typical for a generator.  ');
      AddProperty('conn',      propCONNECTION,
                               '={wye|LN|delta|LL}.  Default is wye.');
@@ -399,7 +400,7 @@ Begin
      AddProperty('kVA',       propKVA,
                               'kVA rating of power output. Defaults to rated kW. Used as the base for Dynamics mode and Harmonics mode values.');
      AddProperty('kWrated',   propKWRATED,
-                              'kW rating of power output. Side effect: Set KVA property.');
+                              'kW rating of power output. Base for Loadshapes when DispMode=Follow. Side effect: Sets KVA property.');
 
      AddProperty('kWhrated',  propKWHRATED,
                               'Rated storage capacity in kWh. Default is 50.');
@@ -456,7 +457,7 @@ Begin
                                  'Above this value, the load model reverts to a constant impedance model.');
      AddProperty('yearly',       propYEARLY,
                                  'Dispatch shape to use for yearly simulations.  Must be previously defined '+
-                                 'as a Loadshape object. If this is not specified, the Daily dispatch shape, If any, is repeated '+
+                                 'as a Loadshape object. If this is not specified, the Daily dispatch shape, if any, is repeated '+
                                  'during Yearly solution modes. In the default dispatch mode, ' +
                                  'the Storage element uses this loadshape to trigger State changes.');
      AddProperty('daily',        propDAILY,
@@ -465,24 +466,29 @@ Begin
                                  'the Storage element uses this loadshape to trigger State changes.'); // daily dispatch (hourly)
      AddProperty('duty',          propDUTY,
                                  'Load shape to use for duty cycle dispatch simulations such as for solar ramp rate studies. ' +
-                                 'Must be previously defined as a Loadshape object. '+
-                                 'Typically would have time intervals of 1-5 seconds. '+
+                                 'Must be previously defined as a Loadshape object. '+  CRLF + CRLF +
+                                 'Typically would have time intervals of 1-5 seconds. '+  CRLF + CRLF +
                                  'Designate the number of points to solve using the Set Number=xxxx command. '+
                                  'If there are fewer points in the actual shape, the shape is assumed to repeat.');  // as for wind generation
-     AddProperty('dispmode',     propDISPMODE,
-                                 '{DEFAULT | EXTERNAL | LOADLEVEL | PRICE } Default = "DEFAULT". Dispatch mode. '+
-                                 'In DEFAULT mode, Storage element state is triggered by the loadshape curve corresponding to the solution mode. '+
+     AddProperty('DispMode',     propDISPMODE,
+                                 '{DEFAULT | FOLLOW | EXTERNAL | LOADLEVEL | PRICE } Default = "DEFAULT". Dispatch mode. '+  CRLF + CRLF +
+                                 'In DEFAULT mode, Storage element state is triggered to discharge or charge at the specified rate by the ' +
+                                 'loadshape curve corresponding to the solution mode. '+ CRLF + CRLF +
+                                 'In FOLLOW mode the kW and kvar output of the STORAGE element follows the active loadshape multipliers ' +
+                                 'until storage is either exhausted or full. ' +
+                                 'The element discharges for positive values and charges for negative values.  The loadshapes are based on the kW and kvar ' +
+                                 'values in the most recent definition of kW and PF or kW and kvar properties. ' +  CRLF + CRLF +
                                  'In EXTERNAL mode, Storage element state is controlled by an external Storage controller. '+
-                                 'This mode is automatically set if this Storage element is included in the element list of a StorageController element. ' +
+                                 'This mode is automatically set if this Storage element is included in the element list of a StorageController element. ' + CRLF + CRLF +
                                  'For the other two dispatch modes, the Storage element state is controlled by either the global default Loadlevel value or the price level. ');
-     AddProperty('dischargetrigger', propDISPOUTTRIG,
+     AddProperty('DischargeTrigger', propDISPOUTTRIG,
                                  'Dispatch trigger value for discharging the storage. '+CRLF+
                                  'If = 0.0 the Storage element state is changed by the State command or by a StorageController object. ' +CRLF+
                                  'If <> 0  the Storage element state is set to DISCHARGING when this trigger level is EXCEEDED by either the specified ' +
                                  'Loadshape curve value or the price signal or global Loadlevel value, depending on dispatch mode. See State property.');
-     AddProperty('Chargetrigger', propDISPINTRIG,
-                                 'Dispatch trigger value for charging the storage. '+CRLF+
-                                 'If = 0.0 the Storage element state is changed by the State command or StorageController object.  ' +CRLF+
+     AddProperty('ChargeTrigger', propDISPINTRIG,
+                                 'Dispatch trigger value for charging the storage. '+CRLF + CRLF +
+                                 'If = 0.0 the Storage element state is changed by the State command or StorageController object.  ' +CRLF + CRLF +
                                  'If <> 0  the Storage element state is set to CHARGING when this trigger level is GREATER than either the specified ' +
                                  'Loadshape curve value or the price signal or global Loadlevel value, depending on dispatch mode. See State property.');
      AddProperty('TimeChargeTrig', propCHARGETIME,
@@ -596,6 +602,7 @@ FUNCTION InterpretDispMode(const S:String):Integer;
 BEGIN
         CASE lowercase(S)[1] of
              'e': Result := STORE_EXTERNALMODE;
+             'f': Result := STORE_FOLLOW;
              'l': Result := STORE_LOADMODE;
              'p': Result := STORE_PRICEMODE;
         ELSE
@@ -608,8 +615,9 @@ FUNCTION ReturnDispMode(const imode:Integer):String;
 BEGIN
         CASE imode of
              STORE_EXTERNALMODE: Result := 'External';
-             STORE_LOADMODE: Result := 'Loadshape';
-             STORE_PRICEMODE: Result := 'Price';
+             STORE_FOLLOW:       Result := 'Follow';
+             STORE_LOADMODE:     Result := 'Loadshape';
+             STORE_PRICEMODE:    Result := 'Price';
         ELSE
              Result := 'default';
         END;
@@ -659,7 +667,7 @@ Begin
                 1               : NPhases    := Parser.Intvalue; // num phases
                 2               : SetBus(1, param);
                propKV           : PresentkV    := Parser.DblValue;
-               propKW           : kW_out       := Parser.DblValue;
+               propKW           : kW_Out       := Parser.DblValue;
                propPF           : PFNominal    := Parser.DblValue;
                propMODEL        : VoltageModel := Parser.IntValue;
                propYEARLY       : YearlyShape  := Param;
@@ -1138,24 +1146,33 @@ Begin
 
        STORE_CHARGING: Begin
                             If kWhStored < kWhRating Then
-                            Begin
-                                 kW_out := -kWRating * pctkWin / 100.0;
-                                 If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                 Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
-                            End
-                            Else Fstate := STORE_IDLING;   // all charged up
+                                CASE DispatchMode of
+                                    STORE_FOLLOW: Begin
+                                        kW_out   := kWRating * ShapeFactor.re;
+                                        kvar_out := kvarBase * ShapeFactor.im;    // ???
+                                    End
+                                ELSE
+                                     kW_out := -kWRating * pctkWin / 100.0;
+                                     IF   PFNominal = 1.0 Then   kvar_out := 0.0
+                                     ELSE SyncUpPowerQuantities;  // computes kvar_out from PF
+                                END
+                            ELSE Fstate := STORE_IDLING;   // all charged up
                        End;
 
 
        STORE_DISCHARGING: Begin
                                 If kWhStored > kWhReserve Then
-                                Begin
-                                     kW_out := kWRating * pctkWout / 100.0;
-                                     If   PFNominal = 1.0 Then   kvar_out := 0.0
-                                     Else kvar_out := kW_out * sqrt(1.0/SQR(PFNominal) - 1.0);
-                                End
-                                Else Fstate := STORE_IDLING;  // not enough storage to discharge
-
+                                    CASE DispatchMode of
+                                        STORE_FOLLOW: Begin
+                                            kW_out   := kWRating * ShapeFactor.re;
+                                            kvar_out := kvarBase * ShapeFactor.im;
+                                        End
+                                    ELSE
+                                         kW_out := kWRating * pctkWout / 100.0;
+                                         IF   PFNominal = 1.0 Then   kvar_out := 0.0
+                                         ELSE SyncUpPowerQuantities; // computes kvar_out from PF
+                                    END
+                                ELSE Fstate := STORE_IDLING;  // not enough storage to discharge
                           End;
 
     END;
@@ -1257,7 +1274,7 @@ Begin
     VBase95  := VMinPu * VBase;
     VBase105 := VMaxPu * VBase;
 
-    varBase := 1000.0 * kvar_out / Fnphases;
+    kvarBase := kvar_out ;  // remember this for Follow Mode
 
     // values in ohms for thevenin equivalents
     RThev := pctR * 0.01 * SQR(PresentkV)/kVARating * 1000.0;
@@ -1415,31 +1432,44 @@ VAR
 
 Begin
      FStateChanged := FALSE;
-     If (ChargeTrigger=0.0) and (DischargeTrigger=0.0) Then   Exit;
 
      OldState := Fstate;
-  // First see If we want to turn off Charging or Discharging State
-     CASE Fstate of
-         STORE_CHARGING:    If (ChargeTrigger    <> 0.0) Then If (ChargeTrigger    < Level) or (kWhStored >= kWHRating)  Then Fstate := STORE_IDLING;
-         STORE_DISCHARGING: If (DischargeTrigger <> 0.0) Then If (DischargeTrigger > Level) or (kWhStored <= kWHReserve) Then Fstate := STORE_IDLING;
-     END;
 
-  // Now check to see If we want to turn on the opposite state
-     CASE Fstate of
-         STORE_IDLING: Begin
-                           If      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) Then FState := STORE_DISCHARGING
-                           Else If (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  Then Fstate := STORE_CHARGING;
+     If DispatchMode =  STORE_FOLLOW Then
+     Begin
 
-                           // Check to see If it is time to turn the charge cycle on If it is not already on.
-                           If Not (Fstate = STORE_CHARGING) Then
-                             If ChargeTime > 0.0 Then
-                                   WITH ActiveCircuit.Solution Do Begin
-                                       If abs(NormalizeToTOD(intHour, DynaVARs.t) - ChargeTime) < DynaVARs.h/3600.0 Then Fstate := STORE_CHARGING;
-                                   End;
-                       End;
-     END;
+         // set charge and discharge modes based on sign of loadshape
+         If      (Level > 0.0) and (kWhStored > kWhReserve) Then StorageState := STORE_DISCHARGING
+         ELSE If (Level < 0.0) and (kWhStored < kWhRating)  Then StorageState := STORE_CHARGING
+         ELSE StorageState := STORE_IDLING;
 
+     End
+     ELSE
+     Begin   // All other dispatch modes  Just compare to trigger value
 
+        If (ChargeTrigger=0.0) and (DischargeTrigger=0.0) Then   Exit;
+
+      // First see If we want to turn off Charging or Discharging State
+         CASE Fstate of
+             STORE_CHARGING:    If (ChargeTrigger    <> 0.0) Then If (ChargeTrigger    < Level) or (kWhStored >= kWHRating)  Then Fstate := STORE_IDLING;
+             STORE_DISCHARGING: If (DischargeTrigger <> 0.0) Then If (DischargeTrigger > Level) or (kWhStored <= kWHReserve) Then Fstate := STORE_IDLING;
+         END;
+
+      // Now check to see If we want to turn on the opposite state
+         CASE Fstate of
+             STORE_IDLING: Begin
+                               If      (DischargeTrigger <> 0.0) and (DischargeTrigger < Level) and (kWhStored > kWHReserve) Then FState := STORE_DISCHARGING
+                               Else If (ChargeTrigger    <> 0.0) and (ChargeTrigger    > Level) and (kWhStored < kWHRating)  Then Fstate := STORE_CHARGING;
+
+                               // Check to see If it is time to turn the charge cycle on If it is not already on.
+                               If Not (Fstate = STORE_CHARGING) Then
+                                 If ChargeTime > 0.0 Then
+                                       WITH ActiveCircuit.Solution Do Begin
+                                           If abs(NormalizeToTOD(intHour, DynaVARs.t) - ChargeTime) < DynaVARs.h/3600.0 Then Fstate := STORE_CHARGING;
+                                       End;
+                           End;
+         END;
+     End;
 
      If OldState <> Fstate Then FstateChanged := TRUE;
 End;
@@ -1947,7 +1977,7 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 FUNCTION TStorageObj.Get_PresentkW:Double;
 Begin
-     Result := Pnominalperphase * 0.001 * Fnphases;
+     Result := kW_Out;  //Pnominalperphase * 0.001 * Fnphases;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
@@ -1973,7 +2003,7 @@ End;
 
 FUNCTION TStorageObj.Get_Presentkvar:Double;
 Begin
-     Result := Qnominalperphase * 0.001 * Fnphases;
+     Result := kvar_out;   // Qnominalperphase * 0.001 * Fnphases;
 End;
 
 
@@ -2367,6 +2397,7 @@ End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.Set_Presentkvar(const Value: Double);
+// set the kvar to requested value within rating of inverter
 VAR
      kVA_Gen :Double;
 Begin
@@ -2395,13 +2426,14 @@ End;
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.SyncUpPowerQuantities;
 Begin
+
+     If kVANotSet Then kVARating := kWrating;
+     kvar_out := 0.0;
      // keep kvar nominal up to date with kW and PF
      If (PFNominal <> 0.0)  Then
      Begin
           kvar_out := kW_out* sqrt(1.0/Sqr(PFNominal) - 1.0);
-          Qnominalperphase := 1000.0* kvar_out / Fnphases;
           If PFNominal<0.0 Then kvar_out := -kvar_out;
-          If kVANotSet Then kVARating := kWrating;
      End;
 End;
 

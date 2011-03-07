@@ -80,7 +80,7 @@ Begin
       IF Not SolutionAbort Then With Dynavars do Begin
           Increment_time;
           DefaultHourMult := DefaultYearlyShapeObj.getmult(dblHour);
-          IF PriceCurveObj <> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
+          IF PriceCurveObj <> NIL THEN PriceSignal := PriceCurveObj.GetPrice(dblHour);
           SolveSnap;
           MonitorClass.SampleAll;  // Make all monitors take a sample
           EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -126,7 +126,7 @@ Begin
         IF Not SolutionAbort Then With DynaVars Do Begin
             Increment_time;
             DefaultHourMult := DefaultDailyShapeObj.getmult(dblHour);
-            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
+            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetPrice(dblHour);
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -174,7 +174,7 @@ Begin
         IF Not SolutionAbort Then With DynaVars Do Begin
             Increment_time;
             DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
-            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
+            IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetPrice(dblHour);
             SolveSnap;
             MonitorClass.SampleAll;  // Make all monitors take a sample
             EnergyMeterClass.SampleAll; // Make all Energy Meters take a sample
@@ -447,7 +447,7 @@ Begin
         ProgressCount := 0;
 
         DefaultHourMult := DefaultDailyShapeObj.GetMult(dblHour);
-        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetMult(dblHour).re;
+        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.GetPrice(dblHour);
 
         FOR N := 1 TO NumberOfTimes Do
         If Not SolutionAbort Then
@@ -533,7 +533,7 @@ Begin
               IntervalHrs := LoadDurCurveObj.PresentInterval;
 
           // Price curve must correspond to load-duration curve
-              IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.Mult(N);
+              IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.Price(N);
 
               SolveSnap;
 
@@ -608,7 +608,7 @@ Begin
         IntervalHrs := LoadDurCurveObj.PresentInterval;
 
         // Price curve must correspond to load-duration curve
-        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.Mult(N);
+        IF PriceCurveObj<> NIL THEN PriceSignal := PriceCurveObj.Price(N);
 
         SolveSnap;
 
