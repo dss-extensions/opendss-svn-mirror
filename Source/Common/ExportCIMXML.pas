@@ -53,7 +53,7 @@ Var
   BankList: array of TBankObject;
 
 Const
-  CIM_NS = 'http://iec.ch/TC57/2009/CIM-schema-cim14';
+  CIM_NS = 'http://iec.ch/TC57/2010/CIM-schema-cim15';
   CIM_LEN_UNITS = UNITS_FT;
 
 constructor TBankObject.Create(MaxWdg: Integer);
@@ -916,7 +916,8 @@ Begin
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
     Writeln(F,'-->');
-    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+//    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+    Writeln(F,'<rdf:RDF xmlns:cim="' + CIM_NS + '#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F,'<!--');
     Writeln(F,'-->');
 
@@ -1513,7 +1514,8 @@ Begin
     Writeln(F,'<?xml version="1.0" encoding="utf-8"?>');
     Writeln(F,'<!-- un-comment this line to enable validation');
     Writeln(F,'-->');
-    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+//    Writeln(F,'<rdf:RDF xmlns:cim="http://iec.ch/TC57/2009/CIM-schema-cim14#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
+    Writeln(F,'<rdf:RDF xmlns:cim="' + CIM_NS + '#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F,'<!--');
     Writeln(F,'-->');
 
