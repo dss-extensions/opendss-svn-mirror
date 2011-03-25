@@ -1052,6 +1052,8 @@ begin
     {Write library files so that they will be available to lines, loads, etc}
     {Use default filename=classname}
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('wiredata'),'', FALSE);
+    If Success Then Success :=  WriteClassFile(GetDssClassPtr('cndata'),'', FALSE);
+    If Success Then Success :=  WriteClassFile(GetDssClassPtr('tsdata'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('linegeometry'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('linecode'),'', FALSE);
     If Success Then Success :=  WriteClassFile(GetDssClassPtr('linespacing'),'', FALSE);

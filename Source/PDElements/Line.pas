@@ -14,7 +14,7 @@ interface
 
 USES
    Command, DSSClass, Circuit, PDElement, UcMatrix, LineCode,
-   LineGeometry, LineSpacing, WireData, PDClass, Ucomplex;
+   LineGeometry, LineSpacing, ConductorData, PDClass, Ucomplex;
 
 
 TYPE
@@ -47,7 +47,8 @@ TYPE
         FUnitsConvert      :Double; // conversion factor
         FLineGeometryObj   :TLineGeometryObj;
         FLineSpacingObj    :TLineSpacingObj;
-        FWireData          :pWireDataArray;
+        FWireData          :pConductorDataArray;
+        FPhaseChoice       :ConductorChoice;
         FrhoSpecified      :Boolean;
         FLineCodeSpecified :Boolean;
         FEarthModel        :Integer;
@@ -112,9 +113,12 @@ TYPE
         PROCEDURE FetchGeometryCode(Const Code:String);
         PROCEDURE FetchLineSpacing(Const Code:String);
         PROCEDURE FetchWireList(Const Code:String);
+        PROCEDURE FetchCNCableList(Const Code:String);
+        PROCEDURE FetchTSCableList(Const Code:String);
 
         // CIM XML access
         property LineCodeSpecified: Boolean read FLineCodeSpecified;
+        Property PhaseChoice: ConductorChoice Read FPhaseChoice;
    end;
 
 VAR
@@ -126,7 +130,7 @@ IMPLEMENTATION
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  ArrayDef,
       Utilities, Mathutil, ControlElem, LineUnits;
 
-Const NumPropsThisClass = 23;
+Const NumPropsThisClass = 25;
     //  MaxPhases = 20; // for fixed buffers
 
 VAR
@@ -194,6 +198,8 @@ Begin
      PropertyName[21] := 'spacing';
      PropertyName[22] := 'wires';
      PropertyName[23] := 'EarthModel';
+     PropertyName[24] := 'cncables';
+     PropertyName[25] := 'tscables';
 
      // define Property help values
 
@@ -250,12 +256,21 @@ Begin
      PropertyHelp[21] := 'Reference to a LineSpacing for use in a line constants calculation.' + CRLF +
                           'Must be used in conjunction with the Wires property.' + CRLF +
                           'Specify this before the wires property.';
-     PropertyHelp[22] := 'Array of WireData names for use in a line constants calculation.' + CRLF +
+     PropertyHelp[22] := 'Array of WireData names for use in an overhead line constants calculation.' + CRLF +
                           'Must be used in conjunction with the Spacing property.' + CRLF +
-                          'Specify the Spacing first.';
+                          'Specify the Spacing first, and "ncond" wires.' + CRLF +
+                          'May also be used to specify bare neutrals with cables, using "ncond-nphase" wires.';
      PropertyHelp[23] := 'One of {Carson | FullCarson | Deri}. Default is the global value established with the Set EarthModel command. ' +
                          'See the Options Help on EarthModel option. This is used to override the global value for this line. This ' +
                          'option applies only when the "geometry" property is used.';
+     PropertyHelp[24] := 'Array of CNData names for use in a cable constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Spacing property.' + CRLF +
+                          'Specify the Spacing first, using "nphases" cncables.' + CRLF +
+                          'You may later specify "nconds-nphases" wires for separate neutrals';
+     PropertyHelp[25] := 'Array of TSData names for use in a cable constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Spacing property.' + CRLF +
+                          'Specify the Spacing first, using "nphases" tscables.' + CRLF +
+                          'You may later specify "nconds-nphases" wires for separate neutrals';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -520,6 +535,8 @@ Begin
            21: FetchLineSpacing(Param);
            22: FetchWireList(Param);
            23: FEarthModel := InterpretEarthModel(Param);
+           24: FetchCNCableList(Param);
+           25: FetchTSCableList(Param);
          ELSE
             // Inherited Property Edits
              ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass)
@@ -555,7 +572,7 @@ Begin
 
           17..18: Kxg := Xg/ln(658.5*sqrt(rho/BaseFrequency));
           19: Begin GeometrySpecified := TRUE; SymComponentsModel := FALSE; SymComponentsChanged := FALSE; End;
-          21..22: Begin
+          21..22,24..25: Begin
               if Assigned (FLineSpacingObj) and Assigned (FWireData) then begin
                 SpacingSpecified := True;
                 SymComponentsModel := False;
@@ -707,6 +724,7 @@ Begin
      SpacingSpecified := False;
      FLineSpacingObj := Nil;
      FWireData := Nil;
+     FPhaseChoice := Unknown;
      SpacingCode := '';
 
      FZFrequency := -1.0; // indicate Z not computed.
@@ -1444,22 +1462,73 @@ end;
 
 procedure TLineObj.FetchWireList(const Code: string);
 var
+  i, istart: Integer;
+begin
+  if not assigned (FLineSpacingObj) then
+    DoSimpleMsg ('Must assign the LineSpacing before wires.', 181);
+
+  if FPhaseChoice = Unknown then begin // it's an overhead line
+    FLineCodeSpecified := False;
+    KillGeometrySpecified;
+    FWireData := Allocmem(Sizeof(FWireData^[1]) * FLineSpacingObj.NWires);
+    istart := 1;
+    FPhaseChoice := Overhead;
+  end else begin // adding bare neutrals to an underground line - TODO what about repeat invocation?
+    istart := FLineSpacingObj.NPhases + 1;
+  end;
+
+  AuxParser.CmdString := Code;
+  for i := istart to FLineSpacingObj.NWires do begin
+    AuxParser.NextParam; // ignore any parameter name  not expecting any
+    WireDataClass.code := AuxParser.StrValue;
+    if Assigned(ActiveConductorDataObj) then
+      FWireData^[i] := ActiveConductorDataObj
+    else
+      DoSimpleMsg ('Wire ' + AuxParser.StrValue + ' was not defined first.', 181);
+  end;
+end;
+
+procedure TLineObj.FetchCNCableList(const Code: string);
+var
   i: Integer;
 begin
   FLineCodeSpecified := False;
   KillGeometrySpecified;
   if not assigned (FLineSpacingObj) then
-    DoSimpleMsg ('Must assign the LineSpacing before wires.', 181);
+    DoSimpleMsg ('Must assign the LineSpacing before CN cables.', 181);
 
+  FPhaseChoice := ConcentricNeutral;
   FWireData := Allocmem(Sizeof(FWireData^[1]) * FLineSpacingObj.NWires);
   AuxParser.CmdString := Code;
-  for i := 1 to FLineSpacingObj.NWires do begin
+  for i := 1 to FLineSpacingObj.NPhases do begin // fill extra neutrals later
     AuxParser.NextParam; // ignore any parameter name  not expecting any
-    WireDataClass.code := AuxParser.StrValue;
-    if Assigned(ActiveWireDataObj) then
-      FWireData^[i] := ActiveWireDataObj
+    CNDataClass.code := AuxParser.StrValue;
+    if Assigned(ActiveConductorDataObj) then
+      FWireData^[i] := ActiveConductorDataObj
     else
-      DoSimpleMsg ('Wire ' + AuxParser.StrValue + ' was not defined first.', 181);
+      DoSimpleMsg ('CN cable ' + AuxParser.StrValue + ' was not defined first.', 181);
+  end;
+end;
+
+procedure TLineObj.FetchTSCableList(const Code: string);
+var
+  i: Integer;
+begin
+  FLineCodeSpecified := False;
+  KillGeometrySpecified;
+  if not assigned (FLineSpacingObj) then
+    DoSimpleMsg ('Must assign the LineSpacing before TS cables.', 181);
+
+  FPhaseChoice := TapeShield;
+  FWireData := Allocmem(Sizeof(FWireData^[1]) * FLineSpacingObj.NWires);
+  AuxParser.CmdString := Code;
+  for i := 1 to FLineSpacingObj.NPhases do begin // fill extra neutrals later
+    AuxParser.NextParam; // ignore any parameter name  not expecting any
+    TSDataClass.code := AuxParser.StrValue;
+    if Assigned(ActiveConductorDataObj) then
+      FWireData^[i] := ActiveConductorDataObj
+    else
+      DoSimpleMsg ('TS cable ' + AuxParser.StrValue + ' was not defined first.', 181);
   end;
 end;
 
@@ -1535,7 +1604,7 @@ Begin
   // make a temporary LineGeometry to calculate line constants
   IF LineGeometryClass=Nil THEN LineGeometryClass := DSSClassList.Get(ClassNames.Find('LineGeometry'));
   pGeo := TLineGeometryObj.Create(LineGeometryClass, '==');
-  pGeo.LoadSpacingAndWires (FLineSpacingObj, FWireData);
+  pGeo.LoadSpacingAndWires (FLineSpacingObj, FWireData); // this sets OH, CN, or TS
 
   If FrhoSpecified Then pGeo.rhoearth := rho;
   NormAmps      := pGeo.NormAmps;
@@ -1570,6 +1639,7 @@ begin
       If SpacingSpecified Then Begin
           FLineSpacingObj := Nil;
           Reallocmem (FWireData, 0);
+          FPhaseChoice := Unknown;
           FZFrequency       := -1.0;
           SpacingSpecified := FALSE;
       End;

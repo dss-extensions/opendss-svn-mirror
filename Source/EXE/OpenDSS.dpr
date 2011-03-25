@@ -144,10 +144,22 @@ uses
   VSource in '..\PCElements\VSource.pas',
   WireData in '..\General\WireData.pas',
   XfmrCode in '..\General\XfmrCode.pas',
-  Ymatrix in '..\Common\Ymatrix.pas' ,
+  Ymatrix in '..\Common\Ymatrix.pas' {,
   TempShape in '..\General\TempShape.pas',
   XYcurve in '..\General\XYcurve.pas',
   PriceShape in '..\General\PriceShape.pas';
+
+{$R *.RES},
+  TempShape in '..\General\TempShape.pas',
+  XYcurve in '..\General\XYcurve.pas',
+  PriceShape in '..\General\PriceShape.pas',
+  CNData in '..\General\CNData.pas',
+  TSData in '..\General\TSData.pas',
+  LineConstants in '..\General\LineConstants.pas',
+  CNLineConstants in '..\General\CNLineConstants.pas',
+  TSLineConstants in '..\General\TSLineConstants.pas',
+  CableData in '..\General\CableData.pas',
+  ConductorData in '..\General\ConductorData.pas';
 
 {$R *.RES}
 

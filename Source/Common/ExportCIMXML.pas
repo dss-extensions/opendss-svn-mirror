@@ -20,8 +20,8 @@ implementation
 Uses SysUtils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      PDElement, PCElement, Generator, Load, RegControl,
      Vsource, Line, Transformer, Ucomplex, UcMatrix, LineCode,
-     Fuse, Capacitor, CapControl, Reactor, Feeder, WireData, LineUnits,
-     LineGeometry, NamedObject, StrUtils, Math, XfmrCode, HashList;
+     Fuse, Capacitor, CapControl, Reactor, Feeder, ConductorData, LineUnits,
+     LineGeometry, NamedObject, StrUtils, Math, XfmrCode, HashList, WireData;
 
 Type
   GuidChoice = (Bank, Wdg, XfInf, WdgInf, ScTest, OcTest,
@@ -784,14 +784,14 @@ begin
   DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral', 1.29);
   IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', 13);
   WireDataClass.code := 'CU_#14';
-  If Assigned(ActiveWireDataObj) Then RefNode (F, 'ConcentricNeutralCableInfo.WireType', ActiveWireDataObj);
+  If Assigned(ActiveConductorDataObj) Then RefNode (F, 'ConcentricNeutralCableInfo.WireType', ActiveConductorDataObj);
   EndInstance (F, 'ConcentricNeutralCableInfo');
 
   WireDataClass.code := 'AA_250';
-  If Assigned(ActiveWireDataObj) Then Begin
+  If Assigned(ActiveConductorDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
     RefNode (F, 'WireArrangement.ConductorInfo', cab);
-    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.WireType', ActiveConductorDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -799,7 +799,7 @@ begin
 
     StartFreeInstance (F, 'WireArrangement');
     RefNode (F, 'WireArrangement.ConductorInfo', cab);
-    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.WireType', ActiveConductorDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.5);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -807,7 +807,7 @@ begin
 
     StartFreeInstance (F, 'WireArrangement');
     RefNode (F, 'WireArrangement.ConductorInfo', cab);
-    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.WireType', ActiveConductorDataObj);
     IntegerNode (F, 'WireArrangement.position', 3);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -832,20 +832,20 @@ begin
   DoubleNode (F, 'TapeShieldCableInfo.tapeThickness', 5.0);
   EndInstance (F, 'TapeShieldCableInfo');
   WireDataClass.code := 'AA_1/0';
-  If Assigned(ActiveWireDataObj) Then Begin
+  If Assigned(ActiveConductorDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
     RefNode (F, 'WireArrangement.ConductorInfo', cab);
-    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.WireType', ActiveConductorDataObj);
     IntegerNode (F, 'WireArrangement.position', 1);
     DoubleNode (F, 'WireArrangement.mountingPointX', 0.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
     EndInstance (F, 'WireArrangement');
   End;
   WireDataClass.code := 'CU_1/0';
-  If Assigned(ActiveWireDataObj) Then Begin
+  If Assigned(ActiveConductorDataObj) Then Begin
     StartFreeInstance (F, 'WireArrangement');
     RefNode (F, 'WireArrangement.ConductorInfo', cab);
-    RefNode (F, 'WireArrangement.WireType', ActiveWireDataObj);
+    RefNode (F, 'WireArrangement.WireType', ActiveConductorDataObj);
     IntegerNode (F, 'WireArrangement.position', 2);
     DoubleNode (F, 'WireArrangement.mountingPointX', 1.0 / 12.0);
     DoubleNode (F, 'WireArrangement.mountingPointY', -4.0);
@@ -1427,7 +1427,7 @@ Begin
           for i := 1 to NWires do begin
             StartFreeInstance (F, 'WireArrangement');
             RefNode (F, 'WireArrangement.ConductorInfo', pGeom);
-            RefNode (F, 'WireArrangement.WireType', WireData[i]);
+            RefNode (F, 'WireArrangement.WireType', ConductorData[i]);
             IntegerNode (F, 'WireArrangement.position', i);
             DoubleNode (F, 'WireArrangement.mountingPointX', Xcoord[i]);
             DoubleNode (F, 'WireArrangement.mountingPointY', Ycoord[i]);

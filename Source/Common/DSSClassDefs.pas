@@ -74,6 +74,8 @@ USES
      LineCode,
      Spectrum,
      WireData,
+     CNData,
+     TSData,
      LineGeometry,
      LineSpacing,
      Load,
@@ -141,6 +143,10 @@ Begin
      DSSClasses.New := SpectrumClass;
      WireDataClass  := TWireData.Create;
      DSSClasses.New := WireDataClass;
+     CNDataClass  := TCNData.Create;
+     DSSClasses.New := CNDataClass;
+     TSDataClass  := TTSData.Create;
+     DSSClasses.New := TSDataClass;
      DSSClasses.New := TLineGeometry.Create;
      LineSpacingClass := TLineSpacing.Create;
      DSSClasses.New := LineSpacingClass;

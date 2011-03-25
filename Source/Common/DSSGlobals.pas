@@ -36,6 +36,8 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      TCC_Curve,
      Feeder,
      WireData,
+     CNData,
+     TSData,
      LineSpacing,
      Storage,
      PVSystem;
@@ -170,6 +172,8 @@ VAR
    SensorClass        :TSensor;
    TCC_CurveClass     :TTCC_Curve;
    WireDataClass      :TWireData;
+   CNDataClass        :TCNData;
+   TSDataClass        :TTSData;
    LineSpacingClass   :TLineSpacing;
    StorageClass       :TStorage;
    PVSystemClass      :TPVSystem;

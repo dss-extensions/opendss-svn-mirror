@@ -173,7 +173,14 @@ uses
   PVsystem in '..\PCElements\PVsystem.pas',
   TempShape in '..\General\TempShape.pas',
   XYcurve in '..\General\XYcurve.pas',
-  PriceShape in '..\General\PriceShape.pas';
+  PriceShape in '..\General\PriceShape.pas',
+  CNData in '..\General\CNData.pas',
+  TSData in '..\General\TSData.pas',
+  CNLineConstants in '..\General\CNLineConstants.pas',
+  TSLineConstants in '..\General\TSLineConstants.pas',
+  LineConstants in '..\General\LineConstants.pas',
+  CableData in '..\General\CableData.pas',
+  ConductorData in '..\General\ConductorData.pas';
 
 exports
   DllGetClassObject,
