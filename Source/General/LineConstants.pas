@@ -353,9 +353,12 @@ end;
 function TLineConstants.Get_Ze(i, j: Integer): Complex;
 Var
    LnArg, hterm, xterm:Complex;
-   mij , thetaij, Dij:double;
+   mij , thetaij, Dij, Fyi, Fyj:double;
    term1, term2, term3, term4, term5:double;
 begin
+
+    Fyi := Abs(Fy^[i]);
+    Fyj := Abs(Fy^[j]);
 
     CASE ActiveEarthModel of
 
@@ -368,10 +371,10 @@ begin
          {notation from Tleis book Power System Modelling and Fault Analysis}
           If i=j  then begin
               thetaij := 0.0;
-              Dij := 2.0*Fy^[i];
+              Dij := 2.0*Fyi;
           end else begin
-              Dij := sqrt(sqr((Fy^[i] + Fy^[j]) + sqr(Fx^[i] - Fx^[j])));
-              thetaij := ArcCos( (Fy^[i] + Fy^[j])/ Dij);
+              Dij := sqrt(sqr((Fyi + Fyj) + sqr(Fx^[i] - Fx^[j])));
+              thetaij := ArcCos( (Fyi + Fyj)/ Dij);
           End;
           mij := 2.8099e-3 * Dij * sqrt(FFrequency/Frhoearth);
 
@@ -394,12 +397,12 @@ begin
 
         DERI: Begin
             If i<>j Then Begin
-                hterm  := Cadd(cmplx(Fy^[i] + Fy^[j], 0.0), CmulReal(Cinv(Fme),2.0));
+                hterm  := Cadd(cmplx(Fyi + Fyj, 0.0), CmulReal(Cinv(Fme),2.0));
                 xterm  := cmplx(Fx^[i] - Fx^[j], 0.0);
                 LnArg  := Csqrt(Cadd(Cmul(hterm, hterm),cmul(xterm, xterm)));
                 Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(lnArg));
             End Else Begin
-                hterm  := Cadd(cmplx(Fy^[i], 0.0), Cinv(Fme));
+                hterm  := Cadd(cmplx(Fyi, 0.0), Cinv(Fme));
                 Result := Cmul(Cmplx(0.0, Fw*Mu0/twopi) , Cln(CmulReal(hterm, 2.0)));
             End;
  // {****}          WriteDLLDebugFile(Format('Deri: Z(%d,%d) = %.8g +j %.8g; hterm= %.8g + j %.8g',[i,j, Result.re, result.im, hterm.re, hterm.im]));
