@@ -2,13 +2,26 @@ unit CNLineConstants;
 
 interface
 
-Uses Arraydef, Ucmatrix, Ucomplex, LineUnits, LineConstants;
+Uses Arraydef, Ucmatrix, Ucomplex, LineUnits, LineConstants, CableConstants;
 
 TYPE
 
-TCNLineConstants = class(TLineConstants)
+TCNLineConstants = class(TCableConstants)
   private
+    FkStrand    :pIntegerArray;
+    FDiaStrand  :pDoubleArray;
+    FGmrStrand  :pDoubleArray;
+    FRStrand    :pDoubleArray;
 
+    function Get_kStrand(i: Integer): Integer;
+    function Get_DiaStrand(i, units: Integer): Double;
+    function Get_GmrStrand(i, units: Integer): Double;
+    function Get_RStrand(i, units: Integer): Double;
+
+    procedure Set_kStrand(i: Integer; const Value: Integer);
+    procedure Set_DiaStrand(i, units: Integer; const Value: Double);
+    procedure Set_GmrStrand(i, units: Integer; const Value: Double);
+    procedure Set_RStrand(i, units: Integer; const Value: Double);
   protected
 
   public
@@ -17,11 +30,56 @@ TCNLineConstants = class(TLineConstants)
 
     Constructor Create(NumConductors:Integer);
     Destructor Destroy;  Override;
+
+    Property kStrand[i:Integer]:Integer         Read Get_kStrand    Write Set_kStrand;
+    Property DiaStrand[i, units:Integer]:Double Read Get_DiaStrand  Write Set_DiaStrand;
+    Property GmrStrand[i, units:Integer]:Double Read Get_GmrStrand  Write Set_GmrStrand;
+    Property RStrand[i, units:Integer]:Double   Read Get_RStrand    Write Set_RStrand;
 end;
 
 implementation
 
 uses SysUtils;
+
+function TCNLineConstants.Get_kStrand(i: Integer): Integer;
+begin
+  Result := FkStrand^[i];
+end;
+
+function TCNLineConstants.Get_DiaStrand(i, units: Integer): Double;
+begin
+  Result := FDiaStrand^[i] * From_Meters(Units);
+end;
+
+function TCNLineConstants.Get_GmrStrand(i, units: Integer): Double;
+begin
+  Result := FGmrStrand^[i] * From_Meters(Units);
+end;
+
+function TCNLineConstants.Get_RStrand(i, units: Integer): Double;
+begin
+  Result := FRStrand^[i] * From_Meters(Units);
+end;
+
+procedure TCNLineConstants.Set_kStrand(i: Integer; const Value: Integer);
+begin
+  If (i>0) and (i<=FNumConds) Then FkStrand^[i] := Value;
+end;
+
+procedure TCNLineConstants.Set_DiaStrand(i, units: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FDiaStrand^[i] := Value * To_Meters(units);
+end;
+
+procedure TCNLineConstants.Set_GmrStrand(i, units: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FGmrStrand^[i] := Value * To_Meters(units);
+end;
+
+procedure TCNLineConstants.Set_RStrand(i, units: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FRStrand^[i] := Value * To_Meters(units);
+end;
 
 procedure TCNLineConstants.Calc(f: double);
 {Compute base Z and YC matrices in ohms/m for this frequency and earth impedance}
@@ -123,10 +181,18 @@ end;
 constructor TCNLineConstants.Create( NumConductors: Integer);
 begin
   inherited Create (NumConductors);
+  FkStrand:= Allocmem(Sizeof(FkStrand^[1])*FNumConds);
+  FDiaStrand:= Allocmem(Sizeof(FDiaStrand^[1])*FNumConds);
+  FGmrStrand:= Allocmem(Sizeof(FGmrStrand^[1])*FNumConds);
+  FRStrand:= Allocmem(Sizeof(FRStrand^[1])*FNumConds);
 end;
 
 destructor TCNLineConstants.Destroy;
 begin
+  Reallocmem(FkStrand, 0);
+  Reallocmem(FDiaStrand, 0);
+  Reallocmem(FGmrStrand, 0);
+  Reallocmem(FRStrand, 0);
   inherited;
 end;
 

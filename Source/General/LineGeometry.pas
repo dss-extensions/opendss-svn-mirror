@@ -723,29 +723,54 @@ end;
 procedure TLineGeometryObj.UpdateLineGeometryData(f:Double);
 Var i   :Integer;
   LineGeomErrMsg :String;
+  cnd: TCNDataObj;
+  tsd: TTSDataObj;
 begin
 
-     For i := 1 to FNconds Do Begin
-         FLineData.X[i, Funits^[i]] := FX^[i];
-         FLineData.Y[i, Funits^[i]] := FY^[i];
-         FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
-         FLineData.GMR[i, FWireData^[i].GMRUnits]       := FWireData^[i].GMR;
-         FLineData.Rdc[i, FWireData^[i].ResUnits]       := FWireData^[i].Rdc;
-         FLineData.Rac[i, FWireData^[i].ResUnits]       := FWireData^[i].Rac;
-     End;
+  For i := 1 to FNconds Do Begin
+    FLineData.X[i, Funits^[i]] := FX^[i];
+    FLineData.Y[i, Funits^[i]] := FY^[i];
+    FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
+    FLineData.GMR[i, FWireData^[i].GMRUnits]       := FWireData^[i].GMR;
+    FLineData.Rdc[i, FWireData^[i].ResUnits]       := FWireData^[i].Rdc;
+    FLineData.Rac[i, FWireData^[i].ResUnits]       := FWireData^[i].Rac;
+    if (FWireData^[i] is TCNDataObj) then begin
+      with (FLineData as TCNLineConstants) do begin
+        cnd := (FWireData^[i] as TCNDataObj);
+        EpsR[i] := cnd.EpsR;
+        InsLayer[i, cnd.RadiusUnits] := cnd.InsLayer;
+        DiaIns[i, cnd.RadiusUnits] := cnd.DiaIns;
+        DiaCable[i, cnd.RadiusUnits] := cnd.DiaCable;
+        kStrand[i] := cnd.NStrand;
+        DiaStrand[i, cnd.RadiusUnits] := cnd.DiaStrand;
+        GmrStrand[i, cnd.GMRUnits] := cnd.GmrStrand;
+        RStrand[i, cnd.ResUnits] := cnd.RStrand;
+      end;
+    end else if (FWireData^[i] is TTSDataObj) then begin
+      with (FLineData as TTSLineConstants) do begin
+        tsd := (FWireData^[i] as TTSDataObj);
+        EpsR[i] := tsd.EpsR;
+        InsLayer[i, tsd.RadiusUnits] := tsd.InsLayer;
+        DiaIns[i, tsd.RadiusUnits] := tsd.DiaIns;
+        DiaCable[i, tsd.RadiusUnits] := tsd.DiaCable;
+        DiaShield[i, tsd.RadiusUnits] := tsd.DiaShield;
+        TapeLayer[i, tsd.RadiusUnits] := tsd.TapeLayer;
+        TapeLap[i] := tsd.TapeLap;
+      end;
+    end;
+  End;
 
-     FLineData.Nphases := FNphases;
-     DataChanged := FALSE;
+  FLineData.Nphases := FNphases;
+  DataChanged := FALSE;
 
-     {Before we calc, check for bad conductor definitions}
-     if FLineData.ConductorsInSameSpace(LineGeomErrMsg) then Begin
-         Raise ELineGeometryProblem.Create('Error in LineGeometry.'+Name+': '+LineGeomErrMsg);
-         SolutionAbort := TRUE;
-     End Else Begin
-         FLineData.Calc(f);
-         If FReduce Then FLineData.Reduce; // reduce out neutrals
-     End;
-
+  {Before we calc, check for bad conductor definitions}
+  if FLineData.ConductorsInSameSpace(LineGeomErrMsg) then Begin
+    Raise ELineGeometryProblem.Create('Error in LineGeometry.'+Name+': '+LineGeomErrMsg);
+    SolutionAbort := TRUE;
+  End Else Begin
+    FLineData.Calc(f);
+    If FReduce Then FLineData.Reduce; // reduce out neutrals
+  End;
 end;
 
 procedure TLineGeometryObj.LoadSpacingAndWires(Spc: TLineSpacingObj; Wires: pConductorDataArray);

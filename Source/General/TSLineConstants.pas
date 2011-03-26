@@ -2,13 +2,23 @@ unit TSLineConstants;
 
 interface
 
-Uses Arraydef, Ucmatrix, Ucomplex, LineUnits, LineConstants;
+Uses Arraydef, Ucmatrix, Ucomplex, LineUnits, LineConstants, CableConstants;
 
 TYPE
 
-TTSLineConstants = class(TLineConstants)
+TTSLineConstants = class(TCableConstants)
   private
+    FDiaShield: pDoubleArray;
+    FTapeLayer: pDoubleArray;
+    FTapeLap:   pDoubleArray;
 
+    function Get_DiaShield(i, units: Integer): Double;
+    function Get_TapeLayer(i, units: Integer): Double;
+    function Get_TapeLap(i: Integer): Double;
+
+    procedure Set_DiaShield(i, units: Integer; const Value: Double);
+    procedure Set_TapeLayer(i, units: Integer; const Value: Double);
+    procedure Set_TapeLap(i: Integer; const Value: Double);
   protected
 
   public
@@ -17,11 +27,45 @@ TTSLineConstants = class(TLineConstants)
 
     Constructor Create(NumConductors:Integer);
     Destructor Destroy;  Override;
+
+    Property DiaShield[i, units:Integer]:Double Read Get_DiaShield  Write Set_DiaShield;
+    Property TapeLayer[i, units:Integer]:Double Read Get_TapeLayer  Write Set_TapeLayer;
+    Property TapeLap[i:Integer]:Double          Read Get_TapeLap    Write Set_TapeLap;
 end;
 
 implementation
 
 uses SysUtils;
+
+function TTSLineConstants.Get_DiaShield(i, units: Integer): Double;
+begin
+  Result := FDiaShield^[i] * From_Meters(Units);
+end;
+
+function TTSLineConstants.Get_TapeLayer(i, units: Integer): Double;
+begin
+  Result := FTapeLayer^[i] * From_Meters(Units);
+end;
+
+function TTSLineConstants.Get_TapeLap(i: Integer): Double;
+begin
+  Result := FTapeLap^[i];
+end;
+
+procedure TTSLineConstants.Set_DiaShield(i, units: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FDiaShield^[i] := Value * To_Meters(units);
+end;
+
+procedure TTSLineConstants.Set_TapeLayer(i, units: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FTapeLayer^[i] := Value * To_Meters(units);
+end;
+
+procedure TTSLineConstants.Set_TapeLap(i: Integer; const Value: Double);
+begin
+  If (i>0) and (i<=FNumConds) Then FTapeLap^[i] := Value;
+end;
 
 procedure TTSLineConstants.Calc(f: double);
 {Compute base Z and YC matrices in ohms/m for this frequency and earth impedance}
@@ -123,10 +167,16 @@ end;
 constructor TTSLineConstants.Create( NumConductors: Integer);
 begin
   inherited Create (NumConductors);
+  FDiaShield:= Allocmem(Sizeof(FDiaShield^[1])*FNumConds);
+  FTapeLayer:= Allocmem(Sizeof(FTapeLayer^[1])*FNumConds);
+  FTapeLap:= Allocmem(Sizeof(FTapeLap^[1])*FNumConds);
 end;
 
 destructor TTSLineConstants.Destroy;
 begin
+  Reallocmem(FDiaShield, 0);
+  Reallocmem(FTapeLayer, 0);
+  Reallocmem(FTapeLap, 0);
   inherited;
 end;
 

@@ -180,7 +180,8 @@ uses
   TSLineConstants in '..\General\TSLineConstants.pas',
   LineConstants in '..\General\LineConstants.pas',
   CableData in '..\General\CableData.pas',
-  ConductorData in '..\General\ConductorData.pas';
+  ConductorData in '..\General\ConductorData.pas',
+  CableConstants in '..\General\CableConstants.pas';
 
 exports
   DllGetClassObject,

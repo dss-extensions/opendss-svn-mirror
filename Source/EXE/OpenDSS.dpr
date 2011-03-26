@@ -159,7 +159,8 @@ uses
   CNLineConstants in '..\General\CNLineConstants.pas',
   TSLineConstants in '..\General\TSLineConstants.pas',
   CableData in '..\General\CableData.pas',
-  ConductorData in '..\General\ConductorData.pas';
+  ConductorData in '..\General\ConductorData.pas',
+  CableConstants in '..\General\CableConstants.pas';
 
 {$R *.RES}
 
