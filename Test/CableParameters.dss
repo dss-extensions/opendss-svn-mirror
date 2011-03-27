@@ -1,10 +1,13 @@
 clear
 new circuit.dummy
 
+set EarthModel=Carson // for comparison to Kersting's text book
+                      // other choices are Deri and FullCarson
+
 new WireData.CU_1/0 NormAmps=100 DIAM=0.368  GMRac=0.13356 Rac=0.607 Runits=mi Radunits=in gmrunits=in
 
 new TSData.TS_1/0   NormAmps=165 DIAM=0.368  GMRac=0.13320 Rac=0.97  Runits=mi Radunits=in gmrunits=in
-~                   EpsR=2.3 Ins=0.220 DiaIns=0.82 DiaCable=1.06 DiaShield=0.88 TapeLayer=5 TapeLap=20
+~                   EpsR=2.3 Ins=0.220 DiaIns=0.82 DiaCable=1.06 DiaShield=0.88 TapeLayer=0.005 TapeLap=20
 
 new CNData.CN_250   NormAmps=260 DIAM=0.567  GMRac=0.20520 Rac=0.41  Runits=mi Radunits=in gmrunits=in
 ~                   EpsR=2.3 Ins=0.220 DiaIns=1.06 DiaCable=1.29 k=13 DiaStrand=0.0641 GmrStrand=0.02496 Rstrand=14.8722
@@ -34,6 +37,6 @@ new LineGeometry.606 nconds=3 nphases=3 reduce=y
 
 new LineGeometry.607 nconds=2 nphases=1 reduce=y
 ~ cond=1 tscable=TS_1/0 x= 0.0000 h=-4 units=ft
-~ cond=2 wire   =CU_1/0 x= 0.0833 h=-4 units=ft
+~ cond=2 wire   =CU_1/0 x= 0.2500 h=-4 units=ft
 
 show lineconstants freq=60 units=kft

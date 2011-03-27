@@ -69,11 +69,11 @@ new WireData.ACSR_1/0    DIAM=0.398  GMRac=0.05352  Rdc=0.212121212   Runits=kft
 !CABLE CODES
 new WireData.CU_1/0 NormAmps=100 DIAM=0.368  GMRac=0.13356 Rac=0.607 Runits=mi Radunits=in gmrunits=in
 new TSData.TS_1/0   NormAmps=165 DIAM=0.368  GMRac=0.13320 Rac=0.97  Runits=mi Radunits=in gmrunits=in
-~                   EpsR=2.3 Ins=0.220 DiaIns=0.82 DiaCable=1.06 DiaShield=0.88 TapeLayer=5 TapeLap=20
+~                   EpsR=2.3 Ins=0.220 DiaIns=0.82 DiaCable=1.06 DiaShield=0.88 TapeLayer=0.005 TapeLap=20
 new CNData.CN_250   NormAmps=260 DIAM=0.567  GMRac=0.20520 Rac=0.41  Runits=mi Radunits=in gmrunits=in
 ~                   EpsR=2.3 Ins=0.220 DiaIns=1.06 DiaCable=1.29 k=13 DiaStrand=0.0641 GmrStrand=0.02496 Rstrand=14.8722
 new LineSpacing.515 nconds=3 nphases=3 units=ft x=[-0.5 0.0 0.5] h=[-4 -4 -4]
-new LineSpacing.520 nconds=2 nphases=1 units=ft x=[0.0 0.0833] h=[-4 -4]
+new LineSpacing.520 nconds=2 nphases=1 units=ft x=[0.0 0.25] h=[-4 -4]
 
 // these are local matrix line codes for cables
 New linecode.mtx606 nphases=3 BaseFreq=60 

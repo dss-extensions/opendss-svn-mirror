@@ -89,7 +89,7 @@ TLineConstants = class(TObject)
 
      Function  ConductorsInSameSpace(var ErrorMessage:String):Boolean;virtual;
      Procedure Calc(f:double);virtual; // force a calc of impedances
-     Procedure Kron(Norder:Integer); // Performs a Kron reduction leaving first Norder  rows
+     Procedure Kron(Norder:Integer);virtual; // Performs a Kron reduction leaving first Norder  rows
      Procedure Reduce;  // Kron reduce to Numphases only
 
      Property X[i, units:Integer]:Double      Read Get_X      Write Set_X;

@@ -25,7 +25,6 @@ TCNLineConstants = class(TCableConstants)
   protected
 
   public
-    Function  ConductorsInSameSpace(var ErrorMessage:String):Boolean;override;
     Procedure Calc(f:double);override;
 
     Constructor Create(NumConductors:Integer);
@@ -39,7 +38,7 @@ end;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, Math;
 
 function TCNLineConstants.Get_kStrand(i: Integer): Integer;
 begin
@@ -58,7 +57,7 @@ end;
 
 function TCNLineConstants.Get_RStrand(i, units: Integer): Double;
 begin
-  Result := FRStrand^[i] * From_Meters(Units);
+  Result := FRStrand^[i] * From_Per_Meter(Units);
 end;
 
 procedure TCNLineConstants.Set_kStrand(i: Integer; const Value: Integer);
@@ -78,22 +77,31 @@ end;
 
 procedure TCNLineConstants.Set_RStrand(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FRStrand^[i] := Value * To_Meters(units);
+  If (i>0) and (i<=FNumConds) Then FRStrand^[i] := Value * To_Per_Meter(units);
 end;
 
 procedure TCNLineConstants.Calc(f: double);
 {Compute base Z and YC matrices in ohms/m for this frequency and earth impedance}
 Var
-  Zi, Zspacing:Complex;
-  PowerFreq:Boolean;
-  Lfactor:Complex;
-  i,j:Integer;
-  Dij, Dijp, Pfactor:Double;
-  ReducedSize :Integer;
+  Zi, Zspacing:  Complex;
+  PowerFreq:     Boolean;
+  Lfactor:       Complex;
+  i, j:          Integer;
+  Dij, Yfactor:  Double;
+  ReducedSize:   Integer;
+  N, idxi, idxj: Integer;
+  Zmat, Ztemp:   TCMatrix;
+  ResCN, RadCN:  Double;
+  GmrCN:         Double;
+  Denom, RadIn:  Double;
 begin
   Frequency := f;  // this has side effects
 
-  If assigned(FZreduced) Then Begin ReducedSize := FZreduced.order; FZreduced.Free;  End Else ReducedSize := 0;
+  If assigned(FZreduced) Then Begin
+    ReducedSize := FZreduced.order;
+    FZreduced.Free;
+  End Else
+    ReducedSize := 0;
   If assigned(FYCreduced) Then FYCreduced.Free;
   FZreduced := Nil;
   FYCreduced := Nil;
@@ -101,11 +109,15 @@ begin
   FZmatrix.Clear;
   FYCMatrix.Clear;
 
+  // add concentric neutrals to the end of conductor list; they are always reduced
+  N := FNumConds + FNumPhases;
+  Zmat := TCMatrix.CreateMatrix(N);
+
   {For less than 1 kHz use GMR to better match published data}
   LFactor := Cmplx(0.0, Fw*mu0/twopi );
   If  (f < 1000.0)and(f > 40.0) Then PowerFreq:= TRUE Else PowerFreq:= FALSE;
 
-  {Self Impedances}
+  // Self Impedances - CN cores and bare neutrals
   For i := 1 to FNumConds Do Begin
     Zi := Get_Zint(i);
     If PowerFreq Then Begin // for less than 1 kHz, use published GMR
@@ -114,68 +126,74 @@ begin
     End Else Begin
       Zspacing := CmulReal(Lfactor, ln( 1.0/Fradius^[i] ));
     End;
-    FZmatrix.SetElement(i, i, Cadd(Zi, Cadd( Zspacing, Get_Ze(i,i) ) ) );
+    Zmat.SetElement(i, i, Cadd(Zi, Cadd( Zspacing, Get_Ze(i,i))));
   End;
 
-  {Mutual IMpedances}
+  // CN self impedances
+  for i := 1 to FNumPhases do begin
+    ResCN := FRstrand^[i] / FkStrand^[i];
+    RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
+    GmrCN := Power (FGmrStrand^[i] * FkStrand^[i] * Power(RadCN, FkStrand^[i] - 1.0),
+                    1.0 / FkStrand^[i]);
+    Zspacing := CMulReal (Lfactor, ln(1.0/GmrCN));
+    Zi := cmplx (ResCN, 0.0);
+    idxi := i + FNumConds;
+    Zmat.SetElement(idxi, idxi, Cadd(Zi, Cadd (Zspacing, Get_Ze (i, i))));
+  End;
+
+  // Mutual Impedances - between CN cores and bare neutrals
   For i := 1 to FNumConds Do Begin
     For j := 1 to i-1 Do Begin
       Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
-      FZmatrix.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
+      Zmat.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
     End;
   End;
 
-  {Capacitance Matrix}
-  Pfactor := -1.0/ twopi / e0 / Fw; // include frequency
-
-  {Construct P matrix and then invert}
-
-  For i := 1 to FnumConds Do Begin
-    FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*abs(Fy^[i])/Fradius^[i])));
-  End;
-
-  For i := 1 to FNumConds Do Begin
-    For j := 1 to i-1 Do Begin
-      Dij  := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
-      Dijp := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]+Fy^[j])); // distance to image j
-      FYCMatrix.SetElemSym(i, j, cmplx(0.0, pfactor * ln(Dijp/Dij)));
+  // Mutual Impedances - CN to other CN, cores, and bare neutrals
+  For i := 1 to FNumPhases Do Begin
+    idxi := i + FNumConds;
+    For j := 1 to i-1 Do Begin  // CN to other CN
+      idxj := j + FNumConds;
+      Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+      Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
     End;
+    for j := 1 to FNumConds do begin // CN to cores and bare neutrals
+      idxj := j;
+      RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
+      if i = j then begin // CN to its own phase core
+        Dij := RadCN;
+      end else begin // CN to another phase or bare neutral
+        Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+        Dij := Power (Power(Dij, FkStrand^[i]) - Power(RadCN, FkStrand^[i]),
+              1.0 / FkStrand^[i]);
+      end;
+      Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
+    end;
   End;
 
-  FYCMatrix.Invert; // now should be nodal C matrix
+  // reduce out the CN
+  while Zmat.Order > FNumConds do begin
+    Ztemp := Zmat.Kron(Zmat.Order);
+    Zmat.Free;
+    Zmat := Ztemp;
+  end;
+  FZMatrix.CopyFrom(Zmat);
+  Zmat.Free;
+
+  // for shielded cables, build the capacitance matrix directly
+  for i := 1 to FNumPhases do begin
+    Yfactor := twopi * e0 * FEpsR^[i] * Fw; // includes frequency so C==>Y
+    RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
+    RadIn := Fradius^[i]; // per Kersting, could make it the inside of insulating layer
+    Denom := ln (RadCN / RadIn)
+          - (1.0 / FkStrand^[i]) * ln (FkStrand^[i] * 0.5 * FDiaStrand^[i] / RadCN);
+    FYCMatrix.SetElement(i, i, cmplx(0.0, Yfactor / Denom));
+  end;
 
   If ReducedSize>0 Then Kron(ReducedSize);  // Was reduced so reduce again to same size
 
   {Else the Zmatrix is OK as last computed}
   FRhoChanged := FALSE;
-end;
-
-function TCNLineConstants.ConductorsInSameSpace( var ErrorMessage: String): Boolean;
-var
-  i,j   :Integer;
-  Dij   :Double;
-begin
-  Result := FALSE;
-
-  For i := 1 to FNumConds do Begin
-    if (FY^[i] >= 0.0) then Begin
-      Result := TRUE;
-      ErrorMessage :=
-        Format('CN cable %d height must be < 0. ', [ i ]);
-      Exit
-    End;
-  End;
-
-  For i := 1 to FNumConds do Begin
-    for j := i+1 to FNumConds do Begin
-      Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
-      if (Dij < (Fradius^[i]+Fradius^[j])) then Begin
-        Result := TRUE;
-        ErrorMessage := Format('CN conductors %d and %d occupy the same space.', [i, j ]);
-        Exit;
-      End;
-    End;
-  End;
 end;
 
 constructor TCNLineConstants.Create( NumConductors: Integer);

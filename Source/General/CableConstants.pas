@@ -8,11 +8,6 @@ TYPE
 
 TCableConstants = class(TLineConstants)
   private
-    FEpsR       :pDoubleArray;
-    FInsLayer   :pDoubleArray;
-    FDiaIns     :pDoubleArray;
-    FDiaCable   :pDoubleArray;
-
     function Get_EpsR(i: Integer): Double;
     function Get_InsLayer(i, units: Integer): Double;
     function Get_DiaIns(i, units: Integer): Double;
@@ -23,8 +18,15 @@ TCableConstants = class(TLineConstants)
     procedure Set_DiaIns(i, units: Integer; const Value: Double);
     procedure Set_DiaCable(i, units: Integer; const Value: Double);
   protected
+    FEpsR       :pDoubleArray;
+    FInsLayer   :pDoubleArray;
+    FDiaIns     :pDoubleArray;
+    FDiaCable   :pDoubleArray;
 
   public
+    Function  ConductorsInSameSpace(var ErrorMessage:String):Boolean;override;
+    Procedure Kron(Norder:Integer);override; // don't reduce Y, it has zero neutral capacitance
+
     Constructor Create(NumConductors:Integer);
     Destructor Destroy;  Override;
 
@@ -37,6 +39,62 @@ end;
 implementation
 
 uses SysUtils;
+
+procedure TCableConstants.Kron(Norder: Integer);
+Var
+  Ztemp:TCmatrix;
+  FirstTime:Boolean;
+  i, j: Integer;
+begin
+  Ztemp  := FZMatrix;
+  FirstTime := TRUE;
+  If (FFrequency >= 0.0) and (Norder>0) and (Norder<FnumConds) Then Begin
+    If Assigned(FZreduced)  Then FZreduced.Free;
+    If Assigned(FYCreduced) Then FYCReduced.Free;
+    While Ztemp.Order > Norder Do Begin
+      FZReduced  := Ztemp.Kron(ZTemp.Order );    // Eliminate last row
+      If Not FirstTime Then Ztemp.Free;  // Ztemp points to intermediate matrix
+      Ztemp  := FZReduced;
+      FirstTime := FALSE;
+    End;
+    // now copy part of FYCmatrix to FYCreduced
+    FYCreduced := TCmatrix.CreateMatrix(Norder);
+    for i:=1 to Norder do
+      for j:=1 to Norder do
+        FYCreduced.SetElement(i,j, FYCmatrix.GetElement(i,j));
+  End;
+end;
+
+function TCableConstants.ConductorsInSameSpace( var ErrorMessage: String): Boolean;
+var
+  i,j   :Integer;
+  Dij   :Double;
+  Ri, Rj : Double;
+begin
+  Result := FALSE;
+
+  For i := 1 to FNumConds do Begin
+    if (FY^[i] >= 0.0) then Begin
+      Result := TRUE;
+      ErrorMessage :=
+        Format('Cable %d height must be < 0. ', [ i ]);
+      Exit
+    End;
+  End;
+
+  For i := 1 to FNumConds do Begin
+    if i <= FNumPhases then Ri := FRadius^[i] else Ri := 0.5 * FDiaCable^[i];
+    for j := i+1 to FNumConds do Begin
+      if j <= FNumPhases then Rj := FRadius^[j] else Rj := 0.5 * FDiaCable^[j];
+      Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
+      if (Dij < (Ri + Rj)) then Begin
+        Result := TRUE;
+        ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j ]);
+        Exit;
+      End;
+    End;
+  End;
+end;
 
 function TCableConstants.Get_EpsR(i: Integer): Double;
 begin
