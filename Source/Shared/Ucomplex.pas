@@ -14,7 +14,7 @@ interface
               re,im:Double;
             end;
     pComplexArray = ^ComplexArray;
-    ComplexArray = Array [1..10] of Complex;
+    ComplexArray = Array [1..100] of Complex;
 
     polar=record
             mag,ang:Double;
