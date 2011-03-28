@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExportOptions = 27;
+        NumExportOptions = 31;
 
 FUNCTION DoExportCmd:Integer;
 
@@ -43,14 +43,18 @@ Begin
       ExportOption[17] := 'Y';
       ExportOption[18] := 'seqz';
       ExportOption[19] := 'P_byphase';
-      ExportOption[20] := 'CDPSM';
-      ExportOption[21] := 'CDPSMConnect';
-      ExportOption[22] := 'CDPSMBalanced';
+      ExportOption[20] := 'CDPSMCombined';
+      ExportOption[21] := 'CDPSMFunc';
+      ExportOption[22] := 'CDPSMAsset';
       ExportOption[23] := 'Buscoords';
       ExportOption[24] := 'Losses';
       ExportOption[25] := 'Guids';
       ExportOption[26] := 'Counts';
       ExportOption[27] := 'Summary';
+      ExportOption[28] := 'CDPSMElec';
+      ExportOption[29] := 'CDPSMGeo';
+      ExportOption[30] := 'CDPSMTopo';
+      ExportOption[31] := 'CDPSMStateVar';
 
       ExportHelp[ 1] := '(Default file = EXP_VOLTAGES.CSV) Voltages to ground by bus/node.';
       ExportHelp[ 2] := '(Default file = EXP_SEQVOLTAGES.CSV) Sequence voltages.';
@@ -73,14 +77,18 @@ Begin
       ExportHelp[17] := '(Default file = EXP_Y.CSV) System Y matrix.';
       ExportHelp[18] := '(Default file = EXP_SEQZ.CSV) Equivalent sequence Z1, Z0 to each bus.';
       ExportHelp[19] := '(Default file = EXP_P_BYPHASE.CSV) Power by phase.';
-      ExportHelp[20] := '(Default file = CDPSM.XML) (IEC 61968-13, CDPSM Unbalanced load flow profile)';
-      ExportHelp[21] := '(Default file = CDPSM_Connect.XML) (IEC 61968-13, CDPSM Unbalanced connectivity profile)';
-      ExportHelp[22] := '(Default file = CDPSM_Balanced.XML) (IEC 61968-13, CDPSM Balanced profile)';
+      ExportHelp[20] := '(Default file = CDPSM_Combined.XML) (IEC 61968-13, CDPSM Combined (unbalanced load flow) profile)';
+      ExportHelp[21] := '(Default file = CDPSM_Functional.XML) (IEC 61968-13, CDPSM Functional profile)';
+      ExportHelp[22] := '(Default file = CDPSM_Asset.XML) (IEC 61968-13, CDPSM Asset profile)';
       ExportHelp[23] := '[Default file = EXP_BUSCOORDS.CSV] Bus coordinates in csv form.';
       ExportHelp[24] := '[Default file = EXP_LOSSES.CSV] Losses for each element.';
       ExportHelp[25] := '[Default file = EXP_GUIDS.CSV] Guids for each element.';
       ExportHelp[26] := '[Default file = EXP_Counts.CSV] (instance counts for each class)';
       ExportHelp[27] := '[Default file = EXP_Summary.CSV] Solution summary.';
+      ExportHelp[28] := '(Default file = CDPSM_ElectricalProperties.XML) (IEC 61968-13, CDPSM Electrical Properties profile)';
+      ExportHelp[29] := '(Default file = CDPSM_Geographical.XML) (IEC 61968-13, CDPSM Geographical profile)';
+      ExportHelp[30] := '(Default file = CDPSM_Topology.XML) (IEC 61968-13, CDPSM Topology profile)';
+      ExportHelp[31] := '(Default file = CDPSM_StateVariables.XML) (IEC 61968-13, CDPSM State Variables profile)';
 End;
 
 //----------------------------------------------------------------------------
@@ -156,14 +164,18 @@ Begin
          17: Filename := 'EXP_Y.CSV';
          18: Filename := 'EXP_SEQZ.CSV';
          19: Filename := 'EXP_P_BYPHASE.CSV';
-         20: FileName := 'CDPSM_Unbalanced.XML';
-         21: FileName := 'CDPSM_Connect.XML';
-         22: FileName := 'CDPSM_Balanced.XML';
+         20: FileName := 'CDPSM_Combined.XML';
+         21: FileName := 'CDPSM_Functional.XML';
+         22: FileName := 'CDPSM_Asset.XML';
          23: FileName := 'EXP_BUSCOORDS.CSV';
          24: FileName := 'EXP_LOSSES.CSV';
          25: FileName := 'EXP_GUIDS.CSV';
          26: FileName := 'EXP_Counts.CSV';
          27: FileName := 'EXP_Summary.CSV';
+         28: FileName := 'CDPSM_ElectricalProperties.XML';
+         29: FileName := 'CDPSM_Geographical.XML';
+         30: FileName := 'CDPSM_Topology.XML';
+         31: FileName := 'CDPSM_StateVariables.XML';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -195,14 +207,18 @@ Begin
      17: ExportY(Filename);
      18: ExportSeqZ(Filename);
      19: ExportPbyphase(Filename, MVAOpt);
-     20: ExportCDPSM_UnBal(Filename);        // defaults to a load-flow model
-     21: ExportCDPSM_UnBal(Filename, False); // not a load-flow model
-     22: ExportCDPSM_Bal(Filename);
+     20: ExportCDPSM(Filename, Combined);    // defaults to a load-flow model
+     21: ExportCDPSM(Filename, Functional);
+     22: ExportCDPSM(Filename, Asset);
      23: ExportBusCoords(Filename);
      24: ExportLosses(Filename);
      25: ExportGuids(Filename);
      26: ExportCounts(Filename);
      27: ExportSummary(Filename);
+     28: ExportCDPSM(Filename, ElectricalProperties);
+     29: ExportCDPSM(Filename, Geographical);
+     30: ExportCDPSM(Filename, Topology);
+     31: ExportCDPSM(Filename, StateVariables);
    ELSE
          ExportVoltages(FileName);    // default
    END;
