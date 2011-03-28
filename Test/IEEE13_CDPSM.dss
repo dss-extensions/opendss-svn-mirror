@@ -40,7 +40,7 @@ New Transformer.XFM1  Phases=3   Windings=2  XHL=2
 
 
 !LINE CODES
-redirect IEEELineGeometry.dss
+// redirect IEEELineGeometry.dss
 
 // these are local matrix line codes
 New linecode.mtx601 nphases=3 BaseFreq=60 
