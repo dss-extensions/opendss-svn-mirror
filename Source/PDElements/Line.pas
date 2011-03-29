@@ -64,6 +64,9 @@ TYPE
         Procedure ResetLengthUnits;
         procedure UpdatePDProperties;   // update inherited properties
 
+        function NumConductorData:Integer;
+        function FetchConductorData(i:Integer):TConductorDataObj;
+
       Protected
         Zinv               :TCMatrix;
 
@@ -119,6 +122,9 @@ TYPE
         // CIM XML access
         property LineCodeSpecified: Boolean read FLineCodeSpecified;
         Property PhaseChoice: ConductorChoice Read FPhaseChoice;
+
+        Property NumConductorsAvailable:Integer read NumConductorData;
+        Property ConductorData[i:Integer]:TConductorDataObj read FetchConductorData;
    end;
 
 VAR
@@ -1669,6 +1675,23 @@ procedure TLineObj.ResetLengthUnits;
 begin
       FUnitsConvert := 1.0;
       LengthUnits   := UNITS_NONE;
+end;
+
+function TLineObj.NumConductorData:Integer;
+begin
+  Result := 0;
+  if Assigned(FWireData) then Result := FLineSpacingObj.NWires;
+  if Assigned(FLineGeometryObj) then Result := FLineGeometryObj.NWires;
+end;
+
+function TLineObj.FetchConductorData(i:Integer):TConductorDataObj;
+begin
+  Result := nil;
+  if Assigned(FWireData) then begin
+    if i <= FLineSpacingObj.Nwires then Result := FWireData[i];
+  end else if Assigned(FLineGeometryObj) then begin
+    if i <= FLineGeometryObj.Nwires then Result := FLineGeometryObj.ConductorData[i];
+  end;
 end;
 
 initialization
