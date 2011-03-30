@@ -28,7 +28,7 @@ Uses SysUtils, Utilities, Circuit, DSSClassDefs, DSSGlobals, CktElement,
      LineSpacing, CableData, CNData, TSData;
 
 Type
-  GuidChoice = (Bank, Wdg, XfInf, WdgInf, ScTest, OcTest,
+  GuidChoice = (Bank, Wdg, XfCore, XfMesh, WdgInf, ScTest, OcTest,
     BaseV, LinePhase, LoadPhase, CapPhase, XfTerm, XfLoc, LoadLoc,
     LineLoc, CapLoc);
   TBankObject = class(TNamedObject)
@@ -345,7 +345,8 @@ begin
   case which of
     Bank: key := 'Bank=';
     Wdg: key := 'Wdg=';
-    XfInf: key := 'XfInf=';
+    XfCore: key := 'XfCore=';
+    XfMesh: key := 'XfMesh=';
     WdgInf: key := 'WdgInf=';
     ScTest: key := 'ScTest=';
     OcTest: key := 'OcTest=';
@@ -566,6 +567,12 @@ begin
     [Root, CIM_NS, val]));
 end;
 
+procedure PhaseKindNode (var F: TextFile; Root: String; val: String);
+begin
+  Writeln (F, Format ('  <cim:%s.phase rdf:resource="%s#SinglePhaseKind.%s"/>',
+    [Root, CIM_NS, val]));
+end;
+
 procedure AttachLinePhases (var F: TextFile; pLine:TLineObj; Root: String);
 var
   s, phs: String;
@@ -580,7 +587,7 @@ begin
     pPhase.LocalName := pLine.Name + '_' + phs;
     pPhase.GUID := GetDevGuid (LinePhase, pPhase.LocalName, 1);
     StartInstance (F, 'ACLineSegmentPhase', pPhase);
-    PhaseNode (F, 'ACLineSegmentPhase', phs);
+    PhaseKindNode (F, 'ACLineSegmentPhase', phs);
     RefNode (F, 'ACLineSegmentPhase.ACLineSegment', pLine);
     GuidNode (F, 'PowerSystemResource.Location',
       GetDevGuid (LineLoc, pLine.Name, 1));
@@ -604,7 +611,7 @@ begin
     pPhase.LocalName := pCap.Name + '_' + phs;
     pPhase.GUID := GetDevGuid (CapPhase, pPhase.LocalName, 1);
     StartInstance (F, 'ShuntCompensatorPhase', pPhase);
-    PhaseNode (F, 'ShuntCompensatorPhase', phs);
+    PhaseKindNode (F, 'ShuntCompensatorPhase', phs);
     DoubleNode (F, 'ShuntCompensatorPhase.bPerSection',
       pCap.NomKV / pCap.Totalkvar / pCap.NumSteps / xph);
     DoubleNode (F, 'ShuntCompensatorPhase.gPerSection', 0.0);
@@ -631,7 +638,7 @@ begin
     pPhase.LocalName := pLoad.Name + '_' + phs;
     pPhase.GUID := GetDevGuid (LoadPhase, pPhase.LocalName, 1);
     StartInstance (F, 'EnergyConsumerPhase', pPhase);
-    PhaseNode (F, 'EnergyConsumerPhase', phs);
+    PhaseKindNode (F, 'EnergyConsumerPhase', phs);
     DoubleNode (F, 'EnergyConsumerPhase.pfixed', pLoad.kWBase / xph);
     DoubleNode (F, 'EnergyConsumerPhase.qfixed', pLoad.kvarBase / xph);
     RefNode (F, 'EnergyConsumerPhase.EnergyConsumer', pBus);
@@ -966,7 +973,9 @@ Var
 
   pBank  : TBankObject;
   maxWdg : Integer;
-  WdgList : array of TNamedObject;
+  WdgList  : array of TNamedObject;
+  CoreList : array of TNamedObject;
+  MeshList : array of TNamedObject;
   sBank  : String;
 
   pLoad  : TLoadObj;
@@ -1282,7 +1291,11 @@ Begin
       pXf := ActiveCircuit.Transformers.Next;
     end;
     SetLength (WdgList, maxWdg);
+    SetLength (CoreList, maxWdg);
+    SetLength (MeshList, (maxWdg-1)*maxWdg div 2);
     for i:=1 to maxWdg do WdgList[i]:=TNamedObject.Create('dummy');
+    CoreList[1]:=TNamedObject.Create('dummy');
+    for i:=1 to ((maxWdg-1)*maxWdg div 2) do MeshList[i]:=TNamedObject.Create('dummy');
 
     pXf := ActiveCircuit.Transformers.First;
     while pXf <> nil do begin
@@ -1325,12 +1338,62 @@ Begin
           WdgList[i].localName := pXf.Name + '_End_' + IntToStr(i);
           WdgList[i].GUID := GetDevGuid (Wdg, pXf.Name, i);
         end;
+        CoreList[1].LocalName := pXf.Name + '_Yc';
+        CoreList[1].GUID := GetDevGuid (XfCore, pXf.Name, 1);
+        for i:=1 to ((maxWdg-1)*maxWdg div 2) do begin
+          MeshList[i].localName := pXf.Name + '_Zsc_' + IntToStr(i);
+          MeshList[i].GUID := GetDevGuid (XfMesh, pXf.Name, i);
+        end;
+
+        if length (pXf.XfmrCode) < 1 then begin // write the impedances first, if no XfmrCode
+          val := BaseVoltage[1];  // write core Y
+          zbase := val * val / baseVA;
+          StartInstance (F, 'TransformerCoreAdmittance', CoreList[1]);
+          val := pXf.noLoadLossPct / 100.0 / zbase;
+          DoubleNode (F, 'TransformerCoreAdmittance.g', val);
+          DoubleNode (F, 'TransformerCoreAdmittance.g0', val);
+          val := pXf.imagPct / 100.0 / zbase;
+          DoubleNode (F, 'TransformerCoreAdmittance.b', val);
+          DoubleNode (F, 'TransformerCoreAdmittance.b0', val);
+          EndInstance (F, 'TransformerCoreAdmittance');
+          seq := 1; // write mesh Z
+          for i:=1 to NumberOfWindings do begin
+            for k := i+1 to NumberOfWindings do begin
+              val := BaseVoltage[i];
+              zbase := val * val / (1000.0 * WdgKva[i]);
+              StartInstance (F, 'TransformerMeshImpedance', MeshList[seq]);
+              val := zbase * (WdgResistance[i] + WdgResistance[k]);
+              DoubleNode (F, 'TransformerMeshImpedance.r', val);
+              DoubleNode (F, 'TransformerMeshImpedance.r0', val);
+              val := zbase * XscVal[seq];
+              inc (seq);
+              DoubleNode (F, 'TransformerMeshImpedance.x', val);
+              DoubleNode (F, 'TransformerMeshImpedance.x0', val);
+              EndInstance (F, 'TransformerMeshImpedance');
+            end;
+          end;
+        end;
 
         // write the Ends, and a Terminal for each End
         for i:=1 to NumberOfWindings do begin
           StartInstance (F, 'TransformerTankEnd', WdgList[i]);
           IntegerNode (F, 'TransformerEnd.endNumber', i);
           XfmrPhasesEnum (F, pXf, i);
+          if length (pXf.XfmrCode) < 1 then begin // wire in the Yc and Z exported above
+            if i=1 then RefNode (F, 'TransformerEnd.CoreAdmittance', CoreList[1]);
+            i3 := (NumberOfWindings-1)*NumberOfWindings div 2;
+            i1 := 1;
+            i2 := i1 + 1;
+            for seq:=1 to i3 do begin
+              if i1=i then RefNode (F, 'TransformerEnd.FromMeshImpedance', MeshList[seq]);
+              if i2=i then RefNode (F, 'TransformerEnd.ToMeshImpedance', MeshList[seq]);
+              inc(i2);
+              if i2 > NumberOfWindings then begin
+                inc(i1);
+                i2:=i1+1;
+              end;
+            end;
+          end;
           RefNode (F, 'TransformerTankEnd.TransformerTank', pXf);
           if (Winding^[i].Rneut < 0.0) or (Winding^[i].Connection = 1) then begin
             BooleanNode (F, 'TransformerEnd.grounded', false);
@@ -1345,51 +1408,6 @@ Begin
           RefNode (F, 'TransformerEnd.Terminal', pName2);
           GuidNode (F, 'TransformerEnd.BaseVoltage', GetBaseVGuid (sqrt(3.0) * ActiveCircuit.Buses^[j].kVBase));
           EndInstance (F, 'TransformerTankEnd');
-          if length (pXf.XfmrCode) < 1 then begin
-            seq := 1;
-            if i = 1 then begin // core Y
-              pName1.LocalName := pXf.Name + '_Yc';
-              CreateGUID (tmpGUID);
-              pName1.GUID := tmpGUID;
-              val := BaseVoltage[i];
-              zbase := val * val / baseVA;
-              StartInstance (F, 'TransformerCoreAdmittance', pName1);
-              val := pXf.noLoadLossPct / 100.0 / zbase;
-              DoubleNode (F, 'TransformerCoreAdmittance.g', val);
-              DoubleNode (F, 'TransformerCoreAdmittance.g0', val);
-              val := pXf.imagPct / 100.0 / zbase;
-              DoubleNode (F, 'TransformerCoreAdmittance.b', val);
-              DoubleNode (F, 'TransformerCoreAdmittance.b0', val);
-              EndInstance (F, 'TransformerCoreAdmittance');
-              // wire it up
-              StartInstance (F, 'TransformerTankEnd', WdgList[i]);
-              RefNode (F, 'TransformerEnd.CoreAdmittance', pName1);
-              EndInstance (F, 'TransformerTankEnd');
-            end;
-            for k := i+1 to NumberOfWindings do begin // mesh Z
-              pName1.LocalName := pXf.Name + '_Z_' + IntToStr(i) + '_' + IntToStr(k);
-              CreateGUID (tmpGUID);
-              pName1.GUID := tmpGUID;
-              val := BaseVoltage[i];
-              zbase := val * val / (1000.0 * WdgKva[i]);
-              StartInstance (F, 'TransformerMeshImpedance', pName1);
-              val := zbase * (WdgResistance[i] + WdgResistance[k]);
-              DoubleNode (F, 'TransformerMeshImpedance.r', val);
-              DoubleNode (F, 'TransformerMeshImpedance.r0', val);
-              val := zbase * XscVal[seq];
-              inc (seq);
-              DoubleNode (F, 'TransformerMeshImpedance.x', val);
-              DoubleNode (F, 'TransformerMeshImpedance.x0', val);
-              EndInstance (F, 'TransformerMeshImpedance');
-              // wire it up
-              StartInstance (F, 'TransformerTankEnd', WdgList[i]);
-              RefNode (F, 'TransformerEnd.FromMeshImpedance', pName1);
-              EndInstance (F, 'TransformerTankEnd');
-              StartInstance (F, 'TransformerTankEnd', WdgList[k]);
-              RefNode (F, 'TransformerEnd.ToMeshImpedance', pName1);
-              EndInstance (F, 'TransformerTankEnd');
-            end;
-          end;
           // write the Terminal for this End
           StartInstance (F, 'Terminal', pName2);
 //          IntegerNode (F, 'Terminal.sequenceNumber', i);
@@ -1415,7 +1433,9 @@ Begin
       EndInstance (F, 'PowerTransformer');
     end;
 
-    WdgList := nil;
+    WdgList:=nil;
+    CoreList:=nil;
+    MeshList:=nil;
 
     // voltage regulators
     pReg := ActiveCircuit.RegControls.First;
@@ -1489,7 +1509,7 @@ Begin
         StartFreeInstance (F, 'SvTapStep');
         RefNode (F, 'SvTapStep.TapChanger', pReg);
         val := Transformer.PresentTap[TrWinding];
-        i1 := Round((val - Transformer.Mintap[TrWinding]) / Transformer.TapIncrement[TrWinding]); // tap step
+//        i1 := Round((val - Transformer.Mintap[TrWinding]) / Transformer.TapIncrement[TrWinding]); // tap step
         DoubleNode (F, 'SvTapStep.position', val);
         EndInstance (F, 'SvTapStep');
       end;
@@ -1737,7 +1757,7 @@ Begin
       WriteWireData (F, pTape);
       WriteCableData (F, pTape);
       WriteTapeData (F, pTape);
-      EndInstance (F, 'TapeShieldInfo');
+      EndInstance (F, 'TapeShieldCableInfo');
       LinkWireAssetsToLines (F, pTape, 'TSCableAsset');
       pTape := clsTape.ElementList.Next;
     end;
@@ -1748,7 +1768,7 @@ Begin
       WriteWireData (F, pConc);
       WriteCableData (F, pConc);
       WriteConcData (F, pConc);
-      EndInstance (F, 'ConcentricNeutralInfo');
+      EndInstance (F, 'ConcentricNeutralCableInfo');
       LinkWireAssetsToLines (F, pConc, 'CNCableAsset');
       pConc := clsConc.ElementList.Next;
     end;
@@ -1767,12 +1787,15 @@ Begin
         EndInstance (F, 'WireSpacingInfo');
 
         for i := 1 to NWires do begin
-          StartFreeInstance (F, 'WirePosition');
+          pName1.LocalName := 'WP_' + pGeom.Name + '_' + IntToStr(i);
+          CreateGuid (tmpGUID);
+          pName1.GUID := tmpGUID;
+          StartInstance (F, 'WirePosition', pName1);
           RefNode (F, 'WirePosition.WireSpacingInfo', pGeom);
           if i <= NPhases then // TODO - how to assign them? For now, using phs as a sequence # proxy
-            PhaseNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
+            PhaseKindNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
           else
-            PhaseNode (F, 'WirePosition', 'N');
+            PhaseKindNode (F, 'WirePosition', 'N');
           DoubleNode (F, 'WirePosition.xCoord', Xcoord[i]);
           DoubleNode (F, 'WirePosition.yCoord', Ycoord[i]);
           EndInstance (F, 'WirePosition')
@@ -1808,12 +1831,15 @@ Begin
         EndInstance (F, 'WireSpacingInfo');
 
         for i := 1 to NWires do begin
-          StartFreeInstance (F, 'WirePosition');
+          pName1.LocalName := 'WP_' + pSpac.Name + '_' + IntToStr(i);
+          CreateGuid (tmpGUID);
+          pName1.GUID := tmpGUID;
+          StartInstance (F, 'WirePosition', pName1);
           RefNode (F, 'WirePosition.WireSpacingInfo', pSpac);
           if i <= NPhases then // TODO - how to assign them? For now, using phs as a sequence # proxy
-            PhaseNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
+            PhaseKindNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
           else
-            PhaseNode (F, 'WirePosition', 'N');
+            PhaseKindNode (F, 'WirePosition', 'N');
           DoubleNode (F, 'WirePosition.xCoord', Xcoord[i]);
           DoubleNode (F, 'WirePosition.yCoord', Ycoord[i]);
           EndInstance (F, 'WirePosition')
