@@ -78,7 +78,6 @@ Var
 
 Const
   CIM_NS = 'http://iec.ch/TC57/2010/CIM-schema-cim15';
-  CIM_LEN_UNITS = UNITS_M;
 
 constructor TBusLoad.Create;
 begin
@@ -859,43 +858,62 @@ begin
 end;
 
 Procedure WriteCableData (var F:TextFile; pCab: TCableDataObj);
+var
+  v1: double;
 begin
   with pCab do begin
+    v1 := To_Meters (RadiusUnits);
     BooleanNode (F, 'WireInfo.insulated', True);
-    DoubleNode (F, 'WireInfo.insulationThickness', pCab.InsLayer);
+    DoubleNode (F, 'WireInfo.insulationThickness', v1 * pCab.InsLayer);
     ConductorInsulationEnum (F, 'crosslinkedPolyethylene');
     CableOuterJacketEnum (F, 'none');
     CableConstructionEnum (F, 'stranded');
-    DoubleNode (F, 'CableInfo.diameterOverCore', pCab.DiaIns - 2.0 * pCab.InsLayer);
-    DoubleNode (F, 'CableInfo.diameterOverInsulation', pCab.DiaIns);
-    DoubleNode (F, 'CableInfo.diameterOverJacket', pCab.DiaCable);
+    DoubleNode (F, 'CableInfo.diameterOverCore',
+      v1 * (pCab.DiaIns - 2.0 * pCab.InsLayer));
+    DoubleNode (F, 'CableInfo.diameterOverInsulation', v1 * pCab.DiaIns);
+    DoubleNode (F, 'CableInfo.diameterOverJacket', v1 * pCab.DiaCable);
   end;
 end;
 
 Procedure WriteTapeData (var F:TextFile; pCab: TTSDataObj);
+var
+  v1: double;
 begin
   with pCab do begin
-    DoubleNode (F, 'CableInfo.diameterOverScreen', pCab.DiaShield - 2.0 * pCab.TapeLayer);
+    v1 := To_Meters (RadiusUnits);
+    DoubleNode (F, 'CableInfo.diameterOverScreen',
+      v1 * (pCab.DiaShield - 2.0 * pCab.TapeLayer));
     DoubleNode (F, 'TapeShieldCableInfo.tapeLap', pCab.TapeLap);
-    DoubleNode (F, 'TapeShieldCableInfo.tapeThickness', pCab.TapeLayer);
+    DoubleNode (F, 'TapeShieldCableInfo.tapeThickness', v1 * pCab.TapeLayer);
     CableShieldMaterialEnum (F, 'copper');
     BooleanNode (F, 'CableInfo.sheathAsNeutral', True);
   end;
 end;
 
 Procedure WriteConcData (var F:TextFile; pCab: TCNDataObj);
+var
+  v1: double;
 begin
   with pCab do begin
-    DoubleNode (F, 'CableInfo.diameterOverScreen', pCab.DiaCable - 2.0 * pCab.DiaStrand);
-    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandRadius', 0.5 * pCab.DiaStrand);
-    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandGmr', pCab.GmrStrand);
-    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandRDC20', pCab.RStrand);
+    v1 := To_Meters (RadiusUnits);
+    DoubleNode (F, 'CableInfo.diameterOverScreen',
+      v1 * (pCab.DiaCable - 2.0 * pCab.DiaStrand));
+    DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral',
+      v1 * pCab.DiaCable);
+    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandRadius',
+      v1 * 0.5 * pCab.DiaStrand);
+    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandGmr',
+      v1 * pCab.GmrStrand);
+    v1 := To_per_Meter (ResUnits);
+    DoubleNode (F, 'ConcentricNeutralCableInfo.neutralStrandRDC20',
+      v1 * pCab.RStrand);
     IntegerNode (F, 'ConcentricNeutralCableInfo.neutralStrandCount', pCab.NStrand);
-    DoubleNode (F, 'ConcentricNeutralCableInfo.diameterOverNeutral', pCab.DiaCable);
   end;
 end;
 
 Procedure WriteWireData (var F:TextFile; pWire: TConductorDataObj);
+var
+  v1: double;
 begin
   with pWire do begin
     StringNode (F, 'WireInfo.sizeDescription', DisplayName);
@@ -909,12 +927,15 @@ begin
       ConductorMaterialEnum (F, 'steel')
     else
       ConductorMaterialEnum (F, 'other');
-    DoubleNode (F, 'WireInfo.gmr', GMR);
-    DoubleNode (F, 'WireInfo.radius', Radius);
-    DoubleNode (F, 'WireInfo.rDC20', Rdc);
-    DoubleNode (F, 'WireInfo.rAC25', Rac);
-    DoubleNode (F, 'WireInfo.rAC50', Rac);
-    DoubleNode (F, 'WireInfo.rAC75', Rac);
+    v1 := To_Meters (GMRUnits);
+    DoubleNode (F, 'WireInfo.gmr', GMR * v1);
+    v1 := To_Meters (RadiusUnits);
+    DoubleNode (F, 'WireInfo.radius', Radius * v1);
+    v1 := To_per_Meter (ResUnits);
+    DoubleNode (F, 'WireInfo.rDC20', Rdc * v1);
+    DoubleNode (F, 'WireInfo.rAC25', Rac * v1);
+    DoubleNode (F, 'WireInfo.rAC50', Rac * v1);
+    DoubleNode (F, 'WireInfo.rAC75', Rac * v1);
     DoubleNode (F, 'WireInfo.ratedCurrent', MaxValue ([NormAmps, 0.0]));
     IntegerNode (F, 'WireInfo.strandCount', 0);
     IntegerNode (F, 'WireInfo.coreStrandCount', 0);
@@ -1522,7 +1543,7 @@ Begin
     while pLine <> nil do begin
       with pLine do begin
         bval := False; // flag to write a "line code" of PULengthPhaseZ
-        v1 := 1.0 / ConvertLineUnits (CIM_LEN_UNITS, pLine.LengthUnits);
+        v1 := To_Meters (pLine.LengthUnits);
         geoGUID := GetDevGuid (LineLoc, pLine.Name, 1);
         if IsSwitch then begin
           StartInstance (F, 'LoadBreakSwitch', pLine);
@@ -1708,7 +1729,7 @@ Begin
     pCode := clsCode.ElementList.First;
     while pCode <> nil do begin
       with pCode do begin
-        v1 := 1.0 / ConvertLineUnits (CIM_LEN_UNITS, pCode.Units);
+        v1 := To_per_Meter (pCode.Units);
         if SymComponentsModel then begin
           v2 := 1.0e-9 * TwoPi * BaseFrequency; // convert nF to mhos
           StartInstance (F, 'PerLengthSequenceImpedance', pCode);
@@ -1796,8 +1817,9 @@ Begin
             PhaseKindNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
           else
             PhaseKindNode (F, 'WirePosition', 'N');
-          DoubleNode (F, 'WirePosition.xCoord', Xcoord[i]);
-          DoubleNode (F, 'WirePosition.yCoord', Ycoord[i]);
+          v1 := To_Meters (Units[i]);
+          DoubleNode (F, 'WirePosition.xCoord', Xcoord[i] * v1);
+          DoubleNode (F, 'WirePosition.yCoord', Ycoord[i] * v1);
           EndInstance (F, 'WirePosition')
         end;
         pName1.LocalName := 'WireSpacingAsset_' + pGeom.Name;
@@ -1820,6 +1842,7 @@ Begin
     pSpac := clsSpac.ElementList.First;
     while pSpac <> nil do begin
       with pSpac do begin
+        v1 := To_Meters (Units);
         StartInstance (F, 'WireSpacingInfo', pSpac);
         ConductorUsageEnum (F, 'distribution');
         IntegerNode (F, 'WireSpacingInfo.phaseWireCount', 1);
@@ -1840,8 +1863,8 @@ Begin
             PhaseKindNode (F, 'WirePosition', String (Chr(Ord('A')+i-1)))
           else
             PhaseKindNode (F, 'WirePosition', 'N');
-          DoubleNode (F, 'WirePosition.xCoord', Xcoord[i]);
-          DoubleNode (F, 'WirePosition.yCoord', Ycoord[i]);
+          DoubleNode (F, 'WirePosition.xCoord', Xcoord[i] * v1);
+          DoubleNode (F, 'WirePosition.yCoord', Ycoord[i] * v1);
           EndInstance (F, 'WirePosition')
         end;
         pName1.LocalName := 'WireSpacingAsset_' + pSpac.Name;

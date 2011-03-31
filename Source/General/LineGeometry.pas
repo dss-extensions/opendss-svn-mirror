@@ -85,6 +85,7 @@ TYPE
         // CIM Accessors
         function Get_FX (i: integer) : Double;
         function Get_FY (i: integer) : Double;
+        function Get_FUnits (i: integer) : Integer;
         function Get_ConductorName (i: integer) : String;
         function Get_ConductorData (i: integer) : TConductorDataObj;
 
@@ -115,6 +116,7 @@ TYPE
         // CIM XML accessors
         Property Xcoord[i:Integer]: Double Read Get_FX;
         Property Ycoord[i:Integer]: Double Read Get_FY;
+        Property Units[i:Integer]: Integer Read Get_FUnits;
         Property ConductorName[i:Integer]: String Read Get_ConductorName;
         Property ConductorData[i: Integer]: TConductorDataObj Read Get_ConductorData;
         Property NWires: Integer Read FNConds;
@@ -558,6 +560,11 @@ end;
 function TLineGeometryObj.Get_FY(i:Integer) : Double;
 begin
   If i <= FNConds Then Result := FY^[i] Else Result := 0.0;
+end;
+
+function TLineGeometryObj.Get_FUnits(i:Integer) : Integer;
+begin
+  If i <= FNConds Then Result := FUnits^[i] Else Result := 0;
 end;
 
 function TLineGeometryObj.Get_ConductorName(i:Integer) : String;
