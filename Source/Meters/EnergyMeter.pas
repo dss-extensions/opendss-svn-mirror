@@ -2832,6 +2832,7 @@ begin
     Rewrite(FMeterTotals);
     Write(FMeterTotals,'Name');
     mtr := ActiveCircuit.EnergyMeters.First;
+    if Assigned(mtr) then
     For i := 1 to NumEMRegisters Do Write(FMeterTotals,', "', mtr.RegisterNames[i],'"');
     Writeln(FMeterTotals);
 end;
