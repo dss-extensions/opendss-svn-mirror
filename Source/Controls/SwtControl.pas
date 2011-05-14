@@ -233,6 +233,8 @@ Begin
   Devindex := GetCktElementIndex(ElementName);
   IF DevIndex>0 THEN Begin
     ControlledElement := ActiveCircuit.CktElements.Get(DevIndex);
+    Nphases := ControlledElement.NPhases;
+    Nconds  := FNphases;
     ControlledElement.ActiveTerminalIdx := ElementTerminal;
     if not Locked then
       Case PresentState of
