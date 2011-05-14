@@ -90,6 +90,8 @@ TYPE
         Yneut                   :Complex;
         YPrimOpenCond           :TCmatrix;  // To handle cases where one conductor of load is open
         YQFixed                 :Double;   // Fixed value of y FOR type 7 load
+        ZIPV                    :pDoubleArray;
+        nZIPV                   :Integer;
 
         // formerly private, now read-only properties for COM access
         FpuMean                 :Double;
@@ -120,6 +122,8 @@ TYPE
         PROCEDURE DoFixedQZ;
         PROCEDURE DoHarmonicMode;
         PROCEDURE DoCVRModel;
+        PROCEDURE DoZIPVModel;
+        PROCEDURE SetZIPVSize(n:Integer);
         PROCEDURE DoMotorTypeLoad;
         FUNCTION  GrowthFactor(Year:Integer):Double;
         PROCEDURE StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
@@ -175,6 +179,7 @@ TYPE
              5 = Constant |I|
              6 = Constant P (Variable); Q is fixed value (not variable)
              7 = Constant P (Variable); Q is fixed Z (not variable)
+             8 = ZIPV (3 real power coefficients, 3 reactive, Vcutoff)
           }
 
         constructor Create(ParClass :TDSSClass; const SourceName :String);
@@ -231,7 +236,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSClassDefs, DSSGlobals, Dynamics, Sysutils, Command, Math, MathUtil, Utilities;
 
-Const  NumPropsThisClass = 32;
+Const  NumPropsThisClass = 33;
 
 Var  CDOUBLEONE:Complex;
 
@@ -302,6 +307,7 @@ Begin
      PropertyName[30] := 'Cfactor';   // multiplier from kWh avg to peak kW
      PropertyName[31] := 'CVRcurve';   // name of curve to use for yearly CVR simulations
      PropertyName[32] := 'NumCust';   // Number of customers, this load
+     PropertyName[33] := 'ZIPV';      // array of 7 coefficients
 
 
      // define Property help values
@@ -328,7 +334,8 @@ Begin
                         '4:Nominal Linear P, Quadratic Q (feeder mix). Use this with CVRfactor.'+CRLF+
                         '5:Constant Current Magnitude'+CRLF+
                         '6:Const P, Fixed Q'+CRLF+
-                        '7:Const P, Fixed Impedance Q'+CRLF+CRLF+
+                        '7:Const P, Fixed Impedance Q'+CRLF+
+                        '8:ZIPV (7 values)'+CRLF+CRLF+
                         'For Types 6 and 7, only the P is modified by load multipliers.';
      PropertyHelp[7] := 'Load shape to use for yearly simulations.  Must be previously defined '+
                         'as a Loadshape object. Defaults to Daily load shape ' +
@@ -406,6 +413,11 @@ Begin
                          'Define a Loadshape to agree with yearly or daily curve according to the type of analysis being done. ' +
                          'If NONE, the CVRwatts and CVRvars factors are used and assumed constant.';
      PropertyHelp[32] := 'Number of customers, this load. Default is 1.';
+     PropertyHelp[33] := 'Array of 7 coefficients:' + CRLF +
+                         ' First 3 are ZIP weighting factors for real power (should sum to 1)' + CRLF +
+                         ' Next 3 are ZIP weighting factors for reactive power (should sum to 1)' + CRLF +
+                         ' Last 1 is cut-off voltage in p.u. of base kV; load is 0 below this cut-off' + CRLF +
+                         ' No defaults; all coefficients must be specified if using model=8.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -545,6 +557,10 @@ Begin
            30: Cfactor      := Parser.DblValue;
            31: CVRShape     := Param;
            32: NumCustomers  := Parser.IntValue;
+           33: Begin
+                 SetZIPVSize (7);
+                 Parser.ParseAsVector (7, ZIPV);
+               End;
          ELSE
            // Inherited edits
            ClassEdit(ActiveLoadObj, paramPointer - NumPropsThisClass)
@@ -657,6 +673,9 @@ Begin
        FCVRvarFactor     := OtherLoad.FCVRvarFactor;
        ShapeIsActual     := OtherLoad.ShapeIsActual;
 
+       SetZIPVSize (OtherLoad.nZIPV);
+       for i := 1 to nZIPV do ZIPV^[i] := OtherLoad.ZIPV^[i];
+
        ClassMakeLike(OtherLoad);  // Take care of inherited class properties
 
 
@@ -764,6 +783,8 @@ Begin
      Spectrum   := 'defaultload';  // override base class definition
      HarmMag    := NIL;
      HarmAng    := NIL;
+     ZIPV := nil;
+     SetZIPVSize(0);
 
      InitPropertyValues(0);
 
@@ -778,8 +799,15 @@ Begin
     YPrimOpenCond.Free;
     ReallocMem(HarmMag, 0);
     ReallocMem(HarmAng, 0);
+    ReallocMem(ZIPV, 0);
     Inherited Destroy;
 End;
+
+procedure TLoadObj.SetZIPVSize(n: Integer);
+begin
+  nZIPV := n;
+  ReAllocMem (ZIPV, Sizeof(ZIPV^[1]) * nZIPV);
+end;
 
 //----------------------------------------------------------------------------
 PROCEDURE TLoadObj.Randomize(Opt:Integer);
@@ -1290,6 +1318,48 @@ Begin
 
 End;
 
+procedure TLoadObj.DoZIPVModel;
+var
+  i     :Integer;
+  Curr  :Complex;
+  CurrZ :Complex;
+  CurrI :Complex;
+  CurrP :Complex;
+  V     :Complex;
+  Vmag  :Double;
+  vx, evx, yv: Double;
+begin
+  CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
+  CalcVTerminalPhase; // get actual voltage across each phase of the load
+  ZeroITerminal;
+
+  for i := 1 to Fnphases do begin
+    V    := Vterminal^[i];
+    VMag := Cabs(V);
+
+    if      VMag <= VBase95 then Curr := Cmul(Yeq95,  V)
+    else if VMag > VBase105 then Curr := Cmul(Yeq105, V)
+    else begin
+      CurrZ := Cmul(Cmplx(Yeq.re*ZIPV^[1],Yeq.im*ZIPV^[4]), Vterminal^[i]);
+      CurrI := Conjg(Cdiv(Cmplx(WNominal*ZIPV^[2],varNominal*ZIPV^[5]), CMulReal(CDivReal(V, Cabs(V)), Vbase)));
+      CurrP := Conjg(Cdiv(Cmplx(WNominal*ZIPV^[3],varNominal*ZIPV^[6]), V));
+      Curr := CAdd (CurrZ, CAdd (CurrI, CurrP));
+    end;
+
+    // low-voltage drop-out
+    if ZIPV^[7] > 0.0 then begin
+      vx := 500.0 * (Vmag / Vbase - ZIPV^[7]);
+      evx := exp (2 * vx);
+      yv := 0.5 * (1 + (evx-1)/(evx+1));
+      Curr := CMulReal (Curr, yv);
+    end;
+
+    StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
+    IterminalUpdated := TRUE;
+    StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 PROCEDURE TLoadObj.DoCVRModel;
 // Linear P, quadratic Q
@@ -1507,6 +1577,7 @@ Begin
               5: DoConstantILoad;
               6: DoFixedQ;         // Fixed Q
               7: DoFixedQZ;        // Fixed, constant Z Q
+              8: DoZIPVModel;
            ELSE
               DoConstantZLoad;     // FOR now, until we implement the other models.
            End;
@@ -1753,7 +1824,7 @@ End;
 PROCEDURE TLoadObj.DumpProperties(Var F:TextFile; Complete:Boolean);
 
 Var
-   i :Integer;
+   i, j :Integer;
 
 Begin
     Inherited DumpProperties(F, Complete);
@@ -1767,6 +1838,11 @@ Begin
               12: Writeln(F,'~ ',PropertyName^[i],'=', kvarBase:8:1);
               22: Writeln(F,'~ ',PropertyName^[i],'=', FkVAAllocationFactor:5:3);
               23: Writeln(F,'~ ',PropertyName^[i],'=', kVABase:8:1);
+              33: begin
+                Write(F,'~ ',PropertyName^[i],'=');
+                for j:=1 to nZIPV do Write(F, ZIPV^[j]:0:2,' ');
+                Writeln(F, '"');
+              end
           ELSE
                   Writeln(F,'~ ',PropertyName^[i],'=',PropertyValue[i]);
           End;
@@ -1918,7 +1994,7 @@ begin
      PropertyValue[30] := '4';  // Cfactor
      PropertyValue[31] := '';  // CVRCurve
      PropertyValue[32] := '1';  // NumCust
-
+     PropertyValue[33] := '';  // ZIPV coefficient array
 
 
   inherited  InitPropertyValues(NumPropsThisClass);
@@ -1956,6 +2032,8 @@ begin
 end;
 
 function TLoadObj.GetPropertyValue(Index: Integer): String;
+var
+  i: Integer;
 begin
      Case Index of
          2:  Result := GetBus(1);
@@ -1969,6 +2047,10 @@ begin
          22: Result := Format('%-.3g', [FkVAAllocationFactor]);
          23: Result := Format('%-g',   [kVABase]);
          30: Result := Format('%-.3g', [FCFactor]);
+         33: begin
+              Result := '';
+              for i := 1 to nZIPV do Result := Result + Format(' %-g', [ZIPV^[i]]);
+         end
      ELSE
          Result := Inherited GetPropertyValue(index);
      End;
