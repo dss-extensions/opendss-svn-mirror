@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 91;
+     NumExecCommands = 92;
 
 Var
 
@@ -127,6 +127,7 @@ Begin
      ExecCommand[89] := 'NodeDiff';
      ExecCommand[90] := 'Rephase';
      ExecCommand[91] := 'SetBusXY';
+     ExecCommand[92] := 'UpdateStorage';
 
 
 
@@ -398,6 +399,7 @@ Begin
                         'You may add and optional EditString to edit any other line properties.'+CRLF+CRLF+
                         'Rephase StartLine=Line.L100  PhaseDesignation=".2"  EditString="phases=1" ScriptFile=Myphasechangefile.DSS  Stop=No';
      CommandHelp[91] := 'Bus=...  X=...  Y=... Set the X, Y coordinates for a single bus. Prerequisite: Bus must exist as a result of a Solve, CalcVoltageBases, or MakeBusList command.';
+     CommandHelp[92] := 'Update Storage elements based on present solution and time interval. ';
 
 End;
 
@@ -606,6 +608,7 @@ Begin
        89: CmdResult := DoNodeDiffCmd;
        90: CmdResult := DoRephaseCmd;
        91: CmdResult := DoSetBusXYCmd;
+       92: CmdResult := DoUpDateStorageCmd;
      ELSE
        // Ignore excess parameters
      End;

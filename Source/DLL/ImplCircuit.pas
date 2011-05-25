@@ -78,6 +78,7 @@ type
     function Get_Capacitors: ICapacitors; safecall;
     function Get_Topology: ITopology; safecall;
     function Get_Sensors: Sensors; safecall;
+    procedure UpdateStorage; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -544,16 +545,12 @@ end;
 procedure TCircuit.Sample;
 // Sample all meters and monitors
 
-VAR
-    Mon :TDSSMonitor;
-    Mtr :TEnergyMeter;
-
 Begin
-      Mon := DSSClassList.Get(ClassNames.Find('monitor'));
-      Mon.SampleAll;
 
-      Mtr := DSSClassList.Get(ClassNames.Find('energymeter'));
-      Mtr.SampleAll;
+      MonitorClass.SampleAll;
+
+      EnergyMeterClass.SampleAll;
+
 end;
 
 procedure TCircuit.SaveSample;
@@ -1032,6 +1029,11 @@ end;
 function TCircuit.Get_Sensors: Sensors;
 begin
     Result := FSensors as ISensors;
+end;
+
+procedure TCircuit.UpdateStorage;
+begin
+     StorageClass.UpdateAll;
 end;
 
 initialization

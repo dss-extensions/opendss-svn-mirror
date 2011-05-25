@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 12/23/2010 12:45:55 PM from Type Library described below.
+// File generated on 5/24/2011 10:53:36 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -565,6 +565,7 @@ type
     function Get_Capacitors: ICapacitors; safecall;
     function Get_Topology: ITopology; safecall;
     function Get_Sensors: Sensors; safecall;
+    procedure UpdateStorage; safecall;
     property Name: WideString read Get_Name;
     property NumCktElements: Integer read Get_NumCktElements;
     property NumBuses: Integer read Get_NumBuses;
@@ -677,6 +678,7 @@ type
     property Capacitors: ICapacitors readonly dispid 219;
     property Topology: ITopology readonly dispid 220;
     property Sensors: Sensors readonly dispid 221;
+    procedure UpdateStorage; dispid 222;
   end;
 
 // *********************************************************************//

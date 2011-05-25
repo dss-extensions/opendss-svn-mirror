@@ -107,6 +107,7 @@ interface
          FUNCTION DoNodeDiffCmd:Integer;
          FUNCTION DoRephaseCmd:Integer;
          FUNCTION DoSetBusXYCmd:Integer;
+         FUNCTION DoUpdateStorageCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -531,39 +532,18 @@ FUNCTION DoSampleCmd:Integer;
 
 // FORce all monitors and meters in active circuit to take a sample
 
-VAR
-   pMon :TMonitorObj;
-   pMtr :TEnergyMeterObj;
-   pGen :TGeneratorObj;
-   i    :Integer;
 
 Begin
 
-   WITH ActiveCircuit.Monitors Do
-   FOR i := 1 to ListSize Do Begin
-       pMon := Get(i);
-       pMon.TakeSample;
-   End;
+   MonitorClass.SampleAll;
 
-   WITH ActiveCircuit.EnergyMeters Do
-   FOR i := 1 to ListSize Do Begin
-       pMtr := Get(i);
-       pMtr.TakeSample;
-   End;
+   EnergyMeterClass.SampleAll;  // gets generators too
 
-   WITH ActiveCircuit.Generators Do
-   FOR i := 1 to ListSize Do Begin
-       pGen := Get(i);
-       pGen.TakeSample;
-   End;
 
 
    Result := 0;
 
 End;
-
-
-
 
 
 //----------------------------------------------------------------------------
@@ -3540,6 +3520,13 @@ Begin
      End;
 
 
+End;
+
+FUNCTION DoUpdateStorageCmd:Integer;
+
+Begin
+       StorageClass.UpdateAll;
+       Result := 0;
 End;
 
 initialization

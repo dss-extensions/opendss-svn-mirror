@@ -785,7 +785,7 @@ Begin
 
       // Sample Generator ans Storage Objects, too
       GeneratorClass.SampleAll;
-      StorageClass.SampleAll;
+      StorageClass.SampleAll;  // samples energymeter part of storage elements (not update)
 
 End;
 

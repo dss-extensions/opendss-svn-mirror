@@ -873,7 +873,7 @@ Begin
 End;
 
 {--------------------------------------------------------------------------}
-PROCEDURE TStorage.SampleAll;  // Force all EnergyMeters in the circuit to take a sample
+PROCEDURE TStorage.SampleAll;  // Force all Storage elements in the circuit to take a sample
 
 VAR
       i :Integer;
