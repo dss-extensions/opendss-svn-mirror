@@ -1482,15 +1482,19 @@ begin
           CktElem     := PresentNode.CktObject;
           if Not CktElem.Checked  then    // don't do a zone end element more than once
           Begin
-            CktElem.Checked := True;
+            CktElem.Checked := TRUE;
             Accumulator := CktElem.NumCustomers;
-            Repeat  {Go back to the source}
+            Repeat  {Trace back to the source}
 
                 Inc(CktElem.TotalCustomers, Accumulator);
                 PresentNode := PresentNode.ParentBranch;
                 If PresentNode=Nil Then Break;
                 CktElem     := PresentNode.CktObject;
-                inc(Accumulator, CktElem.NumCustomers);
+                If not CktElem.Checked Then Begin   // avoid double counting
+                   Inc(Accumulator, CktElem.NumCustomers);
+                   CktElem.Checked := TRUE;
+                End;
+
             Until FALSE;
           End;
        End;
