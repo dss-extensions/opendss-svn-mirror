@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExportOptions = 31;
+        NumExportOptions = 32;
 
 FUNCTION DoExportCmd:Integer;
 
@@ -55,6 +55,7 @@ Begin
       ExportOption[29] := 'CDPSMGeo';
       ExportOption[30] := 'CDPSMTopo';
       ExportOption[31] := 'CDPSMStateVar';
+      ExportOption[32] := 'Profile';
 
       ExportHelp[ 1] := '(Default file = EXP_VOLTAGES.CSV) Voltages to ground by bus/node.';
       ExportHelp[ 2] := '(Default file = EXP_SEQVOLTAGES.CSV) Sequence voltages.';
@@ -89,6 +90,8 @@ Begin
       ExportHelp[29] := '(Default file = CDPSM_Geographical.XML) (IEC 61968-13, CDPSM Geographical profile)';
       ExportHelp[30] := '(Default file = CDPSM_Topology.XML) (IEC 61968-13, CDPSM Topology profile)';
       ExportHelp[31] := '(Default file = CDPSM_StateVariables.XML) (IEC 61968-13, CDPSM State Variables profile)';
+      ExportHelp[32] := '[Default file = EXP_Profile.CSV] Coordinates, color of each line section in Profile plot. Same options as Plot Profile Phases property.' +  CRLF + CRLF +
+                        'Example:  Export Profile Phases=All [optional file name]';;
 End;
 
 //----------------------------------------------------------------------------
@@ -104,6 +107,7 @@ VAR
    UEonlyOpt:Boolean;
    pMon      :TMonitorObj;
    ParamPointer :Integer;
+   PhasesToPlot :Integer;
 
 Begin
 
@@ -113,6 +117,7 @@ Begin
 
    MVAOpt := 0;
    UEonlyOpt := FALSE;
+   PhasesToPlot := PROFILE3PH;  // init this to get rid of compiler warning
 
    CASE ParamPointer OF
       9, 19: Begin { Trap export powers command and look for MVA/kVA option }
@@ -132,6 +137,20 @@ Begin
       15: Begin {Get monitor name for export monitors command}
              ParamName := Parser.NextParam;
              Parm2 := Parser.StrValue;
+          End;
+
+      32: Begin {Get phases to plot}
+             ParamName := Parser.NextParam;
+             Parm2 := Parser.StrValue;
+             PhasesToPlot := PROFILE3PH; // the default
+             if      CompareTextShortest(Parm2, 'default')=0 then PhasesToPlot := PROFILE3PH
+             Else if CompareTextShortest(Parm2, 'all')=0     then PhasesToPlot := PROFILEALL
+             Else if CompareTextShortest(Parm2, 'primary')=0 then PhasesToPlot := PROFILEALLPRI
+             Else if CompareTextShortest(Parm2, 'll3ph')=0      then PhasesToPlot := PROFILELL
+             Else if CompareTextShortest(Parm2, 'llall')=0   then PhasesToPlot := PROFILELLALL
+             Else if CompareTextShortest(Parm2, 'llprimary')=0 then PhasesToPlot := PROFILELLPRI
+             Else If Length(Parm2)=1 then PhasesToPlot := Parser.IntValue;
+
           End;
 
    End;
@@ -176,6 +195,7 @@ Begin
          29: FileName := 'CDPSM_Geographical.XML';
          30: FileName := 'CDPSM_Topology.XML';
          31: FileName := 'CDPSM_StateVariables.XML';
+         32: FileName := 'EXP_Profile.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -219,6 +239,7 @@ Begin
      29: ExportCDPSM(Filename, Geographical);
      30: ExportCDPSM(Filename, Topology);
      31: ExportCDPSM(Filename, StateVariables);
+     32: ExportProfile(FileName, PhasesToPlot);
    ELSE
          ExportVoltages(FileName);    // default
    END;

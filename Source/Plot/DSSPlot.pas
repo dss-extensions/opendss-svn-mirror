@@ -30,12 +30,6 @@ Const
      vizCURRENT = 1;
      vizVOLTAGE = 2;
      vizPOWER   = 3;
-     PROFILE3PH = 9999; // some big number > likely no. of phases
-     PROFILEALL = 9998;
-     PROFILEALLPRI = 9997;
-     PROFILELLALL = 9996;
-     PROFILELLPRI = 9995;
-     PROFILELL    = 9994;
 
 Type
      TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot, ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones, ptLoadShape, ptTShape, ptPriceShape, ptProfile) ;

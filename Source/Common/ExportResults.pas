@@ -36,6 +36,7 @@ Procedure ExportLosses(FileNm:String);
 Procedure ExportGuids(FileNm:String);
 Procedure ExportCounts(FileNm:String);
 Procedure ExportSummary(FileNm:String);
+Procedure ExportProfile(FileNm:String; PhasesToPlot:Integer);
 
 
 IMPLEMENTATION
@@ -2031,6 +2032,175 @@ Begin
   End;
 End;
 
+Procedure WriteNewLine(Var F:TextFile;
+                       Const CktELementName:String; DistFromMeter1, puV1, DistFromMeter2, puV2:Double;
+                       ColorCode, Thickness, LineType:Integer;
+                       MarkCenter:Integer;
+                       CenterMarkerCode,  NodeMarkerCode, NodeMarkerWidth:Integer );
 
+Begin
+       Write(F, Format('%s, %.6g, %.6g, %.6g, %.6g,',[CktElementName, DistFromMeter1, puV1, DistFromMeter2, puV2 ]));
+       Write(F, Format('%d, %d, %d, ',[ColorCode, Thickness, LineType ]));
+       Write(F, Format('%d, ',[ MarkCenter ]));
+       Write(F, Format('%d, %d, %d',[CenterMarkerCode,  NodeMarkerCode, NodeMarkerWidth ]));
+       Writeln(F);
+End;
+
+
+Procedure ExportProfile(FileNm:String; PhasesToPlot:Integer);
+
+Var
+   iEnergyMeter       :Integer;
+   ActiveEnergyMeter  :TEnergyMeterObj;
+   PresentCktElement  :TDSSCktElement;
+   Bus1, Bus2         :TDSSbus;
+   puV1, puV2         :Double;
+   iphs               :Integer;
+   iphs2              :Integer;
+   S                  :String;
+   F                  :TextFile;
+   Linetype           :Integer;
+
+begin
+
+  Try
+     Assignfile(F, FileNm);
+     ReWrite(F);
+
+     Write(F, 'Name, Distance1, puV1, Distance2, puV2, Color, Thickness, Linetype, Markcenter, Centercode, NodeCode, NodeWidth,');
+
+    {New graph created before this routine is entered}
+       case phasesToPlot of
+           PROFILELL, PROFILELLALL, PROFILELLPRI:  S  := 'L-L Voltage Profile';
+       else
+            S  := 'L-N Voltage Profile';
+       end;
+
+       Writeln(F, 'Title=',S, ', Distance in km');
+
+      iEnergyMeter := EnergyMeterClass.First;
+      while iEnergyMeter >0  do  Begin
+
+          ActiveEnergyMeter := EnergyMeterClass.GetActiveObj;
+          {Go down each branch list and draw a line}
+          PresentCktElement := ActiveEnergyMeter.BranchList.First;
+          while PresentCktElement <> Nil Do Begin
+          If IslineElement(PresentCktElement) Then  With ActiveCircuit Do Begin
+              Bus1 := Buses^[PresentCktElement.Terminals^[1].BusRef];
+              Bus2 := Buses^[PresentCktElement.Terminals^[2].BusRef];
+            {Now determin which phase to plot}
+              If (Bus1.kVBase > 0.0) and (Bus2.kVBase > 0.0) then
+              CASE PhasesToPlot of
+                  {3ph only}
+                  PROFILE3PH: If (PresentCktElement.NPhases >= 3) and (Bus1.kVBase > 1.0) then
+                                For iphs := 1 to 3 do Begin
+                                  puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                  puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                  WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                         iphs, 2, 0,   0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                  {Plot all phases present (between 1 and 3)}
+                  PROFILEALL: Begin
+                                For iphs := 1 to 3 do
+                                  if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then Begin
+                                    if Bus1.kVBase < 1.0 then  Linetype := 2 else Linetype := 0;
+                                    puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                    puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                    WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                           iphs, 2, Linetype,   0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                              End;
+                  {Plot all phases present (between 1 and 3) for Primary only}
+                  PROFILEALLPRI: Begin
+                                If Bus1.kVBase > 1.0 then
+                                For iphs := 1 to 3 do
+                                  if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then Begin
+                                    if Bus1.kVBase < 1.0 then Linetype := 2 else Linetype := 0;
+                                    puV1 := CABS(Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                                    puV2 := CABS(Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                                    WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                           iphs, 2, Linetype,  0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                End;
+                              End;
+                  PROFILELL: Begin
+                                If (PresentCktElement.NPhases >= 3)  then
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := 2 else Linetype := 0;
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             iphs, 2, Linetype,  0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
+                                End;
+                              End;
+                  PROFILELLALL: Begin
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := 2 else Linetype := 0;
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             iphs, 2, Linetype,  0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
+                                End;
+                              End;
+                  PROFILELLPRI: Begin
+                                If Bus1.kVBase > 1.0 then
+                                For iphs := 1 to 3 do Begin
+                                    iphs2 := iphs + 1; If iphs2 > 3 Then iphs2 := 1;
+                                    if (Bus1.FindIdx(Iphs)>0)  and (Bus2.FindIdx(Iphs)>0)  and
+                                       (Bus1.FindIdx(Iphs2)>0) and (Bus2.FindIdx(Iphs2)>0) then
+                                    Begin
+                                      if Bus1.kVBase < 1.0 then  Linetype := 2 else Linetype := 0;
+                                      With Solution Do Begin
+                                        puV1 := CABS(CSUB(NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))],NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs2))])) / Bus1.kVBase / 1732.0;
+                                        puV2 := CABS(CSUB(NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))],NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs2))])) / Bus2.kVBase / 1732.0;
+                                      End;
+                                      WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                                             iphs, 2, Linetype, 0, 0,  NodeMarkerCode, NodeMarkerWidth );
+                                    End;
+                                End;
+                              End;
+                  ELSE     // plot just the selected phase
+                      iphs := PhasesToPlot;
+                      if (Bus1.FindIdx(Iphs)>0) and (Bus2.FindIdx(Iphs)>0) then  Begin
+                          if Bus1.kVBase < 1.0 then Linetype := 2 else Linetype := 0;
+                          puV1 := CABS(ActiveCircuit.Solution.NodeV^[Bus1.GetRef(Bus1.FindIdx(iphs))]) / Bus1.kVBase / 1000.0;
+                          puV2 := CABS(ActiveCircuit.Solution.NodeV^[Bus2.GetRef(Bus2.FindIdx(iphs))]) / Bus2.kVBase / 1000.0;
+                          WriteNewLine(F, PresentCktElement.Name, Bus1.DistFromMeter, puV1, Bus2.DistFromMeter, puV2,
+                             iphs, 2, Linetype, 0, 0,
+                                  NodeMarkerCode, NodeMarkerWidth);
+                      End;
+
+              END;
+
+            End;
+
+             PresentCktElement := ActiveEnergyMeter.BranchList.GoForward;
+          End;
+
+          iEnergyMeter := EnergyMeterClass.Next;
+      End;
+
+      GlobalResult := FileNm;
+
+  FINALLY
+
+     CloseFile(F);
+
+  End;
+
+end;
 
 end.

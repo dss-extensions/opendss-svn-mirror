@@ -92,6 +92,15 @@ CONST
       FULLCARSON    = 2;
       DERI          = 3;
 
+      {Profile Plot Constants}
+      PROFILE3PH = 9999; // some big number > likely no. of phases
+      PROFILEALL = 9998;
+      PROFILEALLPRI = 9997;
+      PROFILELLALL = 9996;
+      PROFILELLPRI = 9995;
+      PROFILELL    = 9994;
+
+
 VAR
 
    DLLFirstTime   :Boolean=TRUE;
