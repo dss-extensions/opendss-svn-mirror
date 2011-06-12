@@ -50,8 +50,9 @@ TYPE
 
         Angle:Double;
 
-        FphaseShift:Double;
-        ScanType:Integer;
+        FphaseShift  :Double;
+        ScanType,
+        SequenceType :Integer;
 
         Function GetBaseCurr:Complex;
 
@@ -114,7 +115,7 @@ End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TIsource.DefineProperties;
 Begin
-     NumPropsThisClass := 6;
+     NumPropsThisClass := 7;
 
      Numproperties := NumPropsThisClass;
      CountProperties;   // Get inherited property count
@@ -128,7 +129,7 @@ Begin
      PropertyName[4] := 'frequency';
      PropertyName[5] := 'phases';
      PropertyName[6] := 'scantype';
-     // PropertyName[6] := 'spectrum';
+     PropertyName[7] := 'sequence';
 
      // define Property help values
      PropertyHelp[1] := 'Name of bus to which source is connected.'+CRLF+'bus1=busname'+CRLF+'bus1=busname.1.2.3';
@@ -140,6 +141,8 @@ Begin
      PropertyHelp[5] := 'Number of phases.  Defaults to 3. For 3 or less, phase shift is 120 degrees.';
      PropertyHelp[6] := '{pos*| zero | none} Maintain specified sequence for harmonic solution. Default is positive sequence. '+
                         'Otherwise, angle between phases rotates with harmonic.';
+     PropertyHelp[7] := '{pos*| neg | zero} Set the phase angles for the specified symmetrical component sequence for non-harmonic solution modes. '+
+                        'Default is positive sequence. ';
 
 
      ActiveProperty := NumPropsThisClass;
@@ -211,6 +214,13 @@ Begin
                 ELSE
                    DoSimpleMsg('Unknown Scan Type for "' + Class_Name +'.'+ Name + '": '+Param, 331);
                 END;
+            7: Case Uppercase(Param)[1] of
+                  'P': SequenceType := 1;
+                  'Z': SequenceType := 0;
+                  'N': SequenceType := -1;
+                ELSE
+                   DoSimpleMsg('Unknown Sequence Type for "' + Class_Name +'.'+ Name + '": '+Param, 331);
+                END;
 
          ELSE
             ClassEdit(ActiveIsourceObj, ParamPointer - NumPropsThisClass)
@@ -248,9 +258,12 @@ Begin
            YPrimInvalid := True;
        End;
 
-       Amps      := OtherIsource.Amps;
-       Angle     := OtherIsource.Angle;
+       Amps             := OtherIsource.Amps;
+       Angle            := OtherIsource.Angle;
        SrcFrequency     := OtherIsource.SrcFrequency;
+       Scantype         := OtherIsource.Scantype;
+       Sequencetype     := OtherIsource.Sequencetype;
+
 
        ClassMakeLike(OtherIsource); // set spectrum,  base frequency
 
@@ -284,7 +297,8 @@ Begin
      Angle    := 0.0;
      SrcFrequency     := BaseFrequency;
      FphaseShift := 120.0;
-     ScanType := 1;  // POs Sequence
+     ScanType := 1;  // Pos Sequence
+     Sequencetype := 1;
 
      InitPropertyValues(0);
 
@@ -415,17 +429,31 @@ VAR
 Begin
 
      WITH ActiveCircuit.solution DO  Begin
-       BaseCurr := GetBaseCurr;
+       BaseCurr := GetBaseCurr;   // this func applies spectrum if needed
 
        For i := 1 to Fnphases Do Begin
            Curr^[i] := BaseCurr ;
            If (i < Fnphases) Then Begin
-             CASE ScanType of
-                 1: RotatePhasorDeg(BaseCurr, 1.0, -FphaseShift); // maintain positive sequence for isource
-                 0: ;  // Do not rotate for zero sequence
+
+               If IsHarmonicModel Then
+
+                 CASE ScanType of
+                     1: RotatePhasorDeg(BaseCurr, 1.0, -FphaseShift); // maintain positive sequence for isource
+                     0: ;  // Do not rotate for zero sequence
+                   Else
+                     RotatePhasorDeg(BaseCurr, Harmonic, -FphaseShift) // rotate by frequency
+                     {Harmonic 1 will be pos; 2 is neg; 3 is zero, and so on.}
+                 END
+
                Else
-                 RotatePhasorDeg(BaseCurr, Harmonic, -FphaseShift)
-             END;
+
+                 CASE SequenceType of
+                   -1: RotatePhasorDeg(BaseCurr, 1.0, FphaseShift); // Neg seq
+                    0: ;  // Do not rotate for zero sequence
+                 ELSE
+                       RotatePhasorDeg(BaseCurr, 1.0, -FphaseShift) ; // Maintain pos seq
+                 END;
+
            End;
        End;
      End;
@@ -461,6 +489,7 @@ begin
      PropertyValue[4]  := Format('%-.6g',[SrcFrequency]);
      PropertyValue[5]  := '3';
      PropertyValue[6]  := 'pos';
+     PropertyValue[7]  := 'pos';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

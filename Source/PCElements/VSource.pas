@@ -53,7 +53,8 @@ TYPE
         X1R1    :Double;
         X0R0    :Double;
 
-        ScanType:Integer;
+        ScanType     :Integer;
+        SequenceType :Integer;
 
         Procedure GetVterminalForSource;
 
@@ -95,7 +96,7 @@ implementation
 
 USES  ParserDel, Circuit, DSSClassDefs, DSSGlobals, Utilities, Sysutils, Command;
 
-Const NumPropsThisClass = 18;
+Const NumPropsThisClass = 19;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TVsource.Create;  // Creates superstructure for all Line objects
@@ -148,7 +149,8 @@ Begin
      PropertyName[15] := 'R0';
      PropertyName[16] := 'X0';
      PropertyName[17] := 'ScanType';
-     PropertyName[18]  := 'bus2';
+     PropertyName[18] := 'Sequence';
+     PropertyName[19]  := 'bus2';
 
      // define Property help values
      PropertyHelp[1] := 'Name of bus to which the main terminal (1) is connected.'+CRLF+'bus1=busname'+CRLF+'bus1=busname.1.2.3';
@@ -182,7 +184,9 @@ Begin
                          'Zero-sequence reactance, ohms.  Default is 5.7.';
      PropertyHelp[17] := '{pos*| zero | none} Maintain specified sequence for harmonic solution. Default is positive sequence. '+
                          'Otherwise, angle between phases rotates with harmonic.';
-     PropertyHelp[18] := 'Name of bus to which 2nd terminal is connected.'+CRLF+'bus2=busname'+CRLF+'bus2=busname.1.2.3' +
+     PropertyHelp[18] := '{pos*| neg | zero} Set the phase angles for the specified symmetrical component sequence for non-harmonic solution modes. '+
+                         'Default is positive sequence. ';
+     PropertyHelp[19] := 'Name of bus to which 2nd terminal is connected.'+CRLF+'bus2=busname'+CRLF+'bus2=busname.1.2.3' +
                         CRLF + CRLF +
                         'Default is Bus1.0.0.0 (grounded wye connection)';
 
@@ -286,7 +290,14 @@ Begin
                 ELSE
                    DoSimpleMsg('Unknown Scan Type for "' + Class_Name +'.'+ Name + '": '+Param, 321);
                 END;
-           18: SetBus(2, param);
+           18:Case Uppercase(Param)[1] of
+                  'P': Sequencetype := 1;
+                  'Z': Sequencetype := 0;
+                  'N': Sequencetype := -1;
+                ELSE
+                   DoSimpleMsg('Unknown Sequence Type for "' + Class_Name +'.'+ Name + '": '+Param, 321);
+                END;
+           19: SetBus(2, param);
          ELSE
             ClassEdit(ActiveVsourceObj, ParamPointer - NumPropsThisClass)
          End;
@@ -346,6 +357,8 @@ Begin
        MVAsc1    := OtherVsource.MVAsc1;
        X1R1      := OtherVsource.X1R1;
        X0R0      := OtherVsource.X0R0;
+       Scantype     := OtherVsource.Scantype;
+       Sequencetype := OtherVsource.Sequencetype;
 
        ClassMakeLike(OtherVSource);
 
@@ -393,6 +406,7 @@ Begin
      SrcFrequency := BaseFrequency;
      Angle    := 0.0;
      Scantype := 1;
+     SequenceType := 1;
 
      Spectrum := 'defaultvsource';
 
@@ -613,6 +627,7 @@ Begin
        End;
 
       WITH ActiveCircuit.Solution Do
+
        IF IsHarmonicModel THEN Begin
 
             SrcHarmonic :=  Frequency/SrcFrequency;
@@ -631,12 +646,13 @@ Begin
               End;
             End;
 
-       End ELSE Begin
+       End ELSE Begin  // non-harmonic modes
 
            If  abs(Frequency - SrcFrequency) > EPSILON2 Then  Vmag:=0.0;  // Solution Frequency and Source Frequency don't match!
      {NOTE: RE-uses VTerminal space}
            FOR i := 1 to Fnphases DO Begin
-              CASE ScanType of
+              CASE Sequencetype of
+                 -1: Vterminal^[i] :=  pdegtocomplex(Vmag, (360.0 + Angle + (i-1)* 360.0/Fnphases) );  // neg seq
                   0: Vterminal^[i] :=  pdegtocomplex(Vmag, (360.0 + Angle) );   // all the same for zero sequence
                Else
                      Vterminal^[i] :=  pdegtocomplex(Vmag, (360.0 + Angle - (i-1)* 360.0/Fnphases) );
@@ -773,7 +789,8 @@ begin
      PropertyValue[15] := '1.9';
      PropertyValue[16] := '5.7';
      PropertyValue[17] := 'Pos';
-     PropertyValue[18]  := GetBus(2);
+     PropertyValue[18] := 'Pos';
+     PropertyValue[19]  := GetBus(2);
 
 
      inherited  InitPropertyValues(NumPropsThisClass);
@@ -793,7 +810,7 @@ begin
           14 : Result := Format('%-.5g',[X1]);
           15 : Result := Format('%-.5g',[R0]);
           16 : Result := Format('%-.5g',[X0]);
-          18 : Result := GetBus(2);
+          19 : Result := GetBus(2);
         Else
           Result := Inherited GetPropertyValue(Index);
         End;
