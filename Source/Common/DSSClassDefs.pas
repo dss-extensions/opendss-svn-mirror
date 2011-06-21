@@ -46,6 +46,8 @@ CONST
       STORAGE_CONTROL  = 22 * 8;
       SWT_CONTROL      = 23 * 8;
       PVSYSTEM_ELEMENT = 24 * 8;
+      DC_TRANSFORMER    = 25 * 8;
+
 
 VAR
    NumIntrinsicClasses,
@@ -104,7 +106,8 @@ USES
      Storage,
      StorageController,
      SwtControl,
-     PVSystem
+     PVSystem,
+     DCTransformer
 ;
 
 
@@ -183,6 +186,7 @@ Begin
      DSSClasses.New := EnergyMeterClass;
      SensorClass    := TSensor.Create;      // Create state estimation sensors
      DSSClasses.New := SensorClass;
+     DSSClasses.New := TDCTransformer.Create;
 
 
  { Create Classes for custom implementations }
