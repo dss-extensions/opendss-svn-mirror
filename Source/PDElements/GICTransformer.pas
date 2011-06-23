@@ -1,4 +1,4 @@
-unit DCTransformer;
+unit GICTransformer;
 
 {
   ----------------------------------------------------------
@@ -13,7 +13,7 @@ unit DCTransformer;
 
 {
 
-   Special model for geomagnetically-induced current studies
+   Special resistance-only model of transformers for geomagnetically-induced current (GIC) studies
 }
 
 interface
@@ -22,14 +22,14 @@ USES
 
 TYPE
 
-   TDCTransformer = class(TPDClass)
+   TGICTransformer = class(TPDClass)
      private
 
-        Procedure DCTransSetBusH( const s:String);
-        Procedure DCTransSetBusX( const s:String);
+        Procedure GICTransSetBusH( const s:String);
+        Procedure GICTransSetBusX( const s:String);
      Protected
         Procedure DefineProperties;
-        Function MakeLike(Const DCTransName:String):Integer;Override;
+        Function MakeLike(Const GICTransName:String):Integer;Override;
      public
        constructor Create;
        destructor Destroy; override;
@@ -40,7 +40,7 @@ TYPE
 
    end;
 
-   TDCTransformerObj = class(TPDElement)
+   TGICTransformerObj = class(TPDElement)
       Private
         G1, G2 :Double;         // single G per phase (line rating)
 
@@ -62,7 +62,7 @@ TYPE
    end;
 
 VAR
-   ActiveDCTransformerObj:TDCTransformerObj;
+   ActiveGICTransformerObj:TGICTransformerObj;
 
 implementation
 USES  ParserDel,  DSSClassDefs, DSSGlobals, dynamics, Sysutils, Ucomplex, MathUtil, Utilities;
@@ -74,11 +74,11 @@ Const NumPropsthisclass = 8;
       SPEC_YY   = 3;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-constructor TDCTransformer.Create;  // Creates superstructure for all Fault objects
+constructor TGICTransformer.Create;  // Creates superstructure for all Fault objects
 BEGIN
      Inherited Create;
-     Class_Name := 'DCTransformer';
-     DSSClassType := DC_TRANSFORMER + PD_ELEMENT;
+     Class_Name := 'GICTransformer';
+     DSSClassType := GIC_TRANSFORMER + PD_ELEMENT;
 
      ActiveElement := 0;
 
@@ -89,7 +89,7 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Destructor TDCTransformer.Destroy;
+Destructor TGICTransformer.Destroy;
 
 BEGIN
     // ElementList and  CommandList freed in inherited destroy
@@ -97,7 +97,7 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TDCTransformer.DefineProperties;
+Procedure TGICTransformer.DefineProperties;
 Begin
 
      Numproperties := NumPropsThisClass;
@@ -140,12 +140,12 @@ Begin
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TDCTransformer.NewObject(const ObjName:String):Integer;
+Function TGICTransformer.NewObject(const ObjName:String):Integer;
 BEGIN
    // create a new object of this class and add to list
    With ActiveCircuit Do
    Begin
-    ActiveCktElement := TDCTransformerObj.Create(Self, ObjName);
+    ActiveCktElement := TGICTransformerObj.Create(Self, ObjName);
     Result := AddObjectToList(ActiveDSSObject);
    End;
 
@@ -153,7 +153,7 @@ END;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TDCTransformer.DCTransSetBusH( const s:String);
+Procedure TGICTransformer.GICTransSetBusH( const s:String);
 
 Var
    s2:String;
@@ -162,7 +162,7 @@ Var
    // Set Bus2 = BusH1.0.0.0
 
 BEGIN
-   WITH ActiveDCTransformerObj
+   WITH ActiveGICTransformerObj
    DO BEGIN
 
      SetBus(1, S);
@@ -182,7 +182,7 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TDCTransformer.DCTransSetBusX( const s:String);
+Procedure TGICTransformer.GICTransSetBusX( const s:String);
 
 Var
    s2:String;
@@ -193,7 +193,7 @@ Var
    // Set Bus2 = Bus1.0.0.0
 
 BEGIN
-   WITH ActiveDCTransformerObj
+   WITH ActiveGICTransformerObj
    DO BEGIN
 
      If Nterms<>4 Then   // have to have 4 terminals to set this property
@@ -220,7 +220,7 @@ END;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TDCTransformer.Edit:Integer;
+Function TGICTransformer.Edit:Integer;
 
 VAR
    ParamPointer:Integer;
@@ -230,10 +230,10 @@ VAR
 BEGIN
   Result := 0;
   // continue parsing with contents of Parser
-  ActiveDCTransformerObj := ElementList.Active;
-  ActiveCircuit.ActiveCktElement := ActiveDCTransformerObj;  // use property to set this value
+  ActiveGICTransformerObj := ElementList.Active;
+  ActiveCircuit.ActiveCktElement := ActiveGICTransformerObj;  // use property to set this value
 
-  WITH ActiveDCTransformerObj DO BEGIN
+  WITH ActiveGICTransformerObj DO BEGIN
 
      ParamPointer := 0;
      ParamName := Parser.NextParam;
@@ -246,9 +246,9 @@ BEGIN
 
          CASE ParamPointer OF
             0: DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 350);
-            1: DCTransSetBusH(param);
+            1: GICTransSetBusH(param);
             2: Setbus(2, param);
-            3: DCTransSetBusX(param);
+            3: GICTransSetBusX(param);
             4: Setbus(4, param);
             5: ; // see below
             6: CASE Uppercase(param)[1] of
@@ -266,7 +266,7 @@ BEGIN
                END;
          ELSE
            // Inherited
-              ClassEdit(ActiveDCTransformerObj, ParamPointer - NumPropsThisClass)
+              ClassEdit(ActiveGICTransformerObj, ParamPointer - NumPropsThisClass)
          END;
 
          // Some specials ...
@@ -315,20 +315,20 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TDCTransformer.MakeLike(Const DCTransName:String):Integer;
+Function TGICTransformer.MakeLike(Const GICTransName:String):Integer;
 VAR
-   OtherDCTrans:TDCTransformerObj;
+   OtherGICTrans:TGICTransformerObj;
    i:Integer;
 BEGIN
    Result := 0;
    {See if we can find this Fault name in the present collection}
-   OtherDCTrans := Find(DCTransName);
-   IF OtherDCTrans<>Nil THEN
-   WITH ActiveDCTransformerObj DO BEGIN
+   OtherGICTrans := Find(GICTransName);
+   IF OtherGICTrans<>Nil THEN
+   WITH ActiveGICTransformerObj DO BEGIN
 
-       IF Fnphases <> OtherDCTrans.Fnphases THEN BEGIN
-         Fnphases := OtherDCTrans.Fnphases;
-         FnTerms  := OtherDCTrans.FnTerms;
+       IF Fnphases <> OtherGICTrans.Fnphases THEN BEGIN
+         Fnphases := OtherGICTrans.Fnphases;
+         FnTerms  := OtherGICTrans.FnTerms;
          NConds   := Fnphases; // force reallocation of terminals and conductors
 
          Yorder := Fnconds*Fnterms;
@@ -336,36 +336,36 @@ BEGIN
 
        END;
 
-       BaseFrequency := OtherDCTrans.BaseFrequency;
-       G1            := OtherDCTrans.G1;
-       G2            := OtherDCTrans.G2;
-       SpecType      := OtherDCTrans.SpecType;
+       BaseFrequency := OtherGICTrans.BaseFrequency;
+       G1            := OtherGICTrans.G1;
+       G2            := OtherGICTrans.G2;
+       SpecType      := OtherGICTrans.SpecType;
 
-       ClassMakeLike(OtherDCTrans);
+       ClassMakeLike(OtherGICTrans);
 
-       For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherDCTrans.PropertyValue[i];
+       For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherGICTrans.PropertyValue[i];
        Result := 1;
    END
-   ELSE  DoSimpleMsg('Error in DCTransformer MakeLike: "' + DCTransName + '" Not Found.', 351);
+   ELSE  DoSimpleMsg('Error in GICTransformer MakeLike: "' + GICTransName + '" Not Found.', 351);
 
 
 
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function TDCTransformer.Init(Handle:Integer):Integer;
+Function TGICTransformer.Init(Handle:Integer):Integer;
 
 BEGIN
-   DoSimpleMsg('Need to implement TDCTransformer.Init', -1);
+   DoSimpleMsg('Need to implement TGICTransformer.Init', -1);
    Result := 0;
 END;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//      TDCTransformer Obj
+//      TGICTransformer Obj
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-constructor TDCTransformerObj.Create(ParClass:TDSSClass; const FaultName:String);
+constructor TGICTransformerObj.Create(ParClass:TDSSClass; const FaultName:String);
 
 BEGIN
      Inherited Create(ParClass);
@@ -397,13 +397,13 @@ BEGIN
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-destructor TDCTransformerObj.Destroy;
+destructor TGICTransformerObj.Destroy;
 BEGIN
     Inherited destroy;
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TDCTransformerObj.RecalcElementData;
+Procedure TGICTransformerObj.RecalcElementData;
 
 BEGIN
 
@@ -413,7 +413,7 @@ END;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure TDCTransformerObj.CalcYPrim;
+Procedure TGICTransformerObj.CalcYPrim;
 
 VAR
    Value, Value2:Complex;
@@ -519,7 +519,7 @@ BEGIN
     YprimInvalid := False;
 END;
 
-Procedure TDCTransformerObj.DumpProperties(Var F:TextFile; Complete:Boolean);
+Procedure TGICTransformerObj.DumpProperties(Var F:TextFile; Complete:Boolean);
 
 VAR
    i:Integer;
@@ -556,7 +556,7 @@ END;
 
 
 
-procedure TDCTransformerObj.InitPropertyValues(ArrayOffset: Integer);
+procedure TGICTransformerObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
      PropertyValue[1] := getbus(1);
@@ -579,7 +579,7 @@ begin
 
 end;
 
-function TDCTransformerObj.GetPropertyValue(Index: Integer): String;
+function TGICTransformerObj.GetPropertyValue(Index: Integer): String;
 
 begin
        CASE INdex of
@@ -595,7 +595,7 @@ begin
        END;
 end;
 
-procedure TDCTransformerObj.MakePosSequence;
+procedure TGICTransformerObj.MakePosSequence;
 
 
 begin

@@ -161,7 +161,7 @@ uses
   CableData in '..\General\CableData.pas',
   ConductorData in '..\General\ConductorData.pas',
   CableConstants in '..\General\CableConstants.pas',
-  DCTransformer in '..\PDElements\DCTransformer.pas';
+  GICTransformer in '..\PDElements\GICTransformer.pas';
 
 {$R *.RES}
 
