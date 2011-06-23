@@ -46,7 +46,8 @@ CONST
       STORAGE_CONTROL  = 22 * 8;
       SWT_CONTROL      = 23 * 8;
       PVSYSTEM_ELEMENT = 24 * 8;
-      GIC_TRANSFORMER  = 25 * 8;
+      GIC_TRANSFORMER  = 25 * 8;    // special models for GIC studies
+      GIC_LINE         = 26 * 8;
 
 
 VAR
@@ -107,7 +108,8 @@ USES
      StorageController,
      SwtControl,
      PVSystem,
-     GICTransformer
+     GICTransformer,
+     GICLine
 ;
 
 
@@ -186,7 +188,9 @@ Begin
      DSSClasses.New := EnergyMeterClass;
      SensorClass    := TSensor.Create;      // Create state estimation sensors
      DSSClasses.New := SensorClass;
+
      DSSClasses.New := TGICTransformer.Create;
+     DSSClasses.New := TGICLine.Create;
 
 
  { Create Classes for custom implementations }
