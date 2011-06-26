@@ -15,10 +15,14 @@ Set MaxControlIter=30
 
 ! Solve executes the solution for the present solution mode, which is "snapshot".
 
+New energymeter.M1 Line.sw1 1
+
 solve
+buscoords buscoords.dat
+plot profile
 
 ! 300-sec solar ramp screen
-New Loadshape.SolarRamp npts=300 Interval=(1 3600 /) mult=(file=solarramp.csv)
+New Loadshape.SolarRamp npts=300 sinterval=1 mult=(file=solarramp.csv) 
 
 ! define the generator
 New Generator.2MWGen   Bus1=450 kV=4.16  kW=2000  PF=1  Duty=SolarRamp 

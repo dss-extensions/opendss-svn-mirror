@@ -25,7 +25,7 @@ new line.line1 geometry=4wire length=2000 units=ft bus1=sourcebus bus2=n2
 
 ! **** 3-PHASE STEP-DOWN TRANSFORMER 12.47/4.16 KV ungrdY-Delta
 new transformer.t1 xhl=6
-~ wdg=1 bus=n2.1.2.3.4 conn=wye     kV=12.47 kVA=6000 %r=0.5  ! Float the neutral of wye winding
+~ wdg=1 bus=n2.1.2.3.0 conn=wye     kV=12.47 kVA=6000 %r=0.5  ! Ground the neutral of wye winding
 ~ wdg=2 bus=n3         conn=Delta   kV=4.16  kVA=6000 %r=0.5 
 
 ! **** 4.16 KV LINE

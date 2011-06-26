@@ -50,6 +50,7 @@ Buscoords Buscoords.dat   ! load in bus coordinates
 ! Show some selected results
 
 Plot Profile
+plot profile phases=all
 
 Show Voltage LN Nodes     ! this shows the voltages by node, Line-to-Neutral voltage.
 Show Currents Elements    ! this produces a report of the currents, element-by-element.
