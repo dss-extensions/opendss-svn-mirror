@@ -2281,7 +2281,7 @@ begin
          Ncaps := 0;
      Except
          On E:Exception Do Begin
-             DoSimpleMsg('Error creating Generators.dss for Energymeter: ' + Self.Name+'. '+E.Message, 534 );
+             DoSimpleMsg('Error creating Capacitors.dss for Energymeter: ' + Self.Name+'. '+E.Message, 534 );
              CloseFile(FCaps);
              Exit;
          End;

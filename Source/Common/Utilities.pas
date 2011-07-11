@@ -132,6 +132,8 @@ Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, S
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
 
+Procedure Obfuscate;
+
 {Feeder Utilities} // not currently used
 Procedure EnableFeeders;
 Procedure DisableFeeders;
@@ -147,7 +149,7 @@ Uses Windows,    SysUtils, ShellAPI,  Dialogs,      DSSClassDefs,
      DSSGlobals, Dynamics, Executive, ExecCommands, ExecOptions,
      Solution,   DSSObject,math,      DSSForms,     ParserDel,
      Capacitor,  Reactor,  Generator, Load,
-     Line,       Fault,    Feeder,
+     Line,       Fault,    Feeder,    HashList,
      EnergyMeter,PCElement,ControlElem, Graphics;
 
 Const ZERONULL      :Integer=0;
@@ -2666,6 +2668,188 @@ Begin
         Except
            On E:Exception Do DoSimpleMsg('Invalid Color Specification: "' + S + '".', 724);
         End;
+
+End;
+
+Function MakeNewCktElemName(const oldname:string):string;
+Begin
+     SetObject(OldName);  // set opject active
+     With ActiveDSSObject Do Result := Format('%s.%s%d',[ParentClass.Name, copy(ParentClass.Name, 1, 4), ClassIndex]);
+End;
+
+Procedure Obfuscate;
+{Rename Buses and element names to generic names to remove identifiable names}
+Var
+   i, bref     :Integer;
+   dotpos      :Integer;
+   DevListSize :Integer;
+   TempBusList :THashList;
+   pCktElem    :TDSSCktElement;
+   pCtrlElem   :TDSSCktElement;
+   S, Nodes      :String;
+   OldBusName  :String;
+   NewBusName  :String;
+   Baseclass   :Integer;
+   ElemClass   :Integer;
+   ControlUpDateStrings   :TstringList;
+   ControlUpDatePtrs      :Tlist;
+
+   {-------------------------------------------------------------}
+   Procedure RenameCktElem(pelem:TDSSCktElement); // local proc
+   Begin
+     With pelem Do
+      Begin
+           Name := Format('%s%d',[copy(ParentClass.Name, 1, 4), ClassIndex]);
+           ActiveCircuit.DeviceList.Add(Name); // Make a new device list corresponding to the CktElements List
+           pelem.Checked := TRUE;
+      End;
+   End;
+   {-------------------------------------------------------------}
+
+Begin
+
+{Make sure buslist exists}
+
+If ActiveCircuit=nil Then Exit;
+If ActiveCircuit.BusList.ListSize <= 0 Then Exit;
+With ActiveCircuit Do
+Begin
+    TempBusList := THashList.Create(BusList.ListSize);
+
+    {Rename Buses}
+     For i := 1 to BusList.ListSize Do TempBusList.Add(Format('B_%d', [i]));
+
+    BusList.Free;
+    BusList := TempBusList; // Reassign
+
+    {Rename the bus names in each circuit element before renaming the elements}
+    pCktElem := Cktelements.First;
+    While pCktElem<>Nil Do
+    Begin
+         BaseClass    := (pCktElem.DSSObjType and BASECLASSMASK) ;
+         If (BaseClass = PC_ELEMENT) or (BaseClass = PD_ELEMENT) Then
+         Begin
+             S := '';
+             For i := 1 to pCktElem.NTerms  Do
+                Begin
+                    OldBusName := pCktElem.GetBus(i);
+                    dotpos     := pos('.', OldBusName);
+                    If dotpos=0
+                       Then  Nodes := ''
+                       Else  Nodes := Copy(OldBusName, dotpos, length(OldBusName));    // preserve node designations if any
+                    bref  := pCktElem.terminals^[i].BusRef;
+                    NewBusName := Format('B_%d%s', [bref, Nodes]);
+                    //Check for Transformer because that will be an exception
+                    CASE (pCktElem.DSSObjType And CLASSMASK) of
+                        XFMR_ELEMENT: S := S + Format('Wdg=%d Bus=%s ', [i, NewBusName]);
+                    ELSE
+                        S := S + Format('Bus%d=%s ', [i, NewBusName]);
+                    END;
+                End;
+             Parser.CmdString := S;
+             pCktElem.Edit;
+         End;
+         pCktElem := CktElements.Next;
+    End;
+
+    {Rename the circuit elements to generic values}
+    {Have to catch the control elements and edit some of their parameters}
+
+    {first, make scripts to change the monitored element names in the controls to what they will be}
+    ControlUpDateStrings := TStringList.Create;
+    ControlUpDatePtrs    := TList.Create;
+
+    pCktElem := Cktelements.First;
+    While pCktElem<>Nil Do
+    Begin
+        CASE  (pCktElem.DSSObjType and CLASSMASK) of
+            CAP_CONTROL:Begin
+                S := Format('Element=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]);
+                ControlUpDateStrings.Add (S + Format('Capacitor=%s ',[Copy(MakeNewCktElemName('capacitor.' + pCktElem.GetPropertyValue(3)), 11,100)]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            REG_CONTROL:;   // handled below
+            RELAY_CONTROL:Begin
+                S := Format('MonitoredObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]);
+                ControlUpDateStrings.Add ( S + Format('SwitchedObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(3))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            RECLOSER_CONTROL:Begin
+                S := Format('MonitoredObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]);
+                ControlUpDateStrings.Add ( S + Format('SwitchedObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(3))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            FUSE_CONTROL:Begin
+                S := Format('MonitoredObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]);
+                ControlUpDateStrings.Add ( S + Format('SwitchedObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(3))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            GEN_CONTROL:Begin
+                ControlUpDateStrings.Add (Format('Element=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            STORAGE_CONTROL:Begin
+                ControlUpDateStrings.Add (Format('Element=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+            SWT_CONTROL:Begin
+                ControlUpDateStrings.Add (Format('SwitchedObj=%s ',[MakeNewCktElemName(pCktElem.GetPropertyValue(1))]));
+                ControlUpDatePtrs.Add(pCktElem);
+            End;
+        END;
+
+        pCktElem := Cktelements.Next;
+    End;
+
+    pCktElem := Cktelements.First;
+    While pCktElem<>Nil Do
+    Begin
+        pCktElem.Checked := FALSE;     // Initialize to not checked
+        pCktElem := Cktelements.Next;
+    End;
+
+    DevListSize := DeviceList.ListSize;
+    DeviceList.Free;
+    DeviceList := THashList.Create(DevListSize);
+
+    pCktElem := Cktelements.First;
+    While pCktElem<>Nil Do
+    Begin
+        If Not pCktElem.Checked Then
+        Begin
+            ElemClass := (pCktElem.DSSObjType and CLASSMASK);
+            RenameCktElem(pCktElem);
+            CASE ElemClass of
+                XFMR_ELEMENT: If pCktElem.HasControl Then Begin
+                    pCtrlElem := pCktElem.ControlElement;
+                    If assigned(pCtrlElem) Then
+                    Begin
+                        Parser.CmdString := Format('Transformer=%s',[pCktElem.Name]);
+                        pCtrlElem.Edit;
+                    End;
+                End;
+            ELSE
+                {nada}
+            END;
+
+        End;
+        pCktElem := Cktelements.Next;
+    End;
+
+
+    {Run the control update scripts now that everything is renamed}
+
+    For i  := 0 to ControlUpDatePtrs.Count-1 Do
+     Begin
+         pCktElem         := ControlUpDatePtrs.Items[i];
+         Parser.CmdString := ControlUpDateStrings.Strings[i];
+         pCktElem.Edit;
+     End;
+
+    ControlUpDateStrings.Free;
+    ControlUpDatePtrs.Free;
+
+End;  {With}
 
 End;
 
