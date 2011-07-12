@@ -12,6 +12,9 @@ new TSData.TS_1/0   NormAmps=165 DIAM=0.368  GMRac=0.13320 Rac=0.97  Runits=mi R
 new CNData.CN_250   NormAmps=260 DIAM=0.567  GMRac=0.20520 Rac=0.41  Runits=mi Radunits=in gmrunits=in
 ~                   EpsR=2.3 Ins=0.220 DiaIns=1.06 DiaCable=1.29 k=13 DiaStrand=0.0641 GmrStrand=0.02496 Rstrand=14.8722
 
+new CNData.CN_1/0AL NormAmps=265 DIAM=0.368  GMRac=0.13320 Rac=0.9580000  Runits=mi Radunits=in gmrunits=in
+~                   EpsR=2.3 Ins=0.345 DiaIns=1.0625 DiaCable=1.29 k=6 DiaStrand=0.0641 GmrStrand=0.02496 Rstrand=14.8722
+
 ! [cables]
 ! Dins is outside diameter over insulation
 ! Dscr is diameter over insulation screen, = I.D. of shield or CN layer
@@ -38,5 +41,9 @@ new LineGeometry.606 nconds=3 nphases=3 reduce=y
 new LineGeometry.607 nconds=2 nphases=1 reduce=y
 ~ cond=1 tscable=TS_1/0 x= 0.0000 h=-4 units=ft
 ~ cond=2 wire   =CU_1/0 x= 0.2500 h=-4 units=ft
+
+new LineGeometry.607a nconds=2 nphases=1 reduce=y
+~ cond=1 cncable=CN_1/0AL x= 0.0000 h=-4 units=ft
+~ cond=2 wire   =CU_1/0   x= 0.2500 h=-4 units=ft
 
 show lineconstants freq=60 units=kft

@@ -80,9 +80,9 @@ Var
   ReducedSize:   Integer;
   N, idxi, idxj: Integer;
   Zmat, Ztemp:   TCMatrix;
-  ResTS, RadTS:  Double;
+  ResTS:         Double;
   GmrTS:         Double;
-  Denom, RadIn:  Double;
+  Denom, RadIn, RadOut:  Double;
 begin
   Frequency := f;  // this has side effects
 
@@ -166,11 +166,12 @@ begin
   Zmat.Free;
 
   // for shielded cables, build the capacitance matrix directly
+  // assumes the insulation may lie between semicon layers
   for i := 1 to FNumPhases do begin
     Yfactor := twopi * e0 * FEpsR^[i] * Fw; // includes frequency so C==>Y
-    RadTS := 0.5 * FDiaShield^[i] - FTapeLayer^[i];
-    RadIn := Fradius^[i]; // per Kersting, could make it the inside of insulating layer
-    Denom := ln (RadTS / RadIn);
+    RadOut := 0.5 * FDiaIns^[i];
+    RadIn := RadOut - FInsLayer^[i];
+    Denom := ln (RadOut / RadIn);
     FYCMatrix.SetElement(i, i, cmplx(0.0, Yfactor / Denom));
   end;
 
