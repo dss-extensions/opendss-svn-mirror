@@ -479,7 +479,7 @@ BEGIN
                 // Terminals 3 and 4
                  Value := Cmplx(G2, 0.0);
                  Value2 := cnegate(Value);
-                 FOR i := (2*Fnphases+1) to 4*Fnphases Do
+                 FOR i := (2*Fnphases+1) to 3*Fnphases Do
                  Begin
                      SetElement(i,i,Value);     // Elements are only on the diagonals
                      SetElement(i+Fnphases, i+Fnphases,Value);
@@ -495,16 +495,16 @@ BEGIN
                  FOR i := 1 to Fnphases Do
                  Begin
                      SetElement(i,i,Value);     // Elements are only on the diagonals
-                     SetElement(i+Fnphases, i+Fnphases,Value);
+                     SetElement(i+Fnphases, i+Fnphases, Value);
                      SetElemSym(i, i+Fnphases, Value2);
                  End;  {For}
                 // Terminals 3 and 4
                  Value := Cmplx(G2, 0.0);
                  Value2 := cnegate(Value);
-                 FOR i := (2*Fnphases+1) to 4*Fnphases Do
+                 FOR i := (2*Fnphases+1) to 3*Fnphases Do
                  Begin
                      SetElement(i,i,Value);     // Elements are only on the diagonals
-                     SetElement(i+Fnphases, i+Fnphases,Value);
+                     SetElement(i+Fnphases, i+Fnphases, Value);
                      SetElemSym(i, i+Fnphases, Value2);
                  End;  {For}
              End;
