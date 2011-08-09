@@ -81,7 +81,7 @@ interface
          FUNCTION DoZsc10Cmd: Integer;
          FUNCTION DoZscRefresh:Integer;
 
-         FUNCTION DoBusCoordsCmd:Integer;
+         FUNCTION DoBusCoordsCmd(SwapXY:Boolean):Integer;
          FUNCTION DoGuidsCmd:Integer;
          FUNCTION DoSetLoadAndGenKVCmd:Integer;
          FUNCTION DoVarValuesCmd:Integer;
@@ -2306,7 +2306,7 @@ Begin
 
 End;
 
-FUNCTION DoBusCoordsCmd:Integer;
+FUNCTION DoBusCoordsCmd(SwapXY:Boolean):Integer;
 
 {
  Format of File should be
@@ -2314,6 +2314,8 @@ FUNCTION DoBusCoordsCmd:Integer;
    Busname, x, y
 
    (x, y are real values)
+
+   If SwapXY is true, x and y values are swapped
 
 }
 
@@ -2346,8 +2348,8 @@ Begin
                    iB := ActiveCircuit.Buslist.Find(BusName);
                    If iB >0 Then  Begin
                        With ActiveCircuit.Buses^[iB] Do Begin     // Returns TBus object
-                         NextParam;  x := DblValue;
-                         NextParam;  y := DblValue;
+                         NextParam;  If SwapXY Then y := DblValue else x := DblValue;
+                         NextParam;  If SwapXY Then x := DblValue else y := DblValue;
                          CoordDefined := TRUE;
                        End;
                    End;

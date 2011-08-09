@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 93;
+     NumExecCommands = 94;
 
 Var
 
@@ -129,6 +129,7 @@ Begin
      ExecCommand[91] := 'SetBusXY';
      ExecCommand[92] := 'UpdateStorage';
      ExecCommand[93] := 'Obfuscate';
+     ExecCommand[94] := 'LatLongCoords';
 
 
 
@@ -318,7 +319,7 @@ Begin
      CommandHelp[55] := 'Just like the Voltages command, except the voltages are in per unit if the kVbase at the bus is defined.';
      CommandHelp[56] := 'Returns variable values for active element if PC element. Otherwise, returns null.';
      CommandHelp[57] := 'Returns variable names for active element if PC element. Otherwise, returns null.';
-     CommandHelp[58] := 'Define x,y coordinates for buses.  Execute after Solve command performed so that bus lists are defined.' +
+     CommandHelp[58] := 'Define x,y coordinates for buses.  Execute after Solve or MakeBusList command is executed so that bus lists are defined.' +
                         'Reads coordinates from a CSV file with records of the form: busname, x, y.'+CRLF+CRLF+
                         'Example: BusCoords [file=]xxxx.csv';
      CommandHelp[59] := 'Updates the buslist using the currently enabled circuit elements.  (This happens automatically for Solve command.)';
@@ -403,6 +404,11 @@ Begin
      CommandHelp[92] := 'Update Storage elements based on present solution and time interval. ';
      CommandHelp[93] := 'Change Bus and circuit element names to generic values to remove identifying names. Generally, ' +
                         'you will follow this command immediately by a "Save Circuit Dir=MyDirName" command.';
+     CommandHelp[94] := 'Define x,y coordinates for buses using Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. ' +
+                        'Execute after Solve command or MakeBusList command is executed so that bus lists are defined.' +
+                        'Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.'+CRLF+CRLF+
+                        'Example: LatLongCoords [file=]xxxx.csv' +CRLF+CRLF+
+                        'Note: Longitude is mapped to x coordinate and Latitude is mapped to y coordinate.';
 
 End;
 
@@ -578,7 +584,7 @@ Begin
        55: CmdResult := DovoltagesCmd(TRUE);
        56: CmdResult := DoVarValuesCmd;
        57: CmdResult := DoVarNamesCmd;
-       58: CmdResult := DoBusCoordsCmd;
+       58: CmdResult := DoBusCoordsCmd(FALSE);
        59: With ActiveCircuit Do If BusNameRedefined Then ReprocessBusDefs;
        60: CmdResult := DoMakePosSeq;
        61: CmdResult := DoReduceCmd;
@@ -613,6 +619,7 @@ Begin
        91: CmdResult := DoSetBusXYCmd;
        92: CmdResult := DoUpDateStorageCmd;
        93: Obfuscate;
+       94: CmdResult := DoBusCoordsCmd(TRUE);   // swaps X and Y
      ELSE
        // Ignore excess parameters
      End;
