@@ -31,7 +31,7 @@ unit CapControl;
 INTERFACE
 
 USES
-     Command, ControlClass, ControlElem, CktElement, DSSClass, Arraydef, ucomplex,
+     Command, ControlClass, ControlElem, CktElement, Bus, DSSClass, Arraydef, ucomplex,
      Capacitor, utilities;
 
 TYPE
@@ -82,6 +82,10 @@ TYPE
             LastOpenTime   :Double;
 
             Voverride  :Boolean;
+            VoverrideBusSpecified  :Boolean;     // Added 8-11-11
+            VOverrideBusName :String;
+            VOverrideBusIndex:Integer;
+
             Vmax,
             Vmin       :Double;
 
@@ -102,6 +106,7 @@ TYPE
             procedure Set_PendingChange(const Value: EControlAction);
             Procedure GetControlVoltage(Var ControlVoltage:Double);
             Procedure GetControlCurrent(Var ControlCurrent:Double);
+            Procedure GetBusVoltages(pBus:TDSSBus; Buff:pComplexArray);
 
      public
 
@@ -157,7 +162,7 @@ CONST
     AVGPHASES = -1;
     MAXPHASE  = -2;
     MINPHASE  = -3;
-    NumPropsThisClass = 16;
+    NumPropsThisClass = 17;
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -206,6 +211,7 @@ Begin
      PropertyName[14] := 'DeadTime';
      PropertyName[15] := 'CTPhase';
      PropertyName[16] := 'PTPhase';
+     PropertyName[17] := 'VBus';
 
      PropertyHelp[1] := 'Full object name of the circuit element, typically a line or transformer, '+
                         'to which the capacitor control''s PT and/or CT are connected.' +
@@ -251,6 +257,8 @@ Begin
      PropertyHelp[16] := 'Number of the phase being monitored for VOLTAGE control or one of {AVG | MAX | MIN} for all phases. Default=1. ' +
                          'If delta or L-L connection, enter the first or the two phases being monitored [1-2, 2-3, 3-1]. ' +
                          'Must be less than the number of phases. Does not apply to kvar control which uses all phases by default.';
+     PropertyHelp[17] := 'Name of bus to use for voltage override function. Default is bus at monitored terminal. ' +
+                         'Sometimes it is useful to monitor a bus in another location to emulate various DMS control algorithms.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -328,6 +336,10 @@ Begin
                Else If CompareTextShortest(param, 'max') = 0 Then FPTPhase := MAXPHASE
                Else If CompareTextShortest(param, 'min') = 0 Then FPTPhase := MINPHASE
                                                              Else FPTPhase := max(1, Parser.IntValue);
+           17: Begin
+                 VoverrideBusSpecified := TRUE;
+                 VOverrideBusName := Param;
+               End
 
          ELSE
            // Inherited parameters
@@ -415,6 +427,10 @@ Begin
         FCTPhase          := OtherCapControl.FCTPhase;
         FPTPhase          := OtherCapControl.FPTPhase;
 
+        Voverride              := OtherCapControl.Voverride;
+        VoverrideBusSpecified  := OtherCapControl.VoverrideBusSpecified;     // Added 8-11-11
+        VOverrideBusName       := OtherCapControl.VOverrideBusName;
+
 
         For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherCapControl.PropertyValue[i];
 
@@ -459,7 +475,10 @@ Begin
       PFON_Value    := 0.95;
       PFOFF_Value   := 1.05;
 
-      Voverride  := False;
+      Voverride  := FALSE;
+      VoverrideBusSpecified := FALSE;
+      VOverrideBusName := '';
+
       Vmax       := 126;
       Vmin       := 115;
 
@@ -541,7 +560,7 @@ Begin
              MonitoredElement := ActiveCircuit.CktElements.Get(DevIndex);
              IF ElementTerminal > MonitoredElement.Nterms
              THEN Begin
-                 DoErrorMsg('CapControl: "' + Name + '"',
+                 DoErrorMsg('CapControl.' + Name + ':',
                                  'Terminal no. "' +'" does not exist.',
                                  'Re-specify terminal no.', 362);
              End
@@ -554,6 +573,16 @@ Begin
              End;
          End
          ELSE DoSimpleMsg('Monitored Element in CapControl.'+Name+ ' does not exist:"'+ElementName+'"', 363);
+
+         {Alternative override bus}
+         If VoverrideBusSpecified Then Begin
+              VOverrideBusIndex := ActiveCircuit.BusList.Find(VOverrideBusName);
+              If VOverrideBusIndex=0 Then Begin
+                  DoSimpleMsg(Format('CapControl.%s: Voltage override Bus "%s" not found. Did you wait until buses were defined? Reverting to default.', [Name, VOverrideBusName]), 10361);
+                  VoverrideBusSpecified := FALSE;
+              End;
+
+         End;
 
 
 End;
@@ -585,6 +614,16 @@ End;
 
 
 {--------------------------------------------------------------------------}
+procedure TCapControlObj.GetBusVoltages(pBus:TDSSBus; Buff: pComplexArray);
+Var
+   j       :Integer;
+begin
+       WITH pBus Do
+       If Assigned(Vbus) Then    // uses nphases from CapControlObj
+           FOR j := 1 to nPhases Do  cBuffer^[j] := ActiveCircuit.Solution.NodeV^[GetRef(j)];;
+
+end;
+
 procedure TCapControlObj.GetControlCurrent(var ControlCurrent: Double);
 
 // Get current to control on based on type of control specified.
@@ -764,6 +803,7 @@ VAR
    Sabs    :Double;
 
 
+
    Function PF1to2(Const Spower:Complex):Double;   // return PF in range of 1 to 2
    Begin
        Sabs := Cabs(Spower);
@@ -785,26 +825,31 @@ begin
 
          // First Check voltage override
          IF Voverride THEN
-          IF ControlType <> VOLTAGECONTROL THEN Begin  // Don't bother for voltage control
+            IF ControlType <> VOLTAGECONTROL THEN Begin  // Don't bother for voltage control
 
-              MonitoredElement.GetTermVoltages (ElementTerminal, cBuffer);
+              If   VoverrideBusSpecified then Begin
+                   GetBusVoltages(ActiveCircuit.Buses^[VOverrideBusIndex], cBuffer);
+              End
+              Else MonitoredElement.GetTermVoltages (ElementTerminal, cBuffer);
 
               GetControlVoltage(Vtest);
 
-             CASE PresentState of
+              CASE PresentState of
                  OPEN:
                       IF   Vtest < VMin
                       THEN Begin
                           PendingChange := CLOSE;
                           ShouldSwitch := TRUE;
+                          AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('Low Voltage Override: %.8g V', [Vtest]));
                       End;
                  CLOSE:
                       IF   Vtest > Vmax
                       THEN Begin
                           PendingChange := OPEN;
                           ShouldSwitch := TRUE;
+                          AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('High Voltage Override: %.8g V', [Vtest]));
                       End;
-             End;
+              End;
          End;
 
 
