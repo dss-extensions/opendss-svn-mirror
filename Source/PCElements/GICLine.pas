@@ -100,7 +100,7 @@ VAR
 implementation
 
 
-USES  ParserDel, Circuit, DSSClassDefs, DSSGlobals, Utilities, Sysutils, Command;
+USES  ParserDel, Circuit, MyDSSClassDefs, DSSClassDefs, DSSGlobals, Utilities, Sysutils, Command;
 
 Const NumPropsThisClass = 11;
 

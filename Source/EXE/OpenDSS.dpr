@@ -160,9 +160,7 @@ uses
   TSLineConstants in '..\General\TSLineConstants.pas',
   CableData in '..\General\CableData.pas',
   ConductorData in '..\General\ConductorData.pas',
-  CableConstants in '..\General\CableConstants.pas',
-  GICTransformer in '..\PDElements\GICTransformer.pas',
-  GICLine in '..\PCElements\GICLine.pas';
+  CableConstants in '..\General\CableConstants.pas';
 
 {$R *.RES}
 

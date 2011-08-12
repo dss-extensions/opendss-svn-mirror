@@ -65,7 +65,7 @@ VAR
    ActiveGICTransformerObj:TGICTransformerObj;
 
 implementation
-USES  ParserDel,  DSSClassDefs, DSSGlobals, dynamics, Sysutils, Ucomplex, MathUtil, Utilities;
+USES  ParserDel,  MyDSSClassDefs, DSSClassDefs, DSSGlobals, dynamics, Sysutils, Ucomplex, MathUtil, Utilities;
 
 Const NumPropsthisclass = 8;
 
