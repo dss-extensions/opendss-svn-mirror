@@ -1068,7 +1068,7 @@ begin
      End;
 
      DemandInterval1.Checked   := EnergyMeterclass.SaveDemandInterval ;
-     Caption := 'OpenDSS Data Directory: ' + DSSDataDirectory;
+     Caption := ProgramName + ' Data Directory: ' + DSSDataDirectory;
      If ActiveCircuit <> Nil then
      With ActiveCircuit Do
      Begin

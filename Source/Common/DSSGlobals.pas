@@ -106,6 +106,7 @@ VAR
    DLLFirstTime   :Boolean=TRUE;
    DLLDebugFile   :TextFile;
    DSS_IniFileName:String;
+   ProgramName    :String;
    DSS_Registry   :TIniRegSave; // Registry   (See Executive)
    
    IsDLL,
@@ -590,6 +591,7 @@ initialization
    StartupDirectory := GetCurrentDir+'\';
    DSSDataDirectory := StartupDirectory;
 
+   ProgramName      := 'OpenDSS';
    DSS_IniFileName  := 'OpenDSSPanel.ini';
    DSS_Registry     := TIniRegSave.Create('\Software\OpenDSS');
 
