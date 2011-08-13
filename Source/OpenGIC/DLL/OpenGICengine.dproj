@@ -37,7 +37,6 @@
 			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\OpenGICengine.dll</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 			<DCC_ExeOutput>..\..\</DCC_ExeOutput>
@@ -113,7 +112,7 @@
 			<DCCReference Include="..\..\Common\Bus.pas"/>
 			<DCCReference Include="..\..\PDElements\Capacitor.pas"/>
 			<DCCReference Include="..\..\Controls\CapControl.pas"/>
-			<DCCReference Include="..\..\Common\Circuit.pas"/>
+			<DCCReference Include="..\Circuit.pas"/>
 			<DCCReference Include="..\..\Common\CktElement.pas"/>
 			<DCCReference Include="..\..\Common\CktElementClass.pas"/>
 			<DCCReference Include="..\..\Shared\CktTree.pas"/>
@@ -143,7 +142,7 @@
 			<DCCReference Include="..\..\Executive\ExecCommands.pas"/>
 			<DCCReference Include="..\..\Executive\ExecHelper.pas"/>
 			<DCCReference Include="..\..\Executive\ExecOptions.pas"/>
-			<DCCReference Include="..\..\Executive\Executive.pas"/>
+			<DCCReference Include="..\Executive.pas"/>
 			<DCCReference Include="..\..\Common\ExportResults.pas"/>
 			<DCCReference Include="..\..\PDElements\Fault.pas"/>
 			<DCCReference Include="..\..\Common\Feeder.pas"/>

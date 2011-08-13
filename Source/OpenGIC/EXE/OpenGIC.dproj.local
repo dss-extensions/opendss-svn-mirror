@@ -15,5 +15,7 @@
     <Transaction>2011/08/11 16:41:53.214.Pas,C:\OpenDSS\Source\OpenGIC\MyClassDefs.Pas=C:\OpenDSS\Source\OpenGIC\MyDSSClassDefs.Pas</Transaction>
     <Transaction>2011/08/11 16:55:48.594.pas,C:\OpenDSS\Source\OpenGIC\DSSPlotGIC.pas=C:\OpenDSS\Source\OpenGIC\DSSPlot.pas</Transaction>
     <Transaction>2011/08/13 10:03:42.156.pas,C:\OpenDSS\Source\Common\DSSClassDefs.pas=C:\OpenDSS\Source\OpenGIC\DSSClassDefs.pas</Transaction>
+    <Transaction>2011/08/13 17:28:00.203.pas,C:\OpenDSS\Source\Executive\Executive.pas=C:\OpenDSS\Source\OpenGIC\Executive.pas</Transaction>
+    <Transaction>2011/08/13 17:39:22.750.pas,C:\OpenDSS\Source\Common\Circuit.pas=C:\OpenDSS\Source\OpenGIC\Circuit.pas</Transaction>
   </Transactions>
 </BorlandProject>

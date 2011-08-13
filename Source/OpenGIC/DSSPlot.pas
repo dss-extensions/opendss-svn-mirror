@@ -2367,6 +2367,7 @@ begin
                    MaxScale := MaxScale* 0.001;
                  End;
        pqCurrent: Begin
+                    MaxScale:=100.0;
                   End;
 
        pqCapacity: Begin
