@@ -74,7 +74,6 @@ TYPE
             pctFleetReserve       :Double;
             FleetListChanged      :Boolean;
             ChargingAllowed       :Boolean;
-            ShowEventLog          :Boolean;
             DispatchVars          :Boolean;
             DischargeTriggeredByTime :Boolean;
             DischargeInhibited       :Boolean;

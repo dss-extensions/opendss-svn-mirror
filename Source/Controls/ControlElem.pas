@@ -39,6 +39,7 @@ TYPE
        MonitorVarIndex: Integer;
        TimeDelay,
        DblTraceParameter:Double;
+       ShowEventLog     :Boolean;
 
        constructor Create(ParClass:TDSSClass);
        destructor Destroy; override;
@@ -67,6 +68,7 @@ Begin
     MonitorVariable := '';
     MonitorVarIndex := 0;
     FControlledElement := Nil;
+    ShowEventLog       := TRUE;
 End;
 
 destructor TControlElem.Destroy;

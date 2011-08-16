@@ -162,7 +162,7 @@ CONST
     AVGPHASES = -1;
     MAXPHASE  = -2;
     MINPHASE  = -3;
-    NumPropsThisClass = 17;
+    NumPropsThisClass = 18;
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -212,6 +212,7 @@ Begin
      PropertyName[15] := 'CTPhase';
      PropertyName[16] := 'PTPhase';
      PropertyName[17] := 'VBus';
+     PropertyName[18] := 'EventLog';
 
      PropertyHelp[1] := 'Full object name of the circuit element, typically a line or transformer, '+
                         'to which the capacitor control''s PT and/or CT are connected.' +
@@ -259,6 +260,7 @@ Begin
                          'Must be less than the number of phases. Does not apply to kvar control which uses all phases by default.';
      PropertyHelp[17] := 'Name of bus to use for voltage override function. Default is bus at monitored terminal. ' +
                          'Sometimes it is useful to monitor a bus in another location to emulate various DMS control algorithms.';
+     PropertyHelp[18] :=  '{Yes/True* | No/False} Default is YES for CapControl. Log control actions to Eventlog.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -339,7 +341,8 @@ Begin
            17: Begin
                  VoverrideBusSpecified := TRUE;
                  VOverrideBusName := Param;
-               End
+               End;
+           18: ShowEventLog := InterpretYesNo(param);
 
          ELSE
            // Inherited parameters
@@ -430,6 +433,8 @@ Begin
         Voverride              := OtherCapControl.Voverride;
         VoverrideBusSpecified  := OtherCapControl.VoverrideBusSpecified;     // Added 8-11-11
         VOverrideBusName       := OtherCapControl.VOverrideBusName;
+
+        ShowEventLog        := OtherCapControl.ShowEventLog;
 
 
         For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherCapControl.PropertyValue[i];
@@ -714,7 +719,7 @@ begin
                     1: Begin
                         IF PresentState=CLOSE Then Begin
                           ControlledElement.Closed[0] := FALSE;   // Open all phases of active terminal
-                          AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Opened**');
+                          If ShowEventLog Then  AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Opened**');
                           PresentState := OPEN;
                           With ActiveCircuit.Solution Do LastOpenTime := DynaVars.t + 3600.0*intHour;
                         End;
@@ -724,21 +729,21 @@ begin
                            If NOT ControlledCapacitor.SubtractStep Then Begin
                               PresentState := OPEN;
                               ControlledElement.Closed[0] := FALSE;   // Open all phases of active terminal
-                              AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Opened**');
+                              If ShowEventLog Then  AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Opened**');
                            End
-                           ELSE AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Step Down**');
+                           ELSE If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Step Down**');
                         End;
                     END;
             CLOSE: BEGIN
                       If PresentState=OPEN Then Begin
                            ControlledElement.Closed[0] := TRUE;    // Close all phases of active terminal
-                           AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Closed**');
+                           If ShowEventLog Then  AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Closed**');
                            PresentState := CLOSE;
                            ControlledCapacitor.AddStep;
                        End
                        ELSE Begin
                            IF ControlledCapacitor.AddStep Then
-                             AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Step Up**');
+                             If ShowEventLog Then  AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Step Up**');
                        END;
                    END;
          ELSE
@@ -840,14 +845,14 @@ begin
                       THEN Begin
                           PendingChange := CLOSE;
                           ShouldSwitch := TRUE;
-                          AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('Low Voltage Override: %.8g V', [Vtest]));
+                          If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('Low Voltage Override: %.8g V', [Vtest]));
                       End;
                  CLOSE:
                       IF   Vtest > Vmax
                       THEN Begin
                           PendingChange := OPEN;
                           ShouldSwitch := TRUE;
-                          AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('High Voltage Override: %.8g V', [Vtest]));
+                          If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('High Voltage Override: %.8g V', [Vtest]));
                       End;
               End;
          End;
@@ -1089,14 +1094,14 @@ begin
               End Else TimeDelay := OFFDelay;
               ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay , PendingChange, 0, Self);
               Armed := TRUE;
-              AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
+              If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('**Armed**, Delay= %.5g sec', [TimeDelay]));
              End;
 
           IF Armed and (PendingChange = NONE) Then
             Begin
                 ControlQueue.Delete(ControlActionHandle);
                 Armed := FALSE;
-                AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Reset**');
+                If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, '**Reset**');
             End;
         End;  {With}
 end;
@@ -1160,6 +1165,8 @@ begin
      PropertyValue[14] := '300';
      PropertyValue[15] := '1';
      PropertyValue[16] := '1';
+     PropertyValue[17] := '';
+     PropertyValue[18] := 'YES';
 
 
   inherited  InitPropertyValues(NumPropsThisClass);

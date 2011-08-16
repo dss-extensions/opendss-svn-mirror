@@ -182,7 +182,7 @@ CONST
     ACTION_TAPCHANGE = 0;
     ACTION_REVERSE   = 1;
 
-    NumPropsThisClass = 25;
+    NumPropsThisClass = 26;
 
 Var
     LastChange:Integer;
@@ -244,6 +244,7 @@ Begin
      PropertyName[23] := 'revThreshold';
      PropertyName[24] := 'revDelay';
      PropertyName[25] := 'revNeutral';
+     PropertyName[26] := 'EventLog';
 
      PropertyHelp[1] := 'Name of Transformer element to which the RegControl is connected. '+
                         'Do not specify the full object name; "Transformer" is assumed for '  +
@@ -294,6 +295,7 @@ Begin
      PropertyHelp[23] := 'kW reverse power threshold for reversing the direction of the regulator. Default is 100.0 kw.';
      PropertyHelp[24] := 'Time Delay in seconds (s) for executing the reversing action once the threshold for reversing has been exceeded. Default is 60 s.';
      PropertyHelp[25] := '{Yes | No*} Default is no. Set this to Yes if you want the regulator to go to neutral in the reverse direction.';
+     PropertyHelp[26] := '{Yes/True* | No/False} Default is YES for regulator control. Log control actions to Eventlog.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -374,6 +376,7 @@ Begin
             23: kWRevPowerThreshold := Parser.DblValue ;
             24: RevDelay := Parser.DblValue;
             25: ReverseNeutral := InterpretYesNo(Param);
+            26: ShowEventLog := InterpretYesNo(param);
 
          ELSE
            // Inherited parameters
@@ -446,6 +449,7 @@ Begin
         RevPowerThreshold   := OtherRegControl.RevPowerThreshold;
         RevDelay            := OtherRegControl.RevDelay ;
         ReverseNeutral      := OtherRegControl.ReverseNeutral ;
+        ShowEventLog        := OtherRegControl.ShowEventLog;
     //    DebugTrace     := OtherRegControl.DebugTrace;  Always default to NO
 
         FPTphase     := OtherRegControl.FPTphase;
@@ -779,7 +783,7 @@ begin
                               TapChangeToMake := AtLeastOneTap(PendingTapChange, TapIncrement[TapWinding]);
                               If (DebugTrace) Then RegWriteTraceRecord(TapChangeToMake);
                               PresentTap[TapWinding] := PresentTap[TapWinding] + TapChangeToMake;
-                              AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d taps to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
+                              If ShowEventLog Then AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d taps to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
                               PendingTapChange := 0.0;  // Reset to no change.  Program will determine if another needed.
                               Armed := FALSE;
                           End;
@@ -798,7 +802,7 @@ begin
                               TapChangeToMake := OneInDirectionOf(FPendingTapChange, TapIncrement[TapWinding]);
                               If (DebugTrace) Then RegWriteTraceRecord(TapChangeToMake);
                               PresentTap[TapWinding] := PresentTap[TapWinding] + TapChangeToMake;
-                              AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
+                              If ShowEventLog Then AppendtoEventLog('Regulator.' + ControlledElement.Name, Format(' Changed %d tap to %-.6g.',[Lastchange,PresentTap[TapWinding]]));
                               If (DebugTrace) Then RegWriteDebugRecord(Format('--- Regulator.%s Changed %d tap to %-.6g.',[ControlledElement.Name, Lastchange,PresentTap[TapWinding]]));
 
                               IF   PendingTapChange <> 0.0 THEN ControlQueue.Push(intHour, DynaVars.t + TapDelay, 0, 0, Self)
@@ -1123,6 +1127,7 @@ begin
      PropertyValue[23] := '100';
      PropertyValue[24] := '60';
      PropertyValue[25] := 'No';
+     PropertyValue[26] := 'YES';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
