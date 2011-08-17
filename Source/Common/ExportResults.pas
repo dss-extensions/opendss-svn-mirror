@@ -2208,6 +2208,7 @@ Procedure ExportEventLog(FileNm:String);
 // Export the present set of EventStrings
 Begin
      EventStrings.SaveToFile(FileNm);
+     GlobalResult := FileNm;
 End;
 
 end.
