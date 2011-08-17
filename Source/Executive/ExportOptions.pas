@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumExportOptions = 32;
+        NumExportOptions = 33;
 
 FUNCTION DoExportCmd:Integer;
 
@@ -56,6 +56,7 @@ Begin
       ExportOption[30] := 'CDPSMTopo';
       ExportOption[31] := 'CDPSMStateVar';
       ExportOption[32] := 'Profile';
+      ExportOption[33] := 'EventLog';
 
       ExportHelp[ 1] := '(Default file = EXP_VOLTAGES.CSV) Voltages to ground by bus/node.';
       ExportHelp[ 2] := '(Default file = EXP_SEQVOLTAGES.CSV) Sequence voltages.';
@@ -91,7 +92,9 @@ Begin
       ExportHelp[30] := '(Default file = CDPSM_Topology.XML) (IEC 61968-13, CDPSM Topology profile)';
       ExportHelp[31] := '(Default file = CDPSM_StateVariables.XML) (IEC 61968-13, CDPSM State Variables profile)';
       ExportHelp[32] := '[Default file = EXP_Profile.CSV] Coordinates, color of each line section in Profile plot. Same options as Plot Profile Phases property.' +  CRLF + CRLF +
-                        'Example:  Export Profile Phases=All [optional file name]';;
+                        'Example:  Export Profile Phases=All [optional file name]';
+      ExportHelp[33] := '(Default file = EXP_EVTLOG.CSV) All entries in the present event log.';;
+
 End;
 
 //----------------------------------------------------------------------------
@@ -196,6 +199,7 @@ Begin
          30: FileName := 'CDPSM_Topology.XML';
          31: FileName := 'CDPSM_StateVariables.XML';
          32: FileName := 'EXP_Profile.CSV';
+         33: FileName := 'EXP_EVTLOG.CSV';
        ELSE
              FileName := 'EXP_VOLTAGES.CSV';    // default
        END;
@@ -240,6 +244,7 @@ Begin
      30: ExportCDPSM(Filename, Topology);
      31: ExportCDPSM(Filename, StateVariables);
      32: ExportProfile(FileName, PhasesToPlot);
+     33: ExportEventLog(FileName);
    ELSE
          ExportVoltages(FileName);    // default
    END;

@@ -37,6 +37,7 @@ Procedure ExportGuids(FileNm:String);
 Procedure ExportCounts(FileNm:String);
 Procedure ExportSummary(FileNm:String);
 Procedure ExportProfile(FileNm:String; PhasesToPlot:Integer);
+Procedure ExportEventLog(FileNm:String);
 
 
 IMPLEMENTATION
@@ -2202,5 +2203,11 @@ begin
   End;
 
 end;
+
+Procedure ExportEventLog(FileNm:String);
+// Export the present set of EventStrings
+Begin
+     EventStrings.SaveToFile(FileNm);
+End;
 
 end.
