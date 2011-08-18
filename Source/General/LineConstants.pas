@@ -18,7 +18,7 @@ unit LineConstants;
         You only have to set R or GMR. The other will default. However, you should set
         both for better accuracy.
 
-        When you as for Zmatrix or YCmatrix you get the full matrix unless you have executed
+        When you ask for Zmatrix or YCmatrix you get the full matrix unless you have executed
         a Kron reduction or Reduce function. Reduce eleminates all non phases. If you
         want the full detailed model, DO NOT REDUCE!
 
@@ -470,12 +470,12 @@ end;
 procedure TLineConstants.Kron(Norder: Integer);
 
 Var
-   Ztemp, YCtemp :TCmatrix;
+   Ztemp :TCmatrix;
    FirstTime:Boolean;
+   i, j :Integer;
 begin
 
    Ztemp  := FZMatrix;
-   YCTemp := FYCMatrix;
    FirstTime := TRUE;
 
    If (FFrequency >= 0.0) and (Norder>0) and (Norder<FnumConds) Then Begin
@@ -488,18 +488,19 @@ begin
       While Ztemp.Order > Norder Do Begin
 
          FZReduced  := Ztemp.Kron(ZTemp.Order );    // Eliminate last row
-         FYCReduced := YCtemp.Kron(ZTemp.Order );
 
-         If Not FirstTime Then Begin
-             Ztemp.Free;  // Ztemp points to intermediate matrix
-             YCTemp.Free;
+         If Not FirstTime Then Begin   // don't throw away original matrix
+             Ztemp.Free;  // Ztemp now points to intermediate matrix
          End;
          Ztemp  := FZReduced;
-         YCTemp := FYCReduced;
-
          FirstTime := FALSE;
       End;
 
+    {Extract norder x norder portion of Yc matrx}
+      FYCreduced := TCmatrix.CreateMatrix(Norder);
+      for i:=1 to Norder do
+        for j:=1 to Norder do
+          FYCreduced.SetElement(i,j, FYCmatrix.GetElement(i,j));
 
       {Left with reduced matrix}
 
