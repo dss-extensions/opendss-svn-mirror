@@ -347,6 +347,7 @@
 			<DCCReference Include="..\General\CableData.pas"/>
 			<DCCReference Include="..\General\ConductorData.pas"/>
 			<DCCReference Include="..\General\CableConstants.pas"/>
+			<DCCReference Include="..\Controls\VVControl.pas"/>
 			<RidlCompile Include="OpenDSSengine.ridl"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

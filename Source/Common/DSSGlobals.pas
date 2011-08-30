@@ -40,7 +40,8 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      TSData,
      LineSpacing,
      Storage,
-     PVSystem;
+     PVSystem,
+     VVControl;
 
 
 CONST
@@ -187,7 +188,7 @@ VAR
    LineSpacingClass   :TLineSpacing;
    StorageClass       :TStorage;
    PVSystemClass      :TPVSystem;
-
+   VVControlClass     :TVVControl;
 
    EventStrings: TStringList;
    SavedFileList:TStringList;

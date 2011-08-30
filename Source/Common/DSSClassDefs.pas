@@ -46,6 +46,7 @@ CONST
       STORAGE_CONTROL  = 22 * 8;
       SWT_CONTROL      = 23 * 8;
       PVSYSTEM_ELEMENT = 24 * 8;
+      VV_CONTROL       = 25 * 8;
 
 
 VAR
@@ -105,8 +106,8 @@ USES
      Storage,
      StorageController,
      SwtControl,
-     PVSystem
-
+     PVSystem,
+     VVControl
 ;
 
 
@@ -178,6 +179,10 @@ Begin
      DSSClasses.New := TSwtControl.Create;
      PVSystemClass  := TPVSystem.Create;
      DSSClasses.New := PVSystemClass;
+     VVControlClass := TVVControl.Create;
+     DSSClasses.New := VVControlClass;
+
+
 
      MonitorClass   := TDSSMonitor.Create;  // Have to do this AFTER Generator
      DSSClasses.New := MonitorClass;
