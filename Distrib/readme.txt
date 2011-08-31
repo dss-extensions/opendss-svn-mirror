@@ -1,9 +1,9 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2010, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2011, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 7.4.1
+Version 7.4.2
 
 Third-party Components
 ======================
