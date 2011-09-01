@@ -119,7 +119,6 @@ Begin
     Try
 
       IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters
-      DefaultDailyShapeObj := LoadShapeClass.Find('default');
       IF Not DIFilesAreOpen then EnergyMeterClass.OpenAllDIFiles;   // Append Demand Interval Files, if desired
 
       FOR N := 1 TO NumberOfTimes Do
@@ -167,7 +166,6 @@ Begin
      Try
         intHour := 0; dblHour := 0.0;
         IntervalHrs := DynaVars.h / 3600.0;  // needed for energy meters and storage devices
-        DefaultDailyShapeObj := LoadShapeClass.Find('default');
         If Not DIFilesAreOpen Then EnergyMeterClass.OpenAllDIFiles;   // Open Demand Interval Files, if desired
 
         FOR N := 1 TO NumberOfTimes Do

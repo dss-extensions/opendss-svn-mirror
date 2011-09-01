@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 94;
+     NumExecCommands = 95;
 
 Var
 
@@ -130,6 +130,7 @@ Begin
      ExecCommand[92] := 'UpdateStorage';
      ExecCommand[93] := 'Obfuscate';
      ExecCommand[94] := 'LatLongCoords';
+     ExecCommand[95] := 'BatchEdit';
 
 
 
@@ -409,6 +410,9 @@ Begin
                         'Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.'+CRLF+CRLF+
                         'Example: LatLongCoords [file=]xxxx.csv' +CRLF+CRLF+
                         'Note: Longitude is mapped to x coordinate and Latitude is mapped to y coordinate.';
+     CommandHelp[95] := 'Batch edit objects in the same class. Example: BatchEdit Load..* duty=duty_shape' + CRLF +
+                        'In place of the object name, supply a PERL regular expression. .* matches all names.' + CRLF +
+                        'The subsequent parameter string is applied to each object selected.';
 
 End;
 
@@ -620,6 +624,7 @@ Begin
        92: CmdResult := DoUpDateStorageCmd;
        93: Obfuscate;
        94: CmdResult := DoBusCoordsCmd(TRUE);   // swaps X and Y
+       95: CmdResult := DoBatchEditCmd;
      ELSE
        // Ignore excess parameters
      End;

@@ -26,7 +26,7 @@ Type
      TParser = class(TObject)
      private
        CmdBuffer:String;
-       Position:Integer;
+       FPosition:Integer;
        ParameterBuffer:String;
        TokenBuffer:String;
        DelimChars:String;
@@ -69,6 +69,7 @@ Type
        Procedure ResetDelims;   // resets delimiters to default
      published
        Property CmdString:String        read CmdBuffer        write SetCmdString;
+       Property Position:Integer        read FPosition        write FPosition; // to save and restore
        Property Delimiters:String       read DelimChars       write DelimChars;
        Property Whitespace:String       read WhiteSpaceChars  write WhiteSpaceChars;
        Property BeginQuoteChars:string  read FBeginQuoteChars write FBeginQuoteChars;
@@ -145,7 +146,7 @@ Begin
      WhiteSpaceChars     := ' ' + #9;   // blank + tab
      FBeginQuoteChars    := '("''[{';
      FEndQuoteChars      := ')"'']}';
-     Position            := 1;
+     FPosition           := 1;
      MatrixRowTerminator := '|';
      FAutoIncrement      := FALSE;
      RPNCalculator       := TRPNCalc.Create;
@@ -165,8 +166,8 @@ End;
 Procedure TParser.SetCmdString(Const Value:String);
 Begin
      CmdBuffer := Value + ' '; // add some white space at end to get last param
-     Position  := 1;
-     SkipWhiteSpace(CmdBuffer, Position);   // position at first non whitespace character
+     FPosition  := 1;
+     SkipWhiteSpace(CmdBuffer, FPosition);   // position at first non whitespace character
 End;
 
 {=======================================================================================================================}
@@ -333,12 +334,12 @@ Function TParser.GetNextParam:String;
 
 Begin
 
-   If Position<=Length(CmdBuffer) Then Begin
+   If FPosition<=Length(CmdBuffer) Then Begin
       LastDelimiter := ' ';
-      TokenBuffer := GetToken(CmdBuffer, Position); // Get entire token and put in token Buffer
+      TokenBuffer := GetToken(CmdBuffer, FPosition); // Get entire token and put in token Buffer
       If (LastDelimiter = '=') Then Begin
         Parameterbuffer := tokenBuffer;
-        TokenBuffer := Gettoken(CmdBuffer, Position);
+        TokenBuffer := Gettoken(CmdBuffer, FPosition);
       End
       Else begin
         ParameterBuffer := '';  //init to null string
@@ -598,7 +599,7 @@ End;
 
 Function TParser.Get_Remainder:String;
 BEGIN
-     Result := Copy(CmdBuffer, Position, Length(CmdBuffer)-Position+1)
+     Result := Copy(CmdBuffer, FPosition, Length(CmdBuffer)-FPosition+1)
 END;
 
 {=======================================================================================================================}

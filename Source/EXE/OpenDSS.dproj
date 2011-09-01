@@ -73,7 +73,7 @@
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">2</VersionInfo>
-						<VersionInfo Name="Build">152</VersionInfo>
+						<VersionInfo Name="Build">155</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -85,7 +85,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.4.2.152</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.4.2.155</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSS</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008-2011 EPRI, All Rights Reserved.</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
@@ -268,6 +268,8 @@
 			<DCCReference Include="..\General\ConductorData.pas"/>
 			<DCCReference Include="..\General\CableConstants.pas"/>
 			<DCCReference Include="..\Controls\VVControl.pas"/>
+			<DCCReference Include="..\TPerlRegEx\PerlRegEx.pas"/>
+			<DCCReference Include="..\TPerlRegEx\pcre.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

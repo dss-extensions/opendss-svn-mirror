@@ -25,6 +25,7 @@ interface
 
          FUNCTION DoNewCmd:Integer;
          FUNCTION DoEditCmd:Integer;
+         FUNCTION DoBatchEditCmd:Integer;
          FUNCTION DoSelectCmd:Integer;
          FUNCTION DoMoreCmd:Integer;
          FUNCTION DoRedirect(IsCompile:Boolean):Integer;
@@ -137,7 +138,8 @@ USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
-     Classes,  CktElementClass, Sensor, {FileCtrl,} { ExportCIMXML,} NamedObject;
+     Classes,  CktElementClass, Sensor, {FileCtrl,} { ExportCIMXML,} NamedObject,
+     PerlRegEx;
 
 Var
    SaveCommands, DistributeCommands,  DI_PlotCommands,
@@ -245,6 +247,49 @@ Begin
 
      End;
 
+End;
+
+//----------------------------------------------------------------------------
+FUNCTION DoBatchEditCmd:Integer;
+// batchedit type=xxxx name=pattern  editstring
+VAR
+   ObjType, Pattern:String;
+   RegEx1: TPerlRegEx;
+   pObj: TDSSObject;
+   Params: Integer;
+Begin
+  Result := 0;
+  GetObjClassAndName(ObjType, Pattern);
+  IF CompareText(ObjType, 'circuit')=0 THEN Begin
+    // Do nothing
+  End ELSE Begin
+
+    LastClassReferenced := ClassNames.Find(ObjType);
+
+    CASE LastClassReferenced of
+      0: Begin
+        DoSimpleMsg('BatchEdit Command: Object Type "' + ObjType + '" not found.'+ CRLF + parser.CmdString, 267);
+        Exit;
+        End;{Error}
+    ELSE
+      Params:=Parser.Position;
+      ActiveDSSClass := DSSClassList.Get(LastClassReferenced);
+      RegEx1:=TPerlRegEx.Create;
+      RegEx1.Options:=[preCaseLess];
+      RegEx1.RegEx:=UTF8String(Pattern);
+      ActiveDSSClass.First;
+      pObj:=ActiveDSSClass.GetActiveObj;
+      while pObj <> Nil do begin
+        RegEx1.Subject:=UTF8String(pObj.Name);
+        if RegEx1.Match then begin
+          Parser.Position:=Params;
+          ActiveDSSClass.Edit;
+        end;
+        ActiveDSSClass.Next;
+        pObj:=ActiveDSSClass.GetActiveObj;
+      end;
+    End;
+  End;
 End;
 
 //----------------------------------------------------------------------------

@@ -112,7 +112,9 @@ TYPE
         QMultipliers :pDoubleArray;  // Multipliers
 
         MaxP,
-        MaxQ :Double;
+        MaxQ,
+        BaseP,
+        BaseQ :Double;
 
         UseActual :Boolean;
 
@@ -145,7 +147,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  MathUtil, Utilities, Classes, TOPExport, Math, PointerList;
 
-Const NumPropsThisClass = 16;
+Const NumPropsThisClass = 18;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLoadShape.Create;  // Creates superstructure for all Line objects
@@ -195,6 +197,8 @@ Begin
      PropertyName[14] := 'Qmax'; // MaxQ
      PropertyName[15] := 'sinterval'; // Interval in seconds
      PropertyName[16] := 'minterval'; // Interval in minutes
+     PropertyName[17] := 'Pbase'; // for normalization, use peak if 0
+     PropertyName[18] := 'Qbase'; // for normalization, use peak if 0
 
      // define Property help values
 
@@ -247,7 +251,8 @@ Begin
                          'Use this property to override the value automatically computed or to retrieve the value computed.';
      PropertyHelp[15] := 'Specify fixed interval in SECONDS. Alternate way to specify Interval property.';
      PropertyHelp[16] := 'Specify fixed interval in MINUTES. Alternate way to specify Interval property.';
-
+     PropertyHelp[17] := 'Base P value for normalization. Default is zero, meaning the peak will be used.';
+     PropertyHelp[18] := 'Base Q value for normalization. Default is zero, meaning the peak will be used.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -322,6 +327,8 @@ BEGIN
            14: MaxQ := Parser.DblValue;
            15: Interval := Parser.DblValue / 3600.0;  // Convert seconds to hr
            16: Interval := Parser.DblValue / 60.0;  // Convert minutes to hr
+           17: BaseP := Parser.DblValue;
+           18: BaseQ := Parser.DblValue;
          ELSE
            // Inherited parameters
              ClassEdit( ActiveLoadShapeObj, ParamPointer - NumPropsThisClass)
@@ -376,6 +383,8 @@ BEGIN
         END;
         SetMaxPandQ;
         UseActual := OtherLoadShape.UseActual;
+        BaseP := OtherLoadShape.BaseP;
+        BaseQ := OtherLoadShape.BaseQ;
 
 
        { MaxP :=  OtherLoadShape.MaxP;
@@ -581,6 +590,8 @@ BEGIN
      QMultipliers := Nil;
      MaxP         := 1.0;
      MaxQ         := 0.0;
+     BaseP        := 0.0;
+     BaseQ        := 0.0;
      UseActual    := FALSE;
      FStdDevCalculated := FALSE;  // calculate on demand
 
@@ -694,24 +705,29 @@ END;
 Procedure TLoadShapeObj.Normalize;
 // normalize this load shape
 VAR
+  MaxMult:Double;
 
-   MaxMult:Double;
-
- Procedure DoNormalize(Multipliers:pDoubleArray);
- Var i:Integer;
- Begin
-   If FNumPoints>0 THEN BEGIN
-     MaxMult := Abs(Multipliers^[1]);
-     FOR i := 2 TO FNumPoints DO   MaxMult := Max(MaxMult, Abs(Multipliers^[i]));
-     IF MaxMult = 0.0 THEN MaxMult := 1.0; // Avoid divide by zero
-     FOR i := 1 TO FNumPoints DO Multipliers^[i] := Multipliers^[i]/MaxMult;
-   END;
- End;
+  Procedure DoNormalize(Multipliers:pDoubleArray);
+  Var i:Integer;
+  Begin
+    If FNumPoints>0 THEN BEGIN
+      if MaxMult <= 0.0 then begin
+        MaxMult := Abs(Multipliers^[1]);
+        FOR i := 2 TO FNumPoints DO   MaxMult := Max(MaxMult, Abs(Multipliers^[i]));
+      end;
+      IF MaxMult = 0.0 THEN MaxMult := 1.0; // Avoid divide by zero
+      FOR i := 1 TO FNumPoints DO Multipliers^[i] := Multipliers^[i]/MaxMult;
+    END;
+  End;
 
 BEGIN
-   DoNormalize(PMultipliers);
-   If Assigned(QMultipliers) Then  DoNormalize(QMultipliers);
-   UseActual := FALSE;  // not likely that you would want to use the actual if you normalized it.
+  MaxMult:=BaseP;
+  DoNormalize(PMultipliers);
+  If Assigned(QMultipliers) Then Begin
+    MaxMult:=BaseQ;
+    DoNormalize(QMultipliers);
+  end;
+  UseActual := FALSE;  // not likely that you would want to use the actual if you normalized it.
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -863,6 +879,8 @@ begin
           14: Result := Format('%.8g', [MaxQ ]);
           15: Result := Format('%.8g', [Interval * 3600.0 ]);
           16: Result := Format('%.8g', [Interval * 60.0 ]);
+          17: Result := Format('%.8g', [BaseP ]);
+          18: Result := Format('%.8g', [BaseQ ]);
         ELSE
            Result := Inherited GetPropertyValue(index);
         END;
