@@ -72,8 +72,8 @@
 						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
-						<VersionInfo Name="Release">2</VersionInfo>
-						<VersionInfo Name="Build">155</VersionInfo>
+						<VersionInfo Name="Release">3</VersionInfo>
+						<VersionInfo Name="Build">2</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -85,13 +85,13 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.4.2.155</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.4.3.2</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSS</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008-2011 EPRI, All Rights Reserved.</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
 						<VersionInfoKeys Name="OriginalFilename"/>
 						<VersionInfoKeys Name="ProductName">OpenDSS</VersionInfoKeys>
-						<VersionInfoKeys Name="ProductVersion">7.4.2</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">7.4.3</VersionInfoKeys>
 						<VersionInfoKeys Name="Comments"/>
 					</VersionInfoKeys>
 					<Source>
