@@ -2068,8 +2068,11 @@ begin
     WITH ActiveCircuit Do
     Begin
          LoadMultiplier := 1.0;   // Property .. has side effects
-         Solution.Mode := SNAPSHOT;
-         Solution.Solve;  {Make guess based on present allocationfactors}
+         With Solution Do
+         Begin
+             If Mode <> SNAPSHOT Then Mode := SNAPSHOT;   // Resets meters, etc. if not in snapshot mode
+             Solve;  {Make guess based on present allocationfactors}
+         End;
 
          {Allocation loop -- make MaxAllocationIterations iterations}
          FOR iterCount := 1 to MaxAllocationIterations Do Begin
