@@ -418,7 +418,12 @@ Begin
     Circuits.Free;
     Circuits := TPointerList.Create(2);   // Make a new list of circuits
     NumCircuits := 0;
-    DefaultEarthModel     := DERI;  //original state
+
+    // Revert on key global flags to Original States
+    DefaultEarthModel     := DERI;
+    LogQueries            := FALSE;
+    MaxAllocationIterations := 2;
+
 End;
 
 
@@ -603,7 +608,7 @@ initialization
    InvSQRT3x1000         := InvSQRT3 * 1000.0;
    CmdResult             := 0;
    DIFilesAreOpen        := FALSE;
-   ErrorNumber           :=0;
+   ErrorNumber           := 0;
    ErrorPending          := FALSE;
    GlobalHelpString      := '';
    GlobalPropertyValue   := '';
