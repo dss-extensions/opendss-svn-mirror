@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 81;
+        NumExecOptions = 82;
 
 VAR
          ExecOption,
@@ -25,8 +25,8 @@ FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circ
 
 implementation
 
-Uses DSSClassDefs, DSSGlobals, ParserDel, Math, Executive, ExecHelper,
-     LoadShape, Utilities, sysutils, solution, energymeter;
+Uses DSSClassDefs, DSSGlobals, ParserDel, Math,     Executive,  ExecHelper,
+     LoadShape,    Utilities,  Sysutils,  Solution, Energymeter;
 
 
 PROCEDURE DefineOptions;
@@ -114,6 +114,7 @@ Begin
      ExecOption[79] := 'TransMarkerSize';
      ExecOption[80] := 'LoadShapeClass';
      ExecOption[81] := 'EarthModel';
+     ExecOption[82] := 'QueryLog';
 
 
 
@@ -324,6 +325,8 @@ Begin
                        'a  fit to the Full Carson that works well into high frequencies. ' +
                        '"Carson" is the simplified Carson method that is typically used for 50/60 Hz power flow programs. ' +
                        'Applies only to Line objects that use LineGeometry objects to compute impedances.';
+     OptionHelp[82] := '{YES/TRUE | NO/FALSE} Default = FALSE. When set to TRUE/YES, clears the query log file and thereafter appends ' +
+                       'the time-stamped Result string contents to the log file after a query command, ?. ';
 
 End;
 //----------------------------------------------------------------------------
@@ -517,6 +520,10 @@ Begin
            79: ActiveCircuit.TransMarkerSize  := Parser.IntValue;
            80: ActiveCircuit.ActiveLoadShapeClass := InterpretLoadShapeClass(Param);
            81: DefaultEarthModel := InterpretEarthModel(Param);
+           82: Begin
+                   LogQueries := InterpretYesNo(Param);
+                   If LogQueries Then ResetQueryLogFile;
+               End;
          ELSE
            // Ignore excess parameters
          End;
@@ -662,6 +669,7 @@ Begin
            79: AppendGlobalResult(Format('%d' ,[ActiveCircuit.TransMarkerSize]));
            80: AppendGlobalResult(GetActiveLoadShapeClass);
            81: AppendGlobalResult(GetEarthModel(DefaultEarthModel));
+           82: If LogQueries Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
          ELSE
            // Ignore excess parameters
          End;

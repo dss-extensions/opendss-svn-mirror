@@ -5,7 +5,7 @@ interface
 Uses Command;
 
 CONST
-        NumShowOptions = 31;
+        NumShowOptions = 32;
 
 FUNCTION DoShowCmd:Integer;
 
@@ -57,6 +57,7 @@ Begin
     ShowOption[29] := 'mismatch';
     ShowOption[30] := 'kvbasemismatch';
     ShowOption[31] := 'deltaV';
+    ShowOption[32] := 'QueryLog';
 
 
 
@@ -129,6 +130,7 @@ Begin
     ShowHelp[30] := 'Creates a report of Load and Generator elements for which the base voltage does not match the Bus base voltage. ' +
                     'Scripts for correcting the voltage base are suggested.';
     ShowHelp[31] := 'Show voltages ACROSS each 2-terminal element, phase-by-phase. ';
+    ShowHelp[32] := 'Show Query Log file. ';
 
 End;
 
@@ -325,6 +327,7 @@ Begin
       29: ShowNodeCurrentSum(DSSDataDirectory + CircuitName_ + 'NodeMismatch.Txt');
       30: ShowkVBaseMismatch(DSSDataDirectory + CircuitName_ + 'kVBaseMismatch.Txt');
       31: ShowDeltaV(DSSDataDirectory + CircuitName_ + 'DeltaV.Txt');
+      32: FireOffEditor(QueryLogFileName);
    ELSE
    End;
 

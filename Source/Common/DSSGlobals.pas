@@ -158,6 +158,11 @@ VAR
    GlobalResult       :String;
    VersionString      :String;
 
+   LogQueries         :Boolean;
+   QueryFirstTime     :Boolean;
+   QueryLogFileName   :String;
+   QueryLogFile       :TextFile;
+
    DefaultEditor    :String;     // normally, Notepad
    DefaultFontSize  :Integer;
    DSSFileName      :String;     // Name of current exe or DLL
@@ -210,6 +215,9 @@ PROCEDURE MakeNewCircuit(Const Name:String);
 
 PROCEDURE AppendGlobalResult(Const s:String);
 PROCEDURE AppendGlobalResultCRLF(const S:String);  // Separate by CRLF
+
+PROCEDURE ResetQueryLogFile;
+PROCEDURE WriteQueryLogFile(Const Prop, S:String);
 
 PROCEDURE WriteDLLDebugFile(Const S:String);
 
@@ -551,6 +559,37 @@ Begin
      DSS_Registry.WriteString('LastFile',      LastFileCompiled);
 End;
 
+PROCEDURE ResetQueryLogFile;
+Begin
+     QueryFirstTime := TRUE;
+End;
+
+
+PROCEDURE WriteQueryLogfile(Const Prop, S:String);
+
+{Log file is written after a query command if LogQueries is true.}
+
+Begin
+
+  TRY
+        QueryLogFileName :=  DSSDataDirectory + 'QueryLog.CSV';
+        AssignFile(QueryLogFile, QueryLogFileName);
+        If QueryFirstTime then
+        Begin
+             Rewrite(QueryLogFile);  // clear the file
+             Writeln(QueryLogFile, 'Time(h), Property, Result');
+             QueryFirstTime := False;
+        end
+        Else Append( QueryLogFile);
+
+        Writeln(QueryLogFile,Format('%.10g, %s, %s',[ActiveCircuit.Solution.dblHour, Prop, S]));
+        CloseFile(QueryLogFile);
+  EXCEPT
+        On E:Exception Do DoSimpleMsg('Error writing Query Log file: ' + E.Message, 908);
+  END;
+
+End;
+
 
 
 initialization
@@ -596,13 +635,17 @@ initialization
    DSS_IniFileName  := 'OpenDSSPanel.ini';
    DSS_Registry     := TIniRegSave.Create('\Software\OpenDSS');
 
-   AuxParser      := TParser.Create;
-   DefaultEditor  := 'NotePad';
+   AuxParser       := TParser.Create;
+   DefaultEditor   := 'NotePad';
    DefaultFontSize := 8;
-   NoFormsAllowed := FALSE;
+   NoFormsAllowed  := FALSE;
 
-   EventStrings  := TStringList.Create;
-   SavedFileList := TStringList.Create;
+   EventStrings    := TStringList.Create;
+   SavedFileList   := TStringList.Create;
+
+   LogQueries        := FALSE;
+   QueryLogFileName  := '';
+
 
    //WriteDLLDebugFile('DSSGlobals');
 

@@ -1297,13 +1297,15 @@ Begin
 
      ParseObjName(Param, ObjName, PropName);
 
-     IF CompareText(ObjName,'solution')=0 THEN  Begin  // special for solution
-       ActiveDSSClass  := SolutionClass;
-       ActiveDSSObject := ActiveCircuit.Solution;
-     End ELSE Begin
-       // Set Object Active
-       parser.cmdstring := '"' + Objname + '"';
-       DoSelectCmd;
+     IF CompareText(ObjName,'solution')=0 THEN
+     Begin  // special for solution
+         ActiveDSSClass  := SolutionClass;
+         ActiveDSSObject := ActiveCircuit.Solution;
+     End ELSE
+     Begin
+         // Set Object Active
+         parser.cmdstring := '"' + Objname + '"';
+         DoSelectCmd;
      End;
 
      // Put property value in global VARiable
@@ -1314,7 +1316,8 @@ Begin
         GlobalPropertyValue := 'Property Unknown';
 
      GlobalResult := GlobalPropertyValue;
-     //MessageDlg(Param + ' = ' + GlobalPropertyValue,  mtCustom, [mbOK], 0);
+
+     If LogQueries Then WriteQueryLogFile(param, GlobalResult); // write time-stamped query
 
 End;
 
