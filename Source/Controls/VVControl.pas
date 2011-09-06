@@ -210,14 +210,13 @@ Begin
   PropertyHelp[15] :=
     'Array list of generators to be dispatched.  If not specified, all generators in the circuit are assumed dispatchable.';
   PropertyHelp[16] :=
-    'Array of proportional weights corresponding to each generator in the GenList.'
-    + ' The needed kW to get back to center band is dispatched to each generator according to these weights. ' + 'Default is to set all weights to 1.0.';
+    'Array of proportional weights corresponding to each generator in the GenList. The needed kW to get back to center band is dispatched to each generator according to these weights. Default is to set all weights to 1.0.';
   PropertyHelp[17] :=
-    'Number of points expected to be in the volt curve or the var curve.';
+    'Number of points expected to be in the volt curve or the var curve (XYcurve object).';
   PropertyHelp[18] :=
-    'Name of the volt-var curve that has been previously defined using the VVC_Curve object.';
-  PropertyName[19] :=
-    'deltaQ_factor.  The maximum change in per-unit from the prior var output to the var output indicated by the volt-var curve.';
+    'Name of the volt-var curve that has been previously defined using the XYcurve object.';
+  PropertyHelp[19] :=
+    'The maximum change in per-unit from the prior var output to the var output indicated by the volt-var curve (XYcurve object).';
 
   ActiveProperty := NumPropsThisClass;
   inherited DefineProperties; // Add defs of inherited properties to bottom of list
