@@ -307,6 +307,7 @@ BEGIN
             4: BEGIN
                  ReAllocmem(Hours, Sizeof(Hours^[1])*NumPoints);
                  InterpretDblArray(Param, NumPoints, Hours);   // Parser.ParseAsVector(Npts, Hours);
+                 Interval := 0.0;
                END;
             5: Mean := Parser.DblValue;
             6: StdDev := Parser.DblValue;
