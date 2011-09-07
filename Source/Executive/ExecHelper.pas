@@ -548,6 +548,7 @@ Begin
      WriteClassFile(DSSClass, SaveFile, FALSE); // just write the class with no checks
    End;
 
+   LastResultFile := SaveFile;
    GlobalResult := SaveFile;
 
 End;
@@ -1044,7 +1045,7 @@ Begin
   IF retval>0 THEN
     Begin
        ParamName := Parser.NextParam;                 
-       Terminal := Parser.IntValue;
+       Terminal  := Parser.IntValue;
        ParamName := Parser.NextParam;
        Conductor := Parser.IntValue;
 

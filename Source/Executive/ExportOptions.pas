@@ -252,6 +252,7 @@ Begin
    Result := 0;
    InShowResults := False;
 
+   LastResultFile := FileName;
    If AutoShowExport then  FireOffEditor(FileName);
 
 End;

@@ -156,6 +156,7 @@ VAR
    GlobalHelpString   :String;
    GlobalPropertyValue:String;
    GlobalResult       :String;
+   LastResultFile     :String;
    VersionString      :String;
 
    LogQueries         :Boolean;
@@ -612,6 +613,7 @@ initialization
    ErrorPending          := FALSE;
    GlobalHelpString      := '';
    GlobalPropertyValue   := '';
+   LastResultFile        := '';
    In_Redirect           := FALSE;
    InShowResults         := FALSE;
    IsDLL                 := FALSE;

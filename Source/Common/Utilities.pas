@@ -234,8 +234,9 @@ Begin
   TRY
   If FileExists(FileNm) Then
   Begin
-      retval := ShellExecute (0, Nil,
-        PChar(DefaultEditor), PChar(FileNm), Nil, SW_SHOW);
+      retval := ShellExecute (0, Nil, PChar(DefaultEditor), PChar(FileNm), Nil, SW_SHOW);
+      LastResultFile := FileNm;
+
       Case Retval of
           0: DoSimpleMsg('System out of memory. Cannot start Editor.', 700);
           ERROR_BAD_FORMAT: DoSimpleMsg('Editor File is Invalid.', 701);
@@ -510,7 +511,18 @@ FUNCTION InterpretDblArray(const s: string; MaxValues:Integer; ResultArray :pDou
 
 { Get numeric values from an array specified either as a list on numbers or a text file spec.
   ResultArray must be allocated to MaxValues by calling routine.
-  File is assumed to have one value per line.}
+
+  9/7/2011 Modified to allow multi-column CSV files and result file
+
+  CSV File my have one value per line or multiple columns and a header row.
+  Example:
+          ... mult=[file = myfilename, column=2, header=yes]
+          ... mult=[file = %result%, column=2, header=yes]    // last result file
+
+          file= must be first
+          the %result% variable implies the last result file
+
+}
 
 VAR
    ParmName,
@@ -519,6 +531,11 @@ VAR
    MyStream :TMemoryStream;
    i        :Integer;
    Temp     :Single;
+   CSVFileName :String;
+   CSVColumn    :Integer;
+   CSVHeader   :Boolean;
+   InputLIne   :String;
+   iskip       :Integer;
 
 Begin
 
@@ -531,22 +548,52 @@ Begin
 
      If CompareText(Parmname, 'file') = 0  THEN
      Begin
+         {Default values}
+         If compareText(param, '%result%')=0 Then CSVFileName := LastResultFile
+                                             Else CSVFileName := Param;
+         If Not FileExists(CSVFileName) Then
+         Begin
+             DoSimpleMsg(Format('CSV file "%s" does not exist', [CSVFileName]), 70401);
+             Exit;
+         End;
+
+         // Default options
+         CSVColumn := 1;
+         CSVHeader := FALSE;
+
+         // Look for other options  (may be in either order)
+         ParmName := Auxparser.NextParam ;
+         Param := AuxParser.StrValue;
+         While Length(Param) > 0 Do  Begin
+             If CompareTextShortest(ParmName, 'column')= 0 Then CSVColumn := AuxParser.IntValue;
+             If CompareTextShortest(ParmName, 'header')= 0 Then CSVHeader := InterpretYesNo(param);
+             ParmName := Auxparser.NextParam ;
+             Param := AuxParser.StrValue;
+         End;
+
          // load the list from a file
+
          TRY
-             AssignFile(F, Param);
+             AssignFile(F, CSVFileName);
              Reset(F);
-             
+
+             If CSVHeader Then Readln(F, InputLIne);  // skip the header row
+
              FOR i := 1 to MaxValues Do Begin
 
                  TRY
-                    IF Not EOF(F)
-                    THEN Readln(F, ResultArray^[i])
+                    IF Not EOF(F) THEN
+                    begin
+                      Readln(F, InputLIne);
+                      Auxparser.CmdString := InputLine;
+                      For iskip := 1 to CSVColumn Do ParmName := AuxParser.NextParam;
+                      ResultArray^[i] := AuxParser.dblValue;
+                    end
                     ELSE Begin
                       Result := i-1 ;  // This will be different if less found;
                       Break;
                     End;
                  Except
-
                     On E:Exception Do Begin
                       DoSimpleMsg(Format('Error reading %d-th numeric array value from file: "%s" Error is:', [i, Param, E.message]), 705);
                       Result := i-1;
@@ -574,7 +621,7 @@ Begin
                 Result := Min(Maxvalues, MyStream.Size div sizeof(ResultArray^[1]));  // no. of doubles
                 MyStream.ReadBuffer(ResultArray^[1], SizeOf(ResultArray^[1])*Result);
              End
-             Else DoSimpleMsg(Format('File of doubles "%s" not found.',[Param]), 7051);
+             Else DoSimpleMsg(Format('File of doubles "%s" not found.',[Param]), 70501);
              MyStream.Free;
      End
 
@@ -592,7 +639,7 @@ Begin
                     ResultArray^[i] := Temp;  // Single to Double
                 End;
              End
-             Else DoSimpleMsg(Format('File of Singles "%s" not found.',[Param]), 7052);
+             Else DoSimpleMsg(Format('File of Singles "%s" not found.',[Param]), 70502);
              MyStream.Free;
 
      End
