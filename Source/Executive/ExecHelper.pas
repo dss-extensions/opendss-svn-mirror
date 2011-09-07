@@ -806,6 +806,7 @@ Begin
 
     IF CompareText(Copy(lowercase(Param),1,5), 'alloc')=0 THEN
     Begin
+        FileName :=DSSDataDirectory + 'AllocationFactors.Txt';
         DumpAllocationFactors(FileName);
         FireOffEditor(FileName);
         Exit;

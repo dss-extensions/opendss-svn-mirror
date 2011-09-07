@@ -1199,8 +1199,7 @@ Var
 Begin
 
   TRY
-      FileName :=DSSDataDirectory + 'AllocationFactors.Txt';
-      AssignFile(F,  FileName);
+      AssignFile(F, FileName);
       Rewrite(F);
   EXCEPT
       On E:Exception DO
@@ -1224,6 +1223,8 @@ Begin
     End; {With}
 
   CloseFile(F);
+
+  GlobalResult := FileName;
 
 End;
 
