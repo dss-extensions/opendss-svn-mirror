@@ -109,6 +109,7 @@ interface
          FUNCTION DoRephaseCmd:Integer;
          FUNCTION DoSetBusXYCmd:Integer;
          FUNCTION DoUpdateStorageCmd:Integer;
+         FUNCTION DoPstCalc:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -139,12 +140,12 @@ USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
      Classes,  CktElementClass, Sensor, {FileCtrl,} { ExportCIMXML,} NamedObject,
-     PerlRegEx;
+     PerlRegEx, PstCalc;
 
 Var
    SaveCommands, DistributeCommands,  DI_PlotCommands,
    ReconductorCommands, RephaseCommands, AddMarkerCommands,
-   SetBusXYCommands :TCommandList;
+   SetBusXYCommands, PstCalcCommands :TCommandList;
 
 
 
@@ -3521,7 +3522,7 @@ Begin
      End;
 
      If not (pStartLine.MeterObj is TEnergyMeterObj) then  Begin
-         DosimpleMsg('Starting Line must be in an EnergyMeter zone.', 28713);
+         DosimpleMsg('Starting Line must be in an EnergyMeter zone.', 28714);
          Exit;
      End;
 
@@ -3584,6 +3585,66 @@ Begin
        Result := 0;
 End;
 
+FUNCTION DoPstCalc;
+
+Var
+     Param          :String;
+     ParamName      :String;
+     ParamPointer   :Integer;
+     Npts           :Integer;
+     Varray         :pDoubleArray;
+     CyclesPerSample:Integer;
+     Lamp           :Integer;
+     PstArray       :pDoubleArray;
+     nPst           :Integer;
+     i              :integer;
+     S              :String;
+     Freq           :Double;
+
+Begin
+
+     Result := 0;
+     Varray   := nil;
+     PstArray := nil;
+     Npts   := 0;
+     Lamp   := 120;  // 120 or 230
+     CyclesPerSample := 60;
+     Freq := DefaultBaseFreq;
+
+     ParamName      := Parser.NextParam;
+     Param          := Parser.StrValue;
+     ParamPointer   := 0;
+     while Length(Param) > 0 do Begin
+         IF    Length(ParamName) = 0 THEN Inc(ParamPointer)
+         ELSE  ParamPointer := PstCalcCommands.GetCommand(ParamName);
+         // 'Npts', 'Voltages', 'cycles', 'lamp'
+         Case ParamPointer of
+            1: Begin
+                 Npts  := Parser.IntValue;
+                 Reallocmem(Varray, SizeOf(Varray^[1])*Npts);
+               End;
+            2: Npts    := InterpretDblArray(Param, Npts, Varray);
+            3: CyclesPerSample := Round(ActiveCircuit.Solution.Frequency * Parser.IntValue);
+            4: Freq   := Parser.DblValue;
+            5: Lamp    := Parser.IntValue;
+         Else
+            DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28722);
+         End;
+
+        ParamName := Parser.NextParam;
+        Param := Parser.StrValue;
+     End;
+
+     nPst := PstRMS(PstArray, Varray, Freq, CyclesPerSample, Npts, Lamp);
+
+     S := '';
+     For i := 1 to nPst Do  S := S + Format('%.8g, ', [PstArray^[i]]);
+     GlobalResult := S;
+
+     Reallocmem(Varray,   0);   // discard temp arrays
+     Reallocmem(PstArray, 0);
+End;
+
 initialization
 
 {Initialize Command lists}
@@ -3606,6 +3667,9 @@ initialization
     SetBusXYCommands := TCommandList.Create(['Bus', 'x', 'y']);
     SetBusXYCommands.Abbrev := True;
 
+    PstCalcCommands := TCommandList.Create(['Npts', 'Voltages', 'dt', 'Frequency', 'lamp']);
+    PstCalcCommands.abbrev := True;
+
 finalization
 
     DistributeCommands.Free;
@@ -3615,5 +3679,6 @@ finalization
     ReconductorCommands.Free;
     RephaseCommands.Free;
     SetBusXYCommands.Free;
+    PstCalcCommands.Free;
 
 end.

@@ -184,7 +184,8 @@ uses
   CableConstants in '..\General\CableConstants.pas',
   VVControl in '..\Controls\VVControl.pas',
   pcre in '..\TPerlRegEx\pcre.pas',
-  PerlRegEx in '..\TPerlRegEx\PerlRegEx.pas';
+  PerlRegEx in '..\TPerlRegEx\PerlRegEx.pas',
+  Pstcalc in '..\Shared\Pstcalc.pas';
 
 exports
   DllGetClassObject,

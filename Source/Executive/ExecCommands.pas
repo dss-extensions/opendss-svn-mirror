@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 95;
+     NumExecCommands = 96;
 
 Var
 
@@ -131,6 +131,7 @@ Begin
      ExecCommand[93] := 'Obfuscate';
      ExecCommand[94] := 'LatLongCoords';
      ExecCommand[95] := 'BatchEdit';
+     ExecCommand[96] := 'Pstcalc';
 
 
 
@@ -413,6 +414,11 @@ Begin
      CommandHelp[95] := 'Batch edit objects in the same class. Example: BatchEdit Load..* duty=duty_shape' + CRLF +
                         'In place of the object name, supply a PERL regular expression. .* matches all names.' + CRLF +
                         'The subsequent parameter string is applied to each object selected.';
+     CommandHelp[96] := 'Pst calculation. PstCalc Npts=nnn Voltages=[array] dt=nnn freq=nn lamp=120 or 230.' +CRLF+
+                        'Set Npts to a big enough value to hold the incoming voltage array. ' +CRLF+
+                        'dt = time increment in seconds. default is 1'+CRLF+
+                        'freq = base frequency in Hz 50 or 60. Default is default base frequency' +CRLF+
+                        'Lamp= 120 for North America; 230 for Europe. Default is 120';
 
 End;
 
@@ -625,6 +631,7 @@ Begin
        93: Obfuscate;
        94: CmdResult := DoBusCoordsCmd(TRUE);   // swaps X and Y
        95: CmdResult := DoBatchEditCmd;
+       96: CmdResult := DoPstCalc;
      ELSE
        // Ignore excess parameters
      End;

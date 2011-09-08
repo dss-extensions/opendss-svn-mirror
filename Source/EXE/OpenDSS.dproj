@@ -73,7 +73,7 @@
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">3</VersionInfo>
-						<VersionInfo Name="Build">6</VersionInfo>
+						<VersionInfo Name="Build">7</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -85,7 +85,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Distribution System Simulator</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.4.3.6</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.4.3.7</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSS</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008-2011 EPRI, All Rights Reserved.</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
@@ -270,6 +270,7 @@
 			<DCCReference Include="..\Controls\VVControl.pas"/>
 			<DCCReference Include="..\TPerlRegEx\PerlRegEx.pas"/>
 			<DCCReference Include="..\TPerlRegEx\pcre.pas"/>
+			<DCCReference Include="..\Shared\Pstcalc.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

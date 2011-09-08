@@ -163,7 +163,8 @@ uses
   CableConstants in '..\General\CableConstants.pas',
   VVControl in '..\Controls\VVControl.pas',
   PerlRegEx in '..\TPerlRegEx\PerlRegEx.pas',
-  pcre in '..\TPerlRegEx\pcre.pas';
+  pcre in '..\TPerlRegEx\pcre.pas',
+  Pstcalc in '..\Shared\Pstcalc.pas';
 
 {$R *.RES}
 
