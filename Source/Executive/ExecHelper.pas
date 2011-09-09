@@ -3624,7 +3624,7 @@ Begin
                  Reallocmem(Varray, SizeOf(Varray^[1])*Npts);
                End;
             2: Npts    := InterpretDblArray(Param, Npts, Varray);
-            3: CyclesPerSample := Round(ActiveCircuit.Solution.Frequency * Parser.IntValue);
+            3: CyclesPerSample := Round(ActiveCircuit.Solution.Frequency * Parser.dblvalue);
             4: Freq   := Parser.DblValue;
             5: Lamp    := Parser.IntValue;
          Else
