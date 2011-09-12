@@ -467,8 +467,6 @@ PROCEDURE TVVControlObj.RecalcElementData;
 
 VAR
   DevIndex: Integer;
-  // i        :Integer;
-  tempstring: string;
 Begin
 
   { Check for existence of monitored element }
@@ -591,10 +589,10 @@ End;
 PROCEDURE TVVControlObj.DoPendingAction;
 VAR
   i: Integer;
-  DeltaQ, Qheadroom, Qdesiredpu, PNeeded, QNeeded, PPresentGenOutput,
-    QPresentGenOutput, PMonitoredElement, QMonitoredElement, Genkvar: Double;
+  DeltaQ, Qheadroom, Qdesiredpu, QNeeded, PPresentGenOutput,
+    QPresentGenOutput, QMonitoredElement, Genkvar: Double;
   SMonitoredElement, SPresentGenOutput: Complex;
-  GenkvarChanged: Boolean;
+
 
   Gen: TGeneratorObj;
 
@@ -677,8 +675,8 @@ END;
 PROCEDURE TVVControlObj.Sample;
 VAR
   i: Integer;
-  SMonitoredElement: Complex;
-  basekV, Vavg, PNeeded, QNeeded, PMonitoredElement, QMonitoredElement: Double;
+
+  basekV, Vavg : Double;
 
 BEGIN
   // If list is not defined, go make one for all generators in circuit
