@@ -1,7 +1,7 @@
 unit Transformer;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2011, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -15,6 +15,7 @@ unit Transformer;
    1-23-03 Added code to get 30 deg lag correct of y-delta transformers
    2-18-03 changed Rneut default to open (-1)
    2-21-03 changed automatic resetting of connection designator upon changing Rneut
+   9-12-11 Fixed pctLoadLoss problem with sequence of definition with kVA property
 }
 
 { You can designate a transformer to be a substation by setting the sub=yes parameter}
@@ -478,13 +479,13 @@ Begin
          CASE ParamPointer OF
            1: NConds := Fnphases+1;  // Force redefinition of number of conductors and reallocation of matrices
           // default all winding kvas to first winding so latter Donot have to be specified
-           7:IF (ActiveWinding = 1) THEN Begin
+           7:IF (ActiveWinding = 1) THEN
+             Begin
                  FOR i := 2 to NumWindings Do Winding^[i].kVA := Winding^[1].kVA;
                  NormMaxHkVA     := 1.1 * Winding^[1].kVA;    // Defaults for new winding rating.
                  EmergMaxHkVA    := 1.5 * Winding^[1].kVA;
-                 Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
-                 Winding^[2].Rpu := Winding^[1].Rpu;
-              End Else If NumWindings=2 Then Begin
+              End Else If NumWindings=2 Then
+              Begin
                   Winding^[1].kVA := Winding^[2].kVA;  // For 2-winding, force both kVAs to be same
               End;
            // Update LoadLosskW if winding %r changed. Using only windings 1 and 2
@@ -495,19 +496,21 @@ Begin
              End;
           17..19: XHLChanged := True;
           20: For i := 1 to ((NumWindings - 1) * NumWindings div 2) Do Xsc^[i] := Xsc^[i]*0.01;  // Convert to per unit
-          
+
           26: Begin    // Assume load loss is split evenly  between windings 1 and 2
                  Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
                  Winding^[2].Rpu := Winding^[1].Rpu;
               End;
+          37: pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0;  // Update
 
          ELSE
          End;
 
          //YPrim invalidation on anything that changes impedance values
          CASE ParamPointer OF
-           5..19  : YprimInvalid := True;
-           26, 27, 35, 36 : YprimInvalid := True;
+           5..19  : YprimInvalid := TRUE;
+           26..27 : YprimInvalid := TRUE;
+           35..37 : YprimInvalid := TRUE;
          ELSE
          End;
 
@@ -808,7 +811,7 @@ Begin
   HSrise           := 15.0;  // Hot spot rise
   NormMaxHkVA      := 1.1 * Winding^[1].kVA;
   EmergMaxHkVA     := 1.5 * Winding^[1].kVA;
-  pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings
+  pctLoadLoss      := 2.0 * Winding^[1].Rpu * 100.0; //  assume two windings for init'ing
   ppm_FloatFactor  := 0.000001;
   {Compute antifloat added for each winding    }
   for i := 1 to NumWindings do  Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase/FNPhases);
@@ -832,20 +835,22 @@ PROCEDURE TTransfObj.SetNumWindings(N:Integer);
 VAR
   i          :Integer;
   OldWdgSize :Integer;
+  NewWdgSize :Integer;
 Begin
   IF N>1 THEN begin
     FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
-    OldWdgSize := (NumWindings-1) * NumWindings div 2;
+    OldWdgSize  := (NumWindings-1) * NumWindings div 2;
     NumWindings := N;
     MaxWindings := N;
-    FNconds := Fnphases + 1;
-    Nterms  := NumWindings;
+    NewWdgSize  := (NumWindings-1) * NumWindings div 2;
+    FNconds     := Fnphases + 1;
+    Nterms      := NumWindings;
     Reallocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);  // Reallocate collector array
     FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
 
     // array of short circuit measurements between pairs of windings
-    ReAllocmem(XSC, SizeOF(XSC^[1]) * ((NumWindings-1) * NumWindings div 2));
-    FOR i := OldWdgSize+1 to (NumWindings-1) * NumWindings div 2 Do  XSC^[i] := 0.30;
+    ReAllocmem(XSC, SizeOF(XSC^[1]) * NewWdgSize);
+    FOR i := OldWdgSize+1 to NewWdgSize Do  XSC^[i] := 0.30;
     Reallocmem(TermRef, SizeOf(TermRef^[1]) * 2 * NumWindings*Fnphases);
 
     {Reallocate impedance matrices}
@@ -861,7 +866,7 @@ Begin
     Y_Term     := TCMatrix.CreateMatrix(2 * NumWindings);
     Y_Term_NL  := TCMatrix.CreateMatrix(2 * NumWindings);
   end Else
-    Dosimplemsg('Invalid number of windings: ' + IntToStr(N) + ' for Transformer ' + Name, 111);
+    Dosimplemsg('Invalid number of windings: (' + IntToStr(N) + ') for Transformer ' + Name, 111);
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1504,8 +1509,8 @@ begin
      PropertyValue[23] := '.8';
      PropertyValue[24] := '65';
      PropertyValue[25] := '15';
-     PropertyValue[26] := Format('%.7g',[pctLoadLoss]);
-     PropertyValue[27] := Format('%.7g',[pctNoLoadLoss]);    // Defaults to zero
+     PropertyValue[26] := Format('%.7g', [pctLoadLoss]);
+     PropertyValue[27] := Format('%.7g', [pctNoLoadLoss]);    // Defaults to zero
      PropertyValue[28] := '';
      PropertyValue[29] := '';
      PropertyValue[30] := 'n';  // =y/n

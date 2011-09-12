@@ -1,7 +1,7 @@
 unit XfmrCode;
 {
   ----------------------------------------------------------
-  Copyright (c) 2009, Electric Power Research Institute, Inc.
+  Copyright (c) 2009-2011, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -226,22 +226,24 @@ END;
 PROCEDURE TXfmrCodeObj.SetNumWindings(N:Integer);
 VAR i          :Integer;
     OldWdgSize :Integer;
+    NewWdgSize :Integer;
 Begin
     IF N>1 THEN begin
         FOR i := 1 to NumWindings Do Winding^[i].Free;  // Free old winding objects
-        OldWdgSize := (NumWindings-1) * NumWindings div 2;
+        OldWdgSize  := (NumWindings-1) * NumWindings div 2;
         NumWindings := N;
         MaxWindings := N;
-        Reallocmem(Winding,  Sizeof(Winding^[1])*MaxWindings);  // Reallocate collector array
+        NewWdgSize  := (NumWindings-1) * NumWindings div 2;
+        Reallocmem(Winding,  Sizeof(Winding^[1]) * MaxWindings);  // Reallocate collector array
         FOR i := 1 to MaxWindings DO Winding^[i] := TWinding.Create;
-        ReAllocmem(XSC, SizeOF(XSC^[1]) * ((NumWindings-1) * NumWindings div 2));
-        FOR i := OldWdgSize+1 to (NumWindings-1) * NumWindings div 2 Do
+        ReAllocmem(XSC, SizeOF(XSC^[1]) * NewWdgSize);
+        FOR i := OldWdgSize+1 to NewWdgSize Do
           Begin
               XSC^[i] := 0.30;   // default to something
           End
     end
     Else
-       Dosimplemsg('Invalid number of windings: ' + IntToStr(N) + ' for Transformer ' +
+       Dosimplemsg('Invalid number of windings: (' + IntToStr(N) + ') for Transformer ' +
                    ActiveTransfObj.Name, 111);
 End;
 
@@ -346,8 +348,6 @@ Begin
                  FOR i := 2 to NumWindings Do Winding^[i].kVA := Winding^[1].kVA;
                  NormMaxHkVA     := 1.1 * Winding^[1].kVA;    // Defaults for new winding rating.
                  EmergMaxHkVA    := 1.5 * Winding^[1].kVA;
-                 Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
-                 Winding^[2].Rpu := Winding^[1].Rpu;
               End Else If NumWindings=2 Then Begin
                   Winding^[1].kVA := Winding^[2].kVA;  // For 2-winding, force both kVAs to be same
               End;
@@ -364,6 +364,7 @@ Begin
                  Winding^[1].Rpu := pctLoadLoss/2.0/100.0;
                  Winding^[2].Rpu := Winding^[1].Rpu;
               End;
+          33: pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0; // Keep this up to date
 
          ELSE
          End;
