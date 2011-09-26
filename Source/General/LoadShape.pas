@@ -209,7 +209,8 @@ Begin
      PropertyHelp[3] := 'Array of multiplier values for active power (P).  You can also use the syntax: '+CRLF+
                         'mult = (file=filename)     !for text file one value per line'+CRLF+
                         'mult = (dblfile=filename)  !for packed file of doubles'+CRLF+
-                        'mult = (sngfile=filename)  !for packed file of singles '+CRLF+CRLF+
+                        'mult = (sngfile=filename)  !for packed file of singles '+CRLF+
+                        'mult = (file=MyCSVFile.CSV, col=3, header=yes)  !for multicolumn CSV files '+CRLF+CRLF+
                         'Note: this property will reset Npts if the  number of values in the files are fewer.';     // vextor of hour values
      PropertyHelp[4] := 'Array of hour values. Only necessary to define for variable interval data.'+
                     ' If the data are fixed interval, do not use this property. ' +
