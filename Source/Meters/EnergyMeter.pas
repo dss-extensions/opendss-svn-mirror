@@ -342,7 +342,7 @@ VAR
 implementation
 USES  ParserDel, DSSClassDefs, DSSGlobals, Bus, Sysutils, MathUtil,  UCMatrix, 
       Utilities, PCElement,  StackDef, Circuit, Line, LineUnits,
-      Classes, {FileCtrl,} ReduceAlgs, Windows, Math;
+      Classes, ReduceAlgs, Windows, Math;
 
 
 Const NumPropsThisClass = 17;

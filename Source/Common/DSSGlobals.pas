@@ -234,7 +234,6 @@ implementation
 
 USES  {Forms,   Controls,}
      SysUtils,
-{     FileCtrl,}
      Windows,
      DSSForms,
      Solution,

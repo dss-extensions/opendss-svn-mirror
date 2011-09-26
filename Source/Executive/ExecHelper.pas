@@ -139,7 +139,7 @@ USES Command, ArrayDef, ParserDel, SysUtils, DSSClassDefs, DSSGlobals,
      uComplex,  mathutil,  Bus,  SolutionAlgs, 
      DSSForms,  ExecCommands, Executive, DssPlot, Dynamics,
      Capacitor, Reactor, Line, Lineunits, Math,
-     Classes,  CktElementClass, Sensor, {FileCtrl,} { ExportCIMXML,} NamedObject,
+     Classes,  CktElementClass, Sensor,  { ExportCIMXML,} NamedObject,
      PerlRegEx, PstCalc;
 
 Var
