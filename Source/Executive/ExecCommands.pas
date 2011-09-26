@@ -418,7 +418,8 @@ Begin
                         'Set Npts to a big enough value to hold the incoming voltage array. ' +CRLF+
                         'dt = time increment in seconds. default is 1'+CRLF+
                         'freq = base frequency in Hz 50 or 60. Default is default base frequency' +CRLF+
-                        'Lamp= 120 for North America; 230 for Europe. Default is 120';
+                        'Lamp= 120 for North America; 230 for Europe. Default is 120' + CRLF+CRLF+
+                        'PSTCalc Npts=1900 V=[file=MyCSVFile.CSV, Col=3, Header=y] dt=1 freq=60 lamp=120';
 
 End;
 
