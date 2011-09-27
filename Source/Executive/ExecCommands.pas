@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 96;
+     NumExecCommands = 97;
 
 Var
 
@@ -132,6 +132,7 @@ Begin
      ExecCommand[94] := 'LatLongCoords';
      ExecCommand[95] := 'BatchEdit';
      ExecCommand[96] := 'Pstcalc';
+     ExecCommand[97] := 'Variable';
 
 
 
@@ -420,6 +421,11 @@ Begin
                         'freq = base frequency in Hz 50 or 60. Default is default base frequency' +CRLF+
                         'Lamp= 120 for North America; 230 for Europe. Default is 120' + CRLF+CRLF+
                         'PSTCalc Npts=1900 V=[file=MyCSVFile.CSV, Col=3, Header=y] dt=1 freq=60 lamp=120';
+     CommandHelp[97] := '[name=] MyVariableName  [Index=] IndexofMyVariable ' +CRLF+CRLF+
+                        'Returns the value of the specified state variable of the active circuit element, if a PCelement. ' +
+                        'Returns the value as a string in the Result window or the Text.Result interface if using the COM server. ' +CRLF+CRLF+
+                        'You may specify the variable by name or by its index. You can determine the index using the VarNames command. ' +
+                        'If any part of the request is invalid, the Result is null.';
 
 End;
 
@@ -633,6 +639,7 @@ Begin
        94: CmdResult := DoBusCoordsCmd(TRUE);   // swaps X and Y
        95: CmdResult := DoBatchEditCmd;
        96: CmdResult := DoPstCalc;
+       97: CmdResult := DoValVarCmd;
      ELSE
        // Ignore excess parameters
      End;

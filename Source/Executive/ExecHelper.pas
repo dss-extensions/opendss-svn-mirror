@@ -110,6 +110,7 @@ interface
          FUNCTION DoSetBusXYCmd:Integer;
          FUNCTION DoUpdateStorageCmd:Integer;
          FUNCTION DoPstCalc:Integer;
+         FUNCTION DoValVarCmd:Integer;
 
          PROCEDURE DoSetNormal(pctNormal:Double);
 
@@ -2333,6 +2334,59 @@ Begin
              AppendGlobalResult('Null');
          End;
       End;
+
+End;
+
+FUNCTION DoValVarCmd:Integer;
+
+{Geg value of specified variable by name of index,}
+Var
+    ParamName, Param :String;
+    VarIndex :Integer;
+    PropIndex :Integer;
+    PCElem :TPCElement;
+
+Begin
+
+    Result := 0;
+
+    {Check to make sure this is a PC Element. If not, return null string in global result}
+
+    If (ActiveCircuit.ActiveCktElement.DSSObjType And BASECLASSMASK) <> PC_ELEMENT Then
+
+       GlobalResult := ''
+
+    Else Begin
+
+        PCElem :=  ActiveCircuit.ActiveCktElement As TPCElement;
+
+        {Get next parameter on command line}
+
+        ParamName := UpperCase(Parser.NextParam);
+        Param := Parser.StrValue;
+
+        PropIndex := 1;
+        If Length(ParamName) > 0 Then
+          CASE ParamName[1] of
+              'N': PropIndex := 1;
+              'I': PropIndex := 2;
+          END;
+
+        VarIndex := 0;
+
+        CASE PropIndex of
+            1: VarIndex := PCElem.LookupVariable(Param);  // Look up property index
+            2: VarIndex := Parser.IntValue ;
+        END;
+
+        If (VarIndex>0) and (VarIndex<=PCElem.NumVariables) Then
+
+           GlobalResult := Format('%.8g',[PCElem.Variable[VarIndex] ])
+
+        Else GlobalResult := '';   {Invalid var name or index}
+
+    End;
+
 
 End;
 
