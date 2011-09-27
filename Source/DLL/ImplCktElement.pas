@@ -57,12 +57,16 @@ type
     function Get_HasSwitchControl: WordBool; safecall;
     function Get_CplxSeqVoltages: OleVariant; safecall;
     function Get_CplxSeqCurrents: OleVariant; safecall;
+    function Get_AllVariableNames: OleVariant; safecall;
+    function Get_AllVariableValues: OleVariant; safecall;
+    function Get_Variable(const MyVarName: WideString; out Code: Integer): Double; safecall;
+    function Get_Variablei(Idx: Integer; out Code: Integer): Double; safecall;
   end;
 
 implementation
 
 uses ComServ, DSSClassDefs, DSSGlobals, UComplex, Sysutils,
-     PDElement, MathUtil, ImplGlobals, Variants, CktElement;
+     PDElement, PCElement, MathUtil, ImplGlobals, Variants, CktElement;
 
 { - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
 function TCktElement.Get_BusNames: OleVariant;
@@ -1055,6 +1059,133 @@ Begin
    End
   ELSE Result := VarArrayCreate([0, 0], varDouble);
 
+
+end;
+
+function TCktElement.Get_AllVariableNames: OleVariant;
+VAR
+   k:Integer;
+   pPCElem :TPCElement;
+
+begin
+
+  Result := VarArrayCreate([0, 0], varOleStr);
+  IF ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement<>Nil THEN
+     WITH ActiveCktElement DO
+     Begin
+
+         If (DSSObjType And BASECLASSMASK) = PC_ELEMENT Then
+          Begin
+              pPCElem := (ActiveCktElement as TPCElement);
+              Result := VarArrayCreate([0, pPCElem.NumVariables-1], varOleStr);
+              For k := 1 to pPCElem.NumVariables DO
+              Begin
+                  Result[k-1] := pPCElem.VariableName(k);
+              End;
+          End;
+
+         {Else zero-length array null string}
+     End
+   End;
+
+end;
+
+function TCktElement.Get_AllVariableValues: OleVariant;
+
+{Return array of doubles with values of all variables if PCElement}
+VAR
+   k:Integer;
+   pPCElem :TPCElement;
+
+begin
+
+  Result := VarArrayCreate([0, 0], varDouble);
+  IF ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement<>Nil THEN
+     WITH ActiveCktElement DO
+     Begin
+
+         If (DSSObjType And BASECLASSMASK) = PC_ELEMENT Then
+          Begin
+              pPCElem := (ActiveCktElement as TPCElement);
+              Result := VarArrayCreate([0, pPCElem.NumVariables-1], varDouble);
+              For k := 1 to pPCElem.NumVariables DO
+              Begin
+                  Result[k-1] := pPCElem.Variable[k];
+              End;
+          End;
+
+         {Else zero-length array null string}
+     End
+   End;
+
+end;
+
+function TCktElement.Get_Variable(const MyVarName: WideString; out Code: Integer): Double;
+
+Var
+      pPCElem:TPCElement;
+      VarIndex :Integer;
+
+begin
+  Result := 0.0; Code := 1; // Signifies an error; no value set
+  IF ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement<>Nil THEN
+     WITH ActiveCktElement DO
+     Begin
+
+         If (DSSObjType And BASECLASSMASK) = PC_ELEMENT Then
+          Begin
+              pPCElem := (ActiveCktElement as TPCElement);
+              VarIndex := pPCElem.LookupVariable(MyVarName);
+              If (VarIndex>0) and (VarIndex <= pPCElem.NumVariables) Then
+              Begin
+                   Result := pPCElem.Variable[VarIndex];
+                   Code := 0;  // Signify result is OK.
+              End;
+          End;
+
+         {Else zero-length array null string}
+     End
+   End;
+
+end;
+
+function TCktElement.Get_Variablei(Idx: Integer; out Code: Integer): Double;
+
+{Get Value of a variable by index}
+Var
+      pPCElem:TPCElement;
+
+begin
+  Result := 0.0; Code := 1; // Signifies an error; no value set
+  IF ActiveCircuit <> Nil THEN
+   WITH ActiveCircuit DO
+   Begin
+     If ActiveCktElement<>Nil THEN
+     WITH ActiveCktElement DO
+     Begin
+
+         If (DSSObjType And BASECLASSMASK) = PC_ELEMENT Then
+          Begin
+              pPCElem := (ActiveCktElement as TPCElement);
+              If (Idx>0) and (Idx <= pPCElem.NumVariables) Then
+              Begin
+                   Result := pPCElem.Variable[Idx];
+                   Code := 0;  // Signify result is OK.
+              End;
+          End;
+
+         {Else zero-length array null string}
+     End
+   End;
 
 end;
 

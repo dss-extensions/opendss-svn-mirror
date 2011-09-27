@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 17244 $
-// File generated on 5/24/2011 10:53:36 PM from Type Library described below.
+// File generated on 9/27/2011 2:31:10 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Source\DLL\OpenDSSengine (1)
@@ -401,6 +401,10 @@ type
     function Get_Controller: WideString; safecall;
     function Get_CplxSeqVoltages: OleVariant; safecall;
     function Get_CplxSeqCurrents: OleVariant; safecall;
+    function Get_AllVariableNames: OleVariant; safecall;
+    function Get_AllVariableValues: OleVariant; safecall;
+    function Get_Variable(const MyVarName: WideString; out Code: Integer): Double; safecall;
+    function Get_Variablei(Idx: Integer; out Code: Integer): Double; safecall;
     property Name: WideString read Get_Name;
     property NumTerminals: Integer read Get_NumTerminals;
     property NumConductors: Integer read Get_NumConductors;
@@ -431,6 +435,10 @@ type
     property Controller: WideString read Get_Controller;
     property CplxSeqVoltages: OleVariant read Get_CplxSeqVoltages;
     property CplxSeqCurrents: OleVariant read Get_CplxSeqCurrents;
+    property AllVariableNames: OleVariant read Get_AllVariableNames;
+    property AllVariableValues: OleVariant read Get_AllVariableValues;
+    property Variable[const MyVarName: WideString; out Code: Integer]: Double read Get_Variable;
+    property Variablei[Idx: Integer; out Code: Integer]: Double read Get_Variablei;
   end;
 
 // *********************************************************************//
@@ -473,6 +481,10 @@ type
     property Controller: WideString readonly dispid 207;
     property CplxSeqVoltages: OleVariant readonly dispid 208;
     property CplxSeqCurrents: OleVariant readonly dispid 209;
+    property AllVariableNames: OleVariant readonly dispid 210;
+    property AllVariableValues: OleVariant readonly dispid 211;
+    property Variable[const MyVarName: WideString; out Code: Integer]: Double readonly dispid 212;
+    property Variablei[Idx: Integer; out Code: Integer]: Double readonly dispid 213;
   end;
 
 // *********************************************************************//

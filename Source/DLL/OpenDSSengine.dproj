@@ -57,7 +57,7 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-						<Parameters Name="HostApplication">C:\DelProgs\P174Screener\DR174app.exe</Parameters>
+						<Parameters Name="HostApplication">C:\DelProgs\DGScreener2\DGScreener2.exe</Parameters>
 					</Parameters>
 					<VersionInfo>
 						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
@@ -65,7 +65,7 @@
 						<VersionInfo Name="MajorVer">7</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">3</VersionInfo>
-						<VersionInfo Name="Build">9</VersionInfo>
+						<VersionInfo Name="Build">12</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -77,7 +77,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">DSS Engine</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">7.4.3.9</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">7.4.3.12</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenDSSEngine</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2008-2011 EPRI. All Rights Reserved.</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
