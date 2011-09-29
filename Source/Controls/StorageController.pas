@@ -984,13 +984,13 @@ End;
 PROCEDURE TStorageControllerObj.DoPendingAction(Const Code, ProxyHdl:Integer);
 Begin
 
-
         {
            Release  the discharge inhibit .
            Do nothing for other codes
         }
 
-        If (Code = RELEASE_INHIBIT) and (DischargeMode <> MODEFOLLOW) Then DischargeInhibited := FALSE;
+        If (Code = RELEASE_INHIBIT) and (DischargeMode <> MODEFOLLOW)
+        Then DischargeInhibited := FALSE;
         
 End;
 
@@ -1163,7 +1163,7 @@ End;
 {--------------------------------------------------------------------------}
 PROCEDURE TStorageControllerObj.DoLoadFollowMode;
 
-VAR
+Var
    i           :Integer;
    PDiff,
    PFDiff      :Double;
@@ -1244,6 +1244,7 @@ Begin
                   End;
            END;
        End;
+
 
        If Not SkipkWDispatch Then
        Begin

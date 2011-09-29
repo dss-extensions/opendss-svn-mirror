@@ -1176,6 +1176,14 @@ Begin
                           End;
 
     END;
+
+    {If idling output is only losses}
+
+    If Fstate=STORE_IDLING Then  Begin
+        kW_out   := kWIdlingLosses;
+        kvar_out := 0.0;
+    End;
+
 End;
 
 
