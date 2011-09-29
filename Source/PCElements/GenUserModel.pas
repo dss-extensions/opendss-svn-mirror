@@ -40,7 +40,7 @@ TYPE
          Function CheckFuncError(Addr:Pointer; FuncName:String):Pointer;
 
          procedure Set_Edit(const Value: String);
-         function Get_Exists: Boolean;
+         function  Get_Exists: Boolean;
 
       protected
 
@@ -68,9 +68,9 @@ TYPE
         // this property loads library (if needed), sets the procedure variables, and makes a new instance
         // old reference is freed first
         // Wide string OK here
-        property Name:String read Fname write Set_Name;
-        property Edit:String write Set_Edit;  // Converted to Ansi string  in Set_Edit
-        property Exists:Boolean read Get_Exists;
+        property Name:String    read  Fname write Set_Name;
+        property Edit:String    write Set_Edit;  // Converted to Ansi string  in Set_Edit
+        property Exists:Boolean read  Get_Exists;
 
         Procedure Select;
         Procedure Integrate;
