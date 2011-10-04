@@ -167,7 +167,7 @@ Begin
          IF LL then Vpu := Vpu/SQRT3;
          If j=1 Then Bname := Paddots(BusList.Get(i), MaxBusNameLength)
                 Else BName := Pad('   -', MaxBusNameLength);
-         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %9.3f', [Bname,  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*SQRT3  ]));
+         Writeln(F, Format('%s %2d %10.5g /_ %6.1f %9.5g %9.3f', [UpperCase(Bname),  Buses^[i].GetNum(j),  Vmag, cdang(Volts),Vpu, Buses^[i].kvbase*SQRT3  ]));
        End;
      End;
 End;
@@ -186,7 +186,7 @@ Begin
   Nterm := pElem.Nterms;
   k:=0;
   BusName := Pad(StripExtension(pElem.FirstBus), MaxBusNameLength);
-  Writeln(F, 'ELEMENT = "' + pElem.dssclassname + '.' + pElem.Name + '"');
+  Writeln(F, 'ELEMENT = "' + pElem.dssclassname + '.' + UpperCase(pElem.Name) + '"');
   FOR j := 1 to NTerm Do Begin
     For i := 1 to NCond Do Begin
        Inc(k);
@@ -202,7 +202,7 @@ Begin
                               Else Vpu := 0.0;
                    End;
          IF LL then Vpu := Vpu/SQRT3;
-         Writeln(F, Format('%s  (%3d) %4d    %13.5g (%8.4g) /_ %6.1f',[BusName, nref, i,Vmag, Vpu, cdang(Volts) ]));
+         Writeln(F, Format('%s  (%3d) %4d    %13.5g (%8.4g) /_ %6.1f',[UpperCase(BusName), nref, i,Vmag, Vpu, cdang(Volts) ]));
        End;
     End;
     If j<Nterm Then Writeln(F,'------------');
@@ -226,7 +226,7 @@ Var
 Begin
   NCond := pElem.NConds;
 
-  ElemName := Pad( pElem.dssclassname + '.' + pElem.Name, MaxDeviceNameLength);
+  ElemName := Pad( pElem.dssclassname + '.' + UpperCase(pElem.Name), MaxDeviceNameLength);
   For i := 1 to NCond Do Begin
        Node1 := pElem.NodeRef^[i];
        Node2 := pElem.NodeRef^[i+Ncond];
@@ -407,7 +407,7 @@ Begin
 
    Writeln(F,
    Format('%s %3d  %10.5g   %10.5g %8.2f  %10.5g %8.2f  %8.2f %8.2f',
-          [Name, j, I1,I2,I2I1,I0,I0I1, Inormal,Iemerg]));
+          [UpperCase(Name), j, I1,I2,I2I1,I0,I0I1, Inormal,Iemerg]));
 
 End;
 
@@ -443,12 +443,12 @@ BEGIN
       Begin
          Inc(k);
          If ShowResidual Then Caccum(Ctotal, cBuffer^[k]);
-         Writeln(F, Format('%s  %4d    %13.5g /_ %6.1f',[FromBus, GetNodeNum(pElem.NodeRef^[k]),  Cabs(cBuffer^[k]), cdang(cBuffer^[k])]));
+         Writeln(F, Format('%s  %4d    %13.5g /_ %6.1f',[UpperCase(FromBus), GetNodeNum(pElem.NodeRef^[k]),  Cabs(cBuffer^[k]), cdang(cBuffer^[k])]));
       End;
       If ShowResidual and (pElem.NPhases > 1) Then
       Begin
         ResidPolar := CtoPolardeg(cnegate(Ctotal));
-        Writeln(F, Format('%s Resid    %13.5g /_ %6.1f',[FromBus, ResidPolar.mag, ResidPolar.ang  ]));
+        Writeln(F, Format('%s Resid    %13.5g /_ %6.1f',[UpperCase(FromBus), ResidPolar.mag, ResidPolar.ang  ]));
       End;
       If j<Nterm Then Writeln(F,'------------');
       FromBus := Pad(StripExtension(pElem.Nextbus),MaxBusNameLength);
@@ -935,7 +935,7 @@ Begin
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
-             Write(F,FromBus,'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:8:1,' +j ',S.im/1000.0:8:1);
+             Write(F,UpperCase(FromBus),'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:8:1,' +j ',S.im/1000.0:8:1);
              Writeln(F, '   ', Cabs(S)/1000.0:8:1,'     ', PowerFactor(S):8:4);
           End;
           Write(F,Paddots('   TERMINAL TOTAL', MaxBusNameLength+10) ,Saccum.re/1000.0:8:1,' +j ',Saccum.im/1000.0:8:1);
@@ -969,7 +969,7 @@ Begin
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
-             Write(F,FromBus,'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:8:1,' +j ',S.im/1000.0:8:1);
+             Write(F,UpperCase(FromBus),'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:8:1,' +j ',S.im/1000.0:8:1);
              Writeln(F, '   ', Cabs(S)/1000.0:8:1,'     ', PowerFactor(S):8:4);
           End;
           Write(F,Paddots('   TERMINAL TOTAL', MaxBusNameLength+10),Saccum.re/1000.0:8:1,' +j ',Saccum.im/1000.0:8:1);
@@ -1015,7 +1015,7 @@ Begin
              THEN S := CmulReal(S, 3.0);
              If Opt=1 Then S := CmulReal(S, 0.001);
              Caccum(Saccum, S);
-             Write(F,FromBus,'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:6:1,' +j ',S.im/1000.0:6:1);
+             Write(F,UpperCase(FromBus),'  ',GetNodeNum(p_Elem.NodeRef^[k]):4,'    ',S.re/1000.0:6:1,' +j ',S.im/1000.0:6:1);
              Writeln(F, '   ', Cabs(S)/1000.0:8:1,'     ', PowerFactor(S):8:4);
           End;
           Write(F,Paddots('   TERMINAL TOTAL', MaxBusNameLength+10),Saccum.re/1000.0:6:1,' +j ',Saccum.im/1000.0:6:1);
@@ -1174,7 +1174,7 @@ Begin
            If Opt=1 Then S := CmulReal(S, 0.001);
            Caccum(Saccum, S);
            Writeln(F,Format('%s %4d %10.5g +j %10.5g    %10.5g    %8.4f',
-                  [FromBus, GetNodeNum(CktElem.NodeRef^[k]), S.re/1000.0, S.im/1000.0,
+                  [UpperCase(FromBus), GetNodeNum(CktElem.NodeRef^[k]), S.re/1000.0, S.im/1000.0,
                    Cabs(S)/1000.0 , PowerFactor(S) ]));
         End;
         Writeln(F, Format(' TERMINAL TOTAL   %10.5g +j %10.5g    %10.5g    %8.4f',
@@ -1220,7 +1220,7 @@ Begin
   {Get Bus Reference}
      BusReference := ActiveCircuit.BusList.Find(BusName);
      If BusReference=0 Then Begin
-        DoSimpleMsg('Bus "'+BusName+'" not found.', 219);
+        DoSimpleMsg('Bus "'+UpperCase(BusName)+'" not found.', 219);
         Exit;
      End;
   Try
@@ -1521,7 +1521,7 @@ Begin
            FOR iBus := 1 to NumBuses DO
            {Bus Norton Equivalent Current, Isc has been previously computed}
            With Buses^[iBus] Do Begin
-               Write(F,Pad(EncloseQuotes(BusList.Get(iBus))+',',MaxBusNameLength+2));
+               Write(F,Pad(EncloseQuotes(UpperCase(BusList.Get(iBus)))+',',MaxBusNameLength+2));
                For i := 1 to NumNodesThisBus Do Begin
                  CurrMag := Cabs(BusCurrent^[i]);
                  If i>1 Then Write(F,', ');
@@ -1553,7 +1553,7 @@ Begin
 
              For iphs := 1 to NumNodesThisBus Do Begin
                    IFault := Cdiv(VBus[iphs], Zsc.GetElement (iphs, iphs));
-                   Write(F,Pad(EncloseQuotes(BusList.Get(iBus)),MaxBusNameLength+2), Iphs:4, Cabs(Ifault):12:0,'   ');
+                   Write(F,Pad(EncloseQuotes(UpperCase(BusList.Get(iBus))),MaxBusNameLength+2), Iphs:4, Cabs(Ifault):12:0,'   ');
                    For i := 1 to NumNodesThisBus Do Begin
                        Vphs :=  Cabs(Csub(VBus[i], Cmul(Zsc.GetElement(i, iphs), IFault )));
                        If kVbase>0.0 then Begin
@@ -1596,7 +1596,7 @@ Begin
                    YFault.Invert;
                    YFault.MvMult(VFault,BusCurrent);  {Gets voltage appearing at fault}
 
-                   Write(F,Pad(EncloseQuotes(BusList.Get(iBus)),MaxBusNameLength+2), Iphs:4,(Iphs+1):4, Cabs(Cmul(Csub(VFault^[iphs],VFault^[iphs+1]),GFault)):12:0,'   ');
+                   Write(F,Pad(EncloseQuotes(UpperCase(BusList.Get(iBus))),MaxBusNameLength+2), Iphs:4,(Iphs+1):4, Cabs(Cmul(Csub(VFault^[iphs],VFault^[iphs+1]),GFault)):12:0,'   ');
                    For i := 1 to NumNodesThisBus Do Begin
                        Vphs :=  Cabs(VFault^[i]);
                        If kvbase > 0.0 then Begin
@@ -1635,7 +1635,7 @@ Begin
     Write(F, Pad(FullName(PElem), MaxDeviceNameLength+2),' ');
     FOR j := 1 to NTerm Do
      Begin
-      Write(F, Busname,' ');
+      Write(F, UpperCase(Busname),' ');
       BusName := Pad(StripExtension(pElem.Nextbus),MaxBusNameLength);
      End;
      Writeln(F);
@@ -1678,10 +1678,10 @@ Begin
                   ActiveDSSClass.Active := i;
                   If (ActiveDSSClass.DSSClassType And BASECLASSMASK)>0 Then
                    Begin
-                     If TDSSCktElement(ActiveDSSObject).Enabled Then  Writeln(F, ActiveDssObject.Name)
-                     Else Writeln(Fdisabled, ActiveDssObject.Name);
+                     If TDSSCktElement(ActiveDSSObject).Enabled Then  Writeln(F, UpperCase(ActiveDssObject.Name))
+                     Else Writeln(Fdisabled, UpperCase(ActiveDssObject.Name));
                    End
-                  Else Writeln(F, ActiveDssObject.Name);   // non cktelements
+                  Else Writeln(F, UpperCase(ActiveDssObject.Name));   // non cktelements
             End;
           End;
    End
@@ -2581,8 +2581,8 @@ Begin
              While PDElem <> Nil Do  Begin
                
                  With pMtr.BranchList.PresentBranch Do Begin
-                  If IsParallel   Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': PARALLEL WITH ',TDSSCktElement(LoopLineObj).Parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
-                  If IsLoopedHere Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',PDelem.Name,': LOOPED TO     ',TDSSCktElement(LoopLineObj).parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
+                  If IsParallel   Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',UpperCase(PDelem.Name),': PARALLEL WITH ',TDSSCktElement(LoopLineObj).Parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
+                  If IsLoopedHere Then Writeln(F, '(',pMtr.Name,') ',PDElem.ParentClass.Name,'.',UpperCase(PDelem.Name),': LOOPED TO     ',TDSSCktElement(LoopLineObj).parentclass.Name,'.', TDSSCktElement(LoopLineObj).Name);
                  End;
                  PDElem := pMtr.BranchList.GoForward;
                End;

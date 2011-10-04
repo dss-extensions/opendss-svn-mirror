@@ -72,6 +72,7 @@ unit generator;
   3. Constant P, |V|  like a standard power flow  [not implemented]
   4. Constant P, Fixed Q  (vars)
   5. Constant P, Fixed Q  (reactance)
+  6. User model
 
   Most of the time you will use #1 for planning studies.
 

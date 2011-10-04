@@ -125,7 +125,7 @@ Begin
 
          Writeln(F,
          Format('"%s", %10.6g, %9.5g, %8.2f, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g',
-                [BusList.Get(i), V1, Vpu, (Buses^[i].kvbase*SQRT3), V2, V2V1, V0, V0V1, Cabs(Vresidual), V_NEMA]
+                [Uppercase(BusList.Get(i)), V1, Vpu, (Buses^[i].kvbase*SQRT3), V2, V2V1, V0, V0V1, Cabs(Vresidual), V_NEMA]
          ));
 
 
@@ -179,7 +179,7 @@ Begin
      WITH ActiveCircuit DO BEGIN
        FOR i := 1 to NumBuses DO BEGIN
            BusName := BusList.Get(i);
-           Write(F,Format('"%s", %.5g', [BusName, Buses^[i].kvbase*SQRT3]));
+           Write(F,Format('"%s", %.5g', [UpperCase(BusName), Buses^[i].kvbase*SQRT3]));
 
            jj := 1;
            With Buses^[i] Do
@@ -277,7 +277,7 @@ Begin
 
 
   Writeln(F, Format('"%s", %3d, %10.6g, %8.4g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g, %10.6g, %8.4g',
-                    [(pelem.DSSClassName + '.' + pelem.Name),j,I1,iNormal,iEmerg,I2,I2I1,I0,I0I1, Cabs(Iresidual), I_NEMA]));
+                    [(pelem.DSSClassName + '.' + UpperCase(pelem.Name)),j,I1,iNormal,iEmerg,I2,I2I1,I0,I0I1, Cabs(Iresidual), I_NEMA]));
 End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -372,7 +372,7 @@ VAr
 
 Begin
     k:=0;
-    Write(F, Format('%s', [pelem.DSSClassName+'.'+pElem.Name]));
+    Write(F, Format('%s', [pelem.DSSClassName+'.'+UpperCase(pElem.Name)]));
     For      j := 1 to pElem.Nterms Do Begin
       Iresid := CZERO;
       For    i := 1 to pElem.NConds  Do Begin
@@ -402,7 +402,7 @@ VAr
     LocalPower :Complex;
 
 Begin
-    Write(F, Format('%s.%s', [pelem.DSSClassName, pElem.Name]));
+    Write(F, Format('%s.%s', [pelem.DSSClassName, UpperCase(pElem.Name)]));
     MaxCurrent := 0.0;
     For    i := 1 to pElem.Nphases  Do Begin
        Currmag := Cabs(Cbuffer^[i]);
@@ -551,7 +551,7 @@ Begin
 
         FOR j := 1 to NTerm Do
         Begin
-          Write(F,  Pad('"'+PDelem.DSSClassName + '.' + PDElem.Name+'"', 24), Separator, j:3);
+          Write(F,  Pad('"'+PDelem.DSSClassName + '.' + UpperCase(PDElem.Name)+'"', 24), Separator, j:3);
            //----PDElem.ActiveTerminalIdx := j;
            S := PDElem.Power[j];
            If Opt=1 Then S := CmulReal(S, 0.001);
@@ -586,7 +586,7 @@ Begin
 
         FOR j := 1 to NTerm Do
         Begin
-           Write(F,  Pad('"'+PCElem.DSSClassName + '.' + PCElem.Name+'"', 24), Separator, j:3);
+           Write(F,  Pad('"'+PCElem.DSSClassName + '.' + UpperCase(PCElem.Name)+'"', 24), Separator, j:3);
            //----pcElem.ActiveTerminalIdx := j;
            S := pCElem.Power[j] ;
            If Opt=1 Then S := CmulReal(S, 0.001);
@@ -635,7 +635,7 @@ Begin
        IF (PDElem.Enabled)
        THEN BEGIN
             PDElem.GetLosses(S_total, S_Load, S_NoLoad);
-            Writeln(F, Format('%s.%s, %.7g, %.7g, %.7g, %.7g, %.7g, %.7g', [PDElem.ParentClass.Name, PDElem.Name, S_total.re, S_total.im, S_Load.re, S_Load.im, S_NoLoad.re, S_NoLoad.im]));
+            Writeln(F, Format('%s.%s, %.7g, %.7g, %.7g, %.7g, %.7g, %.7g', [PDElem.ParentClass.Name, UpperCase(PDElem.Name), S_total.re, S_total.im, S_Load.re, S_Load.im, S_NoLoad.re, S_NoLoad.im]));
        END;
         PDElem := ActiveCircuit.PDElements.Next;
      END;
@@ -687,7 +687,7 @@ Begin
         With PDElem Do Begin
           ComputeITerminal;
           ComputeVTerminal;
-          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Name,  NTerms, NConds, Nphases ]));
+          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Uppercase(Name),  NTerms, NConds, Nphases ]));
           FOR i := 1 to Yorder Do Begin
              S := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
              If Opt=1 Then S := CmulReal(S, 0.001);   // convert to MVA
@@ -710,7 +710,7 @@ Begin
         With PCelem Do Begin
           ComputeITerminal;
           ComputeVTerminal;
-          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Name,  NTerms, NConds, NPhases ]));
+          Write(F,  Format('"%s.%s", %d, %d, %d', [DSSClassName, Uppercase(Name),  NTerms, NConds, NPhases ]));
           FOR i := 1 to Yorder Do
           Begin
              S := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
@@ -783,7 +783,7 @@ Begin
 
         FOR j := 1 to NTerm Do
         Begin
-          Write(F,  Pad('"'+PDelem.DSSClassName + '.' + PDElem.Name+'"', 24), Separator, j:3);
+          Write(F,  Pad('"'+PDelem.DSSClassName + '.' + Uppercase(PDElem.Name) +'"', 24), Separator, j:3);
           For i := 1 to PDElem.NPhases Do
           Begin
              k := (j-1)*Ncond + i;
@@ -856,7 +856,7 @@ Begin
 
         FOR j := 1 to NTerm Do
         Begin
-          Write(F,  Pad('"'+PCElem.DSSClassName + '.' + PCElem.Name+'"', 24), Separator, j:3);
+          Write(F,  Pad('"'+PCElem.DSSClassName + '.' + Uppercase(PCElem.Name) +'"', 24), Separator, j:3);
           For i := 1 to PCElem.NPhases Do
           Begin
              k := (j-1)*Ncond + i;
@@ -947,7 +947,7 @@ Begin
            {Bus Norton Equivalent Current, Isc has been previously computed}
            WITH Buses^[iBus] Do
            Begin
-               Write(F,Pad(BusList.Get(iBus),12));
+               Write(F,Pad(Uppercase(BusList.Get(iBus)),12));
                MaxCurr := 0.0;
                For i := 1 to NumNodesThisBus Do
                Begin
@@ -1062,7 +1062,7 @@ Begin
            pEnergyMeterObj := ActiveCircuit.energyMeters.First;
            WHILE pEnergyMeterObj <> NIL Do  Begin
               IF pEnergyMeterObj.Enabled THEN   BEGIN
-                  Write(F, Format('"Energymeter.%s"',[pEnergyMeterObj.Name ]));
+                  Write(F, Format('"Energymeter.%s"',[Uppercase(pEnergyMeterObj.Name) ]));
                   {Sensor currents (Target)}
                   ZeroTempXArray;
                   For i := 1 to pEnergyMeterObj.Nphases do TempX[i] := pEnergyMeterObj.SensorCurrent^[i];
@@ -1096,7 +1096,7 @@ Begin
            pSensorObj := ActiveCircuit.Sensors.First;
            WHILE pSensorObj <> NIL Do  Begin
               IF pSensorObj.Enabled THEN   BEGIN
-                  Write(F, Format('"Sensor.%s"',[pSensorObj.Name ]));
+                  Write(F, Format('"Sensor.%s"',[Uppercase(pSensorObj.Name) ]));
                   {Sensor currents (Target)}
                   ZeroTempXArray;
                   For i := 1 to pSensorObj.Nphases do TempX[i] := pSensorObj.SensorCurrent^[i];
@@ -1163,7 +1163,7 @@ Begin
         IF pElem.Enabled THEN
         BEGIN
           TRY
-            FileNm := DSSDataDirectory + 'EXP_MTR_'+pElem.Name+'.CSV';
+            FileNm := DSSDataDirectory + 'EXP_MTR_'+Uppercase(pElem.Name)+'.CSV';
 
             IF Not FileExists(FileNm)
             THEN Begin
@@ -1181,7 +1181,7 @@ Begin
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve,    Separator);
             Write(F,ActiveCircuit.Solution.intHour:0, Separator);
-            Write(F,Pad('"'+pElem.Name+'"', 14));
+            Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
             FOR j := 1 to NumEMRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
             AppendGlobalResult(FileNm);
@@ -1252,7 +1252,7 @@ Begin
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve,    Separator);
             Write(F,ActiveCircuit.Solution.intHour:0, Separator);
-            Write(F,Pad('"'+pElem.Name+'"', 14));
+            Write(F,Pad('"'+ Uppercase(pElem.Name) +'"', 14));
             FOR j := 1 to NumEMRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
         END;
@@ -1308,7 +1308,7 @@ Begin
         IF pElem.Enabled THEN
         BEGIN
           TRY
-            FileNm := DSSDataDirectory + 'EXP_GEN_' + pElem.Name + '.CSV';
+            FileNm := DSSDataDirectory + 'EXP_GEN_' + Uppercase(pElem.Name) + '.CSV';
 
             IF Not FileExists(FileNm)
             THEN Begin
@@ -1326,7 +1326,7 @@ Begin
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve, Separator);
             Write(F,ActiveCircuit.Solution.intHour:0, Separator);
-            Write(F,Pad('"'+pElem.Name+'"', 14));
+            Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
             FOR j := 1 to NumGenRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
             AppendGlobalResult(FileNm);
@@ -1404,7 +1404,7 @@ Begin
             Write(F,ActiveCircuit.Solution.Year:0, Separator);
             Write(F,ActiveCircuit.LoadDurCurve, Separator);
             Write(F,ActiveCircuit.Solution.intHour:0, Separator);
-            Write(F,Pad('"'+pElem.Name+'"', 14));
+            Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
             FOR j := 1 to NumGenRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
         END;
@@ -1467,7 +1467,7 @@ Begin
         IF pElem.Enabled THEN
         WITH pElem Do
         BEGIN
-            Write(F,Name);
+            Write(F, Uppercase(Name));
             Write(F, Separator, ConnectedkVA:8:1);
             Write(F, Separator, kVAAllocationFactor:5:3);
             Write(F, Separator, NPhases:0);
@@ -1604,7 +1604,7 @@ Begin
             THEN
              IF (CMax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps)
              THEN Begin
-                 Write(F, Pad(('"'+pDelem.DSSClassName + '.' + pDelem.Name+'"'), 22),  Separator, j:3);
+                 Write(F, Pad(('"'+pDelem.DSSClassName + '.' + Uppercase(pDelem.Name)+'"'), 22),  Separator, j:3);
                  Write(F, Separator, I1:8:1);
                  IF  j = 1 THEN Begin // Only for 1st Terminal
                       iNormal := PDelem.NormAmps;
@@ -1668,7 +1668,7 @@ Begin
 
               IF DoIt
               THEN Begin
-                  Write(F, pLoad.Name,', ');
+                  Write(F, Uppercase(pLoad.Name),', ');
                   Write(F, pLoad.GetBus(1),', ');
                   Write(F, pLoad.kWBase:8:0,', ');
                   Write(F, pLoad.EEN_Factor:9:3,', ');
@@ -1713,7 +1713,7 @@ Begin
           If  ActiveCktElement.Enabled THEN Begin
               If (ActiveCktElement is TPDElement) or (ActiveCktElement is TPCElement) then
               With ActiveCktElement Do  Begin
-                Writeln(F, ParentClass.Name,'.',Name);
+                Writeln(F, ParentClass.Name,'.',Uppercase(Name));
                 cValues := GetYprimValues(ALL_YPRIM);
                 For i := 1 to Yorder Do  Begin
                  For j := 1 to Yorder Do Write(F, Format('%-13.10g, %-13.10g, ',[cValues^[i+(j-1)*Yorder].re, cValues^[i+(j-1)*Yorder].im]));
@@ -1782,7 +1782,7 @@ Begin
 *)
         For i := 1 to NumNodes Do Begin
            j :=  MapNodeToBus^[i].BusRef;
-           Write(F, Format('%s.%-d, ',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
+           Write(F, Format('%s.%-d, ',[Uppercase(BusList.Get(j)), MapNodeToBus^[i].NodeNum]));
            For j := 1 to NumNodes Do Begin
               re := 0.0;
               im := 0.0;
@@ -1843,7 +1843,7 @@ Begin
 
          Writeln(F,
          Format('"%s", %d, %10.6g, %10.6g, %10.6g, %10.6g, %10.6g, %10.6g, %8.4g, %8.4g',
-                [BusList.Get(i), Buses^[i].NumNodesThisBus,
+                [Uppercase(BusList.Get(i)), Buses^[i].NumNodesThisBus,
                  Z1.re, Z1.im, Z0.Re, Z0.im, Cabs(Z1), Cabs(Z0), X1R1, X0R0 ]
          ));
 
@@ -2022,7 +2022,7 @@ Begin
      With ActiveCircuit Do
      For i := 1 to NumBuses Do
        Begin
-           If Buses^[i].CoordDefined then Writeln(F, Format('%s, %-13.11g, %-13.11g', [CheckForBlanks(BusList.Get(i)), Buses^[i].X, Buses^[i].Y]));
+           If Buses^[i].CoordDefined then Writeln(F, Format('%s, %-13.11g, %-13.11g', [CheckForBlanks(Uppercase(BusList.Get(i))), Buses^[i].X, Buses^[i].Y]));
        End;
 
      GlobalResult := FileNm;
@@ -2040,7 +2040,7 @@ Procedure WriteNewLine(Var F:TextFile;
                        CenterMarkerCode,  NodeMarkerCode, NodeMarkerWidth:Integer );
 
 Begin
-       Write(F, Format('%s, %.6g, %.6g, %.6g, %.6g,',[CktElementName, DistFromMeter1, puV1, DistFromMeter2, puV2 ]));
+       Write(F, Format('%s, %.6g, %.6g, %.6g, %.6g,',[Uppercase(CktElementName), DistFromMeter1, puV1, DistFromMeter2, puV2 ]));
        Write(F, Format('%d, %d, %d, ',[ColorCode, Thickness, LineType ]));
        Write(F, Format('%d, ',[ MarkCenter ]));
        Write(F, Format('%d, %d, %d',[CenterMarkerCode,  NodeMarkerCode, NodeMarkerWidth ]));

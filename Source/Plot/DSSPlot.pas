@@ -696,6 +696,7 @@ Begin
              End;
          ptProfile: Begin
                 DoProfilePlot;
+                Set_Autorange(2.0);    // 2% rim
                 Exit;
              End;
      ELSE  {All other plots}
@@ -1911,7 +1912,8 @@ begin
               else If Hours Then Time := hr + s/3600.0 // in hrs
                             Else Time := Hr * 3600.0 + s; // in sec
               ActiveColorIdx := 0;
-              FOR i := 0 to high(channels) DO Begin
+              FOR i := 0 to high(channels) DO
+              Begin
                  If Channels[i]<= RecordSize Then  // check for legal channel number
                   If FirstRecord Then Begin
                      Time1 := Time;
@@ -2563,7 +2565,7 @@ begin
        GridStyle := gsNone;
        Set_NoScales;  // Set for no scales on X or Y
 
-       S1 := Element.ParentClass.Name + '.' + Element.Name;
+       S1 := Element.ParentClass.Name + '.' + UpperCase(Element.Name);
        Case Quantity of
           vizVoltage: S := S1 + ' Voltages';
           vizCurrent: S := S1 + ' Currents';

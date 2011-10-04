@@ -80,7 +80,7 @@ begin
 
    TRY
      ObjectBeingEdited  := ActiveDSSObject;
-     Caption := ObjectBeingEdited.ParentClass.name + '.' + ObjectBeingEdited.Name;
+     Caption := Uppercase(ObjectBeingEdited.ParentClass.name + '.' + ObjectBeingEdited.Name);
      Edit1.Text := Caption;
      StringGrid1.rowcount := ObjectBeingEdited.ParentClass.NumProperties + 1;
      StringGrid1.Cells[0, 0] := 'Property';

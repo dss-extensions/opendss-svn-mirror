@@ -200,7 +200,7 @@ END;
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 Function FullName(pElem :TDSSCktElement):String;
 Begin
-    Result := EncloseQuotes(pElem.DSSClassName + '.' + pElem.Name);
+    Result := EncloseQuotes(pElem.DSSClassName + '.' + UpperCase(pElem.Name));
 End;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

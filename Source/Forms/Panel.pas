@@ -1126,7 +1126,7 @@ begin
            idx := ActiveDSSClass.First;
            While idx>0 Do
            Begin
-             ElementBox.Items.Add(ActiveDSSObject.Name);
+             ElementBox.Items.Add(UpperCase(ActiveDSSObject.Name));
              idx := ActiveDSSClass.Next;
            End;
            ElementBox.Sorted := TRUE;
