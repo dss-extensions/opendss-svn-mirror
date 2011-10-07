@@ -122,6 +122,10 @@ Begin
      {Get some global Variables from Registry}
      ReadDSS_Registry;
 
+     {Override Locale defaults so that CSV files get written properly}
+     DecimalSeparator  := '.';
+     ThousandSeparator := ',';
+
 End;
 
 
