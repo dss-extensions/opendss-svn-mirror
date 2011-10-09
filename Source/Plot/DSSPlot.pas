@@ -2624,7 +2624,7 @@ begin
               1: xx := 25;
               2: xx := xmx-25.0;
             End;
-            CenteredText15(xx,TopY, 10, pAnsiChar(AnsiString(Element.Getbus(i))));
+            CenteredText15(xx,TopY, 10, pAnsiChar(AnsiString(UpperCase(Element.Getbus(i)))));
 
        End;
        Case Quantity of
