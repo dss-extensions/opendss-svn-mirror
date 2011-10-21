@@ -121,11 +121,13 @@ TYPE
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    TGeneratorObj = class(TPCElement)
       Private
+        Zthev           :Complex;
         Yeq             :Complex;   // at nominal
         Yeq95           :Complex;   // at 95%
         Yeq105          :Complex;   // at 105%
 
         CurrentLimit    :Complex;
+        Model7MaxCurr   :Double;
         DebugTrace      :Boolean;
         DeltaQMax       :Double;  // Max allowable var change on Model=3 per iteration
         DispatchMode    :Integer;
@@ -180,6 +182,7 @@ TYPE
         Procedure CalcVterminal;
         Procedure CalcVTerminalPhase;
         Procedure CalcVthev_Dyn;      // 3-phase Voltage behind transient reactance
+        Procedure CalcVthev_Dyn_Mod7(const V:Complex);
         PROCEDURE CalcYearlyMult(Hr:double);
         Procedure CalcYPrimMatrix(Ymatrix:TcMatrix);
 
@@ -371,7 +374,7 @@ Begin
                     '4:Const kW, Fixed Q (Q never varies)'+CRLF+
                     '5:Const kW, Fixed Q(as a constant reactance)'+CRLF+
                     '6:Compute load injection from User-written Model.(see usage of Xd, Xdp)'+CRLF+
-                    '7:Constant kW, kvar, but current limited below Vminpu');
+                    '7:Constant kW, kvar, but current limited below Vminpu. Approximates a simple inverter.');
      AddProperty('Vminpu', 23,   'Default = 0.90.  Minimum per unit voltage for which the Model is assumed to apply. ' +
                           'Below this value, the load model reverts to a constant impedance model.');
      AddProperty('Vmaxpu', 24, 'Default = 1.10.  Maximum per unit voltage for which the Model is assumed to apply. ' +
@@ -423,15 +426,15 @@ Begin
                           'trace the convergence of a generator model.');
      AddProperty('forceon',  25, '{Yes | No}  Forces generator ON despite requirements of other dispatch modes. ' +
                          'Stays ON until this property is set to NO, or an internal algorithm cancels the forced ON state.');
-     AddProperty('kVA', 26, 'kVA rating of electrical machine. Defaults to 1.2* kW if not specified. Applied to machine or inverter definition for Dynamics mode solutions. ');
-     AddProperty('MVA', 27, 'MVA rating of electrical machine.  Alternative to using kVA=.');
-     AddProperty('Xd', 28,  'Per unit synchronous reactance of machine. Presently used only for Thevinen impedance for power flow calcs of user models (model=6). ' +
+     AddProperty('kVA',  26, 'kVA rating of electrical machine. Defaults to 1.2* kW if not specified. Applied to machine or inverter definition for Dynamics mode solutions. ');
+     AddProperty('MVA',  27, 'MVA rating of electrical machine.  Alternative to using kVA=.');
+     AddProperty('Xd',   28,  'Per unit synchronous reactance of machine. Presently used only for Thevinen impedance for power flow calcs of user models (model=6). ' +
                              'Typically use a value 0.4 to 1.0. Default is 1.0');
      AddProperty('Xdp',  29, 'Per unit transient reactance of the machine.  Used for Dynamics mode and Fault studies.  Default is 0.27.' +
                               'For user models, this value is used for the Thevinen/Norton impedance for Dynamics Mode.');
      AddProperty('Xdpp',  30, 'Per unit subtransient reactance of the machine.  Used for Harmonics. Default is 0.20.');
-     AddProperty('H', 31,  'Per unit mass constant of the machine.  MW-sec/MVA.  Default is 1.0.');
-     AddProperty('D',  32, 'Damping constant.  Usual range is 0 to 4. Default is 1.0.  Adjust to get damping');
+     AddProperty('H',     31,  'Per unit mass constant of the machine.  MW-sec/MVA.  Default is 1.0.');
+     AddProperty('D',     32, 'Damping constant.  Usual range is 0 to 4. Default is 1.0.  Adjust to get damping');
      AddProperty('UserModel', 33, 'Name of DLL containing user-written model, which computes the terminal currents for Dynamics studies, ' +
                                   'overriding the default model.  Set to "none" to negate previous setting.');
      AddProperty('UserData', 34, 'String (in quotes or parentheses) that gets passed to user-written model for defining the data required for that model.');
@@ -1079,7 +1082,11 @@ Begin
 
           { When we leave here, all the Yeq's are in L-N values}
 
-          If GenModel=7 Then With Genvars Do CurrentLimit := Cdivreal( Cmplx(Pnominalperphase,Qnominalperphase), Vbase95);
+          If GenModel=7 Then With Genvars Do
+          Begin
+              CurrentLimit  := Cdivreal( Cmplx(Pnominalperphase,Qnominalperphase), Vbase95);
+              Model7MaxCurr := Cabs(CurrentLimit);
+          End;
 
       END;
    End;  {With ActiveCircuit}
@@ -1699,46 +1706,84 @@ Var
 
 Begin
 
-   CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
+   CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array  and computes VTerminal
 
    {Inj = -Itotal (in) - Yprim*Vtemp}
-   If (GenModel=6) and UserModel.Exists Then       // auto selects model
-     Begin   {We have total currents in Itemp}
-        UserModel.FCalc(Vterminal, Iterminal);  // returns terminal currents in Iterminal
-     End
 
-   Else  {No user model, use default Thevinen equivalent}
+   CASE GenModel of
 
-      CASE Fnphases of
-            1: With Genvars Do
-               Begin
-                    CalcVthev_Dyn;  // Update for latest phase angle
-
-                    ITerminal^[1] := CDiv(CSub(Csub(VTerminal^[1], Vthev), VTerminal^[2]), Cmplx(0.0, Xdp));
-                    ITerminal^[2] := Cnegate(ITerminal^[1]);
+       6:If UserModel.Exists Then       // auto selects model
+              Begin   {We have total currents in Iterminal}
+                UserModel.FCalc(Vterminal, Iterminal);  // returns terminal currents in Iterminal
+              End
+         ELSE Begin
+                  DoSimpleMsg(Format('Dynamics model missing for Generator.%s ',[Name]), 5671);
+                  SolutionAbort := TRUE;
               End;
+   ELSE
 
-            3: With Genvars Do
-               Begin
-                    Phase2SymComp(Vterminal, @V012);
+        CASE Fnphases of  {No user model, use default Thevinen equivalent for standard Generator model}
+              1: With Genvars Do
+                 Begin
+                   // 1-phase generators have 2 conductors
+                      CASE Genmodel of
+                           7: Begin
+                                  // Assume inverter stays in phase with terminal voltage
+                                  CalcVthev_Dyn_Mod7(CSub(VTerminal^[1], VTerminal^[2]));
+                              End;
+                      ELSE
+                           CalcVthev_Dyn;  // Update for latest phase angle
+                      END;
 
-                    // Positive Sequence Contribution to Iterminal
-                    CalcVthev_Dyn;  // Update for latest phase angle
 
-                    // Positive Sequence Contribution to Iterminal
-                    I012[1] := CDiv(Csub(V012[1], Vthev), Cmplx(0.0, Xdp));
-                    I012[2] := Cdiv(V012[2], Cmplx(0.0, Xdpp));
-                    If Connection=1 Then I012[0] := CZERO
-                                    Else I012[0] := Cdiv(V012[0], Cmplx(0.0, Xdpp));
-                    SymComp2Phase(ITerminal, @I012);  // Convert back to phase components
+                      ITerminal^[1] := CDiv(CSub(Csub(VTerminal^[1], Vthev), VTerminal^[2]), Zthev);
+                      If Genmodel=7 Then
+                         If Cabs(Iterminal^[1]) > Model7MaxCurr Then   // Limit the current but keep phase angle
+                            ITerminal^[1] := ptocomplex(topolar(Model7MaxCurr, cang(Iterminal^[1])));
 
-                    // Neutral current
-                    If Connection=0 Then ITerminal^[FnConds] := Cnegate(CmulReal(I012[0], 3.0));
-              End;
-      Else
-              DoSimpleMsg(Format('Dynamics mode is implemented only for 1- or 3-phase Generators. Generator.'+name+' has %d phases.', [Fnphases]), 5671);
-              SolutionAbort := TRUE;
-      END;
+                      ITerminal^[2] := Cnegate(ITerminal^[1]);
+                End;
+
+              3: With Genvars Do
+                 Begin
+                      Phase2SymComp(Vterminal, @V012);
+
+                      CASE GenModel of
+                          7: Begin  // simple inverter model
+                                // Positive Sequence Contribution to Iterminal
+                                // Assume inverter stays in phase with pos seq voltage
+                                CalcVthev_Dyn_Mod7(V012[1]);
+
+                                // Positive Sequence Contribution to Iterminal
+                                I012[1] := CDiv(Csub(V012[1], Vthev), Zthev);
+                                If Cabs(I012[1]) > Model7MaxCurr Then   // Limit the current but keep phase angle
+                                   I012[1] := ptocomplex(topolar(Model7MaxCurr, cang(I012[1])));
+                               I012[2] := Cdiv(V012[2], Zthev);  // for inverter
+
+                             End
+                      ELSE
+                            // Positive Sequence Contribution to Iterminal
+                            CalcVthev_Dyn;  // Update for latest phase angle
+
+                            // Positive Sequence Contribution to Iterminal
+                            I012[1] := CDiv(Csub(V012[1], Vthev), Zthev);
+                            I012[2] := Cdiv(V012[2], Cmplx(0.0, Xdpp));  // machine use Xd"
+                      END;
+
+                      {Adjust for generator connection}
+                      If Connection=1 Then I012[0] := CZERO
+                                      Else I012[0] := Cdiv(V012[0], Cmplx(0.0, Xdpp));
+                      SymComp2Phase(ITerminal, @I012);  // Convert back to phase components
+
+                      // Neutral current
+                      If Connection=0 Then ITerminal^[FnConds] := Cnegate(CmulReal(I012[0], 3.0));
+                End;
+        Else
+                DoSimpleMsg(Format('Dynamics mode is implemented only for 1- or 3-phase Generators. Generator.%s has %d phases.', [name, Fnphases]), 5671);
+                SolutionAbort := TRUE;
+        END;
+
+   END;
 
    IterminalUpdated := TRUE;
 
@@ -1747,9 +1792,9 @@ Begin
 
    {Take Care of any shaft model calcs}
     If (GenModel=6) and ShaftModel.Exists Then      // auto selects model
-      Begin           // Compute Mech Power to shaft
-        ShaftModel.FCalc(Vterminal, Iterminal);     // Returns pshaft at least
-      End;
+    Begin           // Compute Mech Power to shaft
+         ShaftModel.FCalc(Vterminal, Iterminal);     // Returns pshaft at least
+    End;
 End;
 
 
@@ -2271,7 +2316,13 @@ begin
 
   With GenVars Do Begin
 
-     Yeq := Cinv(Cmplx(0.0, Xdp));
+     CASE Genmodel of
+         7: Zthev := Cmplx(Xdp, 0.0); // use Xd' as an equivalent R for the inverter
+     ELSE
+            Zthev := Cmplx(0.0, Xdp);
+     END;
+
+     Yeq := Cinv(Zthev);
 
      {Compute nominal Positive sequence voltage behind transient reactance}
 
@@ -2283,7 +2334,7 @@ begin
          case Fnphases of
 
               1: Begin
-                      Edp      := Csub( CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]) , Cmul(ITerminal^[1], cmplx(0.0, Xdp)));
+                      Edp      := Csub( CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]) , Cmul(ITerminal^[1], Zthev));
                       VThevMag := Cabs(Edp);
                  End;
 
@@ -2294,7 +2345,7 @@ begin
 
                      For i := 1 to FNphases Do Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
                      Phase2SymComp(@Vabc, @V012);
-                     Edp      := Csub( V012[1] , Cmul(I012[1], cmplx(0.0, Xdp)));    // Pos sequence
+                     Edp      := Csub( V012[1] , Cmul(I012[1], Zthev));    // Pos sequence
                      VThevMag := Cabs(Edp);
                  End;
          Else
@@ -2540,10 +2591,6 @@ begin
 
 end;
 
-
-
-
-
 function TGeneratorObj.GetPropertyValue(Index: Integer): String;
 
 begin
@@ -2688,6 +2735,13 @@ procedure TGeneratorObj.CalcVthev_Dyn;
 begin
    If GenSwitchOpen Then VThevMag := 0.0;
    Vthev := pclx(VthevMag, Genvars.Theta);
+end;
+
+procedure TGeneratorObj.CalcVthev_Dyn_Mod7(const V: Complex);
+{Adjust VThev to be in phase with V}
+begin
+   If GenSwitchOpen Then VThevMag := 0.0;
+   Vthev := pclx(VthevMag, cAng(V));
 end;
 
 initialization
