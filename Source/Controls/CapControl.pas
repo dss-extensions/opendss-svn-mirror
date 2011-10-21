@@ -82,9 +82,10 @@ TYPE
             LastOpenTime   :Double;
 
             Voverride  :Boolean;
+            VoverrideEvent: Boolean;
             VoverrideBusSpecified  :Boolean;     // Added 8-11-11
             VOverrideBusName :String;
-            VOverrideBusIndex:Integer;
+            VOverrideBusIndex :Integer;
 
             Vmax,
             Vmin       :Double;
@@ -162,7 +163,12 @@ CONST
     AVGPHASES = -1;
     MAXPHASE  = -2;
     MINPHASE  = -3;
+    SRPINHIBITRELEASE = 222; // just some unused number
     NumPropsThisClass = 18;
+
+VAR
+    SRPInhibit :Boolean;
+    SRPControlActionHandle:Integer;
 
 {--------------------------------------------------------------------------}
 constructor TCapControl.Create;  // Creates superstructure for all CapControl objects
@@ -481,6 +487,7 @@ Begin
       PFOFF_Value   := 1.05;
 
       Voverride  := FALSE;
+      VoverrideEvent := FALSE;
       VoverrideBusSpecified := FALSE;
       VOverrideBusName := '';
 
@@ -706,13 +713,45 @@ End;
 
 
 {--------------------------------------------------------------------------}
-PROCEDURE TCapControlObj.DoPendingAction;
-
+PROCEDURE TCapControlObj.DoPendingAction(Const Code, ProxyHdl:Integer);
 
 begin
 
          ControlledElement.ActiveTerminalIdx := 1;  // Set active terminal of capacitor to terminal 1
+{***************************** SRP Control Special ****************************}
+         CASE ControlType of
 
+         SRPCONTROL :   // allows one capacitor to switch every 15 min
+                {SRPInhibit is a module variable and if any SRP capcontrol sets it true all other SRP CapControls will simply exit}
+                 If SRPInhibit Then
+                   Begin
+                        If Code=SRPINHIBITRELEASE Then
+                        Begin
+                          SRPInhibit := FALSE;
+                          Exit;  // Without doing anything; just process the inhibit release if sent
+                        End Else
+                        Begin
+                            // If it is a Voverride event just process the pending change
+                            // but leave the inhibit on
+                            // If not, need to remove the Armed switch so capcontrol  can sample and
+                            // send the message again.
+                            If not VoverrideEvent Then
+                            Begin
+                                 ShouldSwitch := FALSE;
+                                 Armed        := FALSE;   // reset control
+                                 Exit;  // don't do anything; just send it back
+                            End;
+                        End;
+                   End
+                 Else
+                   If (Code=Integer(OPEN)) or (Code=Integer(CLOSE)) Then   // skip NONE
+                   Begin
+                        {We'll switch capacitor this time, but then not again until inhibit released}
+                        SRPInhibit := TRUE; // Prevent further switching until inhibit released  in 15 min
+                        With ActiveCircuit Do SRPControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + 900.0 , SRPINHIBITRELEASE, 0, Self);
+                   End;
+         END;
+{***************************** SRP Control Special ****************************}
 
          CASE PendingChange of
             OPEN: CASE ControlledCapacitor.NumSteps of
@@ -750,6 +789,7 @@ begin
             {Do Nothing for NONE if the control has reset}
          END;
 
+         VoverrideEvent := FALSE;
          ShouldSwitch := FALSE;
          Armed        := FALSE;   // reset control
 end;
@@ -843,18 +883,22 @@ begin
                  OPEN:
                       IF   Vtest < VMin
                       THEN Begin
-                          PendingChange := CLOSE;
-                          ShouldSwitch := TRUE;
+                          PendingChange  := CLOSE;
+                          ShouldSwitch   := TRUE;
+                          VoverrideEvent := TRUE;
                           If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('Low Voltage Override: %.8g V', [Vtest]));
                       End;
                  CLOSE:
                       IF   Vtest > Vmax
                       THEN Begin
-                          PendingChange := OPEN;
-                          ShouldSwitch := TRUE;
+                          PendingChange  := OPEN;
+                          ShouldSwitch   := TRUE;
+                          VoverrideEvent := TRUE;
                           If ShowEventLog Then AppendtoEventLog('Capacitor.' + ControlledElement.Name, Format('High Voltage Override: %.8g V', [Vtest]));
                       End;
               End;
+
+
          End;
 
 
@@ -957,11 +1001,14 @@ begin
 
                  End;
 
+  {***************************** SRP Control Special ****************************}
+
               SRPCONTROL: {kvar modified to keep PF around .98 lead}
                  Begin
                       //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
                       S := MonitoredElement.Power[ElementTerminal];
-                      Q := S.im * 0.001 + 0.20306 * S.re * 0.001;  // kvar for -.98 PF
+                   //   Q := S.im * 0.001 + 0.20306 * S.re * 0.001;  // kvar for -.98 PF
+                      Q := S.im * 0.001 +  0.063341 * S.re * 0.001;  // kvar for -.998 PF
 
                       CASE PresentState of
                           OPEN:   IF Q > ON_Value
@@ -984,9 +1031,11 @@ begin
                                   End
                                   ELSE // Reset
                                         PendingChange := NONE;
-                      End;
+                      END;
 
                  End;
+{***************************** SRP Control Special ****************************}
+
 
               TIMECONTROL: {time}
               {7-8-10  NormalizeToTOD Algorithm modified to close logic hole between 11 PM and midnight}
@@ -1090,7 +1139,7 @@ begin
                  If (Solution.DynaVars.t + Solution.intHour*3600.0 - LastOpenTime)<DeadTime Then // delay the close operation
                       {2-6-09 Added ONDelay to Deadtime so that all caps do not close back in at same time}
                       TimeDelay := Max(ONDelay , (Deadtime + ONDelay) - (Solution.DynaVars.t + Solution.intHour*3600.0-LastOpenTime))
-                 Else TimeDelay := ONDelay;
+                 Else  TimeDelay := ONDelay;
               End Else TimeDelay := OFFDelay;
               ControlActionHandle := ControlQueue.Push(Solution.intHour, Solution.DynaVars.t + TimeDelay , PendingChange, 0, Self);
               Armed := TRUE;
@@ -1181,5 +1230,7 @@ end;
 
 INITIALIZATION
 
+    SRPInhibit := FALSE;  // Inhibit flag for SRP control
+    SRPControlActionHandle := 0;
 
 end.
