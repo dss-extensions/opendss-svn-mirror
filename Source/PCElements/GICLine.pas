@@ -63,13 +63,20 @@ TYPE
         SrcFrequency:Double;
         R,
         X,
-        C           :Double;
+        C,
+        ENorth,
+        EEast,
+        Lat1,
+        Lon1,
+        Lat2,
+        Lon2           :Double;
 
-        ScanType     :Integer;
-        SequenceType :Integer;
+        ScanType       :Integer;
+        SequenceType   :Integer;
+        VoltsSpecified :Boolean;
 
         Procedure GetVterminalForSource;
-
+        FUNCTION  Compute_VLine:Double;
       public
         Z     :TCmatrix;  // Base Frequency Series Z matrix
         Zinv  :TCMatrix;
@@ -99,10 +106,9 @@ VAR
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 implementation
 
-
 USES  ParserDel, Circuit, MyDSSClassDefs, DSSClassDefs, DSSGlobals, Utilities, Sysutils, Command;
 
-Const NumPropsThisClass = 11;
+Const NumPropsThisClass = 17;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TGICLine.Create;  // Creates superstructure for all Line objects
@@ -136,7 +142,6 @@ Begin
      CountProperties;   // Get inherited property count
      AllocatePropertyArrays;
 
-
      // Define Property names
      PropertyName[1] := 'bus1';
      PropertyName[2] := 'bus2';
@@ -149,7 +154,12 @@ Begin
      PropertyName[9] := 'C';
      PropertyName[10] := 'ScanType';
      PropertyName[11] := 'Sequence';
-
+     PropertyName[12] := 'EN';
+     PropertyName[13] := 'EE';
+     PropertyName[14] := 'Lat1';
+     PropertyName[15] := 'Lon1';
+     PropertyName[16] := 'Lat2';
+     PropertyName[17] := 'Lon2';
 
      // define Property help values
      PropertyHelp[1] := 'Name of bus to which the main terminal (1) is connected.'+ CRLF +
@@ -171,6 +181,12 @@ Begin
                          'Otherwise, angle between phases rotates with harmonic.';
      PropertyHelp[11] := '{pos | neg | zero*} Set the phase angles for the specified symmetrical component sequence for non-harmonic solution modes. '+
                          'Default is ZERO sequence. ';
+     PropertyHelp[12] := 'Northward Electric field.';
+     PropertyHelp[13] := 'Eastward Electric field.';
+     PropertyHelp[14] := 'Latitude of Bus1';
+     PropertyHelp[15] := 'Longitude of Bus1';
+     PropertyHelp[16] := 'Latitude of Bus2';
+     PropertyHelp[17] := 'Longitude of Bus2';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -270,9 +286,21 @@ Begin
                 ELSE
                    DoSimpleMsg('Unknown Sequence Type for "' + Class_Name +'.'+ Name + '": '+Param, 321);
                 END;
+           12: ENorth := Parser.DblValue;
+           13: EEast  := Parser.DblValue;
+           14: Lat1   := Parser.DblValue;
+           15: Lon1   := Parser.DblValue;
+           16: Lat2   := Parser.DblValue;
+           17: Lon2   := Parser.DblValue;
+
          ELSE
             ClassEdit(ActiveGICLineObj, ParamPointer - NumPropsThisClass)
          End;
+
+         CASE ParamPointer of
+              3,4: VoltsSpecified := TRUE;
+              12..17: VoltsSpecified := FALSE;
+         END;
 
          ParamName := Parser.NextParam;
          Param     := Parser.StrValue;
@@ -342,6 +370,16 @@ Begin
 End;
 
 //=============================================================================
+function TGICLineObj.Compute_VLine: Double;
+Var
+   Alpha, VN, VE :Double;
+begin
+     Alpha := (Lat2 + Lat1)/2.0 * (pi/180.0);
+     VN    := 112.2 * (Lat2 - Lat1) * ENorth;
+     VE    := 111.2 * (Lon2 - Lon1) * sin(pi/2.0 - Alpha) * EEast;
+     Result := VN + VE;
+end;
+
 Constructor TGICLineObj.Create(ParClass:TDSSClass; const SourceName:String);
 Begin
      Inherited create(ParClass);
@@ -358,6 +396,15 @@ Begin
      R        := 1.0;
      X        := 0.0;
      C        := 0.0;
+
+     ENorth := 1.0;
+     EEast := 1.0;
+     Lat1  :=  33.613499;
+     Lon1  := -87.373673;
+     Lat2  :=  33.547885;
+     Lon2  := -86.074605;
+
+     VoltsSpecified := FALSE;
 
      SrcFrequency := 0.1;  // Typical GIC study frequency
      Angle        := 0.0;
@@ -409,6 +456,9 @@ Begin
            Z.SetElemsym(i, j, Zm);
        End;
     End;
+
+   If Not VoltsSpecified Then
+       Volts := Compute_VLine;
 
    Vmag := Volts;
 
@@ -634,6 +684,7 @@ Begin
     If Complete Then Begin
         Writeln(F);
         Writeln(F,'BaseFrequency=',BaseFrequency:0:1);
+        Writeln(F,'Volts=',Volts:0:2);
         Writeln(F,'VMag=',VMag:0:2);
         Writeln(F,'Z Matrix=');
         FOR i := 1 to Fnphases DO Begin
@@ -665,7 +716,12 @@ begin
 
      PropertyValue[10] := 'zero';
      PropertyValue[11] := 'zero';
-
+     PropertyValue[12] := '1.0';
+     PropertyValue[13] := '1.0';
+     PropertyValue[14] := '33.613499';
+     PropertyValue[15] := '-87.373673';
+     PropertyValue[16] := '33.547885';
+     PropertyValue[17] := '-86.074605';
 
      inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -677,6 +733,9 @@ begin
         Case Index of
           1 : Result  := GetBus(1);
           2 : Result  := GetBus(2);
+          3 : Result := Format('%.8g',[Volts]);
+          4 : Result := Format('%.8g',[Angle]);
+          5 : Result := Format('%.8g',[SrcFrequency]);
         Else
           Result := Inherited GetPropertyValue(Index);
         End;
