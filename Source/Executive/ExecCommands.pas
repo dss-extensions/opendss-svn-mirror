@@ -11,7 +11,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 97;
+     NumExecCommands = 98;
 
 Var
 
@@ -133,6 +133,7 @@ Begin
      ExecCommand[95] := 'BatchEdit';
      ExecCommand[96] := 'Pstcalc';
      ExecCommand[97] := 'Variable';
+     ExecCommand[98] := 'ReprocessBuses';
 
 
 
@@ -325,7 +326,8 @@ Begin
      CommandHelp[58] := 'Define x,y coordinates for buses.  Execute after Solve or MakeBusList command is executed so that bus lists are defined.' +
                         'Reads coordinates from a CSV file with records of the form: busname, x, y.'+CRLF+CRLF+
                         'Example: BusCoords [file=]xxxx.csv';
-     CommandHelp[59] := 'Updates the buslist using the currently enabled circuit elements.  (This happens automatically for Solve command.)';
+     CommandHelp[59] := 'Updates the buslist, if needed, using the currently enabled circuit elements.  (This happens automatically for Solve command.)' +
+                        ' See ReprocessBuses';
      CommandHelp[60] := 'Attempts to convert present circuit model to a positive sequence equivalent. ' +
                         'It is recommended to Save the circuit after this and edit the saved version to correct possible misinterpretations.';
      CommandHelp[61] := '{All | MeterName}  Default is "All".  Reduce the circuit according to reduction options. ' +
@@ -426,6 +428,8 @@ Begin
                         'Returns the value as a string in the Result window or the Text.Result interface if using the COM server. ' +CRLF+CRLF+
                         'You may specify the variable by name or by its index. You can determine the index using the VarNames command. ' +
                         'If any part of the request is invalid, the Result is null.';
+     CommandHelp[98] := 'Forces reprocessing of bus definitions whether there has been a change or not. Use for rebuilding meter zone lists ' +
+                        'when a line length changes, for example or some other event that would not normally trigger an update to the bus list.';
 
 End;
 
@@ -640,6 +644,7 @@ Begin
        95: CmdResult := DoBatchEditCmd;
        96: CmdResult := DoPstCalc;
        97: CmdResult := DoValVarCmd;
+       98: ActiveCircuit.ReprocessBusDefs;
      ELSE
        // Ignore excess parameters
      End;
