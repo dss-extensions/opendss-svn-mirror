@@ -46,7 +46,7 @@ CONST
       STORAGE_CONTROL  = 22 * 8;
       SWT_CONTROL      = 23 * 8;
       PVSYSTEM_ELEMENT = 24 * 8;
-
+      VV_CONTROL       = 25 * 8;
 
 VAR
    NumIntrinsicClasses,

@@ -158,7 +158,11 @@ uses
   TSLineConstants in '..\..\General\TSLineConstants.pas',
   GICTransformer in '..\..\PDElements\GICTransformer.pas',
   GICLine in '..\..\PCElements\GICLine.pas',
-  ImplGlobals in 'ImplGlobals.pas';
+  ImplGlobals in 'ImplGlobals.pas',
+  VVControl in '..\..\Controls\VVControl.pas',
+  Pstcalc in '..\..\Shared\Pstcalc.pas',
+  PerlRegEx in '..\..\TPerlRegEx\PerlRegEx.pas',
+  pcre in '..\..\TPerlRegEx\pcre.pas';
 
 {$R *.RES}
 

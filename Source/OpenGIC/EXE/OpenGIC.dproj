@@ -74,7 +74,7 @@
 						<VersionInfo Name="MajorVer">1</VersionInfo>
 						<VersionInfo Name="MinorVer">0</VersionInfo>
 						<VersionInfo Name="Release">1</VersionInfo>
-						<VersionInfo Name="Build">2</VersionInfo>
+						<VersionInfo Name="Build">4</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -86,9 +86,9 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">EPRI</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">GIC Simulation</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">1.0.1.2</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.0.1.4</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">OpenGIC</VersionInfoKeys>
-						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2010 EPRI, All Rights Reserved.</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2011 EPRI, All Rights Reserved.</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
 						<VersionInfoKeys Name="OriginalFilename"/>
 						<VersionInfoKeys Name="ProductName">OpenGIC</VersionInfoKeys>
@@ -264,6 +264,10 @@
 			<DCCReference Include="..\..\PDElements\GICTransformer.pas"/>
 			<DCCReference Include="..\..\PCElements\GICLine.pas"/>
 			<DCCReference Include="ImplGlobals.pas"/>
+			<DCCReference Include="..\..\Controls\VVControl.pas"/>
+			<DCCReference Include="..\..\Shared\Pstcalc.pas"/>
+			<DCCReference Include="..\..\TPerlRegEx\PerlRegEx.pas"/>
+			<DCCReference Include="..\..\TPerlRegEx\pcre.pas"/>
 			<None Include="OpenGIC.todo"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
