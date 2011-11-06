@@ -375,10 +375,11 @@ Begin
                         'To keep the DOS window open, use /k switch.';
      CommandHelp[76] := 'Execute state estimator on present circuit given present sensor values.';
      CommandHelp[77] := 'Reconductor a line section. Must be in an EnergyMeter zone. ' + CRLF +
-                        'Syntax: Reconductor Line1=... Line2=... {LineCode= | Geometry = } EditString="..." ' +CRLF+
+                        'Syntax: Reconductor Line1=... Line2=... {LineCode= | Geometry = } EditString="..." NPhases=#' +CRLF+
                         'Line1 and Line2 may be given in any order. All lines in the path between the two are redefined ' +
                         'with either the LineCode or Geometry (not both). You may also add an optional string the alter any other line properties. '+
-                        'The edit string should be enclosed in quotes or parens or brackets.';
+                        'The edit string should be enclosed in quotes or parens or brackets.' +CRLF+
+                        'Nphases is an optional filter on the number of phases in line segments to change.';
      CommandHelp[78] := 'For step control of solution process: Intialize iteration counters, etc. that normally occurs at the ' +
                         'start of a snapshot solution process.';
      CommandHelp[79] := 'For step control of solution process: Solves the circuit in present state but does not check for control actions.';

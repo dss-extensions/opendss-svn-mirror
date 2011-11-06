@@ -127,7 +127,7 @@ Function GetUniqueNodeNumber(const sBusName:String; StartNode:Integer):Integer;
 
 {TraceBack Functions}
 Function  IsPathBetween(FromLine, ToLine:TPDElement):Boolean;
-Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
+Procedure TraceAndEdit(FromLine, ToLine:TPDElement; NPhases: Integer; EditStr:String);
 Procedure GoForwardAndRephase(FromLine:TPDElement; const PhaseString, EditStr, ScriptFileName:String; TransStop:Boolean);
 
 Procedure MakeDistributedGenerators(kW, PF:double; How:String; Skip:Integer; Fname:String);
@@ -2474,15 +2474,17 @@ Begin
    End;
 End;
 
-Procedure TraceAndEdit(FromLine, ToLine:TPDElement; EditStr:String);
+Procedure TraceAndEdit(FromLine, ToLine:TPDElement; NPhases:  Integer; EditStr:String);
 {Trace back up a tree and execute an edit command string}
 Var
    pLine :TPDElement;
 Begin
    pLine := FromLine;
    while pLine <> NIL do Begin
-     Parser.CmdString := EditStr;
-     pLine.Edit;   // Uses Parser
+     if (pLine.NPhases = NPhases) or (Nphases=0) then begin
+      Parser.CmdString := EditStr;
+      pLine.Edit;   // Uses Parser
+     end;
      If pLine = ToLine then Break;
      pLine := pLine.ParentPDElement;
    End;

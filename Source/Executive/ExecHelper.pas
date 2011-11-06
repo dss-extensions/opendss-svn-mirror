@@ -3193,6 +3193,7 @@ Var
      pLine1, pLine2 :TLineObj;
      LineClass :TLine;
      TraceDirection :Integer;
+     NPhases: Integer;
 
 
 Begin
@@ -3203,6 +3204,7 @@ Begin
      Line1 := '';
      Line2 := '';
      MyEditString := '';
+     NPhases := 0; // no filtering by number of phases
      ParamName := Parser.NextParam;
      Param := Parser.StrValue;
      while Length(Param) > 0 do Begin
@@ -3215,6 +3217,7 @@ Begin
           3: Begin Linecode := Param; LineCodeSpecified := TRUE; GeometrySpecified := FALSE; End;
           4: Begin Geometry := Param; LineCodeSpecified := FALSE; GeometrySpecified := TRUE; End;
           5: MyEditString := Param;
+          6: Nphases := Parser.IntValue;
        Else
           DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28701);
        End;
@@ -3273,8 +3276,8 @@ Begin
      EditString := Format('%s  %s',[EditString, MyEditString]);
 
      case TraceDirection of
-          1: TraceAndEdit(pLine1, pLine2, Editstring);
-          2: TraceAndEdit(pLine2, pLine1, Editstring);
+          1: TraceAndEdit(pLine1, pLine2, NPhases, Editstring);
+          2: TraceAndEdit(pLine2, pLine1, NPhases, Editstring);
      Else
          DoSimpleMsg('Traceback path not found between Line1 and Line2.', 28707);
          Exit;
@@ -3709,7 +3712,7 @@ initialization
     DistributeCommands := TCommandList.Create(['kW','how','skip','pf','file','MW']);
     DistributeCommands.Abbrev := True;
 
-    ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry', 'EditString']);
+    ReconductorCommands := TCommandList.Create(['Line1', 'Line2', 'LineCode', 'Geometry', 'EditString', 'Nphases']);
     ReconductorCommands.Abbrev := True;
 
     RephaseCommands := TCommandList.Create(['StartLine', 'PhaseDesignation', 'EditString', 'ScriptFileName', 'StopAtTransformers']);

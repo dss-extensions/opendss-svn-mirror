@@ -550,6 +550,11 @@ Begin
 
          // Side Effects ...
          CASE ParamPointer OF
+          3: Begin
+              SpacingSpecified := False;
+              if GeometrySpecified = True then KillGeometrySpecified;
+              GeometrySpecified := False;
+             End;
           5: {Change the number of phases ... only valid if SymComponentsModel=TRUE}
              IF Fnphases <> Parser.IntValue THEN
               If (Not GeometrySpecified) and SymComponentsModel Then Begin  // ignore change of nphases if geometry used
