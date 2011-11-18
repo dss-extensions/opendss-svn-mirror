@@ -98,7 +98,7 @@ New Line.L47    Phases=3 Bus1=47.1.2.3   Bus2=48.1.2.3   LineCode=4    Length=0.
 New Line.L48    Phases=3 Bus1=47.1.2.3   Bus2=49.1.2.3   LineCode=4    Length=0.25
 New Line.L49    Phases=3 Bus1=49.1.2.3   Bus2=50.1.2.3   LineCode=4    Length=0.25
 New Line.L50    Phases=3 Bus1=50.1.2.3   Bus2=51.1.2.3   LineCode=4    Length=0.25
-New Line.L51    Phases=3 Bus1=51.1.2.3   Bus2=151.1.2.3  LineCode=4    Length=0.8
+New Line.L51    Phases=3 Bus1=51.1.2.3   Bus2=151.1.2.3  LineCode=4    Length=0.5
 New Line.L52    Phases=3 Bus1=52.1.2.3   Bus2=53.1.2.3   LineCode=1    Length=0.2
 New Line.L53    Phases=3 Bus1=53.1.2.3   Bus2=54.1.2.3   LineCode=1    Length=0.125
 New Line.L54    Phases=3 Bus1=54.1.2.3   Bus2=55.1.2.3   LineCode=1    Length=0.275
@@ -147,6 +147,7 @@ New Line.L96    Phases=3 Bus1=97.1.2.3   Bus2=98.1.2.3   LineCode=3    Length=0.
 New Line.L97    Phases=3 Bus1=98.1.2.3   Bus2=99.1.2.3   LineCode=3    Length=0.55
 New Line.L98    Phases=3 Bus1=99.1.2.3   Bus2=100.1.2.3  LineCode=3    Length=0.3
 New Line.L99    Phases=3 Bus1=100.1.2.3  Bus2=450.1.2.3  LineCode=3    Length=0.8
+New Line.L118   Phases=3 Bus1=197.1.2.3  Bus2=101.1.2.3  LineCode=3    Length=0.25
 New Line.L100   Phases=1 Bus1=101.3      Bus2=102.3      LineCode=11   Length=0.225
 New Line.L101   Phases=3 Bus1=101.1.2.3  Bus2=105.1.2.3  LineCode=3    Length=0.275
 New Line.L102   Phases=1 Bus1=102.3      Bus2=103.3      LineCode=11   Length=0.325
@@ -164,7 +165,6 @@ New Line.L113   Phases=1 Bus1=113.1      Bus2=114.1      LineCode=9    Length=0.
 New Line.L114   Phases=3 Bus1=135.1.2.3  Bus2=35.1.2.3   LineCode=4    Length=0.375
 New Line.L116   Phases=3 Bus1=152.1.2.3  Bus2=52.1.2.3   LineCode=1    Length=0.4
 New Line.L117   Phases=3 Bus1=160r.1.2.3 Bus2=67.1.2.3   LineCode=6    Length=0.35
-New Line.L118   Phases=3 Bus1=197.1.2.3  Bus2=101.1.2.3  LineCode=3    Length=0.25
 
 
 ! NORMALLY CLOSED SWITCHES ARE DEFINED AS SHORT LINES
