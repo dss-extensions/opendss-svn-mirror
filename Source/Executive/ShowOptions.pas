@@ -154,12 +154,30 @@ VAR
 
 
 Begin
+   Result := 0;
 
    ParamName := Parser.NextParam;
    Param := LowerCase(Parser.StrValue);
    ParamPointer := ShowCommands.Getcommand (Param);
 
    If ParamPointer=0 Then ParamPointer := 13;  {voltages}
+
+   {Check commands requiring a solution and abort if no solution or circuit}
+   CASE ParamPointer of
+         4,6,8..10, 12, 13..17,19..23, 29..31:
+         Begin
+             If not assigned(ActiveCircuit) Then
+             Begin
+                  DoSimpleMsg('No circuit created.',24701);
+                  Exit;
+             End;
+             If not assigned(ActiveCircuit.Solution) OR not assigned(ActiveCircuit.Solution.NodeV) Then
+             Begin
+                  DoSimpleMsg('The circuit must be solved before you can do this.',24702);
+                  Exit;
+             End;
+         End;
+   END;
 
    InShowResults := True;
 
@@ -331,7 +349,7 @@ Begin
    ELSE
    End;
 
-   Result := 0;
+
    InShowResults := False;
 
 End;

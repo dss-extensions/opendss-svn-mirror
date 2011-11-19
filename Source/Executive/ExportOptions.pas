@@ -115,10 +115,29 @@ VAR
    PhasesToPlot :Integer;
 
 Begin
+   Result := 0;
 
    ParamName := Parser.NextParam;
    Parm1 := LowerCase(Parser.StrValue);
    ParamPointer := ExportCommands.Getcommand (Parm1);
+
+   {Check commands requiring a solution and abort if no solution or circuit}
+   CASE ParamPointer of
+         1..24,28..32:
+         Begin
+             If not assigned(ActiveCircuit) Then
+             Begin
+                  DoSimpleMsg('No circuit created.',24711);
+                  Exit;
+             End;
+             If not assigned(ActiveCircuit.Solution) OR not assigned(ActiveCircuit.Solution.NodeV) Then
+             Begin
+                  DoSimpleMsg('The circuit must be solved before you can do this.',24712);
+                  Exit;
+             End;
+         End;
+   END;
+
 
    MVAOpt := 0;
    UEonlyOpt := FALSE;
