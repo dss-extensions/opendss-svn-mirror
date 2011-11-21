@@ -282,7 +282,7 @@ VAR
     Retval:Integer;
 Begin
 
-     Msg := Format('Error %d Reported From DSS Intrinsic Function: ', [Errnum])+ CRLF  + S
+     Msg := Format('Error %d Reported From OpenDSS Intrinsic Function: ', [Errnum])+ CRLF  + S
              + CRLF   + CRLF + 'Error Description: ' + CRLF + Emsg
              + CRLF   + CRLF + 'Probable Cause: ' + CRLF+ ProbCause;
 
@@ -322,12 +322,12 @@ Begin
       IF Not NoFormsAllowed Then Begin
        IF   In_Redirect
        THEN Begin
-         RetVal := DSSMessageDlg(Format('(%d) %s%s', [Errnum, CRLF, S]), FALSE);
+         RetVal := DSSMessageDlg(Format('(%d) OpenDSS %s%s', [Errnum, CRLF, S]), FALSE);
          IF   RetVal = -1
          THEN Redirect_Abort := True;
        End
        ELSE
-         DSSInfoMessageDlg(Format('(%d) %s%s', [Errnum, CRLF, S]));
+         DSSInfoMessageDlg(Format('(%d) OpenDSS %s%s', [Errnum, CRLF, S]));
       End;
 
      LastErrorMessage := S;
