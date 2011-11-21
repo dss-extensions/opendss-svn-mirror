@@ -2470,6 +2470,7 @@ VAR
    idx              :Integer;
    xx               :Double;
    ActiveGraphProps :TDSSGraphProperties;
+   RangeLoX, RangeHiX, RangeLoY, RangeHiY :Double;
 
     {----------------------INTERNAL FUNCTIONS---------------------------}
      Procedure GetS;
@@ -2517,128 +2518,140 @@ VAR
 
     {-------------------------------------------------------------------}
 
-
 begin
 {Plot Lines representing the phases and ground}
 
-    
+    NCond := Element.NConds;
+    Nterm := Element.Nterms;
+    CBufferAllocated := FALSE;
 
-  NCond := Element.NConds;
-  Nterm := Element.Nterms;
-  CBufferAllocated := FALSE;
+    Element.ComputeITerminal;
+    Element.ComputeVTerminal;
 
-  Element.ComputeITerminal;
-  Element.ComputeVTerminal;
+    Xmx := 300.0;   // don't use Xmax -- already used
+    For i := 1 to 2 Do kVBase1[i] := 1.0;
 
-  Xmx := 300.0;   // don't use Xmax -- already used
-  For i := 1 to 2 Do kVBase1[i] := 1.0;
-
-  Case Quantity of
-    vizVoltage: Begin ArrowLeft := '^ ';  ArrowRight := ' ^'; End;
+    Case Quantity of
+      vizVoltage: Begin ArrowLeft := '^ ';  ArrowRight := ' ^'; End;
     Else
-    ArrowLeft := '<- ';  ArrowRight := ' ->';
-  End;
+      ArrowLeft := '<- ';  ArrowRight := ' ->';
+    End;
 
-  Case Quantity of
-    vizVoltage: Begin
-                  cBuffer := Element.Vterminal;
-                  For i := 1 to min(2, Nterm) do
-                     kVBase1[i] := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[i].busRef].kVBase);
-                End;
-    vizCurrent: cBuffer := Element.Iterminal;
-    vizPower:   Begin
-                  cBuffer := AllocMem(Sizeof(Complex)*Element.Yorder);
-                  CBufferAllocated := TRUE;
-                  With Element Do Begin
-                     For i := 1 to Yorder Do CBuffer^[i] := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
+    Case Quantity of
+      vizVoltage: Begin
+                    cBuffer := Element.Vterminal;
+                    For i := 1 to min(2, Nterm) do
+                       kVBase1[i] := Max(1.0, 1000.0 * ActiveCircuit.Buses^[Element.Terminals[i].busRef].kVBase);
                   End;
-                End;
-  End;
+      vizCurrent: cBuffer := Element.Iterminal;
+      vizPower:   Begin
+                    cBuffer := AllocMem(Sizeof(Complex)*Element.Yorder);
+                    CBufferAllocated := TRUE;
+                    With Element Do Begin
+                       For i := 1 to Yorder Do CBuffer^[i] := CmulReal(Cmul(Vterminal^[i], conjg(ITerminal^[i])), 0.001);
+                    End;
+                  End;
+    End;
 
 
      MakeNewGraph;
      Get_Properties(ActiveGraphProps);
      xx := 0.0;
-     With ActiveGraphProps Do Begin
-       ChartColor := clWhite;
-       WindColor := clWhite;
-       GridStyle := gsNone;
-       Set_NoScales;  // Set for no scales on X or Y
+     With ActiveGraphProps Do
+     Begin
+         ChartColor := clWhite;
+         WindColor := clWhite;
+         GridStyle := gsNone;
+         Set_NoScales;  // Set for no scales on X or Y
 
-       S1 := Element.ParentClass.Name + '.' + UpperCase(Element.Name);
-       Case Quantity of
-          vizVoltage: S := S1 + ' Voltages';
-          vizCurrent: S := S1 + ' Currents';
-          vizPower:   S := S1 + ' Powers';
-       End;
-       Set_Caption(pAnsiChar(AnsiString(s)), Length(S));
-       Set_ChartCaption(pAnsiChar(AnsiString(s)), Length(S));
+         S1 := Element.ParentClass.Name + '.' + UpperCase(Element.Name);
+         Case Quantity of
+            vizVoltage: S := S1 + ' Voltages';
+            vizCurrent: S := S1 + ' Currents';
+            vizPower:   S := S1 + ' Powers';
+         End;
+         Set_Caption(pAnsiChar(AnsiString(s)), Length(S));
+         Set_ChartCaption(pAnsiChar(AnsiString(s)), Length(S));
 
-       {Draw a box}
-       TopY := 10.0 + (NCond+1)*10.0;
-       Rectangle(100.0, 10.0, Xmx-100.0, TopY);
-       idx := AddTextLabel(Xmx/2.0, 15.0, clBlack, pAnsiChar(AnsiString(S1)), 0);
-       BoldTextLabel(idx);
+         {Draw a box}
+         TopY := 10.0 + (NCond+1)*10.0;
+         Rectangle(100.0, 10.0, Xmx-100.0, TopY);
+         idx := AddTextLabel(Xmx/2.0, 15.0, clBlack, pAnsiChar(AnsiString(S1)), 0);
+         BoldTextLabel(idx);
 
-       { Draw the Ground Plane }
-        Set_LineWidth(7);
-        set_DataColor (clGray);
-        MoveTo(0.0, 0.0);
-        DrawTo(Xmx, 0.0);
-        set_DataColor (clBlack);
+         { Draw the Ground Plane }
+          Set_LineWidth(7);
+          set_DataColor (clGray);
+          MoveTo(0.0, 0.0);
+          DrawTo(Xmx, 0.0);
+          set_DataColor (clBlack);
 
-       {Put the Quantities on The Box}
-       k := 0;
-       For i := 1 to min(2,NTerm) Do Begin
-           Set_LineWidth(3);
-           For j := 1 to Element.Nphases Do Begin
-               inc(k);
-               GetS;
-               DrawArrow( TopY-j*10.0, S1, S2, i);
-           End;
-           Set_LineWidth(1);
-           For j := Element.NPhases+1 to Ncond Do Begin
-               inc(k);
-               GetS;
-               DrawArrow(  TopY-j*10.0, S1, S2, i);
-           End;
+         {Put the Quantities on The Box}
+         k := 0;
+         For i := 1 to min(2,NTerm) Do
+         Begin
+             Set_LineWidth(3);
+             For j := 1 to Element.Nphases Do Begin
+                 inc(k);
+                 GetS;
+                 DrawArrow( TopY-j*10.0, S1, S2, i);
+             End;
+             Set_LineWidth(1);
+             For j := Element.NPhases+1 to Ncond Do Begin
+                 inc(k);
+                 GetS;
+                 DrawArrow(  TopY-j*10.0, S1, S2, i);
+             End;
 
-          {Add Residual Current}
-           If Quantity = VizCurrent Then Begin
-               CResidual := CZERO;
-               For j := 1 to Ncond Do Caccum(CResidual, Cnegate(CBuffer^[j + (i-1)*Ncond]));
-               S1 := Format('%-.6g', [Cabs(CResidual)]);
-               S2 := Format(' /_ %8.2f', [cdang(CResidual)]);
-               DrawArrow(  -10.0, S1, S2, i);
-           End;
+            {Add Residual Current}
+             If Quantity = VizCurrent Then Begin
+                 CResidual := CZERO;
+                 For j := 1 to Ncond Do Caccum(CResidual, Cnegate(CBuffer^[j + (i-1)*Ncond]));
+                 S1 := Format('%-.6g', [Cabs(CResidual)]);
+                 S2 := Format(' /_ %8.2f', [cdang(CResidual)]);
+                 DrawArrow(  -10.0, S1, S2, i);
+             End;
 
-          {Draw Bus and Label}
-            Set_LineWidth(7);
-            Case i of
-              1: xx := -5.0;
-              2: xx := xmx+5.0;
-            End;
-            MoveTo(xx, 5.0);
-            DrawTo(xx, TopY-5.0);
-            Case i of
-              1: xx := 25;
-              2: xx := xmx-25.0;
-            End;
-            CenteredText15(xx,TopY, 10, pAnsiChar(AnsiString(UpperCase(Element.Getbus(i)))));
+            {Draw Bus and Label}
+              Set_LineWidth(7);
+              Case i of
+                1: xx := -5.0;
+                2: xx := xmx+5.0;
+              End;
+              MoveTo(xx, 5.0);
+              DrawTo(xx, TopY-5.0);
+              Case i of
+                1: xx := 25;
+                2: xx := xmx-25.0;
+              End;
+              CenteredText15(xx,TopY, 10, pAnsiChar(AnsiString(UpperCase(Element.Getbus(i)))));
 
-       End;
-       Case Quantity of
-          vizVoltage: S := ' Voltages';
-          vizCurrent: S := ' Currents';
-          vizPower:   S := ' Powers';
-       End;
-       Set_Caption(pAnsiChar(AnsiString(s)), Length(s));
+         End;
 
-       Set_Autorange(5.0);    // 5% rim
-       ShowGraph;
+          Case Quantity of
+            vizVoltage: S := ' Voltages';
+            vizCurrent: S := ' Currents';
+            vizPower:   S := ' Powers';
+          End;
 
+         Set_Caption(pAnsiChar(AnsiString(s)), Length(s));
+         Set_Autorange(5.0);    // 5% rim
+         With  ActiveGraphProps Do Begin
 
-  End;
+             Get_Range(RangeLoX, RangeHiX, RangeLoY, RangeHiY);
+
+            {Keep this range for quick resetting}
+             Xmin := RangeLoX;
+             Xmax := RangeHiX;
+             Ymin := RangeLoY;
+             Ymax := RangeHiY;
+         End;
+        Set_Properties(ActiveGraphProps);
+        ShowGraph;
+
+      End;
+
+  Set_Properties(ActiveGraphProps);
 
   If CBufferAllocated Then Reallocmem(CBuffer, 0);
 
