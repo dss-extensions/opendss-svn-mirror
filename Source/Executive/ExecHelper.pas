@@ -3096,6 +3096,19 @@ Var  DevIndex    :integer;
 
 Begin
      Result := 0;
+
+     // Abort if no circuit or solution
+     If not assigned(ActiveCircuit) Then
+     Begin
+          DoSimpleMsg('No circuit created.',24721);
+          Exit;
+     End;
+     If not assigned(ActiveCircuit.Solution) OR not assigned(ActiveCircuit.Solution.NodeV) Then
+     Begin
+          DoSimpleMsg('The circuit must be solved before you can do this.',24722);
+          Exit;
+     End;
+
      Quantity := vizCURRENT;
      ElemName := '';
       {Parse rest of command line}
@@ -3692,11 +3705,17 @@ Begin
         Param := Parser.StrValue;
      End;
 
-     nPst := PstRMS(PstArray, Varray, Freq, CyclesPerSample, Npts, Lamp);
+     If Npts>10 Then
+     Begin
 
-     S := '';
-     For i := 1 to nPst Do  S := S + Format('%.8g, ', [PstArray^[i]]);
-     GlobalResult := S;
+         nPst := PstRMS(PstArray, Varray, Freq, CyclesPerSample, Npts, Lamp);
+         // put resulting pst array in the result string
+         S := '';
+         For i := 1 to nPst Do  S := S + Format('%.8g, ', [PstArray^[i]]);
+         GlobalResult := S;
+     End
+     Else DoSimpleMsg('Insuffient number of points for Pst Calculation.', 28723);
+
 
      Reallocmem(Varray,   0);   // discard temp arrays
      Reallocmem(PstArray, 0);
