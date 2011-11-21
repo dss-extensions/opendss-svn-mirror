@@ -869,7 +869,8 @@ Begin
 
 
 
-     With GenVars Do Begin
+     With GenVars Do
+     Begin
          puXd       := 1.0;
          puXdp      := 0.28;
          puXdpp     := 0.20;
@@ -1104,9 +1105,9 @@ Begin
     VBase95  := VMinPu * VBase;
     VBase105 := VMaxPu * VBase;
 
-    varBase := 1000.0 * kvarBase / Fnphases;
-    varMin  := 1000.0 * kvarMin  / Fnphases;
-    varMax  := 1000.0 * kvarMax  / Fnphases;
+    varBase  := 1000.0 * kvarBase / Fnphases;
+    varMin   := 1000.0 * kvarMin  / Fnphases;
+    varMax   := 1000.0 * kvarMax  / Fnphases;
 
     {Populate data structures used for interchange with user-written models.}
     With GenVars Do
@@ -1122,9 +1123,9 @@ Begin
     SetNominalGeneration;
 
     {Now check for errors.  If any of these came out nil and the string was not nil, give warning}
-    If CompareText(YearlyShape, 'none')=0    Then YearlyShape := '';
+    If CompareText(YearlyShape,    'none')=0 Then YearlyShape    := '';
     If CompareText(DailyDispShape, 'none')=0 Then DailyDispShape := '';
-    If CompareText(DutyShape, 'none')=0      Then DutyShape := '';
+    If CompareText(DutyShape,      'none')=0 Then DutyShape      := '';
 
     If YearlyShapeObj=Nil Then
       If Length(YearlyShape)>0 Then DoSimpleMsg('WARNING! Yearly load shape: "'+ YearlyShape +'" Not Found.', 563);
@@ -1135,14 +1136,7 @@ Begin
 
     SpectrumObj := SpectrumClass.Find(Spectrum);
     If SpectrumObj=Nil Then DoSimpleMsg('ERROR! Spectrum "'+Spectrum+'" Not Found.', 566);
-  (*
-    If Rneut<0.0 Then  // flag for open neutral
-       YNeut := Cmplx(0.0, 0.0)
-    ELSE If (Rneut=0.0) and (Xneut=0.0) Then // Solidly Grounded
-       YNeut := Cmplx(1.0e6, 0.0)  // 1 microohm resistor
-    ELSE
-       YNeut := Cinv(Cmplx(Rneut, XNeut));
-   *)
+
 
     YQFixed := -varBase / Sqr(VBase);   //10-17-02  Fixed negative sign
     Vtarget := Vpu * 1000.0 * GenVars.kVGeneratorBase / SQRT3;
