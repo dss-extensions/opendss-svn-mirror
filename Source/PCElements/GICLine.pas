@@ -375,8 +375,8 @@ Var
    Alpha, VN, VE :Double;
 begin
      Alpha := (Lat2 + Lat1)/2.0 * (pi/180.0);
-     VN    := 112.2 * (Lat2 - Lat1) * ENorth;
-     VE    := 111.2 * (Lon2 - Lon1) * sin(pi/2.0 - Alpha) * EEast;
+     VE    := 111.2 * (Lat2 - Lat1) * EEast;
+     VN    := 111.2 * (Lon2 - Lon1) * sin(pi/2.0 - Alpha) * ENorth;
      Result := VN + VE;
 end;
 
