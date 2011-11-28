@@ -167,6 +167,27 @@ Begin
        IF   (Length(ParamName) = 0)  THEN Inc(ParamPointer)
        ELSE  ParamPointer := PlotCommands.Getcommand (ParamName);
 
+      {Check options requiring a solution and abort if no solution or circuit}
+       CASE ParamPointer of
+             1: CASE Param[1] of
+                 'A', 'C', 'D', 'G', 'M', 'P', 'Z':
+                 IF Not (CompareTextShortest('pri', Param)=0) Then   // allow Price shape
+                 Begin
+                     If not assigned(ActiveCircuit) Then
+                     Begin
+                          DoSimpleMsg('No circuit created.',24731);
+                          Exit;
+                     End;
+                     If not assigned(ActiveCircuit.Solution) OR not assigned(ActiveCircuit.Solution.NodeV) Then
+                     Begin
+                          DoSimpleMsg('The circuit must be solved before you can do this.',24732);
+                          Exit;
+                     End;
+                 End;
+             END;
+       END;
+
+
        With DSSPlotObj Do
        Case ParamPointer of
 
