@@ -1,0 +1,38 @@
+! Solution Run Script
+
+Compile [Master_ckt5.dss]    ! add full path name if necessary
+
+New monitor.ckt5_totalizedmonitor Transformer.MDV_SUB_1 term=2 mode=1 
+New monitor.ckt5_mon element=Line.MDV201_connector terminal=1 mode=0 Residual=yes
+New monitor.ckt5_mon_p element=Line.MDV201_connector terminal=1 mode=1 Ppolar=No
+
+
+Solve
+
+Buscoords  Buscoords_ckt5.dss
+
+plot circuit Power Max=2000 dots=n labels=n subs=y C1=$00FF0000 1phlinestyle=3
+plot circuit Losses Max=200 dots=n labels=n subs=y C1=$00FF0000 1phlinestyle=3
+plot circuit Voltage Max=200 dots=n labels=n subs=y C1=$00FF0000 1phlinestyle=3
+
+show voltages ln nodes
+show powers kva elements
+show overloads
+show currents elements
+show losses
+Export Capacity
+
+! annual solution script
+
+set mode=yearly number=8760
+set casename=validate_ckt5
+
+set demand=true
+set DIVerbose=true
+set voltexceptionreport = true
+solve
+closeDI
+
+Export ckt5_totalizedmonitor
+Export ckt5_monitors ckt5mon
+Export ckt5_monitors ckt5mon_p 
