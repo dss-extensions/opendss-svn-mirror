@@ -24,6 +24,8 @@ Function  Pad(Const S:String; Width:Integer):String;
 Function  PadDots(Const S:String; Width:Integer):String;
 Function  PadTrunc(Const S:String; Width:Integer):String;
 Function  IntArrayToString( iarray:pIntegerArray; count:integer):String;
+Function  DblArrayToString(dblarray:pDoubleArray; count:integer):String;
+Function  CmplxArrayToString(cpxarray:pComplexArray; count:integer):String;
 Function  EncloseQuotes(Const s:String):String;
 Procedure ShowMessageBeep(Const s:String);
 Function  FullName(pElem :TDSSCktElement):String;
@@ -276,16 +278,58 @@ VAR
 
 Begin
 
-     Result := '(';
-     FOR i := 1 to count do
+     Result := '[NULL]';
+     If count>0 Then
      Begin
-         Result := Result + IntToStr(iarray^[i]);
-         IF i<> count
-         THEN Result := Result + ', ';
+           Result := '[';
+           FOR i := 1 to count do
+           Begin
+               Result := Result + IntToStr(iarray^[i]);
+               IF i<> count
+               THEN Result := Result + ', ';
+           End;
+           Result := Result + ']';
      End;
-     Result := Result + ')';
 
 end;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Function DblArrayToString(dblarray:pDoubleArray; count:integer):String;
+// Put array values in brackets separated by commas.
+
+VAR
+   i:Integer;
+
+Begin
+     Result := '[NULL]';
+     If count>0 Then
+     Begin
+           Result :=Format('[%.10g',[dblarray^[1]] );
+           FOR i := 2 to count do Result := Result + Format(', %.10g',[dblarray^[i]]);
+           Result := Result + ']';
+     End;
+
+end;
+
+// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+Function CmplxArrayToString(cpxarray:pComplexArray; count:integer):String;
+// Put array values in brackets separated by commas.
+
+VAR
+   i:Integer;
+
+Begin
+
+     Result := '[NULL]';
+     If count>0 Then
+     Begin
+           Result :=Format('[%.10g +j %.10g',[cpxarray^[1].re, cpxarray^[1].im ] );
+           FOR i := 2 to count do Result := Result + Format(', %.10g +j %.10g',[cpxarray^[i].re, cpxarray^[i].im]);
+           Result := Result + ']';
+     End;
+
+end;
+
 
 Function EncloseQuotes(Const s:String):String;
 Begin
