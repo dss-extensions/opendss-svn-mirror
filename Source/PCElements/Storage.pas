@@ -36,7 +36,7 @@ interface
 USES  StoreUserModel, DSSClass,  PCClass, PCElement, ucmatrix, ucomplex, LoadShape, Spectrum, ArrayDef, Dynamics;
 
 Const  NumStorageRegisters = 6;    // Number of energy meter registers
-       NumStorageVariables = 6;    // No state variables that need integrating.
+       NumStorageVariables = 7;    // No state variables
        
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -85,6 +85,7 @@ TYPE
         Yeq95           :Complex;   // at 95%
         Yeq105          :Complex;   // at 105%
         YeqIdling       :Complex;   // in shunt representing idle impedance
+        YeqDischarge    :Complex;   // equiv at rated power of storage element only
 
         DebugTrace      :Boolean;
         FState          :Integer;
@@ -109,6 +110,7 @@ TYPE
         DischargeTrigger:Double;
         ChargeTrigger   :Double;
         ChargeTime      :Double;
+        kWhBeforeUpdate :Double;
 
         pctR            :Double;
         pctX            :Double;
@@ -169,6 +171,7 @@ TYPE
         FUNCTION  NormalizeToTOD(h: Integer; sec: Double): Double;
 
         FUNCTION InterpretState(const S:String):Integer;
+        FUNCTION StateToStr:String;
         FUNCTION DecodeState:String;
 
         FUNCTION Get_PresentkW:Double;
@@ -178,10 +181,10 @@ TYPE
         PROCEDURE Set_Presentkvar(const Value: Double);
         PROCEDURE Set_PresentkW(const Value: Double);
         PROCEDURE Set_PowerFactor(const Value: Double);
-        PROCEDURE Set_State(const Value: Integer);
+        PROCEDURE Set_StorageState(const Value: Integer);
         PROCEDURE Set_pctkvarOut(const Value: Double);
         PROCEDURE Set_pctkWOut(const Value: Double);
-        FUNCTION Get_kWChargeLosses: Double;
+        FUNCTION Get_kWTotalLosses: Double;
         FUNCTION Get_kWIdlingLosses: Double;
 
       Protected
@@ -253,11 +256,11 @@ TYPE
        Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
 
-       Property StorageState :Integer Read FState          Write Set_State;
+       Property StorageState :Integer Read FState          Write Set_StorageState;
        Property PctkWOut     :Double  Read FpctkWOut       Write Set_pctkWOut;
        Property PctkVarOut   :Double  Read FpctkvarOut     Write Set_pctkvarOut;
 
-       Property kWChargeLosses :Double  Read Get_kWChargeLosses;
+       Property kWTotalLosses :Double  Read Get_kWTotalLosses;
        Property kWIdlingLosses :Double  Read Get_kWIdlingLosses;
 
    End;
@@ -323,6 +326,9 @@ Const
 
 VAR cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
     CDOUBLEONE: Complex;
+
+
+
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TStorage.Create;  // Creates superstructure for all Storage elements
@@ -717,6 +723,7 @@ Begin
                 propDUTY:   DutyShapeObj := LoadShapeClass.Find(DutyShape);
                 propKWRATED:  kVArating := kWrating;
                 propKWHRATED: Begin kWhStored := kWhRating; // Assume fully charged
+                                    kWhBeforeUpdate := kWhStored;
                                     kWhReserve := kWhRating * pctReserve * 0.01;
                               End;
 
@@ -801,6 +808,7 @@ Begin
          kWRating        := OtherStorageObj.kWRating;
          kWhRating       := OtherStorageObj.kWhRating;
          kWhStored       := OtherStorageObj.kWhStored;
+         kWhBeforeUpdate := OtherStorageObj.kWhBeforeUpdate;
          kWhReserve      := OtherStorageObj.kWhReserve;
          pctReserve      := OtherStorageObj.pctReserve;
          DischargeTrigger := OtherStorageObj.DischargeTrigger;
@@ -930,6 +938,7 @@ Begin
      FStateChanged    := TRUE;  // Force building of YPrim
      kWhRating       := 50;
      kWhStored       := kWhRating;
+     kWhBeforeUpdate := kWhRating;
      pctReserve      := 20.0;  // per cent of kWhRating
      kWhReserve      := kWhRating * pctReserve /100.0;
      pctR            := 0.0;;
@@ -1180,7 +1189,7 @@ Begin
     {If idling output is only losses}
 
     If Fstate=STORE_IDLING Then  Begin
-        kW_out   := kWIdlingLosses;
+        kW_out   := 0.0;   // -kWIdlingLosses;     Just use YeqIdling
         kvar_out := 0.0;
     End;
 
@@ -1215,8 +1224,9 @@ Begin
              (*
                 MONTECARLO1,
                 MONTEFAULT,
-                FAULTSTUDY, 
-                DYNAMICMODE:   ; // {do nothing}   *)
+                FAULTSTUDY,
+                DYNAMICMODE:   ; // {do nothing for these modes}
+             *)
                 // Assume Daily curve, If any, for the following
                 MONTECARLO2,
                 MONTECARLO3,
@@ -1233,10 +1243,13 @@ Begin
 
           SetKWandKvarOut;   // Based on State and amount of energy left in storage
 
+          {Pnominalperphase is net at the terminal.  When discharging, the storage supplies the idling losses.
+           When charging, the idling losses are subtracting from the amount entering the storage element.
+          }
+          Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
+
           IF Fstate = STORE_IDLING  THEN
             Begin
-                  //  YeqIdle will be in the Yprim Matrix   so set this to zero
-                  Pnominalperphase   := 0.0; // -0.1 * kWRating / Fnphases;     // watts
                   If DispatchMode = STORE_EXTERNALMODE Then   // Check for requested kvar
                        Qnominalperphase := kvarRequested / Fnphases * 1000.0
                   Else Qnominalperphase   := 0.0;
@@ -1246,13 +1259,14 @@ Begin
             End
           ELSE
             Begin
-                  Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
+
                   Qnominalperphase   := 1000.0 * kvar_out  / Fnphases;
 
                   CASE VoltageModel  of
         //****  Fix this when user model gets connected in
                        3: // Yeq := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
                   ELSE
+                     {Yeq no longer used for anything other than this calculation of Yeq95, Yeq105}
                       Yeq  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
                       If   (Vminpu <> 0.0) Then Yeq95 := CDivReal(Yeq, sqr(Vminpu))  // at 95% voltage
                                            Else Yeq95 := Yeq; // Always a constant Z model
@@ -1292,7 +1306,8 @@ Begin
     ChargeEff    := pctChargeEff    * 0.01;
     DisChargeEff := pctDisChargeEff * 0.01;
 
-    YeqIdling := CmulReal(Cmplx(pctIdlekW, pctIdlekvar), (kWrating*10.0/SQR(vbase)/FNPhases));  // 10.0 = 1000/100 = kW->W/pct
+    YeqIdling    := CmulReal(Cmplx(pctIdlekW, pctIdlekvar), (kWrating*10.0/SQR(vbase)/FNPhases));  // 10.0 = 1000/100 = kW->W/pct
+    YeqDischarge := Cmplx( (kWrating*1000.0/SQR(vbase)/FNPhases), 0.0);
 
     SetNominalStorageOuput;
 
@@ -1338,10 +1353,10 @@ Begin
      Begin
        {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
            CASE Fstate of
-               STORE_IDLING: Y := YeqIdling;
-               STORE_DISCHARGING: Y := Cadd(cnegate(Yeq), YeqIdling);
-           ELSE
-               Y  := Yeq   // L-N value computed in initialization routines
+               STORE_CHARGING:    Y := Cadd(YeqDischarge, YeqIdling);
+               STORE_IDLING:      Y := YeqIdling;
+               STORE_DISCHARGING: Y := Cadd(cnegate(YeqDischarge), YeqIdling);
+               // old way Y  := Yeq   // L-N value computed in initialization routines
            END;
 
            IF Connection=1 Then Y := CDivReal(Y, 3.0); // Convert to delta impedance
@@ -1370,11 +1385,13 @@ Begin
        {Yeq is always expected as the equivalent line-neutral admittance}
 
 
-       CASE Fstate of
-           STORE_IDLING: Y := YeqIdling;
-       ELSE
-           Y := Cadd(cnegate(Yeq), YeqIdling);   // negate for generation    Yeq is L-N quantity
-       END;
+           CASE Fstate of
+               STORE_CHARGING:    Y := Cadd(YeqDischarge, YeqIdling);
+               STORE_IDLING:      Y := YeqIdling;
+               STORE_DISCHARGING: Y := Cadd(cnegate(YeqDischarge), YeqIdling);
+           END;
+
+       //---DEBUG--- WriteDLLDebugFile(Format('t=%.8g, Change To State=%s, Y=%.8g +j %.8g',[ActiveCircuit.Solution.dblHour, StateToStr, Y.re, Y.im]));
 
        // ****** Need to modify the base admittance for real harmonics calcs
        Y.im           := Y.im / FreqMultiplier;
@@ -1583,7 +1600,8 @@ PROCEDURE TStorageObj.DoConstantPQStorageObj;
 
 VAR
    i:Integer;
-   Curr, V:Complex;
+   Curr, V:  Complex;
+   //---DEBUG--- S:Complex;
    Vmag: Double;
 
 Begin
@@ -1592,6 +1610,23 @@ Begin
     CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
     ZeroITerminal;
 
+    //---DEBUG--- WriteDLLDebugFile(Format('t=%.8g, State=%s, Iyprim= %s', [ActiveCircuit.Solution.dblHour, StateToStr, CmplxArrayToString(InjCurrent, Yprim.Order) ]));
+
+    CASE FState of
+      STORE_IDLING:  // YPrim current is only current
+             Begin
+                For i := 1 to FNPhases Do
+                Begin
+                    Curr :=  InjCurrent^[i];
+                    StickCurrInTerminalArray(ITerminal, Curr, i);  // Put YPrim contribution into Terminal array taking into account connection
+                    IterminalUpdated := TRUE;
+                    StickCurrInTerminalArray(InjCurrent, Cnegate(Curr), i);    // Compensation current is zero since terminal current is same as Yprim contribution
+                    //---DEBUG--- S := Cmul(Vterminal^[i] , Conjg(Iterminal^[i]));  // for debugging below
+                    //---DEBUG--- WriteDLLDebugFile(Format('        Phase=%d, Pnom=%.8g +j %.8g',[i, S.re, S.im ]));
+                End;
+             //---DEBUG--- WriteDLLDebugFile(Format('        Icomp=%s ', [CmplxArrayToString(InjCurrent, Yprim.Order) ]));
+             End;
+    ELSE   // For Charging and Discharging
 
         CalcVTerminalPhase; // get actual voltage across each phase of the load
         FOR i := 1 to Fnphases Do Begin
@@ -1619,10 +1654,14 @@ Begin
 
              END;
 
+         //---DEBUG--- WriteDLLDebugFile(Format('        Phase=%d, Pnom=%.8g +j %.8g', [i, Pnominalperphase, Qnominalperphase ]));
+
             StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
             IterminalUpdated := TRUE;
             StickCurrInTerminalArray(InjCurrent, Curr, i);  // Put into Terminal array taking into account connection
         End;
+        //---DEBUG--- WriteDLLDebugFile(Format('        Icomp=%s ', [CmplxArrayToString(InjCurrent, Yprim.Order) ]));
+    END;
 
 End;
 
@@ -1924,11 +1963,13 @@ Begin
      IF  Enabled  THEN Begin
 
      // Only tabulate discharge hours
-       IF FSTate = STORE_DISCHARGING Then   Begin
+       IF FSTate = STORE_DISCHARGING Then
+       Begin
           S := cmplx(Get_PresentkW, Get_Presentkvar);
           Smag := Cabs(S);
           HourValue := 1.0;
-       End Else Begin
+       End Else
+       Begin
           S := CZERO;
           Smag := 0.0;
           HourValue := 0.0;
@@ -1959,11 +2000,14 @@ PROCEDURE TStorageObj.UpdateStorage;
 {Update Storage levels}
 Begin
 
+    kWhBeforeUpdate :=  kWhStored;   // keep this for reporting change in storage as a variable
+
     With ActiveCircuit.Solution Do
     Case FState of
 
         STORE_DISCHARGING: Begin
-                               kWhStored := kWhStored - PresentkW * IntervalHrs / DischargeEff;
+                               {Deplete storage by amount of Idling Power to achieve Present kW output}
+                               kWhStored := kWhStored - (PresentkW + kWIdlingLosses) * IntervalHrs / DischargeEff;
                                If kWhStored < kWhReserve Then Begin
                                    kWhStored := kWhReserve;
                                    Fstate := STORE_IDLING;  // It's empty Turn it off
@@ -1972,7 +2016,8 @@ Begin
                            End;
 
         STORE_CHARGING:    Begin
-                               kWhStored := kWhStored - PresentkW * IntervalHrs * ChargeEff;
+                              {kWIdlingLosses is always positive while PresentkW is negative for Charging}
+                               kWhStored := kWhStored - (PresentkW + kWIdlingLosses) * IntervalHrs * ChargeEff;
                                If kWhStored > kWhRating Then Begin
                                    kWhStored := kWhRating;
                                    Fstate := STORE_IDLING;  // It's full Turn it off
@@ -1989,19 +2034,29 @@ Begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-FUNCTION TStorageObj.Get_kWChargeLosses: Double;
+FUNCTION TStorageObj.Get_kWTotalLosses: Double;
 begin
      Result := 0.0;
      CASE StorageState of
-          STORE_CHARGING:   Result := abs(Power[1].re * (100.0 - pctChargeEff)/100000.0); // kW
+          STORE_CHARGING:   Result := abs(Power[1].re * (100.0 - pctChargeEff)/100000.0) + pctChargeEff*kWIdlingLosses/100.0; // kW
           STORE_IDLING:     Result := kWIdlingLosses;
-          STORE_DISCHARGING:Result := abs(Power[1].re * (100.0 - pctDisChargeEff)/100000.0);  // kW
+          STORE_DISCHARGING:Result := abs(Power[1].re * (100.0 - pctDisChargeEff)/100000.0) + (2.0 - pctChargeEff/100.0) * kWIdlingLosses;  // kW
      END;
 end;
 
 FUNCTION TStorageObj.Get_kWIdlingLosses: Double;
+Var
+   i:Integer;
 begin
-      Result := pctIdlekW * kWrating / 100.0;
+      ComputeVterminal;
+
+      Result := 0.0;
+      // Compute sum of SQR(V) at this device -- sum of VV*
+      For i := 1 to FNphases Do
+          Result := Result + Cmul(Vterminal^[i], Conjg(VTerminal^[i])).re;
+
+      Result := Result * YeqIdling.re * 0.001;  // to kW
+
 end;
 
 FUNCTION TStorageObj.Get_PresentkV: Double;
@@ -2209,6 +2264,16 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
+Function TStorageObj.StateToStr:String;
+Begin
+      CASE FState of
+          STORE_CHARGING: Result := 'Charging';
+          STORE_IDLING: Result := 'Idling';
+          STORE_DISCHARGING: Result := 'Discharging';
+      END;
+End;
+
+//----------------------------------------------------------------------------
 FUNCTION TStorageObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
 
@@ -2222,10 +2287,11 @@ Begin
     CASE i of
        1: Result := kWhStored;
        2: Result := FState;
-       3: If Not (FState=STORE_DISCHARGING) Then Result := 0.0 Else Result := kW_Out; // pctkWout;
-       4: If Not (FState=STORE_CHARGING)    Then Result := 0.0 Else Result := kW_Out; // pctkWin;
-       5: Result := kWChargeLosses; {Present kW charge or discharge loss}
+       3: If Not (FState=STORE_DISCHARGING) Then Result := 0.0 Else Result := Power[1].re*0.001; // kW_Out; // pctkWout;
+       4: If Not (FState=STORE_CHARGING)    Then Result := 0.0 Else Result := Power[1].re*0.001; // kW_out; // pctkWin;
+       5: Result := kWTotalLosses; {Present kW charge or discharge loss incl idle losses}
        6: Result := kWIdlingLosses; {Present Idling Loss}
+       7: Result := kWhStored - kWhBeforeUpdate;
      ELSE
         Begin
              If UserModel.Exists Then
@@ -2253,8 +2319,7 @@ Begin
        2: Fstate    := Trunc(Value);
        3: pctkWout  := Value;
        4: pctkWin   := Value;
-       5:; {Do Nothing; read only}
-       6:; {Do Nothing; Read only}
+       5..7:; {Do Nothing; read only}
      ELSE
        Begin
          If UserModel.Exists Then
@@ -2313,6 +2378,7 @@ Begin
           4:Result := 'kW Charging';
           5:Result := 'kW Losses';
           6:Result := 'kW Idling Losses';
+          7:Result := 'kWh Change';
       ELSE
           Begin
             If UserModel.Exists Then
@@ -2426,9 +2492,11 @@ Begin
      //SyncUpPowerQuantities;
 End;
 
-PROCEDURE TStorageObj.Set_State(const Value: Integer);
+PROCEDURE TStorageObj.Set_StorageState(const Value: Integer);
 Begin
+     If Value <> Fstate Then FStateChanged := TRUE;
      FState := Value;
+     //---DEBUG--- WriteDLLDebugFile(Format('t=%.8g, ---State Set To %s', [ActiveCircuit.Solution.dblHour, StateToStr ]));
 End;
 
 //----------------------------------------------------------------------------

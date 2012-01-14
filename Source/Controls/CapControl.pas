@@ -1007,8 +1007,8 @@ begin
                  Begin
                       //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
                       S := MonitoredElement.Power[ElementTerminal];
-                   //   Q := S.im * 0.001 + 0.20306 * S.re * 0.001;  // kvar for -.98 PF
-                      Q := S.im * 0.001 +  0.063341 * S.re * 0.001;  // kvar for -.998 PF
+                      Q := S.im * 0.001 + 0.20306 * S.re * 0.001;  // kvar for -.98 PF
+                   //   Q := S.im * 0.001 +  0.063341 * S.re * 0.001;  // kvar for -.998 PF
 
                       CASE PresentState of
                           OPEN:   IF Q > ON_Value

@@ -129,6 +129,7 @@ TYPE
             PROCEDURE DoLoadShapeMode;
             PROCEDURE DoTimeMode (Opt:Integer);
             PROCEDURE DoScheduleMode;
+            PROCEDURE PushTimeOntoControlQueue(Code:Integer);
             FUNCTION NormalizeToTOD(h: Integer; sec: Double): Double;
             procedure Set_PFBand(const Value: Double);
             function  Get_FleetkW: Double;
@@ -318,14 +319,14 @@ Begin
      'Default is to set all weights to 1.0.';
     PropertyHelp[propMODEDISCHARGE]       :=
      '{PeakShave* | Follow | Support | Loadshape | Time | Schedule} Mode of operation for the DISCHARGE FUNCTION of this controller. ' +
-     'In PeakShave mode (Default), the control attempts to discharge storage to keep power in the monitored element below the kWTarget. ' +
-     'In Follow mode, the control is triggered by time and resets the kWTarget value to the present monitored element power. ' +
+     CRLF+CRLF+'In PeakShave mode (Default), the control attempts to discharge storage to keep power in the monitored element below the kWTarget. ' +
+     CRLF+CRLF+'In Follow mode, the control is triggered by time and resets the kWTarget value to the present monitored element power. ' +
      'It then attempts to discharge storage to keep power in the monitored element below the new kWTarget. See TimeDischargeTrigger.' +
-     'In Support mode, the control operates oppositely of PeakShave mode: storage is discharged to keep kW power output up near the target. ' +
-     'In Loadshape mode, both charging and discharging precisely follows the per unit loadshape. ' +
+     CRLF+CRLF+'In Suport mode, the control operates oppositely of PeakShave mode: storage is discharged to keep kW power output up near the target. ' +
+     CRLF+CRLF+'In Loadshape mode, both charging and discharging precisely follows the per unit loadshape. ' +
      'Storage is discharged when the loadshape value is positive. ' +
-     'In Time mode, the storage discharge is turned on at the specified %RatekW and %Ratekvar at the specified discharge trigger time in fractional hours.' +
-     'In Schedule mode, the Tup, TFlat, and Tdn properties specify the up ramp duration, flat duration, and down ramp duration for the schedule. ' +
+     CRLF+CRLF+'In Time mode, the storage discharge is turned on at the specified %RatekW and %Ratekvar at the specified discharge trigger time in fractional hours.' +
+     CRLF+CRLF+'In Schedule mode, the Tup, TFlat, and Tdn properties specify the up ramp duration, flat duration, and down ramp duration for the schedule. ' +
      'The schedule start time is set by TimeDischargeTrigger and the rate of discharge for the flat part is determined by RatekW.';
     PropertyHelp[propMODECHARGE]          :=
      '{Loadshape | Time*} Mode of operation for the CHARGE FUNCTION of this controller. ' +
@@ -1025,12 +1026,7 @@ Begin
                           pctDischargeRate :=  min(pctkWRate, max(pctKWRate * Tdiff/UpRampTime, 0.0));
                           SetFleetkWRate(pctDischargeRate);
                           DischargeInhibited := FALSE;
-                          With ActiveCircuit, ActiveCircuit.Solution Do
-                          Begin
-                                LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                                // Push present time onto control queue to force re solve at new dispatch value
-                                ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
-                          End;
+                          PushTimeOntoControlQueue(STORE_DISCHARGING);
                     End;
                End
 
@@ -1066,13 +1062,8 @@ Begin
 
                     End;
 
-                    If pctDischargeRate <> LastpctDischargeRate Then
-                    With ActiveCircuit, ActiveCircuit.Solution Do
-                    Begin
-                          LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                          // Push present time onto control queue to force re solve at new dispatch value
-                          ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
-                    End;
+                    If pctDischargeRate <> LastpctDischargeRate Then PushTimeOntoControlQueue(STORE_DISCHARGING);
+
                End;  {If not fleetstate ...}
          End;
          LastpctDischargeRate := pctDischargeRate;   // remember this value
@@ -1104,12 +1095,7 @@ Begin
                           DischargeInhibited := FALSE;
                           If DischargeMode = MODEFOLLOW Then  DischargeTriggeredByTime := TRUE
                           Else
-                            With ActiveCircuit, ActiveCircuit.Solution Do
-                            Begin
-                                  LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                                  // Push present time onto control queue to force re solve at new dispatch value
-                                  ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
-                            End;
+                              PushTimeOntoControlQueue(STORE_DISCHARGING);
                      End;
                  End
                  Else ChargingAllowed := TRUE;
@@ -1126,11 +1112,10 @@ Begin
                     SetFleetToCharge;
                     DischargeInhibited := TRUE;
                     OutOfOomph         := FALSE;
-                    With ActiveCircuit, ActiveCircuit.Solution Do
-                    Begin
-                          LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                          // Push present time onto control queue to force re solve at new dispatch value
-                          ControlQueue.Push(intHour, DynaVars.t, STORE_CHARGING, 0, Self);
+                    PushTimeOntoControlQueue(STORE_CHARGING);   // force re-solve at this time step
+                    // Push message onto control queue to release inhibit at a later time
+                    With ActiveCircuit  Do  Begin
+                          Solution.LoadsNeedUpdating := TRUE; // Force recalc of power parms
                           ControlQueue.Push(intHour+InhibitHrs, Dynavars.t, RELEASE_INHIBIT, 0, Self);
                     End;
                End;
@@ -1159,6 +1144,19 @@ Begin
 
 End;
 
+
+procedure TStorageControllerObj.PushTimeOntoControlQueue(Code: Integer);
+{
+   Push present time onto control queue to force re solve at new dispatch value
+}
+begin
+      With ActiveCircuit, ActiveCircuit.Solution Do
+      Begin
+            LoadsNeedUpdating := TRUE; // Force recalc of power parms
+            ControlQueue.Push(intHour, DynaVars.t, Code, 0, Self);
+      End;
+
+end;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TStorageControllerObj.DoLoadFollowMode;
@@ -1239,6 +1237,7 @@ Begin
                 STORE_DISCHARGING: If ((PDiff + FleetkW) < 0.0) or OutOfOomph Then
                   Begin   // desired decrease is greater then present output; just cancel
                         SetFleetToIdle;   // also sets presentkW = 0
+                        PushTimeOntoControlQueue(STORE_IDLING);  // force a new power flow solution
                         ChargingAllowed := TRUE;
                         SkipkWDispatch  := TRUE;
                   End;
@@ -1275,7 +1274,11 @@ Begin
                 End
             End
             Else
-              Begin If not FleetState = STORE_IDLING Then SetFleetToIdle;
+              Begin If not FleetState = STORE_IDLING Then
+                    Begin
+                        SetFleetToIdle;
+                        PushTimeOntoControlQueue(STORE_IDLING);  // force a new power flow solution
+                    End;
                     ChargingAllowed := TRUE;
                     OutOfOomph := TRUE;
                     If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Ran out of OOMPH: %-.6g kWh remaining and %-.6g reserve.', [RemainingkWh, ReservekWh]));
@@ -1308,12 +1311,7 @@ Begin
          End;
 
        If StorekWChanged or StorekvarChanged Then  // Only push onto controlqueue If there has been a change
-          With ActiveCircuit, ActiveCircuit.Solution Do
-          Begin
-                LoadsNeedUpdating := TRUE; // Force recalc of power parms
-                // Push present time onto control queue to force re solve at new dispatch value
-                ControlQueue.Push(intHour, DynaVars.t, STORE_DISCHARGING, 0, Self);
-          End;
+           PushTimeOntoControlQueue(STORE_DISCHARGING);
 
 
        {Else just continue}
@@ -1438,13 +1436,8 @@ Begin
              ActiveCircuit.Solution.LoadsNeedUpdating := TRUE; // Force recalc of power parms
          End;
 
-    If (FleetState <> FleetStateSaved) or RateChanged Then
-    With ActiveCircuit, ActiveCircuit.Solution Do
-    Begin
-          LoadsNeedUpdating := TRUE; // Force recalc of power parms
-          // Push present time onto control queue to force re solve at new dispatch value
-          ControlQueue.Push(intHour, DynaVars.t, 0, 0, Self);
-    End;
+    {Force a new power flow solution if fleet state has changed}
+    If (FleetState <> FleetStateSaved) or RateChanged Then  PushTimeOntoControlQueue(0);
 
 
 End;
