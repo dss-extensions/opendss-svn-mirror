@@ -116,7 +116,7 @@ PROCEDURE CmulArray(pc:pcomplexarray; Multiplier:double; size:Integer);  // Mult
 
 {Support for going in and out of Dynamics Mode and Harmonics Mode}
 PROCEDURE CalcInitialMachineStates;
-PROCEDURE InvalidateAllMachines;
+PROCEDURE InvalidateAllPCELEMENTS;
 FUNCTION  InitializeForHarmonics:Boolean;
 FUNCTION  SavePresentVoltages:Boolean;
 FUNCTION  RetrieveSavedVoltages:Boolean;
@@ -1453,7 +1453,7 @@ End;
 //----------------------------------------------------------------------------
 FUNCTION InitializeForHarmonics:Boolean;
 
-{Intialize load and generator base values for harmonics analysis}
+{Intialize PCELEMENT base values for harmonics analysis}
 
 Var
    pcElem: TPCElement;
@@ -1461,15 +1461,16 @@ Var
 Begin
 
  IF SavePresentVoltages   // Zap voltage vector to disk
- THEN WITH ActiveCircuit Do Begin
+ THEN WITH ActiveCircuit
+ Do Begin
     // Go through all PC Elements
         pcElem := PCElements.First;
-        WHILE pcElem <> NIL Do
-         Begin
+        WHILE   pcElem <> NIL
+        Do Begin
             pcElem.InitHarmonics;   // Virtual function
             pcElem := PCElements.Next;
-         End;
-         Result := TRUE;
+        End;
+        Result := TRUE;
      End {With}
  ELSE Result := FALSE;
 
@@ -1502,23 +1503,23 @@ Begin
 End;
 
 //----------------------------------------------------------------------------
-PROCEDURE InvalidateAllMachines;
+PROCEDURE InvalidateAllPCELEMENTS;
 
 Var
-   pGen: TGeneratorObj;
+   pcelem: TPCElement;
 
 Begin
 
-// For now, just do Generators
+// Invalidate All PC Elements; Any could be a machine
 
  WITH ActiveCircuit Do
    Begin
-      pGen := TGeneratorObj(Generators.First);
+      pcelem := PCElements.First;
 
-      WHILE pGen <> NIL Do
+      WHILE pcelem <> NIL Do
        Begin
-          pGen.YPrimInvalid := TRUE;
-          pGen := TGeneratorObj(Generators.Next);
+          If pcelem.Enabled Then pcelem.YPrimInvalid := TRUE;
+          pcelem := PCElements.Next;
        End;
    End;
 End;

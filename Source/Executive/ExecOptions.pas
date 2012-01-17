@@ -529,7 +529,7 @@ Begin
          End;
 
          CASE ParamPointer OF
-              3,4: ActiveCircuit.Solution.UpdatedblHour;
+              3,4: ActiveCircuit.Solution.Update_dblHour;
          END;
 
          ParamName := Parser.NextParam;

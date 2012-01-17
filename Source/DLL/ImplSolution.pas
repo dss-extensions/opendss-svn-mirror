@@ -179,7 +179,7 @@ procedure TSolution.Set_Hour(Value: Integer);
 begin
      If ActiveCircuit <> Nil Then With  ActiveCircuit.Solution Do Begin
         intHour  := Value;
-        UpdatedblHour;
+        Update_dblHour;
      End;
 end;
 

@@ -186,7 +186,7 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean); Override;
        PROCEDURE WriteConvergenceReport(const Fname:String);
-       PROCEDURE UpdatedblHour;
+       PROCEDURE Update_dblHour;
        PROCEDURE Increment_time;
 
        Property  Mode      :Integer  Read dynavars.SolutionMode Write Set_Mode;
@@ -196,7 +196,7 @@ TYPE
    End;
 
 
-{--------------------------------------------------------------------------}
+{==========================================================================}
 
 
 VAR
@@ -226,7 +226,7 @@ var FDebug:TextFile;
 {$ENDIF}
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 constructor TDSSSolution.Create;  // Collection of all solution objects
 Begin
      Inherited Create;
@@ -243,7 +243,7 @@ Begin
 
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 Destructor TDSSSolution.Destroy;
 
 Begin
@@ -252,7 +252,7 @@ Begin
 
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TDSSSolution.DefineProperties;
 Begin
 
@@ -275,7 +275,7 @@ Begin
 End;
 
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 FUNCTION TDSSSolution.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new Solution Object and add it to Solution class list
@@ -284,8 +284,9 @@ Begin
       Result := AdDobjectToList(ActiveSolutionObj);
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 constructor TSolutionObj.Create(ParClass:TDSSClass; const SolutionName:String);
+// ===========================================================================================
 Begin
     Inherited Create(ParClass);
     Name := LowerCase(SolutionName);
@@ -362,11 +363,9 @@ Begin
 
     InitPropertyValues(0);
 
-
 End;
 
-
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 destructor TSolutionObj.Destroy;
 Begin
       Reallocmem(AuxCurrents, 0);
@@ -386,9 +385,8 @@ Begin
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 FUNCTION TDSSSolution.Edit:Integer;
-
 
 Begin
      Result := 0;
@@ -401,11 +399,10 @@ Begin
          Solve;
 
      End;  {WITH}
-
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.Solve;
 
 Begin
@@ -484,8 +481,7 @@ End;
 
 End;
 
-
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 FUNCTION TSolutionObj.Converged:Boolean;
 
 VAR
@@ -544,7 +540,7 @@ Begin
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.GetSourceInjCurrents;
 
 // Add in the contributions of all source type elements to the global solution vector InjCurr
@@ -554,35 +550,21 @@ VAR
 
 Begin
 
-  WITH ActiveCircuit Do Begin
+  WITH ActiveCircuit
+  Do Begin
 
      pElem := Sources.First;
-     WHILE pElem<>nil Do Begin
+     WHILE pElem<>nil
+     Do Begin
        IF pElem.Enabled THEN pElem.InjCurrents; // uses NodeRef to add current into InjCurr Array;
        pElem := Sources.Next;
-     End;
-
-     If IsHarmonicModel THEN Begin  // Pick up generators and Loads, too
-
-         pElem := Generators.First;
-         WHILE pElem<>nil Do  Begin
-           IF pElem.Enabled THEN pElem.InjCurrents; // uses NodeRef to add current into InjCurr Array;
-           pElem := Generators.Next;
-         End;
-
-         pElem := Loads.First;
-         WHILE pElem<>nil Do  Begin
-           IF pElem.Enabled THEN pElem.InjCurrents; // uses NodeRef to add current into InjCurr Array;
-           pElem := Loads.Next;
-         End;
-
      End;
 
   End;
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.SetGeneratorDispRef;
 
 // Set the global generator dispatch reference
@@ -610,10 +592,10 @@ Begin
          AUTOADDFLAG:  GeneratorDispatchReference := DefaultGrowthFactor;   // peak load only
 
      Else
-        DosimpleMsg('Unknown solution mode.', 483);
+         DosimpleMsg('Unknown solution mode.', 483);
      End;
 End;
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.SetGeneratordQdV;
 
 Var
@@ -689,7 +671,7 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.DoNormalSolution;
 
 { Normal fixed-point solution
@@ -736,7 +718,7 @@ Begin
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.DoNewtonSolution;
 
 { Newton Iteration
@@ -800,7 +782,7 @@ Begin
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.DoPFLOWsolution;
 
 
@@ -833,8 +815,7 @@ Begin
         End;
       END;
 
-
-           { The above resets the active sparse set to hY }
+        { The above resets the active sparse set to hY }
         SolutionInitialized := True;
    End;
 
@@ -849,7 +830,7 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 FUNCTION TSolutionObj.SolveZeroLoadSnapShot:Integer;
 
 // Solve without load for initialization purposes;
@@ -878,7 +859,7 @@ Begin
       hY := hYsystem;
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE  TSolutionObj.SetVoltageBases;
 
 // Set voltage bases using voltage at first node (phase) of a bus
@@ -951,7 +932,7 @@ Begin
        IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, FALSE); // Rebuild Y matrix, but V stays same
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 FUNCTION TSolutionObj.SolveSnap:Integer;  // solve for now once
 
 VAR
@@ -995,7 +976,7 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 FUNCTION TSolutionObj.SolveDirect:Integer;  // solve for now once, direct solution
 
 Begin
@@ -1009,7 +990,10 @@ Begin
 
    ZeroInjCurr;   // Side Effect: Allocates InjCurr
    GetSourceInjCurrents;
-   GetMachineInjCurrents;  // Need this in dynamics mode to pick up injections
+
+   // Pick up PCELEMENT injections for Harmonics mode and Dynamics mode
+   // Ignore these injections for powerflow; Use only admittance in Y matrix
+   If IsDynamicModel or IsHarmonicModel Then  GetPCInjCurr;
 
    IF   SolveSystem(NodeV) = 1   // Solve with Zero injection current
    THEN Begin
@@ -1027,21 +1011,24 @@ function TSolutionObj.SolveCircuit: Integer;
 begin
 
        Result := 0;
-       IF LoadModel=ADMITTANCE Then
+       IF LoadModel=ADMITTANCE
+       Then
             TRY
               SolveDirect     // no sense horsing around when it's all admittance
             EXCEPT
-              ON E:EEsolv32Problem Do Begin
-                DoSimpleMsg('From SolveSnap.SolveDirect: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
-                Raise ESolveError.Create('Aborting');
-              End;
+                ON E:EEsolv32Problem
+                Do Begin
+                  DoSimpleMsg('From SolveSnap.SolveDirect: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7075);
+                  Raise ESolveError.Create('Aborting');
+                End;
             END
        Else  Begin
            TRY
               IF SystemYChanged THEN BuildYMatrix(WHOLEMATRIX, TRUE);   // Side Effect: Allocates V
               DoPFLOWsolution;
            EXCEPT
-             ON E:EEsolv32Problem Do Begin
+             ON E:EEsolv32Problem
+             Do Begin
                DoSimpleMsg('From SolveSnap.DoPflowSolution: ' + CRLF + E.Message  + CheckYMatrixforZeroes, 7074);
                Raise ESolveError.Create('Aborting');
              End;
@@ -1050,18 +1037,13 @@ begin
 
 end;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.ZeroInjCurr;
 VAR
     I:Integer;
 Begin
-
     FOR i := 0 to ActiveCircuit.NumNodes Do Currents^[i] := CZERO;
-
 End;
-
-
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 //----------------------------------------------------------------------------
 FUNCTION TDSSSolution.Init(Handle:Integer):Integer;
@@ -1072,7 +1054,7 @@ Begin
 End;
 
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 PROCEDURE TSolutionObj.GetPCInjCurr;
   VAR
      pElem:TDSSCktElement;
@@ -1081,10 +1063,12 @@ PROCEDURE TSolutionObj.GetPCInjCurr;
 
 Begin
 
-  WITH ActiveCircuit Do Begin
+  WITH ActiveCircuit
+  Do Begin
      pElem := PCElements.First;
-     WHILE pElem<>nil Do Begin
-       WITH pElem Do IF Enabled THEN InjCurrents; // uses NodeRef to add current into InjCurr Array;
+     WHILE pElem <> nil
+     Do Begin
+       WITH pElem Do IF Enabled  THEN InjCurrents; // uses NodeRef to add current into InjCurr Array;
        pElem := PCElements.Next;
      End;
    End;
@@ -1206,9 +1190,10 @@ Begin
 
       // traverse the compressed column format
       for j := 0 to nBus - 1 do begin /// the zero-based column
-        for p := ColPtr[j] to ColPtr[j+1] - 1 do begin
-          i := RowIdx[p];  // the zero-based row
-          Writeln (F, Format('[%4d,%4d] = %12.5g + j%12.5g', [i+1, j+1, cVals[p].re, cVals[p].im]));
+        for p := ColPtr[j] to ColPtr[j+1] - 1
+        do begin
+              i := RowIdx[p];  // the zero-based row
+              Writeln (F, Format('[%4d,%4d] = %12.5g + j%12.5g', [i+1, j+1, cVals[p].re, cVals[p].im]));
         end;
       end;
   End;
@@ -1225,8 +1210,6 @@ PROCEDURE TSolutionObj.WriteConvergenceReport(const Fname:String);
 Var
    i:Integer;
    F:TextFile;
-
-
 Begin
    TRY
      Assignfile(F,Fname);
@@ -1241,7 +1224,6 @@ Begin
        FOR i := 1 to NumNodes Do
          WITH MapNodeToBus^[i]   Do
          Begin
-
               Write(F, '"', pad((BusList.Get(Busref)+'.'+IntToStr(NodeNum)+'"'), 18) );
               Write(F,', ', ErrorSaved^[i]:10:5);
               Write(F,', ', VmagSaved^[i]:14);
@@ -1261,27 +1243,25 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// =========================================================================================== =
 PROCEDURE TSolutionObj.SumAllCurrents;
 
 Var
    pelem :TDSSCktElement;
 
 begin
-     WITH  ActiveCircuit Do Begin
-
+     WITH  ActiveCircuit
+     Do Begin
           pelem := CktElements.First;
-          WHILE pelem <> nil  Do Begin
+          WHILE pelem <> nil
+          Do Begin
               pelem.SumCurrents ;   // sum terminal currents into system Currents Array
               pelem := CktElements.Next;
           End;
-
      End;
 end;
 
-
-
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// =========================================================================================== =
 PROCEDURE TSolutionObj.DoControlActions;
 VAR
    XHour:Integer;
@@ -1298,12 +1278,13 @@ Begin
                End;
             EVENTDRIVEN:
                Begin
-                 IF NOT ControlQueue.DoNearestActions(intHour, DynaVars.t) THEN // Advances time
-                    ControlActionsDone := TRUE;
+                 IF NOT ControlQueue.DoNearestActions(intHour, DynaVars.t)
+                 THEN ControlActionsDone := TRUE;// Advances time
                End;
             TIMEDRIVEN:
                Begin
-                 IF NOT ControlQueue.DoActions (intHour, DynaVars.t)THEN ControlActionsDone := TRUE;
+                 IF NOT ControlQueue.DoActions (intHour, DynaVars.t)
+                 THEN ControlActionsDone := TRUE;
                End;
 
           END;
@@ -1311,7 +1292,7 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// =========================================================================================== =
 PROCEDURE TSolutionObj.SampleControlDevices;
 
 Var
@@ -1339,7 +1320,7 @@ Begin
 
 End;
 
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// =========================================================================================== =
 PROCEDURE TSolutionObj.Sample_DoControlActions;
 
 
@@ -1365,7 +1346,7 @@ begin
 
    intHour       := 0;
    DynaVars.t    := 0.0;
-   UpdatedblHour;
+   Update_dblHour;
    ActiveCircuit.TrapezoidalIntegration := FALSE;
 
    IF Not OK_for_Dynamics(Value)  Then Exit;
@@ -1384,6 +1365,7 @@ begin
 
    // Reset defaults for solution modes
    Case Dynavars.SolutionMode of
+
        PEAKDAY,
        DAILYMODE:     Begin
                            DynaVars.h    := 3600.0;
@@ -1454,7 +1436,7 @@ PROCEDURE TSolutionObj.AddInAuxCurrents(SolveType:Integer);
 
 BEGIN
     {FOR i := 1 to ActiveCircuit.NumNodes Do Caccum(Currents^[i], AuxCurrents^[i]);}
-    // For Now, onlu AutoAdd Obj uses this
+    // For Now, only AutoAdd Obj uses this
 
     IF Dynavars.SolutionMode = AUTOADDFLAG THEN ActiveCircuit.AutoAddObj.AddCurrents(SolveType);
 
@@ -1472,13 +1454,15 @@ VAR
    pFault:TFaultOBj;
 
 begin
-     WITH ActiveCircuit Do Begin
+     WITH ActiveCircuit
+     Do Begin
        
           pFault := TFaultObj(Faults.First);
-          WHILE pFault <> NIL Do Begin
+          WHILE pFault <> NIL
+          Do Begin
              pFault.CheckStatus(ControlMode);
              pFault := TFaultObj(Faults.Next);
-           End;
+          End;
 
      End;  {End With}
 end;
@@ -1526,21 +1510,21 @@ begin
    END;
 
    {When we go in and out of Dynamics mode, we have to do some special things}
-   If IsDynamicModel and NOT ValueIsDynamic THEN InvalidateAllMachines;  // Force Recomp of YPrims when we leave Dynamics mode
+   If   IsDynamicModel and NOT ValueIsDynamic
+   THEN InvalidateAllPCELEMENTS;  // Force Recomp of YPrims when we leave Dynamics mode
 
-   IF NOT IsDynamicModel and ValueIsDynamic THEN Begin   // see if conditions right for going into dynamics
-   
-     IF ActiveCircuit.IsSolved THEN  CalcInitialMachineStates   // set state variables for machines (loads and generators)
+   IF NOT IsDynamicModel and ValueIsDynamic
+   THEN Begin   // see if conditions right for going into dynamics
 
-     ELSE Begin
-
-        {Raise Error Message if not solved}
-          DoSimpleMsg('Circuit must be solved in a non-dynamic mode before entering Dynamics or Fault study modes!' + CRLF +
-                      'If you attempted to solve, then the solution has not yet converged.', 486);
-          IF In_ReDirect Then Redirect_Abort := TRUE;  // Get outta here
-          Result := FALSE;
-
-     End;
+       IF ActiveCircuit.IsSolved
+       THEN  CalcInitialMachineStates   // set state variables for machines (loads and generators)
+       ELSE Begin
+           {Raise Error Message if not solved}
+            DoSimpleMsg('Circuit must be solved in a non-dynamic mode before entering Dynamics or Fault study modes!' + CRLF +
+                        'If you attempted to solve, then the solution has not yet converged.', 486);
+            IF In_ReDirect Then Redirect_Abort := TRUE;  // Get outta here
+            Result := FALSE;
+       End;
    End;
 
 end;
@@ -1552,21 +1536,24 @@ begin
 
    Result := TRUE;
 
-   If IsHarmonicModel and NOT (Value=HARMONICMODE) THEN Begin
-       InvalidateAllMachines;  // Force Recomp of YPrims when we leave Harmonics mode
+   If IsHarmonicModel and NOT (Value=HARMONICMODE)
+   THEN Begin
+       InvalidateAllPCELEMENTS;  // Force Recomp of YPrims when we leave Harmonics mode
        Frequency := ActiveCircuit.Fundamental;   // Resets everything to norm
    End;
 
-   IF NOT IsHarmonicModel and (Value=HARMONICMODE) THEN Begin   // see if conditions right for going into Harmonics
-     
-       IF (ActiveCircuit.IsSolved) and (Frequency = ActiveCircuit.Fundamental) THEN  Begin
+   IF NOT IsHarmonicModel and (Value=HARMONICMODE)
+   THEN Begin   // see if conditions right for going into Harmonics
+
+       IF (ActiveCircuit.IsSolved) and (Frequency = ActiveCircuit.Fundamental)
+       THEN  Begin
            IF Not InitializeForHarmonics   // set state variables for machines (loads and generators) and sources
            THEN Begin
                 Result := FALSE;
                 IF In_ReDirect Then Redirect_Abort := TRUE;  // Get outta here
              End;
          End
-       ELSE  Begin
+       ELSE Begin
          
             DoSimpleMsg('Circuit must be solved in a fundamental frequency power flow or direct mode before entering Harmonics mode!', 487);
             IF In_ReDirect Then Redirect_Abort := TRUE;  // Get outta here
@@ -1578,7 +1565,8 @@ end;
 
 procedure TSolutionObj.Set_Frequency(const Value: Double);
 begin
-      IF FFrequency <> Value Then Begin
+      IF  FFrequency <> Value
+      Then Begin
            FrequencyChanged := TRUE;  // Force Rebuild of all Y Primitives
            SystemYChanged := TRUE;  // Force rebuild of System Y
       End;
@@ -1589,13 +1577,15 @@ end;
 
 procedure TSolutionObj.Increment_time;
 begin
-       With Dynavars do Begin
-          t := t+h;
-          while t >= 3600.0 do Begin
-              Inc(intHour);
-              t := t - 3600.0;
-          End;
-          UpdatedblHour;
+       With Dynavars
+       Do Begin
+            t := t+h;
+            while t >= 3600.0
+            do Begin
+                  Inc(intHour);
+                  t := t - 3600.0;
+            End;
+            Update_dblHour;
        End;
 end;
 
@@ -1614,7 +1604,7 @@ begin
       FYear := Value;
       intHour := 0;  {Change year, start over}
       Dynavars.t := 0.0;
-      UpdatedblHour;
+      Update_dblHour;
       EnergyMeterClass.ResetAll;  // force any previous year data to complete
 end;
 
@@ -1634,20 +1624,21 @@ begin
            Rewrite(F);
 
            WITH ActiveCircuit DO
-           FOR i := 1 to NumBuses DO Begin
-               BusName := BusList.Get(i);
-               For j := 1 to Buses^[i].NumNodesThisBus DO Begin
-                 Volts := NodeV^[Buses^[i].GetRef(j)];
-                 Writeln(F, BusName, ', ', Buses^[i].GetNum(j):0, Format(', %-.7g, %-.7g',[Cabs(Volts), CDang(Volts)]));
+               FOR i := 1 to NumBuses
+               DO Begin
+                   BusName := BusList.Get(i);
+                   For j := 1 to Buses^[i].NumNodesThisBus
+                   DO Begin
+                       Volts := NodeV^[Buses^[i].GetRef(j)];
+                       Writeln(F, BusName, ', ', Buses^[i].GetNum(j):0, Format(', %-.7g, %-.7g',[Cabs(Volts), CDang(Volts)]));
+                   End;
                End;
-           End;
 
       Except
             On E:Exception Do Begin
              DoSimpleMsg('Error opening Saved Voltages File: '+E.message, 488);
              Exit;
             End;
-
       End;
 
 
@@ -1659,8 +1650,6 @@ begin
   End;
 
 end;
-
-
 
 {  *************  MAIN SOLVER CALL  ************************}
 
@@ -1697,7 +1686,7 @@ BEGIN
 
 END;
 
-procedure TSolutionObj.UpdatedblHour;
+procedure TSolutionObj.Update_dblHour;
 begin
      dblHour := intHour + dynavars.t/3600.0;
 end;
@@ -1711,8 +1700,8 @@ Begin
    WITH ActiveCircuit Do
     FOR i := 1 to NumBuses Do
      WITH Buses^[i] Do
-       If Assigned(Vbus) Then
-        FOR j := 1 to NumNodesThisBus Do  VBus^[j] := NodeV^[GetRef(j)];
+       If Assigned(Vbus)
+       Then FOR j := 1 to NumNodesThisBus Do  VBus^[j] := NodeV^[GetRef(j)];
 End;
 
 procedure TSolutionObj.RestoreNodeVfromVbus;
@@ -1722,8 +1711,8 @@ Begin
    WITH ActiveCircuit Do
     FOR i := 1 to NumBuses Do
      WITH Buses^[i] Do
-       If Assigned(Vbus) Then
-        FOR j := 1 to NumNodesThisBus Do NodeV^[GetRef(j)]  := VBus^[j];
+       If Assigned(Vbus)
+       Then FOR j := 1 to NumNodesThisBus Do NodeV^[GetRef(j)]  := VBus^[j];
 
 end;
 
@@ -1739,7 +1728,7 @@ BEGIN
 
    ZeroInjCurr;   // Side Effect: Allocates InjCurr
    GetSourceInjCurrents;
-   GetMachineInjCurrents;  // Need this in dynamics mode to pick up injections
+   If IsDynamicModel Then GetPCInjCurr;  // Need this in dynamics mode to pick up additional injections
 
    SolveSystem(NodeV); // Solve with Zero injection current
 

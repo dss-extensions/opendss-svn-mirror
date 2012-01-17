@@ -938,7 +938,7 @@ Begin
      Begin
         intHour := Round(TimeArray[1]);
         DynaVars.t := TimeArray[2];
-        UpdatedblHour;
+        Update_dblHour;
      End;
 End;
 
