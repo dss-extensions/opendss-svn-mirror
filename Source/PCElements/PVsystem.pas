@@ -38,7 +38,7 @@ Const  NumPVSystemRegisters = 5;    // Number of energy meter registers
 
 TYPE
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
    TPVSystem = CLASS(TPCClass)
      private
 
@@ -63,7 +63,7 @@ TYPE
 
    End;
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
    TPVsystemObj = class(TPCElement)
       Private
         YEQ             :Complex;   // at nominal
@@ -249,7 +249,7 @@ TYPE
 VAR
     ActivePVsystemObj:TPVsystemObj;
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
 implementation
 
 
@@ -257,13 +257,15 @@ USES  ParserDel, Circuit,  Sysutils, Command, Math, MathUtil, DSSClassDefs, DSSG
 
 Const
 
-{  = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+// ===========================================================================================
+{
    To add a property,
     1) add a property constant to this list
     2) add a handler to the CASE statement in the Edit FUNCTION
     3) add a statement(s) to InitPropertyValues FUNCTION to initialize the string value
     4) add any special handlers to DumpProperties and GetPropertyValue, If needed
- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =}
+}
+// ===========================================================================================
 
   propKV         =  3;
   propIrradiance =  4;
@@ -300,7 +302,7 @@ VAR
    cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
    CDOUBLEONE :Complex;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 constructor TPVsystem.Create;  // Creates superstructure for all PVSystem elements
 Begin
      Inherited Create;
@@ -322,7 +324,7 @@ Begin
      CommandList.Abbrev := TRUE;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 Destructor TPVsystem.Destroy;
 
 Begin
@@ -331,7 +333,7 @@ Begin
 
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystem.DefineProperties;
 Begin
 
@@ -477,18 +479,18 @@ Begin
 
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 FUNCTION TPVsystem.NewObject(const ObjName:String):Integer;
 Begin
     // Make a new PVSystem element and add it to PVSystem class list
     With ActiveCircuit Do
     Begin
-      ActiveCktElement := TPVsystemObj.Create(Self, ObjName);
-      Result := AddObjectToList(ActiveDSSObject);
+        ActiveCktElement := TPVsystemObj.Create(Self, ObjName);
+        Result := AddObjectToList(ActiveDSSObject);
     End;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystem.SetNcondsForConnection;
 
 Begin
@@ -505,17 +507,18 @@ Begin
       End;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystem.UpdateAll;
 VAR
      i :Integer;
 Begin
      For i := 1 to ElementList.ListSize  Do
         With TPVsystemObj(ElementList.Get(i)) Do
-          If Enabled Then UpdatePVSystem;
+          If Enabled
+          Then UpdatePVSystem;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystem.InterpretConnection(const S:String);
 
 // Accepts
@@ -589,8 +592,8 @@ Begin
          Then PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
          ELSE DoSimpleMsg('Unknown parameter "'+ParamName+'" for PVSystem "'+Name+'"', 560);
 
-         If ParamPointer > 0 Then
-         Begin
+         If (ParamPointer > 0)
+         Then Begin
              iCase := PropertyIdxMap[ParamPointer];
              CASE iCASE OF
                 0               : DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name +'.'+ Name + '"', 561);
@@ -678,7 +681,7 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 FUNCTION TPVsystem.MakeLike(Const OtherPVsystemObjName:String):Integer;
 
 // Copy over essential properties from other object
@@ -691,13 +694,14 @@ Begin
      {See If we can find this line name in the present collection}
      OtherPVsystemObj := Find(OtherPVsystemObjName);
      If   (OtherPVsystemObj <> Nil)
-     Then With ActivePVsystemObj Do
-     Begin
-         If (Fnphases <> OtherPVsystemObj.Fnphases) Then Begin
-           Nphases := OtherPVsystemObj.Fnphases;
-           NConds := Fnphases;  // Forces reallocation of terminal stuff
-           Yorder := Fnconds*Fnterms;
-           YPrimInvalid := True;
+     Then With ActivePVsystemObj
+     Do Begin
+         If (Fnphases <> OtherPVsystemObj.Fnphases)
+         Then Begin
+             Nphases := OtherPVsystemObj.Fnphases;
+             NConds := Fnphases;  // Forces reallocation of terminal stuff
+             Yorder := Fnconds*Fnterms;
+             YPrimInvalid := True;
          End;
 
          kVPVSystemBase    := OtherPVsystemObj.kVPVSystemBase;
@@ -757,27 +761,26 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 FUNCTION TPVsystem.Init(Handle:Integer):Integer;
 VAR
    p:TPVsystemObj;
 
 Begin
-     If (Handle = 0) THEN
-       Begin  // init all
+     If (Handle = 0)
+     THEN Begin  // init all
              p := elementList.First;
              WHILE (p <> nil) Do
              Begin
                   p.Randomize(0);
                   p := elementlist.Next;
              End;
-       End
-     ELSE
-       Begin
+     End
+     ELSE Begin
              Active := Handle;
              p := GetActiveObj;
              p.Randomize(0);
-       End;
+     End;
 
      DoSimpleMsg('Need to implement TPVsystem.Init', -1);
      Result := 0;
@@ -806,10 +809,11 @@ VAR
 Begin
       For i := 1 to ElementList.ListSize  Do
         With TPVsystemObj(ElementList.Get(i)) Do
-          If Enabled Then TakeSample;
+          If Enabled
+          Then TakeSample;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 Constructor TPVsystemObj.Create(ParClass:TDSSClass; const SourceName:String);
 Begin
 
@@ -898,7 +902,7 @@ End;
 
 
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.InitPropertyValues(ArrayOffset: Integer);
 
 // Define default values for the properties
@@ -946,7 +950,7 @@ Begin
 End;
 
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 FUNCTION TPVsystemObj.GetPropertyValue(Index: Integer): String;
 
 Begin
@@ -988,7 +992,7 @@ Begin
       END;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 Destructor TPVsystemObj.Destroy;
 Begin
       YPrimOpenCond.Free;
@@ -996,7 +1000,7 @@ Begin
       Inherited Destroy;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Randomize(Opt:Integer);
 Begin
 
@@ -1009,138 +1013,72 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcDailyMult(Hr:Double);
 
 Begin
-     If (DailyShapeObj <> Nil) Then
-       Begin
+     If (DailyShapeObj <> Nil)
+     Then Begin
             ShapeFactor := DailyShapeObj.GetMult(Hr);
-       End
+     End
      ELSE ShapeFactor := CDOUBLEONE;  // Default to no  variation
-
 End;
 
-
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcDailyTemperature(Hr: double);
 Begin
-     If (DailyTShapeObj <> Nil) Then
-       Begin
+     If (DailyTShapeObj <> Nil)
+     Then Begin
             TShapeValue := DailyTShapeObj.GetTemperature(Hr);
-       End
+     End
      ELSE TShapeValue := 1.0;  // Default to no  variation
 end;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcDutyMult(Hr:Double);
 
 Begin
-     If DutyShapeObj <> Nil Then
-       Begin
+     If DutyShapeObj <> Nil
+     Then Begin
              ShapeFactor := DutyShapeObj.GetMult(Hr);
-       End
+     End
      ELSE CalcDailyMult(Hr);  // Default to Daily Mult If no duty curve specified
 End;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcDutyTemperature(Hr: double);
 Begin
-     If DutyTShapeObj <> Nil Then
-       Begin
+     If DutyTShapeObj <> Nil
+     Then Begin
              TShapeValue := DutyTShapeObj.GetTemperature(Hr);
-       End
+     End
      ELSE CalcDailyTemperature(Hr);  // Default to Daily Mult If no duty curve specified
 end;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcYearlyMult(Hr:Double);
 
 Begin
-     If YearlyShapeObj<>Nil Then
-       Begin
+     If YearlyShapeObj<>Nil
+     Then Begin
             ShapeFactor := YearlyShapeObj.GetMult(Hr) ;
-       End
+     End
      ELSE CalcDailyMult(Hr);  // Defaults to Daily curve
 End;
 
 
-
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcYearlyTemperature(Hr: double);
 Begin
-     If YearlyTShapeObj<>Nil Then
-       Begin
-            TShapeValue := YearlyTShapeObj.GetTemperature(Hr) ;
-       End
+     If YearlyTShapeObj<>Nil
+     Then Begin
+          TShapeValue := YearlyTShapeObj.GetTemperature(Hr) ;
+     End
      ELSE CalcDailyTemperature(Hr);  // Defaults to Daily curve
 
 end;
 
-//----------------------------------------------------------------------------
-PROCEDURE TPVsystemObj.SetNominalPVSystemOuput;
-
-Begin
-
-   ShapeFactor  := CDOUBLEONE;  // init here; changed by curve routine
-   TShapeValue  := 25.0;  // init here; changed by curve routine
-
-    // Check to make sure the PVSystem element is ON
-   With ActiveCircuit, ActiveCircuit.Solution Do
-   Begin
-    IF NOT (IsDynamicModel or IsHarmonicModel) THEN     // Leave PVSystem element in whatever state it was prior to entering Dynamic mode
-    Begin
-          // Check dispatch to see what state the PVSystem element should be in
-
-           With Solution Do
-            CASE Mode OF
-                SNAPSHOT:    ; {Just solve for the present kW, kvar}  // Don't check for state change
-                DAILYMODE:  Begin  CalcDailyMult(dblHour);  CalcDailyTemperature(dblHour); End;
-                YEARLYMODE: Begin  CalcYearlyMult(dblHour); CalcYearlyTemperature(dblHour); End;
-             (*
-                MONTECARLO1,
-                MONTEFAULT,
-                FAULTSTUDY,
-                DYNAMICMODE:   ; // {do nothing yet}   *)
-
-                // Assume Daily curve, If any, for the following
-                MONTECARLO2,
-                MONTECARLO3,
-                LOADDURATION1,
-                LOADDURATION2: Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
-                PEAKDAY:       Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
-
-                DUTYCYCLE:     Begin CalcDutyMult(dblHour) ; CalcDutyTemperature(dblHour) ;  End;
-                {AUTOADDFLAG:  ; }
-            END;
-
-          ComputekWkvar;
-          Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
-          Qnominalperphase   := 1000.0 * kvar_out  / Fnphases;
-
-          CASE VoltageModel  of
-
-//****  Fix this when user model gets connected in
-               3: // YEQ := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
-
-          ELSE
-
-              YEQ  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
-
-              If   (Vminpu <> 0.0) Then YEQ95 := CDivReal(YEQ, SQR(Vminpu))  // at 95% voltage
-                                   Else YEQ95 := YEQ; // Always a constant Z model
-
-              If   (Vmaxpu <> 0.0) Then  YEQ105 := CDivReal(YEQ, SQR(Vmaxpu))   // at 105% voltage
-                                   Else  YEQ105 := YEQ;
-
-
-          END;
-{ When we leave here, all the YEQ's are in L-N values}
-
-     End;  {If  NOT (IsDynamicModel or IsHarmonicModel)}
-   End;  {With ActiveCircuit}
-
-
-End;
-
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.RecalcElementData;
 
 Begin
@@ -1189,7 +1127,76 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+
+// ===========================================================================================
+PROCEDURE TPVsystemObj.SetNominalPVSystemOuput;
+
+Begin
+
+   ShapeFactor  := CDOUBLEONE;  // init here; changed by curve routine
+   TShapeValue  := 25.0;  // init here; changed by curve routine
+
+    // Check to make sure the PVSystem element is ON
+   With ActiveCircuit, ActiveCircuit.Solution Do
+   Begin
+      IF NOT (IsDynamicModel or IsHarmonicModel)      // Leave PVSystem element in whatever state it was prior to entering Dynamic mode
+      THEN Begin
+            // Check dispatch to see what state the PVSystem element should be in
+
+             With Solution Do
+              CASE Mode OF
+                  SNAPSHOT:    ; {Just solve for the present kW, kvar}  // Don't check for state change
+                  DAILYMODE:  Begin  CalcDailyMult(dblHour);  CalcDailyTemperature(dblHour); End;
+                  YEARLYMODE: Begin  CalcYearlyMult(dblHour); CalcYearlyTemperature(dblHour); End;
+               (*
+                  MONTECARLO1,
+                  MONTEFAULT,
+                  FAULTSTUDY,
+                  DYNAMICMODE:   ; // {do nothing yet}
+               *)
+
+                  // Assume Daily curve, If any, for the following
+                  MONTECARLO2,
+                  MONTECARLO3,
+                  LOADDURATION1,
+                  LOADDURATION2: Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
+                  PEAKDAY:       Begin CalcDailyMult(dblHour); CalcDailyTemperature(dblHour); End;
+
+                  DUTYCYCLE:     Begin CalcDutyMult(dblHour) ; CalcDutyTemperature(dblHour) ;  End;
+                  {AUTOADDFLAG:  ; }
+              END;
+
+            ComputekWkvar;
+            Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
+            Qnominalperphase   := 1000.0 * kvar_out  / Fnphases;
+
+            CASE VoltageModel  of
+
+            //****  Fix this when user model gets connected in
+                 3: // YEQ := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
+
+            ELSE
+
+                YEQ  := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
+
+                If   (Vminpu <> 0.0) Then YEQ95 := CDivReal(YEQ, SQR(Vminpu))  // at 95% voltage
+                                     Else YEQ95 := YEQ; // Always a constant Z model
+
+                If   (Vmaxpu <> 0.0) Then  YEQ105 := CDivReal(YEQ, SQR(Vmaxpu))   // at 105% voltage
+                                     Else  YEQ105 := YEQ;
+
+
+            END;
+           { When we leave here, all the YEQ's are in L-N values}
+
+       End;  {If  NOT (IsDynamicModel or IsHarmonicModel)}
+   End;  {With ActiveCircuit}
+
+
+End;
+
+
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcYPrimMatrix(Ymatrix:TcMatrix);
 
 VAR
@@ -1203,8 +1210,8 @@ Begin
    FreqMultiplier := FYprimFreq / BaseFrequency;
 
    With  ActiveCircuit.solution  Do
-   IF {IsDynamicModel or} IsHarmonicModel Then
-     Begin
+   IF {IsDynamicModel or} IsHarmonicModel
+   Then Begin
        {YEQ is computed from %R and %X -- inverse of Rthev + j Xthev}
            Y  := YEQ;   // L-N value computed in initialization routines
 
@@ -1226,13 +1233,10 @@ Begin
                       End;
                  END;
            End;
-     End
-
-   ELSE
-     Begin  //  Regular power flow PVSystem element model
+   End
+   ELSE Begin  //  Regular power flow PVSystem element model
 
        {YEQ is always expected as the equivalent line-neutral admittance}
-
 
        Y := cnegate(YEQ);   // negate for generation    YEQ is L-N quantity
 
@@ -1272,7 +1276,7 @@ Begin
 End;
 
 
-
+// ===========================================================================================
 PROCEDURE TPVsystemObj.ComputeInverterPower;
 VAR
 
@@ -1283,21 +1287,25 @@ Begin
     kW_Out := 0.0;
 
     // Determine state of the inverter
-    If InverterON Then  Begin
-       If Panelkw < CutOutkW  Then  Begin
+    If InverterON
+    Then Begin
+       If Panelkw < CutOutkW
+       Then  Begin
          InverterON := FALSE;
        End;
     End
     ELSE Begin
-       If Panelkw >= CutInkW  Then  Begin
+       If Panelkw >= CutInkW
+       Then  Begin
          InverterON := TRUE;
        End;
     End;
 
     // set inverter output. Defaults to 100% of the panelkW if no efficiency curve spec'd
-    If InverterON Then Begin
-        If Assigned(InverterCurveObj) Then
-            EffFactor := InverterCurveObj.GetYValue(PanelkW/kVArating);  // pu eff vs pu power
+    If InverterON
+    Then Begin
+        If Assigned(InverterCurveObj)
+        Then EffFactor := InverterCurveObj.GetYValue(PanelkW/kVArating);  // pu eff vs pu power
         kW_Out := PanelkW * EffFactor;
     End
     ELSE Begin
@@ -1305,9 +1313,11 @@ Begin
     End;
 
     // kvar value
-    If PFSpecified Then Begin
-         IF   PFnominal = 1.0 Then   kvar_out := 0.0
-         ELSE kvar_out := kW_out * sqrt(1.0/SQR(PFnominal) - 1.0) * sign(PFnominal);
+    If PFSpecified
+    Then Begin
+         IF     PFnominal = 1.0
+         Then   kvar_out := 0.0
+         ELSE   kvar_out := kW_out * sqrt(1.0/SQR(PFnominal) - 1.0) * sign(PFnominal);
          // if pf is negative, make sure kvar has opposite sign of kW
          // kW will always be positive
     End
@@ -1317,8 +1327,10 @@ Begin
 
     // Limit kvar so that kVA of inverter is not exceeded
      kVA_Gen := Sqrt(Sqr(kW_out) + Sqr(kvar_out));
-     If kVA_Gen > kVArating Then Begin
-         If kW_out > kVArating Then Begin
+     If kVA_Gen > kVArating
+     Then Begin
+         If kW_out > kVArating
+         Then Begin
               kW_out   := kVARating;
               kvar_out := 0.0;
          End
@@ -1327,6 +1339,7 @@ Begin
 
 end;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.ComputekWkvar;
 Begin
 
@@ -1335,13 +1348,14 @@ Begin
 
 end;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.ComputePanelPower;
-
 
 Begin
 
     TempFactor := 1.0;
-    If Assigned(Power_TempCurveObj) Then Begin
+    If Assigned(Power_TempCurveObj)
+    Then Begin
         TempFactor := Power_TempCurveObj.GetYValue(TshapeValue);  // pu Pmpp vs T (actual)
     End;
 
@@ -1349,7 +1363,7 @@ Begin
 
 end;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcYPrim;
 
 VAR
@@ -1387,7 +1401,7 @@ Begin
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.StickCurrInTerminalArray(TermArray:pComplexArray; Const Curr:Complex; i:Integer);
  {Add the current into the proper location according to connection}
 
@@ -1410,7 +1424,7 @@ Begin
     End;
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.WriteTraceRecord(const s:string);
 
 VAR i:Integer;
@@ -1418,8 +1432,8 @@ VAR i:Integer;
 Begin
 
       Try
-      If (Not InshowResults) Then
-      Begin
+      If (Not InshowResults)
+      Then Begin
            Append(TraceFile);
            Write(TraceFile,Format('%-.g, %d, %-.g, ',
                     [ActiveCircuit.Solution.DynaVARs.t,
@@ -1443,7 +1457,9 @@ Begin
 
       End;
 End;
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+
+
+// ===========================================================================================
 PROCEDURE TPVsystemObj.DoConstantPQPVsystemObj;
 
 {Compute total terminal current for Constant PQ}
@@ -1461,27 +1477,28 @@ Begin
 
 
         CalcVTerminalPhase; // get actual voltage across each phase of the load
-        FOR i := 1 to Fnphases Do Begin
+        FOR i := 1 to Fnphases
+        Do Begin
             V    := Vterminal^[i];
             VMag := Cabs(V);
 
             CASE Connection of
 
              0: Begin  {Wye}
-                  IF   VMag <= VBase95
-                  THEN Curr := Cmul(YEQ95, V)  // Below 95% use an impedance model
-                  ELSE If VMag > VBase105
-                  THEN Curr := Cmul(YEQ105, V)  // above 105% use an impedance model
-                  ELSE Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
+                    IF   VMag <= VBase95
+                    THEN Curr := Cmul(YEQ95, V)  // Below 95% use an impedance model
+                    ELSE If VMag > VBase105
+                    THEN Curr := Cmul(YEQ105, V)  // above 105% use an impedance model
+                    ELSE Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
                 End;
 
               1: Begin  {Delta}
-                  VMag := VMag/SQRT3;  // L-N magnitude
-                  IF   VMag <= VBase95
-                  THEN Curr := Cmul(CdivReal(YEQ95, 3.0), V)  // Below 95% use an impedance model
-                  ELSE If VMag > VBase105
-                  THEN Curr := Cmul(CdivReal(YEQ105, 3.0), V)  // above 105% use an impedance model
-                  ELSE  Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
+                    VMag := VMag/SQRT3;  // L-N magnitude
+                    IF   VMag <= VBase95
+                    THEN Curr := Cmul(CdivReal(YEQ95, 3.0), V)  // Below 95% use an impedance model
+                    ELSE If VMag > VBase105
+                    THEN Curr := Cmul(CdivReal(YEQ105, 3.0), V)  // above 105% use an impedance model
+                    ELSE  Curr := Conjg(Cdiv(Cmplx(Pnominalperphase, Qnominalperphase), V));  // Between 95% -105%, constant PQ
                 End;
 
              END;
@@ -1493,7 +1510,7 @@ Begin
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.DoConstantZPVsystemObj;
 
 {constant Z model}
@@ -1508,9 +1525,12 @@ Begin
     CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
     CalcVTerminalPhase; // get actual voltage across each phase of the load
     ZeroITerminal;
-    If Connection=0 Then YEQ2 := YEQ Else YEQ2 := CdivReal(YEQ, 3.0);
+    If  (Connection=0)
+    Then YEQ2 := YEQ
+    Else YEQ2 := CdivReal(YEQ, 3.0);
 
-     FOR i := 1 to Fnphases Do Begin
+     FOR i := 1 to Fnphases
+     Do Begin
 
         Curr := Cmul(YEQ2, Vterminal^[i]);   // YEQ is always line to neutral
         StickCurrInTerminalArray(ITerminal, Cnegate(Curr), i);  // Put into Terminal array taking into account connection
@@ -1522,7 +1542,7 @@ Begin
 End;
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// =================================================================DOUSERMODEL==========================
 PROCEDURE TPVsystemObj.DoUserModel;
 {Compute total terminal Current from User-written model}
 VAR
@@ -1532,24 +1552,20 @@ Begin
 
    CalcYPrimContribution(InjCurrent);  // Init InjCurrent Array
 
-   If UserModel.Exists Then    // Check automatically selects the usermodel If true
-     Begin
+   If UserModel.Exists     // Check automatically selects the usermodel If true
+   Then  Begin
          UserModel.FCalc (Vterminal, Iterminal);
          IterminalUpdated := TRUE;
-         With ActiveCircuit.Solution Do  Begin          // Negate currents from user model for power flow PVSystem element model
+         With ActiveCircuit.Solution
+         Do  Begin          // Negate currents from user model for power flow PVSystem element model
                FOR i := 1 to FnConds Do Caccum(InjCurrent^[i], Cnegate(Iterminal^[i]));
          End;
-     End
-   Else
-     Begin
-        DoSimpleMsg('PVSystem.' + name + ' model designated to use user-written model, but user-written model is not defined.', 567);
-     End;
+   End
+   Else DoSimpleMsg('PVSystem.' + name + ' model designated to use user-written model, but user-written model is not defined.', 567);
 
 End;
 
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===============================================================DoDynamicMode============================
 PROCEDURE TPVsystemObj.DoDynamicMode;
 
 {Compute Total Current and add into InjTemp}
@@ -1558,15 +1574,13 @@ PROCEDURE TPVsystemObj.DoDynamicMode;
    for the duration of the dynamic simulation.
 }
 
-
 Begin
 
   DoConstantPQPVsystemObj;
 
 End;
 
-
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ====================================================================DoHarmonicMode=======================
 PROCEDURE TPVsystemObj.DoHarmonicMode;
 
 {Compute Injection Current Only when in harmonics mode}
@@ -1583,11 +1597,11 @@ Begin
 
    ComputeVterminal;
 
-   WITH ActiveCircuit.Solution Do
-     Begin
+   WITH ActiveCircuit.Solution
+   Do Begin
         PVSystemHarmonic := Frequency/PVSystemFundamental;
-        If SpectrumObj <> Nil Then
-             E := CmulReal(SpectrumObj.GetMult(PVSystemHarmonic), VThevHarm) // Get base harmonic magnitude
+        If SpectrumObj <> Nil
+        Then E := CmulReal(SpectrumObj.GetMult(PVSystemHarmonic), VThevHarm) // Get base harmonic magnitude
         Else E := CZERO;
 
         RotatePhasorRad(E, PVSystemHarmonic, ThetaHarm);  // Time shift by fundamental frequency phase shift
@@ -1595,7 +1609,7 @@ Begin
            cBuffer[i] := E;
            If i < Fnphases Then RotatePhasorDeg(E, PVSystemHarmonic, -120.0);  // Assume 3-phase PVSystem element
         End;
-     END;
+   END;
 
    {Handle Wye Connection}
    IF Connection=0 THEN cbuffer[Fnconds] := Vterminal^[Fnconds];  // assume no neutral injection voltage
@@ -1605,8 +1619,7 @@ Begin
 
 End;
 
-
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.CalcVTerminalPhase;
 
 VAR i,j:Integer;
@@ -1623,7 +1636,8 @@ Begin
 
      1:Begin
          With ActiveCircuit.Solution Do
-          FOR i := 1 to Fnphases Do  Begin
+          FOR i := 1 to Fnphases
+          Do  Begin
              j := i + 1;
              If j > Fnconds Then j := 1;
              Vterminal^[i] := VDiff( NodeRef^[i] , NodeRef^[j]);
@@ -1636,7 +1650,7 @@ Begin
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 (*
 PROCEDURE TPVsystemObj.CalcVTerminal;
 {Put terminal voltages in an array}
@@ -1647,7 +1661,7 @@ End;
 *)
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ============================================CalcPVSystemModelContribution===============================================
 PROCEDURE TPVsystemObj.CalcPVSystemModelContribution;
 
 // Calculates PVSystem element current and adds it properly into the injcurrent array
@@ -1657,26 +1671,27 @@ Begin
      IterminalUpdated := FALSE;
      WITH  ActiveCircuit, ActiveCircuit.Solution DO
      Begin
-          IF      IsDynamicModel THEN  DoDynamicMode
-          ELSE IF IsHarmonicModel and (Frequency <> Fundamental) THEN  DoHarmonicMode
-          ELSE
-            Begin
-               //  compute currents and put into InjTemp array;
-                 CASE VoltageModel OF
-                      1: DoConstantPQPVsystemObj;
-                      2: DoConstantZPVsystemObj;
-                      3: DoUserModel;
-                 ELSE
-                      DoConstantPQPVsystemObj;  // for now, until we implement the other models.
-                 End;
-            End; {ELSE}
+          IF    IsDynamicModel
+          THEN  DoDynamicMode
+          ELSE IF IsHarmonicModel and (Frequency <> Fundamental)
+               THEN  DoHarmonicMode
+               ELSE Begin
+                 //  compute currents and put into InjTemp array;
+                     CASE VoltageModel OF
+                          1: DoConstantPQPVsystemObj;
+                          2: DoConstantZPVsystemObj;
+                          3: DoUserModel;
+                     ELSE
+                          DoConstantPQPVsystemObj;  // for now, until we implement the other models.
+                     End;
+              END; {ELSE}
      END; {WITH}
 
    {When this is Done, ITerminal is up to date}
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ==========================================CalcInjCurrentArray=================================================
 PROCEDURE TPVsystemObj.CalcInjCurrentArray;
 // Difference between currents in YPrim and total current
 Begin
@@ -1685,7 +1700,7 @@ Begin
        Else CalcPVSystemModelContribution;
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// =========================================GetTerminalCurrents==================================================
 PROCEDURE TPVsystemObj.GetTerminalCurrents(Curr:pComplexArray);
 
 // Compute total Currents
@@ -1693,8 +1708,9 @@ PROCEDURE TPVsystemObj.GetTerminalCurrents(Curr:pComplexArray);
 Begin
    WITH ActiveCircuit.Solution  DO
      Begin
-        If IterminalSolutionCount <> ActiveCircuit.Solution.SolutionCount Then Begin     // recalc the contribution
-          IF Not PVsystemObjSwitchOpen Then CalcPVSystemModelContribution;  // Adds totals in Iterminal as a side effect
+        If IterminalSolutionCount <> ActiveCircuit.Solution.SolutionCount
+        Then Begin     // recalc the contribution
+             IF Not PVsystemObjSwitchOpen Then CalcPVSystemModelContribution;  // Adds totals in Iterminal as a side effect
         End;
         Inherited GetTerminalCurrents(Curr);
      End;
@@ -1703,7 +1719,7 @@ Begin
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================INJCURRENTS================================================
 FUNCTION TPVsystemObj.InjCurrents:Integer;
 
 Begin
@@ -1721,7 +1737,7 @@ Begin
       End;
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.GetInjCurrents(Curr:pComplexArray);
 
 // Gives the currents for the last solution performed
@@ -1749,7 +1765,7 @@ Begin
 End;
 
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.ResetRegisters;
 
 VAR
@@ -1761,22 +1777,22 @@ Begin
      FirstSampleAfterReset := True;  // initialize for trapezoidal integration
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Integrate(Reg:Integer; const Deriv:Double; Const Interval:Double);
 
 Begin
-     IF ActiveCircuit.TrapezoidalIntegration THEN
-       Begin
+     IF ActiveCircuit.TrapezoidalIntegration
+     THEN Begin
         {Trapezoidal Rule Integration}
         If Not FirstSampleAfterReset Then Registers[Reg] := Registers[Reg] + 0.5 * Interval * (Deriv + Derivatives[Reg]);
-       End
+     End
      ELSE   {Plain Euler integration}
          Registers[Reg] := Registers[Reg] + Interval * Deriv;
 
      Derivatives[Reg] := Deriv;
 End;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.TakeSample;
 // Update Energy from metered zone
 
@@ -1788,8 +1804,8 @@ VAR
 Begin
 
 // Compute energy in PVSystem element branch
-     IF  Enabled  THEN Begin
-
+     IF  Enabled
+     THEN Begin
           S := cmplx(Get_PresentkW, Get_Presentkvar);
           Smag := Cabs(S);
           HourValue := 1.0;
@@ -1797,9 +1813,10 @@ Begin
         IF  ActiveCircuit.TrapezoidalIntegration THEN
         {Make sure we always integrate for Trapezoidal case
          Don't need to for Gen Off and normal integration}
-        WITH ActiveCircuit.Solution Do
-          Begin
-             IF ActiveCircuit.PositiveSequence THEN Begin
+        WITH ActiveCircuit.Solution
+        Do Begin
+             IF ActiveCircuit.PositiveSequence
+             THEN Begin
                 S    := CmulReal(S, 3.0);
                 Smag := 3.0*Smag;
              End;
@@ -1814,7 +1831,7 @@ Begin
      End;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.UpdatePVSystem;
 {Update PVSystem levels}
 Begin
@@ -1823,30 +1840,32 @@ Begin
 
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 FUNCTION TPVsystemObj.Get_PresentkW:Double;
 Begin
      Result := Pnominalperphase * 0.001 * Fnphases;
 End;
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 FUNCTION TPVsystemObj.Get_PresentIrradiance: Double;
 Begin
      Result := FIrradiance * ShapeFactor.re;
 End;
 
+// ===========================================================================================
 FUNCTION TPVsystemObj.Get_PresentkV: Double;
 Begin
      Result := kVPVSystemBase;
 End;
 
+// ===========================================================================================
 FUNCTION TPVsystemObj.Get_Presentkvar:Double;
 Begin
      Result := Qnominalperphase * 0.001 * Fnphases;
 End;
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// ===========================================================================================
 PROCEDURE TPVsystemObj.DumpProperties(VAR F:TextFile; Complete:Boolean);
 
 VAR
@@ -1870,7 +1889,7 @@ Begin
 End;
 
 
-//----------------------------------------------------------------------------
+// ============================================================InitHarmonics===============================
 PROCEDURE TPVsystemObj.InitHarmonics;
 
 // This routine makes a thevenin equivalent behis the reactance spec'd in %R and %X
@@ -1898,14 +1917,14 @@ Begin
           End;
      End;
 
-     E := Csub(Va, Cmul(Iterminal^[1], cmplx(Rthev, Xthev)));
+             E := Csub(Va, Cmul(Iterminal^[1], cmplx(Rthev, Xthev)));
      Vthevharm := Cabs(E);   // establish base mag and angle
      ThetaHarm := Cang(E);
 
 End;
 
 
-//----------------------------------------------------------------------------
+// ===============================================================InitStateVars============================
 PROCEDURE TPVsystemObj.InitStateVars;
 
 // for going into dynamics mode
@@ -1957,7 +1976,7 @@ Begin
 *)
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.IntegrateStates;
 
 // dynamics mode integration routine
@@ -2022,7 +2041,7 @@ Begin
 End;
 
 
-//----------------------------------------------------------------------------
+// ===========================================================Get_Variable================================
 FUNCTION TPVsystemObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
 
@@ -2038,13 +2057,13 @@ Begin
        2: Result := PanelkW;
        3: Result := TempFactor;
        4: Result := EffFactor;
-     ELSE
-        Begin
-             If UserModel.Exists Then
-             Begin
+     ELSE Begin
+             If UserModel.Exists
+             Then Begin
                   N := UserModel.FNumVars;
                   k := (i-NumPVSystemVariables);
-                  If k <= N Then Begin
+                  If k <= N
+                  Then Begin
                       Result := UserModel.FGetVariable(k);
                       Exit;
                   End;
@@ -2054,7 +2073,7 @@ Begin
 End;
 
 
-//----------------------------------------------------------------------------
+// ============================================================Set_Variable===============================
 PROCEDURE TPVsystemObj.Set_Variable(i: Integer;  Value: Double);
 var N, k:Integer;
 
@@ -2068,11 +2087,12 @@ Begin
        4: ; // Setting this has no effect Read only
      ELSE
        Begin
-         If UserModel.Exists Then
-         Begin
+         If UserModel.Exists
+         Then Begin
               N := UserModel.FNumVars;
               k := (i-NumPVSystemVariables) ;
-              If  k<= N Then Begin
+              If  k<= N
+              Then Begin
                   UserModel.FSetVariable( k, Value );
                   Exit;
               End;
@@ -2082,28 +2102,26 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.GetAllVariables(States: pDoubleArray);
 
 VAR  i{, N}:Integer;
 Begin
      For i := 1 to NumPVSystemVariables Do States^[i] := Variable[i];
 
-     If UserModel.Exists Then Begin
-        {N := UserModel.FNumVars;}
-        UserModel.FGetAllVars(@States^[NumPVSystemVariables+1]);
-     End;
+     If   UserModel.Exists
+     Then UserModel.FGetAllVars(@States^[NumPVSystemVariables+1]);
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 FUNCTION TPVsystemObj.NumVariables: Integer;
 Begin
      Result  := NumPVSystemVariables;
      If UserModel.Exists    Then Result := Result + UserModel.FNumVars;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 FUNCTION TPVsystemObj.VariableName(i: Integer):String;
 
 Const
@@ -2124,13 +2142,13 @@ Begin
           4:Result := 'Efficiency';
       ELSE
           Begin
-            If UserModel.Exists Then
-            Begin
+            If UserModel.Exists
+            Then Begin
                   pName := @Buff;
                   n := UserModel.FNumVars;
                   i2 := i-NumPVSystemVariables;
-                  If i2 <= n Then
-                  Begin
+                  If (i2 <= n)
+                  Then Begin
                        UserModel.FGetVarName(i2, pName, BuffSize);
                        Result := String(pName);
                        Exit;
@@ -2141,7 +2159,7 @@ Begin
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.MakePosSequence;
 
 VAR
@@ -2159,10 +2177,8 @@ Begin
 
   S := S + Format(' kV=%-.5g',[V]);
 
-  If Fnphases>1 Then
-  Begin
-       S := S + Format(' kva=%-.5g  PF=%-.5g',[kVArating/Fnphases, PFnominal]);
-  End;
+  If (Fnphases>1)
+  Then S := S + Format(' kva=%-.5g  PF=%-.5g',[kVArating/Fnphases, PFnominal]);
 
   Parser.CmdString := S;
   Edit;
@@ -2170,6 +2186,7 @@ Begin
   inherited;   // write out other properties
 End;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Set_ConductorClosed(Index: Integer;
   Value: Boolean);
 Begin
@@ -2177,18 +2194,20 @@ Begin
 
  // Just turn PVSystem element on or off;
 
-   If Value Then PVsystemObjSwitchOpen := FALSE Else PVsystemObjSwitchOpen := TRUE;
+   If Value
+   Then PVsystemObjSwitchOpen := FALSE
+   Else PVsystemObjSwitchOpen := TRUE;
 
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Set_PowerFactor(const Value: Double);
 Begin
      PFnominal := Value;
      PFSpecified := TRUE;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Set_PresentIrradiance(const Value: Double);
 Begin
 
@@ -2196,6 +2215,7 @@ Begin
 
 end;
 
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Set_PresentkV(const Value: Double);
 Begin
       kVPVSystemBase := Value ;
@@ -2206,7 +2226,7 @@ Begin
       END;
 End;
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.Set_Presentkvar(const Value: Double);
 
 Begin
@@ -2214,14 +2234,15 @@ Begin
 End;
 
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 PROCEDURE TPVsystemObj.SetDragHandRegister(Reg: Integer; const Value: Double);
 Begin
-    If Value>Registers[reg] Then Registers[Reg] := Value;
+    If  (Value > Registers[reg])
+    Then Registers[Reg] := Value;
 End;
 
 
-//----------------------------------------------------------------------------
+// ===========================================================================================
 
 initialization
 
