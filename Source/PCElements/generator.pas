@@ -1139,7 +1139,9 @@ Begin
 
 
     YQFixed := -varBase / Sqr(VBase);   //10-17-02  Fixed negative sign
-    Vtarget := Vpu * 1000.0 * GenVars.kVGeneratorBase / SQRT3;
+    Vtarget := Vpu * 1000.0 * GenVars.kVGeneratorBase;
+
+    If Fnphases>1 then VTarget := VTarget / SQRT3;
 
     // Initialize to Zero - defaults to PQ generator
     // Solution object will reset after circuit modifications
