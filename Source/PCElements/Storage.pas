@@ -322,13 +322,8 @@ Const
   NumPropsThisClass = 36; // Make this agree with the last property constant
 
 
-
-
 VAR cBuffer:Array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
     CDOUBLEONE: Complex;
-
-
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TStorage.Create;  // Creates superstructure for all Storage elements
@@ -729,17 +724,20 @@ Begin
 
                 propPCTRESERVE: kWhReserve := kWhRating * pctReserve * 0.01;
 
-                propDEBUGTRACE: IF DebugTrace THEN Begin   // Init trace file
-                       AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
-                       ReWrite(TraceFile);
-                       Write(TraceFile, 't, Iteration, LoadMultiplier, Mode, LoadModel, StorageModel,  Qnominalperphase, Pnominalperphase, CurrentType');
-                       For i := 1 to nphases Do Write(Tracefile,  ', |Iinj'+IntToStr(i)+'|');
-                       For i := 1 to nphases Do Write(Tracefile,  ', |Iterm'+IntToStr(i)+'|');
-                       For i := 1 to nphases Do Write(Tracefile,  ', |Vterm'+IntToStr(i)+'|');
-                       Write(TraceFile, ',Vthev, Theta');
-                       Writeln(TraceFile);
-                       CloseFile(Tracefile);
-                 End;
+                propDEBUGTRACE: IF DebugTrace
+                  THEN Begin   // Init trace file
+                         AssignFile(TraceFile, DSSDataDirectory + 'STOR_'+Name+'.CSV');
+                         ReWrite(TraceFile);
+                         Write(TraceFile, 't, Iteration, LoadMultiplier, Mode, LoadModel, StorageModel,  Qnominalperphase, Pnominalperphase, CurrentType');
+                         For i := 1 to nphases Do Write(Tracefile,  ', |Iinj'+IntToStr(i)+'|');
+                         For i := 1 to nphases Do Write(Tracefile,  ', |Iterm'+IntToStr(i)+'|');
+                         For i := 1 to nphases Do Write(Tracefile,  ', |Vterm'+IntToStr(i)+'|');
+                         For i := 1 to NumVariables Do Write(Tracefile, ', ', VariableName(i));
+
+                         Write(TraceFile, ',Vthev, Theta');
+                         Writeln(TraceFile);
+                         CloseFile(Tracefile);
+                   End;
 
                 propKVA: kVANotSet := FALSE;
              END;
@@ -1150,7 +1148,10 @@ End;
 
 //----------------------------------------------------------------------------
 PROCEDURE TStorageObj.SetKWandKvarOut;
+VAR
+    OldState :Integer;
 Begin
+    OldState := Fstate;
     CASE FState of
 
        STORE_CHARGING: Begin
@@ -1192,6 +1193,8 @@ Begin
         kW_out   := 0.0;   // -kWIdlingLosses;     Just use YeqIdling
         kvar_out := 0.0;
     End;
+
+    If OldState <> Fstate Then FstateChanged := TRUE;
 
 End;
 
@@ -1282,7 +1285,7 @@ Begin
 
    // If Storage element state changes, force re-calc of Y matrix
    If FStateChanged Then  Begin
-      YPrimInvalid := True;
+      YPrimInvalid  := True;
       FStateChanged := FALSE;  // reset the flag
    End;
 
@@ -1496,7 +1499,11 @@ Begin
          END;
      End;
 
-     If OldState <> Fstate Then FstateChanged := TRUE;
+     If OldState <> Fstate
+     Then Begin
+          FstateChanged := TRUE;
+          YPrimInvalid := TRUE;
+     End;
 End;
 
 //----------------------------------------------------------------------------
@@ -1572,7 +1579,7 @@ Begin
       Begin
            Append(TraceFile);
            Write(TraceFile,Format('%-.g, %d, %-.g, ',
-                    [ActiveCircuit.Solution.DynaVARs.t,
+                    [ActiveCircuit.Solution.dblHour,
                     ActiveCircuit.Solution.Iteration,
                     ActiveCircuit.LoadMultiplier]),
                     GetSolutionModeID,', ',
@@ -1584,6 +1591,9 @@ Begin
            For i := 1 to nphases Do Write(TraceFile,(Cabs(InjCurrent^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(ITerminal^[i])):8:1 ,', ');
            For i := 1 to nphases Do Write(TraceFile,(Cabs(Vterminal^[i])):8:1 ,', ');
+           For i := 1 to NumVariables Do Write(TraceFile, Format('%-.g, ',[Variable[i]]));
+
+
    //****        Write(TraceFile,VThevMag:8:1 ,', ', StoreVARs.Theta*180.0/PI);
            Writeln(TRacefile);
            CloseFile(TraceFile);
@@ -2025,6 +2035,11 @@ Begin
                                End;
                            End;
     End;
+
+    // the update is done at the end of a time step so have to force
+    // a recalc of the Yprim for the next time step.  Else it will stay the same.
+    If FstateChanged Then YPrimInvalid := TRUE;
+
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
@@ -2371,7 +2386,7 @@ VAR
 Begin
       If i<1 Then Exit;  // Someone goofed
 
-      CASE i of
+      CASE i of                   
           1:Result := 'kWh Stored';
           2:Result := 'Storage State Flag';
           3:Result := 'kW Discharging';
