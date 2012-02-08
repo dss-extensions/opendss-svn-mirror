@@ -172,6 +172,7 @@ Uses  Comobj,
       Circuit,
       Generator,
       energyMeter,
+      GICLine,
       utilities,
       LoadShape,
       Tempshape,
@@ -346,6 +347,21 @@ procedure TDSSPlot.DoCircuitPlot;
 
 Var
     LineStyleType :TPenStyle;
+    pGICLine      :TGICLineObj;
+    pGICLineClass :TGICLine;
+    GICThickness  :Integer;
+
+
+    {******************  Code for GICLines **************************}
+    function MaxGICCurrent: Double;
+    Var iGIC:Integer;
+    begin
+         pGICLine.ComputeIterminal;  // load element Iterminal buffer
+         Result := 0.0;
+         For iGIC := 1 to pGICLine.NPhases Do
+           If Cabs(pGICLine.Iterminal^[iGIC]) > Result then Result := Cabs(pGICLine.Iterminal^[iGIC]);
+    end;
+   {******************  Code for GICLines **************************}
 
 begin
 
@@ -387,6 +403,38 @@ begin
        End;
        pLine := Lines.Next;
      End;
+
+{******************  Code for GICLines **************************}
+
+   pGICLineClass := GetDSSClassPtr('GICLine') As TGICLine;
+   pGICLine      := pGICLineClass.ElementList.First;
+
+   While pGICLine <> nil Do With ActiveCircuit Do
+     Begin
+       If pGICLine.Enabled then
+        Begin
+         // Idx1 := Buslist.Find(StripExtension(pLine.GetBus (1)));
+         // Idx2 := Buslist.Find(StripExtension(pLine.GetBus (2)));
+         Bus1Idx := pGICLine.Terminals^[1].BusRef;
+         Bus2Idx := pGICLine.Terminals^[2].BusRef;
+         If Buses^[Bus1Idx].CoordDefined and Buses^[Bus2Idx].CoordDefined Then
+          Begin
+            If pGICLine.NPhases =1 Then LineStyleType := Style(SinglePhLineStyle)
+            Else                        LineStyleType := Style(ThreePhLineStyle);
+            GICThickness := Min(7, Round(5.0 * (MaxGICCurrent/Maxscale))) ;
+            AddNewLine(Buses^[Bus1Idx].X, Buses^[Bus1Idx].Y,
+                       Buses^[Bus2Idx].X,Buses^[Bus2Idx].Y,
+                       Color1,
+                       GICThickness,
+                       LineStyleType, Dots, AnsiString (pGICLine.Name), False, 0,
+                       NodeMarkerCode, NodeMarkerWidth );
+             If Labels Then DoBusLabels(Bus1Idx, Bus2Idx);
+          End;
+       End;
+       pGICLine := pGICLineClass.ElementList.Next;
+     End;
+
+{******************  Code for GICLines **************************}
 
      pTransf := ActiveCircuit.Transformers.First;
      While pTransf <> nil Do With ActiveCircuit Do Begin
