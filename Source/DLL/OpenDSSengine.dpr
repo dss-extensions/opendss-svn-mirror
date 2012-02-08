@@ -185,7 +185,9 @@ uses
   VVControl in '..\Controls\VVControl.pas',
   pcre in '..\TPerlRegEx\pcre.pas',
   PerlRegEx in '..\TPerlRegEx\PerlRegEx.pas',
-  Pstcalc in '..\Shared\Pstcalc.pas';
+  Pstcalc in '..\Shared\Pstcalc.pas',
+  GICLine in '..\PCElements\GICLine.pas',
+  GICTransformer in '..\PDElements\GICTransformer.pas';
 
 exports
   DllGetClassObject,

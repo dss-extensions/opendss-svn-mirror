@@ -47,6 +47,8 @@ CONST
       SWT_CONTROL      = 23 * 8;
       PVSYSTEM_ELEMENT = 24 * 8;
       VV_CONTROL       = 25 * 8;
+      GIC_Line         = 26 * 8;
+      GIC_Transformer  = 27 * 8;
 
 
 VAR
@@ -107,7 +109,9 @@ USES
      StorageController,
      SwtControl,
      PVSystem,
-     VVControl
+     VVControl,
+     GICLine,
+     GICTransformer
 ;
 
 
@@ -181,6 +185,8 @@ Begin
      DSSClasses.New := PVSystemClass;
      VVControlClass := TVVControl.Create;
      DSSClasses.New := VVControlClass;
+     DSSClasses.New := TGICLine.Create;
+     DSSClasses.New := TGICTransformer.Create;
 
 
 
