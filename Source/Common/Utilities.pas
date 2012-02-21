@@ -236,7 +236,7 @@ Begin
   TRY
   If FileExists(FileNm) Then
   Begin
-      retval := ShellExecute (0, Nil, PChar(DefaultEditor), PChar(FileNm), Nil, SW_SHOW);
+      retval := ShellExecute (0, Nil, PChar(encloseQuotes(DefaultEditor)), PChar(encloseQuotes(FileNm)), Nil, SW_SHOW);
       LastResultFile := FileNm;
 
       Case Retval of
