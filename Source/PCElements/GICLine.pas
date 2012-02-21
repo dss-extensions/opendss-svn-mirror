@@ -108,7 +108,7 @@ implementation
 
 USES  ParserDel, Circuit, MyDSSClassDefs, DSSClassDefs, DSSGlobals, Utilities, Sysutils, Command;
 
-Const NumPropsThisClass = 17;
+Const NumPropsThisClass = 15;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TGICLine.Create;  // Creates superstructure for all Line objects
@@ -152,14 +152,14 @@ Begin
      PropertyName[7] := 'R';
      PropertyName[8] := 'X';
      PropertyName[9] := 'C';
-     PropertyName[10] := 'ScanType';
-     PropertyName[11] := 'Sequence';
-     PropertyName[12] := 'EN';
-     PropertyName[13] := 'EE';
-     PropertyName[14] := 'Lat1';
-     PropertyName[15] := 'Lon1';
-     PropertyName[16] := 'Lat2';
-     PropertyName[17] := 'Lon2';
+  //   PropertyName[10] := 'ScanType';
+  //   PropertyName[11] := 'Sequence';
+     PropertyName[10] := 'EN';
+     PropertyName[11] := 'EE';
+     PropertyName[12] := 'Lat1';
+     PropertyName[13] := 'Lon1';
+     PropertyName[14] := 'Lat2';
+     PropertyName[15] := 'Lon2';
 
      // define Property help values
      PropertyHelp[1] := 'Name of bus to which the main terminal (1) is connected.'+ CRLF +
@@ -170,30 +170,35 @@ Begin
                         'bus2=busname.1.2.3' + CRLF + CRLF +
                         'No Default; must be specified.';
 
-     PropertyHelp[3] := 'Voltage magnitude, in volts, of the GIC voltage induced across this line.';
-     PropertyHelp[4] := 'Phase angle in degrees of first phase. Default=0.0';
+     PropertyHelp[3] := 'Voltage magnitude, in volts, of the GIC voltage induced across this line. ' +
+                        'When spedified, voltage source is assumed defined by Voltage and Angle properties. ' + CRLF+CRLF+
+                        'Specify this value' + CRLF + CRLF + 'OR' + CRLF + CRLF +
+                        'EN, EE, lat1, lon1, lat2, lon2. ' + CRLF + CRLF +
+                        'Not both!!  Last one entered will take precedence. ' +
+                        'Assumed identical in each phase of the Line object.';
+     PropertyHelp[4] := 'Phase angle in degrees of first phase. Default=0.0.  See Voltage property';
      PropertyHelp[5] := 'Source frequency.  Defaults to 0.1 Hz.';
      PropertyHelp[6] := 'Number of phases.  Defaults to 3.';
      PropertyHelp[7] := 'Resistance of line, ohms of impedance in series with GIC voltage source. ';
      PropertyHelp[8] := 'Reactance at base frequency, ohms. Default = 0.0. This value is generally not important for GIC studies but may be used if desired.';
      PropertyHelp[9] := 'Value of line blocking capacitance in microfarads. Default = 0.0, implying that there is no line blocking capacitor.';
-     PropertyHelp[10] := '{pos | zero* | none} Maintain specified sequence for harmonic solution. Default is ZERO sequence. '+
-                         'Otherwise, angle between phases rotates with harmonic.';
-     PropertyHelp[11] := '{pos | neg | zero*} Set the phase angles for the specified symmetrical component sequence for non-harmonic solution modes. '+
-                         'Default is ZERO sequence. ';
-     PropertyHelp[12] := 'Northward Electric field.';
-     PropertyHelp[13] := 'Eastward Electric field.';
-     PropertyHelp[14] := 'Latitude of Bus1';
-     PropertyHelp[15] := 'Longitude of Bus1';
-     PropertyHelp[16] := 'Latitude of Bus2';
-     PropertyHelp[17] := 'Longitude of Bus2';
+ //    PropertyHelp[10] := '{pos | zero* | none} Maintain specified sequence for harmonic solution. Default is ZERO sequence. '+
+ //                        'Otherwise, angle between phases rotates with harmonic.';
+ //    PropertyHelp[11] := '{pos | neg | zero*} Set the phase angles for the specified symmetrical component sequence for non-harmonic solution modes. '+
+ //                        'Default is ZERO sequence. ';
+     PropertyHelp[10] := 'Northward Electric field. If specified, Voltage and Angle are computed from EN, EE, lat and lon values.';
+     PropertyHelp[11] := 'Eastward Electric field.  If specified, Voltage and Angle are computed from EN, EE, lat and lon values.';
+     PropertyHelp[12] := 'Latitude of Bus1';
+     PropertyHelp[13] := 'Longitude of Bus1';
+     PropertyHelp[14] := 'Latitude of Bus2';
+     PropertyHelp[15] := 'Longitude of Bus2';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
      // Override help string
-     PropertyHelp[NumPropsThisClass+1] := 'Name of harmonic spectrum for this source.  Default is "defaultvsource", which is defined when the DSS starts.';
-
+     PropertyHelp[NumPropsThisClass+1] := 'Inherited Property for all PCElements. Name of harmonic spectrum for this source.  Default is "defaultvsource", which is defined when the DSS starts.';
+     PropertyHelp[NumPropsThisClass+2] := 'Inherited Property for all PCElements. Base frequency for specification of reactance value.';
 End;
 
 
@@ -272,7 +277,8 @@ Begin
             7: R := Parser.DblValue;
             8: X := Parser.DblValue;
             9: C := Parser.DblValue;
-           10:  Case Uppercase(Param)[1] of
+
+    (*     10:  Case Uppercase(Param)[1] of
                   'P': ScanType :=  1;
                   'Z': ScanType :=  0;
                   'N': ScanType := -1;
@@ -286,20 +292,21 @@ Begin
                 ELSE
                    DoSimpleMsg('Unknown Sequence Type for "' + Class_Name +'.'+ Name + '": '+Param, 321);
                 END;
-           12: ENorth := Parser.DblValue;
-           13: EEast  := Parser.DblValue;
-           14: Lat1   := Parser.DblValue;
-           15: Lon1   := Parser.DblValue;
-           16: Lat2   := Parser.DblValue;
-           17: Lon2   := Parser.DblValue;
+    *)
+           10: ENorth := Parser.DblValue;
+           11: EEast  := Parser.DblValue;
+           12: Lat1   := Parser.DblValue;
+           13: Lon1   := Parser.DblValue;
+           14: Lat2   := Parser.DblValue;
+           15: Lon2   := Parser.DblValue;
 
          ELSE
             ClassEdit(ActiveGICLineObj, ParamPointer - NumPropsThisClass)
          End;
 
          CASE ParamPointer of
-              3,4: VoltsSpecified := TRUE;
-              12..17: VoltsSpecified := FALSE;
+              3, 4:   VoltsSpecified := TRUE;
+              10..15: VoltsSpecified := FALSE;
          END;
 
          ParamName := Parser.NextParam;
@@ -375,8 +382,8 @@ Var
    Alpha, VN, VE :Double;
 begin
      Alpha := (Lat2 + Lat1)/2.0 * (pi/180.0);
-     VE    := 111.2 * (Lat2 - Lat1) * EEast;
-     VN    := 111.2 * (Lon2 - Lon1) * sin(pi/2.0 - Alpha) * ENorth;
+     VE    := 111.2 * (Lat2 - Lat1) * ENorth;
+     VN    := 111.2 * (Lon2 - Lon1) * sin(pi/2.0 - Alpha) * EEast ;
      Result := VN + VE;
 end;
 
@@ -714,14 +721,14 @@ begin
      PropertyValue[8]  := '0';
      PropertyValue[9]  := '0';
 
-     PropertyValue[10] := 'zero';
-     PropertyValue[11] := 'zero';
-     PropertyValue[12] := '1.0';
-     PropertyValue[13] := '1.0';
-     PropertyValue[14] := '33.613499';
-     PropertyValue[15] := '-87.373673';
-     PropertyValue[16] := '33.547885';
-     PropertyValue[17] := '-86.074605';
+   //  PropertyValue[10] := 'zero';
+  //   PropertyValue[11] := 'zero';
+     PropertyValue[10] := '1.0';
+     PropertyValue[11] := '1.0';
+     PropertyValue[12] := '33.613499';
+     PropertyValue[13] := '-87.373673';
+     PropertyValue[14] := '33.547885';
+     PropertyValue[15] := '-86.074605';
 
      inherited  InitPropertyValues(NumPropsThisClass);
 
