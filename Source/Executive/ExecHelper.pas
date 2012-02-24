@@ -3337,9 +3337,11 @@ Begin
      BusIdx := ActiveCircuit.BusList.Find(BusName);
      if BusIdx>0  then Begin
           Bus := ActiveCircuit.Buses^[BusIdx];
-          if Bus.CoordDefined  then Begin
-               AddNewMarker(Bus.x, Bus.y, AddMarkerColor, AddMarkerCode, AddMarkerSize);
-               ShowGraph;
+          if Bus.CoordDefined
+          then Begin
+               DoSimpleMsg('Sorry. Command not implemented in this version.', 28709);
+              // AddNewMarker(Bus.x, Bus.y, AddMarkerColor, AddMarkerCode, AddMarkerSize);
+              // ShowGraph;
           End
           Else DoSimpleMsg('Bus Coordinates not defined for bus ' + Busname, 28709);
 
