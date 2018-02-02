@@ -1,0 +1,6 @@
+cd /Users/mcde601/src/opendss/source/cmd/test/
+redirect IEEE13Base.dss
+solve
+cd /Users/mcde601/src/opendss/source/cmd/test/
+export cdpsm substation=subname geo=region subgeo=subregion file=dummy.xml
+// export cdpsm file=default.xml
