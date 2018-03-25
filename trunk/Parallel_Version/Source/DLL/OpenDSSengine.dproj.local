@@ -31,6 +31,7 @@
     <File Path="..\Common\TOPExport.pas"/>
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
+    <File Path="..\Common\Diakoptics.pas"/>
     <File Path="..\Controls"/>
     <File Path="..\Controls\CapControl.pas"/>
     <File Path="..\Controls\CapControlVars.pas"/>
@@ -61,7 +62,6 @@
     <File Path="..\Forms"/>
     <File Path="..\Forms\About.pas"/>
     <File Path="..\Forms\About.dfm"/>
-    <File Path="..\Forms\Diakoptics.pas"/>
     <File Path="..\Forms\DlgComboBox.pas"/>
     <File Path="..\Forms\DlgComboBox.dfm"/>
     <File Path="..\Forms\dlgNumber.pas"/>
