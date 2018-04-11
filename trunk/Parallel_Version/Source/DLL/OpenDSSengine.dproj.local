@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
+    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm=C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -13,6 +13,7 @@
     <File Path="..\Common\CktElementClass.pas"/>
     <File Path="..\Common\Conductor.pas"/>
     <File Path="..\Common\ControlQueue.pas"/>
+    <File Path="..\Common\Diakoptics.pas"/>
     <File Path="..\Common\DSSCallBackRoutines.pas"/>
     <File Path="..\Common\DSSClass.pas"/>
     <File Path="..\Common\DSSClassDefs.pas"/>
@@ -31,7 +32,6 @@
     <File Path="..\Common\TOPExport.pas"/>
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
-    <File Path="..\Common\Diakoptics.pas"/>
     <File Path="..\Controls"/>
     <File Path="..\Controls\CapControl.pas"/>
     <File Path="..\Controls\CapControlVars.pas"/>
