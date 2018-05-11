@@ -102,20 +102,20 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_Build>10</VerInfo_Build>
         <Debugger_HostApplication>C:\Users\prdu001\Delprogs\DGScreener3\DGScreener3.exe</Debugger_HostApplication>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_Release>1</VerInfo_Release>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.1.10.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.1.1.10;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.1.1;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_Build>10</VerInfo_Build>
+        <VerInfo_Release>1</VerInfo_Release>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=8.1.10.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=8.1.1.10;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.1;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
     </PropertyGroup>
@@ -147,7 +147,6 @@
         <VerInfo_Build>50</VerInfo_Build>
         <VerInfo_Release>4</VerInfo_Release>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_MinorVer>6</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Debug Version;FileVersion=7.6.4.50;InternalName=;LegalCopyright=Copyright (C) 2008-2015  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=7.6.4;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
     </PropertyGroup>
