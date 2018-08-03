@@ -9,7 +9,7 @@
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -883,6 +883,7 @@
         <DCCReference Include="..\TCP_IP\TCP_IP.pas"/>
         <DCCReference Include="..\Executive\ConnectOptions.pas"/>
         <DCCReference Include="..\Common\Diakoptics.pas"/>
+        <DCCReference Include="..\Common\Sparse_Math.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

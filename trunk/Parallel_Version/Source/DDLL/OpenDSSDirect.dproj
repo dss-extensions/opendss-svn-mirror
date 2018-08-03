@@ -384,6 +384,7 @@
         <DCCReference Include="..\TCP_IP\TCP_IP.pas"/>
         <DCCReference Include="..\Executive\ConnectOptions.pas"/>
         <DCCReference Include="..\Common\Diakoptics.pas"/>
+        <DCCReference Include="..\Common\Sparse_Math.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
