@@ -32,6 +32,7 @@
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
     <File Path="..\Common\Sparse_Math.pas"/>
+    <File Path="..\Common\MeTIS_Exec.pas"/>
     <File Path="..\Controls"/>
     <File Path="..\Controls\CapControl.pas"/>
     <File Path="..\Controls\CapControlVars.pas"/>
