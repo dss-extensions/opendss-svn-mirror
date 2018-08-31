@@ -6,7 +6,7 @@
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -109,10 +109,9 @@
         <DCC_ExeOutput>..\x86\</DCC_ExeOutput>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileVersion=8.1.10.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=8.2.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_DLL>true</VerInfo_DLL>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
@@ -120,10 +119,9 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileVersion=8.1.10.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=8.2.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_DLL>true</VerInfo_DLL>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -135,12 +133,11 @@
         <DCC_ObjOutput>C:\OpenDSS\Parallel_Version\Source\x64\Header\</DCC_ObjOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Release>7</VerInfo_Release>
+        <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=8.1.7.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
-;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.1;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=8.2.0.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -148,12 +145,11 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>1</VerInfo_MinorVer>
+        <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Release>7</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.1.7.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
-;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.1;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.2.0.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -385,6 +381,7 @@
         <DCCReference Include="..\Executive\ConnectOptions.pas"/>
         <DCCReference Include="..\Common\Diakoptics.pas"/>
         <DCCReference Include="..\Common\Sparse_Math.pas"/>
+        <DCCReference Include="..\Common\MeTIS_Exec.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
