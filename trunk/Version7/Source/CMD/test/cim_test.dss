@@ -1,0 +1,10 @@
+// cd /Users/mcde601/src/opendss/source/cmd/test/
+// redirect IEEE13Base.dss
+// cd /Users/mcde601/src/epri_dpv/J1/
+// redirect Master_noPV.dss
+cd /Users/mcde601/src/opendss/test/
+redirect IEEE13_CDPSM.dss
+solve
+cd /Users/mcde601/src/opendss/source/cmd/test/
+export cdpsm substation=subname geo=region subgeo=subregion file=dummy.xml
+
