@@ -69,9 +69,9 @@ type
     TWinding = class(Tobject)
     PUBLIC
         Connection: Integer;
-        kvll,
+        KVLL,
         VBase,
-        kva,
+        KVA,
         puTap,
         Rpu,      // on transformer MVABase  (1st winding)
         Rneut,
@@ -119,11 +119,14 @@ type
         function Get_WdgYPPM(i: Integer): Double;
 
         procedure CalcY_Terminal(FreqMult: Double);
+        procedure GICBuildYTerminal;
 
         procedure BuildYPrimComponent(YPrim_Component, Y_Terminal: TCMatrix);
         procedure AddNeutralToY(FreqMultiplier: Double);
 
         procedure FetchXfmrCode(const Code: String);
+
+        function InterpretCoreType(const str: String): Integer;
 
     PROTECTED
         NumWindings: Integer;
@@ -166,6 +169,8 @@ type
         Winding: pWindingArray;
         XfmrBank: String;
         XfmrCode: String;
+        CoreType: Integer; {0=Shell; 1=1ph; 3-3leg; 5=5-leg}
+        strCoreType: String;
 
         constructor Create(ParClass: TDSSClass; const TransfName: String);
         destructor Destroy; OVERRIDE;
@@ -184,6 +189,8 @@ type
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         procedure SaveWrite(var F: TextFile); OVERRIDE;
         procedure GetWindingVoltages(iWind: Integer; VBuffer: pComplexArray; ActorID: Integer);
+        procedure GetAllWindingCurrents(CurrBuffer: pComplexArray; ActorID: Integer);  // All Winding currents in complex array
+        function GetWindingCurrentsResult(ActorID: Integer): String;  // All winding currents in string
 
         procedure MakePosSequence(ActorID: Integer); OVERRIDE;  // Make a positive Sequence Model
 
@@ -242,7 +249,7 @@ var
     XfmrCodeClass: TXfmrCode;
 
 const
-    NumPropsThisClass = 44;
+    NumPropsThisClass = 46;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TTransf.Create;  // Creates superstructure for all Transformer objects
@@ -329,6 +336,8 @@ begin
     PropertyName[42] := 'X13';
     PropertyName[43] := 'X23';
     PropertyName[44] := 'LeadLag';
+    PropertyName[45] := 'WdgCurrents';
+    PropertyName[46] := 'Core';
 
      // define Property help values
     PropertyHelp[1] := 'Number of phases this transformer. Default is 3.';
@@ -340,7 +349,7 @@ begin
         'the array collections (buses, kvas, etc.) to define the windings.  Note: ' +
         'reactances are BETWEEN pairs of windings; they are not the property of a single winding.';
     PropertyHelp[4] := 'Bus connection spec for this winding.';
-    PropertyHelp[5] := 'Connection of this winding. Default is "wye" with the neutral solidly grounded.';
+    PropertyHelp[5] := 'Connection of this winding {wye*, Delta, LN, LL}. Default is "wye" with the neutral solidly grounded.';
     PropertyHelp[6] := 'For 2-or 3-phase, enter phase-phase kV rating.  Otherwise, kV rating of the actual winding';
     PropertyHelp[7] := 'Base kVA rating of the winding. Side effect: forces change of max normal and emerg kva ratings.' +
         'If 2-winding transformer, forces other winding to same value. ' +
@@ -411,6 +420,9 @@ begin
     PropertyHelp[44] := '{Lead | Lag (default) | ANSI (default) | Euro } Designation in mixed Delta-wye connections the ' +
         'relationship between HV to LV winding. Default is ANSI 30 deg lag, e.g., Dy1 of Yd1 vector group. ' +
         'To get typical European Dy11 connection, specify either "lead" or "Euro"';
+    PropertyHelp[45] := '(Read only) Makes winding currents available via return on query (? Transformer.TX.WdgCurrents). ' +
+        'Order: Phase 1, Wdg 1, Wdg 2, ..., Phase 2 ...';
+    PropertyHelp[46] := '{Shell*|5-leg|3-Leg|1-phase} Core Type. Used for GIC analysis';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -558,6 +570,10 @@ begin
                     XLT := TrapZero(parser[ActorID].Dblvalue, 30.0) * 0.01;
                 44:
                     HVLeadsLV := InterpretLeadLag(Param);
+                45:
+                    PropertyValue[45] := '';  // placeholder, do nothing just throw value away if someone tries to set it.
+                46:
+                    strCoreType := Param;
             else
            // Inherited properties
                 ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -604,6 +620,8 @@ begin
                     pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0;  // Update
                 41..43:
                     XHLChanged := true;
+                46:
+                    CoreType := InterpretCoreType(Param); // Assign integer number
             else
             end;
 
@@ -734,9 +752,6 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransf.InterpretLeadLag(const S: String): Boolean;
 //  routine expecting all winding bus connections expressed in one array of strings
-var
-    BusNam: String;
-    i: Integer;
 begin
 
     Result := false;   // default to ANSI 30 Deg Lag if can't understand S
@@ -767,7 +782,7 @@ begin
             AuxParser.NextParam; // ignore any parameter name  not expecting any
             DataStr := AuxParser.StrValue;
             if Length(DataStr) > 0 then
-                Winding^[ActiveWinding].kvll := AuxParser.Dblvalue;
+                Winding^[ActiveWinding].KVLL := AuxParser.Dblvalue;
         end;
 
 end;
@@ -790,7 +805,7 @@ begin
             AuxParser.NextParam; // ignore any parameter name  not expecting any
             DataStr := AuxParser.StrValue;
             if Length(DataStr) > 0 then
-                Winding^[ActiveWinding].kva := AuxParser.Dblvalue;
+                Winding^[ActiveWinding].KVA := AuxParser.Dblvalue;
         end;
 
 end;
@@ -866,9 +881,9 @@ begin
                 with Winding^[i] do
                 begin
                     Connection := OtherTransf.Winding^[i].Connection;
-                    kvll := OtherTransf.Winding^[i].kvll;
+                    kvll := OtherTransf.Winding^[i].KVLL;
                     Vbase := OtherTransf.Winding^[i].Vbase;
-                    kva := OtherTransf.Winding^[i].kva;
+                    kva := OtherTransf.Winding^[i].KVA;
                     puTAP := OtherTransf.Winding^[i].puTAP;
                     Rpu := OtherTransf.Winding^[i].Rpu;
                     RNeut := OtherTransf.Winding^[i].RNeut;
@@ -958,6 +973,9 @@ begin
     SubstationName := '';
     XfmrBank := '';
     XfmrCode := '';
+
+    CoreType := 0;
+    strCoreType := 'shell';
 
     VABase := Winding^[1].kVA * 1000.0;
     ThermalTimeconst := 2.0;
@@ -1071,7 +1089,7 @@ begin
         DeltaDirection := 1
     else
     begin
-        if Winding^[1].kvll >= Winding^[2].kvll then
+        if Winding^[1].KVLL >= Winding^[2].KVLL then
             iHvolt := 1
         else
             iHVolt := 2;
@@ -1126,12 +1144,12 @@ begin
                 0:
                     case Fnphases of   // Wye
                         2, 3:
-                            VBase := kVll * InvSQRT3x1000;   // assume 3-phase for 2-phase designation
+                            VBase := KVLL * InvSQRT3x1000;   // assume 3-phase for 2-phase designation
                     else
-                        VBase := kVll * 1000.0;
+                        VBase := KVLL * 1000.0;
                     end;
                 1:
-                    VBase := kVll * 1000.0;     // delta
+                    VBase := KVLL * 1000.0;     // delta
             end;
 
    {Base rating of Winding 1 }
@@ -1326,8 +1344,8 @@ begin
                 1:
                     Writeln(f, '~ conn=delta');
             end;
-            Writeln(f, '~ kv=', kvll: 0: 2);
-            Writeln(f, '~ kva=', kva: 0: 1);
+            Writeln(f, '~ kv=', KVLL: 0: 2);
+            Writeln(f, '~ kva=', KVA: 0: 1);
             Writeln(f, '~ tap=', putap: 0: 3);
             Writeln(f, '~ %r=', (Rpu * 100.0): 0: 2);
             Writeln(f, '~ rneut=', rneut: 0: 3);
@@ -1465,14 +1483,14 @@ constructor TWinding.Create;
 begin
     inherited Create;
     Connection := 0;
-    kvll := 12.47;
+    KVLL := 12.47;
     VBase := kvll / SQRT3 * 1000.0;
-    kva := 1000.0;
+    KVA := 1000.0;
     puTap := 1.0;
     Rpu := 0.002;
     Rneut := -1.0;    // default to open - make user specify connection
     Xneut := 0.0;
-    ComputeAntiFloatAdder(1.0e-6, kva / 3.0 / 1000.0);     //  1 PPM
+    ComputeAntiFloatAdder(1.0e-6, KVA / 3.0 / 1000.0);     //  1 PPM
 
     TapIncrement := 0.00625;
     NumTaps := 32;
@@ -1531,7 +1549,7 @@ end;
 function TTransfObj.Get_WdgKVA(i: Integer): Double;
 begin
     if (i > 0) and (i <= NumWindings) then
-        Result := Winding^[i].kva
+        Result := Winding^[i].KVA
     else
         Result := 0.0;
 end;
@@ -1611,6 +1629,117 @@ begin
         Result := 0.0;
 end;
 
+procedure TTransfObj.GetAllWindingCurrents(CurrBuffer: pComplexArray; ActorID: Integer);
+
+{
+  Return a vector of complex currents for each Winding of all phases
+
+  Iterm = Yterm * Vterm
+
+  Yterm order is 2*NumWindings.  Each phase has same Yterm.
+  Vterm order is 2*NumWindings .
+
+  Calculate Iterm phase-by-phase and concatenate into CurrBuffer.
+}
+
+var
+    i, jphase, k, iPhase, iWind, NeutTerm: Integer;
+    VTerm: pComplexArray;
+    ITerm: pComplexArray;
+    ITerm_NL: pComplexArray;
+
+begin
+
+    try
+        Vterm := Allocmem(SizeOf(Complex) * 2 * NumWindings);
+        Iterm := Allocmem(SizeOf(Complex) * 2 * NumWindings);
+        ITerm_NL := Allocmem(SizeOf(Complex) * 2 * NumWindings);
+
+     {Load up Vterminal - already allocated for all cktelements}
+        with ActiveCircuit[ActorID].Solution do
+            for i := 1 to Yorder do
+                Vterminal^[i] := NodeV^[NodeRef^[i]];
+
+
+        k := 0;
+        for iPhase := 1 to Fnphases do
+        begin
+            for iWind := 1 to NumWindings do
+            begin
+                NeutTerm := iWind * FNConds;
+                i := 2 * iWind - 1;
+
+                case Winding^[iWind].Connection of
+                    0:
+                    begin   // Wye
+                        VTerm^[i] := Vterminal^[iphase + (iWind - 1) * FNconds];
+                        VTerm^[i + 1] := Vterminal^[NeutTerm];
+                    end;
+                    1:
+                    begin   // Delta
+                        jphase := RotatePhases(iphase);      // Get next phase in sequence
+                        VTerm^[i] := Vterminal^[iphase + (iWind - 1) * FNconds];
+                        VTerm^[i + 1] := Vterminal^[jphase + (iWind - 1) * FNconds];
+                    end
+                end; {CASE}
+
+            end;
+            Y_Term.MVmult(ITerm, VTerm);  // ITerm = Y_Term Vterm
+            Y_Term_NL.MVmult(ITerm_NL, Vterm);// no load part
+        // Add into Currbuffer
+            for i := 1 to 2 * NumWindings do
+            begin
+                k := k + 1;
+                CurrBuffer^[k] := Cadd(ITerm^[i], ITerm_NL^[i]);
+            end;
+        end;
+
+        ReallocMem(Vterm, 0);
+        ReallocMem(Iterm, 0);
+        ReallocMem(Iterm_NL, 0);
+
+
+    except
+        On E: Exception do
+            DoSimpleMsg('Error filling voltage buffer in GetAllWindingCurrents for Circuit Element:Transformer.' + Name + CRLF +
+                'Probable Cause: Invalid definition of element.' + CRLF +
+                'System Error Message: ' + E.Message, 100114);
+    end;
+
+end;
+
+
+function TTransfObj.GetWindingCurrentsResult(ActorID: Integer): String;
+
+// Returns string mag, angle
+var
+    WindingCurrents: pComplexArray;
+    i, j, k: Integer;
+
+begin
+
+    WindingCurrents := AllocMem(Sizeof(Complex) * 2 * FNPhases * NumWindings);
+
+    GetAllWindingCurrents(WindingCurrents, ActorID);
+
+    Result := '';
+    k := 0;
+    for  i := 1 to Fnphases do
+    begin
+        for j := 1 to NumWindings do
+        begin
+            k := k + 1;
+            Result := Result + Format('%.7g, (%.5g), ', [Cabs(WindingCurrents^[k]), Cdang(WindingCurrents^[k])]);
+            k := k + 1;
+           // Skip currents from other end of the winding
+        end;
+    end;
+
+    Reallocmem(WindingCurrents, 0);  // throw away temp array
+
+end;
+
+
 procedure TTransfObj.GetWindingVoltages(iWind: Integer; VBuffer: pComplexArray; ActorID: Integer);
 
 //  Voltages across indicated winding
@@ -1632,7 +1761,7 @@ begin
             Exit;
         end;
 
-     {Load up Vtemp - already allocated for all cktelements}
+     {Load up VTerminal - already allocated for all cktelements}
         with ActiveCircuit[ActorID].Solution do
             for i := 1 to Yorder do
                 Vterminal^[i] := NodeV^[NodeRef^[i]];
@@ -1726,13 +1855,13 @@ begin
                 0:
                     Result := 'wye ';
                 1:
-                    Result := 'delta ';
+                    Result := 'Delta ';
             else
             end;
         6:
-            Result := Format('%.7g', [Winding^[ActiveWinding].kvll]);
+            Result := Format('%.7g', [Winding^[ActiveWinding].KVLL]);
         7:
-            Result := Format('%.7g', [Winding^[ActiveWinding].kva]);
+            Result := Format('%.7g', [Winding^[ActiveWinding].KVA]);
         8:
             Result := Format('%.7g', [Winding^[ActiveWinding].puTap]);
         9:
@@ -1756,7 +1885,7 @@ begin
                 end;
         14:
             for i := 1 to NumWindings do
-                Result := Result + Format('%.7g, ', [Winding^[i].kvll]);
+                Result := Result + Format('%.7g, ', [Winding^[i].KVLL]);
         15:
             for i := 1 to NumWindings do
                 Result := Result + Format('%.7g, ', [Winding^[i].kVA]);
@@ -1805,6 +1934,19 @@ begin
         43:
             Result := Format('%.7g', [XLT * 100.0]);
 
+        45:
+            Result := GetWindingCurrentsResult(ActiveActor);
+        46:
+            case CoreType of
+                0:
+                    Result := 'shell';
+                1:
+                    Result := '1-phase';
+                3:
+                    Result := '3-leg';
+                5:
+                    Result := '5-Leg';
+            end;
 
     else
         Result := inherited GetPropertyValue(index);
@@ -1876,6 +2018,8 @@ begin
     PropertyValue[42] := '35';
     PropertyValue[43] := '30';
     PropertyValue[44] := 'Lag';
+    PropertyValue[45] := '0';
+    PropertyValue[46] := 'shell';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -1888,6 +2032,20 @@ begin
 
     ClearPropSeqArray;    // so the overrides don't show up on save
 
+end;
+
+function TTransfObj.InterpretCoreType(const str: String): Integer;
+begin
+    case str[1] of
+        '3':
+            Result := 3;
+        '5':
+            Result := 5;
+        's', 'S':
+            Result := 1;
+    else
+        Result := 0; // default to shell
+    end;
 end;
 
 function TTransfObj.RotatePhases(iPhs: Integer): Integer;
@@ -1967,7 +2125,7 @@ begin
 
     for i := 1 to NumWindings do
         with Winding^[i] do
-            S := S + Format(' %-.5g', [kva / FNPhases]);
+            S := S + Format(' %-.5g', [KVA / FNPhases]);
     S := S + ')';
 
     S := S + ' NormHkVA=' + Format(' %-.5g %-.5g', [NormMaxHkVA / FNPhases, EmergMaxHkVA / FNPhases]);
@@ -2053,7 +2211,58 @@ end;
 
 function TTransfObj.Get_BasekVLL(i: Integer): Double;
 begin
-    Result := Winding^[i].kvll;
+    Result := Winding^[i].KVLL;
+end;
+
+procedure TTransfObj.GICBuildYTerminal;
+// Build YTerminal considering on resistance and no coupling to other winding.
+
+var
+    i, j, idx: Integer;
+    BaseZ: Double;
+    yR: Complex;
+    F: TextFile;
+    Yadder: Complex;
+
+begin
+
+    Y_Term.Clear;
+    Y_Term_NL.Clear;
+
+    for i := 1 to NumWindings do
+    begin
+        BaseZ := SQR(Winding^[i].kVLL) / (Winding^[i].kVA / 1000.0);
+        yR := Cmplx(1.0 / (Winding^[i].Rpu * BaseZ), 0.0); // convert to Siemens
+        with Y_Term do
+        begin
+            idx := 2 * i - 1;
+            SetElement(idx, idx, yR);
+            SetElement(idx + 1, idx + 1, yR);
+            SetElemSym(idx, idx + 1, Cnegate(yR));   // set off-diagonals
+        end;
+    end;
+
+    {For GIC add a small *Conductance* to both conductors of each winding so that
+    the matrix will always invert even if the user neglects to define a voltage
+    reference on all sides}
+    if ppm_FloatFactor <> 0.0 then
+        with Y_Term do
+            for i := 1 to NumWindings do
+            begin
+                Yadder := cmplx(-Winding^[i].Y_PPM, 0.0);    // G + j0
+                for j := (2 * i - 1) to (2 * i) do
+                    SetElement(j, j, Cadd(GetElement(j, j), Yadder));
+{           SetElement(j, j, CmulReal_im(GetElement(j, j) , ppm_FloatFactorPlusOne));}
+            end;
+
+    {$IFDEF TRANSDEBUG}
+       AssignFile(F, CircuitName_ + 'Transformer_'+Name+'.TXT');
+       Rewrite(F);
+       Writeln(F,'Y_Term after building...');
+       DumpComplexMatrix(F, Y_Term);
+       CloseFile(F);
+    {$ENDIF}
+
 end;
 
 procedure TTransfObj.CalcY_Terminal(FreqMult: Double);
@@ -2084,200 +2293,213 @@ var
 
 begin
 
-    if XRConst then
-        RMult := FreqMult
+    if ActiveCircuit[ActiveActor].Solution.Frequency < 0.51 then
+         {Build Yterminal for GIC ~dc simulation}
+
+        GICBuildYTerminal
+
     else
-        RMult := 1.0;
+    begin  {Normal Y matrix build}
+
+        if XRConst then
+            RMult := FreqMult
+        else
+            RMult := 1.0;
 
 
-// Construct ZBMatrix;
-    ZB.Clear;
-    ZBase := 1.0 / (VABase / Fnphases); // base ohms on 1.0 volt basis
-    for i := 1 to Numwindings - 1 do
-        { convert pu to ohms on one volt base as we go... }
-        ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * XSC^[i]), ZBase));
+  // Construct ZBMatrix;
+        ZB.Clear;
+        ZBase := 1.0 / (VABase / Fnphases); // base ohms on 1.0 volt basis
+        for i := 1 to Numwindings - 1 do
+          { convert pu to ohms on one volt base as we go... }
+            ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * XSC^[i]), ZBase));
 
-     // Off diagonals
-    k := NumWindings;
-    with ZB do
-        for  i := 1 to Numwindings - 1 do
-        begin
-            for j := i + 1 to Numwindings - 1 do
+       // Off diagonals
+        k := NumWindings;
+        with ZB do
+            for  i := 1 to Numwindings - 1 do
             begin
-                SetElemSym(i, j,
-                    CmulReal(
-                    Csub(CAdd(GetElement(i, i), GetElement(j, j)),
-                    CmulReal(Cmplx(Rmult * (Winding^[i + 1].Rpu + Winding^[j + 1].Rpu), Freqmult * XSC^[k]),
-                    ZBase)
-                    ), 0.5));
-                Inc(k);
+                for j := i + 1 to Numwindings - 1 do
+                begin
+                    SetElemSym(i, j,
+                        CmulReal(
+                        Csub(CAdd(GetElement(i, i), GetElement(j, j)),
+                        CmulReal(Cmplx(Rmult * (Winding^[i + 1].Rpu + Winding^[j + 1].Rpu), Freqmult * XSC^[k]),
+                        ZBase)
+                        ), 0.5));
+                    Inc(k);
+                end;
             end;
+
+  {******************************DEBUG******************************************************}
+        {$IFDEF TRANSDEBUG}
+       AssignFile(F, CircuitName_ + 'Transformer_'+Name+'.TXT');
+       Rewrite(F);
+       Writeln(F, Format('Zbase=%g, VABase=%g, Nphases=%d, Rpu=%g ', [Zbase, VABase, Fnphases, Winding^[1].Rpu ]));
+       Writeln(F,'ZB before inverting...');
+       DumpComplexMatrix(F, ZB);
+        {$ENDIF}
+  {*****************************************************************************************}
+
+        ZB.Invert;   // mhos on one volt base
+
+        if ZB.InvertError > 0 then
+        begin
+            DoErrorMsg('TTransformerObj.CalcYPrim', 'Matrix Inversion Error for Transformer "' + Name + '"',
+                'Invalid impedance specified. Replaced with tiny conductance to ground.', 117);
+            ZB.Clear;
+            for i := 1 to ZB.Order do
+                ZB.SetElement(i, i, Cmplx(EPSILON, 0.0));
         end;
 
-{******************************DEBUG******************************************************}
-    {$IFDEF TRANSDEBUG}
-     AssignFile(F, CircuitName_ + 'Transformer_'+Name+'.TXT');
-     Rewrite(F);
-     Writeln(F,'ZB before inverting...');
-     DumpComplexMatrix(F, ZB);
-    {$ENDIF}
-{*****************************************************************************************}
+  {******************************DEBUG******************************************************}
+        {$IFDEF TRANSDEBUG}
+       Writeln(F,'ZB after inverting...');
+       DumpComplexMatrix(F, ZB);
+        {$ENDIF}
+  {*****************************************************************************************}
 
-    ZB.Invert;   // mhos on one volt base
+   // Now construct Y_Oneturn = AT * ZB.Invert * A
+   {     -1 1 0 ...
+     A = -1 0 1 ..   order:  N-1 x N   N = NumWindings
+         ...
+                           -1 -1 ...
+     AT = Transpose of A =  1  0 ...    N X N-1
+                            0  1 ..
+   }
 
-    if ZB.InvertError > 0 then
-    begin
-        DoErrorMsg('TTransformerObj.CalcYPrim', 'Matrix Inversion Error for Transformer "' + Name + '"',
-            'Invalid impedance specified. Replaced with tiny conductance to ground.', 117);
-        ZB.Clear;
-        for i := 1 to ZB.Order do
-            ZB.SetElement(i, i, Cmplx(EPSILON, 0.0));
-    end;
+        Y_1Volt.Clear;
+        Y_1Volt_NL.Clear;
 
-{******************************DEBUG******************************************************}
-    {$IFDEF TRANSDEBUG}
-     Writeln(F,'ZB after inverting...');
-     DumpComplexMatrix(F, ZB);
-    {$ENDIF}
-{*****************************************************************************************}
+     {Allocate temp complex arrays}
+        ctempArray1 := AllocMem(SizeOf(Complex) * NumWindings * 2);
+        ctempArray2 := AllocMem(SizeOf(Complex) * NumWindings * 2);
 
- // Now construct Y_Oneturn = AT * ZB.Invert * A
- {     -1 1 0 ...
-   A = -1 0 1 ..   order:  N-1 x N   N = NumWindings
-       ...
-                         -1 -1 ...
-   AT = Transpose of A =  1  0 ...    N X N-1
-                          0  1 ..
- }
+        A := AllocMem(SizeOf(Complex) * NumWindings * 2);
+        cMinusOne := cmplx(-1.0, 0.0);
+        AT := TcMatrix.Creatematrix(NumWindings);
+        for i := 1 to NumWindings - 1 do
+            AT.SetElement(i + 1, i, cONE);
+        for i := 1 to NumWindings - 1 do
+            AT.SetElement(1, i, cMinusOne);
+        ctemparray1^[NumWindings] := CZERO;
+        for i := 1 to Numwindings do
+        begin
+            if i = 1 then
+                for k := 1 to NumWindings - 1 do
+                    A^[k] := cMinusOne
+            else
+                for k := 1 to NumWindings - 1 do
+                    if k = (i - 1) then
+                        A^[k] := cONE
+                    else
+                        A^[k] := cZERO;
+            ZB.MVmult(ctemparray1, A); {Zb.invert * A}
+            AT.MVmult(ctempArray2, ctemparray1); {AT * Result}
+            for j := 1 to NumWindings do
+                Y_1Volt.SetElement(j, i, ctempArray2^[j]);
+        end;
 
-    Y_1Volt.Clear;
-    Y_1Volt_NL.Clear;
+   {Add magnetizing Reactance to 2nd winding, assuming it is closest to the core
+    Add both resistive element representing core losses and a reactive element representing
+    magnetizing current
+   }
+        Y_1Volt_NL.AddElement(2, 2, Cmplx((pctNoLoadLoss / 100.0 / Zbase), -pctImag / 100.0 / Zbase / Freqmult));
 
-   {Allocate temp complex arrays}
-    ctempArray1 := AllocMem(SizeOF(ctempArray1^[1]) * NumWindings * 2);
-    ctempArray2 := AllocMem(SizeOF(ctempArray2^[1]) * NumWindings * 2);
+  {******************************DEBUG******************************************************}
+        {$IFDEF TRANSDEBUG}
+       Writeln(F,'Y_OneVolt ...');
+       DumpComplexMatrix(F, Y_1Volt);
+       Writeln(F,'Y_OneVolt_NL ...');
+       DumpComplexMatrix(F, Y_1Volt_NL);
+        {$ENDIF}
+  {*****************************************************************************************}
+     // should have admittance of one phase of the transformer on a one-volt, wye-connected base
 
+     // Now make into terminal admittance matrix and correct for actual voltage ratings
+     // Y_Terminal = AT * Y_onevolt * A  where V_onevolt = A * V_terminal
 
-    A := AllocMem(SizeOF(A^[1]) * NumWindings * 2);
-    cMinusOne := cmplx(-1.0, 0.0);
-    AT := TcMatrix.Creatematrix(NumWindings);
-    for i := 1 to NumWindings - 1 do
-        AT.SetElement(i + 1, i, cONE);
-    for i := 1 to NumWindings - 1 do
-        AT.SetElement(1, i, cMinusOne);
-    ctemparray1^[NumWindings] := CZERO;
-    for i := 1 to Numwindings do
-    begin
-        if i = 1 then
-            for k := 1 to NumWindings - 1 do
-                A^[k] := cMinusOne
-        else
-            for k := 1 to NumWindings - 1 do
-                if k = (i - 1) then
-                    A^[k] := cONE
-                else
-                    A^[k] := cZERO;
-        ZB.MVmult(ctemparray1, A); {Zb.invert * A}
-        AT.MVmult(ctempArray2, ctemparray1); {AT * Result}
-        for j := 1 to NumWindings do
-            Y_1Volt.SetElement(j, i, ctempArray2^[j]);
-    end;
+        AT.Free;
 
+        Y_Term.Clear;
+        Y_Term_NL.Clear;
+        AT := TcMatrix.Creatematrix(NumWindings * 2);
 
- {Add magnetizing Reactance to 2nd winding, assuming it is closest to the core
-  Add both resistive element representing core losses and a reactive element representing
-  magnetizing current
- }
-    Y_1Volt_NL.AddElement(2, 2, Cmplx((pctNoLoadLoss / 100.0 / Zbase), -pctImag / 100.0 / Zbase));
+     // 8/22/2013 Added ZeroTapFix so that regcontrol can set a tap to zero
 
-{******************************DEBUG******************************************************}
-    {$IFDEF TRANSDEBUG}
-     Writeln(F,'Y_OneVolt ...');
-     DumpComplexMatrix(F, Y_1Volt);
-    {$ENDIF}
-{*****************************************************************************************}
-   // should have admittance of one phase of the transformer on a one-volt, wye-connected base
+        for i := 1 to NumWindings do
+            with Winding^[i] do
+                AT.SetElement(2 * i - 1, i, Cmplx(1.0 / (VBase * ZeroTapFix(puTap)), 0.0));
+        for i := 1 to NumWindings do
+            with Winding^[i] do
+                AT.SetElement(2 * i, i, Cmplx(-1.0 / (VBase * ZeroTapFix(puTap)), 0.0));
+        for i := 1 to 2 * Numwindings do
+            ctemparray1^[i] := CZERO;
 
-   // Now make into terminal admittance matrix and correct for actual voltage ratings
-   // Y_Terminal = AT * Y_onevolt * A  where V_onevolt = A * V_terminal
+        for i := 1 to 2 * Numwindings do
+        begin
+            for k := 1 to NumWindings do
+                with Winding^[k] do
+                begin
+                    if i = (2 * k - 1) then
+                        A^[k] := Cmplx((1.0 / (VBase * ZeroTapFix(puTap))), 0.0)
+                    else
+                    if i = 2 * k then
+                        A^[k] := Cmplx((-1.0 / (VBase * ZeroTapFix(puTap))), 0.0)
+                    else
+                        A^[k] := cZERO;
+                end;
+       {Main Transformer part}
+            Y_1Volt.MVmult(ctemparray1, A);
+            AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
+            for j := 1 to 2 * NumWindings do
+                Y_Term.SetElement(j, i, ctemparray2^[j]);
+       {No Load part}
+            Y_1Volt_NL.MVmult(ctemparray1, A);
+            AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
+            for j := 1 to 2 * NumWindings do
+                Y_Term_NL.SetElement(j, i, ctemparray2^[j]);
+        end;
 
-    AT.Free;
+  {******************************DEBUG******************************************************}
+        {$IFDEF TRANSDEBUG}
+       Writeln(F,'Y_Terminal before adding small element to diagonals ...');
+       DumpComplexMatrix(F, Y_Term);
+       Writeln(F,'Y_Terminal_NL before adding small element to diagonals ...');
+       DumpComplexMatrix(F, Y_Term_NL);
+        {$ENDIF}
+  {*****************************************************************************************}
 
-    Y_Term.Clear;
-    Y_Term_NL.Clear;
-    AT := TcMatrix.Creatematrix(NumWindings * 2);
-
-   // 8/22/2013 Added ZeroTapFix so that regcontrol can set a tap to zero
-
-    for i := 1 to NumWindings do
-        with Winding^[i] do
-            AT.SetElement(2 * i - 1, i, Cmplx(1.0 / (VBase * ZeroTapFix(puTap)), 0.0));
-    for i := 1 to NumWindings do
-        with Winding^[i] do
-            AT.SetElement(2 * i, i, Cmplx(-1.0 / (VBase * ZeroTapFix(puTap)), 0.0));
-    for i := 1 to 2 * Numwindings do
-        ctemparray1^[i] := CZERO;
-
-    for i := 1 to 2 * Numwindings do
-    begin
-        for k := 1 to NumWindings do
-            with Winding^[k] do
-            begin
-                if i = (2 * k - 1) then
-                    A^[k] := Cmplx((1.0 / (VBase * ZeroTapFix(puTap))), 0.0)
-                else
-                if i = 2 * k then
-                    A^[k] := Cmplx((-1.0 / (VBase * ZeroTapFix(puTap))), 0.0)
-                else
-                    A^[k] := cZERO;
-            end;
-     {Main Transformer part}
-        Y_1Volt.MVmult(ctemparray1, A);
-        AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
-        for j := 1 to 2 * NumWindings do
-            Y_Term.SetElement(j, i, ctemparray2^[j]);
-     {No Load part}
-        Y_1Volt_NL.MVmult(ctemparray1, A);
-        AT.MVmult(ctemparray2, ctemparray1);    {AT * Result}
-        for j := 1 to 2 * NumWindings do
-            Y_Term_NL.SetElement(j, i, ctemparray2^[j]);
-    end;
-
-{******************************DEBUG******************************************************}
-    {$IFDEF TRANSDEBUG}
-     Writeln(F,'Y_Terminal before adding small element to diagonals ...');
-     DumpComplexMatrix(F, Y_Term);
-    {$ENDIF}
-{*****************************************************************************************}
-
-   {Add a small Admittance to both conductors of each winding so that
+     {Add a small Admittance to both conductors of each winding so that
     the matrix will always invert even if the user neglects to define a voltage
     reference on all sides}
-    if ppm_FloatFactor <> 0.0 then
-        with Y_Term do
-            for i := 1 to NumWindings do
-            begin
-                Yadder := cmplx(0.0, Winding^[i].Y_PPM);
-                for j := (2 * i - 1) to (2 * i) do
-                    SetElement(j, j, Cadd(GetElement(j, j), Yadder));
+        if ppm_FloatFactor <> 0.0 then
+            with Y_Term do
+                for i := 1 to NumWindings do
+                begin
+                    Yadder := cmplx(0.0, Winding^[i].Y_PPM);
+                    for j := (2 * i - 1) to (2 * i) do
+                        SetElement(j, j, Cadd(GetElement(j, j), Yadder));
 {           SetElement(j, j, CmulReal_im(GetElement(j, j) , ppm_FloatFactorPlusOne));}
-            end;
+                end;
 
 {******************************DEBUG******************************************************}
-    {$IFDEF TRANSDEBUG}
-     Writeln(F,'Y_Terminal after adding small element to diagonals ...');
-     DumpComplexMatrix(F, Y_Term);
-     CloseFile(F);
-    {$ENDIF}
-{*****************************************************************************************}
+        {$IFDEF TRANSDEBUG}
+       Writeln(F,'Y_Terminal after adding small element to diagonals ...');
+       DumpComplexMatrix(F, Y_Term);
+       Writeln(F,'Y_Terminal_NL after adding small element to diagonals ...');
+       DumpComplexMatrix(F, Y_Term_NL);
+       CloseFile(F);
+        {$ENDIF}
+  {*****************************************************************************************}
+        AT.Free;
+        Reallocmem(A, 0);
+        Reallocmem(ctemparray1, 0);
+        Reallocmem(ctemparray2, 0);
 
-    AT.Free;
-    Reallocmem(A, 0);
-    Reallocmem(ctemparray1, 0);
-    Reallocmem(ctemparray2, 0);
+    end;
 
     Y_Terminal_FreqMult := Freqmult;
-
 end;
 
 procedure TTransfObj.FetchXfmrCode(const Code: String);
@@ -2300,9 +2522,9 @@ begin
             with Winding^[i] do
             begin
                 Connection := Obj.Winding^[i].Connection;
-                kvll := Obj.Winding^[i].kvll;
+                KVLL := Obj.Winding^[i].kvll;
                 Vbase := Obj.Winding^[i].Vbase;
-                kva := Obj.Winding^[i].kva;
+                KVA := Obj.Winding^[i].kva;
                 puTAP := Obj.Winding^[i].puTAP;
                 Rpu := Obj.Winding^[i].Rpu;
                 RNeut := Obj.Winding^[i].RNeut;

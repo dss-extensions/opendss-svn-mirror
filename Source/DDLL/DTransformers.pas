@@ -15,7 +15,8 @@ uses
     Transformer,
     Variants,
     SysUtils,
-    PointerList;
+    PointerList,
+    ucomplex;
 
 function ActiveTransformer: TTransfObj;
 begin
@@ -344,6 +345,14 @@ begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := elem;
                 end;
             end;
+        end;
+        4:
+        begin // Transformers.StrWdgVoltages
+            elem := ActiveTransformer;
+            if elem <> nil then
+            begin
+                Result := Pansichar(elem.GetWindingCurrentsResult(ActiveActor));
+            end;
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));
@@ -356,7 +365,12 @@ procedure TransformersV(mode: Longint; out arg: Variant); CDECL;
 var
     elem: TTransfObj;
     lst: TPointerList;
+    i,
+    iV,
+    NumCurrents,
     k: Integer;
+    TempCurrentBuffer,
+    TempVoltageBuffer: pComplexArray;
 
 begin
     case mode of
@@ -379,6 +393,61 @@ begin
                             elem := lst.Next;
                         end;
                     end;
+        end;
+        1:
+        begin // Transformers.WdgVoltages
+
+            elem := ActiveTransformer;
+            if elem <> nil then
+            begin
+                if (elem.ActiveWinding > 0) and (elem.ActiveWinding <= elem.NumberOfWindings) then
+                begin
+                    arg := VarArrayCreate([0, 2 * elem.nphases - 1], varDouble);
+                    TempVoltageBuffer := AllocMem(Sizeof(Complex) * elem.nphases);
+                    elem.GetWindingVoltages(elem.ActiveWinding, TempVoltageBuffer, ActiveActor);
+                    iV := 0;
+                    for i := 1 to elem.Nphases do
+                    begin
+                        arg[iV] := TempVoltageBuffer^[i].re;
+                        Inc(iV);
+                        arg[iV] := TempVoltageBuffer^[i].im;
+                        Inc(iV);
+                    end;
+
+                    Reallocmem(TempVoltageBuffer, 0);
+                end
+                else
+                    arg := VarArrayCreate([0, 0], varDouble);
+                ;
+
+            end
+            else
+                arg := VarArrayCreate([0, 0], varDouble);
+        end;
+        2:
+        begin  // Transformers.WdgCurrents
+            elem := ActiveTransformer;
+            if elem <> nil then
+            begin
+                NumCurrents := 2 * elem.NPhases * elem.NumberOfWindings; // 2 currents per winding
+                arg := VarArrayCreate([0, 2 * NumCurrents - 1], varDouble);
+                TempCurrentBuffer := AllocMem(Sizeof(Complex) * NumCurrents);
+                ;
+                elem.GetAllWindingCurrents(TempCurrentBuffer, ActiveActor);
+                iV := 0;
+                for i := 1 to NumCurrents do
+                begin
+                    arg[iV] := TempCurrentBuffer^[i].re;
+                    Inc(iV);
+                    arg[iV] := TempCurrentBuffer^[i].im;
+                    Inc(iV);
+                end;
+
+                Reallocmem(TempCurrentBuffer, 0);
+
+            end
+            else
+                arg := VarArrayCreate([0, 0], varDouble);
         end
     else
         arg[0] := 'Error, parameter not valid';

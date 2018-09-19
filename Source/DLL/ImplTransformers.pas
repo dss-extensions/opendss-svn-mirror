@@ -56,6 +56,11 @@ type
         procedure Set_Xlt(Value: Double); SAFECALL;
         procedure Set_Xneut(Value: Double); SAFECALL;
         function Get_Count: Integer; SAFECALL;
+        function Get_CoreType: Integer; SAFECALL;
+        procedure Set_CoreType(Value: Integer); SAFECALL;
+        function Get_WdgCurrents: Olevariant; SAFECALL;
+        function Get_WdgVoltages: Olevariant; SAFECALL;
+        function Get_StrWdgCurrents: Widestring; SAFECALL;
     end;
 
 implementation
@@ -67,7 +72,8 @@ uses
     Transformer,
     Variants,
     SysUtils,
-    PointerList;
+    PointerList,
+    ucomplex;
 
 function ActiveTransformer: TTransfObj;
 begin
@@ -467,6 +473,120 @@ function TTransformers.Get_Count: Integer;
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
         Result := ActiveCircuit[ActiveActor].Transformers.ListSize;
+end;
+
+function TTransformers.Get_CoreType: Integer;
+var
+    elem: TTransfObj;
+begin
+    Result := 0;  // default = shell
+    elem := ActiveTransformer;
+    if elem <> nil then
+        Result := elem.CoreType;
+end;
+
+procedure TTransformers.Set_CoreType(Value: Integer);
+var
+    elem: TTransfObj;
+begin
+    elem := ActiveTransformer;
+    if elem <> nil then
+    begin
+        elem.CoreType := Value;
+        case Value of
+            1:
+                elem.strCoreType := '1-phase';
+            3:
+                elem.strCoreType := '3-leg';
+            5:
+                elem.strCoreType := '5-leg';
+        else
+            elem.strCoreType := 'shell';
+        end;
+    end;
+end;
+
+function TTransformers.Get_WdgCurrents: Olevariant;
+var
+    elem: TTransfObj;
+    TempCurrentBuffer: pComplexArray;
+    NumCurrents,
+    i,
+    iV: Integer;
+begin
+
+    elem := ActiveTransformer;
+    if elem <> nil then
+    begin
+        NumCurrents := 2 * elem.NPhases * elem.NumberOfWindings; // 2 currents per winding
+        Result := VarArrayCreate([0, 2 * NumCurrents - 1], varDouble);
+        TempCurrentBuffer := AllocMem(Sizeof(Complex) * NumCurrents);
+        ;
+        elem.GetAllWindingCurrents(TempCurrentBuffer, ActiveActor);
+        iV := 0;
+        for i := 1 to NumCurrents do
+        begin
+            Result[iV] := TempCurrentBuffer^[i].re;
+            Inc(iV);
+            Result[iV] := TempCurrentBuffer^[i].im;
+            Inc(iV);
+        end;
+
+        Reallocmem(TempCurrentBuffer, 0);
+
+    end
+    else
+        Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TTransformers.Get_WdgVoltages: Olevariant;
+var
+    elem: TTransfObj;
+    TempVoltageBuffer: pComplexArray;
+    i,
+    iV: Integer;
+begin
+
+    elem := ActiveTransformer;
+    if elem <> nil then
+    begin
+        if (elem.ActiveWinding > 0) and (elem.ActiveWinding <= elem.NumberOfWindings) then
+        begin
+            Result := VarArrayCreate([0, 2 * elem.nphases - 1], varDouble);
+            TempVoltageBuffer := AllocMem(Sizeof(Complex) * elem.nphases);
+            elem.GetWindingVoltages(elem.ActiveWinding, TempVoltageBuffer, ActiveActor);
+            iV := 0;
+            for i := 1 to elem.Nphases do
+            begin
+                Result[iV] := TempVoltageBuffer^[i].re;
+                Inc(iV);
+                Result[iV] := TempVoltageBuffer^[i].im;
+                Inc(iV);
+            end;
+
+            Reallocmem(TempVoltageBuffer, 0);
+        end
+        else
+            Result := VarArrayCreate([0, 0], varDouble);
+        ;
+
+    end
+    else
+        Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TTransformers.Get_StrWdgCurrents: Widestring;
+var
+    elem: TTransfObj;
+
+begin
+    elem := ActiveTransformer;
+    if elem <> nil then
+    begin
+        Result := elem.GetWindingCurrentsResult(ActiveActor);
+    end;
 end;
 
 initialization

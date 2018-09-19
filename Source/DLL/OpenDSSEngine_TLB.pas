@@ -12,10 +12,10 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 8/3/2018 2:59:32 PM from Type Library described below.
+// File generated on 9/19/2018 5:26:18 PM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\OpenDSS\Parallel_Version\Source\DLL\OpenDSSengine (1)
+// Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
 // Helpfile:
@@ -2264,6 +2264,11 @@ type
         function Get_Next: Integer; SAFECALL;
         function Get_AllNames: Olevariant; SAFECALL;
         function Get_Count: Integer; SAFECALL;
+        function Get_CoreType: Integer; SAFECALL;
+        procedure Set_CoreType(Value: Integer); SAFECALL;
+        function Get_WdgVoltages: Olevariant; SAFECALL;
+        function Get_WdgCurrents: Olevariant; SAFECALL;
+        function Get_StrWdgCurrents: Widestring; SAFECALL;
         property NumWindings: Integer READ Get_NumWindings WRITE Set_NumWindings;
         property XfmrCode: Widestring READ Get_XfmrCode WRITE Set_XfmrCode;
         property Wdg: Integer READ Get_Wdg WRITE Set_Wdg;
@@ -2285,6 +2290,10 @@ type
         property Next: Integer READ Get_Next;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
+        property CoreType: Integer READ Get_CoreType WRITE Set_CoreType;
+        property WdgVoltages: Olevariant READ Get_WdgVoltages;
+        property WdgCurrents: Olevariant READ Get_WdgCurrents;
+        property StrWdgCurrents: Widestring READ Get_StrWdgCurrents;
     end;
 
 // *********************************************************************//
@@ -2315,6 +2324,10 @@ type
         property Next: Integer READONLY DISPID 219;
         property AllNames: Olevariant READONLY DISPID 220;
         property Count: Integer READONLY DISPID 221;
+        property CoreType: Integer DISPID 222;
+        property WdgVoltages: Olevariant READONLY DISPID 223;
+        property WdgCurrents: Olevariant READONLY DISPID 224;
+        property StrWdgCurrents: Widestring READONLY DISPID 225;
     end;
 
 // *********************************************************************//
