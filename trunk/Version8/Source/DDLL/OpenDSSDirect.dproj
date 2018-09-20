@@ -148,12 +148,13 @@
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.2.0.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.2.10.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_DLL>true</VerInfo_DLL>
+        <VerInfo_Release>10</VerInfo_Release>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -382,6 +383,8 @@
         <DCCReference Include="..\Common\Diakoptics.pas"/>
         <DCCReference Include="..\Common\Sparse_Math.pas"/>
         <DCCReference Include="..\Common\MeTIS_Exec.pas"/>
+        <DCCReference Include="..\PCElements\GICsource.pas"/>
+        <DCCReference Include="..\PDElements\AutoTrans.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

@@ -105,9 +105,10 @@
         <VerInfo_Build>1</VerInfo_Build>
         <Debugger_HostApplication>C:\Users\prdu001\Delprogs\DGScreener3\DGScreener3.exe</Debugger_HostApplication>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.2.0.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.2.10.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
+        <VerInfo_Release>10</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
@@ -891,6 +892,8 @@
         <DCCReference Include="..\Common\Diakoptics.pas"/>
         <DCCReference Include="..\Common\Sparse_Math.pas"/>
         <DCCReference Include="..\Common\MeTIS_Exec.pas"/>
+        <DCCReference Include="..\PCElements\GICsource.pas"/>
+        <DCCReference Include="..\PDElements\AutoTrans.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

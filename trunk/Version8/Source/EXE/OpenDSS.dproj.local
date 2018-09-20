@@ -131,6 +131,7 @@
     <File Path="..\PCElements\GeneratorVars.pas"/>
     <File Path="..\PCElements\GenUserModel.pas"/>
     <File Path="..\PCElements\GICLine.pas"/>
+    <File Path="..\PCElements\GICsource.pas"/>
     <File Path="..\PCElements\IndMach012.pas"/>
     <File Path="..\PCElements\Isource.pas"/>
     <File Path="..\PCElements\Load.pas"/>
@@ -146,6 +147,7 @@
     <File Path="..\PCElements\VSConverter.pas"/>
     <File Path="..\PCElements\VSource.pas"/>
     <File Path="..\PDElements"/>
+    <File Path="..\PDElements\AutoTrans.pas"/>
     <File Path="..\PDElements\Capacitor.pas"/>
     <File Path="..\PDElements\Fault.pas"/>
     <File Path="..\PDElements\fuse.pas"/>
