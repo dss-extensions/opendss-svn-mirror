@@ -137,7 +137,7 @@
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=7.6.5.70;InternalName=;LegalCopyright=Copyright (C) 2008-2018 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=7.6.5;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-    </PropertyGroup>
+    </PropertyGroup> 
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <Version>7.0</Version>
