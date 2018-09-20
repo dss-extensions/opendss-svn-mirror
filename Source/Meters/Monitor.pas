@@ -1,7 +1,7 @@
 unit Monitor;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2018, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -19,6 +19,7 @@ unit Monitor;
    01-19-13 Added flicker meter mode
    08-18-15 Added Solution monitor mode
    08-10-16 Added mode 6 for storing capacitor switching
+   06-04-18 Added modes 7-9
 }
 
 {
@@ -73,7 +74,9 @@ unit Monitor;
    4: Flicker level and severity index by phase (no modifiers apply)
    5: Solution Variables (Iteration count, etc.)
    6: Capacitor Switching (Capacitors only)
-   7: Storage variables
+   7: Storage Variables
+   8: Transformer Winding Currents
+   9: Losses (watts and vars)
 
    +16: Sequence components: V012, I012
    +32: Magnitude Only
@@ -132,6 +135,8 @@ type
 
         CurrentBuffer: pComplexArray;
         VoltageBuffer: pComplexArray;
+        WdgCurrentsBuffer: pComplexArray;
+        NumTransformerCurrents: Integer;
 
         NumStateVars: Integer;
         StateBuffer: pDoubleArray;
@@ -278,15 +283,18 @@ begin
     PropertyHelp[3] := 'Bitmask integer designating the values the monitor is to capture: ' + CRLF +
         '0 = Voltages and currents' + CRLF +
         '1 = Powers' + CRLF +
-        '2 = Tap Position (Transformers only)' + CRLF +
+        '2 = Tap Position (Transformer Device only)' + CRLF +
         '3 = State Variables (PCElements only)' + CRLF +
         '4 = Flicker level and severity index (Pst) for voltages. No adders apply.' + CRLF +
         '    Flicker level at simulation time step, Pst at 10-minute time step.' + CRLF +
         '5 = Solution variables (Iterations, etc).' + CRLF +
         'Normally, these would be actual phasor quantities from solution.' + CRLF +
         '6 = Capacitor Switching (Capacitors only)' + CRLF +
-        '7 = Storage state vars (storage device only)' + CRLF +
-        'Combine with adders below to achieve other results for terminal quantities:' + CRLF +
+        '7 = Storage state vars (Storage device only)' + CRLF +
+        '8 = Winding currents (Transformer device only)' + CRLF +
+        '9 = Losses, watts and var (of monitored device)' + CRLF + CRLF +
+        'Normally, these would be actual phasor quantities from solution.' + CRLF +
+        'Combine mode with adders below to achieve other results for terminal quantities:' + CRLF +
         '+16 = Sequence quantities' + CRLF +
         '+32 = Magnitude only' + CRLF +
         '+64 = Positive sequence only or avg of all phases' + CRLF +
@@ -571,6 +579,8 @@ begin
     StateBuffer := nil;
     FlickerBuffer := nil;
     SolutionBuffer := nil;
+    WdgCurrentsBuffer := nil;
+    NumTransformerCurrents := 0;
 
     Basefrequency := 60.0;
     Hour := 0;
@@ -647,7 +657,7 @@ begin
     begin                                       // Monitored element must already exist
         MeteredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
         case (Mode and MODEMASK) of
-            2:
+            2, 8:
             begin                                                // Must be transformer
                 if (MeteredElement.DSSObjType and CLASSMASK) <> XFMR_ELEMENT then
                 begin
@@ -716,6 +726,12 @@ begin
                 begin
                     ReallocMem(SolutionBuffer, Sizeof(SolutionBuffer^[1]) * NumSolutionVars);
                 end;
+                8:
+                begin
+                    with TTransfObj(MeteredElement) do
+                        NumTransformerCurrents := 2 * NumberOfWindings * nphases;
+                    ReallocMem(WdgCurrentsBuffer, Sizeof(WdgCurrentsBuffer^[1]) * NumTransformerCurrents);
+                end;
             else
                 ReallocMem(CurrentBuffer, SizeOf(CurrentBuffer^[1]) * MeteredElement.Yorder);
                 ReallocMem(VoltageBuffer, SizeOf(VoltageBuffer^[1]) * MeteredElement.NConds);
@@ -781,7 +797,7 @@ end;
 procedure TMonitorObj.ClearMonitorStream(ActorID: Integer);
 
 var
-    i: Integer;
+    i, j: Integer;
     iMax: Integer;
     iMin: Integer;
     IsPosSeq: Boolean;
@@ -868,6 +884,28 @@ begin
                 strLcat(strPtr, ('%kW Stored, '), Sizeof(TMonitorStrBuffer));
                 strLcat(strPtr, ('State, '), Sizeof(TMonitorStrBuffer));
             end;
+            8:
+            begin
+                with TTransfObj(MeteredElement) do
+                begin
+                    RecordSize := NumTransformerCurrents;     // Transformer Winding Currents
+                    for i := 1 to Nphases do
+                    begin
+                        for j := 1 to NumberOfWindings do
+                        begin
+                            Str_Temp := Ansistring(Format('P%dW%d, ', [i, j]));
+                            strLcat(strPtr, Pansichar(Str_Temp), Sizeof(TMonitorStrBuffer));
+                            Str_Temp := Ansistring(Format('Deg, ', [i, j]));
+                            strLcat(strPtr, Pansichar(Str_Temp), Sizeof(TMonitorStrBuffer));
+                        end;
+                    end;
+                end;
+            end;
+            9:
+            begin // watts vars of meteredElement
+                RecordSize := 2;
+                strLcat(strPtr, Pansichar('watts, vars'), Sizeof(TMonitorStrBuffer));
+            end
         else
         begin
          // Compute RecordSize
@@ -1157,7 +1195,7 @@ procedure TMonitorObj.TakeSample(ActorID: Integer);
 var
     dHour: Double;
     dSum: Double;
-    i: Integer;
+    i, k: Integer;
     IsPower: Boolean;
     IsSequence: Boolean;
     NumVI: Integer;
@@ -1165,6 +1203,7 @@ var
     ResidualCurr: Complex;
     ResidualVolt: Complex;
     Sum: Complex;
+    CplxLosses: Complex;
     V012, I012: array[1..3] of Complex;
 
 begin
@@ -1272,7 +1311,7 @@ begin
         end;
 
         6:
-        begin     // Monitor Cap switching
+        begin     // Monitor Capacitor State
 
             with TCapacitorObj(MeteredElement) do
             begin
@@ -1296,6 +1335,35 @@ begin
             end;
             Exit;  // Done with this mode now.
         end;
+
+        8:
+        begin   // Winding Currents
+              // Get all currents in each end of each winding
+            with TTransfobj(MeteredElement) do
+            begin
+                GetAllWindingCurrents(WdgCurrentsBuffer, ActorID);
+                ConvertComplexArrayToPolar(WdgCurrentsBuffer, NumTransformerCurrents);
+                // Put every other Current into buffer
+
+                k := 1;
+                for i := 1 to Nphases * NumberOfWindings do
+                begin
+                    AddDblsToBuffer(@WdgCurrentsBuffer^[k].re, 2);  // Add Mag, Angle
+                    k := k + 2;
+                end;
+
+               // AddDblsToBuffer(@WdgCurrentsBuffer^[1].re, NumTransformerCurrents);
+            end;
+            Exit;
+        end;
+
+        9:
+        begin  // losses
+            CplxLosses := MeteredElement.Losses[ActorID];
+            AddDblToBuffer(CplxLosses.re);
+            AddDblToBuffer(CplxLosses.im);
+            Exit; // Done with this mode now.
+        end
     else
         Exit  // Ignore invalid mask
 

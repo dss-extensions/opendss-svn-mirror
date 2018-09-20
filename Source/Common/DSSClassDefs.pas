@@ -63,6 +63,8 @@ const
     VCCS_ELEMENT = 33 * 8;
     ESPVL_CONTROL = 34 * 8;
     INDMACH012_ELEMENT = 35 * 8;
+    GIC_SOURCE = 36 * 8;
+    AUTOTRANS_ELEMENT = 37 * 8;
 
 var
     NumIntrinsicClasses,
@@ -130,7 +132,9 @@ uses
     UPFC,
     UPFCControl,
     ESPVLControl,
-    IndMach012;
+    IndMach012,
+    GICSource,
+    AutoTrans;
 
 
 {--------------------------------------------------------------}
@@ -179,8 +183,8 @@ begin
 
      {Circuit Element Classes}
     DSSClasses.New := TLine.Create;
-    DSSClasses.New := TVSource.Create;
-    DSSClasses.New := TISource.Create;
+    DSSClasses.New := TVSource.Create;    // 2-terminal Vsource
+    DSSClasses.New := TISource.Create;    // 2-terminal Isource
     DSSClasses.New := TVCCS.Create;
     DSSClasses.New := TLoad.Create;
     DSSClasses.New := TTransf.Create;
@@ -206,6 +210,8 @@ begin
     DSSClasses.New := TUPFCControl.Create;
     DSSClasses.New := TESPVLControl.Create;
     DSSClasses.New := TIndMach012.Create;
+    DSSClasses.New := TGICsource.Create; // GIC source
+    DSSClasses.New := TAutoTrans.Create; // Auto Transformer
 
 
     InvControlClass[ActiveActor] := TInvControl.Create;
