@@ -15,7 +15,17 @@ Public DSSIsources As OpenDSSEngine.ISources
 Public DSSMonitors As OpenDSSEngine.Monitors
 Public DSSLines As OpenDSSEngine.Lines
 
+Public DistanceFromSubstation As Double
+Public SeqIndex As Long
+Public CktElementName As String
+Public CktElementTerminal As Long
+Public iRowPos As Long
 
+'Procedure DSS_PutCommand(S:pchar);StdCall;
+'Function DSS_GetResult:pchar;Stdcall; // Returns a pointer to global result String
+
+Declare Sub DSS_PutCommand Lib "OpenDSSEngine" (ByVal S As String)
+Declare Sub DSS_GetResult Lib "OpenDSSEngine" (ByVal R As String)
 
 Public Sub StartDSS()
 

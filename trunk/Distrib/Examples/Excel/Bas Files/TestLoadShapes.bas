@@ -1,57 +1,17 @@
-Option Explicit
-
-Public DSSobj As OpenDSSengine.DSS
-Public DSSText As OpenDSSengine.Text
-Public DSSCircuit As OpenDSSengine.Circuit
-Public DSSSolution As OpenDSSengine.Solution
-Public DSSControlQueue As OpenDSSengine.CtrlQueue
-Public DSSCktElement As OpenDSSengine.CktElement
-Public DSSPDElement As OpenDSSengine.PDElements
-Public DSSMeters As OpenDSSengine.Meters
-Public DSSBus As OpenDSSengine.Bus
-Public DSSCmath As OpenDSSengine.CmathLib
-Public DSSParser As OpenDSSengine.Parser
-
-
-
-
-Public Sub StartDSS()
-
-' Create a new instance of the DSS
-    Set DSSobj = New OpenDSSengine.DSS
-       
-' Start the DSS
-    If Not DSSobj.Start(0) Then
-        MsgBox "DSS Failed to Start"
-    Else
-        ' MsgBox "DSS Started successfully"
-        ' Assign a variable to each of the  interfaces for easier access
-        Set DSSText = DSSobj.Text
-        Set DSSCircuit = DSSobj.ActiveCircuit
-        Set DSSSolution = DSSCircuit.Solution
-        Set DSSControlQueue = DSSCircuit.CtrlQueue
-        Set DSSCktElement = DSSCircuit.ActiveCktElement
-        Set DSSPDElement = DSSCircuit.PDElements
-        Set DSSMeters = DSSCircuit.Meters
-        Set DSSBus = DSSCircuit.ActiveBus
-        Set DSSCmath = DSSobj.CmathLib
-        Set DSSParser = DSSobj.Parser
-        
-        Range("DSSVersion").Value = "Version: " + DSSobj.Version
-        Beep
-    End If
-    
-    
-End SubPublic Sub TestLoadShape()
+Public Sub TestLoadShape()
 
 ' Macro for MS Excel
 
-    Dim DSSLoadshapes As OpenDSSengine.LoadShapes
+    Dim DSSLoadshapes As OpenDSSEngine.LoadShapes
     Dim V1 As Variant
     Dim vnames As Variant
     Dim i As Long, j As Long, iRow As Long, iCol As Long
     Dim iShape As Long
     Dim strShape As String
+    Dim WorkingSheet As Worksheet
+    
+    Set WorkingSheet = Worksheets("Loadshape")   'set to (target sheet)
+    WorkingSheet.Rows("3:" & Rows.Count).ClearContents
     
     ' execute code to start appropriate COM server
     StartDSS
@@ -60,14 +20,15 @@ End SubPublic Sub TestLoadShape()
     Set DSSLoadshapes = DSSCircuit.LoadShapes
     
     ' Compile a DSS circuit model that has some Loadshape objects.
+    ' change this file name to match EPRI Test Circuit 5 on your computer
     DSSText.Command = "Compile [C:\Users\prdu001\OpenDSS\Distrib\EPRITestCircuits\ckt5\Master_Ckt5.DSS]"
     
     ' Get all names of loadshapes
     vnames = DSSLoadshapes.AllNames
     
     ' Put the names of the loadshapes in the 1st columne of the spreadsheet
-    iRow = 1
-    ActiveSheet.Cells(iRow, 1).Value = DSSLoadshapes.Count
+    iRow = 2
+    WorkingSheet.Cells(iRow, 1).Value = DSSLoadshapes.Count
     iRow = iRow + 1
     For i = LBound(vnames) To UBound(vnames)
         With ActiveSheet
@@ -76,14 +37,35 @@ End SubPublic Sub TestLoadShape()
         End With
     Next i
     
+' put the names of select properties in col 2
+    iRow = 2
+    With WorkingSheet
+        .Cells(iRow, 2).Value = "Name"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "Npts"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "HrInterval"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "MinInterval"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "Sinterval"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "Pbase"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "Qbase"
+        iRow = iRow + 1
+        .Cells(iRow, 2).Value = "Index"
+    End With
+    
+    
 '   iterate through all loadshapes and put data on spreadsheet in separate columns
     iCol = 3
     iShape = DSSLoadshapes.First
     For j = 1 To DSSLoadshapes.Count
-         iRow = 1
+         iRow = 2
         ' Post basic data to Active worksheet
          strShape = DSSLoadshapes.Name
-         With ActiveSheet
+         With WorkingSheet
              .Cells(iRow, iCol).Value = DSSLoadshapes.Name
              iRow = iRow + 1
              .Cells(iRow, iCol).Value = DSSLoadshapes.Npts
@@ -117,7 +99,7 @@ End SubPublic Sub TestLoadShape()
          iCol = iCol + 1
 
         
-        iRow = 9
+        iRow = 10
         
         ' just as an example, create a Variant array of Q multipliers that are half the P multipliers
         For i = LBound(V1) To UBound(V1)
@@ -131,11 +113,11 @@ End SubPublic Sub TestLoadShape()
         V1 = DSSLoadshapes.Qmult
         
         ' Post Qmult to active worksheet
-        ActiveSheet.Cells(iRow, iCol).Value = "Qmult"
+        WorkingSheet.Cells(iRow, iCol).Value = "Qmult"
         iRow = iRow + 1
         
         For i = LBound(V1) To UBound(V1)
-             With ActiveSheet
+             With WorkingSheet
                  .Cells(iRow, iCol).Value = V1(i)
                  iRow = iRow + 1
              End With
@@ -171,9 +153,9 @@ End SubPublic Sub TestLoadShape()
         
         ' Verify that we have it properly loaded
         
-         iRow = 1
+         iRow = 2
         ' Post basic data to Active worksheet
-         With ActiveSheet
+         With WorkingSheet
              .Cells(iRow, iCol).Value = DSSLoadshapes.Name
              iRow = iRow + 1
              .Cells(iRow, iCol).Value = DSSLoadshapes.Npts
@@ -205,15 +187,15 @@ End SubPublic Sub TestLoadShape()
         
         iCol = iCol + 1
          
-        iRow = 9
+        iRow = 10
         V1 = DSSLoadshapes.Qmult  ' should be one value=0
         
-        ActiveSheet.Cells(iRow, iCol).Value = "Qmult"
+        WorkingSheet.Cells(iRow, iCol).Value = "Qmult"
         iRow = iRow + 1
         
         ' Post Qmult to active worksheet
         For i = LBound(V1) To UBound(V1)
-             With ActiveSheet
+             With WorkingSheet
                  .Cells(iRow, iCol).Value = V1(i)
                  iRow = iRow + 1
              End With
