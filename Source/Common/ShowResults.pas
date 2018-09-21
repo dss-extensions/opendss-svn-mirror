@@ -2600,7 +2600,7 @@ begin
                 DoIt := false;
                 if UE_Only then
                 begin
-                    if pLoad.Unserved then
+                    if pLoad.Unserved[ActiveActor] then
                         DoIt := true;
                 end
                 else

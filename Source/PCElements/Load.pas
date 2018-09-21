@@ -156,7 +156,7 @@ type
         procedure StickCurrInTerminalArray(TermArray: pComplexArray; const Curr: Complex; i: Integer);
         function InterpolateY95_YLow(const Vmag: Double): Complex; inline;
         function InterpolateY95I_YLow(const Vmag: Double): Complex; inline; // ***Added by Celso & Paulo
-        function Get_Unserved: Boolean;
+        function Get_Unserved(ActorID: Integer): Boolean;
 
         procedure Set_kVAAllocationFactor(const Value: Double);
         procedure Set_ConnectedkVA(const Value: Double);
@@ -235,7 +235,7 @@ type
 
         procedure UpdateVoltageBases;
 
-        property Unserved: Boolean READ Get_Unserved;
+        property Unserved[ActorID: Integer]: Boolean READ Get_Unserved;
 //        Property ExceedsNormal[ActorID:Integer] :Boolean Read Get_ExceedsNormal(ActorID:Integer);
 
         {AllocationFactor adjusts either connected kVA allocation factor or kWh CFactor}
@@ -2247,7 +2247,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
-function TLoadObj.Get_Unserved: Boolean;
+function TLoadObj.Get_Unserved(ActorID: Integer): Boolean;
 var
     i: Integer;
     Vpu,
@@ -2268,8 +2268,8 @@ begin
     end;
 
      {ELSE Check Voltages}
-    if LoadSolutionCount <> ActiveCircuit[ActiveActor].Solution.SolutionCount then
-        CalcVTerminalPhase(ActiveActor);
+    if LoadSolutionCount <> ActiveCircuit[ActorID].Solution.SolutionCount then
+        CalcVTerminalPhase(ActorID);
 
      // Get the lowest of the Phase voltages
     Vpu := Vbase;
@@ -2284,12 +2284,12 @@ begin
     if VminNormal <> 0.0 then
         NormMinCriteria := VMinNormal
     else
-        NormMinCriteria := ActiveCircuit[ActiveActor].NormalMinVolts;
+        NormMinCriteria := ActiveCircuit[ActorID].NormalMinVolts;
 
     if VminEmerg <> 0.0 then
         EmergMinCriteria := VMinEmerg
     else
-        EmergMinCriteria := ActiveCircuit[ActiveActor].EmergMinVolts;
+        EmergMinCriteria := ActiveCircuit[ActorID].EmergMinVolts;
 
     if Vpu < EmergMinCriteria then
     begin

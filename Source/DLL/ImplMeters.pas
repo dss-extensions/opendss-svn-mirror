@@ -819,7 +819,7 @@ begin
             if pMeterObj <> nil then
             begin
 
-                pMeterObj.CalcReliabilityIndices(AssumeRestoration);
+                pMeterObj.CalcReliabilityIndices(AssumeRestoration, ActiveActor);
 
             end;
         end;
