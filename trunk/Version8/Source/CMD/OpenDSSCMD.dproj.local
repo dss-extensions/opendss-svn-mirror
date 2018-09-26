@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/12/15 15:09:55.000.755,=C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Unit5.pas</Transaction>
-    <Transaction>2018/09/25 12:17:47.000.855,C:\OpenDSS\Version8\Source\CMD\OpenDSSCMD.dproj=C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project2.dproj</Transaction>
-    <Transaction>2018/09/25 12:25:26.000.598,=C:\OpenDSS\Version8\Source\Common\DSSForms.pas</Transaction>
-    <Transaction>2018/09/25 13:58:40.000.983,=C:\OpenDSS\Version8\Source\Common\DSSForms.pas</Transaction>
+    <Transaction>2018/09/25 12:17:47.000.855,C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project2.dproj=C:\OpenDSS\Version8\Source\CMD\OpenDSSCMD.dproj</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5"/>
