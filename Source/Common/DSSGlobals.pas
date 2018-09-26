@@ -35,8 +35,10 @@ uses
     Circuit,
     IniRegSave,
     {$IFNDEF FPC}
+    {$IFDEF MSWINDOWS}
     Graphics,
     System.IOUtils,
+    {$ENDIF}
     {$ENDIF}
     inifiles,
 
@@ -61,9 +63,11 @@ uses
     PVSystem,
     InvControl,
     ExpControl,
-    ProgressForm,
     variants,
+    {$IFDEF MSWINDOWS}
+    ProgressForm,
     vcl.dialogs,
+    {$ENDIF}
     Strutils,
     Types,
     SyncObjs,
@@ -134,7 +138,9 @@ var
     DLLFirstTime: Boolean = true;
     DLLDebugFile: TextFile;
     ProgramName: String;
+    {$IFDEF MSWINDOWS}
     DSS_Registry: TIniRegSave; // Registry   (See Executive)
+    {$ENDIF}
 
    // Global variables for the DSS visualization tool
     DSS_Viz_installed: Boolean = false; // DSS visualization tool (flag of existance)
@@ -197,7 +203,9 @@ var
     DefaultEditor: String;     // normally, Notepad
     DefaultFontSize: Integer;
     DefaultFontName: String;
+    {$IFDEF MSWINDOWS}
     DefaultFontStyles: TFontStyles;
+    {$ENDIF}
     DSSFileName: String;     // Name of current exe or DLL
     DSSDirectory: String;     // where the current exe resides
     StartupDirectory: String;     // Where we started
@@ -246,7 +254,9 @@ var
     ActorCPU: array of Integer;
     ActorStatus: array of Integer;
     ActorProgressCount: array of Integer;
+    {$IFDEF MSWINDOWS}
     ActorProgress: array of TProgress;
+    {$ENDIF}
     ActorPctProgress: array of Integer;
     ActorHandle: array of TSolver;
     Parallel_enabled: Boolean;
@@ -323,17 +333,24 @@ procedure MyReallocMem(var p: Pointer; newsize: Integer);
 function MyAllocMem(nbytes: Cardinal): Pointer;
 
 procedure New_Actor(ActorID: Integer);
+{$IFDEF MSWINDOWS}
 procedure Delay(TickTime: Integer);
+{$ENDIF}
 
 implementation
 
 
 uses {Forms,   Controls,}
     SysUtils,
+    {$IFDEF MSWINDOWS}
     Windows,
-    DSSForms,
     SHFolder,
     ScriptEdit,
+    DSSForms,
+    {$ELSE}
+     CMDForms,
+    {$ENDIF}
+
     Executive,
     Parallel_Lib;
      {Intrinsic Ckt Elements}
@@ -354,7 +371,9 @@ var
     ThePath: array[0..MAX_PATH] of Char;
 begin
     FillChar(ThePath, SizeOF(ThePath), #0);
+    {$IFDEF MSWINDOWS}
     SHGetFolderPath(0, CSIDL_PERSONAL, 0, 0, ThePath);
+    {$ENDIF}
     Result := ThePath;
 end;
 
@@ -363,7 +382,9 @@ var
     ThePath: array[0..MAX_PATH] of Char;
 begin
     FillChar(ThePath, SizeOF(ThePath), #0);
+    {$IFDEF MSWINDOWS}
     SHGetFolderPath(0, CSIDL_LOCAL_APPDATA, 0, 0, ThePath);
+    {$ENDIF}
     Result := ThePath;
 end;
 
@@ -632,16 +653,17 @@ end;
 
 
 function GetDSSVersion: String;
+    {$IFDEF MSWINDOWS}
 var
-
     InfoSize, Wnd: DWORD;
     VerBuf: Pointer;
     FI: PVSFixedFileInfo;
     VerSize: DWORD;
     MajorVer, MinorVer, BuildNo, RelNo: DWORD;
     iLastError: DWord;
-
+    {$ENDIF}
 begin
+    {$IFDEF MSWINDOWS}
     Result := 'Unknown.';
 
     InfoSize := GetFileVersionInfoSize(Pchar(DSSFileName), Wnd);
@@ -668,7 +690,7 @@ begin
         Result := Format('GetFileVersionInfo failed: (%d) %s',
             [iLastError, SysErrorMessage(iLastError)]);
     end;
-
+    {$ENDIF}
 end;
 
 
@@ -693,10 +715,14 @@ function IsDirectoryWritable(const Dir: String): Boolean;
 var
     TempFile: array[0..MAX_PATH] of Char;
 begin
+    {$IFDEF MSWINDOWS}
     if GetTempFileName(Pchar(Dir), 'DA', 0, TempFile) <> 0 then
         Result := Windows.DeleteFile(TempFile)
     else
         Result := false;
+    {$ELSE}
+    Result  :=  True;
+    {$ENDIF}
 end;
 
 procedure SetDataPath(const PathName: String);
@@ -742,6 +768,7 @@ procedure ReadDSS_Registry;
 var
     TestDataDirectory: String;
 begin
+    {$IFDEF MSWINDOWS}
     DSS_Registry.Section := 'MainSect';
     DefaultEditor := DSS_Registry.ReadString('Editor', 'Notepad.exe');
     DefaultFontSize := StrToInt(DSS_Registry.ReadString('ScriptFontSize', '8'));
@@ -758,11 +785,13 @@ begin
         SetDataPath(TestDataDirectory)
     else
         SetDataPath(DataDirectory[ActiveActor]);
+    {$ENDIF}
 end;
 
 
 procedure WriteDSS_Registry;
 begin
+    {$IFDEF MSWINDOWS}
     if UpdateRegistry then
     begin
         DSS_Registry.Section := 'MainSect';
@@ -775,6 +804,7 @@ begin
         DSS_Registry.WriteString('LastFile', LastFileCompiled);
         DSS_Registry.WriteString('DataPath', DataDirectory[ActiveActor]);
     end;
+    {$ENDIF}
 end;
 
 procedure ResetQueryLogFile;
@@ -856,10 +886,16 @@ begin
 end;
 // Creates a new actor
 procedure New_Actor(ActorID: Integer);
+{$IFDEF MSWINDOWS}
 var
     ScriptEd: TScriptEdit;
+    {$ENDIF}
 begin
+    {$IFDEF MSWINDOWS}
     ActorHandle[ActorID] := TSolver.Create(false, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryForm);
+    {$ELSE}
+  ActorHandle[ActorID] :=  TSolver.Create(false,ActorCPU[ActorID],ActorID,nil);
+    {$ENDIF}
 end;
 
 {$IFNDEF FPC}
@@ -867,16 +903,18 @@ function CheckDSSVisualizationTool: Boolean;
 var
     FileName: String;
 begin
+    {$IFDEF MSWINDOWS}
     DSS_Viz_path := GetIni('Application', 'path', '', TPath.GetHomePath + '\OpenDSS Visualization Tool\settings.ini');
   // to make it compatible with the function
     FileName := stringreplace(DSS_Viz_path, '\\', '\', [rfReplaceAll, rfIgnoreCase]);
     FileName := stringreplace(FileName, '"', '', [rfReplaceAll, rfIgnoreCase]);
   // returns true only if the executable exists
     Result := fileexists(FileName);
+    {$ENDIF}
 end;
 // End of visualization tool check
 {$ENDIF}
-
+{$IFDEF MSWINDOWS}
 procedure Delay(TickTime: Integer);
 var
     Past: Longint;
@@ -886,6 +924,7 @@ begin
 
     until (GetTickCount - Past) >= Longint(TickTime);
 end;
+{$ENDIF}
 
 
 initialization
@@ -895,7 +934,9 @@ initialization
     CPU_Cores := CPUCount;
 
     setlength(ActiveCircuit, CPU_Cores + 1);
+    {$IFDEF MSWINDOWS}
     setlength(ActorProgress, CPU_Cores + 1);
+    {$ENDIF}
     setlength(ActorCPU, CPU_Cores + 1);
     setlength(ActorProgressCount, CPU_Cores + 1);
     setlength(ActiveDSSClass, CPU_Cores + 1);
@@ -962,7 +1003,9 @@ initialization
     for ActiveActor := 1 to CPU_Cores do
     begin
         ActiveCircuit[ActiveActor] := nil;
+        {$IFDEF MSWINDOWS}
         ActorProgress[ActiveActor] := nil;
+        {$ENDIF}
         ActiveDSSClass[ActiveActor] := nil;
         EventStrings[ActiveActor] := TStringList.Create;
         SavedFileList[ActiveActor] := TStringList.Create;
@@ -1035,9 +1078,9 @@ initialization
     {$ENDIF}
     StartupDirectory := GetCurrentDir + '\';
     SetDataPath(GetDefaultDataDirectory + '\' + ProgramName + '\');
-
+    {$IFDEF MSWINDOWS}
     DSS_Registry := TIniRegSave.Create('\Software\' + ProgramName);
-
+    {$ENDIF}
     AuxParser := TParser.Create;
     DefaultEditor := 'NotePad';
     DefaultFontSize := 8;
@@ -1048,7 +1091,9 @@ initialization
     LogQueries := false;
     QueryLogFileName := '';
     UpdateRegistry := true;
+    {$IFDEF MSWINDOWS}
     QueryPerformanceFrequency(CPU_Freq);
+    {$ENDIF}
 
 //   YBMatrix.Start_Ymatrix_Critical;   // Initializes the critical segment for the YMatrix class
 
@@ -1073,7 +1118,9 @@ finalization
             Recorderon := false;
     ClearAllCircuits;
     DSSExecutive.Free;  {Writes to Registry}
+    {$IFDEF MSWINDOWS}
     DSS_Registry.Free;  {Close Registry}
+    {$ENDIF}
 
 // Free all the Actors
 {  for ActiveActor := 1 to NumOfActors do

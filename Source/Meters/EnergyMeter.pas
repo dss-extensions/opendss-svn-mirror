@@ -401,7 +401,9 @@ uses
     Math,
     MemoryMap_Lib,
     Sysutils,
+    {$IFDEF MSWINDOWS}
     Windows,
+    {$ENDIF}
     Classes;
 
 //{$UNDEF DEBUG}

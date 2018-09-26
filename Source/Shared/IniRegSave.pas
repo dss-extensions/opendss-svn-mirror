@@ -1,7 +1,7 @@
 unit IniRegSave;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2018, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -19,6 +19,7 @@ unit IniRegSave;
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
     Registry;
 
@@ -51,9 +52,11 @@ type
         constructor Create(const Name: String);
         destructor Destroy; OVERRIDE;
     end;
-
+    {$ENDIF}
 
 implementation
+
+{$IFDEF MSWINDOWS}
 
 
 constructor TIniRegSave.Create(const Name: String);
@@ -108,5 +111,5 @@ procedure TIniRegSave.ClearSection;
 begin
     FiniFile.EraseSection(FSection);
 end;
-
+{$ENDIF}
 end.

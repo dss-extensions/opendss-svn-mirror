@@ -5,7 +5,9 @@ interface
 uses
     uComplex,
     DSSGlobals,
+    {$IFDEF MSWINDOWS}
     Windows,
+    {$ENDIF}
     variants,
     sysutils;
 

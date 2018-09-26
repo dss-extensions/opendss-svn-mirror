@@ -161,11 +161,11 @@ uses
     mathutil,
     Bus,
     SolutionAlgs,
-    {$IFDEF FPC}
-CmdForms,
-    {$ELSE}
+    {$IFDEF MSWINDOWS}
     DSSForms,
     DssPlot,
+    {$ELSE}
+CmdForms,
     {$ENDIF}
     ExecCommands,
     Executive,
@@ -3357,10 +3357,10 @@ begin
     {$IFNDEF DLL_ENGINE}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
-
+    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
-
+    {$ENDIF}
      {Defaults}
     NumRegs := 1;
     SetLength(IRegisters, NumRegs);
@@ -3404,9 +3404,9 @@ begin
         ParamName := Parser[ActiveActor].NextParam;
         Param := Parser[ActiveActor].StrValue;
     end;
-
+    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoDI_Plot(CaseName, CaseYear, iRegisters, PeakDay, MeterName);
-
+    {$ENDIF}
     iRegisters := nil;
     {$ENDIF}
     Result := 0;
@@ -3427,8 +3427,10 @@ begin
     {$IFNDEF DLL_ENGINE}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
+    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
+    {$ENDIF}
     CaseName1 := 'base';
     CaseName2 := '';
     Reg := 9;    // Overload EEN
@@ -3478,8 +3480,9 @@ begin
         ParamName := UpperCase(Parser[ActiveActor].NextParam);
         Param := Parser[ActiveActor].StrValue;
     end;
-
+    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoCompareCases(CaseName1, CaseName2, WhichFile, Reg);
+    {$ENDIF}
     {$ENDIF}
     Result := 0;
 
@@ -3501,9 +3504,10 @@ begin
     {$IFNDEF DLL_ENGINE}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
-
+    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
+    {$ENDIF}
 
     Nregs := 1;
     SetLength(iRegisters, Nregs);
@@ -3563,9 +3567,9 @@ begin
         ParamName := Parser[ActiveActor].NextParam;
         Param := Parser[ActiveActor].StrValue;
     end;
-
+    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoYearlyCurvePlot(CaseNames, WhichFile, iRegisters);
-
+    {$ENDIF}
     iRegisters := nil;
     CaseNames.Free;
     {$ENDIF}
@@ -3595,8 +3599,11 @@ begin
         DoSimpleMsg('The circuit must be solved before you can do this.', 24722);
         Exit;
     end;
-
+    {$IFDEF MSWINDOWS}
     Quantity := vizCURRENT;
+    {$ELSE}
+     Quantity := 1;
+    {$ENDIF}
     ElemName := '';
       {Parse rest of command line}
     ParamPointer := 0;
@@ -3623,12 +3630,18 @@ begin
             case ParamPointer of
                 1:
                     case Lowercase(Param)[1] of
+                        {$IFDEF MSWINDOWS}
                         'c':
                             Quantity := vizCURRENT;
                         'v':
                             Quantity := vizVOLTAGE;
                         'p':
                             Quantity := vizPOWER;
+                        {$ELSE}
+                'c':  Quantity := 1;
+                'v':  Quantity := 2;
+                'p':  Quantity := 3;
+                        {$ENDIF}
                     end;
                 2:
                     ElemName := Param;
@@ -3646,6 +3659,7 @@ begin
     if DevIndex > 0 then
     begin  //  element must already exist
         pElem := ActiveCircuit[ActiveActor].CktElements.Get(DevIndex);
+        {$IFDEF MSWINDOWS}
         if pElem is TDSSCktElement then
         begin
             DSSPlotObj.DoVisualizationPlot(TDSSCktElement(pElem), Quantity);
@@ -3654,6 +3668,7 @@ begin
         begin
             DoSimpleMsg(pElem.Name + ' must be a circuit element type!', 282);   // Wrong type
         end;
+        {$ENDIF}
     end
     else
     begin

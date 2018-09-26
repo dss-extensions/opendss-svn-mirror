@@ -29,7 +29,9 @@ uses
     ucmatrix,
     ucomplex,
     Spectrum,
+    {$IFDEF MSWINDOWS}
     StdVcl,
+    {$ENDIF}
     Loadshape;
 
 type

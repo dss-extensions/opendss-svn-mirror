@@ -895,7 +895,9 @@ var
     ParamPointer, i: Integer;
     ParamName: String;
     Param: String;
+    {$IFDEF MSWINDOWS}
     ScriptEd: TScriptEdit;
+    {$ENDIF}
 
 begin
 
@@ -1244,7 +1246,10 @@ begin
                 113:
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 114:
-                    ScriptEd.UpdateProgressSummary;
+                    {$IFDEF MSWINDOWS}
+                    ScriptEd.UpdateProgressSummary
+                    {$ENDIF}
+                    ;
                 115:
                     if parallel_enabled then
                         AppendGlobalResult('Yes')

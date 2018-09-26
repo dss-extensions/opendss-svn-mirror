@@ -45,7 +45,11 @@ implementation
 uses
     ArrayDef,
     DSSGlobals,
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+    CmdForms,
+    {$ENDIF}
     Utilities,
     SysUtils,
     MathUtil,

@@ -12,8 +12,10 @@ unit Sparse_Math;
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
     dialogs;
+    {$ENDIF}
 
 type
     TData = array of Integer;

@@ -50,7 +50,13 @@ type
 
     PUBLIC
 
-        FEdit: procedure(s: Pansichar; Maxlen: Cardinal); STDCALL; // send string to user model to handle
+        FEdit: procedure(s:
+        {$IFDEF MSWINDOWS}
+            Pansichar
+        {$ELSE}
+ pChar
+        {$ENDIF}
+            ; Maxlen: Cardinal); STDCALL; // send string to user model to handle
         FInit: procedure(V, I: pComplexArray); STDCALL;   // For dynamics
         FCalc: procedure(V, I: pComplexArray); STDCALL; // returns Currents or sets Pshaft
         FIntegrate: procedure; STDCALL; // Integrates any state vars
@@ -67,7 +73,13 @@ type
         FGetAllVars: procedure(Vars: pDoubleArray); STDCALL;  // Get all vars
         FGetVariable: function(var I: Integer): Double; STDCALL;// Get a particular var
         FSetVariable: procedure(var i: Integer; var value: Double); STDCALL;
-        FGetVarName: procedure(var VarNum: Integer; VarName: Pansichar; maxlen: Cardinal); STDCALL;
+        FGetVarName: procedure(var VarNum: Integer; VarName:
+        {$IFDEF MSWINDOWS}
+            Pansichar
+        {$ELSE}
+ pChar
+        {$ENDIF}
+            ; maxlen: Cardinal); STDCALL;
 
         // this property loads library (if needed), sets the procedure variables, and makes a new instance
         // old reference is freed first
@@ -91,7 +103,9 @@ implementation
 uses
     Generator,
     DSSGlobals,
+    {$IFDEF MSWINDOWS}
     Windows,
+    {$ENDIF}
     Sysutils;
 
 { TGenUserModel }
@@ -154,7 +168,13 @@ end;
 procedure TGenUserModel.Set_Edit(const Value: String);
 begin
     if FID <> 0 then
-        FEdit(Pansichar(Ansistring(Value)), Length(Value));
+        FEdit(
+            {$IFDEF MSWINDOWS}
+            Pansichar(Ansistring(Value))
+            {$ELSE}
+pchar(String(Value))
+            {$ENDIF}
+            , Length(Value));
         // Else Ignore
 end;
 

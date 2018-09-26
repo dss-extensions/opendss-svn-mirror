@@ -66,7 +66,11 @@ uses
     RegControl,
     ParserDel,
     CktTree,
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+     CmdForms,
+    {$ENDIF}
     Math,
     Line,
     LineUnits,
@@ -3206,6 +3210,7 @@ begin
         FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
         ShowTreeView(TreeNm);
+
     end;
 end;
 

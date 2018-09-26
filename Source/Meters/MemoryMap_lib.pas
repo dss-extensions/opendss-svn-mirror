@@ -23,10 +23,12 @@ procedure Write_String(Mem_Space: TBytesStream; const Content: String);
 implementation
 
 uses
+    {$IFDEF MSWINDOWS}
     windows,
+    Dialogs,
+    {$ENDIF}
     sysutils,
     math,
-    Dialogs,
     DSSGlobals;
 
 type

@@ -97,7 +97,9 @@ uses
     Solution,
     DSSClass,
     IniRegSave,
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ENDIF}
     KLUSolve;
 
 
@@ -227,7 +229,9 @@ begin
             {Now, Start over}
         CreateDSSClasses;
         CreateDefaultDSSItems;
+        {$IFDEF MSWINDOWS}
         RebuildHelpForm := true; // because class strings have changed
+        {$ENDIF}
           // In case the actor hasn't been destroyed
         if ActorHandle[ActiveActor] <> nil then
         begin
@@ -238,9 +242,10 @@ begin
         end;
     end;
 
-
+    {$IFDEF MSWINDOWS}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
+    {$ENDIF}
 
     DefaultEarthModel := DERI;
     LogQueries := false;
@@ -263,10 +268,11 @@ begin
     CreateDSSClasses;
     Parser[ActiveActor] := Tparser.Create;
     CreateDefaultDSSItems;
+    {$IFDEF MSWINDOWS}
     RebuildHelpForm := true; // because class strings have changed
-
     if not IsDLL then
         ControlPanel.UpdateElementBox;
+    {$ENDIF}
        {Prepare for new variables}
     ParserVars.Free;
     ParserVars := TParserVar.Create(100);  // start with space for 100 variables

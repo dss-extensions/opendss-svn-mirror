@@ -17,7 +17,9 @@ interface
 
 uses
     ArrayDef,
+    {$IFDEF MSWINDOWS}
     Graphics,
+    {$ENDIF}
     Sysutils;
 
 type

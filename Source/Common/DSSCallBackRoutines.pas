@@ -18,7 +18,13 @@ uses
 var
     CallBackRoutines: TDSSCallBacks;
 
-procedure DoSimpleMsgCallback(S: Pansichar; maxlen: Cardinal); STDCALL; // Call back for user-written models
+procedure DoSimpleMsgCallback(S:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+ pChar
+    {$ENDIF}
+    ; maxlen: Cardinal); STDCALL; // Call back for user-written models
 
 implementation
 
@@ -26,7 +32,9 @@ uses
     ParserDel,
     DSSGlobals,
     Executive,
+    {$IFDEF MSWINDOWS}
     AnsiStrings,
+    {$ENDIF}
     SysUtils,
     CktElement,
     Math,
@@ -39,7 +47,13 @@ var
 
 {====================================================================================================================}
 
-procedure DoSimpleMsgCallback(S: Pansichar; maxlen: Cardinal); STDCALL; // Call back for user-written models
+procedure DoSimpleMsgCallback(S:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+ pChar
+    {$ENDIF}
+    ; maxlen: Cardinal); STDCALL; // Call back for user-written models
 
 begin
     DoSimpleMsg(String(s), 9000);
@@ -49,7 +63,13 @@ end;
 
 {====================================================================================================================}
 
-procedure ParserLoad(S: Pansichar; Maxlen: Cardinal); STDCALL;
+procedure ParserLoad(S:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+ pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal); STDCALL;
 
 begin
     CallBackParser.CmdString := String(S);
@@ -80,34 +100,64 @@ end;
 
 {====================================================================================================================}
 
-procedure ParserStrValue(s: Pansichar; Maxlen: Cardinal); STDCALL;
+procedure ParserStrValue(s:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal); STDCALL;
 
 {Copies null-terminated string into location pointed to by S up to the max chars specified}
 
 begin
     with CallBackParser do
     begin
-        SysUtils.StrlCopy(s, Pansichar(Ansistring(CB_Param)), Maxlen);
+        SysUtils.StrlCopy(s,
+            {$IFDEF MSWINDOWS}
+            Pansichar(Ansistring(CB_Param))
+            {$ELSE}
+pChar(String(CB_Param))
+            {$ENDIF}
+            , Maxlen);
     end;
 end;
 
 
 {====================================================================================================================}
 
-function ParserNextParam(ParamName: Pansichar; Maxlen: Cardinal): Integer; STDCALL;
+function ParserNextParam(ParamName:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal): Integer; STDCALL;
 begin
     with CallBackParser do
     begin
         CB_ParamName := NextParam;
         CB_Param := StrValue;
     end;
-    SysUtils.StrlCopy(ParamName, Pansichar(Ansistring(CB_ParamName)), Maxlen); // Copies up to Maxlen
+    SysUtils.StrlCopy(ParamName,
+        {$IFDEF MSWINDOWS}
+        Pansichar(Ansistring(CB_ParamName))
+        {$ELSE}
+pChar(String(CB_ParamName))
+        {$ENDIF}
+        , Maxlen); // Copies up to Maxlen
     Result := Length(CB_Param);
 end;
 
 {====================================================================================================================}
 
-procedure DoDSSCommandCallBack(S: Pansichar; Maxlen: Cardinal); STDCALL;
+procedure DoDSSCommandCallBack(S:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal); STDCALL;
 begin
     SolutionAbort := false;
     DSSExecutive.Command := String(S);
@@ -115,15 +165,40 @@ end;
 
 {====================================================================================================================}
 
-procedure GetActiveElementBusNamesCallBack(Name1: Pansichar; Len1: Cardinal; Name2: Pansichar; Len2: Cardinal); STDCALL;
+procedure GetActiveElementBusNamesCallBack(Name1:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Len1: Cardinal;
+    Name2:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Len2: Cardinal); STDCALL;
   {Get first two bus names of active Circuit Element for labeling graphs, etc.}
   {Coordinate must be defined else returns null string}
 var
     CktElement: TDSSCktElement;
     BusIdx: Integer;
 begin
-    SysUtils.StrlCopy(Name1, Pansichar(''), Len1);  // Initialize to null
-    SysUtils.StrlCopy(Name2, Pansichar(''), Len2);
+    SysUtils.StrlCopy(Name1,
+        {$IFDEF MSWINDOWS}
+        Pansichar('')
+        {$ELSE}
+pChar('')
+        {$ENDIF}
+        , Len1);  // Initialize to null
+    SysUtils.StrlCopy(Name2,
+        {$IFDEF MSWINDOWS}
+        Pansichar('')
+        {$ELSE}
+pChar('')
+        {$ENDIF}
+        , Len2);
     if ActiveCircuit[ActiveActor] <> nil then
     begin
         CktElement := ActiveCircuit[ActiveActor].Activecktelement;
@@ -134,13 +209,25 @@ begin
             if BusIdx > 0 then
                 with ActiveCircuit[ActiveActor].Buses^[BusIdx] do
                     if CoordDefined then
-                        SysUtils.StrlCopy(Name1, Pansichar(Ansistring(ActiveCircuit[ActiveActor].BusList.Get(Busidx))), Len1);
+                        SysUtils.StrlCopy(Name1,
+                            {$IFDEF MSWINDOWS}
+                            Pansichar(Ansistring(ActiveCircuit[ActiveActor].BusList.Get(Busidx)))
+                            {$ELSE}
+pChar(String(ActiveCircuit[ActiveActor].BusList.Get(Busidx)))
+                            {$ENDIF}
+                            , Len1);
       {Second bus}
             BusIdx := CktElement.Terminals^[2].busref;
             if BusIdx > 0 then
                 with ActiveCircuit[ActiveActor].Buses^[BusIdx] do
                     if CoordDefined then
-                        SysUtils.StrlCopy(Name2, Pansichar(Ansistring(ActiveCircuit[ActiveActor].BusList.Get(Busidx))), Len2);
+                        SysUtils.StrlCopy(Name2,
+                            {$IFDEF MSWINDOWS}
+                            Pansichar(Ansistring(ActiveCircuit[ActiveActor].BusList.Get(Busidx)))
+                            {$ELSE}
+pChar(String(ActiveCircuit[ActiveActor].BusList.Get(Busidx)))
+                            {$ENDIF}
+                            , Len2);
         end; {If CktElement}
     end;  {If ActiveCircuit[ActiveActor]}
 end;
@@ -403,7 +490,13 @@ begin
 
 end;
 
-function GetActiveElementNameCallBack(FullName: Pansichar; Maxlen: Cardinal; ActorID: Integer): Integer; STDCALL;
+function GetActiveElementNameCallBack(FullName:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal; ActorID: Integer): Integer; STDCALL;
 {Maxlen is num of chars the calling program allocates for the string}
 
 var
@@ -416,7 +509,13 @@ begin
             begin
                 S := ParentClass.Name + '.' + Name;
 
-                SysUtils.StrlCopy(FullName, Pansichar(Ansistring(S)), Maxlen);
+                SysUtils.StrlCopy(FullName,
+                    {$IFDEF MSWINDOWS}
+                    Pansichar(Ansistring(S))
+                    {$ELSE}
+pChar(String(S))
+                    {$ENDIF}
+                    , Maxlen);
                 Result := Length(FullName);
             end;
 end;
@@ -431,9 +530,21 @@ begin
     Result := ActiveCircuit[ActorID].ControlQueue.Push(Hour, Sec, Code, ProxyHdl, Owner, ActorID);
 end;
 
-procedure GetResultStrCallBack(S: Pansichar; Maxlen: Cardinal); STDCALL;
+procedure GetResultStrCallBack(S:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ; Maxlen: Cardinal); STDCALL;
 begin
-    SysUtils.StrlCopy(S, Pansichar(Ansistring(GlobalResult)), Maxlen);
+    SysUtils.StrlCopy(S,
+        {$IFDEF MSWINDOWS}
+        Pansichar(Ansistring(GlobalResult))
+        {$ELSE}
+pChar(String( GlobalResult ))
+        {$ENDIF}
+        , Maxlen);
 end;
 
 {====================================================================================================================}

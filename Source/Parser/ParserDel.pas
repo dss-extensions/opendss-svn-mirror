@@ -19,7 +19,10 @@ interface
 
 uses
     Arraydef,
-    classes,{controls,} DSSForms,
+    classes,{controls,}
+    {$IFDEF UNIX}
+    DSSForms,
+    {$ENDIF}
     Sysutils,
     RPN,
     HashList;
@@ -115,7 +118,11 @@ var  //Parser : TParser;
 implementation
 
 uses
+    {$IFDEF MSWINDOWS}
     Dialogs;
+    {$ELSE}
+  CmdForms;
+    {$ENDIF}
 
 const
     Commentchar = '!';

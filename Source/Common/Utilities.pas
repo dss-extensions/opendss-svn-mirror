@@ -161,10 +161,16 @@ procedure BackwardSweepAllFeeders;
 implementation
 
 uses
+    {$IFDEF MSWINDOWS}
     Windows,
-    SysUtils,
     ShellAPI,
     Dialogs,
+    DSSForms,
+    Graphics,
+    {$ELSE}
+        CmdForms,
+    {$ENDIF}
+    SysUtils,
     DSSClassDefs,
     DSSGlobals,
     Dynamics,
@@ -174,7 +180,6 @@ uses
     Solution,
     DSSObject,
     math,
-    DSSForms,
     ParserDel,
     Capacitor,
     Reactor,
@@ -186,8 +191,7 @@ uses
     HashList,
     EnergyMeter,
     PCElement,
-    ControlElem,
-    Graphics;
+    ControlElem;
 
 const
     ZERONULL: Integer = 0;
@@ -274,6 +278,7 @@ begin
     try
         if FileExists(FileNm) then
         begin
+            {$IFDEF MSWINDOWS}
             retval := ShellExecute(0, nil, Pchar(encloseQuotes(DefaultEditor)), Pchar(encloseQuotes(FileNm)), nil, SW_SHOW);
             SetLastResultFile(FileNm);
 
@@ -287,6 +292,7 @@ begin
                 ERROR_PATH_NOT_FOUND:
                     DoSimpleMsg('Path for Editor "' + DefaultEditor + '" Not Found.', 703);
             end;
+            {$ENDIF}
         end;
     except
         On E: Exception do
@@ -303,8 +309,9 @@ var
 begin
     try
         Handle := 0;
+        {$IFDEF MSWINDOWS}
         ShellExecute(Handle, 'open', Pchar('cmd.exe'), Pchar(CmdString), nil, SW_SHOW);
-
+        {$ENDIF}
     except
         On E: Exception do
             DoSimpleMsg(Format('DoDOSCmd Error:%s. Error in Command "%s"', [E.Message, CmdString]), 704);
@@ -3111,61 +3118,158 @@ end;
 function InterpretColorName(const s: String): Integer;
 
 begin
-    Result := clBlue;  // default color
+
+    Result :=
+        {$IFDEF MSWINDOWS}
+        clBlue
+    {$ELSE}
+$FF0000
+    {$ENDIF}
+    ;  // default color
     try
         if CompareTextShortest(S, 'black') = 0 then
-            Result := clBlack
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clBlack
+        {$ELSE}
+$000000
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Maroon') = 0 then
-            Result := clMaroon
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clMaroon
+        {$ELSE}
+$000080
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Green') = 0 then
-            Result := clGreen
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clGreen
+        {$ELSE}
+$008000
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Olive') = 0 then
-            Result := clOlive
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clOlive
+        {$ELSE}
+$008080
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Navy') = 0 then
-            Result := clNavy
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clNavy
+        {$ELSE}
+$800000
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Purple') = 0 then
-            Result := clPurple
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clPurple
+        {$ELSE}
+$800080
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Teal') = 0 then
-            Result := clTeal
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clTeal
+        {$ELSE}
+$808000
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Gray') = 0 then
-            Result := clGray
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clGray
+        {$ELSE}
+$808080
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Silver') = 0 then
-            Result := clSilver
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clSilver
+        {$ELSE}
+$C0C0C0
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Red') = 0 then
-            Result := clRed
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clRed
+        {$ELSE}
+$0000FF
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Lime') = 0 then
-            Result := clLime
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clLime
+        {$ELSE}
+$00FF00
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Yellow') = 0 then
-            Result := clYellow
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clYellow
+        {$ELSE}
+$00FFFF
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Blue') = 0 then
-            Result := clBlue
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clBlue
+        {$ELSE}
+$FF0000
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Fuchsia') = 0 then
-            Result := clFuchsia
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clFuchsia
+        {$ELSE}
+$FF00FF
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'Aqua') = 0 then
-            Result := clAqua
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clAqua
+        {$ELSE}
+$FFFF00
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'LtGray') = 0 then
-            Result := clLtGray
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clLtGray
+        {$ELSE}
+$C0C0C0
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'DkGray') = 0 then
-            Result := clDkGray
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clDkGray
+        {$ELSE}
+$808080
+        {$ENDIF}
         else
         if CompareTextShortest(S, 'White') = 0 then
-            Result := clWhite
+            Result :=
+                {$IFDEF MSWINDOWS}
+                clWhite
+        {$ELSE}
+$FFFFFF
+        {$ENDIF}
         else
             Result := StrToInt(S);
     except

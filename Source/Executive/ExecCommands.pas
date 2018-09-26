@@ -37,14 +37,18 @@ uses
     ExportOptions,
     ParserDel,
     LoadShape,
-    DSSForms,
-    PlotOptions,
     ConnectOptions,
     sysutils,
     Utilities,
     SolutionAlgs,
     DSSClassDefs,
+    {$IFDEF MSWINDOWS}
+    PlotOptions,
     windows,
+    DSSForms,
+    {$ELSE}
+     CmdForms,
+    {$ENDIF}
     KLUSolve,
     Diakoptics,
     sparse_math;
@@ -768,7 +772,13 @@ begin
             11:
                 CmdResult := DoDisableCmd;
             12:
-                CmdResult := DoPlotCmd; //'plot';
+                CmdResult :=
+                    {$IFDEF MSWINDOWS}
+                    DoPlotCmd
+                {$ELSE}
+DoPropertyDump
+                {$ENDIF}
+                ; //'plot';
             13:
                 CmdResult := DoResetCmd(ActiveActor); //'resetmonitors';
             15:

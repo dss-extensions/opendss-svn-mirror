@@ -8,6 +8,7 @@ unit TCP_IP;
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
     System.Win.ScktComp,
     SysUtils,
@@ -64,9 +65,10 @@ function processExists(exeFileName: String): Boolean;
 
 var
     DSSConnectObj: TDSSConnect;
-
+    {$ENDIF}
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
     Monitor,
     Loadshape,
@@ -1386,5 +1388,5 @@ initialization
 finalization
     if Assigned(DSSConnectObj) then
         DSSConnectObj.Free;
-
+    {$ENDIF}
 end.

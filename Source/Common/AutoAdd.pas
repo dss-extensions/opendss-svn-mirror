@@ -99,7 +99,11 @@ uses
     Utilities,
     SysUtils,
     Executive,
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+      CmdForms,
+    {$ENDIF}
       {ProgressForm, Forms,} Solution;
 
 function SumSelectedRegisters(Mtr: TEnergyMeterObj; Regs: pIntegerArray; count: Integer): Double;
@@ -458,11 +462,14 @@ begin
 
 
                    {Progress meter}
+                {$IFDEF MSWINDOWS}
                 ProgressCaption('AutoAdding Generators', ActorID);
+                {$ENDIF}
                 ProgressMax := BusIdxListSize;
                 ProgressCount := 0;
-
+                {$IFDEF MSWINDOWS}
                 ProgressFormCaption(Format('Testing %d buses. Please Wait... ', [BusIdxListSize]), ActorID);
+                {$ENDIF}
 //                   ShowPctProgress(0, ActorID);
 
 
@@ -480,8 +487,10 @@ begin
                          // ProgressFormCaption( 'Testing bus ' + TestBus);
                         if ((ProgressCount mod 20) = 0) or (i = BusIdxListSize) then
                         begin
+                            {$IFDEF MSWINDOWS}
                             ProgressFormCaption(Format('Testing bus %d/%d. ', [i, BusIdxListSize]), ActorID);
 //                            ShowPctProgress (Round((100 * ProgressCount)/ProgressMax), ActorID);
+                            {$ENDIF}
                         end;
 
                         EnergyMeterClass[ActorID].ResetAll(ActorID);
@@ -565,8 +574,9 @@ begin
                    // be picked up through the result string of the COM interface
                 GlobalResult := BusList.Get(MinLossBus) +
                     Format(', %-g', [MaxLossImproveFactor]);
-
+                {$IFDEF MSWINDOWS}
                 ProgressHide(ActorID);
+                {$ENDIF}
 
                    // note that the command that added the generator can be
                    // picked up from the Command property of the COM interface.
@@ -586,7 +596,9 @@ begin
                     TestCapkvar := Capkvar;
 
                    {Progress meter}
+                {$IFDEF MSWINDOWS}
                 ProgressCaption('AutoAdding Capacitors', ActorID);
+                {$ENDIF}
                 ProgressMax := BusIdxListSize;
                 ProgressCount := 0;
 
@@ -599,7 +611,9 @@ begin
                     if BusIndex > 0 then
                     begin
                         TestBus := BusList.Get(BusIndex);
+                        {$IFDEF MSWINDOWS}
                         ProgressFormCaption('Testing bus ' + TestBus, ActorID);
+                        {$ENDIF}
 //                         ShowPctProgress ( Round((100 * ProgressCount)/ProgressMax), ActorID);
 
                         EnergyMeterClass[ActorID].ResetAll(ActorID);

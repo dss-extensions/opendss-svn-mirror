@@ -17,7 +17,9 @@ interface
 uses
     uComplex,
     SysUtils,
+    {$IFDEF MSWINDOWS}
     windows,
+    {$ENDIF}
     DSSClass,
     DSSObject;
 

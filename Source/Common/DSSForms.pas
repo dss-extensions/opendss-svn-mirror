@@ -8,6 +8,7 @@ unit DSSForms;
 
 interface
 
+{$IFNDEF CMD}
 uses
     Panel,
     Classes;
@@ -39,9 +40,10 @@ procedure CloseDownForms;
 procedure ShowTreeView(const Fname: String);
 function MakeChannelSelection(NumFieldsToSkip: Integer; const Filename: String): Boolean;
 
-
+{$ENDIF}
 implementation
 
+{$IFNDEF CMD}
 uses
     ExecCommands,
     ExecOptions,
@@ -392,5 +394,5 @@ finalization
             TViewForm.Free;
 //    If Assigned(MessageForm1) Then MessageForm1.Free;
     end;
-
+    {$ENDIF}
 end.

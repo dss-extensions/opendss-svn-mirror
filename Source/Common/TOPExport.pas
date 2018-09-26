@@ -20,7 +20,13 @@ type
 
     ToutfileHdr = packed record
         Size: Word;
-        Signature: array[0..15] of Ansichar;
+        Signature: array[0..15] of
+        {$IFDEF MSWINDOWS}
+        Ansichar
+        {$ELSE}
+CHAR
+        {$ENDIF}
+        ;
         VersionMajor,
         VersionMinor: Word;
         FBase,
@@ -43,7 +49,13 @@ type
         Title2,
         Title3,
         Title4,
-        Title5: array[0..79] of Ansichar;  // Fixed length 80-byte string  space
+        Title5: array[0..79] of
+        {$IFDEF MSWINDOWS}
+        Ansichar
+        {$ELSE}
+CHAR
+        {$ENDIF}
+        ;  // Fixed length 80-byte string  space
     end;
 
     TOutFile32 = class(Tobject)
@@ -57,7 +69,13 @@ type
           {constructor Create(Owner: TObject);}
         procedure Open;
         procedure Close;
-        procedure WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title: Ansistring);
+        procedure WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
+        {$IFDEF MSWINDOWS}
+            Ansistring
+        {$ELSE}
+string
+        {$ENDIF}
+            );
         procedure WriteNames(var Vnames, Cnames: TStringList);
         procedure WriteData(const t: Double; const V, Curr: pDoubleArray);
         procedure OpenR;  {Open for Read Only}
@@ -76,11 +94,15 @@ var
 implementation
 
 uses
+    {$IFDEF MSWINDOWS}
     ComObj,
-    SysUtils,
     AnsiStrings,
     Dialogs,
     ActiveX,
+    {$ELSE}
+    CMDForms,
+    {$ENDIF}
+    SysUtils,
     DSSGlobals;
 
 var
@@ -89,7 +111,9 @@ var
 procedure StartTop;
 
 begin
+    {$IFDEF MSWINDOWS}
     TOP_Object := CreateOleObject('TOP2000.MAIN');
+    {$ENDIF}
     TOP_Inited := true;
 end;
 
@@ -136,7 +160,13 @@ begin
 
 end;
 
-procedure TOutFile32.WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title: Ansistring);
+procedure TOutFile32.WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
+    {$IFDEF MSWINDOWS}
+    Ansistring
+    {$ELSE}
+String
+    {$ENDIF}
+    );
 
 var
     NumWrite: Integer;
@@ -170,7 +200,13 @@ begin
         IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
         IdxBaseData := 0;
 
-        sysutils.StrCopy(Title1, Pansichar(Title));
+        sysutils.StrCopy(Title1,
+            {$IFDEF MSWINDOWS}
+            Pansichar
+            {$ELSE}
+pchar
+            {$ENDIF}
+            (Title));
         Title2[0] := #0;
         Title3[0] := #0;
         Title4[0] := #0;
@@ -189,21 +225,51 @@ procedure TOutFile32.WriteNames(var Vnames, Cnames: TStringList);
 var
     NumWrite: Integer;
     i: Integer;
-    Buf: array[0..120] of Ansichar;  //120 char buffer to hold names  + null terminator
+    Buf: array[0..120] of
+    {$IFDEF MSWINDOWS}
+    Ansichar
+    {$ELSE}
+char
+    {$ENDIF}
+    ;  //120 char buffer to hold names  + null terminator
 
 begin
 
     if Header.NVoltages > 0 then
         for i := 0 to Vnames.Count - 1 do
         begin
-            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Vnames.Strings[i])));    // Assign string to a buffer
+            Sysutils.StrCopy(Buf,
+                {$IFDEF MSWINDOWS}
+                Pansichar
+                {$ELSE}
+pchar
+                {$ENDIF}
+                (
+                {$IFDEF MSWINDOWS}
+                Ansistring
+                {$ELSE}
+String
+                {$ENDIF}
+                (Vnames.Strings[i])));    // Assign string to a buffer
             BlockWrite(Fout, Buf, Header.VoltNameSize, NumWrite);    // Strings is default property of TStrings
         end;
 
     if Header.NCurrents > 0 then
         for i := 0 to Cnames.Count - 1 do
         begin
-            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Cnames.Strings[i])));    // Assign string to a buffer
+            Sysutils.StrCopy(Buf,
+                {$IFDEF MSWINDOWS}
+                Pansichar
+                {$ELSE}
+pchar
+                {$ENDIF}
+                (
+                {$IFDEF MSWINDOWS}
+                Ansistring
+                {$ELSE}
+String
+                {$ENDIF}
+                (Cnames.Strings[i])));    // Assign string to a buffer
             BlockWrite(Fout, Buf, Header.CurrNameSize, NumWrite);
         end;
 
@@ -275,6 +341,7 @@ initialization
     TOP_Inited := false;
     TOPTransferFile := TOutFile32.Create;
     TOPTransferFile.Fname := 'DSSTransfer.STO';
-
+    {$IFDEF MSWINDOWS}
     CoInitialize(nil);
+    {$ENDIF}
 end.

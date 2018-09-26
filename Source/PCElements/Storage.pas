@@ -2986,8 +2986,20 @@ const
 var
     n,
     i2: Integer;
-    Buff: array[0..BuffSize] of Ansichar;
-    pName: Pansichar;
+    Buff: array[0..BuffSize] of
+    {$IFDEF MSWINDOWS}
+    Ansichar
+    {$ELSE}
+Char
+    {$ENDIF}
+    ;
+    pName:
+    {$IFDEF MSWINDOWS}
+    Pansichar
+    {$ELSE}
+pChar
+    {$ENDIF}
+    ;
 
 begin
     if i < 1 then

@@ -32,7 +32,11 @@ uses
     Utilities,
     DSSGlobals,
     sysutils,
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+     CmdForms,
+    {$ENDIF}
     LineUnits;
 
 procedure DefineOptions;

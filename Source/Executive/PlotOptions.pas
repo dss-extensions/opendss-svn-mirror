@@ -223,7 +223,10 @@ begin
                         'C':
                             PlotType := ptCircuitplot;
                         'E':
-                            PlotType := ptEvolutionPlot;
+                            {$IFDEF MSWINDOWS}
+                            PlotType := ptEvolutionPlot
+                            {$ENDIF}
+                            ;
                         'G':
                             PlotType := ptGeneralDataPlot;
                         'L':
@@ -231,17 +234,29 @@ begin
                         'M':
                             if CompareTextShortest('mon', Param) = 0 then
                                 PlotType := ptMonitorplot
+                            {$IFDEF MSWINDOWS}
                             else
-                                PlotType := ptMatrixplot;
+                                PlotType := ptMatrixplot
+                            {$ENDIF}
+                            ;
                         'P':
+                            {$IFDEF MSWINDOWS}
                             if CompareTextShortest('pro', Param) = 0 then
                                 PlotType := ptProfile
                             else
-                                PlotType := ptPriceShape;
+                                PlotType := ptPriceShape
+                            {$ENDIF}
+                            ;
                         'S':
-                            PlotType := ptScatterPlot;
+                            {$IFDEF MSWINDOWS}
+                            PlotType := ptScatterPlot
+                            {$ENDIF}
+                            ;
                         'T':
-                            PlotType := ptTshape;
+                            {$IFDEF MSWINDOWS}
+                            PlotType := ptTshape
+                            {$ENDIF}
+                            ;
                         'D':
                         begin
                             PlotType := ptDaisyplot;
@@ -265,12 +280,18 @@ begin
                         'P':
                             Quantity := pqpower;
                         'L':
+                            {$IFDEF MSWINDOWS}
                             if CompareTextShortest('los', Param) = 0 then
                                 Quantity := pqlosses
                             else
-                                MatrixType := pLaplacian;
+                                MatrixType := pLaplacian
+                            {$ENDIF}
+                            ;
                         'I':
-                            MatrixType := pIncMatrix;
+                            {$IFDEF MSWINDOWS}
+                            MatrixType := pIncMatrix
+                            {$ENDIF}
+                            ;
                     else
                         Quantity := pqNone;
                         Valueindex := Parser[ActiveActor].IntValue;
@@ -336,15 +357,24 @@ begin
                     InterpretTStringListArray(Param, DaisyBusList);  {read in Bus list}
                 18:
                 begin
+                    {$IFDEF MSWINDOWS}
                     MinScale := Parser[ActiveActor].DblValue;
                     MinScaleIsSpecified := true;    // Indicate the user wants a particular value
+                    {$ENDIF}
                 end;
                 19:
-                    ThreePhLineStyle := Parser[ActiveActor].IntValue;
+                    {$IFDEF MSWINDOWS}
+                    ThreePhLineStyle := Parser[ActiveActor].IntValue
+                    {$ENDIF}
+                    ;
                 20:
-                    SinglePhLineStyle := Parser[ActiveActor].IntValue;
+                    {$IFDEF MSWINDOWS}
+                    SinglePhLineStyle := Parser[ActiveActor].IntValue
+                    {$ENDIF}
+                    ;
                 21:
                 begin  // Parse off phase(s) to plot
+                    {$IFDEF MSWINDOWS}
                     PhasesToPlot := PROFILE3PH; // the default
                     if CompareTextShortest(Param, 'default') = 0 then
                         PhasesToPlot := PROFILE3PH
@@ -366,6 +396,7 @@ begin
                     else
                     if Length(Param) = 1 then
                         PhasesToPlot := Parser[ActiveActor].IntValue;
+                    {$ENDIF}
                 end;
 
             else
@@ -383,6 +414,7 @@ begin
     begin
         if DSS_Viz_enable then
         begin
+            {$IFDEF MSWINDOWS}
             if (DSS_Viz_installed and ((
                 PlotType = ptMonitorplot) or (
                 PlotType = ptLoadshape) or (
@@ -391,15 +423,18 @@ begin
                 PlotType = ptEvolutionPlot) or (
                 PlotType = ptMatrixplot))) then
                 DSSVizPlot; // DSS Visualization tool
+            {$ENDIF}
         end
         else
         begin
+            {$IFDEF MSWINDOWS}
             if (PlotType = ptScatterPlot) or (
                 PlotType = ptEvolutionPlot) or (
                 PlotType = ptMatrixplot) then
                 DoSimpleMsg('The DSS Visualization tool is disabled (Check the DSSVisualizationTool option).', 0)
             else
                 Execute;   // makes a new plot based on these options
+            {$ENDIF}
         end;
     end;
 
