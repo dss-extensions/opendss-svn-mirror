@@ -6,7 +6,7 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>18.4</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -162,6 +162,7 @@
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
         <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Debug Version Distribution System Simulator;FileVersion=7.6.5;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2017 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=7.7.1;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
+        <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_Debug>true</VerInfo_Debug>
@@ -178,6 +179,7 @@
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Debug Version;FileVersion=7.6.5.9999;InternalName=;LegalCopyright=Copyright (C) 2008-2017 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=;ProductVersion=7.6.5;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <BT_BuildType>Debug</BT_BuildType>
         <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <ProjectExtensions>
