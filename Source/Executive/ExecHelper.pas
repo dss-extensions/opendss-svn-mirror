@@ -3341,7 +3341,7 @@ begin
 end;
 
 function DoDI_PlotCmd: Integer;
-    {$IFNDEF DLL_ENGINE}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
 var
     ParamName, Param: String;
     ParamPointer, i: Integer;
@@ -3354,7 +3354,7 @@ var
     PeakDay: Boolean;
     {$ENDIF}
 begin
-    {$IFNDEF DLL_ENGINE}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
     {$IFDEF MSWINDOWS}

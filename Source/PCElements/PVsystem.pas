@@ -2900,13 +2900,7 @@ var
 Char
     {$ENDIF}
     ;
-    pName:
-    {$IFDEF MSWINDOWS}
-    Pansichar
-    {$ELSE}
-pchar
-    {$ENDIF}
-    ;
+    pName: pUTF8char;
 
 begin
     if i < 1 then

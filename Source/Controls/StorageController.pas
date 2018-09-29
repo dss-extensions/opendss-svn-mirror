@@ -647,7 +647,17 @@ begin
 //**** fill in private properties
 
             for i := 1 to ParentClass.NumProperties do
-                PropertyValue[i] := OtherStorageController.PropertyValue[i];
+           // Skip Read only properties
+                case i of
+                    propKWHTOTAL: ; {Do Nothing}
+                    propKWTOTAL: ; {Do Nothing}
+                    propKWHACTUAL: ; {Do Nothing}
+                    propKWACTUAL: ; {Do Nothing}
+                    propKWNEED: ; {Do Nothing}
+                else
+                    PropertyValue[i] := OtherStorageController.PropertyValue[i];
+                end;
+
 
         end
     else

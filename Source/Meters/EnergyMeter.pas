@@ -454,8 +454,9 @@ begin
     CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
     CommandList.Abbrev := true;
 
-
+//{$IFDEF MSWINDOWS}
     GeneratorClass := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('generator'));
+//{$ENDIF}
 
     SystemMeter := TSystemMeter.Create;
 
@@ -761,7 +762,9 @@ begin
             FPhaseVoltageReport := OtherEnergyMeter.FPhaseVoltageReport;
 
             for i := 1 to ParentClass.NumProperties do
-                PropertyValue[i] := OtherEnergyMeter.PropertyValue[i];
+         // Skip Read Only properties
+                if i < 20 then
+                    PropertyValue[i] := OtherEnergyMeter.PropertyValue[i];
 
         end
     else

@@ -937,7 +937,9 @@ begin
             ClassMakeLike(OtherTransf);
 
             for i := 1 to ParentClass.NumProperties do
-                PropertyValue[i] := OtherTransf.PropertyValue[i];
+          // skip read only properties
+                if i <> 45 then
+                    PropertyValue[i] := OtherTransf.PropertyValue[i];
             Result := 1;
         end
     else

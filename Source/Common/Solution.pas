@@ -133,10 +133,6 @@ type
     end;
 
     TSolutionObj = class(TDSSObject)
-
-    PROTECTED
-        UIMsg: TEvent;         // Event handler for this actor (Messages)
-
     PRIVATE
 
         dV: pNodeVArray;   // Array of delta V for Newton iteration
@@ -309,10 +305,9 @@ type
         procedure AddLines2IncMatrix(ActorID: Integer);             // Adds the Lines to the Incidence matrix arrays
         procedure AddXfmr2IncMatrix(ActorID: Integer);              // Adds the Xfmrs to the Incidence matrix arrays
         procedure AddSeriesCap2IncMatrix(ActorID: Integer);         // Adds capacitors in series to the Incidence matrix arrays
-        procedure AddSeriesReac2IncMatrix(ActorID: Integer);         // Adds Reactors in series to the Incidence matrix arrays
-        procedure UI_message;                                        // Message structure for the Actor (1 message initially)
-        procedure WaitForActor(ActorID: Integer);                   // Waits for the actor to finish the latest assigned task
+        procedure AddSeriesReac2IncMatrix(ActorID: Integer);        // Adds Reactors in series to the Incidence matrix arrays
 
+        procedure WaitForActor(ActorID: Integer);                   // Waits for the actor to finish the latest assigned task
     end;
 {==========================================================================}
 
@@ -506,7 +501,7 @@ begin
 
     InitPropertyValues(0);
     ADiakoptics_Ready := false;   // A-Diakoptics needs to be initialized
-    UIMsg := TEvent.Create(nil, true, false, inttostr(ActiveActor));
+    ActorMA_Msg[ActiveActor] := TEvent.Create(nil, false, false, '');
 end;
 
 // ===========================================================================================
@@ -529,7 +524,7 @@ begin
 
     Reallocmem(HarmonicList, 0);
 
-    UIMsg.Free;
+    ActorMA_Msg[ActiveActor].Free;
 // Sends a message to the working actor
     if ActorHandle[ActiveActor] <> nil then
     begin
@@ -567,18 +562,15 @@ end;
 }
 procedure TSolutionObj.WaitForActor(ActorID: Integer);
 var
-    EndFlag: Boolean;
+    WaitFlag: Boolean;
 
 begin
-    EndFlag := true;
-    while EndFlag do
+    WaitFlag := true;
+    while WaitFlag do
     begin
-        UIMsg.WaitFor(1);
-        if not ActorHandle[ActorID].Terminated then
-            EndFlag := ActorHandle[ActorID].Is_Busy
-        else
-            EndFlag := false;
-    end
+        if ActorMA_Msg[ActorID].WaitFor(20000) <> wrTimeout then
+            WaitFlag := false;
+    end;
 end;
 // ===========================================================================================
 procedure TSolutionObj.Solve(ActorID: Integer);
@@ -586,6 +578,8 @@ procedure TSolutionObj.Solve(ActorID: Integer);
 var
     ScriptEd: TScriptEdit;
     {$ENDIF}
+    WaitFlag: Boolean;
+
 begin
     ActiveCircuit[ActorID].Issolved := false;
     SolutionWasAttempted[ActorID] := true;
@@ -624,10 +618,12 @@ begin
     // Creates the actor again in case of being terminated due to an error before
         if ActorHandle[ActorID].Terminated or (ActorHandle[ActorID] = nil) then
         begin
-            ActorHandle[ActorID].Free;
+            if ActorHandle[ActorID].Terminated then
+                ActorHandle[ActorID].Free;
             New_Actor(ActorID);
         end;
     {CheckFaultStatus;  ???? needed here??}
+
     // Resets the event for receiving messages from the active actor
       // Updates the status of the Actor in the GUI
         ActorStatus[ActorID] := 1;    // Global to indicate that the actor is busy
@@ -636,19 +632,25 @@ begin
             ScriptEd.UpdateSummaryForm('1');
         QueryPerformanceCounter(GStartTime);
         {$ENDIF}
-        UIMsg.ResetEvent;
+
+        ActorMA_Msg[ActorID].ResetEvent;
       // Sends message to start the Simulation
         ActorHandle[ActorID].Send_Message(SIMULATE);
       // If the parallel mode is not active, Waits until the actor finishes
         if not Parallel_enabled then
         begin
-            WaitForActor(ActorID);
+            WaitFlag := true;
+            while WaitFlag do
+            begin
+                if ActorMA_Msg[ActorID].WaitFor(20000) <> wrTimeout then
+                    WaitFlag := false;
+            end;
             {$IFDEF MSWINDOWS}
             if not IsDLL then
                 ScriptEd.UpdateSummaryForm('1');
             {$ENDIF}
-        end;
 
+        end;
     except
 
         On E: Exception do
@@ -2444,11 +2446,6 @@ begin
 
 end;
 
-procedure TSolutionObj.UI_message;
-begin
-    UIMsg.SetEvent;
-end;
-
 procedure TSolutionObj.Set_Year(const Value: Integer);
 begin
     if DIFilesAreOpen[ActiveActor] then
@@ -2621,7 +2618,7 @@ begin
     FInfoProc := CallBack;
     FreeOnTerminate := false;
     ActorID := ID;
-    ActorMsg := TEvent.Create(nil, true, false, 'ActorMsg' + inttostr(ActorID));
+    ActorMsg := TEvent.Create(nil, true, false, '');
     MsgType := -1;
     ActorActive := true;
     Processing := false;
@@ -2683,7 +2680,8 @@ begin
             if not Processing then
             begin
                 ActorMsg.ResetEvent;
-                ActorMsg.WaitFor(INFINITE); // Keeps waiting for an incomming message (Event)
+                ActorMsg.WaitFor;
+
                 Processing := true;
                 case MsgType of             // Evaluates the incomming message
                     SIMULATE:                 // Simulates the active ciruit on this actor
@@ -2736,13 +2734,13 @@ begin
                         Processing := false;
                         FMessage := '1';
                         ActorStatus[ActorID] := 0;      // Global to indicate that the actor is ready
-            // If required, sends a message to UI to notify that the actor has finised
-                        if not Parallel_enabled then
-                            Notify_Main
+
+                // Sends a message to Actor Object (UI) to notify that the actor has finised
+                        ActorMA_Msg[ActorID].SetEvent;
                         {$IFDEF MSWINDOWS}
-                        else
-                        if not IsDLL then
-                            queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                        if Parallel_enabled then
+                            if not IsDLL then
+                                queue(CallCallBack); // Refreshes the GUI if running asynchronously
                         {$ENDIF}
                     end;
                     EXIT_ACTOR:                // Terminates the thread
@@ -2752,6 +2750,7 @@ begin
                 else                       // I don't know what the message is
                     DosimpleMsg('Unknown Message.', 7010);
                 end;
+
             end;
         end;
     end;
@@ -2765,8 +2764,7 @@ end;
 
 procedure TSolver.Notify_Main;
 begin
-    with ActiveCircuit[ActorID].Solution do
-        UI_Message;
+    ActorMA_Msg[ActorID].SetEvent;
 end;
 
 procedure TSolver.DoTerminate;        // Is the end of the thread

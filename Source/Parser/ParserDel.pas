@@ -20,8 +20,10 @@ interface
 uses
     Arraydef,
     classes,{controls,}
-    {$IFDEF UNIX}
+    {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+    CmdForms,
     {$ENDIF}
     Sysutils,
     RPN,
@@ -117,11 +119,9 @@ var  //Parser : TParser;
 
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
-    {$IFDEF MSWINDOWS}
     Dialogs;
-    {$ELSE}
-  CmdForms;
     {$ENDIF}
 
 const

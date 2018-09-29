@@ -263,6 +263,8 @@ var
     ConcatenateReports: Boolean;
     IncMat_Ordered: Boolean;
     Parser: array of TParser;
+    ActorMA_Msg: array of TEvent;  // Array to handle the events of each actor
+
 
 {*******************************************************************************
 *    Nomenclature:                                                             *
@@ -892,7 +894,7 @@ var
     {$ENDIF}
 begin
     {$IFDEF MSWINDOWS}
-    ActorHandle[ActorID] := TSolver.Create(false, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryForm);
+    ActorHandle[ActorID] := TSolver.Create(false, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryform);
     {$ELSE}
   ActorHandle[ActorID] :=  TSolver.Create(false,ActorCPU[ActorID],ActorID,nil);
     {$ENDIF}
@@ -977,6 +979,7 @@ initialization
     setlength(ActiveYPrim, CPU_Cores + 1);
     SetLength(SolutionWasAttempted, CPU_Cores + 1);
     SetLength(ActorStatus, CPU_Cores + 1);
+    SetLength(ActorMA_Msg, CPU_Cores + 1);
 
    // Init pointer repositories for the EnergyMeter in multiple cores
 
@@ -1076,15 +1079,26 @@ initialization
     {$ELSE ! CPUX86}
    VersionString    := 'Version ' + GetDSSVersion + ' (32-bit build)';
     {$ENDIF}
+    {$IFDEF MSWINDOWS}
     StartupDirectory := GetCurrentDir + '\';
     SetDataPath(GetDefaultDataDirectory + '\' + ProgramName + '\');
-    {$IFDEF MSWINDOWS}
-    DSS_Registry := TIniRegSave.Create('\Software\' + ProgramName);
+    DSS_Registry := TIniRegSave.Create(DataDirectory[ActiveActor] + 'opendss.ini');
+    {$ELSE}
+        StartupDirectory := GetCurrentDir+'/';
+        SetDataPath (GetDefaultDataDirectory + '/' + ProgramName + '/');
+//      DSS_Registry     := TIniRegSave.Create(DataDirectory + 'opendss.ini');
     {$ENDIF}
     AuxParser := TParser.Create;
+
+    {$IFDEF MSWINDOWS}
     DefaultEditor := 'NotePad';
     DefaultFontSize := 8;
     DefaultFontName := 'MS Sans Serif';
+    {$ELSE}
+   DefaultEditor   := 'xdg-open';
+   DefaultFontSize := 10;
+   DefaultFontName := 'Arial';
+    {$ENDIF}
 
     NoFormsAllowed := false;
 

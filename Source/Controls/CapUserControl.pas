@@ -60,13 +60,7 @@ type
 
     PUBLIC
 
-        FEdit: procedure(s:
-        {$IFDEF MSWINDOWS}
-            Pansichar
-        {$ELSE}
-pchar
-        {$ENDIF}
-            ; Maxlen: Cardinal); STDCALL; // send string to user model to handle
+        FEdit: procedure(s: pUTF8char; Maxlen: Cardinal); STDCALL; // send string to user model to handle
 
         procedure Select;
         procedure UpdateModel;
@@ -178,13 +172,7 @@ end;
 procedure TCapUserControl.Set_Edit(const Value: String);
 begin
     if FID <> 0 then
-        FEdit(
-            {$IFDEF MSWINDOWS}
-            Pansichar(Ansistring(Value))
-            {$ELSE}
-pchar(String(Value))
-            {$ENDIF}
-            , Length(Value));
+        FEdit(pUTF8char(Utf8string(Value)), Length(Value));
 end;
 
 procedure TCapUserControl.Set_Name(const Value: String);

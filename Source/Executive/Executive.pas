@@ -99,6 +99,8 @@ uses
     IniRegSave,
     {$IFDEF MSWINDOWS}
     DSSForms,
+    {$ELSE}
+     CmdForms,
     {$ENDIF}
     KLUSolve;
 
@@ -149,8 +151,9 @@ begin
     CommandList.Free;
     OptionList.Free;
     Circuits.Free;
-
+//{$IFDEF MSWINDOWS}
     DisposeDSSClasses;
+//{$ENDIF}
     Parser[ActiveActor].Free;
 
     inherited Destroy;
@@ -229,9 +232,7 @@ begin
             {Now, Start over}
         CreateDSSClasses;
         CreateDefaultDSSItems;
-        {$IFDEF MSWINDOWS}
         RebuildHelpForm := true; // because class strings have changed
-        {$ENDIF}
           // In case the actor hasn't been destroyed
         if ActorHandle[ActiveActor] <> nil then
         begin
@@ -268,8 +269,8 @@ begin
     CreateDSSClasses;
     Parser[ActiveActor] := Tparser.Create;
     CreateDefaultDSSItems;
-    {$IFDEF MSWINDOWS}
     RebuildHelpForm := true; // because class strings have changed
+    {$IFDEF MSWINDOWS}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
     {$ENDIF}

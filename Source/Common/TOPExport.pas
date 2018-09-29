@@ -51,9 +51,9 @@ CHAR
         Title4,
         Title5: array[0..79] of
         {$IFDEF MSWINDOWS}
-        Ansichar
+        UTF8CHAR
         {$ELSE}
-CHAR
+Widechar
         {$ENDIF}
         ;  // Fixed length 80-byte string  space
     end;
@@ -71,7 +71,7 @@ CHAR
         procedure Close;
         procedure WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
         {$IFDEF MSWINDOWS}
-            Ansistring
+            Utf8string
         {$ELSE}
 string
         {$ENDIF}
@@ -162,9 +162,9 @@ end;
 
 procedure TOutFile32.WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
     {$IFDEF MSWINDOWS}
-    Ansistring
+    Utf8string
     {$ELSE}
-String
+string
     {$ENDIF}
     );
 
@@ -199,14 +199,11 @@ begin
         IdxCurrentNames := IdxVoltNames + NVoltages * VoltNameSize;
         IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
         IdxBaseData := 0;
-
-        sysutils.StrCopy(Title1,
-            {$IFDEF MSWINDOWS}
-            Pansichar
-            {$ELSE}
-pchar
-            {$ENDIF}
-            (Title));
+        {$IFDEF MSWINDOWS}
+        sysutils.StrCopy(Title1, pUTF8char(Title));
+        {$ELSE}
+         sysutils.StrCopy(Title1,pWidechar(Title));
+        {$ENDIF}
         Title2[0] := #0;
         Title3[0] := #0;
         Title4[0] := #0;
@@ -227,9 +224,9 @@ var
     i: Integer;
     Buf: array[0..120] of
     {$IFDEF MSWINDOWS}
-    Ansichar
+    UTF8Char
     {$ELSE}
-char
+WideChar
     {$ENDIF}
     ;  //120 char buffer to hold names  + null terminator
 
@@ -238,38 +235,23 @@ begin
     if Header.NVoltages > 0 then
         for i := 0 to Vnames.Count - 1 do
         begin
-            Sysutils.StrCopy(Buf,
-                {$IFDEF MSWINDOWS}
-                Pansichar
-                {$ELSE}
-pchar
-                {$ENDIF}
-                (
-                {$IFDEF MSWINDOWS}
-                Ansistring
-                {$ELSE}
-String
-                {$ENDIF}
-                (Vnames.Strings[i])));    // Assign string to a buffer
+            {$IFDEF MSWINDOWS}
+            Sysutils.StrCopy(Buf, pUTF8Char(Utf8string(Vnames.Strings[i])));    // Assign string to a buffer
+            {$ELSE}
+        Sysutils.StrCopy(Buf, pWideChar(String(Vnames.Strings[i])));    // Linux
+            {$ENDIF}
             BlockWrite(Fout, Buf, Header.VoltNameSize, NumWrite);    // Strings is default property of TStrings
+
         end;
 
     if Header.NCurrents > 0 then
         for i := 0 to Cnames.Count - 1 do
         begin
-            Sysutils.StrCopy(Buf,
-                {$IFDEF MSWINDOWS}
-                Pansichar
-                {$ELSE}
-pchar
-                {$ENDIF}
-                (
-                {$IFDEF MSWINDOWS}
-                Ansistring
-                {$ELSE}
-String
-                {$ENDIF}
-                (Cnames.Strings[i])));    // Assign string to a buffer
+            {$IFDEF MSWINDOWS}
+            Sysutils.StrCopy(Buf, pUTF8char(Utf8string(Cnames.Strings[i])));    // Assign string to a buffer
+            {$ELSE}
+        Sysutils.StrCopy(Buf, pWidechar(String(Cnames.Strings[i])));    // Linux
+            {$ENDIF}
             BlockWrite(Fout, Buf, Header.CurrNameSize, NumWrite);
         end;
 
