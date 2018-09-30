@@ -2623,7 +2623,7 @@ begin
     ActorActive := true;
     Processing := false;
     {$IFDEF MSWINDOWS}              // Only for windows
-    Parallel.Set_Process_Priority(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+//  Parallel.Set_Process_Priority(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
     Parallel.Set_Thread_affinity(handle, local_CPU);
     Parallel.Set_Thread_Priority(handle, THREAD_PRIORITY_TIME_CRITICAL);
     {$ENDIF}
@@ -2680,7 +2680,7 @@ begin
             if not Processing then
             begin
                 ActorMsg.ResetEvent;
-                ActorMsg.WaitFor;
+                ActorMsg.WaitFor(INFINITE);
 
                 Processing := true;
                 case MsgType of             // Evaluates the incomming message
@@ -2774,6 +2774,7 @@ begin
     ActorActive := false;
     Processing := false;
     ActorStatus[ActorID] := 0;      // Global to indicate that the actor is ready
+    ActorMA_Msg[ActorID].SetEvent;
     ActorMsg.Free;
     inherited;
 end;
