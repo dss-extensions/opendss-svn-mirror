@@ -97,13 +97,7 @@ uses
     Classes;
 
 type
-    TMonitorStrBuffer = array[1..256] of
-        {$IFDEF MSWINDOWS}
-        Ansichar
-        {$ELSE}
- char
-        {$ENDIF}
-        ;
+    TMonitorStrBuffer = array[1..256] of Ansichar;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
    {This has to be named TDSSMonitor because Delphi has a TMonitor Class and the compiler will get confused}
