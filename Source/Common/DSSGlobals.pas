@@ -264,6 +264,7 @@ var
     IncMat_Ordered: Boolean;
     Parser: array of TParser;
     ActorMA_Msg: array of TEvent;  // Array to handle the events of each actor
+    AllActors: Boolean;
 
 
 {*******************************************************************************
@@ -1028,6 +1029,8 @@ initialization
         FM_MHandle[ActiveActor] := nil;
         DIFilesAreOpen[ActiveActor] := false;
     end;
+
+    Allactors := false;
     ActiveActor := 1;
     NumOfActors := 1;
     ActorCPU[ActiveActor] := 0;

@@ -419,7 +419,7 @@ begin
     OptionHelp[109] := 'Delivers the number of threads (CPUs) available on the machine (read Only)';
     OptionHelp[110] := 'Delivers the number of physical processors (Cores) available on the computer. If your computers processor has less than 64 cores, this number should be equal to the half of the available CPUs, otherise the number should  be the same (Read Only)';
     OptionHelp[111] := 'Delivers the number of Actors created by the user, 1 is the default';
-    OptionHelp[112] := 'Gets/Sets the number of the active actor';
+    OptionHelp[112] := 'Gets/Sets the number of the active actor, if the value is * (set active actor=*), the commands send after this instruction will be aplied to all the actors.';
     OptionHelp[113] := 'Gets/Sets the CPU to be used by the active actor';
     OptionHelp[114] := 'Gets progress (%) for all the actors when performing a task';
     OptionHelp[115] := 'Activates/Deactivates the parallel machine in OpenDSS-PM, if deactivated OpenDSS will behave as the classical version';
@@ -479,11 +479,19 @@ begin
                 UpdateRegistry := InterpretYesNo(Param);
             112:
             begin
-                if Parser[ActiveActor].IntValue <= NumOfActors then
-                    ActiveActor := Parser[ActiveActor].IntValue
+                if Parser[ActiveActor].StrValue = '*' then
+                begin
+                    AllActors := true;
+                    ActiveActor := 1;
+                end
                 else
                 begin
-                    DoSimpleMsg('The actor does not exists', 7002);
+                    if Parser[ActiveActor].IntValue <= NumOfActors then
+                        ActiveActor := Parser[ActiveActor].IntValue
+                    else
+                    begin
+                        DoSimpleMsg('The actor does not exists', 7002);
+                    end;
                 end;
             end;
             113:
@@ -820,11 +828,19 @@ begin
                 ActiveCircuit[ActiveActor].Solution.Total_Time := Parser[ActiveActor].DblValue;
             112:
             begin
-                if Parser[ActiveActor].IntValue <= NumOfActors then
-                    ActiveActor := Parser[ActiveActor].IntValue
+                if Parser[ActiveActor].StrValue = '*' then
+                begin
+                    AllActors := true;
+                    ActiveActor := 1;
+                end
                 else
                 begin
-                    DoSimpleMsg('The actor does not exists', 7002);
+                    if Parser[ActiveActor].IntValue <= NumOfActors then
+                        ActiveActor := Parser[ActiveActor].IntValue
+                    else
+                    begin
+                        DoSimpleMsg('The actor does not exists', 7002);
+                    end;
                 end;
             end;
             113:
