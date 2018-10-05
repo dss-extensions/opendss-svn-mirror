@@ -211,9 +211,20 @@ end;
 
 
 procedure TExecutive.Set_Command(const Value: String);
+var
+    idx: Integer;
 begin
-
-    ProcessCommand(Value);
+    if AllActors then    // Applies the same command to all the actors
+    begin
+        for idx := 1 to NumOfActors do
+        begin
+            if AllActors then
+                ActiveActor := idx;
+            ProcessCommand(Value);
+        end;
+    end
+    else                 // Applies the command to the active actor
+        ProcessCommand(Value);
 end;
 
 procedure TExecutive.Clear;

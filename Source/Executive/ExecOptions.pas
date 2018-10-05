@@ -487,7 +487,10 @@ begin
                 else
                 begin
                     if Parser[ActiveActor].IntValue <= NumOfActors then
-                        ActiveActor := Parser[ActiveActor].IntValue
+                    begin
+                        ActiveActor := Parser[ActiveActor].IntValue;
+                        AllActors := false;
+                    end
                     else
                     begin
                         DoSimpleMsg('The actor does not exists', 7002);
@@ -836,7 +839,10 @@ begin
                 else
                 begin
                     if Parser[ActiveActor].IntValue <= NumOfActors then
-                        ActiveActor := Parser[ActiveActor].IntValue
+                    begin
+                        ActiveActor := Parser[ActiveActor].IntValue;
+                        AllActors := false;
+                    end
                     else
                     begin
                         DoSimpleMsg('The actor does not exists', 7002);
@@ -1258,7 +1264,12 @@ begin
                 111:
                     AppendGlobalResult(Format('%d', [NumOfActors]));
                 112:
-                    AppendGlobalResult(Format('%d', [ActiveActor]));
+                begin
+                    if AllActors then
+                        AppendGlobalResult('All')
+                    else
+                        AppendGlobalResult(Format('%d', [ActiveActor]));
+                end;
                 113:
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 114:
@@ -1356,7 +1367,12 @@ begin
                 111:
                     AppendGlobalResult(Format('%d', [NumOfActors]));
                 112:
-                    AppendGlobalResult(Format('%d', [ActiveActor]));
+                begin
+                    if AllActors then
+                        AppendGlobalResult('All')
+                    else
+                        AppendGlobalResult(Format('%d', [ActiveActor]));
+                end;
                 113:
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 115:
