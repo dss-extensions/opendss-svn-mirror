@@ -240,13 +240,10 @@ begin
                             {$ENDIF}
                             ;
                         'P':
-                            {$IFDEF MSWINDOWS}
                             if CompareTextShortest('pro', Param) = 0 then
                                 PlotType := ptProfile
                             else
-                                PlotType := ptPriceShape
-                            {$ENDIF}
-                            ;
+                                PlotType := ptPriceShape;
                         'S':
                             {$IFDEF MSWINDOWS}
                             PlotType := ptScatterPlot

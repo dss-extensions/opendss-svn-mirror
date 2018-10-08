@@ -49,13 +49,7 @@ CHAR
         Title2,
         Title3,
         Title4,
-        Title5: array[0..79] of
-        {$IFDEF MSWINDOWS}
-        UTF8CHAR
-        {$ELSE}
-Widechar
-        {$ENDIF}
-        ;  // Fixed length 80-byte string  space
+        Title5: array[0..79] of Ansichar;  // Fixed length 80-byte string  space
     end;
 
     TOutFile32 = class(Tobject)
@@ -71,7 +65,7 @@ Widechar
         procedure Close;
         procedure WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
         {$IFDEF MSWINDOWS}
-            Utf8string
+            Ansistring
         {$ELSE}
 string
         {$ENDIF}
@@ -162,7 +156,7 @@ end;
 
 procedure TOutFile32.WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
     {$IFDEF MSWINDOWS}
-    Utf8string
+    Ansistring
     {$ELSE}
 string
     {$ENDIF}
@@ -200,7 +194,7 @@ begin
         IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
         IdxBaseData := 0;
         {$IFDEF MSWINDOWS}
-        sysutils.StrCopy(Title1, pUTF8char(Title));
+        sysutils.StrCopy(Title1, Pansichar(Title));
         {$ELSE}
          sysutils.StrCopy(Title1,pWidechar(Title));
         {$ENDIF}
@@ -224,7 +218,7 @@ var
     i: Integer;
     Buf: array[0..120] of
     {$IFDEF MSWINDOWS}
-    UTF8Char
+    Ansichar
     {$ELSE}
 WideChar
     {$ENDIF}
@@ -236,7 +230,7 @@ begin
         for i := 0 to Vnames.Count - 1 do
         begin
             {$IFDEF MSWINDOWS}
-            Sysutils.StrCopy(Buf, pUTF8Char(Utf8string(Vnames.Strings[i])));    // Assign string to a buffer
+            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Vnames.Strings[i])));    // Assign string to a buffer
             {$ELSE}
         Sysutils.StrCopy(Buf, pWideChar(String(Vnames.Strings[i])));    // Linux
             {$ENDIF}
@@ -248,7 +242,7 @@ begin
         for i := 0 to Cnames.Count - 1 do
         begin
             {$IFDEF MSWINDOWS}
-            Sysutils.StrCopy(Buf, pUTF8char(Utf8string(Cnames.Strings[i])));    // Assign string to a buffer
+            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Cnames.Strings[i])));    // Assign string to a buffer
             {$ELSE}
         Sysutils.StrCopy(Buf, pWidechar(String(Cnames.Strings[i])));    // Linux
             {$ENDIF}

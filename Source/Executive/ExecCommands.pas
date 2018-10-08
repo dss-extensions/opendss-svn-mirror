@@ -772,13 +772,7 @@ begin
             11:
                 CmdResult := DoDisableCmd;
             12:
-                CmdResult :=
-                    {$IFDEF MSWINDOWS}
-                    DoPlotCmd
-                {$ELSE}
-DoPropertyDump
-                {$ENDIF}
-                ; //'plot';
+                CmdResult := DoPlotCmd; //'plot';
             13:
                 CmdResult := DoResetCmd(ActiveActor); //'resetmonitors';
             15:

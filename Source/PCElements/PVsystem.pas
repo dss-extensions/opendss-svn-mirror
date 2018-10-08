@@ -2900,7 +2900,7 @@ var
 Char
     {$ENDIF}
     ;
-    pName: pUTF8char;
+    pName: Pansichar;
 
 begin
     if i < 1 then

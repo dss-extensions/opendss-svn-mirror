@@ -2975,7 +2975,7 @@ var
 char
     {$ENDIF}
     ;
-    pName: pUTF8char;
+    pName: Pansichar;
 
 begin
     n := 0;
@@ -3003,7 +3003,7 @@ begin
             i2 := i - NumGenVariables;
             if i2 <= n then
             begin
-                 // DLL functions require AnsiString (UTF8String) type
+                 // DLL functions require AnsiString (AnsiString) type
                 UserModel.FGetVarName(i2, pName, BuffSize);
                 Result := String(pName);
                 Exit;

@@ -254,9 +254,7 @@ var
     ActorCPU: array of Integer;
     ActorStatus: array of Integer;
     ActorProgressCount: array of Integer;
-    {$IFDEF MSWINDOWS}
     ActorProgress: array of TProgress;
-    {$ENDIF}
     ActorPctProgress: array of Integer;
     ActorHandle: array of TSolver;
     Parallel_enabled: Boolean;
@@ -906,14 +904,12 @@ function CheckDSSVisualizationTool: Boolean;
 var
     FileName: String;
 begin
-    {$IFDEF MSWINDOWS}
     DSS_Viz_path := GetIni('Application', 'path', '', TPath.GetHomePath + '\OpenDSS Visualization Tool\settings.ini');
   // to make it compatible with the function
     FileName := stringreplace(DSS_Viz_path, '\\', '\', [rfReplaceAll, rfIgnoreCase]);
     FileName := stringreplace(FileName, '"', '', [rfReplaceAll, rfIgnoreCase]);
   // returns true only if the executable exists
     Result := fileexists(FileName);
-    {$ENDIF}
 end;
 // End of visualization tool check
 {$ENDIF}
@@ -937,9 +933,7 @@ initialization
     CPU_Cores := CPUCount;
 
     setlength(ActiveCircuit, CPU_Cores + 1);
-    {$IFDEF MSWINDOWS}
     setlength(ActorProgress, CPU_Cores + 1);
-    {$ENDIF}
     setlength(ActorCPU, CPU_Cores + 1);
     setlength(ActorProgressCount, CPU_Cores + 1);
     setlength(ActiveDSSClass, CPU_Cores + 1);
@@ -1007,9 +1001,7 @@ initialization
     for ActiveActor := 1 to CPU_Cores do
     begin
         ActiveCircuit[ActiveActor] := nil;
-        {$IFDEF MSWINDOWS}
         ActorProgress[ActiveActor] := nil;
-        {$ENDIF}
         ActiveDSSClass[ActiveActor] := nil;
         EventStrings[ActiveActor] := TStringList.Create;
         SavedFileList[ActiveActor] := TStringList.Create;

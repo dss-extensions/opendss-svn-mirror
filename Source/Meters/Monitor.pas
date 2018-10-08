@@ -806,9 +806,9 @@ var
     iMin: Integer;
     IsPosSeq: Boolean;
     IsPower: Boolean;
-    NameOfState: Utf8string;
-    strPtr: pUTF8Char;
-    Str_Temp: Utf8string;
+    NameOfState: Ansistring;
+    strPtr: Pansichar;
+    Str_Temp: Ansistring;
 
     NumVI: Integer;
     RecordSize: Integer;
@@ -824,59 +824,59 @@ begin
         strPtr := @StrBuffer;
         strPtr^ := chr(0);     // Init string
         if ActiveCircuit[ActorID].Solution.IsHarmonicModel then
-            strLcat(strPtr, pUTF8Char('Freq, Harmonic, '), Sizeof(TMonitorStrBuffer))
+            strLcat(strPtr, Pansichar('Freq, Harmonic, '), Sizeof(TMonitorStrBuffer))
         else
-            strLcat(strPtr, pUTF8Char('hour, t(sec), '), Sizeof(TMonitorStrBuffer));
+            strLcat(strPtr, Pansichar('hour, t(sec), '), Sizeof(TMonitorStrBuffer));
 
         case (Mode and MODEMASK) of
 
             2:
             begin
                 RecordSize := 1;     // Transformer Taps
-                strLcat(strPtr, pUTF8Char('Tap (pu)'), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('Tap (pu)'), Sizeof(TMonitorStrBuffer));
             end;
             3:
             begin
                 RecordSize := NumStateVars;   // Statevariabes
                 for i := 1 to NumStateVars do
                 begin
-                    NameofState := pUTF8Char(TpcElement(MeteredElement).VariableName(i) + ',');
-                    strLcat(strPtr, pUTF8Char(NameofState), Sizeof(TMonitorStrBuffer));
+                    NameofState := Pansichar(TpcElement(MeteredElement).VariableName(i) + ',');
+                    strLcat(strPtr, Pansichar(NameofState), Sizeof(TMonitorStrBuffer));
                 end;
             end;
             4:
             begin
                 RecordSize := 2 * FnPhases;
                 for i := 1 to FnPhases do
-                begin  //AnsString and pUTF8Char replaced with UTF8String and pUTF8Char to make it compatible with Linux
-                    strLcat(strPtr, pUTF8Char(Utf8string('Flk' + IntToStr(i) + ', Pst' + IntToStr(i))), Sizeof(TMonitorStrBuffer));
+                begin  //AnsString and pAnsiChar replaced with AnsiString and pAnsiChar to make it compatible with Linux
+                    strLcat(strPtr, Pansichar(Ansistring('Flk' + IntToStr(i) + ', Pst' + IntToStr(i))), Sizeof(TMonitorStrBuffer));
                     if i < FnPhases then
-                        strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                 end;
             end;
             5:
             begin
                 RecordSize := NumSolutionVars;
-                strLcat(strPtr, pUTF8Char('TotalIterations, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('ControlIteration, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('MaxIterations, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('MaxControlIterations, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('Converged, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('IntervalHrs, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('SolutionCount, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('Mode, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('Frequency, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('Year, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('SolveSnap_uSecs, '), Sizeof(TMonitorStrBuffer));
-                strLcat(strPtr, pUTF8Char('TimeStep_uSecs, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('TotalIterations, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('ControlIteration, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('MaxIterations, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('MaxControlIterations, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('Converged, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('IntervalHrs, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('SolutionCount, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('Mode, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('Frequency, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('Year, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('SolveSnap_uSecs, '), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('TimeStep_uSecs, '), Sizeof(TMonitorStrBuffer));
             end;
             6:
             begin
                 RecordSize := TCapacitorObj(MeteredElement).NumSteps;     // Capacitor Taps
                 for i := 1 to RecordSize do
                 begin
-                    Str_Temp := Utf8string('Step_' + inttostr(i) + ' ');
-                    strLcat(strPtr, pUTF8Char(Str_Temp), Sizeof(TMonitorStrBuffer));
+                    Str_Temp := Ansistring('Step_' + inttostr(i) + ' ');
+                    strLcat(strPtr, Pansichar(Str_Temp), Sizeof(TMonitorStrBuffer));
                 end;
 
             end;
@@ -896,15 +896,15 @@ begin
                     RecordSize := NumTransformerCurrents + 2 * Nphases;     // Transformer Winding Currents
                     for i := 1 to nphases do
                     begin
-                        Str_Temp := Utf8string(Format('V%d,Deg, ', [i]));
-                        strLcat(strPtr, pUTF8Char(Str_Temp), Sizeof(TMonitorStrBuffer));
+                        Str_Temp := Ansistring(Format('V%d,Deg, ', [i]));
+                        strLcat(strPtr, Pansichar(Str_Temp), Sizeof(TMonitorStrBuffer));
                     end;
                     for i := 1 to Nphases do
                     begin
                         for j := 1 to NumberOfWindings do
                         begin
-                            Str_Temp := Utf8string(Format('P%dW%d,Deg, ', [i, j]));
-                            strLcat(strPtr, pUTF8Char(Str_Temp), Sizeof(TMonitorStrBuffer));
+                            Str_Temp := Ansistring(Format('P%dW%d,Deg, ', [i, j]));
+                            strLcat(strPtr, Pansichar(Str_Temp), Sizeof(TMonitorStrBuffer));
                         end;
                     end;
                 end;
@@ -912,7 +912,7 @@ begin
             9:
             begin // watts vars of meteredElement
                 RecordSize := 2;
-                strLcat(strPtr, pUTF8Char('watts, vars'), Sizeof(TMonitorStrBuffer));
+                strLcat(strPtr, Pansichar('watts, vars'), Sizeof(TMonitorStrBuffer));
             end
         else
         begin
@@ -948,23 +948,23 @@ begin
                             Inc(RecordSize, 2);
                         for i := 1 to NumVI do
                         begin
-                            strLcat(strPtr, pUTF8Char(Utf8string(Format('|V|%d (volts)', [i]))), Sizeof(TMonitorStrBuffer));
-                            strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(Ansistring(Format('|V|%d (volts)', [i]))), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                         end;
                         if IncludeResidual then
                         begin
-                            strLcat(strPtr, pUTF8Char('|VN| (volts)'), Sizeof(TMonitorStrBuffer));
-                            strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar('|VN| (volts)'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                         end;
                         for i := 1 to NumVI do
                         begin
-                            strLcat(strPtr, pUTF8Char(Utf8string('|I|' + IntToStr(i) + ' (amps)')), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(Ansistring('|I|' + IntToStr(i) + ' (amps)')), Sizeof(TMonitorStrBuffer));
                             if i < NumVI then
-                                strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                                strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                         end;
                         if IncludeResidual then
                         begin
-                            strLcat(strPtr, pUTF8Char(',|IN| (amps)'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(',|IN| (amps)'), Sizeof(TMonitorStrBuffer));
                         end;
                     end
                     else
@@ -972,11 +972,11 @@ begin
                         for i := 1 to NumVI do
                         begin
                             if PPolar then
-                                strLcat(strPtr, pUTF8Char(Utf8string('S' + IntToStr(i) + ' (kVA)')), Sizeof(TMonitorStrBuffer))
+                                strLcat(strPtr, Pansichar(Ansistring('S' + IntToStr(i) + ' (kVA)')), Sizeof(TMonitorStrBuffer))
                             else
-                                strLcat(strPtr, pUTF8Char(Utf8string('P' + IntToStr(i) + ' (kW)')), Sizeof(TMonitorStrBuffer));
+                                strLcat(strPtr, Pansichar(Ansistring('P' + IntToStr(i) + ' (kW)')), Sizeof(TMonitorStrBuffer));
                             if i < NumVI then
-                                strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                                strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                         end;
                     end;
                 end;
@@ -987,16 +987,16 @@ begin
                     begin
                         RecordSize := RecordSize + 2;
                         if VIPolar then
-                            strLcat(strPtr, pUTF8Char('V1, V1ang, I1, I1ang'), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar('V1, V1ang, I1, I1ang'), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char('V1.re, V1.im, I1.re, I1.im'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar('V1.re, V1.im, I1.re, I1.im'), Sizeof(TMonitorStrBuffer));
                     end
                     else
                     begin
                         if Ppolar then
-                            strLcat(strPtr, pUTF8Char('S1 (kVA), Ang '), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar('S1 (kVA), Ang '), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char('P1 (kW), Q1 (kvar)'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar('P1 (kW), Q1 (kvar)'), Sizeof(TMonitorStrBuffer));
                     end;
                 end;
                 96:
@@ -1005,14 +1005,14 @@ begin
                     if not IsPower then
                     begin
                         RecordSize := RecordSize + 1;
-                        strLcat(strPtr, pUTF8Char('V, I '), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, Pansichar('V, I '), Sizeof(TMonitorStrBuffer));
                     end
                     else
                     begin  // Power
                         if Ppolar then
-                            strLcat(strPtr, pUTF8Char('S1 (kVA)'), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar('S1 (kVA)'), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char('P1 (kW)'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar('P1 (kW)'), Sizeof(TMonitorStrBuffer));
                     end;
                 end;
 
@@ -1036,34 +1036,34 @@ begin
                     for i := iMin to iMax do
                     begin
                         if VIPolar then
-                            strLcat(strPtr, pUTF8Char(Utf8string('V' + IntToStr(i) + ', VAngle' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar(Ansistring('V' + IntToStr(i) + ', VAngle' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char(Utf8string('V' + IntToStr(i) + '.re, V' + IntToStr(i) + '.im')), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(Ansistring('V' + IntToStr(i) + '.re, V' + IntToStr(i) + '.im')), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                     end;
                     if IncludeResidual then
                     begin
                         if VIPolar then
-                            strLcat(strPtr, pUTF8Char('VN, VNAngle'), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar('VN, VNAngle'), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char('VN.re, VN.im'), Sizeof(TMonitorStrBuffer));
-                        strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar('VN.re, VN.im'), Sizeof(TMonitorStrBuffer));
+                        strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                     end;
                     for i := iMin to iMax do
                     begin
                         if VIPolar then
-                            strLcat(strPtr, pUTF8Char(Utf8string('I' + IntToStr(i) + ', IAngle' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar(Ansistring('I' + IntToStr(i) + ', IAngle' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char(Utf8string('I' + IntToStr(i) + '.re, I' + IntToStr(i) + '.im')), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(Ansistring('I' + IntToStr(i) + '.re, I' + IntToStr(i) + '.im')), Sizeof(TMonitorStrBuffer));
                         if i < NumVI then
-                            strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                     end;
                     if IncludeResidual then
                     begin
                         if VIPolar then
-                            strLcat(strPtr, pUTF8Char(', IN, INAngle'), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar(', IN, INAngle'), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char(', IN.re, IN.im'), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(', IN.re, IN.im'), Sizeof(TMonitorStrBuffer));
                     end;
                 end
                 else
@@ -1081,11 +1081,11 @@ begin
                     for i := iMin to iMax do
                     begin
                         if Ppolar then
-                            strLcat(strPtr, pUTF8Char(Utf8string('S' + IntToStr(i) + ' (kVA), Ang' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
+                            strLcat(strPtr, Pansichar(Ansistring('S' + IntToStr(i) + ' (kVA), Ang' + IntToStr(i))), Sizeof(TMonitorStrBuffer))
                         else
-                            strLcat(strPtr, pUTF8Char(Utf8string('P' + IntToStr(i) + ' (kW), Q' + IntToStr(i) + ' (kvar)')), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(Ansistring('P' + IntToStr(i) + ' (kW), Q' + IntToStr(i) + ' (kvar)')), Sizeof(TMonitorStrBuffer));
                         if i < NumVI then
-                            strLcat(strPtr, pUTF8Char(', '), Sizeof(TMonitorStrBuffer));
+                            strLcat(strPtr, Pansichar(', '), Sizeof(TMonitorStrBuffer));
                     end;
                 end;
             end;
@@ -1679,7 +1679,7 @@ var
     i: Cardinal;
     Mode: Integer;
     Nread: Cardinal;
-    pStr: pUTF8Char;
+    pStr: Pansichar;
     RecordBytes: Cardinal;
     RecordSize: Cardinal;
     s: Single;
@@ -1861,7 +1861,7 @@ var
     ObjList: TPointerList;
     Hours: Boolean;
     StrBuffer: TMonitorStrBuffer;
-    pStrBuffer: pUTF8Char;
+    pStrBuffer: Pansichar;
     Fversion, FSignature, iMode: Integer;
     Nread, RecordSize, RecordBytes, PositionSave: Cardinal;
     sngBuffer: array[1..100] of Single;
