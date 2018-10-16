@@ -781,10 +781,10 @@ function TCircuit.Get_SystemY: Olevariant;
 {Return System Y matrix, complex form}
 
 var
-    iV: Longword;
-    i, j, p: Longword;
+    iV, nBus, nNZ,
+    i, j, p,
     NValues: Longword;
-    hY, nBus, nNZ: Nativeuint;
+    hY: Nativeuint;
     ColPtr, RowIdx: array of Longword;
     cVals: array of Complex;
 

@@ -143,10 +143,7 @@ begin
         begin  // Parallel.AxtorState Read
             for i := 1 to NumOfActors do
             begin
-                if ActorHandle[i].Is_Busy then
-                    arg[i] := 0
-                else
-                    arg[i] := 1;
+                arg[i] := ActorStatus[i];
             end;
         end
     else
