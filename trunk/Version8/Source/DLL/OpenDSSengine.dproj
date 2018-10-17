@@ -9,7 +9,7 @@
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -105,19 +105,19 @@
         <VerInfo_Build>1</VerInfo_Build>
         <Debugger_HostApplication>C:\Users\prdu001\Delprogs\DGScreener3\DGScreener3.exe</Debugger_HostApplication>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.3.2.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.3.3.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_Release>2</VerInfo_Release>
+        <VerInfo_Release>3</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_MinorVer>3</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=8.3.2.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=8.3.3.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_Release>2</VerInfo_Release>
+        <VerInfo_Release>3</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSSengine.dll</DCC_DependencyCheckOutputName>
