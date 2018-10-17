@@ -566,14 +566,14 @@ var
 
 begin
     WaitFlag := true;
-    if ActorStatus[ActorID] <> 0 then
+    if ActorStatus[ActorID] = 0 then
     begin
         while WaitFlag do
         begin
             if ActorMA_Msg[ActorID].WaitFor(100) <> wrTimeout then
                 WaitFlag := false
             else
-            if ActorStatus[ActorID] = 0 then
+            if ActorStatus[ActorID] = 1 then
                 WaitFlag := false;
         end;
     end;
@@ -632,7 +632,7 @@ begin
 
     // Resets the event for receiving messages from the active actor
       // Updates the status of the Actor in the GUI
-        ActorStatus[ActorID] := 1;    // Global to indicate that the actor is busy
+        ActorStatus[ActorID] := 0;    // Global to indicate that the actor is busy
         {$IFDEF MSWINDOWS}
         if not IsDLL then
             ScriptEd.UpdateSummaryForm('1');
@@ -2735,7 +2735,7 @@ begin
                         Total_Time_Elapsed := Total_Time_Elapsed + Total_Solve_Time_Elapsed;
                         Processing := false;
                         FMessage := '1';
-                        ActorStatus[ActorID] := 0;      // Global to indicate that the actor is ready
+                        ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
 
                 // Sends a message to Actor Object (UI) to notify that the actor has finised
                         ActorMA_Msg[ActorID].SetEvent;
@@ -2775,7 +2775,7 @@ var
 begin
     ActorActive := false;
     Processing := false;
-    ActorStatus[ActorID] := 0;      // Global to indicate that the actor is ready
+    ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
     ActorMA_Msg[ActorID].SetEvent;
     ActorMsg.SetEvent;
     ActorMsg.Free;

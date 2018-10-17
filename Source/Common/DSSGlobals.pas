@@ -897,6 +897,7 @@ begin
     {$ELSE}
   ActorHandle[ActorID] :=  TSolver.Create(false,ActorCPU[ActorID],ActorID,nil);
     {$ENDIF}
+    ActorStatus[ActorID] := 1;
 end;
 
 {$IFNDEF FPC}
@@ -1009,6 +1010,7 @@ initialization
         ErrorStrings[ActiveActor].Clear;
         ActorHandle[ActiveActor] := nil;
         Parser[ActiveActor] := nil;
+        ActorStatus[ActiveActor] := 1;
 
         OV_MHandle[ActiveActor] := nil;
         VR_MHandle[ActiveActor] := nil;
