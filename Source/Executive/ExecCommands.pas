@@ -670,11 +670,7 @@ begin
                 DoClearAllCmd;
             107:
             begin
-                for i := 1 to NumOfActors do
-                begin
-                    with ActiveCircuit[i].Solution do
-                        WaitForActor(i);
-                end;
+                Wait4Actors;
             end;
             108:
             begin

@@ -86,9 +86,7 @@ begin
         end;
         8:
         begin  // Parallel.Wait
-            for i := 1 to NumOfActors do
-                with ActiveCircuit[i].Solution do
-                    WaitForActor(i);
+            Wait4Actors;
         end;
         9:
         begin  // Parallel.ActiveParallel Read

@@ -2380,7 +2380,7 @@ begin
                         end;
                 else
                     with LoadElem do
-                        AllocationFactor := AllocationFactor * AvgAllocFactor;
+                        AllocationFactor := AllocationFactor * SensorObj.AvgAllocFactor;
                 end;  {CASE}
             LoadElem := BranchList.NextObject    {Next load at this bus}
         end;   {While Loadelem}
