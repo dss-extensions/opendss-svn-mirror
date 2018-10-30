@@ -309,7 +309,6 @@ type
         procedure AddSeriesCap2IncMatrix(ActorID: Integer);         // Adds capacitors in series to the Incidence matrix arrays
         procedure AddSeriesReac2IncMatrix(ActorID: Integer);        // Adds Reactors in series to the Incidence matrix arrays
 
-        procedure WaitForActor(ActorID: Integer);                   // Waits for the actor to finish the latest assigned task
     end;
 {==========================================================================}
 
@@ -556,31 +555,7 @@ begin
 
     end;  {WITH}
 end;
-// ===========================================================================================
-{ Waits until the actor finishes the last task
-  This iterative routine was implemented because sometimes the
-  Solving actor is much faster than the calling thread, so, probably the
-  actor sent his response before we were able to wait for it and it may get
-  lost
-}
-procedure TSolutionObj.WaitForActor(ActorID: Integer);
-var
-    WaitFlag: Boolean;
 
-begin
-    WaitFlag := true;
-    if ActorStatus[ActorID] = 0 then
-    begin
-        while WaitFlag do
-        begin
-            if ActorMA_Msg[ActorID].WaitFor(100) <> wrTimeout then
-                WaitFlag := false
-            else
-            if ActorStatus[ActorID] = 1 then
-                WaitFlag := false;
-        end;
-    end;
-end;
 // ===========================================================================================
 procedure TSolutionObj.Solve(ActorID: Integer);
 var
@@ -2630,7 +2605,7 @@ begin
     {$IFDEF MSWINDOWS}              // Only for windows
 //  Parallel.Set_Process_Priority(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
     Parallel.Set_Thread_affinity(handle, local_CPU);
-    Parallel.Set_Thread_Priority(handle, THREAD_PRIORITY_TIME_CRITICAL);
+//  Parallel.Set_Thread_Priority(handle,THREAD_PRIORITY_TIME_CRITICAL);
     {$ENDIF}
 
 end;
@@ -2663,7 +2638,7 @@ begin
     ActorCPU[ActorID] := CPU;
     {$IFDEF MSWINDOWS}
     Parallel.Set_Thread_affinity(handle, CPU);
-    Parallel.Set_Thread_Priority(handle, THREAD_PRIORITY_TIME_CRITICAL);
+//  Parallel.Set_Thread_Priority(handle,THREAD_PRIORITY_TIME_CRITICAL);
     {$ENDIF}
 end;
 
@@ -2682,7 +2657,7 @@ var
 begin
     with ActiveCircuit[ActorID].Solution do
     begin
-        ActorMsg.ResetEvent;
+//      ActorMsg.ResetEvent;
         while ActorActive do
         begin
 

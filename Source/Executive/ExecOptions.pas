@@ -39,7 +39,8 @@ uses
     Sysutils,
     ScriptEdit,
     Solution,
-    Energymeter;
+    Energymeter,
+    Diakoptics;
 
 procedure DefineOptions;
 
@@ -436,7 +437,8 @@ begin
         'Normally Time and Duty modes do not automatically sample EnergyMeters whereas Daily, Yearly, M1, M2, M3, LD1 and LD2 modes do. ' +
         'Use this Option to turn sampling on or off';
     OptionHelp[122] := '{YES/TRUE | NO/FALSE} Activates the A-Diakoptics solution algorithm for using spatial parallelization on the feeder.' + CRLF +
-        'This parameter only affects Actor 1, no matter from which actor is called';
+        'This parameter only affects Actor 1, no matter from which actor is called. When activated (True), OpenDSS will start the ' + CRLF +
+        'initialization routine for the A-Diakoptics solution mode';
     OptionHelp[123] := 'Minimum number of iterations required for a solution. Default is 2.';
 end;
 //----------------------------------------------------------------------------
@@ -885,7 +887,10 @@ begin
             121:
                 ActiveCircuit[ActiveActor].Solution.SampleTheMeters := InterpretYesNo(Param);
             122:
-                ActiveCircuit[1].ADiakoptics := InterpretYesNo(Param);
+            begin
+                ADiakoptics := InterpretYesNo(Param);
+                ADiakopticsInit();
+            end;
             123:
                 ActiveCircuit[ActiveActor].solution.MinIterations := Parser[ActiveActor].IntValue
         else
@@ -1307,7 +1312,7 @@ begin
                     else
                         AppendGlobalResult('No');
                 122:
-                    if ActiveCircuit[1].ADiakoptics then
+                    if ADiakoptics then
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');

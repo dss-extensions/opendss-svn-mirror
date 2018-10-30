@@ -208,8 +208,8 @@ begin
         else
             MessageDlg('Message too long; See Result Form.', mtInformation, [mbOK], 0);
     end
-//     else
-//    ScriptEd.PublishMessage(Str);
+    else
+        ScriptEd.PublishMessage(Str);
 end;
 
 

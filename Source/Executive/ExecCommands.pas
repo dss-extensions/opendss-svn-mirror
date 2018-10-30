@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 118;
+    NumExecCommands = 117;
 
 var
 
@@ -167,15 +167,14 @@ begin
     ExecCommand[107] := 'Wait';
     ExecCommand[108] := 'SolveAll';
     ExecCommand[109] := 'CalcIncMatrix';
-    ExecCommand[110] := 'Init_Diakoptics';
-    ExecCommand[111] := 'CalcIncMatrix_O';
-    ExecCommand[112] := 'Tear_Circuit';
-    ExecCommand[113] := 'Connect';
-    ExecCommand[114] := 'Disconnect';
-    ExecCommand[115] := 'Refine_BusLevels';
-    ExecCommand[116] := 'Remove';
-    ExecCommand[117] := 'Abort';
-    ExecCommand[118] := 'CalcLaplacian';
+    ExecCommand[110] := 'CalcIncMatrix_O';
+    ExecCommand[111] := 'Tear_Circuit';
+    ExecCommand[112] := 'Connect';
+    ExecCommand[113] := 'Disconnect';
+    ExecCommand[114] := 'Refine_BusLevels';
+    ExecCommand[115] := 'Remove';
+    ExecCommand[116] := 'Abort';
+    ExecCommand[117] := 'CalcLaplacian';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -501,16 +500,15 @@ begin
     CommandHelp[107] := 'Pauses the script thread until all the active actors are Ready to receive new commands (Under Testing)';
     CommandHelp[108] := 'Solves all the circuits loaded into memory';
     CommandHelp[109] := 'Calculates the incidence matrix of the Active Circuit';
-    CommandHelp[110] := 'Initializes the Diakoptics algorithm by tearing the system, creating subsystems and the memory space for processing. It must be invoked before solving the system using this algorithm';
-    CommandHelp[111] := 'Calculates the incidence matrix of the Active Circuit. However, in this case the matrix will be calculated by considering its hierarchical order,' +
+    CommandHelp[110] := 'Calculates the incidence matrix of the Active Circuit. However, in this case the matrix will be calculated by considering its hierarchical order,' +
         'which means that the buses order will be generated considering their distribution from the substation to the last load in a radial hierarchy';
-    CommandHelp[112] := 'Estimates the buses for tearing the system in many parts as CPUs - 1 are in the local computer, is used for creating a balanced distribution of' +
+    CommandHelp[111] := 'Estimates the buses for tearing the system in many parts as CPUs - 1 are in the local computer, is used for creating a balanced distribution of' +
         'Distribution of subsystems for the A-Diakoptics algorithm';
-    CommandHelp[113] := 'Request to create a TCP/IP socket to communicate data with external modules. This function requires the host address and TCP port to connect.';
-    CommandHelp[114] := 'Request to terminate a TCP/IP socket. This function requires the host address and TCP port to disconnect.';
-    CommandHelp[115] := 'This function takes the bus levels array and traces all the possible paths considering the longest paths from the substation to the longest branches' +
+    CommandHelp[112] := 'Request to create a TCP/IP socket to communicate data with external modules. This function requires the host address and TCP port to connect.';
+    CommandHelp[113] := 'Request to terminate a TCP/IP socket. This function requires the host address and TCP port to disconnect.';
+    CommandHelp[114] := 'This function takes the bus levels array and traces all the possible paths considering the longest paths from the substation to the longest branches' +
         ' within the circuit. Then, the new paths are filled with 0 to complement the oroginal levels proposed by the calcincmatrix_o command.';
-    CommandHelp[116] := '{ElementName=} [KeepLoad=Y*/N] [EditString="..."] ' +
+    CommandHelp[115] := '{ElementName=} [KeepLoad=Y*/N] [EditString="..."] ' +
         'Remove (disable) all branches downline from the PDelement named by "ElementName" property. Circuit must have an Energymeter on this branch. ' +
         'If KeepLoad=Y (default) a new Load element is defined and kW, kvar set to ' +
         'present power flow solution for the first element eliminated. ' +
@@ -519,8 +517,8 @@ begin
         'Remove Line.Lin3021' + CRLF +
         'Remove Line.L22 Editstring="Daily=Dailycurve Duty=SolarShape' + CRLF +
         'Remove Line.L333 KeepLoad=No';
-    CommandHelp[117] := 'Aborts all the simulations running';
-    CommandHelp[118] := 'Calculate the laplacian matrix using the incidence matrix' + CRLF +
+    CommandHelp[116] := 'Aborts all the simulations running';
+    CommandHelp[117] := 'Calculate the laplacian matrix using the incidence matrix' + CRLF +
         'previously calculated, this means that before calling this command' + CRLF +
         'the incidence matrix needs to be calculated using calcincmatrix/calcincmatrix_o';
 
@@ -686,23 +684,19 @@ begin
             end;
             110:
             begin
-                ADiakopticsInit();
+                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix_Org(ActiveActor);
             end;
             111:
             begin
-                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix_Org(ActiveActor);
-            end;
-            112:
-            begin
                 ADiakoptics_Tearing();
             end;
-            115:
+            114:
             begin
                 ActiveCircuit[ActiveActor].Get_paths_4_Coverage();
                 Temp_int := length(ActiveCircuit[ActiveActor].Path_Idx) - 1;
                 GlobalResult := inttostr(Temp_int) + ' new paths detected';
             end;
-            118:
+            117:
             begin
                 with ActiveCircuit[ActiveActor].Solution do
                 begin
@@ -932,17 +926,17 @@ begin
             104:
                 CmdResult := DoNodeListCmd;
             {$IFNDEF FPC}
-            113:
+            112:
                 CmdResult := DoConnectCmd; //'TCP/IP connect';
-            114:
+            113:
                 CmdResult := DoDisConnectCmd; //'TCP/IP disconnect';
             {$ELSE}
-      113: Begin DSSInfoMessageDlg('Winsock TCP/IP connection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
-      114: Begin DSSInfoMessageDlg('Winsock TCP/IP disconnection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
+      112: Begin DSSInfoMessageDlg('Winsock TCP/IP connection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
+      113: Begin DSSInfoMessageDlg('Winsock TCP/IP disconnection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
             {$ENDIF}
-            116:
+            115:
                 DoRemoveCmd;
-            117:
+            116:
                 SolutionAbort := true;
         else
        // Ignore excess parameters

@@ -186,8 +186,6 @@ type
         NumDevices, NumBuses, NumNodes: Integer;
         MaxDevices, MaxBuses, MaxNodes: Integer;
         IncDevices, IncBuses, IncNodes: Integer;
-          // Flag to signal that the A-Diakoptics parallelization will be used
-        ADiakoptics: Boolean;
 
           // Variables for the tearing Algorithm
 
@@ -546,7 +544,6 @@ begin
     Branch_List := nil;
     BusAdjPC := nil;
     BusAdjPD := nil;
-    ADiakoptics := false;
 
    // tearing algorithm vars initialization
 
