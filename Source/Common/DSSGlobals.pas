@@ -444,12 +444,12 @@ begin
         end
         else
             DSSMessageDlg(Msg, true);
-
     end;
 
     LastErrorMessage := Msg;
     ErrorNumber := ErrNum;
     AppendGlobalResultCRLF(Msg);
+    SolutionAbort := true;
 end;
 
 //----------------------------------------------------------------------------

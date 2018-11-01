@@ -189,6 +189,7 @@ begin
 //     else
 //      ScriptEd.PublishMessage(Str);
     Result := -1;
+    SolutionAbort := true;
 end;
 
 procedure DSSInfoMessageDlg(const Msg: String);
@@ -207,9 +208,10 @@ begin
             MessageDlg(Msg, mtInformation, [mbOK], 0)
         else
             MessageDlg('Message too long; See Result Form.', mtInformation, [mbOK], 0);
-    end
-    else
-        ScriptEd.PublishMessage(Str);
+    end;
+//     else
+//     ScriptEd.PublishMessage(Str);
+    SolutionAbort := true;
 end;
 
 
