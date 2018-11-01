@@ -840,7 +840,7 @@ begin
                 RecordSize := NumStateVars;   // Statevariabes
                 for i := 1 to NumStateVars do
                 begin
-                    NameofState := Pansichar(TpcElement(MeteredElement).VariableName(i) + ',');
+                    NameofState := Ansistring(TpcElement(MeteredElement).VariableName(i) + ',');
                     strLcat(strPtr, Pansichar(NameofState), Sizeof(TMonitorStrBuffer));
                 end;
             end;
