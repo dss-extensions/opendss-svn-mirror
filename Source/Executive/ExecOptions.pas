@@ -889,7 +889,8 @@ begin
             122:
             begin
                 ADiakoptics := InterpretYesNo(Param);
-                ADiakopticsInit();
+                if ADIakoptics then
+                    ADiakopticsInit();  // Initalizes the parallel environment if enabled
             end;
             123:
                 ActiveCircuit[ActiveActor].solution.MinIterations := Parser[ActiveActor].IntValue
