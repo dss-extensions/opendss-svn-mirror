@@ -278,7 +278,7 @@ begin
     if ActiveCircuit[ActiveActor] <> nil then
     begin
         ActiveCircuit[ActiveActor].Solution.dynavars.h := Value;
-        Set_IntervalHrs(Value);     // Keep IntervalHrs in synch with time step size
+        Set_IntervalHrs(Value / 3600.0);     // Keep IntervalHrs in synch with time step size
     end;
 end;
 
