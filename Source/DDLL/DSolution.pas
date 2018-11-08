@@ -428,7 +428,11 @@ begin
         5:
         begin  // Solution.StepSize Write
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 ActiveCircuit[ActiveActor].Solution.dynavars.h := arg;
+      // Keep IntervalHrs in synch with time step size
+                ActiveCircuit[ActiveActor].Solution.IntervalHrs := arg / 3600.0;
+            end;
             Result := 0.0;
         end;
         6:
