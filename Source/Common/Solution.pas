@@ -53,11 +53,11 @@ uses
     System.Diagnostics,
     System.TimeSpan,
     System.Classes,
-    Parallel_Lib,
     {$IFDEF MSWINDOWS}
+    Parallel_Lib,
     Windows,
-    Dialogs,
     {$ENDIF}
+    Dialogs,
     Sparse_Math,
     SyncObjs,
     CktElement;
