@@ -20,11 +20,11 @@ interface
 uses
     Arraydef,
     classes,{controls,}
-//    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
-//    {$ELSE}
-//    CmdForms,
-//    {$ENDIF}
+    {$ELSE}
+    CmdForms,
+    {$ENDIF}
     Sysutils,
     RPN,
     HashList;

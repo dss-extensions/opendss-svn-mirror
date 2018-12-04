@@ -176,7 +176,9 @@ implementation
 
 uses
     DSSGraph,
+    {$IFDEF MSWINDOWS}
     TCP_IP,
+    {$ENDIF}
     Comobj,
     DSSClassDefs,
     DssGlobals,
@@ -1132,6 +1134,7 @@ end;
 
 procedure TDSSPlot.DSSVizPlot;
 begin
+    {$IFDEF MSWINDOWS}
     if not Assigned(DSSConnectObj) then // First connection
     begin
         DSSConnectObj := TDSSConnect.Create;  // Creates the connection
@@ -1158,6 +1161,7 @@ begin
                 DSSConnectObj.MatrixPlotMsg(0)
         end;
     end;
+    {$ENDIF}
 end;
 
 function TDSSPlot.InterpolateGradientColor(Color1, Color2: TColor;
@@ -2464,7 +2468,9 @@ begin
             pStrBuffer := @StrBuffer;
             with MonitorStream do
             begin
+                {$IFNDEF Linux}           // Was throwing E2251 (ambiguous olverloaded...) in Linux
                 Seek(0, soFromBeginning); // Start at the beginning of the Stream
+                {$ENDIF}
                 Read(FSignature, Sizeof(FSignature));
                 Read(Fversion, Sizeof(Fversion));
                 Read(RecordSize, Sizeof(RecordSize));

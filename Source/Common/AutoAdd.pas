@@ -99,7 +99,7 @@ uses
     Utilities,
     SysUtils,
     Executive,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
       CmdForms,

@@ -161,12 +161,8 @@ uses
     mathutil,
     Bus,
     SolutionAlgs,
-    {$IFDEF MSWINDOWS}
     DSSForms,
     DssPlot,
-    {$ELSE}
-CmdForms,
-    {$ENDIF}
     ExecCommands,
     Executive,
     Dynamics,

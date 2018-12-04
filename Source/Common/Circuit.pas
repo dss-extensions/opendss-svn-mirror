@@ -350,14 +350,15 @@ uses
     Utilities,
     Executive,
     StrUtils
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     ,
     DSSForms,
+    {$ELSE}
+     ,CmdForms,
+    {$ENDIF}
     SHELLAPI,
     windows;
-{$ELSE}
-     ,CmdForms;
-    {$ENDIF}
+
 
 //----------------------------------------------------------------------------
 constructor TDSSCircuit.Create(const aName: String);

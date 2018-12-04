@@ -9,14 +9,16 @@ unit TCP_IP;
 interface
 
 uses
-    System.Win.ScktComp,
     SysUtils,
     System.JSON,
     ShellApi,
+    {$IFDEF MSWINDOWS}
+    System.Win.ScktComp,
     TlHelp32,
-    Windows,
     Winsock,
-    DSSPlot;
+    DSSPlot,
+    {$ENDIF}
+    Windows;
 
 type
     IntegerArray1d = array of Integer;
@@ -33,13 +35,43 @@ type
     pStringArray2d = ^StringArray2d;
 
     TDSSConnect = class(TObject)
-        procedure MySocketRead(Sender: TObject; Socket: TCustomWinSocket);
-        procedure MySocketDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-        procedure MySocketError(Sender: TObject; Socket: TCustomWinSocket;
-            ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+        procedure MySocketRead(Sender: TObject; Socket:
+        {$IFDEF MSWINDOWS}
+            TCustomWinSocket
+        {$ELSE}
+integer
+        {$ENDIF}
+            );
+        procedure MySocketDisconnect(Sender: TObject; Socket:
+        {$IFDEF MSWINDOWS}
+            TCustomWinSocket
+        {$ELSE}
+integer
+        {$ENDIF}
+            );
+        procedure MySocketError(Sender: TObject; Socket:
+        {$IFDEF MSWINDOWS}
+            TCustomWinSocket
+        {$ELSE}
+integer
+        {$ENDIF}
+            ;
+            ErrorEvent:
+        {$IFDEF MSWINDOWS}
+            TErrorEvent
+        {$ELSE}
+integer
+        {$ENDIF}
+            ; var ErrorCode: Integer);
     PRIVATE
         myStr: String;
-        MySocket: TClientSocket;
+        MySocket:
+        {$IFDEF MSWINDOWS}
+        TClientSocket
+        {$ELSE}
+integer
+        {$ENDIF}
+        ;
     PUBLIC
         constructor Create;
         destructor Destroy; OVERRIDE;

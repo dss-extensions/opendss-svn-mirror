@@ -53,10 +53,8 @@ uses
     System.Diagnostics,
     System.TimeSpan,
     System.Classes,
-    {$IFDEF MSWINDOWS}
     Parallel_Lib,
     Windows,
-    {$ENDIF}
     Dialogs,
     Sparse_Math,
     SyncObjs,
@@ -322,8 +320,8 @@ uses
     SolutionAlgs,
     DSSClassDefs,
     DSSGlobals,
-    {$IFDEF MSWINDOWS}
     SHELLAPI,
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
       CmdForms,
@@ -613,7 +611,9 @@ begin
 
         if not IsDLL then
             ScriptEd.UpdateSummaryForm('1');
+        {$IFDEF MSWINDOWS}
         QueryPerformanceCounter(GStartTime);
+        {$ENDIF}
 
 
       // Sends message to start the Simulation

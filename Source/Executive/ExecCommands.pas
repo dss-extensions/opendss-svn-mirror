@@ -42,9 +42,9 @@ uses
     Utilities,
     SolutionAlgs,
     DSSClassDefs,
-    {$IFDEF MSWINDOWS}
     PlotOptions,
     windows,
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CmdForms,

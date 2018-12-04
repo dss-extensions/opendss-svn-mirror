@@ -19,7 +19,7 @@ unit IniRegSave;
 
 interface
 
-{$IFDEF MSWINDOWS}
+//{$IFDEF MSWINDOWS}
 uses
     Registry;
 
@@ -52,11 +52,11 @@ type
         constructor Create(const Name: String);
         destructor Destroy; OVERRIDE;
     end;
-    {$ENDIF}
+//{$ENDIF}
 
 implementation
 
-{$IFDEF MSWINDOWS}
+//{$IFDEF MSWINDOWS}
 
 
 constructor TIniRegSave.Create(const Name: String);
@@ -111,5 +111,5 @@ procedure TIniRegSave.ClearSection;
 begin
     FiniFile.EraseSection(FSection);
 end;
-{$ENDIF}
+//{$ENDIF}
 end.

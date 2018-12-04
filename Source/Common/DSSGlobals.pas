@@ -35,10 +35,10 @@ uses
     Circuit,
     IniRegSave,
     {$IFNDEF FPC}
-    {$IFDEF MSWINDOWS}
+//     {$IFDEF MSWINDOWS}
     Graphics,
     System.IOUtils,
-    {$ENDIF}
+//     {$ENDIF}
     {$ENDIF}
     inifiles,
 
@@ -64,10 +64,10 @@ uses
     InvControl,
     ExpControl,
     variants,
-    {$IFDEF MSWINDOWS}
+//     {$IFDEF MSWINDOWS}
     ProgressForm,
     vcl.dialogs,
-    {$ENDIF}
+//     {$ENDIF}
     Strutils,
     Types,
     SyncObjs,
@@ -138,9 +138,9 @@ var
     DLLFirstTime: Boolean = true;
     DLLDebugFile: TextFile;
     ProgramName: String;
-    {$IFDEF MSWINDOWS}
+//   {$IFDEF MSWINDOWS}
     DSS_Registry: TIniRegSave; // Registry   (See Executive)
-    {$ENDIF}
+//   {$ENDIF}
 
    // Global variables for the DSS visualization tool
     DSS_Viz_installed: Boolean = false; // DSS visualization tool (flag of existance)
@@ -203,9 +203,9 @@ var
     DefaultEditor: String;     // normally, Notepad
     DefaultFontSize: Integer;
     DefaultFontName: String;
-    {$IFDEF MSWINDOWS}
+//   {$IFDEF MSWINDOWS}
     DefaultFontStyles: TFontStyles;
-    {$ENDIF}
+//   {$ENDIF}
     DSSFileName: String;     // Name of current exe or DLL
     DSSDirectory: String;     // where the current exe resides
     StartupDirectory: String;     // Where we started
@@ -347,10 +347,13 @@ implementation
 
 uses {Forms,   Controls,}
     SysUtils,
-    {$IFDEF MSWINDOWS}
+//     {$IFDEF MSWINDOWS}
     Windows,
+    {$IFDEF MSWINDOWS}
     SHFolder,
+    {$ENDIF}
     ScriptEdit,
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CMDForms,
@@ -915,7 +918,13 @@ var
     ScriptEd: TScriptEdit;
 begin
     ActorHandle[ActorID] := TSolver.Create(true, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryform, ActorMA_Msg[ActorID]);
-    ActorHandle[ActorID].Priority := tpTimeCritical;
+    ActorHandle[ActorID].Priority :=
+        {$IFDEF MSWINDOWS}
+        tpTimeCritical
+    {$ELSE}
+6
+    {$ENDIF}
+    ;
     ActorHandle[ActorID].Resume;
     ActorStatus[ActorID] := 1;
 end;
@@ -934,7 +943,7 @@ begin
 end;
 // End of visualization tool check
 {$ENDIF}
-{$IFDEF MSWINDOWS}
+//{$IFDEF MSWINDOWS}
 procedure Delay(TickTime: Integer);
 var
     Past: Longint;
@@ -944,7 +953,7 @@ begin
 
     until (GetTickCount - Past) >= Longint(TickTime);
 end;
-{$ENDIF}
+//{$ENDIF}
 
 
 initialization

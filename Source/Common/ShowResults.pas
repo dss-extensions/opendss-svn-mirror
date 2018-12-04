@@ -66,7 +66,7 @@ uses
     RegControl,
     ParserDel,
     CktTree,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CmdForms,

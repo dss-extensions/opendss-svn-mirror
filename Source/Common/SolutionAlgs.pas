@@ -45,7 +45,7 @@ implementation
 uses
     ArrayDef,
     DSSGlobals,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
     CmdForms,

@@ -97,7 +97,7 @@ uses
     Solution,
     DSSClass,
     IniRegSave,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CmdForms,

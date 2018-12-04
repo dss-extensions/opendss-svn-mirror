@@ -32,7 +32,7 @@ uses
     Utilities,
     DSSGlobals,
     sysutils,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CmdForms,
