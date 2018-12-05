@@ -8,8 +8,13 @@ uses
     DSSGlobals,
     SysUtils,
     DSSClassDefs,
+    {$IFDEF FPC}
+CmdForms
+    {$ELSE}
     DSSForms,
-    ScriptEdit;
+    ScriptEdit
+    {$ENDIF}
+    ;
 
 function Solve_Diakoptics(): Integer;
 procedure ADiakoptics_Tearing();
@@ -293,7 +298,9 @@ var
     ErrorStr,
     FileRoot: String;
     Links: array of String;                        // List of the Link Branches
+    {$IFNDEF FPC}
     ScriptEd: TScriptEdit;
+    {$ENDIF}
 
 begin
     prog_str := 'A-Diakoptics initialization sumary:' + CRLF + CRLF;
@@ -397,7 +404,10 @@ begin
     prog_Str := prog_str + CRLF + ErrorStr + CRLF;
     GlobalResult := ErrorStr;
 
+    {$IFNDEF FPC}
     ScriptEd.PublishMessage(prog_Str);
+    {$ENDIF}
+  // TEMc: TODO: should we report something here under FPC?
     SolutionAbort := false;
 
 end;
