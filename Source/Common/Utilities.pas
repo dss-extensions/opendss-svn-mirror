@@ -161,11 +161,11 @@ procedure BackwardSweepAllFeeders;
 implementation
 
 uses
+    {$IFNDEF FPC}
     Windows,
     ShellAPI,
     Dialogs,
     Graphics,
-    {$IFNDEF FPC}
     DSSForms,
     {$ELSE}
      CmdForms,

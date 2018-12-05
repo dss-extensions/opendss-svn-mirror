@@ -47,8 +47,7 @@ uses
     DSSGlobals,
     {$IFNDEF FPC}
     DSSForms,
-    {$ELSE}
-    CmdForms,
+    System.Classes,
     {$ENDIF}
     Utilities,
     SysUtils,
@@ -61,8 +60,7 @@ uses
     Spectrum,
     Vsource,
     Isource,
-    KLUSolve,
-    System.Classes;
+    KLUSolve;
 
 var
     ProgressCount: Integer;

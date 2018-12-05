@@ -12,6 +12,9 @@ uses
     ArrayDef,
     uComplex;
 
+    {$IF not declared (pUTF8Char)}
+type pUTF8Char = ^AnsiChar;
+    {$ENDIF}
     {$INCLUDE DSSCallBackStructDef.pas}
 
 
@@ -26,7 +29,9 @@ uses
     ParserDel,
     DSSGlobals,
     Executive,
+    {$IFDEF MSWINDOWS}
     AnsiStrings,
+    {$ENDIF}
     SysUtils,
     CktElement,
     Math,

@@ -39,13 +39,15 @@ uses
     EnergyMeter,
     NamedObject,
     CktTree,
-    math,
-    Sparse_Math,
     {$IFDEF MSWINDOWS}
     Graphics,
     vcl.dialogs,
     {$ENDIF}
-    MeTIS_Exec;
+    {$IFNDEF FPC}
+    MeTIS_Exec,
+    {$ENDIF}
+    math,
+    Sparse_Math;
 
 type
     TReductionStrategy = (rsDefault, rsStubs, {rsTapEnds,} rsMergeParallel, rsBreakLoop, rsDangling, rsSwitches, rsLaterals);
@@ -155,6 +157,9 @@ type
         ShuntCapacitors,
         Feeders,
         Reactors,
+        Relays,
+        Fuses,
+        Reclosers,
         SwtControls: PointerList.TPointerList;
         CktElements: PointerList.TPointerList;
 
@@ -349,15 +354,14 @@ uses
     Vsource,
     Utilities,
     Executive,
-    StrUtils
+    StrUtils,
     {$IFNDEF FPC}
-    ,
     DSSForms,
-    {$ELSE}
-     ,CmdForms,
-    {$ENDIF}
     SHELLAPI,
     windows;
+{$ELSE}
+     CmdForms;
+    {$ENDIF}
 
 
 //----------------------------------------------------------------------------
@@ -422,6 +426,9 @@ begin
     Loads := TPointerList.Create(1000);
     ShuntCapacitors := TPointerList.Create(20);
     Reactors := TPointerList.Create(5);
+    Reclosers := TPointerList.Create(10);
+    Relays := TPointerList.Create(10);
+    Fuses := TPointerList.Create(50);
 
     Buses := Allocmem(Sizeof(Buses^[1]) * Maxbuses);
     MapNodeToBus := Allocmem(Sizeof(MapNodeToBus^[1]) * MaxNodes);
@@ -626,6 +633,9 @@ begin
     Lines.Free;
     ShuntCapacitors.Free;
     Reactors.Free;
+    Reclosers.Free;
+    Relays.Free;
+    Fuses.Free;
 
     ControlQueue.Free;
 
@@ -827,9 +837,9 @@ begin
                 end;
             end;
       //  Checks the coverage index to stablish if is necessary to keep tracing paths to increase the coverage
-            DBLTemp := 0;
+            DBLTemp := 0.0;
             for i := Low(Buses_covered) to High(Buses_covered) do
-                DBLtemp := DBLTemp + Double(Buses_Covered[i]);
+                DBLtemp := DBLTemp + (0.0 + Buses_Covered[i]);
             DBLtemp := DBLTemp / Sys_Size;
 {      If the New coverage is different from the previous one and is below the expected coverage keep going
        The first criteria is to avoid keep working on a path that will not contribute to improve the coverage}
@@ -1026,6 +1036,12 @@ end;
 *         available in the local computer (in the best case)                   *
 ********************************************************************************}
 function TDSSCircuit.Tear_Circuit(): Integer;
+    {$IFDEF FPC}
+begin
+  DoErrorMsg('Tear_Circuit','MeTIS cannot start.',
+             'The MeTIS program is not supported in FPC; TFileSearchReplace is unavailable.', 7006)
+end;
+    {$ELSE}
 var
     FileCreated: Boolean;
     Ftree,
@@ -1245,6 +1261,7 @@ begin
         end;
     end;
 end;
+{$ENDIF}
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
@@ -1489,6 +1506,12 @@ begin
             ShuntCapacitors.Add(ActiveCktElement);
         REACTOR_ELEMENT:
             Reactors.Add(ActiveCktElement);
+        RELAY_CONTROL:
+            Relays.Add(ActiveCktElement);
+        FUSE_CONTROL:
+            Fuses.Add(ActiveCktElement);
+        RECLOSER_CONTROL:
+            Reclosers.Add(ActiveCktElement);
 
        { Keep Lines, Transformer, and Lines and Faults in PDElements and separate lists
          so we can find them quickly.}

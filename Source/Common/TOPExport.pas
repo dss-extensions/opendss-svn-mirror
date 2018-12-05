@@ -87,16 +87,17 @@ var
 
 implementation
 
+{$IFNDEF FPC}
 uses
     ComObj,
     AnsiStrings,
+    SysUtils,
     Dialogs,
     ActiveX,
-    {$IFDEF FPC}
-    CMDForms,
-    {$ENDIF}
-    SysUtils,
     DSSGlobals;
+    {$ELSE}
+Uses SysUtils, DSSGlobals, CmdForms, Variants;
+    {$ENDIF}
 
 var
     TOP_Inited: Boolean;
@@ -104,15 +105,15 @@ var
 procedure StartTop;
 
 begin
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     TOP_Object := CreateOleObject('TOP2000.MAIN');
-    {$ENDIF}
     TOP_Inited := true;
+    {$ENDIF}
 end;
 
 procedure TOutFile32.SendToTop;
 begin
-
+    {$IFNDEF FPC}
     try
         if not TOP_Inited then
             StartTop;
@@ -135,7 +136,9 @@ begin
         On E: Exception do
             ShowMessage('Error Connecting to TOP: ' + E.Message);
     end;
-
+    {$ELSE}
+  DSSInfoMessageDlg ('TOP Export (COM Interface) is not supported in FPC version');
+    {$ENDIF}
 end;
 
 
@@ -148,9 +151,7 @@ end;
 
 procedure TOutFile32.Close;
 begin
-
-    System.CloseFile(Fout);  {Close the output file}
-
+    CloseFile(Fout);  {Close the output file}
 end;
 
 procedure TOutFile32.WriteHeader(const t_start, t_stop, h: Double; const NV, NI, NameSize: Integer; const Title:
@@ -192,7 +193,15 @@ begin
         IdxCurrentNames := IdxVoltNames + NVoltages * VoltNameSize;
         IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
         IdxBaseData := 0;
+        {$IFDEF FPC}
+        StrCopy(Title1,pAnsiChar(Title));
+        {$ELSE}
+        {$IFDEF MSWINDOWS}
         sysutils.StrCopy(Title1, Pansichar(Title));
+        {$ELSE}
+         sysutils.StrCopy(Title1,pWidechar(Title));
+        {$ENDIF}
+        {$ENDIF}
         Title2[0] := #0;
         Title3[0] := #0;
         Title4[0] := #0;

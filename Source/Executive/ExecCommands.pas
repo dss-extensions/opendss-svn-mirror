@@ -37,17 +37,17 @@ uses
     ExportOptions,
     ParserDel,
     LoadShape,
-    ConnectOptions,
     sysutils,
     Utilities,
     SolutionAlgs,
     DSSClassDefs,
+    {$IFDEF FPC}
+     CmdForms,
+    {$ELSE}
     PlotOptions,
     windows,
-    {$IFNDEF FPC}
     DSSForms,
-    {$ELSE}
-     CmdForms,
+    ConnectOptions,
     {$ENDIF}
     KLUSolve,
     Diakoptics,
@@ -761,8 +761,12 @@ begin
                 CmdResult := DoEnableCmd;
             11:
                 CmdResult := DoDisableCmd;
+            {$IFNDEF FPC}
             12:
                 CmdResult := DoPlotCmd; //'plot';
+            {$ELSE}
+       12: begin DSSInfoMessageDlg ('Plotting not supported in FPC version');CmdResult := 0; end;
+            {$ENDIF}
             13:
                 CmdResult := DoResetCmd(ActiveActor); //'resetmonitors';
             15:
