@@ -21,14 +21,25 @@ interface
 
 //{$IFDEF MSWINDOWS}
 uses
-    Registry;
+    {$IFDEF FPC}
+IniFiles
+    {$ELSE}
+    Registry
+    {$ENDIF}
+    ;
 
 type
 
     TIniRegSave = class(TObject)
         FSection: String;
         Fname: String;
-        FIniFile: TRegIniFile;
+        FIniFile:
+        {$IFDEF FPC}
+TIniFile
+        {$ELSE}
+        TRegIniFile
+        {$ENDIF}
+        ;
 
     PRIVATE
         procedure Set_FSection(const Value: String);
@@ -54,6 +65,7 @@ type
     end;
 //{$ENDIF}
 
+
 implementation
 
 //{$IFDEF MSWINDOWS}
@@ -62,14 +74,17 @@ implementation
 constructor TIniRegSave.Create(const Name: String);
 begin
     FName := Name;
+    {$IFDEF FPC}
+     FIniFile := TIniFile.Create(Name);
+    {$ELSE}
     FIniFile := TRegIniFile.Create(Name);
+    {$ENDIF}
     FSection := 'MainSect';
 end;
 
 destructor TIniRegSave.Destroy;
 begin
     inherited;
-
 end;
 
 function TIniRegSave.ReadBool(const key: String; default: Boolean): Boolean;
