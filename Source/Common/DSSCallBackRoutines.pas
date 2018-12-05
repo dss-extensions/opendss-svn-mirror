@@ -26,9 +26,7 @@ uses
     ParserDel,
     DSSGlobals,
     Executive,
-    {$IFDEF MSWINDOWS}
     AnsiStrings,
-    {$ENDIF}
     SysUtils,
     CktElement,
     Math,
