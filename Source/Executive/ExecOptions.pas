@@ -37,7 +37,9 @@ uses
     LoadShape,
     Utilities,
     Sysutils,
+    {$IFNDEF FPC}
     ScriptEdit,
+    {$ENDIF}
     Solution,
     Energymeter,
     Diakoptics;
