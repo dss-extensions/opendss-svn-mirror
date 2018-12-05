@@ -136,9 +136,12 @@ implementation
 uses
     Storage,
     DSSGlobals,
-    {$IFDEF MSWINDOWS}
-    Windows,
+    {$IFDEF FPC}
+dynlibs
+    {$ELSE}
+    Windows
     {$ENDIF}
+    ,
     Sysutils;
 
 { TStoreUserModel }

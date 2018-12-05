@@ -91,7 +91,9 @@ implementation
 uses
     Generator,
     DSSGlobals,
-    {$IFDEF MSWINDOWS}
+    {$IFDEF FPC}
+  dynlibs,
+    {$ELSE}
     Windows,
     {$ENDIF}
     Sysutils;
