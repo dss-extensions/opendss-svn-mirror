@@ -34,7 +34,7 @@ procedure ExportCapacity(FileNm: String);
 procedure ExportOverloads(FileNm: String);
 procedure ExportUnserved(FileNm: String; UE_Only: Boolean);
 procedure ExportYprim(FileNm: String);
-procedure ExportY(FileNm: String);
+procedure ExportY(FileNm: String; TripletOpt: Boolean);
 procedure ExportSeqZ(FileNm: String);
 procedure ExportBusCoords(FileNm: String);
 procedure ExportLosses(FileNm: String);
@@ -71,7 +71,7 @@ implementation
 uses
     uComplex,
     Arraydef,
-    System.sysutils,
+    Sysutils,
     Circuit,
     DSSClassDefs,
     DSSGlobals,
@@ -115,7 +115,7 @@ begin
     Nterm := pElem.Nterms;
     k := 0;
     BusName := (StripExtension(pElem.FirstBus));
-    Write(F, System.Sysutils.Format('%s.%s', [pElem.DSSClassName, pElem.Name]));
+    Write(F, Format('%s.%s', [pElem.DSSClassName, pElem.Name]));
 
 
     Write(F, Format(',%d', [NTerm]));
@@ -1654,7 +1654,7 @@ begin
    { Solve for Fault Injection Currents}
 
                         YFault := TcMatrix.CreateMatrix(NumNodesThisBus);
-                        Getmem(VFault, Sizeof(VFault^[1]) * NumNodesThisBus);
+                        Getmem(VFault, Sizeof(Complex) * NumNodesThisBus);
 
              {Build YscTemp}
 
@@ -2848,13 +2848,14 @@ begin
 end;
 
 // illustrate retrieval of System Y using compressed column format
-procedure ExportY(FileNm: String);
+procedure ExportY(FileNm: String; TripletOpt: Boolean);
 
 {Exports System Y Matrix in Node Order}
 
 var
     F: TextFile;
     i, j, p: Longword;
+    col, row: Longword;
     hY: Nativeuint;
     nBus, nNZ: Longword;
     ColPtr, RowIdx: array of Longword;
@@ -2880,57 +2881,70 @@ begin
         Assignfile(F, FileNm);
         ReWrite(F);
 
-        SetLength(ColPtr, nBus + 1);
-        SetLength(RowIdx, nNZ);
-        SetLength(cVals, nNZ);
-        GetCompressedMatrix(hY, nBus + 1, nNZ, @ColPtr[0], @RowIdx[0], @cVals[0]);
-
-     {Write out fully qualified Bus Names}
-        with ActiveCircuit[ActiveActor] do
+        if TripletOpt then
         begin
-
-            Writeln(F, Format('%d, ', [NumNodes]));
-(*        For i := 1 to NumNodes DO BEGIN
-           j :=  MapNodeToBus^[i].BusRef;
-           Write(F, Format('%s.%-d, +j,',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
-        END;
-        Writeln(F);
-*)
-            for i := 1 to NumNodes do
+            SetLength(ColPtr, nBus + 1);
+            SetLength(RowIdx, nNZ);
+            SetLength(cVals, nNZ);
+            GetTripletMatrix(hY, nNZ, @RowIdx[0], @ColPtr[0], @cVals[0]);
+            Writeln(F, 'Row,Col,G,B');
+            for i := 0 to nNZ - 1 do
             begin
-                j := MapNodeToBus^[i].BusRef;
-                Write(F, Format('"%s.%-d", ', [Uppercase(BusList.Get(j)), MapNodeToBus^[i].NodeNum]));
-                for j := 1 to NumNodes do
+                col := ColPtr[i] + 1;
+                row := RowIdx[i] + 1;
+                if row >= col then
                 begin
-                    re := 0.0;
-                    im := 0.0;
-              // search for a non-zero element [i,j]
-              //  DSS indices are 1-based, KLU indices are 0-based
-                    for p := ColPtr[j - 1] to ColPtr[j] - 1 do
-                    begin
-                        if RowIdx[p] + 1 = i then
-                        begin
-                            re := cVals[p].re;
-                            im := cVals[p].im;
-                        end;
-                    end;
-                    Write(F, Format('%-13.10g, +j %-13.10g,', [re, im]));
+                    re := cVals[i].re;
+                    im := cVals[i].im;
+                    Writeln(F, Format('%d,%d,%.10g,%.10g', [row, col, re, im]));
                 end;
-                Writeln(F);
             end;
-
+        end
+        else
+        begin
+            SetLength(ColPtr, nBus + 1);
+            SetLength(RowIdx, nNZ);
+            SetLength(cVals, nNZ);
+            GetCompressedMatrix(hY, nBus + 1, nNZ, @ColPtr[0], @RowIdx[0], @cVals[0]);
+       {Write out fully qualified Bus Names}
+            with ActiveCircuit[ActiveActor] do
+            begin
+                Writeln(F, Format('%d, ', [NumNodes]));
+  (*        For i := 1 to NumNodes DO BEGIN
+             j :=  MapNodeToBus^[i].BusRef;
+             Write(F, Format('%s.%-d, +j,',[BusList.Get(j), MapNodeToBus^[i].NodeNum]));
+          END;
+          Writeln(F);
+  *)
+                for i := 1 to NumNodes do
+                begin
+                    j := MapNodeToBus^[i].BusRef;
+                    Write(F, Format('"%s.%-d", ', [Uppercase(BusList.Get(j)), MapNodeToBus^[i].NodeNum]));
+                    for j := 1 to NumNodes do
+                    begin
+                        re := 0.0;
+                        im := 0.0;
+                // search for a non-zero element [i,j]
+                //  DSS indices are 1-based, KLU indices are 0-based
+                        for p := ColPtr[j - 1] to ColPtr[j] - 1 do
+                        begin
+                            if RowIdx[p] + 1 = i then
+                            begin
+                                re := cVals[p].re;
+                                im := cVals[p].im;
+                            end;
+                        end;
+                        Write(F, Format('%-13.10g, +j %-13.10g,', [re, im]));
+                    end;
+                    Writeln(F);
+                end;
+            end;
         end;
 
-
         GlobalResult := FileNm;
-
     finally
-
         CloseFile(F);
-
     end;
-
-
 end;
 
 procedure ExportSeqZ(FileNm: String);
@@ -3942,7 +3956,7 @@ begin
         ReWrite(F);
 
      // Write Header
-        Writeln(F, 'Meter, SectionID, DeviceType, NumCustomers, NumBranches, AvgRepairHrs, TotalDownlineCust, SumFltRatesXRepairHrs, SumBranchFltRates, HeadBranch ');
+        Writeln(F, 'Meter, SectionID, SeqIndex, DeviceType, NumCustomers, NumBranches, AvgRepairHrs, TotalDownlineCust, SectFaultRate,SumFltRatesXRepairHrs, SumBranchFltRates, HeadBranch ');
 
         if Assigned(pMeter) then
      // If a meter is specified, export that meter only
@@ -3952,14 +3966,13 @@ begin
                     with FeederSections^[i] do
                     begin
                         ActiveCircuit[ActiveActor].ActiveCktElement := TDSSCktElement(sequenceList.Get(SeqIndex));
-                        Writeln(F, format('%s, %d, %s, %d, %d, %-.6g, %d, %-.6g, %-.6g, %s',
-                            [Name, i, GetOCPDeviceTypeString(OCPDeviceType), NCustomers, NBranches, AverageRepairTime, TotalCustomers, SumFltRatesXRepairHrs, SumBranchFltRates,
+                        Writeln(F, Format('%s, %d, %d, %s, %d, %d, %-.6g, %d, %-.6g, %-.6g, %-.6g, %s',
+                            [Name, i, SeqIndex, GetOCPDeviceTypeString(OCPDeviceType), NCustomers, NBranches, AverageRepairTime, TotalCustomers, SectFaultRate, SumFltRatesXRepairHrs, SumBranchFltRates,
                             FullName(ActiveCircuit[ActiveActor].ActiveCktElement)]));
                     end;
             end
         else    // export sections for all meters
         begin
-
             iMeter := EnergyMeterClass[ActiveActor].First;
             while iMeter > 0 do
             begin
@@ -3968,13 +3981,16 @@ begin
                 begin
                     for i := 1 to SectionCount do
                         with FeederSections^[i] do
-                            Writeln(F, format('%s, %d, %s, %d, %d, %-.6g, %d, %-.6g, %-.6g, %s',
-                                [Name, i, GetOCPDeviceTypeString(OCPDeviceType), NCustomers, NBranches, AverageRepairTime, TotalCustomers, SumFltRatesXRepairHrs, SumBranchFltRates,
+                        begin
+                            ActiveCircuit[ActiveActor].ActiveCktElement := TDSSCktElement(sequenceList.Get(SeqIndex));
+                            Writeln(F, Format('%s, %d, %d, %s, %d, %d, %-.6g, %d, %-.6g, %-.6g, %-.6g, %s',
+                                [Name, i, SeqIndex, GetOCPDeviceTypeString(OCPDeviceType), NCustomers, NBranches,
+                                AverageRepairTime, TotalCustomers, SectFaultRate, SumFltRatesXRepairHrs, SumBranchFltRates,
                                 FullName(ActiveCircuit[ActiveActor].ActiveCktElement)]));
+                        end;
+                    iMeter := EnergyMeterClass[ActiveActor].Next;
                 end;
-                iMeter := EnergyMeterClass[ActiveActor].Next;
             end;
-
         end;
 
         GlobalResult := FileNm;
