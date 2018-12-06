@@ -64,7 +64,7 @@ uses
     InvControl,
     ExpControl,
     variants,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     ProgressForm,
     vcl.dialogs,
     {$ENDIF}
@@ -351,7 +351,7 @@ implementation
 
 uses {Forms,   Controls,}
     SysUtils,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     Windows,
     SHFolder,
     ScriptEdit,

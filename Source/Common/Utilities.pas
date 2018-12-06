@@ -168,7 +168,7 @@ uses
     Graphics,
     DSSForms,
     {$ELSE}
-     CmdForms,
+     Process, CmdForms,
     {$ENDIF}
     SysUtils,
     DSSClassDefs,
@@ -270,6 +270,44 @@ begin
     Result := Copy(S, dotpos + 1, Length(S));
 end;
 
+{$IFDEF FPC}
+Procedure FireOffEditor(FileNm:String);
+Var
+   s: string;
+Begin
+  TRY
+  If FileExists(FileNm) Then
+  Begin
+{$IF (defined(Windows) or defined(MSWindows))}
+      RunCommand (DefaultEditor, [FileNm], s);
+{$ELSE}
+      RunCommand ('/bin/bash',['-c', DefaultEditor + ' ' + FileNm],s);
+{$ENDIF}
+  End;
+  EXCEPT
+      On E: Exception DO
+        DoErrorMsg('FireOffEditor.', E.Message,
+                   'Default Editor correctly specified???', 704);
+  END;
+End;
+
+Procedure DoDOSCmd(CmdString:String);
+Var //Handle:Word;
+   s: string;
+Begin
+  TRY
+{$IF (defined(Windows) or defined(MSWindows))}
+    RunCommand('cmd',['/c',CmdString],s);
+{$ELSE}
+    RunCommand('/bin/bash',['-c',CmdString],s);
+{$ENDIF}
+  EXCEPT
+      On E: Exception DO
+        DoSimpleMsg(Format('DoDOSCmd Error:%s. Error in Command "%s"',[E.Message, CmdString]), 704);
+  END;
+End;
+
+{$ELSE}
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 procedure FireOffEditor(FileNm: String);
 var
@@ -317,6 +355,7 @@ begin
             DoSimpleMsg(Format('DoDOSCmd Error:%s. Error in Command "%s"', [E.Message, CmdString]), 704);
     end;
 end;
+{$ENDIF}
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 function IntArrayToString(iarray: pIntegerArray; count: Integer): String;
@@ -3116,8 +3155,10 @@ end;
 
 
 function InterpretColorName(const s: String): Integer;
-
 begin
+    {$IFDEF FPC}
+        Result := 0; // RGB for black
+    {$ELSE}
 
     Result :=
         {$IFDEF MSWINDOWS}
@@ -3276,7 +3317,7 @@ $FFFFFF
         On E: Exception do
             DoSimpleMsg('Invalid Color Specification: "' + S + '".', 724);
     end;
-
+    {$ENDIF}
 end;
 
 function MakeNewCktElemName(const oldname: String): String;

@@ -254,7 +254,7 @@ begin
         end;
     end;
 
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
     {$ENDIF}
@@ -281,7 +281,7 @@ begin
     Parser[ActiveActor] := Tparser.Create;
     CreateDefaultDSSItems;
     RebuildHelpForm := true; // because class strings have changed
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
     {$ENDIF}

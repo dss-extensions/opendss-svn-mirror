@@ -161,7 +161,7 @@ uses
     mathutil,
     Bus,
     SolutionAlgs,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     DSSForms,
     DssPlot,
     {$ELSE}
@@ -178,10 +178,10 @@ CmdForms,
     Classes,
     CktElementClass,
     Sensor,  { ExportCIMXML,} NamedObject,
-    {$IFDEF FPC}
-RegExpr,
-    {$ELSE}
+    {$IFNDEF FPC}
     RegularExpressionsCore,
+    {$ELSE}
+RegExpr,
     {$ENDIF}
     PstCalc,
     PDELement,
@@ -3356,10 +3356,8 @@ begin
     {$IF not (defined(DLL_ENGINE) or defined(FPC))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
-    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
-    {$ENDIF}
      {Defaults}
     NumRegs := 1;
     SetLength(IRegisters, NumRegs);
@@ -3403,13 +3401,10 @@ begin
         ParamName := Parser[ActiveActor].NextParam;
         Param := Parser[ActiveActor].StrValue;
     end;
-    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoDI_Plot(CaseName, CaseYear, iRegisters, PeakDay, MeterName);
-    {$ENDIF}
     iRegisters := nil;
     {$ENDIF}
     Result := 0;
-
 end;
 
 function DoCompareCasesCmd: Integer;
@@ -3423,13 +3418,11 @@ var
     CaseName2, WhichFile: String;
     {$ENDIF}
 begin
-    {$IFNDEF DLL_ENGINE}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
-    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
-    {$ENDIF}
     CaseName1 := 'base';
     CaseName2 := '';
     Reg := 9;    // Overload EEN
@@ -3479,16 +3472,13 @@ begin
         ParamName := UpperCase(Parser[ActiveActor].NextParam);
         Param := Parser[ActiveActor].StrValue;
     end;
-    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoCompareCases(CaseName1, CaseName2, WhichFile, Reg);
     {$ENDIF}
-    {$ENDIF}
     Result := 0;
-
 end;
 
 function DoYearlyCurvesCmd: Integer;
-    {$IFNDEF DLL_ENGINE}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
 var
     ParamName, Param: String;
     ParamPointer, i: Integer;
@@ -3500,13 +3490,11 @@ var
     WhichFile: String;
     {$ENDIF}
 begin
-    {$IFNDEF DLL_ENGINE}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
-    {$IFDEF MSWINDOWS}
     if not Assigned(DSSPlotObj) then
         DSSPlotObj := TDSSPlot.Create;
-    {$ENDIF}
 
     Nregs := 1;
     SetLength(iRegisters, Nregs);
@@ -3566,9 +3554,7 @@ begin
         ParamName := Parser[ActiveActor].NextParam;
         Param := Parser[ActiveActor].StrValue;
     end;
-    {$IFDEF MSWINDOWS}
     DSSPlotObj.DoYearlyCurvePlot(CaseNames, WhichFile, iRegisters);
-    {$ENDIF}
     iRegisters := nil;
     CaseNames.Free;
     {$ENDIF}
@@ -3576,6 +3562,7 @@ begin
 end;
 
 function DoVisualizeCmd: Integer;
+    {$IF not defined(FPC)}
 var
     DevIndex: Integer;
     Param: String;
@@ -3585,8 +3572,10 @@ var
     Quantity: Integer;
     ElemName: String;
     pElem: TDSSObject;
+    {$ENDIF}
 begin
     Result := 0;
+    {$IF not defined(FPC)}
      // Abort if no circuit or solution
     if not assigned(ActiveCircuit[ActiveActor]) then
     begin
@@ -3598,11 +3587,8 @@ begin
         DoSimpleMsg('The circuit must be solved before you can do this.', 24722);
         Exit;
     end;
-    {$IFDEF MSWINDOWS}
     Quantity := vizCURRENT;
-    {$ELSE}
-     Quantity := 1;
-    {$ENDIF}
+    Quantity := 1;
     ElemName := '';
       {Parse rest of command line}
     ParamPointer := 0;
@@ -3658,7 +3644,6 @@ begin
     if DevIndex > 0 then
     begin  //  element must already exist
         pElem := ActiveCircuit[ActiveActor].CktElements.Get(DevIndex);
-        {$IFDEF MSWINDOWS}
         if pElem is TDSSCktElement then
         begin
             DSSPlotObj.DoVisualizationPlot(TDSSCktElement(pElem), Quantity);
@@ -3667,12 +3652,12 @@ begin
         begin
             DoSimpleMsg(pElem.Name + ' must be a circuit element type!', 282);   // Wrong type
         end;
-        {$ENDIF}
     end
     else
     begin
         DoSimpleMsg('Requested Circuit Element: "' + ElemName + '" Not Found.', 282); // Did not find it ..
     end;
+    {$ENDIF}
 end;
 
 function DoCloseDICmd: Integer;

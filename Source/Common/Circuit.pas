@@ -39,12 +39,12 @@ uses
     EnergyMeter,
     NamedObject,
     CktTree,
+    {$IFNDEF FPC}
+    MeTIS_Exec,
     {$IFDEF MSWINDOWS}
     Graphics,
     vcl.dialogs,
     {$ENDIF}
-    {$IFNDEF FPC}
-    MeTIS_Exec,
     {$ENDIF}
     math,
     Sparse_Math;
@@ -68,7 +68,7 @@ type
 
     PUBLIC
         BusName: String;
-        {$IFDEF MSWINDOWS}
+        {$IFNDEF FPC}
         AddMarkerColor: Tcolor;
         {$ELSE}
       AddMarkerColor,
@@ -653,13 +653,13 @@ end;
 *           Routine created to empty a recently created folder                 *
 ********************************************************************************}
 procedure DelFilesFromDir(Directory, FileMask: String; DelSubDirs: Boolean);
-{$IFDEF MSWINDOWS}
+{$IFNDEF FPC}
 var
     SourceLst: String;
     FOS: TSHFileOpStruct;
     {$ENDIF}
 begin
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     FillChar(FOS, SizeOf(FOS), 0);
     FOS.wFunc := FO_DELETE;
     SourceLst := Directory + '\' + FileMask + #0;
@@ -941,7 +941,7 @@ begin
             if Local_temp <> 0 then
             begin
                 text := stringreplace(File_Struc[FS_Idx], 'Redirect ', '', [rfReplaceAll, rfIgnoreCase]);
-                {$IFDEF MSWINDOWS}
+                {$IFNDEF FPC}
                 for FS_Idx1 := 2 to NumCkts do
                     CopyFile(Pchar(Path + '\' + text), Pchar(Path + '\zone_' + inttostr(FS_Idx1) + '\' + text), true);
                 {$ENDIF}
@@ -2251,7 +2251,7 @@ begin
     inherited;
     BusName := '';
     AddMarkerColor :=
-        {$IFDEF MSWINDOWS}
+        {$IFNDEF FPC}
         clBlack
     {$ELSE}
 0

@@ -29,7 +29,7 @@ uses
     ParserDel,
     DSSGlobals,
     Executive,
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     AnsiStrings,
     {$ENDIF}
     SysUtils,

@@ -925,7 +925,7 @@ var
     ParamPointer, i: Integer;
     ParamName: String;
     Param: String;
-    {$IFDEF MSWINDOWS}
+    {$IFNDEF FPC}
     ScriptEd: TScriptEdit;
     {$ENDIF}
 
@@ -1281,7 +1281,7 @@ begin
                 113:
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 114:
-                    {$IFDEF MSWINDOWS}
+                    {$IFNDEF FPC}
                     ScriptEd.UpdateProgressSummary
                     {$ENDIF}
                     ;
