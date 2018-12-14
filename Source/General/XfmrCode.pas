@@ -88,7 +88,7 @@ uses
     Utilities;
 
 const
-    NumPropsThisClass = 36;
+    NumPropsThisClass = 37;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TXfmrCode.Create;
@@ -159,6 +159,7 @@ begin
     PropertyName[34] := 'X12';
     PropertyName[35] := 'X13';
     PropertyName[36] := 'X23';
+    PropertyName[37] := 'RdcOhms';
 
      // define Property help values
     PropertyHelp[1] := 'Number of phases this transformer. Default is 3.';
@@ -228,6 +229,8 @@ begin
         'for 3-winding transformers only. Percent on the kVA base of winding 1. ';
     PropertyHelp[36] := 'Alternative to XLT for specifying the percent reactance from winding 2 to winding 3.Use ' +
         'for 3-winding transformers only. Percent on the kVA base of winding 1.  ';
+    PropertyHelp[37] := 'Winding dc resistance in OHMS. Useful for GIC analysis. From transformer test report. ' +
+        'Defaults to 85% of %R property';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -415,6 +418,8 @@ begin
                     XHT := parser[ActorID].Dblvalue * 0.01;
                 36:
                     XLT := parser[ActorID].Dblvalue * 0.01;
+                37:
+                    Winding^[ActiveWinding].RdcOhms := Parser[ActorID].DblValue;
             else
                 ClassEdit(ActiveXfmrCodeObj, ParamPointer - NumPropsThisClass)
             end;
@@ -458,6 +463,8 @@ begin
                     pctLoadLoss := (Winding^[1].Rpu + Winding^[2].Rpu) * 100.0; // Keep this up to date
                 34..36:
                     UpdateXsc := true;
+                37:
+                    Winding^[ActiveWinding].RdcSpecified := true;
 
             else
             end;
@@ -509,6 +516,8 @@ begin
                     kva := Other.Winding^[i].kva;
                     puTAP := Other.Winding^[i].puTAP;
                     Rpu := Other.Winding^[i].Rpu;
+                    RdcOhms := Other.Winding^[i].RdcOhms;
+                    RdcSpecified := Other.Winding^[i].RdcSpecified;
                     RNeut := Other.Winding^[i].RNeut;
                     Xneut := Other.Winding^[i].Xneut;
                     TapIncrement := Other.Winding^[i].TapIncrement;
@@ -698,6 +707,7 @@ begin
             Writeln(f, '~ kva=', kva: 0: 1);
             Writeln(f, '~ tap=', putap: 0: 3);
             Writeln(f, '~ %r=', (Rpu * 100.0): 0: 2);
+            Writeln(f, Format('~ RdcOhms=%.7g', [Rdcohms]));
             Writeln(f, '~ rneut=', rneut: 0: 3);
             Writeln(f, '~ xneut=', xneut: 0: 3);
         end;
@@ -806,6 +816,8 @@ begin
         33:
             for i := 1 to NumWindings do
                 Result := Result + Format('%.7g, ', [Winding^[i].rpu * 100.0]);
+        37:
+            Result := Format('%.7g', [Winding^[ActiveWinding].RdcOhms]);
     else
         Result := inherited GetPropertyValue(index);
     end;
@@ -856,6 +868,7 @@ begin
     PropertyValue[34] := '7';
     PropertyValue[35] := '35';
     PropertyValue[36] := '30';
+    PropertyValue[37] := '0.1';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
