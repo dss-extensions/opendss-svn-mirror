@@ -61,6 +61,7 @@ function InterpretEarthModel(const s: String): Integer;
 function InterpretColorName(const s: String): Integer;
 function InterpretComplex(const s: String): Complex;
 function ConstructElemName(const Param: String): String;
+function InterpretCoreType(const str: String): Integer;
 
 function GetSolutionModeID: String;
 function GetSolutionModeIDName(idx: Integer): String;
@@ -149,6 +150,7 @@ procedure GoForwardAndRephase(FromLine: TPDElement; const PhaseString, EditStr, 
 procedure MakeDistributedGenerators(kW, PF: Double; How: String; Skip: Integer; Fname: String; DoGenerators: Boolean);
 
 procedure Obfuscate;
+
 
 {Feeder Utilities} // not currently used
 procedure EnableFeeders;
@@ -522,7 +524,7 @@ begin
         't':
             Result := TIMEDRIVEN;     // "time"
         'm':
-            Result := MULTIRATE;     // "time"
+            Result := MULTIRATE;     // "MultiRate"
     else
         Result := CTRLSTATIC;
     end;
@@ -646,7 +648,7 @@ begin
     if CompareText(SLC, 'ne') = 0 then
         Result := NEWTONSOLVE
     else
-        Result := NORMALSOLVE
+        Result := NORMALSOLVE;
 
 end;
 
@@ -1146,6 +1148,20 @@ begin
         end;
     end;
 
+end;
+
+function InterpretCoreType(const str: String): Integer;
+begin
+    case str[1] of
+        '1':
+            Result := 1;  // 1-phase
+        '3':
+            Result := 3;  // 3-Leg
+        '5':
+            Result := 5;  // 5-Leg
+    else
+        Result := 0; // default to shell
+    end;
 end;
 
 //----------------------------------------------------------------------------
