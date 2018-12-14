@@ -44,12 +44,19 @@ type
         FphaseShift: Double;
         Bus2Defined: Boolean;
 
-        Volts: Double;
         Vmag: Double;
         Angle: Double;
         SrcFrequency: Double;
         LineName: String;
         pLineElem: TLineObj;  // Pointer to associated Line
+
+        VN, VE: Double;  // components of vmag
+
+        LineClass: Tline;
+
+        procedure GetVterminalForSource(ActorID: Integer);
+        function Compute_VLine: Double;
+    PUBLIC
 
         ENorth,
         EEast,
@@ -57,14 +64,8 @@ type
         Lon1,
         Lat2,
         Lon2: Double;
-        VN, VE: Double;  // components of vmag
+        Volts: Double;
         VoltsSpecified: Boolean;
-
-        LineClass: Tline;
-
-        procedure GetVterminalForSource(ActorID: Integer);
-        function Compute_VLine: Double;
-    PUBLIC
 
         constructor Create(ParClass: TDSSClass; const SourceName: String);
         destructor Destroy; OVERRIDE;
@@ -165,10 +166,10 @@ begin
     PropertyHelp[4] := 'Number of phases.  Defaults to 3. All three phases are assumed in phase (zero sequence)';
     PropertyHelp[5] := 'Northward Electric field (V/km). If specified, Voltage and Angle are computed from EN, EE, lat and lon values.';
     PropertyHelp[6] := 'Eastward Electric field (V/km).  If specified, Voltage and Angle are computed from EN, EE, lat and lon values.';
-    PropertyHelp[7] := 'Latitude of Bus1 (degrees)';
-    PropertyHelp[8] := 'Longitude of Bus1 (degrees)';
-    PropertyHelp[9] := 'Latitude of Bus2 (degrees)';
-    PropertyHelp[10] := 'Longitude of Bus2 (degrees)';
+    PropertyHelp[7] := 'Latitude of Bus1 of the line(degrees)';
+    PropertyHelp[8] := 'Longitude of Bus1 of the line (degrees)';
+    PropertyHelp[9] := 'Latitude of Bus2 of the line (degrees)';
+    PropertyHelp[10] := 'Longitude of Bus2 of the line (degrees)';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -384,8 +385,8 @@ var
 
 begin
     Phi := (Lat2 + Lat1) / 2.0 * (pi / 180.0);   // deg to radians
-    DeltaLat := Lat2 - Lat1;
-    DeltaLon := Lon2 - Lon1;
+    DeltaLat := Lat1 - Lat2; // switched 11-20 to get pos GIC for pos ENorth
+    DeltaLon := Lon1 - Lon2;
     VE := (111.133 - 0.56 * cos(2.0 * phi)) * DeltaLat * ENorth;
     VN := (111.5065 - 0.1872 * cos(2.0 * phi)) * Cos(phi) * DeltaLon * EEast;
     Result := VN + VE;
@@ -529,7 +530,7 @@ begin
                 Vmag := 0.0;
             for i := 1 to Fnphases do
             begin
-                Vterminal^[i] := pdegtocomplex(Vmag, (360.0 + Angle));   // all the same for zero sequence
+                Vterminal^[i] := pdegtocomplex(Vmag, (Angle));   // all the same for zero sequence
                  // bottom part of the vector is zero
                 VTerminal^[i + Fnphases] := CZERO;    // See comments in GetInjCurrents
             end;
