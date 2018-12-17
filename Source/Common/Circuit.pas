@@ -69,7 +69,11 @@ type
     PUBLIC
         BusName: String;
         {$IFNDEF FPC}
+        {$IFDEF MSWINDOWS}
         AddMarkerColor: Tcolor;
+        {$ELSE}
+        AddMarkerColor,
+        {$ENDIF}
         {$ELSE}
       AddMarkerColor,
         {$ENDIF}
@@ -2252,7 +2256,11 @@ begin
     BusName := '';
     AddMarkerColor :=
         {$IFNDEF FPC}
+        {$IFDEF MSWINDOWS}
         clBlack
+    {$ELSE}
+0
+    {$ENDIF}
     {$ELSE}
 0
     {$ENDIF}
