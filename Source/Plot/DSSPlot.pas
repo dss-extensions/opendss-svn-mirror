@@ -104,6 +104,7 @@ type
         ShowSubs: Boolean;
         Quantity: TPlotQuantity;
         ObjectName, FeederName: String;
+        PlotID: String;
         ValueIndex, MarkerIdx: Integer; { For General & AutoAdd }
 
         PhasesToPlot: Integer; // Profile Plot
@@ -1150,7 +1151,10 @@ begin
         ptProfile:
             DSSConnectObj.ProfilePlotMsg(ObjectName);
         ptScatterPlot:
-            DSSConnectObj.ScatterPlotMsg;
+        begin
+            DSSConnectObj.ScatterPlotMsg(PlotID);
+            PlotID := '';
+        end;
         ptEvolutionPlot:
             DSSConnectObj.EvolutionPlotMsg;
         ptMatrixplot:

@@ -140,8 +140,8 @@ var
     ProgramName: String;
     DSS_Registry: TIniRegSave; // Registry   (See Executive)
 
-   // Global variables for the DSS visualization tool
-    DSS_Viz_installed: Boolean = false; // DSS visualization tool (flag of existance)
+   // Global variables for the OpenDSS Viewer
+    DSS_Viz_installed: Boolean = false; // OpenDSS viewer (flag to mark a local installation)
     DSS_Viz_path: String;
     DSS_Viz_enable: Boolean = false;
 
@@ -961,7 +961,7 @@ begin
     ReallocMem(p, newsize);
 end;
 
-// Advance visualization tool check
+// Function to validate the installation and path of the OpenDSS Viewer
 function GetIni(s, k: String; d: String; f: String = ''): String; OVERLOAD;
 var
     ini: TMemIniFile;
@@ -1032,19 +1032,20 @@ end;
 {$ENDIF}
 
 {$IFNDEF FPC}
-function CheckDSSVisualizationTool: Boolean;
+// Validates the installation and path of the OpenDSS Viewer
+function CheckOpenDSSViewer: Boolean;
 var
     FileName: String;
 begin
-    DSS_Viz_path := GetIni('Application', 'path', '', TPath.GetHomePath + '\OpenDSS Visualization Tool\settings.ini');
+    DSS_Viz_path := GetIni('Application', 'path', '', TPath.GetHomePath + '\OpenDSS_Viewer\settings.ini');
   // to make it compatible with the function
     FileName := stringreplace(DSS_Viz_path, '\\', '\', [rfReplaceAll, rfIgnoreCase]);
     FileName := stringreplace(FileName, '"', '', [rfReplaceAll, rfIgnoreCase]);
   // returns true only if the executable exists
     Result := fileexists(FileName);
 end;
-// End of visualization tool check
 {$ENDIF}
+
 //{$IFDEF MSWINDOWS}
 procedure Delay(TickTime: Integer);
 var
@@ -1276,7 +1277,7 @@ NoFormsAllowed  := TRUE;
    //WriteDLLDebugFile('DSSGlobals');
 
     {$IFNDEF FPC}
-    DSS_Viz_installed := CheckDSSVisualizationTool; // DSS visualization tool (flag of existance)
+    DSS_Viz_installed := CheckOpenDSSViewer; // OpenDSS Viewer (flag for detected installation)
     {$ENDIF}
 
 finalization

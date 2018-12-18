@@ -81,7 +81,7 @@ integer
         procedure MonitorPlotMsg(ObjectName: String);
         procedure LoadshapePlotMsg(ObjectName: String);
         procedure ProfilePlotMsg(ObjectName: String);
-        procedure ScatterPlotMsg;
+        procedure ScatterPlotMsg(PlotID: String);
         procedure EvolutionPlotMsg;
         procedure MatrixPlotMsg(MatrixType: Integer);
     end;
@@ -90,7 +90,7 @@ function flat_int2str(number: Integer): Ansistring;
 function flatten2JSON(Model: String; Name: String; PlotType: String;
     Xlabel: String; X_axis: pDoubleArray2d; Ylabels: pStringArray1d;
     Y_axis: pDoubleArray2d; Phase: pIntegerArray1d; Z_axis: pDoubleArray2d;
-    PD_Elements: pStringArray2d; Bus_names: pStringArray1d): Ansistring;
+    PD_Elements: pStringArray2d; Bus_names: pStringArray1d; PlotID: String): Ansistring;
 function StrippedOfNonAscii(const s: String): String;
 function processExists(exeFileName: String): Boolean;
 
@@ -252,7 +252,7 @@ end;
 function flatten2JSON(Model: String; Name: String; PlotType: String;
     Xlabel: String; X_axis: pDoubleArray2d; Ylabels: pStringArray1d;
     Y_axis: pDoubleArray2d; Phase: pIntegerArray1d; Z_axis: pDoubleArray2d;
-    PD_Elements: pStringArray2d; Bus_names: pStringArray1d): Ansistring;
+    PD_Elements: pStringArray2d; Bus_names: pStringArray1d; PlotID: String): Ansistring;
 var
     o: TJSONObject;
     x, x2: TJSONArray;
@@ -357,6 +357,8 @@ begin
         o.AddPair('Bus names', bus_n);
         for i := Low(Bus_names^) to High(Bus_names^) do
             bus_n.Add(Bus_names^[i]);
+
+        o.AddPair(TJSONPair.Create('Plot ID', PlotID));
 
     finally
         Result := Ansistring(o.ToString);
@@ -469,7 +471,7 @@ begin
     MySocket.OnDisconnect := MySocketDisconnect;
     MySocket.OnError := MySocketError;
 
-    MySocket.Port := 47625; // DSS Visualization Tool port
+    MySocket.Port := 47625; // OpenDSS Viewer TCP/IP connection port
     if GetIPFromHost(IP, Err) then
     begin
         MySocket.Address := IP; // Local IP Address
@@ -485,17 +487,17 @@ begin
             if DSS_Viz_installed then   // If the app is installed
             begin
         // and is not running
-                if not processExists('DSS Visualization Tool.exe') then
+                if not processExists('OpenDSS_Viewer.exe') then
                 begin
             // Launches the app
                     launched := ShellExecute(0, 'open', Pchar(DSS_Viz_path), nil, nil, 5);
                     sleep(500);
                     if launched < 33 then // If not launched.
-                        DoSimpleMsg('Error on DSS Visualization Tool.', 0);
+                        DoSimpleMsg('Error with connection to the OpenDSS Viewer.', 0);
                 end;
             end
             else
-                DoSimpleMsg('The DSS Visualization Tool can not be found.', 0);
+                DoSimpleMsg('The OpenDSS Viewer can not be found.', 0);
         try
             MySocket.Open; //Activates the client
         except  // Error on conection
@@ -715,7 +717,7 @@ begin
     SetLength(phase, 0);
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
-    MSG := flatten2JSON(model_path, 'Monitor.' + ObjectName, 'xyplot', 'Time (s)', @time, @headers, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+    MSG := flatten2JSON(model_path, 'Monitor.' + ObjectName, 'xyplot', 'Time (s)', @time, @headers, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
@@ -843,7 +845,7 @@ begin
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
     MSG := flatten2JSON(model_path, 'Loadshape.' + ObjectName, 'xyplot',
-        x_label, @time, @y_labels, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+        x_label, @time, @y_labels, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
@@ -927,12 +929,12 @@ begin
     SetLength(PD_Elements, 0, 0);
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
-    MSG := flatten2JSON(model_path, 'Voltage Profile', 'profile', 'Distance (km)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+    MSG := flatten2JSON(model_path, 'Voltage Profile', 'profile', 'Distance (km)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
 
-procedure TDSSConnect.ScatterPlotMsg;
+procedure TDSSConnect.ScatterPlotMsg(PlotID: String);
 var
     MSG: Ansistring;
     NumBuses, NumPDelements, Nvalues, iV, jj, NodeIdx: Integer;
@@ -1048,7 +1050,7 @@ begin
     y_labels[2] := 'V (p.u.) n 3';
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
-    MSG := flatten2JSON(model_path, 'Voltage Magnitude (geo)', 'geo_scatter', '', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+    MSG := flatten2JSON(model_path, 'Voltage Magnitude (geo)', 'geo_scatter', '', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, PlotID);
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
@@ -1257,7 +1259,7 @@ begin
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
     MSG := flatten2JSON(model_path, 'V (p.u.) Density Evolution - All load voltages',
-        'time_evolution', 'Time (s)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+        'time_evolution', 'Time (s)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
@@ -1394,7 +1396,7 @@ begin
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
     MSG := flatten2JSON(model_path, Title,
-        'matrix', '', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names);
+        'matrix', '', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
