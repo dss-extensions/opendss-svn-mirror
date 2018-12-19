@@ -929,6 +929,10 @@
         <DCCReference Include="..\Common\MeTIS_Exec.pas"/>
         <DCCReference Include="..\PCElements\GICsource.pas"/>
         <DCCReference Include="..\PDElements\AutoTrans.pas"/>
+        <DCCReference Include="..\Meters\fMonitor.pas"/>
+        <DCCReference Include="..\Meters\LD_fm_infos.pas"/>
+        <DCCReference Include="..\Meters\VLNodeVars.pas"/>
+        <DCCReference Include="..\PCElements\Generic5OrderMach.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
