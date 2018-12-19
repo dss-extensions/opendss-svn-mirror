@@ -1,7 +1,7 @@
 unit StorageController;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -15,6 +15,9 @@ unit StorageController;
 
   or ... ElementList = [File=filename] where storage class elements are listed one to a line
   If omitted, all storage elements found in the active circuit are included by default and controlled as a fleet.
+
+  Added new control mode for charging 12/19/2018
+  Proposed by Valentin Rigoni
 
 }
 
@@ -56,9 +59,12 @@ type
     PRIVATE
 
         FkWTarget,
+        FkWTargetLow,
         FkWThreshold,
         FpctkWBand,
+        FpctkWBandLow,
         HalfkWBand,
+        HalfkWBandLow,
         FPFTarget,    // Range on this is 0..2 where 1..2 is leading
         TotalWeight: Double;
         HalfPFBand: Double;
@@ -138,11 +144,13 @@ type
         procedure DoLoadShapeMode(ActorID: Integer);
         procedure DoTimeMode(Opt: Integer; ActorID: Integer);
         procedure DoScheduleMode(ActorID: Integer);
+        procedure DoPeakShaveModeLow(ActorID: Integer);
         procedure PushTimeOntoControlQueue(Code: Integer; ActorID: Integer);
         function NormalizeToTOD(h: Integer; sec: Double): Double;
         procedure Set_PFBand(const Value: Double);
         function Get_FleetkW: Double;
         function Get_FleetkWh: Double;
+        function Get_FleetkWhRating: Double;
         function Get_FleetReservekWh: Double;
 
     PUBLIC
@@ -168,6 +176,7 @@ type
         property PFBand: Double READ FPFBand WRITE Set_PFBand;
         property FleetkW: Double READ Get_FleetkW;
         property FleetkWh: Double READ Get_FleetkWh;
+        property FleetkWhRating: Double READ Get_FleetkWhRating;
         property FleetReservekWh: Double READ Get_FleetReservekWh;
 
     end;
@@ -197,38 +206,39 @@ const
     propELEMENT = 1;
     propTERMINAL = 2;
     propKWTARGET = 3;
-    propKWBAND = 4;
-    propPFTARGET = 5;
-    propPFBAND = 6;
-    propELEMENTLIST = 7;
-    propWEIGHTS = 8;
-    propMODEDISCHARGE = 9;
-    propMODECHARGE = 10;
-    propTIMEDISCHARGETRIGGER = 11;
-    propTIMECHARGETRIGGER = 12;
-    propRATEKW = 13;
-    propRATEKVAR = 14;
-    propRATECHARGE = 15;
-    propRESERVE = 16;
-    propKWHTOTAL = 17;
-    propKWTOTAL = 18;
-    propKWHACTUAL = 19;
-    propKWACTUAL = 20;
-    propKWNEED = 21;
-    propPARTICIPATION = 22;
-    propYEARLY = 23;
-    propDAILY = 24;
-    propDUTY = 25;
-    propEVENTLOG = 26;
-    propVARDISPATCH = 27;
-    propINHIBITTIME = 28;
-    propTUPRAMP = 29;
-    propTFLAT = 30;
-    propTDNRAMP = 31;
-    propKWTHRESHOLD = 32;
+    propKWTARGETLOW = 4;
+    propKWBAND = 5;
+    propKWBANDLOW = 6;
+    propPFTARGET = 7;
+    propPFBAND = 8;
+    propELEMENTLIST = 9;
+    propWEIGHTS = 10;
+    propMODEDISCHARGE = 11;
+    propMODECHARGE = 12;
+    propTIMEDISCHARGETRIGGER = 13;
+    propTIMECHARGETRIGGER = 14;
+    propRATEKW = 15;
+    propRATEKVAR = 16;
+    propRATECHARGE = 17;
+    propRESERVE = 18;
+    propKWHTOTAL = 19;
+    propKWTOTAL = 20;
+    propKWHACTUAL = 21;
+    propKWACTUAL = 22;
+    propKWNEED = 23;
+    propPARTICIPATION = 24;
+    propYEARLY = 25;
+    propDAILY = 26;
+    propDUTY = 27;
+    propEVENTLOG = 28;
+    propVARDISPATCH = 29;
+    propINHIBITTIME = 30;
+    propTUPRAMP = 31;
+    propTFLAT = 32;
+    propTDNRAMP = 33;
+    propKWTHRESHOLD = 34;
 
-
-    NumPropsThisClass = 32;
+    NumPropsThisClass = 34;
 
 //= = = = = = = = = = = = = = DEFINE CONTROL MODE CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -238,6 +248,7 @@ const
     MODETIME = 4;
     MODEPEAKSHAVE = 5;
     MODESCHEDULE = 6;
+    MODEPEAKSHAVELOW = 7;
 
 //= = = = = = = = = = = = = = DEFINE OTHER CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
     RELEASE_INHIBIT = 999;
@@ -279,7 +290,9 @@ begin
     PropertyName[propELEMENT] := 'Element';
     PropertyName[propTERMINAL] := 'Terminal';
     PropertyName[propKWTARGET] := 'kWTarget';
+    PropertyName[propKWTARGETLOW] := 'kWTargetLow';
     PropertyName[propKWBAND] := '%kWBand';
+    PropertyName[propKWBANDLOW] := '%kWBandLow';
     PropertyName[propPFTARGET] := 'PFTarget';
     PropertyName[propPFBAND] := 'PFBand';
     PropertyName[propELEMENTLIST] := 'ElementList';
@@ -319,9 +332,15 @@ begin
     PropertyHelp[propKWTARGET] :=
         'kW target for Discharging. The storage element fleet is dispatched to try to hold the power in band ' +
         'at least until the storage is depleted.';
+    PropertyHelp[propKWTARGETLOW] :=
+        'kW target for Charging. The storage element fleet is dispatched to try to hold the power in band ' +
+        'at least until the storage is fully charged.';
     PropertyHelp[propKWBAND] :=
         'Bandwidth (% of Target kW) of the dead band around the kW target value. Default is 2% (+/-1%).' +
         'No dispatch changes are attempted If the power in the monitored terminal stays within this band.';
+    PropertyHelp[propKWBANDLOW] :=
+        'Bandwidth (% of TargetkWLow) of the dead band around the kWtargetLow value. Default is 2% (+/-1%).' +
+        'No charging is attempted if the power in the monitored terminal stays within this band.';
     PropertyHelp[propPFTARGET] :=
         'Power Factor target for dispatching the reactive power. Default is 0.96. The reactive power of the storage element fleet is dispatched to try to hold the power factor in band. ' +
         'It is assumed that the storage element inverter can produce kvar up to its kVA limit regardless of storage level.';
@@ -460,8 +479,12 @@ begin
                     ElementTerminal := Parser[ActorID].IntValue;
                 propKWTARGET:
                     FkWTarget := Parser[ActorID].DblValue;
+                propKWTARGETLOW:
+                    FkWTargetLow := Parser[ActorID].DblValue;
                 propKWBAND:
                     FpctkWBand := Parser[ActorID].DblValue;
+                propKWBANDLOW:
+                    FpctkWBandLow := Parser[ActorID].DblValue;
                 propPFTARGET:
                     FPFTarget := ConvertPFToPFRange2(Parser[ActorID].DblValue);
                 propPFBAND:
@@ -534,6 +557,9 @@ begin
                     HalfkWBand := FpctkWBand / 200.0 * FkWTarget;
                     FkWThreshold := FkWTarget * 0.75;
                 end;
+                propKWTARGETLOW,
+                propKWBANDLOW:
+                    HalfkWBandLow := FpctkWBandLow / 200.0 * FkWTargetLow;
                 propPFBAND:
                     HalfPFBand := FPFBand / 2.0;
                 propMODEDISCHARGE:
@@ -606,8 +632,10 @@ begin
             ElementTerminal := OtherStorageController.ElementTerminal;
 
             FkWTarget := OtherStorageController.FkWTarget;
+            FkWTargetLow := OtherStorageController.FkWTargetLow;
             FkWThreshold := OtherStorageController.FkWThreshold;
             FpctkWBand := OtherStorageController.FpctkWBand;
+            FpctkWBandLow := OtherStorageController.FpctkWBandLow;
             FPFTarget := OtherStorageController.FPFTarget;
             FPFBand := OtherStorageController.FPFBand;
             HalfPFBand := OtherStorageController.HalfPFBand;
@@ -694,8 +722,10 @@ begin
     FleetSize := 0;
     FleetState := STORE_IDLING;
     FkWTarget := 8000.0;
+    FkWTargetLow := 4000.0;
     FkWThreshold := 6000.0;
     FpctkWBand := 2.0;
+    FpctkWBandLow := 2.0;
     TotalWeight := 1.0;
     HalfkWBand := FpctkWBand / 200.0 * FkWTarget;
     FPFTarget := 0.96;
@@ -760,7 +790,9 @@ begin
     PropertyValue[propELEMENT] := '';
     PropertyValue[propTERMINAL] := '1';
     PropertyValue[propKWTARGET] := '8000';
+    PropertyValue[propKWTARGETLOW] := '4000';
     PropertyValue[propKWBAND] := '2';
+    PropertyValue[propKWBANDLOW] := '2';
     PropertyValue[propPFTARGET] := '.96';
     PropertyValue[propPFBAND] := '.04';
     PropertyValue[propELEMENTLIST] := '';
@@ -800,8 +832,12 @@ begin
 
         propKWTARGET:
             Result := Format('%-.6g', [FkWTarget]);
+        propKWTARGETLOW:
+            Result := Format('%-.6g', [FkWTargetLow]);
         propKWBAND:
             Result := Format('%-.6g', [FpctkWBand]);
+        propKWBANDLOW:
+            Result := Format('%-.6g', [FpctkWBandLow]);
         propPFTARGET:
             Result := Format('%-.6g', [ConvertPFRange2ToPF(FPFTarget)]);
         propPFBAND:
@@ -894,6 +930,19 @@ begin
     begin
         pStorage := FleetPointerList.Get(i);
         Result := Result + pStorage.StorageVars.kWhStored;
+    end;
+end;
+
+function TStorageControllerObj.Get_FleetkWhRating: Double;
+var
+    pStorage: TStorageObj;
+    i: Integer;
+begin
+    Result := 0.0;
+    for I := 1 to FleetPointerList.ListSize do
+    begin
+        pStorage := FleetPointerList.Get(i);
+        Result := Result + pStorage.StorageVars.kWhRating;
     end;
 end;
 
@@ -1073,6 +1122,8 @@ begin
                   //  3: Result := 'Support';
                 MODETIME:
                     Result := 'Time';
+                MODEPEAKSHAVELOW:
+                    Result := 'PeakshaveLow';
             else
                 Result := 'UNKNOWN'
             end;
@@ -1485,6 +1536,113 @@ begin
 
 end;
 
+{--------------------------------------------------------------------------}
+procedure TStorageControllerObj.DoPeakShaveModeLow(ActorID: Integer);
+    // This is the peakShaving mode for controlling the charging operation of the storage fleet
+    // The objective is to charge the storage fleet when the power at a monitored element is bellow a specified KW target (kWTarget_low)
+    // The storage will charge as much power as necessary to keet the power within the deadband around kWTarget_low
+
+  // WILL NOT IMPLEMENT REACTIVE POWER CONTROL FOR NOW
+var
+    i: Integer;
+    PDiff: Double;
+    kWNeeded: Double;
+    S: Complex;
+    StorageObj: TSTorageObj;
+    StorekWChanged: Boolean;
+    ChargekW: Double;
+    SkipkWCharge: Boolean;
+    ActualkWh: Double;
+    ActualkW: Double;
+    TotalRatingkWh: Double;
+    KwtoPercentagekW: Double;
+
+begin
+     // If list is not defined, go make one from all storage elements in circuit
+    if FleetPointerList.ListSize = 0 then
+        MakeFleetList;
+
+    if (FleetSize > 0) and (not (FleetState = STORE_DISCHARGING)) then
+    begin
+
+        StorekWChanged := false;
+        SkipkWCharge := false;
+
+       //----MonitoredElement.ActiveTerminalIdx := ElementTerminal;
+        S := MonitoredElement.Power[ElementTerminal, ActorID];  // Power in active terminal
+        PDiff := S.re * 0.001 - FkWTargetLow;  // Assume S.re is normally positive
+
+        ActualkW := FleetkW;
+        ActualkWh := FleetkWh;
+        TotalRatingkWh := FleetkWhRating;
+
+        kWNeeded := Pdiff + FleetkW;
+
+        case FleetState of
+            STORE_IDLING:
+                if (PDiff > 0.0) or (ActualkWh >= TotalRatingkWh) then
+                begin  // Don't bother trying to charge
+                    ChargingAllowed := false;
+                    SkipkWCharge := true;
+                end;
+            STORE_CHARGING:
+                if (kWNeeded > 0.0) or (ActualkWh >= TotalRatingkWh) then
+                begin   // desired decrease is greater then present output; just cancel
+                    SetFleetToIdle;   // also sets presentkW = 0
+                    PushTimeOntoControlQueue(STORE_IDLING, ActorID);  // force a new power flow solution
+                    ChargingAllowed := false;
+                    SkipkWCharge := true;
+                end;
+        end;
+
+        if not SkipkWCharge then
+        begin
+            if (ActualkWh < TotalRatingkWh) then
+            begin
+               //  don't dispatch kW  if fully charged or an endless control loop will occur
+                if abs(PDiff) > HalfkWBandLow then
+                begin // Attempt to change storage kW charge
+                    if not (FleetState = STORE_CHARGING) then
+                        SetFleetToCharge;
+                    if ShowEventLog then
+                        AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [PDiff, (TotalRatingkWh - ActualkWh), TotalRatingkWh]), ActorID);
+                    for i := 1 to FleetSize do
+                    begin
+                        StorageObj := FleetPointerList.Get(i);
+                        with StorageObj do
+                        begin
+                            // compute new charging value for this storage element ...
+                            ChargekW := -1 * Min(StorageVars.kWrating, abs(PresentkW + PDiff * (FWeights^[i] / TotalWeight)));
+                            if ChargekW <> PresentkW then    // do only if change requested
+                                if StorageVars.kWhStored < StorageVars.kWhRating then
+                                begin  // Attempt to set discharge kW;  Storage element will revert to idling if out of capacity
+                                           //StorageObj.PresentkW  :=  ChargekW;
+                                    KwtoPercentagekW := (ChargekW * 100) / StorageVars.kWrating;
+                                    StorageObj.pctkWin := abs(KwtoPercentagekW);
+                                    StorekWChanged := true;     // This is what keeps the control iterations going
+                                end;
+                        end;
+                    end;
+                end
+            end
+            else
+            begin
+                if not FleetState = STORE_IDLING then
+                begin
+                    SetFleetToIdle;
+                    PushTimeOntoControlQueue(STORE_IDLING, ActorID);  // force a new power flow solution
+                end;
+                ChargingAllowed := false;
+                if ShowEventLog then
+                    AppendToEventLog('StorageController.' + Self.Name, Format('Fully charged: %-.6g kWh of rated %-.6g.', [ActualkWh, TotalRatingkWh]), ActorID);
+            end;
+        end;
+
+        if StorekWChanged then  // Only push onto controlqueue If there has been a change
+            PushTimeOntoControlQueue(STORE_CHARGING, ActorID);
+       {Else just continue}
+    end;
+end;
 
 {--------------------------------------------------------------------------}
 procedure TStorageControllerObj.Sample(ActorID: Integer);
@@ -1520,6 +1678,8 @@ begin
             MODELOADSHAPE: ; // DoLoadShapeMode;  already executed above
             MODETIME:
                 DoTimeMode(2, ActorID);
+            MODEPEAKSHAVELOW:
+                DoPeakShaveModeLow(ActorID)
         else
             DoSimpleMsg(Format('Invalid Charging Mode: %d', [ChargeMode]), 14409);
         end;
@@ -1765,6 +1925,8 @@ begin
                  // 's': Result := MODESUPPORT;
                 't':
                     Result := MODETIME;
+                'p':
+                    Result := MODEPEAKSHAVELOW;
             else
                 DoSimpleMsg('Charge Mode "' + S + '" not recognized.', 14402);
             end;
