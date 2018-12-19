@@ -1,7 +1,7 @@
 unit DSSGlobals;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -71,7 +71,9 @@ uses
     Strutils,
     Types,
     SyncObjs,
-    YMatrix;
+    YMatrix,
+    fMonitor;       // by Dahei
+
 
 const
     CRLF = #13#10;
@@ -228,6 +230,7 @@ Integer
     SpectrumClass: array of TSpectrum;
     SolutionClass: array of TDSSClass;
     EnergyMeterClass: array of TEnergyMeter;
+    FMonitorClass: array of TDSSFMonitor;      // By dahei UCF
    // FeederClass        :TFeeder;
     MonitorClass: array of TDSSMonitor;
     SensorClass: array of TSensor;
@@ -1110,6 +1113,7 @@ initialization
     SetLength(ActorStatus, CPU_Cores + 1);
     SetLength(ActorMA_Msg, CPU_Cores + 1);
 
+    setlength(FMonitorClass, CPU_Cores + 1);    // by Dahei UCF
    // Init pointer repositories for the EnergyMeter in multiple cores
 
     SetLength(OV_MHandle, CPU_Cores + 1);

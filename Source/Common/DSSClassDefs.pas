@@ -2,7 +2,7 @@ unit DSSClassDefs;
 
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -65,6 +65,8 @@ const
     INDMACH012_ELEMENT = 35 * 8;
     GIC_SOURCE = 36 * 8;
     AUTOTRANS_ELEMENT = 37 * 8;
+    FMON_ELEMENT = 38 * 8;                        {BY Dahei UCF}
+    Generic5OrderMach_ELEMENT = 39 * 8;         {BY Dahei UCF}
 
 var
     NumIntrinsicClasses,
@@ -134,7 +136,11 @@ uses
     ESPVLControl,
     IndMach012,
     GICsource,
-    AutoTrans;
+    AutoTrans,
+     //by Dahei
+    Generic5OrderMach,
+     // By Dahei
+    FMonitor;
 
 
 {--------------------------------------------------------------}
@@ -211,6 +217,9 @@ begin
     DSSClasses.New := TUPFCControl.Create;
     DSSClasses.New := TESPVLControl.Create;
     DSSClasses.New := TIndMach012.Create;
+     {by Dahei}
+    DSSClasses.New := TGeneric5.Create;
+
     DSSClasses.New := TGICsource.Create; // GIC source
     DSSClasses.New := TAutoTrans.Create; // Auto Transformer
 
@@ -241,6 +250,9 @@ begin
     NumUserClasses := 0;
 
    {Add user-defined objects}
+   //by Dahei
+    FMonitorClass[ActiveActor] := TDSSFMonitor.Create;  // Have to do this AFTER Generator
+    DSSClasses.New := FMonitorClass[ActiveActor];
 
 
    {This feature has been disabled - doesn't work in IIS}

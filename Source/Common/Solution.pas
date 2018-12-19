@@ -81,7 +81,26 @@ type
 
     TNodeVarray = array[0..1000] of Complex;
     pNodeVarray = ^TNodeVarray;
-
+   ///////////////////////////////////
+     {define LD_FM_Arry-by dahei}
+    TLDs_sys_fms = packed record
+     //properties for Nodes
+           // highest voltage node
+        clstr_num_hghst: Integer;
+        ndnum_hghst: Integer;
+        b_ctrl_hghst: Boolean; //can contribute more to the high volt problem
+        volt_hghst: Double;    //p.u.
+        volt_hgh_lmt: Double;  //p.u.
+        Pinjec_hghst: Double; //net P injection on this node
+           // lowest voltage node
+        clstr_num_lwst: Integer;
+        ndnum_lwst: Integer;
+        b_ctrl_lwst: Boolean; //can contribute more to the high volt problem
+        volt_lwst: Double;   //p.u.
+        volt_lw_lmt: Double;  //p.u.
+        Pinjec_lwst: Double; // net P injection on this node
+    end;
+   //////////////////////////////////////
 
     TDSSSolution = class(TDSSClass)
 
@@ -142,6 +161,11 @@ type
 
         dV: pNodeVArray;   // Array of delta V for Newton iteration
         FFrequency: Double;
+       // //by Dahei
+        nNZ_yii: Longword;       //how many lines in Yii
+        pColIdx_Yii, pRowIdx_Yii: pLongIntArray;//array of LongWord;  //cols and rows
+        pcVals_Yii: pComplexArray;   //vals of yii
+       // =========
 
         function Converged(ActorID: Integer): Boolean;
         function OK_for_Dynamics(const Value: Integer): Boolean;
@@ -213,7 +237,15 @@ type
 
         IncMat: Tsparse_matrix; // Incidence sparse matrix
         Laplacian: Tsparse_matrix; // Laplacian sparse matrix
+       {by Dahei for FMonitor}
+              {------------------}
+        NodeYii: pNodeVArray;         // Main System Y = G + jB, Bii for all nodes
 
+        NodeYiiEmpty: Boolean;
+       {Leaders of all FMonitors}
+        clstr_num_hghst, clstr_num_lwst: Integer;
+        LD_FM: array [0..3] of TLDs_sys_fms;
+        bCurtl: Boolean;
 //****************************Timing variables**********************************
         SolveStartTime: Int64;
         SolveEndtime: Int64;
@@ -274,7 +306,10 @@ type
         procedure RestoreNodeVfromVbus;  // opposite   of updatebus
 
         function VDiff(i, j: Integer): Complex;  // Difference between two node voltages
-
+       {by Dahei}
+        procedure Get_Yiibus; // updates voltages for each bus    from NodeV
+        function Get_Yij(node_ref_i, node_ref_j: Integer): Complex; // get Gij + j Bij
+       {}
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         procedure WriteConvergenceReport(const Fname: String);
@@ -523,7 +558,12 @@ begin
         DeleteSparseSet(hYsystem);
     if hYseries <> 0 then
         DeleteSparseSet(hYseries);
-
+      {by Dahei: }
+    Reallocmem(NodeYii, 0);  // for bii
+    Reallocmem(pColIdx_Yii, 0);
+    Reallocmem(pRowIdx_Yii, 0);
+    Reallocmem(pcVals_Yii, 0);
+      {---------------------------}
 //      SetLogFile ('c:\\temp\\KLU_Log.txt', 0);
 
     Reallocmem(HarmonicList, 0);
@@ -908,6 +948,8 @@ begin
             begin
                 BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
             end;
+        {by Dahei}if NodeYiiEmpty then
+                Get_Yiibus;  //
 
             if UseAuxCurrents then
                 AddInAuxCurrents(NORMALSOLVE, ActorID);
@@ -969,6 +1011,8 @@ begin
             begin
                 BuildYMatrix(WHOLEMATRIX, false, ActorID);   // Does not realloc V, I
             end;
+          {by Dahei}if NodeYiiEmpty then
+                Get_Yiibus;  //
 
             if UseAuxCurrents then
                 AddInAuxCurrents(NEWTONSOLVE, ActorID);
@@ -1157,6 +1201,8 @@ begin
     begin
         BuildYMatrix(WHOLEMATRIX, false, ActorID); // Rebuild Y matrix, but V stays same
     end;
+       {by Dahei}if NodeYiiEmpty then
+        Get_Yiibus;
 end;
 
 // ===========================================================================================
@@ -1232,6 +1278,8 @@ begin
     begin
         BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
     end;
+   {by Dahei}if NodeYiiEmpty then
+        Get_Yiibus;  //
 
     Inc(SolutionCount);   // Unique number for this solution
 
@@ -1282,6 +1330,11 @@ begin
             begin
                 BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
             end;
+              {by Dahei: Get Y matrix for solution}
+            if NodeYiiEmpty then
+                Get_Yiibus;   //IF SystemYChanged
+              {-------------------------------------}
+
             DoPFLOWsolution(ActorID);
         except
             ON E: EEsolv32Problem do
@@ -2256,6 +2309,7 @@ begin
 
    // Reset Meters and Monitors
     MonitorClass[ActiveActor].ResetAll(ActiveActor);
+   {by Dahei}FMonitorClass[ActiveActor].ResetAll(ActiveActor);
     EnergyMeterClass[ActiveActor].ResetAll(ActiveActor);
     DoResetFaults;
     DoResetControls;
@@ -2597,6 +2651,81 @@ begin
 
     SolveSystem(NodeV, ActorID); // Solve with Zero injection current
 
+end;
+
+procedure TSolutionObj.Get_Yiibus;
+var
+    nNZ: Longword;
+    i, row, col: Longword;
+    re, im: Double;
+    ColIdx, RowIdx: array of Longword;
+    cVals: array of Complex;
+    sf: Integer;
+
+begin
+    if hY <= 0 then
+    begin
+        DoSimpleMsg('Y Matrix not Built.', 222);
+        Exit;
+    end;
+  // print lower triangle of G and B using new functions
+  // this compresses the entries if necessary - no extra work if already solved
+    FactorSparseMatrix(hY);
+    GetNNZ(hY, @nNZ);
+  //GetSize (temphY, @nBus); // we should already know this
+
+    try
+        SetLength(ColIdx, nNZ);
+        SetLength(RowIdx, nNZ);
+        SetLength(cVals, nNZ);
+        nNZ_Yii := nNZ;//how many lines of Y sparse
+        if (pColIdx_Yii <> nil) then
+            ReallocMem(pColIdx_Yii, 0);
+        pColIdx_Yii := AllocMem(sizeof(pColIdx_Yii^[1]) * nNZ_Yii);
+        if (pRowIdx_Yii <> nil) then
+            ReallocMem(pRowIdx_Yii, 0);
+        pRowIdx_Yii := AllocMem(sizeof(pRowIdx_Yii^[1]) * nNZ_Yii);
+        if (pcVals_Yii <> nil) then
+            ReallocMem(pcVals_Yii, 0);
+        pcVals_Yii := AllocMem(Sizeof(pcVals_Yii^[1]) * nNZ_Yii);
+
+        sf := GetTripletMatrix(hY, nNZ, @ColIdx[0], @RowIdx[0], @cVals[0]);
+    // shows how to easily traverse the triplet format
+        for i := 0 to nNZ - 1 do
+        begin
+            col := ColIdx[i] + 1;
+            row := RowIdx[i] + 1;
+            if row = col then
+            begin //diagnal
+                re := cVals[i].re;
+                im := cVals[i].im;
+                NodeYii^[row] := cmplx(re, im);
+            end;
+      // pColIdx_Yii,  pRowIdx_Yii,  pcVals_Yii
+            pColIdx_Yii^[i + 1] := col;           // begin from 1
+            pRowIdx_Yii^[i + 1] := row;
+            pcVals_Yii^[i + 1] := cVals[i];
+        end;
+        NodeYiiEmpty := false;
+    finally
+
+    end;
+end;
+
+function TSolutionObj.Get_Yij(node_ref_i, node_ref_j: Integer): Complex; // get Gij + j Bij
+var
+    i, col, row: Integer;
+       //nNZ_yii   :LongWord;       //how many lines in Yii
+       //pColIdx_Yii, pRowIdx_Yii   :pLongIntArray;//array of LongWord;  //cols and rows
+       //pcVals_Yii                 :pComplexArray;   //vals of yii
+begin
+    for i := 1 to nNZ_yii do
+    begin
+        col := pColIdx_Yii[i];
+        row := pRowIdx_Yii[i];
+        if (row = node_ref_i) and (col = node_ref_j) then
+            result := pcVals_Yii^[i];
+    end;
 end;
 
 {*******************************************************************************

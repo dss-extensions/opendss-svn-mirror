@@ -16,7 +16,8 @@ uses
     DSSClass,
     Spectrum,
     Arraydef,
-    Meterelement;
+    Meterelement,
+    Fmonitor;
 
 type
     TPCElement = class(TDSSCktElement)
@@ -36,6 +37,14 @@ type
 
         MeterObj,  {Upline Energymeter}
         SensorObj: TMeterElement; // Upline Sensor for this element
+       {by Dahei}
+        FMonObj: TFMonitorObj;
+        cluster_num: Integer;
+        NdNumInCluster: Integer;
+        nVLeaders: Integer;   // How many virtual leaders for this pcelement
+        FMonObj2: TFMonitorObj;
+        cluster_num2: Integer;
+        NdNumInCluster2: Integer;
 
         InjCurrent: pComplexArray;
 

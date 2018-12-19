@@ -240,9 +240,13 @@ begin
                 ReallocMem(ErrorSaved, 0);
             if (NodeVBase <> nil) then
                 ReallocMem(NodeVBase, 0);
+            if (NodeYii <> nil) then
+                ReallocMem(NodeYii, 0);             {by Dahei -> UCF}
             VMagSaved := AllocMem(Sizeof(VMagSaved^[1]) * NumNodes);  // zero fill
             ErrorSaved := AllocMem(Sizeof(ErrorSaved^[1]) * NumNodes);  // zero fill
             NodeVBase := AllocMem(Sizeof(NodeVBase^[1]) * NumNodes);  // zero fill
+            NodeYii := AllocMem(Sizeof(NodeYii^[1]) * NumNodes);  // zero fill //Bii  {by Dahei -> UCF}
+            NodeYiiEmpty := true;                                                          {by Dahei -> UCF}
             InitializeNodeVbase(ActorID);
 
         end;

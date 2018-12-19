@@ -395,6 +395,7 @@ begin
                         IntegratePCStates(ActorID);
                         SolveSnap(ActorID);
                         MonitorClass[ActorID].SampleAll(ActorID);  // Make all monitors take a sample
+                        FmonitorClass[ActorID].update_sys_ld_info(ActorID);//get current value in INFO Broker -> UCF
 
                         EndOfTimeStepCleanup(ActorID);
 
