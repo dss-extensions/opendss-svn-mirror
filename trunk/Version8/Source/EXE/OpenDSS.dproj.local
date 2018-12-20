@@ -112,14 +112,14 @@
     <File Path="..\General\XYcurve.pas"/>
     <File Path="..\Meters"/>
     <File Path="..\Meters\EnergyMeter.pas"/>
+    <File Path="..\Meters\fMonitor.pas"/>
+    <File Path="..\Meters\LD_fm_infos.pas"/>
     <File Path="..\Meters\MemoryMap_lib.pas"/>
     <File Path="..\Meters\MeterClass.pas"/>
     <File Path="..\Meters\MeterElement.pas"/>
     <File Path="..\Meters\Monitor.pas"/>
     <File Path="..\Meters\ReduceAlgs.pas"/>
     <File Path="..\Meters\Sensor.pas"/>
-    <File Path="..\Meters\fMonitor.pas"/>
-    <File Path="..\Meters\LD_fm_infos.pas"/>
     <File Path="..\Meters\VLNodeVars.pas"/>
     <File Path="..\Parallel_Lib"/>
     <File Path="..\Parallel_Lib\Parallel_Lib.pas"/>
@@ -132,6 +132,7 @@
     <File Path="..\PCElements\Equivalent.pas"/>
     <File Path="..\PCElements\generator.pas"/>
     <File Path="..\PCElements\GeneratorVars.pas"/>
+    <File Path="..\PCElements\Generic5OrderMach.pas"/>
     <File Path="..\PCElements\GenUserModel.pas"/>
     <File Path="..\PCElements\GICLine.pas"/>
     <File Path="..\PCElements\GICsource.pas"/>
@@ -149,7 +150,6 @@
     <File Path="..\PCElements\vccs.pas"/>
     <File Path="..\PCElements\VSConverter.pas"/>
     <File Path="..\PCElements\VSource.pas"/>
-    <File Path="..\PCElements\Generic5OrderMach.pas"/>
     <File Path="..\PDElements"/>
     <File Path="..\PDElements\AutoTrans.pas"/>
     <File Path="..\PDElements\Capacitor.pas"/>
