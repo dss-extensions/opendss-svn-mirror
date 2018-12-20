@@ -318,7 +318,6 @@ begin
     try
         if FileExists(FileNm) then
         begin
-            {$IFDEF MSWINDOWS}
             retval := ShellExecute(0, nil, Pchar(encloseQuotes(DefaultEditor)), Pchar(encloseQuotes(FileNm)), nil, SW_SHOW);
             SetLastResultFile(FileNm);
 
@@ -332,7 +331,6 @@ begin
                 ERROR_PATH_NOT_FOUND:
                     DoSimpleMsg('Path for Editor "' + DefaultEditor + '" Not Found.', 703);
             end;
-            {$ENDIF}
         end;
     except
         On E: Exception do
@@ -349,9 +347,7 @@ var
 begin
     try
         Handle := 0;
-        {$IFDEF MSWINDOWS}
         ShellExecute(Handle, 'open', Pchar('cmd.exe'), Pchar(CmdString), nil, SW_SHOW);
-        {$ENDIF}
     except
         On E: Exception do
             DoSimpleMsg(Format('DoDOSCmd Error:%s. Error in Command "%s"', [E.Message, CmdString]), 704);
