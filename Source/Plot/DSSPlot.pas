@@ -1149,7 +1149,10 @@ begin
         ptLoadshape:
             DSSConnectObj.LoadshapePlotMsg(ObjectName);
         ptProfile:
-            DSSConnectObj.ProfilePlotMsg(ObjectName);
+        begin
+            DSSConnectObj.ProfilePlotMsg(ObjectName, PlotID);
+            PlotID := '';
+        end;
         ptScatterPlot:
         begin
             DSSConnectObj.ScatterPlotMsg(PlotID);

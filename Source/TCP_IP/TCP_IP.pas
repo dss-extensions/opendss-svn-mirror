@@ -80,7 +80,7 @@ integer
         procedure SetDefaults;
         procedure MonitorPlotMsg(ObjectName: String);
         procedure LoadshapePlotMsg(ObjectName: String);
-        procedure ProfilePlotMsg(ObjectName: String);
+        procedure ProfilePlotMsg(ObjectName: String; PlotID: String);
         procedure ScatterPlotMsg(PlotID: String);
         procedure EvolutionPlotMsg;
         procedure MatrixPlotMsg(MatrixType: Integer);
@@ -850,7 +850,7 @@ begin
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
 
-procedure TDSSConnect.ProfilePlotMsg(ObjectName: String);
+procedure TDSSConnect.ProfilePlotMsg(ObjectName: String; PlotID: String);
 var
     MSG: Ansistring;
     iEnergyMeter: Integer;
@@ -929,7 +929,7 @@ begin
     SetLength(PD_Elements, 0, 0);
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
-    MSG := flatten2JSON(model_path, 'Voltage Profile', 'profile', 'Distance (km)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
+    MSG := flatten2JSON(model_path, 'Voltage Profile', 'profile', 'Distance (km)', @x_axis, @y_labels, @y_axis, @phase, @Z_axis, @PD_Elements, @Bus_Names, PlotID);
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
