@@ -6,7 +6,7 @@
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -136,24 +136,26 @@
         <VerInfo_MinorVer>4</VerInfo_MinorVer>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=8.4.0.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=8.4.1.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_MajorVer>8</VerInfo_MajorVer>
         <VerInfo_MinorVer>4</VerInfo_MinorVer>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.4.0.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=8.4.1.1;InternalName=OpenDSSDirect;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=OpenDSSDirect.DLL;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_DLL>true</VerInfo_DLL>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
