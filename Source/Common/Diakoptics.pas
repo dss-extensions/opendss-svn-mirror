@@ -17,11 +17,10 @@ CmdForms
     ;
 
 function Solve_Diakoptics(): Integer;
-procedure ADiakoptics_Tearing();
+function ADiakoptics_Tearing(): Integer;
 procedure ADiakopticsInit();
 function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
-procedure Calc_ZCT();
 procedure Calc_ZCC();
 
 implementation
@@ -39,7 +38,10 @@ uses
 function Solve_Diakoptics(): Integer;
 begin
   {Space left empty to implement the simplified Diakoptics algorithm}
+    with ActiveCircuit[1].Solution do
+    begin
 
+    end;
     Result := 0;
 end;
 
@@ -49,35 +51,18 @@ end;
 *                      contours-contours domain                                *
 *******************************************************************************}
 procedure Calc_ZCC();
-begin
-    ActiveActor := 1;
-    with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
-    begin
-  {Space left empty to implement the simplified Diakoptics algorithm}
-    end;
-end;
-
-
-{*******************************************************************************
-*                   Calculates the Lateral matrix ZCT in                       *
-*                         contours-trees domain                                *
-*******************************************************************************}
-
-  {Probably to be removed}
-procedure Calc_ZCT();
 var
-    i, j,
-    Ret,
-    LIdx: Integer;
-    VContours,
-    VZCT: array of Complex;
-    temp: String;
-    myFile: TextFile;         // For debugging
+    idx: Integer;
+    MSize: Longword;
+    CVector,
+    ZVector: pNodeVArray;
 begin
-    ActiveActor := 1;
-    with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+    with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
-//    setlength(ZCT,length(Contours));
+        GetSize(hY, @MSize);
+        for idx := 1 to MSize do
+            CVector^[idx] := cmplx(0, 0);
+
 
     end;
 end;
@@ -161,9 +146,9 @@ begin
 
         end;
         if Contours.NZero <> 0 then
-            Result := 1
+            Result := 0
         else
-            Result := 0;
+            Result := 1;
     end;
 
 
@@ -254,9 +239,9 @@ begin
 
         end;
         if ErrorFlag then
-            Result := 0
+            Result := 1
         else
-            Result := 1;
+            Result := 0;
 
     end;
 end;
@@ -266,7 +251,7 @@ end;
 *           Tears the system using considering the number of                   *
 *           available CPUs as reference                                        *
 *******************************************************************************}
-procedure ADiakoptics_Tearing();
+function ADiakoptics_Tearing(): Integer;
 var
     Prev_Mode,                              // Stores the previous solution mode
     Num_Ckts: Integer;                  // Stores the number of Sub-Circuits created
@@ -281,6 +266,7 @@ begin
         Dynavars.SolutionMode := Prev_mode;  // Goes back to the previous solution mode
         ActiveCircuit[1].Num_SubCkts := Num_Ckts;
         GlobalResult := 'Sub-Circuits Created: ' + inttostr(Num_Ckts);
+        Result := 0;          // No error handling here
     end;
 end;
 
@@ -323,7 +309,7 @@ begin
             begin                       // Create subcircuits
                 prog_Str := prog_str + '- Creating SubCircuits...' + CRLF;
 
-                ADiakoptics_Tearing();
+                ErrorCode := ADiakoptics_Tearing();
                 prog_Str := prog_str + '  ' + inttostr(ActiveCircuit[1].Num_SubCkts) + ' Sub-Circuits Created' + CRLF;
 
             end;
@@ -337,6 +323,7 @@ begin
                     Links[DIdx] := ActiveCircuit[1].Link_Branches[DIdx];
 
                 prog_Str := prog_str + 'Done';
+                ErrorCode := 0;          // No error handling here
 
             end;
             2:
@@ -375,7 +362,7 @@ begin
                     DssExecutive.Command := 'solve';
                 end;
                 prog_Str := prog_str + 'Done';
-
+                ErrorCode := 0;
             end;
             3:
             begin                      // Creates the contours matrix
@@ -383,7 +370,7 @@ begin
                 prog_Str := prog_str + CRLF + '- Building Contour matrix...';
         // Builds the contour matrix
                 ErrorCode := Calc_C_Matrix(@Links[0], length(Links));
-                if ErrorCode = 0 then
+                if ErrorCode <> 0 then
                     ErrorStr := 'Error'
                 else
                     ErrorStr := 'Done';
@@ -394,7 +381,7 @@ begin
             begin                       // Builds the ZLL matrix
                 prog_Str := prog_str + CRLF + '- Building ZLL...';
                 ErrorCode := Calc_ZLL(@Links[0], length(Links));
-                if ErrorCode = 0 then
+                if ErrorCode <> 0 then
                     ErrorStr := 'Error'
                 else
                     ErrorStr := 'Done';
@@ -415,13 +402,12 @@ begin
                 end;
                 Ymatrix.BuildYMatrix(WHOLEMATRIX, false, ActiveActor);
                 prog_Str := prog_str + 'Done';
-
+                ErrorCode := 0;          // No error handling here
             end;
             6:
             begin                      // Builds the ZCC matrix
                 prog_Str := prog_str + CRLF + '- Building ZCC...';
-        //  Calc_ZCT();
-        //  Calc_ZCC();
+                Calc_ZCC();
                 prog_Str := prog_str + 'Done' + CRLF;
 
             end
@@ -431,11 +417,11 @@ begin
         end;
         end;
         inc(Local_State);
-        MQuit := (Local_State > Num_States) or (ErrorCode = 0);
+        MQuit := (Local_State > Num_States) or (ErrorCode <> 0);
     end;
 
     ActiveActor := 1;
-    if ErrorCode = 0 then
+    if ErrorCode <> 0 then
         ErrorStr := 'One or more errors found'
     else
         ErrorStr := 'A-Diakoptics initialized';
