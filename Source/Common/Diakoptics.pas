@@ -21,7 +21,7 @@ function ADiakoptics_Tearing(): Integer;
 procedure ADiakopticsInit();
 function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
-procedure Calc_ZCC();
+procedure Calc_ZCC(Links: Integer);
 
 implementation
 
@@ -50,19 +50,54 @@ end;
 *              Calculates the Connections matrix ZCC in the                    *
 *                      contours-contours domain                                *
 *******************************************************************************}
-procedure Calc_ZCC();
+procedure Calc_ZCC(Links: Integer);
 var
-    idx: Integer;
-    MSize: Longword;
+    idx,
+    idx2: Integer;
+    NumNodes: Longword;
     CVector,
-    ZVector: pNodeVArray;
+    ZVector: pComplexArray;
+    Cells: array of Integer;
+    Ctemp: Complex;
+
 begin
     with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
-        GetSize(hY, @MSize);
-        for idx := 1 to MSize do
-            CVector^[idx] := cmplx(0, 0);
+        GetSize(hY, @NumNodes);
+        ZCT.sparse_matrix_Cmplx(NumNodes, Links);
+        CVector := allocmem(NumNodes);
+        ZVector := allocmem(NumNodes);
+        setlength(Cells, 0);                 // Init vector to store the modified cells
+        for idx := 1 to NumNodes do
+            CVector[idx] := cZERO; // Make it zero just in case
 
+        for idx2 := 0 to (Links - 1) do
+        begin
+
+            for idx := 1 to Contours.NZero do
+            begin
+                if Contours.CData[idx - 1].col = idx2 then
+                begin
+                    CVector[Contours.CData[idx].row + 1] := Contours.CData[idx].Value;
+                    setlength(Cells, (length(Cells) + 1));
+                    Cells[high(Cells)] := Contours.CData[idx].row + 1;
+                end;
+            end;
+            SolveSparseSet(hy, @ZVector^[1], @CVector^[1]);
+
+            for idx := 0 to High(Cells) do
+                CVector[Cells[idx]] := cZERO;  // resets CVector
+            setlength(Cells, 0);                                            // resets indexes
+
+            for idx := 1 to NumNodes do           // inserts result into the ZCT matrix
+            begin
+                CTemp := ZVector[idx];
+                if (CTemp.re <> 0) and (CTemp.im <> 0) then
+                    ZCT.insert((idx - 1), idx2, ZVector[idx]);
+            end;
+
+
+        end;
 
     end;
 end;
@@ -70,7 +105,7 @@ end;
 {*******************************************************************************
 *                   Calculates the contours matrix based                       *
 *             on the location in the graph of the link branches                *
-*             if there is an error returns 0, otherwise 1                      *
+*             if there is an error returns <> 0                                *
 *******************************************************************************}
 function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 var
@@ -156,7 +191,7 @@ end;
 
 {*******************************************************************************
 *            Calculates the Link brnahes matrix for further use                *
-*                if there is an error returns 0, otherwise 1                   *
+*                if there is an error returns <> 0                             *
 *******************************************************************************}
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
 var
@@ -407,7 +442,7 @@ begin
             6:
             begin                      // Builds the ZCC matrix
                 prog_Str := prog_str + CRLF + '- Building ZCC...';
-                Calc_ZCC();
+                Calc_ZCC(length(Links));
                 prog_Str := prog_str + 'Done' + CRLF;
 
             end
