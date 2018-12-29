@@ -52,52 +52,74 @@ end;
 *******************************************************************************}
 procedure Calc_ZCC(Links: Integer);
 var
-    idx,
-    idx2: Integer;
+    row,
+    col,
+    idx3,
+    idx2,
+    idx: Integer;
     NumNodes: Longword;
     CVector,
     ZVector: pComplexArray;
-    Cells: array of Integer;
     Ctemp: Complex;
+// 4 Debugging
+    myFile: TextFile;
+    Text: String;
 
 begin
     with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
         GetSize(hY, @NumNodes);
-        ZCT.sparse_matrix_Cmplx(NumNodes, Links);
-        CVector := allocmem(NumNodes);
-        ZVector := allocmem(NumNodes);
-        setlength(Cells, 0);                 // Init vector to store the modified cells
-        for idx := 1 to NumNodes do
-            CVector[idx] := cZERO; // Make it zero just in case
+        col := NumNodes;
+        dec(Links);
+        ZCT.sparse_matrix_Cmplx(NumNodes, Links * 3);
+        CVector := allocmem(NumNodes * 2);                    // Real and imag parts
+        ZVector := allocmem(NumNodes * 2);
+        idx3 := Links * 3 - 1;
 
-        for idx2 := 0 to (Links - 1) do
+        for idx2 := 0 to idx3 do
         begin
 
-            for idx := 1 to Contours.NZero do
+            for idx := 1 to NumNodes do
+                CVector^[idx] := cZERO; // Make it zero
+
+            for idx := 1 to length(Contours.CData) do
             begin
                 if Contours.CData[idx - 1].col = idx2 then
                 begin
-                    CVector[Contours.CData[idx].row + 1] := Contours.CData[idx].Value;
-                    setlength(Cells, (length(Cells) + 1));
-                    Cells[high(Cells)] := Contours.CData[idx].row + 1;
+                    row := Contours.CData[idx - 1].row + 1;
+                    CVector^[row] := Contours.CData[idx - 1].Value;
                 end;
             end;
             SolveSparseSet(hy, @ZVector^[1], @CVector^[1]);
 
-            for idx := 0 to High(Cells) do
-                CVector[Cells[idx]] := cZERO;  // resets CVector
-            setlength(Cells, 0);                                            // resets indexes
-
-            for idx := 1 to NumNodes do           // inserts result into the ZCT matrix
+            for idx := 1 to col do           // inserts result into the ZCT' matrix
             begin
-                CTemp := ZVector[idx];
+                CTemp := ZVector^[idx];
                 if (CTemp.re <> 0) and (CTemp.im <> 0) then
                     ZCT.insert((idx - 1), idx2, ZVector[idx]);
             end;
-
-
         end;
+        ZCT := ZCT.Transpose;
+        ZCC := ZCT.multiply(Contours);    // Calculates ZCC with no Links impedance
+        ZCC := ZCC.Add(ZLL);              // Adds the link impedance
+
+{
+//********************Dbug************************************
+    AssignFile(myFile, 'C:\Temp\ZCCMat.csv');
+    ReWrite(myFile);
+    Text        :=  '';
+    for idx2 := 0 to (length(ZCC.CData)- 1) do
+    Begin
+        Text  :=  inttostr(ZCC.CData[idx2].Row) + ',' + inttostr(ZCC.CData[idx2].Col) +
+        ',' + floattostr(ZCC.CData[idx2].Value.re);
+        if ZCC.CData[idx2].Value.im < 0 then
+          Text  :=  Text  + '-i' +  floattostr(-1*ZCC.CData[idx2].Value.im)
+        else
+          Text  :=  Text  + '+i' +  floattostr(ZCC.CData[idx2].Value.im);
+        WriteLn(myFile,Text);
+    End;
+    CloseFile(myFile);
+ }
 
     end;
 end;
@@ -430,8 +452,8 @@ begin
                 prog_Str := prog_str + CRLF + '- Opening link branches...';
                 for DIdx := 1 to High(Links) do
                 begin
-                    DssExecutive.Command := Links[DIdx] + '.r0=1000000000';
-                    DssExecutive.Command := Links[DIdx] + '.r1=1000000000';
+                    DssExecutive.Command := Links[DIdx] + '.r0=10000000';
+                    DssExecutive.Command := Links[DIdx] + '.r1=10000000';
                     DssExecutive.Command := Links[DIdx] + '.x0=0';
                     DssExecutive.Command := Links[DIdx] + '.x1=0';
                 end;
