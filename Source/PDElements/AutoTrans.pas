@@ -11,6 +11,7 @@ unit AutoTrans;
    7-14-2018  Created from Transformer
    9-19-2018  committed
    12-4-2018  Corrected indices for mapping into Yprim
+   1-3-2019   Default last nphase nodes of X terminal (2) to same as first neutral node
 }
 
 { You can designate a AutoTrans to be a substation by setting the sub=yes parameter}
@@ -39,7 +40,7 @@ type
         procedure SetActiveWinding(w: Integer);
         procedure InterpretAutoConnection(const S: String);
         procedure InterpretAllConns(const S: String);
-        procedure InterpretAllBuses(const S: String);
+        procedure InterpretAllBuses(const S: String; ActorID: Integer);
         procedure InterpretAllTaps(const S: String);
         procedure InterpretAllkVRatings(const S: String);
         procedure InterpretAllkVARatings(const S: String);
@@ -121,6 +122,8 @@ type
         procedure FetchXfmrCode(const Code: String);
 
         function GeTAutoWindingCurrentsResult(ActorID: Integer): String;
+
+        procedure SetBusAuto(iwdg: Integer; const s: String; ActorID: Integer);
 
     PROTECTED
         NumWindings: Integer;
@@ -485,7 +488,7 @@ begin
                 3:
                     SetActiveWinding(Parser[ActorID].IntValue);
                 4:
-                    Setbus(ActiveWinding, param);
+                    SetbusAuto(ActiveWinding, param, ActorID);
                 5:
                     InterpretAutoConnection(Param);
                 6:
@@ -501,7 +504,7 @@ begin
                 11:
                     strCoreType := Param;
                 12:
-                    InterpretAllBuses(Param);
+                    InterpretAllBuses(Param, ActorID);
                 13:
                     InterpretAllConns(Param);
                 14:
@@ -725,7 +728,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TAutoTrans.InterpretAllBuses(const S: String);
+procedure TAutoTrans.InterpretAllBuses(const S: String; ActorID: Integer);
 //  routine expecting all winding bus connections expressed in one array of strings
 var
     BusNam: String;
@@ -742,7 +745,7 @@ begin
             AuxParser.NextParam; // ignore any parameter name  not expecting any
             BusNam := AuxParser.StrValue;
             if Length(BusNam) > 0 then
-                SetBus(ActiveWinding, BusNam);
+                SetBusAuto(ActiveWinding, BusNam, ActorID);
         end;
 
 end;
@@ -1007,6 +1010,56 @@ begin
     Yorder := fNTerms * fNconds;
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
+end;
+
+procedure TAutoTransObj.SetBusAuto(iwdg: Integer; const s: String; ActorID: Integer);
+// Added Jan 3, 2019
+var
+    NNodes: array[1..50] of Integer; // big integer buffer
+    NumNodes: Integer;
+    DotPos: Integer;
+    FirstNeut: Integer; // First Neutral Node
+    ii: Integer;
+    strBusName,
+    strNewBusName: String;
+begin
+// For winding 2 set all nodes on second end of winding to same as 1st value
+// so all neutral ends of common winding get connected to same neutral node
+
+    case iwdg of
+
+        2:
+        begin
+
+            for ii := 1 to nphases do
+                NNodes[ii] := ii; // set up buffer with defaults
+               // Default all other conductors to a ground connection
+               // If user wants them ungrounded, must be specified explicitly!
+            for ii := nphases + 1 to NConds do
+                NNodes[ii] := 0;
+
+            Auxparser.Token := s; // load up AuxParser
+            strBusName := AuxParser.ParseAsBusName(NumNodes, @NNodes, ActorID);
+
+              // Check for non-zero neutral specification
+            if NNodes[nphases + 1] > 0 then
+            begin
+                  // Reconstruct new bus name
+                strNewBusName := strBusName;
+                for ii := 1 to Nphases do
+                    strNewBusName := strNewBusName + Format('.%d', [NNodes[ii]]);
+                for ii := nphases + 1 to Nconds do
+                    strNewBusName := strNewBusName + Format('.%d', [NNodes[nphases + 1]]);
+                SetBus(iwdg, strNewBusName);
+            end
+            else
+                SetBus(iwdg, s);
+
+        end;
+    else
+        Setbus(iwdg, s);  // all other windings
+    end;
+
 end;
 
 procedure TAutoTransObj.SetNodeRef(iTerm: Integer; NodeRefArray: pIntegerArray);
@@ -2158,7 +2211,7 @@ var
     i,
     N: Integer;
     S: String;
-    Nodes: array[1..5] of Integer; // integer buffer
+    Nodes: array[1..50] of Integer; // big integer buffer
     OnPhase1: Boolean;
 begin
 
