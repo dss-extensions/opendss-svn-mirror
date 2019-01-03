@@ -689,6 +689,8 @@ var
     Count,
     Index: array of Integer;
     i,
+    j,
+    k,
     rpos: Integer;
 
 begin
@@ -697,8 +699,19 @@ begin
     // new matrix with inversed row X col
     Result.sparse_matrix_Cmplx(col, row);
     // same number of elements
+    j := 0;
+    k := 0;
     for i := 1 to len do
-        Result.insert(i, 0, cmplx(0, 0));
+    begin
+        Result.insert(j, k, cZERO);
+        inc(k);
+        if k = row then
+        begin
+            inc(j);
+            k := 0;
+        end;
+
+    end;
 
     setlength(Count, col + 1);
     setlength(Index, col + 1);

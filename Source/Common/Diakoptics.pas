@@ -22,6 +22,7 @@ procedure ADiakopticsInit();
 function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
 procedure Calc_ZCC(Links: Integer);
+procedure Calc_Y4();
 
 implementation
 
@@ -43,6 +44,24 @@ begin
 
     end;
     Result := 0;
+end;
+
+{*******************************************************************************
+*              Inverts ZCC to obtain its admittance equivalent Y4              *
+*                      This is the heart of ADiakoptics                        *
+*******************************************************************************}
+procedure Calc_Y4();
+var
+    TempMat: TcMatrix;
+// 4 Debugging
+    myFile: TextFile;
+    Text: String;
+
+begin
+    with ActiveCircuit[1], ActiveCircuit[1].Solution do
+    begin
+        TempMat := TCmatrix.CreateMatrix(3);
+    end;
 end;
 
 
@@ -71,7 +90,7 @@ begin
         GetSize(hY, @NumNodes);
         col := NumNodes;
         dec(Links);
-        ZCT.sparse_matrix_Cmplx(NumNodes, Links * 3);
+        ZCT.sparse_matrix_Cmplx(Links * 3, NumNodes);
         CVector := allocmem(NumNodes * 2);                    // Real and imag parts
         ZVector := allocmem(NumNodes * 2);
         idx3 := Links * 3 - 1;
@@ -80,7 +99,7 @@ begin
         begin
 
             for idx := 1 to NumNodes do
-                CVector^[idx] := cZERO; // Make it zero
+                CVector^[idx] := cZERO;  // Makes it zero
 
             for idx := 1 to length(Contours.CData) do
             begin
@@ -92,15 +111,16 @@ begin
             end;
             SolveSparseSet(hy, @ZVector^[1], @CVector^[1]);
 
-            for idx := 1 to col do           // inserts result into the ZCT' matrix
+            for idx := 1 to col do           // inserts result into the ZCT matrix
             begin
                 CTemp := ZVector^[idx];
                 if (CTemp.re <> 0) and (CTemp.im <> 0) then
-                    ZCT.insert((idx - 1), idx2, ZVector[idx]);
+                    ZCT.insert(idx2, (idx - 1), ZVector[idx]);
             end;
+
         end;
-        ZCT := ZCT.Transpose;
-        ZCC := ZCT.multiply(Contours);    // Calculates ZCC with no Links impedance
+
+        ZCC := ZCT.multiply(Contours);    // Calculates ZCC with no Link impedances
         ZCC := ZCC.Add(ZLL);              // Adds the link impedance
 
 {
@@ -119,7 +139,7 @@ begin
         WriteLn(myFile,Text);
     End;
     CloseFile(myFile);
- }
+}
 
     end;
 end;
@@ -306,7 +326,7 @@ end;
 
 {*******************************************************************************
 *           Tears the system using considering the number of                   *
-*           available CPUs as reference                                        *
+*           circuits specified by the user                                     *
 *******************************************************************************}
 function ADiakoptics_Tearing(): Integer;
 var
@@ -466,7 +486,12 @@ begin
                 prog_Str := prog_str + CRLF + '- Building ZCC...';
                 Calc_ZCC(length(Links));
                 prog_Str := prog_str + 'Done' + CRLF;
-
+            end;
+            7:
+            begin                      // Inverts ZCC to get Y4
+                prog_Str := prog_str + CRLF + '- Building Y4 ...';
+                Calc_Y4();
+                prog_Str := prog_str + 'Done' + CRLF;
             end
         else
         begin
@@ -479,7 +504,10 @@ begin
 
     ActiveActor := 1;
     if ErrorCode <> 0 then
-        ErrorStr := 'One or more errors found'
+    begin
+        ErrorStr := 'One or more errors found';
+        ADiakoptics := false;
+    end
     else
         ErrorStr := 'A-Diakoptics initialized';
 

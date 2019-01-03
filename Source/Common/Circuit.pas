@@ -220,6 +220,7 @@ type
         ZLL: TSparse_Complex;
         ZCT: TSparse_Complex;
         ZCC: TSparse_Complex;
+        Y4: TSparse_Complex;
 
           // Bus and Node stuff
         Buses: pTBusArray;
@@ -582,6 +583,7 @@ begin
     ZLL := TSparse_Complex.Create;
     ZCC := TSparse_Complex.Create;
     ZCT := TSparse_Complex.Create;
+    Y4 := TSparse_Complex.Create;
 
 end;
 
