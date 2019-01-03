@@ -2123,7 +2123,7 @@ var
     i,
     N: Integer;
     S: String;
-    Nodes: array[1..5] of Integer; // integer buffer
+    Nodes: array[1..50] of Integer; // big integer buffer
     OnPhase1: Boolean;
 begin
 
