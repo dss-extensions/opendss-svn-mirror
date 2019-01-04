@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm=C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm</Transaction>
+    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -187,49 +187,50 @@
     <File Path="..\Shared\Ucomplex.pas"/>
     <File Path="..\TCP_IP"/>
     <File Path="..\TCP_IP\TCP_IP.pas"/>
-    <File Path="ImplActiveClass.pas"/>
     <File Path="ImplBus.pas"/>
-    <File Path="ImplCapacitors.pas"/>
-    <File Path="ImplCapControls.pas"/>
     <File Path="ImplCircuit.pas"/>
     <File Path="ImplCktElement.pas"/>
-    <File Path="ImplCmathLib.pas"/>
-    <File Path="ImplCtrlQueue.pas"/>
     <File Path="ImplDSS.pas"/>
-    <File Path="ImplDSSElement.pas"/>
-    <File Path="ImplDSSimComs.pas"/>
     <File Path="ImplDSSProgress.pas"/>
     <File Path="ImplDSSProperty.pas"/>
-    <File Path="ImplDSS_Executive.pas"/>
     <File Path="ImplError.pas"/>
-    <File Path="ImplEvents.pas"/>
-    <File Path="ImplFuses.pas"/>
     <File Path="ImplGenerators.pas"/>
     <File Path="ImplGlobals.pas"/>
-    <File Path="ImplIsources.pas"/>
-    <File Path="ImplLineCodes.pas"/>
     <File Path="ImplLines.pas"/>
-    <File Path="ImplLoads.pas"/>
-    <File Path="ImplLoadShapes.pas"/>
     <File Path="ImplMeters.pas"/>
     <File Path="ImplMonitors.pas"/>
-    <File Path="ImplParallel.pas"/>
-    <File Path="ImplParser.pas"/>
-    <File Path="ImplPDElements.pas"/>
-    <File Path="ImplPVSystems.pas"/>
-    <File Path="ImplReclosers.pas"/>
-    <File Path="ImplRegControls.pas"/>
-    <File Path="ImplRelays.pas"/>
-    <File Path="ImplSensors.pas"/>
     <File Path="ImplSettings.pas"/>
     <File Path="ImplSolution.pas"/>
-    <File Path="ImplSwtControls.pas"/>
     <File Path="ImplText.pas"/>
-    <File Path="ImplTopology.pas"/>
-    <File Path="ImplTransformers.pas"/>
-    <File Path="ImplVsources.pas"/>
-    <File Path="ImplXYCurves.pas"/>
-    <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
+    <File Path="ImplCtrlQueue.pas"/>
+    <File Path="ImplLoads.pas"/>
+    <File Path="ImplDSSElement.pas"/>
+    <File Path="ImplActiveClass.pas"/>
+    <File Path="ImplTransformers.pas"/>
+    <File Path="ImplCapacitors.pas"/>
+    <File Path="ImplCapControls.pas"/>
+    <File Path="ImplRegControls.pas"/>
+    <File Path="ImplSwtControls.pas"/>
+    <File Path="ImplTopology.pas"/>
+    <File Path="ImplDSS_Executive.pas"/>
+    <File Path="ImplEvents.pas"/>
+    <File Path="ImplSensors.pas"/>
+    <File Path="ImplXYCurves.pas"/>
+    <File Path="ImplPDElements.pas"/>
+    <File Path="ImplReclosers.pas"/>
+    <File Path="ImplRelays.pas"/>
+    <File Path="ImplCmathLib.pas"/>
+    <File Path="ImplParser.pas"/>
+    <File Path="ImplLoadShapes.pas"/>
+    <File Path="ImplFuses.pas"/>
+    <File Path="ImplIsources.pas"/>
+    <File Path="ImplDSSimComs.pas"/>
+    <File Path="ImplPVSystems.pas"/>
+    <File Path="ImplVsources.pas"/>
+    <File Path="ImplParallel.pas"/>
+    <File Path="ImplLineCodes.pas"/>
+    <File Path="OpenDSSengine.ridl"/>
+    <File Path="ImplGICSources.pas"/>
   </ProjectSortOrder>
 </BorlandProject>
