@@ -155,19 +155,19 @@ var
     Str: String;
     i: Integer;
 begin
-    AuxParser.CmdString := S;
+    AuxParser[ActiveActor].CmdString := S;
     with ActiveLineSpacingObj do
     begin
         for i := 1 to NWires do
         begin
-            AuxParser.NextParam; // ignore any parameter name  not expecting any
-            Str := AuxParser.StrValue;
+            AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
+            Str := AuxParser[ActiveActor].StrValue;
             if Length(Str) > 0 then
                 case which of
                     X:
-                        FX^[i] := AuxParser.Dblvalue;
+                        FX^[i] := AuxParser[ActiveActor].Dblvalue;
                     H:
-                        FY^[i] := AuxParser.Dblvalue;
+                        FY^[i] := AuxParser[ActiveActor].Dblvalue;
                 end;
         end;
     end;

@@ -343,19 +343,19 @@ begin
     Readln(F, S);  // Read first line in file
     CloseFile(F);
 
-    SaveWhiteSpaceChars := AuxParser.Whitespace;
-    AuxParser.Whitespace := #9;
-    AuxParser.CmdString := S;  // Load up Parser
+    SaveWhiteSpaceChars := AuxParser[ActiveActor].Whitespace;
+    AuxParser[ActiveActor].Whitespace := #9;
+    AuxParser[ActiveActor].CmdString := S;  // Load up Parser
    // Skip specified number of columns in CSV file
     for i := 1 to NumFieldsToSkip do
-        Auxparser.NextParam;
+        Auxparser[ActiveActor].NextParam;
     with ChannelSelectForm.ListBox1 do
     begin
         Clear;
         iCounter := 0;
         repeat
-            Auxparser.NextParam;
-            S := Auxparser.StrValue;
+            Auxparser[ActiveActor].NextParam;
+            S := Auxparser[ActiveActor].StrValue;
             if Length(S) > 0 then
             begin
                 iCounter := iCounter + 1;
@@ -367,7 +367,7 @@ begin
         Result := true
     else
         Result := false;
-    AuxParser.Whitespace := SaveWhiteSpaceChars;
+    AuxParser[ActiveActor].Whitespace := SaveWhiteSpaceChars;
 end;
 
 

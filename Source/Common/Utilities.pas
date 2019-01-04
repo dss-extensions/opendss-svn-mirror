@@ -674,11 +674,11 @@ var
     ParmName: String;
 
 begin
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Result.re := AuxParser.dblvalue;
-    ParmName := Auxparser.NextParam;
-    Result.im := AuxParser.dblvalue;
+    AuxParser[ActiveActor].CmdString := S;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Result.re := AuxParser[ActiveActor].dblvalue;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Result.im := AuxParser[ActiveActor].dblvalue;
 end;
 
 //----------------------------------------------------------------------------
@@ -740,9 +740,9 @@ var
 
 begin
 
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    AuxParser[ActiveActor].CmdString := S;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
     Result := MaxValues; // Default Return Value;
 
      {Syntax can be either a list of numeric values or a file specification:  File= ...}
@@ -765,16 +765,16 @@ begin
         CSVHeader := false;
 
          // Look for other options  (may be in either order)
-        ParmName := Auxparser.NextParam;
-        Param := AuxParser.StrValue;
+        ParmName := AuxParser[ActiveActor].NextParam;
+        Param := AuxParser[ActiveActor].StrValue;
         while Length(Param) > 0 do
         begin
             if CompareTextShortest(ParmName, 'column') = 0 then
-                CSVColumn := AuxParser.IntValue;
+                CSVColumn := AuxParser[ActiveActor].IntValue;
             if CompareTextShortest(ParmName, 'header') = 0 then
                 CSVHeader := InterpretYesNo(param);
-            ParmName := Auxparser.NextParam;
-            Param := AuxParser.StrValue;
+            ParmName := AuxParser[ActiveActor].NextParam;
+            Param := AuxParser[ActiveActor].StrValue;
         end;
 
          // load the list from a file
@@ -793,10 +793,10 @@ begin
                     if not EOF(F) then
                     begin
                         Readln(F, InputLIne);
-                        Auxparser.CmdString := InputLine;
+                        AuxParser[ActiveActor].CmdString := InputLine;
                         for iskip := 1 to CSVColumn do
-                            ParmName := AuxParser.NextParam;
-                        ResultArray^[i] := AuxParser.dblValue;
+                            ParmName := AuxParser[ActiveActor].NextParam;
+                        ResultArray^[i] := AuxParser[ActiveActor].dblValue;
                     end
                     else
                     begin
@@ -868,8 +868,8 @@ begin
          // Parse Values of array list
         for i := 1 to MaxValues do
         begin
-            ResultArray^[i] := AuxParser.DblValue;    // Fills array with zeros if we run out of numbers
-            AuxParser.NextParam;
+            ResultArray^[i] := AuxParser[ActiveActor].DblValue;    // Fills array with zeros if we run out of numbers
+            AuxParser[ActiveActor].NextParam;
         end;
     end;
 end;
@@ -887,9 +887,9 @@ var
     i: Integer;
 
 begin
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    AuxParser[ActiveActor].CmdString := S;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
     Result := Maxvalues;  // Default return value
 
      {Syntax can be either a list of numeric values or a file specification:  File= ...}
@@ -923,8 +923,8 @@ begin
          // Parse Values of array list
         for i := 1 to MaxValues do
         begin
-            ResultArray^[i] := AuxParser.IntValue;    // Fills array with zeros if we run out of numbers
-            AuxParser.NextParam;
+            ResultArray^[i] := AuxParser[ActiveActor].IntValue;    // Fills array with zeros if we run out of numbers
+            AuxParser[ActiveActor].NextParam;
         end;
     end;
 end;
@@ -1026,9 +1026,9 @@ begin
     Size := 0;
     ReAllocStringArray;
 
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    AuxParser[ActiveActor].CmdString := S;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
 
      {Syntax can be either a list of string values or a file specification:  File= ...}
 
@@ -1069,8 +1069,8 @@ begin
             if Size > Maxsize then
                 BumpUpStringArray;
             ResultArray^[Size] := Param;
-            ParmName := AuxParser.NextParam;
-            Param := AuxParser.StrValue;
+            ParmName := AuxParser[ActiveActor].NextParam;
+            Param := AuxParser[ActiveActor].StrValue;
         end;
     end;
 
@@ -1099,9 +1099,9 @@ begin
     ResultList.Clear;
 
 
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    AuxParser[ActiveActor].CmdString := S;
+    ParmName := AuxParser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
 
      {Syntax can be either a list of string values or a file specification:  File= ...}
 
@@ -1115,9 +1115,9 @@ begin
             while not EOF(F) do
             begin
                 Readln(F, Param);
-                Auxparser.CmdString := Param;
-                ParmName := Auxparser.NextParam;
-                NextParam := AuxParser.StrValue;
+                AuxParser[ActiveActor].CmdString := Param;
+                ParmName := AuxParser[ActiveActor].NextParam;
+                NextParam := AuxParser[ActiveActor].StrValue;
                 if Length(NextParam) > 0 then
                 begin     // Ignore Blank Lines in File
                     ResultList.Add(NextParam);
@@ -1139,8 +1139,8 @@ begin
         while Param <> '' do
         begin
             ResultList.add(Param);
-            ParmName := AuxParser.NextParam;
-            Param := AuxParser.StrValue;
+            ParmName := AuxParser[ActiveActor].NextParam;
+            Param := AuxParser[ActiveActor].StrValue;
         end;
     end;
 
@@ -1309,11 +1309,11 @@ var
 begin
 
 // Parse the line once to get the count of tokens on string, S
-    AuxParser.cmdString := S;
+    AuxParser[ActiveActor].cmdString := S;
     Count := 0;
     repeat
-        ParamName := AuxParser.NextParam;
-        Param := AuxParser.StrValue;
+        ParamName := AuxParser[ActiveActor].NextParam;
+        Param := AuxParser[ActiveActor].StrValue;
         if Length(Param) > 0 then
             Inc(Count);
     until Length(Param) = 0;
@@ -1322,11 +1322,11 @@ begin
     ReallocMem(iarray, sizeof(iarray^[1]) * count);
 
 // Parse again for real
-    AuxParser.cmdString := S;
+    AuxParser[ActiveActor].cmdString := S;
     for i := 1 to Count do
     begin
-        ParamName := AuxParser.NextParam;
-        iarray^[i] := AuxParser.IntValue;
+        ParamName := AuxParser[ActiveActor].NextParam;
+        iarray^[i] := AuxParser[ActiveActor].IntValue;
     end;
 
 
@@ -2287,8 +2287,8 @@ begin
         end;
     end;
 
-    SaveDelims := AuxParser.Delimiters;
-    AuxParser.Delimiters := ',';
+    SaveDelims := AuxParser[ActiveActor].Delimiters;
+    AuxParser[ActiveActor].Delimiters := ',';
     ArraySize := 10;
     FieldLength := Allocmem(Sizeof(FieldLength^[1]) * ArraySize);
 
@@ -2297,11 +2297,11 @@ begin
         while not Eof(Fin) do
         begin
             Readln(Fin, line);
-            AuxParser.CmdString := Line;  // Load the parsr
+            AuxParser[ActiveActor].CmdString := Line;  // Load the parsr
             FieldNum := 0;
             repeat
-                AuxParser.NextParam;
-                Field := Auxparser.StrValue;
+                AuxParser[ActiveActor].NextParam;
+                Field := AuxParser[ActiveActor].StrValue;
                 FieldLen := Length(Field);
                 if pos(' ', Field) > 0 then
                     FieldLen := FieldLen + 2;
@@ -2329,11 +2329,11 @@ begin
         while not EOF(Fin) do
         begin
             Readln(Fin, Line);
-            AuxParser.CmdString := Line;  // Load the parser
+            AuxParser[ActiveActor].CmdString := Line;  // Load the parser
             FieldNum := 0;
             repeat
-                AuxParser.NextParam;
-                Field := Auxparser.StrValue;
+                AuxParser[ActiveActor].NextParam;
+                Field := AuxParser[ActiveActor].StrValue;
                 if pos(' ', Field) > 0 then
                     Field := '"' + Field + '"';  // add quotes if a space in field
                 FieldLen := Length(Field);
@@ -2356,7 +2356,7 @@ begin
         CloseFile(Fout);
 
         Reallocmem(FieldLength, 0);
-        AuxParser.Delimiters := SaveDelims;
+        AuxParser[ActiveActor].Delimiters := SaveDelims;
 
     end;
 

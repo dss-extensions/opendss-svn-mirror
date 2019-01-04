@@ -1778,9 +1778,9 @@ begin
     ActiveCircuit[ActiveActor].AutoAddBusList.Clear;
 
      // Load up auxiliary parser to reparse the array list or file name
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    Auxparser[ActiveActor].CmdString := S;
+    ParmName := Auxparser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
 
      {Syntax can be either a list of bus names or a file specification:  File= ...}
 
@@ -1794,9 +1794,9 @@ begin
             while not EOF(F) do
             begin         // Fixed 7/8/01 to handle all sorts of bus names
                 Readln(F, S2);
-                Auxparser.CmdString := S2;
-                ParmName := Auxparser.NextParam;
-                Param := AuxParser.StrValue;
+                Auxparser[ActiveActor].CmdString := S2;
+                ParmName := Auxparser[ActiveActor].NextParam;
+                Param := AuxParser[ActiveActor].StrValue;
                 if Length(Param) > 0 then
                     ActiveCircuit[ActiveActor].AutoAddBusList.Add(Param);
             end;
@@ -1816,8 +1816,8 @@ begin
         while Length(Param) > 0 do
         begin
             ActiveCircuit[ActiveActor].AutoAddBusList.Add(Param);
-            AuxParser.NextParam;
-            Param := AuxParser.StrValue;
+            AuxParser[ActiveActor].NextParam;
+            Param := AuxParser[ActiveActor].StrValue;
         end;
 
     end;
@@ -1842,9 +1842,9 @@ var
 begin
 
      // Load up auxiliary parser to reparse the array list or file name
-    Auxparser.CmdString := S;
-    ParmName := Auxparser.NextParam;
-    Param := AuxParser.StrValue;
+    Auxparser[ActiveActor].CmdString := S;
+    ParmName := Auxparser[ActiveActor].NextParam;
+    Param := AuxParser[ActiveActor].StrValue;
 
      {Syntax can be either a list of bus names or a file specification:  File= ...}
 
@@ -1858,9 +1858,9 @@ begin
             while not EOF(F) do
             begin         // Fixed 7/8/01 to handle all sorts of bus names
                 Readln(F, S2);
-                Auxparser.CmdString := S2;
-                ParmName := Auxparser.NextParam;
-                Param := AuxParser.StrValue;
+                Auxparser[ActiveActor].CmdString := S2;
+                ParmName := Auxparser[ActiveActor].NextParam;
+                Param := AuxParser[ActiveActor].StrValue;
                 if Length(Param) > 0 then
                     with ActiveCircuit[ActiveActor] do
                     begin
@@ -1891,8 +1891,8 @@ begin
                     Buses^[iBus].Keep := true;
             end;
 
-            AuxParser.NextParam;
-            Param := AuxParser.StrValue;
+            AuxParser[ActiveActor].NextParam;
+            Param := AuxParser[ActiveActor].StrValue;
         end;
 
     end;
@@ -2802,7 +2802,7 @@ begin
                 Inc(iLine);
                 Readln(F, S);      // Read line in from file
 
-                with AuxParser do
+                with AuxParser[ActiveActor] do
                 begin      // User Auxparser to parse line
                     CmdString := S;
                     NextParam;
@@ -2881,11 +2881,11 @@ var
 
 begin
     ActiveCircuit[ActiveActor].ReductionStrategyString := S;
-    AuxParser.CmdString := S;
-    paramName := Auxparser.NextParam;
-    Param := UpperCase(AuxParser.StrValue);
-    paramName := Auxparser.NextParam;
-    Param2 := AuxParser.StrValue;
+    AuxParser[ActiveActor].CmdString := S;
+    paramName := Auxparser[ActiveActor].NextParam;
+    Param := UpperCase(AuxParser[ActiveActor].StrValue);
+    paramName := Auxparser[ActiveActor].NextParam;
+    Param2 := AuxParser[ActiveActor].StrValue;
 
     ActiveCircuit[ActiveActor].ReductionStrategy := rsDefault;
     if Length(Param) = 0 then
@@ -2927,7 +2927,7 @@ begin
                 ActiveCircuit[ActiveActor].ReductionZmag := 0.02;
                 ActiveCircuit[ActiveActor].ReductionStrategy := rsStubs;
                 if Length(param2) > 0 then
-                    ActiveCircuit[ActiveActor].ReductionZmag := Auxparser.DblValue;
+                    ActiveCircuit[ActiveActor].ReductionZmag := Auxparser[ActiveActor].DblValue;
             end;
         end;
     else
@@ -3159,23 +3159,23 @@ begin
                 while not EOF(Fin) do
                 begin
                     Readln(Fin, Line);
-                    Auxparser.CmdString := Line;
-                    AuxParser.NextParam;
-                    BusName := Auxparser.StrValue;
+                    Auxparser[ActiveActor].CmdString := Line;
+                    AuxParser[ActiveActor].NextParam;
+                    BusName := Auxparser[ActiveActor].StrValue;
                     if Length(BusName) > 0 then
                     begin
                         BusIndex := ActiveCircuit[ActiveActor].BusList.Find(BusName);
                         if BusIndex > 0 then
                         begin
-                            AuxParser.Nextparam;
-                            node := AuxParser.Intvalue;
+                            AuxParser[ActiveActor].Nextparam;
+                            node := AuxParser[ActiveActor].Intvalue;
                             with ActiveCircuit[ActiveActor].Buses^[BusIndex] do
                                 for i := 1 to NumNodesThisBus do
                                 begin
                                     if GetNum(i) = node then
                                     begin
-                                        AuxParser.Nextparam;
-                                        Vmag := AuxParser.Dblvalue;
+                                        AuxParser[ActiveActor].Nextparam;
+                                        Vmag := AuxParser[ActiveActor].Dblvalue;
                                         Diff := Cabs(ActiveCircuit[ActiveActor].Solution.NodeV^[GetRef(i)]) - Vmag;
                                         if Vmag <> 0.0 then
                                         begin
@@ -3528,14 +3528,14 @@ begin
             case ParamPointer of
                 1:
                 begin  // List of case names
-                    AuxParser.CmdString := Param;
-                    AuxParser.NextParam;
-                    Param := AuxParser.StrValue;
+                    AuxParser[ActiveActor].CmdString := Param;
+                    AuxParser[ActiveActor].NextParam;
+                    Param := AuxParser[ActiveActor].StrValue;
                     while Length(Param) > 0 do
                     begin
                         CaseNames.Add(Param);
-                        AuxParser.NextParam;
-                        Param := AuxParser.StrValue;
+                        AuxParser[ActiveActor].NextParam;
+                        Param := AuxParser[ActiveActor].StrValue;
                     end;
                 end;
                 2:
@@ -3932,7 +3932,7 @@ begin
         while not EOF(F) do
         begin
             Readln(F, S);
-            with AuxParser do
+            with AuxParser[ActiveActor] do
             begin
                 pName := nil;
                 CmdString := S;
@@ -4048,9 +4048,9 @@ begin
         sNode1 := Param;
 
     // Get first node voltage
-    AuxParser.Token := sNode1;
+    AuxParser[ActiveActor].Token := sNode1;
     NodeBuffer[1] := 1;
-    sBusName := AuxParser.ParseAsBusName(numNodes, @NodeBuffer, ActiveActor);
+    sBusName := AuxParser[ActiveActor].ParseAsBusName(numNodes, @NodeBuffer, ActiveActor);
     iBusidx := ActiveCircuit[ActiveActor].Buslist.Find(sBusName);
     if iBusidx > 0 then
     begin
@@ -4065,9 +4065,9 @@ begin
     V1 := ActiveCircuit[ActiveActor].Solution.NodeV^[B1Ref];
 
     // Get 2nd node voltage
-    AuxParser.Token := sNode2;
+    AuxParser[ActiveActor].Token := sNode2;
     NodeBuffer[1] := 1;
-    sBusName := AuxParser.ParseAsBusName(numNodes, @NodeBuffer, ActiveActor);
+    sBusName := AuxParser[ActiveActor].ParseAsBusName(numNodes, @NodeBuffer, ActiveActor);
     iBusidx := ActiveCircuit[ActiveActor].Buslist.Find(sBusName);
     if iBusidx > 0 then
     begin

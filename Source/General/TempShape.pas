@@ -464,7 +464,7 @@ begin
                 Inc(i);
                 Readln(F, s); // read entire line  and parse with AuxParser
             {AuxParser allows commas or white space}
-                with AuxParser do
+                with AuxParser[Activeactor] do
                 begin
                     CmdString := s;
                     if Interval = 0.0 then

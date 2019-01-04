@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 12/21/2018 6:29:48 AM from Type Library described below.
+// File generated on 1/4/2019 5:37:56 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -24,6 +24,8 @@ unit OpenDSSengine_TLB;
 //   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // SYS_KIND: SYS_WIN32
+// Errors:
+//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -140,6 +142,8 @@ const
     CLASS_Parallel: TGUID = '{D967764D-CD38-41ED-B1FD-7D79DC78EFCD}';
     IID_ILineCodes: TGUID = '{519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}';
     CLASS_LineCodes: TGUID = '{0657EE75-F8CF-41D0-8672-2ADACD195591}';
+    IID_IGICSources: TGUID = '{9CD30253-86C0-4339-B86E-745C912E8B15}';
+    CLASS_GICSources: TGUID = '{D8715F4F-25F5-4EF8-A6F8-8E790628702C}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library
@@ -352,6 +356,8 @@ type
     IParallelDisp = dispinterface;
     ILineCodes = interface;
     ILineCodesDisp = dispinterface;
+    IGICSources = interface;
+    IGICSourcesDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library
@@ -398,6 +404,7 @@ type
     Vsources = IVsources;
     Parallel = IParallel;
     LineCodes = ILineCodes;
+    GICSources = IGICSources;
 
 
 // *********************************************************************//
@@ -3690,6 +3697,78 @@ type
     end;
 
 // *********************************************************************//
+// Interface: IGICSources
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {9CD30253-86C0-4339-B86E-745C912E8B15}
+// *********************************************************************//
+    IGICSources = interface(IDispatch)
+        ['{9CD30253-86C0-4339-B86E-745C912E8B15}']
+        function Get_AllNames: Olevariant; SAFECALL;
+        function Get_Bus1: Widestring; SAFECALL;
+        function Get_Bus2: Widestring; SAFECALL;
+        function Get_Name: Widestring; SAFECALL;
+        procedure Set_Name(const Value: Widestring); SAFECALL;
+        function Get_Phases: Integer; SAFECALL;
+        procedure Set_Phases(Value: Integer); SAFECALL;
+        function Get_EN: Double; SAFECALL;
+        procedure Set_EN(Value: Double); SAFECALL;
+        function Get_EE: Double; SAFECALL;
+        procedure Set_EE(Value: Double); SAFECALL;
+        function Get_Lat1: Double; SAFECALL;
+        procedure Set_Lat1(Value: Double); SAFECALL;
+        function Get_Lat2: Double; SAFECALL;
+        procedure Set_Lat2(Value: Double); SAFECALL;
+        function Get_Lon1: Double; SAFECALL;
+        procedure Set_Lon1(Value: Double); SAFECALL;
+        function Get_Lon2: Double; SAFECALL;
+        procedure Set_Lon2(Value: Double); SAFECALL;
+        function Get_Volts: Double; SAFECALL;
+        procedure Set_Volts(Value: Double); SAFECALL;
+        function Get_Count: Integer; SAFECALL;
+        function Get_First: Integer; SAFECALL;
+        function Get_Next: Integer; SAFECALL;
+        property AllNames: Olevariant READ Get_AllNames;
+        property Bus1: Widestring READ Get_Bus1;
+        property Bus2: Widestring READ Get_Bus2;
+        property Name: Widestring READ Get_Name WRITE Set_Name;
+        property Phases: Integer READ Get_Phases WRITE Set_Phases;
+        property EN: Double READ Get_EN WRITE Set_EN;
+        property EE: Double READ Get_EE WRITE Set_EE;
+        property Lat1: Double READ Get_Lat1 WRITE Set_Lat1;
+        property Lat2: Double READ Get_Lat2 WRITE Set_Lat2;
+        property Lon1: Double READ Get_Lon1 WRITE Set_Lon1;
+        property Lon2: Double READ Get_Lon2 WRITE Set_Lon2;
+        property Volts: Double READ Get_Volts WRITE Set_Volts;
+        property Count: Integer READ Get_Count;
+        property First: Integer READ Get_First;
+        property Next: Integer READ Get_Next;
+    end;
+
+// *********************************************************************//
+// DispIntf:  IGICSourcesDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {9CD30253-86C0-4339-B86E-745C912E8B15}
+// *********************************************************************//
+    IGICSourcesDisp = dispinterface
+        ['{9CD30253-86C0-4339-B86E-745C912E8B15}']
+        property AllNames: Olevariant READONLY DISPID 201;
+        property Bus1: Widestring READONLY DISPID 202;
+        property Bus2: Widestring READONLY DISPID 203;
+        property Name: Widestring DISPID 204;
+        property Phases: Integer DISPID 205;
+        property EN: Double DISPID 206;
+        property EE: Double DISPID 207;
+        property Lat1: Double DISPID 208;
+        property Lat2: Double DISPID 209;
+        property Lon1: Double DISPID 210;
+        property Lon2: Double DISPID 211;
+        property Volts: Double DISPID 212;
+        property Count: Integer READONLY DISPID 213;
+        property First: Integer READONLY DISPID 214;
+        property Next: Integer READONLY DISPID 215;
+    end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to
 // create instances of the default interface IText exposed by
 // the CoClass Text. The functions are intended to be used by
@@ -4181,6 +4260,18 @@ type
         class function CreateRemote(const MachineName: String): ILineCodes;
     end;
 
+// *********************************************************************//
+// The Class CoGICSources provides a Create and CreateRemote method to
+// create instances of the default interface IGICSources exposed by
+// the CoClass GICSources. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+    CoGICSources = class
+        class function Create: IGICSources;
+        class function CreateRemote(const MachineName: String): IGICSources;
+    end;
+
 implementation
 
 uses
@@ -4594,6 +4685,16 @@ end;
 class function CoLineCodes.CreateRemote(const MachineName: String): ILineCodes;
 begin
     Result := CreateRemoteComObject(MachineName, CLASS_LineCodes) as ILineCodes;
+end;
+
+class function CoGICSources.Create: IGICSources;
+begin
+    Result := CreateComObject(CLASS_GICSources) as IGICSources;
+end;
+
+class function CoGICSources.CreateRemote(const MachineName: String): IGICSources;
+begin
+    Result := CreateRemoteComObject(MachineName, CLASS_GICSources) as IGICSources;
 end;
 
 end.

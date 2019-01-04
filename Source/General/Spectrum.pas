@@ -374,7 +374,7 @@ begin
             begin
                 Inc(i);
                 Readln(F, S);  // Use Auxparser, which allows for formats
-                with AuxParser do
+                with AuxParser[ActiveActor] do
                 begin
                     CmdString := S;
                     NextParam;

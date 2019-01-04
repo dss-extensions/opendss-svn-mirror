@@ -279,6 +279,7 @@ begin
     ActiveActor := 1;
     CreateDSSClasses;
     Parser[ActiveActor] := Tparser.Create;
+    AuxParser[ActiveActor] := Tparser.Create;
     CreateDefaultDSSItems;
     RebuildHelpForm := true; // because class strings have changed
     {$IFNDEF FPC}

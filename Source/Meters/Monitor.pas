@@ -2061,16 +2061,16 @@ begin
             end;
 
            {Parse off Channel Names}
-            AuxParser.Whitespace := '';
-            AuxParser.CmdString := String(pStrBuffer);
-            AuxParser.NextParam;  // pop off two
-            AuxParser.NextParam;
+            AuxParser[ActiveActor].Whitespace := '';
+            AuxParser[ActiveActor].CmdString := String(pStrBuffer);
+            AuxParser[ActiveActor].NextParam;  // pop off two
+            AuxParser[ActiveActor].NextParam;
             for i := 1 to RecordSize do
             begin
-                AuxParser.NextParam;
-                NameList.Add(AuxParser.StrValue);
+                AuxParser[ActiveActor].NextParam;
+                NameList.Add(AuxParser[ActiveActor].StrValue);
             end;
-            AuxParser.ResetDelims;
+            AuxParser[ActiveActor].ResetDelims;
 
            {Write TOP Header}
 

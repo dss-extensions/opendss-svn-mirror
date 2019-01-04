@@ -282,7 +282,7 @@ type
         constructor Create(ParClass: TDSSClass; const solutionname: String);
         destructor Destroy; OVERRIDE;
 
-        procedure ZeroAuxCurrents;
+        procedure ZeroAuxCurrents(ActorID: Integer);
         function SolveZeroLoadSnapShot(ActorID: Integer): Integer;
         procedure DoPFLOWsolution(ActorID: Integer);
 
@@ -546,7 +546,8 @@ end;
 // ===========================================================================================
 destructor TSolutionObj.Destroy;
 begin
-    Reallocmem(AuxCurrents, 0);
+
+//      Reallocmem(AuxCurrents, 0);
     Reallocmem(Currents, 0);
     Reallocmem(dV, 0);
     Reallocmem(ErrorSaved, 0);
@@ -578,6 +579,8 @@ begin
         ActorHandle[ActiveActor] := nil;
     end;
     ActorMA_Msg[ActiveActor].Free;
+
+
     inherited Destroy;
 end;
 
@@ -2323,16 +2326,15 @@ begin
     // For Now, only AutoAdd Obj uses this
 
     if Dynavars.SolutionMode = AUTOADDFLAG then
-        ActiveCircuit[ActiveActor].AutoAddObj.AddCurrents(SolveType, ActorID);
+        ActiveCircuit[ActorID].AutoAddObj.AddCurrents(SolveType, ActorID);
 
 end;
 
-procedure TSolutionObj.ZeroAuxCurrents;
+procedure TSolutionObj.ZeroAuxCurrents(ActorID: Integer);
 var
     i: Integer;
 begin
-    for i := 1 to ActiveCircuit[ActiveActor].NumNodes do
-        AuxCurrents^[i] := CZERO;
+//    FOR i := 1 to ActiveCircuit[ActorID].NumNodes Do AuxCurrents^[i] := CZERO;
 end;
 
 procedure TSolutionObj.Check_Fault_Status(ActorID: Integer);

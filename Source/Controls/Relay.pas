@@ -463,9 +463,9 @@ begin
                             'v':
                                 PropertyValue[14] := '(5.0)';
                         end;
-                        AuxParser.CmdString := PropertyValue[14];
-                        ParamName := AuxParser.NextParam;
-                        NumReclose := AuxParser.ParseAsVector(4, RecloseIntervals);
+                        AuxParser[ActorID].CmdString := PropertyValue[14];
+                        ParamName := AuxParser[ActorID].NextParam;
+                        NumReclose := AuxParser[ActorID].ParseAsVector(4, RecloseIntervals);
                     end;
                 end;
 

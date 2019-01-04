@@ -589,7 +589,7 @@ begin
             AssignFile(F, ObjectName);
             Reset(F);
             Readln(F, Line); // Get FieldName
-            with AuxParser do
+            with AuxParser[ActiveActor] do
             begin
                 AutoIncrement := false;
                 Delimiters := ',=' + #9; { Redefine delimiters }
@@ -609,7 +609,7 @@ begin
             begin
                 Readln(F, Line);
                 if Length(Line) > 0 then
-                    with AuxParser do
+                    with AuxParser[ActiveActor] do
                     begin
                         CmdString := Line; // Load up AuxParser
                         NextParam; { Bus Name }
@@ -1529,7 +1529,7 @@ procedure LoadRegisters(RegisterArray: pdoubleArray);
 var
     i: Integer;
 begin
-    AuxParser.ParseAsVector(NumEMRegisters + 1, RegisterArray);
+    AuxParser[ActiveActor].ParseAsVector(NumEMRegisters + 1, RegisterArray);
     for i := 1 to NumEMRegisters do
         RegisterArray^[i] := RegisterArray^[i] * 0.001;
 end;
@@ -1547,8 +1547,8 @@ begin
         if not EOF(F) then
         begin
             Readln(F, S);
-            AuxParser.CmdString := '"' + S + '"';
-            AuxParser.NextParam;
+            AuxParser[ActiveActor].CmdString := '"' + S + '"';
+            AuxParser[ActiveActor].NextParam;
             LoadRegisters(@TempRegisters);
             for i := 1 to NumEMRegisters + 1 do
                 RegisterArray^[i] := Max(RegisterArray^[i], TempRegisters[i]);
@@ -1588,7 +1588,7 @@ begin
             Reset(F);
             Readln(F, S); // Read input line
 
-            with AuxParser do
+            with AuxParser[ActiveActor] do
             begin
                 CmdString := S;
                 NextParam;
@@ -1597,7 +1597,7 @@ begin
                 begin
                     Names.Add(Param);
                     NextParam;
-                    Param := AuxParser.StrValue;
+                    Param := AuxParser[ActiveActor].StrValue;
                 end;
             end; { With }
         except
@@ -1643,7 +1643,7 @@ begin
                 else
                 begin
                     Readln(F, S);
-                    with AuxParser do
+                    with AuxParser[ActiveActor] do
                     begin
                         CmdString := '"' + S + '"';
                         NextParam;
@@ -1658,7 +1658,7 @@ begin
                 else
                 begin
                     Readln(F, S);
-                    with AuxParser do
+                    with AuxParser[ActiveActor] do
                     begin
                         CmdString := '"' + S + '"';
                         NextParam;
@@ -1789,10 +1789,10 @@ var
         begin
             repeat
                 Readln(F, S);
-                AuxParser.CmdString := S;
-                AuxParser.NextParam;
-            until (CompareText(WhichFile, AuxParser.StrValue) = 0) or EOF(F);
-            if (CompareText(WhichFile, AuxParser.StrValue) = 0) then
+                AuxParser[ActiveActor].CmdString := S;
+                AuxParser[ActiveActor].NextParam;
+            until (CompareText(WhichFile, AuxParser[ActiveActor].StrValue) = 0) or EOF(F);
+            if (CompareText(WhichFile, AuxParser[ActiveActor].StrValue) = 0) then
             begin
                 S := IntToStr(CaseYear) + Copy(S, Pos(',', S), 9999);
             end
@@ -1892,14 +1892,14 @@ begin
                         Readln(F, S); // Read header line
                         if (iCase = 1) and FirstYear then
                         begin
-                            AuxParser.CmdString := S;
-                            AuxParser.NextParam;
-                            Param := AuxParser.StrValue;
+                            AuxParser[ActiveActor].CmdString := S;
+                            AuxParser[ActiveActor].NextParam;
+                            Param := AuxParser[ActiveActor].StrValue;
                             while Length(Param) > 0 do
                             begin
                                 Names.Add(Param);
-                                AuxParser.NextParam;
-                                Param := AuxParser.StrValue;
+                                AuxParser[ActiveActor].NextParam;
+                                Param := AuxParser[ActiveActor].StrValue;
                             end;
                             S := 'Meter: ' + WhichFile + ' Register: ' +
                                 Names.Strings[Reg];
@@ -1929,8 +1929,8 @@ begin
                                         1941);
                                     Exit; // Abort
                                 end;
-                                AuxParser.CmdString := '"' + S + '"';
-                                AuxParser.NextParam;
+                                AuxParser[ActiveActor].CmdString := '"' + S + '"';
+                                AuxParser[ActiveActor].NextParam;
                                 LoadRegisters(@Registers1);
                                 case iPass of
                                     1:
@@ -1945,8 +1945,8 @@ begin
                         if not EOF(F) then
                         begin // Gotta have at least 2 years to make a plot
                             ReadS;
-                            AuxParser.CmdString := '"' + S + '"';
-                            AuxParser.NextParam;
+                            AuxParser[ActiveActor].CmdString := '"' + S + '"';
+                            AuxParser[ActiveActor].NextParam;
                             LoadRegisters(@Registers2);
                             case iPass of
                                 1:
@@ -2110,10 +2110,10 @@ var
         begin
             repeat
                 Readln(F, S);
-                AuxParser.CmdString := S;
-                AuxParser.NextParam;
-            until (CompareText(WhichFile, AuxParser.StrValue) = 0) or EOF(F);
-            if (CompareText(WhichFile, AuxParser.StrValue) = 0) then
+                AuxParser[ActiveActor].CmdString := S;
+                AuxParser[ActiveActor].NextParam;
+            until (CompareText(WhichFile, AuxParser[ActiveActor].StrValue) = 0) or EOF(F);
+            if (CompareText(WhichFile, AuxParser[ActiveActor].StrValue) = 0) then
             begin
                 S := IntToStr(CaseYear) + Copy(S, Pos(',', S), 9999);
             end
@@ -2239,14 +2239,14 @@ begin
                                     2:
                                         if (iCase = 0) and FirstYear then
                                         begin
-                                            AuxParser.CmdString := S;
-                                            AuxParser.NextParam;
-                                            Param := AuxParser.StrValue;
+                                            AuxParser[ActiveActor].CmdString := S;
+                                            AuxParser[ActiveActor].NextParam;
+                                            Param := AuxParser[ActiveActor].StrValue;
                                             while Length(Param) > 0 do
                                             begin
                                                 Names.Add(Param);
-                                                AuxParser.NextParam;
-                                                Param := AuxParser.StrValue;
+                                                AuxParser[ActiveActor].NextParam;
+                                                Param := AuxParser[ActiveActor].StrValue;
                                             end;
                                             S := 'Meter: ' + WhichFile + ', Registers: ';
                                             for i := 0 to High(iRegisters) do
@@ -2282,8 +2282,8 @@ begin
                                             Exit;
                                         end;
 
-                                        AuxParser.CmdString := '"' + S + '"';
-                                        AuxParser.NextParam;
+                                        AuxParser[ActiveActor].CmdString := '"' + S + '"';
+                                        AuxParser[ActiveActor].NextParam;
                                         LoadRegisters(@Registers1); // from auxparser
                                         iX := 0;
                                         case iPass of
@@ -2300,9 +2300,9 @@ begin
                                 begin // Gotta have at least 2 years to make a plot
 
                                     ReadS; // Reads S  -- any errors will be caught on first pass
-                                    AuxParser.CmdString := '"' + S + '"';
+                                    AuxParser[ActiveActor].CmdString := '"' + S + '"';
                            // enclose in quotes to parse as array
-                                    AuxParser.NextParam;
+                                    AuxParser[ActiveActor].NextParam;
                                     LoadRegisters(@Registers2); // from auxparser
                                     Inc(iX);
                                     case iPass of
@@ -2485,15 +2485,15 @@ begin
                 Read(StrBuffer, Sizeof(StrBuffer));
             end;
 
-            AuxParser.Whitespace := '';
-            AuxParser.CmdString := String(pStrBuffer);
+            AuxParser[ActiveActor].Whitespace := '';
+            AuxParser[ActiveActor].CmdString := String(pStrBuffer);
             SetLength(ChannelNames, RecordSize + 2);
             for i := 0 to RecordSize + 1 do
             begin
-                AuxParser.NextParam;
-                ChannelNames[i] := AuxParser.StrValue;
+                AuxParser[ActiveActor].NextParam;
+                ChannelNames[i] := AuxParser[ActiveActor].StrValue;
             end;
-            AuxParser.ResetDelims;   // restore original delimiters
+            AuxParser[ActiveActor].ResetDelims;   // restore original delimiters
 
             if CompareText(ChannelNames[0], 'Freq') = 0 then
                 ItsAFreqScan := true
@@ -3529,11 +3529,11 @@ begin
         AssignFile(F, ObjectName);
         Reset(F);
         Readln(F, Line); // Get FieldName
-        AuxParser.CmdString := Line;
-        AuxParser.NextParam; { Bus Name }
+        AuxParser[ActiveActor].CmdString := Line;
+        AuxParser[ActiveActor].NextParam; { Bus Name }
         for i := 1 to ValueIndex do
-            AuxParser.NextParam;
-        FGeneralCircuitPlotQuantity := AuxParser.StrValue;
+            AuxParser[ActiveActor].NextParam;
+        FGeneralCircuitPlotQuantity := AuxParser[ActiveActor].StrValue;
 
       { Find min and max }
         MaxValue := -1.0E50;
@@ -3544,9 +3544,9 @@ begin
             Readln(F, Line);
             if Length(Line) > 0 then
             begin
-                AuxParser.CmdString := Line;
-                AuxParser.NextParam; { Branch Name }
-                Param := AuxParser.StrValue;
+                AuxParser[ActiveActor].CmdString := Line;
+                AuxParser[ActiveActor].NextParam; { Branch Name }
+                Param := AuxParser[ActiveActor].StrValue;
 
             { Look for a line with this name }
                 IsLine := true;
@@ -3567,12 +3567,12 @@ begin
                     begin
 
                         for i := 1 to ValueIndex do
-                            AuxParser.NextParam;
-                        if Length(AuxParser.StrValue) > 0 then
+                            AuxParser[ActiveActor].NextParam;
+                        if Length(AuxParser[ActiveActor].StrValue) > 0 then
                         begin { Ignore empty fields }
                             with TLineObj(LineClass.GetActiveObj) do
                             begin
-                                GeneralPlotQuantity := AuxParser.DblValue;
+                                GeneralPlotQuantity := AuxParser[ActiveActor].DblValue;
                                 MaxValue := Max(GeneralPlotQuantity, MaxValue);
                                 MinValue := Min(GeneralPlotQuantity, MinValue);
                             end;

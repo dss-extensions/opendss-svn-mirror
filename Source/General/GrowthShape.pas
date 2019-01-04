@@ -368,7 +368,7 @@ begin
             begin
                 Inc(i);
                 Readln(F, s);  {Use AuxParser to allow flexible formats}
-                with AuxParser do
+                with AuxParser[ActiveActor] do
                 begin
              // Readln(F,Year^[i], Multiplier^[i]);
                     CmdString := S;

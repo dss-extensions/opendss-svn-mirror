@@ -2278,13 +2278,13 @@ var
     S1, S2: String;
 begin
 
-    AuxParser.CmdString := Opts;  // Load up aux Parser
+    AuxParser[ActiveActor].CmdString := Opts;  // Load up aux Parser
 
     {Loop until no more options found}
     with ActiveEnergymeterObj do
         repeat
-            S1 := AuxParser.NextParam; // ignore any parameter name  not expecting any
-            S2 := lowercase(AuxParser.StrValue);
+            S1 := AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
+            S2 := lowercase(AuxParser[ActiveActor].StrValue);
             if Length(S2) > 0 then
                 case s2[1] of
                     'e':
