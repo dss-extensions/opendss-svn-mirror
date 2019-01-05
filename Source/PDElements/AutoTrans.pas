@@ -1236,6 +1236,8 @@ begin
                     else
                         kVseries := kVLL - Winding^[2].kVLL;
                     end;
+                    if kVSeries = 0.0 then
+                        kVSeries := kVLL * 0.0001; // In case series has same voltage as common
                     VBase := kVseries * 1000.0;
                 end;
             end;
