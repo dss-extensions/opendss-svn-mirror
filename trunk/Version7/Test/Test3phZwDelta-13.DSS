@@ -1,0 +1,94 @@
+// 3-phase auto test
+// Test impedance 1 to 3
+
+Clear
+New Circuit.Z3test-13
+~ Bus1=HBus1.1.2.3 BasekV=17.321  MVASC3=1000000 1000000
+
+New Vsource.HBus2 Bus1=HBus2.1.2.3 BasekV=17.321  MVASC3=1000000 1000000
+New Vsource.HBus3 Bus1=HBus3.1.2.3 BasekV=17.321  MVASC3=1000000 1000000
+
+
+// 3-ph AutoTrans
+New AutoTrans.Auto phases=3 windings=3  XHX=10
+~ Wdg=1 Bus=HBus1.1.2.3 kV=(17.321) kVA=10000 %R=0.001 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus1.1.2.3 kV=3.4641  kVA=10000 %R=0.001 RDC=0.1! conn always series
+~ Wdg=3 Bus=YBus1.1.2.3 kV=5  kVA=10000 %R=0.001  conn=Delta
+
+// YY 3-ph transformer  Base Reference
+
+New Transformer.3phYY phases=3 windings=3 X12=10
+~ X13=35  X23=30
+~ Wdg=1 Bus=HBus2.1.2.3 kV=(17.321) kVA=10000 %R=0.001 RDC=1   conn=wye
+~ Wdg=2 Bus=XBus2.1.2.3  kV=3.4641  kVA=10000 %R=0.001 RDC=0.1 conn=wye
+~ Wdg=3 Bus=YBus2.1.2.3  kV=5       kVA=10000 %R=0.001         conn=Delta
+
+
+// Auto made up of 1-phase transformers
+New Reactor.Jumper3 Bus1=HBus3.1.2.3 Phases=3  Bus2=XBus3.4.5.6  R=.001 X=0
+
+New Transformer.1phAuto1 phases=1 windings=3 X12=(10 10 8 / sqr *)  ! 10/8 ^2
+~ X13=35  X23=30   ! X13=(35 10 8 / sqr *)
+~ Wdg=1 Bus=XBus3.4.1 kV=(8) kVA=3333.333  %R=0.001 RDC=1  conn=delta ! series
+~ Wdg=2 Bus=XBus3.1 kV=2 kVA=3333.333  %R=0.001 RDC=0.1  ! common
+~ Wdg=3 Bus=Ybus3.1.2 kV=(5) kVA=3333.333  %R=0.001 RDC=0.1 conn=delta
+
+New Transformer.1phAuto2 phases=1 windings=3 X12=(10 10 8 / sqr *)  ! 10/8 ^2
+~ X13=35  X23=30
+~ Wdg=1 Bus=XBus3.5.2 kV=(8) kVA=3333.333  %R=0.001 RDC=1 conn=delta  ! series
+~ Wdg=2 Bus=XBus3.2.0 kV=2 kVA=3333.333  %R=0.001 RDC=0.1  ! common
+~ Wdg=3 Bus=Ybus3.2.3 kV=(5) kVA=3333.333  %R=0.001 RDC=0.1 conn=delta
+
+New Transformer.1phAuto3 phases=1 windings=3 X12=(10 10 8 / sqr *)  ! 10/8 ^2
+~ X13=35  X23=30
+~ Wdg=1 Bus=XBus3.6.3 kV=(8) kVA=3333.333  %R=0.001 RDC=1 conn=delta ! series
+~ Wdg=2 Bus=XBus3.3.0 kV=2 kVA=3333.333  %R=0.001 RDC=0.1  ! common
+~ Wdg=3 Bus=Ybus3.3.1 kV=(5) kVA=3333.333  %R=0.001 RDC=0.1 conn=delta
+
+Set VoltageBases=[17.32 5 3.4641]
+calcV
+
+Solve
+Show V LN Node
+
+
+/***********
+
+Solve mode=direct
+
+Show V LN Nodes
+
+Show curr elem
+Show powers kVA elem
+Show Yprim
+
+? Autotrans.Auto.wdgcurrents
+? Transformer.3phYY.wdgcurrents
+currents
+voltages
+select Vsource.source
+Select autotrans.auto 2
+
+Dump Autotrans.* debug
+Dump Transformer.* debug
+
+***/
+
+
+/***************
+
+New fault.f1 phases=3 Bus1=ybus1
+New fault.f2 phases=3 Bus1=ybus2
+New fault.f3 phases=3 Bus1=ybus3
+Solve mode=direct
+Show V LN Nodes
+Show curr elem
+
+*/
+
+
+/******************
+Solve mode=fault
+Show fault
+*/
+

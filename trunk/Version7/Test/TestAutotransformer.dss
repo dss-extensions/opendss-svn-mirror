@@ -1,0 +1,50 @@
+Clear
+
+// Script to Test new autotransformer model
+
+New Circuit.TestAutotrans
+~ BasekV=115
+
+
+/****************************************
+
+New Autotrans.Auto3 phases=3 windings=2 XHX=10  
+~ wdg=1 kV=115 Bus=SourceBus kVA=100000 %R=.1
+~ wdg=2 kV=69  Bus=LoadBus.1.2.3.4 kVA=100000   %R=.1
+
+New Autotrans.Auto1 phases=1 windings=2 XHX=10  
+~ wdg=1 kV=(115 3 sqrt /) Bus=SourceBus.1 kVA=33333   %R=.1
+~ wdg=2 kV=(69   3 sqrt /) Bus=LoadBus.1.0  kVA=33333   %R=.1
+********************************/
+
+
+New Transformer.YY1 phases=3 windings=2  XHL=10  
+~ wdg=1 kV=46 Bus=SourceBus kVA=100000   %R=.1 Conn=wye
+~ wdg=2 kV=69  Bus=LoadBus2 kVA=100000   %R=.1  Conn=wye
+
+// 1-phase auto with old transformer model
+New Transformer.1ph phases=1 windings=2  XHL=10  
+~ wdg=1 kV=26.558 Bus=SourceBus.1.11  kVA=33333   %R=.1  Conn=wye
+~ wdg=2 kV=39.837 Bus=SourceBus.11.0  kVA=33333   %R=.1  Conn=wye
+
+
+// New Load.Load1 Phases=3 bus1=Loadbus kV=69 kW=10000 pF=1
+
+Set voltagebases=[115, 69]
+calcvoltagebases
+
+// New REGCONTROL.Reg1 transformer=Auto1 winding=2 bus=Xbus.1  ptratio=60  vreg=125 maxtapchange=1
+
+Set maxcontrol=30
+
+solve
+
+Show Currents Elements
+Show Voltage LN Nodes
+
+/*******
+Dump Debug
+Show Eventlog
+show taps
+****/
+

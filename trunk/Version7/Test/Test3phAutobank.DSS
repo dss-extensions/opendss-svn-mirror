@@ -1,0 +1,37 @@
+// 3-phase auto test with 3 1-phase transfomrer
+
+Clear
+New Circuit.testAuto3a
+~ BasekV=25  mvasc3=20000000  20000000
+
+New Reactor.Jumper Phases=3 Bus1=Sourcebus.1.2.3 bus2=Xbus.4.5.6  R=0.0001 X=0
+
+New Transformer.PhA  phases=1  windings=2  XHL=3.2 
+~ wdg=1  bus=XBus.4.1  kV=7.2 kVA=6666.6 %R=0.1  
+~ Wdg=2 bus=XBus.1.0  kV=7.2 kVA=6666.6 %R=0.1 
+
+New Transformer.PhB  phases=1  windings=2  XHL=3.2 
+~ wdg=1  bus=XBus.5.2  kV=7.2 kVA=6666.6 %R=0.1  
+~ Wdg=2 bus=XBus.2.0  kV=7.2 kVA=6666.6 %R=0.1 
+
+New Transformer.PhC  phases=1  windings=2  XHL=3.2 
+~ wdg=1  bus=XBus.6.3  kV=7.2 kVA=6666.6 %R=0.1  
+~ Wdg=2 bus=XBus.3.0  kV=7.2 kVA=6666.6 %R=0.1 
+
+/****
+New AutoTrans.Auto phases=3 windings=2  XHX=3.2
+~ Wdg=1 Bus=Sourcebus.1.2.3 kV=(25) kVA=20000 %R=0.1 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus.1.2.3 kV=12.47 kVA=20000 %R=0.1 RDC=0.1    ! conn always wye
+****/
+
+New fault.f1 phases=3 Bus1=Xbus
+
+New Line.l1      Bus1=Xbus  Bus2=ZBus
+New Load.LD1 Bus1=Zbus  kW=50  kV=4 PF=1
+
+Solve mode=direct
+Show V LN Nodes
+Show Powers kva Elements
+Show Currents Elem resid=y
+
+dump debug

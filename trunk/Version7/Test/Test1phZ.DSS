@@ -1,0 +1,57 @@
+// 1-phase auto test
+
+Clear
+New Circuit.Ztest
+~ BasekV=17.32  MVASC3=1000000 1000000
+
+// 1-ph AutoTrans
+New AutoTrans.Auto phases=1 windings=2  XHX=10
+~ Wdg=1 Bus=Sourcebus.1 kV=(10) kVA=10000 %R=0.01 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus1.1 kV=2 kVA=10000  %R=0.01 RDC=0.1! conn always series
+
+New Fault.F1 Bus1=Xbus1.1
+
+// YY 1-ph transformer  Base Reference
+
+New Transformer.1phYY phases=1 windings=2 XHL=10
+~ Wdg=1 Bus=Sourcebus.1 kV=(10) kVA=10000 %R=0.01 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus2.1 kV=2 kVA=10000  %R=0.01 RDC=0.1! conn always series
+
+New Fault.F2 Bus1=Xbus2.1
+
+// Auto made up of 1-phase transformer
+New Reactor.Jumper1 Bus1=SourceBus.1 Phases=1  Bus2=XBus3.2  R=.001 X=0
+
+New Transformer.1phAuto phases=1 windings=2 XHL=(10 10 8 / sqr *)  ! 10/8 ^2
+~ Wdg=1 Bus=XBus3.2.1 kV=(8) kVA=10000 %R=0.01 RDC=1  ! series
+~ Wdg=2 Bus=XBus3.1 kV=2 kVA=10000  %R=0.01 RDC=0.1  ! common
+
+New Fault.F3 Bus1=Xbus3.1
+
+Solve mode=direct
+
+Show V LN Nodes
+
+Show curr elem
+Show powers kVA elem
+Show Yprim
+
+? Autotrans.Auto.wdgcurrents
+currents
+voltages
+select Vsource.source
+Select autotrans.auto 2
+
+Dump Autotrans.* debug
+Dump Transformer.* debug
+/*
+New fault.f1 Bus1=Xbus.1
+Solve
+Vis curr fault.f1
+*/
+
+/*********
+Solve mode=fault
+Show fault
+*/
+

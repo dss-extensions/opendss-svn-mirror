@@ -1,0 +1,28 @@
+// 3-phase auto test
+
+Clear
+New Circuit.testAuto3
+~ BasekV=25  mvasc3=20000000  20000000
+
+New AutoTrans.Auto phases=3 windings=2  XHX=(3.2 4 *)
+~ Wdg=1 Bus=Sourcebus.1.2.3 kV=(25) kVA=20000 %R=0.1 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus.1.2.3 kV=12.47 kVA=20000 %R=0.1 RDC=0.1    ! conn always wye
+
+New fault.f1 phases=3 Bus1=Xbus
+
+New Line.l1      Bus1=Xbus  Bus2=ZBus
+New Load.LD1 Bus1=Zbus  kW=50  kV=4 PF=1
+
+Solve mode=direct
+Show V LN Nodes
+Show Powers kva Elements
+Show Currents Elem 
+
+Dump Autotrans.* debug
+
+Dump debug
+
+Select autotrans.auto
+show yprim
+? wdgcurrents
+

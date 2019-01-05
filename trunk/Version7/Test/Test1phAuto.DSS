@@ -1,0 +1,39 @@
+// 1-phase auto test
+
+Clear
+New Circuit.testAuto
+~ BasekV=17.32
+
+New AutoTrans.Auto phases=1 windings=2  XHX=5
+~ Wdg=1 Bus=Sourcebus.1 kV=(10) kVA=100 %R=0.1 RDC=1  ! conn always series
+~ Wdg=2 Bus=XBus.1 kV=4 kVA=100 %R=0.1 RDC=0.1! conn always series
+
+New Line.Line1 Phases=1 Bus1=Xbus.1.0 Bus2=Zbus.1
+
+New Load.LD1  Phases=1 Bus1=ZBus.1.0 kV=4  kW=50 pf=1
+
+Solve
+Show V LN Nodes
+
+Show curr elem
+Show powers kVA elem
+
+? Autotrans.Auto.wdgcurrents
+currents
+voltages
+select Vsource.source
+Select autotrans.auto 2
+
+Dump Autotrans.* debug
+
+/*
+New fault.f1 Bus1=Xbus.1
+Solve
+Vis curr fault.f1
+*/
+
+/*********
+Solve mode=fault
+Show fault
+*/
+
