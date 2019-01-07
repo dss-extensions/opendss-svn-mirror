@@ -206,21 +206,21 @@ begin
         begin  // GICSources.Bus1
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := Pansichar(ActiveCircuit[ActiveActor].ActiveCktElement.GetBus(1));
+                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.GetBus(1)));
             end
         end;
         1:
         begin  // GICSources.Bus2
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := Pansichar(ActiveCircuit[ActiveActor].ActiveCktElement.GetBus(2));
+                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.GetBus(2)));
             end
         end;
         2:
         begin  // GICSources.Name read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := Pansichar(ActiveCircuit[ActiveActor].ActiveCktElement.Name);
+                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.Name));
             end
         end;
         3:

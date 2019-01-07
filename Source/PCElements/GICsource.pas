@@ -188,7 +188,7 @@ begin
     with ActiveCircuit[ActiveActor] do
     begin
         ActiveCktElement := TGICSourceObj.Create(Self, ObjName);
-        Result := AddObjectToList(ActiveDSSObject);
+        Result := AddObjectToList(ActiveDSSObject[ActiveActor]);
     end;
 end;
 
