@@ -151,9 +151,7 @@ begin
     CommandList.Free;
     OptionList.Free;
     Circuits.Free;
-//{$IFDEF MSWINDOWS}
     DisposeDSSClasses(true);
-//{$ENDIF}
     Parser[ActiveActor].Free;
 
     inherited Destroy;

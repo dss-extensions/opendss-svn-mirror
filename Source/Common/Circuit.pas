@@ -686,7 +686,9 @@ begin
     FOS.fFlags := FOS.fFlags or FOF_NOCONFIRMATION;
   // Add the next line for a "silent operation" (no progress box)
     FOS.fFlags := FOS.fFlags or FOF_SILENT;
+    {$IFDEF MSWINDOWS}
     SHFileOperation(FOS);
+    {$ENDIF}
     {$ENDIF}
 end;
 {*******************************************************************************
@@ -958,8 +960,10 @@ begin
             begin
                 text := stringreplace(File_Struc[FS_Idx], 'Redirect ', '', [rfReplaceAll, rfIgnoreCase]);
                 {$IFNDEF FPC}
+                {$IFDEF MSWINDOWS}
                 for FS_Idx1 := 2 to NumCkts do
                     CopyFile(Pchar(Path + '\' + text), Pchar(Path + '\zone_' + inttostr(FS_Idx1) + '\' + text), true);
+                {$ENDIF}
                 {$ENDIF}
             end;
             inc(FS_Idx);
@@ -1125,8 +1129,10 @@ begin
         else
             MeTISCmd := 'kmetis.exe';                    // For more than 8 zonez use k-Way (kMeTIS)
     {******************************************************************************************}
+        {$IFDEF MSWINDOWS}
         if fileexists(Pchar(FileName + '.part.' + inttostr(Num_pieces))) then    // Checks if the file exists before
             deletefile(Pchar(FileName + '.part.' + inttostr(Num_pieces)));
+        {$ENDIF}
         repeat
             {$IFDEF MSWINDOWS}
             TextCmd := RunMeTIS(DSSDirectory + MeTISCmd + ' ' + FileName + ' ' + inttostr(Num_pieces));  // Executes MeTIS

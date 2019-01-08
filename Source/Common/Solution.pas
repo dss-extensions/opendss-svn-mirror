@@ -659,8 +659,17 @@ begin
         ActorMA_Msg[ActorID].ResetEvent;
 
         {$IFNDEF FPC}
-        if not IsDLL then
-            ScriptEd.UpdateSummaryForm('1');
+        if not ADiakoptics then
+        begin
+            if not IsDLL then
+                ScriptEd.UpdateSummaryForm('1');
+        end
+        else
+        begin
+            if ActorID = 1 then
+                if not IsDLL then
+                    ScriptEd.UpdateSummaryForm('1');
+        end;
         QueryPerformanceCounter(GStartTime);
         {$ELSE}
       GStartTime := GetTickCount64;
@@ -674,8 +683,17 @@ begin
         begin
             Wait4Actors;
             {$IFNDEF FPC}
-            if not IsDLL then
-                ScriptEd.UpdateSummaryForm('1');
+            if not ADiakoptics then
+            begin
+                if not IsDLL then
+                    ScriptEd.UpdateSummaryForm('1');
+            end
+            else
+            begin
+                if ActorID = 1 then
+                    if not IsDLL then
+                        ScriptEd.UpdateSummaryForm('1');
+            end;
             {$ENDIF}
         end;
 
@@ -1841,7 +1859,9 @@ begin
     FOS.fFlags := FOS.fFlags or FOF_NOCONFIRMATION;
   // Add the next line for a "silent operation" (no progress box)
     FOS.fFlags := FOS.fFlags or FOF_SILENT;
+    {$IFDEF MSWINDOWS}
     SHFileOperation(FOS);
+    {$ENDIF}
     {$ENDIF}
 end;
 {*******************************************************************************
@@ -2892,10 +2912,18 @@ begin
 
                   // Sends a message to Actor Object (UI) to notify that the actor has finised
                         UIEvent.SetEvent;
-                        if Parallel_enabled then
-                            if not IsDLL then
-                                queue(CallCallBack); // Refreshes the GUI if running asynchronously
-
+                        if not ADiakoptics then
+                        begin
+                            if Parallel_enabled then
+                                if not IsDLL then
+                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                        end
+                        else
+                        begin
+                            if (Parallel_enabled and (ActorID = 1)) then
+                                if not IsDLL then
+                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                        end;
                     end;
                 except
                     On E: Exception do
@@ -2904,10 +2932,20 @@ begin
                         ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
                         SolutionAbort := true;
                         UIEvent.SetEvent;
+                        if not ADiakoptics then
+                        begin
+                            if Parallel_enabled then
+                                if not IsDLL then
+                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                        end
+                        else
+                        begin
+                            if (Parallel_enabled and (ActorID = 1)) then
+                                if not IsDLL then
+                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                        end;
                         if Parallel_enabled then
-                            if not IsDLL then
-                                queue(CallCallBack); // Refreshes the GUI if running asynchronously
-                        DoSimpleMsg('Error Encountered in Solve: ' + E.Message, 482);
+                            DoSimpleMsg('Error Encountered in Solve: ' + E.Message, 482);
                     end;
                 end;
                 EXIT_ACTOR:                // Terminates the thread

@@ -64,6 +64,10 @@ procedure ExportIncMatrixRows(FileNm: String);
 procedure ExportIncMatrixCols(FileNm: String);
 procedure ExportBusLevels(FileNm: String);
 procedure ExportLaplacian(FileNm: String);
+procedure ExportZLL(FileNm: String);
+procedure ExportZCC(FileNm: String);
+procedure ExportY4(FileNm: String);
+procedure ExportC(FileNm: String);
 
 
 implementation
@@ -3506,6 +3510,90 @@ begin
             Writeln(F, inttostr(Laplacian.data[i][0]) + ',' + inttostr(Laplacian.data[i][1]) + ',' + inttostr(Laplacian.data[i][2]));
         end;
         CloseFile(F);
+    end;
+end;
+//-------------------------------------------------------------------
+procedure ExportZLL(FileNm: String);
+var
+    F: TextFile;
+    i: Integer;
+begin
+    if ADiakoptics then
+    begin
+        with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+        begin
+            Assignfile(F, FileNm);
+            ReWrite(F);
+            Writeln(F, 'Row,Col,Value(Real), Value(Imag)');
+            for i := 0 to (ZLL.NZero - 1) do
+            begin
+                Writeln(F, inttostr(ZLL.CData[i].Row) + ',' + inttostr(ZLL.CData[i].Col) + ',' + floattostr(ZLL.CData[i].Value.Re) + ',' + floattostr(ZLL.CData[i].Value.Im));
+            end;
+            CloseFile(F);
+        end;
+    end;
+end;
+//-------------------------------------------------------------------
+procedure ExportZCC(FileNm: String);
+var
+    F: TextFile;
+    i: Integer;
+begin
+    if ADiakoptics then
+    begin
+        with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+        begin
+            Assignfile(F, FileNm);
+            ReWrite(F);
+            Writeln(F, 'Row,Col,Value(Real), Value(Imag)');
+            for i := 0 to (ZCC.NZero - 1) do
+            begin
+                Writeln(F, inttostr(ZCC.CData[i].Row) + ',' + inttostr(ZCC.CData[i].Col) + ',' + floattostr(ZCC.CData[i].Value.Re) + ',' + floattostr(ZCC.CData[i].Value.Im));
+            end;
+            CloseFile(F);
+        end;
+    end;
+end;
+//-------------------------------------------------------------------
+procedure ExportY4(FileNm: String);
+var
+    F: TextFile;
+    i: Integer;
+begin
+    if ADiakoptics then
+    begin
+        with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+        begin
+            Assignfile(F, FileNm);
+            ReWrite(F);
+            Writeln(F, 'Row,Col,Value(Real), Value(Imag)');
+            for i := 0 to (Y4.NZero - 1) do
+            begin
+                Writeln(F, inttostr(Y4.CData[i].Row) + ',' + inttostr(Y4.CData[i].Col) + ',' + floattostr(Y4.CData[i].Value.Re) + ',' + floattostr(Y4.CData[i].Value.Im));
+            end;
+            CloseFile(F);
+        end;
+    end;
+end;
+//-------------------------------------------------------------------
+procedure ExportC(FileNm: String);
+var
+    F: TextFile;
+    i: Integer;
+begin
+    if ADiakoptics then
+    begin
+        with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+        begin
+            Assignfile(F, FileNm);
+            ReWrite(F);
+            Writeln(F, 'Row,Col,Value');
+            for i := 0 to (Contours.NZero - 1) do
+            begin
+                Writeln(F, inttostr(Contours.CData[i].Row) + ',' + inttostr(Contours.CData[i].Col) + ',' + floattostr(Contours.CData[i].Value.Re));
+            end;
+            CloseFile(F);
+        end;
     end;
 end;
 //-------------------------------------------------------------------

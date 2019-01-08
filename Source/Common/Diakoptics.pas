@@ -52,6 +52,7 @@ end;
 *******************************************************************************}
 procedure Calc_Y4();
 var
+    value: Complex;
     col,
     idx: Integer;
     TempMat: TcMatrix;
@@ -75,7 +76,11 @@ begin
         for idx := 0 to (ZCC.NRows - 1) do
         begin
             for col := 0 to ZCC.NCols - 1 do
-                Y4.insert(idx, col, TempMat.GetElement(idx + 1, col + 1));
+            begin
+                value := TempMat.GetElement(idx + 1, col + 1);
+                if (value.re <> 0) and (value.re <> 0) then
+                    Y4.insert(idx, col, value);
+            end;
         end;
 {
 //********************Dbug************************************
@@ -241,7 +246,7 @@ begin
                                 CDirection := 1
                             else
                                 CDirection := -1;
-                            Contours.insert(j, (l - 1), cmplx(CDirection, 0));
+                            Contours.insert(j, ((l - 1) + (LIdx - 1) * 3), cmplx(CDirection, 0));
                             Go_Flag := false;
                         end;
                         inc(j);
@@ -261,7 +266,7 @@ begin
 end;
 
 {*******************************************************************************
-*            Calculates the Link brnahes matrix for further use                *
+*            Calculates the Link branches matrix for further use                *
 *                if there is an error returns <> 0                             *
 *******************************************************************************}
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
@@ -436,28 +441,22 @@ begin
             2:
             begin                      // Compile subsystems
                 prog_Str := prog_str + CRLF + '- Setting up the Actors...';
-        // Clears everything to craete the actors and compile the subsystems
+        // Clears everything to create the actors and compile the subsystems
+                Parallel_enabled := false;
                 DSSExecutive.ClearAll;
                 Fileroot := GetCurrentDir;    //  Gets the current directory
                 SolutionAbort := false;
-                DssExecutive.Command := 'ClearAll';
 
         // Compiles the interconnected Circuit for further calculations on actor 1
                 ActiveActor := 1;
                 Proj_Dir := 'compile "' + Fileroot + '\Torn_Circuit\master_interconnected.dss"';
                 DssExecutive.Command := Proj_Dir;
+                DoSolveCmd;
 
         // Creates the other actors
                 for DIdx := 2 to Diak_Actors do
                 begin
-                    inc(NumOfActors);
-                    ActiveActor := NumOfActors;
-                    ActorCPU[ActiveActor] := ActiveActor - 1;
-                    DSSExecutive := TExecutive.Create;  // Make a DSS object
-                    Parser[ActiveActor] := TParser.Create;
-                    AuxParser[ActiveActor] := TParser.Create;
-                    DSSExecutive.CreateDefaultDSSItems;
-                    Parallel_enabled := false;
+                    New_Actor_Slot();
 
                     if DIdx = 2 then
                         Dir := ''
@@ -467,7 +466,7 @@ begin
                     DssExecutive.Command := Proj_Dir;
                     if DIdx > 2 then
                         DssExecutive.Command := Links[DIdx - 2] + '.enabled=False';
-                    DssExecutive.Command := 'solve';
+                    DoSolveCmd;
                 end;
                 prog_Str := prog_str + 'Done';
                 ErrorCode := 0;
@@ -523,6 +522,10 @@ begin
                 prog_Str := prog_str + CRLF + '- Building Y4 ...';
                 Calc_Y4();
                 prog_Str := prog_str + 'Done' + CRLF;
+        // Moves back the link branches list into actor 1 for further use
+                setlength(ActiveCircuit[1].Link_Branches, length(Links));
+                for DIdx := 0 to High(Links) do
+                    ActiveCircuit[1].Link_Branches[DIdx] := Links[DIdx];
             end
         else
         begin
@@ -555,6 +558,7 @@ begin
     {$ENDIF}
   // TEMc: TODO: should we report something here under FPC?
   // Davis: Done: This will add the needed report
+
     SolutionAbort := false;
 
 end;

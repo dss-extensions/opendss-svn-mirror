@@ -35,10 +35,8 @@ uses
     Circuit,
     IniRegSave,
     {$IFNDEF FPC}
-//     {$IFDEF MSWINDOWS}
     Graphics,
     System.IOUtils,
-//     {$ENDIF}
     {$ENDIF}
     inifiles,
 
@@ -343,6 +341,7 @@ function GetOutputDirectory: String;
 procedure MyReallocMem(var p: Pointer; newsize: Integer);
 function MyAllocMem(nbytes: Cardinal): Pointer;
 
+procedure New_Actor_Slot();
 procedure New_Actor(ActorID: Integer);
 procedure Wait4Actors;
 
@@ -736,7 +735,7 @@ var
     iLastError: DWord;
 begin
     Result := 'Unknown.';
-
+    {$IFDEF MSWINDOWS}
     InfoSize := GetFileVersionInfoSize(Pchar(DSSFileName), Wnd);
     if InfoSize <> 0 then
     begin
@@ -761,6 +760,7 @@ begin
         Result := Format('GetFileVersionInfo failed: (%d) %s',
             [iLastError, SysErrorMessage(iLastError)]);
     end;
+    {$ENDIF}
 end;
 {$ENDIF}
 
@@ -789,7 +789,9 @@ begin
         {$IFDEF FPC}
 Result := DeleteFile(TempFile)
         {$ELSE}
+        {$IFDEF MSWINDOWS}
         Result := Windows.DeleteFile(TempFile)
+    {$ENDIF}
     {$ENDIF}
     else
         Result := false;
@@ -1007,6 +1009,23 @@ begin
     end;
 end;
 
+// Prepares memory to host a new actor
+procedure New_Actor_Slot();
+begin
+    if NumOfActors < CPU_Cores then
+    begin
+        inc(NumOfActors);
+        GlobalResult := inttostr(NumOfActors);
+        ActiveActor := NumOfActors;
+        ActorCPU[ActiveActor] := ActiveActor - 1;
+        DSSExecutive := TExecutive.Create;  // Make a DSS object
+        Parser[ActiveActor] := TParser.Create;
+        AuxParser[ActiveActor] := TParser.Create;
+        DSSExecutive.CreateDefaultDSSItems;
+    end
+    else
+        DoSimpleMsg('There are no more CPUs available', 7001)
+end;
 
 // Creates a new actor
 procedure New_Actor(ActorID: Integer);

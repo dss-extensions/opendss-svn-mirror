@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 123;
+    NumExecOptions = 124;
 
 var
     ExecOption,
@@ -171,6 +171,7 @@ begin
     ExecOption[121] := 'SampleEnergyMeters';
     ExecOption[122] := 'ADiakoptics';
     ExecOption[123] := 'MinIterations'; // default is 2
+    ExecOption[124] := 'LinkBranches';
 
 
     OptionHelp[1] := 'Sets the active DSS class type.  Same as Class=...';
@@ -442,6 +443,8 @@ begin
         'This parameter only affects Actor 1, no matter from which actor is called. When activated (True), OpenDSS will start the ' + CRLF +
         'initialization routine for the A-Diakoptics solution mode';
     OptionHelp[123] := 'Minimum number of iterations required for a solution. Default is 2.';
+    OptionHelp[124] := 'Returns the names of the link branches used for tearing the circuit after initializing using set ADiakoptics = True. Using this instruction will set the Active Actor = 1' + CRLF +
+        'If ADiakoptics is not initialized, this isntruction will retunr an error message';
 end;
 //----------------------------------------------------------------------------
 function DoSetCmd_NoCircuit: Boolean;  // Set Commands that do not require a circuit
@@ -923,6 +926,7 @@ function DoGetCmd: Integer;
 
 var
     ParamPointer, i: Integer;
+    TempString,
     ParamName: String;
     Param: String;
     {$IFNDEF FPC}
@@ -1321,6 +1325,17 @@ begin
                         AppendGlobalResult('No');
                 123:
                     AppendGlobalResult(IntToStr(ActiveCircuit[ActiveActor].solution.MinIterations));
+                124:
+                begin
+                    if ADiakoptics then
+                    begin
+                        ActiveActor := 1;
+                        for i := 1 to High(ActiveCircuit[ActiveActor].Link_Branches) do
+                            AppendGlobalResult(ActiveCircuit[ActiveActor].Link_Branches[i]);
+                    end
+                    else
+                        AppendGlobalResult('Initialize A-Diakoptics first!');
+                end
             else
            // Ignore excess parameters
             end;
