@@ -262,12 +262,15 @@ Integer
     {$ENDIF}
     ActorPctProgress: array of Integer;
     ActorHandle: array of TSolver;
-    Parallel_enabled: Boolean;
-    ConcatenateReports: Boolean;
+
+    IsSolveAll,
+    AllActors,
+    ADiakoptics,
+    Parallel_enabled,
+    ConcatenateReports,
     IncMat_Ordered: Boolean;
     Parser: array of TParser;
     ActorMA_Msg: array of TEvent;  // Array to handle the events of each actor
-    AllActors: Boolean;
 
 
 {*******************************************************************************
@@ -307,7 +310,6 @@ Integer
     FM_Append: array of Boolean;
 
 //***********************A-Diakoptics Variables*********************************
-    ADiakoptics: Boolean;
 
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
@@ -343,7 +345,7 @@ function MyAllocMem(nbytes: Cardinal): Pointer;
 
 procedure New_Actor_Slot();
 procedure New_Actor(ActorID: Integer);
-procedure Wait4Actors;
+procedure Wait4Actors(WType: Integer);
 
 procedure Delay(TickTime: Integer);
 
@@ -992,13 +994,16 @@ begin
 end;
 
 // Waits for all the actors running tasks
-procedure Wait4Actors;
+procedure Wait4Actors(WType: Integer);
 var
     i: Integer;
     Flag: Boolean;
 
 begin
-    for i := 1 to NumOfActors do
+// WType defines the starting point in which the actors will be evaluated,
+// modification introduced in 01-10-2019 to facilitate the coordination
+// between actors when a simulation is performed using A-Diakoptics
+    for i := (WType + 1) to NumOfActors do
     begin
         if ActorStatus[i] = 0 then
         begin
@@ -1297,7 +1302,7 @@ NoFormsAllowed  := TRUE;
     {$ENDIF}
     CPU_Cores := CPUCount;
 
-
+    IsMultithread := true;
    //WriteDLLDebugFile('DSSGlobals');
 
     {$IFNDEF FPC}
@@ -1310,10 +1315,6 @@ finalization
 //  YBMatrix.Finish_Ymatrix_Critical;   // Ends the critical segment for the YMatrix class
 
 
-    EventStrings[ActiveActor].Free;
-    SavedFileList[ActiveActor].Free;
-    ErrorStrings[ActiveActor].Free;
-
     with DSSExecutive do
         if RecorderOn then
             Recorderon := false;
@@ -1321,9 +1322,14 @@ finalization
     DSSExecutive.Free;  {Writes to Registry}
     DSS_Registry.Free;  {Close Registry}
     for ActiveActor := 1 to NumOfActors do
+    begin
         if ActorHandle[ActiveActor] <> nil then
         begin
+            EventStrings[ActiveActor].Free;
+            SavedFileList[ActiveActor].Free;
+            ErrorStrings[ActiveActor].Free;
             ActorHandle[ActiveActor].Free;
             Auxparser[ActiveActor].Free;
         end;
+    end;
 end.

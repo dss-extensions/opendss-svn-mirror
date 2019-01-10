@@ -656,10 +656,11 @@ begin
                 DoClearAllCmd;
             107:
             begin
-                Wait4Actors;
+                Wait4Actors(0);
             end;
             108:
             begin
+                IsSolveAll := true;
                 for i := 1 to NumOfActors do
                 begin
                     ActiveActor := i;
@@ -744,7 +745,10 @@ begin
             8:
                 CmdResult := DoShowCmd; //'show';
             9:
+            begin
+                IsSolveAll := false;
                 CmdResult := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+            end;
             10:
                 CmdResult := DoEnableCmd;
             11:
@@ -869,7 +873,10 @@ begin
             78:
                 ActiveCircuit[ActiveActor].Solution.SnapShotInit(ActiveActor);
             79:
+            begin
+                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.SolveCircuit(ActiveActor);
+            end;
             80:
                 ActiveCircuit[ActiveActor].Solution.SampleControlDevices(ActiveActor);
             81:
@@ -877,9 +884,15 @@ begin
             82:
                 ActiveCircuit[ActiveActor].ControlQueue.ShowQueue(DSSDirectory + CircuitName_[ActiveActor] + 'ControlQueue.csv');
             83:
+            begin
+                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.SolveDirect(ActiveActor);
+            end;
             84:
+            begin
+                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.DoPFLOWsolution(ActiveActor);
+            end;
             85:
                 CmdResult := DoAddMarkerCmd;
             86:

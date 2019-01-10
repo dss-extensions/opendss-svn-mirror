@@ -662,6 +662,14 @@ begin
 
     FreeTopology;
 
+//  Release all ADiakoptics matrixes
+
+    Contours.Free;
+    ZLL.Free;
+    ZCC.Free;
+    ZCT.Free;
+    Y4.Free;
+
     inherited Destroy;
 end;
 
@@ -1003,9 +1011,13 @@ begin
     end;
     // Sets the properties of the VSource on each subcricuit based on the latest voltage measured
     FS_Idx1 := 0;
-    for FS_Idx := 2 to NumCkts do
+    for FS_Idx := 1 to NumCkts do
     begin
-        AssignFile(myFile, Path + '\zone_' + inttostr(FS_Idx) + '\VSource.dss');
+        if FS_Idx = 1 then
+            AssignFile(myFile, Path + '\VSource.dss')
+        else
+            AssignFile(myFile, Path + '\zone_' + inttostr(FS_Idx) + '\VSource.dss');
+
         ReWrite(myFile);
         for FS_Idx2 := 1 to 3 do
         begin
@@ -1211,9 +1223,9 @@ begin
             setlength(PConn_Names, length(Locations));             //  Sets the memory space for storing the Bus names
             SolutionAbort := false;
             j := 0;
-            for i := 1 to High(Locations) do
+            for i := 0 to High(Locations) do
             begin
-                if Locations[i] >= 0 then
+                if Locations[i] > 0 then
                 begin
                     inc(Result);
           // Gets the name of the PDE for placing the EnergyMeter
@@ -1268,6 +1280,28 @@ begin
                     end;
           // Generates the OpenDSS Command;
                     DssExecutive.Command := 'New EnergyMeter.Zone_' + inttostr(i + 1) + ' element=' + PDElement + ' ' + Terminal + ' option=R action=C';
+                end
+                else
+                begin
+                    if Locations[i] = 0 then    // The reference bus (Actor 1)
+                    begin
+                        BusName := Inc_Mat_Cols[0];
+                        PConn_Names[i] := BusName;
+                        SetActiveBus(BusName);           // Activates the Bus
+                        pBus := Buses^[ActiveBusIndex];
+             // Stores the voltages for the Reference bus first
+                        for jj := 1 to 3 do
+                        begin
+               // this code so nodes come out in order from smallest to larges
+                            NodeIdx := pBus.FindIdx(jj);   // Get the index of the Node that matches jj
+
+                            Volts := ctopolardeg(Solution.NodeV^[pBus.GetRef(NodeIdx)]);  // referenced to pBus
+                            PConn_Voltages[j] := (Volts.mag / 1000);
+                            inc(j);
+                            PConn_Voltages[j] := Volts.ang;
+                            inc(j);
+                        end;
+                    end;
                 end;
             end;
         end
