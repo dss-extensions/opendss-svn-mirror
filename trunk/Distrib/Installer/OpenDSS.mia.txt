@@ -214,6 +214,10 @@ else
   Write Registry Key HKCU\SOFTWARE\OpenDSS\, 
   Install Files C:\OpenDSS\Distrib\Doc\Help Links.htm to $TARGETDIR$\Doc
   Install Files C:\OpenDSS\Distrib\Doc\Help Links_files\*.* to $TARGETDIR$\Doc\Help Links_files, include subfolders
+  Install Files C:\OpenDSS\Distrib\x64\kmetis.exe to $TARGETDIR$\x64
+  Install Files C:\OpenDSS\Distrib\x64\pmetis.exe to $TARGETDIR$\x64
+  Install Files C:\OpenDSS\Distrib\x86\kmetis.exe to $TARGETDIR$\x86
+  Install Files C:\OpenDSS\Distrib\x86\pmetis.exe to $TARGETDIR$\x86
   [DEFINE WEB MEDIA Win64]
   Get Component Win64 Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE
