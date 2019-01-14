@@ -190,8 +190,9 @@ begin
 
      {Circuit Element Classes}
     DSSClasses.New := TLine.Create;
-    DSSClasses.New := TVSource.Create;    // 2-terminal Vsource
-    DSSClasses.New := TISource.Create;    // 2-terminal Isource
+    ActiveVSource[ActiveActor] := TVSource.Create;
+    DSSClasses.New := ActiveVSource[ActiveActor];   // 2-terminal Vsource
+    DSSClasses.New := TISource.Create;              // 2-terminal Isource
     DSSClasses.New := TVCCS.Create;
     DSSClasses.New := TLoad.Create;
     DSSClasses.New := TTransf.Create;

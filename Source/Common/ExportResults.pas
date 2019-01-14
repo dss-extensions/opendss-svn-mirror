@@ -2188,7 +2188,7 @@ var
 
 begin
 
-    if PVSystemClass = nil then
+    if PVSystemClass[ActiveActor] = nil then
         Exit;  // oops somewhere!!
     Separator := ', ';
 
@@ -2248,7 +2248,7 @@ var
 begin
 
 
-    if PVSystemClass = nil then
+    if PVSystemClass[ActiveActor] = nil then
         Exit;  // oops somewhere!!
     Separator := ', ';
 

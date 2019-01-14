@@ -747,6 +747,7 @@ begin
             9:
             begin
                 IsSolveAll := false;
+                ActiveCircuit[1].AD_Init := false;
                 CmdResult := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
             end;
             10:

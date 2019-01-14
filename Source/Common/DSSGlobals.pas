@@ -70,8 +70,8 @@ uses
     Types,
     SyncObjs,
     YMatrix,
-    fMonitor;       // by Dahei
-
+    fMonitor,     // by Dahei
+    VSource;
 
 const
     CRLF = #13#10;
@@ -241,6 +241,7 @@ Integer
     PVSystemClass: array of TPVSystem;
     InvControlClass: array of TInvControl;
     ExpControlClass: array of TExpControl;
+    ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
 
     EventStrings: array of TStringList;
     SavedFileList: array of TStringList;
@@ -1137,6 +1138,7 @@ initialization
     SetLength(SolutionWasAttempted, CPU_Cores + 1);
     SetLength(ActorStatus, CPU_Cores + 1);
     SetLength(ActorMA_Msg, CPU_Cores + 1);
+    SetLength(ActiveVSource, CPU_Cores + 1);
 
     setlength(FMonitorClass, CPU_Cores + 1);    // by Dahei UCF
    // Init pointer repositories for the EnergyMeter in multiple cores
@@ -1186,6 +1188,8 @@ initialization
         PHV_MHandle[ActiveActor] := nil;
         FM_MHandle[ActiveActor] := nil;
         DIFilesAreOpen[ActiveActor] := false;
+
+        ActiveVSource[Activeactor] := nil;
     end;
 
     Allactors := false;

@@ -216,11 +216,15 @@ type
         Locations: array of Integer;   // Stores the indexes of the locations
 
           // Variables for Diakoptics
-        Contours: TSparse_Complex;
-        ZLL: TSparse_Complex;
-        ZCT: TSparse_Complex;
-        ZCC: TSparse_Complex;
-        Y4: TSparse_Complex;
+        Contours: TSparse_Complex;    //  Contours matrix
+        ZLL: TSparse_Complex;    //  Link branch matrix
+        ZCT: TSparse_Complex;    //  The transformation matrix (to go from one to other domain)
+        ZCC: TSparse_Complex;    //  Interconnections matrix
+        Y4: TSparse_Complex;    //  The inverse of the interconnections matrix
+        Ic: TSparse_Complex;    //  The complementary Currents vector
+        VIndex: Integer;  // To store the index of the sub-circuit in the interconnected system
+        VLength: Integer;  // To store the length of the sub-circuit in the interconnected system
+        AD_Init: Boolean;    // This is used only by the A-Diakoptics coordiantor (ID = 1)
 
           // Bus and Node stuff
         Buses: pTBusArray;
@@ -584,6 +588,7 @@ begin
     ZCC := TSparse_Complex.Create;
     ZCT := TSparse_Complex.Create;
     Y4 := TSparse_Complex.Create;
+    Ic := TSparse_Complex.Create;
 
 end;
 
@@ -669,6 +674,7 @@ begin
     ZCC.Free;
     ZCT.Free;
     Y4.Free;
+    Ic.Free;
 
     inherited Destroy;
 end;

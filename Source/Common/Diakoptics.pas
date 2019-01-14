@@ -1,5 +1,14 @@
 unit Diakoptics;
+{
+   ----------------------------------------------------------
+  Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
+  All rights reserved.
+  ----------------------------------------------------------
+}
 
+{
+
+}
 interface
 
 uses
@@ -9,6 +18,7 @@ uses
     SysUtils,
     DSSClassDefs,
     EnergyMeter,
+    SolutionAlgs,
     {$IFDEF FPC}
 CmdForms
     {$ELSE}
@@ -24,6 +34,7 @@ function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
 procedure Calc_ZCC(Links: Integer);
 procedure Calc_Y4();
+procedure SendIdx2Actors();
 
 implementation
 
@@ -38,13 +49,104 @@ uses
     UcMatrix;
 
 function Solve_Diakoptics(): Integer;
+var
+    i,
+    j,
+    k: Integer;
+    Vpartial: TSparse_Complex;
 begin
   {Space left empty to implement the simplified Diakoptics algorithm}
-    with ActiveCircuit[1].Solution do
+    with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
-
+     // This is the coordinator actor in A-Diakoptics mode
+        for i := 1 to NumberOfTimes do
+        begin
+            if AD_Init then
+            begin
+      // Loads the partial solution considering the previous iteration
+                VPartial := Contours.Transpose();
+                VPartial := Vpartial.multiply(Ic);
+                Vpartial := Y4.multiply(VPartial);
+                Ic := Contours.multiply(VPartial);
+      // Ready to go
+            end
+            else
+            begin
+      // Setups the other actors to match the options of the coordinator
+                for j := 2 to NumOfActors do
+                begin
+                    ActiveCircuit[j].Solution.Mode := Mode;
+                    ActiveCircuit[j].solution.DynaVars.h := DynaVars.h;
+                    ActiveCircuit[j].solution.DynaVars.intHour := DynaVars.intHour;
+                    ActiveCircuit[j].solution.DynaVars.t := DynaVars.t;
+                    ActiveCircuit[j].solution.MaxIterations := MaxIterations;
+                    ActiveCircuit[j].solution.MaxControlIterations := MaxControlIterations;
+                    ActiveCircuit[j].solution.ControlMode := ControlMode;
+                    ActiveCircuit[j].solution.NumberOfTimes := 1;
+                end;
+                AD_Init := true;
+            end;
+    // Starts the simulation
+            for j := 2 to NumOfActors do
+            begin
+                Increment_time;
+                ActiveActor := j;
+                CmdResult := DoSolveCmd;
+            end;
+            Wait4Actors(AD_Actors);
+      // The other routines
+            MonitorClass[1].SampleAll(1);  // Make all monitors take a sample
+//      If SampleTheMeters then EnergyMeterClass[1].SampleAll(1); // Make all Energy Meters take a sample
+//      EndOfTimeStepCleanup(1);
+            ActorPctProgress[1] := (i * 100) div NumberofTimes;
+        end;
     end;
+    MonitorClass[1].SaveAll(1);
+    ActiveActor := 1;    // Returns the control to Actor 1
     Result := 0;
+end;
+
+{*******************************************************************************
+*              Sets the memory index for each actor so they can write          *
+*                   directly into the coordinator's Voltage vector             *
+*******************************************************************************}
+procedure SendIdx2Actors();
+var
+    i, j, k: Integer;
+    BusName: String;
+    AllNNames: array of String;
+begin
+// Gets the names of the nodes in the interconnected system
+    setlength(AllNNames, 0);
+    with ActiveCircuit[1] do
+    begin
+        for i := 1 to NumBuses do
+        begin
+            BusName := BusList.Get(i);
+            for j := 1 to Buses^[i].NumNodesThisBus do
+            begin
+                setlength(AllNNames, (length(AllNNames) + 1));
+                AllNNames[high(AllNNames)] := BusName + '.' + IntToStr(Buses^[i].GetNum(j));
+            end;
+        end;
+    end;
+// Sets the index for each actor
+// The feeder head first
+    ActiveCircuit[2].VIndex := 0;
+// Then checks the rest of the actors
+    for i := 3 to NumOfActors do
+    begin
+        BusName := ActiveCircuit[i].BusList.Get(1) + '.1';
+    // Looks for the node within all the Node Names in the interconnected model
+        for j := 0 to High(AllNNames) do
+            if BusName = AllNNames[j] then
+                Break;
+        ActiveCircuit[i].VIndex := j;
+    end;
+  // Initializes the Ic vector with zeros
+    ActiveCircuit[1].Ic.sparse_matrix_Cmplx(length(AllNNames), 1);
+    for i := 0 to High(AllNNames) do
+        ActiveCircuit[1].Ic.Insert(i, 0, cZERO);
 end;
 
 {*******************************************************************************
@@ -277,7 +379,7 @@ begin
             else
             begin
                 Result := -1; // There was an error when selecting the link branches (MeTIS)
-                exit;  // Abort
+                break;  // Abort
             end;
         end;
     // More error checking
@@ -445,7 +547,7 @@ begin
 // The program is built as a state machine to facilitate the error detection
 // and quitting the routines after an error is detected wihtout killing the prog
     MQuit := false;
-    Num_States := 7;                          // Number of states of the machine
+    Num_States := 8;                          // Number of states of the machine
     Local_State := 0;                          // Current state
     prog_str := 'A-Diakoptics initialization sumary:' + CRLF + CRLF;
     ActiveActor := 1;
@@ -532,7 +634,7 @@ begin
                     if SolutionAbort then
                     begin
                         ErrorCode := 1;
-                        Exit;
+                        Break;
                     end;
                 end;
                 if ErrorCode <> 0 then
@@ -598,11 +700,17 @@ begin
 
                 prog_Str := prog_str + CRLF + '- Building Y4 ...';
                 Calc_Y4();
-                prog_Str := prog_str + 'Done' + CRLF;
+                prog_Str := prog_str + 'Done';
         // Moves back the link branches list into actor 1 for further use
                 setlength(ActiveCircuit[1].Link_Branches, length(Links));
                 for DIdx := 0 to High(Links) do
                     ActiveCircuit[1].Link_Branches[DIdx] := Links[DIdx];
+            end;
+            8:
+            begin                      // Sends the index to the actors for uploading info
+                prog_Str := prog_str + CRLF + '- Assigning indexes to actors ...';
+                SendIdx2Actors();
+                prog_Str := prog_str + 'Done';
             end
         else
         begin
@@ -626,7 +734,7 @@ begin
         ADiakoptics := true;
     end;
 
-    prog_Str := prog_str + CRLF + ErrorStr + CRLF;
+    prog_Str := CRLF + prog_str + CRLF + ErrorStr + CRLF;
     GlobalResult := ErrorStr;
 
     {$IFNDEF FPC}
