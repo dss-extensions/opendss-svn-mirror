@@ -103,9 +103,13 @@ begin
             Wait4Actors(AD_Actors);
       // The other routines
             ActorPctProgress[1] := (i * 100) div NumberofTimes;
+            if SolutionAbort then
+                break;
         end;
     end;
 
+    if not SolutionAbort then
+        ActiveCircuit[1].Issolved := true;
     ActiveActor := 1;    // Returns the control to Actor 1
     Result := 0;
 end;
@@ -138,7 +142,7 @@ begin
   // publishes the results
     Result := CRLF +
         'Circuit reduction    (%): ' + floattostrf(GReduct, ffgeneral, 4, 2) + CRLF +
-        'Max imbalanace     (%): ' + floattostrf(MaxImbal, ffgeneral, 4, 2) + CRLF +
+        'Max imbalance       (%): ' + floattostrf(MaxImbal, ffgeneral, 4, 2) + CRLF +
         'Average imbalance(%): ' + floattostrf(AvgImbal, ffgeneral, 4, 2) + CRLF;
 end;
 
@@ -590,7 +594,7 @@ begin
     MQuit := false;
     Num_States := 9;                          // Number of states of the machine
     Local_State := 0;                          // Current state
-    prog_str := 'A-Diakoptics initialization sumary:' + CRLF + CRLF;
+    prog_str := 'A-Diakoptics initialization summary:' + CRLF + CRLF;
     ActiveActor := 1;
   // Checks if the number of actors is within a reasonable limit
     if ActiveCircuit[1].Num_SubCkts > (CPU_Cores - 2) then
@@ -602,7 +606,7 @@ begin
             0:
             begin                       // Create subcircuits
 
-                prog_Str := prog_str + '- Creating SubCircuits...' + CRLF;
+                prog_Str := prog_str + '- Creating Sub-Circuits...' + CRLF;
 
                 ErrorCode := ADiakoptics_Tearing();
                 if ErrorCode <> 0 then
