@@ -96,7 +96,6 @@ begin
     // Starts the simulation
             for j := 2 to NumOfActors do
             begin
-                Increment_time;
                 ActiveActor := j;
                 CmdResult := DoSolveCmd;
             end;
@@ -104,12 +103,15 @@ begin
       // The other routines
             ActorPctProgress[1] := (i * 100) div NumberofTimes;
             if SolutionAbort then
-                break;
+                break
+            else
+                ActiveCircuit[1].Issolved := true;
+            Increment_time;
         end;
     end;
 
-    if not SolutionAbort then
-        ActiveCircuit[1].Issolved := true;
+    if SolutionAbort then
+        ActiveCircuit[1].Issolved := false;
     ActiveActor := 1;    // Returns the control to Actor 1
     Result := 0;
 end;
