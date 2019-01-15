@@ -35,6 +35,7 @@ function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
 procedure Calc_ZCC(Links: Integer);
 procedure Calc_Y4();
 procedure SendIdx2Actors();
+function get_Statistics(): String;
 
 implementation
 
@@ -46,7 +47,13 @@ uses
     KLUSolve,
     Ucomplex,
     Sparse_Math,
-    UcMatrix;
+    UcMatrix,
+    math;
+
+{*******************************************************************************
+*              This is the A-Diakoptics algorithm executed by the              *
+*                        Coordinator (Actor = 1)                               *
+*******************************************************************************}
 
 function Solve_Diakoptics(): Integer;
 var
@@ -65,7 +72,7 @@ begin
             begin
       // Loads the partial solution considering the previous iteration
                 VPartial := Contours.Transpose();
-                VPartial := Vpartial.multiply(Ic);
+                VPartial := Vpartial.multiply(V_0);
                 Vpartial := Y4.multiply(VPartial);
                 Ic := Contours.multiply(VPartial);
       // Ready to go
@@ -95,16 +102,46 @@ begin
             end;
             Wait4Actors(AD_Actors);
       // The other routines
-            MonitorClass[1].SampleAll(1);  // Make all monitors take a sample
-//      If SampleTheMeters then EnergyMeterClass[1].SampleAll(1); // Make all Energy Meters take a sample
-//      EndOfTimeStepCleanup(1);
             ActorPctProgress[1] := (i * 100) div NumberofTimes;
         end;
     end;
-    MonitorClass[1].SaveAll(1);
+
     ActiveActor := 1;    // Returns the control to Actor 1
     Result := 0;
 end;
+
+{*******************************************************************************
+*              Returns a string with the partitioning statistics               *
+*                  It only works if the partitioning was succesful             *
+*******************************************************************************}
+function get_Statistics(): String;
+var
+    unbalance,
+    ASize: array of Single;
+    idx: Integer;
+    GReduct,
+    MaxImbal,
+    AvgImbal: Double;
+begin
+    setlength(ASize, 0);
+    for idx := 2 to NumOfActors do
+    begin
+        setlength(ASize, length(ASize) + 1);
+        ASize[high(ASize)] := ActiveCircuit[idx].NumNodes;
+    end;
+    GReduct := (1 - (MaxValue(ASize) / ActiveCircuit[1].NumNodes)) * 100;   // The biggest actor
+    setlength(unbalance, length(ASize));
+    for idx := 0 to High(ASize) do
+        unbalance[idx] := (1 - (ASize[idx] / MaxValue(ASize))) * 100; // All the unbalances
+    MaxImbal := MaxValue(unbalance);                              // Max imbalance
+    AvgImbal := mean(unbalance);                                  // Average
+  // publishes the results
+    Result := CRLF +
+        'Circuit reduction    (%): ' + floattostrf(GReduct, ffgeneral, 4, 2) + CRLF +
+        'Max imbalanace     (%): ' + floattostrf(MaxImbal, ffgeneral, 4, 2) + CRLF +
+        'Average imbalance(%): ' + floattostrf(AvgImbal, ffgeneral, 4, 2) + CRLF;
+end;
+
 
 {*******************************************************************************
 *              Sets the memory index for each actor so they can write          *
@@ -145,8 +182,12 @@ begin
     end;
   // Initializes the Ic vector with zeros
     ActiveCircuit[1].Ic.sparse_matrix_Cmplx(length(AllNNames), 1);
+    ActiveCircuit[1].V_0.sparse_matrix_Cmplx(length(AllNNames), 1);
     for i := 0 to High(AllNNames) do
+    begin
         ActiveCircuit[1].Ic.Insert(i, 0, cZERO);
+        ActiveCircuit[1].V_0.Insert(i, 0, cZERO);
+    end;
 end;
 
 {*******************************************************************************
@@ -547,7 +588,7 @@ begin
 // The program is built as a state machine to facilitate the error detection
 // and quitting the routines after an error is detected wihtout killing the prog
     MQuit := false;
-    Num_States := 8;                          // Number of states of the machine
+    Num_States := 9;                          // Number of states of the machine
     Local_State := 0;                          // Current state
     prog_str := 'A-Diakoptics initialization sumary:' + CRLF + CRLF;
     ActiveActor := 1;
@@ -711,6 +752,11 @@ begin
                 prog_Str := prog_str + CRLF + '- Assigning indexes to actors ...';
                 SendIdx2Actors();
                 prog_Str := prog_str + 'Done';
+            end;
+            9:
+            begin                      // Prints the statistics of the partitioning
+                prog_Str := prog_str + CRLF + CRLF + 'Partitioning statistics';
+                prog_Str := prog_str + get_Statistics();
             end
         else
         begin
