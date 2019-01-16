@@ -1,0 +1,70 @@
+Clear
+
+! Kersting YDY Test
+
+New Circuit.YDY_Test3
+~ BasekV=69  Bus1=B1 Isc3=1000000  Isc1=1100000  ! near-infinite source
+
+Set Earthmodel=Carson
+
+New Wiredata.ACSR336  GMR=0.0255000 DIAM=0.7410000 RAC=0.3060000     NormAmps=530.0000           Runits=mi radunits=in gmrunits=ft
+New Wiredata.ACSR4/0  GMR=0.0081400 DIAM=0.5630000 RAC=0.5920000     NormAmps=340.0000           Runits=mi radunits=in gmrunits=ft
+
+New LineGeometry.Line1-2 nconds=4 nphases=3
+~ cond=1 wire=ACSR336 x=-6  h=50 units=ft
+~ cond=2 wire=ACSR336 x=-8  h=42 units=ft
+~ cond=3 wire=ACSR336 x=8   h=42 units=ft
+~ cond=4 wire=ACSR4/0 x=0   h=58 units=ft
+~ Reduce=Y
+
+New LineGeometry.Line3-4 nconds=4 nphases=3
+~ cond=1 wire=ACSR336 x=-3   h=28 units=ft
+~ cond=2 wire=ACSR336 x=-1.5 h=28 units=ft
+~ cond=3 wire=ACSR336 x=3    h=28 units=ft
+~ cond=4 wire=ACSR4/0 x=0    h=24 units=ft
+~ Reduce=Y
+
+New LineGeometry.Line5-6 nconds=3 nphases=3
+~ cond=1 wire=ACSR336 x=-7   h=28 units=ft
+~ cond=2 wire=ACSR336 x=-4.5 h=28 units=ft
+~ cond=3 wire=ACSR336 x=0    h=28 units=ft
+
+// Lines
+New Line.TLine1-2 Bus1=B1.1.2.3 Bus2=B2.1.2.3 Geometry=Line1-2 Length=10   units=mi
+New Line.DLine3-4 Bus1=B3.1.2.3 Bus2=B4.1.2.3 Geometry=Line3-4 Length=1    units=mi
+New Line.DLine5-6 Bus1=B5.1.2.3 Bus2=B6.1.2.3 Geometry=Line5-6 Length=150  units=ft
+
+// The Transformer
+New Transformer.YDY Phases=3 windings=3 ppm=0   !<------------ set ppm
+~ conns=[wye  wye delta ]
+~ Buses=[B2 B3 B5]
+~ kVs=[69, 13.2,  2.4]
+~ kVAs=[15000 10000 5000]
+// ~ XHL=7  XHT=9  XLT=12   !---- These are probably not realistic; LT is generally smaller than HT
+~ XHL=8.98   XHT=13.3  XLT=7.3   
+~ %Rs = [0.0475  0.1025   0.1525]   ! short ckt Rs=[.15  0.2 .255]
+
+// Loads
+New Load.B4a phases=1 Bus1=B4.1.0  kV=7.62 kW=1250 kvar=500 Model=1
+New Load.B4b phases=1 Bus1=B4.2.0  kV=7.62 kW=1500 kvar=750 Model=1
+New Load.B4c phases=1 Bus1=B4.3.0  kV=7.62 kW=1000 kvar=250 Model=1
+
+New Load.B6 phases=3 Bus1=B6.1.2.3 Model=2 Conn=delta kV=2.4 kW=2250 kvar=1125
+
+
+Set voltagebases=[69, 13.2, 2.4]
+Calcvoltagebases
+
+solve
+
+// Show results
+Show Currents residual=yes Elements
+Show Powers kva Elements
+Show Voltage LN Nodes
+Show Voltage LL Nodes
+
+// Export to CSV
+Export Voltages
+fileedit [C:\Users\prdu001\DSSData\IEEETest\YDYTest\YDY_Test3_EXP_VOLTAGES.CSV]
+Export Currents
+fileedit [C:\Users\prdu001\DSSData\IEEETest\YDYTest\YDY_Test3_EXP_CURRENTS.CSV]
