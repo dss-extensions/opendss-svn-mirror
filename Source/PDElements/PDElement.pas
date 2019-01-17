@@ -149,15 +149,17 @@ begin
 end;
 
 procedure TPDElement.CalcNum_Int(var SectionCount: Integer; AssumeRestoration: Boolean);
+{This is called on the forward sweep to set the number of interruptions at the To bus.}
 var
     FromBus: TDSSBus;
     ToBus: TDSSBus;
+
 begin
 
     with ActiveCircuit[ActiveActor] do
     begin
         if FromTerminal = 2 then
-            Toterminal := 1
+            ToTerminal := 1
         else
             ToTerminal := 2;
         ToBus := Buses^[Terminals^[ToTerminal].BusRef];
@@ -166,22 +168,28 @@ begin
         // If no interrupting device then the downline bus will have the same num of interruptions
         ToBus.Bus_Num_Interrupt := FromBus.Bus_Num_Interrupt;
 
-        // If Interrupting device (on FROM side)then downline will have additional interruptions
-        //    ---- including for fused lateral
-        // If assuming restoration and the device is an automatic device, the To bus will be
-        // interrupted only for  faults on the main section, not including fused sections.
+        { If Interrupting device (on FROM side)then downline bus will have
+          additional interruptions  ---- including for fused lateral
+         If assuming restoration and the device is an automatic device, the To bus will be
+         interrupted only for  faults on the main section, not including fused sections.
+        }
         if HasOCPDevice then
         begin
             if AssumeRestoration and HasAutoOCPDevice then
+               {To Bus will be interrupted only for faults on this section.
+                AccumulatedBrFltRate does not include Branches down from
+                Branches with OCP devics}
                 ToBus.Bus_Num_Interrupt := AccumulatedBrFltRate
             else
                 accumsum(ToBus.Bus_Num_Interrupt, AccumulatedBrFltRate);
 
+            {If there is an OCP device on this PDElement, this is the
+             beginning of a new section.}
             inc(SectionCount);
-            ToBus.BusSectionID := SectionCount; // It's in a different section
+            ToBus.BusSectionID := SectionCount; // Assign it to the new section
         end
         else
-            ToBus.BusSectionID := FromBus.BusSectionID;   // it's in the same section
+            ToBus.BusSectionID := FromBus.BusSectionID;   // else it's in the same section
 
         BranchSectionID := ToBus.BusSectionID;
     end;

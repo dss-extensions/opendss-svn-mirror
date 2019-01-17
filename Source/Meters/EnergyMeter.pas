@@ -2659,11 +2659,12 @@ begin
 end;
 
 
-{-------------------------------------------------------------------------------}
+{--------------------------- CalcReliabilityIndices ----------------------------}
+
 procedure TEnergyMeterObj.CalcReliabilityIndices(AssumeRestoration: Boolean; ActorID: Integer);
 var
     PD_Elem: TPDElement;
-    pLoad: TLoadObj;
+    pSection: TFeederSection;
     idx: Integer;
     pBus: TDSSBus;
     dblNcusts: Double;
@@ -2671,13 +2672,13 @@ var
 
 begin
 
-    if not assigned(SequenceList) then
+    if not Assigned(SequenceList) then
     begin
         DoSimpleMsg('Energymeter.' + Name + ' Zone not defined properly.', 52901);
         Exit;
     end;
 
-    // Zero reliability accumulators
+  // Zero reliability accumulators
     for idx := SequenceList.ListSize downto 1 do
         TPDElement(SequenceList.Get(idx)).ZeroReliabilityAccums;
 
@@ -2734,23 +2735,20 @@ begin
     begin
         PD_Elem := SequenceList.Get(idx);
         PD_Elem.CalcCustInterrupts;
-
-        with FeederSections^[PD_Elem.BranchSectionID] do
+              // Populate the Section properties
+        pSection := FeederSections^[PD_Elem.BranchSectionID];
         begin
-            Inc(NCustomers, PD_Elem.BranchNumCustomers);
-                // Sum up num Customers on this Section
-            Inc(NBranches, 1); // Sum up num branches on this Section
-            pBus := ActiveCircuit[ActorID].Buses^
-                [PD_Elem.Terminals^[PD_Elem.ToTerminal].BusRef];
-            DblInc(SumBranchFltRates, pBus.Bus_Num_Interrupt * PD_Elem.BranchFltRate);
-            DblInc(SumFltRatesXRepairHrs,
-                (pBus.Bus_Num_Interrupt * PD_Elem.BranchFltRate * PD_Elem.HrsToRepair));
+            Inc(pSection.NCustomers, PD_Elem.BranchNumCustomers); // Sum up num Customers on this Section
+            Inc(pSection.NBranches, 1); // Sum up num branches on this Section
+            pBus := ActiveCircuit[ActorID].Buses^[PD_Elem.Terminals^[PD_Elem.ToTerminal].BusRef];
+            DblInc(pSection.SumBranchFltRates, pBus.Bus_Num_Interrupt * PD_Elem.BranchFltRate);
+            DblInc(pSection.SumFltRatesXRepairHrs, (pBus.Bus_Num_Interrupt * PD_Elem.BranchFltRate * PD_Elem.HrsToRepair));
             if PD_Elem.HasOCPDevice then
-            begin
-                OCPDeviceType := GetOCPDeviceType(PD_Elem);
-                SeqIndex := idx;  // index of pdelement with OCP device at head of section
-                TotalCustomers := PD_Elem.BranchTotalCustomers;
-                SectFaultRate := PD_Elem.AccumulatedBrFltRate;
+            begin  // set Section properties
+                pSection.OCPDeviceType := GetOCPDeviceType(PD_Elem);
+                pSection.SeqIndex := idx;  // index of pdelement with OCP device at head of section
+                pSection.TotalCustomers := PD_Elem.BranchTotalCustomers;
+                pSection.SectFaultRate := PD_Elem.AccumulatedBrFltRate;
             end;
         end;
 
@@ -2801,20 +2799,19 @@ begin
     SAIFI := 0.0;
     CAIDI := 0.0;
     SAIFIkW := 0.0;
-    CustInterrupts := 0.0;
     dblNcusts := 0.0;
     dblkW := 0.0;
+    CustInterrupts := 0.0;
 
         // Use LoadList for SAIFI calculation
     with ActiveCircuit[ActorID] do
         for idx := 1 to LoadList.ListSize do // all loads in meter zone
         begin
-            pLoad := TLoadObj(LoadList.Get(idx));
-            with pLoad do
+      // Compute CustInterrupts based on interrupts at each load
+            with TLoadObj(LoadList.Get(idx)) do
             begin
-                pBus := Buses^[Terminals^[1].BusRef]; // pointer to bus
-                CustInterrupts := CustInterrupts + NumCustomers * RelWeighting *
-                    pBus.Bus_Num_Interrupt;
+                pBus := Buses^[Terminals^[1].BusRef]; // pointer to Load's bus
+                CustInterrupts := CustInterrupts + NumCustomers * RelWeighting * pBus.Bus_Num_Interrupt;
                 SAIFIkW := SAIFIkW + kWBase * RelWeighting * pBus.Bus_Num_Interrupt;
                 DblInc(dblNcusts, NumCustomers * RelWeighting);
               // total up weighted numcustomers
