@@ -3024,7 +3024,7 @@ begin
       // Sends the total voltage for this part to the coordinator
             for i := 1 to NumNodes do
             begin
-                CNum := cadd(NodeV^[i], Node_dV^[i]);
+                CNum := csub(NodeV^[i], Node_dV^[i]);
                 ActiveCircuit[1].Solution.NodeV^[i + VIndex] := CNum;
             end;
 
