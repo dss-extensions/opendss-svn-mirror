@@ -83,6 +83,7 @@ type
         function RotatePhases(const j: Integer): Integer;
         function LimitToPlusMinusOne(const i: Integer): Integer;
         procedure ClearSensor;
+        procedure UpdateCurrentVector;
         function Get_WLSCurrentError: Double;
         function Get_WLSVoltageError: Double;
 
@@ -289,9 +290,17 @@ begin
                 6:
                     Parser[ActorID].ParseAsVector(Fnphases, SensorCurrent);  // Inits to zero
                 7:
+                begin
                     Parser[ActorID].ParseAsVector(Fnphases, SensorkW);
+                    Pspecified := true;
+                    UpdateCurrentVector;
+                end;
                 8:
+                begin
                     Parser[ActorID].ParseAsVector(Fnphases, Sensorkvar);
+                    Qspecified := true;
+                    UpdateCurrentVector;
+                end;
                 9:
                     Conn := InterpretConnection(Param);
                 10:
@@ -721,6 +730,35 @@ var
 begin
     for i := 1 to Fnconds do
         Curr^[i] := cZero;
+end;
+
+procedure TSensorObj.UpdateCurrentVector;
+{Updates the currentvector when P and Q are defined
+ as the input vectors for the sensor}
+var
+    kVA: Double;
+    i: Integer;
+begin
+{Convert P and Q specification to Currents}
+    if Pspecified then
+    begin    // compute currents assuming vbase
+        if Qspecified then
+        begin
+            for i := 1 to FNPhases do
+            begin
+                kVA := Cabs(Cmplx(SensorkW^[i], Sensorkvar^[i]));
+                SensorCurrent^[i] := kVA * 1000.0 / Vbase;
+            end;
+        end
+        else
+        begin    // No Q just use P
+            for i := 1 to FNPhases do
+            begin
+                SensorCurrent^[i] := SensorkW^[i] * 1000.0 / Vbase;
+            end;
+        end;
+        Ispecified := true;    // Overrides current specification
+    end;
 end;
 
 function TSensorObj.Get_WLSCurrentError: Double;
