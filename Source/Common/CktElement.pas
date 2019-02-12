@@ -777,7 +777,7 @@ var
 begin
 
     ActiveTerminalIdx := idxTerm;   // set active Terminal
-
+    Cpower := CZERO;
     if FEnabled then
     begin
         ComputeIterminal(ActorID);
