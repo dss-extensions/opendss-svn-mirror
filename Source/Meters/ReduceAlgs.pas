@@ -169,7 +169,7 @@ procedure DoReduceShortlines(var BranchList: TCktTree);
 {Eliminate short lines and merge with lines on either side}
 var
     LineElement1, LineElement2: TLineObj;
-    LoadElement: TLoadObj;
+    ShuntElement: TDSSCktElement;
     ParentNode: TCktTreeNode;
 
 begin
@@ -218,12 +218,12 @@ begin
                                                 if ParentNode.NumShuntObjects > 0 then
                                                 begin
                                    {Redefine bus connection for PC elements hanging on the bus that is eliminated}
-                                                    LoadElement := ParentNode.FirstShuntObject;
-                                                    while LoadElement <> nil do
+                                                    ShuntElement := ParentNode.FirstShuntObject;
+                                                    while ShuntElement <> nil do
                                                     begin
-                                                        Parser[ActiveActor].CmdString := 'bus1="' + ActiveCircuit[ActiveActor].BusList.Get(ToBusReference) + '"';
-                                                        LoadElement.Edit(ActiveActor);
-                                                        LoadElement := ParentNode.NextShuntObject;
+                                                        Parser[ActiveActor].CmdString := 'bus1="' + ActiveCircuit[ActiveActor].BusList.Get(ToBusReference) + GetNodeString(ShuntElement.GetBus(1)) + '"';
+                                                        ShuntElement.Edit(ActiveActor);
+                                                        ShuntElement := ParentNode.NextShuntObject;
                                                     end;  {While}
                                                 end; {IF}
                                 end; {IF}
@@ -240,12 +240,12 @@ begin
                                     if FirstChildBranch.NumShuntObjects > 0 then
                                     begin
                                {Redefine bus connection to upline bus}
-                                        LoadElement := FirstChildBranch.FirstShuntObject;
-                                        while LoadElement <> nil do
+                                        ShuntElement := FirstChildBranch.FirstShuntObject;
+                                        while ShuntElement <> nil do
                                         begin
-                                            Parser[ActiveActor].CmdString := 'bus1="' + ActiveCircuit[ActiveActor].BusList.Get(FromBusReference) + '"';
-                                            LoadElement.Edit(ActiveActor);
-                                            LoadElement := FirstChildBranch.NextShuntObject;
+                                            Parser[ActiveActor].CmdString := 'bus1="' + ActiveCircuit[ActiveActor].BusList.Get(FromBusReference) + GetNodeString(ShuntElement.GetBus(1)) + '"';
+                                            ShuntElement.Edit(ActiveActor);
+                                            ShuntElement := FirstChildBranch.NextShuntObject;
                                         end;  {While}
                                     end; {IF}
                         end; {IF not}
