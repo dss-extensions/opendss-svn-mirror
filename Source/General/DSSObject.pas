@@ -161,6 +161,8 @@ begin
     while iProp > 0 do
     begin
         str := trim(PropertyValue[iProp]);
+        if Comparetext(str, '----') = 0 then
+            str := ''; // set to ignore this property
         if Length(str) > 0 then
         begin
             with ParentClass do

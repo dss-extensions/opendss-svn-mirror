@@ -50,7 +50,7 @@ uses
     Sparse_Math;
 
 type
-    TReductionStrategy = (rsDefault, rsStubs, {rsTapEnds,} rsMergeParallel, rsBreakLoop, rsDangling, rsSwitches, rsLaterals);
+    TReductionStrategy = (rsDefault, rsShortlines, {rsTapEnds,} rsMergeParallel, rsBreakLoop, rsDangling, rsSwitches, rsLaterals);
 
     CktElementDef = record
         CktElementClass: Integer;

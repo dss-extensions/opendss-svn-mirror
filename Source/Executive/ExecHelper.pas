@@ -2868,8 +2868,6 @@ end;
 
 procedure DoSetReduceStrategy(const S: String);
 
-var
-    ParamName, Param, Param2: String;
 
     function AtLeast(i, j: Integer): Integer;
     begin
@@ -2881,17 +2879,12 @@ var
 
 begin
     ActiveCircuit[ActiveActor].ReductionStrategyString := S;
-    AuxParser[ActiveActor].CmdString := S;
-    paramName := Auxparser[ActiveActor].NextParam;
-    Param := UpperCase(AuxParser[ActiveActor].StrValue);
-    paramName := Auxparser[ActiveActor].NextParam;
-    Param2 := AuxParser[ActiveActor].StrValue;
 
     ActiveCircuit[ActiveActor].ReductionStrategy := rsDefault;
-    if Length(Param) = 0 then
+    if Length(S) = 0 then
         Exit;  {No option given}
 
-    case Param[1] of
+    case UpperCase(S)[1] of
 
         'B':
             ActiveCircuit[ActiveActor].ReductionStrategy := rsBreakLoop;
@@ -2902,10 +2895,6 @@ begin
         'L':
         begin {Laterals}
             ActiveCircuit[ActiveActor].ReductionStrategy := rsLaterals;
-            if Length(Param2) > 0 then
-            begin
-                ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad := InterpretYesNo(Param2)
-            end;
         end;
         'M':
             ActiveCircuit[ActiveActor].ReductionStrategy := rsMergeParallel;
@@ -2917,17 +2906,15 @@ begin
             End;
             *}
         'S':
-        begin  {Stubs}
-            if CompareTextShortest(Param, 'SWITCH') = 0 then
+        begin  {Shortlines or Switch}
+            if CompareTextShortest(S, 'SWITCH') = 0 then
             begin
                 ActiveCircuit[ActiveActor].ReductionStrategy := rsSwitches;
             end
             else
             begin
-                ActiveCircuit[ActiveActor].ReductionZmag := 0.02;
-                ActiveCircuit[ActiveActor].ReductionStrategy := rsStubs;
-                if Length(param2) > 0 then
-                    ActiveCircuit[ActiveActor].ReductionZmag := Auxparser[ActiveActor].DblValue;
+                 { ActiveCircuit.ReductionZmag is now set in main ExecOptions     }
+                ActiveCircuit[ActiveActor].ReductionStrategy := rsShortlines;
             end;
         end;
     else

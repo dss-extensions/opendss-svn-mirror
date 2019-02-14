@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 124;
+    NumExecOptions = 126;
 
 var
     ExecOption,
@@ -172,6 +172,8 @@ begin
     ExecOption[122] := 'ADiakoptics';
     ExecOption[123] := 'MinIterations'; // default is 2
     ExecOption[124] := 'LinkBranches';
+    ExecOption[125] := 'KeepLoad';
+    ExecOption[126] := 'Zmag';
 
 
     OptionHelp[1] := 'Sets the active DSS class type.  Same as Class=...';
@@ -346,9 +348,9 @@ begin
         'Reset Keeplist (sets all buses to FALSE (no keep))' + CRLF +
         'Set KeepList=(bus1, bus2, bus3, ... )' + CRLF +
         'Set KeepList=(file=buslist.txt)';
-    OptionHelp[59] := '{ Default or [null] | Stubs [Zmag=nnn] | MergeParallel | BreakLoops | Switches | Ends | Laterals}  Strategy for reducing feeders. ' +
+    OptionHelp[59] := '{ Default or [null] | Shortlines [Zmag=nnn] | MergeParallel | BreakLoops | Switches | Ends | Laterals}  Strategy for reducing feeders. ' +
         'Default is to eliminate all dangling end buses and buses without load, caps, or taps. ' + CRLF +
-        '"Stubs [Zmag=0.02]" merges short branches with impedance less than Zmag (default = 0.02 ohms) ' + CRLF +
+        '"Shortlines [Zmag=0.02]" merges short branches with impedance less than Zmag (default = 0.02 ohms) ' + CRLF +
         '"MergeParallel" merges lines that have been found to be in parallel ' + CRLF +
         '"Breakloops" disables one of the lines at the head of a loop. ' + CRLF +
         '"Ends" eliminates dangling ends only.' + CRLF +
@@ -445,6 +447,8 @@ begin
     OptionHelp[123] := 'Minimum number of iterations required for a solution. Default is 2.';
     OptionHelp[124] := 'Returns the names of the link branches used for tearing the circuit after initializing using set ADiakoptics = True. Using this instruction will set the Active Actor = 1' + CRLF +
         'If ADiakoptics is not initialized, this isntruction will retunr an error message';
+    OptionHelp[125] := 'Keeploads = Y/N option for ReduceOption Laterals option';
+    OptionHelp[126] := 'Sets the Zmag option (in Ohms) for ReduceOption Shortlines option. Lines have less line mode impedance are reduced.';
 end;
 //----------------------------------------------------------------------------
 function DoSetCmd_NoCircuit: Boolean;  // Set Commands that do not require a circuit
@@ -899,7 +903,11 @@ begin
                     ADiakoptics := false;
             end;
             123:
-                ActiveCircuit[ActiveActor].solution.MinIterations := Parser[ActiveActor].IntValue
+                ActiveCircuit[ActiveActor].solution.MinIterations := Parser[ActiveActor].IntValue;
+            125:
+                ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad := InterpretYesNo(Param);
+            126:
+                ActiveCircuit[ActiveActor].ReductionZmag := Parser[ActiveActor].DblValue;
         else
            // Ignore excess parameters
         end;
@@ -1336,7 +1344,14 @@ begin
                     end
                     else
                         AppendGlobalResult('Initialize A-Diakoptics first!');
-                end
+                end;
+                125:
+                    if ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
+                126:
+                    AppendGlobalResult(Format('%-g', [ActiveCircuit[ActiveActor].ReductionZmag]));
             else
            // Ignore excess parameters
             end;
