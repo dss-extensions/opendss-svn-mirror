@@ -19,6 +19,7 @@ uses
     DSSClassDefs,
     EnergyMeter,
     SolutionAlgs,
+    Line,
     {$IFDEF FPC}
 CmdForms
     {$ELSE}
@@ -49,6 +50,7 @@ uses
     Sparse_Math,
     UcMatrix,
     math;
+
 
 {*******************************************************************************
 *              This is the A-Diakoptics algorithm executed by the              *
