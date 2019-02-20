@@ -20,7 +20,8 @@ uses
     ucomplex,
     ucmatrix,
     DSSClass,
-    MeterElement;
+    MeterElement,
+    Arraydef;
 
 type
 
@@ -59,6 +60,9 @@ type
 
         Overload_UE,
         OverLoad_EEN: Double;  // Indicate amount of branch overload
+
+        NRatings: Integer;
+        ratings: pDoubleArray;
 
         constructor Create(ParClass: TDSSClass);
         destructor Destroy; OVERRIDE;

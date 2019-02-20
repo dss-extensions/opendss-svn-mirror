@@ -111,8 +111,8 @@ type
         SymComponentsModel: Boolean;
         IsSwitch: Boolean;
 
-        NRatings: Integer;
-        ratings: pDoubleArray;
+//        NRatings             : Integer;
+//        ratings              : pDoubleArray;
 
         procedure GetLosses(var TotalLosses, LoadLosses, NoLoadLosses: Complex; ActorID: Integer); OVERRIDE;
         procedure GetSeqLosses(var PosSeqLosses, NegSeqLosses, ZeroSeqLosses: complex; ActorID: Integer); OVERRIDE;

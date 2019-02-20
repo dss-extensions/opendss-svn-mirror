@@ -116,6 +116,8 @@ type
 
         MonitoredElement: TDSSCktElement;
 
+        Wait4Step: Boolean;
+
            // PROCEDURE SetPctReserve;
         procedure SetAllFleetValues;
         procedure SetFleetkWRate(pctkw: Double);
@@ -758,7 +760,7 @@ begin
     FlatTime := 2.0;
     DnrampTime := 0.25;
     LastpctDischargeRate := 0.0;
-
+    Wait4Step := false;     // for sync discharge with charge when there is a transition
 
     InitPropertyValues(0);
 
@@ -1451,6 +1453,8 @@ begin
                         PushTimeOntoControlQueue(STORE_IDLING, ActorID);  // force a new power flow solution
                         ChargingAllowed := true;
                         SkipkWDispatch := true;
+                        Wait4Step := true; // To tell to the charging section to wait for the next sim step
+                                                 // useful when workin with large simulation time steps
                     end;
             end;
         end;
@@ -1583,11 +1587,14 @@ begin
 
         case FleetState of
             STORE_IDLING:
-                if (PDiff > 0.0) or (ActualkWh >= TotalRatingkWh) then
+                if (PDiff > 0.0) or (ActualkWh >= TotalRatingkWh) or Wait4Step then
                 begin  // Don't bother trying to charge
                     ChargingAllowed := false;
                     SkipkWCharge := true;
-                end;
+                    Wait4Step := false;
+                end
+                else
+                    ChargingAllowed := ChargingAllowed;
             STORE_CHARGING:
                 if (kWNeeded > 0.0) or (ActualkWh >= TotalRatingkWh) then
                 begin   // desired decrease is greater then present output; just cancel
@@ -1655,7 +1662,7 @@ begin
 {
   Check discharge mode first. Then if not discharging, we can check for charging
 }
-
+    Wait4Step := false;        // Initializes the variable for the new control step
     case DischargeMode of
         MODEFOLLOW:
         begin

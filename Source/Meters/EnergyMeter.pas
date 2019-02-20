@@ -91,6 +91,7 @@ uses
     Feeder,
     Load,
     Generator,
+    XYCurve,
     Command;
 
 const
@@ -3460,14 +3461,34 @@ end;
 procedure TEnergyMeter.WriteOverloadReport(ActorID: Integer);
 var
     PDelem: TPDelement;
+    EmergAmps,
+    NormAmps,
     Cmax: Double;
     mtr: TEnergyMeterObj;
+    ClassName: String;
+    RSignal: TXYCurveObj;
+    RatingIdx: Integer;
+    ElemCurr: pComplexArray;
 
 begin
 {
   Scans the active circuit for overloaded PD elements and writes each to a file
   This is called only if in Demand Interval (DI) mode and the file is open.
 }
+{    Prepares everything for using seasonal ratings if required}
+    if SeasonalRating then
+    begin
+        if SeasonSignal <> '' then
+        begin
+            RSignal := XYCurveClass[ActorID].Find(SeasonSignal);
+            if RSignal <> nil then
+                RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActorID].Solution.DynaVars.intHour)) + 1
+            else
+                SeasonalRating := false;   // The XYCurve defined doesn't exist
+        end
+        else
+            SeasonalRating := false;    // The user didn't define the seasonal signal
+    end;
 
  { CHECK PDELEMENTS ONLY}
     PDelem := ActiveCircuit[ActorID].PDElements.First;
@@ -3480,19 +3501,43 @@ begin
             begin
                 PDelem.ComputeIterminal(ActorID);
                 Cmax := PDelem.MaxTerminalOneImag(ActorID); // For now, check only terminal 1 for overloads
-                if (Cmax > PDElem.NormAmps) or (Cmax > pdelem.EmergAmps) then
+
+             // Section introduced in 02/20/2019 for allowing the automatic change of ratings
+             // when the seasonal ratings option is active
+                ClassName := lowercase(PDElem.DSSClassName);
+                if SeasonalRating and (ClassName = 'line') and (PDElem.NRatings > 1) then
+                begin
+                    if RatingIdx > PDElem.NRatings then
+                    begin
+                        NormAmps := PDElem.NormAmps;
+                        EmergAmps := pdelem.EmergAmps;
+                    end
+                    else
+                    begin
+                        NormAmps := PDElem.ratings^[RatingIdx];
+                        EmergAmps := PDElem.ratings^[RatingIdx];
+                    end;
+                end
+                else
+                begin
+                    NormAmps := PDElem.NormAmps;
+                    EmergAmps := pdelem.EmergAmps;
+                end;
+
+
+                if (Cmax > NormAmps) or (Cmax > EmergAmps) then
                 begin
                     with ActiveCircuit[ActorID].Solution do
                         WriteintoMem(OV_MHandle[ActorID], DynaVars.dblHour);
                     WriteintoMemStr(OV_MHandle[ActorID], ', ' + FullName(PDelem));
-                    WriteintoMem(OV_MHandle[ActorID], PDElem.NormAmps);
-                    WriteintoMem(OV_MHandle[ActorID], pdelem.EmergAmps);
+                    WriteintoMem(OV_MHandle[ActorID], NormAmps);
+                    WriteintoMem(OV_MHandle[ActorID], EmergAmps);
                     if PDElem.Normamps > 0.0 then
-                        WriteintoMem(OV_MHandle[ActorID], Cmax / PDElem.Normamps * 100.0)
+                        WriteintoMem(OV_MHandle[ActorID], Cmax / Normamps * 100.0)
                     else
                         WriteintoMem(OV_MHandle[ActorID], 0.0);
                     if PDElem.Emergamps > 0.0 then
-                        WriteintoMem(OV_MHandle[ActorID], Cmax / PDElem.Emergamps * 100.0)
+                        WriteintoMem(OV_MHandle[ActorID], Cmax / Emergamps * 100.0)
                     else
                         WriteintoMem(OV_MHandle[ActorID], 0.0);
                     with ActiveCircuit[ActorID] do // Find bus of first terminal

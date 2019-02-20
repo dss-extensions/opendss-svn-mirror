@@ -310,7 +310,9 @@ Integer
     PHV_Append: array of Boolean;
     FM_Append: array of Boolean;
 
-//***********************A-Diakoptics Variables*********************************
+//***********************Seasonal QSTS variables********************************
+    SeasonalRating: Boolean;    // Tells the energy meter if the seasonal rating feature is active
+    SeasonSignal: String;     // Stores the name of the signal for selecting the rating dynamically
 
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
@@ -1201,6 +1203,9 @@ initialization
     DSSFileName := GetDSSExeFile;
     DSSDirectory := ExtractFilePath(DSSFileName);
     ADiakoptics := false;  // Disabled by default
+
+    SeasonalRating := false;
+    SeasonSignal := '';
 
    {Various Constants and Switches}
     {$IFDEF FPC}
