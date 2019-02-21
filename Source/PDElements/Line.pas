@@ -1905,7 +1905,10 @@ end;
 
 procedure TLineObj.FetchWireList(const Code: String);
 var
+    RatingsInc: Boolean;
+    NewNumRat,
     i, istart: Integer;
+    NewRatings: pDoubleArray;
 begin
     if not assigned(FLineSpacingObj) then
         DoSimpleMsg('You must assign the LineSpacing before the Wires Property (LINE.' + name + ').', 18102);
@@ -1925,14 +1928,31 @@ begin
     end;
 
     AuxParser[ActiveActor].CmdString := Code;
+
+    NewNumRat := 1;
+    RatingsInc := false;             // So far we don't know if there are seasonal ratings
     for i := istart to FLineSpacingObj.NWires do
     begin
         AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
         WireDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
         if Assigned(ActiveConductorDataObj) then
-            FLineWireData^[i] := ActiveConductorDataObj
+        begin
+            FLineWireData^[i] := ActiveConductorDataObj;
+            if FLineWireData^[i].Nratings > NewNumRat then
+            begin
+                NewNumRat := FLineWireData^[i].Nratings;
+                NewRatings := FLineWireData^[i].ratings;
+                RatingsInc := true;         // Yes, there are seasonal ratings
+            end;
+        end
         else
             DoSimpleMsg('Wire "' + AuxParser[ActiveActor].StrValue + '" was not defined first (LINE.' + name + ').', 18103);
+    end;
+
+    if RatingsInc then
+    begin
+        Nratings := NewNumRat;
+        ratings := NewRatings;
     end;
 
 end;
@@ -2010,6 +2030,9 @@ begin
         Nconds := FNPhases;  // Force Reallocation of terminal info
         Yorder := Fnconds * Fnterms;
         YprimInvalid[ActiveActor] := true;       // Force Rebuild of Y matrix
+
+        Nratings := FLineGeometryObj.NRatings;
+        ratings := FLineGeometryObj.ratings;
 
     end
     else
