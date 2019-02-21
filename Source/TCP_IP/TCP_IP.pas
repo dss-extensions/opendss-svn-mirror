@@ -729,7 +729,6 @@ var
     sinterfal: Double;
     npts: Integer;
     i, k: Integer;
-    x_label: String;
     y_labels: StringArray1d;
 
     time, channel, Z_axis: DoubleArray2d;
@@ -777,8 +776,7 @@ begin
                 begin
                     SetLength(time, 1, ActiveLSObject.NumPoints);
                     for k := 0 to ActiveLSObject.NumPoints - 1 do
-                        time[0, k] := ActiveLSObject.Hours^[k + 1];
-                    x_label := 'Time (h)';
+                        time[0, k] := ActiveLSObject.Hours^[k + 1] * 3600.0;
                 end
             end
             else
@@ -797,7 +795,6 @@ begin
         SetLength(time, 1, npts);
         for i := 0 to npts - 1 do
             time[0, i] := i * sinterfal;
-        x_label := 'Time (s)';
     end;
 
   // LoadShapes.PMult read
@@ -845,7 +842,7 @@ begin
 
     model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
     MSG := flatten2JSON(model_path, 'Loadshape.' + ObjectName, 'xyplot',
-        x_label, @time, @y_labels, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
+        'Time (s)', @time, @y_labels, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
     MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
