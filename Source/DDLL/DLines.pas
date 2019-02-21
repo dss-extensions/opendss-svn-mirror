@@ -14,6 +14,7 @@ uses
     DSSClassDefs,
     DSSGlobals,
     CktElement,
+    XYCurve,
     uComplex,
     ExecHelper,
     dialogs,
@@ -170,6 +171,9 @@ end;
 
 //******************************floating point type properties*************************
 function LinesF(mode: Longint; arg: Double): Double; CDECL;
+var
+    RatingIdx: Integer;
+    RSignal: TXYCurveObj;
 begin
     Result := 0.0;
     case mode of
@@ -435,6 +439,30 @@ begin
                         YprimInvalid[ActiveActor] := true;
                     end;
                 end;
+        end;
+        24:
+        begin  // Lines.SeasonRating
+            if IsLine(ActiveCircuit[ActiveActor].ActiveCktElement) then
+            begin
+                if SeasonalRating then
+                begin
+                    if SeasonSignal <> '' then
+                    begin
+                        RSignal := XYCurveClass[ActiveActor].Find(SeasonSignal);
+                        if RSignal <> nil then
+                            RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActiveActor].Solution.DynaVars.intHour)) + 1;
+            // Just in case
+                        if RatingIdx > TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NRatings then
+                            Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NormAmps
+                        else
+                            Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).ratings^[RatingIdx];
+                    end
+                    else
+                        Result := 0.0;
+                end;
+            end
+            else
+                Result := 0.0;
         end
     else
         Result := -1.0;

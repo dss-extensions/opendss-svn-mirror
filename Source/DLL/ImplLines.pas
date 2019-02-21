@@ -73,6 +73,7 @@ type
         procedure Set_Spacing(const Value: Widestring); SAFECALL;
         function Get_Units: Integer; SAFECALL;
         procedure Set_Units(Value: Integer); SAFECALL;
+        function Get_SeasonRating: Double; SAFECALL;
 
     { Protected declarations }
     end;
@@ -85,6 +86,7 @@ uses
     DSSClassDefs,
     DSSGlobals,
     CktElement,
+    XYCurve,
     uComplex,
     ExecHelper,
     dialogs,
@@ -962,6 +964,35 @@ begin
                 YprimInvalid[ActiveActor] := true;
             end;
         end;
+end;
+
+function TLines.Get_SeasonRating: Double;
+var
+    RatingIdx: Integer;
+    RSignal: TXYCurveObj;
+begin
+    if IsLine(ActiveCircuit[ActiveActor].ActiveCktElement) then
+    begin
+        if SeasonalRating then
+        begin
+            if SeasonSignal <> '' then
+            begin
+                RSignal := XYCurveClass[ActiveActor].Find(SeasonSignal);
+                if RSignal <> nil then
+                    RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActiveActor].Solution.DynaVars.intHour)) + 1;
+        // Just in case
+                if RatingIdx > TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NRatings then
+                    Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NormAmps
+                else
+                    Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).ratings^[RatingIdx];
+            end
+            else
+                Result := 0.0;
+        end;
+    end
+    else
+        Result := 0.0;
+
 end;
 
 initialization
