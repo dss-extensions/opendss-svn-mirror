@@ -970,20 +970,20 @@ begin
     end;
 
     ActorPctProgress[ActorID] := 30;
-{   ProgressCaption ('Computing Ysc Matrices for Each Bus', ActorID);
-   ShowPctProgress (30, ActorID);}
+  {   ProgressCaption ('Computing Ysc Matrices for Each Bus', ActorID);
+     ShowPctProgress (30, ActorID);}
     ComputeAllYsc(ActorID);
 
     ActorPctProgress[ActorID] := 80;
-{   ProgressCaption( 'Computing Short-circuit currents.', ActorID);
-   ShowPctProgress (80, ActorID);}
+  {   ProgressCaption( 'Computing Short-circuit currents.', ActorID);
+     ShowPctProgress (80, ActorID);}
     ComputeIsc(ActorID);
 
     ActorPctProgress[ActorID] := 100;
-{   ShowPctProgress ( 100, ActorID);
-   ProgressCaption ('Done.', ActorID);}
-//   ProgressHide(ActorID);
-   // Now should have all we need to make a short circuit report
+  {   ShowPctProgress ( 100, ActorID);
+     ProgressCaption ('Done.', ActorID);}
+  //   ProgressHide(ActorID);
+     // Now should have all we need to make a short circuit report
 
 end;
 

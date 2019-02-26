@@ -397,7 +397,7 @@ begin
         end;
         3:
         begin  // XYCurve.YArray write
-            arg := VarArrayCreate([0, 0], varDouble);
+//     arg := VarArrayCreate([0, 0], varDouble);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pXYCurve := XYCurveClass[ActiveActor].GetActiveObj;

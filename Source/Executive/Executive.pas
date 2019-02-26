@@ -232,12 +232,13 @@ begin
     if (ActiveCircuit[ActiveActor] <> nil) then
     begin
           {First get rid of all existing stuff}
-        ActiveCircuit[ActiveActor].NumCircuits := 0; // <<<< added
-        ActiveCircuit[ActiveActor].Free;             // <<<< added
-        ActiveCircuit[ActiveActor] := nil;
         Circuits.Free;
         Circuits := TPointerList.Create(4);         // Make a new list of circuits
         DisposeDSSClasses(false);
+
+        ActiveCircuit[ActiveActor].NumCircuits := 0; // <<<< added
+        ActiveCircuit[ActiveActor].Free;             // <<<< added
+        ActiveCircuit[ActiveActor] := nil;
             {Now, Start over}
         CreateDSSClasses;
         CreateDefaultDSSItems;
