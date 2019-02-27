@@ -63,7 +63,7 @@ begin
         4:
         begin // DSS_Executive.OptionValue
             i := StrToInt(Widestring(arg));
-            DSSExecutive.Command := 'get ' + ExecOption[i];
+            DSSExecutive[ActiveActor].Command := 'get ' + ExecOption[i];
             Result := Pansichar(Ansistring(GlobalResult));
         end
     else

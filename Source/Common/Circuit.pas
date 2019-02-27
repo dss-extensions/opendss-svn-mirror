@@ -1068,7 +1068,7 @@ begin
     Fileroot := Fileroot + '\Torn_Circuit';
     CreateDir(Fileroot);                        // Creates the folder for storing the modified circuit
     DelFilesFromDir(Fileroot, '*', true);         // Removes all the files inside the new directory (if exists)
-    DssExecutive.Command := 'save circuit Dir="' + Fileroot + '"';
+    DssExecutive[ActiveActor].Command := 'save circuit Dir="' + Fileroot + '"';
     // This routine extracts and modifies the file content to separate the subsystems as OpenDSS projects indepedently
     Format_SubCircuits(FileRoot, length(Locations));
 end;
@@ -1337,7 +1337,7 @@ begin
 
                     end;
           // Generates the OpenDSS Command;
-                    DssExecutive.Command := 'New EnergyMeter.Zone_' + inttostr(i + 1) + ' element=' + PDElement + ' ' + Terminal + ' option=R action=C';
+                    DssExecutive[ActiveActor].Command := 'New EnergyMeter.Zone_' + inttostr(i + 1) + ' element=' + PDElement + ' ' + Terminal + ' option=R action=C';
                 end
                 else
                 begin
@@ -2142,7 +2142,7 @@ begin
 //        For i := 1 to NumBuses do
 //          If Buses^[i].kVBase > 0.0 Then
 //            Writeln(F, Format('SetkVBase Bus=%s  kvln=%.7g ', [BusList.Get(i), Buses^[i].kVBase]));
-        DSSExecutive.Command := 'get voltagebases';
+        DSSExecutive[ActiveActor].Command := 'get voltagebases';
         VBases := GlobalResult;
         Writeln(F, 'Set Voltagebases=' + VBases);
         Writeln(F, 'CalcVoltagebases');

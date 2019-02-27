@@ -38,14 +38,14 @@ const
 
 function TText.Get_Command: Widestring;
 begin
-    Result := DSSExecutive.Command;
+    Result := DSSExecutive[ActiveActor].Command;
 end;
 
 
 procedure TText.Set_Command(const Value: Widestring);
 begin
     SolutionAbort := false;  // Reset for commands entered from outside
-    DSSExecutive.Command := Value;  {Convert to String}
+    DSSExecutive[ActiveActor].Command := Value;  {Convert to String}
 end;
 
 

@@ -2343,8 +2343,8 @@ end;
 function DoExecutiveCommand(const s: String): Integer;
 
 begin
-    DSSExecutive.command := S;
-    Result := DSSExecutive.Error;
+    DSSExecutive[ActiveActor].command := S;
+    Result := DSSExecutive[ActiveActor].Error;
 end;
 
 

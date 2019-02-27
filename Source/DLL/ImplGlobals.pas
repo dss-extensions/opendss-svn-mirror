@@ -205,7 +205,7 @@ procedure DSS_PutCommand(S: Pansichar); STDCALL;
 
 begin
      // WriteDLLDebugFile(Format('String received: %s ', [S ]));
-    DSSExecutive.Command := Pchar(S);   // typecast
+    DSSExecutive[ActiveActor].Command := Pchar(S);   // typecast
 end;
 
 

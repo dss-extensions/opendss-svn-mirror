@@ -68,7 +68,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('capacitor.%s.%s=%s', [ActiveCapacitor.Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function TCapacitors.Get_AllNames: Olevariant;

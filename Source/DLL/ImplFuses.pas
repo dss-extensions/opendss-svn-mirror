@@ -66,7 +66,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('Fuse.%s.%s=%s', [TFuseObj(FuseClass.GetActiveObj).Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function TFuses.Get_AllNames: Olevariant;

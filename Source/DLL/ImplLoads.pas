@@ -123,7 +123,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('load.%s.%s=%s', [ActiveLoad.Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function TLoads.Get_AllNames: Olevariant;

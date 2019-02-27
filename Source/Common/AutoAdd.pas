@@ -548,7 +548,7 @@ begin
                 UseAuxCurrents := false;
 
                 if MinLossBus > 0 then
-                    with DSSExecutive do
+                    with DSSExecutive[ActorID] do
                     begin
 
                         if MinBusPhases >= 3 then
@@ -675,7 +675,7 @@ begin
                 UseAuxCurrents := false;
 
                 if MinLossBus > 0 then
-                    with DSSExecutive do
+                    with DSSExecutive[ActorID] do
                     begin
 
                         if MinBusPhases >= 3 then

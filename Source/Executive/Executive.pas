@@ -80,7 +80,7 @@ type
 
 var
 
-    DSSExecutive: TExecutive;
+    DSSExecutive: array of TExecutive;
 
 
 implementation

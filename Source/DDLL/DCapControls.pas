@@ -34,7 +34,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('capcontrol.%s.%s=%s', [ActiveCapControl.Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function CapControlsI(mode: Longint; arg: Longint): Longint; CDECL;

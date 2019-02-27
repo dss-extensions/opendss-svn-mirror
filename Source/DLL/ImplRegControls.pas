@@ -97,7 +97,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('regcontrol.%s.%s=%s', [ActiveRegControl.Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function TRegControls.Get_AllNames: Olevariant;

@@ -723,7 +723,7 @@ function DoClearCmd: Integer;
 
 begin
 
-    DSSExecutive.Clear;
+    DSSExecutive[ActiveActor].Clear;
 
     Result := 0;
 
@@ -733,7 +733,7 @@ function DoClearAllCmd: Integer;
 
 begin
 
-    DSSExecutive.ClearAll;
+    DSSExecutive[ActiveActor].ClearAll;
 
     Result := 0;
 
@@ -3672,8 +3672,8 @@ begin
 
     {Let's look to see how well we did}
     if not AutoShowExport then
-        DSSExecutive.Command := 'Set showexport=yes';
-    DSSExecutive.Command := 'Export Estimation';
+        DSSExecutive[ActiveActor].Command := 'Set showexport=yes';
+    DSSExecutive[ActiveActor].Command := 'Export Estimation';
 
 end;
 

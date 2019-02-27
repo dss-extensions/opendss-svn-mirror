@@ -488,7 +488,7 @@ begin
             57:
                 SetDataPath(Param);  // Set a legal data path
             67:
-                DSSExecutive.RecorderOn := InterpretYesNo(Param);
+                DSSExecutive[ActiveActor].RecorderOn := InterpretYesNo(Param);
             73:
                 DefaultBaseFreq := Parser[ActiveActor].DblValue;
             102:
@@ -758,7 +758,7 @@ begin
             66:
                 ActiveCircuit[ActiveActor].LogEvents := InterpretYesNo(Param);
             67:
-                DSSExecutive.RecorderOn := InterpretYesNo(Param);
+                DSSExecutive[ActiveActor].RecorderOn := InterpretYesNo(Param);
             68:
                 EnergyMeterClass[ActiveActor].Do_OverloadReport := InterpretYesNo(Param);
             69:
@@ -1154,7 +1154,7 @@ begin
                     else
                         AppendGlobalResult('No');
                 67:
-                    if DSSExecutive.RecorderON then
+                    if DSSExecutive[ActiveActor].RecorderON then
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');

@@ -567,7 +567,7 @@ begin
         case ParamPointer of
             14:
             begin
-                with DSSExecutive do
+                with DSSExecutive[ActiveActor] do
                     if RecorderOn then
                         Write_to_RecorderFile(CRLF + '!*********' + CmdLine);
                 CmdResult := DoRedirect(true);
@@ -575,14 +575,14 @@ begin
             end;//'Compile';
             20:
             begin
-                with DSSExecutive do
+                with DSSExecutive[ActiveActor] do
                     if RecorderOn then
                         Write_to_RecorderFile(CRLF + '!*********' + CmdLine);
                 CmdResult := DoRedirect(false);
                 Exit;
             end; //'Redirect';
         else   // Write everything direct to recorder, if ON
-            with DSSExecutive do
+            with DSSExecutive[ActiveActor] do
                 if RecorderOn then
                     Write_to_RecorderFile(CmdLine);
         end;

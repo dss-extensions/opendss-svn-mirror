@@ -33,7 +33,7 @@ begin
         exit;
     SolutionAbort := false;  // Reset for commands entered from outside
     cmd := Format('swtcontrol.%s.%s=%s', [ActiveSwtControl.Name, parm, val]);
-    DSSExecutive.Command := cmd;
+    DSSExecutive[ActiveActor].Command := cmd;
 end;
 
 function SwtControlsI(mode: Longint; arg: Longint): Longint; CDECL;
