@@ -2518,7 +2518,7 @@ begin
         rsSwitches:
             DoReduceSwitches(BranchList);
         rsLaterals:
-            DoReduceLaterals(BranchList);
+            DoRemoveAll_1ph_Laterals(BranchList);
     else
        {Default}
         DoReduceDefault(BranchList);
