@@ -2091,10 +2091,15 @@ begin
         Success := SaveMasterFile;
 
 
+{
+      If Success Then DoSimpleMsg('Circuit saved in directory: ' + GetCurrentDir, 433)
+               Else DoSimpleMsg('Error attempting to save circuit in ' + GetCurrentDir, 434);
+    }
     if Success then
-        DoSimpleMsg('Circuit saved in directory: ' + GetCurrentDir, 433)
+        GlobalResult := GetCurrentDir + '\Master.DSS'
     else
-        DoSimpleMsg('Error attempting to save circuit in ' + GetCurrentDir, 434);
+        GlobalResult := 'Error 434 attempting to save circuit in ' + GetCurrentDir;
+
     // Return to Original directory
     SetCurrentDir(SaveDir);
 
