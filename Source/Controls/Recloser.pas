@@ -74,8 +74,6 @@ type
         TDGrFast,
         TDPhFast: Double;
 
-        MonitoredElement: TDSSCktElement;
-
         PresentState: EControlAction;
 
         OperationCount: Integer;

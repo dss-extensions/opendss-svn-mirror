@@ -99,7 +99,6 @@ type
 
         LoadShapeMult: Complex;
 
-        MonitoredElement: TDSSCktElement;
 
     PUBLIC
 

@@ -62,8 +62,6 @@ type
         FGenPointerList: PointerList.TPointerList;
         FWeights: pDoubleArray;
 
-        MonitoredElement: TDSSCktElement;
-
     PUBLIC
 
         constructor Create(ParClass: TDSSClass; const UPFCControlName: String);
