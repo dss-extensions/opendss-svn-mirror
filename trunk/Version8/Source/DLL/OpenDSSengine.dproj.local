@@ -232,5 +232,6 @@
     <File Path="ImplXYCurves.pas"/>
     <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
+    <File Path="ImplReduce.pas"/>
   </ProjectSortOrder>
 </BorlandProject>
