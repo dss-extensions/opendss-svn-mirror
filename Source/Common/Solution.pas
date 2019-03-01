@@ -564,18 +564,18 @@ begin
     Reallocmem(dV, 0);
     Reallocmem(ErrorSaved, 0);
     Reallocmem(NodeV, 0);
-//      Reallocmem(NodeVbase, 0);
-//      Reallocmem(VMagSaved, 0);
+    Reallocmem(NodeVbase, 0);
+    Reallocmem(VMagSaved, 0);
 
     if hYsystem <> 0 then
         DeleteSparseSet(hYsystem);
     if hYseries <> 0 then
         DeleteSparseSet(hYseries);
       {by Dahei: }
-    Reallocmem(NodeYii, 0);  // for bii
-    Reallocmem(pColIdx_Yii, 0);
-    Reallocmem(pRowIdx_Yii, 0);
-    Reallocmem(pcVals_Yii, 0);
+{      Reallocmem(NodeYii, 0);  // for bii
+      Reallocmem(pColIdx_Yii, 0);
+      Reallocmem(pRowIdx_Yii, 0);
+      Reallocmem(pcVals_Yii, 0);}
       {---------------------------}
 //      SetLogFile ('c:\\temp\\KLU_Log.txt', 0);
 
@@ -671,17 +671,15 @@ begin
         ActorMA_Msg[ActorID].ResetEvent;
 
         {$IFNDEF FPC}
-        if not ADiakoptics then
-        begin
-            if not IsDLL then
-                ScriptEd.UpdateSummaryForm('1');
-        end
-        else
-        begin
-            if ActorID = 1 then
-                if not IsDLL then
-                    ScriptEd.UpdateSummaryForm('1');
-        end;
+{      if Not ADiakoptics then
+      Begin
+        if Not IsDLL then ScriptEd.UpdateSummaryForm('1');
+      End
+      else
+      Begin
+        if ActorID = 1 then
+          if Not IsDLL then ScriptEd.UpdateSummaryForm('1');
+      End;  }
         QueryPerformanceCounter(GStartTime);
         {$ELSE}
       GStartTime := GetTickCount64;
