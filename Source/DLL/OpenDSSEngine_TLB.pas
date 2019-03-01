@@ -12,10 +12,10 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 2/21/2019 11:54:30 AM from Type Library described below.
+// File generated on 3/1/2019 12:44:26 AM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
+// Type Lib: C:\Users\prdu001\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
 // Helpfile:
@@ -140,10 +140,12 @@ const
     CLASS_Vsources: TGUID = '{0823B8BD-AD34-452B-974A-F46BA25D49EA}';
     IID_IParallel: TGUID = '{A0351633-A988-4A5B-B551-A7E2ADDD4984}';
     CLASS_Parallel: TGUID = '{D967764D-CD38-41ED-B1FD-7D79DC78EFCD}';
-    IID_ILineCodes: TGUID = '{519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}';
-    CLASS_LineCodes: TGUID = '{0657EE75-F8CF-41D0-8672-2ADACD195591}';
-    IID_IGICSources: TGUID = '{9CD30253-86C0-4339-B86E-745C912E8B15}';
-    CLASS_GICSources: TGUID = '{D8715F4F-25F5-4EF8-A6F8-8E790628702C}';
+    IID_ILineCodes: TGUID = '{43140E77-9EA6-4156-A686-ABFAFFE8A059}';
+    CLASS_LineCodes: TGUID = '{B6120B3A-7958-4650-AC18-2A53E89209A8}';
+    IID_IGICSources: TGUID = '{F76B5BDE-9132-44FB-8115-70BF1B065FA4}';
+    CLASS_GICSources: TGUID = '{D0D4455C-A5CA-4B26-ABB4-2CC3798D260E}';
+    IID_IReduce: TGUID = '{02386435-8D77-4804-8ADB-89DDFBBE2BC0}';
+    CLASS_Reduce: TGUID = '{553148EA-97CB-4559-933A-A734250E95C6}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library
@@ -358,6 +360,8 @@ type
     ILineCodesDisp = dispinterface;
     IGICSources = interface;
     IGICSourcesDisp = dispinterface;
+    IReduce = interface;
+    IReduceDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library
@@ -405,6 +409,7 @@ type
     Parallel = IParallel;
     LineCodes = ILineCodes;
     GICSources = IGICSources;
+    Reduce = IReduce;
 
 
 // *********************************************************************//
@@ -720,6 +725,8 @@ type
         function Get_Vsources: IVsources; SAFECALL;
         function Get_Parallel: IParallel; SAFECALL;
         function Get_LineCodes: ILineCodes; SAFECALL;
+        function Get_GICsources: IGICSources; SAFECALL;
+        function Get_Reduce: IReduce; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumCktElements: Integer READ Get_NumCktElements;
         property NumBuses: Integer READ Get_NumBuses;
@@ -780,6 +787,8 @@ type
         property Vsources: IVsources READ Get_Vsources;
         property Parallel: IParallel READ Get_Parallel;
         property LineCodes: ILineCodes READ Get_LineCodes;
+        property GICsources: IGICSources READ Get_GICsources;
+        property Reduce: IReduce READ Get_Reduce;
     end;
 
 // *********************************************************************//
@@ -866,6 +875,8 @@ type
         property Vsources: IVsources READONLY DISPID 237;
         property Parallel: IParallel READONLY DISPID 238;
         property LineCodes: ILineCodes READONLY DISPID 239;
+        property GICsources: IGICSources READONLY DISPID 240;
+        property Reduce: IReduce READONLY DISPID 241;
     end;
 
 // *********************************************************************//
@@ -1164,12 +1175,16 @@ type
         procedure Set_Total_Time(Value: Double); SAFECALL;
         function Get_Process_Time: Double; SAFECALL;
         function Get_Time_of_Step: Double; SAFECALL;
+        function Get_IntervalHrs: Double; SAFECALL;
+        procedure Set_IntervalHrs(Value: Double); SAFECALL;
         procedure SolveAll; SAFECALL;
         function Get_IncMatrix: Olevariant; SAFECALL;
         function Get_IncMatrixRows: Olevariant; SAFECALL;
         function Get_IncMatrixCols: Olevariant; SAFECALL;
         function Get_BusLevels: Olevariant; SAFECALL;
         function Get_Laplacian: Olevariant; SAFECALL;
+        function Get_MinIterations: Integer; SAFECALL;
+        procedure Set_MinIterations(Value: Integer); SAFECALL;
         property Mode: Integer READ Get_Mode WRITE Set_Mode;
         property Frequency: Double READ Get_Frequency WRITE Set_Frequency;
         property Hour: Integer READ Get_Hour WRITE Set_Hour;
@@ -1209,11 +1224,13 @@ type
         property Total_Time: Double READ Get_Total_Time WRITE Set_Total_Time;
         property Process_Time: Double READ Get_Process_Time;
         property Time_of_Step: Double READ Get_Time_of_Step;
+        property IntervalHrs: Double READ Get_IntervalHrs WRITE Set_IntervalHrs;
         property IncMatrix: Olevariant READ Get_IncMatrix;
         property IncMatrixRows: Olevariant READ Get_IncMatrixRows;
         property IncMatrixCols: Olevariant READ Get_IncMatrixCols;
         property BusLevels: Olevariant READ Get_BusLevels;
         property Laplacian: Olevariant READ Get_Laplacian;
+        property MinIterations: Integer READ Get_MinIterations WRITE Set_MinIterations;
     end;
 
 // *********************************************************************//
@@ -1277,12 +1294,14 @@ type
         property Total_Time: Double DISPID 225;
         property Process_Time: Double READONLY DISPID 226;
         property Time_of_Step: Double READONLY DISPID 227;
-        procedure SolveAll; DISPID 228;
-        property IncMatrix: Olevariant READONLY DISPID 229;
-        property IncMatrixRows: Olevariant READONLY DISPID 230;
-        property IncMatrixCols: Olevariant READONLY DISPID 231;
-        property BusLevels: Olevariant READONLY DISPID 232;
-        property Laplacian: Olevariant READONLY DISPID 233;
+        property IntervalHrs: Double DISPID 228;
+        procedure SolveAll; DISPID 229;
+        property IncMatrix: Olevariant READONLY DISPID 230;
+        property IncMatrixRows: Olevariant READONLY DISPID 231;
+        property IncMatrixCols: Olevariant READONLY DISPID 232;
+        property BusLevels: Olevariant READONLY DISPID 233;
+        property Laplacian: Olevariant READONLY DISPID 234;
+        property MinIterations: Integer DISPID 235;
     end;
 
 // *********************************************************************//
@@ -2272,11 +2291,11 @@ type
         function Get_Next: Integer; SAFECALL;
         function Get_AllNames: Olevariant; SAFECALL;
         function Get_Count: Integer; SAFECALL;
-        function Get_CoreType: Integer; SAFECALL;
-        procedure Set_CoreType(Value: Integer); SAFECALL;
         function Get_WdgVoltages: Olevariant; SAFECALL;
         function Get_WdgCurrents: Olevariant; SAFECALL;
-        function Get_StrWdgCurrents: Widestring; SAFECALL;
+        function Get_strWdgCurrents: Widestring; SAFECALL;
+        function Get_CoreType: Integer; SAFECALL;
+        procedure Set_CoreType(Value: Integer); SAFECALL;
         function Get_RdcOhms: Double; SAFECALL;
         procedure Set_RdcOhms(Value: Double); SAFECALL;
         property NumWindings: Integer READ Get_NumWindings WRITE Set_NumWindings;
@@ -2300,10 +2319,10 @@ type
         property Next: Integer READ Get_Next;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
-        property CoreType: Integer READ Get_CoreType WRITE Set_CoreType;
         property WdgVoltages: Olevariant READ Get_WdgVoltages;
         property WdgCurrents: Olevariant READ Get_WdgCurrents;
-        property StrWdgCurrents: Widestring READ Get_StrWdgCurrents;
+        property strWdgCurrents: Widestring READ Get_strWdgCurrents;
+        property CoreType: Integer READ Get_CoreType WRITE Set_CoreType;
         property RdcOhms: Double READ Get_RdcOhms WRITE Set_RdcOhms;
     end;
 
@@ -2335,10 +2354,10 @@ type
         property Next: Integer READONLY DISPID 219;
         property AllNames: Olevariant READONLY DISPID 220;
         property Count: Integer READONLY DISPID 221;
-        property CoreType: Integer DISPID 222;
-        property WdgVoltages: Olevariant READONLY DISPID 223;
-        property WdgCurrents: Olevariant READONLY DISPID 224;
-        property StrWdgCurrents: Widestring READONLY DISPID 225;
+        property WdgVoltages: Olevariant READONLY DISPID 222;
+        property WdgCurrents: Olevariant READONLY DISPID 223;
+        property strWdgCurrents: Widestring READONLY DISPID 224;
+        property CoreType: Integer DISPID 225;
         property RdcOhms: Double DISPID 226;
     end;
 
@@ -2447,6 +2466,7 @@ type
         function Get_DeadTime: Double; SAFECALL;
         procedure Set_DeadTime(Value: Double); SAFECALL;
         function Get_Count: Integer; SAFECALL;
+        procedure Reset; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property First: Integer READ Get_First;
@@ -2494,6 +2514,7 @@ type
         property DelayOff: Double DISPID 217;
         property DeadTime: Double DISPID 218;
         property Count: Integer READONLY DISPID 219;
+        procedure Reset; DISPID 220;
     end;
 
 // *********************************************************************//
@@ -2551,6 +2572,7 @@ type
         function Get_Count: Integer; SAFECALL;
         function Get_TapNumber: Integer; SAFECALL;
         procedure Set_TapNumber(Value: Integer); SAFECALL;
+        procedure Reset; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property First: Integer READ Get_First;
@@ -2612,6 +2634,7 @@ type
         property ReverseVreg: Double DISPID 224;
         property Count: Integer READONLY DISPID 225;
         property TapNumber: Integer DISPID 226;
+        procedure Reset; DISPID 227;
     end;
 
 // *********************************************************************//
@@ -3613,10 +3636,10 @@ type
 // *********************************************************************//
 // Interface: ILineCodes
 // Flags:     (4416) Dual OleAutomation Dispatchable
-// GUID:      {519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}
+// GUID:      {43140E77-9EA6-4156-A686-ABFAFFE8A059}
 // *********************************************************************//
     ILineCodes = interface(IDispatch)
-        ['{519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}']
+        ['{43140E77-9EA6-4156-A686-ABFAFFE8A059}']
         function Get_Count: Integer; SAFECALL;
         function Get_First: Integer; SAFECALL;
         function Get_Next: Integer; SAFECALL;
@@ -3674,10 +3697,10 @@ type
 // *********************************************************************//
 // DispIntf:  ILineCodesDisp
 // Flags:     (4416) Dual OleAutomation Dispatchable
-// GUID:      {519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}
+// GUID:      {43140E77-9EA6-4156-A686-ABFAFFE8A059}
 // *********************************************************************//
     ILineCodesDisp = dispinterface
-        ['{519DBEAC-F1D5-4770-A890-3C8A7BB5E54D}']
+        ['{43140E77-9EA6-4156-A686-ABFAFFE8A059}']
         property Count: Integer READONLY DISPID 201;
         property First: Integer READONLY DISPID 202;
         property Next: Integer READONLY DISPID 203;
@@ -3685,8 +3708,8 @@ type
         property IsZ1Z0: Wordbool READONLY DISPID 205;
         property Units: Integer DISPID 206;
         property Phases: Integer DISPID 207;
-        property R1: Double DISPID 208;
-        property X1: Double DISPID 209;
+        property R1: Double DISPID 209;
+        property X1: Double DISPID 208;
         property R0: Double DISPID 210;
         property X0: Double DISPID 211;
         property C1: Double DISPID 212;
@@ -3702,10 +3725,10 @@ type
 // *********************************************************************//
 // Interface: IGICSources
 // Flags:     (4416) Dual OleAutomation Dispatchable
-// GUID:      {9CD30253-86C0-4339-B86E-745C912E8B15}
+// GUID:      {F76B5BDE-9132-44FB-8115-70BF1B065FA4}
 // *********************************************************************//
     IGICSources = interface(IDispatch)
-        ['{9CD30253-86C0-4339-B86E-745C912E8B15}']
+        ['{F76B5BDE-9132-44FB-8115-70BF1B065FA4}']
         function Get_AllNames: Olevariant; SAFECALL;
         function Get_Bus1: Widestring; SAFECALL;
         function Get_Bus2: Widestring; SAFECALL;
@@ -3750,10 +3773,10 @@ type
 // *********************************************************************//
 // DispIntf:  IGICSourcesDisp
 // Flags:     (4416) Dual OleAutomation Dispatchable
-// GUID:      {9CD30253-86C0-4339-B86E-745C912E8B15}
+// GUID:      {F76B5BDE-9132-44FB-8115-70BF1B065FA4}
 // *********************************************************************//
     IGICSourcesDisp = dispinterface
-        ['{9CD30253-86C0-4339-B86E-745C912E8B15}']
+        ['{F76B5BDE-9132-44FB-8115-70BF1B065FA4}']
         property AllNames: Olevariant READONLY DISPID 201;
         property Bus1: Widestring READONLY DISPID 202;
         property Bus2: Widestring READONLY DISPID 203;
@@ -3769,6 +3792,62 @@ type
         property Count: Integer READONLY DISPID 213;
         property First: Integer READONLY DISPID 214;
         property Next: Integer READONLY DISPID 215;
+    end;
+
+// *********************************************************************//
+// Interface: IReduce
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {02386435-8D77-4804-8ADB-89DDFBBE2BC0}
+// *********************************************************************//
+    IReduce = interface(IDispatch)
+        ['{02386435-8D77-4804-8ADB-89DDFBBE2BC0}']
+        function Get_Zmag: Double; SAFECALL;
+        procedure Set_Zmag(Value: Double); SAFECALL;
+        function Get_KeepLoad: Wordbool; SAFECALL;
+        procedure Set_KeepLoad(Value: Wordbool); SAFECALL;
+        function Get_EditString: Widestring; SAFECALL;
+        procedure Set_EditString(const Value: Widestring); SAFECALL;
+        function Get_StartPDElement: Widestring; SAFECALL;
+        procedure Set_StartPDElement(const Value: Widestring); SAFECALL;
+        function Get_EnergyMeter: Widestring; SAFECALL;
+        procedure Set_EnergyMeter(const Value: Widestring); SAFECALL;
+        procedure SaveCircuit(const CktName: Widestring); SAFECALL;
+        procedure DoDefault; SAFECALL;
+        procedure DoShortLines; SAFECALL;
+        procedure DoDangling; SAFECALL;
+        procedure DoLoopBreak; SAFECALL;
+        procedure DoParallelLines; SAFECALL;
+        procedure DoSwitches; SAFECALL;
+        procedure Do1phLaterals; SAFECALL;
+        procedure DoBranchRemove; SAFECALL;
+        property Zmag: Double READ Get_Zmag WRITE Set_Zmag;
+        property KeepLoad: Wordbool READ Get_KeepLoad WRITE Set_KeepLoad;
+        property EditString: Widestring READ Get_EditString WRITE Set_EditString;
+        property StartPDElement: Widestring READ Get_StartPDElement WRITE Set_StartPDElement;
+        property EnergyMeter: Widestring READ Get_EnergyMeter WRITE Set_EnergyMeter;
+    end;
+
+// *********************************************************************//
+// DispIntf:  IReduceDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {02386435-8D77-4804-8ADB-89DDFBBE2BC0}
+// *********************************************************************//
+    IReduceDisp = dispinterface
+        ['{02386435-8D77-4804-8ADB-89DDFBBE2BC0}']
+        property Zmag: Double DISPID 201;
+        property KeepLoad: Wordbool DISPID 202;
+        property EditString: Widestring DISPID 203;
+        property StartPDElement: Widestring DISPID 204;
+        property EnergyMeter: Widestring DISPID 205;
+        procedure SaveCircuit(const CktName: Widestring); DISPID 206;
+        procedure DoDefault; DISPID 207;
+        procedure DoShortLines; DISPID 208;
+        procedure DoDangling; DISPID 209;
+        procedure DoLoopBreak; DISPID 210;
+        procedure DoParallelLines; DISPID 211;
+        procedure DoSwitches; DISPID 212;
+        procedure Do1phLaterals; DISPID 213;
+        procedure DoBranchRemove; DISPID 214;
     end;
 
 // *********************************************************************//
@@ -4275,6 +4354,18 @@ type
         class function CreateRemote(const MachineName: String): IGICSources;
     end;
 
+// *********************************************************************//
+// The Class CoReduce provides a Create and CreateRemote method to
+// create instances of the default interface IReduce exposed by
+// the CoClass Reduce. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+    CoReduce = class
+        class function Create: IReduce;
+        class function CreateRemote(const MachineName: String): IReduce;
+    end;
+
 implementation
 
 uses
@@ -4698,6 +4789,16 @@ end;
 class function CoGICSources.CreateRemote(const MachineName: String): IGICSources;
 begin
     Result := CreateRemoteComObject(MachineName, CLASS_GICSources) as IGICSources;
+end;
+
+class function CoReduce.Create: IReduce;
+begin
+    Result := CreateComObject(CLASS_Reduce) as IReduce;
+end;
+
+class function CoReduce.CreateRemote(const MachineName: String): IReduce;
+begin
+    Result := CreateRemoteComObject(MachineName, CLASS_Reduce) as IReduce;
 end;
 
 end.

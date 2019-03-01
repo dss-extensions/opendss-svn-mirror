@@ -52,11 +52,13 @@ uses
     ImplIsources,
     DSSClass,
     DSSClassDefs,
-    ImplDSSimComs,//Declares the existance of the class
+    ImplDSSimComs,  //Declares the existance of the class
     ImplPVSystems,
     ImplVsources,
     ImplParallel,
     ImplLineCodes,
+    ImplGICSources,
+    ImplReduce,
     OpenDSSengine_TLB;
 
 var
@@ -103,6 +105,8 @@ var
     FVsources: IVsources;
     FParallel: IParallel;
     FLineCodes: ILineCodes;
+    FGICSources: IGICSources;
+    Freduce: IReduce;
 
     FPropIndex: Integer;
     FPropClass: TDSSClass;
@@ -193,6 +197,9 @@ begin
     FVsources := TVsources.Create;
     FParallel := TParallel.Create;
     FLineCodes := TLineCodes.Create;
+    FGICSources := TGICSources.Create;
+    FReduce := TReduce.Create;
+
     FPropIndex := 0;
     FPropClass := nil;
 

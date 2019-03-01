@@ -100,6 +100,8 @@ type
         function Get_Vsources: IVsources; SAFECALL;
         function Get_Parallel: IParallel; SAFECALL;
         function Get_LineCodes: ILineCodes; SAFECALL;
+        function Get_GICsources: IGICSources; SAFECALL;
+        function Get_Reduce: IReduce; SAFECALL;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -639,6 +641,11 @@ end;
 function TCircuit.Get_Generators: IGenerators;
 begin
     Result := FGenerators as IGenerators;
+end;
+
+function TCircuit.Get_GICsources: IGICSources;
+begin
+    Result := FGICSources as IGICSources;
 end;
 
 function TCircuit.Get_Meters: IMeters;
@@ -1298,6 +1305,11 @@ end;
 function TCircuit.Get_LineCodes: ILineCodes;
 begin
     Result := FLineCodes as ILineCodes;
+end;
+
+function TCircuit.Get_Reduce: IReduce;
+begin
+    Result := FReduce as IReduce;
 end;
 
 initialization

@@ -52,6 +52,7 @@ type
         procedure Set_Vmax(Value: Double); SAFECALL;
         procedure Set_Vmin(Value: Double); SAFECALL;
         function Get_Count: Integer; SAFECALL;
+        procedure Reset; SAFECALL;
 
     end;
 
@@ -455,6 +456,18 @@ function TCapControls.Get_Count: Integer;
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
         Result := ActiveCircuit[ActiveActor].CapControls.ListSize;
+end;
+
+procedure TCapControls.Reset;
+var
+    elem: TCapControlObj;
+begin
+    elem := ActiveCapControl;
+    if elem <> nil then
+    begin
+        elem.Reset;
+    end;
+
 end;
 
 initialization
