@@ -215,14 +215,15 @@ begin
     MeterObj := nil;
     ParentPDElement := nil;
     DSSObjType := PD_ELEMENT;
-    Ratings := nil;
+    Ratings := nil;  // Initialized here
 
 
 end;
 
 destructor TPDElement.Destroy;
 begin
-
+    if Assigned(Ratings) then
+        Reallocmem(Ratings, 0);  // Dispose of array and set Ratings := nil
     inherited Destroy;
 end;
 

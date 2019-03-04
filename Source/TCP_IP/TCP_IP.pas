@@ -224,7 +224,8 @@ begin
                     time^[0, k] := hr * 3600 + s;
                     inc(k);
                 end;
-                Reallocmem(SngBuffer, 0);  // Dispose of buffer
+                if Assigned(SngBuffer) then
+                    Reallocmem(SngBuffer, 0);  // Dispose of buffer
             end
             else
             begin   // Not time solution, so return nil array
@@ -630,7 +631,8 @@ begin
                     time[0, k] := hr * 3600 + s;
                     inc(k);
                 end;
-                Reallocmem(SngBuffer, 0);  // Dispose of buffer
+                if Assigned(SngBuffer) then
+                    Reallocmem(SngBuffer, 0);  // Dispose of buffer
             end
             else
             begin   // Not time solution, so return nil array
@@ -704,7 +706,8 @@ begin
                     channel[index, k] := sngBuffer^[index + 1];
                     inc(k);
                 end;
-                Reallocmem(SngBuffer, 0);  // Dispose of buffer
+                if Assigned(SngBuffer) then
+                    Reallocmem(SngBuffer, 0);  // Dispose of buffer
             end;
         end
         else
@@ -1239,7 +1242,8 @@ begin
                             end;
                             y_labels[index] := load_names[load_counter] + '.' + IntToStr(counter);
                             inc(counter);
-                            Reallocmem(SngBuffer, 0);  // Dispose of buffer
+                            if Assigned(SngBuffer) then
+                                Reallocmem(SngBuffer, 0);  // Dispose of buffer
                         end;
                     end
                     else

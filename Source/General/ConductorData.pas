@@ -186,7 +186,7 @@ begin
                 12:
                 begin
                     Param := Parser[ActiveActor].StrValue;
-                    InterpretDblArray(Param, Nratings, ratings);
+                    Nratings := InterpretDblArray(Param, Nratings, ratings);
                 end
             else
                 inherited ClassEdit(ActiveObj, ParamPointer - NumConductorClassProps)
@@ -271,9 +271,9 @@ begin
     FGMRUnits := 0;
     FResistanceUnits := 0;
     FRadiusUnits := 0;
-    ratings := nil;
     Normamps := -1.0;
     EmergAmps := -1.0;
+    ratings := nil;
     Nratings := 1;
     ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
     ratings^[1] := NormAmps;
@@ -282,6 +282,9 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TConductorDataObj.Destroy;
 begin
+    if Assigned(ratings) then
+        Reallocmem(ratings, 0);
+
     inherited destroy;
 end;
 

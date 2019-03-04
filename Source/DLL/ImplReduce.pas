@@ -11,7 +11,7 @@ uses
     StdVcl;
 
 type
-    TReduce = class(TAutoObject, IReduce)
+    TReduceCkt = class(TAutoObject, IReduceCkt)
     PROTECTED
         function Get_Zmag: Double; SAFECALL;
         procedure Set_Zmag(Value: Double); SAFECALL;
@@ -51,67 +51,67 @@ var
     EnergyMeterName: String;
     FirstPDelement: String;  // Full name
 
-function TReduce.Get_Zmag: Double;
+function TReduceCkt.Get_Zmag: Double;
 begin
     if Assigned(ActiveCircuit) then
         Result := ActiveCircuit[ActiveActor].ReductionZmag
 end;
 
-procedure TReduce.Set_Zmag(Value: Double);
+procedure TReduceCkt.Set_Zmag(Value: Double);
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
         ActiveCircuit[ActiveActor].ReductionZmag := Value;
 end;
 
-function TReduce.Get_KeepLoad: Wordbool;
+function TReduceCkt.Get_KeepLoad: Wordbool;
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
         Result := ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad;
 end;
 
-procedure TReduce.Set_KeepLoad(Value: Wordbool);
+procedure TReduceCkt.Set_KeepLoad(Value: Wordbool);
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
         ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad := Value;
 end;
 
-function TReduce.Get_EditString: Widestring;
+function TReduceCkt.Get_EditString: Widestring;
 begin
     Result := ReduceEditString;
 end;
 
-procedure TReduce.Set_EditString(const Value: Widestring);
+procedure TReduceCkt.Set_EditString(const Value: Widestring);
 begin
     ReduceEditString := Value;
 end;
 
-function TReduce.Get_StartPDElement: Widestring;
+function TReduceCkt.Get_StartPDElement: Widestring;
 begin
     Result := FirstPDelement;
 end;
 
-procedure TReduce.Set_StartPDElement(const Value: Widestring);
+procedure TReduceCkt.Set_StartPDElement(const Value: Widestring);
 begin
     FirstPDelement := Value;
 end;
 
-function TReduce.Get_EnergyMeter: Widestring;
+function TReduceCkt.Get_EnergyMeter: Widestring;
 begin
     Result := EnergyMeterName;
 end;
 
-procedure TReduce.SaveCircuit(const CktName: Widestring);
+procedure TReduceCkt.SaveCircuit(const CktName: Widestring);
 begin
     DSSExecutive[ActiveActor].Command := 'Save Circuit Dir=' + CktName;
    // Master file name is returned in DSSText.Result
 end;
 
-procedure TReduce.Set_EnergyMeter(const Value: Widestring);
+procedure TReduceCkt.Set_EnergyMeter(const Value: Widestring);
 begin
     EnergyMeterName := Value;
 end;
 
-procedure TReduce.DoDefault;
+procedure TReduceCkt.DoDefault;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -124,7 +124,7 @@ begin
         end;
 end;
 
-procedure TReduce.DoShortLines;
+procedure TReduceCkt.DoShortLines;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -137,7 +137,7 @@ begin
         end;
 end;
 
-procedure TReduce.Do1phLaterals;
+procedure TReduceCkt.Do1phLaterals;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -150,7 +150,7 @@ begin
         end;
 end;
 
-procedure TReduce.DoBranchRemove;
+procedure TReduceCkt.DoBranchRemove;
 begin
     if Assigned(ActiveCircuit[ActiveActor]) then
     begin
@@ -170,7 +170,7 @@ begin
     end;
 end;
 
-procedure TReduce.DoDangling;
+procedure TReduceCkt.DoDangling;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -183,7 +183,7 @@ begin
         end;
 end;
 
-procedure TReduce.DoLoopBreak;
+procedure TReduceCkt.DoLoopBreak;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -196,7 +196,7 @@ begin
         end;
 end;
 
-procedure TReduce.DoParallelLines;
+procedure TReduceCkt.DoParallelLines;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -209,7 +209,7 @@ begin
         end;
 end;
 
-procedure TReduce.DoSwitches;
+procedure TReduceCkt.DoSwitches;
 begin
     if EnergyMeterClass[ActiveActor].SetActive(EnergyMeterName) then
         ActiveEnergyMeterObj := EnergyMeterClass[ActiveActor].ElementList.Active;
@@ -223,7 +223,7 @@ begin
 end;
 
 initialization
-    TAutoObjectFactory.Create(ComServer, TReduce, Class_Reduce,
+    TAutoObjectFactory.Create(ComServer, TReduceCkt, Class_ReduceCkt,
         ciInternal, tmApartment);
 
     ReduceEditString := ''; // Init to null string

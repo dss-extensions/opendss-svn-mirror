@@ -499,7 +499,7 @@ begin
                     if FleetSize > 0 then
                     begin
                         Reallocmem(FWeights, Sizeof(FWeights^[1]) * FleetSize);
-                        InterpretDblArray(Param, FleetSize, FWeights);
+                        FleetSize := InterpretDblArray(Param, FleetSize, FWeights);
                     end;
                 end;
                 propMODEDISCHARGE:

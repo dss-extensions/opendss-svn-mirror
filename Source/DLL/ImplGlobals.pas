@@ -106,7 +106,7 @@ var
     FParallel: IParallel;
     FLineCodes: ILineCodes;
     FGICSources: IGICSources;
-    Freduce: IReduce;
+    FreduceCkt: IReduceCkt;
 
     FPropIndex: Integer;
     FPropClass: TDSSClass;
@@ -198,7 +198,7 @@ begin
     FParallel := TParallel.Create;
     FLineCodes := TLineCodes.Create;
     FGICSources := TGICSources.Create;
-    FReduce := TReduce.Create;
+    FReduceCkt := TReduceCkt.Create;
 
     FPropIndex := 0;
     FPropClass := nil;

@@ -493,7 +493,7 @@ begin
                 26:
                 begin
                     Param := Parser[ActorID].StrValue;
-                    InterpretDblArray(Param, Nratings, ratings);
+                    Nratings := InterpretDblArray(Param, Nratings, ratings);
                 end
             else
                 ClassEdit(ActiveLineCodeObj, Parampointer - NumPropsThisClass)
@@ -659,6 +659,7 @@ begin
     ReduceByKron := false;
     CalcMatricesFromZ1Z0;  // put some reasonable values in
 
+    ratings := nil;  // init prior to Reallocmem call
     NRatings := 1;
     ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
     ratings^[1] := NormAmps;
@@ -672,6 +673,9 @@ begin
     Z.Free;
     Zinv.Free;
     Yc.Free;
+
+    ReAllocmem(ratings, 0);   // dispose of array
+
     inherited destroy;
 end;
 
@@ -812,7 +816,6 @@ end;
 
 function TLineCodeObj.GetPropertyValue(Index: Integer): String;
 var
-    TempStr: String;
     j: Integer;
 begin
     case Index of
@@ -885,11 +888,10 @@ begin
             Result := inttostr(Nratings);
         26:
         begin
-            TempStr := '[';
+            Result := '[';
             for  j := 1 to Nratings do
-                TempStr := TempStr + floattoStrf(ratings^[j], ffgeneral, 8, 4) + ',';
-            TempStr := TempStr + ']';
-            Result := TempStr;
+                Result := Result + floattoStrf(ratings^[j], ffgeneral, 8, 4) + ',';
+            Result := Result + ']';
         end;
     else
         Result := inherited GetPropertyValue(index);

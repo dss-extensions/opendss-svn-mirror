@@ -343,7 +343,7 @@ begin
                 4:
                 begin
                     ReAllocmem(Hours, Sizeof(Hours^[1]) * NumPoints);
-                    InterpretDblArray(Param, NumPoints, Hours);   // Parser.ParseAsVector(Npts, Hours);
+                    NumPoints := InterpretDblArray(Param, NumPoints, Hours);   // Parser.ParseAsVector(Npts, Hours);
                     Interval := 0.0;
                 end;
                 5:
@@ -368,7 +368,7 @@ begin
                 11:
                 begin
                     ReAllocmem(QMultipliers, Sizeof(QMultipliers^[1]) * NumPoints);
-                    InterpretDblArray(Param, NumPoints, QMultipliers);   // Parser.ParseAsVector(Npts, Multipliers);
+                    NumPoints := InterpretDblArray(Param, NumPoints, QMultipliers);   // Parser.ParseAsVector(Npts, Multipliers);
                 end;
                 12:
                     UseActual := InterpretYesNo(Param);

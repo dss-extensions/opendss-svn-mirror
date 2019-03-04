@@ -680,7 +680,7 @@ begin
                 29:
                 begin
                     Param := Parser[ActorID].StrValue;
-                    InterpretDblArray(Param, Nratings, ratings);
+                    Nratings := InterpretDblArray(Param, Nratings, ratings);
                 end
             else
             // Inherited Property Edits
