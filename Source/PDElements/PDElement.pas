@@ -215,6 +215,7 @@ begin
     MeterObj := nil;
     ParentPDElement := nil;
     DSSObjType := PD_ELEMENT;
+    Ratings := nil;
 
 
 end;
