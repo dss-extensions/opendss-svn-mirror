@@ -222,8 +222,7 @@ end;
 
 destructor TPDElement.Destroy;
 begin
-    if Assigned(Ratings) then
-        Reallocmem(Ratings, 0);  // Dispose of array and set Ratings := nil
+//    if Assigned(Ratings) then  Reallocmem(Ratings, 0);  // Dispose of array and set Ratings := nil
     inherited Destroy;
 end;
 

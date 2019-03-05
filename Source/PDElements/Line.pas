@@ -945,7 +945,8 @@ begin
     if Assigned(Yc) then
         Yc.Free;
     Reallocmem(FLineWireData, 0);
-    Reallocmem(ratings, 0);
+//    if Assigned(Ratings) then Reallocmem(Ratings, 0);
+
     inherited destroy;
 end;
 

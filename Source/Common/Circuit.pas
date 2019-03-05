@@ -607,9 +607,9 @@ begin
     begin
         try
             pCktElem := TDSSCktElement(CktElements.Get(i));
-            ElemName := pCktElem.ParentClass.name + '.' + pCktElem.Name;
+//                ElemName := pCktElem.ParentClass.name + '.' + pCktElem.Name;
+            ElemName := pCktElem.DSSClassName + '.' + pCktElem.Name;
             pCktElem.Free;
-
         except
             ON E: Exception do
                 DoSimpleMsg('Exception Freeing Circuit Element:' + ElemName + CRLF + E.Message, 423);
