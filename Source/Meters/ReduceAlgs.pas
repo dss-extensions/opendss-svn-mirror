@@ -549,7 +549,7 @@ begin
                     begin
                         BusName := PDElem.GetBus(PresentBranch.FromTerminal);
                  // Make sure there is a node reference .. default to 1
-                        if Pos('.', BusName, 1) = 0 then
+                        if Pos('.', BusName) = 0 then
                             BusName := BusName + '.1';
 
                  {Pick up the kV Base for the From bus}
