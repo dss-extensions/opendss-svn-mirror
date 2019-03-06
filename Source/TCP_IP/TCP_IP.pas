@@ -84,6 +84,8 @@ integer
         procedure ScatterPlotMsg(PlotID: String);
         procedure EvolutionPlotMsg;
         procedure MatrixPlotMsg(MatrixType: Integer);
+        procedure EnergyMeterPlotMsg(ObjectName: String);
+        procedure PhaseVoltageMsg(ObjectName: String);
     end;
 
 function flat_int2str(number: Integer): Ansistring;
@@ -115,7 +117,8 @@ uses
     DSSClassDefs,
     Classes,
     Variants,
-    Math;
+    Math,
+    MemoryMap_Lib;
 
 type
     THeaderRec = record
@@ -579,7 +582,7 @@ begin
     begin      // Search list of monitors in active circuit for name
         with ActiveCircuit[ActiveActor].Monitors do
         begin
-            tempS := Widestring(ObjectName);  // Convert to Pascal String
+            tempS := ObjectName;  // Convert to Pascal String
             Found := false;
             ActiveSave := ActiveIndex;
             pMon := First;
@@ -748,14 +751,14 @@ begin
     ActiveLSObject := nil;
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        if LoadshapeClass[ActiveActor].SetActive(Widestring(ObjectName)) then
+        if LoadshapeClass[ActiveActor].SetActive(ObjectName) then
         begin
             ActiveLSObject := LoadshapeClass[ActiveActor].ElementList.Active;
             ActiveDSSObject[ActiveActor] := ActiveLSObject;
         end
         else
         begin
-            DoSimpleMsg('Loadshape "' + Widestring(ObjectName) +
+            DoSimpleMsg('Loadshape "' + ObjectName +
                 '" Not Found in Active Circuit.', 77003);
         end;
     end;
@@ -1058,8 +1061,6 @@ end;
 procedure TDSSConnect.EvolutionPlotMsg;
 var
     MSG: Ansistring;
-    ObjClass, ObjName: String;
-    handle: Integer;
     load_names: StringArray1d;
     k, index, load_counter, i, counter: Integer;
     pLoad: TLoadObj;
@@ -1076,8 +1077,7 @@ var
     SngBuffer: pSingleArray;
     hr, s: Single;
     LoadVbase: DoubleArray1d;
-    tempt_string: String;
-    BusRef, active_element: Integer;
+    BusRef: Integer;
 
     x_axis, y_axis, z_axis: DoubleArray2d;
     y_labels: StringArray1d;
@@ -1402,6 +1402,209 @@ begin
     MySocket.Socket.SendText(MSG);//Send the message's content to the server
 end;
 
+procedure TDSSConnect.EnergyMeterPlotMsg(ObjectName: String);
+var
+    pMon: TEnergyMeterObj;
+    activesave: Integer;
+    tempS: String;
+    Found: Boolean;
+
+    MSG: Ansistring;
+    time, channel, Z_axis: DoubleArray2d;
+    headers, Bus_Names: StringArray1d;
+    phase: IntegerArray1d;
+    PD_Elements: StringArray2d;
+    model_path: String;
+
+begin
+    if (MySocket.Socket.Connected = false) then
+        exit;
+
+    if (EnergyMeterClass[ActiveActor].SaveDemandInterval[ActiveActor] = false) then
+    begin
+        DoSimpleMsg('The demand interval is not enabled. The energy meter plot will not be executed.', 5004);
+        exit;
+    end;
+
+    if CompareTextShortest('system', ObjectName) = 0 then
+    begin
+    // Obtain samples from system meter
+        if ActiveCircuit[ActiveActor] <> nil then
+        begin
+            ReadMHandler(SDI_MHandle[ActiveActor], @time, @headers, @channel);
+        end;
+    end
+    else
+    begin
+        if CompareTextShortest('totals', ObjectName) = 0 then
+        begin
+      // Obtain samples from totals meter
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                ReadMHandler(TDI_MHandle[ActiveActor], @time, @headers, @channel);
+            end;
+        end
+        else
+        begin
+            if CompareTextShortest('voltexcept', ObjectName) = 0 then
+            begin
+        // Obtain samples from voltage exception report
+                if (EnergyMeterClass[ActiveActor].Do_VoltageExceptionReport = false) then
+                begin
+                    DoSimpleMsg('The voltage exception report is not enabled. The energy meter plot will not be executed.', 5004);
+                    exit;
+                end;
+                if ActiveCircuit[ActiveActor] <> nil then
+                begin
+                    ReadMHandler(VR_MHandle[ActiveActor], @time, @headers, @channel);
+                end;
+            end
+            else
+            begin
+                if CompareTextShortest('overloads', ObjectName) = 0 then
+                begin
+          // Obtain samples from overloads report
+                    if (EnergyMeterClass[ActiveActor].Do_OverloadReport = false) then
+                    begin
+                        DoSimpleMsg('The overload report is not enabled. The energy meter plot will not be executed.', 5004);
+                        exit;
+                    end;
+                    if ActiveCircuit[ActiveActor] <> nil then
+                    begin
+                        ReadMHandler(OV_MHandle[ActiveActor], @time, @headers, @channel);
+                    end;
+                end
+                else
+                begin
+          // Search for Energy Meters
+                    if (EnergyMeterClass[ActiveActor].DI_Verbose[ActiveActor] = false) then
+                    begin
+                        DoSimpleMsg('The DI verbose mode is not enabled. The energy meter plot will not be executed.', 5004);
+                        exit;
+                    end;
+                    if ActiveCircuit[ActiveActor] <> nil then
+                    begin      // Search list of meters in active circuit for name
+                        with ActiveCircuit[ActiveActor].EnergyMeters do
+                        begin
+                            tempS := ObjectName;  // Convert to Pascal String
+                            Found := false;
+                            ActiveSave := ActiveIndex;
+                            pMon := First;
+                            while pMon <> nil do
+                            begin
+                                if (CompareText(pMon.Name, tempS) = 0) then
+                                begin
+                                    ActiveCircuit[ActiveActor].ActiveCktElement := pMon;
+                                    Found := true;
+                                    Break;
+                                end;
+                                pMon := Next;
+                            end;
+                            if not Found then
+                            begin
+                                DoSimpleMsg('Energy Meter "' + tempS + '" Not Found in Active Circuit.', 5004);
+                                pMon := Get(ActiveSave);    // Restore active energy meter
+                                ActiveCircuit[ActiveActor].ActiveCktElement := pMon;
+                            end;
+                        end;
+
+            // EnergyMeter data
+                        if pMon.DI_MHandle <> nil then
+                            ReadMHandler(pMon.DI_MHandle, @time, @headers, @channel);
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    SetLength(Z_axis, 0, 0);
+    SetLength(Bus_Names, 0);
+    SetLength(PD_Elements, 0, 0);
+    SetLength(phase, 0);
+
+    model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
+    MSG := flatten2JSON(model_path, 'EnergyMeter.' + ObjectName, 'xyplot', 'Time (s)', @time, @headers, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
+    MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
+    MySocket.Socket.SendText(MSG);//Send the message's content to the server
+end;
+
+procedure TDSSConnect.PhaseVoltageMsg(ObjectName: String);
+var
+    pMon: TEnergyMeterObj;
+    activesave: Integer;
+    tempS: String;
+    Found: Boolean;
+
+    MSG: Ansistring;
+    time, channel, Z_axis: DoubleArray2d;
+    headers, Bus_Names: StringArray1d;
+    phase: IntegerArray1d;
+    PD_Elements: StringArray2d;
+    model_path: String;
+
+begin
+    if (MySocket.Socket.Connected = false) then
+        exit;
+
+    if (EnergyMeterClass[ActiveActor].SaveDemandInterval[ActiveActor] = false) then
+    begin
+        DoSimpleMsg('The demand interval is not enabled. The phase voltage plot will not be executed.', 5004);
+        exit;
+    end;
+
+  // Search for Energy Meters
+    if (EnergyMeterClass[ActiveActor].DI_Verbose[ActiveActor] = false) then
+    begin
+        DoSimpleMsg('The DI verbose mode is not enabled. The phase voltage plot will not be executed.', 5004);
+        exit;
+    end;
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin      // Search list of meters in active circuit for name
+        with ActiveCircuit[ActiveActor].EnergyMeters do
+        begin
+            tempS := ObjectName;  // Convert to Pascal String
+            Found := false;
+            ActiveSave := ActiveIndex;
+            pMon := First;
+            while pMon <> nil do
+            begin
+                if (CompareText(pMon.Name, tempS) = 0) then
+                begin
+                    ActiveCircuit[ActiveActor].ActiveCktElement := pMon;
+                    Found := true;
+                    Break;
+                end;
+                pMon := Next;
+            end;
+            if not Found then
+            begin
+                DoSimpleMsg('Energy Meter "' + tempS + '" Not Found in Active Circuit.', 5004);
+                pMon := Get(ActiveSave);    // Restore active energy meter
+                ActiveCircuit[ActiveActor].ActiveCktElement := pMon;
+            end;
+        end;
+
+        if (pMon.FPhaseVoltageReport = false) then
+        begin
+            DoSimpleMsg('The phase voltage report is not enabled in "' + ObjectName + '". The phase voltage plot will not be executed.', 5004);
+            exit;
+        end;
+
+    // EnergyMeter data
+        if pMon.DI_MHandle <> nil then
+            ReadMHandler(pMon.PHV_MHandle, @time, @headers, @channel);
+    end;
+
+    SetLength(Z_axis, 0, 0);
+    SetLength(Bus_Names, 0);
+    SetLength(PD_Elements, 0, 0);
+    SetLength(phase, 0);
+
+    model_path := StringReplace(LastFileCompiled, '\', '\\', [rfReplaceAll]);
+    MSG := flatten2JSON(model_path, 'PhaseVoltage.' + ObjectName, 'xyplot', 'Time (s)', @time, @headers, @channel, @phase, @Z_axis, @PD_Elements, @Bus_Names, '');
+    MySocket.Socket.SendText(flat_int2str(Length(MSG)));//Sends the length
+    MySocket.Socket.SendText(MSG);//Send the message's content to the server
+end;
 /////////////////////////////// Class functions ///////////////////////////////
 procedure TDSSConnect.SetDefaults;
 begin

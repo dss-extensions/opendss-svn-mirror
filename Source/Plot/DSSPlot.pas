@@ -35,7 +35,7 @@ type
     TPlotType = (ptAutoAddLogPlot, ptCircuitplot, ptGeneralDataPlot,
         ptGeneralCircuitPlot, ptmonitorplot, ptdaisyplot, ptMeterZones,
         ptLoadShape, ptTShape, ptPriceShape, ptProfile, ptScatterPlot,
-        ptEvolutionPlot, ptMatrixplot);
+        ptEvolutionPlot, ptEnergyPlot, ptMatrixplot, ptPhaseVoltage);
     TPlotQuantity = (pqVoltage, pqCurrent, pqPower, pqLosses, pqCapacity,
         pqNone);
     TMatrixType = (pIncMatrix, pLaplacian); // The types of matrices that can be plotted
@@ -1160,6 +1160,8 @@ begin
         end;
         ptEvolutionPlot:
             DSSConnectObj.EvolutionPlotMsg;
+        ptEnergyPlot:
+            DSSConnectObj.EnergyMeterPlotMsg(ObjectName);
         ptMatrixplot:
         begin
             if MatrixType = pLaplacian then
@@ -1167,6 +1169,8 @@ begin
             else
                 DSSConnectObj.MatrixPlotMsg(0)
         end;
+        ptPhaseVoltage:
+            DSSConnectObj.PhaseVoltageMsg(ObjectName);
     end;
     {$ENDIF}
 end;
