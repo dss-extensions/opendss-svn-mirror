@@ -463,12 +463,12 @@ begin
 
                    {Progress meter}
 //                   {$IFDEF MSWINDOWS}
-                ProgressCaption('AutoAdding Generators', ActorID);
+//                   ProgressCaption( 'AutoAdding Generators', ActorID);
 //                   {$ENDIF}
                 ProgressMax := BusIdxListSize;
                 ProgressCount := 0;
 //                   {$IFDEF MSWINDOWS}
-                ProgressFormCaption(Format('Testing %d buses. Please Wait... ', [BusIdxListSize]), ActorID);
+//                   ProgressFormCaption( Format('Testing %d buses. Please Wait... ',[BusIdxListSize]), ActorID);
 //                  {$ENDIF}
 //                   ShowPctProgress(0, ActorID);
 
@@ -488,7 +488,7 @@ begin
                         if ((ProgressCount mod 20) = 0) or (i = BusIdxListSize) then
                         begin
                             {$IFDEF MSWINDOWS}
-                            ProgressFormCaption(Format('Testing bus %d/%d. ', [i, BusIdxListSize]), ActorID);
+  //                          ProgressFormCaption( Format('Testing bus %d/%d. ',[i,BusIdxListSize]), ActorID);
 //                            ShowPctProgress (Round((100 * ProgressCount)/ProgressMax), ActorID);
                             {$ENDIF}
                         end;
@@ -575,7 +575,7 @@ begin
                 GlobalResult := BusList.Get(MinLossBus) +
                     Format(', %-g', [MaxLossImproveFactor]);
                    //{$IFDEF MSWINDOWS}
-                ProgressHide(ActorID);
+    //               ProgressHide(ActorID);
                    //{$ENDIF}
 
                    // note that the command that added the generator can be
@@ -597,7 +597,7 @@ begin
 
                    {Progress meter}
                 {$IFDEF MSWINDOWS}
-                ProgressCaption('AutoAdding Capacitors', ActorID);
+//                   ProgressCaption ( 'AutoAdding Capacitors', ActorID);
                 {$ENDIF}
                 ProgressMax := BusIdxListSize;
                 ProgressCount := 0;
@@ -612,7 +612,7 @@ begin
                     begin
                         TestBus := BusList.Get(BusIndex);
                         {$IFDEF MSWINDOWS}
-                        ProgressFormCaption('Testing bus ' + TestBus, ActorID);
+//                         ProgressFormCaption('Testing bus ' + TestBus, ActorID);
                         {$ENDIF}
 //                         ShowPctProgress ( Round((100 * ProgressCount)/ProgressMax), ActorID);
 

@@ -284,7 +284,7 @@ begin
             for i := 1 to DSSObjs[ActiveActor].ListSize do
             begin
                 DSSObj := DSSObjs[ActiveActor].Get(i);
-                TraceName := DSSObj.ParentClass.Name + '.' + DSSObj.Name;
+                TraceName := DSSObj.DSSClassName + '.' + DSSObj.Name;
                 DSSObj.Free;
                 SuccessFree := TraceName;
             end;
