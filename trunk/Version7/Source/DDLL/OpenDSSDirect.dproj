@@ -1,12 +1,12 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{725836FC-9982-420C-9B7F-6DC376658ED2}</ProjectGuid>
-        <ProjectVersion>18.5</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -125,9 +125,9 @@
         <VerInfo_Release>5</VerInfo_Release>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_MajorVer>7</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=7.6.5.86;InternalName=;LegalCopyright=Copyright (C) 2008-2018 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 OpenDSS direct-call library;FileVersion=7.6.5.90;InternalName=;LegalCopyright=Copyright (C) 2008-2018 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=;ProductVersion=7.6.5;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
-        <VerInfo_Build>86</VerInfo_Build>
+        <VerInfo_Build>90</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
@@ -139,10 +139,10 @@
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Release>5</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=7.6.5.86;InternalName=;LegalCopyright=Copyright (C) 2008-2018 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 OpenDSS direct-call library;FileVersion=7.6.5.90;InternalName=;LegalCopyright=Copyright (C) 2008-2018 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=;ProductVersion=7.6.5;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_Build>86</VerInfo_Build>
+        <VerInfo_Build>90</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
