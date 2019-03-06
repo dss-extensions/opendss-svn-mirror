@@ -149,7 +149,7 @@ type
     end;
 
     pFeederSections = ^FeederSectionArray;
-    FeederSectionArray = array[1..1] of TFeederSection;
+    FeederSectionArray = array[1..100] of TFeederSection;   // Dummy dimension
     //  --------- Feeder Section Definition -----------
 
     TSystemMeter = class(Tobject)
@@ -1041,6 +1041,12 @@ begin
     ReallocMem(VBaseLoadLosses, MaxVBaseCount * SizeOf(VBaseLoadLosses^[1]));
     ReallocMem(VBaseNoLoadLosses, MaxVBaseCount * SizeOf(VBaseNoLoadLosses^[1]));
     ReallocMem(VBaseLoad, MaxVBaseCount * SizeOf(VBaseLoad^[1]));
+
+//  Init pointers to Nil before allocating
+    VphaseMax := nil;
+    VPhaseMin := nil;
+    VPhaseAccum := nil;
+    VPhaseAccumCount := nil;
 
      // Arrays for phase voltage report
     ReallocMem(VphaseMax, MaxVBaseCount * 3 * SizeOf(Double));
@@ -2519,6 +2525,7 @@ begin
             DoReduceSwitches(BranchList);
         rsLaterals:
             DoRemoveAll_1ph_Laterals(BranchList);
+
     else
        {Default}
         DoReduceDefault(BranchList);
@@ -2738,7 +2745,7 @@ begin
         PD_Elem := SequenceList.Get(idx);
         PD_Elem.CalcCustInterrupts;
               // Populate the Section properties
-        pSection := FeederSections^[PD_Elem.BranchSectionID];
+        pSection := FeederSections^[PD_Elem.BranchSectionID]; // temp local copy of Section structure
         begin
             Inc(pSection.NCustomers, PD_Elem.BranchNumCustomers); // Sum up num Customers on this Section
             Inc(pSection.NBranches, 1); // Sum up num branches on this Section
@@ -2753,7 +2760,7 @@ begin
                 pSection.SectFaultRate := PD_Elem.AccumulatedBrFltRate;
             end;
         end;
-
+        FeederSections^[PD_Elem.BranchSectionID] := pSection;  // put it back
         {$IFDEF DEBUG}
               If idx = SequenceList.ListSize then
                 WriteDLLDebugFile
