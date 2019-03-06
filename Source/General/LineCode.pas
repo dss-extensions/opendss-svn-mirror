@@ -805,7 +805,7 @@ begin
         Writeln(F, Format('~ %s=%d', [PropertyName^[25], Nratings]));
         TempStr := '[';
         for  k := 1 to Nratings do
-            TempStr := TempStr + floattoStrf(ratings^[k], ffcurrency, 8, 4) + ',';
+            TempStr := TempStr + floattoStrf(ratings^[k], ffGeneral, 8, 4) + ',';
         TempStr := TempStr + ']';
         Writeln(F, Format('~ %s=%d', [PropertyName^[26]]) + TempStr);
 
