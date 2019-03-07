@@ -6,10 +6,10 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>18.6</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>135</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
