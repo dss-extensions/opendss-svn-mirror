@@ -58,7 +58,7 @@ type
         NormAmps: Double;
         EmergAmps: Double;
         Nratings: Integer;
-        ratings: pDoubleArray;
+        ratings: array of Double;
 
         constructor Create(ParClass: TDSSClass; const ConductorDataName: String);
         destructor Destroy; OVERRIDE;
@@ -181,12 +181,13 @@ begin
                 11:
                 begin
                     Nratings := Parser[ActiveActor].IntValue;
-                    ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
+                    setlength(Ratings, Nratings);
                 end;
                 12:
                 begin
+                    setlength(Ratings, Nratings);
                     Param := Parser[ActiveActor].StrValue;
-                    Nratings := InterpretDblArray(Param, Nratings, ratings);
+                    Nratings := InterpretDblArray(Param, Nratings, pointer(Ratings));
                 end
             else
                 inherited ClassEdit(ActiveObj, ParamPointer - NumConductorClassProps)
@@ -275,16 +276,13 @@ begin
     EmergAmps := -1.0;
     ratings := nil;
     Nratings := 1;
-    ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
-    ratings^[1] := NormAmps;
+    setlength(Ratings, NRatings);
+    ratings[0] := NormAmps;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TConductorDataObj.Destroy;
 begin
-    if Assigned(ratings) then
-        Reallocmem(ratings, 0);
-
     inherited destroy;
 end;
 
@@ -327,7 +325,7 @@ begin
                 begin
                     TempStr := '[';
                     for  j := 1 to Nratings do
-                        TempStr := TempStr + floattoStrf(ratings^[j], ffgeneral, 8, 4) + ',';
+                        TempStr := TempStr + floattoStrf(ratings[j - 1], ffgeneral, 8, 4) + ',';
                     TempStr := TempStr + ']';
                     Writeln(F, TempStr);
                 end;

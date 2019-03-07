@@ -102,7 +102,7 @@ type
         NormAmps: Double;
         EmergAmps: Double;
         NRatings: Integer;
-        ratings: pDoubleArray;
+        Ratings: array of Double;
 
         constructor Create(ParClass: TDSSClass; const LineGeometryName: String);
         destructor Destroy; OVERRIDE;
@@ -404,12 +404,13 @@ begin
                 17:
                 begin
                     Nratings := Parser[ActorID].IntValue;
-                    ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
+                    setlength(Ratings, NRatings);
                 end;
                 18:
                 begin
+                    setlength(Ratings, NRatings);
                     Param := Parser[ActorID].StrValue;
-                    Nratings := InterpretDblArray(Param, Nratings, ratings);
+                    Nratings := InterpretDblArray(Param, Nratings, Pointer(Ratings));
                 end
             else
            // Inherited parameters
@@ -590,8 +591,8 @@ begin
     FReduce := false;
     ratings := nil;
     NRatings := 1;
-    ReAllocmem(ratings, Sizeof(ratings^[1]) * Nratings);
-    ratings^[1] := NormAmps;
+    setlength(ratings, Nratings);
+    ratings[0] := NormAmps;
 
     InitPropertyValues(0);
 end;
@@ -675,7 +676,7 @@ begin
         begin
             Result := '[';
             for  j := 1 to Nratings do
-                Result := Result + floattoStrf(ratings^[j], ffgeneral, 8, 4) + ',';
+                Result := Result + floattoStrf(ratings[j - 1], ffgeneral, 8, 4) + ',';
             Result := Result + ']';
         end;
     else
@@ -818,7 +819,7 @@ begin
                 begin
                     TempStr := '[';
                     for  j := 1 to Nratings do
-                        TempStr := TempStr + floattoStrf(ratings^[j], ffgeneral, 8, 4) + ',';
+                        TempStr := TempStr + floattoStrf(ratings[j - 1], ffgeneral, 8, 4) + ',';
                     TempStr := TempStr + ']';
                     Writeln(F, 'ratings=' + TempStr);
                 end;
