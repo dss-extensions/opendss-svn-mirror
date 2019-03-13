@@ -270,6 +270,8 @@ Integer
     ADiakoptics,
     Parallel_enabled,
     ConcatenateReports,
+
+    ProgressCmd,
     IncMat_Ordered: Boolean;
     Parser: array of TParser;
     ActorMA_Msg: array of TEvent;  // Array to handle the events of each actor
@@ -1232,6 +1234,7 @@ initialization
     end;
 
     DSSClasses := nil;
+    ProgressCmd := false;
 
     Allactors := false;
     ActiveActor := 1;
