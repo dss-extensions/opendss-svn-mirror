@@ -218,8 +218,6 @@ begin
     DSSClasses.New := TUPFCControl.Create;
     DSSClasses.New := TESPVLControl.Create;
     DSSClasses.New := TIndMach012.Create;
-     {by Dahei}
-    DSSClasses.New := TGeneric5.Create;
 
     DSSClasses.New := TGICsource.Create; // GIC source
     DSSClasses.New := TAutoTrans.Create; // Auto Transformer
@@ -244,16 +242,17 @@ begin
     DSSClasses.New := SensorClass[ActiveActor];
 
 
+   {Add user-defined objects}
+   //by Dahei (UCF)
+    FMonitorClass[ActiveActor] := TDSSFMonitor.Create;  // Have to do this AFTER Generator
+    DSSClasses.New := FMonitorClass[ActiveActor];
+    DSSClasses.New := TGeneric5.Create;
+
  { Create Classes for custom implementations }
     CreateMyDSSClasses;
 
     NumIntrinsicClasses := DSSClassList[ActiveActor].ListSize;
     NumUserClasses := 0;
-
-   {Add user-defined objects}
-   //by Dahei
-    FMonitorClass[ActiveActor] := TDSSFMonitor.Create;  // Have to do this AFTER Generator
-    DSSClasses.New := FMonitorClass[ActiveActor];
 
 
    {This feature has been disabled - doesn't work in IIS}
@@ -270,11 +269,12 @@ end;
 procedure DisposeDSSClasses(AllActors: Boolean);
 
 var
+    DSSCidx,
+    temp,
     i: Integer;
     DSSObj: TDSSObject;
-    TraceName: String;
+    TraceName,
     SuccessFree: String;
-    DSSCidx, temp: Integer;
 
 begin
     if not AllActors then
@@ -298,17 +298,18 @@ begin
         end;
 
         try
-            for i := 1 to DSSClassList[ActiveActor].ListSize do
-                TDSSClass(DSSClassList[ActiveActor].Get(i)).Free;
+//       For i := 1 to DSSClassList[ActiveActor].ListSize Do TDSSClass(DSSClassList[ActiveActor].Get(i)).Free;
             TraceName := '(DSS Class List)';
             DSSClassList[ActiveActor].Free;
+            DSSClassList[ActiveActor] := nil;
             TraceName := '(ClassNames)';
             ClassNames[ActiveActor].Free;
+            ClassNames[ActiveActor] := nil;
+            TraceName := '(DSS Classes)';
         except
             On E: Exception do
                 Dosimplemsg('Exception disposing of DSS Class"' + TraceName + '". ' + CRLF + E.Message, 902);
         end;
-
 
     end
     else
@@ -319,10 +320,10 @@ begin
             ActiveActor := DSSCidx;
             DisposeDSSClasses(false);
         end;
-        TraceName := '(DSS Classes)';
+
         DSSClasses.Free;
         DSSClasses := nil;
-        ActiveActor := temp;
+        ActiveActor := 1;
     end;
 end;
 

@@ -78,9 +78,9 @@ type
 
     end;
 
-var
+//VAR
 
-    DSSExecutive: array of TExecutive;
+//    DSSExecutive: Array of TExecutive;
 
 
 implementation

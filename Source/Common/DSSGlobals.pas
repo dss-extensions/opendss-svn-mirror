@@ -71,7 +71,8 @@ uses
     SyncObjs,
     YMatrix,
     fMonitor,     // by Dahei
-    VSource;
+    VSource,
+    Executive;
 
 const
     CRLF = #13#10;
@@ -312,6 +313,9 @@ Integer
     SeasonalRating: Boolean;    // Tells the energy meter if the seasonal rating feature is active
     SeasonSignal: String;     // Stores the name of the signal for selecting the rating dynamically
 
+    DSSExecutive: array of TExecutive;
+
+    DSSClasses: TDSSClasses;
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
@@ -357,7 +361,7 @@ implementation
 
 
 uses {Forms,   Controls,}
-    SysUtils,
+
     {$IFNDEF FPC}
     Windows,
     {$IFDEF MSWINDOWS}
@@ -369,7 +373,7 @@ uses {Forms,   Controls,}
     {$ELSE}
      resource, versiontypes, versionresource, dynlibs, CMDForms,
     {$ENDIF}
-    Executive;
+    SysUtils;
      {Intrinsic Ckt Elements}
 
 type
@@ -1227,6 +1231,8 @@ initialization
         ActiveVSource[Activeactor] := nil;
     end;
 
+    DSSClasses := nil;
+
     Allactors := false;
     ActiveActor := 1;
     NumOfActors := 1;
@@ -1357,16 +1363,19 @@ finalization
 //  YBMatrix.Finish_Ymatrix_Critical;   // Ends the critical segment for the YMatrix class
 
 
-    with DSSExecutive[ActiveActor] do
-        if RecorderOn then
-            Recorderon := false;
     ClearAllCircuits;
-    DSSExecutive[ActiveActor].Free;  {Writes to Registry}
-    DSS_Registry.Free;  {Close Registry}
+
     for ActiveActor := 1 to NumOfActors do
     begin
         if ActorHandle[ActiveActor] <> nil then
         begin
+            with DSSExecutive[ActiveActor] do
+                if RecorderOn then
+                    Recorderon := false;
+
+            DSSExecutive[ActiveActor].Free;  {Writes to Registry}
+            DSS_Registry.Free;  {Close Registry}
+
             EventStrings[ActiveActor].Free;
             SavedFileList[ActiveActor].Free;
             ErrorStrings[ActiveActor].Free;
@@ -1374,4 +1383,5 @@ finalization
             Auxparser[ActiveActor].Free;
         end;
     end;
+
 end.
