@@ -1014,11 +1014,16 @@ begin
 // between actors when a simulation is performed using A-Diakoptics
     for i := (WType + 1) to NumOfActors do
     begin
-        if ActorStatus[i] = 0 then
-        begin
-            Flag := true;
-            while Flag do
-                Flag := ActorMA_Msg[i].WaitFor(10) = TWaitResult.wrTimeout;
+        try
+            if ActorStatus[i] = 0 then
+            begin
+                Flag := true;
+                while Flag do
+                    Flag := ActorMA_Msg[i].WaitFor(10) = TWaitResult.wrTimeout;
+            end;
+        except
+            On EOutOfMemory do
+                Dosimplemsg('Exception Waiting for the parallel thread to finish a job"', 7006);
         end;
     end;
 end;

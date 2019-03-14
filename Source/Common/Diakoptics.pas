@@ -803,6 +803,7 @@ begin
   // Davis: Done: This will add the needed report
 
     SolutionAbort := false;
+    ProgressCmd := true;
 
 end;
 

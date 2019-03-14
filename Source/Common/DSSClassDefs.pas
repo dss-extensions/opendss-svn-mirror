@@ -151,8 +151,8 @@ begin
 
     Classnames[ActiveActor] := THashList.Create(25);   // Makes 5 sub lists
     DSSClassList[ActiveActor] := TPointerList.Create(10);  // 10 is initial size and increment
-    if not Assigned(DSSClasses) then
-        DSSClasses := TDSSClasses.Create;  // class to handle junk for defining DSS classes
+//     if not Assigned(DSSClasses) then
+    DSSClasses := TDSSClasses.Create;  // class to handle junk for defining DSS classes
 
      {General DSS objects, not circuit elements}
     DSSObjs[ActiveActor] := TPointerList.Create(25);  // 25 is initial size and increment
@@ -298,7 +298,10 @@ begin
         end;
 
         try
-//       For i := 1 to DSSClassList[ActiveActor].ListSize Do TDSSClass(DSSClassList[ActiveActor].Get(i)).Free;
+            for i := 1 to DSSClassList[ActiveActor].ListSize do
+            begin
+                TDSSClass(DSSClassList[ActiveActor].Get(i)).Free;
+            end;
             TraceName := '(DSS Class List)';
             DSSClassList[ActiveActor].Free;
             DSSClassList[ActiveActor] := nil;
@@ -306,6 +309,9 @@ begin
             ClassNames[ActiveActor].Free;
             ClassNames[ActiveActor] := nil;
             TraceName := '(DSS Classes)';
+            DSSClasses.Free;
+            DSSClasses := nil;
+
         except
             On E: Exception do
                 Dosimplemsg('Exception disposing of DSS Class"' + TraceName + '". ' + CRLF + E.Message, 902);
@@ -321,8 +327,6 @@ begin
             DisposeDSSClasses(false);
         end;
 
-        DSSClasses.Free;
-        DSSClasses := nil;
         ActiveActor := 1;
     end;
 end;
