@@ -233,24 +233,25 @@ begin
     begin
           {First get rid of all existing stuff}
         Circuits.Free;
-        Circuits := TPointerList.Create(4);         // Make a new list of circuits
+        Circuits := TPointerList.Create(2);         // Make a new list of circuits
         DisposeDSSClasses(false);
 
         ActiveCircuit[ActiveActor].NumCircuits := 0; // <<<< added
-        ActiveCircuit[ActiveActor].Free;             // <<<< added
-        ActiveCircuit[ActiveActor] := nil;
-            {Now, Start over}
-        CreateDSSClasses;
-        CreateDefaultDSSItems;
-        RebuildHelpForm := true; // because class strings have changed
-          // In case the actor hasn't been destroyed
+        FreeandNil(ActiveCircuit[ActiveActor]);             // <<<< added
+           // In case the actor hasn't been destroyed
         if ActorHandle[ActiveActor] <> nil then
         begin
             ActorHandle[ActiveActor].Send_Message(EXIT_ACTOR);
             ActorHandle[ActiveActor].WaitFor;
-            ActorHandle[ActiveActor].Free;
-            ActorHandle[ActiveActor] := nil;
+            FreeandNil(ActorHandle[ActiveActor]);
+
         end;
+
+            {Now, Start over}
+        CreateDSSClasses;
+        CreateDefaultDSSItems;
+        RebuildHelpForm := true; // because class strings have changed
+
     end;
 
     {$IFNDEF FPC}
@@ -261,10 +262,12 @@ begin
     DefaultEarthModel := DERI;
     LogQueries := false;
     MaxAllocationIterations := 2;
+    ActiveActor := 1;
 
        {Prepare for new variables}
-//       ParserVars.Free;
-//       ParserVars := TParserVar.Create(100);  // start with space for 100 variables
+    ParserVars.Free;
+    ParserVars := TParserVar.Create(100);  // start with space for 100 variables
+
 end;
 
 procedure TExecutive.ClearAll;

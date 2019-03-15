@@ -232,6 +232,11 @@ begin
             NodeV^[0] := CZERO;
             ReAllocMem(Currents, SizeOf(Currents^[1]) * (NumNodes + 1)); // Allocate System current array
             ReAllocMem(AuxCurrents, SizeOf(AuxCurrents^[1]) * (NumNodes + 1)); // Allocate System current array
+
+         {A-Diakoptics vectors memory allocation}
+            ReAllocMem(Node_dV, SizeOf(Node_dV^[1]) * (NumNodes + 1)); // Allocate the partial solution voltage
+            ReAllocMem(Ic_Local, SizeOf(Ic_Local^[1]) * (NumNodes + 1)); // Allocate the Complementary currents
+
             if (VMagSaved <> nil) then
                 ReallocMem(VMagSaved, 0);
             if (ErrorSaved <> nil) then
@@ -243,12 +248,10 @@ begin
             VMagSaved := AllocMem(Sizeof(VMagSaved^[1]) * NumNodes);  // zero fill
             ErrorSaved := AllocMem(Sizeof(ErrorSaved^[1]) * NumNodes);  // zero fill
             NodeVBase := AllocMem(Sizeof(NodeVBase^[1]) * NumNodes);  // zero fill
-            NodeYii := AllocMem(Sizeof(NodeYii^[1]) * NumNodes);  // zero fill //Bii  {by Dahei -> UCF}
+            NodeYii := AllocMem(Sizeof(NodeYii^[1]) * (NumNodes + 1));  // zero fill //Bii  {by Dahei -> UCF}
             NodeYiiEmpty := true;                                                          {by Dahei -> UCF}
             InitializeNodeVbase(ActorID);
-         {A-Diakoptics vectors memory allocation}
-            ReAllocMem(Node_dV, SizeOf(Node_dV^[1]) * (NumNodes + 1)); // Allocate the partial solution voltage
-            ReAllocMem(Ic_Local, SizeOf(Ic_Local^[1]) * (NumNodes + 1)); // Allocate the Complementary currents
+
 
         end;
 

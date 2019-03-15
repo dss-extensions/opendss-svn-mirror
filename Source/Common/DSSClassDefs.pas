@@ -151,7 +151,7 @@ begin
 
     Classnames[ActiveActor] := THashList.Create(25);   // Makes 5 sub lists
     DSSClassList[ActiveActor] := TPointerList.Create(10);  // 10 is initial size and increment
-//     if not Assigned(DSSClasses) then
+     //if not Assigned(DSSClasses) then
     DSSClasses := TDSSClasses.Create;  // class to handle junk for defining DSS classes
 
      {General DSS objects, not circuit elements}
@@ -273,6 +273,7 @@ var
     temp,
     i: Integer;
     DSSObj: TDSSObject;
+    DSSClass_idx: TDSSClass;
     TraceName,
     SuccessFree: String;
 
@@ -289,7 +290,7 @@ begin
                 SuccessFree := TraceName;
             end;
             TraceName := '(DSSObjs Class)';
-            DSSObjs[ActiveActor].Free;
+            FreeAndNil(DSSObjs[ActiveActor]);
         except
             On E: Exception do
                 Dosimplemsg('Exception disposing of DSS Obj "' + TraceName + '". ' + CRLF +
@@ -300,17 +301,15 @@ begin
         try
             for i := 1 to DSSClassList[ActiveActor].ListSize do
             begin
-                TDSSClass(DSSClassList[ActiveActor].Get(i)).Free;
+                DSSClass_idx := DSSClassList[ActiveActor].Get(i);
+                FreeAndNil(DSSClass_idx);
             end;
             TraceName := '(DSS Class List)';
-            DSSClassList[ActiveActor].Free;
-            DSSClassList[ActiveActor] := nil;
+            FreeAndNil(DSSClassList[ActiveActor]);
             TraceName := '(ClassNames)';
-            ClassNames[ActiveActor].Free;
-            ClassNames[ActiveActor] := nil;
+            FreeAndNil(ClassNames[ActiveActor]);
             TraceName := '(DSS Classes)';
-            DSSClasses.Free;
-            DSSClasses := nil;
+            FreeAndNil(DSSClasses);
 
         except
             On E: Exception do
