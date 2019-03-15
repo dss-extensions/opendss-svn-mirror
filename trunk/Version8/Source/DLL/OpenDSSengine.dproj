@@ -838,9 +838,6 @@
         <DCCReference Include="ImplDSS_Executive.pas">
             <CoClasses>DSS_Executive</CoClasses>
         </DCCReference>
-        <DCCReference Include="..\Forms\Scriptform.pas">
-            <Form>MainEditForm</Form>
-        </DCCReference>
         <DCCReference Include="ImplEvents.pas">
             <CoClasses>DSSEvents</CoClasses>
         </DCCReference>
