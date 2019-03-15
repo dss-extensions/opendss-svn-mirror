@@ -217,6 +217,7 @@
     <File Path="ImplPDElements.pas"/>
     <File Path="ImplPVSystems.pas"/>
     <File Path="ImplReclosers.pas"/>
+    <File Path="ImplReduce.pas"/>
     <File Path="ImplRegControls.pas"/>
     <File Path="ImplRelays.pas"/>
     <File Path="ImplSensors.pas"/>
@@ -230,6 +231,5 @@
     <File Path="ImplXYCurves.pas"/>
     <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
-    <File Path="ImplReduce.pas"/>
   </ProjectSortOrder>
 </BorlandProject>
