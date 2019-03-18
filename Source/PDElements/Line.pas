@@ -933,7 +933,7 @@ begin
 
     NRatings := 1;
     setlength(Ratings, NRatings);
-    ratings[0] := NormAmps;
+    Ratings[0] := NormAmps;
 
 
 end;

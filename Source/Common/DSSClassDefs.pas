@@ -151,8 +151,8 @@ begin
 
     Classnames[ActiveActor] := THashList.Create(25);   // Makes 5 sub lists
     DSSClassList[ActiveActor] := TPointerList.Create(10);  // 10 is initial size and increment
-     //if not Assigned(DSSClasses) then
-    DSSClasses := TDSSClasses.Create;  // class to handle junk for defining DSS classes
+    if not Assigned(DSSClasses) then
+        DSSClasses := TDSSClasses.Create;  // class to handle junk for defining DSS classes
 
      {General DSS objects, not circuit elements}
     DSSObjs[ActiveActor] := TPointerList.Create(25);  // 25 is initial size and increment
@@ -308,8 +308,6 @@ begin
             FreeAndNil(DSSClassList[ActiveActor]);
             TraceName := '(ClassNames)';
             FreeAndNil(ClassNames[ActiveActor]);
-            TraceName := '(DSS Classes)';
-            FreeAndNil(DSSClasses);
 
         except
             On E: Exception do
@@ -325,7 +323,8 @@ begin
             ActiveActor := DSSCidx;
             DisposeDSSClasses(false);
         end;
-
+        TraceName := '(DSS Classes)';
+        FreeAndNil(DSSClasses);
         ActiveActor := 1;
     end;
 end;

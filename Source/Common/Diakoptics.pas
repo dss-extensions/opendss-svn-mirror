@@ -787,7 +787,7 @@ begin
         Parallel_enabled := true;
         ADiakoptics := true;
     end;
-
+    ProgressCmd := true;
     prog_Str := CRLF + prog_str + CRLF + ErrorStr + CRLF;
     GlobalResult := ErrorStr;
 
@@ -803,7 +803,6 @@ begin
   // Davis: Done: This will add the needed report
 
     SolutionAbort := false;
-    ProgressCmd := true;
 
 end;
 
