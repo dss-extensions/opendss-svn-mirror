@@ -823,7 +823,7 @@ begin
     DataDirectory[ActiveActor] := PathName;
 
   // Put a \ on the end if not supplied. Allow a null specification.
-    if Length(DataDirectory) > 0 then
+    if Length(DataDirectory[ActiveActor]) > 0 then
     begin
         ChDir(DataDirectory[ActiveActor]);   // Change to specified directory
         {$IF (defined(Windows) or defined(MSWindows))}
