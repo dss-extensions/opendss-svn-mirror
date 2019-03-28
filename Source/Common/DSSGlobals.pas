@@ -1233,6 +1233,8 @@ initialization
         DIFilesAreOpen[ActiveActor] := false;
 
         ActiveVSource[Activeactor] := nil;
+        DSSObjs[ActiveActor] := nil;
+        DSSClassList[ActiveActor] := nil;
     end;
 
     DSSClasses := nil;
