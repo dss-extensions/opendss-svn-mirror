@@ -3,9 +3,9 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2018, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 8.1.1
+Version 8.5.9.1
 
-The 8.1 version is the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
+The Version 8 is the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions.  The OpenDSSInstaller download includes both X86 and X64 versions, along 
 with optional documentation and examples.  
 
@@ -93,8 +93,8 @@ Source Code
 ===========
 
 The programming language for OpenDSS is Delphi 
-(http://www.embarcadero.com), currently version Delphi XE2.  There is also 
-a Free Pascal version of the program.  Some of the supporting modules may 
+(http://www.embarcadero.com), currently version Delphi 10.3.1 Rio.  There is also 
+a Free Pascal (Lazarus) version of the program.  Some of the supporting modules may 
 require a C++ compiler to build from source.  OpenDSS source code is 
 available from the following SVN repository: 
 
@@ -120,11 +120,11 @@ http://sourceforge.net/apps/mediawiki/electricdss/index.php?title=Getting_Starte
 
 Latest Tech Notes in Wiki
 
-***Currently unavailable***
+Selected Tech Notes are available in the Doc Folder
 
 Questions and Answers
 
-***Currently unavailable***
+Selected Q&A files are available in the Doc Folder
 
 OpenDSS Forum
 
@@ -132,19 +132,21 @@ http://sourceforge.net/p/electricdss/discussion/861976/
 
 What is Unique About OpenDSS?
 
-***Currently unavailable***
+OpenDSS was derived from a family of power system harmonics solvers designed for analysis of distributions systems. This analysis requires very detailed models of the circuit topology. This gives the program the capability to represent nearly any circuit topology that might be encountered on a power distribution system. While the power flow solution is the most common application, the program is technically not a power flow program. The solution method and circuit modeling has more in common with harmonics and dynamics solvers.
 
-Main Page in Wiki
+The program was developed because users realized in 1996 that they were not getting the correct answer for distributed generation problems when using only the typical static power flow analysis used for distribution planning. OpenDSS was one of the first programs to implement an efficient quasi-static time series (QSTS) simulation for DER analysis. The capability was built into the program from the start.
 
-***Currently unavailable***
+It was recognized that it is not possible to anticipate everything that users will want to do in DER analysis and build a single user interface for this. This issue was addressed by building the program around a scripting interface that is user defined. Also, the COM interface was added so that users could drive the program from other software such as MATLAB and Python. This feature is popular among researchers and graduate students who want to do things not already supported in the program. Of course, EPRI uses this feature extensively in its research. A direct function call DLL interface (OpenDSSDirect.DLL) was also developed to allow this feature to be used on platforms and computer languages that do not support COM.
+
+
 
 IEEE Test Cases
 
-http://svn.code.sf.net/p/electricdss/code/trunk/Distrib/IEEETestCases/
+http://svn.code.sf.net/p/electricdss/code/trunk/Version8/Distrib/IEEETestCases/
 
 Source Code
 
-http://svn.code.sf.net/p/electricdss/code/trunk/Source/
+http://svn.code.sf.net/p/electricdss/code/trunk/Version8/Source/
 
 Top level of Distribution area (Releases)
 
