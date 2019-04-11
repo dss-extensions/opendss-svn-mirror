@@ -1462,11 +1462,11 @@ begin
         end;
 
            // Intercept FaultRate, PctPerm, and HourstoRepair
-        30:
-            Result := Format('%-g', [FaultRate]);
-        31:
-            Result := Format('%-g', [PctPerm]);
         32:
+            Result := Format('%-g', [FaultRate]);
+        33:
+            Result := Format('%-g', [PctPerm]);
+        34:
             Result := Format('%-g', [HrsToRepair]);
 
 
