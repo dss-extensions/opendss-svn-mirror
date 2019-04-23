@@ -1948,7 +1948,7 @@ begin
             begin
                 NewNumRat := FLineWireData^[i].Nratings;
                 setlength(NewRatings, NewNumRat);
-                for j := 0 to High(NewRatings) do
+                for j := 0 to High(NewRatings) do    {**** I Think you can use Copy for this}
                     NewRatings[j] := FLineWireData^[i].ratings[j];
                 RatingsInc := true;         // Yes, there are seasonal ratings
             end;
@@ -1961,10 +1961,10 @@ begin
     begin
         NRatings := NewNumRat;
         setlength(Ratings, NRatings);
-        for j := 0 to High(Ratings) do
+        for j := 0 to High(Ratings) do        {**** I Think you can use Copy for this}
             Ratings[j] := NewRatings[j];
     end;
-
+       {**** NewRatings disappears when it goes out of scope}
 end;
 
 procedure TLineObj.FetchCNCableList(const Code: String);
