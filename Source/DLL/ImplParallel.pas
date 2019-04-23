@@ -12,7 +12,8 @@ uses
     ComObj,
     ActiveX,
     OpenDSSEngine_TLB,
-    StdVcl;
+    StdVcl,
+    Windows;
 
 type
     TParallel = class(TAutoObject, IParallel)
@@ -88,7 +89,16 @@ begin
     begin
         ActorCPU[ActiveActor] := value;
         if ActorHandle[ActiveActor] <> nil then
+        begin
             ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
+            ActorHandle[ActiveActor].Priority :=
+                {$IFDEF MSWINDOWS}
+                tptimecritical
+            {$ELSE}
+6
+            {$ENDIF}
+            ;
+        end;
     end
     else
         DoSimpleMsg('The CPU does not exists', 7004);

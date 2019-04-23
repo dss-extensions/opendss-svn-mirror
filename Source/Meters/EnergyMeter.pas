@@ -406,8 +406,9 @@ uses
     ReduceAlgs,
     Math,
     MemoryMap_Lib,
-    Sysutils,
+    Sysutils
     {$IFDEF MSWINDOWS}
+    ,
     Windows
     {$ENDIF}
     ;

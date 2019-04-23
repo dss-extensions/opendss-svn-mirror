@@ -42,7 +42,8 @@ uses
     {$ENDIF}
     Solution,
     Energymeter,
-    Diakoptics;
+    Diakoptics,
+    Classes;
 
 procedure DefineOptions;
 
@@ -519,7 +520,16 @@ begin
                 begin
                     ActorCPU[ActiveActor] := Parser[ActiveActor].IntValue;
                     if ActorHandle[ActiveActor] <> nil then
+                    begin
                         ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
+                        ActorHandle[ActiveActor].Priority :=
+                            {$IFDEF MSWINDOWS}
+                            tpTimeCritical
+                        {$ELSE}
+6
+                        {$ENDIF}
+                        ;
+                    end;
                 end
                 else
                 begin
@@ -871,7 +881,16 @@ begin
                 begin
                     ActorCPU[ActiveActor] := Parser[ActiveActor].IntValue;
                     if ActorHandle[ActiveActor] <> nil then
+                    begin
                         ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
+                        ActorHandle[ActiveActor].Priority :=
+                            {$IFDEF MSWINDOWS}
+                            tpTimeCritical
+                        {$ELSE}
+6
+                        {$ENDIF}
+                        ;
+                    end;
                 end
                 else
                 begin

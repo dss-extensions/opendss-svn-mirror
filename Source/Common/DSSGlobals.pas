@@ -1094,7 +1094,7 @@ begin
     ActorHandle[ActorID] := TSolver.Create(true, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryform, ActorMA_Msg[ActorID]);
     ActorHandle[ActorID].Priority :=
         {$IFDEF MSWINDOWS}
-        tpTimeCritical
+        tptimecritical
     {$ELSE}
 6
     {$ENDIF}
