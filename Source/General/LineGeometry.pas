@@ -589,7 +589,7 @@ begin
     EmergAmps := 0.0;
 
     FReduce := false;
-    ratings := nil;
+     {Initialize dynamic array for ratings}
     NRatings := 1;
     setlength(ratings, Nratings);
     ratings[0] := NormAmps;

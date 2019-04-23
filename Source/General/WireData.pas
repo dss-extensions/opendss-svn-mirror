@@ -194,7 +194,7 @@ begin
     Name := LowerCase(WireDataName);
     DSSObjType := ParClass.DSSClassType;
     InitPropertyValues(0);
-    ratings := nil;
+  {ratings     :=  Nil;}
 end;
 
 destructor TWireDataObj.Destroy;

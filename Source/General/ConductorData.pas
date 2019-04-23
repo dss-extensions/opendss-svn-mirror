@@ -274,7 +274,7 @@ begin
     FRadiusUnits := 0;
     Normamps := -1.0;
     EmergAmps := -1.0;
-    ratings := nil;
+  {Initialize dynamic array for ratings}
     Nratings := 1;
     setlength(Ratings, NRatings);
     ratings[0] := NormAmps;
