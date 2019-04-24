@@ -111,7 +111,7 @@ type
         SymComponentsModel: Boolean;
         IsSwitch: Boolean;
 
-//        NRatings             : Integer;
+//        NRatings             : Integer;           // See PDElement
 //        ratings              : pDoubleArray;
 
         procedure GetLosses(var TotalLosses, LoadLosses, NoLoadLosses: Complex; ActorID: Integer); OVERRIDE;
@@ -346,10 +346,10 @@ var
     TempStr: String;
     j: Integer;
 begin
-    PropertyValue[28] := Format('%-d', [Nratings]);
+    PropertyValue[28] := Format('%-d', [NumAmpRatings]);
     TempStr := '[';
-    for  j := 1 to Nratings do
-        TempStr := TempStr + floattoStrf(ratings[j - 1], ffgeneral, 8, 4) + ',';
+    for  j := 1 to NumAmpRatings do
+        TempStr := TempStr + floattoStrf(AmpRatings[j - 1], ffgeneral, 8, 4) + ',';
     TempStr := TempStr + ']';
     PropertyValue[29] := TempStr;
 
@@ -410,10 +410,8 @@ begin
         NormAmps := LineCodeObj.NormAmps;
         EmergAmps := LineCodeObj.EmergAmps;
 
-        NRatings := LineCodeObj.NRatings;
-        setlength(Ratings, NRatings);
-        for i := 0 to High(Ratings) do
-            Ratings[i] := LineCodeObj.ratings[i];
+        NumAmpRatings := LineCodeObj.NumAmpRatings;
+        AmpRatings := Copy(LineCodeObj.AmpRatings);
 
        // These three properties should not come from the Linecode
        //   But can vary from line section to line section
@@ -677,14 +675,14 @@ begin
                 end;
                 28:
                 begin
-                    Nratings := Parser[ActorID].IntValue;
-                    setlength(Ratings, Nratings);
+                    NumAmpRatings := Parser[ActorID].IntValue;
+                    setlength(AmpRatings, NumAmpRatings);
                 end;
                 29:
                 begin
-                    setlength(Ratings, Nratings);
+                    setlength(AmpRatings, NumAmpRatings);
                     Param := Parser[ActiveActor].StrValue;
-                    Nratings := InterpretDblArray(Param, Nratings, Pointer(Ratings));
+                    NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, Pointer(AmpRatings));
                 end
             else
             // Inherited Property Edits
@@ -931,9 +929,9 @@ begin
     Yorder := Fnterms * Fnconds;
     RecalcElementData(ActiveActor);
 
-    NRatings := 1;
-    setlength(Ratings, NRatings);
-    Ratings[0] := NormAmps;
+    NumAmpRatings := 1;
+    setlength(AmpRatings, NumAmpRatings);
+    AmpRatings[0] := NormAmps;
 
 
 end;
@@ -1451,12 +1449,12 @@ begin
             else
                 Result := '----';
         28:
-            Result := inttostr(Nratings);
+            Result := inttostr(NumAmpRatings);
         29:
         begin
             TempStr := '[';
-            for  k := 1 to Nratings do
-                TempStr := TempStr + floattoStrf(ratings[k - 1], ffGeneral, 8, 4) + ',';
+            for  k := 1 to NumAmpRatings do
+                TempStr := TempStr + floattoStrf(AmpRatings[k - 1], ffGeneral, 8, 4) + ',';
             TempStr := TempStr + ']';
             Result := TempStr;
         end;
@@ -1914,7 +1912,7 @@ var
     NewNumRat,
     j,
     i, istart: Integer;
-    NewRatings: array of Double;
+    NewRatings: TRatingsArray;
 begin
     if not assigned(FLineSpacingObj) then
         DoSimpleMsg('You must assign the LineSpacing before the Wires Property (LINE.' + name + ').', 18102);
@@ -1944,12 +1942,10 @@ begin
         if Assigned(ActiveConductorDataObj) then
         begin
             FLineWireData^[i] := ActiveConductorDataObj;
-            if FLineWireData^[i].Nratings > NewNumRat then
+            if FLineWireData^[i].NumAmpRatings > NewNumRat then
             begin
-                NewNumRat := FLineWireData^[i].Nratings;
-                setlength(NewRatings, NewNumRat);
-                for j := 0 to High(NewRatings) do    {**** I Think you can use Copy for this}
-                    NewRatings[j] := FLineWireData^[i].ratings[j];
+                NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
+                NewNumRat := High(NewRatings) + 1;
                 RatingsInc := true;         // Yes, there are seasonal ratings
             end;
         end
@@ -1959,12 +1955,10 @@ begin
 
     if RatingsInc then
     begin
-        NRatings := NewNumRat;
-        setlength(Ratings, NRatings);
-        for j := 0 to High(Ratings) do        {**** I Think you can use Copy for this}
-            Ratings[j] := NewRatings[j];
+        AmpRatings := Copy(NewRatings);     {**** NewRatings disappears when it goes out of scope}
+        NumAmpRatings := NewNumRat;
     end;
-       {**** NewRatings disappears when it goes out of scope}
+
 end;
 
 procedure TLineObj.FetchCNCableList(const Code: String);
@@ -2042,10 +2036,8 @@ begin
         Yorder := Fnconds * Fnterms;
         YprimInvalid[ActiveActor] := true;       // Force Rebuild of Y matrix
 
-        Nratings := FLineGeometryObj.NRatings;
-        setlength(Ratings, NRatings);
-        for i := 0 to High(Ratings) do
-            Ratings[i] := FLineGeometryObj.ratings[i];
+        NumAmpRatings := FLineGeometryObj.NumAmpRatings;
+        AmpRatings := Copy(FLineGeometryObj.AmpRatings);
 
     end
     else
