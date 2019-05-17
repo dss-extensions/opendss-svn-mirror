@@ -73,7 +73,8 @@ uses
     fMonitor,     // by Dahei
     VSource,
     Executive,
-    ExecOptions;
+    ExecOptions,
+    Parallel_Lib;
 
 const
     CRLF = #13#10;
@@ -136,7 +137,7 @@ const
     PROFILE120KFT = 9992;  // not mutually exclusive to the other choices 9999..9994
 
 var
-
+    LibParallel: TParallel_Lib;
     DLLFirstTime: Boolean = true;
     DLLDebugFile: TextFile;
     ProgramName: String;
@@ -255,6 +256,7 @@ Integer
     UpdateRegistry: Boolean;  // update on program exit
     CPU_Freq: Int64;          // Used to store the CPU frequency
     CPU_Cores: Integer;
+    CPU_Physical: Integer;
     ActiveActor: Integer;
     NumOfActors: Integer;
     ActorCPU: array of Integer;
@@ -372,7 +374,6 @@ uses {Forms,   Controls,}
     {$ENDIF}
     ScriptEdit,
     DSSForms,
-    Parallel_Lib,
     {$ELSE}
      resource, versiontypes, versionresource, dynlibs, CMDForms,
     {$ENDIF}
@@ -769,6 +770,9 @@ begin
         Result := Format('GetFileVersionInfo failed: (%d) %s',
             [iLastError, SysErrorMessage(iLastError)]);
     end;
+    {$ELSE}
+      // Adds the version info as a constant (for now)
+      Result := '8.5.10';
     {$ENDIF}
 end;
 {$ENDIF}
@@ -1135,7 +1139,8 @@ initialization
 
 //***************Initialization for Parallel Processing*************************
 
-    CPU_Cores := CPUCount;
+    CPU_Physical := LibParallel.Get_Processor_Info(NumCore);
+    CPU_Cores := LibParallel.Get_Processor_Info(NumCPU);
 
     setlength(ActiveCircuit, CPU_Cores + 1);
     {$IFNDEF FPC}

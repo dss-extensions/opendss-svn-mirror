@@ -27,7 +27,16 @@ uses
     ,
     vcl.Dialogs
     {$ENDIF}
-    ;
+    ,
+    TypInfo
+    ,
+    uSMBIOS;
+
+const
+
+    NumCPU = 0;
+    NumCore = 1;
+    NumSocket = 2;
 
 type
     TParallel_Lib = class(TObject)
@@ -37,6 +46,7 @@ type
         function Set_Thread_Priority(Hnd: THandle; T_priority: Integer): Integer;
         function Get_Thread_Priority(Hnd: THandle): String;
         function Get_Number_of_CPUs(): Integer;
+        function Get_Processor_Info(InfoType: Integer): Integer;
     end;
 
 implementation
@@ -126,6 +136,35 @@ end;
 function TParallel_Lib.Get_Number_of_CPUs(): Integer;
 begin
     Result := CPUCount;
+end;
+
+function TParallel_Lib.Get_Processor_Info(InfoType: Integer): Integer;
+var
+    SMBios: TSMBios;
+    LProcessorInfo: TProcessorInformation;
+    LSRAMTypes: TCacheSRAMTypes;
+begin
+    SMBios := TSMBios.Create;
+    try
+        if SMBios.HasProcessorInfo then
+        begin
+            for LProcessorInfo in SMBios.ProcessorInfo do
+            begin
+                case InfoType of
+                    NumCPU:
+                        Result := LProcessorInfo.RAWProcessorInformation.ThreadCount; // gets the number of CPUs (Threads)
+                    NumCore:
+                        Result := LProcessorInfo.RAWProcessorInformation^.CoreCount;   // gets the number of physical cores
+                    NumSocket:
+                        Result := 1
+                end;
+            end;
+        end
+        else
+            Result := -1;
+    finally
+        SMBios.Free;
+    end;
 end;
 
 end.
