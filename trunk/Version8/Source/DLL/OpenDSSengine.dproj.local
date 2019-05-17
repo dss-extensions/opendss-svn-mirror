@@ -32,6 +32,7 @@
     <File Path="..\Common\Sparse_Math.pas"/>
     <File Path="..\Common\Terminal.pas"/>
     <File Path="..\Common\TOPExport.pas"/>
+    <File Path="..\Common\uSMBIOS.pas"/>
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
     <File Path="..\Controls"/>
