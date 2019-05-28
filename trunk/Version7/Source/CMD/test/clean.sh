@@ -7,5 +7,5 @@ rm *.xml
 rm ieee13.csv
 rm ieee13_assets.csv
 rm *.Txt
-rm *Exp*.CSV
+rm *EXP*.CSV
 
