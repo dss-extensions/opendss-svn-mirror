@@ -117,6 +117,8 @@ function DoVarCmd: Integer;
 function DoNodeListCmd: Integer;
 function DoRemoveCmd: Integer;
 
+function DoFNCSPubCmd: Integer;
+
 procedure DoSetNormal(pctNormal: Double);
 
 
@@ -185,12 +187,16 @@ RegExpr,
     {$ENDIF}
     PstCalc,
     PDELement,
-    ReduceAlgs;
+    ReduceAlgs
+    {$IFDEF FPC}
+, Fncs
+    {$ENDIF}
+    ;
 
 var
     SaveCommands, DistributeCommands, DI_PlotCommands,
     ReconductorCommands, RephaseCommands, AddMarkerCommands,
-    SetBusXYCommands, PstCalcCommands, RemoveCommands: TCommandList;
+    SetBusXYCommands, PstCalcCommands, RemoveCommands, FNCSPubCommands: TCommandList;
 
 
 //----------------------------------------------------------------------------
@@ -4204,6 +4210,43 @@ begin
 
 end;
 
+
+function DoFNCSPubCmd: Integer;
+    {$IFDEF FPC}
+Var
+  Param          :String;
+  ParamName      :String;
+  ParamPointer   :Integer;
+  FileName       :String;
+Begin
+  Result := 0;
+  ParamName      := Parser[ActiveActor].NextParam;
+  Param          := Parser[ActiveActor].StrValue;
+  ParamPointer   := 0;
+  while Length(Param) > 0 do Begin
+    IF Length(ParamName) = 0 THEN Inc(ParamPointer)
+    ELSE ParamPointer := FNCSPubCommands.GetCommand(ParamName);
+
+    Case ParamPointer of
+       1: FileName := Param;
+    Else
+       DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28728);
+    End;
+    ParamName := Parser[ActiveActor].NextParam;
+    Param := Parser[ActiveActor].StrValue;
+  End;
+  if Assigned (ActiveFNCS) then begin
+    if ActiveFNCS.IsReady then begin
+      ActiveFNCS.ReadFncsPubConfig (FileName);
+    end;
+  end;
+    {$ELSE}
+begin
+    DoSimpleMsg('Error: FNCS only supported in the Free Pascal version', 28728);
+    {$ENDIF}
+end;
+
+
 function DoUpdateStorageCmd: Integer;
 
 begin
@@ -4507,6 +4550,9 @@ initialization
     PstCalcCommands := TCommandList.Create(['Npts', 'Voltages', 'dt', 'Frequency', 'lamp']);
     PstCalcCommands.abbrev := true;
 
+    FNCSPubCommands := TCommandList.Create(['Fname']);
+    FNCSPubCommands.abbrev := true;
+
     RemoveCommands := TCommandList.Create(['ElementName', 'KeepLoad', 'Editstring']);
     RemoveCommands.abbrev := true;
 
@@ -4520,6 +4566,7 @@ finalization
     RephaseCommands.Free;
     SetBusXYCommands.Free;
     PstCalcCommands.Free;
+    FNCSPubCommands.Free;
     RemoveCommands.Free;
 
 end.

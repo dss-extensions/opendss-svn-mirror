@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 118;
+    NumExecCommands = 119;
 
 var
 
@@ -176,6 +176,7 @@ begin
     ExecCommand[116] := 'Abort';
     ExecCommand[117] := 'CalcLaplacian';
     ExecCommand[118] := 'Clone';
+    ExecCommand[119] := 'FNCSPublish';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -525,6 +526,7 @@ begin
     CommandHelp[118] := 'Clones the active circuit. This command creates as many copies of the active cirucit as indicated in the argument' + CRLF +
         'if the number of requested clones does not overpasses the number of local CPUs. The form of this command is clone X where' + CRLF +
         'X is the number of clones to be created';
+    CommandHelp[119] := 'Read FNCS publication topics from a JSON file';
 
 end;
 
@@ -951,6 +953,8 @@ begin
                 SolutionAbort := true;
             118:
                 DoClone;
+            119:
+                DoFNCSPubCmd;
         else
        // Ignore excess parameters
         end;

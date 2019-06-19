@@ -77,7 +77,7 @@ uses
     Parallel_Lib;
 
 const
-    CRLF = #13#10;
+    CRLF = sLineBreak; // cross-platform
 
     PI = 3.14159265359;
 
@@ -256,6 +256,7 @@ Integer
     UpdateRegistry: Boolean;  // update on program exit
     CPU_Freq: Int64;          // Used to store the CPU frequency
     CPU_Cores: Integer;
+    NumNUMA: Integer;        // To store the number of NUMA nodes (should be the same as sockets)
     CPU_Physical: Integer;
     ActiveActor: Integer;
     NumOfActors: Integer;
@@ -376,6 +377,9 @@ uses {Forms,   Controls,}
     DSSForms,
     {$ELSE}
      resource, versiontypes, versionresource, dynlibs, CMDForms,
+    {$ENDIF}
+    {$IFDEF UNIX}
+     BaseUnix,
     {$ENDIF}
     SysUtils;
      {Intrinsic Ckt Elements}
@@ -794,6 +798,13 @@ begin
 
 end;
 
+
+{$IFDEF UNIX}
+function IsDirectoryWritable(const Dir: String): Boolean;
+begin
+  Result := (FpAccess(PChar(Dir), X_OK or W_OK) = 0);
+end;
+{$ELSE}
 function IsDirectoryWritable(const Dir: String): Boolean;
 var
     TempFile: array[0..MAX_PATH] of Char;
@@ -809,6 +820,7 @@ Result := DeleteFile(TempFile)
     else
         Result := false;
 end;
+{$ENDIF}
 
 procedure SetDataPath(const PathName: String);
 var
@@ -1139,8 +1151,9 @@ initialization
 
 //***************Initialization for Parallel Processing*************************
 
-    CPU_Physical := LibParallel.Get_Processor_Info(NumCore);
-    CPU_Cores := LibParallel.Get_Processor_Info(NumCPU);
+    NumNUMA := LibParallel.Get_Processor_Info(NumSocket);
+    CPU_Physical := LibParallel.Get_Processor_Info(NumCore) * NumNUMA;
+    CPU_Cores := LibParallel.Get_Processor_Info(NumCPU) * NumNUMA;
 
     setlength(ActiveCircuit, CPU_Cores + 1);
     {$IFNDEF FPC}

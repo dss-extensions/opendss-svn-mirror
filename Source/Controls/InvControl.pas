@@ -2072,8 +2072,7 @@ begin
                     exit;
                   // if inverter is off then exit
                 if (ControlledElement[i].InverterON = false) and (ControlledElement[i].VarFollowInverter = true) then
-                    exit;
-
+                    continue;
                   // if the volt-var curve does not exist, exit
                 if Length(Fvvc_curvename) = 0 then
                 begin
@@ -2158,7 +2157,7 @@ begin
                   // if inverter is off then exit
 //                  if (ControlledElement[i].InverterON = FALSE) then exit;
                 if (ControlledElement[i].InverterON = false) and (ControlledElement[i].VarFollowInverter = true) then
-                    exit;
+                    continue;
 
                   // if volt-watt curve does not exist, exit
                 if Length(Fvoltwatt_curvename) = 0 then
@@ -2168,7 +2167,7 @@ begin
                 end;
                   // if inverter is off and varfollowinverter is true, then exit.
                 if (ControlledElement[i].InverterON = false) and (ControlledElement[i].VarFollowInverter = true) then
-                    exit;
+                    continue;
 
                   // if the volt-var curve does not exist, exit
                 if Length(Fvvc_curvename) = 0 then
@@ -2257,7 +2256,7 @@ begin
             if ControlMode = 'VOLTWATT' then  // volt-watt control mode
             begin
                 if (ControlledElement[i].InverterON = false) then
-                    exit;
+                    continue;
 
                 if Length(Fvoltwatt_curvename) = 0 then
                 begin
@@ -2317,7 +2316,7 @@ begin
             begin
 
                 if (ControlledElement[i].InverterON = false) and (ControlledElement[i].VarFollowInverter = true) then
-                    exit;
+                    continue;
                 ControlledElement[i].VWmode := false;
                 if Length(Fvvc_curvename) = 0 then
                 begin
@@ -2379,7 +2378,7 @@ begin
             if ControlMode = 'DYNAMICREACCURR' then // dynamic reactive current control mode
             begin
                 if (ControlledElement[i].InverterON = false) and (ControlledElement[i].VarFollowInverter = true) then
-                    exit;
+                    continue;
                 ControlledElement[i].VWmode := false;
                   //DRC triggers
                 if (priorDRCRollAvgWindow[i] = 0.0) then
@@ -3036,8 +3035,11 @@ begin
         priorDRCRollAvgWindow[j] := FDRCRollAvgWindow[j].Get_AvgVal;
              // compute the present terminal voltage
         localControlledElement.ComputeVterminal(ActorID);
-        PVSys.Set_Variable(5, FDRCRollAvgWindow[j].Get_AvgVal); // save rolling average voltage in monitor
-
+             // save the applicable rolling average voltage in monitor
+        if (ControlMode = 'VOLTVAR') and (FVAvgWindowLengthSec > 0.0) then
+            PVSys.Set_Variable(5, FRollAvgWindow[j].Get_AvgVal)
+        else
+            PVSys.Set_Variable(5, FDRCRollAvgWindow[j].Get_AvgVal);
 
         for k := 1 to localControlledElement.Yorder do
             tempVbuffer[k] := localControlledElement.Vterminal^[k];

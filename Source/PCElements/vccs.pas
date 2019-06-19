@@ -49,6 +49,11 @@ type
         FsampleFreq: Double; // discretization frequency for Z filter
         Fwinlen: Integer;
         Ffiltlen: Integer;
+        Irated: Double; // line current at full output
+        Fkv: Double; // scale voltage to HW pu input
+        Fki: Double; // scale HW pu output to current
+        FrmsMode: Boolean; // indicates a phasor-domain PLL simulation
+        FmaxIpu: Double; // maximum RMS current in per-unit of rated
 
         // Support for Dynamics Mode
         sVwave: Double;
@@ -66,6 +71,7 @@ type
         sIdxU: Integer; // ring buffer index for z and whist
         sIdxY: Integer; // ring buffer index for y2 (rms current)
         y2sum: Double;
+        procedure IntegratePhasorStates(ActorID: Integer);
     PROTECTED
         function Get_Variable(i: Integer): Double; OVERRIDE;
         procedure Set_Variable(i: Integer; Value: Double); OVERRIDE;
@@ -152,7 +158,7 @@ end;
 
 procedure TVCCS.DefineProperties;
 begin
-    NumPropsThisClass := 9;
+    NumPropsThisClass := 11;
 
     Numproperties := NumPropsThisClass;
     CountProperties;   // Get inherited property count
@@ -168,6 +174,8 @@ begin
     PropertyName[7] := 'bp2';
     PropertyName[8] := 'filter';
     PropertyName[9] := 'fsample';
+    PropertyName[10] := 'rmsmode';
+    PropertyName[11] := 'imaxpu';
 
      // define Property help values
     PropertyHelp[1] := 'Name of bus to which source is connected.' + CRLF + 'bus1=busname' + CRLF + 'bus1=busname.1.2.3';
@@ -179,6 +187,8 @@ begin
     PropertyHelp[7] := 'XYCurve defining the output piece-wise linear block.';
     PropertyHelp[8] := 'XYCurve defining the digital filter coefficients (x numerator, y denominator).';
     PropertyHelp[9] := 'Sample frequency [Hz} for the digital filter.';
+    PropertyHelp[10] := 'True if only Hz is used to represent a phase-locked loop (PLL), ignoring the BP1, BP2 and time-domain transformations. Default is no.';
+    PropertyHelp[11] := 'Maximum output current in per-unit of rated; defaults to 1.1';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -305,6 +315,8 @@ begin
             Fbp2_name := OtherVCCS.Fbp2_name;
             Ffilter_name := OtherVCCS.Ffilter_name;
             FsampleFreq := OtherVCCS.FsampleFreq;
+            FrmsMode := OtherVCCS.FrmsMode;
+            FmaxIpu := OtherVCCS.FmaxIpu;
 
             ClassMakeLike(OtherVCCS); // set spectrum,  base frequency
 
@@ -336,6 +348,10 @@ begin
     Vrated := 208.0;
     Ppct := 100.0;
     FsampleFreq := 5000.0;
+    Fkv := 1.0;
+    Fki := 1.0;
+    FrmsMode := false;
+    FmaxIpu := 1.1;
 
     Fwinlen := 0;
     Ffilter_name := '';
@@ -370,10 +386,16 @@ begin
     begin
         DoSimpleMsg('Spectrum Object "' + Spectrum + '" for Device VCCS.' + Name + ' Not Found.', 333);
     end;
-    if Assigned(InjCurrent) then
-        Reallocmem(InjCurrent, 0); // if already allocated, clean it up
+
     Reallocmem(InjCurrent, SizeOf(InjCurrent^[1]) * Yorder);
-    BaseCurr := 0.01 * Ppct * Prated / Vrated / FNphases;
+
+    Irated := Prated / Vrated / FNphases;
+    if FNPhases = 3 then
+        Irated := Irated * sqrt(3);
+    BaseCurr := 0.01 * Ppct * Irated;
+    Fkv := 1.0 / Vrated / sqrt(2.0);
+    Fki := BaseCurr * sqrt(2.0);
+
     if Length(Ffilter_name) > 0 then
     begin
         Ffiltlen := Ffilter.NumPoints;
@@ -385,8 +407,6 @@ begin
         Reallocmem(zlast, sizeof(zlast^[1]) * Ffiltlen);
     end;
 
-    if FNPhases = 3 then
-        BaseCurr := BaseCurr * sqrt(3);
 end;
 
 procedure TVCCSObj.CalcYPrim(ActorID: Integer);
@@ -488,6 +508,8 @@ begin
     PropertyValue[7] := 'NONE';
     PropertyValue[8] := 'NONE';
     PropertyValue[9] := '5000';
+    PropertyValue[10] := 'no';
+    PropertyValue[11] := '1.1';
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
 
@@ -506,21 +528,20 @@ end;
 //     However, OpenDSS uses the load convention
 procedure TVCCSObj.InitStateVars(ActorID: Integer);
 var
-    d, wt, wd, val, iang, vang, pk: Double;
+    d, wt, wd, val, iang, vang: Double;
     i, k: Integer;
 begin
   // initialize outputs from the terminal conditions
     ComputeIterminal(ActorID);
     iang := cang(Iterminal^[1]);
     vang := cang(Vterminal^[1]);
-    pk := sqrt(2);
-    sVwave := cabs(Vterminal^[1]) * pk;
-    sIrms := cabs(Iterminal^[1]);
-    sIwave := sIrms * pk;
-    sIpeak := sIrms * pk;
+    sVwave := cabs(Vterminal^[1]) / Vrated;
+    sIrms := cabs(Iterminal^[1]) / BaseCurr;
+    sIwave := sIrms;
+    sIpeak := sIrms;
     sBP1out := 0;
     sFilterout := 0;
-    vlast := Vterminal^[1];
+    vlast := cdivreal(Vterminal^[1], Vrated);
 
   // initialize the history terms for HW model source convention
     d := 1 / FsampleFreq;
@@ -535,7 +556,7 @@ begin
     for i := 1 to Fwinlen do
     begin
         wt := iang - wd * (Fwinlen - i);
-        val := pk * sIrms * cos(wt);  // current by passive sign convention
+        val := sIrms * cos(wt);  // current by passive sign convention
         y2[i] := val * val;
         k := i - Fwinlen + Ffiltlen;
         if k > 0 then
@@ -550,15 +571,42 @@ begin
     sIdxY := 0;
 end;
 
+procedure TVCCSObj.IntegratePhasorStates(ActorID: Integer);
+var
+    vpu, irms, imax: Double;
+begin
+    ComputeIterminal(ActorID);
+    vpu := cabs(Vterminal^[1]) / Vrated;
+    if vpu > 0.0 then
+    begin
+        irms := BaseCurr / vpu;
+        imax := FmaxIpu * Irated;
+        if irms > imax then
+            irms := imax;
+        sIrms := irms / BaseCurr;
+        if sIrms > sIpeak then
+            sIpeak := sIrms;
+    end;
+    sVwave := 0.0;
+    sIwave := 0.0;
+end;
+
+
 // this is called twice per dynamic time step; predictor then corrector
 procedure TVCCSObj.IntegrateStates(ActorID: Integer);
 var
-    t, h, d, f, w, wt, pk: Double;
+    t, h, d, f, w, wt: Double;
     vre, vim, vin, scale, y: Double;
     nstep, i, k, corrector: Integer;
     vnow: complex;
     iu, iy: Integer; // local copies of sIdxU and sIdxY for predictor
 begin
+    if FrmsMode then
+    begin
+        IntegratePhasorStates(ActorID);
+        exit;
+    end;
+
     ComputeIterminal(ActorID);
 
     t := ActiveSolutionObj.DynaVars.t;
@@ -568,9 +616,8 @@ begin
     d := 1 / FSampleFreq;
     nstep := trunc(1e-6 + h / d);
     w := 2 * Pi * f;
-    pk := sqrt(2);
 
-    vnow := Vterminal^[1];
+    vnow := cdivreal(Vterminal^[1], Vrated);
     vin := 0;
     y := 0;
     iu := sIdxU;
@@ -588,7 +635,7 @@ begin
         vre := vlast.re + (vnow.re - vlast.re) * scale;
         vim := vlast.im + (vnow.im - vlast.im) * scale;
         wt := w * (t - h + i * d);
-        vin := pk * (vre * cos(wt) + vim * sin(wt));
+        vin := (vre * cos(wt) + vim * sin(wt));
         whist[iu] := Fbp1.GetYValue(vin);
     // apply the filter and second PWL block
         z[iu] := 0;
@@ -612,7 +659,7 @@ begin
             y2sum := 0.0;
             for k := 1 to Fwinlen do
                 y2sum := y2sum + y2[k];
-            sIrms := sqrt(y2sum / Fwinlen); // TODO - this is the magnitude, what about angle?
+            sIrms := sqrt(2.0 * y2sum / Fwinlen); // TODO - this is the magnitude, what about angle?
         end;
     end;
 
