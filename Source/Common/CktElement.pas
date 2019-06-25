@@ -48,6 +48,7 @@ type
         function Get_Losses(ACtorID: Integer): Complex;   // Get total losses for property...
         function Get_Power(idxTerm: Integer; ActorID: Integer): Complex;    // Get total complex power in active terminal
         function Get_MaxPower(idxTerm: Integer; ActorID: Integer): Complex;    // Get eauivalent total complex power in active terminal based on phase with max current
+        function Get_MaxCurrent(idxTerm: Integer; ActorID: Integer): Double;    // Get eauivalent total complex current on phase with max current
 
 
         procedure DoYprimCalcs(Ymatrix: TCMatrix);
@@ -152,6 +153,7 @@ type
         property Losses[ActorID: Integer]: Complex READ Get_Losses;
         property Power[idxTerm: Integer; ActorID: Integer]: Complex READ Get_Power;  // Total power in active terminal
         property MaxPower[idxTerm: Integer; ActorID: Integer]: Complex READ Get_MaxPower;  // Total power in active terminal
+        property MaxCurrent[idxTerm: Integer; ActorID: Integer]: Double READ Get_MaxCurrent;  // Max current in active terminal
         property ActiveTerminalIdx: Integer READ FActiveTerminal WRITE Set_ActiveTerminal;
         property Closed[Index: Integer;ActorID: Integer]: Boolean READ Get_ConductorClosed WRITE Set_ConductorClosed;
         procedure SumCurrents(ActorID: Integer);
@@ -830,6 +832,38 @@ begin
     end;
 
     Result := cPower;
+end;
+
+function TDSSCktElement.Get_MaxCurrent(idxTerm: Integer; ActorID: Integer): Double;
+var
+    i, k,
+    nref: Integer;
+    MaxCurr,
+    CurrMag: Double;
+    MaxPhase: Integer;
+
+begin
+    ActiveTerminalIdx := idxTerm;   // set active Terminal
+    MaxCurr := 0.0;
+    if FEnabled then
+    begin
+        ComputeIterminal(ActorID);
+    // Method: Get max current at terminal (magnitude)
+        MaxCurr := 0.0;
+        MaxPhase := 1;  // Init this so it has a non zero value
+        k := (idxTerm - 1) * Fnconds; // starting index of terminal
+        for i := 1 to Fnphases do
+        begin
+            CurrMag := Cabs(Iterminal[k + i]);
+            if CurrMag > MaxCurr then
+            begin
+                MaxCurr := CurrMag;
+                MaxPhase := i
+            end;
+        end;
+    end;
+
+    Result := MaxCurr;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
