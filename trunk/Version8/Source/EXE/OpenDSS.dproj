@@ -172,11 +172,11 @@
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=8.5.10.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=8.6.1.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_MinorVer>5</VerInfo_MinorVer>
+        <VerInfo_MinorVer>6</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
@@ -184,11 +184,11 @@
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=8.5.10.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=8.6.1.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_MinorVer>5</VerInfo_MinorVer>
+        <VerInfo_MinorVer>6</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Release>10</VerInfo_Release>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
@@ -220,9 +220,9 @@
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <VerInfo_Debug>true</VerInfo_Debug>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Debug Version Distribution System Simulator;FileVersion=8.3.5.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Debug Version Distribution System Simulator;FileVersion=8.4.5.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_MinorVer>3</VerInfo_MinorVer>
+        <VerInfo_MinorVer>4</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_Release>5</VerInfo_Release>
     </PropertyGroup>
