@@ -1,9 +1,9 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2018, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 8.5.9.1
+Version 8.6.1.1
 
 The Version 8 is the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions.  The OpenDSSInstaller download includes both X86 and X64 versions, along 
