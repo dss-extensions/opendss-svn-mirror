@@ -73,8 +73,9 @@ uses
     fMonitor,     // by Dahei
     VSource,
     Executive,
-    ExecOptions,
-    Parallel_Lib;
+    ExecOptions
+//     Parallel_Lib
+    ;
 
 const
     CRLF = sLineBreak; // cross-platform
@@ -137,7 +138,7 @@ const
     PROFILE120KFT = 9992;  // not mutually exclusive to the other choices 9999..9994
 
 var
-    LibParallel: TParallel_Lib;
+//   LibParallel    : TParallel_Lib;
     DLLFirstTime: Boolean = true;
     DLLDebugFile: TextFile;
     ProgramName: String;
@@ -1147,13 +1148,28 @@ begin
 end;
 //{$ENDIF}
 
+//*********************Gets the processor information***************************
+procedure Get_Processor_Info();
+var
+    idx: Integer;
+
+begin
+    NumNUMA := GetMaximumProcessorGroupCount();
+    CPU_Physical := 0;
+    CPU_Cores := 0;
+
+    for idx := 0 to Pred(NumNUMA) do
+    begin
+        CPU_Physical := (GetActiveProcessorCount(idx) div 2) + CPU_Physical; // Until finding a more elegant way to do it
+        CPU_Cores := GetActiveProcessorCount(idx) + CPU_Cores;
+    end;
+end;
+
 initialization
 
 //***************Initialization for Parallel Processing*************************
 
-    NumNUMA := LibParallel.Get_Processor_Info(NumSocket);
-    CPU_Physical := LibParallel.Get_Processor_Info(NumCore) * NumNUMA;
-    CPU_Cores := LibParallel.Get_Processor_Info(NumCPU) * NumNUMA;
+    Get_processor_info();
 
     setlength(ActiveCircuit, CPU_Cores + 1);
     {$IFNDEF FPC}

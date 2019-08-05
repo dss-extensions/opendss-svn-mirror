@@ -783,6 +783,7 @@ function TDSSCktElement.Get_MaxPower(idxTerm: Integer; ActorID: Integer): Comple
 {Get power in the phase with the max current and return equivalent power as if it were balanced in all phases
  2/12/2019}
 var
+    volts,
     cPower: Complex;
     i, k,
     nref: Integer;
@@ -814,9 +815,13 @@ begin
             end;
         end;
 
-        nref := ActiveTerminal.TermNodeRef^[k + MaxPhase]; // grounded node will give zero
+
+        nref := ActiveTerminal.TermNodeRef^[MaxPhase]; // grounded node will give zero
         with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
+        begin
+            volts := NodeV^[nref];
             Cpower := Cmul(NodeV^[nref], conjg(Iterminal[k + MaxPhase]));
+        end;
 
        // Compute equivalent total power of all phases assuming equal to max power in all phases
         with Cpower do
