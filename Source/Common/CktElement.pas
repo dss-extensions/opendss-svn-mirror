@@ -786,6 +786,7 @@ var
     volts,
     cPower: Complex;
     i, k,
+    nrefN,
     nref: Integer;
     MaxCurr,
     CurrMag: Double;
@@ -816,11 +817,12 @@ begin
         end;
 
 
-        nref := ActiveTerminal.TermNodeRef^[MaxPhase]; // grounded node will give zero
+        nref := ActiveTerminal.TermNodeRef^[MaxPhase]; // reference to the phase voltage with the max current
+        nrefN := ActiveTerminal.TermNodeRef^[Fnconds];  // reference to the ground terminal (GND or other phase)
         with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
         begin
-            volts := NodeV^[nref];
-            Cpower := Cmul(NodeV^[nref], conjg(Iterminal[k + MaxPhase]));
+            volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            Cpower := Cmul(volts, conjg(Iterminal[k + MaxPhase]));
         end;
 
        // Compute equivalent total power of all phases assuming equal to max power in all phases
