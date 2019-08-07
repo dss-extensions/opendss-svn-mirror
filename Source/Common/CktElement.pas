@@ -21,7 +21,8 @@ uses
     Terminal,
     DSSObject,
     DSSClass,
-    PointerList;
+    PointerList,
+    DSSClassDefs;
 
 type
 
@@ -786,13 +787,13 @@ var
     volts,
     VN,
     cPower: Complex;
+    ClassIdx,
     i, k,
     nrefN,
     nref: Integer;
     MaxCurr,
     CurrMag: Double;
     MaxPhase: Integer;
-    Parent: String;
 
 begin
 
@@ -818,13 +819,14 @@ begin
             end;
         end;
 
-        Parent := ParentClass.Name;
+
+        ClassIdx := DSSObjType and CLASSMASK;              // gets the parent class descriptor (int)
         nref := ActiveTerminal.TermNodeRef^[MaxPhase]; // reference to the phase voltage with the max current
         nrefN := ActiveTerminal.TermNodeRef^[Fnconds];  // reference to the ground terminal (GND or other phase)
         with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
         begin
 
-            if not (Parent = 'Transformer') then           // Only for transformers
+            if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
                 volts := NodeV^[nref]
             else
                 volts := csub(NodeV^[nref], NodeV^[nrefN]);
