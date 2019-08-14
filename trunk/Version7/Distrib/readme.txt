@@ -1,9 +1,9 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2016, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 7.6.5
+Version 7.6.5.91
 
 The 7.6 version is the first to be delivered in both 32-bit (X86) and 
 64-bit (X64) versions.  The OpenDSSInstaller download includes both, along 
@@ -12,7 +12,17 @@ with optional documentation and examples.
 If you have 64-bit Windows, you may install both the 64-bit and 32-bit 
 versions.  The 32-bit version is required if you plan to automate OpenDSS 
 from Excel or any other 32-bit program.  The 64-bit version is required to 
-automate OpenDSS from 64-bit MatLab on a 64-bit system.  
+automate OpenDSS from 64-bit MatLab on a 64-bit system.
+  
+New features in 7.6.5.91:
+  
+1 - Export CIM100 command; older CIM export versions no longer supported
+  
+2 - VCCS component updated with a single-phase phasor mode, 
+    as described at IEEE PVSC 46
+  
+3 - ExpControl component updated with open-loop response time and 
+    PreferQ option, as described at IEEE PVSC 46  
 
 Installation
 ============
