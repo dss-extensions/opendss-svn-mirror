@@ -8,4 +8,4 @@ rm ieee13.csv
 rm ieee13_assets.csv
 rm *.Txt
 rm *EXP*.CSV
-
+rm *trace.txt
