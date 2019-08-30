@@ -156,6 +156,7 @@ type
         Generators,
         StorageElements,
         PVSystems,
+        PVSystems2,
         Substations,
         Transformers,
         CapControls,
@@ -299,6 +300,7 @@ type
         MarkCapacitors: Boolean;
         MarkRegulators: Boolean;
         MarkPVSystems: Boolean;
+        MarkPVSystems2: Boolean;
         MarkStorage: Boolean;
         MarkFuses: Boolean;
         MarkReclosers: Boolean;
@@ -434,6 +436,7 @@ begin
     Generators := TPointerList.Create(5);
     StorageElements := TPointerList.Create(5);
     PVSystems := TPointerList.Create(5);
+    PVSystems2 := TPointerList.Create(5);
     Feeders := TPointerList.Create(10);
     Substations := TPointerList.Create(5);
     Transformers := TPointerList.Create(10);
@@ -516,6 +519,7 @@ begin
     MarkCapacitors := false;
     MarkRegulators := false;
     MarkPVSystems := false;
+    MarkPVSystems2 := false;
     MarkStorage := false;
     MarkFuses := false;
     MarkReclosers := false;
@@ -644,6 +648,7 @@ begin
     Generators.Free;
     StorageElements.Free;
     PVSystems.Free;
+    PVSystems2.Free;
     Feeders.Free;
     Substations.Free;
     Transformers.Free;
@@ -1644,6 +1649,8 @@ begin
             StorageElements.Add(ActiveCktElement);
         PVSYSTEM_ELEMENT:
             PVSystems.Add(ActiveCktElement);
+        PVSYSTEM2_ELEMENT:
+            PVSystems2.Add(ActiveCktElement);
     end;
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle

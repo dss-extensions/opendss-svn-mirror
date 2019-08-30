@@ -59,6 +59,7 @@ uses
     LineSpacing,
     Storage,
     PVSystem,
+    PVSystem2,
     InvControl,
     ExpControl,
     variants,
@@ -243,6 +244,7 @@ Integer
     LineSpacingClass: array of TLineSpacing;
     StorageClass: array of TStorage;
     PVSystemClass: array of TPVSystem;
+    PVSystem2Class: array of TPVSystem2;
     InvControlClass: array of TInvControl;
     ExpControlClass: array of TExpControl;
     ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -1205,6 +1207,7 @@ initialization
     setlength(LineSpacingClass, CPU_Cores + 1);
     setlength(StorageClass, CPU_Cores + 1);
     setlength(PVSystemClass, CPU_Cores + 1);
+    setlength(PVSystem2Class, CPU_Cores + 1);
     setlength(InvControlClass, CPU_Cores + 1);
     setlength(ExpControlClass, CPU_Cores + 1);
     setlength(EventStrings, CPU_Cores + 1);
