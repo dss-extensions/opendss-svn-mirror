@@ -9,3 +9,5 @@ rm ieee13_assets.csv
 rm *.Txt
 rm *EXP*.CSV
 rm *trace.txt
+rm weather.csv
+rm *house*.csv
