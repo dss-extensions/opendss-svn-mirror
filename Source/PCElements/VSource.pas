@@ -69,7 +69,7 @@ type
         puZ2Specified,
         Z2Specified,
         Z0Specified,
-        IsQuasiIdeal: Boolean;
+        IsQuasiIdeal: Boolean;  // Use puZideal for power flow
 
         ScanType: Integer;
         SequenceType: Integer;
