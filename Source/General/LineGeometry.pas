@@ -63,7 +63,7 @@ type
 
     TLineGeometryObj = class(TDSSObject)
     PRIVATE
-        FPhaseChoice: ConductorChoice;
+        FPhaseChoice: pConductorChoiceArray;
         FNConds: Integer;
         FNPhases: Integer;
         FCondName: pStringArray;
@@ -96,6 +96,7 @@ type
         function Get_FUnits(i: Integer): Integer;
         function Get_ConductorName(i: Integer): String;
         function Get_ConductorData(i: Integer): TConductorDataObj;
+        function Get_PhaseChoice(i: Integer): ConductorChoice;
 
     PUBLIC
 
@@ -130,7 +131,7 @@ type
         property ConductorName[i: Integer]: String READ Get_ConductorName;
         property ConductorData[i: Integer]: TConductorDataObj READ Get_ConductorData;
         property NWires: Integer READ FNConds;
-        property PhaseChoice: ConductorChoice READ FPhaseChoice;
+        property PhaseChoice[i: Integer]: ConductorChoice READ Get_PhaseChoice;
     end;
 
 var
@@ -294,7 +295,7 @@ begin
                 4:
                 begin
                     FCondName^[ActiveCond] := Param;
-                    if FPhaseChoice = Unknown then
+                    if FPhaseChoice^[ActiveCond] = Unknown then
                         ChangeLineConstantsType(Overhead);
                 end;
                 5:
@@ -362,7 +363,7 @@ begin
                     else
                     if ParamPointer = 12 then
                     begin
-                        if FPhaseChoice = Unknown then
+                        if FPhaseChoice^[ActiveCond] = Unknown then
                             ChangeLineConstantsType(Overhead)
                         else // these are buried neutral wires
                             istart := FNPhases + 1;
@@ -483,10 +484,11 @@ begin
     if OtherLineGeometry <> nil then
         with ActiveLineGeometryObj do
         begin
-            FPhaseChoice := OtherLineGeometry.FPhaseChoice;
             NConds := OtherLineGeometry.NWires;   // allocates
             FNphases := OtherLineGeometry.FNphases;
             FSpacingType := OtherLineGeometry.FSpacingType;
+            for i := 1 to FNConds do
+                FPhaseChoice^[i] := OtherLineGeometry.FPhaseChoice^[i];
             for i := 1 to FNConds do
                 FCondName^[i] := OtherLineGeometry.FCondName^[i];
             for i := 1 to FNConds do
@@ -567,7 +569,7 @@ begin
 
     DataChanged := true;
 
-    FPhaseChoice := Unknown;
+    FPhaseChoice := nil;
     FCondName := nil;
     FWireData := nil;
     FX := nil;
@@ -607,6 +609,7 @@ begin
     Reallocmem(FY, 0);
     Reallocmem(FX, 0);
     Reallocmem(Funits, 0);
+    Reallocmem(FPhaseChoice, 0);
 
     inherited destroy;
 end;
@@ -734,6 +737,11 @@ begin
         Result := FNConds;
 end;
 
+function TLineGeometryObj.Get_PhaseChoice(i: Integer): ConductorChoice;
+begin
+    Result := FPhaseChoice^[i];
+end;
+
 function TLineGeometryObj.Get_RhoEarth: Double;
 begin
     Result := FLineData.rhoearth;
@@ -784,6 +792,7 @@ procedure TLineGeometryObj.SaveWrite(var F: TextFile);
 {Linegeometry structure not conducive to standard means of saving}
 var
     TempStr: String;
+    strPhaseChoice: String;
     j,
     iprop: Integer;
     i: Integer;
@@ -803,8 +812,20 @@ begin
                 3, 11, 12:
                 begin   // if cond=, spacing, or wires were ever used write out arrays ...
                     for i := 1 to Fnconds do
-                        Writeln(F, Format('~ Cond=%d wire=%s X=%.7g h=%.7g units=%s',
-                            [i, FCondName^[i], FX^[i], FY^[i], LineUnitsStr(FUnits^[i])]));
+                    begin
+                        case PhaseChoice[i] of
+                            Overhead:
+                                strPhaseChoice := 'wire';
+                            ConcentricNeutral:
+                                strPhaseChoice := 'cncable';
+                            TapeShield:
+                                strPhaseChoice := 'tscable';
+                        else
+                            strPhaseChoice := 'wire';
+                        end;
+                        Writeln(F, Format('~ Cond=%d %s=%s X=%.7g h=%.7g units=%s',
+                            [i, strPhaseChoice, FCondName^[i], FX^[i], FY^[i], LineUnitsStr(FUnits^[i])]));
+                    end;
                 end;
                 4..7:
 {do Nothing}; // Ignore these properties;
@@ -815,6 +836,7 @@ begin
                 10:
                     if FReduce then
                         Writeln(F, '~ Reduce=Yes');
+                13..14: ;   {do Nothing} // Ignore these properties;
                 18:
                 begin
                     TempStr := '[';
@@ -851,7 +873,7 @@ var
 begin
     newLineData := nil;
     needNew := false;
-    if newPhaseChoice <> FPhaseChoice then
+    if newPhaseChoice <> FPhaseChoice^[ActiveCond] then
         needNew := true;
     if not Assigned(FLineData) then
         needNew := true
@@ -880,7 +902,7 @@ begin
             FreeAndNil(FLineData);
         FLineData := newLineData;
     end;
-    FPhaseChoice := newPhaseChoice;
+    FPhaseChoice^[ActiveCond] := newPhaseChoice;
 end;
 
 procedure TLineGeometryObj.set_Nconds(const Value: Integer);
@@ -894,16 +916,17 @@ begin
     if Assigned(FLineData) then
         FreeAndNil(FLineData);
 
-    ChangeLineConstantsType(FPhaseChoice);
-    FCondName := AllocStringArray(FNconds);
 
   {Allocations}
     Reallocmem(FWireData, Sizeof(FWireData^[1]) * FNconds);
     Reallocmem(FX, Sizeof(FX^[1]) * FNconds);
     Reallocmem(FY, Sizeof(FY^[1]) * FNconds);
     Reallocmem(FUnits, Sizeof(Funits^[1]) * FNconds);
+    Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
 
 {Initialize Allocations}
+    for i := 1 to FNconds do
+        FPhaseChoice^[i] := Overhead;
     for i := 1 to FNconds do
         FWireData^[i] := nil;
     for i := 1 to FNconds do
@@ -913,6 +936,14 @@ begin
     for i := 1 to FNconds do
         FUnits^[i] := -1;  // default to ft
     FLastUnit := UNITS_FT;
+
+    for i := 1 to FNconds do
+    begin
+        ActiveCond := i;
+        ChangeLineConstantsType(Overhead);    // works on activecond
+    end;
+    FCondName := AllocStringArray(FNconds);
+
 
 end;
 
