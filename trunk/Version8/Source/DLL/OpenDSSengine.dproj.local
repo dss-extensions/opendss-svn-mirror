@@ -147,6 +147,7 @@
     <File Path="..\PCElements\PCClass.pas"/>
     <File Path="..\PCElements\PCElement.pas"/>
     <File Path="..\PCElements\PVsystem.pas"/>
+    <File Path="..\PCElements\PVsystem2.pas"/>
     <File Path="..\PCElements\PVSystemUserModel.pas"/>
     <File Path="..\PCElements\Storage.pas"/>
     <File Path="..\PCElements\StorageVars.pas"/>
