@@ -83,6 +83,7 @@ type
         TotalkWCapacity,
         TotalkWhCapacity,
         pctFleetReserve,
+        ResetLevel,
         kWNeeded: Double;
 
         FStorageNameList: TStringList;
@@ -234,8 +235,9 @@ const
     propTFLAT = 32;
     propTDNRAMP = 33;
     propKWTHRESHOLD = 34;
+    propRESETLEVEL = 35;
 
-    NumPropsThisClass = 34;
+    NumPropsThisClass = 35;
 
 //= = = = = = = = = = = = = = DEFINE CONTROL MODE CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -320,6 +322,7 @@ begin
     PropertyName[propTFLAT] := 'TFlat';
     PropertyName[propTDNRAMP] := 'Tdn';
     PropertyName[propKWTHRESHOLD] := 'kWThreshold';
+    PropertyName[propRESETLEVEL] := 'ResetLevel';
 
 
     PropertyHelp[propELEMENT] :=
@@ -427,7 +430,10 @@ begin
     PropertyHelp[propKWTHRESHOLD] := 'Threshold, kW, for Follow mode. kW has to be above this value for the Storage element ' +
         'to be dispatched on. Defaults to 75% of the kWTarget value. Must reset this property after ' +
         'setting kWTarget if you want a different value.';
-
+    PropertyHelp[propRESETLEVEL] := 'The level of charge required for allowing the storage to discharge again after reaching ' +
+        'the reserve storage level. After reaching this level, the storage control  will not allow ' +
+        'the storage device to discharge, forcing the storage to charge. Once the storage reaches this' +
+        'level, the storage will be able to discharge again. This value is a number between 0.2 and 1';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -550,6 +556,8 @@ begin
                     DnrampTime := Parser[ActorID].DblValue;
                 propKWTHRESHOLD:
                     FkWThreshold := Parser[ActorID].DblValue;
+                propRESETLEVEL:
+                    ResetLevel := Parser[ActorID].DblValue;
 
             else
            // Inherited parameters
@@ -659,6 +667,7 @@ begin
             FPFTarget := OtherStorageController.FPFTarget;
             FPFBand := OtherStorageController.FPFBand;
             HalfPFBand := OtherStorageController.HalfPFBand;
+            ResetLevel := OtherStorageController.ResetLevel;
 
             FStorageNameList.Clear;
             for i := 1 to OtherStorageController.FStorageNameList.Count do
@@ -777,6 +786,7 @@ begin
     DnrampTime := 0.25;
     LastpctDischargeRate := 0.0;
     Wait4Step := false;     // for sync discharge with charge when there is a transition
+    ResetLevel := 0.8;
 
     InitPropertyValues(0);
 
@@ -839,6 +849,7 @@ begin
     PropertyValue[propTFLAT] := '2.0';
     PropertyValue[propTDNRAMP] := '0.25';
     PropertyValue[propKWTHRESHOLD] := '4000';
+    PropertyValue[propRESETLEVEL] := '0.8';
 
 
     inherited  InitPropertyValues(NumPropsThisClass);
@@ -919,6 +930,8 @@ begin
             Result := Format('%.6g', [DnrampTime]);
         propKWTHRESHOLD:
             Result := Format('%.6g', [FkWThreshold]);
+        propRESETLEVEL:
+            Result := Format('%.6g', [ResetLevel]);
 
     else  // take the generic handler
         Result := inherited GetPropertyValue(index);
@@ -1496,7 +1509,7 @@ begin
                             begin
                                 StorageObj := FleetPointerList.Get(i);
                                 kWhActual := StorageObj.StorageVars.kWhStored / StorageObj.StorageVars.kWhRating;
-                                OutOfOomph := OutOfOomph and (kWhActual >= 0.8);  // If we have more than the 80% we are good to dispatch
+                                OutOfOomph := OutOfOomph and (kWhActual >= ResetLevel);  // If we have more than the 80% we are good to dispatch
                             end;
                             OutOfOomph := not OutOfOomph;  // If everybody in the fleet has at least the 80% of the storage capacity full
 

@@ -688,6 +688,28 @@ begin
       GStartTime := GetTickCount64;
         {$ENDIF}
 
+        if not NoFormsAllowed then
+        begin
+            if not IsProgressON and DSSProgress then
+            begin
+                case Dynavars.SolutionMode of
+                    YEARLYMODE, DUTYCYCLE, LOADDURATION1,
+                    LOADDURATION2, HARMONICMODE, HARMONICMODET:
+                    begin
+                        if Progress_Actor <> nil then
+                        begin
+                            Progress_Actor.Terminate;
+                            Progress_Actor := nil;
+                        end;
+                        Progress_Actor := TProgressActor.Create();
+                    end
+                else
+                begin
+            // Just other simulation modes, nothing to do
+                end;
+                end;
+            end;
+        end;
 
       // Sends message to start the Simulation
         ActorHandle[ActorID].Send_Message(SIMULATE);

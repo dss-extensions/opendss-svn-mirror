@@ -74,9 +74,15 @@ uses
     fMonitor,     // by Dahei
     VSource,
     Executive,
-    ExecOptions
+    ExecOptions,
+    ShellApi,
 //     Parallel_Lib
-    ;
+//   TCP Indy libraries
+    IdBaseComponent,
+    IdComponent,
+    IdTCPConnection,
+    IdTCPClient,
+    IdThreadComponent;
 
 const
     CRLF = sLineBreak; // cross-platform
@@ -137,6 +143,23 @@ const
     PROFILELL = 9994;
     PROFILEPUKM = 9993;  // not mutually exclusive to the other choices 9999..9994
     PROFILE120KFT = 9992;  // not mutually exclusive to the other choices 9999..9994
+
+type
+    TProgressActor = class(TThread)     // Global actor for progress form
+        constructor Create(); OVERLOAD;
+        procedure Execute; OVERRIDE;
+        procedure Doterminate; OVERRIDE;
+        destructor Destroy; OVERRIDE;
+
+//*******************************Private components*****************************
+    PROTECTED
+        FMessage,
+        Msg_Cmd: String;
+        ProgForm: TProgress;
+//*******************************Public components******************************
+    PUBLIC
+
+    end;
 
 var
 //   LibParallel    : TParallel_Lib;
@@ -326,6 +349,12 @@ Integer
 
     DSSClasses: TDSSClasses;
 
+//************************ Progress actor Global defs***************************
+    DSSProgress,
+    IsProgressON: Boolean;
+    Progress_Actor: TProgressActor;
+    DSSProgressPath: String;
+
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
 
@@ -394,10 +423,18 @@ type
     TDSSRegister = function(var ClassName: Pchar): Integer;  // Returns base class 1 or 2 are defined
    // Users can only define circuit elements at present
 
+
+    // ... listening port : GUEST CLIENT
+const
+    GUEST_PORT = 20010;
+
 var
 
     LastUserDLLHandle: THandle;
-    DSSRegisterProc: TDSSRegister;   // of last library loaded
+    DSSRegisterProc: TDSSRegister;        // of last library loaded
+
+    idTCPClient: TIdTCPClient;  // ... TIdThreadComponent
+    idThreadComponent: TIdThreadComponent;
 
 {$IFDEF FPC}
 FUNCTION GetDefaultDataDirectory: String;
@@ -1167,6 +1204,72 @@ begin
     end;
 end;
 
+constructor TProgressActor.Create();
+begin
+    ShellExecute(Handle, 'open', Pwidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL);
+    sleep(200);
+  // ... create TIdTCPClient
+    idTCPClient := TIdTCPClient.Create();
+  // ... set properties
+    idTCPClient.Host := 'localhost';
+    idTCPClient.Port := GUEST_PORT;
+    idThreadComponent := TIdThreadComponent.Create();
+    try
+        IdTCPClient.Connect;
+        IdTCPClient.IOHandler.WriteLn('num' + inttostr(NumOfActors));
+        IsProgressON := true;
+    except
+        on E: Exception do
+        begin
+            IsProgressON := false;
+            raise;
+        end;
+    end;
+    inherited Create(false);
+end;
+
+procedure TProgressActor.Execute;
+var
+    I: Integer;
+    AbortBtn,
+    progStr: String;
+    RunFlag: Boolean;
+begin
+
+    if IsProgressON then
+    begin
+        RunFlag := true;
+        while RunFlag do
+        begin
+            sleep(100);
+            progStr := '';
+            RunFlag := false;
+            for I := 1 to NumOfActors do
+            begin
+                progStr := progStr + Format('%.*d', [3, ActorPctProgress[I]]);
+                RunFlag := RunFlag or (ActorStatus[I] = 0);
+            end;
+            IdTCPClient.IOHandler.WriteLn('prg' + progStr);
+            AbortBtn := IdTCPClient.IOHandler.ReadLn;
+            if AbortBtn.Substring(0, 1) = 'T' then
+                SolutionAbort := true;
+        end;
+        IdTCPClient.IOHandler.WriteLn('ext');
+    end;
+
+end;
+
+procedure TProgressActor.DoTerminate;        // Is the end of the thread
+begin
+    IsProgressON := false;
+    inherited;
+end;
+
+destructor TProgressActor.Destroy;
+begin
+    inherited destroy;
+end;
+
 initialization
 
 //***************Initialization for Parallel Processing*************************
@@ -1274,6 +1377,9 @@ initialization
         DSSClassList[ActiveActor] := nil;
     end;
 
+    IsProgressOn := false;
+
+    Progress_Actor := nil;
     DSSClasses := nil;
     ProgressCmd := false;
 
@@ -1286,6 +1392,8 @@ initialization
     DSSFileName := GetDSSExeFile;
     DSSDirectory := ExtractFilePath(DSSFileName);
     ADiakoptics := false;  // Disabled by default
+
+    DSSProgress := GetDSSProgress(DSSFileName);
 
     SeasonalRating := false;
     SeasonSignal := '';
@@ -1400,6 +1508,7 @@ NoFormsAllowed  := TRUE;
     {$IFNDEF FPC}
     DSS_Viz_installed := CheckOpenDSSViewer; // OpenDSS Viewer (flag for detected installation)
     {$ENDIF}
+
 
 finalization
 

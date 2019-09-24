@@ -39,6 +39,7 @@ function GetDSSExeFile: String;
 procedure CloseDownForms;
 procedure ShowTreeView(const Fname: String);
 function MakeChannelSelection(NumFieldsToSkip: Integer; const Filename: String): Boolean;
+function GetDSSProgress(SourcePath: String): Boolean;
 
 {$ENDIF}
 implementation
@@ -77,12 +78,12 @@ begin
 end;
 
 procedure ShowPctProgress(Count: Integer; Actor_ID: Integer);
-
+// To be reviewed by Davis
 begin
     if NoFormsAllowed then
         Exit;      // added RCD 12-5-2010
-    ActorProgress[Actor_ID].PctProgress := Count;
-    Application.ProcessMessages;
+//     ActorProgress[Actor_ID].PctProgress := Count;
+//     Application.ProcessMessages;
 end;
 
 procedure ProgressCaption(const S: String; Actor_ID: Integer);
@@ -157,6 +158,25 @@ begin
 
     if IsLibrary then
         IsDLL := true;
+end;
+
+function GetDSSProgress(SourcePath: String): Boolean;
+var
+    RefPos: Integer;
+    newPath: String;
+begin
+    RefPos := pos('\opendss.exe', AnsiLowerCase(SourcePath));
+    newPath := SourcePath.Substring(0, RefPos);
+    if fileexists(newPath + 'DSSProgress.exe') then
+    begin
+        Result := true;            // The progress app is installed
+        DSSProgressPath := newPath + 'DSSProgress.exe';
+    end
+    else
+    begin
+        Result := false;           // No way, is not installed
+        DSSProgressPath := '';
+    end;
 end;
 
 
