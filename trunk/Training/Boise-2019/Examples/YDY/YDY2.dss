@@ -1,0 +1,46 @@
+Clear
+
+!!!! Modeling Y-Delta-Y 3-legged core as 4-Winding Transformer
+!!!! Values to the phantom delta winding are estimated
+!!!! Uses a bank of 1-phase transformers
+
+New Circuit.4Winding
+~ BasekV=161  isc3=1000000   isc1=100000
+
+New XfmrCode.4winding   phases=1 windings=4
+~ Wdg=1 %r=.2  Conn=Wye  kV=(161 3 sqrt /)  kVA=10000 
+~ Wdg=2 %r=.2  Conn=Wye  kV=(13.8 3 sqrt /) kVA=10000 
+~ Wdg=3 %r=.2  Conn=Delta kV=7.97  kVA=10000 
+~ Wdg=4 %r=.2  Conn=Delta kV=7.97  kVA=10000     !!!! Phantom Delta winding
+!!!!              [X12   X13   X14  X23  X24  X34]
+~ XSCArray=[10.79  15   100   7.3   70    65]
+
+
+New Transformer.PhaseA   xfmrcode=4winding   
+~ Wdg=1  Bus=SourceBus.1.0
+~ Wdg=2  Bus=LowBus.1.0
+~ Wdg=3  Bus=TertBus.1.2
+~ Wdg=4  Bus=Phantom.1.2
+
+
+New Transformer.PhaseB   xfmrcode=4winding   
+~ Wdg=1  Bus=SourceBus.2.0
+~ Wdg=2  Bus=LowBus.2.0
+~ Wdg=3  Bus=TertBus.2.3
+~ Wdg=4  Bus=Phantom.2.3
+
+
+New Transformer.PhaseC   xfmrcode=4winding   
+~ Wdg=1  Bus=SourceBus.3.0
+~ Wdg=2  Bus=LowBus.3.0
+~ Wdg=3  Bus=TertBus.3.1
+~ Wdg=4  Bus=Phantom.3.1
+
+
+Solve
+
+New Fault.F1   Phases=1  Bus1=LowBus
+
+solve
+
+Show Currents Elements

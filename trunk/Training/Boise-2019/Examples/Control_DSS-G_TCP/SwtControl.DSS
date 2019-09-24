@@ -1,0 +1,5 @@
+New "SwtControl.sw_0" SwitchedObj=line.sw_0 Action=close
+New "SwtControl.sw_1" SwitchedObj=line.sw_1 Action=close
+New "SwtControl.sw_2" SwitchedObj=line.sw_2 Action=close
+New "SwtControl.sw_3" SwitchedObj=line.sw_3 Action=open
+New "SwtControl.sw_mg_sp_2" SwitchedObj=line.sw_mg_sp_2 Action=open

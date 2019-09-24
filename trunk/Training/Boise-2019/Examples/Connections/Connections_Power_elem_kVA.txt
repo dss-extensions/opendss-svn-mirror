@@ -1,0 +1,152 @@
+
+CIRCUIT ELEMENT POWER FLOW
+
+(Power Flow into element from indicated Bus)
+
+Power Delivery Elements
+
+  Bus       Phase     kW     +j   kvar         kVA         PF
+
+ELEMENT = "Vsource.SOURCE"
+SOURCEBUS       1       -19.6 +j    -22.1       29.6       0.6632
+SOURCEBUS       2        -4.5 +j      5.3        7.0      -0.6486
+SOURCEBUS       3       -35.9 +j      4.7       36.2      -0.9917
+   TERMINAL TOTAL ...   -60.1 +j    -12.2       61.3       0.9801
+SOURCEBUS       0         0.0 +j      0.0        0.0       1.0000
+SOURCEBUS       0         0.0 +j      0.0        0.0       1.0000
+SOURCEBUS       0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...     0.0 +j      0.0        0.0       1.0000
+
+ELEMENT = "Transformer.SUBSTATION"
+SOURCEBUS       1        19.6 +j     22.1       29.6       0.6632
+SOURCEBUS       2         4.5 +j     -5.3        7.0      -0.6486
+SOURCEBUS       3        35.9 +j     -4.7       36.2      -0.9917
+SOURCEBUS       0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...    60.1 +j     12.2       61.3       0.9801
+B1              1       -41.7 +j    -14.7       44.2       0.9434
+B1              2        -2.1 +j     -6.8        7.1       0.2996
+B1              3       -16.3 +j      9.3       18.7      -0.8676
+B1              0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...   -60.1 +j    -12.1       61.3       0.9803
+
+ELEMENT = "Line.LINE1"
+B1              1        41.7 +j     14.7       44.2       0.9434
+B1              2         2.1 +j      6.8        7.1       0.2996
+B1              3        16.3 +j     -9.3       18.7      -0.8676
+   TERMINAL TOTAL ...    60.1 +j     12.1       61.3       0.9803
+B2              1       -41.7 +j    -14.7       44.2       0.9430
+B2              2        -2.1 +j     -6.8        7.2       0.2970
+B2              3       -16.3 +j      9.3       18.7      -0.8691
+   TERMINAL TOTAL ...   -60.1 +j    -12.3       61.3       0.9796
+
+ELEMENT = "Line.LINE2"
+B2              1        32.9 +j      6.8       33.6       0.9790
+B2              2         2.1 +j      6.8        7.2       0.2970
+B2              3         5.0 +j     -5.6        7.5      -0.6709
+   TERMINAL TOTAL ...    40.0 +j      8.1       40.9       0.9801
+B3              1       -32.9 +j     -6.9       33.6       0.9787
+B3              2        -2.1 +j     -6.9        7.2       0.2944
+B3              3        -5.0 +j      5.5        7.5      -0.6753
+   TERMINAL TOTAL ...   -40.0 +j     -8.3       40.9       0.9791
+
+ELEMENT = "Line.LINE3"
+B3              1        12.9 +j      2.7       13.1       0.9784
+B3              2         2.1 +j      6.9        7.2       0.2944
+B3              3         5.0 +j     -5.5        7.5      -0.6753
+   TERMINAL TOTAL ...    20.0 +j      4.1       20.4       0.9794
+B4              1       -12.9 +j     -2.8       13.2       0.9774
+B4              2        -2.1 +j     -7.0        7.3       0.2918
+B4              3        -5.0 +j      5.4        7.4      -0.6797
+   TERMINAL TOTAL ...   -20.0 +j     -4.3       20.5       0.9774
+
+ELEMENT = "Line.LINE4"
+B4              1        -0.5 +j     -0.2        0.5       0.9043
+B4              2         0.1 +j      0.4        0.5       0.2239
+B4              3         0.4 +j     -0.4        0.6      -0.6902
+   TERMINAL TOTAL ...     0.0 +j     -0.2        0.2      -0.0002
+B5              1         0.5 +j      0.2        0.5       0.9476
+B5              2        -0.1 +j     -0.5        0.5       0.1959
+B5              3        -0.4 +j      0.3        0.5      -0.7514
+   TERMINAL TOTAL ...    -0.0 +j     -0.0        0.0       0.0470
+
+ELEMENT = "Transformer.T2"
+B2              1         8.8 +j      7.9       11.8       0.7454
+B2              2        -0.0 +j      0.0        0.0      -0.0000
+B2              3        11.2 +j     -3.7       11.8      -0.9501
+B2              0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...    20.0 +j      4.2       20.5       0.9788
+B2LV            1       -20.0 +j     -4.1       20.4       0.9800
+B2LV            2        -0.0 +j      0.0        0.0      -1.0000
+B2LV            3        -0.0 +j     -0.0        0.0       0.8346
+B2LV            0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...   -20.0 +j     -4.1       20.4       0.9800
+
+ELEMENT = "Transformer.T3"
+B3              1        20.0 +j      4.2       20.5       0.9788
+B3              2        -0.0 +j      0.0        0.0      -0.0000
+B3              3         0.0 +j      0.0        0.0       0.0000
+B3              0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...    20.0 +j      4.2       20.5       0.9788
+B3LV            1       -20.0 +j     -4.1       20.4       0.9800
+B3LV            2         0.0 +j      0.0        0.0       0.8660
+B3LV            3         0.0 +j     -0.0        0.0      -1.0000
+B3LV            0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...   -20.0 +j     -4.1       20.4       0.9800
+
+ELEMENT = "Transformer.T4"
+B4              1        13.3 +j      3.0       13.7       0.9754
+B4              2         2.0 +j      6.5        6.8       0.2963
+B4              3         4.6 +j     -5.0        6.8      -0.6789
+B4              4        -0.0 +j     -0.0        0.0       0.4865
+   TERMINAL TOTAL ...    20.0 +j      4.5       20.5       0.9754
+B4LV            1       -20.0 +j     -4.1       20.4       0.9800
+B4LV            2         0.0 +j      0.0        0.0       0.4812
+B4LV            3         0.0 +j      0.0        0.0       0.0886
+B4LV            0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...   -20.0 +j     -4.1       20.4       0.9800
+B4LVPHANTOM     1        -0.0 +j      0.0        0.0      -0.9107
+B4LVPHANTOM     2        -0.0 +j     -0.0        0.0       0.0027
+B4LVPHANTOM     3         0.0 +j      0.0        0.0       0.3509
+B4LVPHANTOM     0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...    -0.0 +j      0.0        0.0      -0.7619
+
+ELEMENT = "Transformer.T5"
+B5              1        -0.5 +j     -0.2        0.5       0.9476
+B5              2         0.1 +j      0.5        0.5       0.1959
+B5              3         0.4 +j     -0.3        0.5      -0.7514
+B5              0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...     0.0 +j      0.0        0.0       0.0470
+B5LV            1        -0.0 +j     -0.0        0.0       0.9800
+B5LV            2        -0.0 +j     -0.0        0.0       0.5005
+B5LV            3        -0.0 +j     -0.0        0.0       0.0004
+B5LV            0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL ...    -0.0 +j     -0.0        0.0       0.9796
+
+= = = = = = = = = = = = = = = = = = =  = = = = = = = = = = =  = =
+
+Power Conversion Elements
+
+  Bus       Phase     kW   +j  kvar         kVA         PF
+
+ELEMENT = "Load.LOAD2-1PH"
+B2LV            1      20.0 +j    4.1       20.4       0.9800
+B2LV            0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL  ...    20.0 +j      4.1       20.4       0.9800
+
+ELEMENT = "Load.LOAD3-1PH"
+B3LV            1      20.0 +j    4.1       20.4       0.9800
+B3LV            0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL  ...    20.0 +j      4.1       20.4       0.9800
+
+ELEMENT = "Load.LOAD4-1PH"
+B4LV            1      20.0 +j    4.1       20.4       0.9800
+B4LV            0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL  ...    20.0 +j      4.1       20.4       0.9800
+
+ELEMENT = "Load.LOAD5-1PH"
+B5LV            1       0.0 +j    0.0        0.0       0.9800
+B5LV            0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL  ...     0.0 +j      0.0        0.0       0.9800
+
+
+Total Circuit Losses =    0.1 +j   -0.0

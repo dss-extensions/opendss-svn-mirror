@@ -1,0 +1,3 @@
+New "Storage.sto_0" bus1=652.1.2.3 phases=3 kv=2.4 conn=wye ChargeTrigger=100 DischargeTrigger=800 kWrated=50 kWhrated=100 kVA=500 kvar=0 kW=0 pf=1 %stored=100 %Charge=90
+New "Storage.sto_1" bus1=680.1.2.3 phases=3 kv=4.16 conn=wye kVA=1000 pf=1 %stored=80
+New "Storage.sto_2" bus1=675.1.2.3.0 phases=3 kv=4.16 kWhrated=50000 kWhstored=10000 kW=0 %stored=20 conn=wye kWrated=500 kVA=500 State=IDLING %EffDischarge=100 %Discharge=100

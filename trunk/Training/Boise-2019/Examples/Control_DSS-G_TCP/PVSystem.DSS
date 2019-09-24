@@ -1,0 +1,3 @@
+New "PVSystem.pv_1" bus1=652.1.2.3 phases=3 kv=4.16 conn=wye kVA=300 Pmpp=1600 daily=curva_solar
+New "PVSystem.pv_2" bus1=680.1.2.3.0 phases=3 kv=4.16 conn=wye kVA=1500 Pmpp=1600 daily=curva_solar
+New "PVSystem.pv_3" bus1=675.1.2.3.0 phases=3 kv=4.16 conn=wye kVA=1600 Pmpp=1600 daily=curva_solar
