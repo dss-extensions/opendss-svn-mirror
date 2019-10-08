@@ -350,7 +350,7 @@ Integer
     DSSClasses: TDSSClasses;
 
 //************************ Progress actor Global defs***************************
-    DSSProgress,
+    DSSProgressFrm,
     IsProgressON: Boolean;
     Progress_Actor: TProgressActor;
     DSSProgressPath: String;
@@ -1393,7 +1393,7 @@ initialization
     DSSDirectory := ExtractFilePath(DSSFileName);
     ADiakoptics := false;  // Disabled by default
 
-    DSSProgress := GetDSSProgress(DSSFileName);
+    DSSProgressFrm := GetDSSProgress(DSSFileName);
 
     SeasonalRating := false;
     SeasonSignal := '';

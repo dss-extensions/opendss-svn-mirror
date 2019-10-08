@@ -67,7 +67,8 @@ uses
     Sysutils,
     FrmCSVchannelSelect,
     System.UITypes,
-    ScriptEdit;
+    ScriptEdit,
+    StrUtils;
 
 procedure InitProgressForm(Actor_ID: Integer);
 
@@ -165,12 +166,16 @@ var
     RefPos: Integer;
     newPath: String;
 begin
-    RefPos := pos('\opendss.exe', AnsiLowerCase(SourcePath));
-    newPath := SourcePath.Substring(0, RefPos);
-    if fileexists(newPath + 'DSSProgress.exe') then
+
+    newPath := AnsiReverseString(SourcePath);   // reverses the string
+    RefPos := pos('\', AnsiLowerCase(newPath)); // detects the file name
+    newPath := AnsiReverseString(newPath);      // reverse again
+    newPath := newPath.Substring(0, length(newPath) - RefPos);  // Leaves only the folder name
+
+    if fileexists(newPath + '\DSSProgress.exe') then
     begin
         Result := true;            // The progress app is installed
-        DSSProgressPath := newPath + 'DSSProgress.exe';
+        DSSProgressPath := newPath + '\DSSProgress.exe';
     end
     else
     begin
