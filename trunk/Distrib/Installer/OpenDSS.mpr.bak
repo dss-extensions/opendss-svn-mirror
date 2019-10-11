@@ -338,6 +338,8 @@ $
 
 
 
+
+
 $
 $
 1
@@ -348,20 +350,20 @@ Electric Power Research Institute
 OpenDSS
 {9B35A034-B82A-4C5C-B426-A8525A7EBDD9}
 {10708DC9-5A13-4E32-BDEB-2A073F5388CC}
-7.6.5
+8.6.5.2
 English
 OpenDSS
 OpenDSS Installation
 Electric Power Research Institute, Inc.
 All rights reserved
-{52FF8554-499F-4F45-9A42-FFCF0BBBAA02}
+{E8F77C31-7969-42BC-B8D4-0FF738D94536}
 Electric Power Research Institute
 Electric Power Research Institute
 http://sourceforge.net/projects/electricdss/
 http://sourceforge.net/projects/electricdss/
 All rights reserved
 FALSE
-OpenDSSInstaller
+OpenDSSInstaller865_3
 TRUE
 FALSE
 
