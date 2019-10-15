@@ -1,0 +1,4 @@
+New "Monitor.moni1" element=storage.sto_2 mode=0 terminal=1 PPolar=no residual=no VIPolar=yes enabled=true
+New "Monitor.moni2" element=storage.sto_2 mode=7 terminal=1 PPolar=no residual=no VIPolar=no enabled=true
+New "Monitor.pv_3" element=pvsystem.pv_3 mode=0 terminal=1 PPolar=yes residual=no VIPolar=yes
+New "Monitor.pv_3_powers" element=pvsystem.pv_3 mode=1 terminal=1 PPolar=yes residual=no VIPolar=yes

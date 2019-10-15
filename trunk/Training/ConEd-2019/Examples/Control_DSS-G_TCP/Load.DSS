@@ -1,0 +1,16 @@
+New "Load.671" bus1=671.1.2.3 phases=3 conn=Delta model=1 kV=4.16 kW=1155 kvar=660
+New "Load.634a" bus1=634.1 phases=1 conn=Wye model=1 kV=0.277 kW=160 kvar=110
+New "Load.634b" bus1=634.2 phases=1 conn=Wye model=1 kV=0.277 kW=120 kvar=90
+New "Load.634c" bus1=634.3 phases=1 conn=Wye model=1 kV=0.277 kW=120 kvar=90
+New "Load.645" bus1=645.2 conn=Wye model=1 kW=170 kvar=125 phases=3 kV=4.16
+New "Load.646" bus1=646.2.3 phases=1 conn=Delta model=2 kV=4.16 kW=230 kvar=132
+New "Load.692" bus1=692.3.1 phases=1 conn=Delta model=5 kV=4.16 kW=170 kvar=151
+New "Load.675a" bus1=675.1 phases=1 conn=Wye model=1 kV=2.4 kW=485 kvar=190
+New "Load.675b" bus1=675.2 phases=1 conn=Wye model=1 kV=2.4 kW=68 kvar=60
+New "Load.675c" bus1=675.3 phases=1 conn=Wye model=1 kV=2.4 kW=290 kvar=212
+New "Load.611" bus1=611.3 phases=1 conn=Wye model=5 kV=2.4 kW=170 kvar=80
+New "Load.652" bus1=652.1 conn=Wye model=2 kW=128 kvar=86 phases=3 kV=4.16
+New "Load.670a" bus1=670.1 phases=1 conn=Wye model=1 kV=2.4 kW=17 kvar=10
+New "Load.670b" bus1=670.2 phases=1 conn=Wye model=1 kV=2.4 kW=66 kvar=38
+New "Load.670c" bus1=670.3 phases=1 conn=Wye model=1 kV=2.4 kW=117 kvar=68
+New "Load.ld_15" bus1=680.1.2.3.0 phases=3 kV=4.16 conn=delta kVA=1330.27252846926 kW=1155 kvar=660 pf=0.8682 Vmaxpu=1.050000 Vminpu=0.950000 CVRvars=2.000000 CVRwatts=1.000000 NumCust=2.000000
