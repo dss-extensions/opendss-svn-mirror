@@ -1002,9 +1002,9 @@ begin
         propSEASONS:
             Result := Format('%d', [seasons]);
         propSEASONTARGETS:
-            ReturnSeasonTarget(1);
+            Result := ReturnSeasonTarget(1);
         propSEASONTARGETSLOW:
-            ReturnSeasonTarget(0);
+            Result := ReturnSeasonTarget(0);
 
     else  // take the generic handler
         Result := inherited GetPropertyValue(index);
@@ -2286,9 +2286,9 @@ begin
     for i := 0 to (Seasons - 1) do
     begin
         if THigh = 1 then
-            Result := Result + ', ' + format('%.6g', [SeasonTargets[i]])
+            Result := Result + format('%.6g', [SeasonTargets[i]]) + ', '
         else
-            Result := Result + ', ' + format('%.6g', [SeasonTargetsLow[i]]);
+            Result := Result + format('%.6g', [SeasonTargetsLow[i]]) + ', ';
     end;
     Result := Result + ']';  // terminate the array
 
