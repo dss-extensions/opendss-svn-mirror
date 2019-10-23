@@ -1512,6 +1512,7 @@ var
     kWhActual,
     ElemVolts,
     Amps,
+    AmpsDiff,
     PDiff,
     PFDiff,
     DispatchkW,
@@ -1653,15 +1654,16 @@ begin
                         SetFleetToDischarge;
                     if ShowEventLog then
                         AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g reserve.', [kWneeded, RemainingkWh, ReservekWh]), ActorID);
+                    AmpsDiff := PDiff;
                     for i := 1 to FleetSize do
                     begin
                         StorageObj := FleetPointerList.Get(i);
                         if Dischargemode = CURRENTPEAKSHAVE then // Current to power
                         begin    //  (MonitoredElement.MaxVoltage[ElementTerminal,ActorID] / 1000)
                             if StorageObj.NPhases = 1 then
-                                PDiff := StorageObj.PresentkV * PDiff
+                                PDiff := StorageObj.PresentkV * AmpsDiff
                             else
-                                PDiff := StorageObj.PresentkV * invsqrt3 * PDiff;
+                                PDiff := StorageObj.PresentkV * invsqrt3 * AmpsDiff;
                         end;
                         with StorageObj do
                         begin
@@ -1748,6 +1750,7 @@ var
     PDiff,
     kWNeeded,
     Amps,
+    AmpsDiff,
     ChargekW,
     ActualkWh,
     ActualkW,
@@ -1825,6 +1828,7 @@ begin
                         SetFleetToCharge;
                     if ShowEventLog then
                         AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [PDiff, (TotalRatingkWh - ActualkWh), TotalRatingkWh]), ActorID);
+                    AmpsDiff := PDiff;
                     for i := 1 to FleetSize do
                     begin
                         StorageObj := FleetPointerList.Get(i);
@@ -1835,9 +1839,9 @@ begin
                             if Chargemode = CURRENTPEAKSHAVELOW then
                             begin
                                 if StorageObj.NPhases = 1 then
-                                    PDiff := StorageObj.PresentkV * PDiff
+                                    PDiff := StorageObj.PresentkV * AmpsDiff
                                 else
-                                    PDiff := StorageObj.PresentkV * invsqrt3 * PDiff;
+                                    PDiff := StorageObj.PresentkV * invsqrt3 * AmpsDiff;
                             end;
 
                      // compute new charging value for this storage element ...
