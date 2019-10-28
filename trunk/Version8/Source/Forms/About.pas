@@ -43,7 +43,7 @@ begin
      Version.Caption := VersionString;
 
      LicenseText.Lines.Clear();
-     LicenseText.Lines.Add('Copyright (c) 2008-2016, Electric Power Research Institute, Inc.');
+     LicenseText.Lines.Add('Copyright (c) 2008-2019, Electric Power Research Institute, Inc.');
      LicenseText.Lines.Add('All rights reserved.');
      LicenseText.Lines.Add('');
      LicenseText.Lines.Add('Redistribution and use in source and binary forms, with or without');
@@ -69,6 +69,8 @@ begin
      LicenseText.Lines.Add('CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)');
      LicenseText.Lines.Add('ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE');
      LicenseText.Lines.Add('POSSIBILITY OF SUCH DAMAGE.');
+
+     LicenseText.SelStart := 0;
 
 end;
 

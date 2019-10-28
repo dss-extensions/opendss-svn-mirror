@@ -84,6 +84,8 @@
     <File Path="..\Forms\ScriptEdit.pas"/>
     <File Path="..\Forms\TViewer.pas"/>
     <File Path="..\Forms\TViewer.dfm"/>
+    <File Path="..\Forms\Splash_Screen.pas"/>
+    <File Path="..\Forms\Splash_Screen.dfm"/>
     <File Path="..\General"/>
     <File Path="..\General\CableConstants.pas"/>
     <File Path="..\General\CableData.pas"/>
