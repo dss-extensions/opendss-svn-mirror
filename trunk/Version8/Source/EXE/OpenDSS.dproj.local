@@ -33,6 +33,7 @@
     <File Path="..\Common\TOPExport.pas"/>
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
+    <File Path="..\Common\djson.pas"/>
     <File Path="..\Controls"/>
     <File Path="..\Controls\CapControl.pas"/>
     <File Path="..\Controls\CapControlVars.pas"/>
@@ -110,6 +111,8 @@
     <File Path="..\General\WireData.pas"/>
     <File Path="..\General\XfmrCode.pas"/>
     <File Path="..\General\XYcurve.pas"/>
+    <File Path="..\GISCommands"/>
+    <File Path="..\GISCommands\GISCommands.pas"/>
     <File Path="..\Meters"/>
     <File Path="..\Meters\EnergyMeter.pas"/>
     <File Path="..\Meters\fMonitor.pas"/>
