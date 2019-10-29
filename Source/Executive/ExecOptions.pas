@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 130;
+    NumExecOptions = 131;
 
 var
     ExecOption,
@@ -179,6 +179,7 @@ begin
     ExecOption[128] := 'SeasonSignal';
     ExecOption[129] := 'NUMANodes';
     ExecOption[130] := 'MarkPVSystems2';
+    ExecOption[131] := 'GISInstalled';
 
 
     OptionHelp[1] := 'Sets the active DSS class type.  Same as Class=...';
@@ -462,6 +463,7 @@ begin
     OptionHelp[129] := 'Delivers the number of Non-uniform memory access nodes (NUMA Nodes) available on the machine (read Only). This information is vital when working' +
         'with processor clusters (HPC). It will help you know the number of processors in the cluster';
     OptionHelp[130] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark PVSystem2 locations with a symbol. See PVMarkerCode and PVMarkerSize. ';
+    OptionHelp[131] := 'Returns Yes/No if the OpenDSS GIS installation is detected in the local machine (Read Only)';
 end;
 //----------------------------------------------------------------------------
 function DoSetCmd_NoCircuit: Boolean;  // Set Commands that do not require a circuit
@@ -1395,6 +1397,11 @@ begin
                     AppendGlobalResult(Format('%d', [NumNUMA]));
                 130:
                     if ActiveCircuit[ActiveActor].MarkPVSystems2 then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
+                131:
+                    if DSS_GIS_installed then
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');
