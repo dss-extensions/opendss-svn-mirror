@@ -83,7 +83,7 @@ function DoZscCmd(Zmatrix: Boolean): Integer;
 function DoZsc10Cmd: Integer;
 function DoZscRefresh(ActorID: Integer): Integer;
 
-function DoBusCoordsCmd(SwapXY: Boolean): Integer;
+function DoBusCoordsCmd(SwapXY: Boolean; CoordType: Integer): Integer;
 function DoGuidsCmd: Integer;
 function DoSetLoadAndGenKVCmd: Integer;
 function DoVarValuesCmd: Integer;
@@ -2767,7 +2767,7 @@ begin
 
 end;
 
-function DoBusCoordsCmd(SwapXY: Boolean): Integer;
+function DoBusCoordsCmd(SwapXY: Boolean; CoordType: Integer): Integer;
 
 {
  Format of File should be
@@ -2818,17 +2818,28 @@ begin
                     begin
                         with ActiveCircuit[ActiveActor].Buses^[iB] do
                         begin     // Returns TBus object
-                            NextParam;
-                            if SwapXY then
-                                y := DblValue
+                            if CoordType = 0 then                                   // Standard buscoords
+                            begin
+                                NextParam;
+                                if SwapXY then
+                                    y := DblValue
+                                else
+                                    x := DblValue;
+                                NextParam;
+                                if SwapXY then
+                                    x := DblValue
+                                else
+                                    y := DblValue;
+                                CoordDefined := true;
+                            end
                             else
-                                x := DblValue;
-                            NextParam;
-                            if SwapXY then
-                                x := DblValue
-                            else
-                                y := DblValue;
-                            CoordDefined := true;
+                            begin                                                   // GIS coords
+                                NextParam;
+                                lat := DblValue;
+                                NextParam;
+                                long := DblValue;
+                                GISCoorddefined := true;
+                            end;
                         end;
                     end;
                 end;

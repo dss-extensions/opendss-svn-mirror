@@ -40,10 +40,12 @@ type
         Zsc,
         Ysc: TCMatrix;
 
-        x, y,              // coordinates
-        kVBase,           // Base kV for each node to ground (0)
+        lat, long,         // GIS coords
+        x, y,               // coordinates
+        kVBase,            // Base kV for each node to ground (0)
         DistFromMeter: Double;
 
+        GISCoordDefined,
         CoordDefined,
         BusChecked,
         Keep,
@@ -116,9 +118,14 @@ begin
     BusCustDurations := 0.0; // Accumulated Customer outage durations
     BusTotalNumCustomers := 0;
     BusTotalMiles := 0.0;  // total length of line downstream
+
     CoordDefined := false;
     Keep := false;
     IsRadialBus := false;
+    // GIS data
+    lat := 0;
+    long := 0;
+    GISCoordDefined := false;
 end;
 
 destructor TDSSBus.Destroy;

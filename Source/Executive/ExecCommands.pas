@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 128;
+    NumExecCommands = 129;
 
 var
 
@@ -187,6 +187,7 @@ begin
     ExecCommand[126] := 'GISJSONRoute';
     ExecCommand[127] := 'WindowDistribLR';
     ExecCommand[128] := 'WindowDistribRL';
+    ExecCommand[129] := 'GISCoords';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -581,6 +582,11 @@ begin
         CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use StartGIS command)' + CRLF;
+    CommandHelp[129] := 'Define x,y coordinates for buses using real GIS Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. ' +
+        'Execute after Solve command or MakeBusList command is executed so that bus lists are defined.' +
+        'Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.' + CRLF + CRLF +
+        'Example: LatLongCoords [file=]xxxx.csv' + CRLF + CRLF +
+        'Note: For using only if OpenDSS-GIS is locally installed.';
 end;
 
 //----------------------------------------------------------------------------
@@ -897,7 +903,7 @@ begin
             57:
                 CmdResult := DoVarNamesCmd;
             58:
-                CmdResult := DoBusCoordsCmd(false);
+                CmdResult := DoBusCoordsCmd(false, 0);
             59:
                 with ActiveCircuit[ActiveActor] do
                     if BusNameRedefined then
@@ -972,7 +978,7 @@ begin
             93:
                 Obfuscate;
             94:
-                CmdResult := DoBusCoordsCmd(true);   // swaps X and Y
+                CmdResult := DoBusCoordsCmd(true, 0);   // swaps X and Y
             95:
                 CmdResult := DoBatchEditCmd;
             96:
@@ -1017,7 +1023,23 @@ begin
             begin
                 Parser[ActiveActor].NextParam;
                 GlobalResult := show_busGIS(Parser[ActiveActor].StrValue);
-            end
+            end;
+            122:
+                GlobalResult := Get_routeGIS();
+            123:
+                GlobalResult := Get_edgesGIS();
+            124:
+                GlobalResult := Get_distanceGIS();
+            125:
+                GlobalResult := Show_routeGIS();
+            126:
+                GlobalResult := Get_JSONrouteGIS();
+            127:
+                GlobalResult := WindowLR();
+            128:
+                GlobalResult := WindowRL();
+            129:
+                CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
         else
        // Ignore excess parameters
         end;
