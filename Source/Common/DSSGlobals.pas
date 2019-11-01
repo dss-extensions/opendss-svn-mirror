@@ -58,9 +58,11 @@ uses
     TSData,
     LineSpacing,
     Storage,
+    Storage2,
     PVSystem,
     PVSystem2,
     InvControl,
+    InvControl2,
     ExpControl,
     variants,
     {$IFNDEF FPC}
@@ -269,9 +271,11 @@ Integer
     TSDataClass: array of TTSData;
     LineSpacingClass: array of TLineSpacing;
     StorageClass: array of TStorage;
+    Storage2Class: array of TStorage2;
     PVSystemClass: array of TPVSystem;
     PVSystem2Class: array of TPVSystem2;
     InvControlClass: array of TInvControl;
+    InvControl2Class: array of TInvControl2;
     ExpControlClass: array of TExpControl;
     ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
 
@@ -1327,9 +1331,11 @@ initialization
     setlength(TSDataClass, CPU_Cores + 1);
     setlength(LineSpacingClass, CPU_Cores + 1);
     setlength(StorageClass, CPU_Cores + 1);
+    setlength(Storage2Class, CPU_Cores + 1);
     setlength(PVSystemClass, CPU_Cores + 1);
     setlength(PVSystem2Class, CPU_Cores + 1);
     setlength(InvControlClass, CPU_Cores + 1);
+    setlength(InvControl2Class, CPU_Cores + 1);
     setlength(ExpControlClass, CPU_Cores + 1);
     setlength(EventStrings, CPU_Cores + 1);
     setlength(SavedFileList, CPU_Cores + 1);

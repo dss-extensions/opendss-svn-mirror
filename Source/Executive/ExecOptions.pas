@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 131;
+    NumExecOptions = 132;
 
 var
     ExecOption,
@@ -180,6 +180,7 @@ begin
     ExecOption[129] := 'NUMANodes';
     ExecOption[130] := 'MarkPVSystems2';
     ExecOption[131] := 'GISInstalled';
+    ExecOption[132] := 'MarkStorage2';
 
 
     OptionHelp[1] := 'Sets the active DSS class type.  Same as Class=...';
@@ -464,6 +465,8 @@ begin
         'with processor clusters (HPC). It will help you know the number of processors in the cluster';
     OptionHelp[130] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark PVSystem2 locations with a symbol. See PVMarkerCode and PVMarkerSize. ';
     OptionHelp[131] := 'Returns Yes/No if the OpenDSS GIS installation is detected in the local machine (Read Only)';
+    OptionHelp[132] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark Storage2 locations with a symbol. See StoreMarkerCode and StoreMarkerSize. ';
+
 end;
 //----------------------------------------------------------------------------
 function DoSetCmd_NoCircuit: Boolean;  // Set Commands that do not require a circuit
@@ -947,6 +950,8 @@ begin
                 SeasonSignal := Param;
             130:
                 ActiveCircuit[ActiveActor].MarkPVSystems2 := InterpretYesNo(Param);
+            132:
+                ActiveCircuit[ActiveActor].MarkStorage2 := InterpretYesNo(Param);
         else
            // Ignore excess parameters
         end;
@@ -1402,6 +1407,11 @@ begin
                         AppendGlobalResult('No');
                 131:
                     if DSS_GIS_installed then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
+                132:
+                    if ActiveCircuit[ActiveActor].MarkStorage2 then
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');

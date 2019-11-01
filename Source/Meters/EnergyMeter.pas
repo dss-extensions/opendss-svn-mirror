@@ -911,6 +911,7 @@ begin
       // Reset Generator Objects, too
     GeneratorClass.ResetRegistersAll(ActorID);
     StorageClass[ActorID].ResetRegistersAll;
+    Storage2Class[ActorID].ResetRegistersAll;
     PVSystemClass[ActorID].ResetRegistersAll;
     PVSystem2Class[ActorID].ResetRegistersAll;
 
@@ -953,6 +954,7 @@ begin
       // Sample Generator ans Storage Objects, too
     GeneratorClass.SampleAll(ActorID);
     StorageClass[ActorID].SampleAll(ActorID);  // samples energymeter part of storage elements (not update)
+    Storage2Class[ActorID].SampleAll(ActorID);
     PVSystemClass[ActorID].SampleAll(ActorID);
     PVSystem2Class[ActorID].SampleAll(ActorID);
 
@@ -2010,7 +2012,7 @@ begin
                             BranchList.PresentBranch.IsDangling := false;   // Something is connected here
                 // Is this a load or a generator or a Capacitor or reactor??
                             PCElementType := (pPCelem.DSSObjType and CLASSMASK);
-                            if (PCElementType = LOAD_ELEMENT) or (PCElementType = GEN_ELEMENT) or (PCElementType = PVSYSTEM_ELEMENT) or (PCElementType = PVSYSTEM2_ELEMENT) or (PCElementType = STORAGE_ELEMENT) or (PCElementType = CAP_ELEMENT)  // Capacitor and Reactor put on the PC list if IsShunt=TRUE
+                            if (PCElementType = LOAD_ELEMENT) or (PCElementType = GEN_ELEMENT) or (PCElementType = PVSYSTEM_ELEMENT) or (PCElementType = PVSYSTEM2_ELEMENT) or (PCElementType = STORAGE_ELEMENT) or (PCElementType = STORAGE2_ELEMENT) or (PCElementType = CAP_ELEMENT)  // Capacitor and Reactor put on the PC list if IsShunt=TRUE
                                 or (PCElementType = REACTOR_ELEMENT) then
                             begin
                                 BranchList.NewObject := pPCelem; // This adds element to the Shunt list in CktTree
