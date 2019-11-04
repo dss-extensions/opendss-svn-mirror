@@ -10,6 +10,7 @@ uses
     System.Classes,
     ShellApi,
     djson,
+    VCl.forms,
 //   TCP Indy libraries
     IdBaseComponent,
     IdComponent,
@@ -192,6 +193,7 @@ begin
                     on E: Exception do
                     begin
                         IsGISON := false;
+                        Trycom := false;
                         Result := 'Error while communicating to OpenDSS-GIS';
                     end;
                 end;
@@ -315,7 +317,38 @@ end;
 *******************************************************************************}
 
 function Get_JSONrouteGIS(): String;
+var
+    F: TextFile;
+    JSONCmd,
+    FileName,
+    InMsg: String;
 begin
+    if IsGISON then
+    begin
+        JSONCmd := '{"command":"jsonscript"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(JSONCmd);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 20000);
+
+            FileName := GetOutputDirectory + CircuitName_[ActiveActor] + 'JSONScript_route.txt';  // Explicitly define directory
+
+            Assignfile(F, FileName);
+            ReWrite(F);
+            Write(F, inMsg);
+            CloseFile(F);
+
+            Result := FileName;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
@@ -324,7 +357,29 @@ end;
 *******************************************************************************}
 
 function WindowLR(): String;
+var
+    TCPJSON: TdJSON;
+    ScrSize: Integer;
+    InMsg,
+    TempStr,
+    JSONCmd: String;
 begin
+
+    JSONCmd := '{"command":"resizewindow","coords":{"left":' + inttostr(Screen.Width div 2) +
+        ',"top":0,"right":' + inttostr(Screen.Width) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+    try
+        GISTCPClient.IOHandler.WriteLn(JSONCmd);
+        InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
+        TCPJSON := TdJSON.Parse(InMsg);
+        TempStr := TCPJSON['resizewindow'].AsString;
+        Result := TempStr;
+    except
+        on E: Exception do
+        begin
+            IsGISON := false;
+            Result := 'Error while communicating to OpenDSS-GIS';
+        end;
+    end;
 
 end;
 
@@ -333,8 +388,28 @@ end;
 *******************************************************************************}
 
 function WindowRL(): String;
+var
+    TCPJSON: TdJSON;
+    ScrSize: Integer;
+    InMsg,
+    TempStr,
+    JSONCmd: String;
 begin
-
+    JSONCmd := '{"command":"resizewindow","coords":{"left":0,"top":0,"right":' +
+        inttostr(Screen.Width div 2) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+    try
+        GISTCPClient.IOHandler.WriteLn(JSONCmd);
+        InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
+        TCPJSON := TdJSON.Parse(InMsg);
+        TempStr := TCPJSON['resizewindow'].AsString;
+        Result := TempStr;
+    except
+        on E: Exception do
+        begin
+            IsGISON := false;
+            Result := 'Error while communicating to OpenDSS-GIS';
+        end;
+    end;
 end;
 
 end.

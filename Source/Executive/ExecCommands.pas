@@ -1037,9 +1037,25 @@ begin
             126:
                 GlobalResult := Get_JSONrouteGIS();
             127:
-                GlobalResult := WindowLR();
+            begin
+                if not isDLL then
+                begin
+                    GlobalResult := WindowLR();
+                    ControlPanel.ResizeWindow(0);
+                end
+                else
+                    GlobalResult := 'Avaiable only for the EXE interface'
+            end;
             128:
-                GlobalResult := WindowRL();
+            begin
+                if not IsDLL then
+                begin
+                    GlobalResult := WindowRL();
+                    ControlPanel.ResizeWindow(1);
+                end
+                else
+                    GlobalResult := 'Avaiable only for the EXE interface'
+            end;
             129:
                 CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
             130:
