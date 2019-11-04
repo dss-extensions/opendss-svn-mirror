@@ -6,7 +6,7 @@
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -172,6 +172,7 @@
         <DCCReference Include="..\Controls\ExpControl.pas"/>
         <DCCReference Include="..\Controls\GenDispatcher.pas"/>
         <DCCReference Include="..\Controls\InvControl.pas"/>
+        <DCCReference Include="..\Controls\InvControl2.pas"/>
         <DCCReference Include="..\Controls\Recloser.pas"/>
         <DCCReference Include="..\Controls\RegControl.pas"/>
         <DCCReference Include="..\Controls\Relay.pas"/>
@@ -275,7 +276,9 @@
         <DCCReference Include="..\PCElements\PVsystem2.pas"/>
         <DCCReference Include="..\PCElements\PVSystemUserModel.pas"/>
         <DCCReference Include="..\PCElements\Storage.pas"/>
+        <DCCReference Include="..\PCElements\Storage2.pas"/>
         <DCCReference Include="..\PCElements\StorageVars.pas"/>
+        <DCCReference Include="..\PCElements\Storage2Vars.pas"/>
         <DCCReference Include="..\PCElements\StoreUserModel.pas"/>
         <DCCReference Include="..\PCElements\UPFC.pas"/>
         <DCCReference Include="..\PCElements\VSConverter.pas"/>
@@ -368,6 +371,11 @@
         <DCCReference Include="..\Meters\VLNodeVars.pas"/>
         <DCCReference Include="..\PCElements\Generic5OrderMach.pas"/>
         <DCCReference Include="DGICSources.pas"/>
+        <DCCReference Include="..\Common\djson.pas"/>
+        <DCCReference Include="..\Forms\Splash_Screen.pas">
+            <Form>SplashScreen</Form>
+        </DCCReference>
+        <DCCReference Include="..\GISCommands\GISCommands.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

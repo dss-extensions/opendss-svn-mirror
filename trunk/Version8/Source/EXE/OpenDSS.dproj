@@ -6,7 +6,7 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>18.7</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -1190,6 +1190,7 @@
         <DCCReference Include="..\General\Spectrum.pas"/>
         <DCCReference Include="..\Shared\StackDef.pas"/>
         <DCCReference Include="..\PCElements\Storage.pas"/>
+        <DCCReference Include="..\PCElements\Storage2.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
         <DCCReference Include="..\PCElements\StoreUserModel.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
@@ -1231,9 +1232,11 @@
         <DCCReference Include="..\Plot\DSSGraph.pas"/>
         <DCCReference Include="..\Controls\CapUserControl.pas"/>
         <DCCReference Include="..\PCElements\StorageVars.pas"/>
+        <DCCReference Include="..\PCElements\Storage2Vars.pas"/>
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
         <DCCReference Include="..\Controls\CapControlVars.pas"/>
         <DCCReference Include="..\Controls\InvControl.pas"/>
+        <DCCReference Include="..\Controls\InvControl2.pas"/>
         <DCCReference Include="..\PDElements\GICTransformer.pas"/>
         <DCCReference Include="..\Controls\ExpControl.pas"/>
         <DCCReference Include="..\PCElements\UPFC.pas"/>
