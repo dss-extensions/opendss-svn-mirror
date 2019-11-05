@@ -177,6 +177,7 @@
         <DCCReference Include="..\Controls\RegControl.pas"/>
         <DCCReference Include="..\Controls\Relay.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
+        <DCCReference Include="..\Controls\StorageController2.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
         <DCCReference Include="..\Controls\UPFCControl.pas"/>
         <DCCReference Include="..\EXE\MyDSSClassDefs.Pas"/>

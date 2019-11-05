@@ -1084,6 +1084,7 @@
         <DCCReference Include="..\PCElements\Storage2.pas"/>
         <DCCReference Include="..\PCElements\StoreUserModel.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
+        <DCCReference Include="..\Controls\StorageController2.pas"/>
         <DCCReference Include="..\General\LineGeometry.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
         <DCCReference Include="ImplTransformers.pas">
