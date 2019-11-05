@@ -28,6 +28,7 @@ function Show_routeGIS(): String;
 function Get_JSONrouteGIS(): String;
 function WindowLR(): String;
 function WindowRL(): String;
+function ReSizeWindow(): String;
 
 const
     GUEST_PORT = 20011;
@@ -364,22 +365,26 @@ var
     TempStr,
     JSONCmd: String;
 begin
-
-    JSONCmd := '{"command":"resizewindow","coords":{"left":' + inttostr(Screen.Width div 2) +
-        ',"top":0,"right":' + inttostr(Screen.Width) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
-    try
-        GISTCPClient.IOHandler.WriteLn(JSONCmd);
-        InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
-        TCPJSON := TdJSON.Parse(InMsg);
-        TempStr := TCPJSON['resizewindow'].AsString;
-        Result := TempStr;
-    except
-        on E: Exception do
-        begin
-            IsGISON := false;
-            Result := 'Error while communicating to OpenDSS-GIS';
+    if IsGISON then
+    begin
+        JSONCmd := '{"command":"resizewindow","coords":{"left":' + inttostr(Screen.Width div 2) +
+            ',"top":0,"right":' + inttostr(Screen.Width) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+        try
+            GISTCPClient.IOHandler.WriteLn(JSONCmd);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            TempStr := TCPJSON['resizewindow'].AsString;
+            Result := TempStr;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
         end;
-    end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
@@ -395,21 +400,74 @@ var
     TempStr,
     JSONCmd: String;
 begin
-    JSONCmd := '{"command":"resizewindow","coords":{"left":0,"top":0,"right":' +
-        inttostr(Screen.Width div 2) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
-    try
-        GISTCPClient.IOHandler.WriteLn(JSONCmd);
-        InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
-        TCPJSON := TdJSON.Parse(InMsg);
-        TempStr := TCPJSON['resizewindow'].AsString;
-        Result := TempStr;
-    except
-        on E: Exception do
-        begin
-            IsGISON := false;
-            Result := 'Error while communicating to OpenDSS-GIS';
+    if IsGISON then
+    begin
+        JSONCmd := '{"command":"resizewindow","coords":{"left":0,"top":0,"right":' +
+            inttostr(Screen.Width div 2) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+        try
+            GISTCPClient.IOHandler.WriteLn(JSONCmd);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            TempStr := TCPJSON['resizewindow'].AsString;
+            Result := TempStr;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
         end;
-    end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized'
+end;
+
+{*******************************************************************************
+*    Resizes the OpenDSS-GIS window using the coordinates given by the user    *
+*******************************************************************************}
+
+function ReSizeWindow(): String;
+var
+    TCPJSON: TdJSON;
+    j,
+    ScrSize: Integer;
+    InMsg,
+    TempStr,
+    JSONCmd: String;
+    TStrArr: array of String;
+
+begin
+    if IsGISON then
+    begin
+        setlength(TStrArr, 4);
+        TStrArr[0] := ',"top":';
+        TStrArr[1] := ',"right":';
+        TStrArr[2] := ',"bottom":';
+        TStrArr[3] := '}}';
+
+        JSONCmd := '{"command":"resizewindow","coords":{"left":';
+        for j := 0 to High(TStrArr) do
+        begin
+            Parser[ActiveActor].NextParam;
+            JSONCmd := JSONCmd + Parser[ActiveActor].StrValue + TStrArr[j];
+        end;
+        try
+            GISTCPClient.IOHandler.WriteLn(JSONCmd);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            TempStr := TCPJSON['resizewindow'].AsString;
+            Result := TempStr;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized'
+
 end;
 
 end.
