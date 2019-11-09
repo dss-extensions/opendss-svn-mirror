@@ -220,6 +220,20 @@ begin
                     end;
                 end;
             end;
+        end;
+        9:
+        begin  // PVSystems.Pmpp read
+            Result := -1.0;  // not set
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                with ActiveCircuit[ActiveActor].PVSystems do
+                begin
+                    if ActiveIndex <> 0 then
+                    begin
+                        Result := TPVSystemObj(Active).pmpp;
+                    end;
+                end;
+            end;
         end
     else
         Result := -1.0;
