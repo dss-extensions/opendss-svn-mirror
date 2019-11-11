@@ -234,6 +234,19 @@ begin
                     end;
                 end;
             end;
+        end;
+        10:
+        begin  // PVSystems.Pmpp write
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                with ActiveCircuit[ActiveActor].PVSystems do
+                begin
+                    if ActiveIndex <> 0 then
+                    begin
+                        TPVSystemObj(Active).pmpp := arg;
+                    end;
+                end;
+            end;
         end
     else
         Result := -1.0;
