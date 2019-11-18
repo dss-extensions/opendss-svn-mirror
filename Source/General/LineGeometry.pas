@@ -257,9 +257,11 @@ end;
 function TLineGeometry.Edit(ActorID: Integer): Integer;
 var
     ParamPointer: Integer;
-    ParamName: String;
+    ParamName,
     Param: String;
-    i, istart, istop: Integer;
+    i,
+    istart,
+    istop: Integer;
 
 begin
     Result := 0;
@@ -345,10 +347,13 @@ begin
                     FCondName^[ActiveCond] := Param;
                     ChangeLineConstantsType(TapeShield)
                 end;
-                12, 15, 16:
+                12,
+                15,
+                16:
                 begin
                     istart := 1;
                     istop := FNConds;
+
                     if ParamPointer = 15 then
                     begin
                         ChangeLineConstantsType(ConcentricNeutral);
@@ -366,7 +371,8 @@ begin
                         if FPhaseChoice^[ActiveCond] = Unknown then
                             ChangeLineConstantsType(Overhead)
                         else // these are buried neutral wires
-                            istart := FNPhases + 1;
+                        if FPhaseChoice^[ActiveCond] <> Overhead then
+                            istart := FNPhases + 1; // to fix the bug introduced with ActiveCond
                     end;
 
                     AuxParser[ActorID].CmdString := Parser[ActorID].StrValue;
@@ -477,6 +483,7 @@ function TLineGeometry.MakeLike(const LineName: String): Integer;
 var
     OtherLineGeometry: TLineGeometryObj;
     i: Integer;
+    temp1: Double;
 begin
     Result := 0;
    {See if we can find this line code in the present collection}
@@ -925,8 +932,6 @@ begin
     Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
 
 {Initialize Allocations}
-    for i := 1 to FNconds do
-        FPhaseChoice^[i] := Overhead;
     for i := 1 to FNconds do
         FWireData^[i] := nil;
     for i := 1 to FNconds do
