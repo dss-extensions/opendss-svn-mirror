@@ -968,13 +968,13 @@ end;
 procedure TCapControlObj.Sample(ActorID: Integer);
 
 var
+    PF,
+    Sabs,
     CurrTest,
     Vtest,
     NormalizedTime,
     Q: Double;
     S: Complex;
-    PF: Double;
-    Sabs: Double;
 
 
     function PF1to2(const Spower: Complex): Double;   // return PF in range of 1 to 2

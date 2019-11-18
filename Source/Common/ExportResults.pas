@@ -14,7 +14,8 @@ unit ExportResults;
 interface
 
 uses
-    EnergyMeter;
+    EnergyMeter,
+    XYCurve;
 
 procedure ExportVoltages(FileNm: String);
 procedure ExportSeqVoltages(FileNm: String);
@@ -563,11 +564,42 @@ end;
 
 procedure CalcAndWriteMaxCurrents(var F: TextFile; pElem: TPDElement; Cbuffer: pComplexArray);
 var
+    RatingIdx,
     i: Integer;
-    Currmag, MaxCurrent: Double;
+    EmergAmps,
+    NormAmps,
+    Currmag,
+    MaxCurrent: Double;
     LocalPower: Complex;
+    RSignal: TXYCurveObj;
 
 begin
+    // Initializes NomrAmps and EmergAmps with the default values for the PDElement
+    NormAmps := pElem.NormAmps;
+    EmergAmps := pElem.EmergAmps;
+
+    if SeasonalRating then
+    begin
+        if SeasonSignal <> '' then
+        begin
+            RSignal := XYCurveClass[ActiveActor].Find(SeasonSignal);
+            if RSignal <> nil then
+            begin
+                RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActiveActor].Solution.DynaVars.intHour));
+          // Brings the seasonal ratings for the PDElement
+                if (RatingIdx <= PElem.NumAmpRatings) and (PElem.NumAmpRatings > 1) then
+                begin
+                    NormAmps := pElem.AmpRatings[RatingIdx];
+                    EmergAmps := pElem.AmpRatings[RatingIdx];
+                end;
+            end
+            else
+                SeasonalRating := false;   // The XYCurve defined doesn't exist
+        end
+        else
+            SeasonalRating := false;    // The user didn't define the seasonal signal
+    end;
+
     Write(F, Format('%s.%s', [pelem.DSSClassName, UpperCase(pElem.Name)]));
     MaxCurrent := 0.0;
     for    i := 1 to pElem.Nphases do
@@ -581,7 +613,8 @@ begin
     if (pElem.NormAmps = 0.0) or (pElem.EmergAmps = 0.0) then
         Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, 0.0, 0.0]))
     else
-        Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, MaxCurrent / pElem.NormAmps * 100.0, MaxCurrent / pElem.Emergamps * 100.0]));
+        Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, MaxCurrent / NormAmps * 100.0, MaxCurrent / Emergamps * 100.0]));
+
     Write(F, Format(', %10.6g, %10.6g, %d, %d, %d', [Localpower.re, Localpower.im, pElem.BranchNumCustomers, pElem.BranchTotalCustomers, pElem.NPhases]));
     with ActiveCircuit[ActiveActor] do
         Write(F, Format(', %-.3g ', [Buses^[MapNodeToBus^[PElem.NodeRef^[1]].BusRef].kVBase]));
