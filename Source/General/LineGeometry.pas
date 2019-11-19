@@ -483,7 +483,7 @@ function TLineGeometry.MakeLike(const LineName: String): Integer;
 var
     OtherLineGeometry: TLineGeometryObj;
     i: Integer;
-    temp1: Double;
+
 begin
     Result := 0;
    {See if we can find this line code in the present collection}
