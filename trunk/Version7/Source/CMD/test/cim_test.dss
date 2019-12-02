@@ -7,11 +7,14 @@ cd /users/mcde601/src/OpenDSS/Test/
 redirect IEEE13_CDPSM.dss
 solve
 cd /users/mcde601/src/opendsscmd/Source/CMD/test/
+uuids file=IEEE13Nodeckt_Base_UUIDS.dat
 export cim100 substation=subname geo=region subgeo=subregion file=ieee13cdpsm.xml
+export uuids
 
 cd /users/mcde601/src/OpenDSS/Test/
 redirect IEEE13_Assets.dss
 solve
 cd /users/mcde601/src/opendsscmd/Source/CMD/test/
+uuids file=IEEE13NodecktAssets_Base_UUIDS.dat
 export cim100 substation=subname geo=region subgeo=subregion file=ieee13assets.xml
-
+export uuids
