@@ -12,7 +12,13 @@ uses
     DSSGlobals,
     DSSObject,
     Variants,
-    CktElement;
+    CktElement,
+    PCElement,
+    DSSClass,
+    PDClass,
+    PCClass,
+    MeterClass,
+    ControlClass;
 
 function ActiveClassI(mode: Longint; arg: Longint): Longint; CDECL;
 begin
@@ -88,6 +94,24 @@ begin
                 Result := Pansichar(Ansistring(ActiveDSSCLass[ActiveActor].Name))
             else
                 Result := Pansichar(Ansistring(''));
+        end;
+        3:
+        begin  // ActiveClass.ActiveClassParent
+            if Assigned(ActiveDSSClass[ActiveActor]) then
+            begin
+                Result := Pansichar('Generic Object');
+
+                if ActiveDSSClass[ActiveActor].ClassType.InheritsFrom(TPCClass) then
+                    Result := Pansichar('TPCClas');
+                if ActiveDSSClass[ActiveActor].ClassType.InheritsFrom(TPDClass) then
+                    Result := Pansichar('TPDClass');
+                if ActiveDSSClass[ActiveActor].ClassType.InheritsFrom(TMeterClass) then
+                    Result := Pansichar('TMeterClass');
+                if ActiveDSSClass[ActiveActor].ClassType.InheritsFrom(TControlClass) then
+                    Result := Pansichar('TControlClass');
+            end
+            else
+                Result := Pansichar(Ansistring('Parent Class unknonwn'));
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not recognized'));
