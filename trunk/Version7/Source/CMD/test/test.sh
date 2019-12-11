@@ -1,2 +1,3 @@
-ppcx64 -Mdelphi -Px86_64 test.pas
-./test
+./opendsscmd cim_test.dss
+cp IEEE13Nodeckt_EXP_UUIDS.CSV IEEE13Nodeckt_Base_UUIDS.dat
+cp IEEE13NodecktAssets_EXP_UUIDS.CSV IEEE13NodecktAssets_Base_UUIDS.dat
