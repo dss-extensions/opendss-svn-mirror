@@ -1725,7 +1725,7 @@ begin
 
       {Rename the line}
         if Series then
-            NewName := StripExtension(GetBus(1)) + '~' + StripExtension(GetBus(2))
+            NewName := OtherLine.Name + '~' + Name //StripExtension(GetBus(1)) + '~'  + StripExtension(GetBus(2))
         else
             NewName := StripExtension(GetBus(1)) + '||' + StripExtension(GetBus(2));
 

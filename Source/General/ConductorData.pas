@@ -1,7 +1,7 @@
 unit ConductorData;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -50,6 +50,7 @@ type
         FRDC: Double;
         FR60: Double;
         FGMR60: Double;
+        Fcapradius60: Double;  // in case it is different than radius for cap calcs
         Fradius: Double;
         FGMRUnits: Integer;
         FResistanceUnits: Integer;
@@ -66,6 +67,7 @@ type
         property Rdc: Double READ FRDC;
         property Rac: Double READ FR60;
         property GMR: Double READ FGMR60;
+        property CapRadius: Double READ Fcapradius60;
         property Radius: Double READ FRadius;
         property ResUnits: Integer READ FresistanceUnits;
         property RadiusUnits: Integer READ FradiusUnits;
@@ -99,7 +101,7 @@ const
 constructor TConductorData.Create;  // Creates superstructure for all Line objects
 begin
     inherited Create;
-    NumConductorClassProps := 12;
+    NumConductorClassProps := 13;
     DSSClassType := DSS_OBJECT;
 end;
 
@@ -128,6 +130,7 @@ begin
     PropertyName^[ActiveProperty + 10] := 'diam';
     PropertyName^[ActiveProperty + 11] := 'Seasons';
     PropertyName^[ActiveProperty + 12] := 'Ratings';
+    PropertyName^[ActiveProperty + 13] := 'Capradius';
 
     PropertyHelp^[ActiveProperty + 1] := 'dc Resistance, ohms per unit length (see Runits). Defaults to Rac/1.02 if not specified.';
     PropertyHelp^[ActiveProperty + 2] := 'Resistance at 60 Hz per unit length. Defaults to 1.02*Rdc if not specified.';
@@ -142,6 +145,7 @@ begin
     PropertyHelp^[ActiveProperty + 11] := 'Defines the number of ratings to be defined for the wire, to be used only when defining seasonal ratings using the "Ratings" property.';
     PropertyHelp^[ActiveProperty + 12] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
         CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in lines.';
+    PropertyHelp^[ActiveProperty + 13] := 'Equivalent conductor radius for capacitor calcs. Specify this for bundled conductors. Defaults to same value as radius.';
 
     ActiveProperty := ActiveProperty + NumConductorClassProps;
     inherited DefineProperties;
@@ -188,7 +192,9 @@ begin
                     setlength(AmpRatings, NumAmpRatings);
                     Param := Parser[ActiveActor].StrValue;
                     NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, pointer(AmpRatings));
-                end
+                end;
+                13:
+                    Fcapradius60 := Parser[ActiveActor].DblValue;
             else
                 inherited ClassEdit(ActiveObj, ParamPointer - NumConductorClassProps)
             end;
@@ -207,8 +213,12 @@ begin
                     if FradiusUnits = 0 then
                         FradiusUnits := FGMRunits;
                 6:
+                begin
                     if FGMR60 < 0.0 then
                         FGMR60 := 0.7788 * FRadius;
+                    if Fcapradius60 < 0.0 then
+                        Fcapradius60 := Fradius;    // default to radius
+                end;
                 7:
                     if FGMRUnits = 0 then
                         FGMRunits := FradiusUnits;
@@ -219,8 +229,15 @@ begin
                     if NormAmps < 0.0 then
                         NormAmps := EmergAmps / 1.5;
                 10:
+                begin
                     if FGMR60 < 0.0 then
                         FGMR60 := 0.7788 * FRadius;
+                    if Fcapradius60 < 0.0 then
+                        Fcapradius60 := Fradius;    // default to radius
+                end;
+                13:
+                    if Fcapradius60 < 0.0 then
+                        Fcapradius60 := FRadius;
             end;
       {Check for critical errors}
             case ParamPointer of
@@ -245,6 +262,7 @@ begin
         FR60 := OtherConductorData.FR60;
         FResistanceUnits := OtherConductorData.FResistanceUnits;
         FGMR60 := OtherConductorData.FGMR60;
+        Fcapradius60 := OtherConductorData.Fcapradius60;
         FGMRUnits := OtherConductorData.FGMRUnits;
         FRadius := OtherConductorData.FRadius;
         FRadiusUnits := OtherConductorData.FRadiusUnits;
@@ -269,6 +287,7 @@ begin
     FR60 := -1.0;
     FGMR60 := -1.0;
     Fradius := -1.0;
+    Fcapradius60 := -1.0;   // init to not defined
     FGMRUnits := 0;
     FResistanceUnits := 0;
     FRadiusUnits := 0;
@@ -329,6 +348,8 @@ begin
                     TempStr := TempStr + ']';
                     Writeln(F, TempStr);
                 end;
+                13:
+                    Writeln(F, Format('%.6g', [Fcapradius60]));
             end;
         end;
     end;
@@ -348,7 +369,8 @@ begin
     PropertyValue[ArrayOffset + 10] := '-1';
     PropertyValue[ArrayOffset + 11] := '1';
     PropertyValue[ArrayOffset + 12] := '[-1]';
-    inherited InitPropertyValues(ArrayOffset + 10);
+    PropertyValue[ArrayOffset + 13] := '-1';
+    inherited InitPropertyValues(ArrayOffset + 13);
 end;
 
 end.

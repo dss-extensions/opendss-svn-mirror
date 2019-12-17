@@ -1,7 +1,7 @@
 unit LineGeometry;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -256,12 +256,13 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TLineGeometry.Edit(ActorID: Integer): Integer;
 var
+    i,
+    istart,
+    istop,
     ParamPointer: Integer;
     ParamName,
     Param: String;
-    i,
-    istart,
-    istop: Integer;
+
 
 begin
     Result := 0;
@@ -297,7 +298,7 @@ begin
                 4:
                 begin
                     FCondName^[ActiveCond] := Param;
-                    if FPhaseChoice^[ActiveCond] = Unknown then
+                    if (FPhaseChoice^[ActiveCond] = Unknown) or (FPhaseChoice^[ActiveCond] = Overhead) then
                         ChangeLineConstantsType(Overhead);
                 end;
                 5:
@@ -931,6 +932,14 @@ begin
     Reallocmem(FUnits, Sizeof(Funits^[1]) * FNconds);
     Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
 
+    for i := 1 to FNconds do
+    begin
+        ActiveCond := i;
+        ChangeLineConstantsType(Overhead);    // works on activecond
+    end;
+
+    FCondName := AllocStringArray(FNconds);
+
 {Initialize Allocations}
     for i := 1 to FNconds do
         FWireData^[i] := nil;
@@ -941,13 +950,6 @@ begin
     for i := 1 to FNconds do
         FUnits^[i] := -1;  // default to ft
     FLastUnit := UNITS_FT;
-
-    for i := 1 to FNconds do
-    begin
-        ActiveCond := i;
-        ChangeLineConstantsType(Overhead);    // works on activecond
-    end;
-    FCondName := AllocStringArray(FNconds);
 
 
 end;
@@ -976,6 +978,7 @@ begin
         FLineData.X[i, Funits^[i]] := FX^[i];
         FLineData.Y[i, Funits^[i]] := FY^[i];
         FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
+        FLineData.capradius[i, FWireData^[i].RadiusUnits] := FWireData^[i].capRadius;
         FLineData.GMR[i, FWireData^[i].GMRUnits] := FWireData^[i].GMR;
         FLineData.Rdc[i, FWireData^[i].ResUnits] := FWireData^[i].Rdc;
         FLineData.Rac[i, FWireData^[i].ResUnits] := FWireData^[i].Rac;

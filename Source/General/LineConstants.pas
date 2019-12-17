@@ -1,7 +1,7 @@
 unit LineConstants;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -50,6 +50,8 @@ type
         FRac: pDoubleArray;   // ohms/m
         FGMR: pDoubleArray;   // m
         Fradius: pDoubleArray;
+        Fcapradius: pDoubleArray;  // if different than radius; defaults to radius
+                                   // Primarily for bundled conductors
 
         FZmatrix: TCmatrix;   // in ohms/m
         FYCmatrix: TCmatrix;   // siemens/m   --- jwC
@@ -81,6 +83,9 @@ type
         procedure Set_Y(i, units: Integer; const Value: Double);
         procedure Set_Frequency(const Value: Double);
         procedure Set_Frhoearth(const Value: Double);  // m
+    // This allows you to compute capacitance using a different radius -- for bundled conductors
+        function Get_Capradius(i, units: Integer): Double;
+        procedure Set_Capradius(i, units: Integer; const Value: Double);
 
    {These can only be called privately}
         property Frequency: Double READ FFrequency WRITE Set_Frequency;
@@ -99,6 +104,7 @@ type
         property Rdc[i, units: Integer]: Double READ Get_Rdc WRITE Set_Rdc;
         property Rac[i, units: Integer]: Double READ Get_Rac WRITE Set_Rac;
         property radius[i, units: Integer]: Double READ Get_radius WRITE Set_radius;
+        property Capradius[i, units: Integer]: Double READ Get_Capradius WRITE Set_Capradius;
         property GMR[i, units: Integer]: Double READ Get_GMR WRITE Set_GMR;
         property Zint[i: Integer]: Complex READ Get_Zint;  // Internal impedance of i-th conductor for present frequency
         property Ze[i, j: Integer]: Complex READ Get_Ze;  // Earth return impedance at present frequency for ij element
@@ -140,12 +146,17 @@ var
 procedure TLineConstants.Calc(f: Double);
 {Compute base Z and YC matrices in ohms/m for this frequency and earth impedance}
 var
-    Zi, Zspacing: Complex;
+
     PowerFreq: Boolean;
+    temp,
+    Zi,
+    Zspacing,
     Lfactor: Complex;
-    i, j: Integer;
+    ReducedSize,
+    i,
+    j: Integer;
     Dij, Dijp, Pfactor: Double;
-    ReducedSize: Integer;
+
 
 begin
 
@@ -189,7 +200,7 @@ begin
         begin
             Zspacing := CmulReal(Lfactor, ln(1.0 / Fradius^[i]));
         end;
-
+        temp := Get_Ze(i, i);
         FZmatrix.SetElement(i, i, Cadd(Zi, Cadd(Zspacing, Get_Ze(i, i))));
 
     end;
@@ -211,9 +222,13 @@ begin
 
       {Construct P matrix and then invert}
 
+      {Self uses capradius, which defaults to actual conductor radius. But
+       in case of bundled conductors can be specified different in Wiredata.}
+
+
     for i := 1 to FnumConds do
     begin
-        FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * Fy^[i] / Fradius^[i])));
+        FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * Fy^[i] / Fcapradius^[i])));
     end;
 
     for i := 1 to FNumConds do
@@ -284,6 +299,7 @@ begin
     FY := Allocmem(Sizeof(Fy^[1]) * FNumConds);
     FGMR := Allocmem(Sizeof(FGMR^[1]) * FNumConds);
     Fradius := Allocmem(Sizeof(Fradius^[1]) * FNumConds);
+    Fcapradius := Allocmem(Sizeof(Fcapradius^[1]) * FNumConds);
     FRdc := Allocmem(Sizeof(FRdc^[1]) * FNumConds);
     FRac := Allocmem(Sizeof(FRac^[1]) * FNumConds);
 
@@ -293,6 +309,8 @@ begin
         FGMR^[i] := -1.0;
     for i := 1 to FNumConds do
         Fradius^[i] := -1.0;
+    for i := 1 to FNumConds do
+        Fcapradius^[i] := -1.0;
     for i := 1 to FNumConds do
         FRdc^[i] := -1.0;
 
@@ -324,12 +342,19 @@ begin
     Reallocmem(FY, 0);
     Reallocmem(FGMR, 0);
     Reallocmem(Fradius, 0);
+    Reallocmem(Fcapradius, 0);
     Reallocmem(FRdc, 0);
     Reallocmem(FRac, 0);
 
     inherited;
 
 end;
+
+function TLineConstants.Get_Capradius(i, units: Integer): Double;
+begin
+    Result := Fcapradius^[i] * From_Meters(Units);
+end;
+
 
 function TLineConstants.Get_GMR(i, units: Integer): Double;
 begin
@@ -583,6 +608,15 @@ begin
     Kron(FNumPhases);
 
 end;
+
+procedure TLineConstants.Set_Capradius(i, units: Integer; const Value: Double);
+begin
+    if (i > 0) and (i <= FNumConds) then
+    begin
+        Fcapradius^[i] := Value * To_Meters(units);
+    end;
+end;
+
 
 procedure TLineConstants.Set_Frequency(const Value: Double);
 begin
