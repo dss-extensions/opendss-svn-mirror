@@ -1,0 +1,28 @@
+// Curva de despacho
+New LoadShape.despacho_storage npts=24 interval=1 
+~ mult=[0 -0.3 -0.3 -0.3 0 0 0 0 0 0 0 0 -0.5 -0.5 0 0 0.35 0.35 1 0.3 0 0 0 0]
+
+// Storage 1
+New Storage.storage1 phases=3 bus1=storage_A kv=0.48 pf=1 kWrated=1600 %reserve=20
+~ kWhrated = 3200 %stored=30 state=idling dispmode=follow model=1 daily=despacho_storage
+
+// Storage 2
+New Storage.storage2 phases=3 bus1=storage_B kv=0.48 pf=1 kWrated=1600 %reserve=20
+~ kWhrated = 3200 %stored=30 state=idling dispmode=follow model=1 daily=despacho_storage
+
+// Trafo Interconexão Storage 1  
+New Transformer.Trafo_storage_A phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1069515  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=storage_A  kV=0.48 kVA=600 conn=wye
+
+// Trafo Interconexão Storage 1
+New Transformer.Trafo_storage_B phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1125968  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=storage_B  kV=0.48 kVA=600 conn=wye
+
+
+!Monitores Storage
+New monitor.Mon_Storage1_State element=Storage.storage1 terminal=1 mode=3
+
+
+

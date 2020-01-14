@@ -1,0 +1,72 @@
+// Definição de um PVSystem
+// Curva de Eficência do Inversor
+New XYCurve.Eff npts=4 xarray=[.1 .2 .4 1.0] yarray=[.86 .9 .93 .97]
+
+// Curva do fator de correção da potência DC
+// Potência DC nominal para T=25
+New XYCurve.FatorPvsT npts=4 xarray=[0 25 75 100] yarray=[1.2 1.0 .8 .6] 
+
+// Curva de Radiacão Diária
+New LoadShape.Irrad npts=24 interval=1 
+~ mult=[0 0 0 0 0 0 .1 .2 .3 .5 .8 .9 1.0 1.0 .99 .9 .7 .4 .1 0 0 0 0 0]
+
+// Curva de temperatura diária no painel
+New TShape.Temp npts=24 interval=1 
+~ temp=[25 25 25 25 25 25 25 25 35 40 45 50 60 60 55 40 35 30 25 25 25 25 25 25]
+
+// PVSystem
+New PVSystem.PV_A phases=3 bus1=A_PV Pmpp=500 kV=0.48 kVA=550 conn=wye 
+~ %Cutin=10 %Cutout=10 EffCurve=Eff P-TCurve=FatorPvsT
+~ pf=1 kvarLimit=550 pctPmpp=100 VarFollowInverter=yes    
+~ irradiance=0.98 daily=Irrad Tdaily=Temp   
+
+// PVSystem
+New PVSystem.PV_B phases=3 bus1=B_PV Pmpp=500 kV=0.48 kVA=550 conn=wye 
+~ %Cutin=10 %Cutout=10 EffCurve=Eff P-TCurve=FatorPvsT
+~ pf=1 kvarLimit=550 pctPmpp=100 VarFollowInverter=yes    
+~ irradiance=0.98 daily=Irrad Tdaily=Temp  
+
+// PVSystem
+New PVSystem.PV_C phases=3 bus1=C_PV Pmpp=500 kV=0.48 kVA=550 conn=wye 
+~ %Cutin=10 %Cutout=10 EffCurve=Eff P-TCurve=FatorPvsT
+~ pf=1 kvarLimit=550 pctPmpp=100 VarFollowInverter=yes    
+~ irradiance=0.98 daily=Irrad Tdaily=Temp  
+
+// PVSystem
+New PVSystem.PV_D phases=3 bus1=D_PV Pmpp=500 kV=0.48 kVA=550 conn=wye 
+~ %Cutin=10 %Cutout=10 EffCurve=Eff P-TCurve=FatorPvsT
+~ pf=1 kvarLimit=550 pctPmpp=100 VarFollowInverter=yes    
+~ irradiance=0.98 daily=Irrad Tdaily=Temp  
+
+// PVSystem
+New PVSystem.PV_E phases=3 bus1=E_PV Pmpp=500 kV=0.48 kVA=550 conn=wye 
+~ %Cutin=10 %Cutout=10 EffCurve=Eff P-TCurve=FatorPvsT
+~ pf=1 kvarLimit=550 pctPmpp=100 VarFollowInverter=yes    
+~ irradiance=0.98 daily=Irrad Tdaily=Temp  
+
+
+// Definição de um Transformador
+New Transformer.Trafo_PV_A phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1047552  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=A_PV  kV=0.48 kVA=600 conn=wye
+
+New Transformer.Trafo_PV_B phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1026701  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=B_PV  kV=0.48 kVA=600 conn=wye
+
+New Transformer.Trafo_PV_C phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1125902  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=C_PV  kV=0.48 kVA=600 conn=wye
+
+New Transformer.Trafo_PV_D phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=L3235254  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=D_PV  kV=0.48 kVA=600 conn=wye
+
+New Transformer.Trafo_PV_E phases = 3 windings=2 xhl=5 %noloadloss=0.39 %loadloss=1.47  
+~ wdg =1  bus=M1047339  kV=12.47 kVA=600 conn=wye 
+~ wdg =2  bus=E_PV  kV=0.48 kVA=600 conn=wye
+
+
+!Monitores no PV_A
+New monitor.Mon_PV_A_P element=PVSystem.PV_A terminal=1 mode=1 ppolar=no
+New monitor.Mon_PV_A_V_I element=PVSystem.PV_A terminal=1 mode=0 vipolar=yes

@@ -1,0 +1,12 @@
+! SBSE 2018 VII Simposio Brasileiro de Sistemas Eletricos
+! Minicurso 03: OpenDSS - Introducao, Modelos Avancados de Recursos Distribuidos e Estudos de caso
+
+! Questao 1 - Simulacao no modo SnapShot
+
+Compile (master.dss)
+
+New Energymeter.m1 Line.ln5815900-1 1
+
+Set Maxiterations=20     ! Sometimes the solution takes more than the default 15 iterations
+
+Solve
