@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 12/10/2019 11:23:02 AM from Type Library described below.
+// File generated on 1/23/2020 9:02:01 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -3494,6 +3494,7 @@ type
         procedure Set_kVArated(Value: Double); STDCALL;
         function Get_Pmpp: Double; SAFECALL;
         procedure Set_Pmpp(Value: Double); SAFECALL;
+        function Get_IrradianceNow: Double; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property RegisterNames: Olevariant READ Get_RegisterNames;
         property RegisterValues: Olevariant READ Get_RegisterValues;
@@ -3508,6 +3509,7 @@ type
     // Skipped Property "PF"
     // Skipped Property "kVArated"
         property Pmpp: Double READ Get_Pmpp WRITE Set_Pmpp;
+        property IrradianceNow: Double READ Get_IrradianceNow;
     end;
 
 // *********************************************************************//
@@ -3531,6 +3533,7 @@ type
         function PF: Double; DISPID 212;
         function kVArated: Double; DISPID 213;
         property Pmpp: Double DISPID 214;
+        property IrradianceNow: Double READONLY DISPID 215;
     end;
 
 // *********************************************************************//

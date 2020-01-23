@@ -326,6 +326,7 @@ type
         property VarFollowInverter: Boolean READ Get_VarFollowInverter WRITE Set_VarFollowInverter;
         property kvarLimit: Double READ PVSystemVars.Fkvarlimit WRITE Set_Maxkvar;
         property MinModelVoltagePU: Double READ VminPu;
+        property IrradianceNow: Double READ ShapeFactor.re;
 
 
     end;
