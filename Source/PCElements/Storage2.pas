@@ -947,9 +947,9 @@ begin
                             FkVArating := Parser[ActorID].DblValue;
                             kVASet := true;
                             if not kvarLimitSet then
-                                Storage2Vars.Fkvarlimit := Parser[ActorID].DblValue;
+                                Storage2Vars.Fkvarlimit := FkVArating;
                             if not kvarLimitSet and not kvarLimitNegSet then
-                                Storage2Vars.Fkvarlimitneg := Parser[ActorID].DblValue;
+                                Storage2Vars.Fkvarlimitneg := FkVArating;
                         end;
                     propKWRATED:
                         Storage2Vars.kWrating := Parser[ActorID].DblValue;
@@ -988,7 +988,7 @@ begin
                         Storage2Vars.Fkvarlimit := Abs(Parser[ActorID].DblValue);
                         kvarLimitSet := true;
                         if not kvarLimitNegSet then
-                            Storage2Vars.Fkvarlimitneg := Abs(Parser[ActorID].DblValue);
+                            Storage2Vars.Fkvarlimitneg := Abs(Storage2Vars.Fkvarlimit);
 
                     end;
                     propPPriority:

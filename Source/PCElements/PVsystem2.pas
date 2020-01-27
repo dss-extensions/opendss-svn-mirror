@@ -821,9 +821,9 @@ begin
                         begin
                             FkVArating := Parser[ActorID].DblValue;
                             if not kvarLimitSet then
-                                PVSystem2Vars.Fkvarlimit := Parser[ActorID].DblValue;
+                                PVSystem2Vars.Fkvarlimit := FkVArating;
                             if not kvarLimitSet and not kvarLimitNegSet then
-                                PVSystem2Vars.Fkvarlimitneg := Parser[ActorID].DblValue;
+                                PVSystem2Vars.Fkvarlimitneg := FkVArating;
                         end;
                     propUSERMODEL:
                         UserModel.Name := Parser[ActorID].StrValue;  // Connect to user written models
@@ -844,7 +844,7 @@ begin
                         PVSystem2Vars.Fkvarlimit := Abs(Parser[ActorID].DblValue);
                         kvarLimitSet := true;
                         if not kvarLimitNegSet then
-                            PVSystem2Vars.Fkvarlimitneg := Abs(Parser[ActorID].DblValue);
+                            PVSystem2Vars.Fkvarlimitneg := Abs(PVSystem2Vars.Fkvarlimit);
 
                     end;
                     propDutyStart:
