@@ -46,7 +46,7 @@ uses
 
 const
     NumPVSystem2Registers = 6;    // Number of energy meter registers
-    NumPVSystem2Variables = 11;    // No state variables that need integrating.
+    NumPVSystem2Variables = 13;    // No state variables that need integrating.
     VARMODEPF = 0;
     VARMODEKVAR = 1;
 
@@ -81,6 +81,8 @@ type
         VWOperation: Double;
         DRCOperation: Double;
         VVDRCOperation: Double;
+        WPOperation: Double;
+        WVOperation: Double;
     //        kW_out_desired   :Double;
 
     {32-bit integers}
@@ -185,6 +187,7 @@ type
 
         FVWMode: Boolean; //boolean indicating if under volt-watt control mode from InvControl (not ExpControl)
         FVVMode: Boolean; //boolean indicating if under volt-var mode from InvControl
+        FWVMode: Boolean; //boolean indicating if under watt-var mode from InvControl
         FWPMode: Boolean; //boolean indicating if under watt-pf mode from InvControl
         FDRCMode: Boolean; //boolean indicating if under DRC mode from InvControl
 
@@ -248,6 +251,9 @@ type
 
         function Get_WPmode: Boolean;
         procedure Set_WPmode(const Value: Boolean);
+
+        function Get_WVmode: Boolean;
+        procedure Set_WVmode(const Value: Boolean);
 
         function Get_DRCmode: Boolean;
         procedure Set_DRCmode(const Value: Boolean);
@@ -350,6 +356,7 @@ type
         property VWmode: Boolean READ Get_VWmode WRITE Set_VWmode;
         property VVmode: Boolean READ Get_VVmode WRITE Set_VVmode;
         property WPmode: Boolean READ Get_WPmode WRITE Set_WPmode;
+        property WVmode: Boolean READ Get_WVmode WRITE Set_WVmode;
         property DRCmode: Boolean READ Get_DRCmode WRITE Set_DRCmode;
         property InverterON: Boolean READ Get_InverterON WRITE Set_InverterON;
         property VarFollowInverter: Boolean READ Get_VarFollowInverter WRITE Set_VarFollowInverter;
@@ -1005,6 +1012,7 @@ begin
             FVWMode := OtherPVsystem2Obj.FVWMode;
             FVVMode := OtherPVsystem2Obj.FVVMode;
             FWPMode := OtherPVsystem2Obj.FWPMode;
+            FWVMode := OtherPVsystem2Obj.FWPMode;
             FDRCMode := OtherPVsystem2Obj.FDRCMode;
             UserModel.Name := OtherPVsystem2Obj.UserModel.Name;  // Connect to user written models
 
@@ -1140,6 +1148,8 @@ begin
         VWOperation := 9999;
         DRCOperation := 9999;
         VVDRCOperation := 9999;
+        WPOperation := 9999;
+        WVOperation := 9999;
         //         kW_out_desired  :=9999;
         Fkvarlimit := FkVArating;
         Fkvarlimitneg := FkVArating;
@@ -1186,6 +1196,7 @@ begin
     SpectrumObj := nil;
     FVWMode := false;
     FVVMode := false;
+    FWVMode := false;
     FWPMode := false;
     FDRCMode := false;
     InitPropertyValues(0);
@@ -2876,6 +2887,10 @@ begin
             10:
                 Result := VVDRCOperation;
             11:
+                Result := WPOperation;
+            12:
+                Result := WVOperation;
+            13:
                 Result := PanelkW * EffFactor;
 
         else
@@ -2917,7 +2932,7 @@ begin
         Result := false;    // TRUE if volt-watt mode                                                            //  engaged from InvControl (not ExpControl)
 end;
 
-// ============================================================Get_VWmode===============================
+// ============================================================Get_VVmode===============================
 function TPVsystem2Obj.Get_VVmode: Boolean;
 begin
     if FVVmode then
@@ -2926,7 +2941,7 @@ begin
         Result := false;                                                               //  engaged from InvControl (not ExpControl)
 end;
 
-// ============================================================Get_VWmode===============================
+// ============================================================Get_WPmode===============================
 function TPVsystem2Obj.Get_WPmode: Boolean;
 begin
     if FWPmode then
@@ -2935,7 +2950,16 @@ begin
         Result := false;                                                               //  engaged from InvControl (not ExpControl)
 end;
 
-// ============================================================Get_VWmode===============================
+// ============================================================Get_WVmode===============================
+function TPVsystem2Obj.Get_WVmode: Boolean;
+begin
+    if FWVmode then
+        Result := true
+    else
+        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
+// ============================================================Get_DRCmode===============================
 function TPVsystem2Obj.Get_DRCmode: Boolean;
 begin
     if FDRCmode then
@@ -3004,7 +3028,11 @@ begin
                 DRCOperation := Value;
             10:
                 VVDRCOperation := Value;
-            11: ; //ReadOnly //kW_out_desired := Value;
+            11:
+                WPOperation := Value;
+            12:
+                WVOperation := Value;
+            13: ; //ReadOnly //kW_out_desired := Value;
 
         else
         begin
@@ -3040,6 +3068,13 @@ procedure TPVsystem2Obj.Set_VVmode(const Value: Boolean);
 begin
     FVVmode := Value;
 end;
+
+// ===========================================================================================
+procedure TPVsystem2Obj.Set_WVmode(const Value: Boolean);
+begin
+    FWVmode := Value;
+end;
+
 
 // ===========================================================================================
 procedure TPVsystem2Obj.Set_WPmode(const Value: Boolean);
@@ -3112,6 +3147,10 @@ begin
         10:
             Result := 'VV_DRC';
         11:
+            Result := 'watt-pf';
+        12:
+            Result := 'watt-var';
+        13:
             Result := 'kW_out_desired'
 
     else
