@@ -240,7 +240,6 @@ type
         Fwattpf_curve_size: Integer;
         Fwattpf_curve: TXYcurveObj;
         Fwattpf_curvename: String;
-        Fpf_ref: String;
         pf_wp_nominal: Double;
 
       // DRC
@@ -393,7 +392,7 @@ uses
 
 const
 
-    NumPropsThisClass = 30;
+    NumPropsThisClass = 29;
 
     NONE = 0;
     CHANGEVARLEVEL = 1;
@@ -470,7 +469,6 @@ begin
     PropertyName[27] := 'MonBusesVbase';
     PropertyName[28] := 'voltwattCH_curve';
     PropertyName[29] := 'wattpf_curve';
-    PropertyName[30] := 'wattpfYAxis';
 
     PropertyHelp[1] := 'Array list (full qualified name) of PVSystem2 and/or Storage2 elements to be controlled.  Usually only one element is controlled by one InvControl2. ' + CRLF + CRLF +
         'If not specified, all elements in the circuit are assumed to be controlled by this control, only. ' + CRLF + CRLF +
@@ -653,7 +651,6 @@ begin
         'corresponding to the terminal voltage (x-axis value in per unit). ' + CRLF + CRLF +
         'No default -- must be specified for VOLTWATT mode for Storage2 element in CHARGING state.';
     PropertyHelp[29] := 'Required for WATTPF mode.';
-    PropertyHelp[30] := 'Capacitive/Inductive. Default=Inductive.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -975,15 +972,6 @@ begin
                     end;
                 end;
 
-                30:
-                begin
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'capacitive') = 0 then
-                        Fpf_ref := 'CAP'
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'inductive') = 0 then
-                        Fpf_ref := 'IND'
-                end;
-
             else
                 // Inherited parameters
                 ClassEdit(ActiveInvControl2Obj, ParamPointer - NumPropsthisClass)
@@ -1068,7 +1056,6 @@ begin
             Fwattpf_curve_size := OtherInvControl2.Fwattpf_curve_size;
             Fwattpf_curve := OtherInvControl2.Fwattpf_curve;
             Fwattpf_curvename := OtherInvControl2.Fwattpf_curvename;
-            Fpf_ref := OtherInvControl2.Fpf_ref;
             FDbVMin := OtherInvControl2.FDbVMin;
             pf_wp_nominal := OtherInvControl2.pf_wp_nominal;
             FDbVMax := OtherInvControl2.FDbVMax;
@@ -1260,7 +1247,6 @@ begin
     Fwattpf_curve_size := 0;
     Fwattpf_curve := nil;
     Fwattpf_curvename := '';
-    Fpf_ref := 'IND';
     pf_wp_nominal := 0.0;
 
     // DRC
@@ -3270,7 +3256,7 @@ begin
     begin
         for i := 1 to Result.NumPoints do
         begin
-            if (Result.YValue_pt[i] < 0.0) or (Result.YValue_pt[i] > 1.0) then
+            if (Result.YValue_pt[i] < -1.0) or (Result.YValue_pt[i] > 1.0) then
             begin
                 DoSimpleMsg('XY Curve object: "' + CurveName + '" has power factor value(s) greater than 1.0 inductive or capacitive.  Not allowed for WATTPF control mode for PVSystem2/Storage2s', 381);
                 Result := nil;
@@ -3719,8 +3705,10 @@ procedure TInvControl2Obj.CalcWATTPF_vars(j: Integer; ActorID: Integer);
 
 begin
 
-    QDesiredWP[j] := QDesireEndpu[j] * QHeadRoom[j];
-
+    if QDesiredWP[j] >= 0.0 then
+        QDesiredWP[j] := QDesireEndpu[j] * QHeadRoom[j]
+    else
+        QDesiredWP[j] := QDesireEndpu[j] * QHeadRoomNeg[j];
 end;
 
 procedure TInvControl2Obj.CalcDRC_vars(j: Integer; ActorID: Integer);
@@ -4030,6 +4018,7 @@ var
     voltagechangesolution: Double;
     p: Double;
     pf_priority: Boolean;
+    QDesiredWP: Double;
 
 begin
 
@@ -4056,18 +4045,18 @@ begin
     if ControlledElement[j].DSSClassName = 'Storage2' then
         pf_priority := TStorage2Obj(ControlledElement[j]).Storage2Vars.PF_Priority;
 
-
     if (FPPriority[j] = false) and (pf_priority = false) then
         p := FDCkW[j] * FEffFactor[j] * FpctDCkWRated[j]
     else
         p := kW_out_desired[j];
 
+    QDesiredWP := p * sqrt(1 / (pf_wp_nominal * pf_wp_nominal) - 1) * sign(pf_wp_nominal);
 
-    if Fpf_ref = 'CAP' then
-        QDesireWPpu[j] := p * sqrt(1 / (pf_wp_nominal * pf_wp_nominal) - 1) / QHeadRoom[j]
+
+    if QDesiredWP >= 0.0 then
+        QDesireWPpu[j] := QDesiredWP / QHeadRoom[j]
     else
-    if Fpf_ref = 'IND' then
-        QDesireWPpu[j] := -1 * p * sqrt(1 / (pf_wp_nominal * pf_wp_nominal) - 1) / QHeadRoomNeg[j];
+        QDesireWPpu[j] := QDesiredWP / QHeadRoomNeg[j];
 
 end;
 
