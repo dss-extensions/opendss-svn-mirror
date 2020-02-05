@@ -62,6 +62,9 @@ type
         pctImag: Double;
         Winding: pWindingArray;
 
+        NumAmpRatings: Integer;
+        AmpRatings: TRatingsArray;
+
         procedure SetNumWindings(N: Integer);
         procedure PullFromTransformer(obj: TTransfObj);
 
@@ -88,7 +91,7 @@ uses
     Utilities;
 
 const
-    NumPropsThisClass = 37;
+    NumPropsThisClass = 39;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TXfmrCode.Create;
@@ -160,6 +163,8 @@ begin
     PropertyName[35] := 'X13';
     PropertyName[36] := 'X23';
     PropertyName[37] := 'RdcOhms';
+    PropertyName[38] := 'Seasons';
+    PropertyName[39] := 'Ratings';
 
      // define Property help values
     PropertyHelp[1] := 'Number of phases this transformer. Default is 3.';
@@ -231,6 +236,9 @@ begin
         'for 3-winding transformers only. Percent on the kVA base of winding 1.  ';
     PropertyHelp[37] := 'Winding dc resistance in OHMS. Useful for GIC analysis. From transformer test report. ' +
         'Defaults to 85% of %R property';
+    PropertyHelp[38] := 'Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the "Ratings" property.';
+    PropertyHelp[39] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
+        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -420,6 +428,17 @@ begin
                     XLT := parser[ActorID].Dblvalue * 0.01;
                 37:
                     Winding^[ActiveWinding].RdcOhms := Parser[ActorID].DblValue;
+                38:
+                begin
+                    NumAmpRatings := Parser[ActorID].IntValue;
+                    setlength(AmpRatings, NumAmpRatings);
+                end;
+                39:
+                begin
+                    setlength(AmpRatings, NumAmpRatings);
+                    Param := Parser[ActiveActor].StrValue;
+                    NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, Pointer(AmpRatings));
+                end
             else
                 ClassEdit(ActiveXfmrCodeObj, ParamPointer - NumPropsThisClass)
             end;
@@ -542,6 +561,12 @@ begin
 
             for i := 1 to ParentClass.NumProperties do
                 PropertyValue[i] := Other.PropertyValue[i];
+
+            NumAmpratings := Other.NumAmpRatings;
+            setlength(AmpRatings, NumAmpRatings);
+            for i := 0 to High(AmpRatings) do
+                AmpRatings[i] := Other.AmpRatings[i];
+
             Result := 1;
         end
     else
@@ -618,6 +643,10 @@ begin
         Winding^[i].ComputeAntiFloatAdder(ppm_FloatFactor, VABase / FNPhases);
     pctNoLoadLoss := 0.0;
     pctImag := 0.0;
+
+    NumAmpRatings := 1;
+    setlength(AmpRatings, NumAmpRatings);
+    AmpRatings[0] := 600;
 
     InitPropertyValues(0);
 end;
@@ -748,7 +777,8 @@ function TXfmrCodeObj.GetPropertyValue(Index: Integer): String;
 { gets the property for the active winding ; Set the active winding before calling}
 
 var
-    i: Integer;
+    i, k: Integer;
+    TempStr: String;
 
 begin
     case Index of
@@ -818,6 +848,16 @@ begin
                 Result := Result + Format('%.7g, ', [Winding^[i].rpu * 100.0]);
         37:
             Result := Format('%.7g', [Winding^[ActiveWinding].RdcOhms]);
+        38:
+            Result := inttostr(NumAmpRatings);
+        39:
+        begin
+            TempStr := '[';
+            for  k := 1 to NumAmpRatings do
+                TempStr := TempStr + floattoStrf(AmpRatings[k - 1], ffGeneral, 8, 4) + ',';
+            TempStr := TempStr + ']';
+            Result := TempStr;
+        end;
     else
         Result := inherited GetPropertyValue(index);
     end;
@@ -869,6 +909,8 @@ begin
     PropertyValue[35] := '35';
     PropertyValue[36] := '30';
     PropertyValue[37] := '0.1';
+    PropertyValue[38] := '1';
+    PropertyValue[39] := '[600]';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 end;

@@ -254,7 +254,7 @@ var
     XfmrCodeClass: TXfmrCode;
 
 const
-    NumPropsThisClass = 47;
+    NumPropsThisClass = 49;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TTransf.Create;  // Creates superstructure for all Transformer objects
@@ -344,6 +344,8 @@ begin
     PropertyName[45] := 'WdgCurrents';
     PropertyName[46] := 'Core';
     PropertyName[47] := 'RdcOhms';
+    PropertyName[48] := 'Seasons';
+    PropertyName[49] := 'Ratings';
 
 
      // define Property help values
@@ -434,6 +436,9 @@ begin
     PropertyHelp[46] := '{Shell*|5-leg|3-Leg|1-phase} Core Type. Used for GIC analysis';
     PropertyHelp[47] := 'Winding dc resistance in OHMS. Useful for GIC analysis. From transformer test report. ' +
         'Defaults to 85% of %R property';
+    PropertyHelp[48] := 'Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the "Ratings" property.';
+    PropertyHelp[49] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
+        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -587,6 +592,17 @@ begin
                     strCoreType := Param;
                 47:
                     Winding^[ActiveWinding].RdcOhms := Parser[ActorID].DblValue;
+                48:
+                begin
+                    NumAmpRatings := Parser[ActorID].IntValue;
+                    setlength(AmpRatings, NumAmpRatings);
+                end;
+                49:
+                begin
+                    setlength(AmpRatings, NumAmpRatings);
+                    Param := Parser[ActiveActor].StrValue;
+                    NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, Pointer(AmpRatings));
+                end
             else
            // Inherited properties
                 ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -949,6 +965,12 @@ begin
          // Skip readonly properties
                 if i <> 45 then
                     PropertyValue[i] := OtherTransf.PropertyValue[i];
+
+            NumAmpratings := OtherTransf.NumAmpRatings;
+            setlength(AmpRatings, NumAmpRatings);
+            for i := 0 to High(AmpRatings) do
+                AmpRatings[i] := OtherTransf.AmpRatings[i];
+
             Result := 1;
         end
     else
@@ -1028,7 +1050,10 @@ begin
     Yorder := fNTerms * fNconds;
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
-    AmpRatings := nil;
+
+    NumAmpRatings := 1;
+    setlength(AmpRatings, NumAmpRatings);
+    AmpRatings[0] := NormAmps;
 end;
 
 
@@ -1539,6 +1564,7 @@ begin
     MaxTap := 1.10;
     MinTap := 0.90;
 
+
 end;
 
 destructor TWinding.Destroy;
@@ -1886,7 +1912,8 @@ function TTransfObj.GetPropertyValue(Index: Integer): String;
 { gets the property for the active winding ; Set the active winding before calling}
 
 var
-    i: Integer;
+    i, k: Integer;
+    TempStr: String;
 
 begin
     case Index of
@@ -2004,6 +2031,16 @@ begin
             end;
         47:
             Result := Format('%.7g', [Winding^[ActiveWinding].RdcOhms]);
+        48:
+            Result := inttostr(NumAmpRatings);
+        49:
+        begin
+            TempStr := '[';
+            for  k := 1 to NumAmpRatings do
+                TempStr := TempStr + floattoStrf(AmpRatings[k - 1], ffGeneral, 8, 4) + ',';
+            TempStr := TempStr + ']';
+            Result := TempStr;
+        end;
 
     else
         Result := inherited GetPropertyValue(index);
@@ -2552,6 +2589,7 @@ procedure TTransfObj.FetchXfmrCode(const Code: String);
 var
     Obj: TXfmrCodeObj;
     i: Integer;
+
 begin
     if XfmrCodeClass = nil then
         XfmrCodeClass := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('xfmrcode'));
@@ -2606,7 +2644,14 @@ begin
         YprimInvalid[ActiveActor] := true;
         Y_Terminal_FreqMult := 0.0;
 
-        RecalcElementData(ActiveActor)
+        RecalcElementData(ActiveActor);
+
+        NumAmpRatings := Obj.NumAmpRatings;
+        setlength(AmpRatings, NumAmpRatings);
+        for i := 0 to High(Ampratings) do
+            AmpRatings[i] := Obj.AmpRatings[i];
+
+
     end
     else
         DoSimpleMsg('Xfmr Code:' + Code + ' not found.', 180);
