@@ -49,7 +49,7 @@ uses
 
 const
     NumStorage2Registers = 6;    // Number of energy meter registers
-    NumStorage2Variables = 23;    // No state variables
+    NumStorage2Variables = 25;    // No state variables
     VARMODEPF = 0;
     VARMODEKVAR = 1;
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -123,6 +123,7 @@ type
         FkWRequested: Double;
         FvarMode: Integer;
         FDCkW: Double;
+        Fpf_wp_nominal: Double;
 
         // Variables for Inverter functionalities
         FpctCutIn: Double;
@@ -180,6 +181,8 @@ type
         FVWMode: Boolean; //boolean indicating if under volt-watt control mode from InvControl (not ExpControl)
         FVVMode: Boolean; //boolean indicating if under volt-var mode from InvControl
         FDRCMode: Boolean; //boolean indicating if under DRC mode from InvControl
+        FWPMode: Boolean; //boolean indicating if under watt-pf mode from InvControl
+        FWVMode: Boolean; //boolean indicating if under watt-var mode from InvControl
 
 
         procedure CalcDailyMult(Hr: Double; ActorID: Integer);
@@ -232,6 +235,7 @@ type
         procedure Set_PowerFactor(const Value: Double);
         procedure Set_kWRequested(const Value: Double);
         procedure Set_kvarRequested(const Value: Double);
+        procedure Set_pf_wp_nominal(const Value: Double);
 
 
         procedure Set_Storage2State(const Value: Integer);
@@ -264,6 +268,12 @@ type
 
         procedure Set_VWmode(const Value: Boolean);
         procedure kWOut_Calc;
+
+        function Get_WPmode: Boolean;
+        procedure Set_WPmode(const Value: Boolean);
+
+        function Get_WVmode: Boolean;
+        procedure Set_WVmode(const Value: Boolean);
 
         function Get_CutOutkWAC: Double;
         function Get_CutInkWAC: Double;
@@ -375,6 +385,8 @@ type
         property Varmode: Integer READ Get_Varmode WRITE Set_Varmode;  // 0=constant PF; 1=kvar specified
         property VWmode: Boolean READ Get_VWmode WRITE Set_VWmode;
         property VVmode: Boolean READ Get_VVmode WRITE Set_VVmode;
+        property WPmode: Boolean READ Get_WPmode WRITE Set_WPmode;
+        property WVmode: Boolean READ Get_WVmode WRITE Set_WVmode;
         property DRCmode: Boolean READ Get_DRCmode WRITE Set_DRCmode;
         property InverterON: Boolean READ Get_InverterON WRITE Set_InverterON;
         property CutOutkWAC: Double READ Get_CutOutkWAC;
@@ -395,6 +407,7 @@ type
         property DCkW: Double READ Get_DCkW;
 
         property MinModelVoltagePU: Double READ VminPu;
+        property pf_wp_nominal: Double WRITE Set_pf_wp_nominal;
     end;
 
 var
@@ -1181,6 +1194,8 @@ begin
             FVWMode := OtherStorage2Obj.FVWMode;
             FVVMode := OtherStorage2Obj.FVVMode;
             FDRCMode := OtherStorage2Obj.FDRCMode;
+            FWPMode := OtherStorage2Obj.FWPMode;
+            FWVMode := OtherStorage2Obj.FWVMode;
 
             UserModel.Name := OtherStorage2Obj.UserModel.Name;  // Connect to user written models
             DynaModel.Name := OtherStorage2Obj.DynaModel.Name;
@@ -1323,6 +1338,8 @@ begin
         VWOperation := 9999;
         DRCOperation := 9999;
         VVDRCOperation := 9999;
+        WPOperation := 9999;
+        WVOperation := 9999;
 
     end;
 
@@ -1333,6 +1350,8 @@ begin
 
     FpctPminNoVars := -1.0; // Deactivated by default
     FpctPminkvarLimit := -1.0; // Deactivated by default
+
+    Fpf_wp_nominal := 1.0;
 
      {Output rating stuff}
     kvar_out := 0.0;
@@ -1384,6 +1403,8 @@ begin
     FVWMode := false;
     FVVMode := false;
     FDRCMode := false;
+    FWPMode := false;
+    FWVMode := false;
 
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
@@ -2006,7 +2027,7 @@ begin
 
 
       // Calculate kvar value based on operation mode (PF or kvar)
-        if FState = STORE_IDLING then
+        if FState = STORE_IDLING then      // Should watt-pf with watt=0 be applied here?
         // If in Idling state, check for kvarlimit only
         begin
             if varMode = VARMODEPF then
@@ -2138,8 +2159,14 @@ begin
                     else
                         kvar_Out := Fkvarlimitneg * sign(kvarRequested);
 
+                    if (varMode = VARMODEKVAR) and PF_Priority and FWPMode then
+                    begin
+                        kW_out := abs(kvar_out) * sqrt(1.0 / (1.0 - Sqr(Fpf_wp_nominal)) - 1.0) * sign(kW_out);
+                    end
+
                       // Forces constant power factor when kvar limit is exceeded and PF Priority is true. Temp PF is calculated based on kvarRequested
                       // PF Priority is not valid if controlled by an InvControl operating in at least one amongst VV and DRC modes
+                    else
                     if PF_Priority and (not FVVMode or not FDRCMode) then
                     begin
                         if abs(kvarRequested) > 0.0 then
@@ -2181,6 +2208,12 @@ begin
                 kW_out := FkVArating * abs(PFnominal) * sign(kW_out);
 
                 kvar_out := FkVArating * sqrt(1 - Sqr(PFnominal)) * sign(kW_out) * sign(PFnominal);
+            end
+            else
+            if (varMode = VARMODEKVAR) and PF_Priority and FWPMode then
+            begin
+                kW_out := FkVArating * abs(Fpf_wp_nominal) * sign(kW_out);
+                kvar_out := FkVArating * abs(sin(ArcCos(Fpf_wp_nominal))) * sign(kvarRequested)
             end
             else
             if (varMode = VARMODEKVAR) and PF_Priority and (not FVVMode or not FDRCMode) then
@@ -3690,15 +3723,19 @@ begin
             19:
                 Result := VVDRCOperation;
             20:
-                Result := Get_kWDesired;
+                Result := WPOperation;
             21:
+                Result := WVOperation;
+            22:
+                Result := Get_kWDesired;
+            23:
                 if not (VWMode) then
                     Result := 9999
                 else
                     Result := kWRequested;
-            22:
+            24:
                 Result := pctkWrated * kWrating;
-            23:
+            25:
                 if (kVA_exceeded) then
                     Result := 1.0
                 else
@@ -3758,7 +3795,11 @@ begin
                 DRCOperation := Value;
             19:
                 VVDRCOperation := Value;
-            20..23: ; {Do Nothing; read only}
+            20:
+                WPOperation := Value;
+            21:
+                WVOperation := Value;
+            22..25: ; {Do Nothing; read only}
 
         else
         begin
@@ -4080,6 +4121,24 @@ begin
                                                               //  engaged from InvControl (not ExpControl)
 end;
 
+// ============================================================Get_WPmode===============================
+function TStorage2Obj.Get_WPmode: Boolean;
+begin
+    if FWPmode then
+        Result := true
+    else
+        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
+// ============================================================Get_WVmode===============================
+function TStorage2Obj.Get_WVmode: Boolean;
+begin
+    if FWVmode then
+        Result := true
+    else
+        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
 //----------------------------------------------------------------------------
 
 function TStorage2Obj.Get_VVmode: Boolean;
@@ -4130,6 +4189,19 @@ begin
 end;
 
 //----------------------------------------------------------------------------
+
+// ===========================================================================================
+procedure TStorage2Obj.Set_WVmode(const Value: Boolean);
+begin
+    FWVmode := Value;
+end;
+
+
+// ===========================================================================================
+procedure TStorage2Obj.Set_WPmode(const Value: Boolean);
+begin
+    FWPmode := Value;
+end;
 
 procedure TStorage2Obj.Set_kW(const Value: Double);
 begin
@@ -4231,6 +4303,11 @@ begin
 end;
 
 //----------------------------------------------------------------------------
+
+procedure TStorage2Obj.Set_pf_wp_nominal(const Value: Double);
+begin
+    Fpf_wp_nominal := Value;
+end;
 
 procedure TStorage2Obj.Set_kWRequested(const Value: Double);
 begin

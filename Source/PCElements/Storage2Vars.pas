@@ -47,6 +47,8 @@ type
         VWOperation: Double;
         DRCOperation: Double;
         VVDRCOperation: Double;
+        WPOperation: Double;
+        WVOperation: Double;
 //        kW_out_desired  :Double;
 
 
