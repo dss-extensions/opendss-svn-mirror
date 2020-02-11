@@ -2167,7 +2167,7 @@ begin
                       // Forces constant power factor when kvar limit is exceeded and PF Priority is true. Temp PF is calculated based on kvarRequested
                       // PF Priority is not valid if controlled by an InvControl operating in at least one amongst VV and DRC modes
                     else
-                    if PF_Priority and (not FVVMode or not FDRCMode) then
+                    if PF_Priority and (not FVVMode or not FDRCMode or not FWVmode) then
                     begin
                         if abs(kvarRequested) > 0.0 then
                         begin
@@ -2216,7 +2216,7 @@ begin
                 kvar_out := FkVArating * abs(sin(ArcCos(Fpf_wp_nominal))) * sign(kvarRequested)
             end
             else
-            if (varMode = VARMODEKVAR) and PF_Priority and (not FVVMode or not FDRCMode) then
+            if (varMode = VARMODEKVAR) and PF_Priority and (not FVVMode or not FDRCMode or not FWVmode) then
             // Operates under constant power factor (PF implicitly calculated based on kw and kvar)
             begin
                 if abs(kvar_out) = Fkvarlimit then
