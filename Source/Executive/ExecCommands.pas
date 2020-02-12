@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 131;
+    NumExecCommands = 133;
 
 var
 
@@ -52,6 +52,7 @@ uses
     KLUSolve,
     Diakoptics,
     sparse_math,
+    MemoryMap_lib,
     GISCommands;
 
 procedure DefineCommands;
@@ -190,6 +191,8 @@ begin
     ExecCommand[129] := 'GISCoords';
     ExecCommand[130] := 'UpdateStorage2';
     ExecCommand[131] := 'GISWindowSize';
+    ExecCommand[132] := 'ExportOverloads';
+    ExecCommand[133] := 'ExportVViolations';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -595,6 +598,8 @@ begin
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use StartGIS command)';
+    CommandHelp[132] := 'Exports the overloads report with the content avaiable at the moment of the call. It only affects the overloads report for the active actor.';
+    CommandHelp[133] := 'Exports the voltage violations report with the content avaiable at the moment of the call. It only affects the voltage violations report for the active actor.';
 end;
 
 //----------------------------------------------------------------------------
@@ -1050,7 +1055,7 @@ begin
                     ControlPanel.ResizeWindow(0);
                 end
                 else
-                    GlobalResult := 'Avaiable only for the EXE interface'
+                    GlobalResult := 'Available only for the EXE interface'
             end;
             128:
             begin
@@ -1060,7 +1065,7 @@ begin
                     ControlPanel.ResizeWindow(1);
                 end
                 else
-                    GlobalResult := 'Avaiable only for the EXE interface'
+                    GlobalResult := 'Available only for the EXE interface'
             end;
             129:
                 CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
@@ -1069,6 +1074,16 @@ begin
             131:
             begin
                 GlobalResult := ReSizeWindow();
+            end;
+            132:
+            begin
+                if OV_MHandle[ActiveActor] <> nil then
+                    CloseMHandler(OV_MHandle[ActiveActor], EnergyMeterClass[ActiveActor].DI_Dir + '\DI_Overloads_' + inttostr(ActiveActor) + '.CSV', OV_Append[ActiveActor]);
+            end;
+            133:
+            begin
+                if VR_MHandle[ActiveActor] <> nil then
+                    CloseMHandler(VR_MHandle[ActiveActor], EnergyMeterClass[ActiveActor].DI_Dir + '\DI_VoltExceptions_' + inttostr(ActiveActor) + '.CSV', VR_Append[ActiveActor]);
             end
         else
        // Ignore excess parameters

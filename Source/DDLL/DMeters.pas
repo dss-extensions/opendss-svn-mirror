@@ -17,6 +17,7 @@ uses
     Variants,
     CktElement,
     PDElement,
+    MemoryMap_lib,
     CktTree;
 
 function MetersI(mode: Longint; arg: Longint): Longint; CDECL;
