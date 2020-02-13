@@ -84,7 +84,7 @@ function DoZsc10Cmd: Integer;
 function DoZscRefresh(ActorID: Integer): Integer;
 
 function DoBusCoordsCmd(SwapXY: Boolean; CoordType: Integer): Integer;
-function DoGuidsCmd: Integer;
+function DoUuidsCmd: Integer;
 function DoSetLoadAndGenKVCmd: Integer;
 function DoVarValuesCmd: Integer;
 function DoVarNamesCmd: Integer;
@@ -180,7 +180,9 @@ CmdForms,
     Math,
     Classes,
     CktElementClass,
-    Sensor,  { ExportCIMXML,} NamedObject,
+    Sensor,
+    ExportCIMXML,
+    NamedObject,
     {$IFNDEF FPC}
     RegularExpressionsCore,
     {$ELSE}
@@ -528,7 +530,6 @@ begin
             begin
                 SetCurrentDir(SaveDir);    // set back to where we were for redirect, but not compile
                 ParserVars.Add('@lastredirectfile', ReDirFile);
-
             end;
         end;
 
@@ -3922,18 +3923,21 @@ begin
 
 end;
 
-function DoGuidsCmd: Integer;
+function DoUuidsCmd: Integer;
 var
     F: TextFile;
-    ParamName, Param, S, NameVal, GuidVal, DevClass, DevName: String;
+    ParamName, Param, S, NameVal, UuidVal, DevClass, DevName: String;
     pName: TNamedObject;
+    idx: Integer;
 begin
+    StartUuidList(ActiveCircuit[ActiveActor].NumBuses + 2 * ActiveCircuit[ActiveActor].NumDevices);
     Result := 0;
     ParamName := Parser[ActiveActor].NextParam;
     Param := Parser[ActiveActor].StrValue;
     try
         AssignFile(F, Param);
         Reset(F);
+        AuxParser[ActiveActor].Delimiters := ',';
         while not EOF(F) do
         begin
             Readln(F, S);
@@ -3944,32 +3948,44 @@ begin
                 NextParam;
                 NameVal := StrValue;
                 NextParam;
-                GuidVal := StrValue;
-        // format the GUID properly
-                if Pos('{', GuidVal) < 1 then
-                    GuidVal := '{' + GuidVal + '}';
-        // find this object
-                ParseObjectClassAndName(NameVal, DevClass, DevName);
-                if CompareText(DevClass, 'circuit') = 0 then
-                begin
-                    pName := ActiveCircuit[ActiveActor]
+                UuidVal := StrValue;
+        // format the UUID properly
+                if Pos('{', UuidVal) < 1 then
+                    UuidVal := '{' + UuidVal + '}';
+                if Pos('=', NameVal) > 0 then
+                begin  // it's a non-identified object in OpenDSS
+                    AddHashedUuid(NameVal, UuidVal);
                 end
                 else
-                begin
-                    LastClassReferenced[ActiveActor] := ClassNames[ActiveActor].Find(DevClass);
-                    ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
-                    if ActiveDSSClass[ActiveActor] <> nil then
+                begin  // find this as a descendant of TNamedObject
+                    pName := nil;
+                    ParseObjectClassAndName(NameVal, DevClass, DevName);
+                    if CompareText(DevClass, 'circuit') = 0 then
                     begin
-                        ActiveDSSClass[ActiveActor].SetActive(DevName);
-                        pName := ActiveDSSClass[ActiveActor].GetActiveObj;
+                        pName := ActiveCircuit[ActiveActor]
+                    end
+                    else
+                    if CompareText(DevClass, 'Bus') = 0 then
+                    begin
+                        idx := ActiveCircuit[ActiveActor].BusList.Find(DevName);
+                        pName := ActiveCircuit[ActiveActor].Buses^[idx];
+                    end
+                    else
+                    begin
+                        LastClassReferenced[ActiveActor] := ClassNames[ActiveActor].Find(DevClass);
+                        ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+                        if ActiveDSSClass[ActiveActor] <> nil then
+                            if ActiveDSSClass[ActiveActor].SetActive(DevName) then
+                                pName := ActiveDSSClass[ActiveActor].GetActiveObj;
                     end;
+          // re-assign its UUID
+                    if pName <> nil then
+                        pName.UUID := StringToUuid(UuidVal);
                 end;
-        // re-assign its GUID
-                if pName <> nil then
-                    pName.GUID := StringToGuid(GuidVal);
             end;
         end;
     finally
+        AuxParser[ActiveActor].ResetDelims;
         CloseFile(F);
     end;
 end;

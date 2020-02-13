@@ -32,13 +32,14 @@ uses
     sysutils,
     DSSGlobals,
     ExportCIMXML,
-    Utilities;
+    Utilities,
+    NamedObject;
 
-function AssignNewGUID(val: String): TGuid;
+function AssignNewUUID(val: String): TUuid;
 begin
     if Pos('{', val) < 1 then
         val := '{' + val + '}';
-    result := StringToGuid(val);
+    result := StringToUuid(val);
 end;
 
 procedure DefineOptions;
@@ -69,7 +70,7 @@ begin
     ExportOption[22] := 'CDPSMAsset';
     ExportOption[23] := 'Buscoords';
     ExportOption[24] := 'Losses';
-    ExportOption[25] := 'Guids';
+    ExportOption[25] := 'Uuids';
     ExportOption[26] := 'Counts';
     ExportOption[27] := 'Summary';
     ExportOption[28] := 'CDPSMElec';
@@ -131,11 +132,11 @@ begin
     ExportHelp[18] := '(Default file = EXP_SEQZ.CSV) Equivalent sequence Z1, Z0 to each bus.';
     ExportHelp[19] := '(Default file = EXP_P_BYPHASE.CSV) [MVA] [Filename] Power by phase. Default is kVA.';
     ExportHelp[20] := '** Deprecated ** (IEC 61968-13, CIM16-17 version of the CDPSM Combined profile)';
-    ExportHelp[21] := '(Default file = CIM100x.XML) (IEC 61968-13, CIM100 for unbalanced load flow profile)' + CRLF + ' [File=filename fid=_guidstring Substation=subname sid=_guidstring' + CRLF + ' SubGeographicRegion=subgeoname sgrid=_guidstring GeographicRegion=geoname rgnid=_guidstring]';
+    ExportHelp[21] := '(Default file = CIM100x.XML) (IEC 61968-13, CIM100 for unbalanced load flow profile)' + CRLF + ' [File=filename fid=_uuidstring Substation=subname sid=_uuidstring' + CRLF + ' SubGeographicRegion=subgeoname sgrid=_uuidstring GeographicRegion=geoname rgnid=_uuidstring]';
     ExportHelp[22] := '** Deprecated ** (IEC 61968-13, CDPSM Asset profile)';
     ExportHelp[23] := '[Default file = EXP_BUSCOORDS.CSV] Bus coordinates in csv form.';
     ExportHelp[24] := '[Default file = EXP_LOSSES.CSV] Losses for each element.';
-    ExportHelp[25] := '[Default file = EXP_GUIDS.CSV] Guids for each element.';
+    ExportHelp[25] := '[Default file = EXP_UUIDS.CSV] Uuids for each element. This frees the UUID list after export.';
     ExportHelp[26] := '[Default file = EXP_Counts.CSV] (instance counts for each class)';
     ExportHelp[27] := '[Default file = EXP_Summary.CSV] Solution summary.';
     ExportHelp[28] := '** Deprecated ** (IEC 61968-13, CDPSM Electrical Properties profile)';
@@ -199,7 +200,7 @@ var
     PhasesToPlot: Integer;
     AbortExport: Boolean;
     Substation, GeographicRegion, SubGeographicRegion: String; // for CIM export
-    FdrGuid, SubGuid, SubGeoGuid, RgnGuid: TGuid;              // for CIM export
+    FdrUuid, SubUuid, SubGeoUuid, RgnUuid: TUuid;              // for CIM export
     InitP, FinalP, idxP: Integer; // Variables created for concatenating options
 
 begin
@@ -236,10 +237,7 @@ begin
     Substation := ActiveCircuit[ActiveActor].Name + '_Substation';
     SubGeographicRegion := ActiveCircuit[ActiveActor].Name + '_SubRegion';
     GeographicRegion := ActiveCircuit[ActiveActor].Name + '_Region';
-    FdrGuid := ActiveCircuit[ActiveActor].GUID;  // default is to not change the feeder mrid 
-    CreateGuid(SubGuid);      // these next 3 are created on the fly for CIM export
-    CreateGuid(SubGeoGuid);
-    CreateGuid(RgnGuid);
+    DefaultCircuitUUIDs(FdrUuid, SubUuid, RgnUuid, SubGeoUuid);
 
     case ParamPointer of
         9, 19:
@@ -297,16 +295,16 @@ begin
                     FileName := Parm2
                 else
                 if CompareTextShortest(ParamName, 'fid') = 0 then
-                    FdrGuid := AssignNewGUID(Parm2)
+                    FdrUuid := AssignNewUUID(Parm2)
                 else
                 if CompareTextShortest(ParamName, 'sid') = 0 then
-                    SubGuid := AssignNewGUID(Parm2)
+                    SubUuid := AssignNewUUID(Parm2)
                 else
                 if CompareTextShortest(ParamName, 'sg') = 0 then
-                    SubGeoGuid := AssignNewGUID(Parm2)
+                    SubGeoUuid := AssignNewUUID(Parm2)
                 else
                 if CompareTextShortest(ParamName, 'rg') = 0 then
-                    RgnGuid := AssignNewGUID(Parm2);
+                    RgnUuid := AssignNewUUID(Parm2);
                 ParamName := LowerCase(parser[ActiveActor].nextParam);
                 Parm2 := Parser[ActiveActor].strValue;
             end;
@@ -412,7 +410,7 @@ begin
             24:
                 FileName := 'EXP_LOSSES.CSV';
             25:
-                FileName := 'EXP_GUIDS.CSV';
+                FileName := 'EXP_UUIDS.CSV';
             26:
                 FileName := 'EXP_Counts.CSV';
             27:
@@ -575,7 +573,7 @@ begin
         20:
             DoSimpleMsg('CDPSMCombined (CIM17) export no longer supported; use Export CIM100', 252);
         21:
-            ExportCDPSM(Filename, Substation, SubGeographicRegion, GeographicRegion, FdrGuid, SubGuid, SubGeoGuid, RgnGuid, Combined);
+            ExportCDPSM(Filename, Substation, SubGeographicRegion, GeographicRegion, FdrUuid, SubUuid, SubGeoUuid, RgnUuid, Combined);
         22:
             DoSimpleMsg('Asset export no longer supported; use Export CIM100', 252);
         23:
@@ -583,7 +581,7 @@ begin
         24:
             ExportLosses(Filename);
         25:
-            ExportGuids(Filename);
+            ExportUuids(Filename);
         26:
             ExportCounts(Filename);
         27:
