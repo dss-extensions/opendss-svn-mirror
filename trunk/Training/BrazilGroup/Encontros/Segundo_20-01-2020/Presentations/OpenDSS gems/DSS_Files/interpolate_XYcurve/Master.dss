@@ -1,0 +1,16 @@
+// -----------------------------------------------------------------------//
+// Autor: Paulo Radatz
+// e-mail: pradatz@epri.com
+// -----------------------------------------------------------------------//
+
+// Reinicia o Programa
+Clear
+
+// Dados de Fronteira
+New Circuit.Equivalente bus1=A pu=1.02 basekv=138 
+~ Z0=[0.025862916, 0.077588748] Z1=[0.023094242, 0.092376969]
+
+New XYCurve.MyCurve npts=5 Xarray=[1 2 3 4 5] Yarray=[10 5 3 2 1]
+
+XYCurve.MyCurve.x=3.426
+? XYCurve.MyCurve.y

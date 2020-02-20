@@ -1,0 +1,3 @@
+New Loadshape.default Npts=24 Interval=1 mult=[sngfile=default_P.sng]
+New Loadshape.industrial Npts=24 Interval=1 mult=[sngfile=industrial_P.sng]
+New Loadshape.residencial Npts=24 Interval=1 mult=[sngfile=residencial_P.sng]

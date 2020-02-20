@@ -1,0 +1,38 @@
+// Name: Paulo Radatz
+// e-mail: pradatz@epri.com 
+// -----------------------------------------------------------------------//
+
+// -----------------------------------------------------------------------//
+// ------------Line - Wiredata and Linegeometry------------//
+// -----------------------------------------------------------------------//
+
+Clear
+
+New Circuit.TheveninEquivalent phases=3 basekv=13.8 bus1=K
+
+// -----------------------------------------------------------------------//
+// Example from Kersting's Book - Kron Reduction
+// -----------------------------------------------------------------------//
+
+New Wiredata.Phase GMR=0.0244 DIAM=0.721 RAC=0.306
+~ NormAmps=530
+~ Runits=mi radunits=in gmrunits=ft
+
+New Wiredata.Neutral GMR=0.00814 DIAM=0.563 RAC=0.592
+~ NormAmps=340
+~ Runits=mi radunits=in gmrunits=ft
+
+New Linegeometry.PoleExample nconds=4 nphases=3 reduce=Yes
+~ cond=1 Wire=Phase x= -4 h=29 units=ft
+~ cond=2 Wire=Phase x= -1.5 h=29 units=ft
+~ cond=3 Wire=Phase x= 3 h=29 units=ft
+~ cond=4 Wire=Neutral x= 0 h=25 units=ft
+
+New Line.LineExample bus1=K bus2=L
+~ Geometry=PoleExample
+~ Length=1 units=mi
+~ EarthModel=Carson
+
+Show LineConstants 60 km 100.0
+
+
