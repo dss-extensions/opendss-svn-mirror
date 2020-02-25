@@ -582,6 +582,7 @@ begin
                     begin
                         pBus := Buses^[ActiveBusIndex];
                         Nvalues := pBus.NumNodesThisBus;
+                        jj := 1;
                         if Nvalues > 3 then
                             Nvalues := 3;
                         if Nvalues > 1 then
@@ -599,16 +600,30 @@ begin
                                 for i := 1 to NValues do     // for 2- or 3-phases
                                 begin
                       // this code assumes the nodes are ordered 1, 2, 3
-                                    NodeIdxi := FindIdx(i);  // Get the index of the Node that matches i
-                                    jj := i + 1;
-                                    if jj > 3 then
-                                        jj := 1; // wrap around
-                                    NodeIdxj := FindIdx(jj);
+//------------------------------------------------------------------------------------------------
+// This section was added to prevent measuring using disconnected nodes, for example, if the
+// bus has 2 nodes but those are 1 and 3, that will bring a problem.
+                                    jj := i;
+                                    repeat
+                                        NodeIdxi := FindIdx(jj);  // Get the index of the Node that matches i
+                                        inc(jj);
+                                    until NodeIdxi > 0;
+
+                                    repeat
+                                        NodeIdxj := FindIdx(jj);  // Get the index of the Node that matches i
+                                        if jj > 3 then
+                                            jj := 1
+                                        else
+                                            inc(jj);
+                                    until NodeIdxj > 0;
+//------------------------------------------------------------------------------------------------
+//                      if jj>3 then jj := 1; // wrap around
+//                      NodeIdxj := FindIdx(jj);
                                     with Solution do
                                         Volts := Csub(NodeV^[GetRef(NodeIdxi)], NodeV^[GetRef(NodeIdxj)]);
-                                    arg[iV] := Volts.re / BaseFactor;
+                                    arg[iV] := Volts.re;
                                     Inc(iV);
-                                    arg[iV] := Volts.im / BaseFactor;
+                                    arg[iV] := Volts.im;
                                     Inc(iV);
                                 end;
                             end;  {With pBus}
@@ -652,11 +667,25 @@ begin
                                 for i := 1 to NValues do     // for 2- or 3-phases
                                 begin
                       // this code assumes the nodes are ordered 1, 2, 3
-                                    NodeIdxi := FindIdx(i);  // Get the index of the Node that matches i
-                                    jj := i + 1;
-                                    if jj > 3 then
-                                        jj := 1; // wrap around
-                                    NodeIdxj := FindIdx(jj);
+//------------------------------------------------------------------------------------------------
+// This section was added to prevent measuring using disconnected nodes, for example, if the
+// bus has 2 nodes but those are 1 and 3, that will bring a problem.
+                                    jj := i;
+                                    repeat
+                                        NodeIdxi := FindIdx(jj);  // Get the index of the Node that matches i
+                                        inc(jj);
+                                    until NodeIdxi > 0;
+
+                                    repeat
+                                        NodeIdxj := FindIdx(jj);  // Get the index of the Node that matches i
+                                        if jj > 3 then
+                                            jj := 1
+                                        else
+                                            inc(jj);
+                                    until NodeIdxj > 0;
+//------------------------------------------------------------------------------------------------
+//                      if jj>3 then jj := 1; // wrap around
+//                      NodeIdxj := FindIdx(jj);
                                     with Solution do
                                         Volts := Csub(NodeV^[GetRef(NodeIdxi)], NodeV^[GetRef(NodeIdxj)]);
                                     arg[iV] := Volts.re / BaseFactor;

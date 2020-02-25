@@ -211,6 +211,7 @@ begin
     begin
         jj := 1;
         with Buses^[i] do
+
             for j := 1 to NumNodesThisBus do
             begin
          // Get the index of the next Node in numerical sequence
