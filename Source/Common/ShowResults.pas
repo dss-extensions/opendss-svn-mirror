@@ -2808,6 +2808,7 @@ begin
      // Make sure bus list is built
     if ActiveCircuit[ActiveActor].BusNameRedefined then
         ActiveCircuit[ActiveActor].ReProcessBusDefs(ActiveActor);
+    ActiveCircuit[ActiveActor].ReProcessBusDefs(ActiveActor);
 
     with ActiveCircuit[ActiveActor] do
     begin
