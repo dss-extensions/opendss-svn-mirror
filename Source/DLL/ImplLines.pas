@@ -988,7 +988,9 @@ begin
             end
             else
                 Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NormAmps;
-        end;
+        end
+        else
+            Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).NormAmps;
     end
     else
         Result := 0.0;
