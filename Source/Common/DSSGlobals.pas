@@ -84,7 +84,8 @@ uses
     IdComponent,
     IdTCPConnection,
     IdTCPClient,
-    IdThreadComponent;
+    IdThreadComponent,
+    NumCPULib;
 
 const
     CRLF = sLineBreak; // cross-platform
@@ -288,9 +289,9 @@ Integer
 
     UpdateRegistry: Boolean;  // update on program exit
     CPU_Freq: Int64;          // Used to store the CPU frequency
-    CPU_Cores: Integer;
+    CPU_Cores: Int32;
     NumNUMA: Integer;        // To store the number of NUMA nodes (should be the same as sockets)
-    CPU_Physical: Integer;
+    CPU_Physical: Int32;
     ActiveActor: Integer;
     NumOfActors: Integer;
     ActorCPU: array of Integer;
@@ -1217,15 +1218,9 @@ var
     idx: Integer;
 
 begin
-    NumNUMA := GetMaximumProcessorGroupCount();
-    CPU_Physical := 0;
-    CPU_Cores := 0;
-
-    for idx := 0 to Pred(NumNUMA) do
-    begin
-        CPU_Physical := (GetActiveProcessorCount(idx) div 2) + CPU_Physical; // Until finding a more elegant way to do it
-        CPU_Cores := GetActiveProcessorCount(idx) + CPU_Cores;
-    end;
+    NumNUMA := 1;
+    CPU_Physical := TNumCPULib.GetPhysicalCPUCount();
+    CPU_Cores := TNumCPULib.GetLogicalCPUCount();
 end;
 
 constructor TProgressActor.Create();
