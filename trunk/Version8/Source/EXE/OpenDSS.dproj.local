@@ -127,6 +127,7 @@
     <File Path="..\Meters\Sensor.pas"/>
     <File Path="..\Meters\VLNodeVars.pas"/>
     <File Path="..\Parallel_Lib"/>
+    <File Path="..\Parallel_Lib\NumCPULib.pas"/>
     <File Path="..\Parallel_Lib\Parallel_Lib.pas"/>
     <File Path="..\Parser"/>
     <File Path="..\Parser\Frm_RPNcalc.pas"/>
