@@ -1246,6 +1246,8 @@ procedure TLineObj.DumpProperties(var F: TextFile; Complete: Boolean);
 
 var
     i, j: Integer;
+    rslt: String;
+    LengthMult: Double;
 
 begin
     inherited DumpProperties(F, Complete);
@@ -1259,18 +1261,49 @@ begin
         Writeln(F, '~ ', PropertyName^[3], '=', CondCode);
         Writeln(F, '~ ', PropertyName^[4], '=', len: 0: 3);
         Writeln(F, '~ ', PropertyName^[5], '=', Fnphases: 0);
-        Writeln(F, '~ ', PropertyName^[6], '=', R1: 0: 5);
-        Writeln(F, '~ ', PropertyName^[7], '=', X1: 0: 5);
-        Writeln(F, '~ ', PropertyName^[8], '=', R0: 0: 5);
-        Writeln(F, '~ ', PropertyName^[9], '=', X0: 0: 5);
-        Writeln(F, '~ ', PropertyName^[10], '=', C1 * 1.0e9: 0: 5);
-        Writeln(F, '~ ', PropertyName^[11], '=', C0 * 1.0e9: 0: 5);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [R1 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[6], '=', Rslt);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [X1 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[7], '=', Rslt);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [R0 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[8], '=', Rslt);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [X0 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[9], '=', Rslt);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [C1 * 1.0e9 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[10], '=', Rslt);
+        if SymComponentsModel then
+            rslt := Format('%-.7g', [C0 * 1.0e9 / FUnitsConvert])
+        else
+            rslt := '----';
+        Writeln(F, '~ ', PropertyName^[11], '=', Rslt);
+
+     // If GeometrySpecified Or SpacingSpecified then length is embedded in Z and Yc    4-9-2020
+        if GeometrySpecified or SpacingSpecified then
+            LengthMult := Len
+        else
+            LengthMult := 1.0;
+
         Write(F, '~ ', PropertyName^[12], '=', '"');
         for i := 1 to Fnphases do
         begin
             for j := 1 to Fnphases do
             begin
-                Write(F, Z.GetElement(i, j).re: 0: 5, ' ');
+                Write(F, (Z.GetElement(i, j).re / LengthMult / FunitsConvert): 0: 9, ' ');
             end;
             Write(F, '|');
         end;
@@ -1280,7 +1313,7 @@ begin
         begin
             for j := 1 to Fnphases do
             begin
-                Write(F, Z.GetElement(i, j).im: 0: 5, ' ');
+                Write(F, (Z.GetElement(i, j).im / LengthMult / FunitsConvert): 0: 9, ' ');
             end;
             Write(F, '|');
         end;
@@ -1290,7 +1323,7 @@ begin
         begin
             for j := 1 to Fnphases do
             begin
-                Write(F, (Yc.GetElement(i, j).im / TwoPi / BaseFrequency * 1.0E9): 0: 2, ' ');
+                Write(F, (Yc.GetElement(i, j).im / TwoPi / BaseFrequency / LengthMult / FunitsConvert * 1.0E9): 0: 3, ' ');
             end;
             Write(F, '|');
         end;
