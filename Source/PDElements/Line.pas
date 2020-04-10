@@ -1574,6 +1574,7 @@ procedure TLineObj.MakePosSequence(ActorID: Integer);
 var
     S: String;
     C1_new, Cs, Cm: Double;
+    LengthMult: Double;
     Z1, ZS, Zm: Complex;
     i, j: Integer;
 begin
@@ -1585,6 +1586,12 @@ begin
         PrpSequence^[3] := 0;
         for i := 6 to 14 do
             PrpSequence^[i] := 0;
+
+    // If GeometrySpecified Or SpacingSpecified then length is embedded in Z and Yc    4-9-2020
+        if GeometrySpecified or SpacingSpecified then
+            LengthMult := Len
+        else
+            LengthMult := 1.0;
 
         if IsSwitch then
         begin
@@ -1604,12 +1611,14 @@ begin
                 Zs := CZERO;
                 for i := 1 to FnPhases do
                     Caccum(Zs, Z.GetElement(i, i));
-                Zs := CdivReal(Zs, Fnphases);
+                Zs := CdivReal(Zs, (Fnphases * LengthMult));
                 Zm := CZERO;
-                for i := 1 to FnPhases - 1 do  // Corrected 6-21-04
+                for i := 1 to FnPhases - 1 do     // Corrected 6-21-04
+                begin
                     for j := i + 1 to FnPhases do
                         Caccum(Zm, Z.GetElement(i, j));
-                Zm := CdivReal(Zm, (Fnphases * (FnPhases - 1.0) / 2.0));
+                end;
+                Zm := CdivReal(Zm, (LengthMult * Fnphases * (FnPhases - 1.0) / 2.0));
                 Z1 := CSub(Zs, Zm);
 
         // Do same for Capacitances
@@ -1617,10 +1626,10 @@ begin
                 for i := 1 to FnPhases do
                     Cs := Cs + Yc.GetElement(i, i).im;
                 Cm := 0.0;
-                for i := 2 to FnPhases do
+                for i := 1 to FnPhases - 1 do    // corrected 4-9-2020
                     for j := i + 1 to FnPhases do
                         Cm := Cm + Yc.GetElement(i, j).im;
-                C1_new := (Cs - Cm) / TwoPi / BaseFrequency / (Fnphases * (FnPhases - 1.0) / 2.0) * 1.0e9; // nanofarads
+                C1_new := (Cs - Cm) / TwoPi / BaseFrequency / (LengthMult * Fnphases * (FnPhases - 1.0) / 2.0) * 1.0e9; // nanofarads
 
         // compensate for length units
                 Z1 := CDivReal(Z1, FunitsConvert);
