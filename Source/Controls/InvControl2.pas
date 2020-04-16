@@ -403,7 +403,7 @@ uses
 
 const
 
-    NumPropsThisClass = 30;
+    NumPropsThisClass = 32;
 
     NONE = 0;
     CHANGEVARLEVEL = 1;
@@ -495,6 +495,8 @@ begin
     PropertyName[28] := 'voltwattCH_curve';
     PropertyName[29] := 'wattpf_curve';
     PropertyName[30] := 'wattvar_curve';
+    PropertyName[31] := 'VV_RefReactivePower';
+    PropertyName[32] := 'PVSystemList';
 
     PropertyHelp[1] := 'Array list of PVSystem2 and/or Storage2 elements to be controlled. ' +
         'If not specified, all PVSystem2 and Storage2 in the circuit are assumed to be controlled by this control. ' + CRLF + CRLF +
@@ -685,6 +687,8 @@ begin
         'The negative values of the y-axis are values in pu of the absorbed base reactive power. ' + CRLF +
         'Provided and absorbed base reactive power values are defined in the RefReactivePower property.' + CRLF + CRLF +
         'Units for the x-axis are per-unit output active power, and the base active power is the Pmpp for PVSystem2 and kWrated for Storage2.';
+    PropertyHelp[31] := 'Deprecated, use RefReactivePower instead.';
+    PropertyHelp[32] := 'Deprecated, use DERList instead.';
 
 
     ActiveProperty := NumPropsThisClass;
@@ -704,14 +708,16 @@ end;
 
 function TInvControl2.Edit(ActorID: Integer): Integer;
 var
-    ParamPointer: Integer;
-    ParamName: String;
+    CharPos,
+    ParamPointer,
+    i,
+    j,
+    NNode: Integer;
+
+    StrTemp,
+    ParamName,
     Param: String;
 
-    i: Integer;
-    j: Integer;
-
-    NNode: Integer;
     NodeBuffer: array[1..10] of Integer;
 
 begin
@@ -1020,6 +1026,29 @@ begin
                         Fwattvar_curve := GetXYCurve(Fwattvar_curvename, WATTVAR);
                         Fwattvar_curve_size := Fwattvar_curve.NumPoints;
                     end;
+                end;
+
+                31:
+                begin
+                    StrTemp := Parser[ActorID].StrValue;
+                    Charpos := ansipos('_', StrTemp);
+                    if CharPos <> 0 then
+                        StrTemp := StrTemp.Substring(0, CharPos - 1);
+
+                    if CompareTextShortest(StrTemp, 'varaval') = 0 then
+                        FReacPower_ref := 'VARAVAL'
+                    else
+                    if CompareTextShortest(StrTemp, 'varmax') = 0 then
+                        FReacPower_ref := 'VARMAX'
+                end;
+
+                32:
+                begin
+                    InterpretTStringListArray(Param, FDERNameList); // Read list of PVSystem2 and Storage2 objects in OpenDSS format and add to FDERNameList StringList.
+                    // Because is using this command from the previous version of InvControl, we assume that the list includes only
+                    // PVSystems, so the list is updated
+                    for CharPos := 0 to (FDERNameList.Count - 1) do
+                        FDERNameList[CharPos] := 'PVSystem.' + FDERNameList[CharPos];
                 end;
 
             else
