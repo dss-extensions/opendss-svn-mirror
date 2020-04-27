@@ -1653,6 +1653,7 @@ begin
         case ActiveDSSClass[ActiveActor].DSSClassType of
             // These can be added WITHout having an active circuit
             // Duplicates not allowed in general DSS objects;
+            // If the name is the same, Edit is executed instead of New
             DSS_OBJECT:
                 if not ActiveDSSClass[ActiveActor].SetActive(Name) then
                 begin
