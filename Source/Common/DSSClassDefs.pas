@@ -284,6 +284,7 @@ end;
 procedure DisposeDSSClasses(AllActors: Boolean);
 
 var
+    k,
     DSSCidx,
     temp,
     i: Integer;
@@ -317,10 +318,13 @@ begin
             for i := 1 to DSSClassList[ActiveActor].ListSize do
             begin
                 DSSClass_idx := DSSClassList[ActiveActor].Get(i);
-                FreeAndNil(DSSClass_idx);
+                TraceName := DSSClass_idx.Name;
+                TDSSClass(DSSClass_idx).Free;
             end;
             TraceName := '(DSS Class List)';
             FreeAndNil(DSSClassList[ActiveActor]);
+            TraceName := '(DSS Classes)';
+            FreeAndNil(DSSClasses);
             TraceName := '(ClassNames)';
             FreeAndNil(ClassNames[ActiveActor]);
 
