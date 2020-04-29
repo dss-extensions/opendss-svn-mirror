@@ -204,15 +204,12 @@ begin
         Str := 'Message too long; See Result Form.'
     else
         Str := msg;
-    if isDLL then
-    begin
-        if Err then
-            Result := MessageDlg(Str, mtError, [mbOK], 0)
-        else
-            Result := IntResult(MessageDlg(Str, mtInformation, [mbAbort, mbIgnore], 0))
-    end;
-//     else
-//      ScriptEd.PublishMessage(Str);
+
+    if Err then
+        Result := MessageDlg(Str, mtError, [mbOK], 0)
+    else
+        Result := IntResult(MessageDlg(Str, mtInformation, [mbAbort, mbIgnore], 0));
+
     Result := -1;
     SolutionAbort := true;
 end;
