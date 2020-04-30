@@ -201,9 +201,9 @@ uses
     Monitor,
     Capacitor,
     PVSystem,
-    PVSystem2,
+//   PVSystem2,
     Storage,
-    Storage2,
+//   Storage2,
     RegControl,
     Fuse,
     Recloser,
@@ -3227,17 +3227,17 @@ end;
 
 procedure TDSSPlot.MarkThePVSystems2;
 var
-    pPVSystem2: TPVSystem2Obj;
+    pPVSystem: TPVSystemObj;
     BusIdx: Integer;
     MyBus: TDSSBus;
 
 begin
-    pPVSystem2 := ActiveCircuit[ActiveActor].PVSystems2.first;
-    while pPVSystem2 <> nil do
+    pPVSystem := ActiveCircuit[ActiveActor].PVSystems2.first;
+    while pPVSystem <> nil do
     begin
-        if pPVSystem2.Enabled then
+        if pPVSystem.Enabled then
         begin
-            BusIdx := pPVSystem2.Terminals^[1].BusRef;
+            BusIdx := pPVSystem.Terminals^[1].BusRef;
             if BusIdx > 0 then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -3248,7 +3248,7 @@ begin
                     end;
                 end;
         end;
-        pPVSystem2 := ActiveCircuit[ActiveActor].PVSystems2.Next;
+        pPVSystem := ActiveCircuit[ActiveActor].PVSystems.Next;
     end;
 end;
 
@@ -3281,7 +3281,7 @@ end;
 
 procedure TDSSPlot.MarkTheStorage2;
 var
-    pStorage2: TStorage2Obj;
+    pStorage2: TStorageObj;
     BusIdx: Integer;
     MyBus: TDSSBus;
 

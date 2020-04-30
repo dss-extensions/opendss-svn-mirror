@@ -77,7 +77,6 @@ implementation
 
 uses
     PVSystem,
-    PVSystem2,
     DSSGlobals,
     {$IFDEF FPC}
 dynlibs

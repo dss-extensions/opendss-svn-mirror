@@ -4286,7 +4286,7 @@ end;
 function DoUpdateStorage2Cmd: Integer;
 
 begin
-    Storage2Class[ActiveActor].UpdateAll(ActiveActor);
+    StorageClass[ActiveActor].UpdateAll(ActiveActor);
     Result := 0;
 end;
 

@@ -2088,7 +2088,7 @@ begin
                 DoubleNode(F, 'PowerElectronicsConnection.maxIFault', 1.0 / pBat.MinModelVoltagePU);
                 DoubleNode(F, 'PowerElectronicsConnection.p', pBat.Presentkw * 1000.0);
                 DoubleNode(F, 'PowerElectronicsConnection.q', pBat.Presentkvar * 1000.0);
-                DoubleNode(F, 'PowerElectronicsConnection.ratedS', pBat.StorageVars.kvarating * 1000.0);
+                DoubleNode(F, 'PowerElectronicsConnection.ratedS', pBat.StorageVars.Fkvarating * 1000.0);
                 DoubleNode(F, 'PowerElectronicsConnection.ratedU', pBat.Presentkv * 1000.0);
                 UuidNode(F, 'PowerSystemResource.Location', geoUUID);
                 EndInstance(F, 'PowerElectronicsConnection');
