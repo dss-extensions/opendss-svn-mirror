@@ -79,17 +79,17 @@
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <VerInfo_Build>1</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=DSS Engine;FileVersion=8.8.0.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
-        <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=DSS Engine;FileVersion=9.0.0.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <VerInfo_Build>1</VerInfo_Build>
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_Keys>CompanyName=;FileVersion=8.8.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2013 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
-        <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=;FileVersion=9.0.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2013 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.1.10;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <Version>7.0</Version>
@@ -102,18 +102,18 @@
         <VerInfo_Build>1</VerInfo_Build>
         <Debugger_HostApplication>&quot;C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE&quot;</Debugger_HostApplication>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=8.8.0.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version DSS Engine;FileVersion=9.0.0.1;InternalName=OpenDSSEngine;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=OpenDSSEngine.DLL;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_Build>1</VerInfo_Build>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=8.8.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version;FileVersion=9.0.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_MajorVer>8</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSSengine.dll</DCC_DependencyCheckOutputName>
@@ -1210,10 +1210,8 @@
             <CoClasses>ActiveClass</CoClasses>
         </DCCReference>
         <DCCReference Include="..\PCElements\Storage.pas"/>
-        <DCCReference Include="..\PCElements\Storage2.pas"/>
         <DCCReference Include="..\PCElements\StoreUserModel.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
-        <DCCReference Include="..\Controls\StorageController2.pas"/>
         <DCCReference Include="..\General\LineGeometry.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
         <DCCReference Include="ImplTransformers.pas">
@@ -1249,7 +1247,6 @@
         <DCCReference Include="..\EXE\MyDSSClassDefs.Pas"/>
         <DCCReference Include="..\PCElements\PVSystemUserModel.pas"/>
         <DCCReference Include="..\PCElements\PVsystem.pas"/>
-        <DCCReference Include="..\PCElements\PVsystem2.pas"/>
         <DCCReference Include="..\General\TempShape.pas"/>
         <DCCReference Include="..\General\XYcurve.pas"/>
         <DCCReference Include="..\General\PriceShape.pas"/>
@@ -1267,11 +1264,9 @@
         <DCCReference Include="..\Plot\DSSGraph.pas"/>
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
         <DCCReference Include="..\PCElements\StorageVars.pas"/>
-        <DCCReference Include="..\PCElements\Storage2Vars.pas"/>
         <DCCReference Include="..\Controls\CapControlVars.pas"/>
         <DCCReference Include="..\Controls\CapUserControl.pas"/>
         <DCCReference Include="..\Controls\InvControl.pas"/>
-        <DCCReference Include="..\Controls\InvControl2.pas"/>
         <DCCReference Include="..\PDElements\GICTransformer.pas"/>
         <DCCReference Include="ImplXYCurves.pas">
             <CoClasses>XYCurves</CoClasses>

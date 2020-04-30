@@ -50,8 +50,6 @@
     <File Path="..\Controls\StorageController.pas"/>
     <File Path="..\Controls\SwtControl.pas"/>
     <File Path="..\Controls\UPFCControl.pas"/>
-    <File Path="..\Controls\InvControl2.pas"/>
-    <File Path="..\Controls\StorageController2.pas"/>
     <File Path="..\Executive"/>
     <File Path="..\Executive\ConnectOptions.pas"/>
     <File Path="..\Executive\ExecCommands.pas"/>
@@ -148,11 +146,8 @@
     <File Path="..\PCElements\PCClass.pas"/>
     <File Path="..\PCElements\PCElement.pas"/>
     <File Path="..\PCElements\PVsystem.pas"/>
-    <File Path="..\PCElements\PVsystem2.pas"/>
     <File Path="..\PCElements\PVSystemUserModel.pas"/>
     <File Path="..\PCElements\Storage.pas"/>
-    <File Path="..\PCElements\Storage2.pas"/>
-    <File Path="..\PCElements\Storage2Vars.pas"/>
     <File Path="..\PCElements\StorageVars.pas"/>
     <File Path="..\PCElements\StoreUserModel.pas"/>
     <File Path="..\PCElements\UPFC.pas"/>

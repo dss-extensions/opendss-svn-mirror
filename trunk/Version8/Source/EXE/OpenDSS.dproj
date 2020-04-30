@@ -118,12 +118,12 @@
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=Distribution System Simulator;FileVersion=8.8.0.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=Distribution System Simulator;FileVersion=9.0.0.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.
 ;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -131,11 +131,11 @@
         <DCC_ExeOutput>.\x64\</DCC_ExeOutput>
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <VerInfo_Keys>CompanyName=;FileVersion=8.8.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=9.0.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=8.2;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <Icon_MainIcon>OpenDSS_Icon.ico</Icon_MainIcon>
@@ -171,10 +171,10 @@
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=8.8.0.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=9.0.0.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
@@ -182,10 +182,10 @@
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=8.8.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=9.0.0.1;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
@@ -1299,7 +1299,6 @@
             <Form>PropEditForm</Form>
         </DCCReference>
         <DCCReference Include="..\PCElements\PVsystem.pas"/>
-        <DCCReference Include="..\PCElements\PVsystem2.pas"/>
         <DCCReference Include="..\PCElements\PVSystemUserModel.pas"/>
         <DCCReference Include="..\PDElements\Reactor.pas"/>
         <DCCReference Include="..\Controls\Recloser.pas"/>
@@ -1316,7 +1315,6 @@
         <DCCReference Include="..\Shared\StackDef.pas"/>
         <DCCReference Include="..\PCElements\Storage.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
-        <DCCReference Include="..\Controls\StorageController2.pas"/>
         <DCCReference Include="..\PCElements\StoreUserModel.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
         <DCCReference Include="..\General\TCC_Curve.pas"/>
@@ -1357,11 +1355,9 @@
         <DCCReference Include="..\Plot\DSSGraph.pas"/>
         <DCCReference Include="..\Controls\CapUserControl.pas"/>
         <DCCReference Include="..\PCElements\StorageVars.pas"/>
-        <DCCReference Include="..\PCElements\Storage2Vars.pas"/>
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
         <DCCReference Include="..\Controls\CapControlVars.pas"/>
         <DCCReference Include="..\Controls\InvControl.pas"/>
-        <DCCReference Include="..\Controls\InvControl2.pas"/>
         <DCCReference Include="..\PDElements\GICTransformer.pas"/>
         <DCCReference Include="..\Controls\ExpControl.pas"/>
         <DCCReference Include="..\PCElements\UPFC.pas"/>
@@ -1390,7 +1386,6 @@
         </DCCReference>
         <DCCReference Include="..\GISCommands\GISCommands.pas"/>
         <DCCReference Include="..\Common\djson.pas"/>
-        <DCCReference Include="..\PCElements\Storage2.pas"/>
         <DCCReference Include="..\Parallel_Lib\NumCPULib.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

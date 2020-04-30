@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm=C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm</Transaction>
+    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -45,12 +45,10 @@
     <File Path="..\Controls\ExpControl.pas"/>
     <File Path="..\Controls\GenDispatcher.pas"/>
     <File Path="..\Controls\InvControl.pas"/>
-    <File Path="..\Controls\InvControl2.pas"/>
     <File Path="..\Controls\Recloser.pas"/>
     <File Path="..\Controls\RegControl.pas"/>
     <File Path="..\Controls\Relay.pas"/>
     <File Path="..\Controls\StorageController.pas"/>
-    <File Path="..\Controls\StorageController2.pas"/>
     <File Path="..\Controls\SwtControl.pas"/>
     <File Path="..\Controls\UPFCControl.pas"/>
     <File Path="..\EXE"/>
@@ -155,11 +153,8 @@
     <File Path="..\PCElements\PCClass.pas"/>
     <File Path="..\PCElements\PCElement.pas"/>
     <File Path="..\PCElements\PVsystem.pas"/>
-    <File Path="..\PCElements\PVsystem2.pas"/>
     <File Path="..\PCElements\PVSystemUserModel.pas"/>
     <File Path="..\PCElements\Storage.pas"/>
-    <File Path="..\PCElements\Storage2.pas"/>
-    <File Path="..\PCElements\Storage2Vars.pas"/>
     <File Path="..\PCElements\StorageVars.pas"/>
     <File Path="..\PCElements\StoreUserModel.pas"/>
     <File Path="..\PCElements\UPFC.pas"/>
