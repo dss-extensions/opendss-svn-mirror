@@ -1,0 +1,451 @@
+<project>
+    <shortName>opendsscmd</shortName>
+    <fullName>OpenDSS</fullName>
+    <version>1.2.6</version>
+    <readmeFile>readme.txt</readmeFile>
+    <licenseFile>license.txt</licenseFile>
+    <componentList>
+        <component>
+            <name>default</name>
+            <description>Default Component</description>
+            <canBeEdited>1</canBeEdited>
+            <selected>1</selected>
+            <show>1</show>
+            <folderList>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfiles</name>
+                    <platforms>all</platforms>
+                    <shortcutList>
+                        <shortcut>
+                            <comment>Uninstall</comment>
+                            <exec>${installdir}/${uninstallerName}</exec>
+                            <icon></icon>
+                            <name>Uninstall ${product_fullname}</name>
+                            <path>${installdir}</path>
+                            <platforms>all</platforms>
+                            <runAsAdmin>0</runAsAdmin>
+                            <runInTerminal>0</runInTerminal>
+                            <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                            <windowsExecArgs></windowsExecArgs>
+                            <windowsIcon></windowsIcon>
+                            <windowsPath>${installdir}</windowsPath>
+                        </shortcut>
+                    </shortcutList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>/usr/local/bin</destination>
+                    <name>programfileslinux</name>
+                    <platforms>linux-x64</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Linux/opendsscmd</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfileswindows</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Windows/opendsscmd.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/libklusolve.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/liblinenoise.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/MinGW64Redist/libgcc_s_seh-1.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/MinGW64Redist/libstdc++-6.dll</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>/usr/local/bin</destination>
+                    <name>programfilesosx</name>
+                    <platforms>osx</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>MacOSX/opendsscmd</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Test Files</description>
+                    <destination>${installdir}/test</destination>
+                    <name>testfiles</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Test/export_test.dss</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13Base.dss</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13Node_BusXY.csv</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEELineCodes.DSS</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/opendss.player</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/opendss.yaml</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/tracer.yaml</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/opendss.playerpv</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/pvshape.dat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Doc/OpenDSS_FNCS_Build.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/test.json</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13Nodeckt_Base_UUIDS.dat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13NodecktAssets_Base_UUIDS.dat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/cim_test.dss</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13_Assets.dss</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13_CDPSM.dss</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Test/IEEE13NodeExtra_BusXY.dat</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Test Files</description>
+                    <destination>${installdir}/test</destination>
+                    <name>testlinux</name>
+                    <platforms>linux</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Linux/Test/kill5570.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_fncs.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/clean.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_fncspv.sh</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Test Files</description>
+                    <destination>${installdir}/test</destination>
+                    <name>testwindows</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Windows/Test/kill5570.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/list5570.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_fncs.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/clean.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/killold.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_fncspv.bat</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Test Files</description>
+                    <destination>${installdir}/test</destination>
+                    <name>testmac</name>
+                    <platforms>osx</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>MacOSX/Test/kill5570.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_fncs.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/clean.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_fncspv.sh</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Library Files</description>
+                    <destination>/usr/local/lib</destination>
+                    <name>liblinux</name>
+                    <platforms>linux-x64</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Linux/liblinenoise.so</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Library Files</description>
+                    <destination>/usr/local/lib</destination>
+                    <name>libmac</name>
+                    <platforms>osx</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>MacOSX/libklusolve.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/liblinenoise.dylib</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Doc Files</description>
+                    <destination>${installdir}/doc</destination>
+                    <name>docfolder</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSSManual.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSSPrimer.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Introduction to the OpenDSS.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Cheatsheet.pdf</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Tech Notes</description>
+                    <destination>${installdir}/doc/notes</destination>
+                    <name>notesfolder</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/TechNote CableModelling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Solution Technique.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Voltage-Controlled-Current-Source.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS and State Estimation.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/SwtControl Modifications.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS CapControl DLL.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS FaultStudy Mode.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS_Computing_Currents.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Recloser-Relay-Fuse-Documentation.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Using the Timers in OpenDSS.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/XfmrCode_LineSpacing.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/3-phase Transformer Core Modeling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Computing Element Currents in OpenDSS.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Harmonics Load Modeling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Modeling Multi-Winding Transformers.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Modeling Regulators as Autotransformers.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Modeling Single-Phase Transformers.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Modeling the OY-OD Connection..pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Modeling Transformer Core Effects in OpenDSS.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Dynamics Mode.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Generator User DLL.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Load Allocation Algorithm.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS LOADSHAPE Usage.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Neutral Rules.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS PVSystem Model.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Storage Dynamics DLL.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS STORAGE Element.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS XYCurve Object.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSSSmartInverterModeling-EPRI-000000003002002271.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/PCElementEssentials.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/UPFC_Model_OpenDSS.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS CallBack Routines.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Custom Scripting.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/Common_Information_Model.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../src/opendss/Distrib/Doc/ExpControl.pdf</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>IEEE Test Cases</description>
+                    <destination>${installdir}/examples/ieee</destination>
+                    <name>ieeefolder</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>../../src/opendss/Distrib/IEEETestCases</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>EPRI Test Cases</description>
+                    <destination>${installdir}/examples/epri</destination>
+                    <name>eprifolder</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>../../src/opendss/Distrib/EPRITestCircuits</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>License Files</description>
+                    <destination>${installdir}</destination>
+                    <name>readmefolder</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>readme.txt</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>license.txt</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+            </folderList>
+            <startMenuShortcutList>
+                <startMenuShortcut>
+                    <comment>Uninstall ${product_fullname}</comment>
+                    <name>Uninstall ${product_fullname}</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon></windowsIcon>
+                    <windowsPath>${installdir}/</windowsPath>
+                </startMenuShortcut>
+            </startMenuShortcutList>
+        </component>
+    </componentList>
+    <postInstallationActionList>
+        <addDirectoryToPath>
+            <insertAt>end</insertAt>
+            <path>${installdir}</path>
+            <scope>user</scope>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </addDirectoryToPath>
+    </postInstallationActionList>
+    <createOsxBundleDmg>1</createOsxBundleDmg>
+    <defaultUnixFilePermissions>755</defaultUnixFilePermissions>
+    <enableRollback>1</enableRollback>
+    <enableTimestamp>1</enableTimestamp>
+    <requireInstallationByRootUser>1</requireInstallationByRootUser>
+    <saveRelativePaths>1</saveRelativePaths>
+    <startMenuGroupName>${product_shortname}</startMenuGroupName>
+    <vendor>Pacific Northwest National Laboratory</vendor>
+    <parameterList>
+        <directoryParameter>
+            <name>installdir</name>
+            <description>Installer.Parameter.installdir.description</description>
+            <explanation>Installer.Parameter.installdir.explanation</explanation>
+            <value></value>
+            <default>${user_home_directory}/${product_shortname}</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <cliOptionName>prefix</cliOptionName>
+            <mustBeWritable>1</mustBeWritable>
+            <mustExist>0</mustExist>
+            <width>30</width>
+        </directoryParameter>
+    </parameterList>
+</project>
+
