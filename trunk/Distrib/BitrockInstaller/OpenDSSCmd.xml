@@ -429,6 +429,7 @@
     <defaultUnixFilePermissions>755</defaultUnixFilePermissions>
     <enableRollback>1</enableRollback>
     <enableTimestamp>1</enableTimestamp>
+    <outputDirectory>Installers</outputDirectory>
     <requireInstallationByRootUser>1</requireInstallationByRootUser>
     <saveRelativePaths>1</saveRelativePaths>
     <startMenuGroupName>${product_shortname}</startMenuGroupName>

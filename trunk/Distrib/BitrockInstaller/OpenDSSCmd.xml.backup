@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.2.6</version>
+    <version>1.2.9</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
@@ -111,9 +111,6 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>Test/pvshape.dat</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Doc/OpenDSS_FNCS_Build.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>Test/test.json</origin>
@@ -236,16 +233,16 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSSManual.pdf</origin>
+                            <origin>../Doc/OpenDSSManual.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSSPrimer.pdf</origin>
+                            <origin>../Doc/OpenDSSPrimer.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Introduction to the OpenDSS.pdf</origin>
+                            <origin>../Doc/Introduction to the OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Cheatsheet.pdf</origin>
+                            <origin>../Doc/OpenDSS Cheatsheet.pdf</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -256,109 +253,112 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/TechNote CableModelling.pdf</origin>
+                            <origin>../Doc/TechNote CableModelling.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Solution Technique.pdf</origin>
+                            <origin>../Doc/OpenDSS Solution Technique.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Voltage-Controlled-Current-Source.pdf</origin>
+                            <origin>../Doc/Voltage-Controlled-Current-Source.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS and State Estimation.pdf</origin>
+                            <origin>../Doc/OpenDSS and State Estimation.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/SwtControl Modifications.pdf</origin>
+                            <origin>../Doc/SwtControl Modifications.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS CapControl DLL.pdf</origin>
+                            <origin>../Doc/OpenDSS CapControl DLL.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS FaultStudy Mode.pdf</origin>
+                            <origin>../Doc/OpenDSS FaultStudy Mode.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS_Computing_Currents.pdf</origin>
+                            <origin>../Doc/OpenDSS_Computing_Currents.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Recloser-Relay-Fuse-Documentation.pdf</origin>
+                            <origin>../Doc/Recloser-Relay-Fuse-Documentation.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Using the Timers in OpenDSS.pdf</origin>
+                            <origin>../Doc/Using the Timers in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/XfmrCode_LineSpacing.pdf</origin>
+                            <origin>../Doc/XfmrCode_LineSpacing.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/3-phase Transformer Core Modeling.pdf</origin>
+                            <origin>../Doc/3-phase Transformer Core Modeling.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Computing Element Currents in OpenDSS.pdf</origin>
+                            <origin>../Doc/Computing Element Currents in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Harmonics Load Modeling.pdf</origin>
+                            <origin>../Doc/Harmonics Load Modeling.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Modeling Multi-Winding Transformers.pdf</origin>
+                            <origin>../Doc/Modeling Multi-Winding Transformers.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Modeling Regulators as Autotransformers.pdf</origin>
+                            <origin>../Doc/Modeling Regulators as Autotransformers.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Modeling Single-Phase Transformers.pdf</origin>
+                            <origin>../Doc/Modeling Single-Phase Transformers.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Modeling the OY-OD Connection..pdf</origin>
+                            <origin>../Doc/Modeling the OY-OD Connection..pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Modeling Transformer Core Effects in OpenDSS.pdf</origin>
+                            <origin>../Doc/Modeling Transformer Core Effects in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Dynamics Mode.pdf</origin>
+                            <origin>../Doc/OpenDSS Dynamics Mode.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Generator User DLL.pdf</origin>
+                            <origin>../Doc/OpenDSS Generator User DLL.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Load Allocation Algorithm.pdf</origin>
+                            <origin>../Doc/OpenDSS Load Allocation Algorithm.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS LOADSHAPE Usage.pdf</origin>
+                            <origin>../Doc/OpenDSS LOADSHAPE Usage.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Neutral Rules.pdf</origin>
+                            <origin>../Doc/OpenDSS Neutral Rules.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS PVSystem Model.pdf</origin>
+                            <origin>../Doc/OpenDSS PVSystem Model.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Storage Dynamics DLL.pdf</origin>
+                            <origin>../Doc/OpenDSS Storage Dynamics DLL.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS STORAGE Element.pdf</origin>
+                            <origin>../Doc/OpenDSS STORAGE Element.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS XYCurve Object.pdf</origin>
+                            <origin>../Doc/OpenDSS XYCurve Object.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSSSmartInverterModeling-EPRI-000000003002002271.pdf</origin>
+                            <origin>../Doc/OpenDSSSmartInverterModeling-EPRI-000000003002002271.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/PCElementEssentials.pdf</origin>
+                            <origin>../Doc/PCElementEssentials.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/UPFC_Model_OpenDSS.pdf</origin>
+                            <origin>../Doc/UPFC_Model_OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS CallBack Routines.pdf</origin>
+                            <origin>../Doc/OpenDSS CallBack Routines.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/OpenDSS Custom Scripting.pdf</origin>
+                            <origin>../Doc/OpenDSS Custom Scripting.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/Common_Information_Model.pdf</origin>
+                            <origin>../Doc/Common_Information_Model.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../src/opendss/Distrib/Doc/ExpControl.pdf</origin>
+                            <origin>../Doc/ExpControl.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Doc/OpenDSS_FNCS_Build.pdf</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -369,7 +369,7 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>../../src/opendss/Distrib/IEEETestCases</origin>
+                            <origin>../IEEETestCases</origin>
                         </distributionDirectory>
                     </distributionFileList>
                 </folder>
@@ -380,7 +380,7 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>../../src/opendss/Distrib/EPRITestCircuits</origin>
+                            <origin>../EPRITestCircuits</origin>
                         </distributionDirectory>
                     </distributionFileList>
                 </folder>
