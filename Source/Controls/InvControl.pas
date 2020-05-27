@@ -3200,7 +3200,7 @@ begin
 
         for i := 1 to FListSize do
         begin
-            if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'PVSystem' then
+            if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'pvsystem' then
             begin
                 PVSys := PVSysClass.Find(StripClassName(FDERNameList.Strings[i - 1]));
 
@@ -3217,7 +3217,7 @@ begin
 
             end
             else
-            if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'Storage' then
+            if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'storage' then
             begin
                 Storage := StorageClass.Find(StripClassName(FDERNameList.Strings[i - 1]));
 
@@ -3349,7 +3349,7 @@ begin
     for i := 1 to FlistSize do
     begin
 
-        if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'PVSystem' then
+        if StripExtension(LowerCase(FDERNameList.Strings[i - 1])) = 'pvsystem' then
         begin
             PVSys := PVSysClass.Find(StripClassName(FDERNameList.Strings[i - 1]));
             if (PVSys <> nil) then
