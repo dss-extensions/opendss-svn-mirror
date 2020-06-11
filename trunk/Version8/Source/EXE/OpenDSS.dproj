@@ -5,12 +5,12 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
-        <ProjectVersion>18.8</ProjectVersion>
+        <ProjectVersion>19.0</ProjectVersion>
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <TargetedPlatforms>135</TargetedPlatforms>
+        <TargetedPlatforms>131</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -18,11 +18,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Linux64' and '$(Base)'=='true') or '$(Base_Linux64)'!=''">
         <Base_Linux64>true</Base_Linux64>
-        <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='OSX32' and '$(Base)'=='true') or '$(Base_OSX32)'!=''">
-        <Base_OSX32>true</Base_OSX32>
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
@@ -47,12 +42,6 @@
         <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='OSX32' and '$(Cfg_1)'=='true') or '$(Cfg_1_OSX32)'!=''">
-        <Cfg_1_OSX32>true</Cfg_1_OSX32>
-        <CfgParent>Cfg_1</CfgParent>
-        <Cfg_1>true</Cfg_1>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
         <Cfg_1_Win32>true</Cfg_1_Win32>
         <CfgParent>Cfg_1</CfgParent>
@@ -72,12 +61,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Linux64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Linux64)'!=''">
         <Cfg_2_Linux64>true</Cfg_2_Linux64>
-        <CfgParent>Cfg_2</CfgParent>
-        <Cfg_2>true</Cfg_2>
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='OSX32' and '$(Cfg_2)'=='true') or '$(Cfg_2_OSX32)'!=''">
-        <Cfg_2_OSX32>true</Cfg_2_OSX32>
         <CfgParent>Cfg_2</CfgParent>
         <Cfg_2>true</Cfg_2>
         <Base>true</Base>
@@ -110,10 +93,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Linux64)'!=''">
         <DCC_UnitSearchPath>$(crossvcl)\Lib\$(ProductVersion)\$(Platform)\$(Config);$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_OSX32)'!=''">
-        <DCC_UnitSearchPath>$(crossvcl)\Lib\$(ProductVersion)\$(Platform)\$(Config);$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSRequiresAquaSystemAppearance=false</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
@@ -161,9 +140,6 @@
         <VerInfo_Keys>CompanyName=EPRI;FileDescription=Distribution System Simulator;FileVersion=8.0.0.0;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2012 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.0.0;Comments=;CFBundleVersion=8.0.0</VerInfo_Keys>
         <Debugger_DebugSourcePath>C:\Program Files (x86)\CrossVcl\Redist\;$(Debugger_DebugSourcePath)</Debugger_DebugSourcePath>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_1_OSX32)'!=''">
-        <BT_BuildType>Debug</BT_BuildType>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
         <BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
@@ -171,9 +147,9 @@
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=9.0.0.2;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=9.0.0.3;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2016 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Build>2</VerInfo_Build>
+        <VerInfo_Build>3</VerInfo_Build>
         <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
@@ -182,9 +158,9 @@
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=9.0.0.2;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=9.0.0.3;InternalName=;LegalCopyright=Copyright (C) 2008-2016 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Build>2</VerInfo_Build>
+        <VerInfo_Build>3</VerInfo_Build>
         <VerInfo_MajorVer>9</VerInfo_MajorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -207,11 +183,6 @@
         <DCC_LinkerOptions>-lstdc++</DCC_LinkerOptions>
         <VerInfo_IncludeVerInfo>false</VerInfo_IncludeVerInfo>
         <Debugger_DebugSourcePath>C:\Users\pdmo005\Documents\Embarcadero\Studio\SDKs\ubuntu16.04.sdk\lib\x86_64-linux-gnu\;C:\Program Files (x86)\CrossVcl\Source\20.0\;C:\Program Files (x86)\CrossVcl\Source\;$(Debugger_DebugSourcePath)</Debugger_DebugSourcePath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2_OSX32)'!=''">
-        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
-        <DCC_RemoteDebug>true</DCC_RemoteDebug>
-        <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
@@ -281,14 +252,13 @@
                     <Source Name="MainSource">OpenDSS.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k260.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp260.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k270.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp270.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <ModelSupport>False</ModelSupport>
             <Platforms>
                 <Platform value="Linux64">True</Platform>
-                <Platform value="OSX32">True</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>
@@ -894,6 +864,16 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="iPad_Launch2x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="iPad_Launch768">
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
@@ -913,6 +893,16 @@
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="iPad_LaunchDark2x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -1015,6 +1005,16 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="iPhone_Launch2x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="iPhone_Launch320">
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
@@ -1023,6 +1023,16 @@
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="iPhone_Launch3x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -1070,6 +1080,26 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="iPhone_LaunchDark2x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="iPhone_LaunchDark3x">
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="ProjectAndroidManifest">
                     <Platform Name="Android">
                         <Operation>1</Operation>
@@ -1091,6 +1121,7 @@
                 <DeployClass Name="ProjectiOSDeviceResourceRules"/>
                 <DeployClass Name="ProjectiOSEntitlements"/>
                 <DeployClass Name="ProjectiOSInfoPList"/>
+                <DeployClass Name="ProjectiOSLaunchScreen"/>
                 <DeployClass Name="ProjectiOSResource">
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
