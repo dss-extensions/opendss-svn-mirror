@@ -345,6 +345,7 @@ end;
 {--------------------------------------------------------------------------}
 function TRelay.Edit(ActorID: Integer): Integer;
 var
+
     ParamPointer: Integer;
     ParamName: String;
     Param: String;
@@ -457,16 +458,15 @@ begin
                     begin        {Set Default Reclose Intervals}
                         case lowercase(param)[1] of
                             'c':
-                                PropertyValue[14] := '(0.5, 2.0, 2.0)';
+                                PropertyValue[14] := '[0.5, 2.0, 2.0]';
                             'v':
-                                PropertyValue[14] := '(5.0)';
+                                PropertyValue[14] := '[5.0]';
                         end;
                         AuxParser[ActorID].CmdString := PropertyValue[14];
                         ParamName := AuxParser[ActorID].NextParam;
                         NumReclose := AuxParser[ActorID].ParseAsVector(4, RecloseIntervals);
                     end;
                 end;
-
             ParamName := Parser[ActorID].NextParam;
             Param := Parser[ActorID].StrValue;
         end;
@@ -942,7 +942,7 @@ var
 begin
     Result := '';
     with ParentClass do
-        case PropertyIdxMap[Index] of
+        case Index of
             14:
             begin
                 Result := '(';
