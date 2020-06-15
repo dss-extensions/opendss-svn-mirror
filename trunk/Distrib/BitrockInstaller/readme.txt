@@ -4,8 +4,8 @@ Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
 Copyright (c) 2017-2020, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.2.9
-========================
+opendsscmd version 1.2.11
+=========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7.6.5 of the Windows-only version, and source code revision r2181. The major differences between opendsscmd and Windows-only OpenDSS are:
 
@@ -54,6 +54,9 @@ Change Log
 
 1.2.8 - performance tuning in the FNCS interface
 1.2.9 - added the option to export CIM100 in six separate sub-profiles
+1.2.10 - trap UUID for a missing bus
+1.2.11 - fix TransformerCoreAdmittance, TransformerEnd and some indentation
+       - fix undervoltage relay property values
 
 Quick Start
 
