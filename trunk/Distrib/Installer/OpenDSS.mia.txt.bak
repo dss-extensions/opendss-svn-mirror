@@ -220,6 +220,10 @@ else
   Install Files C:\OpenDSS\Distrib\x86\pmetis.exe to $TARGETDIR$\x86
   Install Files C:\OpenDSS\Distrib\x64\DSSProgress.exe to $TARGETDIR$\x64
   Install Files C:\OpenDSS\Distrib\x86\DSSProgress.exe to $TARGETDIR$\x86
+  Install Files C:\OpenDSS\Distrib\x64\OpenDSSDirect.h to $TARGETDIR$\x64
+  Install Files C:\OpenDSS\Distrib\x64\ComPorts.ini to $TARGETDIR$\x64
+  Install Files C:\OpenDSS\Distrib\x86\ComPorts.ini to $TARGETDIR$\x86
+  Install Files C:\OpenDSS\Distrib\x86\OpenDSSDirect.h to $TARGETDIR$\x86
   [DEFINE WEB MEDIA Win64]
   Get Component Win64 Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE
