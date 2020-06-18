@@ -51,6 +51,8 @@ type
         function Get_VMagAngle: Olevariant; SAFECALL;
         function Get_TotalMiles: Double; SAFECALL;
         function Get_SectionID: Integer; SAFECALL;
+        function Get_LineList: Olevariant; SAFECALL;
+        function Get_LoadList: Olevariant; SAFECALL;
     end;
 
 implementation
@@ -67,7 +69,8 @@ uses
     SolutionAlgs,
     Variants,
     Utilities,
-    Bus;
+    Bus,
+    CktElement;
 
 function TBus.Get_Name: Widestring;
 begin
@@ -964,6 +967,122 @@ begin
         with ActiveCircuit[ActiveActor] do
             if ActiveBusIndex > 0 then
                 Result := Buses^[ActiveBusIndex].BusSectionID;
+end;
+
+function CheckBusReference(cktElem: TDSSCktElement; BusReference: Integer; var TerminalIndex: Integer): Boolean;
+
+{Check all terminals of cktelement to see if bus connected to busreference}
+
+var
+    i: Integer;
+begin
+    Result := false;
+    with cktElem do
+        for i := 1 to NTerms do
+        begin
+            if Terminals^[i].BusRef = BusReference then
+            begin
+                TerminalIndex := i;
+                Result := true;
+                Break;
+            end;
+        end;
+end;
+
+
+function TBus.Get_LineList: Olevariant;
+ { Returns list of LINE elements connected to this bus}
+var
+    BusReference, i, j, k, LineCount: Integer;
+    pElem: TDSSCktElement;
+
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            BusReference := ActiveBusIndex;
+       { Count number of Lines connected to this bus }
+            LineCount := 0;
+            pElem := TDSSCktElement(Lines.First);
+            while Assigned(pElem) do
+            begin
+                if CheckBusReference(pElem, BusReference, j) then
+                    Inc(LineCount);
+                pElem := TDSSCktElement(Lines.Next);
+            end;
+
+            if LineCount > 0 then
+            begin
+       // Allocate Variant Array
+                Result := VarArrayCreate([0, LineCount - 1], varOleStr);
+                pElem := TDSSCktElement(Lines.First);
+                k := 0;
+                while Assigned(pElem) do
+                begin
+                    if CheckBusReference(pElem, BusReference, j) then
+                    begin
+                        Result[k] := 'LINE.' + pElem.name;
+                        Inc(k);
+                    end;
+                    pElem := TDSSCktElement(Lines.Next);
+                end;
+
+            end
+            else
+                Result := VarArrayCreate([0, 0], varOleStr);
+        end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+end;
+
+function TBus.Get_LoadList: Olevariant;
+
+{ Returns list of LOAD elements connected to this bus}
+
+var
+    BusReference, i, j, k, LoadCount: Integer;
+    pElem: TDSSCktElement;
+
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            BusReference := ActiveBusIndex;
+       { Count number of LOAD elements connected to this bus }
+            LoadCount := 0;
+            pElem := TDSSCktElement(Loads.First);
+            while Assigned(pElem) do
+            begin
+                if CheckBusReference(pElem, BusReference, j) then
+                    Inc(LoadCount);
+                pElem := TDSSCktElement(Loads.Next);
+            end;
+
+            if LoadCount > 0 then
+            begin
+       // Allocate Variant Array
+                Result := VarArrayCreate([0, LoadCount - 1], varOleStr);
+
+                k := 0;
+                pElem := TDSSCktElement(Loads.First);
+                while Assigned(pElem) do
+                begin
+                    if CheckBusReference(pElem, BusReference, j) then
+                    begin
+                        Result[k] := 'LOAD.' + pElem.name;
+                        Inc(k);
+                    end;
+                    pElem := TDSSCktElement(Loads.Next);
+                end;
+
+            end
+            else
+                Result := VarArrayCreate([0, 0], varOleStr);
+        end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
 initialization
