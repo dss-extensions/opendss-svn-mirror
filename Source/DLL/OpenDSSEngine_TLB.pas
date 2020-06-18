@@ -12,10 +12,10 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 2/12/2020 9:23:11 AM from Type Library described below.
+// File generated on 6/18/2020 3:06:45 PM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
+// Type Lib: C:\Users\prdu001\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
 // Helpfile:
@@ -24,8 +24,6 @@ unit OpenDSSengine_TLB;
 //   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // SYS_KIND: SYS_WIN32
-// Errors:
-//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -920,6 +918,8 @@ type
         function Get_puVmagAngle: Olevariant; SAFECALL;
         function Get_TotalMiles: Double; SAFECALL;
         function Get_SectionID: Integer; SAFECALL;
+        function Get_LineList: Olevariant; SAFECALL;
+        function Get_LoadList: Olevariant; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumNodes: Integer READ Get_NumNodes;
         property Voltages: Olevariant READ Get_Voltages;
@@ -950,6 +950,8 @@ type
         property puVmagAngle: Olevariant READ Get_puVmagAngle;
         property TotalMiles: Double READ Get_TotalMiles;
         property SectionID: Integer READ Get_SectionID;
+        property LineList: Olevariant READ Get_LineList;
+        property LoadList: Olevariant READ Get_LoadList;
     end;
 
 // *********************************************************************//
@@ -991,6 +993,8 @@ type
         property puVmagAngle: Olevariant READONLY DISPID 216;
         property TotalMiles: Double READONLY DISPID 217;
         property SectionID: Integer READONLY DISPID 218;
+        property LineList: Olevariant READONLY DISPID 219;
+        property LoadList: Olevariant READONLY DISPID 220;
     end;
 
 // *********************************************************************//
