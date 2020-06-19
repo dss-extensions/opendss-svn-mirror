@@ -19,7 +19,28 @@ uses
     SolutionAlgs,
     Variants,
     Utilities,
-    Bus;
+    Bus,
+    CktElement;
+
+function CheckBusReference(cktElem: TDSSCktElement; BusReference: Integer; var TerminalIndex: Integer): Boolean;
+
+{Check all terminals of cktelement to see if bus connected to busreference}
+
+var
+    i: Integer;
+begin
+    Result := false;
+    with cktElem do
+        for i := 1 to NTerms do
+        begin
+            if Terminals^[i].BusRef = BusReference then
+            begin
+                TerminalIndex := i;
+                Result := true;
+                Break;
+            end;
+        end;
+end;
 
 function BUSI(mode: Longint; arg: Longint): Longint; CDECL;
 
@@ -213,14 +234,30 @@ end;
 procedure BUSV(mode: Longint; out arg: Variant); CDECL;
 
 var
-    Nvalues, i, iV, NodeIdx, jj, NodeIdxj, NodeIdxi: Integer;
-    Volts, Voc, Isc: Complex;
+    BusReference,
+    k,
+    LoadCount,
+    LineCount,
+    Nvalues,
+    i,
+    iV,
+    NodeIdx,
+    jj,
+    NodeIdxj,
+    Nelements,
+    j,
+    NodeIdxi: Integer;
+    Volts,
+    Voc,
+    Z,
+    Y1,
+    Isc: Complex;
     pBus: TDSSBus;
-    VPh, V012: array[1..3] of Complex;
+    VPh,
+    V012: array[1..3] of Complex;
     BaseFactor: Double;
-    Nelements, j: Integer;
-    Z, Y1: Complex;
     voltsp: polar;
+    pElem: TDSSCktElement;
 
 begin
     case mode of
@@ -776,6 +813,85 @@ begin
                     end
                     else
                         arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+        end;
+        15:
+        begin   // Bus.LineList
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    BusReference := ActiveBusIndex;
+           { Count number of Lines connected to this bus }
+                    LineCount := 0;
+                    pElem := TDSSCktElement(Lines.First);
+                    while Assigned(pElem) do
+                    begin
+                        if CheckBusReference(pElem, BusReference, j) then
+                            Inc(LineCount);
+                        pElem := TDSSCktElement(Lines.Next);
+                    end;
+
+                    if LineCount > 0 then
+                    begin
+           // Allocate Variant Array
+                        arg := VarArrayCreate([0, LineCount - 1], varOleStr);
+                        pElem := TDSSCktElement(Lines.First);
+                        k := 0;
+                        while Assigned(pElem) do
+                        begin
+                            if CheckBusReference(pElem, BusReference, j) then
+                            begin
+                                arg[k] := 'LINE.' + pElem.name;
+                                Inc(k);
+                            end;
+                            pElem := TDSSCktElement(Lines.Next);
+                        end;
+
+                    end
+                    else
+                        arg := VarArrayCreate([0, 0], varOleStr);
+                end
+            else
+                arg := VarArrayCreate([0, 0], varOleStr);
+        end;
+        16:
+        begin   // Bus.LoadList
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    BusReference := ActiveBusIndex;
+         { Count number of LOAD elements connected to this bus }
+                    LoadCount := 0;
+                    pElem := TDSSCktElement(Loads.First);
+                    while Assigned(pElem) do
+                    begin
+                        if CheckBusReference(pElem, BusReference, j) then
+                            Inc(LoadCount);
+                        pElem := TDSSCktElement(Loads.Next);
+                    end;
+
+                    if LoadCount > 0 then
+                    begin
+         // Allocate Variant Array
+                        arg := VarArrayCreate([0, LoadCount - 1], varOleStr);
+
+                        k := 0;
+                        pElem := TDSSCktElement(Loads.First);
+                        while Assigned(pElem) do
+                        begin
+                            if CheckBusReference(pElem, BusReference, j) then
+                            begin
+                                arg[k] := 'LOAD.' + pElem.name;
+                                Inc(k);
+                            end;
+                            pElem := TDSSCktElement(Loads.Next);
+                        end;
+
+                    end
+                    else
+                        arg := VarArrayCreate([0, 0], varOleStr);
+                end
+            else
+                arg := VarArrayCreate([0, 0], varOleStr);
         end
     else
         arg := VarArrayCreate([0, 0], varDouble);  // just return null array
