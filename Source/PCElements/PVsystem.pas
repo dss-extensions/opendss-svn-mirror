@@ -1896,7 +1896,7 @@ begin
             if (varMode = VARMODEPF) and PF_Priority then
               // Operates under constant power factor when kVA rating is exceeded. PF must be specified and PFPriority must be TRUE
             begin
-                kW_out := FkVArating * PFnominal;
+                kW_out := FkVArating * abs(PFnominal);
                 kvar_out := FkVArating * sqrt(1 - Sqr(PFnominal)) * sign(PFnominal);
             end
             else
