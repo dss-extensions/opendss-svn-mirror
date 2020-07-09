@@ -1,10 +1,10 @@
-﻿The Open Distribution System Simulator, OpenDSS
+The Open Distribution System Simulator, OpenDSS
 
 Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
 Copyright (c) 2017-2020, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.2.11
+opendsscmd version 1.2.12
 =========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7.6.5 of the Windows-only version, and source code revision r2181. The major differences between opendsscmd and Windows-only OpenDSS are:
@@ -20,43 +20,42 @@ Change Log
 
 1.0.1 - CIM export of Relay, Fuse, Breaker based on controls attached to Lines having switch=yes
 
-
 1.1.0 - CIM100 support, time-stepping under control of FNCS
 
-
 1.2.0 - FNCS output publications
-
       - operational limits included in CIM100 export
-
       - ExpControl and VCCS enhancements from IEEE PVSC 46 papers
 
 
 1.2.1 - removed FNCS debug output
-
       - added test.json sample FNCS messaging config file
+
 1.2.2 - changed CIM100 mRID from GUID to UUID v4; see RFC 4122
 
 1.2.3 - added "-v" flag and "about" command for version number
 
-
 1.2.4 - fixed FNCS time synchronization for power rationing example
-      
       - implemented FNCS log levels (opendsscmd --help for details)
-
 
 1.2.5 - include Buses in "export UUIDS" and "UUID" commands
 
-
 1.2.6 - persist all CIM mRID values in the "uuid" and "export uuid" commands
-
 
 1.2.7 - bugfix for persistent mRID values on CIM-created XfmrCodes
 
 1.2.8 - performance tuning in the FNCS interface
+
 1.2.9 - added the option to export CIM100 in six separate sub-profiles
+
 1.2.10 - trap UUID for a missing bus
+
 1.2.11 - fix TransformerCoreAdmittance, TransformerEnd and some indentation
        - fix undervoltage relay property values
+
+1.2.12 - more performance tuning in FNCS interface
+       - supporting both JSON and Text formatted FNCS publication
+       - example of linking a GridLAB-D house and weather to OpenDSS
+       - works with FNCS feature/opendss and GridLAB-D feature/1173 branches
 
 Quick Start
 
