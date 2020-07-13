@@ -1652,12 +1652,10 @@ begin
 
         STORAGE_ELEMENT:
             StorageElements.Add(ActiveCktElement);
-        STORAGE2_ELEMENT:
-            Storage2Elements.Add(ActiveCktElement);
+//       STORAGE2_ELEMENT:Storage2Elements.Add(ActiveCktElement);
         PVSYSTEM_ELEMENT:
             PVSystems.Add(ActiveCktElement);
-        PVSYSTEM2_ELEMENT:
-            PVSystems2.Add(ActiveCktElement);
+//       PVSYSTEM2_ELEMENT:PVSystems2.Add(ActiveCktElement);
     end;
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle
