@@ -207,8 +207,12 @@ begin
                     if FRDC < 0.0 then
                         FRDC := FR60 / 1.02;
                 4:
+                begin
                     if Fradius < 0.0 then
-                        Fradius := FGMR60 / 0.7788;
+                        Fradius := FGMR60 / 0.7788;  // Default to cylindrical conductor
+                    if Fcapradius60 < 0.0 then
+                        Fcapradius60 := Fradius;    // default to radius
+                end;
                 5:
                     if FradiusUnits = 0 then
                         FradiusUnits := FGMRunits;
