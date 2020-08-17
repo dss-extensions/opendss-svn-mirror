@@ -34,7 +34,8 @@ uses
     utilities,
     PointerList,
     Classes,
-    Loadshape;
+    Loadshape,
+    solution;
 
 const
     AVG = -1;
@@ -217,7 +218,6 @@ uses
     uCmatrix,
     MathUtil,
     Math,
-    Solution,
     Dynamics,
     XYCurve;
 
@@ -1822,19 +1822,16 @@ begin
 
                         end;    // -----------------------------------------------------------------------
                     end;
-//                STORE_DISCHARGING: If ((PDiff + FleetkW) < 0.0)  or OutOfOomph Then
-//                STORE_DISCHARGING: If (((PDiff + FleetkW) < 0.0) and (abs(PDiff) > HalfkWBand)) or OutOfOomph Then // CR: set to idle only if out of band
-//                  Begin   // desired decrease is greater then present output; just cancel
-//                        If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name,
-//                        Format('Desired decrease is greater than present output. Pdiff = %-.6g, FleetkW = %-.6g. Setting Fleet to Idle', [PDiff, FleetkW]),ActorID);
-//                        SetFleetToIdle;   // also sets presentkW = 0
-//                        For i := 1 to FleetSize Do Begin TStorageObj(FleetPointerList.Get(i)).SetNominalStorageOutput(ActorID) End; // To Update Current kvarLimit
-//                        PushTimeOntoControlQueue(STORE_IDLING, ActorID);  // force a new power flow solution
-//                        ChargingAllowed := TRUE;
-//                        SkipkWDispatch  := TRUE;
-//                        Wait4Step       := TRUE; // To tell to the charging section to wait for the next sim step
-//                                                 // useful when workin with large simulation time steps
-//                  End;
+
+ {               STORE_DISCHARGING: If (PDiff < 0.0) or OutOfOomph Then
+                  Begin   // desired decrease is greater then present output; just cancel
+                        SetFleetToIdle;   // also sets presentkW = 0
+                        PushTimeOntoControlQueue(STORE_IDLING, ActorID);  // force a new power flow solution
+                        ChargingAllowed := TRUE;
+                        SkipkWDispatch  := TRUE;
+                        Wait4Step       := TRUE; // To tell to the charging section to wait for the next sim step
+                                                 // useful when workin with large simulation time steps
+                  End;}
             end;
         end;
 
