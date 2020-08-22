@@ -3929,12 +3929,16 @@ begin
         19:
             Result := 'VV_DRC Oper';
         20:
-            Result := 'kWDesired';
+            Result := 'WP Oper';
         21:
-            Result := 'kW VW Limit';
+            Result := 'WV Oper';
         22:
-            Result := 'Limit kWOut Function';
+            Result := 'kWDesired';
         23:
+            Result := 'kW VW Limit';
+        24:
+            Result := 'Limit kWOut Function';
+        25:
             Result := 'kVA Exceeded';
 
 
