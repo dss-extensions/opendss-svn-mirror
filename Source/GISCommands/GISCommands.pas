@@ -11,6 +11,8 @@ uses
     ShellApi,
     djson,
     VCl.forms,
+    Line,
+    Utilities,
 //   TCP Indy libraries
     IdBaseComponent,
     IdComponent,
@@ -29,6 +31,7 @@ function Get_JSONrouteGIS(): String;
 function WindowLR(): String;
 function WindowRL(): String;
 function ReSizeWindow(): String;
+function GISDrawCircuit(): Integer;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -468,6 +471,51 @@ begin
     else
         result := 'OpenDSS-GIS is not installed or initialized'
 
+end;
+
+{*******************************************************************************
+*      Generates the file required by DSS-GIS to draw the model on the map     *
+*******************************************************************************}
+
+function GISDrawCircuit(): Integer;
+var
+    LineElem: TLineObj;
+    TxtRow,
+    myBus: String;
+    k: Integer;
+    F: TextFile;
+
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if Lines.ListSize > 0 then
+            begin
+                Assignfile(F, 'GIS_desc.csv');
+                ReWrite(F);
+                LineElem := Lines.First;
+                while LineElem <> nil do
+                begin
+                    TxtRow := '';
+                    for k := 1 to 2 do
+                    begin
+                        myBus := StripExtension(LineElem.GetBus(k));
+                        DSSGlobals.SetActiveBus(myBus);
+                        if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].GISCoordDefined) then
+                            TxtRow := TxtRow + floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Long) +
+                                ',' + floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Lat) + ',';
+
+                    end;
+                    Writeln(F, TxtRow);
+                    LineElem := Lines.Next;
+
+                end;
+                CloseFile(F);
+            end;
+        end;
+    end;
+    Result := 1;
 end;
 
 end.

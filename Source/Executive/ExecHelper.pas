@@ -1184,8 +1184,8 @@ var
 
 begin
 
-    Dummy := AllocMem(Sizeof(Dummy^[1]) * 100); // Big Buffer
-    Num := Parser[ActiveActor].ParseAsVector(100, Dummy);
+    Dummy := AllocMem(Sizeof(Double) * 200); // Big Buffer
+    Num := Parser[ActiveActor].ParseAsVector(200, Dummy);
      {Parsing zero-fills the array}
 
      {LegalVoltageBases is a zero-terminated array, so we have to allocate
