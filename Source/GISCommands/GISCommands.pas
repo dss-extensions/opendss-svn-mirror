@@ -13,6 +13,7 @@ uses
     VCl.forms,
     Line,
     Utilities,
+    ArrayDef,
 //   TCP Indy libraries
     IdBaseComponent,
     IdComponent,
@@ -36,6 +37,10 @@ function show_lineGIS(LineName: String): String;
 function export_mapGIS(): String;
 function find_treesGIS(LineName: String): String;
 procedure get_line_Coords(LineName: String);
+function set_map_View(myView: String): String;
+function clear_map(): String;
+function Draw_line_GIS(): String;
+function Zoom_area_GIS(): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -657,7 +662,143 @@ begin
     else
         result := 'OpenDSS-GIS is not installed or initialized';
 end;
+{*******************************************************************************
+*             Commands OpenDSS-GIS to update the map view to the               *
+*                             one given by the user                            *
+*******************************************************************************}
+function set_map_View(myView: String): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"mapview","mymap":"' + myView + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['mapview'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
 
+{*******************************************************************************
+*      Commands OpenDSS-GIS to remove all previous lines/draws from the map    *
+*******************************************************************************}
+function clear_map(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"clearmap"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['clearmap'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*                 Draws a line in the map at the given coordinates             *
+*******************************************************************************}
+function Draw_line_GIS(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+
+begin
+    if IsGISON then
+    begin
+
+        InMsg := '{"command":"drawline","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
+            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '},"color":"' + GISColor +
+            '","thickness":' + GISThickness + '}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['drawline'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*          Zooms the map at the area described by the given coordinates        *
+*******************************************************************************}
+function Zoom_area_GIS(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"zoommap","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
+            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['zoommap'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*             Loads the line Long-lat into the global array "myCoords"         *
+*******************************************************************************}
 procedure get_line_Coords(LineName: String);
 var
     TCPJSON: TdJSON;

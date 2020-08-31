@@ -363,6 +363,10 @@ Integer
 
 //************************ OpenDSS-GIS Global defs***************************
     IsGISON: Boolean;
+    GISThickness,
+    GISColor: String;
+    GISCoords: pDoubleArray;
+
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
@@ -1419,6 +1423,10 @@ initialization
         DSSObjs[ActiveActor] := nil;
         DSSClassList[ActiveActor] := nil;
     end;
+
+    GISThickness := '3';
+    GISColor := 'FF0000';
+    GISCoords := AllocMem(Sizeof(Double) * 4);
 
     IsProgressOn := false;
 
