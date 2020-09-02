@@ -41,6 +41,7 @@ function set_map_View(myView: String): String;
 function clear_map(): String;
 function Draw_line_GIS(): String;
 function Zoom_area_GIS(): String;
+function GISPlotfile(myPath: String): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -529,7 +530,8 @@ begin
                     end;
                     CloseFile(F);
                     JSONCmd := '{"command":"plotcircuit","path":"' +
-                        OutputDirectory[ActiveActor] + 'GIS_desc.csv"}';
+                        OutputDirectory[ActiveActor] + 'GIS_desc.csv","color":"' + GISColor +
+                        '","thickness":' + GISThickness + '}';
             // Sends the command to OpenDSS-GIS
                     try
                         GISTCPClient.IOHandler.WriteLn(JSONCmd);
@@ -645,19 +647,27 @@ begin
     begin
   // to be implemented
 
-  //    InMsg:=  '{"command":"exportmap", "path":"' + OutputDirectory[ActiveActor] + '"}';
-  //    try
-  //      GISTCPClient.IOHandler.WriteLn(InMsg);
-  //      InMsg   :=  GISTCPClient.IOHandler.ReadLn(#10,200);
-  //      TCPJSON :=  TdJSON.Parse(InMsg);
-  //      Result  :=  TCPJSON['exportmap'].AsString;
-  //    except
-  //      on E: Exception do begin
-  //        IsGISON     :=  False;
-  //        Result      :=  'Error while communicating to OpenDSS-GIS';
-  //      end;
-  //    end;
-        result := 'No tree';
+        if (ActiveCircuit[ActiveActor] <> nil) then
+        begin
+            get_line_Coords(LineName);
+
+            InMsg := '{"command":"findtrees","coords":{"long1":' + floattostr(myCoords[0]) + ',"lat1":' + floattostr(myCoords[1]) +
+                ',"long2":' + floattostr(myCoords[2]) + ',"lat2":' + floattostr(myCoords[3]) + '}}';
+
+            try
+                GISTCPClient.IOHandler.WriteLn(InMsg);
+                InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+                TCPJSON := TdJSON.Parse(InMsg);
+                Result := TCPJSON['findtrees'].AsString;
+            except
+                on E: Exception do
+                begin
+                    IsGISON := false;
+                    Result := 'Error while communicating to OpenDSS-GIS';
+                end;
+            end;
+        end;
+        result := 'No';
     end
     else
         result := 'OpenDSS-GIS is not installed or initialized';
@@ -794,6 +804,47 @@ begin
     end
     else
         result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*       Commands OpenDSS-GIS to draw the content of a file over the map        *
+*******************************************************************************}
+function GISPlotfile(myPath: String): String;
+var
+    TxtRow,
+    myBus: String;
+    k: Integer;
+    F: TextFile;
+    InMsg,
+    TempStr,
+    JSONCmd: String;
+    TCPJSON: TdJSON;
+
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        if IsGISON then
+        begin
+            JSONCmd := '{"command":"plotfromfile","path":"' +
+                myPath + '"}';
+      // Sends the command to OpenDSS-GIS
+            try
+                GISTCPClient.IOHandler.WriteLn(JSONCmd);
+                InMsg := GISTCPClient.IOHandler.ReadLn(#10, 5000);
+                TCPJSON := TdJSON.Parse(InMsg);
+                TempStr := TCPJSON['plotfromfile'].AsString;
+                Result := TempStr;
+            except
+                on E: Exception do
+                begin
+                    IsGISON := false;
+                    Result := 'Error while communicating to OpenDSS-GIS';
+                end;
+            end;
+        end
+        else
+            result := 'OpenDSS-GIS is not installed or initialized'
+    end;
 end;
 
 {*******************************************************************************

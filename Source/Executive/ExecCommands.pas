@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 142;
+    NumExecCommands = 143;
 
 var
 
@@ -180,7 +180,7 @@ begin
     ExecCommand[117] := 'CalcLaplacian';
     ExecCommand[118] := 'Clone';
     ExecCommand[119] := 'FNCSPublish';
-    ExecCommand[120] := 'StartGIS';
+    ExecCommand[120] := 'GISStart';
     ExecCommand[121] := 'GISShowBus';
     ExecCommand[122] := 'GISFindRoute';
     ExecCommand[123] := 'GISGetRoute';
@@ -203,6 +203,7 @@ begin
     ExecCommand[140] := 'GISClearMap';
     ExecCommand[141] := 'GISDrawLine';
     ExecCommand[142] := 'GISZoomMap';
+    ExecCommand[143] := 'GISPlotFile';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -660,6 +661,11 @@ begin
         '2. OpenDSS-GIS must be initialized (use StartGIS command)' + CRLF +
         '3. The model needs to have the correct buscoords file';
     CommandHelp[142] := 'Zooms the map at the area specified at GISCoords.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use StartGIS command)' + CRLF +
+        '3. The model needs to have the correct buscoords file';
+    CommandHelp[143] := 'Plots the content of the file specified in the argument on top of the current map.' + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use StartGIS command)' + CRLF +
@@ -1177,6 +1183,11 @@ begin
                 GlobalResult := Draw_line_GIS();
             142:
                 GlobalResult := Zoom_area_GIS();
+            143:
+            begin
+                Parser[ActiveActor].NextParam;
+                GlobalResult := GISPlotfile(lowercase(Parser[ActiveActor].StrValue));
+            end;
 
         else
        // Ignore excess parameters

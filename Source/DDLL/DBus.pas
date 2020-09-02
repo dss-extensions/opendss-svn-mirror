@@ -208,6 +208,44 @@ begin
                 with ActiveCircuit[ActiveActor] do
                     if ActiveBusIndex > 0 then
                         Result := Buses^[ActiveBusIndex].BusTotalMiles;
+        end;
+        12:
+        begin                                          // Bus.latitude read
+            Result := 0.0;
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                        if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined) then
+                            Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
+        end;
+        13:
+        begin                                          // Bus.Latitude write
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                    begin
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined := true;
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat := arg;
+                    end;
+        end;
+        14:
+        begin                                          // Bus.latitude read
+            Result := 0.0;
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                        if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined) then
+                            Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
+        end;
+        15:
+        begin                                          // Bus.Latitude write
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                    begin
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined := true;
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long := arg;
+                    end;
         end
     else
         Result := -1.0;

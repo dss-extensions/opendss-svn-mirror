@@ -54,6 +54,10 @@ type
         function Get_LineList: Olevariant; SAFECALL;
         function Get_LoadList: Olevariant; SAFECALL;
         function Get_ZSC012Matrix: Olevariant; SAFECALL;
+        function Get_Latitude: Double; SAFECALL;
+        procedure Set_Latitude(Value: Double); SAFECALL;
+        function Get_Longitude: Double; SAFECALL;
+        procedure Set_Longitude(Value: Double); SAFECALL;
     end;
 
 implementation
@@ -1140,6 +1144,50 @@ begin
                 end;
             end;
 
+end;
+
+function TBus.Get_Latitude: Double;
+begin
+    Result := 0.0;
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined) then
+                    Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
+end;
+
+
+procedure TBus.Set_Latitude(Value: Double);
+begin
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+            begin
+                Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined := true;
+                Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat := Value;
+            end;
+end;
+
+
+function TBus.Get_Longitude: Double;
+begin
+    Result := 0.0;
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined) then
+                    Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
+end;
+
+procedure TBus.Set_Longitude(Value: Double);
+begin
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+            begin
+                Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined := true;
+                Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long := Value;
+            end;
 end;
 
 initialization
