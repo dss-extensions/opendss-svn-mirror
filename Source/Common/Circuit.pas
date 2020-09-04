@@ -119,6 +119,7 @@ type
         function SaveDSSObjects: Boolean;
         function SaveFeeders: Boolean;
         function SaveBusCoords: Boolean;
+        function SaveGISCoords: Boolean;
         function SaveVoltageBases: Boolean;
 
         procedure ReallocDeviceList(ActorID: Integer);
@@ -2103,6 +2104,8 @@ begin
     if Success then
         Success := SaveBusCoords;
     if Success then
+        Success := SaveGISCoords;
+    if Success then
         Success := SaveMasterFile;
 
 
@@ -2210,6 +2213,11 @@ begin
             Writeln(F, 'Buscoords buscoords.dss');
         end;
 
+        if FileExists('GIScoords.dss') then
+        begin
+            Writeln(F, 'GIScoords GIScoords.dss');
+        end;
+
         CloseFile(F);
         Result := true;
     except
@@ -2276,6 +2284,36 @@ begin
         begin
             if Buses^[i].CoordDefined then
                 Writeln(F, CheckForBlanks(BusList.Get(i)), Format(', %-g, %-g', [Buses^[i].X, Buses^[i].Y]));
+        end;
+
+        Closefile(F);
+
+        Result := true;
+
+    except
+        On E: Exception do
+            DoSimpleMsg('Error creating Buscoords.dss.', 437);
+    end;
+
+end;
+
+function TDSSCircuit.SaveGISCoords: Boolean;
+var
+    F: TextFile;
+    i: Integer;
+begin
+
+    Result := false;
+
+    try
+        AssignFile(F, 'GISCoords.dss');
+        Rewrite(F);
+
+
+        for i := 1 to NumBuses do
+        begin
+            if Buses^[i].CoordDefined then
+                Writeln(F, CheckForBlanks(BusList.Get(i)), Format(', %-g, %-g', [Buses^[i].Lat, Buses^[i].Long]));
         end;
 
         Closefile(F);
