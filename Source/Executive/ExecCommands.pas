@@ -54,6 +54,7 @@ uses
     Diakoptics,
     sparse_math,
     MemoryMap_lib,
+    EnergyMeter,
     GISCommands;
 
 procedure DefineCommands;
@@ -204,6 +205,7 @@ begin
     ExecCommand[141] := 'GISDrawLine';
     ExecCommand[142] := 'GISZoomMap';
     ExecCommand[143] := 'GISPlotFile';
+
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -670,6 +672,7 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use StartGIS command)' + CRLF +
         '3. The model needs to have the correct buscoords file';
+
 end;
 
 //----------------------------------------------------------------------------
@@ -682,6 +685,7 @@ var
     Param,
     ObjName,
     PropName: String;
+    MeterElem: TEnergyMeterObj;
 
 begin
 

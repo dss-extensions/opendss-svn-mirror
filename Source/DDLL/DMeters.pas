@@ -608,14 +608,19 @@ end;
 procedure MetersV(mode: Longint; out arg: Variant); CDECL;
 
 var
+    pMeter,
+    pMeterObj,
     MeterElem: TEnergyMeterObj;
-    k, i: Integer;
-    pMeterObj: TEnergyMeterObj;
-    last: Integer;
+    BranchCount,
+    last,
+    k,
+    i: Integer;
+    cktElem,
+    shuntElement,
+    pElem,
     elem: TDSSCktElement;
     node: TCktTreeNode;
-    BranchCount: Integer;
-    pElem: TDSSCktElement;
+    MyPCEList: array of String;
 
 begin
     case mode of
@@ -841,6 +846,29 @@ begin
                         end;
                     end;
                 end;
+        end;
+        12:
+        begin  // Meters.ALLPCEinZone
+            arg := VarArrayCreate([0, 0], varOleStr);
+            arg[0] := 'NONE';
+
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    pMeter := EnergyMeters.Active;
+                    pMeter.GetPCEatZone;
+          // moves the list to the variant output
+                    if (length(pMeter.ZonePCE) > 0) and (pMeter.ZonePCE[0] <> '') then
+                    begin
+                        VarArrayRedim(arg, length(pMeter.ZonePCE) + 1);
+                        for k := 0 to High(pMeter.ZonePCE) do
+                            arg[k] := pMeter.ZonePCE[k];
+                    end;
+
+                end;
+            end;
+
         end
     else
         arg[0] := 'Error, Parameter not recognized';

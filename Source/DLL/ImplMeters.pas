@@ -73,6 +73,7 @@ type
         function Get_SumBranchFltRates: Double; SAFECALL;
         function Get_SectSeqIdx: Integer; SAFECALL;
         function Get_SectTotalCust: Integer; SAFECALL;
+        function Get_AllPCE: Olevariant; SAFECALL;
 
     { Protected declarations }
     end;
@@ -89,7 +90,10 @@ uses
     CktElement,
     PDElement,
     MemoryMap_lib,
-    CktTree;
+    Load,
+    Generator,
+    CktTree,
+    Circuit;
 
 function TMeters.Get_AllNames: Olevariant;
 var
@@ -1082,6 +1086,35 @@ begin
 
 end;
 
+
+function TMeters.Get_AllPCE: Olevariant;
+var
+    pMeter: TEnergyMeterObj;
+    k: Integer;
+
+begin
+
+    Result := VarArrayCreate([0, 0], varOleStr);
+    Result[0] := 'NONE';
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        with ActiveCircuit[ActiveActor] do
+        begin
+            pMeter := EnergyMeters.Active;
+            pMeter.GetPCEatZone;
+      // moves the list to the variant output
+            if (length(pMeter.ZonePCE) > 0) and (pMeter.ZonePCE[0] <> '') then
+            begin
+                VarArrayRedim(Result, length(pMeter.ZonePCE) + 1);
+                for k := 0 to High(pMeter.ZonePCE) do
+                    Result[k] := pMeter.ZonePCE[k];
+            end;
+
+        end;
+    end;
+
+end;
 
 initialization
     TAutoObjectFactory.Create(ComServer, TMeters, Class_Meters,

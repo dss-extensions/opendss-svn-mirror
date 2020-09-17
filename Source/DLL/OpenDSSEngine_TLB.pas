@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 9/2/2020 5:28:49 PM from Type Library described below.
+// File generated on 9/16/2020 4:18:25 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -24,6 +24,8 @@ unit OpenDSSengine_TLB;
 //   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // SYS_KIND: SYS_WIN32
+// Errors:
+//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -1471,6 +1473,7 @@ type
         function Get_SumBranchFltRates: Double; SAFECALL;
         function Get_SectSeqIdx: Integer; SAFECALL;
         function Get_SectTotalCust: Integer; SAFECALL;
+        function Get_AllPCE: Olevariant; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property First: Integer READ Get_First;
         property Next: Integer READ Get_Next;
@@ -1505,6 +1508,7 @@ type
         property SumBranchFltRates: Double READ Get_SumBranchFltRates;
         property SectSeqIdx: Integer READ Get_SectSeqIdx;
         property SectTotalCust: Integer READ Get_SectTotalCust;
+        property AllPCE: Olevariant READ Get_AllPCE;
     end;
 
 // *********************************************************************//
@@ -1558,6 +1562,7 @@ type
         property SumBranchFltRates: Double READONLY DISPID 231;
         property SectSeqIdx: Integer READONLY DISPID 232;
         property SectTotalCust: Integer READONLY DISPID 233;
+        property AllPCE: Olevariant READONLY DISPID 234;
     end;
 
 // *********************************************************************//
