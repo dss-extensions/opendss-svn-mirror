@@ -1137,6 +1137,9 @@ begin
     PHV_MHandle := nil;
     FM_MHandle[ActiveActor] := nil;
 
+    setlength(ZonePCE, 1);
+    ZonePCE[0] := '';
+
     // RecalcElementData;
 end;
 
