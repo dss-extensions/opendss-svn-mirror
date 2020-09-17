@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 9/16/2020 4:18:25 PM from Type Library described below.
+// File generated on 9/17/2020 2:23:15 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -1473,7 +1473,7 @@ type
         function Get_SumBranchFltRates: Double; SAFECALL;
         function Get_SectSeqIdx: Integer; SAFECALL;
         function Get_SectTotalCust: Integer; SAFECALL;
-        function Get_AllPCE: Olevariant; SAFECALL;
+        function Get_ZonePCE: Olevariant; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property First: Integer READ Get_First;
         property Next: Integer READ Get_Next;
@@ -1508,7 +1508,7 @@ type
         property SumBranchFltRates: Double READ Get_SumBranchFltRates;
         property SectSeqIdx: Integer READ Get_SectSeqIdx;
         property SectTotalCust: Integer READ Get_SectTotalCust;
-        property AllPCE: Olevariant READ Get_AllPCE;
+        property ZonePCE: Olevariant READ Get_ZonePCE;
     end;
 
 // *********************************************************************//
@@ -1562,7 +1562,7 @@ type
         property SumBranchFltRates: Double READONLY DISPID 231;
         property SectSeqIdx: Integer READONLY DISPID 232;
         property SectTotalCust: Integer READONLY DISPID 233;
-        property AllPCE: Olevariant READONLY DISPID 234;
+        property ZonePCE: Olevariant READONLY DISPID 234;
     end;
 
 // *********************************************************************//

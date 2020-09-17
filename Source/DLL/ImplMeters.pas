@@ -73,7 +73,7 @@ type
         function Get_SumBranchFltRates: Double; SAFECALL;
         function Get_SectSeqIdx: Integer; SAFECALL;
         function Get_SectTotalCust: Integer; SAFECALL;
-        function Get_AllPCE: Olevariant; SAFECALL;
+        function Get_ZonePCE: Olevariant; SAFECALL;
 
     { Protected declarations }
     end;
@@ -1087,11 +1087,10 @@ begin
 end;
 
 
-function TMeters.Get_AllPCE: Olevariant;
+function TMeters.Get_ZonePCE: Olevariant;
 var
     pMeter: TEnergyMeterObj;
     k: Integer;
-
 begin
 
     Result := VarArrayCreate([0, 0], varOleStr);
@@ -1102,13 +1101,16 @@ begin
         with ActiveCircuit[ActiveActor] do
         begin
             pMeter := EnergyMeters.Active;
-            pMeter.GetPCEatZone;
-      // moves the list to the variant output
-            if (length(pMeter.ZonePCE) > 0) and (pMeter.ZonePCE[0] <> '') then
+            if pMeter <> nil then
             begin
-                VarArrayRedim(Result, length(pMeter.ZonePCE) + 1);
-                for k := 0 to High(pMeter.ZonePCE) do
-                    Result[k] := pMeter.ZonePCE[k];
+                pMeter.GetPCEatZone;
+        // moves the list to the variant output
+                if (length(pMeter.ZonePCE) > 0) and (pMeter.ZonePCE[0] <> '') then
+                begin
+                    VarArrayRedim(Result, length(pMeter.ZonePCE) + 1);
+                    for k := 0 to High(pMeter.ZonePCE) do
+                        Result[k] := pMeter.ZonePCE[k];
+                end;
             end;
 
         end;
