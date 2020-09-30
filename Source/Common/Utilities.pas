@@ -192,6 +192,7 @@ uses
     Fault,
     Feeder,
     HashList,
+    LoadShape,
     EnergyMeter,
     PCElement,
     ControlElem;
@@ -2116,7 +2117,8 @@ var
     F: TextFile;
     ClassName: String;
     Nrecords: Integer;
-
+    ParClass: TDssClass;
+    IsEnabled: Boolean;
 
 begin
 
@@ -2133,20 +2135,23 @@ begin
         Rewrite(F);
 
         Nrecords := 0;
-
         DSS_Class.First;   // Sets ActiveDSSObject
         repeat
-
-       // Skip Cktelements that have been checked before and written out by
-       // something else
+      // Skip Cktelements that have been checked before and written out by
+      // something else
             if IsCktElement then
                 with TDSSCktElement(ActiveDSSObject[ActiveActor]) do
                     if HasBeenSaved or (not Enabled) then
                         Continue;
-
-            WriteActiveDSSObject(F, 'New');  // sets HasBeenSaved := TRUE
-            Inc(Nrecords); // count the actual records
-
+            IsEnabled := true;
+            ParClass := ActiveDSSObject[ActiveActor].ParentClass;
+            if LowerCase(ParClass.Name) = 'loadshape' then
+                IsEnabled := TLoadShapeObj(ActiveDSSObject[ActiveActor]).Enabled;
+            if IsEnabled then
+            begin
+                WriteActiveDSSObject(F, 'New');  // sets HasBeenSaved := TRUE
+                Inc(Nrecords); // count the actual records
+            end;
         until DSS_Class.Next = 0;
 
         CloseFile(F);

@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 143;
+    NumExecCommands = 144;
 
 var
 
@@ -205,6 +205,7 @@ begin
     ExecCommand[141] := 'GISDrawLine';
     ExecCommand[142] := 'GISZoomMap';
     ExecCommand[143] := 'GISPlotFile';
+    ExecCommand[144] := 'AggregateProfiles';
 
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
@@ -672,6 +673,12 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
+    CommandHelp[144] := 'Aggregates the load shapes in the model using the number of zones given in the argument.' + CRLF +
+        'Use this command when the number of load shapes is considerably big, this algorithm will simplify' + CRLF +
+        'the amount of load shapes in order to make the memory consumption lower for the model.' + CRLF +
+        'The output of this algorithm is a script describing the new load shapes and their application into loads across the model.' + CRLF +
+        'The argument on this command can be: Actual/pu to define the units in which the load profiles are.' + CRLF +
+        'Check the OpenDSS user manual for details';
 
 end;
 
@@ -1191,6 +1198,11 @@ begin
             begin
                 Parser[ActiveActor].NextParam;
                 GlobalResult := GISPlotfile(lowercase(Parser[ActiveActor].StrValue));
+            end;
+            144:
+            begin
+                Parser[ActiveActor].NextParam;
+                ActiveCircuit[Activeactor].AggregateProfiles(Parser[ActiveActor].StrValue);
             end;
 
         else

@@ -39,6 +39,7 @@ uses
     EnergyMeter,
     NamedObject,
     CktTree,
+    Monitor,
     {$IFNDEF FPC}
     MeTIS_Exec,
     {$IFDEF MSWINDOWS}
@@ -217,6 +218,7 @@ type
         PConn_Names: array of String;    // Stores the names of the buses (bus1) of the link branches
         PConn_Voltages: array of Double;    // Stores the voltages at the point of connection of the subcircuits
         Locations: array of Integer;   // Stores the indexes of the locations
+        BusZones: array of String;
 
           // Variables for Diakoptics
         Contours: TSparse_Complex;    //  Contours matrix
@@ -315,7 +317,7 @@ type
           {---------------------------------}
 
         ActiveLoadShapeClass: Integer;
-
+        MeTISZones: TStringList;                      // The list for assigning a zone to a bus after tearing
 
         constructor Create(const aName: String);
         destructor Destroy; OVERRIDE;
@@ -341,7 +343,11 @@ type
         procedure FreeTopology;
         function GetBusAdjacentPDLists(ActorID: Integer): TAdjArray;
         function GetBusAdjacentPCLists(ActorID: Integer): TAdjArray;
-        function Tear_Circuit(): Integer;                            // Tears the circuit considering the number of Buses of the original Circuit
+        function Tear_Circuit(): Integer;                  // Tears the circuit considering the number of Buses of the original Circuit
+        function Create_MeTIS_graph(): String;                    // Generates the graph dscribing the model for MeTiS
+        function Create_MeTIS_Zones(Filename: String): String; // Executes MeTiS and loads the zones into memory for further use
+        procedure AggregateProfiles(mode: String);
+        procedure Disable_All_DER();
         procedure Save_SubCircuits();
         function get_Line_Bus(LName: String; NBus: Integer): String;
         procedure get_longest_path();
@@ -374,7 +380,9 @@ uses
     Vsource,
     Utilities,
     Executive,
+    Load,
     StrUtils,
+    PVSystem,
     {$IFNDEF FPC}
     DSSForms,
     SHELLAPI,
@@ -1131,82 +1139,177 @@ begin
 end;
 
 {*******************************************************************************
-*         This routine tears the circuit into many pieces as CPUs are          *
-*         available in the local computer (in the best case)                   *
-********************************************************************************}
-function TDSSCircuit.Tear_Circuit(): Integer;
-    {$IFDEF FPC}
-begin
-  DoErrorMsg('Tear_Circuit','MeTIS cannot start.',
-             'The MeTIS program is not supported in FPC; TFileSearchReplace is unavailable.', 7006)
-end;
-    {$ELSE}
+*        Generates the graph file for MeTIS within the project's folder        *
+*******************************************************************************}
+function TDSSCircuit.Create_MeTIS_graph(): String;
 var
-    FileCreated: Boolean;
-    Ftree,
+    exists: Boolean;
+    myIntVar,
+    k,
+    jj,
+    i: Integer;
+    myClass,
+    myName,
+    FileName: String;
     F: TextFile;
+    myPDEList,
+    MyGraph: array of String;
+    MyIdx: array of Integer;
+
+
+begin
+    with solution do
+    begin
+    // Calculates the incidence matrix and laplacian to generate the graph file to be
+    // send to MeTiS
+        Calc_Inc_Matrix_Org(ActiveActor);                       //Calculates the ordered incidence matrix
+    // Initializes the METIS related variables
+        setlength(myPDEList, 1);
+        setlength(myGraph, 1);
+
+        Laplacian := IncMat.Transpose();                        // Transposes the Incidence Matrix
+        Laplacian := Laplacian.multiply(IncMat);                // Laplacian Matrix calculated
+    // Filters the incidence matrix to remove duplicated branches (parallel)
+        for i := 0 to High(Inc_Mat_Cols) do
+        begin
+            setlength(myIdx, 1);
+            MyName := Inc_Mat_Cols[i];
+      // first, get the name of all PDE conencted to this Bus
+            for jj := 0 to (IncMat.NZero - 1) do
+            begin
+                if IncMat.data[jj][1] = i then
+                begin
+          // Check if this is not a parallel branch
+                    exists := false;
+                    if length(myIdx) > 1 then // Only if it's not the first time
+                    begin
+                        for k := 0 to (length(myIdx) - 2) div 2 do
+                        begin
+              // Checks for the other terminal
+                            if jj < High(IncMat.data) then
+                            begin
+                                if IncMat.data[jj + 1][0] = IncMat.data[jj][0] then
+                                    myIntVar := IncMat.data[jj + 1][1]
+                                else
+                                    myIntVar := IncMat.data[jj - 1][1];
+                            end
+                            else
+                                myIntVar := IncMat.data[jj - 1][1];
+
+                            if myIdx[k * 2] = myIntVar then
+                            begin
+                                exists := true;
+                                break;
+                            end;
+                        end;
+                    end;
+
+                    if not exists then
+                    begin
+            // Stores the name of the PDE
+                        myName := Inc_Mat_Rows[IncMat.data[jj][0]];
+                        myPDEList[High(myPDEList)] := myName;
+                        setlength(myPDEList, length(myPDEList) + 1);
+            // Checks for the other terminal
+                        if jj < High(IncMat.data) then
+                        begin
+                            if IncMat.data[jj + 1][0] = IncMat.data[jj][0] then
+                                myIdx[High(myIdx)] := IncMat.data[jj + 1][1]
+                            else
+                                myIdx[High(myIdx)] := IncMat.data[jj - 1][1];
+                        end
+                        else
+                            myIdx[High(myIdx)] := IncMat.data[jj - 1][1];
+
+                        setlength(myIdx, length(myIdx) + 1);
+            // Now, get the number of Phases
+                        myIntVar := ansipos('.', myName);
+                        myClass := myName.Substring(0, (myIntVar - 1));
+            // if transformer, the weigth is the lowest
+                        if myClass <> 'Transformer' then
+                        begin
+                            ActiveCircuit[ActiveActor].SetElementActive(MyName);
+                            myIntVar := ActiveCircuit[ActiveActor].ActiveCktElement.NPhases;
+                        end
+                        else
+                            myIntVar := 1;
+
+                        myIdx[High(myIdx)] := myIntVar;
+                        setlength(myIdx, length(myIdx) + 1);
+                    end;
+                end;
+            end;
+            setlength(myIdx, length(myIdx) - 1);
+            myName := '';
+            for jj := 0 to High(myIdx) do
+                myName := myName + inttostr(myIdx[jj]) + ' ';
+            myGraph[High(myGraph)] := myName;
+            setlength(myGraph, length(myGraph) + 1);
+
+        end;
+        setlength(myGraph, length(myGraph) - 1);
+        setlength(myPDEList, length(myPDEList) - 1);
+{*******************************************************************************
+    Generates the graph file
+********************************************************************************}
+    // First, get the number of branches in the model excluding parallel branches
+        jj := 0;
+        for i := 0 to High(Inc_Mat_Rows) do
+        begin
+      // check if it's on the list
+            for k := 0 to High(myPDEList) do
+            begin
+                if LowerCase(Inc_Mat_Rows[i]) = LowerCase(myPDEList[k]) then
+                begin
+                    inc(jj);
+                    break;
+                end;
+            end;
+        end;
+
+        FileName := GetOutputDirectory + CircuitName_[ActiveActor] + '.graph';
+        Assignfile(F, FileName);
+        ReWrite(F);
+        Writeln(F, inttostr(length(Inc_Mat_Cols)) + ' ' + inttostr(jj) + ' 1'); // it should be the rank of the incidence matrix
+        for i := 1 to High(myGraph) do
+            Writeln(F, myGraph[i]);
+        CloseFile(F);
+
+    end;
+
+    Result := FileName;
+
+end;
+
+{*******************************************************************************
+*    Executes MeTIS and gets the names of the link branches between zones      *
+********************************************************************************}
+
+function TDSSCircuit.Create_MeTIS_Zones(Filename: String): String;
+var
     TreeNm,                                           // For debugging
     MeTISCmd,
     BusName,
     Terminal,
     TextCmd,
-    PDElement,
-    FileName: String;
-    {$IFDEF MSWINDOWS}
-    SEInfo: TShellExecuteInfo;                // Shell Info handle
-    {$ENDIF}
+    PDElement: String;
     NodeIdx,
     Num_Pieces,
     Location_idx,                                     // Active Location
     j, jj, dbg, dbg2,
-    i: Integer;                          // Generic counter variables
-    Candidates: array of Integer;                 // Array for 0 level buses idx
-
-    EMeter: TEnergyMeterObj;
-    pBus: TDSSBus;
-    Volts: Polar;
-    Term_volts: array of Double;                  // To verify the connection of the branch
-    MeTISZones: TStringList;                      // The list for assigning a zone to a bus after tearing
-    BusZones: array of String;
+    i: Integer;
     Replacer: TFileSearchReplace;
 
 begin
     Num_pieces := Num_SubCkts;
     with solution do
     begin
-
-    // Calculates the incidence matrix and laplacian to generate the graph file to be
-    // send to MeTiS
-        Calc_Inc_Matrix_Org(ActiveActor);                       //Calculates the ordered incidence matrix
-        Laplacian := IncMat.Transpose();                        // Transposes the Incidence Matrix
-        Laplacian := Laplacian.multiply(IncMat);                // Laplacian Matrix calculated
-    // Generates the graph file
     {******************************************************************************************}
-        FileName := GetOutputDirectory + CircuitName_[ActiveActor] + '.graph';
-        Assignfile(F, FileName);
-        ReWrite(F);
-        Writeln(F, inttostr(length(Inc_Mat_Cols)) + ' ' + inttostr(length(Inc_Mat_Cols) - 1)); // it should be the rank of the incidence matrix
-        jj := 0;
-        for i := 1 to Laplacian.NZero do
-        begin
-            if (Laplacian.data[i - 1][0] = jj) and (Laplacian.data[i - 1][0] <> Laplacian.data[i - 1][1]) then
-                Write(F, inttostr(Laplacian.data[i - 1][1] + 1) + ' ')
-            else
-            begin
-                if (Laplacian.data[i - 1][0] <> jj) then
-                begin
-                    Writeln(F, '');
-                    Write(F, inttostr(Laplacian.data[i - 1][1] + 1) + ' ');
-                    inc(jj);
-                end;
-            end;
-        end;
-        CloseFile(F);
-    {******************************************************************************************}
-        if Num_pieces <= 8 then
-            MeTISCmd := 'pmetis.exe'  // For less than 8 zones use pMeTIS
-        else
-            MeTISCmd := 'kmetis.exe';                    // For more than 8 zonez use k-Way (kMeTIS)
+//    if Num_pieces <= 8 then MeTISCmd   :=  'kmetis.exe'  // For less than 8 zones use pMeTIS
+//    else MeTISCmd   :=  'kmetis.exe';                    // For more than 8 zonez use k-Way (kMeTIS)
+    // In the past we use to use pmetis and kmetis, however, in our latest update we realized kmetis is enough
+    // update 09-24-2020 by Davis Montenegro
+        MeTISCmd := 'kmetis.exe';
     {******************************************************************************************}
         {$IFDEF MSWINDOWS}
         if fileexists(Pchar(FileName + '.part.' + inttostr(Num_pieces))) then    // Checks if the file exists before
@@ -1214,7 +1317,7 @@ begin
         {$ENDIF}
         repeat
             {$IFDEF MSWINDOWS}
-            TextCmd := RunMeTIS(DSSDirectory + MeTISCmd + ' ' + FileName + ' ' + inttostr(Num_pieces));  // Executes MeTIS
+            TextCmd := RunMeTIS(DSSDirectory + MeTISCmd + ' "' + FileName + '" ' + inttostr(Num_pieces));  // Executes MeTIS
             {$ENDIF}
             Flag := ContainsText(TextCmd, 'I detected an error');
             if Flag then       // The # of edges was wrong, use the one proposed by MeTIS
@@ -1237,6 +1340,9 @@ begin
         begin
             MeTISZones := TStringList.Create;                     // Opens the file containing the tearing results
             MeTISZones.LoadFromFile(FileName + '.part.' + inttostr(Num_pieces));
+            TextCmd := MeTISZones.Strings[1];
+            MeTISZones.Delete(0);
+            MetisZones.Insert(0, TextCmd);
             setlength(Locations, 1);
             setlength(BusZones, 1);
             for i := 0 to (MeTISZones.Count - 1) do
@@ -1275,7 +1381,301 @@ begin
                     end;
                 end;
             end;
+        end;
+        for j := 0 to High(Locations) do
+            inc(Locations[j]); //Adjust the location coords
 
+    end;
+    Result := TextCmd
+
+end;
+
+{*******************************************************************************
+*                   Disables all DER present in the model                      *
+********************************************************************************}
+procedure TDSSCircuit.Disable_All_DER();
+var
+    myDERIdx,
+    myIdx,
+    DevClassIndex: Integer;
+    myDERList: array of String;
+
+begin
+    setlength(myDERList, 3);
+    myDERList := ['PVSystem', 'Generator', 'Storage'];
+
+    for myDERIdx := 0 to High(myDERList) do
+    begin
+        DevClassIndex := ClassNames[ActiveActor].Find(myDERList[myDERIdx]);
+        LastClassReferenced[ActiveActor] := DevClassIndex;
+        ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+        if ActiveDSSClass[ActiveActor].ElementCount > 0 then
+        begin
+            myIdx := ActiveDSSClass[ActiveActor].First;
+            repeat
+                ActiveCktElement.Enabled := false;
+                myIdx := ActiveDSSClass[ActiveActor].Next;
+            until (myIdx <= 0);
+        end;
+    end;
+
+
+end;
+
+{*******************************************************************************
+*       Aggregates profiles using the number of zones defined by the user      *
+********************************************************************************}
+procedure TDSSCircuit.AggregateProfiles(mode: String);
+var
+    F: TextFile;
+    FileRoot,
+    myPCE,
+    TextCmd,
+    myFilename: String;
+    iElem,
+    k,
+    j,
+    i: Integer;
+    EMeter: TEnergyMeterObj;
+    pMonitor: TMonitorObj;
+    ActiveLSObject: TLoadshapeObj;
+    pLine: TLineObj;
+    myWeight,
+    myActual,
+    TotalkW: Double;
+    myLoadShapes,
+    myLoads: array of String;
+    myLoadShape: array of Double;
+    UseActual: Boolean;
+
+begin
+
+    UseActual := false;
+    if LowerCase(mode) = 'actual' then
+        UseActual := true;
+
+    myFileName := Create_MeTIS_Graph();
+    TextCmd := Create_MeTIS_Zones(myFileName);
+  // Gets the link branches from the MeTIS estimation
+    with solution do
+    begin
+        setlength(Link_Branches, High(Locations));
+        for i := 1 to High(Locations) do
+            Link_Branches[i - 1] := Inc_Mat_Rows[get_IncMatrix_Row(Locations[i])];
+    end;
+  // Disables DER if any
+//  Disable_All_DER();
+  // Disables Monitors and EnergyMeters if any
+    EMeter := EnergyMeters.First;
+    while EMeter <> nil do
+    begin
+        EMeter.Enabled := false;
+        EMeter := EnergyMeters.Next;
+    end;
+    pMonitor := Monitors.First;
+    while pMonitor <> nil do
+    begin
+        pMonitor.Enabled := false;
+        pMonitor := Monitors.Next;
+    end;
+  {----------------------------------------------------------------------------}
+  // Add monitors and Energy Meters at link branches
+  // Creates and EnergyMeter at the feeder head
+    pLine := Lines.First;
+    DSSExecutive[ActiveActor].Command := 'New EnergyMeter.myEMZoneFH element=Line.' + pLine.Name + ' terminal=1';
+    for i := 0 to High(Link_Branches) do
+    begin
+        DSSExecutive[ActiveActor].Command := 'New EnergyMeter.myEMZone' + InttoStr(i) + ' element=' + Link_Branches[i] + ' terminal=1';
+    end;
+  // Gets the max number of iterations to configure the simulation using the existing loadshapes
+    iElem := LoadshapeClass[ActiveActor].First;
+    j := 0;
+    while iElem <> 0 do
+    begin
+        ActiveLSObject := ActiveDSSObject[ActiveActor] as TLoadShapeObj;
+        k := ActiveLSObject.NumPoints;
+        if k > j then
+            j := k;
+        iElem := LoadshapeClass[ActiveActor].Next;
+    end;
+  // Configures simulation
+    solution.Mode := SNAPSHOT;
+    solution.MaxIterations := 100;
+    Solution.MaxControlIterations := 100;
+
+  // solves the circuit
+    IsSolveAll := false;
+    Solution.Solve(ActiveActor);
+  // Creates the folder for storign the results
+    Fileroot := GetCurrentDir;
+    Fileroot := Fileroot + '\Aggregated_model';
+    CreateDir(Fileroot);                        // Creates the folder for storing the modified circuit
+    DelFilesFromDir(Fileroot, '*', true);         // Removes all the files inside the new directory (if exists)
+  // Now starts aggregating the loadshapes per zone
+    EnergyMeters.First;
+    setlength(myLoadShapes, 1);
+    for i := 1 to EnergyMeters.ListSize do
+    begin
+
+        EMeter := EnergyMeters.Active;
+        if EMeter.Enabled then
+        begin
+      //First, get the total load at nominal value for the zone
+            EMeter.GetPCEatZone;
+            TotalkW := 0;
+            setlength(myLoads, 1);
+            k := 0;      // the load count
+            for j := 0 to (High(EMeter.ZonePCE) - 1) do
+            begin
+                myPCE := stripextension(EMeter.ZonePCE[j]);
+                if myPCE = 'Load' then
+                begin
+                    SetElementActive(EMeter.ZonePCE[j]);
+                    TotalkW := TotalkW + TLoadObj(ActiveDSSObject[ActiveActor]).kWBase;
+                    myLoads[k] := TLoadObj(ActiveDSSObject[ActiveActor]).Name;
+                    setlength(myLoads, length(myLoads) + 1);
+                    inc(k);
+                end;
+            end;
+            setlength(myLoads, length(myLoads) - 1);
+      // initializes the length of the aggregated vector
+            setlength(myLoadShape, 0);     // clears the array first
+            if length(myLoads) > 0 then
+            begin
+                SetElementActive('Load.' + myLoads[0]);
+                setlength(myLoadShape, TLoadObj(ActiveDSSObject[ActiveActor]).YearlyShapeObj.NumPoints);
+        // Next, aggregate the load profiles for the zone
+                for j := 0 to High(myLoads) do
+                begin
+                    SetElementActive('Load.' + myLoads[j]);
+  //        myWeight                        :=  TLoadObj(Loads.Active).kWBase / TotalkW;
+                    myWeight := 1.0;
+                    myActual := 1.0;
+//          if UseActual then
+//            myActual                        :=  TLoadObj( ActiveDSSObject[ActiveActor]).kWBase;
+
+                    LoadshapeClass[ActiveActor].SetActive(TLoadObj(ActiveDSSObject[ActiveActor]).YearlyShape);
+                    ActiveDSSObject[ActiveActor] := LoadshapeClass[ActiveActor].ElementList.Active;
+                    for iElem := 0 to High(myLoadShape) do
+                        myLoadShape[iElem] := myLoadShape[iElem] + (TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] / myActual) * myWeight;
+                end;
+                TotalkW := length(myLoads);
+        // Normalizes the waveform
+                for iElem := 0 to High(myLoadShape) do
+                    myLoadShape[iElem] := myLoadShape[iElem] / TotalkW;
+
+        // Saves the profile on disk
+                myLoadShapes[High(myLoadShapes)] := GetCurrentDir + '\loadShape_' + EMeter.Name + '.csv';
+                Assignfile(F, myLoadShapes[High(myLoadShapes)]);
+                ReWrite(F);
+                for j := 0 to High(myLoadShape) do
+                    Writeln(F, floattostr(myLoadShape[j]));
+                CloseFile(F);
+                setlength(myLoadShapes, length(myLoadShapes) + 1);
+            end;
+        end;
+        EnergyMeters.Next;
+    end;
+    setlength(myLoadShapes, length(myLoadShapes) - 1);
+  // Deactivate all loadshapes in the model
+    LoadshapeClass[ActiveActor].First;
+    for j := 1 to LoadshapeClass[ActiveActor].ElementCount do
+    begin
+        ActiveDSSObject[ActiveActor] := LoadshapeClass[ActiveActor].ElementList.Active;
+        TLoadshapeObj(ActiveDSSObject[ActiveActor]).Enabled := false;
+        LoadshapeClass[ActiveActor].Next;
+    end;
+
+  // Declare the new loadshapes in the model
+    for j := 0 to High(myLoadShapes) do
+    begin
+        TextCmd := '';
+        if UseActual then
+            TextCmd := ' UseActual=Yes';
+        TextCmd := 'New LoadShape.myShape_' + inttostr(j) + ' npts=' +
+            floattostr(length(myLoadShape)) + ' interval=1 mult=(file=' + myLoadShapes[j] + ')' + TextCmd;
+        DSSExecutive[ActiveActor].Command := TextCmd;
+    end;
+  // Assigns the new loadshapes to all the loads in the zone
+  // also, disables the energy meters created and restores the originals
+    k := 0;
+    EnergyMeters.First;
+    for i := 1 to EnergyMeters.ListSize do
+    begin
+        EMeter := EnergyMeters.Active;
+        if EMeter.Enabled then
+        begin
+            EMeter.GetPCEatZone;
+            if length(EMeter.ZonePCE) > 1 then
+            begin
+                for j := 0 to High(EMeter.ZonePCE) do
+                begin
+                    myPCE := stripextension(EMeter.ZonePCE[j]);
+                    if myPCE = 'Load' then
+                    begin
+                        DssExecutive[ActiveActor].Command := EMeter.ZonePCE[j] + '.yearly=myShape_' + inttostr(k);
+                    end;
+                end;
+                inc(k);
+            end;
+            EMeter.Enabled := false;
+        end
+        else
+            EMeter.Enabled := true;
+        EnergyMeters.Next;
+    end;
+
+  // saves the new model
+    DssExecutive[ActiveActor].Command := 'save circuit Dir="' + Fileroot + '"';
+
+end;
+
+{*******************************************************************************
+*         This routine tears the circuit into many pieces as CPUs are          *
+*         available in the local computer (in the best case)                   *
+********************************************************************************}
+function TDSSCircuit.Tear_Circuit(): Integer;
+    {$IFDEF FPC}
+begin
+  DoErrorMsg('Tear_Circuit','MeTIS cannot start.',
+             'The MeTIS program is not supported in FPC; TFileSearchReplace is unavailable.', 7006)
+end;
+    {$ELSE}
+var
+    FileCreated: Boolean;
+    Ftree,
+    F: TextFile;
+    TreeNm,                                           // For debugging
+    BusName,
+    Terminal,
+    TextCmd,
+    PDElement,
+    FileName: String;
+    NodeIdx,
+    Num_Pieces,
+    Location_idx,                                     // Active Location
+    j, jj, dbg, dbg2,
+    i: Integer;                          // Generic counter variables
+    Candidates: array of Integer;                 // Array for 0 level buses idx
+
+    EMeter: TEnergyMeterObj;
+    pBus: TDSSBus;
+    Volts: Polar;
+    Term_volts: array of Double;                  // To verify the connection of the branch
+
+    Replacer: TFileSearchReplace;
+
+begin
+    Num_pieces := Num_SubCkts;
+    with solution do
+    begin
+
+        FileName := Create_METIS_Graph();
+        TextCmd := Create_METIS_Zones(FileName);
+    {******************************************************************************************}
+    // Verifies if there was no error executing MeTIS and the zones file was created
+        if (TextCmd <> '**Error**') and fileexists(Pchar(FileName + '.part.' + inttostr(Num_pieces))) then
+        begin
     //***********The directory is ready for storing the new circuit****************
             EMeter := EnergyMeters.First;
             while EMeter <> nil do
@@ -2241,15 +2641,9 @@ begin
     begin
         Meter := EnergyMeters.Get(i); // Recast pointer
         CurrDir := Meter.Name;
-        if DirectoryExists(CurrDir) then
+        if Meter.Enabled then         // Only active meters
         begin
-            SetCurrentDir(CurrDir);
-            Meter.SaveZone(CurrDir);
-            SetCurrentDir(SaveDir);
-        end
-        else
-        begin
-            if CreateDir(CurrDir) then
+            if DirectoryExists(CurrDir) then
             begin
                 SetCurrentDir(CurrDir);
                 Meter.SaveZone(CurrDir);
@@ -2257,10 +2651,19 @@ begin
             end
             else
             begin
-                DoSimpleMsg('Cannot create directory: ' + CurrDir, 436);
-                Result := false;
-                SetCurrentDir(SaveDir);  // back to whence we came
-                Break;
+                if CreateDir(CurrDir) then
+                begin
+                    SetCurrentDir(CurrDir);
+                    Meter.SaveZone(CurrDir);
+                    SetCurrentDir(SaveDir);
+                end
+                else
+                begin
+                    DoSimpleMsg('Cannot create directory: ' + CurrDir, 436);
+                    Result := false;
+                    SetCurrentDir(SaveDir);  // back to whence we came
+                    Break;
+                end;
             end;
         end;
     end;  {For}

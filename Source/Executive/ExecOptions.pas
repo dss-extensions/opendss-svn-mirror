@@ -1393,14 +1393,9 @@ begin
                     AppendGlobalResult(IntToStr(ActiveCircuit[ActiveActor].solution.MinIterations));
                 124:
                 begin
-                    if ADiakoptics then
-                    begin
-                        ActiveActor := 1;
-                        for i := 1 to High(ActiveCircuit[ActiveActor].Link_Branches) do
-                            AppendGlobalResult(ActiveCircuit[ActiveActor].Link_Branches[i]);
-                    end
-                    else
-                        AppendGlobalResult('Initialize A-Diakoptics first!');
+                    ActiveActor := 1;
+                    for i := 0 to High(ActiveCircuit[ActiveActor].Link_Branches) do
+                        AppendGlobalResult(ActiveCircuit[ActiveActor].Link_Branches[i]);
                 end;
                 125:
                     if ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad then

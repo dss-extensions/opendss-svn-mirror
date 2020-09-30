@@ -121,7 +121,9 @@ type
         BaseP,
         BaseQ: Double;
 
+        Enabled,
         UseActual: Boolean;
+
 
         constructor Create(ParClass: TDSSClass; const LoadShapeName: String);
         destructor Destroy; OVERRIDE;
@@ -763,6 +765,7 @@ begin
     UseActual := false;
     MaxQSpecified := false;
     FStdDevCalculated := false;  // calculate on demand
+    Enabled := true;
 
     ArrayPropertyIndex := 0;
 
