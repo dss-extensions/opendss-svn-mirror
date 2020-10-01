@@ -301,6 +301,7 @@ var
     pElem: TDSSCktElement;
     Zsc012Temp: TCmatrix;
     pValues: pDoubleArray;
+    myPXEList: DynStringArray;
 
 begin
     case mode of
@@ -977,6 +978,42 @@ begin
                                 arg := VarArrayCreate([0, 0], varDouble);   // default null array
                         end;
                     end;
+        end;
+        18:
+        begin   // Bus.AllPCEatBus
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                    begin
+                        myPXEList := getPCEatBus(BusList.Get(ActiveBusIndex));
+                        arg := VarArrayCreate([0, length(myPXEList) - 1], varOleStr);
+                        for i := 0 to High(myPXEList) do
+                            arg[i] := myPXEList[i];
+                    end
+                    else
+                        arg := VarArrayCreate([0, 0], varOleStr);
+                end
+            else
+                arg := VarArrayCreate([0, 0], varOleStr);
+        end;
+        19:
+        begin   // Bus.AllPDEatBus
+            if (ActiveCircuit[ActiveActor] <> nil) then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+                    begin
+                        myPXEList := getPDEatBus(BusList.Get(ActiveBusIndex));
+                        arg := VarArrayCreate([0, length(myPXEList) - 1], varOleStr);
+                        for i := 0 to High(myPXEList) do
+                            arg[i] := myPXEList[i];
+                    end
+                    else
+                        arg := VarArrayCreate([0, 0], varOleStr);
+                end
+            else
+                arg := VarArrayCreate([0, 0], varOleStr);
         end
     else
         arg := VarArrayCreate([0, 0], varDouble);  // just return null array

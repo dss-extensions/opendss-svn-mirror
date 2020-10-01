@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 9/17/2020 2:23:15 PM from Type Library described below.
+// File generated on 10/1/2020 3:29:25 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -24,8 +24,6 @@ unit OpenDSSengine_TLB;
 //   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // SYS_KIND: SYS_WIN32
-// Errors:
-//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -927,6 +925,8 @@ type
         procedure Set_Latitude(Value: Double); SAFECALL;
         function Get_Longitude: Double; SAFECALL;
         procedure Set_Longitude(Value: Double); SAFECALL;
+        function Get_AllPCEatBus: Olevariant; SAFECALL;
+        function Get_AllPDEatBus: Olevariant; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumNodes: Integer READ Get_NumNodes;
         property Voltages: Olevariant READ Get_Voltages;
@@ -962,6 +962,8 @@ type
         property ZSC012Matrix: Olevariant READ Get_ZSC012Matrix;
         property Latitude: Double READ Get_Latitude WRITE Set_Latitude;
         property Longitude: Double READ Get_Longitude WRITE Set_Longitude;
+        property AllPCEatBus: Olevariant READ Get_AllPCEatBus;
+        property AllPDEatBus: Olevariant READ Get_AllPDEatBus;
     end;
 
 // *********************************************************************//
@@ -1008,6 +1010,8 @@ type
         property ZSC012Matrix: Olevariant READONLY DISPID 221;
         property Latitude: Double DISPID 222;
         property Longitude: Double DISPID 223;
+        property AllPCEatBus: Olevariant READONLY DISPID 224;
+        property AllPDEatBus: Olevariant READONLY DISPID 225;
     end;
 
 // *********************************************************************//

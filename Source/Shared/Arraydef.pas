@@ -26,6 +26,8 @@ type
     PointerArray = array[1..100] of Pointer;
     pStringArray = ^StringArray;
     StringArray = array[1..100] of String;
+    DynStringArray = array of String;
+    pDynStringArray = ^DynStringArray;
 
     pDouble = ^Double;
     pSingle = ^Single;

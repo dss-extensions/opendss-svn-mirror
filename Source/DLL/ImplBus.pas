@@ -58,6 +58,8 @@ type
         procedure Set_Latitude(Value: Double); SAFECALL;
         function Get_Longitude: Double; SAFECALL;
         procedure Set_Longitude(Value: Double); SAFECALL;
+        function Get_AllPCEatBus: Olevariant; SAFECALL;
+        function Get_AllPDEatBus: Olevariant; SAFECALL;
     end;
 
 implementation
@@ -1188,6 +1190,53 @@ begin
                 Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined := true;
                 Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long := Value;
             end;
+end;
+
+function TBus.Get_AllPCEatBus: Olevariant;
+var
+    i: Integer;
+    myPCEList: DynStringArray;
+
+begin
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+            begin
+                myPCEList := getPCEatBus(BusList.Get(ActiveBusIndex));
+                Result := VarArrayCreate([0, length(myPCEList) - 1], varOleStr);
+                for i := 0 to High(myPCEList) do
+                    Result[i] := myPCEList[i];
+            end
+            else
+                Result := VarArrayCreate([0, 0], varOleStr);
+        end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+end;
+
+function TBus.Get_AllPDEatBus: Olevariant;
+var
+    i: Integer;
+    myPDEList: DynStringArray;
+
+begin
+    if (ActiveCircuit[ActiveActor] <> nil) then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
+            begin
+                myPDEList := getPDEatBus(BusList.Get(ActiveBusIndex));
+                Result := VarArrayCreate([0, length(myPDEList) - 1], varOleStr);
+                for i := 0 to High(myPDEList) do
+                    Result[i] := myPDEList[i];
+            end
+            else
+                Result := VarArrayCreate([0, 0], varOleStr);
+        end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+
 end;
 
 initialization
