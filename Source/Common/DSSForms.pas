@@ -64,11 +64,13 @@ uses
 //          MessageForm,
     ComCtrls,
     TViewer,
+    myInfoMsg,
     Sysutils,
     FrmCSVchannelSelect,
     System.UITypes,
     ScriptEdit,
-    StrUtils;
+    StrUtils,
+    StdMessage;
 
 procedure InitProgressForm(Actor_ID: Integer);
 
@@ -205,12 +207,32 @@ begin
     else
         Str := msg;
 
+//     If Err Then Result := MessageDlg(Str, mtError , [mbOK], 0)
+//     Else Result := IntResult(MessageDlg(Str, mtInformation , [mbAbort, mbIgnore], 0));
     if Err then
-        Result := MessageDlg(Str, mtError, [mbOK], 0)
+    begin
+        with TmyStdMsg.Create(nil) do
+        try
+            myMsg := msg;
+            ShowModal;
+        finally
+            Free;
+        end;
+        Result := 1;
+    end
     else
-        Result := IntResult(MessageDlg(Str, mtInformation, [mbAbort, mbIgnore], 0));
+    begin
+        with TmyInfoMessage.Create(nil) do
+        try
+            myMsg := msg;
+            ShowModal;
+            Result := myResult;
+        finally
+            Free;
+        end;
 
-    Result := -1;
+    end;
+
     SolutionAbort := true;
 end;
 
@@ -220,19 +242,22 @@ var
     Str: String;
 begin
 
-    if length(msg) <= 1024 then
-        Str := Msg
-    else
-        Str := 'Message too long; See Result Form.';
-    if isDLL then
-    begin
-        if length(msg) <= 1024 then
-            MessageDlg(Msg, mtInformation, [mbOK], 0)
-        else
-            MessageDlg('Message too long; See Result Form.', mtInformation, [mbOK], 0);
+//    If length(msg)<=1024 Then
+//     Str :=  Msg
+//    else
+//      Str :=  'Message too long; See Result Form.';
+
+    with TmyStdMsg.Create(nil) do
+    try
+        myMsg := Msg;
+        ShowModal;
+    finally
+        Free;
     end;
-//     else
-//     ScriptEd.PublishMessage(Str);
+
+//     If length(msg)<=1024 Then MessageDlg(Msg, mtInformation , [mbOK], 0)
+//     Else MessageDlg('Message too long; See Result Form.', mtInformation , [mbOK], 0);
+
     SolutionAbort := true;
 end;
 
