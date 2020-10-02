@@ -81,6 +81,8 @@
     <File Path="..\Forms\ListForm.dfm"/>
     <File Path="..\Forms\MessageForm.pas"/>
     <File Path="..\Forms\MessageForm.dfm"/>
+    <File Path="..\Forms\myInfoMsg.pas"/>
+    <File Path="..\Forms\myInfoMsg.dfm"/>
     <File Path="..\Forms\Panel.pas"/>
     <File Path="..\Forms\Panel.dfm"/>
     <File Path="..\Forms\ProgressForm.pas"/>
@@ -92,6 +94,8 @@
     <File Path="..\Forms\ScriptformNormal.dfm"/>
     <File Path="..\Forms\Splash_Screen.pas"/>
     <File Path="..\Forms\Splash_Screen.dfm"/>
+    <File Path="..\Forms\StdMessage.pas"/>
+    <File Path="..\Forms\StdMessage.dfm"/>
     <File Path="..\Forms\TViewer.pas"/>
     <File Path="..\Forms\TViewer.dfm"/>
     <File Path="..\General"/>

@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-	</Transactions>
+    <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm</Transaction>
+    <Transaction>2020/10/02 18:04:32.788,C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
+  </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
     <File Path="..\Common"/>
@@ -87,6 +89,10 @@
     <File Path="..\Forms\TViewer.dfm"/>
     <File Path="..\Forms\Splash_Screen.pas"/>
     <File Path="..\Forms\Splash_Screen.dfm"/>
+    <File Path="..\Forms\StdMessage.pas"/>
+    <File Path="..\Forms\StdMessage.dfm"/>
+    <File Path="..\Forms\myInfoMsg.pas"/>
+    <File Path="..\Forms\myInfoMsg.dfm"/>
     <File Path="..\General"/>
     <File Path="..\General\CableConstants.pas"/>
     <File Path="..\General\CableData.pas"/>

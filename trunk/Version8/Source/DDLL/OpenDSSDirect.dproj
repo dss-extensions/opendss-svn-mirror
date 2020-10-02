@@ -6,7 +6,7 @@
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -385,6 +385,14 @@
         </DCCReference>
         <DCCReference Include="..\GISCommands\GISCommands.pas"/>
         <DCCReference Include="..\Parallel_Lib\NumCPULib.pas"/>
+        <DCCReference Include="..\Forms\myInfoMsg.pas">
+            <Form>myInfoMessage</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="..\Forms\StdMessage.pas">
+            <Form>myStdMsg</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
