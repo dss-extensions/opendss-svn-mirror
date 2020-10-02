@@ -1292,7 +1292,9 @@ begin
         2:
         begin  {kVA, PF}
             kWbase := kVABase * Abs(PFNominal);
+            kWref := kWBase;
             kvarBase := kWBase * SQRT(1.0 / SQR(PFNominal) - 1.0);
+            kvarref := kvarbase;
             if PFNominal < 0.0 then
                 kvarBase := -kvarBase;
         end;
@@ -1302,7 +1304,7 @@ begin
                 kvarBase := kWBase * SQRT(1.0 / SQR(PFNominal) - 1.0);
                 if PFNominal < 0.0 then
                     kvarBase := -kvarBase;
-                kVABase := SQRT(SQR(kWbase) + SQR(kvarBase));
+                kVABase := SQRT(SQR(kWref) + SQR(kVARref));
             end;
 
 
