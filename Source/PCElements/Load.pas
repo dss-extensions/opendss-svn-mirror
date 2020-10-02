@@ -186,6 +186,8 @@ type
         HasBeenAllocated: Boolean;
         kWBase: Double;
         kVABase: Double;
+        kWref: Double;
+        kVARref: Double;
         kvarBase: Double;
         kVLoadBase: Double;
         LoadClass: Integer;
@@ -718,7 +720,10 @@ begin
                     UpdateVoltageBases;
 
                 4:
+                begin
                     LoadSpecType := 0;
+                    kWRef := kWBase;
+                end;
                 5:
                 begin
                     PFChanged := true;
@@ -732,7 +737,11 @@ begin
                     if Assigned(YearlyShapeObj) then
                         with YearlyShapeObj do
                             if UseActual then
+                            begin
+                                kWref := kWBase;
+                                kVARref := kVARbase;
                                 SetkWkvar(MaxP, MaxQ);
+                            end;
                 end;
                 8:
                 begin
@@ -760,6 +769,7 @@ begin
                 begin
                     LoadSpecType := 1;
                     PFSpecified := false;
+                    kVARref := kVARbase;
                 end;// kW, kvar
  {*** see set_xfkva, etc           21, 22: LoadSpectype := 3;  // XFKVA*AllocationFactor, PF  }
                 23:
@@ -2621,7 +2631,7 @@ begin
         3:
             Result := Format('%-g', [kVLoadBase]);
         4:
-            Result := Format('%-g', [kwBase]);
+            Result := Format('%-g', [kWBase]);
         5:
             Result := Format('%-.4g', [PFNominal]);
         7:
