@@ -1567,6 +1567,7 @@ var
     pMonitor: TMonitorObj;
     ActiveLSObject: TLoadshapeObj;
     pLine: TLineObj;
+    myPF,
     myWeight,
     myActual,
     mykW,
@@ -1574,7 +1575,9 @@ var
     TotalkW: Double;
     myLoadShapes,
     myLoads: array of String;
+    mykvarShape,
     myLoadShape: array of Double;
+    PFSpecified,
     UseActual: Boolean;
 
 begin
@@ -1669,37 +1672,57 @@ begin
             end;
             setlength(myLoads, length(myLoads) - 1);
       // initializes the length of the aggregated vector
-            setlength(myLoadShape, 0);     // clears the array first
+            setlength(myLoadShape, 0);     // clears the arrays first
+            setlength(mykvarShape, 0);
+
             if length(myLoads) > 0 then
             begin
                 SetElementActive('Load.' + myLoads[0]);
                 setlength(myLoadShape, TLoadObj(ActiveDSSObject[ActiveActor]).YearlyShapeObj.NumPoints);
+                setlength(mykvarShape, length(myLoadShape));
         // Next, aggregate the load profiles for the zone
                 for j := 0 to High(myLoads) do
                 begin
                     SetElementActive('Load.' + myLoads[j]);
-  //        myWeight                        :=  TLoadObj(Loads.Active).kWBase / TotalkW;
-                    myWeight := 1.0;
+                    myWeight := 0.0;
                     myActual := 1.0;
-//          if UseActual then
-//            myActual                        :=  TLoadObj( ActiveDSSObject[ActiveActor]).kWBase;
-
+                    myPF := TLoadObj(ActiveDSSObject[ActiveActor]).PFNominal;
+                    PFSpecified := TLoadObj(ActiveDSSObject[ActiveActor]).IsPFSpecified;
                     LoadshapeClass[ActiveActor].SetActive(TLoadObj(ActiveDSSObject[ActiveActor]).YearlyShape);
                     ActiveDSSObject[ActiveActor] := LoadshapeClass[ActiveActor].ElementList.Active;
                     for iElem := 0 to High(myLoadShape) do
-                        myLoadShape[iElem] := myLoadShape[iElem] + (TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] / myActual) * myWeight;
+                    begin
+                        myLoadShape[iElem] := myLoadShape[iElem] + TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1];
+                        if PFSpecified and (myPF <> 1.0) then  // Qmult not specified but PF was
+                        begin  // user specified the PF for this load
+                            myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] * SQRT((1.0 / SQR(myPF) - 1));
+                            if myPF < 0.0 then // watts and vare are in opposite directions
+                                myWeight := -myWeight;
+                        end
+                        else
+                        begin
+                            if TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers <> nil then
+                                myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers^[iElem + 1]
+                            else
+                                myWeight := 0.0;
+                        end;
+                        mykvarShape[iElem] := mykvarShape[iElem] + myWeight;
+                    end;
                 end;
                 TotalkW := length(myLoads);
-        // Normalizes the waveform
+        // Normalizes the waveforms
                 for iElem := 0 to High(myLoadShape) do
+                begin
                     myLoadShape[iElem] := myLoadShape[iElem] / TotalkW;
+                    mykvarShape[iElem] := mykvarShape[iElem] / TotalkW;
+                end;
 
         // Saves the profile on disk
                 myLoadShapes[High(myLoadShapes)] := GetCurrentDir + '\loadShape_' + EMeter.Name + '.csv';
                 Assignfile(F, myLoadShapes[High(myLoadShapes)]);
                 ReWrite(F);
                 for j := 0 to High(myLoadShape) do
-                    Writeln(F, floattostr(myLoadShape[j]));
+                    Writeln(F, floattostr(myLoadShape[j]) + ',' + floattostr(mykvarShape[j]));
                 CloseFile(F);
                 setlength(myLoadShapes, length(myLoadShapes) + 1);
             end;
@@ -1723,7 +1746,8 @@ begin
         if UseActual then
             TextCmd := ' UseActual=Yes';
         TextCmd := 'New LoadShape.myShape_' + inttostr(j) + ' npts=' +
-            floattostr(length(myLoadShape)) + ' interval=1 mult=(file=' + myLoadShapes[j] + ')' + TextCmd;
+            floattostr(length(myLoadShape)) + ' interval=1 mult=(file=' + myLoadShapes[j] + ' col=1, header=No)' +
+            'Qmult=(file=' + myLoadShapes[j] + ' col=2, header=No)' + TextCmd;
         DSSExecutive[ActiveActor].Command := TextCmd;
     end;
   // Assigns the new loadshapes to all the loads in the zone

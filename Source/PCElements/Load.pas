@@ -260,6 +260,7 @@ type
         property ExemptLoad: Boolean READ ExemptFromLDCurve;
         property FixedLoad: Boolean READ Fixed;
         property nZIPV: Integer READ FnZIPV WRITE set_nZIPV;
+        property IsPFSpecified: Boolean READ PFSpecified;
     end;
 
 var
