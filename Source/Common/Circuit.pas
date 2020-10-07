@@ -1693,18 +1693,28 @@ begin
                     for iElem := 0 to High(myLoadShape) do
                     begin
                         myLoadShape[iElem] := myLoadShape[iElem] + TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1];
-                        if PFSpecified and (myPF <> 1.0) then  // Qmult not specified but PF was
-                        begin  // user specified the PF for this load
-                            myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] * SQRT((1.0 / SQR(myPF) - 1));
-                            if myPF < 0.0 then // watts and vare are in opposite directions
-                                myWeight := -myWeight;
+                        if TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers <> nil then
+                        begin
+                            myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers^[iElem + 1];
+                            if myWeight = 0 then
+                            begin
+                                if PFSpecified and (myPF <> 1.0) then  // Qmult not specified but PF was
+                                begin  // user specified the PF for this load
+                                    myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] * SQRT((1.0 / SQR(myPF) - 1));
+                                    if myPF < 0.0 then // watts and vare are in opposite directions
+                                        myWeight := -myWeight;
+                                end
+                            end
                         end
                         else
                         begin
-                            if TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers <> nil then
-                                myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).QMultipliers^[iElem + 1]
-                            else
-                                myWeight := 0.0;
+                            myWeight := 0.0;
+                            if PFSpecified and (myPF <> 1.0) then  // Qmult not specified but PF was
+                            begin  // user specified the PF for this load
+                                myWeight := TLoadshapeObj(ActiveDSSObject[ActiveActor]).PMultipliers^[iElem + 1] * SQRT((1.0 / SQR(myPF) - 1));
+                                if myPF < 0.0 then // watts and vare are in opposite directions
+                                    myWeight := -myWeight;
+                            end
                         end;
                         mykvarShape[iElem] := mykvarShape[iElem] + myWeight;
                     end;
