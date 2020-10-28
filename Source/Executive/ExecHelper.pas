@@ -68,7 +68,7 @@ procedure DoSetCFactors(const X: Double);
 
 function DovoltagesCmd(const PerUnit: Boolean): Integer;
 function DocurrentsCmd: Integer;
-function DopowersCmd: Integer;
+function DopowersCmd(Total: Integer): Integer;
 function DoseqvoltagesCmd: Integer;
 function DoseqcurrentsCmd: Integer;
 function DoseqpowersCmd: Integer;
@@ -2044,12 +2044,19 @@ begin
 
 end;
 
-function DopowersCmd: Integer;
+function DopowersCmd(Total: Integer): Integer;
 var
     cBuffer: pComplexArray;
-    NValues, i: Integer;
+    NValues,
+    myInit,
+    myEnd,
+    j,
+    i: Integer;
+    myBuffer: array of Complex;
 
 begin
+  // If Total = 0, returns the powers per phase
+  // If Total = 1, returns the power sum at each terminal
 
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
@@ -2059,9 +2066,27 @@ begin
             GlobalResult := '';
             cBuffer := Allocmem(sizeof(cBuffer^[1]) * NValues);
             GetPhasePower(cBuffer, ActiveActor);
-            for i := 1 to NValues do
+            if Total = 0 then
             begin
-                GlobalResult := GlobalResult + Format('%10.5g, %10.5g,', [cBuffer^[i].re * 0.001, cBuffer^[i].im * 0.001]);
+                for i := 1 to NValues do
+                begin
+                    GlobalResult := GlobalResult + Format('%10.5g, %10.5g,', [cBuffer^[i].re * 0.001, cBuffer^[i].im * 0.001]);
+                end;
+            end
+            else
+            begin
+                setlength(myBuffer, Nterms);
+                for j := 1 to Nterms do
+                begin
+                    myBuffer[j - 1] := cmplx(0.0, 0.0);
+                    myInit := (j - 1) * NConds + 1;
+                    myEnd := (NValues div 2) * j;
+                    for i := myInit to myEnd do
+                    begin
+                        myBuffer[j - 1] := cadd(myBuffer[j - 1], cBuffer^[i]);
+                    end;
+                    GlobalResult := GlobalResult + Format('%10.5g, %10.5g,', [myBuffer[j - 1].re * 0.001, myBuffer[j - 1].im * 0.001]);
+                end;
             end;
             Reallocmem(cBuffer, 0);
         end
