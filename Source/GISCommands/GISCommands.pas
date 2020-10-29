@@ -42,6 +42,7 @@ function clear_map(): String;
 function Draw_line_GIS(): String;
 function Zoom_area_GIS(): String;
 function GISPlotfile(myPath: String): String;
+function show_LatLong(): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -134,6 +135,42 @@ begin
                         Result := 'One or both of the GIS coordinates are incorrect or not defined';
             end;
         end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+
+end;
+
+{*******************************************************************************
+*                  Shows the given location using LatLong                      *
+*******************************************************************************}
+function show_LatLong(): String;
+var
+    TCPJSON: TdJSON;
+    i: Integer;
+    lat,
+    long: Double;
+    InMsg: String;
+begin
+    if IsGISON then
+    begin
+
+        lat := GISCoords^[1];
+        long := GISCoords^[2];
+        InMsg := '{"command":"showlocation","coords":{"longitude":' + floattostr(long) + ',"latitude":' + floattostr(lat) + '}}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['showlocation'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+
     end
     else
         result := 'OpenDSS-GIS is not installed or initialized';

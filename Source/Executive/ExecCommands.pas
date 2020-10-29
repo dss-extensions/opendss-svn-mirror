@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 147;
+    NumExecCommands = 148;
 
 var
 
@@ -209,6 +209,7 @@ begin
     ExecCommand[145] := 'AllPCEatBus';
     ExecCommand[146] := 'AllPDEatBus';
     ExecCommand[147] := 'TotalPowers';
+    ExecCommand[148] := 'GISGoTo';
 
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
@@ -693,7 +694,11 @@ begin
     CommandHelp[147] := 'Returns the total powers (complex) at ALL terminals of the active circuit element in the Result string. ' +
         '(See Select command.)' +
         'Returned as comma-separated kW and kvar.';
-
+    CommandHelp[148] := 'Shows the location  in the map at given the coordinates.' +
+        'The coordiantes must be defined using GISCoords.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)';
 end;
 
 //----------------------------------------------------------------------------
@@ -867,7 +872,11 @@ begin
                     Laplacian := IncMat.Transpose();          // Transposes the Incidence Matrix
                     Laplacian := Laplacian.multiply(IncMat);  // IncMatT*IncMat
                 end;
-            end
+            end;
+            148:
+            begin
+                GlobalResult := show_LatLong();
+            end;
 
         else
             if ActiveCircuit[ActiveActor] = nil then
