@@ -2080,7 +2080,7 @@ begin
                 begin
                     myBuffer[j - 1] := cmplx(0.0, 0.0);
                     myInit := (j - 1) * NConds + 1;
-                    myEnd := (NValues div 2) * j;
+                    myEnd := NConds * j;
                     for i := myInit to myEnd do
                     begin
                         myBuffer[j - 1] := cadd(myBuffer[j - 1], cBuffer^[i]);
