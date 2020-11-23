@@ -44,6 +44,7 @@ type
 
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
+        function GetPropertyValue(Index: Integer): String; OVERRIDE;
     end;
 
 implementation
@@ -205,6 +206,11 @@ end;
 procedure TWireDataObj.DumpProperties(var F: TextFile; Complete: Boolean);
 begin
     inherited DumpProperties(F, Complete);
+end;
+
+function TWireDataObj.GetPropertyValue(Index: Integer): String;
+begin
+    Result := inherited GetPropertyValue(index);
 end;
 
 procedure TWireDataObj.InitPropertyValues(ArrayOffset: Integer);
