@@ -1,6 +1,6 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
 All rights reserved.
 
 Version 9.1.3.3
@@ -169,4 +169,4 @@ Use of this software is subject to a license. The terms are in:
  1 - A file called "license.txt" distributed with the software,
  2 - The user manual, and
  3 - The executable program's Help/About dialog box
-                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                   
