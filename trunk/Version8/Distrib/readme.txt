@@ -3,14 +3,14 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 8.6.5.3
+Version 9.1.3.3
 
 Changes this version
 ====================
 - COM and DLL interfaces have been updated to allow the progress form to appear if required
 - Storage controller was upgraded to allow multiple targets for seasonal simulations
 
-The Version 8 is the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
+This version is delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions.  The OpenDSSInstaller download includes both X86 and X64 versions, along 
 with optional documentation and examples.  
 
@@ -169,3 +169,4 @@ Use of this software is subject to a license. The terms are in:
  1 - A file called "license.txt" distributed with the software,
  2 - The user manual, and
  3 - The executable program's Help/About dialog box
+                                                                                                                                                                                                                                                                                                   
