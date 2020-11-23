@@ -7,8 +7,10 @@ Version 9.1.3.3
 
 Changes this version
 ====================
-- COM and DLL interfaces have been updated to allow the progress form to appear if required
-- Storage controller was upgraded to allow multiple targets for seasonal simulations
+- Bug fixed in storage device when working in iddle mode. 
+- Corrected an error in calculation of CapRadius that resulted in an error in Cmatrix calc. However, Version 7 did not have the error!
+- Added features for facilitating the circuit navigation (PCE/PDE at bus and within zone).
+- Errors displayed using editable dialog, users can copy the error message directly from it.
 
 This version is delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions.  The OpenDSSInstaller download includes both X86 and X64 versions, along 
