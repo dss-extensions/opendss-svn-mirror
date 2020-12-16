@@ -454,7 +454,7 @@ begin
        //Fnconds := Fnphases;
         Yorder := Fnconds * Fnterms;
        // YprimInvalid[ActorID] := True;  (set in Edit; this is redundant)
-
+        FLineType := LineCodeObj.FLineType;
 
     end
     else
@@ -2096,6 +2096,7 @@ begin
 
         NumAmpRatings := FLineGeometryObj.NumAmpRatings;
         AmpRatings := Copy(FLineGeometryObj.AmpRatings);
+        FLineType := FLineGeometryObj.FLineType;
 
     end
     else
