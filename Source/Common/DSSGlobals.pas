@@ -65,6 +65,7 @@ uses
     {$IFNDEF FPC}
     ProgressForm,
     vcl.dialogs,
+    WinAPI.UrlMon,
     {$ENDIF}
     Strutils,
     Types,
@@ -1220,6 +1221,43 @@ begin
     end;
 end;
 
+//******Verifies the OpenDSS version using the reference at Sourceforge*********
+procedure Check_DSS_WebVersion();
+var
+    myVersion,
+    myText,
+    myWebSrc,
+    myPath: String;
+    myFile: TextFile;
+    myIdx: Integer;
+
+begin
+    myPath := TPath.GetTempPath + '\myDSSVersion.txt';
+    myWebSrc := 'https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Source/Current_ver.txt';
+  // Download the file into the Windows temporary folder
+    if DownLoadInternetFile(myWebSrc, myPath) then
+    begin
+        AssignFile(myFile, myPath);
+        Reset(myFile);
+        while not Eof(myFile) do
+        begin
+            ReadLn(myFile, myText);
+            myIdx := pos('mydssversion=', lowercase(myText));
+            if myIdx > 0 then
+                break;
+        end;
+        CloseFile(myFile);
+    end;
+    myText := myText.Substring(myIdx + 12);
+    myVersion := VersionString.Substring(8);
+    myIdx := pos(' ', myVersion);
+    myVersion := myVersion.Substring(0, myIdx - 1);
+    if myText <> myVersion then
+        ShowMessage('There is a new version of OpenDSS avaialable for download' + CRLF +
+            'The new version can be located at:' + CRLF + CRLF +
+            'https://sourceforge.net/projects/electricdss/');
+end;
+
 //*********************Gets the processor information***************************
 procedure Get_Processor_Info();
 var
@@ -1573,7 +1611,7 @@ NoFormsAllowed  := TRUE;
     DSS_GIS_installed := CheckOpenDSSViewer('OpenDSS_GIS');     // OpenDSS GIS (flag for detected installation)
     if not IsDLL then
     begin
-
+        Check_DSS_WebVersion;
     end;
     {$ENDIF}
 
