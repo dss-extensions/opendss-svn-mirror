@@ -1210,6 +1210,16 @@ begin
 end;
 //{$ENDIF}
 
+//*********Downloads a file from the internet into the folder specified*********
+function DownLoadInternetFile(Source, Dest: String): Boolean;
+begin
+    try
+        Result := URLDownloadToFile(nil, Pchar(Source), Pchar(Dest), 0, nil) = 0
+    except
+        Result := false;
+    end;
+end;
+
 //*********************Gets the processor information***************************
 procedure Get_Processor_Info();
 var
@@ -1561,6 +1571,10 @@ NoFormsAllowed  := TRUE;
     {$IFNDEF FPC}
     DSS_Viz_installed := CheckOpenDSSViewer('OpenDSS_Viewer');  // OpenDSS Viewer (flag for detected installation)
     DSS_GIS_installed := CheckOpenDSSViewer('OpenDSS_GIS');     // OpenDSS GIS (flag for detected installation)
+    if not IsDLL then
+    begin
+
+    end;
     {$ENDIF}
 
 
