@@ -21,5 +21,6 @@ cp -P $SOURCE/java/*helics*.* $TARGET/java
 cp -P $SOURCE/lib/*fncs*.* $TARGET/lib
 cp -P $SOURCE/lib/*helics*.* $TARGET/lib
 cp -P $SOURCE/lib/liblinenoise.so $TARGET/lib
+cp -P $SOURCE/lib/libklusolve.so $TARGET/lib
 
 ls -altR $TARGET
