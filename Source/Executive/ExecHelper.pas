@@ -4565,16 +4565,19 @@ var
     ParamName: String;
     Param: String;
     Str: String;
+    i,
     ParamPointer: Integer;
     DeviceIndex: Integer;
 
     FElementName: String;
+    ElmFound,
     FKeepLoad: Boolean;
     FEditString: String;
 
     pPDElem: TPDelement;
     pMeter: TEnergyMeterObj;
     FMeterName: String;
+
 
 begin
 
@@ -4616,33 +4619,54 @@ begin
     end
     else
     begin // Element exists  GO!
-
-      // Set CktElement active
-        SetObject(FelementName);
-
-      // Get Energymeter associated with this element.
-        if ActiveCircuit[ActiveActor].ActiveCktElement is TPDElement then
-        begin
-            pPDElem := ActiveCircuit[ActiveActor].ActiveCktElement as TPDElement;
-            if pPDElem.SensorObj = nil then
-                DoSimpleMsg(Format('Element %s.%s is not in a meter zone! Add an Energymeter. ', [pPDelem.Parentclass.Name, pPDelem.name]), 287261)
-            else
+     // first, checks if the element is not linked to an energy meter, if it does, abort (added 01/06/2020 -DM)
+        ElmFound := false;
+        if ActiveCircuit[ActiveActor] <> nil then
+            with ActiveCircuit[ActiveActor] do
             begin
-                FMeterName := Format('%s.%s', [pPDElem.SensorObj.ParentClass.Name, pPDElem.SensorObj.Name]);
-                SetObject(FMeterName);
-
-                if ActiveCircuit[ActiveActor].ActiveCktElement is TEnergyMeterObj then
+                pMeter := EnergyMeters.First;
+                for i := 1 to EnergyMeters.ListSize do
                 begin
-                    pMeter := ActiveCircuit[ActiveActor].ActiveCktElement as TEnergyMeterObj;
-                // in ReduceAlgs
-                    DoRemoveBranches(pMeter.BranchList, pPDelem, FKeepLoad, FEditString);
-                end
-                else
-                    DoSimpleMsg('Error: The Sensor Object for ' + FelementName + ' is not an EnergyMeter object', 28727);
+                    if AnsiLowerCase(pMeter.ElementName) = AnsiLowerCase(FElementName) then
+                    begin
+                        ElmFound := true;
+                        break;
+                    end
+                    else
+                        pMeter := EnergyMeters.Next;
+                end;
             end;
+        if not ElmFound then
+        begin
+        // Set CktElement active
+            SetObject(FelementName);
+
+        // Get Energymeter associated with this element.
+            if ActiveCircuit[ActiveActor].ActiveCktElement is TPDElement then
+            begin
+                pPDElem := ActiveCircuit[ActiveActor].ActiveCktElement as TPDElement;
+                if pPDElem.SensorObj = nil then
+                    DoSimpleMsg(Format('Element %s.%s is not in a meter zone! Add an Energymeter. ', [pPDelem.Parentclass.Name, pPDelem.name]), 287261)
+                else
+                begin
+                    FMeterName := Format('%s.%s', [pPDElem.SensorObj.ParentClass.Name, pPDElem.SensorObj.Name]);
+                    SetObject(FMeterName);
+
+                    if ActiveCircuit[ActiveActor].ActiveCktElement is TEnergyMeterObj then
+                    begin
+                        pMeter := ActiveCircuit[ActiveActor].ActiveCktElement as TEnergyMeterObj;
+                  // in ReduceAlgs
+                        DoRemoveBranches(pMeter.BranchList, pPDelem, FKeepLoad, FEditString);
+                    end
+                    else
+                        DoSimpleMsg('Error: The Sensor Object for ' + FelementName + ' is not an EnergyMeter object', 28727);
+                end;
+            end
+            else
+                DoSimpleMsg('Error: Element ' + FelementName + ' is not a power delivery element (PDElement)', 28728);
         end
         else
-            DoSimpleMsg('Error: Element ' + FelementName + ' is not a power delivery element (PDElement)', 28728);
+            DoSimpleMsg('Error: Element ' + FelementName + ' is tied to an Energy Meter.', 28800);
 
     end;
 
