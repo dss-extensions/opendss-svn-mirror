@@ -35,6 +35,7 @@ procedure ShowPctProgress(Count: Integer; Actor_ID: Integer);
 procedure ShowMessageForm(S: TStrings);
 function DSSMessageDlg(const Msg: String; err: Boolean): Integer;
 procedure DSSInfoMessageDlg(const Msg: String);
+
 function GetDSSExeFile: String;
 procedure CloseDownForms;
 procedure ShowTreeView(const Fname: String);
@@ -235,6 +236,7 @@ begin
 
     SolutionAbort := true;
 end;
+
 
 procedure DSSInfoMessageDlg(const Msg: String);
 var

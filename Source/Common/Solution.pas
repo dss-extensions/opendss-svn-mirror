@@ -1286,7 +1286,7 @@ begin
 
     if not ControlActionsDone and (ControlIteration >= MaxControlIterations) then
     begin
-        DoSimpleMsg('Warning Max Control Iterations Exceeded. ' + CRLF + 'Tip: Show Eventlog to debug control settings.', 485);
+        Windows.MessageBox(0, 'Warning Max Control Iterations Exceeded. ' + CRLF + 'Tip: Show Eventlog to debug control settings.', 'Warning', MB_OK);
         SolutionAbort := true;   // this will stop this message in dynamic power flow modes
     end;
 

@@ -588,7 +588,6 @@ begin
     AppendGlobalResultCRLF(S);
 end;
 
-
 //----------------------------------------------------------------------------
 procedure SetObject(const param: String);
 
