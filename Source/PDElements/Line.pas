@@ -2006,6 +2006,8 @@ begin
                 NewNumRat := High(NewRatings) + 1;
                 RatingsInc := true;         // Yes, there are seasonal ratings
             end;
+            NormAmps := FLineWireData^[i].NormAmps;
+            EmergAmps := FLineWireData^[i].EmergAmps;
         end
         else
             DoSimpleMsg('Wire "' + AuxParser[ActiveActor].StrValue + '" was not defined first (LINE.' + name + ').', 18103);
