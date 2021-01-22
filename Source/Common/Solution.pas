@@ -708,17 +708,6 @@ begin
         if not Parallel_enabled then
         begin
             Wait4Actors(ALL_ACTORS);
-            {$IFNDEF FPC}
-{        if Not ADiakoptics then
-        Begin
-          if Not IsDLL then ScriptEd.UpdateSummaryForm('1');
-        End
-        else
-        Begin
-          if ActorID = 1 then
-            if Not IsDLL then ScriptEd.UpdateSummaryForm('1');
-        End;   }
-            {$ENDIF}
         end;
 
 
@@ -2622,6 +2611,7 @@ var
     RetCode: Integer;
     iRes: Longword;
     dRes: Double;
+    myMsg: String;
 
 begin
 
@@ -2641,8 +2631,13 @@ begin
         GetSparseNNZ(hY, @iRes);
         GetSingularCol(hY, @iRes);
     except
-        On E: Exception do
-            raise  EEsolv32Problem.Create('Error Solving System Y Matrix.  Sparse matrix solver reports numerical error: ' + E.Message);
+        On E: Exception do //Raise
+        begin
+            myMsg := 'Error Solving System Y Matrix.  Sparse matrix solver reports numerical error: ' + E.Message;
+            Windows.MessageBox(0, Pchar(myMsg), 'Error', MB_OK);
+            SolutionAbort := true;
+        end;
+
     end;
 
     Result := RetCode;

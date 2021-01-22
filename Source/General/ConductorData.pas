@@ -75,7 +75,7 @@ type
 
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
-        function GetPropertyValue(Index: Integer): String; OVERRIDE;
+//      FUNCTION  GetPropertyValue(Index:Integer):String;Override;
     end;
 
     TConductorDataArray = array[1..100] of TConductorDataObj;
@@ -348,53 +348,40 @@ begin
         end;
     end;
 end;
-
+{
 function TConductorDataObj.GetPropertyValue(Index: Integer): String;
-var
-    i, j: Integer;
-    Tempstr: String;
+Var
+        i, j:Integer;
+        Tempstr : String;
 begin
 
     Result := '';
-    case Index of  // Special cases
-        1:
-            Result := Format('%.6g', [FRDC]);
-        2:
-            Result := Format('%.6g', [FR60]);
-        3:
-            Result := Format('%s', [LineUnitsStr(FresistanceUnits)]);
-        4:
-            Result := Format('%.6g', [FGMR60]);
-        5:
-            Result := Format('%s', [LineUnitsStr(FGMRUnits)]);
-        6:
-            Result := Format('%.6g', [Fradius]);
-        7:
-            Result := Format('%s', [LineUnitsStr(FRadiusUnits)]);
-        8:
-            Result := Format('%.6g', [NormAmps]);
-        9:
-            Result := Format('%.6g', [EmergAmps]);
-        10:
-            Result := Format('%.6g', [radius * 2.0]);
-        11:
-            Result := Format('%d', [NumAmpRatings]);
-        12:
-        begin
-            TempStr := '[';
-            for  j := 1 to NumAmpRatings do
-                TempStr := TempStr + floattoStrf(AmpRatings[j - 1], ffgeneral, 8, 4) + ',';
-            TempStr := TempStr + ']';
-            Result := TempStr;
-        end;
-        13:
-            Result := Format('%.6g', [Fcapradius60]);
-    else
-        Result := inherited GetPropertyValue(index);
-    end;
+    CASE Index of  // Special cases
+        1 : Result := Format('%.6g',[FRDC]);
+        2 : Result := Format('%.6g',[FR60]);
+        3 : Result := Format('%s',[LineUnitsStr(FresistanceUnits)]);
+        4 : Result := Format('%.6g',[FGMR60]);
+        5 : Result := Format('%s',[LineUnitsStr(FGMRUnits)]);
+        6 : Result := Format('%.6g',[Fradius]);
+        7 : Result := Format('%s',[LineUnitsStr(FRadiusUnits)]);
+        8 : Result := Format('%.6g',[NormAmps]);
+        9 : Result := Format('%.6g',[EmergAmps]);
+       10 : Result := Format('%.6g',[radius*2.0]);
+       11 : Result := Format('%d',[NumAmpRatings]);
+       12 : Begin
+              TempStr   :=  '[';
+              for  j:= 1 to NumAmpRatings do
+                TempStr :=  TempStr + floattoStrf(AmpRatings[j-1],ffgeneral,8,4) + ',';
+              TempStr   :=  TempStr + ']';
+              Result := TempStr;
+            End;
+       13: Result := Format('%.6g',[Fcapradius60]);
+    ELSE
+       Result := Inherited GetPropertyValue(index);
+    END;
 
 end;
-
+}
 procedure TConductorDataObj.InitPropertyValues(ArrayOffset: Integer);
 begin
     PropertyValue[ArrayOffset + 1] := '-1';
