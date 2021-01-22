@@ -190,6 +190,7 @@ type
         FWVMode: Boolean; //boolean indicating if under watt-var mode from InvControl
         FWPMode: Boolean; //boolean indicating if under watt-pf mode from InvControl
         FDRCMode: Boolean; //boolean indicating if under DRC mode from InvControl
+        FAVRMode: Boolean;
 
         procedure CalcDailyMult(Hr: Double);  // now incorporates DutyStart offset
         procedure CalcDutyMult(Hr: Double);
@@ -258,6 +259,9 @@ type
 
         function Get_DRCmode: Boolean;
         procedure Set_DRCmode(const Value: Boolean);
+
+        function Get_AVRmode: Boolean;
+        procedure Set_AVRmode(const Value: Boolean);
 
         procedure kWOut_Calc;
 
@@ -358,6 +362,7 @@ type
         property VVmode: Boolean READ Get_VVmode WRITE Set_VVmode;
         property WPmode: Boolean READ Get_WPmode WRITE Set_WPmode;
         property WVmode: Boolean READ Get_WVmode WRITE Set_WVmode;
+        property AVRmode: Boolean READ Get_AVRmode WRITE Set_AVRmode;
         property DRCmode: Boolean READ Get_DRCmode WRITE Set_DRCmode;
         property InverterON: Boolean READ Get_InverterON WRITE Set_InverterON;
         property VarFollowInverter: Boolean READ Get_VarFollowInverter WRITE Set_VarFollowInverter;
@@ -1016,6 +1021,7 @@ begin
             FWPMode := OtherPVSystemObj.FWPMode;
             FWVMode := OtherPVSystemObj.FWPMode;
             FDRCMode := OtherPVSystemObj.FDRCMode;
+            FAVRMode := OtherPVSystemObj.FAVRMode;
             UserModel.Name := OtherPVSystemObj.UserModel.Name;  // Connect to user written models
 
             ForceBalanced := OtherPVSystemObj.ForceBalanced;
@@ -1201,6 +1207,7 @@ begin
     FWVMode := false;
     FWPMode := false;
     FDRCMode := false;
+    FAVRMode := false;
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
 
@@ -1872,7 +1879,7 @@ begin
                 end
                 // Forces constant power factor when kvar limit is exceeded and PF Priority is true. Temp PF is calculated based on kvarRequested
                 else
-                if PF_Priority and (not FVVMode or not FDRCMode or not FWVmode) then
+                if PF_Priority and (not FVVMode or not FDRCMode or not FWVmode or not FAVRMode) then
                 begin
                     if abs(kvarRequested) > 0.0 then
                     begin
@@ -1906,7 +1913,7 @@ begin
                 kvar_out := FkVArating * abs(sin(ArcCos(Fpf_wp_nominal))) * sign(kvarRequested)
             end
             else
-            if (varMode = VARMODEKVAR) and PF_Priority and (not FVVMode or not FDRCMode or not FWVmode) then
+            if (varMode = VARMODEKVAR) and PF_Priority and (not FVVMode or not FDRCMode or not FWVmode or not FAVRMode) then
               // Operates under constant power factor (PF implicitly calculated based on kw and kvar)
             begin
                 if abs(kvar_out) = Fkvarlimit then
@@ -2971,6 +2978,15 @@ begin
 end;
 
 
+// ============================================================Get_AVRmode===============================
+function TPVsystemObj.Get_AVRmode: Boolean;
+begin
+    if FAVRmode then
+        Result := true
+    else
+        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
 // ============================================================kWOut_Calc===============================
 procedure TPVsystemObj.kWOut_Calc;
 
@@ -3088,6 +3104,12 @@ end;
 procedure TPVsystemObj.Set_DRCmode(const Value: Boolean);
 begin
     FDRCmode := Value;
+end;
+
+// ===========================================================================================
+procedure TPVsystemObj.Set_AVRmode(const Value: Boolean);
+begin
+    FAVRmode := Value;
 end;
 
 // ===========================================================================================
