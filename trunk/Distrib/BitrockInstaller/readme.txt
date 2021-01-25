@@ -1,10 +1,10 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
-Copyright (c) 2017-2020, Battelle Memorial Institute
+Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
+Copyright (c) 2017-2021, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.2.12
+opendsscmd version 1.2.15
 =========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7.6.5 of the Windows-only version, and source code revision r2181. The major differences between opendsscmd and Windows-only OpenDSS are:
@@ -56,6 +56,12 @@ Change Log
        - supporting both JSON and Text formatted FNCS publication
        - example of linking a GridLAB-D house and weather to OpenDSS
        - works with FNCS feature/opendss and GridLAB-D feature/1173 branches
+
+1.2.13 - publish battery stored energy over FNCS
+
+1.2.14 - fixed FNCS publication of complex values with very small imaginary parts
+
+1.2.15 - retain the user-input line length units for subsequent CIM export
 
 Quick Start
 
