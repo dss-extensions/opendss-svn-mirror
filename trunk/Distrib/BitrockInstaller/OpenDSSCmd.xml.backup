@@ -102,6 +102,18 @@
                         <distributionFile>
                             <origin>../../../../Documents/windows_executable/opendsscmd.exe</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/fncs_broker.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/fncs_player.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/fncs_tracer.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/fncs.dll</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -505,6 +517,24 @@
                 </platformTest>
             </ruleList>
         </addDirectoryToPath>
+        <createSymLink>
+            <linkName>/usr/local/bin/libfncs.so</linkName>
+            <target>/usr/local/bin/libfncs.so.1</target>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </createSymLink>
+        <runProgram>
+            <program>ldconfig</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
     </postInstallationActionList>
     <createOsxBundleDmg>1</createOsxBundleDmg>
     <defaultUnixFilePermissions>755</defaultUnixFilePermissions>

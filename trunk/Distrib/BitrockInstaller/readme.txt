@@ -15,6 +15,58 @@ This is a 64-bit command-line version of the simulator for Windows, Linux and Ma
 
 3 - Automation is provided through the Framework for Network Cosimulation (FNCS) library developed by Pacific Northwest National Laboratory (PNNL). It is  planned to upgrade FNCS with the HELIC framework that is currently under development by several US Department of Energy labs under the Grid Modernization Laboratory Consortium (GMLC) project 1.4.15.
 
+Installation
+============
+
+On Linux and Mac OSX, the files will be installed as follows (no user choice at this time):
+
+  Executables:     /usr/local/bin
+  Libraries:       /usr/local/lib
+  Docs:            /usr/local/share/opendss/doc
+  Tech Notes:      /usr/local/share/opendss/doc/notes
+  Test Files:      /usr/local/share/opendss/test
+  EPRI Test Cases: /usr/local/share/opendss/examples/epri
+  IEEE Test Cases: /usr/local/share/opendss/examples/ieee
+
+On Windows, the files will be installed as follows, and c:\opendss is appended to the system path 
+(the user can change c:\opendss):
+
+  Executables:     c:\opendss
+  Libraries:       c:\opendss
+  Docs:            c:\opendss\doc
+  Tech Notes:      c:\opendss\doc\notes
+  Test Files:      c:\opendss\test
+  EPRI Test Cases: c:\opendss\examples\epri
+  IEEE Test Cases: c:\opendss\examples\ieee
+
+On all platforms, an uninstaller is provided one level above the Docs directory.
+
+** IMPORTANT ** on all platforms, FNCS, HELICS, ZeroMQ and CZMQ will be installed or updated (no user choice at this time).
+
+
+Quick Start
+===========
+
+If you're unfamiliar with OpenDSS, the doc files OpenDSSPrimer.pdf and OpenDSSManual.pdf to learn about its modeling and analysis features.  However, none of the COM automation or plotting features are supported in opendsscmd. To run any of the non-graphical commands:
+
+1. Enter "opendsscmd" from a command prompt
+    a. The program's >> prompt will appear. Enter any OpenDSS command(s) from this prompt
+    b. Up and down arrows navigate through the command history
+    c. Enter "help" from the >> prompt for the built-in help
+    d. Enter "exit", "q" or an empty line from >> to exit
+2. You can enter "opendsscmd filename.dss" from a command prompt. This runs the OpenDSS commands in filename.dss, and then exits immediately.
+3. You can enter "opendsscmd –f" from a command prompt; this enters a FNCS time step loop.
+4. You can enter "opendsscmd –f filename.dss" from a command prompt. This runs the OpenDSS commands in filename.dss, and then enters a FNCS time step loop.
+5. Enter "opendsscmd -h" from a command prompt to show the command line options, which include three logging levels for FNCS messages
+
+To verify proper installation:
+
+1. From install_dir/test, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
+2. From install_dir/test, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
+3. If you have FNCS installed, from install_dir/test invoke "test_fncs.bat" (on Windows) or "./test_fncs.sh" (on Linux or Mac OSX). This will play some basic commands to opendsscmd over FNCS on port 5570, and then exit. If something goes wrong here:
+   a. To list processes using port 5570, use "list5570.bat" on Windows or "lsof -i tcp:5570" on Linux/Mac
+   b. To kill all processes using port 5570, use "kill5570.bat" on Windows or "kill5570.sh" on Linux/Mac
+
 Change Log
 ==========
 
@@ -63,31 +115,6 @@ Change Log
 1.2.15 - retain the user-input line length units for subsequent CIM export
        - installs FNCS and HELICS
 
-Quick Start
-
-===========
-
-
-If you're unfamiliar with OpenDSS, see install_dir/doc/OpenDSSPrimer.pdf and install_dir/doc/OpenDSSManual.pdf to learn about its modeling and analysis features.  However, none of the COM automation or plotting features are supported in opendsscmd. To run any of the non-graphical commands:
-
-1. Enter "opendsscmd" from a command prompt
-    a. The program's >> prompt will appear. Enter any OpenDSS command(s) from this prompt
-    b. Up and down arrows navigate through the command history
-    c. Enter "help" from the >> prompt for the built-in help
-    d. Enter "exit", "q" or an empty line from >> to exit
-2. You can enter "opendsscmd filename.dss" from a command prompt. This runs the OpenDSS commands in filename.dss, and then exits immediately.
-3. You can enter "opendsscmd –f" from a command prompt; this enters a FNCS time step loop.
-4. You can enter "opendsscmd –f filename.dss" from a command prompt. This runs the OpenDSS commands in filename.dss, and then enters a FNCS time step loop.
-5. Enter "opendsscmd -h" from a command prompt to show the command line options, which include three logging levels for FNCS messages
-
-To verify proper installation:
-
-1. From install_dir/test, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
-2. From install_dir/test, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
-3. If you have FNCS installed, from install_dir/test invoke "test_fncs.bat" (on Windows) or "./test_fncs.sh" (on Linux or Mac OSX). This will play some basic commands to opendsscmd over FNCS on port 5570, and then exit. If something goes wrong here:
-   a. To list processes using port 5570, use "list5570.bat" on Windows or "lsof -i tcp:5570" on Linux/Mac
-   b. To kill all processes using port 5570, use "kill5570.bat" on Windows or "kill5570.sh" on Linux/Mac
-
 
 Open Issues
 
@@ -95,17 +122,6 @@ Open Issues
 
 1. The regular expressions for the batchedit command, which are implemented in ExecHelper.pas, have become case-sensitive.  They need to be made case-insensitive.
 2. On Windows, the command history editor is "sluggish". You have to type slowly.
-
-Installation
-============
-
-On all platforms, the documentation and sample files will be copied to a user-specified installation directory, called install_dir. An uninstall script is also provided.
-
-On Linux and Mac OSX, the executables will be copied to /usr/local/bin
-
-On Linux and Mac OSX, dynamic libraries will be copied to /usr/local/lib
-
-On Windows, the executables and DLLs will be copied to install_dir. Also, install_dir will be appended to the Windows path.
 
 Source Code
 ===========
