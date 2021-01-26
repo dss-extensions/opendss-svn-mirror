@@ -62,6 +62,7 @@ Change Log
 1.2.14 - fixed FNCS publication of complex values with very small imaginary parts
 
 1.2.15 - retain the user-input line length units for subsequent CIM export
+       - installs FNCS and HELICS
 
 Quick Start
 

@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.2.12</version>
+    <version>1.2.15</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
@@ -41,7 +41,25 @@
                     <platforms>linux-x64</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>Linux/opendsscmd</origin>
+                            <origin>../../../../Documents/linux_executable/bin/fncs_broker</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/fncs_player</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/fncs_tracer</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/helics_broker</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/helics_player</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/helics_recorder</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/bin/opendsscmd</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -52,19 +70,37 @@
                     <platforms>windows</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>Windows/opendsscmd.exe</origin>
+                            <origin>../../../../Documents/windows_executable/helics_broker.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>Windows/libklusolve.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helics_player.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>Windows/liblinenoise.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helics_recorder.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>Windows/MinGW64Redist/libgcc_s_seh-1.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helics-apps-shared.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>Windows/MinGW64Redist/libstdc++-6.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helics-shared.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/helicsSharedLib.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/KLUSolve.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/libczmq.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/libzmq-v142-mt-4_3_4.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/linenoise.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/windows_executable/opendsscmd.exe</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -75,7 +111,25 @@
                     <platforms>osx</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>MacOSX/opendsscmd</origin>
+                            <origin>../../../../Documents/macosx_executable/bin/fncs_broker</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/fncs_player</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/fncs_tracer</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/helics_broker</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/helics_player</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/helics_recorder</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/bin/opendsscmd</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -208,7 +262,22 @@
                     <platforms>linux-x64</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>Linux/liblinenoise.so</origin>
+                            <origin>../../../../Documents/linux_executable/lib/libklusolve.so</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/lib/liblinenoise.so</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/lib/libfncs.so.1.1.1</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/lib/libhelics-apps-shared.so.2.6.1</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/lib/libhelics-shared.so.2.6.1</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/linux_executable/lib/libhelicsSharedLib.so.2.6.1</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -219,10 +288,22 @@
                     <platforms>osx</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>MacOSX/libklusolve.dylib</origin>
+                            <origin>../../../../Documents/macosx_executable/lib/libklusolve.dylib</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>MacOSX/liblinenoise.dylib</origin>
+                            <origin>../../../../Documents/macosx_executable/lib/liblinenoise.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/lib/libfncs.1.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelics-apps-shared.2.6.1.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelics-shared.2.6.1.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelicsSharedLib.2.6.1.dylib</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -358,7 +439,7 @@
                             <origin>../Doc/ExpControl.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>Doc/OpenDSS_FNCS_Build.pdf</origin>
+                            <origin>Doc/OpenDSS_FPC_Build.pdf</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
