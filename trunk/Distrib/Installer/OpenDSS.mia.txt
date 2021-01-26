@@ -224,6 +224,8 @@ else
   Install Files C:\OpenDSS\Distrib\x64\ComPorts.ini to $TARGETDIR$\x64
   Install Files C:\OpenDSS\Distrib\x86\ComPorts.ini to $TARGETDIR$\x86
   Install Files C:\OpenDSS\Distrib\x86\OpenDSSDirect.h to $TARGETDIR$\x86
+  Install Files C:\OpenDSS\Distrib\x64\OpenDSS_COM.chm to $TARGETDIR$\x64
+  Install Files C:\OpenDSS\Distrib\x86\OpenDSS_COM.chm to $TARGETDIR$\x86
   [DEFINE WEB MEDIA Win64]
   Get Component Win64 Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE
@@ -282,6 +284,7 @@ else
   else
     Create Folder $TARGETDIR$\x64
     Create Folder $TARGETDIR$\x86
+    Create Shortcut $SHORTCUTFOLDER$\COM Interface Help to https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Doc/COM_Interface_help/COM_interface_help.hnd
     Apply Install (get result into variable SUCCESS)
   end
   [compiler end]

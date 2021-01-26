@@ -1,25 +1,25 @@
-{\rtf1\ansi\deff0{\fonttbl{\f0\fnil Tahoma;}{\f1\fnil\fcharset0 Tahoma;}}
+{\rtf1\ansi\deff0{\fonttbl{\f0\fnil Tahoma;}}
 \viewkind4\uc1\pard\lang1033\f0\fs16 The Open Distribution System Simulator, OpenDSS
 \par 
-\par Copyright (c) 2008-2020, Electric Power Research Institute, Inc.
+\par Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
 \par All rights reserved.
 \par 
-\par Version 9.\f1 1.3.1\f0 
+\par Version 9.2.0.1
 \par 
 \par Changes this version
 \par ====================
-\par - COM and DLL interfaces have been updated to allow the progress form to appear if required
-\par - Storage controller was upgraded to allow multiple targets for seasonal simulations
+\par - Fixes issue when dumping properties from CNData.
+\par - Fixes compatibility issues with other OS when using FPC for compiling.
+\par - Includes COMHelp command to display the COM interface properties and methods, explain them and provide examples.
 \par 
-\par The Version 8 was the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
-\par 64-bit (X64) versions. Version 9 is the latest update. The files are still listed under the 'Version8' folder on Sourceforge.net.
-\par The OpenDSSInstaller download includes both X86 and X64 versions of Version 9, along 
+\par This version is delivered with parallel processing capabilities in both 32-bit (X86) and 
+\par 64-bit (X64) versions.  The OpenDSSInstaller download includes both X86 and X64 versions, along 
 \par with optional documentation and examples.  
 \par 
 \par If you have 64-bit Windows, you may install both the 64-bit and 32-bit 
 \par versions.  The 32-bit version is required if you plan to automate OpenDSS 
 \par from Excel or any other 32-bit program.  The 64-bit version is required to 
-\par automate OpenDSS from 64-bit MatLab or other 64-bit apps on a 64-bit system.  
+\par automate OpenDSS from 64-bit MatLab on a 64-bit system.  
 \par 
 \par Installation
 \par ============
@@ -74,8 +74,9 @@
 \par Electric Power Research Institute, Inc.  (http://www.epri.com) uses 
 \par OpenDSS in its research and services work, and continues to enhance the 
 \par software.  Earlier proprietary versions were used in dozens of studies for 
-\par electric utility clients, and in a Web-based wind power simulator.  
-\par There were several goals in making OpenDSS an open-source project in 2008: 
+\par electric utility clients, and in a Web-based wind power simulator at 
+\par http://www.uwig.org/distwind.  There are several goals in making OpenDSS 
+\par an open-source project at this time: 
 \par 
 \par 1 - Enhance the modeling capabilities available to government 
 \par laboratories, universities, and other researchers engaged in grid 
@@ -92,19 +93,19 @@
 \par modernization efforts.  
 \par 
 \par 5 - Provide a capable testing platform for data and object modeling 
-\par efforts currently underway in the electric utility industry.
+\par efforts currently underway in the electric utility industry, at 
+\par http://cimug.ucaiug.org and http://www.multispeak.org.  
 \par 
 \par Source Code
 \par ===========
 \par 
 \par The programming language for OpenDSS is Delphi 
-\par (http://www.embarcadero.com), currently version Delphi 10.4 Sydney.  A free community version is available
-\par to certain non-commercial users (see license requirements on Embarcadero site).
-\par There is also a Free Pascal (Lazarus) version of the program.  Some of the supporting modules may 
+\par (http://www.embarcadero.com), currently version Delphi 10.3.1 Rio.  There is also 
+\par a Free Pascal (Lazarus) version of the program.  Some of the supporting modules may 
 \par require a C++ compiler to build from source.  OpenDSS source code is 
 \par available from the following SVN repository: 
 \par 
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/
+\par http://svn.code.sf.net/p/electricdss/code/trunk/
 \par 
 \par 
 \par Third-party Components
@@ -148,22 +149,19 @@
 \par 
 \par IEEE Test Cases
 \par 
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Distrib/IEEETestCases/
-\par 
-\par EPRI Test Circuits
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Distrib/EPRITestCircuits/
+\par http://svn.code.sf.net/p/electricdss/code/trunk/Version8/Distrib/IEEETestCases/
 \par 
 \par Source Code
 \par 
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Source/
+\par http://svn.code.sf.net/p/electricdss/code/trunk/Version8/Source/
 \par 
 \par Top level of Distribution area (Releases)
 \par 
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Distrib/
+\par http://svn.code.sf.net/p/electricdss/code/trunk/Distrib/
 \par 
 \par Examples
 \par 
-\par https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Distrib/Examples/
+\par http://svn.code.sf.net/p/electricdss/code/trunk/distrib/Examples/
 \par 
 \par License
 \par =======
@@ -173,6 +171,6 @@
 \par  1 - A file called "license.txt" distributed with the software,
 \par  2 - The user manual, and
 \par  3 - The executable program's Help/About dialog box
-\par 
+\par                                                                                                                                                                                                                                                                                                    
 \par }
  

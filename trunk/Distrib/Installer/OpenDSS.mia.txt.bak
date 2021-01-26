@@ -282,6 +282,7 @@ else
   else
     Create Folder $TARGETDIR$\x64
     Create Folder $TARGETDIR$\x86
+    Create Shortcut $SHORTCUTFOLDER$\COM Interface Help to https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Doc/COM_Interface_help/COM_interface_help.hnd
     Apply Install (get result into variable SUCCESS)
   end
   [compiler end]
