@@ -14,7 +14,7 @@
             <folderList>
                 <folder>
                     <description>Program Files</description>
-                    <destination>${installdir}</destination>
+                    <destination>${sharedir}</destination>
                     <name>programfiles</name>
                     <platforms>all</platforms>
                     <shortcutList>
@@ -36,7 +36,7 @@
                 </folder>
                 <folder>
                     <description>Program Files</description>
-                    <destination>/usr/local/bin</destination>
+                    <destination>${installdir}/bin</destination>
                     <name>programfileslinux</name>
                     <platforms>linux-x64</platforms>
                     <distributionFileList>
@@ -118,7 +118,7 @@
                 </folder>
                 <folder>
                     <description>Program Files</description>
-                    <destination>/usr/local/bin</destination>
+                    <destination>${installdir}/bin</destination>
                     <name>programfilesosx</name>
                     <platforms>osx</platforms>
                     <distributionFileList>
@@ -147,7 +147,7 @@
                 </folder>
                 <folder>
                     <description>Test Files</description>
-                    <destination>${installdir}/test</destination>
+                    <destination>${sharedir}/test</destination>
                     <name>testfiles</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -203,9 +203,9 @@
                 </folder>
                 <folder>
                     <description>Test Files</description>
-                    <destination>${installdir}/test</destination>
+                    <destination>${sharedir}/test</destination>
                     <name>testlinux</name>
-                    <platforms>linux</platforms>
+                    <platforms>linux-x64</platforms>
                     <distributionFileList>
                         <distributionFile>
                             <origin>Linux/Test/kill5570.sh</origin>
@@ -223,7 +223,7 @@
                 </folder>
                 <folder>
                     <description>Test Files</description>
-                    <destination>${installdir}/test</destination>
+                    <destination>${sharedir}/test</destination>
                     <name>testwindows</name>
                     <platforms>windows</platforms>
                     <distributionFileList>
@@ -249,7 +249,7 @@
                 </folder>
                 <folder>
                     <description>Test Files</description>
-                    <destination>${installdir}/test</destination>
+                    <destination>${sharedir}/test</destination>
                     <name>testmac</name>
                     <platforms>osx</platforms>
                     <distributionFileList>
@@ -295,7 +295,7 @@
                 </folder>
                 <folder>
                     <description>Library Files</description>
-                    <destination>/usr/local/lib</destination>
+                    <destination>${installdir}/lib</destination>
                     <name>libmac</name>
                     <platforms>osx</platforms>
                     <distributionFileList>
@@ -321,7 +321,7 @@
                 </folder>
                 <folder>
                     <description>Doc Files</description>
-                    <destination>${installdir}/doc</destination>
+                    <destination>${sharedir}/doc</destination>
                     <name>docfolder</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -341,7 +341,7 @@
                 </folder>
                 <folder>
                     <description>Tech Notes</description>
-                    <destination>${installdir}/doc/notes</destination>
+                    <destination>${sharedir}/doc/notes</destination>
                     <name>notesfolder</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -457,7 +457,7 @@
                 </folder>
                 <folder>
                     <description>IEEE Test Cases</description>
-                    <destination>${installdir}/examples/ieee</destination>
+                    <destination>${sharedir}/examples/ieee</destination>
                     <name>ieeefolder</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -468,7 +468,7 @@
                 </folder>
                 <folder>
                     <description>EPRI Test Cases</description>
-                    <destination>${installdir}/examples/epri</destination>
+                    <destination>${sharedir}/examples/epri</destination>
                     <name>eprifolder</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -479,7 +479,7 @@
                 </folder>
                 <folder>
                     <description>License Files</description>
-                    <destination>${installdir}</destination>
+                    <destination>${sharedir}</destination>
                     <name>readmefolder</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -506,6 +506,53 @@
             </startMenuShortcutList>
         </component>
     </componentList>
+    <readyToInstallActionList>
+        <setInstallerVariable>
+            <name>sharedir</name>
+            <value>${installdir}</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>installdir</name>
+            <value>/usr/local</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>sharedir</name>
+            <value>${installdir}/share/opendsscmd</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>installdir</name>
+            <value>/usr/local</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>sharedir</name>
+            <value>${installdir}/share/opendsscmd</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+    </readyToInstallActionList>
     <postInstallationActionList>
         <addDirectoryToPath>
             <insertAt>end</insertAt>
@@ -518,8 +565,8 @@
             </ruleList>
         </addDirectoryToPath>
         <createSymLink>
-            <linkName>/usr/local/bin/libfncs.so</linkName>
-            <target>/usr/local/bin/libfncs.so.1</target>
+            <linkName>/usr/local/lib/libfncs.so</linkName>
+            <target>/usr/local/lib/libfncs.so.1</target>
             <ruleList>
                 <platformTest>
                     <type>linux</type>
@@ -551,12 +598,17 @@
             <description>Installer.Parameter.installdir.description</description>
             <explanation>Installer.Parameter.installdir.explanation</explanation>
             <value></value>
-            <default>${user_home_directory}/${product_shortname}</default>
+            <default>c:\opendsscmd</default>
             <allowEmptyValue>0</allowEmptyValue>
             <cliOptionName>prefix</cliOptionName>
             <mustBeWritable>1</mustBeWritable>
             <mustExist>0</mustExist>
             <width>30</width>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
         </directoryParameter>
     </parameterList>
 </project>

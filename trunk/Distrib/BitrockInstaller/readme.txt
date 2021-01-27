@@ -22,22 +22,22 @@ On Linux and Mac OSX, the files will be installed as follows (no user choice at 
 
   Executables:     /usr/local/bin
   Libraries:       /usr/local/lib
-  Docs:            /usr/local/share/opendss/doc
-  Tech Notes:      /usr/local/share/opendss/doc/notes
-  Test Files:      /usr/local/share/opendss/test
-  EPRI Test Cases: /usr/local/share/opendss/examples/epri
-  IEEE Test Cases: /usr/local/share/opendss/examples/ieee
+  Docs:            /usr/local/share/opendsscmd/doc
+  Tech Notes:      /usr/local/share/opendsscmd/doc/notes
+  Test Files:      /usr/local/share/opendsscmd/test
+  EPRI Test Cases: /usr/local/share/opendsscmd/examples/epri
+  IEEE Test Cases: /usr/local/share/opendsscmd/examples/ieee
 
-On Windows, the files will be installed as follows, and c:\opendss is appended to the system path 
-(the user can change c:\opendss):
+On Windows, the files will be installed as follows, and c:\opendsscmd is appended to the system path 
+(the user can change c:\opendsscmd):
 
-  Executables:     c:\opendss
-  Libraries:       c:\opendss
-  Docs:            c:\opendss\doc
-  Tech Notes:      c:\opendss\doc\notes
-  Test Files:      c:\opendss\test
-  EPRI Test Cases: c:\opendss\examples\epri
-  IEEE Test Cases: c:\opendss\examples\ieee
+  Executables:     c:\opendsscmd
+  Libraries:       c:\opendsscmd
+  Docs:            c:\opendsscmd\doc
+  Tech Notes:      c:\opendsscmd\doc\notes
+  Test Files:      c:\opendsscmd\test
+  EPRI Test Cases: c:\opendsscmd\examples\epri
+  IEEE Test Cases: c:\opendsscmd\examples\ieee
 
 On all platforms, an uninstaller is provided one level above the Docs directory.
 
@@ -91,11 +91,11 @@ If you're unfamiliar with OpenDSS, the Doc files OpenDSSPrimer.pdf and OpenDSSMa
 To verify proper installation:
 
 1. Navigate to the test directory
-   a. On Windows, "cd c:\opendss\test"
+   a. On Windows, "cd c:\opendsscmd\test"
    b. On Linux or Mac OS X:
       i.   "mkdir work"
       ii.  "cd work"
-      iii. "cp /usr/local/share/opendss ."
+      iii. "cp /usr/local/share/opendsscmd ."
       iv.  "cd test"
 1. From the test directory, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
 2. From the test directory, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
