@@ -94,9 +94,8 @@ To verify proper installation:
    a. On Windows, "cd c:\opendsscmd\test"
    b. On Linux or Mac OS X:
       i.   "mkdir work"
-      ii.  "cd work"
-      iii. "cp /usr/local/share/opendsscmd ."
-      iv.  "cd test"
+      ii.  "cp -r /usr/local/share/opendsscmd/* work"
+      iii. "cd work/test"
 1. From the test directory, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
 2. From the test directory, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
 3. If you have FNCS installed, from install_dir/test invoke "test_fncs.bat" (on Windows) or "./test_fncs.sh" (on Linux or Mac OSX). This will play some basic commands to opendsscmd over FNCS on port 5570, and then exit. If something goes wrong here:
