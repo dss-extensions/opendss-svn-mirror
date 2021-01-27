@@ -20,17 +20,17 @@
                     <shortcutList>
                         <shortcut>
                             <comment>Uninstall</comment>
-                            <exec>${installdir}/${uninstallerName}</exec>
+                            <exec>${sharedir}/${uninstallerName}</exec>
                             <icon></icon>
                             <name>Uninstall ${product_fullname}</name>
-                            <path>${installdir}</path>
+                            <path>${sharedir}</path>
                             <platforms>all</platforms>
                             <runAsAdmin>0</runAsAdmin>
                             <runInTerminal>0</runInTerminal>
-                            <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                            <windowsExec>${sharedir}/${uninstallerName}.exe</windowsExec>
                             <windowsExecArgs></windowsExecArgs>
                             <windowsIcon></windowsIcon>
-                            <windowsPath>${installdir}</windowsPath>
+                            <windowsPath>${sharedir}</windowsPath>
                         </shortcut>
                     </shortcutList>
                 </folder>
@@ -306,9 +306,6 @@
                             <origin>../../../../Documents/macosx_executable/lib/liblinenoise.dylib</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/macosx_executable/lib/libfncs.1.dylib</origin>
-                        </distributionFile>
-                        <distributionFile>
                             <origin>../../../../Documents/macosx_executable/lib/libhelics-apps-shared.2.6.1.dylib</origin>
                         </distributionFile>
                         <distributionFile>
@@ -316,6 +313,9 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>../../../../Documents/macosx_executable/lib/libhelicsSharedLib.2.6.1.dylib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../../../../Documents/macosx_executable/lib/libfncs.dylib</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -591,6 +591,7 @@
     <requireInstallationByRootUser>1</requireInstallationByRootUser>
     <saveRelativePaths>1</saveRelativePaths>
     <startMenuGroupName>${product_shortname}</startMenuGroupName>
+    <uninstallerDirectory>${sharedir}</uninstallerDirectory>
     <vendor>Pacific Northwest National Laboratory</vendor>
     <parameterList>
         <directoryParameter>

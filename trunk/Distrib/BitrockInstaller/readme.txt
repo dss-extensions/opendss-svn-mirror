@@ -68,7 +68,7 @@ To install the support libraries on Centos 8:
 
 To install the support libraries on Mac OS X:
 
-  xcode-select –install
+  xcode-select --install
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   brew install zmq
   brew install czmq
