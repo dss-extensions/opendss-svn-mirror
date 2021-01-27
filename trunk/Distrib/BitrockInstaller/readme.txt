@@ -41,13 +41,42 @@ On Windows, the files will be installed as follows, and c:\opendss is appended t
 
 On all platforms, an uninstaller is provided one level above the Docs directory.
 
-** IMPORTANT ** on all platforms, FNCS, HELICS, ZeroMQ and CZMQ will be installed or updated (no user choice at this time).
+FNCS and HELICS
+===============
 
+On all platforms, FNCS and HELICS will be installed or updated (no user choice at this time).
+
+On Windows, the communication libraries ZeroMQ and CZMQ are also installed to support FNCS
+and HELICS. These local copies won't interfere with other software on the computer.
+
+On Linux or Mac OS X, you may have to install ZeroMQ and CZMQ yourself, following examples
+provided below. Without those libraries, you may see "FNCS not available" and/or
+"HELICS not available" from the opendsscmd prompt, but in all other respects the program is 
+fully functional.
+
+To install the support libraries on Ubuntu 20.04 LTS:
+
+  sudo apt-get update
+  sudo apt-get -y install libzmq5-dev
+  sudo apt-get -y install libczmq-dev
+
+To install the support libraries on Centos 8:
+
+  sudo dnf update -y
+  sudo dnf install zeromq-devel -y
+  sudo dnf install czmq-devel -y
+
+To install the support libraries on Mac OS X:
+
+  xcode-select –install
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew install zmq
+  brew install czmq
 
 Quick Start
 ===========
 
-If you're unfamiliar with OpenDSS, the doc files OpenDSSPrimer.pdf and OpenDSSManual.pdf to learn about its modeling and analysis features.  However, none of the COM automation or plotting features are supported in opendsscmd. To run any of the non-graphical commands:
+If you're unfamiliar with OpenDSS, the Doc files OpenDSSPrimer.pdf and OpenDSSManual.pdf to learn about its modeling and analysis features.  However, none of the COM automation or plotting features are supported in opendsscmd. To run any of the non-graphical commands:
 
 1. Enter "opendsscmd" from a command prompt
     a. The program's >> prompt will appear. Enter any OpenDSS command(s) from this prompt
@@ -61,8 +90,15 @@ If you're unfamiliar with OpenDSS, the doc files OpenDSSPrimer.pdf and OpenDSSMa
 
 To verify proper installation:
 
-1. From install_dir/test, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
-2. From install_dir/test, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
+1. Navigate to the test directory
+   a. On Windows, "cd c:\opendss\test"
+   b. On Linux or Mac OS X:
+      i.   "mkdir work"
+      ii.  "cd work"
+      iii. "cp /usr/local/share/opendss ."
+      iv.  "cd test"
+1. From the test directory, invoke "opendsscmd", and then "redirect IEEE13Nodeckt.dss". A list of solved node voltages should appear in your system's default test editor. Enter "quit" to leave opendsscmd
+2. From the test directory, invoke "opendsscmd export_test.dss". This should create a Common Information Model (CIM) export of the IEEE 13-bus feeder.
 3. If you have FNCS installed, from install_dir/test invoke "test_fncs.bat" (on Windows) or "./test_fncs.sh" (on Linux or Mac OSX). This will play some basic commands to opendsscmd over FNCS on port 5570, and then exit. If something goes wrong here:
    a. To list processes using port 5570, use "list5570.bat" on Windows or "lsof -i tcp:5570" on Linux/Mac
    b. To kill all processes using port 5570, use "kill5570.bat" on Windows or "kill5570.sh" on Linux/Mac
@@ -130,7 +166,7 @@ OpenDSS source code is available from the following SVN repository:
 
 http://svn.code.sf.net/p/electricdss/code/trunk/
 
-The opendsscmd version requires Lazarus/Free Pascal to build. Some of the supporting modules may require a C++ compiler to build from source. See install_dir/Doc/OpenDSS_FPC_Build.pdf for directions.
+The opendsscmd version requires Lazarus/Free Pascal to build. Some of the supporting modules may require a C++ compiler to build from source. See the Doc file OpenDSS_FPC_Build.pdf for directions.
 
 Third-party Components
 ======================
