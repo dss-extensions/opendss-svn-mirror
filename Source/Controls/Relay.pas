@@ -142,7 +142,7 @@ type
 
         cBuffer: pComplexArray;    // Complexarray buffer
 
-        procedure InterpretRelayAction(const Action: String);
+        procedure InterpretRelayAction(ActorID: Integer; const Action: String);
         procedure InterpretRelayType(const S: String);
 
         procedure OvercurrentLogic(ActorID: Integer);
@@ -421,7 +421,7 @@ begin
                     18:
                         Breaker_time := Parser[ActorID].DblValue;
                     19:
-                        InterpretRelayAction(Param);
+                        InterpretRelayAction(ActorID, Param);
                     20:
                         MonitorVariable := lowercase(param);  // for pc elements
                     21:
@@ -858,8 +858,11 @@ end;
 {--------------------------------------------------------------------------}
 
 
-procedure TRelayObj.InterpretRelayAction(const Action: String);
+procedure TRelayObj.InterpretRelayAction(ActorID: Integer; const Action: String);
 begin
+
+    if ControlledElement = nil then
+        RecalcElementData(ActorID);  // In case action is performed at obj definition
 
     if ControlledElement <> nil then
     begin

@@ -68,7 +68,7 @@ type
         CondOffset: Integer; // Offset for monitored terminal
         cBuffer: pComplexArray;    // Complexarray buffer
 
-        procedure InterpretFuseAction(const Action: String);
+        procedure InterpretFuseAction(ActorID: Integer; const Action: String);
 
     PUBLIC
 
@@ -269,7 +269,7 @@ begin
                 7:
                     DelayTime := Parser[ActorID].DblValue;
                 8:
-                    InterpretFuseAction(Param);
+                    InterpretFuseAction(ActorID, Param);
 
             else
            // Inherited parameters
@@ -522,8 +522,11 @@ end;
 {--------------------------------------------------------------------------}
 
 
-procedure TFuseObj.InterpretFuseAction(const Action: String);
+procedure TFuseObj.InterpretFuseAction(ActorID: Integer; const Action: String);
 begin
+
+    if ControlledElement = nil then
+        RecalcElementData(ActorID);  // In case action is performed at obj definition
 
     if ControlledElement <> nil then
     begin

@@ -85,7 +85,7 @@ type
 
         cBuffer: pComplexArray;    // Complexarray buffer
 
-        procedure InterpretRecloserAction(const Action: String);
+        procedure InterpretRecloserAction(ActorID: Integer; const Action: String);
 
     PUBLIC
 
@@ -351,7 +351,7 @@ begin
                 17:
                     DelayTime := Parser[ActorID].DblValue;
                 18:
-                    InterpretRecloserAction(Param);
+                    InterpretRecloserAction(ActorID, Param);
                 19:
                     TDPhFast := Parser[ActorID].DblValue;
                 20:
@@ -706,8 +706,11 @@ end;
 {--------------------------------------------------------------------------}
 
 
-procedure TRecloserObj.InterpretRecloserAction(const Action: String);
+procedure TRecloserObj.InterpretRecloserAction(ActorID: Integer; const Action: String);
 begin
+
+    if ControlledElement = nil then
+        RecalcElementData(ActorID);  // In case action is performed at obj definition
 
     if ControlledElement <> nil then
     begin
