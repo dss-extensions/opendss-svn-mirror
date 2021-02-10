@@ -43,6 +43,8 @@ function Draw_line_GIS(): String;
 function Zoom_area_GIS(): String;
 function GISPlotfile(myPath: String): String;
 function show_LatLong(): String;
+function GISPlotPoints(myPath: String): String;
+function GISPlotPoint(const myShape: String): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -887,6 +889,97 @@ begin
         else
             result := 'OpenDSS-GIS is not installed or initialized'
     end;
+end;
+
+{*******************************************************************************
+*     Commands OpenDSS-GIS to draw the points within a file over the map       *
+*******************************************************************************}
+function GISPlotPoints(myPath: String): String;
+var
+    TxtRow,
+    myBus: String;
+    k: Integer;
+    F: TextFile;
+    InMsg,
+    TempStr,
+    JSONCmd: String;
+    TCPJSON: TdJSON;
+
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        if IsGISON then
+        begin
+            JSONCmd := '{"command":"plotpoints","path":"' +
+                myPath + '"}';
+      // Sends the command to OpenDSS-GIS
+            try
+                GISTCPClient.IOHandler.WriteLn(JSONCmd);
+                InMsg := GISTCPClient.IOHandler.ReadLn(#10, 5000);
+                TCPJSON := TdJSON.Parse(InMsg);
+                TempStr := TCPJSON['plotpoints'].AsString;
+                Result := TempStr;
+            except
+                on E: Exception do
+                begin
+                    IsGISON := false;
+                    Result := 'Error while communicating to OpenDSS-GIS';
+                end;
+            end;
+        end
+        else
+            result := 'OpenDSS-GIS is not installed or initialized'
+    end;
+end;
+
+{*******************************************************************************
+*         Commands OpenDSS-GIS to draw a marker at specific coordinates        *
+*******************************************************************************}
+function GISPlotPoint(const myShape: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode,
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+
+begin
+    if IsGISON then
+    begin
+        case myShape[1] of            // Parse the shape specified
+            'c':
+                myShpCode := 0;
+            '+':
+                myShpCode := 1;
+            'd':
+                myShpCode := 2;
+            's':
+                myShpCode := 3;
+            't':
+                myShpCode := 4;
+            'x':
+                myShpCode := 5;
+        end;
+        InMsg := '{"command":"plotpoint","coords":{"long":' + floattostr(GISCoords^[1]) + ',"lat":' + floattostr(GISCoords^[2]) +
+            '},"color":"' + GISColor +
+            '","thickness":' + GISThickness + ',"shape":' + inttostr(myShpCode) + '}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['plotpoint'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
 {*******************************************************************************
