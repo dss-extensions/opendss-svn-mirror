@@ -1039,7 +1039,7 @@ begin
                 '7':
                     ControlType := NEGVOLTAGE;
             end;
-        '8':
+        'g':
             ControlType := GENERIC ;
     else
         ControlType := CURRENT;
@@ -1055,7 +1055,7 @@ begin
             Delay_Time := 0.1;
         '4':
             Delay_Time := 0.1;
-        '8':
+        'g':
             Delay_Time := 0.1;
     else
         Delay_Time := 0.0;
