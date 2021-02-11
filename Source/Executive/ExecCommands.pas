@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 151;
+    NumExecCommands = 155;
 
 var
 
@@ -213,6 +213,10 @@ begin
     ExecCommand[149] := 'COMHelp';
     ExecCommand[150] := 'GISPlotPoints';
     ExecCommand[151] := 'GISPlotPoint';
+    ExecCommand[152] := 'GISLoadBus';
+    ExecCommand[153] := 'GISShowCoords';
+    ExecCommand[154] := 'GISFormat';
+    ExecCommand[155] := 'GISBatchFormat';
 
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
@@ -723,6 +727,38 @@ begin
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
+    CommandHelp[152] := 'Uploads the coordinates of the bus specified in the argument to the coordinates buffer by pushing the previous down.' +
+        ' The coordinates buffer has 4 positions, the coordinates of the bus specified will be at the first 2 positions.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    CommandHelp[153] := 'Returns the content of the coordinates buffer.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    CommandHelp[154] := 'Formats the coordinates located at the first 2 places of the coordiantes buffer. The first argument indicates ' +
+        'the original format and the second argument the destination format. The format can be one of the following:' + CRLF + CRLF +
+        '- LatLong (latitude, Longitude - WGS84))' + CRLF +
+        '- DMS (Degrees, minutes, seconds) ' + CRLF +
+        '- UTM (Universal Transverse Mercator)' + CRLF +
+        '- USNG' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    CommandHelp[155] := 'Formats the coordinates within the file specified. The first argument indicates ' +
+        'the original format and the second argument the destination format. The third argument is the path to the source file' +
+        ' containing the coordinates, which should be organized in 2 columns comma separated. The format can be one of the following:' + CRLF + CRLF +
+        '- LatLong (latitude, Longitude - WGS84))' + CRLF +
+        '- DMS (Degrees, minutes, seconds) ' + CRLF +
+        '- UTM (Universal Transverse Mercator)' + CRLF +
+        '- USNG' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
 end;
 
 //----------------------------------------------------------------------------
@@ -731,6 +767,8 @@ var
     ParamPointer,
     Temp_int,
     i: Integer;
+    formatFrom,
+    formatto,
     ParamName,
     Param,
     ObjName,
@@ -1276,6 +1314,33 @@ begin
             begin
                 Parser[ActiveActor].NextParam;
                 GlobalResult := GISPlotPoint(lowercase(Parser[ActiveActor].StrValue));
+            end;
+            152:
+            begin
+                Parser[ActiveActor].NextParam;
+                GlobalResult := GISLoadBus(lowercase(Parser[ActiveActor].StrValue));
+            end;
+            153:
+            begin
+                GlobalResult := GISShowBuffer();
+            end;
+            154:
+            begin
+                Parser[ActiveActor].NextParam;
+                FormatFrom := lowercase(Parser[ActiveActor].StrValue);
+                Parser[ActiveActor].NextParam;
+                FormatTo := lowercase(Parser[ActiveActor].StrValue);
+                Parser[ActiveActor].NextParam;
+                GlobalResult := GISFormat(FormatFrom, FormatTo, Parser[ActiveActor].StrValue);
+            end;
+            155:
+            begin
+                Parser[ActiveActor].NextParam;
+                FormatFrom := lowercase(Parser[ActiveActor].StrValue);
+                Parser[ActiveActor].NextParam;
+                FormatTo := lowercase(Parser[ActiveActor].StrValue);
+                Parser[ActiveActor].NextParam;
+                GlobalResult := GISBatchFormat(FormatFrom, FormatTo, Parser[ActiveActor].StrValue);
             end
         else
        // Ignore excess parameters
