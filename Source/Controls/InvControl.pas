@@ -4536,6 +4536,7 @@ end;
 procedure TInvControlObj.CalcQWVcurve_desiredpu(j: Integer; ActorID: Integer);
 var
     voltagechangesolution: Double;
+    Pbase: Double;
 
 
 begin
@@ -4555,7 +4556,9 @@ begin
     if (FVpuSolutionIdx = 2) then
         voltagechangesolution := FVpuSolution[j, 2] - FVpuSolution[j, 1];
 
-    QDesireWVpu[j] := Fwattvar_curve.GetYValue(FDCkW[j] * FEffFactor[j] * FpctDCkWRated[j] / FDCkWRated[j]);
+    Pbase := Min(FkVARating[j], FDCkWRated[j]); // Should include DC-to-AC and kW-to-KVA ratios to avoid to quick fix like this
+
+    QDesireWVpu[j] := Fwattvar_curve.GetYValue(FDCkW[j] * FEffFactor[j] * FpctDCkWRated[j] / Pbase);
 
 end;
 
@@ -4668,6 +4671,7 @@ var
     p: Double;
     pf_priority: Boolean;
     QDesiredWP: Double;
+    // Pbase                                    :Double;
 
 begin
 
@@ -4685,6 +4689,8 @@ begin
     else
     if (FVpuSolutionIdx = 2) then
         voltagechangesolution := FVpuSolution[j, 2] - FVpuSolution[j, 1];
+
+    // Pbase = Min(FpctDCkWRated[j] / FDCkWRated[j], FkVARating[j])
 
     pf_wp_nominal := Fwattpf_curve.GetYValue(FDCkW[j] * FEffFactor[j] * FpctDCkWRated[j] / FDCkWRated[j]);
 
