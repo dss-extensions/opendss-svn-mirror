@@ -350,7 +350,7 @@ type
       // do the action that is pending from last sample
         procedure DoPendingAction(const Code, ProxyHdl: Integer; ActorID: Integer); OVERRIDE;
 
-        procedure Reset; OVERRIDE;  // Reset to initial defined state
+        procedure Reset(ActorID: Integer); OVERRIDE;  // Reset to initial defined state
 
         procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE; // Get present value of terminal Curr
         procedure GetInjCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;   // Returns Injection currents
