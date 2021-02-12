@@ -1801,7 +1801,7 @@ begin
         while ControlDevice <> nil do
         begin
             if ControlDevice.Enabled then
-                ControlDevice.Reset;
+                ControlDevice.Reset(ActiveActor);
             ControlDevice := DSSControls.Next;
         end;
     end;  {End With}

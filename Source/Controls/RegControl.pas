@@ -142,7 +142,7 @@ type
 
         procedure Sample(ActorID: Integer); OVERRIDE;    // Sample control quantities and set action times in Control Queue
         procedure DoPendingAction(const Code, ProxyHdl: Integer; ActorID: Integer); OVERRIDE;   // Do the action that is pending from last sample
-        procedure Reset; OVERRIDE;  // Reset to initial defined state
+        procedure Reset(ActorID: Integer); OVERRIDE;  // Reset to initial defined state
 
 
         procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE; // Get present value of terminal Curr
@@ -477,7 +477,7 @@ begin
                 29:
                     if InterpretYesNo(Param) then
                     begin  // force a reset
-                        Reset;
+                        Reset(ActorID);
                         PropertyValue[29] := 'n'; // so it gets reported properly
                     end;
                 30:

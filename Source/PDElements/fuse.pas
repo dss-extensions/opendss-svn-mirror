@@ -87,7 +87,7 @@ type
 
         procedure Sample(ActorID: Integer); OVERRIDE;    // Sample control quantities and set action times in Control Queue
         procedure DoPendingAction(const Phs, ProxyHdl: Integer; ActorID: Integer); OVERRIDE;   // Do the action that is pending from last sample
-        procedure Reset; OVERRIDE;  // Reset to initial defined state
+        procedure Reset(ActorID: Integer); OVERRIDE;  // Reset to initial defined state
 
 
         procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE; // Get present value of terminal Curr

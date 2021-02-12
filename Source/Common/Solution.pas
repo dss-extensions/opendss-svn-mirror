@@ -562,7 +562,6 @@ end;
 // ===========================================================================================
 destructor TSolutionObj.Destroy;
 begin
-
     Reallocmem(AuxCurrents, 0);
     Reallocmem(Currents, 0);
     Reallocmem(dV, 0);
@@ -729,9 +728,11 @@ function TSolutionObj.Converged(ActorID: Integer): Boolean;
 var
     i: Integer;
     VMag: Double;
+
 begin
 
 // base convergence on voltage magnitude
+
     MaxError := 0.0;
     for i := 1 to ActiveCircuit[ActorID].NumNodes do
     begin
@@ -750,7 +751,6 @@ begin
         MaxError := Max(MaxError, ErrorSaved^[i]);  // update max error
 
     end;
-
 
     {$IFDEF debugtrace}
               Assignfile(Fdebug, 'Debugtrace.csv');
@@ -783,7 +783,6 @@ begin
         Result := true
     else
         Result := false;
-
 
     ConvergedFlag := Result;
 end;
@@ -1346,6 +1345,7 @@ end;
 
 function TSolutionObj.SolveCircuit(ActorID: Integer): Integer;
 begin
+
     Result := 0;
     if LoadModel = ADMITTANCE then
     try
@@ -2160,6 +2160,7 @@ begin
                 if not ControlQueue.DoMultiRate(DynaVars.intHour, DynaVars.t, ActorID) then
                     ControlActionsDone := true;
             end;
+
         end;
     end;
 
@@ -2242,6 +2243,7 @@ begin
     SolutionInitialized := false;   // reinitialize solution when mode set (except dynamics)
     PreserveNodeVoltages := false;  // don't do this unless we have to
     SampleTheMeters := false;
+
    // Reset defaults for solution modes
     case Dynavars.SolutionMode of
 

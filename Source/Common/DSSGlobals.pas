@@ -88,11 +88,11 @@ uses
 const
     CRLF = sLineBreak; // cross-platform
 
-    PI = 3.14159265359;
+    PI = system.Pi;
 
     TwoPi = 2.0 * PI;
 
-    RadiansToDegrees = 57.29577951;
+    RadiansToDegrees = 180.0 / PI;
 
     EPSILON = 1.0e-12;   // Default tiny floating point
     EPSILON2 = 1.0e-3;   // Default for Real number mismatch testing
@@ -184,6 +184,7 @@ var
     ActiveDSSClass: array of TDSSClass;
     LastClassReferenced: array of Integer;  // index of class of last thing edited
     ActiveDSSObject: array of TDSSObject;
+    NumCircuits: Integer;
     MaxCircuits: Integer;
     MaxBusLimit: Integer; // Set in Validation
     MaxAllocationIterations: Integer;
@@ -874,7 +875,6 @@ begin
     CloseFile(DLLDebugFile);
 
 end;
-
 
 {$IFDEF UNIX}
 function IsDirectoryWritable(const Dir: String): Boolean;
