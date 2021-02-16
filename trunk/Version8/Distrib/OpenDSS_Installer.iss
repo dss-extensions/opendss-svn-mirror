@@ -26,10 +26,11 @@ ArchitecturesInstallIn64BitMode=x64
 Source: "x64\*"; DestDir: "{app}\x64"; Check: InstallX64
 Source: "x86\*"; DestDir: "{app}\x86"; Check: InstallX64
 Source: "x64\OpenDSSEngine.dll"; DestDir: "{app}\x64"; Flags: onlyifdoesntexist regserver 64bit; Check: InstallX64
+Source: "x86\OpenDSSEngine.dll"; DestDir: "{app}\x86"; Flags: onlyifdoesntexist regserver 32bit; Check: InstallX64
 
 ; 32 bit version, first one should be marked 'solidbreak'
-Source: "x86\*"; DestDir: "{app}\x64"; Check: InstallOtherArch; Flags: solidbreak
-Source: "x86\OpenDSSEngine.dll"; DestDir: "{app}\x64"; Flags: onlyifdoesntexist regserver 32bit solidbreak;
+Source: "x86\*"; DestDir: "{app}\x64"; Check: InstallOtherArch; Flags: solidbreak; 
+Source: "x86\OpenDSSEngine.dll"; DestDir: "{app}\x64"; Check: InstallOtherArch; Flags: onlyifdoesntexist regserver 32bit 
 
 ; Common files
 Source: "Readme.txt"; DestDir: "{app}"; Flags: isreadme
@@ -41,7 +42,7 @@ Source: "EPRITestCircuits\*"; DestDir: "{app}\EPRITestCircuits"; Flags: solidbre
 
 [Icons]
 Name: "{group}\OpenDSS"; Filename: "{app}\x64\OpenDSS.exe"; WorkingDir: "{app}"
-Name: "{group}\User Manual"; Filename: "{app}\x64\OpenDSSManual.pdf"; WorkingDir: "{app}"
+Name: "{group}\User Manual"; Filename: "{app}\Doc\OpenDSSManual.pdf"; WorkingDir: "{app}"
 
 
 
