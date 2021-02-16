@@ -40,7 +40,7 @@ type
         destructor Destroy; OVERRIDE;
 
         procedure DoPendingAction(const Code, ProxyHdl: Integer; ActorID: Integer); OVERRIDE;   // Do the action that is pending from last sample
-        procedure Reset; OVERRIDE;  // Reset to initial defined state
+        procedure Reset(ActorID: Integer); OVERRIDE;  // Reset to initial defined state
     end;
 
 

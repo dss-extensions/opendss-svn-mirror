@@ -227,7 +227,7 @@ begin
             dssActionClose:
                 elem.CurrentAction := CTRL_CLOSE;
             dssActionReset:
-                elem.Reset;
+                elem.Reset(ActiveActor);
             dssActionLock:
                 elem.Locked := true;
             dssActionUnlock:
@@ -393,7 +393,7 @@ begin
     if elem <> nil then
     begin
         elem.Locked := false;
-        elem.Reset;
+        elem.Reset(ActiveActor);
     end;
 end;
 

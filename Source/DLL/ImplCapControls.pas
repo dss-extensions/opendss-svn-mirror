@@ -465,7 +465,7 @@ begin
     elem := ActiveCapControl;
     if elem <> nil then
     begin
-        elem.Reset;
+        elem.Reset(ActiveActor);
     end;
 
 end;

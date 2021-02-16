@@ -315,7 +315,7 @@ var
 begin
     elem := FuseClass.GetActiveObj;
     if elem <> nil then
-        elem.Reset;
+        elem.Reset(ActiveActor);
 end;
 
 procedure TFuses.Set_Delay(Value: Double);
