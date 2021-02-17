@@ -47,17 +47,20 @@ type
         Ffilter: TXYcurveObj;
         Ffilter_name: String;
         BaseCurr: Double; // line current at Ppct
+        BaseVolt: Double; // line-to-neutral voltage at Vrated
         FsampleFreq: Double; // discretization frequency for Z filter
         Fwinlen: Integer;
         Ffiltlen: Integer;
         Irated: Double; // line current at full output
         Fkv: Double; // scale voltage to HW pu input
         Fki: Double; // scale HW pu output to current
+
         FrmsMode: Boolean; // indicates a phasor-domain PLL simulation
         FmaxIpu: Double; // maximum RMS current in per-unit of rated
         FvrmsTau: Double; // LPF time constant sensing Vrms
         FirmsTau: Double; // LPF time constant producing Irms
 
+        // Support for Dynamics Mode - PU of BaseVolt and BaseCurr
         // state variables for Dynamics Mode
         s1: Double; // Vwave(t), or Vrms in phasor mode
         s2: Double; // Iwave(t), or Ipwr in phasor mode
@@ -65,7 +68,6 @@ type
         s4: Double; // Ipeak,    or Irms in phasor mode
         s5: Double; // BP1out,   or NA in phasor mode
         s6: Double; // Hout,     or NA in phasor mode
-
 
         vlast: complex;
         y2: pDoubleArray;
@@ -408,14 +410,17 @@ begin
     begin
         DoSimpleMsg('Spectrum Object "' + Spectrum + '" for Device VCCS.' + Name + ' Not Found.', 333);
     end;
-
     Reallocmem(InjCurrent, SizeOf(InjCurrent^[1]) * Yorder);
 
     Irated := Prated / Vrated / FNphases;
+    BaseVolt := Vrated;
     if FNPhases = 3 then
+    begin
         Irated := Irated * sqrt(3);
+        BaseVolt := BaseVolt / sqrt(3);
+    end;
     BaseCurr := 0.01 * Ppct * Irated;
-    Fkv := 1.0 / Vrated / sqrt(2.0);
+    Fkv := 1.0 / BaseVolt / sqrt(2.0);
     Fki := BaseCurr * sqrt(2.0);
 
     if Length(Ffilter_name) > 0 then
@@ -428,7 +433,6 @@ begin
         Reallocmem(wlast, sizeof(wlast^[1]) * Ffiltlen);
         Reallocmem(zlast, sizeof(zlast^[1]) * Ffiltlen);
     end;
-
 end;
 
 procedure TVCCSObj.CalcYPrim(ActorID: Integer);
@@ -564,13 +568,13 @@ var
     i, k: Integer;
 begin
     ComputeIterminal(ActorID);
-    s1 := cabs(Vterminal^[1]) / Vrated;
+    s1 := cabs(Vterminal^[1]) / BaseVolt;
     s4 := cabs(Iterminal^[1]) / BaseCurr;
     s2 := s4;
     s3 := s4;
     s5 := 0;
     s6 := 0;
-    vlast := cdivreal(Vterminal^[1], Vrated);
+    vlast := cdivreal(Vterminal^[1], BaseVolt);
 
   // initialize the history terms for HW model source convention
     for i := 1 to Ffiltlen do
@@ -609,13 +613,13 @@ begin
     ComputeIterminal(ActorID);
     iang := cang(Iterminal^[1]);
     vang := cang(Vterminal^[1]);
-    s1 := cabs(Vterminal^[1]) / Vrated;
+    s1 := cabs(Vterminal^[1]) / BaseVolt;
     s3 := cabs(Iterminal^[1]) / BaseCurr;
     s2 := s3;
     s4 := s3;
     s5 := 0;
     s6 := 0;
-    vlast := cdivreal(Vterminal^[1], Vrated);
+    vlast := cdivreal(Vterminal^[1], BaseVolt);
 
   // initialize the history terms for HW model source convention
     d := 1 / FsampleFreq;
@@ -651,7 +655,7 @@ var
     iu, i, k, nstep, corrector: Integer;
 begin
     ComputeIterminal(ActorID);
-    vpu := cabs(Vterminal^[1]) / Vrated;
+    vpu := cabs(Vterminal^[1]) / BaseVolt;
     if vpu > 0.0 then
     begin
         h := ActiveSolutionObj.DynaVars.h;
@@ -731,7 +735,7 @@ begin
     nstep := trunc(1e-6 + h / d);
     w := 2 * Pi * f;
 
-    vnow := cdivreal(Vterminal^[1], Vrated);
+    vnow := cdivreal(Vterminal^[1], BaseVolt);
     vin := 0;
     y := 0;
     iu := sIdxU;
@@ -864,7 +868,6 @@ begin
             Result := s6;
     end;
 end;
-
 
 procedure TVCCSObj.Set_Variable(i: Integer; Value: Double);
 begin
