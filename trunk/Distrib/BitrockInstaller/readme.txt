@@ -155,6 +155,7 @@ Change Log
 1.2.17 - links with HELICS, includes three HELICS examples
        - Distance (21) and incremental distance (TD21) types added to Relay
        - fix voltage base for 3-phase VCCS in RMS mode
+       - VCCS will cease to inject current when a terminal opens, e.g., by a Relay
 
 Open Issues
 ===========
