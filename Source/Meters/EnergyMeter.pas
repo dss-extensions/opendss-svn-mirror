@@ -850,8 +850,7 @@ begin
         for i := 1 to EnergyMeters.ListSize do
         begin
             mtr := EnergyMeters.Get(i);
-            if Mtr.Enabled then
-                mtr.MakeMeterZoneLists(ActorID);
+            mtr.MakeMeterZoneLists(ActorID);
         end;
 
         FreeAndNilBusAdjacencyLists(BusAdjPD, BusAdjPC);
@@ -1871,7 +1870,7 @@ begin
     begin
         ThisMeter := ActiveCircuit[ActorID].EnergyMeters.Get(i);
         with ThisMeter do
-            if MeteredElement <> nil then
+            if Enabled and (MeteredElement <> nil) then
                 MeteredElement.HasEnergyMeter := true;
     end;   {FOR}
 end;
@@ -1905,10 +1904,19 @@ begin
     for j := 1 to MaxVBaseCount do
         VBaseList^[j] := 0.0;
 
-  // Make a new branch list
     if BranchList <> nil then
         BranchList.Free;
-    BranchList := TCktTree.Create;     {Instantiates ZoneEndsList, too}
+
+    if Enabled then
+    begin
+    // Make a new branch list
+        BranchList := TCktTree.Create;     {Instantiates ZoneEndsList, too}
+    end
+    else
+    begin
+        BranchList := nil;
+        Exit;
+    end;
 
   // Get Started
     if Assigned(MeteredElement) then

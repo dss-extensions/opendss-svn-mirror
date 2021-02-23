@@ -803,6 +803,7 @@ begin
     ActiveColorIdx := 0; { Nextcolor does an Inc() }
     while hMeter > 0 do
     begin
+
         if (Length(ObjectName) > 0) then // look for a specific object {Else Draw Them All}
             if CompareText(ObjectName, ActiveDSSObject[ActiveActor].Name) <> 0 then
             begin
@@ -811,6 +812,12 @@ begin
             end;
 
         pMeter := TEnergyMeterObj(ActiveDSSObject[ActiveActor]);
+
+        if not pMeter.Enabled then // skip disabled energymeters
+        begin
+            hMeter := EnergyMeterClass[ActiveActor].Next;
+            continue;
+        end;
 
         FeederName := pMeter.Name;
 
