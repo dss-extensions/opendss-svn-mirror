@@ -1657,21 +1657,20 @@ finalization
 
     for ActiveActor := 1 to NumOfActors do
     begin
+
+        with DSSExecutive[ActiveActor] do
+            if RecorderOn then
+                Recorderon := false;
+
+        DSSExecutive[ActiveActor].Free;  {Writes to Registry}
+        DSS_Registry.Free;  {Close Registry}
+
+        EventStrings[ActiveActor].Free;
+        SavedFileList[ActiveActor].Free;
+        ErrorStrings[ActiveActor].Free;
         if ActorHandle[ActiveActor] <> nil then
-        begin
-            with DSSExecutive[ActiveActor] do
-                if RecorderOn then
-                    Recorderon := false;
-
-            DSSExecutive[ActiveActor].Free;  {Writes to Registry}
-            DSS_Registry.Free;  {Close Registry}
-
-            EventStrings[ActiveActor].Free;
-            SavedFileList[ActiveActor].Free;
-            ErrorStrings[ActiveActor].Free;
             ActorHandle[ActiveActor].Free;
-            Auxparser[ActiveActor].Free;
-        end;
+        Auxparser[ActiveActor].Free;
     end;
 
 end.
