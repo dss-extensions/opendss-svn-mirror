@@ -74,18 +74,24 @@ type
         TDGrFast,
         TDPhFast: Double;
 
-        PresentState: EControlAction;
+        FPresentState,
+        FNormalState: EControlAction;
 
         OperationCount: Integer;
 
         LockedOut,
-        ArmedForClose, ArmedForOpen, GroundTarget, PhaseTarget: Boolean;
+        ArmedForClose, ArmedForOpen, GroundTarget, PhaseTarget,
+        NormalStateSet: Boolean;
 
         CondOffset: Integer; // Offset for monitored terminal
 
         cBuffer: pComplexArray;    // Complexarray buffer
 
-        procedure InterpretRecloserAction(ActorID: Integer; const Action: String);
+        procedure InterpretRecloserState(ActorID: Integer; const Action: String; const property_name: String);
+        function get_State: EControlAction;
+        procedure set_State(const Value: EControlAction);
+        function get_NormalState: EControlAction;
+        procedure set_NormalState(const Value: EControlAction);
 
     PUBLIC
 
@@ -119,6 +125,10 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
 
+        property PresentState: EControlAction READ get_State WRITE set_State;
+        property NormalState: EControlAction READ get_NormalState WRITE set_NormalState;
+
+
     end;
 
 
@@ -141,7 +151,7 @@ uses
 
 const
 
-    NumPropsThisClass = 22;
+    NumPropsThisClass = 24;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -221,6 +231,8 @@ begin
     PropertyName[20] := 'TDGrFast';
     PropertyName[21] := 'TDPhDelayed';
     PropertyName[22] := 'TDGrDelayed';
+    PropertyName[23] := 'Normal';
+    PropertyName[24] := 'State';
 
     PropertyHelp[1] := 'Full object name of the circuit element, typically a line, transformer, load, or generator, ' +
         'to which the Recloser''s PT and/or CT are connected.' +
@@ -256,13 +268,16 @@ begin
     PropertyHelp[16] := 'Array of reclose intervals.  Default for Recloser is (0.5, 2.0, 2.0) seconds. ' +
         'A locked out Recloser must be closed manually (action=close).';
     PropertyHelp[17] := 'Fixed delay time (sec) added to Recloser trip time. Default is 0.0. Used to represent breaker time or any other delay.';
-    PropertyHelp[18] := '{Trip/Open | Close}  Action that overrides the Recloser control. Simulates manual control on recloser ' +
-        '"Trip" or "Open" causes the controlled element to open and lock out. ' +
-        '"Close" causes the controlled element to close and the Recloser to reset to its first operation.';
+    PropertyHelp[18] := 'DEPRECATED. See "State" property';
     PropertyHelp[19] := 'Time dial for Phase Fast trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp[20] := 'Time dial for Ground Fast trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp[21] := 'Time dial for Phase Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp[22] := 'Time dial for Ground Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
+    PropertyHelp[23] := '{Open | Closed} Normal state of the recloser. The recloser reverts to this state for reset, change of mode, etc. ' +
+        'Defaults to "State" if not specificallt declared.';
+    PropertyHelp[24] := '{Open | Closed} Actual state of the recloser. Upon setting, immediately forces state of the recloser, overriding the Recloser control. ' +
+        'Simulates manual control on recloser. Defaults to Closed. "Open" causes the controlled element to open and lock out. "Closed" causes the ' +
+        'controlled element to close and the recloser to reset to its first operation.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -350,8 +365,6 @@ begin
                     NumReclose := Parser[ActorID].ParseAsVector(4, RecloseIntervals);   // max of 4 allowed
                 17:
                     DelayTime := Parser[ActorID].DblValue;
-                18:
-                    InterpretRecloserAction(ActorID, Param);
                 19:
                     TDPhFast := Parser[ActorID].DblValue;
                 20:
@@ -360,6 +373,14 @@ begin
                     TDPhDelayed := Parser[ActorID].DblValue;
                 22:
                     TDGrDelayed := Parser[ActorID].DblValue;
+                23:
+                begin
+                    InterpretRecloserState(ActorID, Param, ParamName);   // set normal state
+                    if not NormalStateSet then
+                        NormalStateSet := true;
+                end;
+                18, 24:
+                    InterpretRecloserState(ActorID, Param, ParamName);    // set state
 
             else
            // Inherited parameters
@@ -372,6 +393,13 @@ begin
                     ElementName := MonitoredElementName;
                 2:
                     ElementTerminal := MonitoredElementTerminal;
+                18, 24:
+                    if not NormalStateSet then
+                    begin
+                        NormalStateSet := true;  // normal state will default to state only the 1st state is specified.
+                        NormalState := FPresentState;
+                    end;
+
             end;
 
             ParamName := Parser[ActorID].NextParam;
@@ -426,7 +454,8 @@ begin
 
             LockedOut := OtherRecloser.LockedOut;
 
-            PresentState := OtherRecloser.PresentState;
+            FPresentState := OtherRecloser.FPresentState;
+            NormalState := OtherRecloser.NormalState;
             CondOffset := OtherRecloser.CondOffset;
 
 
@@ -492,9 +521,9 @@ begin
     RecloseIntervals^[2] := 2.0;
     RecloseIntervals^[3] := 2.0;
 
-
-    PresentState := CTRL_CLOSE;
-
+    FPresentState := CTRL_CLOSE;
+    FNormalState := CTRL_CLOSE;
+    NormalStateSet := false;
 
     Operationcount := 1;
     LockedOut := false;
@@ -576,17 +605,17 @@ begin
             ControlledElement.HasAutoOCPDevice := true;  // For Reliability calcs
         end;
 
-        if ControlledElement.Closed[0, ActorID]      // Check state of phases of active terminal
+        if FPresentState = CTRL_CLOSE      // Open/Close State of controlled element based on state assigned to the control
         then
         begin
-            PresentState := CTRL_CLOSE;
+            ControlledElement.Closed[0, ActorID] := true;
             LockedOut := false;
             OperationCount := 1;
             ArmedForOpen := false;
         end
         else
         begin
-            PresentState := CTRL_OPEN;
+            ControlledElement.Closed[0, ActorID] := false;
             LockedOut := true;
             OperationCount := NumReclose + 1;
             ArmedForClose := false;
@@ -652,7 +681,7 @@ begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal of CktElement to terminal 1
         case Code of
             Integer(CTRL_OPEN):
-                case PresentState of
+                case FPresentState of
                     CTRL_CLOSE:
                         if ArmedForOpen then
                         begin   // ignore if we became disarmed in meantime
@@ -678,7 +707,7 @@ begin
                 else {nada}
                 end;
             Integer(CTRL_CLOSE):
-                case PresentState of
+                case FPresentState of
                     CTRL_OPEN:
                         if ArmedForClose and not LockedOut then
                         begin
@@ -690,7 +719,7 @@ begin
                 else {Nada}
                 end;
             Integer(CTRL_RESET):
-                case PresentState of
+                case FPresentState of
                     CTRL_CLOSE:
                         if not ArmedForOpen then
                             OperationCount := 1;       // Don't reset if we just rearmed
@@ -706,30 +735,29 @@ end;
 {--------------------------------------------------------------------------}
 
 
-procedure TRecloserObj.InterpretRecloserAction(ActorID: Integer; const Action: String);
+procedure TRecloserObj.InterpretRecloserState(ActorID: Integer; const Action: String; const property_name: String);
 begin
 
-    if ControlledElement = nil then
-        RecalcElementData(ActorID);  // In case action is performed at obj definition
+    if (LowerCase(property_name[1]) = 's') or (LowerCase(property_name[1]) = 'a') then
+    begin  // state or action (deprecated)
 
-    if ControlledElement <> nil then
-    begin
-        ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
         case LowerCase(Action)[1] of
-
             'o', 't':
-            begin
-                ControlledElement.Closed[0, ActiveActor] := false;   // Open all phases of active terminal
-                LockedOut := true;
-                OperationCount := NumReclose + 1;
-            end;
+                FPresentState := CTRL_OPEN;
             'c':
-            begin
-                ControlledElement.Closed[0, ActiveActor] := true;    // Close all phases of active terminal
-                LockedOut := false;
-                OperationCount := 1;
-            end;
+                FPresentState := CTRL_CLOSE;
         end;
+    end
+    else // Normal
+    begin
+
+        case LowerCase(Action)[1] of
+            'o', 't':
+                FNormalState := CTRL_OPEN;
+            'c':
+                FNormalState := CTRL_CLOSE;
+        end;
+
     end;
 
 end;
@@ -753,9 +781,9 @@ begin
 
     if ControlledElement.Closed[0, ActorID]      // Check state of phases of active terminal
     then
-        PresentState := CTRL_CLOSE
+        FPresentState := CTRL_CLOSE
     else
-        PresentState := CTRL_OPEN;
+        FPresentState := CTRL_OPEN;
 
 
     with MonitoredElement do
@@ -776,7 +804,7 @@ begin
             TDPhase := TDPhFast;
         end;
 
-        if PresentState = CTRL_CLOSE then
+        if FPresentState = CTRL_CLOSE then
         begin
             TripTime := -1.0;
             GroundTime := -1.0;
@@ -911,6 +939,24 @@ begin
                 Result := Result + Format('%-g, ', [RecloseIntervals^[i]]);
             Result := Result + ')';
         end;
+        23:
+        begin
+            case FNormalState of
+                CTRL_OPEN:
+                    Result := 'open';
+            else
+                  {CTRL_CLOSE:} Result := 'closed';
+            end
+        end;
+        18, 24:
+        begin
+            case FPresentState of
+                CTRL_OPEN:
+                    Result := 'open';
+            else
+                  {CTRL_CLOSE:} Result := 'closed';
+            end;
+        end
     else
         Result := inherited GetPropertyValue(index);
     end;
@@ -920,22 +966,102 @@ end;
 procedure TRecloserObj.Reset;
 begin
 
-    PresentState := CTRL_CLOSE;
-    Operationcount := 1;
-    LockedOut := false;
+    FPresentState := FNormalState;
     ArmedForOpen := false;
     ArmedForClose := false;
     GroundTarget := false;
     PhaseTarget := false;
 
+
     if ControlledElement <> nil then
     begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
-        ControlledElement.Closed[0, ActiveActor] := true;             // Close all phases of active terminal
+
+        case FNormalState of
+            CTRL_OPEN:
+            begin
+                ControlledElement.Closed[0, ActiveActor] := false; // Open all phases of active terminal
+                LockedOut := true;
+                OperationCount := NumReclose + 1;
+            end
+
+        else
+          {CTRL_CLOSE:} begin
+            ControlledElement.Closed[0, ActiveActor] := true; // Close all phases of active terminal
+            LockedOut := false;
+            Operationcount := 1;
+        end;
+        end;
     end;
 
 
 end;
+
+function TRecloserObj.get_State: EControlAction;
+begin
+
+    if ControlledElement <> nil then
+    begin
+
+        ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+        case ControlledElement.Closed[0, ActiveActor] of
+            false:
+                FPresentState := CTRL_OPEN;
+        else
+            {TRUE:} FPresentState := CTRL_CLOSE;
+        end;
+
+    end;
+
+    Result := FPresentState;
+end;
+
+procedure TRecloserObj.set_State(const Value: EControlAction);
+begin
+
+    if PresentState <> Value then
+    begin
+
+        if ControlledElement <> nil then
+        begin
+            ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+            case Value of
+                CTRL_OPEN:
+                begin
+                    ControlledElement.Closed[0, ActiveActor] := false;
+                    LockedOut := true;
+                    OperationCount := NumReclose + 1;
+                    ArmedForClose := false;
+                end
+
+            else
+                {CTRL_CLOSE:} begin
+                ControlledElement.Closed[0, ActiveActor] := true;
+                LockedOut := false;
+                OperationCount := 1;
+                ArmedForOpen := false;
+            end
+
+            end;
+        end;
+
+        FPresentState := Value;
+    end;
+end;
+
+function TRecloserObj.get_NormalState: EControlAction;
+begin
+    Result := FNormalState;
+end;
+
+procedure TRecloserObj.set_NormalState(const Value: EControlAction);
+begin
+    if FNormalState <> Value then
+    begin
+        FNormalState := Value;
+    end;
+end;
+
 
 procedure TRecloserObj.InitPropertyValues(ArrayOffset: Integer);
 begin
@@ -957,11 +1083,13 @@ begin
     PropertyValue[15] := '4';
     PropertyValue[16] := '(0.5, 2.0, 2.0)';
     PropertyValue[17] := '0.0';
-    PropertyValue[18] := '';
+    PropertyValue[18] := 'closed';
     PropertyValue[19] := '1.0';
     PropertyValue[20] := '1.0';
     PropertyValue[21] := '1.0';
     PropertyValue[22] := '1.0';
+    PropertyValue[23] := 'closed';
+    PropertyValue[24] := 'closed';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

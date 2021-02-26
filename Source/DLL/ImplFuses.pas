@@ -13,7 +13,8 @@ uses
     ComObj,
     ActiveX,
     OpenDSSengine_TLB,
-    StdVcl;
+    StdVcl,
+    ControlElem;
 
 type
     TFuses = class(TAutoObject, IFuses)
@@ -39,11 +40,16 @@ type
         function Get_Delay: Double; SAFECALL;
         procedure Open; SAFECALL;
         procedure Close; SAFECALL;
+        procedure Reset; SAFECALL;
         procedure Set_Delay(Value: Double); SAFECALL;
         function IsBlown: Wordbool; STDCALL;
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
         function Get_NumPhases: Integer; SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
 
     end;
 
@@ -302,14 +308,31 @@ end;
 
 procedure TFuses.Open;
 var
-    elem: TFuseObj;
+    pFuse: TFuseObj;
+    i: Integer;
 begin
-    elem := FuseClass.GetActiveObj;
-    if elem <> nil then
-        elem.ControlledElement.Closed[0, ActiveActor] := false; // Open all phases
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+    begin
+        for i := 1 to pFuse.ControlledElement.NPhases do
+            pFuse.States[i] := CTRL_OPEN // Open all phases
+    end;
 end;
 
 procedure TFuses.Close;
+var
+    pFuse: TFuseObj;
+    i: Integer;
+begin
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+    begin
+        for i := 1 to pFuse.ControlledElement.NPhases do
+            pFuse.States[i] := CTRL_CLOSE // Close all phases
+    end;
+end;
+
+procedure TFuses.Reset;
 var
     elem: TFuseObj;
 begin
@@ -374,6 +397,118 @@ begin
         pFuse := FuseClass.GetActiveObj;
         if pFuse <> nil then
             Result := pFuse.NPhases;
+    end;
+end;
+
+function TFuses.Get_NormalState: Olevariant;
+var
+    i: Integer;
+    pFuse: TFuseObj;
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pFuse := FuseClass.GetActiveObj;
+        if pFuse <> nil then
+        begin
+            Result := VarArrayCreate([0, pFuse.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to pFuse.ControlledElement.NPhases do
+            begin
+                if pFuse.NormalStates[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
+            end;
+        end;
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+
+end;
+
+function TFuses.Get_State: Olevariant;
+var
+    i: Integer;
+    pFuse: TFuseObj;
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pFuse := FuseClass.GetActiveObj;
+        if pFuse <> nil then
+        begin
+            Result := VarArrayCreate([0, pFuse.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to pFuse.ControlledElement.NPhases do
+            begin
+                if pFuse.States[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
+            end;
+        end;
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+
+end;
+
+procedure TFuses.Set_NormalState(Value: Olevariant);
+var
+    i: Integer;
+    Count, Low: Integer;
+    pFuse: TFuseObj;
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pFuse := FuseClass.GetActiveObj;
+        if pFuse <> nil then
+        begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            if Count > pFuse.ControlledElement.NPhases then
+                Count := pFuse.ControlledElement.NPhases;
+            for i := 1 to Count do
+            begin
+                case LowerCase(Value[i - 1 + Low])[1] of
+                    'o':
+                        pFuse.NormalStates[i] := CTRL_OPEN;
+                    'c':
+                        pFuse.NormalStates[i] := CTRL_CLOSE;
+                end;
+            end;
+        end;
+
+    end;
+end;
+
+procedure TFuses.Set_State(Value: Olevariant);
+var
+    i: Integer;
+    Count, Low: Integer;
+    pFuse: TFuseObj;
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pFuse := FuseClass.GetActiveObj;
+        if pFuse <> nil then
+        begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            if Count > pFuse.ControlledElement.NPhases then
+                Count := pFuse.ControlledElement.NPhases;
+            for i := 1 to Count do
+            begin
+                case LowerCase(Value[i - 1 + Low])[1] of
+                    'o':
+                        pFuse.States[i] := CTRL_OPEN;
+                    'c':
+                        pFuse.States[i] := CTRL_CLOSE;
+                end;
+            end;
+        end;
+
     end;
 end;
 

@@ -49,6 +49,11 @@ type
         procedure Open; SAFECALL;
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
+        function Get_NormalState: ActionCodes; SAFECALL;
+        function Get_State: ActionCodes; SAFECALL;
+        procedure Reset; SAFECALL;
+        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
+        procedure Set_State(Value: ActionCodes); SAFECALL;
 
     end;
 
@@ -58,6 +63,7 @@ uses
     ComServ,
     Executive,
     Sysutils,
+    ControlElem,
     Recloser,
     PointerList,
     Variants,
@@ -399,7 +405,7 @@ var
 begin
     elem := RecloserClass.ElementList.Active;
     if elem <> nil then
-        Set_parameter('Action', 'close');
+        elem.PresentState := CTRL_CLOSE;
 end;
 
 procedure TReclosers.Open;
@@ -408,7 +414,7 @@ var
 begin
     elem := RecloserClass.ElementList.Active;
     if elem <> nil then
-        Set_parameter('Action', 'open');
+        elem.PresentState := CTRL_OPEN;
 end;
 
 function TReclosers.Get_idx: Integer;
@@ -428,6 +434,98 @@ begin
         pRecloser := RecloserClass.Elementlist.Get(Value);
         if pRecloser <> nil then
             ActiveCircuit[ActiveActor].ActiveCktElement := pRecloser;
+    end;
+end;
+
+function TReclosers.Get_NormalState: ActionCodes;
+var
+    pRecloser: TRecloserObj;
+begin
+    Result := dssActionNone;
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRecloser := RecloserClass.ElementList.Active;
+        if pRecloser <> nil then
+        begin
+            case pRecloser.NormalState of
+                CTRL_OPEN:
+                    Result := dssActionOpen;
+                CTRL_CLOSE:
+                    Result := dssActionClose;
+            end;
+        end
+    end;
+end;
+
+function TReclosers.Get_State: ActionCodes;
+var
+    pRecloser: TRecloserObj;
+begin
+    Result := dssActionNone;
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRecloser := RecloserClass.ElementList.Active;
+        if pRecloser <> nil then
+        begin
+            case pRecloser.PresentState of
+                CTRL_OPEN:
+                    Result := dssActionOpen;
+                CTRL_CLOSE:
+                    Result := dssActionClose;
+            end;
+        end
+    end;
+end;
+
+procedure TReclosers.Reset;
+var
+    pRecloser: TRecloserObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRecloser := RecloserClass.ElementList.Active;
+        if pRecloser <> nil then
+            pRecloser.Reset(ActiveActor);
+    end;
+end;
+
+procedure TReclosers.Set_NormalState(Value: ActionCodes);
+var
+    pRecloser: TRecloserObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRecloser := RecloserClass.ElementList.Active;
+        if pRecloser <> nil then
+        begin
+            case value of
+                dssActionOpen:
+                    pRecloser.NormalState := CTRL_OPEN;
+                dssActionClose:
+                    pRecloser.NormalState := CTRL_CLOSE;
+            end;
+
+        end
+    end;
+end;
+
+procedure TReclosers.Set_State(Value: ActionCodes);
+var
+    pRecloser: TRecloserObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRecloser := RecloserClass.ElementList.Active;
+        if pRecloser <> nil then
+        begin
+            case value of
+                dssActionOpen:
+                    pRecloser.PresentState := CTRL_OPEN;
+                dssActionClose:
+                    pRecloser.PresentState := CTRL_CLOSE;
+            end;
+
+        end
     end;
 end;
 

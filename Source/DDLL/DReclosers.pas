@@ -12,6 +12,7 @@ implementation
 uses
     Executive,
     Sysutils,
+    ControlElem,
     Recloser,
     PointerList,
     Variants,
@@ -135,16 +136,16 @@ begin
                 Set_parameter('shots', IntToStr(arg));
         end;
         11:
-        begin  // Reclosers.Open
+        begin  // Recloser.Open                                     // TODO
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Set_parameter('Action', 'open');
+                elem.PresentState := CTRL_OPEN;
         end;
         12:
-        begin  // Reclosers.Close
+        begin  // Reclosers.Close                                  // TODO
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Set_parameter('Action', 'close');
+                elem.PresentState := CTRL_CLOSE;
         end;
         13:
         begin // Reclosers.Idx read
@@ -161,6 +162,12 @@ begin
                 if pRecloser <> nil then
                     ActiveCircuit[ActiveActor].ActiveCktElement := pRecloser;
             end;
+        end;
+        15:
+        begin  // Reclosers.Reset                                  // TODO
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                elem.Reset(ActiveActor);
         end
     else
         Result := -1;
@@ -288,7 +295,54 @@ begin
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
                 Set_parameter('SwitchedObj', Widestring(arg));
-        end
+        end;
+        6:
+        begin  // Reclosers.State read                                          // TODO
+            Result := Pansichar(Ansistring(''));
+            elem := RecloserClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if elem.PresentState = CTRL_CLOSE then
+                    Result := Pansichar(Ansistring('closed'))
+                else
+                    Result := Pansichar(Ansistring('open'));
+            end;
+
+        end;
+        7:
+        begin  // Reclosers.State write                                         // TODO
+            elem := RecloserClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if LowerCase(Widestring(arg))[1] = 'c' then
+                    elem.PresentState := CTRL_CLOSE
+                else
+                    elem.PresentState := CTRL_OPEN;
+            end;
+        end;
+        8:
+        begin  // Reclosers.Normal read                                         // TODO
+            Result := Pansichar(Ansistring(''));
+            elem := RecloserClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if elem.NormalState = CTRL_CLOSE then
+                    Result := Pansichar(Ansistring('closed'))
+                else
+                    Result := Pansichar(Ansistring('open'));
+            end;
+        end;
+        9:
+        begin  // Reclosers.Normal write                                        // TODO
+            elem := RecloserClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if LowerCase(Widestring(arg))[1] = 'c' then
+                    elem.NormalState := CTRL_CLOSE
+                else
+                    elem.NormalState := CTRL_OPEN;
+            end;
+        end;
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));
     end;

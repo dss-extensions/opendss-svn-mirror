@@ -13,6 +13,7 @@ uses
     ComServ,
     Executive,
     Sysutils,
+    ControlElem,
     Fuse,
     Pointerlist,
     DSSGlobals,
@@ -96,18 +97,37 @@ begin
                 Set_parameter('monitoredterm', IntToStr(arg));
         end;
         5:
-        begin  // Fuse.Open
+        begin  // Fuse.SwitchedTerm read
+            Result := 0;
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                elem.ControlledElement.Closed[0, ActiveActor] := false; // Open all phases
+                Result := elem.ElementTerminal;
         end;
         6:
-        begin  // Fuse.Close
+        begin  // Fuse.SwitchedTerm write
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                elem.Reset(ActiveActor);
+                Set_parameter('switchedterm', IntToStr(arg));
         end;
         7:
+        begin  // Fuse.Open
+            pFuse := FuseClass.GetActiveObj;
+            if pFuse <> nil then
+            begin
+                for i := 1 to pFuse.ControlledElement.NPhases do
+                    pFuse.States[i] := CTRL_OPEN // Open all phases
+            end;
+        end;
+        8:
+        begin  // Fuse.Close
+            pFuse := FuseClass.GetActiveObj;
+            if pFuse <> nil then
+            begin
+                for i := 1 to pFuse.ControlledElement.NPhases do
+                    pFuse.States[i] := CTRL_CLOSE // Close all phases
+            end;
+        end;
+        9:
         begin  // Fuse.IsBlown
             Result := 0;
             elem := FuseClass.GetActiveObj;
@@ -118,14 +138,14 @@ begin
                         Result := 1;
             end;
         end;
-        8:
+        10:
         begin  // Fuse.Idx read
             if ActiveCircuit[ActiveActor] <> nil then
                 Result := FuseClass.ElementList.ActiveIndex
             else
                 Result := 0;
         end;
-        9:
+        11:
         begin  // Fuse.Idx write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -134,7 +154,7 @@ begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := pFuse;
             end;
         end;
-        10:
+        12:
         begin  // Fuse.NumPhases
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
@@ -142,6 +162,15 @@ begin
                 pFuse := FuseClass.GetActiveObj;
                 if pFuse <> nil then
                     Result := pFuse.NPhases;
+            end;
+        end;
+        13:
+        begin  // Fuse.Reset
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                pFuse := FuseClass.GetActiveObj;
+                if pFuse <> nil then
+                    pFuse.Reset(ActiveActor);
             end;
         end
     else
@@ -258,7 +287,7 @@ procedure FusesV(mode: Longint; out arg: Variant); CDECL;
 var
     elem: TFuseObj;
     pList: TPointerList;
-    k: Integer;
+    k, i, LoopLimit: Integer;
 
 begin
     case mode of
@@ -280,6 +309,98 @@ begin
                         Inc(k);
                         elem := pList.next;
                     end;
+                end;
+            end;
+        end;
+        1:
+        begin  // Fuses.States read
+            arg := VarArrayCreate([0, 0], varOleStr);
+            arg[0] := 'NONE';     // error code
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                Elem := FuseClass.GetActiveObj;
+                if Elem <> nil then
+                begin
+                    VarArrayRedim(arg, elem.ControlledElement.Nphases - 1);
+                    k := 0;
+                    for i := 1 to elem.ControlledElement.Nphases do
+                    begin
+
+                        if elem.States[i] = CTRL_CLOSE then
+                            arg[k] := 'closed'
+                        else
+                            arg[k] := 'open';
+                        Inc(k);
+                    end;
+                end;
+            end;
+        end;
+        2:
+        begin  // Fuses.States write
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+            begin
+         // allocate space based on number of phases of controlled device
+                LoopLimit := VarArrayHighBound(Widestring(arg), 1);
+                if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > elem.ControlledElement.NPhases then
+                    LoopLimit := VarArrayLowBound(arg, 1) + elem.ControlledElement.NPhases - 1;
+                k := 1;
+                for i := VarArrayLowBound(arg, 1) to LoopLimit do
+                begin
+
+                    case LowerCase(arg[i])[1] of
+                        'o':
+                            elem.States[k] := CTRL_OPEN;
+                        'c':
+                            elem.States[k] := CTRL_CLOSE;
+                    end;
+                    inc(k);
+                end;
+            end;
+        end;
+        3:
+        begin  // Fuses.NormalStates read
+            arg := VarArrayCreate([0, 0], varOleStr);
+            arg[0] := 'NONE';     // error code
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                Elem := FuseClass.GetActiveObj;
+                if Elem <> nil then
+                begin
+                    VarArrayRedim(arg, elem.ControlledElement.Nphases - 1);
+                    k := 0;
+                    for i := 1 to elem.ControlledElement.Nphases do
+                    begin
+
+                        if elem.NormalStates[i] = CTRL_CLOSE then
+                            arg[k] := 'closed'
+                        else
+                            arg[k] := 'open';
+                        Inc(k);
+                    end;
+                end;
+            end;
+        end;
+        4:
+        begin  // Fuses.NormalStates write
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+            begin
+         // allocate space based on number of phases of controlled device
+                LoopLimit := VarArrayHighBound(Widestring(arg), 1);
+                if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > elem.ControlledElement.NPhases then
+                    LoopLimit := VarArrayLowBound(arg, 1) + elem.ControlledElement.NPhases - 1;
+                k := 1;
+                for i := VarArrayLowBound(arg, 1) to LoopLimit do
+                begin
+
+                    case LowerCase(arg[i])[1] of
+                        'o':
+                            elem.NormalStates[k] := CTRL_OPEN;
+                        'c':
+                            elem.NormalStates[k] := CTRL_CLOSE;
+                    end;
+                    inc(k);
                 end;
             end;
         end

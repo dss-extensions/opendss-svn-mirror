@@ -12,10 +12,10 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 10/28/2020 4:30:00 PM from Type Library described below.
+// File generated on 2/26/2021 12:12:54 AM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
+// Type Lib: C:\Projects\OpenDSS\OpenDSS-Official\Version8\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
 // Helpfile:
@@ -3069,6 +3069,11 @@ type
         procedure Close; SAFECALL;
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
+        procedure Reset; SAFECALL;
+        function Get_NormalState: ActionCodes; SAFECALL;
+        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
+        function Get_State: ActionCodes; SAFECALL;
+        procedure Set_State(Value: ActionCodes); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3086,6 +3091,8 @@ type
         property GroundTrip: Double READ Get_GroundTrip WRITE Set_GroundTrip;
         property GroundInst: Double READ Get_GroundInst WRITE Set_GroundInst;
         property idx: Integer READ Get_idx WRITE Set_idx;
+        property NormalState: ActionCodes READ Get_NormalState WRITE Set_NormalState;
+        property State: ActionCodes READ Get_State WRITE Set_State;
     end;
 
 // *********************************************************************//
@@ -3114,6 +3121,9 @@ type
         procedure Open; DISPID 217;
         procedure Close; DISPID 218;
         property idx: Integer DISPID 219;
+        procedure Reset; DISPID 220;
+        property NormalState: ActionCodes DISPID 221;
+        property State: ActionCodes DISPID 222;
     end;
 
 // *********************************************************************//
@@ -3385,6 +3395,11 @@ type
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
         function Get_NumPhases: Integer; SAFECALL;
+        procedure Reset; SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3399,6 +3414,8 @@ type
         property Delay: Double READ Get_Delay WRITE Set_Delay;
         property idx: Integer READ Get_idx WRITE Set_idx;
         property NumPhases: Integer READ Get_NumPhases;
+        property State: Olevariant READ Get_State WRITE Set_State;
+        property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
     end;
 
 // *********************************************************************//
@@ -3425,6 +3442,9 @@ type
         function IsBlown: Wordbool; DISPID 215;
         property idx: Integer DISPID 216;
         property NumPhases: Integer READONLY DISPID 217;
+        procedure Reset; DISPID 218;
+        property State: Olevariant DISPID 219;
+        property NormalState: Olevariant DISPID 220;
     end;
 
 // *********************************************************************//
