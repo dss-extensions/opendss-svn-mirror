@@ -158,6 +158,7 @@ type
           //
         EnergyMeters,
         Generators,
+        WindGens,
         StorageElements,
         Storage2Elements,
         PVSystems,
@@ -451,6 +452,7 @@ begin
     EnergyMeters := TPointerList.Create(5);
     Sensors := TPointerList.Create(5);
     Generators := TPointerList.Create(5);
+    WindGens := TPointerList.Create(5);
     StorageElements := TPointerList.Create(5);
     Storage2Elements := TPointerList.Create(5);
     PVSystems := TPointerList.Create(5);
@@ -665,6 +667,7 @@ begin
     EnergyMeters.Free;
     Sensors.Free;
     Generators.Free;
+    WindGens.Free;
     StorageElements.Free;
     Storage2Elements.Free;
     PVSystems.Free;
@@ -2216,6 +2219,8 @@ begin
             Reclosers.Add(ActiveCktElement);
         FMON_ELEMENT:
             FMonitors.Add(ActiveCktElement);
+        WINDGEN_ELEMENT:
+            WindGens.Add(ActiveCktElement);
 
        { Keep Lines, Transformer, and Lines and Faults in PDElements and separate lists
          so we can find them quickly.}

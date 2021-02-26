@@ -2070,13 +2070,13 @@ var
     F: TextFile;
     i, j: Integer;
     pElem: TGeneratorObj;
-    GeneratorClass: TGenerator;
+//****   GeneratorClass:TGenerator;
     FileNm,
     Separator: String;
 
 begin
 
-    GeneratorClass := TGenerator(GetDSSClassPtr('generator'));
+ //*****     GeneratorClass := TGenerator(GetDSSClassPtr('generator'));
     if GeneratorClass = nil then
         Exit;  // oops somewhere!!
     Separator := ', ';
@@ -2132,14 +2132,14 @@ var
     F: TextFile;
     i, j: Integer;
     pElem: TGeneratorObj;
-    GeneratorClass: TGenerator;
+//****   GeneratorClass:TGenerator;
     Separator, TestStr: String;
     ReWriteFile: Boolean;
 
 begin
 
 
-    GeneratorClass := TGenerator(GetDSSClassPtr('generator'));
+ //**** GeneratorClass := TGenerator(GetDSSClassPtr('generator'));
     if GeneratorClass = nil then
         Exit;  // oops somewhere!!
     Separator := ', ';

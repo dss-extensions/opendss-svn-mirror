@@ -32,7 +32,7 @@ uses
 type
     TAutoAdd = class(TObject)
     PRIVATE
-        GeneratorClass: TGenerator;
+  //****    GeneratorClass   :TGenerator;
         CapacitorClass: TCapacitor;
 
         BusIdxList: pIntegerArray;
@@ -123,7 +123,7 @@ constructor TAutoAdd.Create;
 begin
 
     BusIdxListCreated := false;
-    GeneratorClass := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('generator'));
+ //****   GeneratorClass   := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('generator'));
     CapacitorClass := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('capacitor'));
 
          // AutoAdd defaults
