@@ -40,6 +40,7 @@ type
         function Get_Pmpp: Double; SAFECALL;
         procedure Set_Pmpp(Value: Double); SAFECALL;
         function Get_IrradianceNow: Double; SAFECALL;
+        function Get_Sensor: Widestring; SAFECALL;
 
     end;
 
@@ -426,6 +427,25 @@ begin
             if ActiveIndex <> 0 then
             begin
                 Result := TPVSystemObj(Active).IrradianceNow;
+            end;
+        end;
+    end;
+end;
+
+function TPVSystems.Get_Sensor: Widestring;
+var
+    PVSystem: TPVSystemObj;
+
+begin
+    Result := '';
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+
+        with ActiveCircuit[ActiveActor].PVSystems do
+        begin
+            if ActiveIndex <> 0 then
+            begin
+                Result := TPVSystemObj(Active).SensorObj.ElementName;
             end;
         end;
     end;

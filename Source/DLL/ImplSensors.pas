@@ -48,6 +48,7 @@ type
         procedure Set_Weight(Value: Double); SAFECALL;
         function Get_kVbase: Double; SAFECALL;
         procedure Set_kVbase(Value: Double); SAFECALL;
+        function Get_AllocationFactor: Olevariant; SAFECALL;
 
     end;
 
@@ -462,6 +463,22 @@ end;
 procedure TSensors.Set_kVbase(Value: Double);
 begin
     Set_Parameter('kvbase', FloatToStr(Value));
+end;
+
+function TSensors.Get_AllocationFactor: Olevariant;
+var
+    elem: TSensorObj;
+    k: Integer;
+begin
+    elem := ActiveSensor;
+    if elem <> nil then
+    begin
+        Result := VarArrayCreate([0, elem.NPhases - 1], varDouble);
+        for k := 0 to elem.NPhases - 1 do
+            Result[k] := elem.PhsAllocationFactor^[k + 1];
+    end
+    else
+        Result := VarArrayCreate([0, 0], varDouble);
 end;
 
 initialization

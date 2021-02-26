@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 2/26/2021 12:12:54 AM from Type Library described below.
+// File generated on 2/26/2021 6:09:00 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\Projects\OpenDSS\OpenDSS-Official\Version8\Source\DLL\OpenDSSengine (1)
@@ -2049,6 +2049,7 @@ type
         procedure Set_pctSeriesRL(Value: Double); SAFECALL;
         function Get_RelWeight: Double; SAFECALL;
         procedure Set_RelWeight(Value: Double); STDCALL;
+        function Get_Sensor: Widestring; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property First: Integer READ Get_First;
         property Next: Integer READ Get_Next;
@@ -2089,6 +2090,7 @@ type
         property ZIPV: Olevariant READ Get_ZIPV WRITE Set_ZIPV;
         property pctSeriesRL: Double READ Get_pctSeriesRL WRITE Set_pctSeriesRL;
     // Skipped Property "RelWeight"
+        property Sensor: Widestring READ Get_Sensor;
     end;
 
 // *********************************************************************//
@@ -2138,6 +2140,7 @@ type
         property ZIPV: Olevariant DISPID 238;
         property pctSeriesRL: Double DISPID 239;
         function RelWeight: Double; DISPID 240;
+        property Sensor: Widestring READONLY DISPID 241;
     end;
 
 // *********************************************************************//
@@ -2849,6 +2852,7 @@ type
         procedure Set_kVARS(Value: Olevariant); SAFECALL;
         function Get_kWS: Olevariant; SAFECALL;
         procedure Set_kWS(Value: Olevariant); SAFECALL;
+        function Get_AllocationFactor: Olevariant; SAFECALL;
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -2865,6 +2869,7 @@ type
         property kVS: Olevariant READ Get_kVS WRITE Set_kVS;
         property kVARS: Olevariant READ Get_kVARS WRITE Set_kVARS;
         property kWS: Olevariant READ Get_kWS WRITE Set_kWS;
+        property AllocationFactor: Olevariant READ Get_AllocationFactor;
     end;
 
 // *********************************************************************//
@@ -2892,6 +2897,7 @@ type
         property kVS: Olevariant DISPID 216;
         property kVARS: Olevariant DISPID 217;
         property kWS: Olevariant DISPID 218;
+        property AllocationFactor: Olevariant READONLY DISPID 219;
     end;
 
 // *********************************************************************//
@@ -3544,6 +3550,7 @@ type
         function Get_Pmpp: Double; SAFECALL;
         procedure Set_Pmpp(Value: Double); SAFECALL;
         function Get_IrradianceNow: Double; SAFECALL;
+        function Get_Sensor: Widestring; SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property RegisterNames: Olevariant READ Get_RegisterNames;
         property RegisterValues: Olevariant READ Get_RegisterValues;
@@ -3559,6 +3566,7 @@ type
     // Skipped Property "kVArated"
         property Pmpp: Double READ Get_Pmpp WRITE Set_Pmpp;
         property IrradianceNow: Double READ Get_IrradianceNow;
+        property Sensor: Widestring READ Get_Sensor;
     end;
 
 // *********************************************************************//
@@ -3583,6 +3591,7 @@ type
         function kVArated: Double; DISPID 213;
         property Pmpp: Double DISPID 214;
         property IrradianceNow: Double READONLY DISPID 215;
+        property Sensor: Widestring READONLY DISPID 216;
     end;
 
 // *********************************************************************//
