@@ -2999,7 +2999,7 @@ begin
     begin
         Pac := PanelkW * EffFactor;
 
-        if VWmode then
+        if VWmode or WVmode then
         begin
             if (Pac > kwrequested) then
                 kW_Out := kwrequested
