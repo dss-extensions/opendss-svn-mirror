@@ -1019,8 +1019,9 @@ begin
         ACTION_REVERSE:
         begin  // Toggle reverse mode or Cogen mode flag
             if (DebugTrace) then
-                RegWriteDebugRecord(Format('Handling Reverse Action, ReversePending=%s, InReverseMode=%s',
-                    [BoolToStr(ReversePending, true), BoolToStr(InReverseMode, true)]));
+                with ActiveCircuit[ActorID] do
+                    RegWriteDebugRecord(Format('%-.6g, Handling Reverse Action, ReversePending=%s, InReverseMode=%s, InCogenmode=%s',
+                        [Solution.dynavars.dblHour, BoolToStr(ReversePending, true), BoolToStr(InReverseMode, true), BoolToStr(InCogenMode, true)]));
             if ReversePending then        // check to see if action has reset
             begin
                 if CogenEnabled then
@@ -1083,6 +1084,9 @@ begin
         if IsReversible or CogenEnabled then
         begin
 
+            if (DebugTrace) then
+                with Activecircuit[ActorID] do
+                    RegWriteDebugRecord(Format('%-.6g, 2-Looking forward= %s *** Incogenmode=%s', [Solution.DynaVars.dblHour, BoolToStr(LookingForward, true), BoolToStr(InCogenMode, true)]));
             if LookingForward and (not InCogenMode) then   // If looking forward, check to see if we should reverse
             begin
                 FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
@@ -1094,7 +1098,8 @@ begin
                         with ActiveCircuit[ActorID] do
                             RevHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + RevDelay, ACTION_REVERSE, 0, Self, ActorID);
                         if (DebugTrace) then
-                            RegWriteDebugRecord(Format('Pushed Reverse Action, Handle=%d, FwdPower=%.8g', [RevHandle, FwdPower]));
+                            with ActiveCircuit[ActorID] do
+                                RegWriteDebugRecord(Format('%-.6g, 1- Pushed Reverse Action, Handle=%d, FwdPower=%.8g', [Solution.DynaVars.dblHour, RevHandle, FwdPower]));
                     end
                 end;
                 if ReversePending and (FwdPower >= -RevPowerThreshold) then // Reset  reverse pending
@@ -1113,6 +1118,10 @@ begin
             else      // Looking the reverse direction or in cogen mode
 
             begin   // If reversed look to see if power is back in forward direction
+                if (DebugTrace) then
+                    with Activecircuit[ActorID] do
+                        RegWriteDebugRecord(Format('%-.6g, 3-Looking Forward=%s *** Incogenmode=%s', [Solution.DynaVars.dblHour, BoolToStr(Lookingforward, true), BoolToStr(InCogenMode, true)]));
+
                 FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
                 if not ReversePending then
                 begin
@@ -1122,7 +1131,8 @@ begin
                         with ActiveCircuit[ActorID] do
                             RevBackHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + RevDelay, ACTION_REVERSE, 0, Self, ActorID);
                         if (DebugTrace) then
-                            RegWriteDebugRecord(Format('Pushed ReverseBack Action to switch back, Handle=%d, FwdPower=%.8g', [RevBackHandle, FwdPower]));
+                            with Activecircuit[ActorID] do
+                                RegWriteDebugRecord(Format('%-.6g, 4-Pushed ReverseBack Action to switch back, Handle=%d, FwdPower=%.8g', [Solution.DynaVars.dblHour, RevBackHandle, FwdPower]));
                     end
                 end;
                 if ReversePending and (FwdPower <= RevPowerThreshold) then // Reset  reverse pending                            Else
@@ -1245,8 +1255,16 @@ begin
         end
         else
         begin   // Forward or Cogen Modes
-            VregTest := Vreg;
-            BandTest := Bandwidth;
+            if inCogenMode then
+            begin
+                VregTest := RevVreg;    // corrected Feb 25, 2021 for Huijuan Li
+                BandTest := RevBandwidth;
+            end
+            else
+            begin
+                VregTest := Vreg;
+                BandTest := Bandwidth;
+            end;
         end;
         if (Abs(VregTest - Vactual) > BandTest / 2.0) then
             TapChangeIsNeeded := true
