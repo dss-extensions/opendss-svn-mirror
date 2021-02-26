@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
-    <Transaction>2020/10/02 18:04:32.000.788,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm</Transaction>
+    <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm</Transaction>
+    <Transaction>2020/10/02 18:04:32.000.788,C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -15,6 +15,7 @@
     <File Path="..\Common\Conductor.pas"/>
     <File Path="..\Common\ControlQueue.pas"/>
     <File Path="..\Common\Diakoptics.pas"/>
+    <File Path="..\Common\djson.pas"/>
     <File Path="..\Common\DSSCallBackRoutines.pas"/>
     <File Path="..\Common\DSSClass.pas"/>
     <File Path="..\Common\DSSClassDefs.pas"/>
@@ -35,7 +36,6 @@
     <File Path="..\Common\TOPExport.pas"/>
     <File Path="..\Common\Utilities.pas"/>
     <File Path="..\Common\Ymatrix.pas"/>
-    <File Path="..\Common\djson.pas"/>
     <File Path="..\Controls"/>
     <File Path="..\Controls\CapControl.pas"/>
     <File Path="..\Controls\CapControlVars.pas"/>
@@ -78,6 +78,8 @@
     <File Path="..\Forms\HelpForm.dfm"/>
     <File Path="..\Forms\ListForm.pas"/>
     <File Path="..\Forms\ListForm.dfm"/>
+    <File Path="..\Forms\myInfoMsg.pas"/>
+    <File Path="..\Forms\myInfoMsg.dfm"/>
     <File Path="..\Forms\Panel.pas"/>
     <File Path="..\Forms\Panel.dfm"/>
     <File Path="..\Forms\ProgressForm.pas"/>
@@ -85,14 +87,12 @@
     <File Path="..\Forms\PropEdit.pas"/>
     <File Path="..\Forms\PropEdit.dfm"/>
     <File Path="..\Forms\ScriptEdit.pas"/>
-    <File Path="..\Forms\TViewer.pas"/>
-    <File Path="..\Forms\TViewer.dfm"/>
     <File Path="..\Forms\Splash_Screen.pas"/>
     <File Path="..\Forms\Splash_Screen.dfm"/>
     <File Path="..\Forms\StdMessage.pas"/>
     <File Path="..\Forms\StdMessage.dfm"/>
-    <File Path="..\Forms\myInfoMsg.pas"/>
-    <File Path="..\Forms\myInfoMsg.dfm"/>
+    <File Path="..\Forms\TViewer.pas"/>
+    <File Path="..\Forms\TViewer.dfm"/>
     <File Path="..\General"/>
     <File Path="..\General\CableConstants.pas"/>
     <File Path="..\General\CableData.pas"/>
@@ -140,10 +140,7 @@
     <File Path="..\Parser\RPN.pas"/>
     <File Path="..\PCElements"/>
     <File Path="..\PCElements\Equivalent.pas"/>
-    <File Path="..\PCElements\generator.pas"/>
-    <File Path="..\PCElements\GeneratorVars.pas"/>
     <File Path="..\PCElements\Generic5OrderMach.pas"/>
-    <File Path="..\PCElements\GenUserModel.pas"/>
     <File Path="..\PCElements\GICLine.pas"/>
     <File Path="..\PCElements\GICsource.pas"/>
     <File Path="..\PCElements\IndMach012.pas"/>
@@ -160,6 +157,12 @@
     <File Path="..\PCElements\vccs.pas"/>
     <File Path="..\PCElements\VSConverter.pas"/>
     <File Path="..\PCElements\VSource.pas"/>
+    <File Path="..\PCElements\WindGen.pas"/>
+    <File Path="..\PCElements\WindGenUserModel.pas"/>
+    <File Path="..\PCElements\WindGenVars.pas"/>
+    <File Path="..\PCElements\generator.pas"/>
+    <File Path="..\PCElements\GenUserModel.pas"/>
+    <File Path="..\PCElements\GeneratorVars.pas"/>
     <File Path="..\PDElements"/>
     <File Path="..\PDElements\AutoTrans.pas"/>
     <File Path="..\PDElements\Capacitor.pas"/>
