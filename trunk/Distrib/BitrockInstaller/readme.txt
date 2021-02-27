@@ -156,6 +156,8 @@ Change Log
        - Distance (21) and incremental distance (TD21) types added to Relay
        - fix voltage base for 3-phase VCCS in RMS mode
        - VCCS will cease to inject current when a terminal opens, e.g., by a Relay
+       - VCCS injects positive sequence current only when in RMS mode
+       - Distance (21) and TD21 relays have a reverse-looking flag
 
 Open Issues
 ===========
