@@ -5,7 +5,7 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSSengine.dll</DCC_DependencyCheckOutputName>
-        <ProjectVersion>19.1</ProjectVersion>
+        <ProjectVersion>19.2</ProjectVersion>
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
@@ -357,6 +357,16 @@
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>res\drawable-xxhdpi</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="Android_LauncherIcon192">
+                    <Platform Name="Android">
+                        <RemoteDir>res\drawable-xxxhdpi</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>res\drawable-xxxhdpi</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -1542,6 +1552,9 @@
             <Form>myStdMsg</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="..\PCElements\WindGen.pas"/>
+        <DCCReference Include="..\PCElements\WindGenUserModel.pas"/>
+        <DCCReference Include="..\PCElements\WindGenVars.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
