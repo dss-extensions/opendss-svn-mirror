@@ -169,7 +169,7 @@ begin
     CommandList.Abbrev := true;
 
     LineTypeList := TCommandList.Create(
-        ['OH', 'UG', 'UG_TS', 'UG_CN', 'SWT_LDBRK', 'SWT_FUSE', 'SWT_SECT', 'SWT_REC', 'SWT1_DISC', 'SWT_BRK', 'SWT_ELBOW']);
+        ['OH', 'UG', 'UG_TS', 'UG_CN', 'SWT_LDBRK', 'SWT_FUSE', 'SWT_SECT', 'SWT_REC', 'SWT_DISC', 'SWT_BRK', 'SWT_ELBOW']);
     LineTypeList.Abbrev := true;  // Allow abbreviations for line type code
 
 end;
@@ -241,9 +241,11 @@ begin
     PropertyHelp[16] := 'Array of TSData names for cable parameter calculation.' + CRLF +
         'All must be previously defined, and match "nphases" for this geometry.' + CRLF +
         'You can later define "nconds-nphases" wires for bare neutral conductors.';
-    PropertyHelp[17] := 'Defines the number of ratings to be defined for the wire, to be used only when defining seasonal ratings using the "Ratings" property.';
+    PropertyHelp[17] := 'Defines the number of ratings to be defined for the wire, to be used only when defining seasonal ratings using the ' +
+        '"Ratings" property. Defaults to first conductor if not specified.';
     PropertyHelp[18] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
-        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in lines.';
+        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in lines.' +
+        'Defaults to first conductor if not specified.';
     PropertyHelp[19] := 'Code designating the type of line. ' + CRLF +
         'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW' + CRLF + CRLF +
         'OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.';
@@ -404,10 +406,17 @@ begin
                             FWireData^[i] := ActiveConductorDataObj;
                             if (i = 1) then
                             begin
-                                if (ActiveConductorDataObj.NormAmps > 0.0) then
+                                if (ActiveConductorDataObj.NormAmps > 0.0) and (Normamps = 0.0) then
                                     Normamps := ActiveConductorDataObj.NormAmps;
-                                if (ActiveConductorDataObj.Emergamps > 0.0) then
+                                if (ActiveConductorDataObj.Emergamps > 0.0) and (Emergamps = 0.0) then
                                     Emergamps := ActiveConductorDataObj.EmergAmps;
+                                if (ActiveConductorDataObj.NumAmpRatings > 1) and (NumAmpRatings = 1) then
+                                    NumAmpRatings := ActiveConductorDataObj.NumAmpRatings;
+                                if (length(ActiveConductorDataObj.AmpRatings) > 1) and (length(AmpRatings) = 1) then
+                                begin
+                                    setlength(AmpRatings, NumAmpRatings);
+                                    AmpRatings := ActiveConductorDataObj.AmpRatings;
+                                end;
                             end;
                         end
                         else
@@ -462,10 +471,17 @@ begin
                   {Default the current ratings for this geometry to the rating of the first conductor}
                         if (ActiveCond = 1) then
                         begin
-                            if (ActiveConductorDataObj.NormAmps > 0.0) then
+                            if (ActiveConductorDataObj.NormAmps > 0.0) and (Normamps = 0.0) then
                                 Normamps := ActiveConductorDataObj.NormAmps;
-                            if (ActiveConductorDataObj.Emergamps > 0.0) then
+                            if (ActiveConductorDataObj.Emergamps > 0.0) and (Emergamps = 0.0) then
                                 Emergamps := ActiveConductorDataObj.EmergAmps;
+                            if (ActiveConductorDataObj.NumAmpRatings > 1) and (NumAmpRatings = 1) then
+                                NumAmpRatings := ActiveConductorDataObj.NumAmpRatings;
+                            if (length(ActiveConductorDataObj.AmpRatings) > 1) and (length(AmpRatings) = 1) then
+                            begin
+                                setlength(AmpRatings, NumAmpRatings);
+                                AmpRatings := ActiveConductorDataObj.AmpRatings;
+                            end;
                         end;
                     end
                     else
@@ -688,6 +704,10 @@ begin
             Result := Format('%-g', [FY^[FActiveCond]]);
         7:
             Result := LineUnitsStr(FUnits^[FActiveCond]);
+        8:
+            Result := Format('%-g', [NormAmps]);
+        9:
+            Result := Format('%-g', [EmergAmps]);
         12, 15, 16:
         begin
             Result := '[';
