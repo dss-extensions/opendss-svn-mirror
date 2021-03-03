@@ -62,15 +62,22 @@ implementation
 *******************************************************************************}
 
 function start_openDSSGIS(): Boolean;
+var
+    myPath,
+    myFolder: String;
 begin
     Result := false;
 
     if DSS_GIS_Installed then
     begin
+        myPath := StringReplace(DSS_GIS_path, '\\', '\', [rfReplaceAll, rfIgnoreCase]);
+        myPath := StringReplace(myPath, '"', '', [rfReplaceAll, rfIgnoreCase]);
+        myFolder := ExtractFilePath(myPath);
+
         if not processExists('OpenDSSGIS.exe') then
         begin
      // Starts OpenDSS-GIS if is not running
-            ShellExecute(0, 'open', Pchar(DSS_GIS_path), nil, nil, SW_SHOWNORMAL);
+            ShellExecute(0, 'open', Pchar(myPath), nil, Pchar(myFolder), SW_SHOWNORMAL);
             sleep(5000);
             IsGISON := false;
         end;
