@@ -140,7 +140,10 @@
     <File Path="..\Parser\RPN.pas"/>
     <File Path="..\PCElements"/>
     <File Path="..\PCElements\Equivalent.pas"/>
+    <File Path="..\PCElements\generator.pas"/>
+    <File Path="..\PCElements\GeneratorVars.pas"/>
     <File Path="..\PCElements\Generic5OrderMach.pas"/>
+    <File Path="..\PCElements\GenUserModel.pas"/>
     <File Path="..\PCElements\GICLine.pas"/>
     <File Path="..\PCElements\GICsource.pas"/>
     <File Path="..\PCElements\IndMach012.pas"/>
@@ -160,9 +163,6 @@
     <File Path="..\PCElements\WindGen.pas"/>
     <File Path="..\PCElements\WindGenUserModel.pas"/>
     <File Path="..\PCElements\WindGenVars.pas"/>
-    <File Path="..\PCElements\generator.pas"/>
-    <File Path="..\PCElements\GenUserModel.pas"/>
-    <File Path="..\PCElements\GeneratorVars.pas"/>
     <File Path="..\PDElements"/>
     <File Path="..\PDElements\AutoTrans.pas"/>
     <File Path="..\PDElements\Capacitor.pas"/>
