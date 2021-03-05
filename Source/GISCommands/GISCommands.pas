@@ -49,6 +49,7 @@ function GISLoadBus(const myBus: String): String;
 function GISShowBuffer(): String;
 function GISFormat(const FormatFrom, FormatTo, Coords: String): String;
 function GISBatchFormat(const FormatFrom, FormatTo, mypath: String): String;
+function GISClose(): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -105,6 +106,21 @@ begin
             Result := IsGISON;
     end;
 
+end;
+
+{*******************************************************************************
+*                            Closes OpenDSS-GIS                                *
+*******************************************************************************}
+function GISClose(): String;
+var
+    myError: Integer;
+begin
+    myError := ShellExecute(0, nil, 'taskkill.exe', '/IM "OpenDSSGIS.exe" /F', 'C:\Windows\System32', SW_HIDE);
+    if myError > 32 then
+        Result := 'OpenDSS-GIS closed successfuly'
+    else
+        Result := 'An error has occurred while closing OpenDSS-GIS';
+    IsGISON := false;
 end;
 
 {*******************************************************************************
