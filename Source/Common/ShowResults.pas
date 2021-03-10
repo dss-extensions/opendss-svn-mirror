@@ -622,7 +622,7 @@ begin
                 Writeln(F, '------------');
             FromBus := Pad(StripExtension(pElem.Nextbus), MaxBusNameLength);
             if (CLASSMASK and pElem.DSSObjType) = AUTOTRANS_ELEMENT then
-                Inc(k, Ntimes);
+                Inc(k, Ntimes);  // Special case for AutoTrans
 
         end;
         Writeln(F);
@@ -2706,6 +2706,8 @@ begin
                 TermPower := CmulReal(PDelem.power[1, ActiveActor], 0.001);     // Terminal 1 power
 
                 if (CLASSMASK and PDElem.DSSObjType) = XFMR_ELEMENT then
+                    Caccum(TransLosses, kLosses);
+                if (CLASSMASK and PDElem.DSSObjType) = AUTOTRANS_ELEMENT then
                     Caccum(TransLosses, kLosses);
                 if (CLASSMASK and PDElem.DSSObjType) = LINE_ELEMENT then
                     Caccum(LineLosses, kLosses);

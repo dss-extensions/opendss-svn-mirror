@@ -12,6 +12,7 @@ unit AutoTrans;
    9-19-2018  committed
    12-4-2018  Corrected indices for mapping into Yprim
    1-3-2019   Default last nphase nodes of X terminal (2) to same as first neutral node
+   3-6-2021  Added code for readability
 }
 
 { You can designate a AutoTrans to be a substation by setting the sub=yes parameter}
@@ -237,7 +238,7 @@ var
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 implementation
 
-{$DEFINE NOAUTOTRANDEBUG}  {AUTOTRANDEBUG}
+{$DEFINE  NOAUTOTRANDEBUG} {AUTOTRANDEBUG}
 
 uses
     DSSClassDefs,
@@ -251,6 +252,9 @@ var
 
 const
     NumPropsThisClass = 42;
+    WYE = 0;
+    DELTA = 1;
+    SERIES = 2;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TAutoTrans.Create;  // Creates superstructure for all AutoTrans objects
@@ -678,21 +682,21 @@ begin
         begin
             case ActiveWinding of
                 1:
-                    Connection := 2;  // First Winding always Series
+                    Connection := SERIES;  // First Winding always Series
                 2:
-                    Connection := 0;  // Second Winding is always Common and Wye
+                    Connection := WYE;  // Second Winding is always Common and Wye
             else
                 case lowercase(S)[1] of
                     'y', 'w':
-                        Connection := 0;  {Wye}
+                        Connection := WYE;  {Wye}
                     'd':
-                        Connection := 1;  {Delta or line-Line}
+                        Connection := DELTA;  {Delta or line-Line}
                     'l':
                         case lowercase(s)[2] of
                             'n':
-                                Connection := 0;
+                                Connection := WYE;
                             'l':
-                                Connection := 1;
+                                Connection := DELTA;
                         end;
                 end;
             end;
@@ -1074,7 +1078,7 @@ begin
   // Redefine 2nd node of Series winding to same as first node of 2nd winding (common winding)
 
     if iTerm = 2 then
-        if Winding^[1].Connection = 2 then
+        if Winding^[1].Connection = SERIES then    // If series winding
         begin
             for i := 1 to Fnphases do
             begin
@@ -1163,7 +1167,7 @@ begin
     if Winding^[1].connection = Winding^[2].connection then
         DeltaDirection := 1
     else
-    if Winding^[1].connection = 2 then
+    if Winding^[1].connection = SERIES then
         DeltaDirection := 1  // Auto
     else
     begin
@@ -1172,12 +1176,12 @@ begin
         else
             iHVolt := 2;
         case Winding^[iHvolt].Connection of
-            0:
+            WYE:
                 if HVLeadsLV then
                     DeltaDirection := -1
                 else
                     DeltaDirection := 1;
-            1:
+            DELTA:
                 if HVLeadsLV then
                     DeltaDirection := 1
                 else
@@ -1219,16 +1223,16 @@ begin
     for i := 1 to NumWindings do
         with Winding^[i] do  // Get the actual turns voltage base for each winding
             case Connection of
-                0:
+                WYE:
                     case Fnphases of   // Wye
                         2, 3:
                             VBase := kVLL * InvSQRT3x1000;   // assume 3-phase for 2-phase designation
                     else
                         VBase := kVLL * 1000.0;
                     end;
-                1:
+                DELTA:
                     VBase := kVLL * 1000.0;     // delta
-                2:
+                SERIES:
                 begin                            // Series winding for Auto  Should be Winding[1]
                     case Fnphases of
                         2, 3:
@@ -1264,9 +1268,9 @@ begin
    { Normal and Emergency terminal current Rating for UE check}
     Vfactor := 1.0;  // ensure initialization
     case Winding^[1].connection of
-        0:
+        WYE:
             VFactor := Winding^[1].VBase * 0.001;   // wye
-        1:
+        DELTA:
             case Fnphases of
                 1:
                     VFactor := Winding^[1].VBase * 0.001;
@@ -1366,7 +1370,7 @@ This builds the YPrim and the NodeRef array maps it into Y
             begin
                 Inc(k);
                 case Winding^[j].Connection of
-                    0:
+                    WYE:
                     begin  // Wye
                         TermRef^[k] := (j - 1) * FNConds + i;
                         Inc(k);
@@ -1374,13 +1378,13 @@ This builds the YPrim and the NodeRef array maps it into Y
                     end;
   {**** WILL THIS WORK for 2-PHASE OPEN DELTA ???? Need to check this sometime}
 
-                    1:
+                    DELTA:
                     begin  // Delta
                         TermRef^[k] := (j - 1) * fNconds + i;
                         Inc(k);
                         TermRef^[k] := (j - 1) * fNconds + RotatePhases(i);  // connect to next phase in sequence
                     end;
-                    2:
+                    SERIES:
                     begin // Series Winding for Auto Transfomer
                         TermRef^[k] := i;
                         Inc(k);
@@ -1468,11 +1472,11 @@ begin
             else
                 Writeln(F, '~ ', 'Wdg=', i: 0, ' bus=', nextbus);
             case Connection of
-                0:
+                WYE:
                     Writeln(f, '~ conn=wye');
-                1:
+                DELTA:
                     Writeln(f, '~ conn=delta');
-                2:
+                SERIES:
                     Writeln(f, '~ conn=Series');
             end;
             Writeln(f, Format('~ kv=%.7g', [kVLL]));
@@ -1617,11 +1621,11 @@ begin
     case iWinding of
         1:
         begin
-            Connection := 2;  // First Winding is Series Winding
+            Connection := SERIES;  // First Winding is Series Winding
             kVLL := 115.0;
         end
     else
-        Connection := 0;
+        Connection := WYE;
         kVLL := 12.47;
     end;
 
@@ -1801,18 +1805,18 @@ begin
             begin
                 i := 2 * iWind - 1;
                 case Winding^[iWind].Connection of
-                    0:
+                    WYE:
                     begin   // Wye  (Common winding usually)
                         VTerm^[i] := Vterminal^[iphase + (iWind - 1) * FNconds];
                         VTerm^[i + 1] := Vterminal^[iphase + (iWind - 1) * FNconds + FNphases];
                     end;
-                    1:
+                    DELTA:
                     begin   // Delta
                         jphase := RotatePhases(iphase);      // Get next phase in sequence
                         VTerm^[i] := Vterminal^[iphase + (iWind - 1) * FNconds];
                         VTerm^[i + 1] := Vterminal^[jphase + (iWind - 1) * FNconds];
                     end;
-                    2:
+                    SERIES:
                     begin    // Series Winding
                         VTerm^[i] := Vterminal^[iphase + (iWind - 1) * FNconds];
                         VTerm^[i + 1] := Vterminal^[iphase + Fnphases];
@@ -1906,16 +1910,16 @@ begin
         NeutTerm := Fnphases + k + 1;
         for i := 1 to Fnphases do
             case Winding^[iWind].Connection of
-                0:
+                WYE:
                 begin      // Wye
                     VBuffer^[i] := Csub(Vterminal^[i + k], Vterminal^[NeutTerm]);
                 end;
-                1:
+                DELTA:
                 begin   // Delta
                     ii := RotatePhases(i);      // Get next phase in sequence
                     VBuffer^[i] := CSub(Vterminal^[i + k], Vterminal^[ii + k]);
                 end;
-                2:
+                SERIES:
                 begin      // Series   (winding 1)
                     VBuffer^[i] := Csub(Vterminal^[i + k], Vterminal^[i + Fnconds]);
                 end;
@@ -2252,7 +2256,7 @@ begin
 
     for i := 1 to NumWindings do
         with Winding^[i] do
-            if (NPhases > 1) or (Connection <> 0) then
+            if (NPhases > 1) or (Connection <> WYE) then
                 S := S + Format(' %-.5g', [kVLL / SQRT3])
             else
                 S := S + Format(' %-.5g', [kVLL]);
@@ -2346,7 +2350,7 @@ begin
             end;
 
     {$IFDEF AUTOTRANDEBUG}
-       AssignFile(F, CircuitName_ + 'AutoTrans_'+Name+'.TXT');
+       AssignFile(F, CircuitName_[ActiveActor] + 'AutoTrans_'+Name+'.TXT');
        Rewrite(F);
        Writeln(F,'Y_Term after building...');
        DumpComplexMatrix(F, Y_Term);
@@ -2431,7 +2435,7 @@ begin
 
   {******************************DEBUG******************************************************}
         {$IFDEF AUTOTRANDEBUG}
-       AssignFile(F, CircuitName_ + 'AutoTrans_'+Name+'.TXT');
+       AssignFile(F, CircuitName_[ActiveActor] + 'AutoTrans_'+Name+'.TXT');
        Rewrite(F);
        Writeln(F, Format('Zbase=%g, VABase=%g, Nphases=%d, Rpu=%g ', [Zbase, VABase, Fnphases, Winding^[1].Rpu ]));
        Writeln(F,'ZB before inverting...');
@@ -2623,9 +2627,9 @@ begin
             begin
                 case i of
                     1:
-                        Connection := 2;  // No Choice for 1st two
+                        Connection := SERIES;  // No Choice for 1st two
                     2:
-                        Connection := 0;  // Wye
+                        Connection := WYE;  // Wye
                 else
                     Connection := Obj.Winding^[i].Connection;
                 end;

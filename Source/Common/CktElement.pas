@@ -752,7 +752,23 @@ function TDSSCktElement.Get_Losses(ActorID: Integer): Complex;
 
 var
     cLoss: Complex;
-    k, n: Integer;
+    k, i, j, n: Integer;
+
+   {Local nested Procedure}
+    procedure LossCalc;  // of k-th conductor
+    begin
+        with ActiveCircuit[ActorID].Solution do
+        begin
+            n := NodeRef^[k];
+            if n > 0 then
+            begin
+                if ActiveCircuit[ActorID].PositiveSequence then
+                    Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                else
+                    Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+            end;
+        end;
+    end;
 
 begin
 
@@ -763,18 +779,27 @@ begin
         ComputeIterminal(ActorID);
 
     // Method: Sum complex power going into all conductors of all terminals
-        with ActiveCircuit[ActorID].Solution do
+         {Special for AutoTransformer - sum based on NPhases rather then Yorder}
+        if (CLASSMASK and self.DSSObjType) = AUTOTRANS_ELEMENT then
+        begin
+            k := 0;
+            for j := 1 to Nterms do
+            begin
+                for i := 1 to Nphases do
+                begin
+                    inc(k);
+                    LossCalc;
+                end;
+                Inc(k, Nphases)
+            end;
+        end
+        else  // for all other elements
+        begin
             for k := 1 to Yorder do
             begin
-                n := NodeRef^[k];
-                if n > 0 then
-                begin
-                    if ActiveCircuit[ActorID].PositiveSequence then
-                        Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
-                    else
-                        Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
-                end;
+                LossCalc;
             end;
+        end;
     end;
 
 
