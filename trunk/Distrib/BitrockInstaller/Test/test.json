@@ -1,9 +1,9 @@
 {
 	"name":"opendss",
-	"publishInterval":3,
-	"publishMode":"CIM",
+	"publishInterval":1,
+	"publishMode":"JSON",
 	"topics":{
-		"Bus":{
+    "Bus":{
 			"611":{
 				"Voltage":["C"]		
 			},

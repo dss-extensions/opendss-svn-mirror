@@ -8,3 +8,5 @@ del ieee13.csv
 del ieee13_assets.csv
 del *.Txt
 del *Exp*.csv
+del weather.csv
+del *house*.csv

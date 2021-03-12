@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.2.15</version>
+    <version>1.2.17</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
@@ -219,6 +219,21 @@
                         <distributionFile>
                             <origin>Linux/Test/test_fncspv.sh</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/kill23404.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_fncsgld.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_helics.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_helicsgld.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Linux/Test/test_helicspv.sh</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -244,6 +259,24 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>Windows/Test/test_fncspv.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/kill23404.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/list23404.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_fncsgld.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_helics.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_helicsgld.bat</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>Windows/Test/test_helicspv.bat</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -452,6 +485,9 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>Doc/OpenDSS_FPC_Build.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Distance_Relays.pdf</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
