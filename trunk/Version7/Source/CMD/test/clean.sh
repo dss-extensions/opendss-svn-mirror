@@ -13,3 +13,4 @@ rm *EXP*.CSV
 rm *trace.txt
 rm weather.csv
 rm *house*.csv
+rm out.txt
