@@ -189,4 +189,3 @@ Use of this software is subject to a license. The terms are in:
 1 - A file called "license.txt" distributed with the software, and
 2 - The user manual
 
-https://kb.vmware.com/s/article/2961991
