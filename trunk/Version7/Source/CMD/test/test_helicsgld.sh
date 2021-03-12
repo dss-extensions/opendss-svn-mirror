@@ -1,5 +1,5 @@
-(exec helics_broker -f 4 --name=mainbroker --loglevel=7 --debugging &> helicsbrokergld.log &)
-(exec helics_player --input=gldopendsshelics.playergld --local --time_units=ns --stop 90000s --loglevel=7 --debugging &> helicsplayergld.log &)
-(exec helics_recorder --input=gldrecorderhelics.json --stop 90000s --loglevel=7 --debugging &> helicsrecordergld.log &)
+(exec helics_broker -f 4 --name=mainbroker &> helicsbrokergld.log &)
+(exec helics_player --input=gldopendsshelics.playergld --local --time_units=ns --stop 90000s &> helicsplayergld.log &)
+(exec helics_recorder --input=gldrecorderhelics.json --stop 90000s &> helicsrecordergld.log &)
 (export HELICS_CONFIG_FILE=gldopendsshouseshelics.json && exec ./opendsscmd -l 25h &> opendssgld.log &)
 (exec gridlabd HousesHelics.glm &> helicsgridlabd.log &)
