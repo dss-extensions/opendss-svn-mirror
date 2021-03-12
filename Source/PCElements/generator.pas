@@ -743,11 +743,11 @@ begin
                         begin
                             pctFuel := 100.0;
                             GenActive := true;
-                        end
+                        end;
 
-                        else
+                else
            // Inherited parameters
-                            ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
+                    ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
                 end;
 
             if ParamPointer > 0 then
