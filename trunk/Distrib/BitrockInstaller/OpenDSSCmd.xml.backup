@@ -6,6 +6,27 @@
     <licenseFile>license.txt</licenseFile>
     <componentList>
         <component>
+            <name>vcruntime</name>
+            <folderList>
+                <folder>
+                    <name>vcfiles</name>
+                    <destination>${installdir}</destination>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>Windows/VC_redist.x64.exe</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                    <actionList>
+                        <runProgram>
+                            <progressText>Installing VC++ 2015-2019 runtime</progressText>
+                            <program>${installdir}/VC_redist.x64.exe</program>
+                            <programArguments>/passive /norestart</programArguments>
+                        </runProgram>
+                    </actionList>
+                </folder>
+            </folderList>
+        </component>
+        <component>
             <name>default</name>
             <description>Default Component</description>
             <canBeEdited>1</canBeEdited>
@@ -151,54 +172,9 @@
                     <name>testfiles</name>
                     <platforms>all</platforms>
                     <distributionFileList>
-                        <distributionFile>
-                            <origin>Test/export_test.dss</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13Base.dss</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13Node_BusXY.csv</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEELineCodes.DSS</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/opendss.player</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/opendss.yaml</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/tracer.yaml</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/opendss.playerpv</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/pvshape.dat</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/test.json</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13Nodeckt_Base_UUIDS.dat</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13NodecktAssets_Base_UUIDS.dat</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/cim_test.dss</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13_Assets.dss</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13_CDPSM.dss</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Test/IEEE13NodeExtra_BusXY.dat</origin>
-                        </distributionFile>
+                        <distributionDirectory>
+                            <origin>Test</origin>
+                        </distributionDirectory>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -297,6 +273,21 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>MacOSX/Test/test_fncspv.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/kill23404.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_fncsgld.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_helics.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_helicsgld.sh</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>MacOSX/Test/test_helicspv.sh</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
