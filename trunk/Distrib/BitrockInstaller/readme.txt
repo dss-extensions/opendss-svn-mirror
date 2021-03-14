@@ -7,13 +7,13 @@ All rights reserved.
 opendsscmd version 1.2.17
 =========================
 
-This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7.6.5 of the Windows-only version, and source code revision r2181. The major differences between opendsscmd and Windows-only OpenDSS are:
+This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
 
 1 - There is no support for Windows COM automation, and no separate DLL version. (Use FNCS or HELICS instead)
 
 2 - There is no graphical user interface (GUI) or plotting. (Use MATLAB or Python instead)
 
-3 - Automation is provided through the Framework for Network Cosimulation (FNCS) library developed by Pacific Northwest National Laboratory (PNNL). It is  planned to upgrade FNCS with the HELIC framework that is currently under development by several US Department of Energy labs under the Grid Modernization Laboratory Consortium (GMLC) project 1.4.15.
+3 - Automation is provided through the Framework for Network Cosimulation (FNCS) library developed by Pacific Northwest National Laboratory (PNNL), and the HELICS framework developed by several US Department of Energy labs under the Grid Modernization Laboratory Consortium (GMLC) project 1.4.15.
 
 Installation
 ============
@@ -158,6 +158,7 @@ Change Log
        - VCCS will cease to inject current when a terminal opens, e.g., by a Relay
        - VCCS injects positive sequence current only when in RMS mode
        - Distance (21) and TD21 relays have a reverse-looking flag
+       - Include the Microsoft Visual C++ 2019 redistributable installer
 
 Open Issues
 ===========

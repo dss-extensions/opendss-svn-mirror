@@ -7,6 +7,7 @@
     <componentList>
         <component>
             <name>vcruntime</name>
+            <description>VCruntime</description>
             <canBeEdited>1</canBeEdited>
             <selected>1</selected>
             <show>1</show>
@@ -18,9 +19,12 @@
                     <actionList>
                         <runProgram>
                             <program>${installdir}/VC_redist.x64.exe</program>
-                            <programArguments>/passive /norestart</programArguments>
+                            <programArguments>/passive</programArguments>
                             <progressText>Installing VC++ 2015-2019 runtime</progressText>
                         </runProgram>
+                        <deleteFile>
+                            <path>${installdir}/VC_redist.x64.exe</path>
+                        </deleteFile>
                     </actionList>
                     <distributionFileList>
                         <distributionFile>
@@ -172,12 +176,12 @@
                 </folder>
                 <folder>
                     <description>Test Files</description>
-                    <destination>${sharedir}/test</destination>
+                    <destination>${sharedir}</destination>
                     <name>testfiles</name>
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>Test</origin>
+                            <origin>test</origin>
                         </distributionDirectory>
                     </distributionFileList>
                 </folder>
