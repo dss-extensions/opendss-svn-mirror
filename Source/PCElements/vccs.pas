@@ -2,7 +2,7 @@ unit VCCS;
 {
   ----------------------------------------------------------
   Copyright (c) 2016, University of Pittsburgh
-  Copyright (c) 2019-2020, Battelle Memorial Institute
+  Copyright (c) 2019-2021, Battelle Memorial Institute
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -68,6 +68,7 @@ type
         s4: Double; // Ipeak,    or Irms in phasor mode
         s5: Double; // BP1out,   or NA in phasor mode
         s6: Double; // Hout,     or NA in phasor mode
+        sV1: complex; // positive-sequence voltage; use to inject I1 only
 
         vlast: complex;
         y2: pDoubleArray;
@@ -81,6 +82,7 @@ type
         procedure InitPhasorStates(ActorID: Integer);
         procedure IntegratePhasorStates(ActorID: Integer);
         procedure ShutoffInjections;
+        procedure UpdateSequenceVoltage;
 
     PROTECTED
         function Get_Variable(i: Integer): Double; OVERRIDE;
@@ -128,6 +130,7 @@ uses
 
 var
     NumPropsThisClass: Integer;
+    ALPHA1, ALPHA2: complex;
 
 // helper functions for ring buffer indexing, 1..len
 function MapIdx(idx, len: Integer): Integer;
@@ -486,9 +489,18 @@ begin
     end;
 end;
 
+procedure TVCCSObj.UpdateSequenceVoltage;
+begin
+    if FNPhases = 3 then
+        sV1 := cdivreal(cadd(Vterminal^[1], cadd(cmul(ALPHA1, Vterminal^[2]), cmul(ALPHA2, Vterminal^[3]))), 3.0)
+    else
+        sV1 := Vterminal^[1];
+end;
+
 procedure TVCCSObj.GetInjCurrents(Curr: pComplexArray; ActorID: Integer);
 var
     i: Integer;
+    i1: complex;
 begin
     if not Closed[1, ActorID] then
     begin
@@ -498,14 +510,27 @@ begin
     end;
 
     ComputeVterminal(ActorID);
+    UpdateSequenceVoltage;
 //  IterminalUpdated := FALSE;
     if ActiveSolutionObj.IsDynamicModel then
     begin
         if FrmsMode then
         begin
-            for i := 1 to Fnphases do
-            begin
-                Curr^[i] := pdegtocomplex(s4 * BaseCurr, cdang(Vterminal^[i]));
+            i1 := pdegtocomplex(s4 * BaseCurr, cdang(sV1));
+            case Fnphases of
+                1:
+                    Curr^[1] := i1;
+                3:
+                begin
+                    Curr^[1] := i1;
+                    Curr^[2] := cmul(i1, ALPHA2);
+                    Curr^[3] := cmul(i1, ALPHA1);
+                end;
+            else
+                for i := 1 to Fnphases do
+                begin
+                    Curr^[i] := pdegtocomplex(s4 * BaseCurr, cdang(Vterminal^[i]));
+                end;
             end;
         end
         else
@@ -604,6 +629,7 @@ begin
     s3 := s4;
     s5 := 0;
     s6 := 0;
+    sV1 := cmplx(1.0, 0.0);
     vlast := cdivreal(Vterminal^[1], BaseVolt);
 
   // initialize the history terms for HW model source convention
@@ -649,6 +675,7 @@ begin
     s4 := s3;
     s5 := 0;
     s6 := 0;
+    sV1 := cmplx(1.0, 0.0);
     vlast := cdivreal(Vterminal^[1], BaseVolt);
 
   // initialize the history terms for HW model source convention
@@ -685,7 +712,8 @@ var
     iu, i, k, nstep, corrector: Integer;
 begin
     ComputeIterminal(ActorID);
-    vpu := cabs(Vterminal^[1]) / BaseVolt;
+    UpdateSequenceVoltage;
+    vpu := cabs(sV1) / BaseVolt;
     if vpu > 0.0 then
     begin
         h := ActiveSolutionObj.DynaVars.h;
@@ -922,4 +950,7 @@ begin
     end;
 end;
 
+initialization
+    ALPHA1 := cmplx(-0.5, 0.5 * sqrt(3.0));  // 1 at 120 degrees
+    ALPHA2 := cmplx(-0.5, -ALPHA1.im);       // 1 at 240 degrees
 end.
