@@ -1558,6 +1558,8 @@ end;
 procedure TDSSCircuit.AggregateProfiles(mode: String);
 var
     F: TextFile;
+    myBus,
+    myPDE,
     FileRoot,
     myPCE,
     TextCmd,
@@ -1570,6 +1572,7 @@ var
     pMonitor: TMonitorObj;
     ActiveLSObject: TLoadshapeObj;
     pLine: TLineObj;
+    pElem: TVsourceObj;
     myPF,
     myWeight,
     myActual,
@@ -1616,8 +1619,13 @@ begin
   {----------------------------------------------------------------------------}
   // Add monitors and Energy Meters at link branches
   // Creates and EnergyMeter at the feeder head
-    pLine := Lines.First;
-    DSSExecutive[ActiveActor].Command := 'New EnergyMeter.myEMZoneFH element=Line.' + pLine.Name + ' terminal=1';
+    pElem := VsourceClass.ElementList.First;
+    ActiveCircuit[ActiveActor].SetElementActive('Vsource.' + pElem.Name);
+    myBus := StripExtension(ActiveCktElement.GetBus(1));
+    myPDE := ActiveCircuit[Activeactor].ReportPDEatBus(myBus);
+    k := ansipos(',', myPDE);  // take only the first branch on the list
+    myPDE := myPDE.Substring(0, k - 1);
+    DSSExecutive[ActiveActor].Command := 'New EnergyMeter.myEMZoneFH element=' + myPDE + ' terminal=1';
     for i := 0 to High(Link_Branches) do
     begin
         DSSExecutive[ActiveActor].Command := 'New EnergyMeter.myEMZone' + InttoStr(i) + ' element=' + Link_Branches[i] + ' terminal=1';
