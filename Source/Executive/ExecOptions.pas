@@ -1,7 +1,7 @@
 unit ExecOptions;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 135;
+    NumExecOptions = 136;
 
 var
     ExecOption,
@@ -184,6 +184,7 @@ begin
     ExecOption[133] := 'GISCoords';
     ExecOption[134] := 'GISColor';
     ExecOption[135] := 'GISThickness';
+    ExecOption[136] := 'MemoryMapping';
 
 
     OptionHelp[1] := 'Sets the active DSS class type.  Same as Class=...';
@@ -472,6 +473,9 @@ begin
     OptionHelp[133] := '[Coords] : An array of doubles defining the longitud and latitude for an area to be used as refrence for the OpenDSS-GIS related commands, long1, lat1, long2, lat2';
     OptionHelp[134] := 'Color    : A Hex string defining 24 bit color in RGB format, e.g. , red = FF0000';
     OptionHelp[135] := 'Thickness: An integer defining the thickness (default = 3)';
+    OptionHelp[136] := '{YES/TRUE | NO/FALSE*). Deafult is NO. Enables load shapes to be defined as memory mapped files instead of loading them into memory directly.' + CRLF +
+        'Use it when the number and lenght of load profiles in the model is significantly large, requiring long times for compiling the model.' + CRLF +
+        'Set this property before defining load shapes in the model for takign effect.';
 
 end;
 //----------------------------------------------------------------------------
@@ -969,6 +973,10 @@ begin
             135:
             begin
                 GISthickness := Parser[ActiveActor].StrValue;
+            end;
+            136:
+            begin
+                UseMMF := InterpretYesNo(Param);
             end;
         else
            // Ignore excess parameters

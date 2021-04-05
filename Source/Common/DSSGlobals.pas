@@ -369,6 +369,9 @@ Integer
     GISColor: String;
     GISCoords: pDoubleArray;
 
+//*************** Load shapes memory mapped global variables********************
+    UseMMF: Boolean;
+
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
