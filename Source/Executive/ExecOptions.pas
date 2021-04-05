@@ -1436,6 +1436,11 @@ begin
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');
+                136:
+                    if UseMMF then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
             else
            // Ignore excess parameters
             end;
