@@ -54,6 +54,9 @@ function Get_distance(): String;
 function GISStartSelect(): String;
 function GISStopSelect(): String;
 function GISGetSelect(): String;
+function GISStartDrawLine(): String;
+function GISStopDrawLine(): String;
+function GISGetPolyline(): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -947,6 +950,70 @@ begin
 end;
 
 {*******************************************************************************
+*              Commands OpenDSS-GIS to start line drawing mode                 *
+*******************************************************************************}
+function GISStartDrawLine(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"drawlines"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['drawlines'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*            Commands OpenDSS-GIS to stop the line drawing mode                *
+*******************************************************************************}
+function GISStopDrawLine(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"stopdrawlines"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['stopdrawlines'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
 *                  Commands OpenDSS-GIS to stop select mode                    *
 *******************************************************************************}
 function GISStopSelect(): String;
@@ -998,6 +1065,38 @@ begin
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
             TCPJSON := TdJSON.Parse(InMsg);
             Result := TCPJSON['getselect'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*          gets the coords for the latest polyline drawn in OpenDSS-GIS        *
+*******************************************************************************}
+function GISGetPolyline(): String;
+var
+    TCPJSON: TdJSON;
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"getpolyline"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['getpolyline'].AsString;
         except
             on E: Exception do
             begin
