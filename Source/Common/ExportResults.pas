@@ -2275,64 +2275,60 @@ begin
 end;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-procedure WriteMultiplePVSystem2MeterFiles;
+(*Procedure WriteMultiplePVSystem2MeterFiles;
 
-var
-    F: TextFile;
-    i, j: Integer;
-    pElem: TPVSystemObj;
-    FileNm,
-    Separator: String;
+Var
+   F  :TextFile;
+   i,j:Integer;
+   pElem  :TPVSystemObj;
+   FileNm,
+   Separator :String;
 
-begin
+Begin
 
-    if PVSystemClass[ActiveActor] = nil then
-        Exit;  // oops somewhere!!
-    Separator := ', ';
+     If PVSystemClass[ActiveActor] = NIL THEN Exit;  // oops somewhere!!
+     Separator := ', ';
 
-    pElem := ActiveCircuit[ActiveActor].PVSystems2.First;
-    while pElem <> nil do
-    begin
-        if pElem.Enabled then
-        begin
-            try
-                FileNm := GetOutputDirectory + 'EXP_PV_' + Uppercase(pElem.Name) + '.CSV';
+     pElem := ActiveCircuit[ActiveActor].PVSystems2.First;
+     WHILE pElem <> NIL Do
+     Begin
+        IF pElem.Enabled THEN
+        BEGIN
+          TRY
+            FileNm := GetOutputDirectory + 'EXP_PV_' + Uppercase(pElem.Name) + '.CSV';
 
-                if not FileExists(FileNm) then
-                begin
-                    AssignFile(F, FileNm);
-                    Rewrite(F);
-                {Write New Header}
-                    Write(F, 'Year, LDCurve, Hour, PVSystem');
-                    for i := 1 to NumPVSystemRegisters do
-                        Write(F, Separator, '"' + PVSystemClass[ActiveActor].RegisterNames[i] + '"');
-                    Writeln(F);
-                    CloseFile(F);
-                end;
-
+            IF Not FileExists(FileNm)
+            THEN Begin
                 AssignFile(F, FileNm);
-                Append(F);
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    Write(F, Solution.Year: 0, Separator);
-                    Write(F, LoadDurCurve, Separator);
-                    Write(F, Solution.DynaVars.intHour: 0, Separator);
-                    Write(F, Pad('"' + Uppercase(pElem.Name) + '"', 14));
-                    for j := 1 to NumPVSystemRegisters do
-                        Write(F, Separator, PElem.Registers[j]: 10: 0);
-                    Writeln(F);
-                end;
-                AppendGlobalResult(FileNm);
-            finally
+                Rewrite(F);
+                {Write New Header}
+                Write(F, 'Year, LDCurve, Hour, PVSystem');
+                For i := 1 to NumPVSystemRegisters Do Write(F, Separator, '"' + PVSystemClass[ActiveActor].RegisterNames[i]+'"');
+                Writeln(F);
                 CloseFile(F);
-            end;
+            End;
 
-        end;
+            AssignFile(F, FileNm);
+            Append(F);
+            With ActiveCircuit[ActiveActor] Do Begin
+                Write(F,Solution.Year:0, Separator);
+                Write(F,LoadDurCurve, Separator);
+                Write(F,Solution.DynaVars.intHour:0, Separator);
+                Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
+                FOR j := 1 to NumPVSystemRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
+                Writeln(F);
+            End;
+            AppendGlobalResult(FileNm);
+          FINALLY
+            CloseFile(F);
+          END;
+
+        END;
         pElem := ActiveCircuit[ActiveActor].PVSystems2.Next;
-    end;
+     End;
 
-end;
-
+End;
+*)
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 procedure WriteSinglePVSystemMeterFile(FileNm: String);
 
@@ -2560,63 +2556,61 @@ begin
 
 end;
 
-procedure WriteMultipleStorage2MeterFiles;
+(*
+Procedure WriteMultipleStorage2MeterFiles;
 
-var
-    F: TextFile;
-    i, j: Integer;
-    pElem: TStorageObj;
-    FileNm,
-    Separator: String;
+Var
+   F  :TextFile;
+   i,j:Integer;
+   pElem  :TStorageObj;
+   FileNm,
+   Separator :String;
 
-begin
+Begin
 
-    if StorageClass = nil then
-        Exit;  // oops somewhere!!
-    Separator := ', ';
+     If StorageClass = NIL THEN Exit;  // oops somewhere!!
+     Separator := ', ';
 
-    pElem := ActiveCircuit[ActiveActor].Storage2Elements.First;
-    while pElem <> nil do
-    begin
-        if pElem.Enabled then
-        begin
-            try
-                FileNm := GetOutputDirectory + 'EXP_PV_' + Uppercase(pElem.Name) + '.CSV';
+     pElem := ActiveCircuit[ActiveActor].Storage2Elements.First;
+     WHILE pElem <> NIL Do
+     Begin
+        IF pElem.Enabled THEN
+        BEGIN
+          TRY
+            FileNm := GetOutputDirectory + 'EXP_PV_' + Uppercase(pElem.Name) + '.CSV';
 
-                if not FileExists(FileNm) then
-                begin
-                    AssignFile(F, FileNm);
-                    Rewrite(F);
-                {Write New Header}
-                    Write(F, 'Year, LDCurve, Hour, Storage2');
-                    for i := 1 to NumStorageRegisters do
-                        Write(F, Separator, '"' + StorageClass[ActiveActor].RegisterNames[i] + '"');
-                    Writeln(F);
-                    CloseFile(F);
-                end;
-
+            IF Not FileExists(FileNm)
+            THEN Begin
                 AssignFile(F, FileNm);
-                Append(F);
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    Write(F, Solution.Year: 0, Separator);
-                    Write(F, LoadDurCurve, Separator);
-                    Write(F, Solution.DynaVars.intHour: 0, Separator);
-                    Write(F, Pad('"' + Uppercase(pElem.Name) + '"', 14));
-                    for j := 1 to NumStorageRegisters do
-                        Write(F, Separator, PElem.Registers[j]: 10: 0);
-                    Writeln(F);
-                end;
-                AppendGlobalResult(FileNm);
-            finally
+                Rewrite(F);
+                {Write New Header}
+                Write(F, 'Year, LDCurve, Hour, Storage2');
+                For i := 1 to NumStorageRegisters Do Write(F, Separator, '"' + StorageClass[ActiveActor].RegisterNames[i]+'"');
+                Writeln(F);
                 CloseFile(F);
-            end;
+            End;
 
-        end;
+            AssignFile(F, FileNm);
+            Append(F);
+            With ActiveCircuit[ActiveActor] Do Begin
+                Write(F,Solution.Year:0, Separator);
+                Write(F,LoadDurCurve, Separator);
+                Write(F,Solution.DynaVars.intHour:0, Separator);
+                Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
+                FOR j := 1 to NumStorageRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
+                Writeln(F);
+            End;
+            AppendGlobalResult(FileNm);
+          FINALLY
+            CloseFile(F);
+          END;
+
+        END;
         pElem := ActiveCircuit[ActiveActor].Storage2Elements.Next;
-    end;
+     End;
 
-end;
+End;
+*)
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 procedure WriteSingleStorageMeterFile(FileNm: String);
@@ -2706,93 +2700,86 @@ begin
 
 end;
 
-procedure WriteSingleStorage2MeterFile(FileNm: String);
+(*
+Procedure WriteSingleStorage2MeterFile(FileNm:String);
 
-var
-    F: TextFile;
-    i, j: Integer;
-    pElem: TStorageObj;
-    Separator, TestStr: String;
-    ReWriteFile: Boolean;
+Var
+   F  :TextFile;
+   i,j:Integer;
+   pElem  :TStorageObj;
+   Separator, TestStr :String;
+   ReWriteFile :Boolean;
 
-begin
-
-
-    if StorageClass = nil then
-        Exit;  // oops somewhere!!
-    Separator := ', ';
+Begin
 
 
-    try
+  If StorageClass = NIL THEN Exit;  // oops somewhere!!
+  Separator := ', ';
 
-        if FileExists(FileNm) then
-        begin  // See if it has already been written on
-            Assignfile(F, FileNm);
-            Reset(F);
-            if not EOF(F) then
-            begin
-                Read(F, TestStr);
+
+ TRY
+
+    IF FileExists(FileNm)
+    THEN Begin  // See if it has already been written on
+         Assignfile(F,FileNm);
+         Reset(F);
+         IF  Not EOF(F)
+         THEN Begin
+             Read(F, TestStr);
              {See if it likely that the file is OK}
-                if CompareText(Copy(TestStr, 1, 4), 'Year') = 0 then
-                    RewriteFile := false       // Assume the file is OK
-                else
-                    RewriteFile := true;
-            end
-            else
-                RewriteFile := true;
+             IF  CompareText(Copy(TestStr,1,4), 'Year')=0
+             THEN RewriteFile := FALSE       // Assume the file is OK
+             ELSE RewriteFile := TRUE;
+         End
+         ELSE RewriteFile := TRUE;
 
-            CloseFile(F);
+         CloseFile(F);
 
-        end
-        else
-        begin
-            ReWriteFile := true;
-            AssignFile(F, FileNm);
-        end;
+    End
+    ELSE Begin
+         ReWriteFile := TRUE;
+         AssignFile(F, FileNm);
+    End;
 
    {Either open or append the file}
-        if RewriteFile then
-        begin
-            ReWrite(F);
+    IF RewriteFile
+    THEN Begin
+        ReWrite(F);
         {Write New Header}
-            Write(F, 'Year, LDCurve, Hour, Storage2');
-            for i := 1 to NumStorageRegisters do
-                Write(F, Separator, '"' + StorageClass[ActiveActor].RegisterNames[i] + '"');
+        Write(F, 'Year, LDCurve, Hour, Storage2');
+        For i := 1 to NumStorageRegisters Do Write(F, Separator, '"'+ StorageClass[ActiveActor].RegisterNames[i]+'"');
+        Writeln(F);
+    END
+    ELSE Append(F);
+
+
+     pElem := ActiveCircuit[ActiveActor].Storage2Elements.First;
+     WHILE pElem <> NIL Do
+     Begin
+        IF pElem.Enabled THEN With ActiveCircuit[ActiveActor] Do
+        BEGIN
+            Write(F,Solution.Year:0, Separator);
+            Write(F,LoadDurCurve, Separator);
+            Write(F,Solution.DynaVars.intHour:0, Separator);
+            Write(F,Pad('"'+Uppercase(pElem.Name)+'"', 14));
+            FOR j := 1 to NumStorageRegisters Do Write(F, Separator, PElem.Registers[j]:10:0);
             Writeln(F);
-        end
-        else
-            Append(F);
+        END;
+
+        pElem := ActiveCircuit[ActiveActor].Storage2Elements.Next;
+     End;
+
+     GlobalResult := FileNm;
+
+  FINALLY
+
+     CloseFile(F);
+
+  End;
 
 
-        pElem := ActiveCircuit[ActiveActor].Storage2Elements.First;
-        while pElem <> nil do
-        begin
-            if pElem.Enabled then
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    Write(F, Solution.Year: 0, Separator);
-                    Write(F, LoadDurCurve, Separator);
-                    Write(F, Solution.DynaVars.intHour: 0, Separator);
-                    Write(F, Pad('"' + Uppercase(pElem.Name) + '"', 14));
-                    for j := 1 to NumStorageRegisters do
-                        Write(F, Separator, PElem.Registers[j]: 10: 0);
-                    Writeln(F);
-                end;
-
-            pElem := ActiveCircuit[ActiveActor].Storage2Elements.Next;
-        end;
-
-        GlobalResult := FileNm;
-
-    finally
-
-        CloseFile(F);
-
-    end;
-
-
-end;
-
+End;
+ *)
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 procedure ExportGenMeters(FileNm: String);

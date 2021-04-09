@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 130;
+    NumExecCommands = 129;
 
 var
 
@@ -181,17 +181,17 @@ begin
     ExecCommand[117] := 'CalcLaplacian';
     ExecCommand[118] := 'Clone';
     ExecCommand[119] := 'FNCSPublish';
-    ExecCommand[120] := 'UpdateStorage2';
-    ExecCommand[121] := 'ExportOverloads';
-    ExecCommand[122] := 'ExportVViolations';
-    ExecCommand[123] := 'Zsc012';
-    ExecCommand[124] := 'AggregateProfiles';
-    ExecCommand[125] := 'AllPCEatBus';
-    ExecCommand[126] := 'AllPDEatBus';
-    ExecCommand[127] := 'TotalPowers';
-    ExecCommand[128] := 'COMHelp';
-    ExecCommand[129] := 'GIS';
-    ExecCommand[130] := 'GISCoords';
+   //  ExecCommand[120] := 'UpdateStorage2';
+    ExecCommand[120] := 'ExportOverloads';
+    ExecCommand[121] := 'ExportVViolations';
+    ExecCommand[122] := 'Zsc012';
+    ExecCommand[123] := 'AggregateProfiles';
+    ExecCommand[124] := 'AllPCEatBus';
+    ExecCommand[125] := 'AllPDEatBus';
+    ExecCommand[126] := 'TotalPowers';
+    ExecCommand[127] := 'COMHelp';
+    ExecCommand[128] := 'GIS';
+    ExecCommand[129] := 'GISCoords';
 
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
@@ -543,31 +543,31 @@ begin
         'if the number of requested clones does not overpasses the number of local CPUs. The form of this command is clone X where' +
         'X is the number of clones to be created';
     CommandHelp[119] := 'Read FNCS publication topics from a JSON file';
-    CommandHelp[120] := 'Update Storage2 elements based on present solution and time interval. ';
-    CommandHelp[121] := 'Exports the overloads report with the content avaiable at the moment of the call. It only affects the overloads report for the active actor.';
-    CommandHelp[122] := 'Exports the voltage violations1 report with the content avaiable at the moment of the call. It only affects the voltage violations report for the active actor.';
-    CommandHelp[123] := 'Returns symmetrical component short circuit impedances Z0, Z1, and Z2 for the ACTIVE 3-PHASE BUS. Determined from Zsc matrix.';
-    CommandHelp[124] := 'Aggregates the load shapes in the model using the number of zones given in the argument.' + CRLF +
+   //CommandHelp[120] := 'Update Storage2 elements based on present solution and time interval. ';
+    CommandHelp[120] := 'Exports the overloads report with the content avaiable at the moment of the call. It only affects the overloads report for the active actor.';
+    CommandHelp[121] := 'Exports the voltage violations1 report with the content avaiable at the moment of the call. It only affects the voltage violations report for the active actor.';
+    CommandHelp[122] := 'Returns symmetrical component short circuit impedances Z0, Z1, and Z2 for the ACTIVE 3-PHASE BUS. Determined from Zsc matrix.';
+    CommandHelp[123] := 'Aggregates the load shapes in the model using the number of zones given in the argument.' + CRLF +
         'Use this command when the number of load shapes is considerably big, this algorithm will simplify' + CRLF +
         'the amount of load shapes in order to make the memory consumption lower for the model.' + CRLF +
         'The output of this algorithm is a script describing the new load shapes and their application into loads across the model.' + CRLF +
         'The argument on this command can be: Actual/pu to define the units in which the load profiles are.' + CRLF +
         'Check the OpenDSS user manual for details';
-    CommandHelp[125] := 'Brings back the names of all PCE connected to the bus specified in the argument.' + CRLF +
+    CommandHelp[124] := 'Brings back the names of all PCE connected to the bus specified in the argument.' + CRLF +
         'The command goes as follows:' + CRLF + CRLF +
         'AllPCEatBus myBus' + CRLF + CRLF +
         'Where "myBus" is the name of the bus of interest';
-    CommandHelp[126] := 'Brings back the names of all PDE connected to the bus specified in the argument.' + CRLF +
+    CommandHelp[125] := 'Brings back the names of all PDE connected to the bus specified in the argument.' + CRLF +
         'The command goes as follows:' + CRLF + CRLF +
         'AllPDEatBus myBus' + CRLF + CRLF +
         'Where "myBus" is the name of the bus of interest';
-    CommandHelp[127] := 'Returns the total powers (complex) at ALL terminals of the active circuit element in the Result string. ' +
+    CommandHelp[126] := 'Returns the total powers (complex) at ALL terminals of the active circuit element in the Result string. ' +
         '(See Select command.)' +
         'Returned as comma-separated kW and kvar.';
-    CommandHelp[128] := 'Shows the documentation file for the COM interface.' +
+    CommandHelp[127] := 'Shows the documentation file for the COM interface.' +
         'This file provides guidance on the properties and methods included in the COM interface as well as examples and tips. Use this file to learn more about the COM interface and its different interfaces or just as a reference guide.';
-    CommandHelp[129] := 'Executes GIS options working with OpenDSS-GIS. See GIS command help.';
-    CommandHelp[130] := 'Define x,y coordinates for buses using real GIS Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. ' +
+    CommandHelp[128] := 'Executes GIS options working with OpenDSS-GIS. See GIS command help.';
+    CommandHelp[129] := 'Define x,y coordinates for buses using real GIS Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. ' +
         'Execute after Solve command or MakeBusList command is executed so that bus lists are defined.' +
         'Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.' + CRLF + CRLF +
         'Example: GISCoords [file=]xxxx.csv' + CRLF + CRLF +
@@ -748,7 +748,7 @@ begin
                     Laplacian := Laplacian.multiply(IncMat);  // IncMatT*IncMat
                 end;
             end;
-            128:
+            127:
             begin
                 Show_COM_Help();
             end;
@@ -1007,40 +1007,39 @@ begin
                 DoClone;
             119:
                 DoFNCSPubCmd;
+ //   120: CmdResult := DoUpDateStorage2Cmd;
             120:
-                CmdResult := DoUpDateStorage2Cmd;
-            121:
             begin
                 if OV_MHandle[ActiveActor] <> nil then
                     CloseMHandler(OV_MHandle[ActiveActor], EnergyMeterClass[ActiveActor].DI_Dir + '\DI_Overloads_' + inttostr(ActiveActor) + '.CSV', OV_Append[ActiveActor]);
             end;
-            122:
+            121:
             begin
                 if VR_MHandle[ActiveActor] <> nil then
                     CloseMHandler(VR_MHandle[ActiveActor], EnergyMeterClass[ActiveActor].DI_Dir + '\DI_VoltExceptions_' + inttostr(ActiveActor) + '.CSV', VR_Append[ActiveActor]);
             end;
-            123:
+            122:
                 CmdResult := DoZsc012Cmd; // Get full symmetrical component transformation of Zsc
-            124:
+            123:
             begin
                 Parser[ActiveActor].NextParam;
                 ActiveCircuit[Activeactor].AggregateProfiles(Parser[ActiveActor].StrValue);
             end;
-            125:
+            124:
             begin
                 Parser[ActiveActor].NextParam;
                 GlobalResult := ActiveCircuit[Activeactor].ReportPCEatBus(Parser[ActiveActor].StrValue);
             end;
-            126:
+            125:
             begin
                 Parser[ActiveActor].NextParam;
                 GlobalResult := ActiveCircuit[Activeactor].ReportPDEatBus(Parser[ActiveActor].StrValue);
             end;
-            127:
+            126:
                 CmdResult := DopowersCmd(1);
-            129:
+            128:
                 Globalresult := DoGISCmd;
-            130:
+            129:
                 CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
 
         else

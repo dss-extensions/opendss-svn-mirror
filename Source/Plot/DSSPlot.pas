@@ -66,9 +66,9 @@ type
         procedure MarkTheCapacitors;
         procedure MarkTheRegulators;
         procedure MarkThePVSystems;
-        procedure MarkThePVSystems2;
+      // procedure MarkThePVSystems2;
         procedure MarkTheStorage;
-        procedure MarkTheStorage2;
+      // procedure MarkTheStorage2;
         procedure MarkTheFuses;
         procedure MarkTheReclosers;
         procedure MarkTheRelays;
@@ -3032,12 +3032,10 @@ begin
         MarkTheRegulators;
     if ActiveCircuit[ActiveActor].MarkPVSystems then
         MarkThePVSystems;
-    if ActiveCircuit[ActiveActor].MarkPVSystems2 then
-        MarkThePVSystems2;
+    // If ActiveCircuit[ActiveActor].MarkPVSystems2   Then MarkThePVSystems2;
     if ActiveCircuit[ActiveActor].MarkStorage then
         MarkTheStorage;
-    if ActiveCircuit[ActiveActor].MarkStorage2 then
-        MarkTheStorage2;
+     // If ActiveCircuit[ActiveActor].MarkStorage2     Then MarkTheStorage2;
     if ActiveCircuit[ActiveActor].MarkFuses then
         MarkTheFuses;
     if ActiveCircuit[ActiveActor].MarkReclosers then
@@ -3232,32 +3230,33 @@ begin
     end;
 end;
 
+(*
 procedure TDSSPlot.MarkThePVSystems2;
-var
-    pPVSystem: TPVSystemObj;
-    BusIdx: Integer;
-    MyBus: TDSSBus;
+Var
+     pPVSystem:TPVSystemObj;
+     BusIdx: Integer;
+     MyBus : TDSSBus;
 
 begin
-    pPVSystem := ActiveCircuit[ActiveActor].PVSystems2.first;
-    while pPVSystem <> nil do
-    begin
-        if pPVSystem.Enabled then
-        begin
+   pPVSystem := ActiveCircuit[ActiveActor].PVSystems2.first;
+   While pPVSystem <> Nil Do
+   Begin
+      If pPVSystem.Enabled Then
+         Begin
             BusIdx := pPVSystem.Terminals^[1].BusRef;
-            if BusIdx > 0 then
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    MyBus := Buses^[BusIdx];
-                    if MyBus.CoordDefined then
-                    begin
-                        AddNewMarker(MyBus.X, MyBus.y, clRed, PVMarkerCode, PVMarkerSize);
-                    end;
-                end;
-        end;
-        pPVSystem := ActiveCircuit[ActiveActor].PVSystems.Next;
-    end;
+            If BusIdx > 0 Then
+            With ActiveCircuit[ActiveActor] Do  Begin
+               MyBus :=  Buses^[BusIdx];
+               If MyBus.CoordDefined Then
+               Begin
+                  AddNewMarker(MyBus.X, MyBus.y , clRed, PVMarkerCode,PVMarkerSize);
+               End;
+            End;
+         End;
+      pPVSystem := ActiveCircuit[ActiveActor].PVSystems.Next;
+   End;
 end;
+*)
 
 procedure TDSSPlot.MarkTheStorage;
 var
@@ -3286,32 +3285,33 @@ begin
     end;
 end;
 
+(*
 procedure TDSSPlot.MarkTheStorage2;
-var
-    pStorage2: TStorageObj;
-    BusIdx: Integer;
-    MyBus: TDSSBus;
+Var
+     pStorage2:TStorageObj;
+     BusIdx: Integer;
+     MyBus : TDSSBus;
 
 begin
-    pStorage2 := ActiveCircuit[ActiveActor].Storage2Elements.first;
-    while pStorage2 <> nil do
-    begin
-        if pStorage2.Enabled then
-        begin
+   pStorage2 := ActiveCircuit[ActiveActor].Storage2Elements.first;
+   While pStorage2 <> Nil Do
+   Begin
+      If pStorage2.Enabled Then
+         Begin
             BusIdx := pStorage2.Terminals^[1].BusRef;
-            if BusIdx > 0 then
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    MyBus := Buses^[BusIdx];
-                    if MyBus.CoordDefined then
-                    begin
-                        AddNewMarker(MyBus.X, MyBus.y, clRed, StoreMarkerCode, StoreMarkerSize);
-                    end;
-                end;
-        end;
-        pStorage2 := ActiveCircuit[ActiveActor].Storage2Elements.Next;
-    end;
+            If BusIdx > 0 Then
+            With ActiveCircuit[ActiveActor] Do  Begin
+               MyBus :=  Buses^[BusIdx];
+               If MyBus.CoordDefined Then
+               Begin
+                  AddNewMarker(MyBus.X, MyBus.y , clRed, StoreMarkerCode,StoreMarkerSize);
+               End;
+            End;
+         End;
+      pStorage2 := ActiveCircuit[ActiveActor].Storage2Elements.Next;
+   End;
 end;
+*)
 
 procedure TDSSPlot.MarkTheRegulators;
 var

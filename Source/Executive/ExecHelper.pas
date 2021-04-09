@@ -112,7 +112,7 @@ function DoNodeDiffCmd: Integer;
 function DoRephaseCmd: Integer;
 function DoSetBusXYCmd: Integer;
 function DoUpdateStorageCmd: Integer;
-function DoUpdateStorage2Cmd: Integer;
+ //         FUNCTION DoUpdateStorage2Cmd:Integer;
 function DoPstCalc: Integer;
 function DoValVarCmd: Integer;
 function DoLambdaCalcs: Integer;
@@ -4371,12 +4371,14 @@ begin
     Result := 0;
 end;
 
-function DoUpdateStorage2Cmd: Integer;
+(*
+FUNCTION DoUpdateStorage2Cmd:Integer;
 
-begin
-    StorageClass[ActiveActor].UpdateAll(ActiveActor);
-    Result := 0;
-end;
+Begin
+       StorageClass[ActiveActor].UpdateAll(ActiveActor);
+       Result := 0;
+End;
+*)
 
 function DoPstCalc;
 

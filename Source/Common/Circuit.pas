@@ -160,9 +160,9 @@ type
         Generators,
         WindGens,
         StorageElements,
-        Storage2Elements,
+          // Storage2Elements,
         PVSystems,
-        PVSystems2,
+          // PVSystems2,
         Substations,
         Transformers,
         CapControls,
@@ -307,9 +307,9 @@ type
         MarkCapacitors: Boolean;
         MarkRegulators: Boolean;
         MarkPVSystems: Boolean;
-        MarkPVSystems2: Boolean;
+              // MarkPVSystems2   :Boolean;
         MarkStorage: Boolean;
-        MarkStorage2: Boolean;
+              // MarkStorage2     :Boolean;
         MarkFuses: Boolean;
         MarkReclosers: Boolean;
         MarkRelays: Boolean;
@@ -454,9 +454,9 @@ begin
     Generators := TPointerList.Create(5);
     WindGens := TPointerList.Create(5);
     StorageElements := TPointerList.Create(5);
-    Storage2Elements := TPointerList.Create(5);
+     // Storage2Elements := TPointerList.Create(5);
     PVSystems := TPointerList.Create(5);
-    PVSystems2 := TPointerList.Create(5);
+     // PVSystems2      := TPointerList.Create(5);
     Feeders := TPointerList.Create(10);
     Substations := TPointerList.Create(5);
     Transformers := TPointerList.Create(10);
@@ -539,9 +539,9 @@ begin
     MarkCapacitors := false;
     MarkRegulators := false;
     MarkPVSystems := false;
-    MarkPVSystems2 := false;
+     // MarkPVSystems2   := FALSE;
     MarkStorage := false;
-    MarkStorage2 := false;
+     // MarkStorage2     := FALSE;
     MarkFuses := false;
     MarkReclosers := false;
 
@@ -669,9 +669,9 @@ begin
     Generators.Free;
     WindGens.Free;
     StorageElements.Free;
-    Storage2Elements.Free;
+     // Storage2Elements.Free;
     PVSystems.Free;
-    PVSystems2.Free;
+     // PVSystems2.Free;
     Feeders.Free;
     Substations.Free;
     Transformers.Free;
