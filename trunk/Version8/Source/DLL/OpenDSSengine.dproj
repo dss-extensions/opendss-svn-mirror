@@ -1555,6 +1555,9 @@
         <DCCReference Include="..\PCElements\WindGen.pas"/>
         <DCCReference Include="..\PCElements\WindGenUserModel.pas"/>
         <DCCReference Include="..\PCElements\WindGenVars.pas"/>
+        <DCCReference Include="ImplStorages.pas">
+            <CoClasses>Storages</CoClasses>
+        </DCCReference>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
