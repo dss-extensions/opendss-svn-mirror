@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 4/8/2021 9:24:49 PM from Type Library described below.
+// File generated on 4/8/2021 11:57:28 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\Users\prdu001\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -3931,7 +3931,29 @@ type
     IStorages = interface(IDispatch)
         ['{36049833-30B6-415A-992A-63CDD6CAE432}']
         function Get_AllNames: Olevariant; SAFECALL;
+        function Get_RegisterNames: Olevariant; SAFECALL;
+        function Get_RegisterValues: Olevariant; SAFECALL;
+        function Get_First: Integer; SAFECALL;
+        function Get_Next: Integer; SAFECALL;
+        function Get_Count: Integer; SAFECALL;
+        function Get_idx: Integer; SAFECALL;
+        procedure Set_idx(Value: Integer); SAFECALL;
+        function Get_Name: Widestring; SAFECALL;
+        procedure Set_Name(const Value: Widestring); SAFECALL;
+        function Get_State: Integer; SAFECALL;
+        procedure Set_State(Value: Integer); SAFECALL;
+        function Get_puSOC: Double; SAFECALL;
+        procedure Set_puSOC(Value: Double); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
+        property RegisterNames: Olevariant READ Get_RegisterNames;
+        property RegisterValues: Olevariant READ Get_RegisterValues;
+        property First: Integer READ Get_First;
+        property Next: Integer READ Get_Next;
+        property Count: Integer READ Get_Count;
+        property idx: Integer READ Get_idx WRITE Set_idx;
+        property Name: Widestring READ Get_Name WRITE Set_Name;
+        property State: Integer READ Get_State WRITE Set_State;
+        property puSOC: Double READ Get_puSOC WRITE Set_puSOC;
     end;
 
 // *********************************************************************//
@@ -3942,6 +3964,15 @@ type
     IStoragesDisp = dispinterface
         ['{36049833-30B6-415A-992A-63CDD6CAE432}']
         property AllNames: Olevariant READONLY DISPID 201;
+        property RegisterNames: Olevariant READONLY DISPID 202;
+        property RegisterValues: Olevariant READONLY DISPID 203;
+        property First: Integer READONLY DISPID 204;
+        property Next: Integer READONLY DISPID 205;
+        property Count: Integer READONLY DISPID 206;
+        property idx: Integer DISPID 207;
+        property Name: Widestring DISPID 208;
+        property State: Integer DISPID 209;
+        property puSOC: Double DISPID 210;
     end;
 
 // *********************************************************************//
