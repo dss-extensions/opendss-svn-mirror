@@ -75,7 +75,8 @@ function GetDSSArray_Integer(n: Integer; ints: pIntegerArray): String;
 function GetEarthModel(n: Integer): String;
 function GetOCPDeviceType(pElem: TDSSCktElement): Integer;
 function GetOCPDeviceTypeString(icode: Integer): String;
-
+// Addition to deal with Memory mapped data
+function InterpretDblArrayMMF(myMap: Pbyte; FileType, Column, INDEX, DataSize: Integer): Double;
 
 {misc functions}
 function DoExecutiveCommand(const s: String): Integer;
@@ -875,6 +876,95 @@ begin
         end;
     end;
 end;
+
+//----------------------------------------------------------------------------
+function InterpretDblArrayMMF(myMap: Pbyte; FileType, Column, INDEX, DataSize: Integer): Double;
+
+{ Gets the value for the value at INDEX within the file mapped (myMap)
+  Considers the flags FileType, Column for locating the data within the file
+  FileType :
+    0 - normal file (ANSI char)
+    1 - dblfile
+    2 - sngfile
+}
+
+var
+
+    DBLByteArray: array [0..7] of Byte;
+    SGLByteArray: array [0..3] of Byte;
+
+    InputLIne,
+    myContent: String;
+    myByte: Byte;
+    OffSet,
+    i, j: Integer;
+
+begin
+    Result := 1.0; // Default Return Value;
+    OffSet := (INDEX - 1) * DataSize;
+
+    if FileType = 0 then  // Normal file (CSV, txt, ASCII based file)
+    begin
+        myContent := '';
+        myByte := 0;
+        i := OffSet;
+        if myMap[i] = $0A then
+            inc(i); // in case we are at the end of the previous line
+        while myByte <> $0A do
+        begin
+            myByte := myMap[i];
+      // Concatenates avoiding special chars (EOL)
+            if (myByte <> 10) and (myByte <> 13) then
+                myContent := myContent + Ansichar(myByte);
+            inc(i);
+        end;
+        try
+            InputLine := '';
+            for i := 1 to Column do
+            begin
+                j := AnsiPos(',', myContent);
+                if j > 0 then
+                    InputLine := myContent.Substring(0, (j - 1))
+                else
+                    InputLine := '';    // probably EOL
+
+                myContent := myContent.Substring(j, (length(myContent) - j));
+            end;
+            if InputLine <> '' then
+                myContent := InputLine;  // This is true if there is more than 1 col
+      // checks if the extraction was OK, othwerwise, forces the default value
+            if myContent = '' then
+                myContent := '1.0';
+            Result := strtofloat(myContent);
+        except
+            On E: Exception do
+            begin
+                DoSimpleMsg(Format('Error reading %d-th numeric array value. Error is:', [i, E.message]), 785);
+                Result := i - 1;
+            end;
+        end;
+    end
+
+    else
+    if (FileType = 1) then     // DBL files
+    begin
+    // load the list from a file of doubles (no checking done on type of data)
+        for i := 0 to (DataSize - 1) do
+            DBLByteArray[i] := myMap[i + OffSet];  // Load data into the temporary buffer
+        Result := Double(DBLByteArray);                                        // returns the number (double)
+    end
+
+    else
+    if (FileType = 2) then     // SGL files
+    begin
+    // load the list from a file of doubles (no checking done on type of data)
+        for i := 0 to (DataSize - 1) do
+            SGLByteArray[i] := myMap[i + OffSet]; // Load data into the temporary buffer
+        Result := Single(SGLByteArray);                                        // returns the number formatted as double
+    end
+
+end;
+
 
 function InterpretIntArray(const s: String; MaxValues: Integer; ResultArray: pIntegerArray): Integer;
 

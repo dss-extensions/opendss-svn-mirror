@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 134;
+    NumExecOptions = 133;
 
 var
     ExecOption,
@@ -182,7 +182,7 @@ begin
     ExecOption[131] := 'GISCoords';
     ExecOption[132] := 'GISColor';
     ExecOption[133] := 'GISThickness';
-    ExecOption[134] := 'MemoryMapping';
+
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
       ExecOption[132] := 'MarkStorage2';
@@ -472,9 +472,7 @@ begin
     OptionHelp[131] := '[Coords] : An array of doubles defining the longitud and latitude for an area to be used as refrence for the OpenDSS-GIS related commands, long1, lat1, long2, lat2';
     OptionHelp[132] := 'Color    : A Hex string defining 24 bit color in RGB format, e.g. , red = FF0000';
     OptionHelp[133] := 'Thickness: An integer defining the thickness (default = 3)';
-    OptionHelp[134] := '{YES/TRUE | NO/FALSE*). Deafult is NO. Enables load shapes to be defined as memory mapped files instead of loading them into memory directly.' + CRLF +
-        'Use it when the number and lenght of load profiles in the model is significantly large, requiring long times for compiling the model.' + CRLF +
-        'Set this property before defining load shapes in the model for takign effect.';
+
     // OptionHelp[132] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark Storage2 locations with a symbol. See StoreMarkerCode and StoreMarkerSize. ';
    //  OptionHelp[130] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark PVSystem locations with a symbol. See PVMarkerCode and PVMarkerSize. ';
 
@@ -973,10 +971,6 @@ begin
             begin
                 GISthickness := Parser[ActiveActor].StrValue;
             end;
-            134:
-            begin
-                UseMMF := InterpretYesNo(Param);
-            end;
         else
            // Ignore excess parameters
         end;
@@ -1427,11 +1421,7 @@ begin
                     else
                         AppendGlobalResult('No');
   // deprecated           132: If ActiveCircuit[ActiveActor].MarkStorage2    Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
-                134:
-                    if UseMMF then
-                        AppendGlobalResult('Yes')
-                    else
-                        AppendGlobalResult('No');
+
             else
            // Ignore excess parameters
             end;
