@@ -236,6 +236,7 @@
     <File Path="ImplSensors.pas"/>
     <File Path="ImplSettings.pas"/>
     <File Path="ImplSolution.pas"/>
+    <File Path="ImplStorages.pas"/>
     <File Path="ImplSwtControls.pas"/>
     <File Path="ImplText.pas"/>
     <File Path="ImplTopology.pas"/>
