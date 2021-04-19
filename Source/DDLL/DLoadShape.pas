@@ -14,7 +14,8 @@ uses
     DSSGlobals,
     PointerList,
     Variants,
-    ExecHelper;
+    ExecHelper,
+    ucomplex;
 
 var
     ActiveLSObject: TLoadshapeObj;
@@ -217,9 +218,12 @@ end;
 procedure LoadShapeV(mode: Longint; var arg: Variant); CDECL;
 
 var
-    i, k, LoopLimit: Integer;
+    i,
+    k,
+    LoopLimit: Integer;
     elem: TLoadshapeObj;
     pList: TPointerList;
+    Sample: Complex;
 
 begin
     case mode of
@@ -253,8 +257,11 @@ begin
                 if ActiveLSObject <> nil then
                 begin
                     VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);
-                    for k := 0 to ActiveLSObject.NumPoints - 1 do
-                        arg[k] := ActiveLSObject.PMultipliers^[k + 1];
+                    for k := 1 to ActiveLSObject.NumPoints do
+                    begin
+                        Sample := ActiveLSObject.GetMult(k);     // This change adds compatibility with MMF
+                        arg[k - 1] := Sample.re;
+                    end;
                 end
                 else
                 begin
@@ -300,9 +307,12 @@ begin
                 begin
                     if assigned(ActiveLSObject.QMultipliers) then
                     begin
-                        VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);
-                        for k := 0 to ActiveLSObject.NumPoints - 1 do
-                            arg[k] := ActiveLSObject.QMultipliers^[k + 1];
+                        VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);    // This change adds compatibility with MMF
+                        for k := 1 to ActiveLSObject.NumPoints do
+                        begin
+                            Sample := ActiveLSObject.GetMult(k);
+                            arg[k - 1] := Sample.im;
+                        end;
                     end;
                 end
                 else

@@ -13,6 +13,7 @@ uses
     ComObj,
     ActiveX,
     OpenDSSengine_TLB,
+    ucomplex,
     StdVcl;
 
 type
@@ -174,6 +175,7 @@ end;
 function TLoadShapes.Get_Pmult: Olevariant;
 var
     k: Integer;
+    Sample: Complex;
 
 begin
     Result := VarArrayCreate([0, 0], varDouble);
@@ -183,8 +185,11 @@ begin
         if ActiveLSObject <> nil then
         begin
             VarArrayRedim(Result, ActiveLSObject.NumPoints - 1);
-            for k := 0 to ActiveLSObject.NumPoints - 1 do
-                Result[k] := ActiveLSObject.PMultipliers^[k + 1];
+            for k := 1 to ActiveLSObject.NumPoints do
+            begin
+                Sample := ActiveLSObject.GetMult(k); // This change adds compatibility with MMF
+                Result[k - 1] := Sample.re;
+            end;
         end
         else
         begin
@@ -196,6 +201,7 @@ end;
 function TLoadShapes.Get_Qmult: Olevariant;
 var
     k: Integer;
+    Sample: Complex;
 
 begin
     Result := VarArrayCreate([0, 0], varDouble);
@@ -207,8 +213,11 @@ begin
             if assigned(ActiveLSObject.QMultipliers) then
             begin
                 VarArrayRedim(Result, ActiveLSObject.NumPoints - 1);
-                for k := 0 to ActiveLSObject.NumPoints - 1 do
-                    Result[k] := ActiveLSObject.QMultipliers^[k + 1];
+                for k := 1 to ActiveLSObject.NumPoints do
+                begin
+                    Sample := ActiveLSObject.GetMult(k);     // This change adds compatibility with MMF
+                    Result[k - 1] := Sample.im;
+                end;
             end;
         end
         else
