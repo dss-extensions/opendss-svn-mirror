@@ -473,6 +473,7 @@ begin
             AuxParser[ActiveActor].CmdString := S;
             ParmName := AuxParser[ActiveActor].NextParam;
             Param := AuxParser[ActiveActor].StrValue;
+
             if fileexists(Pchar(Param)) then
             begin
                 if Destination = 0 then
@@ -1312,14 +1313,19 @@ var
     end;
 
 begin
-    MaxMult := BaseP;
-    DoNormalize(PMultipliers);
-    if Assigned(QMultipliers) then
+    if UseMMF then
+        DoSimpleMsg('Normalize is not possible when working in memory mapping mode"', 2000001)
+    else
     begin
-        MaxMult := BaseQ;
-        DoNormalize(QMultipliers);
+        MaxMult := BaseP;
+        DoNormalize(PMultipliers);
+        if Assigned(QMultipliers) then
+        begin
+            MaxMult := BaseQ;
+            DoNormalize(QMultipliers);
+        end;
+        UseActual := false;  // not likely that you would want to use the actual if you normalized it.
     end;
-    UseActual := false;  // not likely that you would want to use the actual if you normalized it.
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

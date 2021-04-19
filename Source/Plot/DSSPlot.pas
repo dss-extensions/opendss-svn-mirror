@@ -1458,12 +1458,14 @@ procedure TDSSPlot.DoLoadShapePlot(const LoadShapeName: String);
 var
     Load_Shape: TLoadShapeObj;
     Xarray: pdoubleArray;
-    X, Xinc: Double;
-    i: Integer;
+    X,
+    Xinc: Double;
+    i,
     Xsize: Integer;
+    S,
     XLabel: String;
     UseXarray: Boolean;
-    S: String;
+
 
 begin
     Load_Shape := LoadShapeClass[ActiveActor].Find(LoadShapeName);
@@ -1501,7 +1503,7 @@ begin
             end;
         end;
 
-   // ** already exists MakeNewGraph;
+  // ** already exists MakeNewGraph;
     S := 'Loadshape.' + LoadShapeName;
     Set_Caption(S);
     S := 'Loadshape = ' + LoadShapeName;
@@ -1511,6 +1513,14 @@ begin
         Set_YaxisLabel('kW, kvar')
     else
         Set_YaxisLabel('p.u.');
+
+    if Load_Shape.UseMMF then
+    begin
+        ReAllocmem(Load_Shape.PMultipliers, sizeof(Load_Shape.PMultipliers^[1]) * Load_Shape.NumPoints);
+        for i := 1 to Load_Shape.NumPoints do
+            Load_Shape.PMultipliers^[i] := InterpretDblArrayMMF(Load_Shape.myView,
+                Load_Shape.myFileType, Load_Shape.myColumn, i, Load_Shape.myLineLen);
+    end;
 
     if UseXarray then
         AddNewCurve(Xarray, Load_Shape.PMultipliers, Load_Shape.NumPoints,
@@ -1522,6 +1532,14 @@ begin
 
     if Assigned(Load_Shape.QMultipliers) then
     begin
+        if Load_Shape.UseMMF then
+        begin
+            ReAllocmem(Load_Shape.QMultipliers, sizeof(Load_Shape.QMultipliers^[1]) * Load_Shape.NumPoints);
+            for i := 1 to Load_Shape.NumPoints do
+                Load_Shape.QMultipliers^[i] := InterpretDblArrayMMF(Load_Shape.myViewQ,
+                    Load_Shape.myFileTypeQ, Load_Shape.myColumnQ, i, Load_Shape.myLineLenQ);
+        end;
+
         if UseXarray then
             AddNewCurve(Xarray, Load_Shape.QMultipliers, Load_Shape.NumPoints,
                 Color2, 1, psSolid, false, 1, LoadShapeName)

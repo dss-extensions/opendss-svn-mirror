@@ -733,12 +733,14 @@ var
     ActiveLSObject: TLoadshapeObj;
     MSG: Ansistring;
     sinterfal: Double;
-    npts: Integer;
-    i, k: Integer;
+    npts,
+    i,
+    k: Integer;
+    Bus_Names,
     y_labels: StringArray1d;
 
-    time, channel, Z_axis: DoubleArray2d;
-    Bus_Names: StringArray1d;
+    time, channel,
+    Z_axis: DoubleArray2d;
     phase: IntegerArray1d;
     PD_Elements: StringArray2d;
     model_path: String;
@@ -793,7 +795,7 @@ begin
     end
     else
     begin
-      // LoadShapes.Npts read
+    // LoadShapes.Npts read
         npts := 0;
         if ActiveCircuit[ActiveActor] <> nil then
             if ActiveLSObject <> nil then
@@ -808,11 +810,21 @@ begin
     begin
         if ActiveLSObject <> nil then
         begin
+
+            if ActiveLSObject.UseMMF then
+            begin
+                ReAllocmem(ActiveLSObject.PMultipliers, sizeof(ActiveLSObject.PMultipliers^[1]) * ActiveLSObject.NumPoints);
+                for i := 1 to ActiveLSObject.NumPoints do
+                    ActiveLSObject.PMultipliers^[i] := InterpretDblArrayMMF(ActiveLSObject.myView,
+                        ActiveLSObject.myFileType, ActiveLSObject.myColumn, i, ActiveLSObject.myLineLen);
+            end;
+
             SetLength(channel, 1, ActiveLSObject.NumPoints);
             for k := 0 to ActiveLSObject.NumPoints - 1 do
                 channel[0, k] := ActiveLSObject.PMultipliers^[k + 1];
             SetLength(y_labels, 1);
             y_labels[0] := 'Mult.';
+
         end
         else
         begin
@@ -827,6 +839,14 @@ begin
         begin
             if assigned(ActiveLSObject.QMultipliers) then
             begin
+                if ActiveLSObject.UseMMF then
+                begin
+                    ReAllocmem(ActiveLSObject.QMultipliers, sizeof(ActiveLSObject.QMultipliers^[1]) * ActiveLSObject.NumPoints);
+                    for i := 1 to ActiveLSObject.NumPoints do
+                        ActiveLSObject.QMultipliers^[i] := InterpretDblArrayMMF(ActiveLSObject.myViewQ,
+                            ActiveLSObject.myFileTypeQ, ActiveLSObject.myColumnQ, i, ActiveLSObject.myLineLenQ);
+                end;
+
                 SetLength(channel, 2, ActiveLSObject.NumPoints);
                 for k := 0 to ActiveLSObject.NumPoints - 1 do
                     channel[1, k] := ActiveLSObject.QMultipliers^[k + 1];
