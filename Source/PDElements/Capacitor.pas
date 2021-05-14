@@ -1213,6 +1213,8 @@ begin
             Result := GetBus(2);
         4:
             Result := GetDSSArray_Real(FNumSteps, Fkvarrating);
+        5:
+            Result := Format('%-g', [kvRating]);
         8:
         begin
             FTemp := Allocmem(SizeOF(FTemp^[1]) * FNumSteps);
