@@ -2741,7 +2741,7 @@ begin
     end;
 
        // Now have number of sections  so allocate FeederSections array
-    Reallocmem(FeederSections, Sizeof(FeederSections^[1]) * SectionCount);
+    Reallocmem(FeederSections, Sizeof(FeederSections^[1]) * (SectionCount * 10));
     for idx := 1 to SectionCount do
         with FeederSections^[idx] do
         begin
