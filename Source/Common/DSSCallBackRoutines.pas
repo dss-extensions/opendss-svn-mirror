@@ -1,7 +1,7 @@
 unit DSSCallBackRoutines;
 {
     ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -398,7 +398,6 @@ end;
 procedure GetPublicDataPtrCallBack(var pPublicData: Pointer; var PublicDataBytes: Integer; ActorID: Integer); STDCALL;
 
 begin
-
     if Assigned(ActiveCircuit[ActorID].ActiveCktElement) then
         with ActiveCircuit[ActorID] do
             with ActiveCktElement do

@@ -50,7 +50,7 @@ function ReSizeWindow(): String;
 function GISDrawCircuit(): String;
 function show_lineGIS(LineName: String): String;
 function export_mapGIS(): String;
-function find_treesGIS(LineName: String): String;
+function GetRouteSegDistances(): String;
 procedure get_line_Coords(LineName: String);
 function set_map_View(myView: String): String;
 function clear_map(): String;
@@ -102,7 +102,7 @@ begin
     GISOption[11] := 'PlotCircuit';
     GISOption[12] := 'showLine';
     GISOption[13] := 'ExportMap';
-    GISOption[14] := 'FindTrees';
+    GISOption[14] := 'RouteSegDistances';
     GISOption[15] := 'MapView';
     GISOption[16] := 'ClearMap';
     GISOption[17] := 'DrawLine';
@@ -413,8 +413,7 @@ begin
                 Result := export_mapGIS();           // exports the current map view into the model's folder
             14:
             begin
-                Parser[ActiveActor].NextParam;
-                Result := find_treesGIS(Parser[ActiveActor].StrValue);
+                Result := GetRouteSegDistances();   // returns the distances of all the segments of the last route estimated
             end;
             15:
             begin
@@ -662,68 +661,23 @@ var
 begin
     if IsGISON then
     begin
-        error := false;
-        JSONCmd := '{"command":"route","coords":[';
-        for i := 1 to 2 do                                                  // to extract both buses
-        begin
-            Parser[ActiveActor].NextParam;
-            busName := Parser[ActiveActor].StrValue;
-            SetActiveBus(busName);
-            if (ActiveCircuit[ActiveActor] <> nil) and not error then         // is everything fine?
+        InMsg := '{"command":"route","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
+            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['route'].AsString;
+        except
+            on E: Exception do
             begin
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
-                        if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].GISCoorddefined) then
-                        begin
-                            lat := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
-                            long := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
-                            JSONCmd := JSONCmd + '{"longitude":' + floattostr(long) + ',"latitude":' + floattostr(lat) + '},';
-                        end
-                        else
-                            error := true;
-                end;
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
             end;
         end;
-        if not error then                                                 // No error so far
-        begin
-            JSONCmd := JSONCmd.Substring(0, length(JSONCmd) - 1) + ']}';
-            TryCom := true;
-            i := 0;
-            while TryCom do
-            begin
-                try
-                    GISTCPClient.IOHandler.WriteLn(JSONCmd);
-                    InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
-                    TCPJSON := TdJSON.Parse(InMsg);
-                    InMsg := TCPJSON['route'].AsString;
-                    if InMsg = 'done' then                                      // Route calculated successfully
-                        Trycom := false
-                    else
-                    begin
-            // If the route wasn't calculated because the server was busy, it tries up to 5 times
-            // with 300 ms interval, if after that the server is still busy, return error message
-                        sleep(300);
-                        inc(i);
-                        if i > 5 then
-                            Trycom := false;
-                    end;
-                except
-                    on E: Exception do
-                    begin
-                        IsGISON := false;
-                        Trycom := false;
-                        Result := 'Error while communicating to OpenDSS-GIS';
-                    end;
-                end;
-            end;
-            Result := InMsg;
-        end
-        else
-            Result := 'One or more buses have no GIS coordinates';
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
 {*******************************************************************************
@@ -745,12 +699,8 @@ begin
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
             TCPJSON := TdJSON.Parse(InMsg);
-            TempStr := '[';
-            for Coords in TCPJSON['jsonroute'] do
-            begin
-                TempStr := TempStr + Coords['latitude'].AsString + ',' + Coords['longitude'].AsString + ',';
-            end;
-            Result := TempStr.substring(0, (length(TempStr) - 1)) + ']';
+            TempStr := TCPJSON['coords'].AsString;
+            Result := TempStr;
         except
             on E: Exception do
             begin
@@ -781,7 +731,7 @@ begin
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
             TCPJSON := TdJSON.Parse(InMsg);
-            TempStr := TCPJSON['routedistance'].AsString + ' ' + TCPJSON['units'].AsString;
+            TempStr := TCPJSON['routedistance'].AsString;
             Result := TempStr;
         except
             on E: Exception do
@@ -810,7 +760,8 @@ var
 begin
     if IsGISON then
     begin
-        JSONCmd := '{"command":"showroute"}';
+        JSONCmd := '{"command":"showroute"},"color":"' + GISColor +
+            '","thickness":' + GISThickness + '}';
         try
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
@@ -1140,10 +1091,10 @@ begin
 end;
 
 {*******************************************************************************
-*             Commands OpenDSS-GIS to verify if there are trees                *
-*                     intersecting with the given line                         *
+*             Commands OpenDSS-GIS to return the distances for every           *
+*                     step of the last route estimated                         *
 *******************************************************************************}
-function find_treesGIS(LineName: String): String;
+function GetRouteSegDistances(): String;
 var
     TCPJSON: TdJSON;
     activesave,
@@ -1158,16 +1109,12 @@ begin
 
         if (ActiveCircuit[ActiveActor] <> nil) then
         begin
-            get_line_Coords(LineName);
-
-            InMsg := '{"command":"findtrees","coords":{"long1":' + floattostr(myCoords[0]) + ',"lat1":' + floattostr(myCoords[1]) +
-                ',"long2":' + floattostr(myCoords[2]) + ',"lat2":' + floattostr(myCoords[3]) + '}}';
-
+            InMsg := '{"command":"getdistances"}';
             try
                 GISTCPClient.IOHandler.WriteLn(InMsg);
                 InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
                 TCPJSON := TdJSON.Parse(InMsg);
-                Result := TCPJSON['findtrees'].AsString;
+                Result := TCPJSON['getdistances'].AsString;
             except
                 on E: Exception do
                 begin
@@ -1176,7 +1123,6 @@ begin
                 end;
             end;
         end;
-        result := 'No';
     end
     else
         result := 'OpenDSS-GIS is not installed or initialized';
