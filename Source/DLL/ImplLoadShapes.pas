@@ -187,7 +187,7 @@ begin
             VarArrayRedim(Result, ActiveLSObject.NumPoints - 1);
             for k := 1 to ActiveLSObject.NumPoints do
             begin
-                Sample := ActiveLSObject.GetMult(k); // This change adds compatibility with MMF
+                Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval); // This change adds compatibility with MMF
                 Result[k - 1] := Sample.re;
             end;
         end
@@ -215,7 +215,7 @@ begin
                 VarArrayRedim(Result, ActiveLSObject.NumPoints - 1);
                 for k := 1 to ActiveLSObject.NumPoints do
                 begin
-                    Sample := ActiveLSObject.GetMult(k);     // This change adds compatibility with MMF
+                    Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);     // This change adds compatibility with MMF
                     Result[k - 1] := Sample.im;
                 end;
             end;
