@@ -11,6 +11,7 @@ implementation
 uses
     Executive,
     Relay,
+    ControlElem,
     Circuit,
     DSSGlobals,
     Sysutils,
@@ -121,6 +122,24 @@ begin
                 if pRelay <> nil then
                     ActiveCircuit[ActiveActor].ActiveCktElement := pRelay;
             end;
+        end;
+        9:
+        begin  // Relays.Open
+            elem := Relayclass.ElementList.Active;
+            if elem <> nil then
+                elem.PresentState := CTRL_OPEN;
+        end;
+        10:
+        begin  // Relays.Close
+            elem := Relayclass.ElementList.Active;
+            if elem <> nil then
+                elem.PresentState := CTRL_CLOSE;
+        end;
+        11:
+        begin  // Relays.Reset
+            elem := Relayclass.ElementList.Active;
+            if elem <> nil then
+                elem.Reset(ActiveActor);
         end
     else
         Result := -1;
@@ -182,7 +201,54 @@ begin
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
                 Set_parameter('SwitchedObj', Widestring(arg));
-        end
+        end;
+        6:
+        begin  // Relays.State read
+            Result := Pansichar(Ansistring(''));
+            elem := RelayClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if elem.PresentState = CTRL_CLOSE then
+                    Result := Pansichar(Ansistring('closed'))
+                else
+                    Result := Pansichar(Ansistring('open'));
+            end;
+
+        end;
+        7:
+        begin  // Relays.State write
+            elem := RelayClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if LowerCase(Widestring(arg))[1] = 'c' then
+                    elem.PresentState := CTRL_CLOSE
+                else
+                    elem.PresentState := CTRL_OPEN;
+            end;
+        end;
+        8:
+        begin  // Relays.Normal read
+            Result := Pansichar(Ansistring(''));
+            elem := RelayClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if elem.NormalState = CTRL_CLOSE then
+                    Result := Pansichar(Ansistring('closed'))
+                else
+                    Result := Pansichar(Ansistring('open'));
+            end;
+        end;
+        9:
+        begin  // Relays.Normal write
+            elem := RelayClass.GetActiveObj;
+            if elem <> nil then
+            begin
+                if LowerCase(Widestring(arg))[1] = 'c' then
+                    elem.NormalState := CTRL_CLOSE
+                else
+                    elem.NormalState := CTRL_OPEN;
+            end;
+        end;
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));
     end;

@@ -149,7 +149,8 @@ type
         OverTrip,
         UnderTrip: Double;
 
-        PresentState: EControlAction;
+        FPresentState,
+        FNormalState: EControlAction;
 
         OperationCount: Integer;
 
@@ -157,7 +158,8 @@ type
         ArmedForClose,
         ArmedForOpen,
         ArmedForReset,
-        PhaseTarget, GroundTarget: Boolean;
+        PhaseTarget, GroundTarget,
+        NormalStateSet: Boolean;
 
         NextTriptime: Double;
         LastEventHandle: Integer;
@@ -168,7 +170,12 @@ type
         cvBuffer: pComplexArray; // for distance and td21 voltages, using cBuffer for hte currents
 
         DebugTrace: Boolean;
-        procedure InterpretRelayAction(ActorID: Integer; const Action: String);
+        procedure InterpretRelayState(ActorID: Integer; const Action: String; const property_name: String);
+        function get_State: EControlAction;
+        procedure set_State(const Value: EControlAction);
+        function get_NormalState: EControlAction;
+        procedure set_NormalState(const Value: EControlAction);
+
         procedure InterpretRelayType(const S: String);
 
         procedure OvercurrentLogic(ActorID: Integer);
@@ -204,6 +211,9 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
 
+        property PresentState: EControlAction READ get_State WRITE set_State;
+        property NormalState: EControlAction READ get_NormalState WRITE set_NormalState;
+
     end;
 
 
@@ -227,7 +237,7 @@ uses
 
 const
 
-    NumPropsThisClass = 38;
+    NumPropsThisClass = 40;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -346,9 +356,7 @@ begin
     AddProperty('Breakertime', 18, 'Fixed delay time (sec) added to relay time. Default is 0.0. Designed to represent breaker time or some other delay after a trip decision is made.' +
         'Use Delay property for setting a fixed trip time delay.' +
         'Added to trip time of current and voltage relays. Could use in combination with inst trip value to obtain a definite time overcurrent relay.');
-    AddProperty('action', 19, '{Trip/Open | Close}  Action that overrides the relay control. Simulates manual control on breaker. ' +
-        '"Trip" or "Open" causes the controlled element to open and lock out. ' +
-        '"Close" causes the controlled element to close and the relay to reset to its first operation.');
+    AddProperty('action', 19, 'DEPRECATED. See "State" property');
     AddProperty('Z1mag', 30, 'Positive sequence reach impedance in primary ohms for Distance and TD21 functions. Default=0.7');
     AddProperty('Z1ang', 31, 'Positive sequence reach impedance angle in degrees for Distance and TD21 functions. Default=64.0');
     AddProperty('Z0mag', 32, 'Zero sequence reach impedance in primary ohms for Distance and TD21 functions. Default=2.1');
@@ -358,6 +366,11 @@ begin
     AddProperty('EventLog', 36, '{Yes/True* | No/False} Default is Yes for Relay. Write trips, reclose and reset events to EventLog.');
     AddProperty('DebugTrace', 37, '{Yes/True* | No/False} Default is No for Relay. Write extra details to Eventlog.');
     AddProperty('DistReverse', 38, '{Yes/True* | No/False} Default is No; reverse direction for distance and td21 types.');
+    AddProperty('Normal', 39, '{Open | Closed} Normal state of the relay. The relay reverts to this state for reset, change of mode, etc. ' +
+        'Defaults to "State" if not specifically declared.');
+    AddProperty('State', 40, '{Open | Closed} Actual state of the relay. Upon setting, immediately forces state of the relay, overriding the Relay control. ' +
+        'Simulates manual control on relay. Defaults to Closed. "Open" causes the controlled element to open and lock out. "Closed" causes the ' +
+        'controlled element to close and the relay to reset to its first operation.');
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -464,8 +477,6 @@ begin
                         kVBase := Parser[ActorID].DblValue;
                     18:
                         Breaker_time := Parser[ActorID].DblValue;
-                    19:
-                        InterpretRelayAction(ActorID, Param);
                     20:
                         MonitorVariable := lowercase(param);  // for pc elements
                     21:
@@ -504,6 +515,14 @@ begin
                         DebugTrace := InterpretYesNo(Param);
                     38:
                         Dist_Reverse := InterpretYesNo(Param);
+                    39:
+                    begin
+                        InterpretRelayState(ActorID, Param, ParamName);  // set normal state
+                        if not NormalStateSet then
+                            NormalStateSet := true;
+                    end;
+                    19, 40:
+                        InterpretRelayState(ActorID, Param, ParamName);  // set state
                 else
            // Inherited parameters
                     ClassEdit(ActiveRelayObj, ParamPointer - NumPropsthisClass)
@@ -528,6 +547,12 @@ begin
                         ParamName := AuxParser[ActorID].NextParam;
                         NumReclose := AuxParser[ActorID].ParseAsVector(4, RecloseIntervals);
                     end;
+                    19, 40:
+                        if not NormalStateSet then
+                        begin
+                            NormalStateSet := true;  // 'normal state' defaults to 'state' only when the latter is specified for the first time
+                            NormalState := FPresentState;
+                        end;
                 end;
             ParamName := Parser[ActorID].NextParam;
             Param := Parser[ActorID].StrValue;
@@ -587,8 +612,10 @@ begin
             kVBase := OtherRelay.kVBase;
             LockedOut := OtherRelay.LockedOut;
 
+            FPresentState := OtherRelay.FPresentState;
+            NormalState := OtherRelay.NormalState;
+
             ControlType := OtherRelay.ControlType;
-            PresentState := OtherRelay.PresentState;
             CondOffset := OtherRelay.CondOffset;
 
         {46 Relay  Neg Seq Current}
@@ -671,9 +698,9 @@ begin
     RecloseIntervals^[2] := 2.0;
     RecloseIntervals^[3] := 2.0;
 
-
-    PresentState := CTRL_CLOSE;
-
+    FPresentState := CTRL_CLOSE;
+    FNormalState := CTRL_CLOSE;
+    NormalStateSet := false;
 
     Isqt46 := 1.0;
     BaseAmps46 := 100.0;
@@ -817,16 +844,16 @@ begin
             ControlledElement.HasAutoOCPDevice := true;  // For Reliability calcs
         end;
 
-        if ControlledElement.Closed[0, ActorID] then    // Check state of phases of active terminal
+        if FPresentState = CTRL_CLOSE then    // Open/Close State of controlled element based on state assigned to the control
         begin
-            PresentState := CTRL_CLOSE;
+            ControlledElement.Closed[0, ActorID] := true;
             LockedOut := false;
             OperationCount := 1;
             ArmedForOpen := false;
         end
         else
         begin
-            PresentState := CTRL_OPEN;
+            ControlledElement.Closed[0, ActorID] := false;
             LockedOut := true;
             OperationCount := NumReclose + 1;
             ArmedForClose := false;
@@ -920,7 +947,7 @@ begin
     begin
         AppendToEventLog('Relay.' + self.Name,
             Format('DoPendingAction Code=%d State=%d ArmedOpen=%s Close=%s Reset=%s Count=%d NumReclose=%d',
-            [Integer(Code), Integer(PresentState), BoolToStr(ArmedForOpen), BoolToStr(ArmedForClose), BoolToStr(ArmedForReset),
+            [Integer(Code), Integer(FPresentState), BoolToStr(ArmedForOpen), BoolToStr(ArmedForClose), BoolToStr(ArmedForReset),
             OperationCount, NumReclose]), ActorID);
     end;
     with ControlledElement do
@@ -928,7 +955,7 @@ begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal of CktElement to terminal 1
         case Code of
             Integer(CTRL_OPEN):
-                case PresentState of
+                case FPresentState of
                     CTRL_CLOSE:
                         if ArmedForOpen then
                         begin   // ignore if we became disarmed in meantime
@@ -955,7 +982,7 @@ begin
                 else {nada}
                 end;
             Integer(CTRL_CLOSE):
-                case PresentState of
+                case FPresentState of
                     CTRL_OPEN:
                         if ArmedForClose and not LockedOut then
                         begin
@@ -988,27 +1015,28 @@ end;
 {--------------------------------------------------------------------------}
 
 
-procedure TRelayObj.InterpretRelayAction(ActorID: Integer; const Action: String);
+procedure TRelayObj.InterpretRelayState(ActorID: Integer; const Action: String; const property_name: String);
 begin
 
-    if ControlledElement <> nil then
-    begin
-        ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+    if (LowerCase(property_name[1]) = 's') or (LowerCase(property_name[1]) = 'a') then
+    begin  // state or action (deprecated)
         case LowerCase(Action)[1] of
-
             'o', 't':
-            begin
-                ControlledElement.Closed[0, ActiveActor] := false;   // Open all phases of active terminal
-                LockedOut := true;
-                OperationCount := NumReclose + 1;
-            end;
+                FPresentState := CTRL_OPEN;
             'c':
-            begin
-                ControlledElement.Closed[0, ActiveActor] := true;    // Close all phases of active terminal
-                LockedOut := false;
-                OperationCount := 1;
-            end;
+                FPresentState := CTRL_CLOSE;
         end;
+    end
+    else // Normal
+    begin
+
+        case LowerCase(Action)[1] of
+            'o', 't':
+                FNormalState := CTRL_OPEN;
+            'c':
+                FNormalState := CTRL_CLOSE;
+        end;
+
     end;
 
 end;
@@ -1021,9 +1049,9 @@ begin
     ControlledElement.ActiveTerminalIdx := ElementTerminal;
     if ControlledElement.Closed[0, ActorID]      // Check state of phases of active terminal
     then
-        PresentState := CTRL_CLOSE
+        FPresentState := CTRL_CLOSE
     else
-        PresentState := CTRL_OPEN;
+        FPresentState := CTRL_OPEN;
 
     case ControlType of
         CURRENT:
@@ -1087,6 +1115,24 @@ begin
                         Result := Result + Format('%-g, ', [RecloseIntervals^[i]]);
                 Result := Result + ')';
             end;
+            39:
+            begin
+                case FNormalState of
+                    CTRL_OPEN:
+                        Result := 'open';
+                else
+                    {CTRL_CLOSE:} Result := 'closed';
+                end;
+            end;
+            19, 40:
+            begin
+                case FPresentState of
+                    CTRL_OPEN:
+                        Result := 'open';
+                else
+                    {CTRL_CLOSE:} Result := 'closed';
+                end;
+            end
         else
             Result := inherited GetPropertyValue(Index);
         end;
@@ -1097,9 +1143,9 @@ procedure TRelayObj.Reset(ActorID: Integer);
 begin
     if ShowEventLog then
         AppendToEventLog(self.Name, 'Resetting', ActorID);
-    PresentState := CTRL_CLOSE;
-    Operationcount := 1;
-    LockedOut := false;
+
+    FPresentState := FNormalState;
+
     ArmedForOpen := false;
     ArmedForClose := false;
     ArmedForReset := false;
@@ -1111,10 +1157,92 @@ begin
     if ControlledElement <> nil then
     begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
-        ControlledElement.Closed[0, ActiveActor] := true;    // Close all phases of active terminal
+
+        case FNormalState of
+            CTRL_OPEN:
+            begin
+                ControlledElement.Closed[0, Activeactor] := false; // Open all phases of active terminal
+                LockedOut := true;
+                OperationCount := NumReclose + 1;
+            end
+
+        else
+           {CTRL_CLOSE} begin
+            ControlledElement.Closed[0, ActiveActor] := true;    // Close all phases of active terminal
+            LockedOut := false;
+            OperationCount := 1;
+        end;
+        end;
+
     end;
 
+end;
 
+function TRelayObj.get_State: EControlAction;
+begin
+
+    if ControlledElement <> nil then
+    begin
+
+        ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+        case ControlledElement.Closed[0, ActiveActor] of
+            false:
+                FPresentState := CTRL_OPEN;
+        else
+            {TRUE:} FPresentState := CTRL_CLOSE;
+        end;
+
+    end;
+
+    Result := FPresentState;
+end;
+
+procedure TRelayObj.set_State(const Value: EControlAction);
+begin
+
+    if PresentState <> Value then
+    begin
+
+        if ControlledElement <> nil then
+        begin
+            ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+            case Value of
+                CTRL_OPEN:
+                begin
+                    ControlledElement.Closed[0, ActiveActor] := false;
+                    LockedOut := true;
+                    OperationCount := NumReclose + 1;
+                    ArmedForClose := false;
+                    ArmedForReset := false;
+                end
+
+            else
+                {CTRL_CLOSE:} begin
+                ControlledElement.Closed[0, ActiveActor] := true;
+                LockedOut := false;
+                OperationCount := 1;
+                ArmedForOpen := false;
+                ArmedForReset := false;
+            end
+
+            end;
+        end;
+
+        FPresentState := Value;
+    end;
+end;
+
+function TRelayObj.get_NormalState: EControlAction;
+begin
+    Result := FNormalState;
+end;
+
+procedure TRelayObj.set_NormalState(const Value: EControlAction);
+begin
+    if FNormalState <> Value then
+    begin
+        FNormalState := Value;
+    end;
 end;
 
 procedure TRelayObj.InitPropertyValues(ArrayOffset: Integer);
@@ -1138,7 +1266,7 @@ begin
     PropertyValue[16] := '';
     PropertyValue[17] := '0.0';
     PropertyValue[18] := '0.0';
-    PropertyValue[19] := '';
+    PropertyValue[19] := 'closed';
     PropertyValue[20] := '';
     PropertyValue[21] := '20';
     PropertyValue[22] := '1';
@@ -1157,6 +1285,8 @@ begin
     PropertyValue[35] := '0.7';
     PropertyValue[36] := 'Yes';
     PropertyValue[37] := 'No';
+    PropertyValue[39] := 'closed';
+    PropertyValue[40] := 'closed';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -1319,7 +1449,7 @@ begin
 
     with MonitoredElement do
     begin
-        if PresentState = CTRL_CLOSE then
+        if FPresentState = CTRL_CLOSE then
         begin
             TripTime := -1.0;
             GroundTime := -1.0;
@@ -1854,7 +1984,7 @@ begin
             Vmax := Vmax / Vbase;
             Vmin := Vmin / Vbase;
 
-            if PresentState = CTRL_CLOSE then
+            if FPresentState = CTRL_CLOSE then
             begin
                 TripTime := -1.0;
                 OVTime := -1.0;

@@ -12,10 +12,10 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 4/8/2021 11:57:28 PM from Type Library described below.
+// File generated on 6/2/2021 5:38:45 PM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\Users\prdu001\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
+// Type Lib: C:\Projects\OpenDSS\OpenDSS-Official\Version8\Source\DLL\OpenDSSengine (1)
 // LIBID: {8BFDE413-245A-4514-B151-B16DCC243796}
 // LCID: 0
 // Helpfile:
@@ -3160,6 +3160,13 @@ type
         procedure Set_SwitchedTerm(Value: Integer); SAFECALL;
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
+        procedure Open; SAFECALL;
+        procedure Close; SAFECALL;
+        procedure Reset; SAFECALL;
+        function Get_State: ActionCodes; SAFECALL;
+        procedure Set_State(Value: ActionCodes); SAFECALL;
+        function Get_NormalState: ActionCodes; SAFECALL;
+        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3170,6 +3177,8 @@ type
         property SwitchedObj: Widestring READ Get_SwitchedObj WRITE Set_SwitchedObj;
         property SwitchedTerm: Integer READ Get_SwitchedTerm WRITE Set_SwitchedTerm;
         property idx: Integer READ Get_idx WRITE Set_idx;
+        property State: ActionCodes READ Get_State WRITE Set_State;
+        property NormalState: ActionCodes READ Get_NormalState WRITE Set_NormalState;
     end;
 
 // *********************************************************************//
@@ -3189,6 +3198,11 @@ type
         property SwitchedObj: Widestring DISPID 208;
         property SwitchedTerm: Integer DISPID 209;
         property idx: Integer DISPID 210;
+        procedure Open; DISPID 211;
+        procedure Close; DISPID 212;
+        procedure Reset; DISPID 213;
+        property State: ActionCodes DISPID 214;
+        property NormalState: ActionCodes DISPID 215;
     end;
 
 // *********************************************************************//

@@ -34,6 +34,13 @@ type
         procedure Set_SwitchedTerm(Value: Integer); SAFECALL;
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
+        procedure Close; SAFECALL;
+        procedure Open; SAFECALL;
+        procedure Reset; SAFECALL;
+        function Get_State: ActionCodes; SAFECALL;
+        procedure Set_State(Value: ActionCodes); SAFECALL;
+        function Get_NormalState: ActionCodes; SAFECALL;
+        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
 
     end;
 
@@ -43,6 +50,7 @@ uses
     ComServ,
     Executive,
     Relay,
+    ControlElem,
     Circuit,
     DSSGlobals,
     Sysutils,
@@ -261,6 +269,116 @@ begin
         pRelay := Relayclass.Elementlist.Get(Value);
         if pRelay <> nil then
             ActiveCircuit[ActiveActor].ActiveCktElement := pRelay;
+    end;
+end;
+
+procedure TRelays.Close;
+var
+    elem: TRelayObj;
+begin
+    elem := RelayClass.ElementList.Active;
+    if elem <> nil then
+        elem.PresentState := CTRL_CLOSE;
+end;
+
+procedure TRelays.Open;
+var
+    elem: TRelayObj;
+begin
+    elem := RelayClass.ElementList.Active;
+    if elem <> nil then
+        elem.PresentState := CTRL_OPEN;
+end;
+
+procedure TRelays.Reset;
+var
+    pRelay: TRelayObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+            pRelay.Reset(ActiveActor);
+    end;
+end;
+
+function TRelays.Get_State: ActionCodes;
+var
+    pRelay: TRelayObj;
+begin
+    Result := dssActionNone;
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            case pRelay.PresentState of
+                CTRL_OPEN:
+                    Result := dssActionOpen;
+                CTRL_CLOSE:
+                    Result := dssActionClose;
+            end;
+        end
+    end;
+end;
+
+procedure TRelays.Set_State(Value: ActionCodes);
+var
+    pRelay: TRelayObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            case value of
+                dssActionOpen:
+                    pRelay.PresentState := CTRL_OPEN;
+                dssActionClose:
+                    pRelay.PresentState := CTRL_CLOSE;
+            end;
+
+        end
+    end;
+end;
+
+function TRelays.Get_NormalState: ActionCodes;
+var
+    pRelay: TRelayObj;
+begin
+    Result := dssActionNone;
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            case pRelay.NormalState of
+                CTRL_OPEN:
+                    Result := dssActionOpen;
+                CTRL_CLOSE:
+                    Result := dssActionClose;
+            end;
+        end
+    end;
+end;
+
+procedure TRelays.Set_NormalState(Value: ActionCodes);
+var
+    pRelay: TRelayObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            case value of
+                dssActionOpen:
+                    pRelay.NormalState := CTRL_OPEN;
+                dssActionClose:
+                    pRelay.NormalState := CTRL_CLOSE;
+            end;
+
+        end
     end;
 end;
 
