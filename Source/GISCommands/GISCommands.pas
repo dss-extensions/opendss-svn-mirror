@@ -33,7 +33,7 @@ uses
     TCP_IP;
 
 const
-    NumGISOptions = 35;
+    NumGISOptions = 37;
 
 function DoGISCmd: String;
 
@@ -73,6 +73,8 @@ function GISStartDrawLine(): String;
 function GISStopDrawLine(): String;
 function GISGetPolyline(): String;
 function GISGetAddress(): String;
+function GISText(myText: String): String;
+function GISTextFromFile(myPath: String): String;
 
 var
     GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
@@ -124,6 +126,8 @@ begin
     GISOption[33] := 'StopDraw';
     GISOption[34] := 'GetPolyline';
     GISOption[35] := 'GetAddress';
+    GISOption[36] := 'Text';
+    GISOption[37] := 'TextFromFile';
 
 
     GISHelp[1] := 'Starts OpenDSS-GIS only if it is installed in the local machine';
@@ -330,6 +334,16 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
+    GISHelp[36] := 'Plots the text given at the argument at the coordinates given in GISCoords with the color given at GISCOlor and size given at GISThickness.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    GISHelp[37] := 'Plots the text within the file given at the path in the argument.' + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
 
 end;
 
@@ -490,6 +504,16 @@ begin
                 Result := GISGetPolyline();
             35:
                 Result := GISGetAddress();
+            36:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISText(Parser[ActiveActor].StrValue);
+            end;
+            37:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISTextFromFile(Parser[ActiveActor].StrValue);
+            end
         else
         end;
     end;
@@ -1599,6 +1623,75 @@ begin
     end;
 end;
 
+{*******************************************************************************
+*         Commands OpenDSS-GIS to draw a text at specific coordinates        *
+*******************************************************************************}
+
+function GISText(myText: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode,
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"text","coords":{"long":' + floattostr(GISCoords^[1]) + ',"lat":' + floattostr(GISCoords^[2]) +
+            '},"content":"' + myText + '","color":"' + GISColor +
+            '","size":' + GISThickness + '}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['text'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{*******************************************************************************
+*                  Commands OpenDSS-GIS to draw a text from a file             *
+*******************************************************************************}
+
+function GISTextFromFile(myPath: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode,
+    activesave,
+    i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"textfromfile","path":"' + myPath + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['textfromfile'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        result := 'OpenDSS-GIS is not installed or initialized';
+end;
 {*******************************************************************************
 *         Commands OpenDSS-GIS to draw a marker at specific coordinates        *
 *******************************************************************************}
