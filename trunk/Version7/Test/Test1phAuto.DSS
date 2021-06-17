@@ -6,7 +6,7 @@ New Circuit.testAuto
 
 New AutoTrans.Auto phases=1 windings=2  XHX=5
 ~ Wdg=1 Bus=Sourcebus.1 kV=(10) kVA=100 %R=0.1 RDC=1  ! conn always series
-~ Wdg=2 Bus=XBus.1 kV=4 kVA=100 %R=0.1 RDC=0.1! conn always series
+~ Wdg=2 Bus=XBus.1 kV=4 kVA=100 %R=0.1 RDC=0.1! conn always wye
 
 New Line.Line1 Phases=1 Bus1=Xbus.1.0 Bus2=Zbus.1
 
@@ -17,6 +17,7 @@ Show V LN Nodes
 
 Show curr elem
 Show powers kVA elem
+show losses
 
 ? Autotrans.Auto.wdgcurrents
 currents

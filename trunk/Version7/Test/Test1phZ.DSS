@@ -7,7 +7,7 @@ New Circuit.Ztest
 // 1-ph AutoTrans
 New AutoTrans.Auto phases=1 windings=2  XHX=10
 ~ Wdg=1 Bus=Sourcebus.1 kV=(10) kVA=10000 %R=0.01 RDC=1  ! conn always series
-~ Wdg=2 Bus=XBus1.1 kV=2 kVA=10000  %R=0.01 RDC=0.1! conn always series
+~ Wdg=2 Bus=XBus1.1 kV=2 kVA=10000  %R=0.01 RDC=0.1! conn always wye
 
 New Fault.F1 Bus1=Xbus1.1
 

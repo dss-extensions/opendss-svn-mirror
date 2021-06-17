@@ -7,7 +7,7 @@ New Circuit.Z3test
 // 3-ph AutoTrans
 New AutoTrans.Auto phases=3 windings=3  XHX=10
 ~ Wdg=1 Bus=Sourcebus.1.2.3 kV=(17.321) kVA=10000 %R=0.01 RDC=1  ! conn always series
-~ Wdg=2 Bus=XBus1.1.2.3 kV=3.4641  kVA=10000 %R=0.01 RDC=0.1! conn always series
+~ Wdg=2 Bus=XBus1.1.2.3 kV=3.4641  kVA=10000 %R=0.01 RDC=0.1     ! conn always wye
 ~ Wdg=3 Bus=YBus1.1.2.3 kV=5  kVA=10000 %R=0.01  conn=Delta
 
 

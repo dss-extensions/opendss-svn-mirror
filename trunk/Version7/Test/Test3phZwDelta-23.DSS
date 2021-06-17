@@ -17,7 +17,7 @@ New AutoTrans.Auto phases=3 windings=3  XHX=10
 
 // YY 3-ph transformer  Base Reference
 
-New Transformer.3phYY phases=3 windings=3 X12=10
+New Transformer.3phYYD phases=3 windings=3 X12=10
 ~ X13=35  X23=30
 ~ Wdg=1 Bus=Open2.1 kV=(17.321) kVA=10000 %R=0.01 RDC=1   conn=wye
 ~ Wdg=2 Bus=XBus2.1.2.3  kV=3.4641  kVA=10000 %R=0.01 RDC=0.1 conn=wye
