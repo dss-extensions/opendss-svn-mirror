@@ -272,7 +272,11 @@ end;
 procedure TSolution.Set_Seconds(Value: Double);
 begin
     if ActiveCircuit[ActiveActor] <> nil then
-        ActiveCircuit[ActiveActor].Solution.dynavars.t := Value;
+        with ActiveCircuit[ActiveActor].Solution do
+        begin
+            DynaVars.t := Value;
+            Update_dblHour;
+        end;
 end;
 
 procedure TSolution.Set_StepSize(Value: Double);
