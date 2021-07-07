@@ -420,7 +420,11 @@ begin
         3:
         begin  // Solution.Seconds Write
             if ActiveCircuit[ActiveActor] <> nil then
-                ActiveCircuit[ActiveActor].Solution.dynavars.t := arg;
+                with ActiveCircuit[ActiveActor].Solution do
+                begin
+                    DynaVars.t := arg;
+                    Update_dblHour;
+                end;
             Result := 0.0;
         end;
         4:
