@@ -631,7 +631,11 @@ begin
             6:
                 ActiveCircuit[ActiveActor].solution.Frequency := Parser[ActiveActor].DblValue;
             7, 18:
-                ActiveCircuit[ActiveActor].solution.DynaVars.h := InterpretTimeStepSize(Param);
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    Solution.DynaVars.h := InterpretTimeStepSize(Param);
+                    Solution.IntervalHrs := Solution.DynaVars.h / 3600.0;
+                end;
             8:
                 ActiveCircuit[ActiveActor].solution.Mode := InterpretSolveMode(Param);  // see DSSGlobals
             9:
