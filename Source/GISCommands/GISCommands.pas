@@ -24,7 +24,7 @@ uses
     ArrayDef,
     DSSForms,
     ExecHelper,
-//   TCP Indy libraries
+  // TCP Indy libraries
     IdBaseComponent,
     IdComponent,
     IdTCPConnection,
@@ -63,7 +63,7 @@ function GISPlotPoint(const myShape: String): String;
 function GISLoadBus(const myBus: String): String;
 function GISShowBuffer(): String;
 function GISFormat(const FormatFrom, FormatTo, Coords: String): String;
-function GISBatchFormat(const FormatFrom, FormatTo, mypath: String): String;
+function GISBatchFormat(const FormatFrom, FormatTo, myPath: String): String;
 function GISClose(): String;
 function Get_distance(): String;
 function GISStartSelect(): String;
@@ -77,11 +77,10 @@ function GISText(myText: String): String;
 function GISTextFromFile(myPath: String): String;
 
 var
-    GISTCPClient: TIdTCPClient;  // ... TIdThreadComponent
+    GISTCPClient: TIdTCPClient; // ... TIdThreadComponent
     GISThreadComponent: TIdThreadComponent;
     myCoords: array of Double;
-    GISOption,
-    GISHelp: array[1..NumGISOptions] of String;
+    GISOption, GISHelp: array [1 .. NumGISOptions] of String;
     GISCommandList: TCommandList;
 
 implementation
@@ -89,7 +88,6 @@ implementation
 procedure DefineOptions;
 
 begin
-
 
     GISOption[1] := 'Start';
     GISOption[2] := 'ShowBus';
@@ -129,101 +127,74 @@ begin
     GISOption[36] := 'Text';
     GISOption[37] := 'TextFromFile';
 
-
-    GISHelp[1] := 'Starts OpenDSS-GIS only if it is installed in the local machine';
-    GISHelp[2] := 'Shows the bus specified on the map, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[1] :=
+        'Starts OpenDSS-GIS only if it is installed in the local machine';
+    GISHelp[2] :=
+        'Shows the bus specified on the map, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[3] := 'Finds a route between the given buses using roads and geographical information. The buses are described as an array' +
-        ' as follows: GISFindRoute [b1 b2], do not include phases. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[3] :=
+        'Finds a route between the given buses using roads and geographical information. The buses are described as an array' + ' as follows: GISFindRoute [b1 b2], do not include phases. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[4] := 'Returns the GIS coords of the route between 2 buses step by step, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[4] :=
+        'Returns the GIS coords of the route between 2 buses step by step, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF +
-        '4. The model needs to have the correct GISCoords file';
-    GISHelp[5] := 'Returns the distance (value units) of the last route calculated between 2 buses, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF + '4. The model needs to have the correct GISCoords file';
+    GISHelp[5] :=
+        'Returns the distance (value units) of the last route calculated between 2 buses, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF +
-        '4. The model needs to have the correct GISCoords file';
-    GISHelp[6] := 'Shows the last route calculated between 2 buses in OpenDSS-GIS, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF + '4. The model needs to have the correct GISCoords file';
+    GISHelp[6] :=
+        'Shows the last route calculated between 2 buses in OpenDSS-GIS, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF +
-        '4. The model needs to have the correct GISCoords file';
-    GISHelp[7] := 'Returns the JSON script describing the last route calculated between 2 buses, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF + '4. The model needs to have the correct GISCoords file';
+    GISHelp[7] :=
+        'Returns the JSON script describing the last route calculated between 2 buses, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF +
-        '4. The model needs to have the correct GISCoords file';
-    GISHelp[8] := 'Redistributes the windows horizontally leaving OpenDSS to the left of the screen and OpenDSS-GIS to the right, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+        '3. GISFindRoute has been executed at some point before this command (at least once)' + CRLF + '4. The model needs to have the correct GISCoords file';
+    GISHelp[8] :=
+        'Redistributes the windows horizontally leaving OpenDSS to the left of the screen and OpenDSS-GIS to the right, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
-    GISHelp[9] := 'Redistributes the windows horizontally leaving OpenDSS to the right of the screen and OpenDSS-GIS to the left, however, the following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[9] :=
+        'Redistributes the windows horizontally leaving OpenDSS to the right of the screen and OpenDSS-GIS to the left, however, the following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
-    GISHelp[10] := 'Resizes the OpenDSS-GIS window, the coordiantes need to be given as: Left, Top, Right, Bottom. For example:' + CRLF + CRLF +
-        'GISWindowSize 0 0 800 800' + CRLF + CRLF +
+    GISHelp[10] :=
+        'Resizes the OpenDSS-GIS window, the coordiantes need to be given as: Left, Top, Right, Bottom. For example:' + CRLF + CRLF + 'GISWindowSize 0 0 800 800' + CRLF + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
-    GISHelp[11] := 'Draws the circuit on top of the map displayed in OpenDSS-GIS. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[11] :=
+        'Draws the circuit on top of the map displayed in OpenDSS-GIS. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[12] := 'Shows the line specified int he argument using OpenDSS-GIS. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[12] :=
+        'Shows the line specified int he argument using OpenDSS-GIS. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[13] := 'Exports the current map view into the models folder as a PNG file. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[13] :=
+        'Exports the current map view into the models folder as a PNG file. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[14] := 'Returns Tree/No tree if a tree intersects with the line given in the argument. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
+    GISHelp[14] :=
+        'Returns Tree/No tree if a tree intersects with the line given in the argument. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[15] := 'Chenges the map view in OpenDSS-GIS using one of the following arguments:' + CRLF + CRLF +
-        '- Streets' + CRLF +
-        '- StreetsVector' + CRLF +
-        '- StreetsNight' + CRLF +
-        '- Satellite' + CRLF +
-        '- SatelliteLabels' + CRLF +
-        '- SatelliteLabelsVector' + CRLF +
-        '- DarkGrayCanvas' + CRLF +
-        '- LightGrayCanvas' + CRLF +
-        '- LightGrayCanvasVector' + CRLF +
-        '- Navigation' + CRLF +
-        '- OpenStreetMap' + CRLF + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
-        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. The model needs to have the correct GISCoords file';
-    GISHelp[16] := 'Clears the Map by removing all the previous draws. The following conditions need to be fulfilled:' + CRLF +
-        CRLF +
-        '1. OpenDSS-GIS must be installed' + CRLF +
-        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
-        '3. The model needs to have the correct GISCoords file';
-    GISHelp[17] := 'Draws a line at the given coordinates using the color and thickness (pix) specified.' + CRLF +
-        'The line features can be defined using GISCoords, GISColor and GISThickness from the exective options.' + CRLF +
+    GISHelp[15] :=
+        'Chenges the map view in OpenDSS-GIS using one of the following arguments:' + CRLF + CRLF + '- Streets' + CRLF + '- StreetsVector' + CRLF +
+        '- StreetsNight' + CRLF + '- Satellite' + CRLF + '- SatelliteLabels' + CRLF + '- SatelliteLabelsVector' + CRLF + '- DarkGrayCanvas' + CRLF +
+        '- LightGrayCanvas' + CRLF + '- LightGrayCanvasVector' + CRLF +
+        '- Navigation' + CRLF + '- OpenStreetMap' + CRLF + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    GISHelp[16] :=
+        'Clears the Map by removing all the previous draws. The following conditions need to be fulfilled:' + CRLF + CRLF + '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    GISHelp[17] :=
+        'Draws a line at the given coordinates using the color and thickness (pix) specified.' + CRLF + 'The line features can be defined using GISCoords, GISColor and GISThickness from the exective options.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
@@ -232,9 +203,8 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[19] := 'Plots the content of the file specified in the argument on top of the current map.' + CRLF +
-        'With this function it is expected that the content of the file describes lines, their color and thickness.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[19] :=
+        'Plots the content of the file specified in the argument on top of the current map.' + CRLF + 'With this function it is expected that the content of the file describes lines, their color and thickness.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
@@ -243,27 +213,19 @@ begin
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
-    GISHelp[21] := 'Plots the content of the file specified in the argument on top of the current map.' + CRLF +
-        'This function plots the content as points, the point shape, color and size must be specified in the file.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[21] :=
+        'Plots the content of the file specified in the argument on top of the current map.' + CRLF + 'This function plots the content as points, the point shape, color and size must be specified in the file.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[22] := 'plots the shape specified in the argument in the map at given the coordinates.' +
-        'The coordiantes must be defined using GISCoords, the size and color can be specified through the options GISColor and GISThickness.' + CRLF +
-        'The shape can be one fo the following:' + CRLF + CRLF +
-        '  Circle' + CRLF +
-        '  + ' + CRLF +
-        '  Diamond' + CRLF +
-        '  Square' + CRLF +
-        '  Triangle' + CRLF +
-        '  x' + CRLF + CRLF +
+    GISHelp[22] :=
+        'plots the shape specified in the argument in the map at given the coordinates.' + 'The coordiantes must be defined using GISCoords, the size and color can be specified through the options GISColor and GISThickness.' + CRLF + 'The shape can be one fo the following:' + CRLF + CRLF + '  Circle' + CRLF + '  + ' + CRLF + '  Diamond' + CRLF + '  Square' + CRLF +
+        '  Triangle' + CRLF + '  x' + CRLF + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)';
-    GISHelp[23] := 'Uploads the coordinates of the bus specified in the argument to the coordinates buffer by pushing the previous down.' +
-        ' The coordinates buffer has 4 positions, the coordinates of the bus specified will be at the first 2 positions.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[23] :=
+        'Uploads the coordinates of the bus specified in the argument to the coordinates buffer by pushing the previous down.' + ' The coordinates buffer has 4 positions, the coordinates of the bus specified will be at the first 2 positions.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
@@ -272,74 +234,71 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[25] := 'Formats the coordinates located at the first 2 places of the coordiantes buffer. The first argument indicates ' +
-        'the original format and the second argument the destination format. The format can be one of the following:' + CRLF + CRLF +
-        '- LatLong (latitude, Longitude - WGS84))' + CRLF +
+    GISHelp[25] :=
+        'Formats the coordinates located at the first 2 places of the coordiantes buffer. The first argument indicates ' + 'the original format and the second argument the destination format. The format can be one of the following:' + CRLF + CRLF + '- LatLong (latitude, Longitude - WGS84))' + CRLF +
         '- DMS (Degrees, minutes, seconds) ' + CRLF +
-        '- UTM (Universal Transverse Mercator)' + CRLF +
-        '- USNG' + CRLF + CRLF +
+        '- UTM (Universal Transverse Mercator)' + CRLF + '- USNG' + CRLF + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[26] := 'Formats the coordinates within the file specified. The first argument indicates ' +
-        'the original format and the second argument the destination format. The third argument is the path to the source file' +
-        ' containing the coordinates, which should be organized in 2 columns comma separated. The format can be one of the following:' + CRLF + CRLF +
-        '- LatLong (latitude, Longitude - WGS84))' + CRLF +
+    GISHelp[26] :=
+        'Formats the coordinates within the file specified. The first argument indicates ' + 'the original format and the second argument the destination format. The third argument is the path to the source file' + ' containing the coordinates, which should be organized in 2 columns comma separated. The format can be one of the following:' + CRLF + CRLF + '- LatLong (latitude, Longitude - WGS84))' + CRLF +
         '- DMS (Degrees, minutes, seconds) ' + CRLF +
-        '- UTM (Universal Transverse Mercator)' + CRLF +
-        '- USNG' + CRLF + CRLF +
+        '- UTM (Universal Transverse Mercator)' + CRLF + '- USNG' + CRLF + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
     GISHelp[27] := 'Closses all the instances of OpenDSS-GIS';
-    GISHelp[28] := 'Returns the distance in meters between the coordinates in the buffer.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[28] :=
+        'Returns the distance in meters between the coordinates in the buffer.' +
+        CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[29] := 'Commands OpenDSS-GIS to start the selection mode for allowing users to draw an area on the map.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[29] :=
+        'Commands OpenDSS-GIS to start the selection mode for allowing users to draw an area on the map.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[30] := 'Stops the latest select command sent to OpenDSS-GIS. Clears the map from selections and stores the selection coords in OpenDSS-GIS.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[30] :=
+        'Stops the latest select command sent to OpenDSS-GIS. Clears the map from selections and stores the selection coords in OpenDSS-GIS.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[31] := 'Requests the boundaries of the latest selection. The boundaties are returned as XMin, YMin, XMax and YMax in WGS84 coords format.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[31] :=
+        'Requests the boundaries of the latest selection. The boundaties are returned as XMin, YMin, XMax and YMax in WGS84 coords format.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[32] := 'Commands OpenDSS-GIS to start line drawing mode for allowing the user to draw a polyline over the map.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[32] :=
+        'Commands OpenDSS-GIS to start line drawing mode for allowing the user to draw a polyline over the map.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[33] := 'Stops the latest lien drawing mode in OpenDSS-GIS. Clears the map and stores the coordinates of the polyline drawn by the user (if any).' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[33] :=
+        'Stops the latest line drawing mode in OpenDSS-GIS. Clears the map and stores the coordinates of the polyline drawn by the user (if any).' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[34] := 'Requests the coordinates of the latest polyline drawn by the user to OpenDSS-GIS. The are returned in coordiante pairs (Longitude, latitude) in WGS84 coords format.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[34] :=
+        'Requests the coordinates of the latest polyline drawn by the user to OpenDSS-GIS. The are returned in coordiante pairs (Longitude, latitude) in WGS84 coords format.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[35] := 'Returns the address calculated at the coordinates given in GISCoords. The address is returned in a JSON string.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[35] :=
+        'Returns the address calculated at the coordinates given in GISCoords. The address is returned in a JSON string.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[36] := 'Plots the text given at the argument at the coordinates given in GISCoords with the color given at GISCOlor and size given at GISThickness.' + CRLF +
-        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    GISHelp[36] :=
+        'Plots the text given at the argument at the coordinates given in GISCoords with the color given at GISCOlor and size given at GISThickness.' + CRLF + 'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-    GISHelp[37] := 'Plots the text within the file given at the path in the argument.' + CRLF +
+    GISHelp[37] :=
+        'Plots the text within the file given at the path in the argument.' + CRLF +
         'The following conditions need to be fulfilled:' + CRLF + CRLF +
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GISStart command)' + CRLF +
@@ -350,27 +309,23 @@ end;
 function DoGISCmd: String;
 var
 
-    formatFrom,
-    formatto,
-    ParamName,
-    Param: String;
-    ParamPointer,
-    i: Integer;
-    DblBuffer: array[0..50] of Double;
+    FormatFrom, FormatTo, ParamName, Param: String;
+    ParamPointer, i: Integer;
+    DblBuffer: array [0 .. 50] of Double;
 
 begin
 
-  {Get next parameter on command line}
+  { Get next parameter on command line }
     Result := 'Unknown GIS command;';
     ParamPointer := 0;
     ParamName := Uppercase(Parser[ActiveActor].NextParam);
     Param := Uppercase(Parser[ActiveActor].StrValue);
-  {Interpret Parameter}
+  { Interpret Parameter }
     if (Length(Param) <> 0) then
     begin
         ParamPointer := GISCommandList.Getcommand(Param);
 
-    {Check options requiring a solution and abort if no solution or circuit}
+    { Check options requiring a solution and abort if no solution or circuit }
         case ParamPointer of
             1:
                 if start_openDSSGIS() then
@@ -397,17 +352,17 @@ begin
                 if not isDLL then
                 begin
                     Result := WindowLR();
-                    ControlPanel.ResizeWindow(0);
+                    ControlPanel.ReSizeWindow(0);
                 end
                 else
                     Result := 'Available only for the EXE interface'
             end;
             9:
             begin
-                if not IsDLL then
+                if not isDLL then
                 begin
                     Result := WindowRL();
-                    ControlPanel.ResizeWindow(1);
+                    ControlPanel.ReSizeWindow(1);
                 end
                 else
                     Result := 'Available only for the EXE interface'
@@ -417,17 +372,20 @@ begin
                 Result := ReSizeWindow();
             end;
             11:
-                Result := GISDrawCircuit;           // Draws the circuit on top of the map in DSS-GIS
+                Result := GISDrawCircuit;
+        // Draws the circuit on top of the map in DSS-GIS
             12:
             begin
                 Parser[ActiveActor].NextParam;
                 Result := show_lineGIS(Parser[ActiveActor].StrValue);
             end;
             13:
-                Result := export_mapGIS();           // exports the current map view into the model's folder
+                Result := export_mapGIS();
+        // exports the current map view into the model's folder
             14:
             begin
-                Result := GetRouteSegDistances();   // returns the distances of all the segments of the last route estimated
+                Result := GetRouteSegDistances();
+          // returns the distances of all the segments of the last route estimated
             end;
             15:
             begin
@@ -475,7 +433,8 @@ begin
                 Parser[ActiveActor].NextParam;
                 FormatTo := lowercase(Parser[ActiveActor].StrValue);
                 Parser[ActiveActor].NextParam;
-                Result := GISFormat(FormatFrom, FormatTo, Parser[ActiveActor].StrValue);
+                Result := GISFormat(FormatFrom, FormatTo,
+                    Parser[ActiveActor].StrValue);
             end;
             26:
             begin
@@ -484,7 +443,8 @@ begin
                 Parser[ActiveActor].NextParam;
                 FormatTo := lowercase(Parser[ActiveActor].StrValue);
                 Parser[ActiveActor].NextParam;
-                Result := GISBatchFormat(FormatFrom, FormatTo, Parser[ActiveActor].StrValue);
+                Result := GISBatchFormat(FormatFrom, FormatTo,
+                    Parser[ActiveActor].StrValue);
             end;
             27:
                 Result := GISClose();
@@ -519,27 +479,28 @@ begin
     end;
 end;
 
-{*******************************************************************************
-*             Starts openDSS-GIS and gets connected as client                  *
-*******************************************************************************}
+{ *******************************************************************************
+  *             Starts openDSS-GIS and gets connected as client                  *
+  ******************************************************************************* }
 
 function start_openDSSGIS(): Boolean;
 var
-    myPath,
-    myFolder: String;
+    myPath, myFolder: String;
 begin
     Result := false;
 
     if DSS_GIS_Installed then
     begin
-        myPath := StringReplace(DSS_GIS_path, '\\', '\', [rfReplaceAll, rfIgnoreCase]);
+        myPath := StringReplace(DSS_GIS_path, '\\', '\',
+            [rfReplaceAll, rfIgnoreCase]);
         myPath := StringReplace(myPath, '"', '', [rfReplaceAll, rfIgnoreCase]);
         myFolder := ExtractFilePath(myPath);
 
         if not processExists('OpenDSSGIS.exe') then
         begin
-     // Starts OpenDSS-GIS if is not running
-            ShellExecute(0, 'open', Pchar(myPath), nil, Pchar(myFolder), SW_SHOWNORMAL);
+      // Starts OpenDSS-GIS if is not running
+            ShellExecute(0, 'open', Pchar(myPath), nil, Pchar(myFolder),
+                SW_SHOWNORMAL);
             sleep(5000);
             IsGISON := false;
         end;
@@ -569,14 +530,15 @@ begin
 
 end;
 
-{*******************************************************************************
-*                            Closes OpenDSS-GIS                                *
-*******************************************************************************}
+{ *******************************************************************************
+  *                            Closes OpenDSS-GIS                                *
+  ******************************************************************************* }
 function GISClose(): String;
 var
     myError: Integer;
 begin
-    myError := ShellExecute(0, nil, 'taskkill.exe', '/IM "OpenDSSGIS.exe" /F', 'C:\Windows\System32', SW_HIDE);
+    myError := ShellExecute(0, nil, 'taskkill.exe', '/IM "OpenDSSGIS.exe" /F',
+        'C:\Windows\System32', SW_HIDE);
     if myError > 32 then
         Result := 'OpenDSS-GIS closed successfuly'
     else
@@ -584,15 +546,14 @@ begin
     IsGISON := false;
 end;
 
-{*******************************************************************************
-*                         Shows the given bus on the map                       *
-*******************************************************************************}
+{ *******************************************************************************
+  *                         Shows the given bus on the map                       *
+  ******************************************************************************* }
 function show_busGIS(BusName: String): String;
 var
     TCPJSON: TdJSON;
     i: Integer;
-    lat,
-    long: Double;
+    lat, long: Double;
     InMsg: String;
 begin
     if IsGISON then
@@ -603,11 +564,13 @@ begin
             with ActiveCircuit[ActiveActor] do
             begin
                 if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
-                    if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].GISCoorddefined) then
+                    if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                        .GISCoorddefined) then
                     begin
                         lat := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
                         long := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
-                        InMsg := '{"command":"showlocation","coords":{"longitude":' + floattostr(long) + ',"latitude":' + floattostr(lat) + '}}';
+                        InMsg := '{"command":"showlocation","coords":{"longitude":' +
+                            floattostr(long) + ',"latitude":' + floattostr(lat) + '}}';
                         try
                             GISTCPClient.IOHandler.WriteLn(InMsg);
                             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -627,19 +590,18 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 
 end;
 
-{*******************************************************************************
-*                  Shows the given location using LatLong                      *
-*******************************************************************************}
+{ *******************************************************************************
+  *                  Shows the given location using LatLong                      *
+  ******************************************************************************* }
 function show_LatLong(): String;
 var
     TCPJSON: TdJSON;
     i: Integer;
-    lat,
-    long: Double;
+    lat, long: Double;
     InMsg: String;
 begin
     if IsGISON then
@@ -647,7 +609,8 @@ begin
 
         lat := GISCoords^[1];
         long := GISCoords^[2];
-        InMsg := '{"command":"showlocation","coords":{"longitude":' + floattostr(long) + ',"latitude":' + floattostr(lat) + '}}';
+        InMsg := '{"command":"showlocation","coords":{"longitude":' +
+            floattostr(long) + ',"latitude":' + floattostr(lat) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -663,30 +626,26 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 
 end;
 
-{*******************************************************************************
-*                 Request to calculate a route between 2 buses                 *
-*******************************************************************************}
+{ *******************************************************************************
+  *                 Request to calculate a route between 2 buses                 *
+  ******************************************************************************* }
 
 function Get_routeGIS(): String;
 var
     TCPJSON: TdJSON;
-    JSONCmd,
-    InMsg,
-    busName: String;
-    TryCom,
-    error: Boolean;
+    JSONCmd, InMsg, BusName: String;
+    TryCom, error: Boolean;
     i: Integer;
-    lat,
-    long: Double;
+    lat, long: Double;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"route","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
-            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
+        InMsg := '{"command":"route","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) + ',"long2":' +
+            floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -701,19 +660,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*  Request to coordiantes of the edges that define the last route calculated   *
-*******************************************************************************}
+{ *******************************************************************************
+  *  Request to coordiantes of the edges that define the last route calculated   *
+  ******************************************************************************* }
 function Get_edgesGIS(): String;
 var
-    Coords,
-    TCPJSON: TdJSON;
-    JSONCmd,
-    TempStr,
-    InMsg: String;
+    Coords, TCPJSON: TdJSON;
+    JSONCmd, TempStr, InMsg: String;
 
 begin
     if IsGISON then
@@ -734,18 +690,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 end;
 
-{*******************************************************************************
-*                Gets the distance of the last route calculated                *
-*******************************************************************************}
+{ *******************************************************************************
+  *                Gets the distance of the last route calculated                *
+  ******************************************************************************* }
 function Get_distanceGIS(): String;
 var
     TCPJSON: TdJSON;
-    JSONCmd,
-    TempStr,
-    InMsg: String;
+    JSONCmd, TempStr, InMsg: String;
 
 begin
     if IsGISON then
@@ -767,25 +721,22 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 end;
 
-{*******************************************************************************
-*                 Shows on the map the last route calculated                   *
-*******************************************************************************}
+{ *******************************************************************************
+  *                 Shows on the map the last route calculated                   *
+  ******************************************************************************* }
 
 function Show_routeGIS(): String;
 var
     TCPJSON: TdJSON;
-    JSONCmd,
-    TempStr,
-    InMsg: String;
+    JSONCmd, TempStr, InMsg: String;
 
 begin
     if IsGISON then
     begin
-        JSONCmd := '{"command":"showroute"},"color":"' + GISColor +
-            '","thickness":' + GISThickness + '}';
+        JSONCmd := '{"command":"showroute"},"color":"' + GISColor + '","thickness":' + GISThickness + '}';
         try
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
@@ -802,20 +753,18 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
-{*******************************************************************************
-*       Exports to a file the last route calculated in JSON format             *
-*******************************************************************************}
+{ *******************************************************************************
+  *       Exports to a file the last route calculated in JSON format             *
+  ******************************************************************************* }
 
 function Get_JSONrouteGIS(): String;
 var
     F: TextFile;
-    JSONCmd,
-    FileName,
-    InMsg: String;
+    JSONCmd, FileName, InMsg: String;
 begin
     if IsGISON then
     begin
@@ -824,11 +773,12 @@ begin
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 20000);
 
-            FileName := GetOutputDirectory + CircuitName_[ActiveActor] + 'JSONScript_route.txt';  // Explicitly define directory
+            FileName := GetOutputDirectory + CircuitName_[ActiveActor] +
+                'JSONScript_route.txt'; // Explicitly define directory
 
             Assignfile(F, FileName);
             ReWrite(F);
-            Write(F, inMsg);
+            Write(F, InMsg);
             CloseFile(F);
 
             Result := FileName;
@@ -842,26 +792,26 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
-{*******************************************************************************
-*            Distributes the windows leaving OpenDSS on the left               *
-*******************************************************************************}
+{ *******************************************************************************
+  *            Distributes the windows leaving OpenDSS on the left               *
+  ******************************************************************************* }
 
 function WindowLR(): String;
 var
     TCPJSON: TdJSON;
     ScrSize: Integer;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    InMsg, TempStr, JSONCmd: String;
 begin
     if IsGISON then
     begin
-        JSONCmd := '{"command":"resizewindow","coords":{"left":' + inttostr(Screen.Width div 2) +
-            ',"top":0,"right":' + inttostr(Screen.Width) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+        JSONCmd := '{"command":"resizewindow","coords":{"left":' +
+            inttostr(Screen.Width div 2) + ',"top":0,"right":' +
+            inttostr(Screen.Width) + ',"bottom":' +
+            inttostr(Screen.Height - 40) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
@@ -877,26 +827,25 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
-{*******************************************************************************
-*            Distributes the windows leaving OpenDSS to the right              *
-*******************************************************************************}
+{ *******************************************************************************
+  *            Distributes the windows leaving OpenDSS to the right              *
+  ******************************************************************************* }
 
 function WindowRL(): String;
 var
     TCPJSON: TdJSON;
     ScrSize: Integer;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    InMsg, TempStr, JSONCmd: String;
 begin
     if IsGISON then
     begin
         JSONCmd := '{"command":"resizewindow","coords":{"left":0,"top":0,"right":' +
-            inttostr(Screen.Width div 2) + ',"bottom":' + inttostr(Screen.Height - 40) + '}}';
+            inttostr(Screen.Width div 2) + ',"bottom":' +
+            inttostr(Screen.Height - 40) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(JSONCmd);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 2000);
@@ -912,21 +861,18 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 end;
 
-{*******************************************************************************
-*    Resizes the OpenDSS-GIS window using the coordinates given by the user    *
-*******************************************************************************}
+{ *******************************************************************************
+  *    Resizes the OpenDSS-GIS window using the coordinates given by the user    *
+  ******************************************************************************* }
 
 function ReSizeWindow(): String;
 var
     TCPJSON: TdJSON;
-    j,
-    ScrSize: Integer;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    j, ScrSize: Integer;
+    InMsg, TempStr, JSONCmd: String;
     TStrArr: array of String;
 
 begin
@@ -959,24 +905,21 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized'
+        Result := 'OpenDSS-GIS is not installed or initialized'
 
 end;
 
-{*******************************************************************************
-*      Generates the file required by DSS-GIS to draw the model on the map     *
-*******************************************************************************}
+{ *******************************************************************************
+  *      Generates the file required by DSS-GIS to draw the model on the map     *
+  ******************************************************************************* }
 
 function GISDrawCircuit(): String;
 var
     LineElem: TLineObj;
-    TxtRow,
-    myBus: String;
+    TxtRow, myBus: String;
     k: Integer;
     F: TextFile;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    InMsg, TempStr, JSONCmd: String;
     TCPJSON: TdJSON;
     Add2file: Boolean;
 
@@ -995,28 +938,34 @@ begin
                     while LineElem <> nil do
                     begin
                         TxtRow := '';
-                        Add2File := true;
+                        Add2file := true;
                         for k := 1 to 2 do
                         begin
                             myBus := StripExtension(LineElem.GetBus(k));
                             DSSGlobals.SetActiveBus(myBus);
-                            if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].GISCoordDefined) then
+                            if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                .GISCoorddefined) then
                             begin
-                                TxtRow := TxtRow + floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Long) +
-                                    ',' + floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Lat) + ',';
+                                TxtRow := TxtRow +
+                                    floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                    .long) + ',' +
+                                    floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                    .lat) + ',';
                             end;
-                            Add2File := Add2File and (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Long <> 0) and (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Lat <> 0);
+                            Add2file := Add2file and
+                                (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long <> 0) and (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                .lat <> 0);
                         end;
-                        if Add2File then
+                        if Add2file then
                             Writeln(F, TxtRow);
                         LineElem := Lines.Next;
 
                     end;
                     CloseFile(F);
-                    JSONCmd := '{"command":"plotcircuit","path":"' +
-                        OutputDirectory[ActiveActor] + 'GIS_desc.csv","color":"' + GISColor +
+                    JSONCmd := '{"command":"plotcircuit","path":"' + OutputDirectory
+                        [ActiveActor] + 'GIS_desc.csv","color":"' + GISColor +
                         '","thickness":' + GISThickness + '}';
-            // Sends the command to OpenDSS-GIS
+          // Sends the command to OpenDSS-GIS
                     try
                         GISTCPClient.IOHandler.WriteLn(JSONCmd);
                         InMsg := GISTCPClient.IOHandler.ReadLn(#10, 5000);
@@ -1035,31 +984,32 @@ begin
             end;
         end
         else
-            result := 'OpenDSS-GIS is not installed or initialized'
+            Result := 'OpenDSS-GIS is not installed or initialized'
     end;
 end;
 
-{*******************************************************************************
-*                         Shows the given line on the map                       *
-*******************************************************************************}
+{ *******************************************************************************
+  *                         Shows the given line on the map                       *
+  ******************************************************************************* }
 function show_lineGIS(LineName: String): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-  // First have to find the line
+    // First have to find the line
 
         if (ActiveCircuit[ActiveActor] <> nil) then
         begin
             get_line_Coords(LineName);
 
-            InMsg := '{"command":"showline","coords":{"long1":' + floattostr(myCoords[0]) + ',"lat1":' + floattostr(myCoords[1]) +
-                ',"long2":' + floattostr(myCoords[2]) + ',"lat2":' + floattostr(myCoords[3]) + '}}';
+            InMsg := '{"command":"showline","coords":{"long1":' +
+                floattostr(myCoords[0]) + ',"lat1":' + floattostr(myCoords[1]) +
+                ',"long2":' + floattostr(myCoords[2]) + ',"lat2":' +
+                floattostr(myCoords[3]) + '}}';
             try
                 GISTCPClient.IOHandler.WriteLn(InMsg);
                 InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -1077,25 +1027,25 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 
 end;
 
-{*******************************************************************************
-*             Exports the current map view into the models folder              *
-*******************************************************************************}
+{ *******************************************************************************
+  *             Exports the current map view into the models folder              *
+  ******************************************************************************* }
 function export_mapGIS(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"exportmap", "path":"' + OutputDirectory[ActiveActor] + '"}';
+        InMsg := '{"command":"exportmap", "path":"' + OutputDirectory
+            [ActiveActor] + '"}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -1111,25 +1061,24 @@ begin
 
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*             Commands OpenDSS-GIS to return the distances for every           *
-*                     step of the last route estimated                         *
-*******************************************************************************}
+{ *******************************************************************************
+  *             Commands OpenDSS-GIS to return the distances for every           *
+  *                     step of the last route estimated                         *
+  ******************************************************************************* }
 function GetRouteSegDistances(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-  // to be implemented
+    // to be implemented
 
         if (ActiveCircuit[ActiveActor] <> nil) then
         begin
@@ -1149,17 +1098,17 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
-{*******************************************************************************
-*             Commands OpenDSS-GIS to update the map view to the               *
-*                             one given by the user                            *
-*******************************************************************************}
+
+{ *******************************************************************************
+  *             Commands OpenDSS-GIS to update the map view to the               *
+  *                             one given by the user                            *
+  ******************************************************************************* }
 function set_map_View(myView: String): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1181,17 +1130,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*      Commands OpenDSS-GIS to remove all previous lines/draws from the map    *
-*******************************************************************************}
+{ *******************************************************************************
+  *      Commands OpenDSS-GIS to remove all previous lines/draws from the map    *
+  ******************************************************************************* }
 function clear_map(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1213,17 +1161,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*                 Draws a line in the map at the given coordinates             *
-*******************************************************************************}
+{ *******************************************************************************
+  *                 Draws a line in the map at the given coordinates             *
+  ******************************************************************************* }
 function Draw_line_GIS(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1232,9 +1179,11 @@ begin
     if IsGISON then
     begin
 
-        InMsg := '{"command":"drawline","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
-            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '},"color":"' + GISColor +
-            '","thickness":' + GISThickness + '}';
+        InMsg := '{"command":"drawline","coords":{"long1":' +
+            floattostr(GISCoords^[2]) + ',"lat1":' + floattostr(GISCoords^[1]) +
+            ',"long2":' + floattostr(GISCoords^[4]) + ',"lat2":' +
+            floattostr(GISCoords^[3]) + '},"color":"' + GISColor + '","thickness":' +
+            GISThickness + '}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -1249,25 +1198,26 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*          Zooms the map at the area described by the given coordinates        *
-*******************************************************************************}
+{ *******************************************************************************
+  *          Zooms the map at the area described by the given coordinates        *
+  ******************************************************************************* }
 function Zoom_area_GIS(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"zoommap","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
-            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
+        InMsg := '{"command":"zoommap","coords":{"long1":' +
+            floattostr(GISCoords^[2]) + ',"lat1":' + floattostr(GISCoords^[1]) +
+            ',"long2":' + floattostr(GISCoords^[4]) + ',"lat2":' +
+            floattostr(GISCoords^[3]) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -1282,25 +1232,26 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*            request the calculation of the distance between 2 points          *
-*******************************************************************************}
+{ *******************************************************************************
+  *            request the calculation of the distance between 2 points          *
+  ******************************************************************************* }
 function Get_distance(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"distance","coords":{"long1":' + floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
-            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' + floattostr(GISCoords^[4]) + '}}';
+        InMsg := '{"command":"distance","coords":{"long1":' +
+            floattostr(GISCoords^[1]) + ',"lat1":' + floattostr(GISCoords^[2]) +
+            ',"long2":' + floattostr(GISCoords^[3]) + ',"lat2":' +
+            floattostr(GISCoords^[4]) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 200);
@@ -1315,17 +1266,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*                 Commands OpenDSS-GIS to start select mode                    *
-*******************************************************************************}
+{ *******************************************************************************
+  *                 Commands OpenDSS-GIS to start select mode                    *
+  ******************************************************************************* }
 function GISStartSelect(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1347,17 +1297,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*              Commands OpenDSS-GIS to start line drawing mode                 *
-*******************************************************************************}
+{ *******************************************************************************
+  *              Commands OpenDSS-GIS to start line drawing mode                 *
+  ******************************************************************************* }
 function GISStartDrawLine(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1379,17 +1328,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*            Commands OpenDSS-GIS to stop the line drawing mode                *
-*******************************************************************************}
+{ *******************************************************************************
+  *            Commands OpenDSS-GIS to stop the line drawing mode                *
+  ******************************************************************************* }
 function GISStopDrawLine(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1411,17 +1359,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*                  Commands OpenDSS-GIS to stop select mode                    *
-*******************************************************************************}
+{ *******************************************************************************
+  *                  Commands OpenDSS-GIS to stop select mode                    *
+  ******************************************************************************* }
 function GISStopSelect(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1443,17 +1390,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*      gets the boundaries for the latest selection made in OpenDSS-GIS        *
-*******************************************************************************}
+{ *******************************************************************************
+  *      gets the boundaries for the latest selection made in OpenDSS-GIS        *
+  ******************************************************************************* }
 function GISGetSelect(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1475,24 +1421,24 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*                     gets the address at the given coords                     *
-*******************************************************************************}
+{ *******************************************************************************
+  *                     gets the address at the given coords                     *
+  ******************************************************************************* }
 function GISGetAddress(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"address","coords":{"long":' + floattostr(GISCoords^[1]) + ',"lat":' + floattostr(GISCoords^[2]) + '}}';
+        InMsg := '{"command":"address","coords":{"long":' + floattostr(GISCoords^[1]
+            ) + ',"lat":' + floattostr(GISCoords^[2]) + '}}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -1506,17 +1452,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*          gets the coords for the latest polyline drawn in OpenDSS-GIS        *
-*******************************************************************************}
+{ *******************************************************************************
+  *          gets the coords for the latest polyline drawn in OpenDSS-GIS        *
+  ******************************************************************************* }
 function GISGetPolyline(): String;
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1538,21 +1483,18 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*       Commands OpenDSS-GIS to draw the content of a file over the map        *
-*******************************************************************************}
+{ *******************************************************************************
+  *       Commands OpenDSS-GIS to draw the content of a file over the map        *
+  ******************************************************************************* }
 function GISPlotfile(myPath: String): String;
 var
-    TxtRow,
-    myBus: String;
+    TxtRow, myBus: String;
     k: Integer;
     F: TextFile;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    InMsg, TempStr, JSONCmd: String;
     TCPJSON: TdJSON;
 
 begin
@@ -1560,8 +1502,7 @@ begin
     begin
         if IsGISON then
         begin
-            JSONCmd := '{"command":"plotfromfile","path":"' +
-                myPath + '"}';
+            JSONCmd := '{"command":"plotfromfile","path":"' + myPath + '"}';
       // Sends the command to OpenDSS-GIS
             try
                 GISTCPClient.IOHandler.WriteLn(JSONCmd);
@@ -1578,22 +1519,19 @@ begin
             end;
         end
         else
-            result := 'OpenDSS-GIS is not installed or initialized'
+            Result := 'OpenDSS-GIS is not installed or initialized'
     end;
 end;
 
-{*******************************************************************************
-*     Commands OpenDSS-GIS to draw the points within a file over the map       *
-*******************************************************************************}
+{ *******************************************************************************
+  *     Commands OpenDSS-GIS to draw the points within a file over the map       *
+  ******************************************************************************* }
 function GISPlotPoints(myPath: String): String;
 var
-    TxtRow,
-    myBus: String;
+    TxtRow, myBus: String;
     k: Integer;
     F: TextFile;
-    InMsg,
-    TempStr,
-    JSONCmd: String;
+    InMsg, TempStr, JSONCmd: String;
     TCPJSON: TdJSON;
 
 begin
@@ -1601,8 +1539,7 @@ begin
     begin
         if IsGISON then
         begin
-            JSONCmd := '{"command":"plotpoints","path":"' +
-                myPath + '"}';
+            JSONCmd := '{"command":"plotpoints","path":"' + myPath + '"}';
       // Sends the command to OpenDSS-GIS
             try
                 GISTCPClient.IOHandler.WriteLn(JSONCmd);
@@ -1619,29 +1556,27 @@ begin
             end;
         end
         else
-            result := 'OpenDSS-GIS is not installed or initialized'
+            Result := 'OpenDSS-GIS is not installed or initialized'
     end;
 end;
 
-{*******************************************************************************
-*         Commands OpenDSS-GIS to draw a text at specific coordinates        *
-*******************************************************************************}
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to draw a text at specific coordinates        *
+  ******************************************************************************* }
 
 function GISText(myText: String): String;
 var
     TCPJSON: TdJSON;
-    myShpCode,
-    activesave,
-    i: Integer;
+    myShpCode, activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     if IsGISON then
     begin
-        InMsg := '{"command":"text","coords":{"long":' + floattostr(GISCoords^[1]) + ',"lat":' + floattostr(GISCoords^[2]) +
-            '},"content":"' + myText + '","color":"' + GISColor +
-            '","size":' + GISThickness + '}';
+        InMsg := '{"command":"text","coords":{"long":' + floattostr(GISCoords^[1]) +
+            ',"lat":' + floattostr(GISCoords^[2]) + '},"content":"' + myText +
+            '","color":"' + GISColor + '","size":' + GISThickness + '}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -1656,19 +1591,17 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-*                  Commands OpenDSS-GIS to draw a text from a file             *
-*******************************************************************************}
+{ *******************************************************************************
+  *                  Commands OpenDSS-GIS to draw a text from a file             *
+  ******************************************************************************* }
 
 function GISTextFromFile(myPath: String): String;
 var
     TCPJSON: TdJSON;
-    myShpCode,
-    activesave,
-    i: Integer;
+    myShpCode, activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1690,17 +1623,16 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
-{*******************************************************************************
-*         Commands OpenDSS-GIS to draw a marker at specific coordinates        *
-*******************************************************************************}
+
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to draw a marker at specific coordinates        *
+  ******************************************************************************* }
 function GISPlotPoint(const myShape: String): String;
 var
     TCPJSON: TdJSON;
-    myShpCode,
-    activesave,
-    i: Integer;
+    myShpCode, activesave, i: Integer;
     InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
@@ -1708,7 +1640,7 @@ var
 begin
     if IsGISON then
     begin
-        case myShape[1] of            // Parse the shape specified
+        case myShape[1] of // Parse the shape specified
             'c':
                 myShpCode := 0;
             '+':
@@ -1722,9 +1654,10 @@ begin
             'x':
                 myShpCode := 5;
         end;
-        InMsg := '{"command":"plotpoint","coords":{"long":' + floattostr(GISCoords^[1]) + ',"lat":' + floattostr(GISCoords^[2]) +
-            '},"color":"' + GISColor +
-            '","thickness":' + GISThickness + ',"shape":' + inttostr(myShpCode) + '}';
+        InMsg := '{"command":"plotpoint","coords":{"long":' +
+            floattostr(GISCoords^[2]) + ',"lat":' + floattostr(GISCoords^[1]) +
+            '},"color":"' + GISColor + '","thickness":' + GISThickness + ',"shape":' +
+            inttostr(myShpCode) + '}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -1739,21 +1672,20 @@ begin
         end;
     end
     else
-        result := 'OpenDSS-GIS is not installed or initialized';
+        Result := 'OpenDSS-GIS is not installed or initialized';
 end;
 
-{*******************************************************************************
-* Commands openDSS-GIS to convert the coords given in a file into a new format *
-*******************************************************************************}
-function GISBatchFormat(const FormatFrom, FormatTo, mypath: String): String;
+{ *******************************************************************************
+  * Commands openDSS-GIS to convert the coords given in a file into a new format *
+  ******************************************************************************* }
+function GISBatchFormat(const FormatFrom, FormatTo, myPath: String): String;
 var
-    myEnd,
-    myStart: Integer;
+    myEnd, myStart: Integer;
     TCPJSON: TdJSON;
     InMsg: String;
 begin
-    InMsg := '{"command":"batchformat","from":"' + FormatFrom + '","to":"' + FormatTo + '",' +
-        '"path":"' + mypath + '"}';
+    InMsg := '{"command":"batchformat","from":"' + FormatFrom + '","to":"' +
+        FormatTo + '",' + '"path":"' + myPath + '"}';
     try
         GISTCPClient.IOHandler.WriteLn(InMsg);
         InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -1769,16 +1701,16 @@ begin
     end;
 end;
 
-{*******************************************************************************
-*      Commands openDSS-GIS to convert the coords given into a new format      *
-*******************************************************************************}
+{ *******************************************************************************
+  *      Commands openDSS-GIS to convert the coords given into a new format      *
+  ******************************************************************************* }
 function GISFormat(const FormatFrom, FormatTo, Coords: String): String;
 var
     TCPJSON: TdJSON;
     InMsg: String;
 begin
-    InMsg := '{"command":"format","from":"' + FormatFrom + '","to":"' + FormatTo + '",' +
-        '"coords":"' + Coords + '"}';
+    InMsg := '{"command":"format","from":"' + FormatFrom + '","to":"' + FormatTo +
+        '",' + '"coords":"' + Coords + '"}';
     try
         GISTCPClient.IOHandler.WriteLn(InMsg);
         InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
@@ -1793,9 +1725,9 @@ begin
     end;
 end;
 
-{*******************************************************************************
-*          Returns a string with the content of the coordiantes buffer         *
-*******************************************************************************}
+{ *******************************************************************************
+  *          Returns a string with the content of the coordiantes buffer         *
+  ******************************************************************************* }
 function GISShowBuffer(): String;
 var
     idx: Integer;
@@ -1804,14 +1736,14 @@ begin
     for idx := 1 to 4 do
         Result := Result + floattostr(GISCoords^[idx]) + ',';
 end;
-{*******************************************************************************
-*  Loads the bus coordiantes into the first 2 places fo the coordiantes buffer *
-*  shifting it down                                                            *
-*******************************************************************************}
+
+{ *******************************************************************************
+  *  Loads the bus coordiantes into the first 2 places fo the coordiantes buffer *
+  *  shifting it down                                                            *
+  ******************************************************************************* }
 function GISLoadBus(const myBus: String): String;
 var
-    myLat,
-    myLong: Double;
+    myLat, myLong: Double;
 begin
     if (ActiveCircuit[ActiveActor] <> nil) then
         with ActiveCircuit[ActiveActor] do
@@ -1836,29 +1768,28 @@ begin
     else
         Result := 'There is no active circuit';
 end;
-{*******************************************************************************
-*             Loads the line Long-lat into the global array "myCoords"         *
-*******************************************************************************}
+
+{ *******************************************************************************
+  *             Loads the line Long-lat into the global array "myCoords"         *
+  ******************************************************************************* }
 procedure get_line_Coords(LineName: String);
 var
     TCPJSON: TdJSON;
-    activesave,
-    i: Integer;
+    activesave, i: Integer;
     myBuses: array of String;
-    S,
-    InMsg: String;
+    S, InMsg: String;
     Found: Boolean;
     pLine: TLineObj;
 begin
     setlength(myCoords, 4);
     setlength(myBuses, 2);
 
-    S := LineName;  // Convert to Pascal String
+    S := LineName; // Convert to Pascal String
     Found := false;
 
     with ActiveCircuit[ActiveActor].Lines do
     begin
-        ActiveSave := ActiveIndex;
+        activesave := ActiveIndex;
         pLine := First;
         while pLine <> nil do
         begin
@@ -1879,16 +1810,19 @@ begin
             myBuses[i - 1] := StripExtension(pLine.GetBus(i));
         end;
 
-  // Get the coords of the buses
+    // Get the coords of the buses
         for i := 0 to 1 do
         begin
             SetActiveBus(myBuses[i]);
             if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
             begin
-                if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].GISCoorddefined) then
+                if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                    .GISCoorddefined) then
                 begin
-                    myCoords[i * 2] := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
-                    myCoords[i * 2 + 1] := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
+                    myCoords[i * 2] :=
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
+                    myCoords[i * 2 + 1] :=
+                        Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat;
                 end;
             end;
         end;
