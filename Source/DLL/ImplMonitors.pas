@@ -506,13 +506,14 @@ function TMonitors.Get_dblFreq: Olevariant;
 // Return an array of doubles for frequence for Harmonic solutions
 var
     Header: THeaderRec;
-    k, i: Integer;
+    k, i,
+    AllocSize: Integer;
     FirstCol: String;
     pMon: TMonitorObj;
     SngBuffer: pSingleArray;
-    freq: Single;
+    freq,
     s: Single;
-    AllocSize: Integer;
+    pStr: Pansichar;
 
 begin
 
@@ -524,7 +525,9 @@ begin
         begin
             Result := VarArrayCreate([0, pMon.SampleCount - 1], varDouble);
             ReadMonitorHeader(Header, false);   // leave at beginning of data
-            AuxParser[ActiveActor].CmdString := String(pMon.StrBuffer);
+            with pMon do
+                pStr := @StrBuffer[0];
+            AuxParser[ActiveActor].CmdString := pStr;
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;
@@ -567,13 +570,14 @@ function TMonitors.Get_dblHour: Olevariant;
 // Return an array of doubles for time in hours
 var
     Header: THeaderRec;
-    k, i: Integer;
+    k, i,
+    AllocSize: Integer;
     FirstCol: String;
     pMon: TMonitorObj;
     SngBuffer: pSingleArray;
-    hr: Single;
+    hr,
     s: Single;
-    AllocSize: Integer;
+    pStr: Pansichar;
 
 begin
 
@@ -585,7 +589,9 @@ begin
         begin
             Result := VarArrayCreate([0, pMon.SampleCount - 1], varDouble);
             ReadMonitorHeader(Header, false);   // leave at beginning of data
-            AuxParser[ActiveActor].CmdString := String(pMon.StrBuffer);
+            with pMon do
+                pStr := @StrBuffer[0];
+            AuxParser[ActiveActor].CmdString := pStr;
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;
