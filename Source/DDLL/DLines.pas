@@ -203,9 +203,10 @@ begin
             Result := 0.0;
             if ActiveCircuit[ActiveActor] <> nil then
                 if IsLine(ActiveCircuit[ActiveActor].ActiveCktElement) then
-                begin
-                    Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).R1;
-                end
+                    with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
+                    begin
+                        Result := R1 / UnitsConvert;
+                    end;
         end;
         3:
         begin  // Lines.R1 write
@@ -225,9 +226,10 @@ begin
             Result := 0.0;
             if ActiveCircuit[ActiveActor] <> nil then
                 if IsLine(ActiveCircuit[ActiveActor].ActiveCktElement) then
-                begin
-                    Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).X1;
-                end
+                    with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
+                    begin
+                        Result := X1 / UnitsConvert;
+                    end;
         end;
         5:
         begin  // Lines.X1 write
