@@ -471,7 +471,10 @@ begin
                 for i := 1 to NPhases do
                     for j := 1 to Nphases do
                     begin
-                        Result[k] := Yc.GetElement(i, j).im / Factor;
+                        if GeometrySpecified or SpacingSpecified then
+                            Result[k] := Yc.GetElement(i, j).im / Factor / Len
+                        else
+                            Result[k] := Yc.GetElement(i, j).im / Factor;
                         Inc(k);
                     end;
             end;
@@ -507,7 +510,10 @@ begin
                 for i := 1 to NPhases do
                     for j := 1 to Nphases do
                     begin
-                        Result[k] := Z.GetElement(i, j).Re / UnitsConvert;
+                        if GeometrySpecified or SpacingSpecified then
+                            Result[k] := Z.GetElement(i, j).Re / Len
+                        else
+                            Result[k] := Z.GetElement(i, j).Re / UnitsConvert;
                         Inc(k);
                     end;
             end;
@@ -543,7 +549,10 @@ begin
                 for i := 1 to NPhases do
                     for j := 1 to Nphases do
                     begin
-                        Result[k] := Z.GetElement(i, j).im / UnitsConvert;
+                        if GeometrySpecified or SpacingSpecified then
+                            Result[k] := Z.GetElement(i, j).im / Len
+                        else
+                            Result[k] := Z.GetElement(i, j).im / UnitsConvert;
                         Inc(k);
                     end;
             end;
