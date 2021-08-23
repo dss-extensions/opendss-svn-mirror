@@ -200,6 +200,20 @@ begin
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
                 Set_parameter('RatedCurrent', Format('%.8g ', [arg]));
+        end;
+        2:
+        begin  // Fuses.Delay read
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Result := elem.DelayTime
+            else
+                Result := -1.0;
+        end;
+        3:
+        begin  // Fuses.Delay write
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Set_parameter('Delay', Format('%.8g ', [arg]));
         end
     else
         Result := -1.0;
