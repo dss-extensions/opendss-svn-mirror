@@ -208,7 +208,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;
-                Result := pLineCode.C1;
+                Result := pLineCode.C1 * 1.0e9;
             end
         end;
         9:
@@ -228,7 +228,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;
-                Result := pLineCode.C0;
+                Result := pLineCode.C0 * 1.0e9;
             end
         end;
         11:
