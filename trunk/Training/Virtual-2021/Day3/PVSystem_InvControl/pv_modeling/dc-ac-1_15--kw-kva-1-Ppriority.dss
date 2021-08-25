@@ -1,0 +1,47 @@
+Clear
+
+New Circuit.TheveninEquivalente bus1=A pu=1.0 basekv=13.8 
+~ Z0=[10, 10] Z1=[10, 10]
+
+New line.switch bus1=A bus2=B switch=Yes
+
+New XYCurve.Eff npts=4 xarray=[.1 .2 .4 1.0] yarray=[0.86 0.9 0.93 0.97]
+
+New XYCurve.FatorPvsT npts=4 xarray=[0 25 75 100] yarray=[1.2 1.0 0.8 0.6] 
+
+New Loadshape.Irrad npts=24 interval=1 
+~ mult=[0 0 0 0 0 0 .1 .2 .3 .5 .8 .9 1.0 1.0 .99 .9 .7 .4 .1 0 0 0 0 0]
+
+New Tshape.Temp npts=24 interval=1 
+~ temp=[25 25 25 25 25 25 25 25 35 40 45 50 60 60 55 40 35 30 25 25 25 25 25 25]
+
+New PVSystem.PV phases=3 bus1=B kV=13.8 Pmpp=1380 %pmpp=86.956  kVA=1200 
+~ conn=wye effcurve=Eff P-TCurve=FatorPvsT irradiance=1 daily=Irrad Tdaily=Temp wattpriority=Yes
+
+New XYcurve.generic npts=5 yarray=[1 1 0 -1 -1] xarray=[0.5 0.92 1.0 1.08 1.5]
+
+New InvControl.VoltVar mode=VOLTVAR voltage_curvex_ref=rated vvc_curve1=generic 
+~ RefReactivePower=VARMAX
+
+New Monitor.PV_currents element=line.switch terminal=2 mode=0
+New Monitor.PV_powers element=line.switch terminal=2 mode=1 ppolar=no
+New Monitor.PV_v element=PVSystem.PV terminal=1 mode=3
+
+Set voltagebases=[13.8]
+Calcvoltagebases
+
+set maxcontroli = 2000
+
+set casename=dc-ac-1_15--kw-kva-1-Ppriority
+
+Set mode=daily
+Set stepsize=1h
+Set number=24
+Solve
+
+Export monitors pv_powers
+Export monitors pv_v
+Export monitors pv_currents
+
+Plot monitor object= pv_powers channels=(1 3 5 )
+Plot monitor object= pv_powers channels=(2 4 6 )
