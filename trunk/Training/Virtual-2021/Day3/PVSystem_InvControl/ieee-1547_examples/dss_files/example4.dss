@@ -1,0 +1,29 @@
+Clear
+
+New Circuit.TheveninEquivalent bus1=A pu=1.0 basekv=13.8 
+~ Z0=[0.00000001, 0.00000001] Z1=[0.00000001, 0.00000001]
+
+New XYCurve.Eff npts=4 xarray=[.1 .2 .4 1.0] yarray=[1 1 1 1]
+
+New XYCurve.FatorPvsT npts=4 xarray=[0 25 75 100] yarray=[1 1 1 1] 
+
+New Loadshape.Irrad npts=24 interval=1 
+~ mult=[0 0 0 0 0 0 .1 .2 .3 .5 .8 .85 0.93 0.93 .92 .9 .7 .4 .1 0 0 0 0 0]
+
+New Tshape.Temp npts=24 interval=1 
+~ temp=[25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25]
+
+New PVSystem.PV phases=3 bus1=A kV=13.8 Pmpp=105 %pmpp=100 kVA=100 %cutin=0.001 kvarmax=44 kvarmaxabs=44
+~ conn=wye effcurve=Eff P-TCurve=FatorPvsT irradiance=1 daily=Irrad Tdaily=Temp wattpriority=no
+
+New XYcurve.generic npts=7 yarray=[1 1 0 0 0 -1 -1] xarray=[0.5 0.92 0.98 1.0 1.02 1.08 1.5]
+New InvControl.VoltVar mode=VOLTVAR voltage_curvex_ref=rated vvc_curve1=generic RefReactivePower=VARMAX
+~ voltagechangetolerance=0.00001 varchangetolerance=0.00001
+
+set maxcontrolI=200
+
+Set voltagebases=[13.8]
+Calcvoltagebases
+
+set casename=example4
+

@@ -1,0 +1,2 @@
+comtypes==1.1.10
+py-dss-interface
