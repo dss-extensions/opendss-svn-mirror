@@ -13,7 +13,7 @@ New Loadshape.Irrad npts=24 interval=1
 New Tshape.Temp npts=24 interval=1 
 ~ temp=[25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25]
 
-New PVSystem.PV phases=3 bus1=A kV=13.8 Pmpp=105 %pmpp=100 kVA=100 %cutin=0.001 kvarmax=44 kvarmaxabs=44
+New PVSystem.PV phases=3 bus1=A kV=13.8 Pmpp=100 %pmpp=100 kVA=105 %cutin=0.001 kvarmax=44 kvarmaxabs=44
 ~ conn=wye effcurve=Eff P-TCurve=FatorPvsT irradiance=1 daily=Irrad Tdaily=Temp wattpriority=no
 
 New XYcurve.generic npts=7 yarray=[1 1 0 0 0 -1 -1] xarray=[0.5 0.92 0.98 1.0 1.02 1.08 1.5]
