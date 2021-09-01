@@ -1,0 +1,175 @@
+Redirect 'C:\Users\pcro005\Desktop\DSS Training\Examples\IEEE8500\Master-unbal.dss'  ! Point to your local Master-unbal.dss file path of IEEE8500 Buses Test 
+
+New Energymeter.m1 Line.ln5815900-1 1
+
+Set maxiterations=20     ! Sometimes the solution takes more than the default 15 iterations
+
+
+! ---------------- Example 1 - Show Event Log and TraceControl ------------------
+/*
+
+Set casename=Example1
+Set tracecontrol=True
+
+Set mode=snapshot
+Set controlmode=static
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+! ---------------- Example 2 - Setting Different Delays to Regulators, Different Steady-State Solution from previous Example and Actions Being Deleted by Device at Sampling ------------------
+/*
+
+Set casename=Example2
+Set tracecontrol=True
+
+Redirect Example2_Modifications.dss
+
+Set mode=snapshot
+Set controlmode=static
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+! ---------------- Example 3 - Cap Control Actions being Reset in Event Log ------------------
+/*
+
+Set casename=Example3
+
+Redirect Example3_Modifications.dss
+
+Set mode=snapshot
+Set controlmode=static
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+! ---------------- Example 4 - 'Hunting Effect' ------------------
+/*
+
+Set casename=Example4
+
+Redirect Example4_Modifications.dss
+
+Set mode=snapshot
+Set controlmode=static
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+
+! ---------------- Example 5 - Control Mode = Time in QSTS - 1hr stepsize ------------------
+/*
+
+Set casename=Example5
+
+Redirect Example5_Modifications.dss
+
+Set mode=daily
+Set stepsize=1h
+Set number= 24 ! default
+Set controlmode=time
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+
+! ---------------- Example 6 - Control Mode = Static in QSTS - 1hr stepsize ------------------
+/*
+
+Set casename=Example6
+
+Redirect Example5_Modifications.dss
+
+Set mode=daily
+Set stepsize=1h
+Set number= 24 ! default
+Set controlmode=static
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+*/
+
+! ---------------- Example 7 - Control Mode = Time in QSTS - 1s stepsize ------------------
+/*
+
+Set casename=Example7
+
+Redirect Example5_Modifications.dss
+
+Set mode=daily
+Set stepsize=1s
+Set number= 720 ! 24 * 60 = 1440
+Set controlmode=time
+Set maxcontroliter=30
+
+Solve
+
+Show eventlog
+
+*/
+
+! ---------- Plotting Commands
+/*
+
+Show Voltage LN Nodes
+Show Currents Elem Resid
+Show Powers kVA elem
+
+Set ShowExport=yes
+Export Currents
+Export Powers
+Export voltages
+
+
+Set markcapacitors=True
+Set markregulators=True
+
+
+! Plot the circuit with blue lines and with 1-phase lines dashed
+interpolate
+Plot Circuit Power Max=2000 dots=n labels=n  C1=Blue  1ph=3
+
+! Plot the voltage profile and include all phases
+Plot profile phases=all
+
+Export profile phases=all
+
+! Plot the voltage profile and include only phase "1"
+Plot profile phases=1
+
+Plot Circuit voltage Max=0 n n  C1=$00FF0000 C2=$FF00FF
+
+plot circuit Losses Max=20 dots=n labels=n subs=y C1=$00FF0000
+
+summary
+
+
+show controlqueue
+
+show taps
+help
+
+*/

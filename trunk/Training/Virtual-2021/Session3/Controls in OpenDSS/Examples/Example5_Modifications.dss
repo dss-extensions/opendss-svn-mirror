@@ -1,0 +1,11 @@
+! Editing Loads and CapControl Settings for Example 5
+
+New LoadShape.my_daily_loadshape interval=0 npts=24 csvfile=[Loadshape_24.csv]
+
+BatchEdit Load..* daily=my_daily_loadshape
+
+BatchEdit CapControl..* VoltOverride=False
+BatchEdit CapControl..* type=voltage
+BatchEdit CapControl..* OnSetting=7056 !0.98pu
+BatchEdit CapControl..* OffSetting=7488 !1.04pu
+ 

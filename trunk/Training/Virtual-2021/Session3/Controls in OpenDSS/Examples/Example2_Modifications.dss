@@ -1,0 +1,17 @@
+! Editing RegControl Delays for Example 2
+
+Edit RegControl.FEEDER_REGA Delay=15 
+Edit RegControl.FEEDER_REGB Delay=15 
+Edit RegControl.FEEDER_REGC Delay=15 
+
+Edit RegControl.VREG2_A Delay=16 
+Edit RegControl.VREG2_B Delay=16 
+Edit RegControl.VREG2_C Delay=16 
+
+Edit RegControl.VREG3_A Delay=17 
+Edit RegControl.VREG3_B Delay=17 
+Edit RegControl.VREG3_C Delay=17 
+
+Edit RegControl.VREG4_A Delay=18 
+Edit RegControl.VREG4_B Delay=18 
+Edit RegControl.VREG4_C Delay=18  

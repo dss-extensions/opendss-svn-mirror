@@ -1,0 +1,14 @@
+! Editing RegControl and CapControl Settings and Caps Rated kvar for Example 4
+
+BatchEdit RegControl..* enabled=False
+
+BatchEdit CapControl..* VoltOverride=False
+BatchEdit CapControl..* type=voltage
+BatchEdit CapControl..* OnSetting=7056 !0.98pu
+BatchEdit CapControl..* OffSetting=7488 !1.04pu
+
+! Setting all capacitors to Operate with Same Delay
+BatchEdit CapControl..* DelayOff=100
+BatchEdit CapControl..* Delay=100 
+
+BatchEdit Capacitor..* kvar=900 

@@ -1,0 +1,9 @@
+! Editing CapControl Settings for Example 3
+
+BatchEdit CapControl..* VoltOverride=False
+BatchEdit CapControl..* type=voltage
+BatchEdit CapControl..* OnSetting=7056 !0.98pu
+BatchEdit CapControl..* OffSetting=7488 !1.04pu
+
+
+ 
