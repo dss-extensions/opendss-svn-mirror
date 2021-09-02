@@ -58,6 +58,7 @@ uses
     System.Diagnostics,
     System.TimeSpan,
     System.Classes,
+    System.Generics.Collections,
     Parallel_Lib,
     Windows,
     {$ENDIF}
@@ -144,6 +145,7 @@ type
         AD_Init,          // used to know if the actors require a partial solution
         ActorActive,
         Processing: Boolean;
+        MyMessages: TQueue<Integer>; // A queue for messaging to actors, the iam is to reduce inconsistency
 
         procedure Start_Diakoptics();
         procedure Notify_Main;
@@ -2807,6 +2809,8 @@ begin
     MsgType := -1;
     ActorActive := true;
     Processing := false;
+    MyMessages := TQueue<Integer>.Create;
+    MyMessages.Clear;     // clears the message queue
 
     inherited Create(Susp);
     {$IFDEF MSWINDOWS}              // Only for windows
@@ -2832,7 +2836,7 @@ end;
 
 procedure TSolver.Send_Message(Msg: Integer);
 begin
-    MsgType := Msg;
+    MyMessages.Enqueue(Msg);
     ActorMsg.SetEvent;
 end;
 
@@ -2891,20 +2895,16 @@ begin
         while ActorActive do
         begin
             ActorMsg.WaitFor(INFINITE);
-            ActorMsg.ResetEvent;
-            Processing := true;
-            case MsgType of             // Evaluates the incomming message
-                SIMULATE:               // Simulates the active ciruit on this actor
-                try
-                    begin                   // Checks if this is the coordinator actor in A-Diakoptics mode
-                        if ((ADiakoptics and (ActorID = 1)) and not IsSolveAll) then
-                            Solve_Diakoptics()
-                        else
-                        begin
-                  // Verifies if there is an A-Diakoptics simulation running to update the local Vsources
-                            if (ADiakoptics and not IsSolveAll) then
-                                Start_Diakoptics();
-                  // Normal solution routine
+            while MyMessages.Count > 0 do
+            begin
+                ActorMsg.ResetEvent;
+                MsgType := MyMessages.Dequeue;
+                Processing := true;
+                case MsgType of             // Evaluates the incomming message
+                    SIMULATE:               // Simulates the active ciruit on this actor
+                    try
+                        begin                   // Checks if this is the coordinator actor in A-Diakoptics mode
+              // Normal solution routine
                             case Dynavars.SolutionMode of
                                 SNAPSHOT:
                                     SolveSnap(ActorID);
@@ -2945,67 +2945,49 @@ begin
                             else
                                 DoThreadSafeMsg('Unknown solution mode.', 481);
                             end;
-                        end;
-                        {$IFNDEF FPC}
-                        QueryPerformanceCounter(GEndTime);
-                        {$ELSE}
-                  GEndTime := GetTickCount64;
-                        {$ENDIF}
 
-                        Total_Solve_Time_Elapsed := ((GEndTime - GStartTime) / CPU_Freq) * 1000000;
-                        Total_Time_Elapsed := Total_Time_Elapsed + Total_Solve_Time_Elapsed;
-                        Processing := false;
-                        FMessage := '1';
-                        ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
+                            {$IFNDEF FPC}
+                            QueryPerformanceCounter(GEndTime);
+                            {$ELSE}
+                GEndTime := GetTickCount64;
+                            {$ENDIF}
 
-                  // If this is an A-Diakoptics actor reports the results to the coordinator (Actor 1)
-                        if ADiakoptics and (ActorID <> 1) then
-                            Notify_Main;
+                            Total_Solve_Time_Elapsed := ((GEndTime - GStartTime) / CPU_Freq) * 1000000;
+                            Total_Time_Elapsed := Total_Time_Elapsed + Total_Solve_Time_Elapsed;
+                            Processing := false;
+                            FMessage := '1';
+                            ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
 
-                  // Sends a message to Actor Object (UI) to notify that the actor has finised
-                        UIEvent.SetEvent;
-                        if not ADiakoptics then
-                        begin
+                // Sends a message to Actor Object (UI) to notify that the actor has finised
+                            UIEvent.SetEvent;
                             if Parallel_enabled then
                                 if not IsDLL then
                                     queue(CallCallBack); // Refreshes the GUI if running asynchronously
-                        end
-                        else
+
+                        end;
+                    except
+                        On E: Exception do
                         begin
-                            if (Parallel_enabled and (ActorID = 1)) then
+                            FMessage := '1';
+                            ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
+                            SolutionAbort := true;
+                            UIEvent.SetEvent;
+                            if Parallel_enabled then
                                 if not IsDLL then
                                     queue(CallCallBack); // Refreshes the GUI if running asynchronously
+
+                            if not Parallel_enabled then
+                                DoThreadSafeMsg('Error Encountered in Solve: ' + E.Message, 482);
                         end;
                     end;
-                except
-                    On E: Exception do
+                    EXIT_ACTOR:                // Terminates the thread
                     begin
-                        FMessage := '1';
-                        ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
-                        SolutionAbort := true;
-                        UIEvent.SetEvent;
-                        if not ADiakoptics then
-                        begin
-                            if Parallel_enabled then
-                                if not IsDLL then
-                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
-                        end
-                        else
-                        begin
-                            if (Parallel_enabled and (ActorID = 1)) then
-                                if not IsDLL then
-                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
-                        end;
-                        if not Parallel_enabled then
-                            DoThreadSafeMsg('Error Encountered in Solve: ' + E.Message, 482);
-                    end;
+                        ActorActive := false;
+                    end
+                else                       // I don't know what the message is
+                    DoThreadSafeMsg('Unknown message. ', 7010)
                 end;
-                EXIT_ACTOR:                // Terminates the thread
-                begin
-                    ActorActive := false;
-                end
-            else                       // I don't know what the message is
-                DoThreadSafeMsg('Unknown message. ', 7010)
+
             end;
 
         end;
@@ -3101,6 +3083,8 @@ begin
     ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
     UIEvent.SetEvent;
     ActorMsg.Free;
+    MyMessages.Clear;
+    MyMessages.Free;
 //    Freeandnil(UIEvent);
     inherited;
 end;
