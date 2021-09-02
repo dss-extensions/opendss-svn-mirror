@@ -2211,7 +2211,7 @@ begin
         SampleControlDevices(ActorID);
         DoControlActions(ActorID);
 
-     {This variable lets control devices know the bus list has changed}
+  {This variable lets control devices know the bus list has changed}
         ActiveCircuit[ActorID].Control_BusNameRedefined := false;  // Reset until next change
     end;
 
