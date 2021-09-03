@@ -142,7 +142,8 @@ uses
     Sysutils,
     Command,
     solution,
-    YMatrix;
+    YMatrix,
+    UPFCControl;
 
 const
     propLossCurve = 11;
@@ -418,6 +419,9 @@ end;
 constructor TUPFCObj.Create(ParClass: TDSSClass; const SourceName: String);
 var
     i: Integer;
+    MyClass: TDSSClass;
+    myCtrl: TUPFCControlObj;
+
 begin
     inherited create(ParClass);
     Name := LowerCase(SourceName);
@@ -469,6 +473,16 @@ begin
         OutCurr[i] := CZERO; //For multiphase model
         InCurr[i] := CZERO; //For multiphase model
     end;
+
+     // If there is a controller, sets the flag for it to consider de new UPFC
+    MyClass := GetDSSClassPtr('upfccontrol');
+    if MyClass.ElementCount > 0 then
+    begin
+        myCtrl := MyClass.ElementList.Get(1);
+        myCtrl.UPFCList.Clear;
+        myCtrl.UPFCListSize := 0;
+    end;
+
 
     Yorder := Fnterms * Fnconds;
     RecalcElementData(ActiveActor);

@@ -74,6 +74,11 @@ type
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
 
         function MakeUPFCList: Boolean;
+
+      // Public properties
+        property UPFCList: PointerList.TPointerList READ FUPFCList WRITE FUPFCList;
+        property UPFCListSize: Integer READ FListSize WRITE FListSize;
+
     end;
 
 
