@@ -54,9 +54,9 @@ begin
     Result[0] := 'NONE';
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        if IsourceClass.ElementList.ListSize > 0 then
+        if IsourceClass[ActiveActor].ElementList.ListSize > 0 then
         begin
-            pList := IsourceClass.ElementList;
+            pList := IsourceClass[ActiveActor].ElementList;
             VarArrayRedim(Result, pList.ListSize - 1);
             k := 0;
             elem := pList.First;
@@ -75,7 +75,7 @@ function TISources.Get_Count: Integer;
 begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
-        Result := IsourceClass.ElementList.ListSize;
+        Result := IsourceClass[ActiveActor].ElementList.ListSize;
 end;
 
 function TISources.Get_First: Integer;
@@ -85,7 +85,7 @@ begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        pElem := IsourceClass.ElementList.First;
+        pElem := IsourceClass[ActiveActor].ElementList.First;
         if pElem <> nil then
             repeat
                 if pElem.Enabled then
@@ -94,7 +94,7 @@ begin
                     Result := 1;
                 end
                 else
-                    pElem := IsourceClass.ElementList.Next;
+                    pElem := IsourceClass[ActiveActor].ElementList.Next;
             until (Result = 1) or (pElem = nil);
     end;
 end;
@@ -106,16 +106,16 @@ begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        pElem := IsourceClass.ElementList.Next;
+        pElem := IsourceClass[ActiveActor].ElementList.Next;
         if pElem <> nil then
             repeat
                 if pElem.Enabled then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := pElem;
-                    Result := IsourceClass.ElementList.ActiveIndex;
+                    Result := IsourceClass[ActiveActor].ElementList.ActiveIndex;
                 end
                 else
-                    pElem := IsourceClass.ElementList.Next;
+                    pElem := IsourceClass[ActiveActor].ElementList.Next;
             until (Result > 0) or (pElem = nil);
     end;
 end;
@@ -136,9 +136,9 @@ procedure TISources.Set_Name(const Value: Widestring);
 begin
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        if IsourceClass.SetActive(Value) then
+        if IsourceClass[ActiveActor].SetActive(Value) then
         begin
-            ActiveCircuit[ActiveActor].ActiveCktElement := IsourceClass.ElementList.Active;
+            ActiveCircuit[ActiveActor].ActiveCktElement := IsourceClass[ActiveActor].ElementList.Active;
         end
         else
         begin
@@ -152,7 +152,7 @@ var
     elem: TIsourceObj;
 begin
     Result := 0.0;
-    elem := IsourceClass.ElementList.Active;
+    elem := IsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.Amps;
 end;
@@ -161,7 +161,7 @@ procedure TISources.Set_Amps(Value: Double);
 var
     elem: TIsourceObj;
 begin
-    elem := IsourceClass.GetActiveObj;
+    elem := IsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.Amps := Value;
 end;
@@ -171,7 +171,7 @@ var
     elem: TIsourceObj;
 begin
     Result := 0.0;
-    elem := IsourceClass.ElementList.Active;
+    elem := IsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.Angle;
 end;
@@ -181,7 +181,7 @@ var
     elem: TIsourceObj;
 begin
     Result := 0.0;
-    elem := IsourceClass.ElementList.Active;
+    elem := IsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.SrcFrequency;
 end;
@@ -190,7 +190,7 @@ procedure TISources.Set_AngleDeg(Value: Double);
 var
     elem: TIsourceObj;
 begin
-    elem := IsourceClass.GetActiveObj;
+    elem := IsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.Angle := Value;
 end;
@@ -199,7 +199,7 @@ procedure TISources.Set_Frequency(Value: Double);
 var
     elem: TIsourceObj;
 begin
-    elem := IsourceClass.GetActiveObj;
+    elem := IsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.SrcFrequency := Value;
 end;

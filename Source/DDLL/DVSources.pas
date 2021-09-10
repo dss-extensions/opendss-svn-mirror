@@ -30,14 +30,14 @@ begin
         begin  // Vsource.Count
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
-                Result := VsourceClass.ElementList.ListSize;
+                Result := VsourceClass[ActiveActor].ElementList.ListSize;
         end;
         1:
         begin  // Vsource.First
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                pElem := VsourceClass.ElementList.First;
+                pElem := VsourceClass[ActiveActor].ElementList.First;
                 if pElem <> nil then
                     repeat
                         if pElem.Enabled then
@@ -46,7 +46,7 @@ begin
                             Result := 1;
                         end
                         else
-                            pElem := VsourceClass.ElementList.Next;
+                            pElem := VsourceClass[ActiveActor].ElementList.Next;
                     until (Result = 1) or (pElem = nil);
             end;
         end;
@@ -55,29 +55,29 @@ begin
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                pElem := VsourceClass.ElementList.Next;
+                pElem := VsourceClass[ActiveActor].ElementList.Next;
                 if pElem <> nil then
                     repeat
                         if pElem.Enabled then
                         begin
                             ActiveCircuit[ActiveActor].ActiveCktElement := pElem;
-                            Result := VsourceClass.ElementList.ActiveIndex;
+                            Result := VsourceClass[ActiveActor].ElementList.ActiveIndex;
                         end
                         else
-                            pElem := VsourceClass.ElementList.Next;
+                            pElem := VsourceClass[ActiveActor].ElementList.Next;
                     until (Result > 0) or (pElem = nil);
             end;
         end;
         3:
         begin   // Vsource.Phases read
             Result := 0;
-            elem := VsourceClass.ElementList.Active;
+            elem := VsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.NPhases;
         end;
         4:
         begin  // Vsource.Phases write
-            elem := VsourceClass.GetActiveObj;
+            elem := VsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.Nphases := arg;
         end
@@ -98,52 +98,52 @@ begin
         0:
         begin  // Vsources.basekV read
             Result := 0.0;
-            elem := VsourceClass.ElementList.Active;
+            elem := VsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.kVBase;
         end;
         1:
         begin  // Vsources.basekV write
-            elem := VsourceClass.GetActiveObj;
+            elem := VsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.kVBase := arg;
         end;
         2:
         begin  // Vsource.pu read
             Result := 0.0;
-            elem := VsourceClass.ElementList.Active;
+            elem := VsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.perunit;
         end;
         3:
         begin  // Vsource.pu write
-            elem := VsourceClass.GetActiveObj;
+            elem := VsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.PerUnit := arg;
         end;
         4:
         begin  // Vsource.Angledeg read
             Result := 0.0;
-            elem := VsourceClass.ElementList.Active;
+            elem := VsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.angle;
         end;
         5:
         begin  // Vsource.Angledeg write
-            elem := VsourceClass.GetActiveObj;
+            elem := VsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.Angle := arg;
         end;
         6:
         begin  // Vsource.Frequency read
             Result := 0.0;
-            elem := VsourceClass.ElementList.Active;
+            elem := VsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.SrcFrequency;
         end;
         7:
         begin  // Vsource.Frequency write
-            elem := VsourceClass.GetActiveObj;
+            elem := VsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.SrcFrequency := arg;
         end
@@ -172,9 +172,9 @@ begin
         begin  // Vsources.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if VsourceClass.SetActive(Widestring(arg)) then
+                if VsourceClass[ActiveActor].SetActive(Widestring(arg)) then
                 begin
-                    ActiveCircuit[ActiveActor].ActiveCktElement := VsourceClass.ElementList.Active;
+                    ActiveCircuit[ActiveActor].ActiveCktElement := VsourceClass[ActiveActor].ElementList.Active;
                 end
                 else
                 begin
@@ -203,9 +203,9 @@ begin
             arg[0] := 'NONE';
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if VsourceClass.ElementList.ListSize > 0 then
+                if VsourceClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
-                    pList := VsourceClass.ElementList;
+                    pList := VsourceClass[ActiveActor].ElementList;
                     VarArrayRedim(arg, pList.ListSize - 1);
                     k := 0;
                     elem := pList.First;

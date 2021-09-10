@@ -29,7 +29,7 @@ CmdForms
     ;
 
 function Solve_Diakoptics(): Integer;
-function ADiakoptics_Tearing(): Integer;
+function ADiakoptics_Tearing(AddISrc: Boolean): Integer;
 procedure ADiakopticsInit();
 function Calc_C_Matrix(PLinks: PString; NLinks: Integer): Integer;
 function Calc_ZLL(PLinks: PString; NLinks: Integer): Integer;
@@ -59,59 +59,37 @@ uses
 
 function Solve_Diakoptics(): Integer;
 var
-    i,
-    j,
-    k: Integer;
+    i: Integer;
     Vpartial: TSparse_Complex;
 begin
   {Space left empty to implement the simplified Diakoptics algorithm}
     with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
-     // This is the coordinator actor in A-Diakoptics mode
-        for i := 1 to NumberOfTimes do
+        if not ADiak_init then           // If not initialized, go for it
         begin
-            if AD_Init then
-            begin
-      // Loads the partial solution considering the previous iteration
-                VPartial := Contours.Transpose();
-                VPartial := Vpartial.multiply(V_0);
-                Vpartial := Y4.multiply(VPartial);
-                Ic := Contours.multiply(VPartial);
-      // Ready to go
-            end
-            else
-            begin
-      // Setups the other actors to match the options of the coordinator
-                for j := 2 to NumOfActors do
-                begin
-                    ActiveCircuit[j].Solution.Mode := Mode;
-                    ActiveCircuit[j].solution.DynaVars.h := DynaVars.h;
-                    ActiveCircuit[j].solution.DynaVars.intHour := DynaVars.intHour;
-                    ActiveCircuit[j].solution.DynaVars.t := DynaVars.t;
-                    ActiveCircuit[j].solution.MaxIterations := MaxIterations;
-                    ActiveCircuit[j].solution.MaxControlIterations := MaxControlIterations;
-                    ActiveCircuit[j].solution.ControlMode := ControlMode;
-                    ActiveCircuit[j].solution.NumberOfTimes := 1;
-                end;
-                AD_Init := true;
-            end;
-    // Starts the simulation
-            for j := 2 to NumOfActors do
-            begin
-                ActiveActor := j;
-                CmdResult := DoSolveCmd;
-            end;
-            Wait4Actors(AD_Actors);
-      // The other routines
-            ActorPctProgress[1] := (i * 100) div NumberofTimes;
-            if SolutionAbort then
-                break
-            else
-                ActiveCircuit[1].Issolved := true;
-            Increment_time;
+            SendCmd2Actors(INIT_ADIAKOPTICS);
+            Wait4Actors(AD_ACTORS);
+            ADiak_init := true;
         end;
-    end;
+    { Zeroes the main current injection }
+        ZeroInjCurr(1);
+    // Solves the partial systems to find the voltages at the edges of the sub-systems
+        SendCmd2Actors(SOLVE_AD1);
+        Wait4Actors(AD_ACTORS);
+    // Moves Voltages from the Varray into a sparse equivalent
+        for i := 0 to (V_0.NRows - 1) do
+            V_0.insert(i, 0, NodeV^[i + 1]);
 
+    // Loads the partial solution considering the previous iteration
+        VPartial := Contours.Transpose();
+        VPartial := Vpartial.multiply(V_0);
+        Vpartial := Y4.multiply(VPartial);
+        Ic := Contours.multiply(VPartial);  // Calculates the new Injecting Currents
+    // Commands the actors to complement the solution
+        SendCmd2Actors(SOLVE_AD2);
+        Wait4Actors(AD_ACTORS);
+    end;
+    ActiveCircuit[1].Issolved := true;
     if SolutionAbort then
         ActiveCircuit[1].Issolved := false;
     ActiveActor := 1;    // Returns the control to Actor 1
@@ -200,7 +178,7 @@ end;
 
 {*******************************************************************************
 *              Inverts ZCC to obtain its admittance equivalent Y4              *
-*                      This is the heart of ADiakoptics                        *
+*                      This is the heart of A-Diakoptics                       *
 *******************************************************************************}
 procedure Calc_Y4();
 var
@@ -273,6 +251,7 @@ var
     CVector,
     ZVector: pComplexArray;
     Ctemp: Complex;
+    CT: TSparse_Complex;
 // 4 Debugging
 //  myFile    : TextFile;
 //  Text      : String;
@@ -283,7 +262,7 @@ begin
         GetSize(hY, @NNodes);
         col := NNodes;
         dec(Links);
-        ZCT.sparse_matrix_Cmplx(Links * 3, col);
+        ZCT.sparse_matrix_Cmplx(col, Links * 3);
         CVector := Allocmem(SizeOf(CVector^[1]) * (col + 1));
         ZVector := Allocmem(SizeOf(ZVector^[1]) * (col + 1));
         idx3 := Links * 3 - 1;
@@ -308,12 +287,15 @@ begin
             begin
                 CTemp := ZVector^[idx];
                 if (CTemp.re <> 0) and (CTemp.im <> 0) then
-                    ZCT.insert(idx2, (idx - 1), ZVector[idx]);
+                    ZCT.insert((idx - 1), idx2, ZVector[idx]);
             end;
             idx := col;
         end;
-
-        ZCC := ZCT.multiply(Contours);    // Calculates ZCC with no Link impedances
+    // At this point we have calculated the right side of the equation
+    // ZCC = CTZ(TT)C -> Z(TT)C
+    // It is needed transpose the contours matrix and multiply it
+        CT := Contours.Transpose();
+        ZCC := CT.multiply(ZCT);           // Calculates ZCC with no Link impedances
         ZCC := ZCC.Add(ZLL);              // Adds the link impedance
 
         FreeMem(CVector);
@@ -505,6 +487,13 @@ begin
                         row := 0;
                         col := 0;
                         count := 0;
+            // this routine Leaves the diagonal only
+{            FOR j := 1 to  ((NValues div 4) div 3) DO
+            Begin
+              ZLL.insert((j-1),(j-1),LinkPrim.GetElement(1,1));
+            End;}
+
+           //This routine includes the whole link branch
                         for j := 1 to (NValues div 4) do
                         begin
                             ZLL.insert((row + idx), (col + idx), LinkPrim.GetElement(row + 1, col + 1));
@@ -518,6 +507,7 @@ begin
                             else
                                 inc(Col);
                         end;
+
                     end
                     else
                         ErrorFlag := true;
@@ -537,8 +527,11 @@ end;
 {*******************************************************************************
 *           Tears the system using considering the number of                   *
 *           circuits specified by the user                                     *
+*           The flag AddISrc indicates if its necessary to create              *
+*           Isources at the edges of the link branches, the ISource            *
+*           magnitude is equal to 0.000001, angle 0 (for A-Diakoptics)         *
 *******************************************************************************}
-function ADiakoptics_Tearing(): Integer;
+function ADiakoptics_Tearing(AddISrc: Boolean): Integer;
 var
 
     Prev_Mode,                              // Stores the previous solution mode
@@ -555,7 +548,7 @@ begin
 //    DoSolveCmd();
         if not SolutionAbort then
         begin
-            Save_SubCircuits();
+            Save_SubCircuits(AddISrc);
             Dynavars.SolutionMode := Prev_mode;  // Goes back to the previous solution mode
             ActiveCircuit[1].Num_SubCkts := Num_Ckts;
             GlobalResult := 'Sub-Circuits Created: ' + inttostr(Num_Ckts);
@@ -612,7 +605,7 @@ begin
 
                 prog_Str := prog_str + '- Creating Sub-Circuits...' + CRLF;
 
-                ErrorCode := ADiakoptics_Tearing();
+                ErrorCode := ADiakoptics_Tearing(true);
                 if ErrorCode <> 0 then
                     ErrorStr := 'Error' + CRLF + 'The circuit cannot be decomposed' + CRLF
                 else
@@ -664,7 +657,7 @@ begin
                 end;
                 Ymatrix.BuildYMatrix(WHOLEMATRIX, false, ActiveActor);
                 DoSolveCmd;
-
+                ActiveActor := 1;
         // Creates the other actors
                 for DIdx := 2 to Diak_Actors do
                 begin
@@ -709,7 +702,7 @@ begin
             end;
             4:
             begin                       // Builds the ZLL matrix
-
+                ActiveActor := 1;
                 prog_Str := prog_str + CRLF + '- Building ZLL...';
                 ErrorCode := Calc_ZLL(@Links[0], length(Links));
                 if ErrorCode <> 0 then
@@ -723,13 +716,16 @@ begin
             begin
         // Opens the link branches in the interconnected Circuit and recalculates the YBus
         // The opening happens by replacing the line with a very high series impedance
+                ActiveActor := 1;
                 prog_Str := prog_str + CRLF + '- Opening link branches...';
                 for DIdx := 1 to High(Links) do
                 begin
-                    DssExecutive[ActiveActor].Command := Links[DIdx] + '.r0=10000000';
-                    DssExecutive[ActiveActor].Command := Links[DIdx] + '.r1=10000000';
-                    DssExecutive[ActiveActor].Command := Links[DIdx] + '.x0=0';
-                    DssExecutive[ActiveActor].Command := Links[DIdx] + '.x1=0';
+                    ActiveCircuit[1].SetElementActive(String(Links[DIdx]));
+                    ActiveCircuit[1].ActiveCktElement.Enabled := false;
+//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.r0=10000000';
+//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.r1=10000000';
+//         DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.x0=0';
+//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.x1=0';
                 end;
                 Ymatrix.BuildYMatrix(WHOLEMATRIX, false, ActiveActor);
                 prog_Str := prog_str + 'Done';
@@ -786,6 +782,7 @@ begin
         ErrorStr := 'A-Diakoptics initialized';
         Parallel_enabled := true;
         ADiakoptics := true;
+        ADiak_Init := false;    // Needed to force the subzones to remove VSource.Source
     end;
     ProgressCmd := true;
     prog_Str := CRLF + prog_str + CRLF + ErrorStr + CRLF;

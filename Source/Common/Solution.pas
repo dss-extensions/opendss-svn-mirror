@@ -50,6 +50,7 @@ uses
     Dynamics,
     EnergyMeter,
     VSource,
+    ISource,
     SysUtils,
     {$IFDEF FPC}
     Classes,
@@ -75,6 +76,11 @@ const
 // Constants for the actor's messaging
     SIMULATE = 0;
     EXIT_ACTOR = 1;
+    INIT_ADIAKOPTICS = 2;  // Initializes the environment for the children actors
+    SOLVE_AD1 = 3;  // solves for the actors with Power Injections -> E(0)
+    SOLVE_AD2 = 4;  // Solves the sub-system and adds to the partial solution
+    CALC_INJ_CURR = 5;  // Uses the total solution to estiamte the injection currents
+    DO_CTRL_ACTIONS = 6;  // Does the control actions distributedly
 
     ALL_ACTORS = 0; // Wait flag for all the actors
     AD_ACTORS = 1; // Wait flag to wait only for the A-Diakoptics actors
@@ -142,10 +148,11 @@ type
         MsgType: Integer;
         UIEvent,
         ActorMsg: TEvent;
-        AD_Init,          // used to know if the actors require a partial solution
+        AD_Init,                          // used to know if the actors require a partial solution
         ActorActive,
         Processing: Boolean;
-        MyMessages: TQueue<Integer>; // A queue for messaging to actors, the iam is to reduce inconsistency
+        MyMessages: TQueue<Integer>;  // A queue for messaging to actors, the aim is to reduce inconsistency
+        LocalBusIdx: array of Integer;
 
         procedure Start_Diakoptics();
         procedure Notify_Main;
@@ -153,6 +160,11 @@ type
         procedure Set_Processing(Nval: Boolean);
         function Get_CPU(): Integer;
         procedure Set_CPU(CPU: Integer);
+        procedure IndexBuses();           // Locates the actor buses within the bus array in Actor 1 (interconnected)
+        function HasInjObj(): Boolean;    // returns true if the actor has natural injection objects
+        procedure ZeroLocalV();           // Sets the local voltage vector (solution) equal to zero
+        procedure UploadV2Master();       // Uploads the local solution into the master's (actor 1) voltage array
+        procedure UpdateISrc();           // Updates the local ISources using the dat available at Ic for actor 1
 //*******************************Public components******************************
     PUBLIC
         procedure Send_Message(Msg: Integer);
@@ -362,6 +374,7 @@ type
         procedure AddXfmr2IncMatrix(ActorID: Integer);              // Adds the Xfmrs to the Incidence matrix arrays
         procedure AddSeriesCap2IncMatrix(ActorID: Integer);         // Adds capacitors in series to the Incidence matrix arrays
         procedure AddSeriesReac2IncMatrix(ActorID: Integer);        // Adds Reactors in series to the Incidence matrix arrays
+        procedure SendCmd2Actors(Msg: Integer);                     // Sends a message to other actors different than 1
 
     end;
 {==========================================================================}
@@ -950,6 +963,18 @@ begin
 end;
 
 // ===========================================================================================
+procedure TSolutionObj.SendCmd2Actors(Msg: Integer);
+var
+    i: Integer;
+begin
+    for i := 2 to NumOfActors do
+    begin
+        ActorStatus[i] := 0;
+        ActorHandle[i].Send_Message(Msg);
+    end;
+end;
+
+// ===========================================================================================
 procedure TSolutionObj.DoNormalSolution(ActorID: Integer);
 
 { Normal fixed-point solution
@@ -962,12 +987,12 @@ procedure TSolutionObj.DoNormalSolution(ActorID: Integer);
    Injcurr are the current injected INTO the NODE
         (need to reverse current direction for loads)
 }
-
+var
+    i: Integer;
 begin
 
 
     Iteration := 0;
-
  {**** Main iteration loop ****}
     with ActiveCircuit[ActorID] do
         repeat
@@ -976,27 +1001,33 @@ begin
             if LogEvents then
                 LogThisEvent('Solution Iteration ' + IntToStr(Iteration), ActorID);
 
+            if (not ADiakoptics) or (ActorID <> 1) then             // Normal simulation
+            begin                                                   // In A-Diakoptics, all other actors do normal solution
     { Get injcurrents for all PC devices  }
-            ZeroInjCurr(ActorID);
-            GetSourceInjCurrents(ActorID);  // sources
-            GetPCInjCurr(ActorID);  // Get the injection currents from all the power conversion devices and feeders
+                ZeroInjCurr(ActorID);
+                GetSourceInjCurrents(ActorID);  // sources
+                GetPCInjCurr(ActorID);  // Get the injection currents from all the power conversion devices and feeders
 
        // The above call could change the primitive Y matrix, so have to check
-            if SystemYChanged then
-            begin
-                BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
-            end;
+                if SystemYChanged then
+                begin
+                    BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
+                end;
         {by Dahei}if NodeYiiEmpty then
-                Get_Yiibus;  //
+                    Get_Yiibus;
 
-            if UseAuxCurrents then
-                AddInAuxCurrents(NORMALSOLVE, ActorID);
+                if UseAuxCurrents then
+                    AddInAuxCurrents(NORMALSOLVE, ActorID);
 
       // Solve for voltages                      {Note:NodeV[0] = 0 + j0 always}
-            if LogEvents then
-                LogThisEvent('Solve Sparse Set DoNormalSolution ...', ActorID);
-            SolveSystem(NodeV, ActorID);
-            LoadsNeedUpdating := false;
+                if LogEvents then
+                    LogThisEvent('Solve Sparse Set DoNormalSolution ...', ActorID);
+                SolveSystem(NodeV, ActorID);
+                LoadsNeedUpdating := false;
+
+            end
+            else
+                Solve_Diakoptics();              // A-Diakoptics
 
         until (Converged(ActorID) and (Iteration >= MinIterations)) or (Iteration >= MaxIterations);
 
@@ -2627,16 +2658,13 @@ begin
     try
     // new function to log KLUSolve.DLL function calls; same information as stepping through in Delphi debugger
     // SetLogFile ('KLU_Log.txt', 1);
-        if not ADiakoptics then
-            RetCode := SolveSparseSet(hY, @V^[1], @Currents^[1])  // Solve for present InjCurr, normal solution
-        else
+        RetCode := SolveSparseSet(hY, @V^[1], @Currents^[1]);  // Solve for present InjCurr
+
+        if ADiakoptics then
         begin
-    // Solve for using the actors index at the voltage and current vectors in actor 1
-    // The solution will be deposited there, affecting just a part of the vector
-    // for now is just the structure
-            ActorVIdx := 1;    // for now, actor 1 should command everything
-            with ActiveCircuit[1].Solution do
-                RetCode := SolveSparseSet(hY, @NodeV^[ActorVIdx], @Currents^[ActorVIdx]);
+    // Adds the partial result into actor 1 V array, then notifies the solution was computed
+
+
         end;
 {*  Commented out because results are not logged currently -- but left in just in case
     // new information functions
@@ -2847,27 +2875,143 @@ begin
 end;
 {$ENDIF}
 
+{---------------------------------------------------------
+|               Send a message to the actor              |
+----------------------------------------------------------}
 procedure TSolver.Send_Message(Msg: Integer);
 begin
     MyMessages.Enqueue(Msg);
     ActorMsg.SetEvent;
 end;
 
+{---------------------------------------------------------
+|      Checks if the actor has power injection Obj       |
+----------------------------------------------------------}
+function TSolver.HasInjObj(): Boolean;
+var
+    ListSize,
+    jj: Integer;
+    VSourceObj: TVsourceObj;
+    ISourceObj: TIsourceObj;
+
+begin
+    if ActorID = 2 then
+        Result := true
+    else
+    begin
+        Result := false;
+        with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
+        begin
+      // Starts looking for VSource
+            VSourceObj := VsourceClass[ActorID].ElementList.First;
+            while VSourceObj <> nil do
+            begin
+                if VSourceObj.enabled then
+                begin
+                    Result := true;
+                    break;
+                end;
+                VSourceObj := VsourceClass[ActorID].ElementList.Next;
+            end;
+            if not Result then
+            begin
+        // Goes for ISources
+                ISourceObj := IsourceClass[ActorID].ElementList.First;
+                while ISourceObj <> nil do
+                begin
+                    if ISourceObj.enabled then
+                    begin
+                        Result := true;
+                        break;
+                    end;
+                    ISourceObj := IsourceClass[ActorID].ElementList.Next;
+                end;
+            end;
+
+        end;
+    end;
+end;
+
+{---------------------------------------------------------
+|    locates the local buses into actor 1's bus array    |
+----------------------------------------------------------}
+procedure TSolver.IndexBuses();
+var
+    i,
+    j: Integer;
+    LclBus,
+    SrcBus: array of String;
+begin
+  // First, get the list of buses in actor 1
+    setlength(SrcBus, 1);
+    if ActiveCircuit[1] <> nil then
+    begin
+        with ActiveCircuit[1] do
+        begin
+            for i := 1 to NumNodes do
+            begin
+                with MapNodeToBus^[i] do
+                    SrcBus[high(SrcBus)] := Format('"%s.%-d"', [Uppercase(BusList.Get(Busref)), NodeNum]);
+                setlength(SrcBus, (length(SrcBus) + 1));
+            end;
+        end;
+    end;
+  // rebuilds the Y matrix to relocate the local buses
+    BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
+  // Then, get the list of buses in my actor
+    setlength(LclBus, 1);
+    if ActiveCircuit[ActorID] <> nil then
+    begin
+        with ActiveCircuit[ActorID] do
+        begin
+            for i := 1 to NumNodes do
+            begin
+                with MapNodeToBus^[i] do
+                    LclBus[high(LclBus)] := Format('"%s.%-d"', [Uppercase(BusList.Get(Busref)), NodeNum]);
+                setlength(LclBus, (length(LclBus) + 1));
+            end;
+        end;
+    end;
+  // Initializes the bus index vector
+    Setlength(LocalBusIdx, length(LclBus) - 1);
+    for i := 0 to High(LocalBusIdx) do
+    begin
+        for j := 0 to High(SrcBus) do
+            if LclBus[i] = SrcBus[j] then
+                break;
+        LocalBusIdx[i] := j + 1;
+    end;
+
+end;
+
+{---------------------------------------------------------
+|                 Sets the local busy flag               |
+----------------------------------------------------------}
 procedure TSolver.Set_Processing(NVal: Boolean);
 begin
     Processing := NVal;
 end;
 
+{---------------------------------------------------------
+|                 Gets the local busy flag               |
+----------------------------------------------------------}
 function TSolver.Get_Processing(): Boolean;
 begin
     Result := Processing;
 end;
+
+{---------------------------------------------------------
+|          Returns the CPU assigned to the actor         |
+----------------------------------------------------------}
 
 function TSolver.Get_CPU(): Integer;
 begin
     Result := ActorCPU[ActorID];
 end;
 
+{---------------------------------------------------------
+|             Sets the CPU assigned to the actor         |
+----------------------------------------------------------}
 {$IFNDEF FPC}
 procedure TSolver.Set_CPU(CPU: Integer);
 var
@@ -2886,6 +3030,102 @@ Begin
 End;
 {$ENDIF}
 
+{---------------------------------------------------------
+|             Zeroes the local voltage array             |
+----------------------------------------------------------}
+
+procedure TSolver.ZeroLocalV();
+var
+    i: Integer;
+begin
+    with ActiveCircuit[ActorID] do
+    begin
+        for i := 1 to NumNodes do
+            ActiveCircuit[ActorID].Solution.NodeV^[i] := CZERO;
+    end;
+
+end;
+
+{---------------------------------------------------------
+|     Uploads the local voltage array in the masters     |
+|     using the index map obtained in previous steps     |
+----------------------------------------------------------}
+
+procedure TSolver.UploadV2Master();
+var
+    idx,
+    i: Integer;
+begin
+    with ActiveCircuit[ActorID] do
+    begin
+        for i := 1 to NumNodes do
+        begin
+            idx := LocalBusIdx[i - 1];
+            ActiveCircuit[1].Solution.NodeV^[idx] := ActiveCircuit[ActorID].Solution.NodeV^[i];
+        end;
+    end;
+
+end;
+
+{---------------------------------------------------------
+|   Updates the local ISources using the data obtained   |
+|   for Ic in actor 1                                    |
+----------------------------------------------------------}
+
+procedure TSolver.UpdateISrc();
+var
+    myISrc: TIsourceObj;
+    SysBus,
+    BusName: String;
+    idx,
+    i: Integer;
+    myCurr: Polar;
+    Found: Boolean;
+    myCmplx: Complex;
+
+begin
+    with ActiveCircuit[ActorID] do
+    begin
+        myISrc := IsourceClass[ActorID].ElementList.First;
+        while myISrc <> nil do
+        begin
+            BusName := UpperCase(myISrc.GetBus(1));
+            with ActiveCircuit[ActorID] do
+            begin
+                for i := 1 to NumNodes do
+                begin
+                    with MapNodeToBus^[i] do
+                    begin
+                        SysBus := Format('%s.%-d', [Uppercase(BusList.Get(Busref)), NodeNum]);
+                        if BusName = SysBus then
+                            break;
+                    end;
+                end;
+            end;
+            i := LocalBusIdx[i - 1];
+            Found := false;
+            for idx := 0 to ActiveCircuit[1].Ic.NZero do
+            begin
+                if (ActiveCircuit[1].Ic.CData[idx].Row + 1) = i then
+                begin
+                    Found := true;
+                    break;
+                end;
+            end;
+            if Found then
+            begin
+                myCmplx := cmulreal(ActiveCircuit[1].Ic.CData[idx].Value, (-1.0));
+                myCurr := ctopolar(myCmplx);
+                myISrc.Amps := myCurr.mag;
+                myISrc.Angle := myCurr.ang * 180 / Pi;
+            end;  // Otherwise is just another ISource in the zone
+
+            myISrc := IsourceClass[ActorID].ElementList.Next;
+        end;
+    end;
+
+end;
+
 {*******************************************************************************
 *             executes the selected solution algorithm                         *
 ********************************************************************************
@@ -2896,11 +3136,6 @@ var
     {$IFNDEF FPC}
     ScriptEd: TScriptEdit;
     {$ENDIF}
-    i,
-    j,
-    idx: Integer;
-    VSourceObj: TVsourceObj;
-    Volts: Polar;
 
 begin
     with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
@@ -2969,29 +3204,49 @@ begin
                             Total_Time_Elapsed := Total_Time_Elapsed + Total_Solve_Time_Elapsed;
                             Processing := false;
                             FMessage := '1';
-                            ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
-
                 // Sends a message to Actor Object (UI) to notify that the actor has finised
                             UIEvent.SetEvent;
                             if Parallel_enabled then
                                 if not IsDLL then
-                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
-
+                                    queue(CallCallBack);          // Refreshes the GUI if running asynchronously
                         end;
                     except
                         On E: Exception do
                         begin
                             FMessage := '1';
-                            ActorStatus[ActorID] := 1;      // Global to indicate that the actor is ready
+                            ActorStatus[ActorID] := 1;                  // Global to indicate that the actor is ready
                             SolutionAbort := true;
                             UIEvent.SetEvent;
                             if Parallel_enabled then
                                 if not IsDLL then
-                                    queue(CallCallBack); // Refreshes the GUI if running asynchronously
+                                    queue(CallCallBack);          // Refreshes the GUI if running asynchronously
 
                             if not Parallel_enabled then
                                 DoThreadSafeMsg('Error Encountered in Solve: ' + E.Message, 482);
                         end;
+                    end;
+                    INIT_ADIAKOPTICS:
+                    begin
+                // Disables VSource.Source and link branches (artificially introduced while tearing)
+                // It only applies if the actor is not the one containing the main substation
+                        if ActorID > 2 then
+                            Start_Diakoptics;
+                // Figures out the index for the new Bus list into actor 1 (interconnected)
+                        IndexBuses;
+                    end;
+                    SOLVE_AD1:                                            // Solves the model if the actor has PIE
+                    begin
+                        if HasInjObj then
+                            SolveDirect(ActorID)
+                        else
+                            ZeroLocalV;
+                        UploadV2Master;
+                    end;
+                    SOLVE_AD2:                                            // Completes the partial results
+                    begin
+                        UpdateISrc;
+                        SolveDirect(ActorID);
+                        UploadV2Master;
                     end;
                     EXIT_ACTOR:                // Terminates the thread
                     begin
@@ -3002,6 +3257,7 @@ begin
                 end;
 
             end;
+            ActorStatus[ActorID] := 1;                  // Global to indicate that the actor is ready
 
         end;
     end;
@@ -3016,51 +3272,41 @@ end;
 // Initializes the variables of the A-Diakoptics worker
 procedure TSolver.Start_Diakoptics();
 var
-    row,
-    j,
-    i: Integer;
-    VSource: TVsourceObj;
-    Volts: Polar;
-    CNum: Complex;
+    jj: Integer;
+    VSourceObj: TVsourceObj;
+    BusName: String;
+    myPDEList: DynStringArray;
 begin
     with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
     begin
-        j := ActiveCircuit[1].Ic.NZero - 1;    // Brings the number of Non-Zero elements from Ic
-        if j > 0 then
+    // Select the main voltage source
+        VSourceObj := VsourceClass[ActorID].ElementList.First;
+    // Gets the name of the branch directly connected to the feeder head to remove it
+    // (applies to all actors but actor 2 - first chunk of the system)
+        BusName := VSourceObj.GetBus(1);
+        jj := ansipos('.', BusName);   // removes the dot
+        if (jj > 0) then
+            BusName := BusName.Substring(0, (jj - 1));
+        SetActiveBus(BusName);                            // Activates the Bus
+        myPDEList := getPDEatBus(BusList.Get(ActiveBusIndex));
+    // Disables the link branch
+        DssExecutive[ActorID].Command := myPDEList[0] + '.enabled=False';
+    // Now disables all the VSources added artificially
+        while VSourceObj <> nil do
         begin
-      // Clears the local Ic vector
-            for i := 1 to NumNodes do
-                Ic_Local^[i] := cZERO;  // probably not necessary
-      // Brings the section of the vector needed for this actor
-            for i := 0 to j do
-            begin
-                if ActiveCircuit[1].Ic.CData[i].row >= VIndex then
-                begin
-                    row := ActiveCircuit[1].Ic.CData[i].row;
-                    Ic_Local^[row - VIndex + 1] := ActiveCircuit[1].Ic.CData[i].Value;
-                end;
-            end;
-      // Solves to find the total solution
-            SolveSparseSet(hY, @Node_dV^[1], @Ic_Local^[1]);
-      // Sends the total voltage for this part to the coordinator
-            for i := 1 to NumNodes do
-            begin
-                CNum := csub(NodeV^[i], Node_dV^[i]);
-                ActiveCircuit[1].Solution.NodeV^[i + VIndex] := CNum;
-            end;
-
-      // Sets the voltage at the feeder head
-            VSource := ActiveVSource[ActorID].ElementList.First;
-            for i := 1 to 3 do
-            begin
-                CNum := cadd(NodeV^[i], Node_dV^[i]);
-                Volts := ctopolardeg(CNum);
-                VSource.kVBase := Volts.mag / 1000;   // is in kV
-                VSource.Angle := Volts.ang;
-                VSource := ActiveVSource[ActorID].ElementList.Next;
-            end;
+            BusName := Lowercase(VSourceObj.Name);
+            if (BusName = 'source') then
+                VSourceObj.Enabled := false                   // Disables the artificial VSource phase 1
+            else
+            if (BusName = 'vph_2') then
+                VSourceObj.Enabled := false                 // Disables the artificial VSource phase 2
+            else
+            if (BusName = 'vph_3') then
+                VSourceObj.Enabled := false;              // Disables the artificial VSource phase 3
+            VSourceObj := VsourceClass[ActorID].ElementList.Next;
         end;
     end;
+
 end;
 
 procedure TSolver.Notify_Main;

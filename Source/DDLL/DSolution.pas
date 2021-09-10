@@ -216,7 +216,6 @@ begin
         end;
         28:
         begin  // Solution.SolveDirect
-            IsSolveAll := false;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ActiveCircuit[ActiveActor].Solution.SolveDirect(ActiveActor);
@@ -224,7 +223,6 @@ begin
         end;
         29:
         begin  // Solution.SolvePFlow
-            IsSolveAll := false;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ActiveCircuit[ActiveActor].Solution.DoPflowSolution(ActiveActor);
@@ -232,7 +230,6 @@ begin
         end;
         30:
         begin  // Solution.SolveNoControl
-            IsSolveAll := false;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ActiveCircuit[ActiveActor].Solution.SolveCircuit(ActiveActor);
@@ -240,7 +237,6 @@ begin
         end;
         31:
         begin  // Solution.SolvePlusControl
-            IsSolveAll := false;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor].Solution do
@@ -370,7 +366,6 @@ begin
         end;
         46:
         begin  // Solution.SolveAll
-            IsSolveAll := true;
             for i := 1 to NumOfActors do
             begin
                 ActiveActor := i;

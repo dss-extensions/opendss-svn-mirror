@@ -58,9 +58,9 @@ begin
     Result[0] := 'NONE';
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        if VsourceClass.ElementList.ListSize > 0 then
+        if VsourceClass[ActiveActor].ElementList.ListSize > 0 then
         begin
-            pList := VsourceClass.ElementList;
+            pList := VsourceClass[ActiveActor].ElementList;
             VarArrayRedim(Result, pList.ListSize - 1);
             k := 0;
             elem := pList.First;
@@ -79,7 +79,7 @@ function TVsources.Get_Count: Integer;
 begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
-        Result := VsourceClass.ElementList.ListSize;
+        Result := VsourceClass[ActiveActor].ElementList.ListSize;
 end;
 
 function TVsources.Get_First: Integer;
@@ -89,7 +89,7 @@ begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        pElem := VsourceClass.ElementList.First;
+        pElem := VsourceClass[ActiveActor].ElementList.First;
         if pElem <> nil then
             repeat
                 if pElem.Enabled then
@@ -98,7 +98,7 @@ begin
                     Result := 1;
                 end
                 else
-                    pElem := VsourceClass.ElementList.Next;
+                    pElem := VsourceClass[ActiveActor].ElementList.Next;
             until (Result = 1) or (pElem = nil);
     end;
 end;
@@ -110,16 +110,16 @@ begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        pElem := VsourceClass.ElementList.Next;
+        pElem := VsourceClass[ActiveActor].ElementList.Next;
         if pElem <> nil then
             repeat
                 if pElem.Enabled then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := pElem;
-                    Result := VsourceClass.ElementList.ActiveIndex;
+                    Result := VsourceClass[ActiveActor].ElementList.ActiveIndex;
                 end
                 else
-                    pElem := VsourceClass.ElementList.Next;
+                    pElem := VsourceClass[ActiveActor].ElementList.Next;
             until (Result > 0) or (pElem = nil);
     end;
 end;
@@ -140,9 +140,9 @@ procedure TVsources.Set_Name(const Value: Widestring);
 begin
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        if VsourceClass.SetActive(Value) then
+        if VsourceClass[ActiveActor].SetActive(Value) then
         begin
-            ActiveCircuit[ActiveActor].ActiveCktElement := VsourceClass.ElementList.Active;
+            ActiveCircuit[ActiveActor].ActiveCktElement := VsourceClass[ActiveActor].ElementList.Active;
         end
         else
         begin
@@ -156,7 +156,7 @@ var
     elem: TVsourceObj;
 begin
     Result := 0.0;
-    elem := VsourceClass.ElementList.Active;
+    elem := VsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.kVBase;
 end;
@@ -166,7 +166,7 @@ var
     elem: TVsourceObj;
 begin
     Result := 0.0;
-    elem := VsourceClass.ElementList.Active;
+    elem := VsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.perunit;
 end;
@@ -175,7 +175,7 @@ procedure TVsources.Set_BasekV(Value: Double);
 var
     elem: TVsourceObj;
 begin
-    elem := VsourceClass.GetActiveObj;
+    elem := VsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.kVBase := Value;
 end;
@@ -184,7 +184,7 @@ procedure TVsources.Set_pu(Value: Double);
 var
     elem: TVsourceObj;
 begin
-    elem := VsourceClass.GetActiveObj;
+    elem := VsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.PerUnit := Value;
 end;
@@ -194,7 +194,7 @@ var
     elem: TVsourceObj;
 begin
     Result := 0.0;
-    elem := VsourceClass.ElementList.Active;
+    elem := VsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.angle;
 
@@ -205,7 +205,7 @@ var
     elem: TVsourceObj;
 begin
     Result := 0.0;
-    elem := VsourceClass.ElementList.Active;
+    elem := VsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.SrcFrequency;
 
@@ -216,7 +216,7 @@ var
     elem: TVsourceObj;
 begin
     Result := 0;
-    elem := VsourceClass.ElementList.Active;
+    elem := VsourceClass[ActiveActor].ElementList.Active;
     if elem <> nil then
         Result := elem.NPhases;
 
@@ -226,7 +226,7 @@ procedure TVsources.Set_AngleDeg(Value: Double);
 var
     elem: TVsourceObj;
 begin
-    elem := VsourceClass.GetActiveObj;
+    elem := VsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.Angle := Value;
 end;
@@ -235,7 +235,7 @@ procedure TVsources.Set_Frequency(Value: Double);
 var
     elem: TVsourceObj;
 begin
-    elem := VsourceClass.GetActiveObj;
+    elem := VsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.SrcFrequency := Value;
 end;
@@ -244,7 +244,7 @@ procedure TVsources.Set_Phases(Value: Integer);
 var
     elem: TVsourceObj;
 begin
-    elem := VsourceClass.GetActiveObj;
+    elem := VsourceClass[ActiveActor].GetActiveObj;
     if elem <> nil then
         elem.Nphases := Value;
 end;

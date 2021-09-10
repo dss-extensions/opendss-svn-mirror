@@ -581,6 +581,7 @@ procedure ProcessCommand(const CmdLine: String);
 var
     ParamPointer,
     Temp_int,
+    Iter,
     i: Integer;
     ParamName,
     Param,
@@ -715,8 +716,14 @@ begin
             end;
             108:
             begin
-                IsSolveAll := true;
-                for i := 1 to NumOfActors do
+              //  Added to avoid crashes when in A-Diakoptics mode but the user
+              //  uses the SolveAll command
+                if ADiakoptics then
+                    Iter := 1
+                else
+                    Iter := NumOfActors;
+              //  Execution area
+                for i := 1 to Iter do
                 begin
                     ActiveActor := i;
                     CmdResult := DoSetCmd(1);
@@ -732,7 +739,7 @@ begin
             end;
             111:
             begin
-                ADiakoptics_Tearing();
+                ADiakoptics_Tearing(false);
             end;
             114:
             begin
@@ -805,8 +812,8 @@ begin
                 CmdResult := DoShowCmd; //'show';
             9:
             begin
-                IsSolveAll := false;
-                ActiveCircuit[1].AD_Init := false;
+                if ADiakoptics then
+                    ActiveActor := 1;   // Just in case
                 CmdResult := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
             end;
             10:
@@ -934,7 +941,6 @@ begin
                 ActiveCircuit[ActiveActor].Solution.SnapShotInit(ActiveActor);
             79:
             begin
-                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.SolveCircuit(ActiveActor);
             end;
             80:
@@ -945,12 +951,10 @@ begin
                 ActiveCircuit[ActiveActor].ControlQueue.ShowQueue(DSSDirectory + CircuitName_[ActiveActor] + 'ControlQueue.csv');
             83:
             begin
-                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.SolveDirect(ActiveActor);
             end;
             84:
             begin
-                IsSolveAll := false;
                 ActiveCircuit[ActiveActor].Solution.DoPFLOWsolution(ActiveActor);
             end;
             85:

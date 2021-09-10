@@ -123,7 +123,7 @@ type
 
 var
     ActiveVsourceObj: TVsourceObj;
-    VSourceClass: TVsource;
+{    VSourceClass    : TVsource;}
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 implementation
@@ -159,7 +159,7 @@ begin
     CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
     CommandList.Abbrev := true;
 
-    VsourceClass := Self;
+    VsourceClass[ActiveActor] := Self;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

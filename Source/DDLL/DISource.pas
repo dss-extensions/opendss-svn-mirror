@@ -30,14 +30,14 @@ begin
         begin  // Isources.Count
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
-                Result := IsourceClass.ElementList.ListSize;
+                Result := IsourceClass[ActiveActor].ElementList.ListSize;
         end;
         1:
         begin  // Isources.First
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                pElem := IsourceClass.ElementList.First;
+                pElem := IsourceClass[ActiveActor].ElementList.First;
                 if pElem <> nil then
                     repeat
                         if pElem.Enabled then
@@ -46,7 +46,7 @@ begin
                             Result := 1;
                         end
                         else
-                            pElem := IsourceClass.ElementList.Next;
+                            pElem := IsourceClass[ActiveActor].ElementList.Next;
                     until (Result = 1) or (pElem = nil);
             end;
         end;
@@ -55,16 +55,16 @@ begin
             Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                pElem := IsourceClass.ElementList.Next;
+                pElem := IsourceClass[ActiveActor].ElementList.Next;
                 if pElem <> nil then
                     repeat
                         if pElem.Enabled then
                         begin
                             ActiveCircuit[ActiveActor].ActiveCktElement := pElem;
-                            Result := IsourceClass.ElementList.ActiveIndex;
+                            Result := IsourceClass[ActiveActor].ElementList.ActiveIndex;
                         end
                         else
-                            pElem := IsourceClass.ElementList.Next;
+                            pElem := IsourceClass[ActiveActor].ElementList.Next;
                     until (Result > 0) or (pElem = nil);
             end;
         end
@@ -86,39 +86,39 @@ begin
         0:
         begin  // Isources.Amps read
             Result := 0.0;
-            elem := IsourceClass.ElementList.Active;
+            elem := IsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.Amps;
         end;
         1:
         begin  // Isources.Amps write
-            elem := IsourceClass.GetActiveObj;
+            elem := IsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.Amps := arg;
         end;
         2:
         begin  // Isources.AngleDeg read
             Result := 0.0;
-            elem := IsourceClass.ElementList.Active;
+            elem := IsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.Angle;
         end;
         3:
         begin  // Isources.AngleDeg write
-            elem := IsourceClass.GetActiveObj;
+            elem := IsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.Angle := arg;
         end;
         4:
         begin  // Isources.Frequency read
             Result := 0.0;
-            elem := IsourceClass.ElementList.Active;
+            elem := IsourceClass[ActiveActor].ElementList.Active;
             if elem <> nil then
                 Result := elem.SrcFrequency;
         end;
         5:
         begin  // Isources.Frequency write
-            elem := IsourceClass.GetActiveObj;
+            elem := IsourceClass[ActiveActor].GetActiveObj;
             if elem <> nil then
                 elem.SrcFrequency := arg;
         end
@@ -147,9 +147,9 @@ begin
         begin  // Isoruces.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if IsourceClass.SetActive(Widestring(arg)) then
+                if IsourceClass[ActiveActor].SetActive(Widestring(arg)) then
                 begin
-                    ActiveCircuit[ActiveActor].ActiveCktElement := IsourceClass.ElementList.Active;
+                    ActiveCircuit[ActiveActor].ActiveCktElement := IsourceClass[ActiveActor].ElementList.Active;
                 end
                 else
                 begin
@@ -178,9 +178,9 @@ begin
             arg[0] := 'NONE';
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if IsourceClass.ElementList.ListSize > 0 then
+                if IsourceClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
-                    pList := IsourceClass.ElementList;
+                    pList := IsourceClass[ActiveActor].ElementList;
                     VarArrayRedim(arg, pList.ListSize - 1);
                     k := 0;
                     elem := pList.First;
