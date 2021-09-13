@@ -1,7 +1,7 @@
 unit Diakoptics;
 {
    ----------------------------------------------------------
-  Copyright (c) 2008-2019, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -490,13 +490,13 @@ begin
             // this routine Leaves the diagonal only
 {            FOR j := 1 to  ((NValues div 4) div 3) DO
             Begin
-              ZLL.insert((j-1),(j-1),LinkPrim.GetElement(1,1));
-            End;}
-
+              ZLL.insert((j-1),(j-1),LinkPrim.GetElement((4-j),(4-j)));
+            End;
+}
            //This routine includes the whole link branch
-                        for j := 1 to (NValues div 4) do
+{}            for j := 1 to (NValues div 4) do
                         begin
-                            ZLL.insert((row + idx), (col + idx), LinkPrim.GetElement(row + 1, col + 1));
+                            ZLL.insert((row + idx), (col + idx), cdivreal(LinkPrim.GetElement(row + 1, col + 1), 8));
                             inc(count);
                             if count > 2 then
                             begin
@@ -507,7 +507,7 @@ begin
                             else
                                 inc(Col);
                         end;
-
+{ }
                     end
                     else
                         ErrorFlag := true;
@@ -687,32 +687,6 @@ begin
 
             end;
             3:
-            begin                      // Creates the contours matrix
-
-                ActiveActor := 1;
-                prog_Str := prog_str + CRLF + '- Building Contours...';
-        // Builds the contour matrix
-                ErrorCode := Calc_C_Matrix(@Links[0], length(Links));
-                if ErrorCode <> 0 then
-                    ErrorStr := 'Error' + CRLF + 'One or more link branches are not lines' + CRLF
-                else
-                    ErrorStr := 'Done';
-                prog_Str := prog_str + ErrorStr;
-
-            end;
-            4:
-            begin                       // Builds the ZLL matrix
-                ActiveActor := 1;
-                prog_Str := prog_str + CRLF + '- Building ZLL...';
-                ErrorCode := Calc_ZLL(@Links[0], length(Links));
-                if ErrorCode <> 0 then
-                    ErrorStr := 'Error'
-                else
-                    ErrorStr := 'Done';
-                prog_Str := prog_str + ErrorStr;
-
-            end;
-            5:
             begin
         // Opens the link branches in the interconnected Circuit and recalculates the YBus
         // The opening happens by replacing the line with a very high series impedance
@@ -730,6 +704,32 @@ begin
                 Ymatrix.BuildYMatrix(WHOLEMATRIX, false, ActiveActor);
                 prog_Str := prog_str + 'Done';
                 ErrorCode := 0;          // No error handling here
+
+            end;
+            4:
+            begin                      // Creates the contours matrix
+
+                ActiveActor := 1;
+                prog_Str := prog_str + CRLF + '- Building Contours...';
+        // Builds the contour matrix
+                ErrorCode := Calc_C_Matrix(@Links[0], length(Links));
+                if ErrorCode <> 0 then
+                    ErrorStr := 'Error' + CRLF + 'One or more link branches are not lines' + CRLF
+                else
+                    ErrorStr := 'Done';
+                prog_Str := prog_str + ErrorStr;
+
+            end;
+            5:
+            begin                       // Builds the ZLL matrix
+                ActiveActor := 1;
+                prog_Str := prog_str + CRLF + '- Building ZLL...';
+                ErrorCode := Calc_ZLL(@Links[0], length(Links));
+                if ErrorCode <> 0 then
+                    ErrorStr := 'Error'
+                else
+                    ErrorStr := 'Done';
+                prog_Str := prog_str + ErrorStr;
 
             end;
             6:
