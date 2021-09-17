@@ -721,6 +721,8 @@ begin
                 begin
                     ControlMode := InterpretControlMode(Param);
                     DefaultControlMode := ControlMode;  // always revert to last one specified in a script
+                    if ADiakoptics and (ActiveActor = 1) then
+                        SendCmd2Actors(GETCTRLMODE);
                 end;
             44:
                 ActiveCircuit[ActiveActor].ControlQueue.TraceLog := InterpretYesNo(Param);
@@ -768,7 +770,11 @@ begin
             54:
                 DoHarmonicsList(Param);
             55:
+            begin
                 ActiveCircuit[ActiveActor].Solution.MaxControlIterations := Parser[ActiveActor].IntValue;
+                if ADiakoptics and (ActiveActor = 1) then
+                    ActiveCircuit[ActiveActor].Solution.SendCmd2Actors(GETCTRLMODE);
+            end;
             56:
                 Result := SetActiveBus(Param);   // See DSSGlobals
             57:

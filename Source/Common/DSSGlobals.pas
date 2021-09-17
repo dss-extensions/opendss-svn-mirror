@@ -303,6 +303,7 @@ Integer
     AllActors,
     ADiakoptics,
     ADiak_Init,
+    ADiak_PCInj,
     Parallel_enabled,
     ConcatenateReports,
 
@@ -1113,8 +1114,8 @@ begin
             while ActorStatus[i] = 0 do
             begin
                 Flag := true;
-                while Flag do
-                    Flag := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
+//        while Flag do
+//          Flag  := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
             end;
         except
             On EOutOfMemory do

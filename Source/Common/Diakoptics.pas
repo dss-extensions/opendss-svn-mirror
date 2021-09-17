@@ -26,7 +26,8 @@ CmdForms
     DSSForms,
     ScriptEdit
     {$ENDIF}
-    ;
+    ,
+    System.classes;
 
 function Solve_Diakoptics(): Integer;
 function ADiakoptics_Tearing(AddISrc: Boolean): Integer;
@@ -65,29 +66,22 @@ begin
   {Space left empty to implement the simplified Diakoptics algorithm}
     with ActiveCircuit[1], ActiveCircuit[1].Solution do
     begin
-        if not ADiak_init then           // If not initialized, go for it
-        begin
-            SendCmd2Actors(INIT_ADIAKOPTICS);
-            Wait4Actors(AD_ACTORS);
-            ADiak_init := true;
-        end;
-    { Zeroes the main current injection }
-        ZeroInjCurr(1);
+
     // Solves the partial systems to find the voltages at the edges of the sub-systems
         SendCmd2Actors(SOLVE_AD1);
-        Wait4Actors(AD_ACTORS);
+
     // Moves Voltages from the Varray into a sparse equivalent
         for i := 0 to (V_0.NRows - 1) do
             V_0.insert(i, 0, NodeV^[i + 1]);
 
     // Loads the partial solution considering the previous iteration
-        VPartial := Contours.Transpose();
-        VPartial := Vpartial.multiply(V_0);
+        VPartial := ContoursT.multiply(V_0);
         Vpartial := Y4.multiply(VPartial);
         Ic := Contours.multiply(VPartial);  // Calculates the new Injecting Currents
+
     // Commands the actors to complement the solution
         SendCmd2Actors(SOLVE_AD2);
-        Wait4Actors(AD_ACTORS);
+
     end;
     ActiveCircuit[1].Issolved := true;
     if SolutionAbort then
@@ -251,7 +245,6 @@ var
     CVector,
     ZVector: pComplexArray;
     Ctemp: Complex;
-    CT: TSparse_Complex;
 // 4 Debugging
 //  myFile    : TextFile;
 //  Text      : String;
@@ -294,8 +287,8 @@ begin
     // At this point we have calculated the right side of the equation
     // ZCC = CTZ(TT)C -> Z(TT)C
     // It is needed transpose the contours matrix and multiply it
-        CT := Contours.Transpose();
-        ZCC := CT.multiply(ZCT);           // Calculates ZCC with no Link impedances
+        ContoursT := Contours.Transpose();
+        ZCC := ContoursT.multiply(ZCT);   // Calculates ZCC with no Link impedances
         ZCC := ZCC.Add(ZLL);              // Adds the link impedance
 
         FreeMem(CVector);
@@ -487,16 +480,9 @@ begin
                         row := 0;
                         col := 0;
                         count := 0;
-            // this routine Leaves the diagonal only
-{            FOR j := 1 to  ((NValues div 4) div 3) DO
-            Begin
-              ZLL.insert((j-1),(j-1),LinkPrim.GetElement((4-j),(4-j)));
-            End;
-}
-           //This routine includes the whole link branch
 {}            for j := 1 to (NValues div 4) do
                         begin
-                            ZLL.insert((row + idx), (col + idx), cdivreal(LinkPrim.GetElement(row + 1, col + 1), 8));
+                            ZLL.insert((row + idx), (col + idx), LinkPrim.GetElement(row + 1, col + 1));
                             inc(count);
                             if count > 2 then
                             begin
@@ -605,7 +591,7 @@ begin
 
                 prog_Str := prog_str + '- Creating Sub-Circuits...' + CRLF;
 
-                ErrorCode := ADiakoptics_Tearing(true);
+                ErrorCode := ADiakoptics_Tearing(false);
                 if ErrorCode <> 0 then
                     ErrorStr := 'Error' + CRLF + 'The circuit cannot be decomposed' + CRLF
                 else
@@ -682,7 +668,9 @@ begin
                 if ErrorCode <> 0 then
                     ErrorStr := 'Error' + CRLF + 'One or sub-systems cannot be compiled' + CRLF
                 else
+                begin
                     ErrorStr := 'Done';
+                end;
                 prog_Str := prog_str + ErrorStr;
 
             end;
@@ -696,10 +684,6 @@ begin
                 begin
                     ActiveCircuit[1].SetElementActive(String(Links[DIdx]));
                     ActiveCircuit[1].ActiveCktElement.Enabled := false;
-//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.r0=10000000';
-//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.r1=10000000';
-//         DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.x0=0';
-//          DssExecutive[ActiveActor].Command    :=  Links[DIdx] + '.x1=0';
                 end;
                 Ymatrix.BuildYMatrix(WHOLEMATRIX, false, ActiveActor);
                 prog_Str := prog_str + 'Done';
@@ -761,6 +745,25 @@ begin
             begin                      // Prints the statistics of the partitioning
                 prog_Str := prog_str + CRLF + CRLF + 'Partitioning statistics';
                 prog_Str := prog_str + get_Statistics();
+        // Assigns the processor per actor
+                for DIdx := 1 to NumOfActors do
+                begin
+                    ActorCPU[DIdx] := DIdx;
+                    if ActorHandle[DIdx] <> nil then
+                    begin
+                        ActorHandle[DIdx].CPU := ActorCPU[DIdx];
+                        ActorHandle[DIdx].Priority :=
+                            {$IFDEF MSWINDOWS}
+                            tpTimeCritical
+                        {$ELSE}
+6
+                        {$ENDIF}
+                        ;
+                    end;
+                end;
+
+                ActiveCircuit[1].Solution.SendCmd2Actors(INIT_ADIAKOPTICS);
+                ADiak_init := true;
             end
         else
         begin
