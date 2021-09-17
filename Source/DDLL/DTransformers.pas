@@ -252,7 +252,7 @@ begin
             Result := 0.0;
             elem := ActiveTransformer;
             if elem <> nil then
-                Result := elem.XhlVal;
+                Result := elem.XhlVal * 100.0;
         end;
         17:
         begin  // Transformers.Xhl write
@@ -263,7 +263,7 @@ begin
             Result := 0.0;
             elem := ActiveTransformer;
             if elem <> nil then
-                Result := elem.XhtVal;
+                Result := elem.XhtVal * 100.0;
         end;
         19:
         begin  // Transformers.Xht write
@@ -274,7 +274,7 @@ begin
             Result := 0.0;
             elem := ActiveTransformer;
             if elem <> nil then
-                Result := elem.XltVal;
+                Result := elem.XltVal * 100.0;
         end;
         21:
         begin  // Transformers.Xlt write
