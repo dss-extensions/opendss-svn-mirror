@@ -739,13 +739,20 @@ end;
 {--------------------------------------------------------------------------}
 procedure TCapControlObj.GetBusVoltages(pBus: TDSSBus; Buff: pComplexArray; ActorID: Integer);
 var
-    j: Integer;
+    j,
+    k: Integer;
+
 begin
     with pBus do
         if Assigned(Vbus) then    // uses nphases from CapControlObj
-            for j := 1 to nPhases do
-                cBuffer^[j] := ActiveCircuit[ActorID].Solution.NodeV^[GetRef(j)];
-    ;
+        begin
+            if not ADiakoptics or (ActorID = 1) then
+                for j := 1 to nPhases do
+                    cBuffer^[j] := ActiveCircuit[ActorID].Solution.NodeV^[GetRef(j)]
+            else  // In the context of actor 1
+                for j := 1 to nPhases do
+                    cBuffer^[j] := ActiveCircuit[ActorID].Solution.VoltInActor1(GetRef(j));
+        end;
 
 end;
 

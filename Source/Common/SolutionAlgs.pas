@@ -123,7 +123,7 @@ end;
 function SolveYearly(ActorID: Integer): Integer;
 
 var
-    N, Twopct: Integer;
+    N, Twopct, i: Integer;
 
 begin
     Result := 0;
@@ -132,6 +132,7 @@ begin
  ShowPctProgress(ActorProgressCount[ActorID],ActorID);
 }
     with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
+
     begin
         try
 
@@ -144,6 +145,10 @@ begin
                     with Dynavars do
                     begin
                         Increment_time;
+                        if ADiakoptics and (ActorID = 1) then
+                            for i := 2 to NumOfActors do
+                                ActiveCircuit[i].Solution.Increment_time;
+
                         DefaultHourMult := DefaultYearlyShapeObj.getmult(dblHour);
                         if PriceCurveObj <> nil then
                             PriceSignal := PriceCurveObj.GetPrice(dblHour);

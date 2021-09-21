@@ -1112,7 +1112,11 @@ begin
 
                     1:
                     begin
-                        E1 := Csub(CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]), Cmul(ITerminal^[1], Zsp));
+                        if not ADiakoptics or (ActorID = 1) then
+                            E1 := Csub(CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]), Cmul(ITerminal^[1], Zsp))
+                        else
+                            E1 := Csub(CSub(VoltInActor1(NodeRef^[1]), VoltInActor1(NodeRef^[2])), Cmul(ITerminal^[1], Zsp));
+
                     end;
 
                     3:
@@ -1123,7 +1127,12 @@ begin
                      // Voltage behind Zsp  (transient reactance), volts
 
                         for i := 1 to FNphases do
-                            Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
+                        begin
+                            if not ADIakoptics or (ActorID = 1) then
+                                Vabc[i] := NodeV^[NodeRef^[i]]   // Wye Voltage
+                            else
+                                Vabc[i] := VoltInActor1(NodeRef^[i]);   // Wye Voltage
+                        end;
                         Phase2SymComp(@Vabc, @V012);
                         E1 := Csub(V012[1], Cmul(I012[1], Zsp));    // Pos sequence
                     end;

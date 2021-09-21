@@ -1306,6 +1306,8 @@ begin
 end;
 
 constructor TProgressActor.Create();
+var
+    J: Integer;
 begin
     ShellExecute(Handle, 'open', Pwidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL);
     sleep(200);
@@ -1315,9 +1317,14 @@ begin
     idTCPClient.Host := 'localhost';
     idTCPClient.Port := DSSPrgPort;
     idThreadComponent := TIdThreadComponent.Create();
+
+    if ADiakoptics and (ActiveActor = 1) then
+        J := 1
+    else
+        J := NumOfActors;
     try
         IdTCPClient.Connect;
-        IdTCPClient.IOHandler.WriteLn('num' + inttostr(NumOfActors));
+        IdTCPClient.IOHandler.WriteLn('num' + inttostr(J));
         IsProgressON := true;
     except
         on E: Exception do
@@ -1331,7 +1338,7 @@ end;
 
 procedure TProgressActor.Execute;
 var
-    I: Integer;
+    I, J: Integer;
     AbortBtn,
     progStr: String;
     RunFlag: Boolean;
@@ -1345,7 +1352,12 @@ begin
             sleep(100);
             progStr := '';
             RunFlag := false;
-            for I := 1 to NumOfActors do
+            if ADiakoptics and (ActiveActor = 1) then
+                J := 1
+            else
+                J := NumOfActors;
+
+            for I := 1 to J do
             begin
                 progStr := progStr + Format('%.*d', [3, ActorPctProgress[I]]);
                 RunFlag := RunFlag or (ActorStatus[I] = 0);

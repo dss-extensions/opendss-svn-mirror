@@ -713,7 +713,9 @@ function TDSSCktElement.Get_Power(idxTerm: Integer; ActorID: Integer): Complex; 
 
 var
     cPower: Complex;
-    i, k, n: Integer;
+    i,
+    k,
+    n: Integer;
 
 begin
 
@@ -731,8 +733,13 @@ begin
             for i := 1 to Fnconds do     // 11-7-08 Changed from Fnphases - was not accounting for all conductors
             begin
                 n := ActiveTerminal.TermNodeRef^[i]; // don't bother for grounded node
-                if n > 0 then
-                    Caccum(cPower, Cmul(NodeV^[n], conjg(Iterminal[k + i])));
+                if not ADiakoptics or (ActorID = 1) then
+                    if n > 0 then
+                        Caccum(cPower, Cmul(NodeV^[n], conjg(Iterminal[k + i])))
+                    else
+                    if n > 0 then
+                        Caccum(cPower, Cmul(VoltInActor1(n), conjg(Iterminal[k + i])))
+
             end;
         end;
 
@@ -762,10 +769,21 @@ var
             n := NodeRef^[k];
             if n > 0 then
             begin
-                if ActiveCircuit[ActorID].PositiveSequence then
-                    Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                if not ADiakoptics or (ActorID = 1) then
+                begin
+                    if ActiveCircuit[ActorID].PositiveSequence then
+                        Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                    else
+                        Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+                end
                 else
-                    Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+                begin
+            // In the context of actor 1 voltages
+                    if ActiveCircuit[ActorID].PositiveSequence then
+                        Caccum(cLoss, CmulReal(Cmul(VoltInActor1(n), conjg(Iterminal^[k])), 3.0))
+                    else
+                        Caccum(cLoss, Cmul(VoltInActor1(n), conjg(Iterminal^[k])));
+                end;
             end;
         end;
     end;
@@ -814,7 +832,7 @@ var
     VN,
     cPower: Complex;
     ClassIdx,
-    i, k,
+    i, k, l, m,
     nrefN,
     nref: Integer;
     MaxCurr,
@@ -851,11 +869,21 @@ begin
         nrefN := ActiveTerminal.TermNodeRef^[Fnconds];  // reference to the ground terminal (GND or other phase)
         with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
         begin
-
-            if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
-                volts := NodeV^[nref]
+            if not ADiakoptics or (ActorID = 1) then
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := NodeV^[nref]
+                else
+                    volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            end
             else
-                volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := VoltInActor1(nref)
+                else
+                    volts := csub(VoltInActor1(nref), VoltInActor1(nrefN));
+            end;
+
         end;
     end;
 
@@ -870,7 +898,7 @@ var
     VN,
     cPower: Complex;
     ClassIdx,
-    i, k,
+    i, k, l, m,
     nrefN,
     nref: Integer;
     MaxCurr,
@@ -907,11 +935,22 @@ begin
         nrefN := ActiveTerminal.TermNodeRef^[Fnconds];  // reference to the ground terminal (GND or other phase)
         with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
         begin
-
-            if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
-                volts := NodeV^[nref]
+            if not ADiakoptics or (ActorID = 1) then
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := NodeV^[nref]
+                else
+                    volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            end
             else
-                volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := VoltInActor1(nref)
+                else
+                    volts := csub(VoltInActor1(nref), VoltInActor1(nrefN));
+
+            end;
+
             Cpower := Cmul(volts, conjg(Iterminal[k + MaxPhase]));
         end;
 
@@ -981,10 +1020,21 @@ begin
                 n := NodeRef^[i]; // increment through terminals
                 if n > 0 then
                 begin
-                    if ActiveCircuit[ActorID].PositiveSequence then
-                        PowerBuffer^[i] := CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[i])), 3.0)
+                    if not ADiakoptics or (ActorID = 1) then
+                    begin
+                        if ActiveCircuit[ActorID].PositiveSequence then
+                            PowerBuffer^[i] := CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[i])), 3.0)
+                        else
+                            PowerBuffer^[i] := Cmul(NodeV^[n], conjg(Iterminal^[i]));
+                    end
                     else
-                        PowerBuffer^[i] := Cmul(NodeV^[n], conjg(Iterminal^[i]));
+                    begin
+                // In the context of actor 1 votlages
+                        if ActiveCircuit[ActorID].PositiveSequence then
+                            PowerBuffer^[i] := CmulReal(Cmul(VoltInActor1(n), conjg(Iterminal^[i])), 3.0)
+                        else
+                            PowerBuffer^[i] := Cmul(VoltInActor1(n), conjg(Iterminal^[i]));
+                    end;
                 end;
             end;
     end
@@ -1020,10 +1070,21 @@ begin
                     n := NodeRef^[k]; // increment through terminals
                     if n > 0 then
                     begin
-                        if ActiveCircuit[ActorID].PositiveSequence then
-                            Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                        if not ADiakoptics or (ActorID = 1) then
+                        begin
+                            if ActiveCircuit[ActorID].PositiveSequence then
+                                Caccum(cLoss, CmulReal(Cmul(NodeV^[n], conjg(Iterminal^[k])), 3.0))
+                            else
+                                Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+                        end
                         else
-                            Caccum(cLoss, Cmul(NodeV^[n], conjg(Iterminal^[k])));
+                        begin
+                    // In the context of actor 1 voltage
+                            if ActiveCircuit[ActorID].PositiveSequence then
+                                Caccum(cLoss, CmulReal(Cmul(VoltInActor1(n), conjg(Iterminal^[k])), 3.0))
+                            else
+                                Caccum(cLoss, Cmul(VoltInActor1(n), conjg(Iterminal^[k])));
+                        end;
                     end;
                 end;
                 LossBuffer^[i] := cLoss;
@@ -1207,7 +1268,9 @@ procedure TDSSCktElement.GetTermVoltages(iTerm: Integer; VBuffer: PComplexArray;
 // Fill Vbuffer array which must be adequately allocated by calling routine
 
 var
-    ncond, i: Integer;
+    ncond,
+    i,
+    j: Integer;
 
 begin
 
@@ -1224,7 +1287,12 @@ begin
 
         with ActiveCircuit[ActorID].Solution do
             for i := 1 to NCond do
-                Vbuffer^[i] := NodeV^[Terminals^[iTerm].TermNodeRef^[i]];
+            begin
+                if not ADiakoptics or (ActorID = 1) then
+                    Vbuffer^[i] := NodeV^[Terminals^[iTerm].TermNodeRef^[i]]
+                else
+                    Vbuffer^[i] := VoltInActor1(Terminals^[iTerm].TermNodeRef^[i]);
+            end;
 
     except
         On E: Exception do
@@ -1311,12 +1379,15 @@ procedure TDSSCktElement.ComputeVterminal(ActorID: Integer);
 {Put terminal voltages in an array}
 
 var
-    i: Integer;
+    i, j: Integer;
 
 begin
     with ActiveCircuit[ActorID].solution do
         for i := 1 to Yorder do
-            VTerminal^[i] := NodeV^[NodeRef^[i]];
+            if not ADiakoptics or (ActorID = 1) then
+                VTerminal^[i] := NodeV^[NodeRef^[i]]
+            else
+                VTerminal^[i] := VoltInActor1(NodeRef^[i]);
 end;
 
 

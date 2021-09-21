@@ -2473,6 +2473,7 @@ begin
                     Nref := Buses^[i].GetRef(j);
                     if Nref > 0 then
                         Result := Max(Result, Cabs(Solution.NodeV^[nref]) / Buses^[i].kvbase);
+
                 end;
             end;
         end;

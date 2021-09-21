@@ -1229,7 +1229,12 @@ begin
      //FOR i := 1 TO (Nterms * NConds) DO Vtemp^[i] := V^[NodeRef^[i]];
      // This is safer    12/7/99
             for     i := 1 to Yorder do
-                Vterminal^[i] := NodeV^[NodeRef^[i]];
+            begin
+                if not ADiakoptics or (ActorID = 1) then
+                    Vterminal^[i] := NodeV^[NodeRef^[i]]
+                else
+                    Vterminal^[i] := VoltInActor1(NodeRef^[i]);
+            end;
 
             YPrim.MVMult(Curr, Vterminal);  // Current from Elements in System Y
 

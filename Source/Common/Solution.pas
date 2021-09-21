@@ -340,7 +340,7 @@ type
         procedure UpdateVBus(ActorID: Integer); // updates voltages for each bus    from NodeV
         procedure RestoreNodeVfromVbus;  // opposite   of updatebus
 
-        function VDiff(i, j: Integer): Complex;  // Difference between two node voltages
+        function VDiff(i, j, ActorID: Integer): Complex;  // Difference between two node voltages
        {by Dahei}
         procedure Get_Yiibus; // updates voltages for each bus    from NodeV
         function Get_Yij(node_ref_i, node_ref_j: Integer): Complex; // get Gij + j Bij
@@ -384,6 +384,7 @@ type
         procedure SendCmd2Actors(Msg: Integer);                     // Sends a message to other actors different than 1
         procedure UploadV2Master(ActorID: Integer);                 // Uploads the local solution into the master's (actor 1) voltage array
         procedure UpdateISrc(ActorID: Integer);                     // Updates the local ISources using the dat available at Ic for actor 1
+        function VoltInActor1(NodeIdx: Integer): complex;          // returns the voltage indicated in NodeIdx in the context of the actor 1
 
     end;
 {==========================================================================}
@@ -764,8 +765,10 @@ begin
     MaxError := 0.0;
     for i := 1 to ActiveCircuit[ActorID].NumNodes do
     begin
-
-        VMag := Cabs(NodeV^[i]);
+        if not ADiakoptics or (ActorID = 1) then
+            VMag := Cabs(NodeV^[i])
+        else
+            VMag := Cabs(VoltInActor1(i));
 
     { If base specified, use it; otherwise go on present magnitude  }
         if NodeVbase^[i] > 0.0 then
@@ -1311,19 +1314,25 @@ end;
 
 // ===========================================================================================
 function TSolutionObj.SolveAD(ActorID: Integer; Initialize: Boolean): Integer;  // solves a step for Adiakoptics locally
+var
+    i: Integer;
 begin
     if Initialize then
     begin
-//    ZeroISources(ActorID);
         ZeroInjCurr(ActorID);
         GetSourceInjCurrents(ActorID);  // sources
         if ADiak_PCInj then
+        begin
+            LoadsNeedUpdating := true;  // Force the loads to update at least once
             GetPCInjCurr(ActorID)  // Get the injection currents from all the power conversion devices and feeders
+        end
         else
         if IsDynamicModel or IsHarmonicModel then
+        begin
+            LoadsNeedUpdating := true;  // Force the loads to update at least once
             GetPCInjCurr(ActorID); // for direct solve
-       // The above call could change the primitive Y matrix, so have to check
-
+        end;
+     // The above call could change the primitive Y matrix, so have to check
     // The above call could change the primitive Y matrix, so have to check
         if SystemYChanged then
         begin
@@ -1331,18 +1340,19 @@ begin
         end;
     {by Dahei}if NodeYiiEmpty then
             Get_Yiibus;
-
         if UseAuxCurrents then
             AddInAuxCurrents(NORMALSOLVE, ActorID);
+
+
     end
     else
         UpdateISrc(ActorID);
 
   // Solve for voltages                      {Note:NodeV[0] = 0 + j0 always}
-    SolveSystem(NodeV, ActorID);
-    UploadV2Master(ActorID);
-//  LoadsNeedUpdating := FALSE;
+    SolveSystem(ActiveCircuit[1].Solution.NodeV, ActorID);
+    LoadsNeedUpdating := false;
     LastSolutionWasDirect := true;
+    ActiveCircuit[ActorID].IsSolved := true;
 end;
 
 
@@ -1482,7 +1492,8 @@ begin
         try
             if SystemYChanged then
             begin
-                BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
+                if not ADiakoptics or (ActorID <> 1) then
+                    BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
             end;
               {by Dahei: Get Y matrix for solution}
             if NodeYiiEmpty then
@@ -2184,10 +2195,15 @@ begin
         end;
 end;
 
-function TSolutionObj.VDiff(i, j: Integer): Complex;
-
+function TSolutionObj.VDiff(i, j, ActorID: Integer): Complex;
+var
+    k: Integer;
 begin
-    Result := Csub(NodeV^[i], NodeV^[j]);  // V1-V2
+    if ADiakoptics and (ActorID <> 1) then
+        Result := Csub(VoltInActor1(i), VoltInActor1(j))  // V1-V2
+    else
+        Result := Csub(NodeV^[i], NodeV^[j])  // V1-V2
+
 end;
 
 
@@ -2742,7 +2758,10 @@ begin
     try
     // new function to log KLUSolve.DLL function calls; same information as stepping through in Delphi debugger
     // SetLogFile ('KLU_Log.txt', 1);
-        RetCode := SolveSparseSet(hY, @V^[1], @Currents^[1]);  // Solve for present InjCurr
+        if not ADiakoptics or (ActorID = 1) then
+            RetCode := SolveSparseSet(hY, @V^[1], @Currents^[1])  // Solve for present InjCurr
+        else
+            RetCode := SolveSparseSet(hY, @V^[LocalBusIdx[0]], @Currents^[1]);  // Solve for present InjCurr in Actor 1 context
 {*  Commented out because results are not logged currently -- but left in just in case
     // new information functions
     GetFlops(hY, @dRes);
@@ -2830,7 +2849,7 @@ begin
         if IsDynamicModel then
             GetPCInjCurr(ActorID);  // Need this in dynamics mode to pick up additional injections
 
-        SolveSystem(NodeV, ActorID); // Solve with Zero injection current
+        SolveSystem(NodeV, ActorID) // Solve with Zero injection current
     end
     else
     begin
@@ -3195,6 +3214,18 @@ begin
 
 end;
 
+
+{---------------------------------------------------------
+|   Retunrs the voltage at the node given at NodeIdx in  |
+|   context of actor 1  (A-Diakoptics)                   |
+----------------------------------------------------------}
+function TSolutionObj.VoltInActor1(NodeIdx: Integer): Complex;
+begin
+    if NodeIdx <> 0 then
+        NodeIdx := NodeIdx + (LocalBusIdx[0] - 1);
+  // In the context of actor 1
+    Result := ActiveCircuit[1].Solution.NodeV^[NodeIdx];
+end;
 
 {---------------------------------------------------------
 |   Updates the local ISources using the data obtained   |

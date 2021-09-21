@@ -230,7 +230,7 @@ end;
 
 procedure TPDElement.GetCurrents(Curr: pComplexArray; ActorID: Integer);
 var
-    i: Integer;
+    i, j: Integer;
 begin
     try
 
@@ -239,7 +239,10 @@ begin
 
             with ActiveCircuit[ActorID].Solution do
                 for i := 1 to Yorder do
-                    Vterminal^[i] := NodeV^[NodeRef^[i]];
+                    if not ADiakoptics or (ActorID = 1) then
+                        Vterminal^[i] := NodeV^[NodeRef^[i]]
+                    else    // In the contenxt of actor 1 voltages
+                        Vterminal^[i] := VoltInActor1(NodeRef^[i]);
 
             YPrim.MVMult(Curr, Vterminal);
         end

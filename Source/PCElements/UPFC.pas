@@ -1005,8 +1005,16 @@ begin
     begin
         for i := 1 to fnphases do
         begin
-            Vbin := NodeV^[NodeRef^[i]];           //Gets voltage at the input of UPFC Cond i
-            Vbout := NodeV^[NodeRef^[i + fnphases]];  //Gets voltage at the output of UPFC Cond i
+            if not ADiakoptics or (ActorID = 1) then
+            begin
+                Vbin := NodeV^[NodeRef^[i]];           //Gets voltage at the input of UPFC Cond i
+                Vbout := NodeV^[NodeRef^[i + fnphases]];  //Gets voltage at the output of UPFC Cond i
+            end
+            else
+            begin
+                Vbin := VoltInActor1(NodeRef^[i]);           //Gets voltage at the input of UPFC Cond i
+                Vbout := VoltInActor1(NodeRef^[i + fnphases]);  //Gets voltage at the output of UPFC Cond i      
+            end;
 
 //    These functions were modified to follow the UPFC Dynamic
 //    (Different from VSource)

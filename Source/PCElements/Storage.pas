@@ -2839,7 +2839,7 @@ end;
 procedure TStorageObj.DoDynaModel(ActorID: Integer);
 var
     DESSCurr: array[1..6] of Complex;  // Temporary biffer
-    i: Integer;
+    i, j: Integer;
 
 begin
 // do user written dynamics model
@@ -2847,7 +2847,13 @@ begin
     with ActiveCircuit[ActorID].Solution do
     begin  // Just pass node voltages to ground and let dynamic model take care of it
         for i := 1 to FNconds do
-            VTerminal^[i] := NodeV^[NodeRef^[i]];
+        begin
+            if not ADiakoptics or (ActorID = 1) then
+                VTerminal^[i] := NodeV^[NodeRef^[i]]
+            else
+                VTerminal^[i] := VoltInActor1(NodeRef^[i]);
+
+        end;
         StorageVars.w_grid := TwoPi * Frequency;
     end;
 
@@ -2924,7 +2930,7 @@ begin
         begin
             with ActiveCircuit[ActorID].Solution do
                 for i := 1 to Fnphases do
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds], ActorID);
         end;
 
         1:
@@ -2935,7 +2941,7 @@ begin
                     j := i + 1;
                     if j > Fnconds then
                         j := 1;
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j], ActorID);
                 end;
         end;
 
@@ -3450,6 +3456,7 @@ procedure TStorageObj.InitHarmonics(ActorID: Integer);
 // This routine makes a thevenin equivalent behis the reactance spec'd in %R and %X
 
 var
+    i, j: Integer;
     E, Va: complex;
 
 begin
@@ -3466,11 +3473,19 @@ begin
         case Connection of
             0:
             begin {wye - neutral is explicit}
-                Va := Csub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[Fnconds]]);
+                if not ADiakoptics or (ActorID = 1) then
+                    Va := Csub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[Fnconds]])
+                else
+                    Va := Csub(VoltInActor1(NodeRef^[1]), VoltInActor1(NodeRef^[Fnconds]));
+
             end;
             1:
             begin  {delta -- assume neutral is at zero}
-                Va := NodeV^[NodeRef^[1]];
+                if not ADiakoptics or (ActorID = 1) then
+                    Va := NodeV^[NodeRef^[1]]
+                else
+                    Va := VoltInActor1(NodeRef^[1]);
+
             end;
         end;
 
@@ -3488,7 +3503,7 @@ procedure TStorageObj.InitStateVars(ActorID: Integer);
 var
     VNeut: Complex;
     VThevPolar: Polar;
-    i: Integer;
+    i, j: Integer;
     V012,
     I012: array[0..2] of Complex;
     Vabc: array[1..3] of Complex;
@@ -3534,13 +3549,25 @@ begin
                 // Voltage behind Xdp  (transient reactance), volts
                     case Connection of
                         0:
-                            Vneut := NodeV^[NodeRef^[Fnconds]]
+                        begin
+                            if not ADiakoptics or (ActorID = 1) then
+                                Vneut := NodeV^[NodeRef^[Fnconds]]
+                            else
+                                Vneut := VoltInActor1(NodeRef^[Fnconds]);
+
+                        end
                     else
                         Vneut := CZERO;
                     end;
 
                     for i := 1 to FNphases do
-                        Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
+                    begin
+                        if not ADiakoptics or (ActorID = 1) then
+                            Vabc[i] := NodeV^[NodeRef^[i]]          // Wye Voltage
+                        else
+                            Vabc[i] := VoltInActor1(NodeRef^[i]);   // Wye Voltage
+
+                    end;
 
                     Phase2SymComp(@Vabc, @V012);
                     with StorageVars do
@@ -3554,10 +3581,16 @@ begin
                 else
                 begin   // Single-phase Element
                     for i := 1 to Fnconds do
-                        Vabc[i] := NodeV^[NodeRef^[i]];
+                    begin
+                        if not ADiakoptics or (ActorID = 1) then
+                            Vabc[i] := NodeV^[NodeRef^[i]]
+                        else
+                            Vabc[i] := VoltInActor1(NodeRef^[i]);
+
+                    end;
                     with StorageVars do
                     begin
-                        Vthev := Csub(VDiff(NodeRef^[1], NodeRef^[2]), Cmul(ITerminal^[1], ZThev));    // Pos sequence
+                        Vthev := Csub(VDiff(NodeRef^[1], NodeRef^[2], ActorID), Cmul(ITerminal^[1], ZThev));    // Pos sequence
                         VThevPolar := cToPolar(VThev);
                         VThevMag := VThevPolar.mag;
                         Theta := VThevPolar.ang;  // Initial phase angle

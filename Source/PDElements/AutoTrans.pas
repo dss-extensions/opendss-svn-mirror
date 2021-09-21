@@ -1792,7 +1792,12 @@ begin
         with ActiveCircuit[ActorID].Solution do
             if Assigned(NodeV) then
                 for i := 1 to Yorder do
-                    Vterminal^[i] := NodeV^[NodeRef^[i]]
+                begin
+                    if not ADiakoptics or (ActorID = 1) then
+                        Vterminal^[i] := NodeV^[NodeRef^[i]]
+                    else
+                        Vterminal^[i] := VoltInActor1(NodeRef^[i]);
+                end
             else
                 for i := 1 to Yorder do
                     Vterminal^[i] := CZERO;
@@ -1903,7 +1908,13 @@ begin
      {Load up VTerminal - already allocated for all cktelements}
         with ActiveCircuit[ActorID].Solution do
             for i := 1 to Yorder do
-                Vterminal^[i] := NodeV^[NodeRef^[i]];
+            begin
+                if not ADiakoptics or (ActorID = 1) then
+                    Vterminal^[i] := NodeV^[NodeRef^[i]]
+                else
+                    Vterminal^[i] := VoltInActor1(NodeRef^[i]);
+
+            end;
 
 
         k := (iWind - 1) * FNconds;    // Offset for winding

@@ -2110,7 +2110,7 @@ begin
         begin
             with ActiveCircuit[ActorID].Solution do
                 for i := 1 to Fnphases do
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds], ActorID);
         end;
         1:
         begin
@@ -2120,7 +2120,7 @@ begin
                     j := i + 1;
                     if j > Fnconds then
                         j := 1;
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j], ActorID);
                 end;
         end;
     end;
@@ -2340,6 +2340,8 @@ end;
 procedure TPVsystemObj.InitHarmonics(ActorID: Integer);
 // This routine makes a thevenin equivalent behis the reactance spec'd in %R and %X
 var
+    i,
+    j: Integer;
     E, Va: complex;
 begin
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
@@ -2351,11 +2353,18 @@ begin
         case Connection of
             0:
             begin {wye - neutral is explicit}
-                Va := Csub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[Fnconds]]);
+                if not ADIakoptics or (ActorID = 1) then
+                    Va := Csub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[Fnconds]])
+                else
+                    Va := Csub(VoltInActor1(NodeRef^[1]), VoltInActor1(NodeRef^[Fnconds]));
             end;
             1:
             begin  {delta -- assume neutral is at zero}
-                Va := NodeV^[NodeRef^[1]];
+                if not ADiakoptics or (ActorID = 1) then
+                    Va := NodeV^[NodeRef^[1]]
+                else
+                    Va := VoltInActor1(NodeRef^[1]);
+
             end;
         end;
     end;
@@ -2375,7 +2384,7 @@ var
 //    VNeut,
     Edp: Complex;
     V12: Complex;
-    i: Integer;
+    i, j: Integer;
     V012,
     I012: array[0..2] of Complex;
     Vabc: array[1..3] of Complex;
@@ -2393,7 +2402,11 @@ begin
             case Fnphases of
                 1:
                 begin
-                    V12 := CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]]);
+                    if not ADiakoptics or (ActorID = 1) then
+                        V12 := CSub(NodeV^[NodeRef^[1]], NodeV^[NodeRef^[2]])
+                    else
+                        V12 := CSub(VoltInActor1(NodeRef^[1]), VoltInActor1(NodeRef^[2]));
+
                     InitialVAngle := Cang(V12);
                     Edp := Csub(V12, Cmul(ITerminal^[1], Zthev));
                     VthevmagDyn := Cabs(Edp);
@@ -2405,7 +2418,12 @@ begin
                     Phase2SymComp(ITerminal, @I012);
                     // Voltage behind Xdp  (transient reactance), volts
                     for i := 1 to FNphases do
-                        Vabc[i] := NodeV^[NodeRef^[i]];   // Wye Voltage
+                    begin
+                        if not ADiakoptics or (ActorID = 1) then
+                            Vabc[i] := NodeV^[NodeRef^[i]]   // Wye Voltage
+                        else
+                            Vabc[i] := VoltInActor1(NodeRef^[i]);   // Wye Voltage
+                    end;
                     Phase2SymComp(@Vabc, @V012);
                     InitialVAngle := Cang(V012[1]);
                     Edp := Csub(V012[1], Cmul(I012[1], Zthev));    // Pos sequence

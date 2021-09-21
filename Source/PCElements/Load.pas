@@ -2026,7 +2026,7 @@ begin
         begin
             with ActiveCircuit[ActorID].Solution do
                 for i := 1 to Fnphases do
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[Fnconds], ActorID);
         end;
 
         1:
@@ -2037,7 +2037,7 @@ begin
                     j := i + 1;
                     if j > Fnconds then
                         j := 1;
-                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j]);
+                    Vterminal^[i] := VDiff(NodeRef^[i], NodeRef^[j], ActorID);
                 end;
         end;
 
