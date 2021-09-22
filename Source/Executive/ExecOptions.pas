@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 133;
+    NumExecOptions = 134;
 
 var
     ExecOption,
@@ -182,6 +182,7 @@ begin
     ExecOption[131] := 'GISCoords';
     ExecOption[132] := 'GISColor';
     ExecOption[133] := 'GISThickness';
+    ExecOption[134] := 'UseMyLinkBranches';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -460,7 +461,7 @@ begin
         'This parameter only affects Actor 1, no matter from which actor is called. When activated (True), OpenDSS will start the ' + CRLF +
         'initialization routine for the A-Diakoptics solution mode';
     OptionHelp[123] := 'Minimum number of iterations required for a solution. Default is 2.';
-    OptionHelp[124] := 'Returns the names of the link branches used for tearing the circuit after initializing using set ADiakoptics = True. Using this instruction will set the Active Actor = 1' + CRLF +
+    OptionHelp[124] := 'Get/set the names of the link branches used for tearing the circuit after initializing using set ADiakoptics = True. Using this instruction will set the Active Actor = 1' + CRLF +
         'If ADiakoptics is not initialized, this instruction will return an error message';
     OptionHelp[125] := 'Keeploads = Y/N option for ReduceOption Laterals option';
     OptionHelp[126] := 'Sets the Zmag option (in Ohms) for ReduceOption Shortlines option. Lines have less line mode impedance are reduced.';
@@ -474,6 +475,9 @@ begin
     OptionHelp[131] := '[Coords] : An array of doubles defining the longitud and latitude for an area to be used as refrence for the OpenDSS-GIS related commands, long1, lat1, long2, lat2';
     OptionHelp[132] := 'Color    : A Hex string defining 24 bit color in RGB format, e.g. , red = FF0000';
     OptionHelp[133] := 'Thickness: An integer defining the thickness (default = 3)';
+    OptionHelp[134] := '{YES/TRUE | NO/FALSE*} Set/get the boolean flag for indicating to the tearing algorithm the source of the link branches for tearing the model into sub-circuits.' +
+        ' If FALSE, OpenDSS will use METIS for estimating the link branches to be used based on the number of sub-circuits given by the user through the command "set Num_SubCircuits".' +
+        'Otherwise, OpenDSS will use the list of link branches given by the user with the command "set LinkBranches".';
 
     // OptionHelp[132] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark Storage2 locations with a symbol. See StoreMarkerCode and StoreMarkerSize. ';
    //  OptionHelp[130] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark PVSystem locations with a symbol. See PVMarkerCode and PVMarkerSize. ';
@@ -598,6 +602,7 @@ var
     ParamName: String;
     Param: String;
     TestLoadShapeObj: TLoadShapeObj;
+    myList: TStringList;
 
 
 begin
@@ -961,12 +966,35 @@ begin
             122:
             begin
                 if InterpretYesNo(Param) then
-                    ADiakopticsInit()  // Initalizes the parallel environment if enabled
+                begin
+                    if not ADiakoptics then
+                        ADiakopticsInit()  // Initalizes the parallel environment if enabled
+                    else
+                        DoSimpleMsg('A-Diakoptics is already active, please use ClearAll and recompile the source model' +
+                            ' before activating A-Diakoptics again.', 7010);
+                end
                 else
                     ADiakoptics := false;
             end;
             123:
                 ActiveCircuit[ActiveActor].solution.MinIterations := Parser[ActiveActor].IntValue;
+            124:
+            begin
+                myList := TStringList.Create;
+                InterpretTStringListArray(Param, myList);
+                if myList.Count <= (CPU_Cores - 3) then
+                begin
+                    setlength(ActiveCircuit[ActiveActor].Link_Branches, myList.Count + 1);
+                    for i := 1 to myList.Count do
+                        ActiveCircuit[ActiveActor].Link_Branches[i] := myList[i - 1];
+                end
+                else
+                begin
+                    DoSimpleMsg('The number of link branches exceeds the number of available CPUs for circuit tearing', 7009);
+                    setlength(ActiveCircuit[ActiveActor].Link_Branches, 0);
+                end;
+                myList.Free;
+            end;
             125:
                 ActiveCircuit[ActiveActor].ReduceLateralsKeepLoad := InterpretYesNo(Param);
             126:
@@ -988,6 +1016,10 @@ begin
             133:
             begin
                 GISthickness := Parser[ActiveActor].StrValue;
+            end;
+            134:
+            begin
+                UseUserLinks := InterpretYesNo(Param);
             end;
         else
            // Ignore excess parameters
@@ -1432,14 +1464,16 @@ begin
                     AppendGlobalResult(SeasonSignal);
                 129:
                     AppendGlobalResult(Format('%d', [NumNUMA]));
-  // deprecated           130: If ActiveCircuit[ActiveActor].MarkPVSystems2  Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
                 130:
                     if DSS_GIS_installed then
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');
-  // deprecated           132: If ActiveCircuit[ActiveActor].MarkStorage2    Then AppendGlobalResult('Yes') else AppendGlobalResult('No');
-
+                134:
+                    if UseUserLinks then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
             else
            // Ignore excess parameters
             end;
