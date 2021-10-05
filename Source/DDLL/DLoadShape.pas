@@ -224,6 +224,7 @@ var
     elem: TLoadshapeObj;
     pList: TPointerList;
     Sample: Complex;
+    UseHour: Boolean;
 
 begin
     case mode of
@@ -257,9 +258,13 @@ begin
                 if ActiveLSObject <> nil then
                 begin
                     VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);
+                    UseHour := ActiveLSObject.Interval = 0;
                     for k := 1 to ActiveLSObject.NumPoints do
                     begin
-                        Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);     // This change adds compatibility with MMF
+                        if UseHour then
+                            Sample := ActiveLSObject.GetMult(ActiveLSObject.Hours^[k]) // For variable step
+                        else
+                            Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);     // This change adds compatibility with MMF
                         arg[k - 1] := Sample.re;
                     end;
                 end
@@ -308,9 +313,13 @@ begin
                     if assigned(ActiveLSObject.QMultipliers) then
                     begin
                         VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);    // This change adds compatibility with MMF
+                        UseHour := ActiveLSObject.Interval = 0;
                         for k := 1 to ActiveLSObject.NumPoints do
                         begin
-                            Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);
+                            if UseHour then
+                                Sample := ActiveLSObject.GetMult(ActiveLSObject.Hours^[k]) // For variable step
+                            else
+                                Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);
                             arg[k - 1] := Sample.im;
                         end;
                     end;
