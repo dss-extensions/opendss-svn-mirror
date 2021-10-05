@@ -547,11 +547,26 @@ begin
                     begin
                         CalcDutyMult(DynaVars.dblHour);
                     end;
+                    DYNAMICMODE:
+                    begin
+                                 // This mode allows use of one class of load shape in DYNAMIC mode
+                        case ActiveCircuit[ActorID].ActiveLoadShapeClass of
+                            USEDAILY:
+                                CalcDailyMult(DynaVars.dblHour);
+                            USEYEARLY:
+                                CalcYearlyMult(DynaVars.dblHour);
+                            USEDUTY:
+                                CalcDutyMult(DynaVars.dblHour);
+                        else
+                            ShapeFactor := Cmplx(1.0, 0.0);     // default to 1 + j0 if not known
+                        end;
+                    end;
                 end;
                 NAmps := Amps;
                 if (Mode = DAILYMODE) or     {If a loadshape mode simulation}
                     (Mode = YEARLYMODE) or
-                    (Mode = DUTYCYCLE) then
+                    (Mode = DUTYCYCLE) or
+                    (Mode = DYNAMICMODE) then
                     NAmps := Amps * ShapeFactor.re;
                 if abs(Frequency - SrcFrequency) < EPSILON2 then
                     Result := pdegtocomplex(NAmps, Angle)
