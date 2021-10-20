@@ -109,7 +109,7 @@ begin
 
     case Units of
         UNITS_MILES:
-            Result := 1609.3;
+            Result := 1609.344;
         UNITS_KFT:
             Result := 304.8;
         UNITS_KM:
