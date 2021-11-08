@@ -1,0 +1,12 @@
+del *Mon*.csv
+del base*.csv
+del *summary.csv
+del *.log
+del *.out
+del *.xml
+del ieee13.csv
+del ieee13_assets.csv
+del *.Txt
+del *Exp*.csv
+del weather.csv
+del *house*.csv

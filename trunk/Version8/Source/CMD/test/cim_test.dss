@@ -1,10 +1,13 @@
-// cd /Users/mcde601/src/opendss/source/cmd/test/
-// redirect IEEE13Base.dss
-// cd /Users/mcde601/src/epri_dpv/J1/
-// redirect Master_noPV.dss
-cd /Users/mcde601/src/opendss/test/
 redirect IEEE13_CDPSM.dss
 solve
-cd /Users/mcde601/src/opendss/source/cmd/test/
-export cdpsm substation=subname geo=region subgeo=subregion file=dummy.xml
+uuids file=IEEE13Nodeckt_Base_UUIDS.dat
+export cim100 substation=subname geo=region subgeo=subregion file=ieee13cdpsm.xml
+export cim100fragments substation=subname geo=region subgeo=subregion file=ieee13cdpsm
+export uuids
 
+redirect IEEE13_Assets.dss
+solve
+uuids file=IEEE13NodecktAssets_Base_UUIDS.dat
+export cim100 substation=subname geo=region subgeo=subregion file=ieee13assets.xml
+export cim100fragments substation=subname geo=region subgeo=subregion file=ieee13assets
+export uuids

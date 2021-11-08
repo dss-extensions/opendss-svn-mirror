@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject>
-	<Transactions>
-    <Transaction>2018/09/25 12:17:47.000.855,C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project2.dproj=C:\OpenDSS\Version8\Source\CMD\OpenDSSCMD.dproj</Transaction>
-  </Transactions>
-	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5"/>
-	</ActiveMobileDevice>
-</BorlandProject>

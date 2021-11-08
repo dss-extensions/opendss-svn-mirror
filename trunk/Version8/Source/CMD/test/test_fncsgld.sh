@@ -1,0 +1,5 @@
+(exec fncs_broker 4 &> brokergld.log &)
+(exec fncs_player 25h opendss.playergld &> playergld.log &)
+(export FNCS_CONFIG_FILE=tracergld.yaml && exec fncs_tracer 25h tracergld.out &> tracergld.log &)
+(export FNCS_CONFIG_FILE=opendssgld.yaml && exec ./opendsscmd -f 25h &> opendssgld.log &)
+(exec gridlabd -D USE_FNCS Houses.glm &> gridlabd.log &)
