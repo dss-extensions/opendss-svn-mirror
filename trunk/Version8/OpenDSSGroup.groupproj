@@ -15,6 +15,9 @@
         <Projects Include="Source\ProgressEXE\DSSProgress.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Source\CMD\OpenDSScmd.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +62,23 @@
     <Target Name="DSSProgress:Make">
         <MSBuild Projects="Source\ProgressEXE\DSSProgress.dproj" Targets="Make"/>
     </Target>
+    <Target Name="OpenDSScmd">
+        <MSBuild Projects="Source\CMD\OpenDSScmd.dproj"/>
+    </Target>
+    <Target Name="OpenDSScmd:Clean">
+        <MSBuild Projects="Source\CMD\OpenDSScmd.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OpenDSScmd:Make">
+        <MSBuild Projects="Source\CMD\OpenDSScmd.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="OpenDSS;OpenDSSengine;OpenDSSDirect;DSSProgress"/>
+        <CallTarget Targets="OpenDSS;OpenDSSengine;OpenDSSDirect;DSSProgress;OpenDSScmd"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="OpenDSS:Clean;OpenDSSengine:Clean;OpenDSSDirect:Clean;DSSProgress:Clean"/>
+        <CallTarget Targets="OpenDSS:Clean;OpenDSSengine:Clean;OpenDSSDirect:Clean;DSSProgress:Clean;OpenDSScmd:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="OpenDSS:Make;OpenDSSengine:Make;OpenDSSDirect:Make;DSSProgress:Make"/>
+        <CallTarget Targets="OpenDSS:Make;OpenDSSengine:Make;OpenDSSDirect:Make;DSSProgress:Make;OpenDSScmd:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
