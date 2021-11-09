@@ -1,7 +1,7 @@
 unit ParserDel;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -21,7 +21,11 @@ uses
     Arraydef,
     classes,{controls,}
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     DSSForms,
+    {$ELSE}
+    CmdForms,
+    {$ENDIF}
     {$ELSE}
     CmdForms,
     {$ENDIF}
@@ -120,8 +124,10 @@ var  //Parser : TParser;
 implementation
 
 {$IFDEF MSWINDOWS}
+{$IFNDEF CONSOLE}
 uses
     Dialogs;
+    {$ENDIF}
     {$ENDIF}
 
 const

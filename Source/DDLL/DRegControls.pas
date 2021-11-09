@@ -380,7 +380,7 @@ begin
             Result := Pansichar(Ansistring(''));
             elem := ActiveRegControl;
             if elem <> nil then
-                Result := Pansichar(Ansistring(elem.ControlledBusName));
+                Result := Pansichar(Ansistring(elem.RegulatedBusName));
         end;
         3:
         begin  // RegControls.MonitoredBus write

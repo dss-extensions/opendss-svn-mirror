@@ -252,7 +252,7 @@ begin
     Result := '';
     elem := ActiveRegControl;
     if elem <> nil then
-        Result := elem.ControlledBusName;
+        Result := elem.RegulatedBusName;
 end;
 
 function TRegControls.Get_Name: Widestring;
