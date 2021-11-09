@@ -97,7 +97,7 @@ begin
         end;
         2:
         begin  // DSS.DataPath read
-            Result := Pansichar(Ansistring(DataDirectory));
+            Result := Pansichar(Ansistring(DataDirectory[ActiveActor]));
         end;
         3:
         begin  // DSS.DataPath write
