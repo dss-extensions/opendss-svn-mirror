@@ -144,6 +144,34 @@ begin
         begin  // Transformers.Count
             if Assigned(ActiveCircuit[ActiveActor]) then
                 Result := ActiveCircuit[ActiveActor].Transformers.ListSize;
+        end;
+        11:
+        begin  // Transformers.CoreType read
+            elem := ActiveTransformer;
+            if elem <> nil then
+                Result := elem.CoreType;
+        end;
+        12:
+        begin  // Transformers.CoreType write
+            elem := ActiveTransformer;
+            if elem <> nil then
+            begin
+                elem.CoreType := arg;
+                case arg of
+                    1:
+                        elem.strCoreType := '1-phase';
+                    3:
+                        elem.strCoreType := '3-leg';
+                    4:
+                        elem.strCoreType := '4-leg';
+                    5:
+                        elem.strCoreType := '5-leg';
+                    9:
+                        elem.strCoreType := '1-phase-core-form';
+                else
+                    elem.strCoreType := 'shell';
+                end;
+            end;
         end
     else
         Result := -1;
