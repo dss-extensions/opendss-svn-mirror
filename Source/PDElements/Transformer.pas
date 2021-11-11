@@ -174,7 +174,7 @@ type
         Winding: pWindingArray;
         XfmrBank: String;
         XfmrCode: String;
-        CoreType: Integer; {0=Shell; 1=1ph; 3-3leg; 5=5-leg}
+        CoreType: Integer; {0=Shell; 1=1ph; 3-3leg; 4=4-Leg; 5=5-leg; 9=1phcore}
         strCoreType: String;
 
         constructor Create(ParClass: TDSSClass; const TransfName: String);
@@ -435,7 +435,7 @@ begin
         'To get typical European Dy11 connection, specify either "lead" or "Euro"';
     PropertyHelp[45] := '(Read only) Makes winding currents available via return on query (? Transformer.TX.WdgCurrents). ' +
         'Order: Phase 1, Wdg 1, Wdg 2, ..., Phase 2 ...';
-    PropertyHelp[46] := '{Shell*|5-leg|3-Leg|1-phase} Core Type. Used for GIC analysis';
+    PropertyHelp[46] := '{Shell*|5-leg|3-Leg|1-phase|1-phase-core-form|4-leg} Core Type. Used for GIC analysis';
     PropertyHelp[47] := 'Winding dc resistance in OHMS. Useful for GIC analysis. From transformer test report. ' +
         'Defaults to 85% of %R property';
     PropertyHelp[48] := 'Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the "Ratings" property.';
@@ -2050,8 +2050,12 @@ begin
                     Result := '1-phase';
                 3:
                     Result := '3-leg';
+                4:
+                    Result := '4-leg';
                 5:
                     Result := '5-Leg';
+                9:
+                    Result := 'Core-1-phase';
             end;
         47:
             Result := Format('%.7g', [Winding^[ActiveWinding].RdcOhms]);

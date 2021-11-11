@@ -1241,10 +1241,14 @@ begin
             Result := 1;  // 1-phase
         '3':
             Result := 3;  // 3-Leg
+        '4':
+            Result := 4;  // 4-Leg
         '5':
             Result := 5;  // 5-Leg
+        'c', 'C':
+            Result := 9; // Core-1-phase
     else
-        Result := 0; // default to shell
+        Result := 0; // shell
     end;
 end;
 
