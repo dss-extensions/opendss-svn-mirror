@@ -2388,6 +2388,7 @@ var
     Yadder: Complex;
     Rmult: Double;
     ZCorrected: Double;
+    puXst, Vs, Vc: Double;
 {$IFDEF AUTOTRANDEBUG}
    F        :Textfile;
 {$ENDIF}
@@ -2422,15 +2423,28 @@ begin
         ZB.Clear;
         ZBase := 1.0 / (VABase / Fnphases); // base ohms on 1.0 volt basis
        // Adjust specified XSC by SQR(1 + Vcommon/Vseries)
-      // ZCorrected := ZBase * SQR(1.0 + Winding^[2].Vbase/Winding^[1].Vbase); // Correction factor for Series
+        ZCorrected := ZBase * SQR(1.0 + Winding^[2].Vbase / Winding^[1].Vbase); // Correction factor for Series
+            // since the losses are correct as they are, mimic Dommel (6.50) for Zst or puXSC^[2], without disturbing Zbase or Zcorrected
+       // Dommel: Xst = Xhl*Vh*Vl/(Vh-Vl)^2 + Xht*Vh/(Vh-Vl) - Xlt*Vl/(Vh-Vl)
+       //             = Xhl*(Vs+Vc)*Vc/Vs^2 + Xht*(Vs+Vc)/Vs - Xlt*Vc/Vs
+        if NumWindings > 2 then
+        begin
+            Vc := Winding^[2].VBase;
+            Vs := Winding^[1].VBase;
+            puXst := puXSC^[1] * (Vs + Vc) * Vc / Vs / Vs + puXSC^[2] * (Vs + Vc) / Vs - puXSC^[3] * Vc / Vs;
+        end
+        else
+            puXst := 0.0;
+
         for i := 1 to Numwindings - 1 do
         begin
-          { convert pu to ohms on one volt base as we go... }
-            ZCorrected := ZBase * SQR(1.0 + Winding^[i + 1].Vbase / Winding^[1].Vbase); // Correction factor for Series
-          // **** if i=1 then
-            ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * puXSC^[i]), ZCorrected))
-          // **** Else
-          // ****     ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i+1].Rpu), Freqmult*puXSC^[i]), Zbase));
+            if i = 1 then
+                ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * puXSC^[i]), ZCorrected))
+            else
+            if i = 2 then
+                ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * puXst), Zbase))
+            else
+                ZB.SetElement(i, i, CmulReal(Cmplx(Rmult * (Winding^[1].Rpu + Winding^[i + 1].Rpu), Freqmult * puXSC^[i]), Zbase));
         end;
 
        // Off diagonals
