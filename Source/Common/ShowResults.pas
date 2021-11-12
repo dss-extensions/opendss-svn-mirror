@@ -67,7 +67,11 @@ uses
     ParserDel,
     CktTree,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     DSSForms,
+    {$ELSE}
+     CmdForms,
+    {$ENDIF}
     {$ELSE}
      CmdForms,
     {$ENDIF}

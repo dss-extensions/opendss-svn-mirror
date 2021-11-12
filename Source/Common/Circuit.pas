@@ -45,8 +45,12 @@ uses
     {$IFNDEF FPC}
     MeTIS_Exec,
     {$IFDEF MSWINDOWS}
+    {$IFNDEF CONSOLE}
     Graphics,
     vcl.dialogs,
+    {$ELSE}
+            CmdForms,
+    {$ENDIF}
     {$ENDIF}
     {$ENDIF}
     math,
@@ -73,7 +77,11 @@ type
         BusName: String;
         {$IFNDEF FPC}
         {$IFDEF MSWINDOWS}
+        {$IFNDEF CONSOLE}
         AddMarkerColor: Tcolor;
+        {$ELSE}
+          AddMarkerColor,
+        {$ENDIF}
         {$ELSE}
         AddMarkerColor,
         {$ENDIF}
@@ -393,13 +401,18 @@ uses
     Executive,
     Load,
     StrUtils,
-    PVSystem,
+    PVSystem
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
+    ,
     DSSForms,
     SHELLAPI,
     windows;
 {$ELSE}
-     CmdForms;
+      ;
+    {$ENDIF}
+{$ELSE}
+     ,CmdForms;
     {$ENDIF}
 
 
@@ -720,12 +733,15 @@ end;
 ********************************************************************************}
 procedure DelFilesFromDir(Directory, FileMask: String; DelSubDirs: Boolean);
 {$IFNDEF FPC}
+{$IFNDEF CONSOLE}
 var
     SourceLst: String;
     FOS: TSHFileOpStruct;
     {$ENDIF}
+    {$ENDIF}
 begin
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     FillChar(FOS, SizeOf(FOS), 0);
     FOS.wFunc := FO_DELETE;
     SourceLst := Directory + '\' + FileMask + #0;
@@ -738,6 +754,7 @@ begin
     FOS.fFlags := FOS.fFlags or FOF_SILENT;
     {$IFDEF MSWINDOWS}
     SHFileOperation(FOS);
+    {$ENDIF}
     {$ENDIF}
     {$ENDIF}
 end;
@@ -1059,7 +1076,7 @@ begin
             begin
                 text := stringreplace(File_Struc[FS_Idx], 'Redirect ', '', [rfReplaceAll, rfIgnoreCase]);
                 {$IFNDEF FPC}
-                {$IFDEF MSWINDOWS}
+                {$IFnDEF CONSOLE}
                 for FS_Idx1 := 2 to NumCkts do
                     CopyFile(Pchar(Path + '\' + text), Pchar(Path + '\zone_' + inttostr(FS_Idx1) + '\' + text), true);
                 {$ENDIF}
@@ -3101,7 +3118,7 @@ begin
     BusName := '';
     AddMarkerColor :=
         {$IFNDEF FPC}
-        {$IFDEF MSWINDOWS}
+        {$IFNDEF CONSOLE}
         clBlack
     {$ELSE}
 0

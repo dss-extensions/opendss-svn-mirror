@@ -167,10 +167,14 @@ uses
     Bus,
     SolutionAlgs,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     DSSForms,
     DssPlot,
     {$ELSE}
-CmdForms,
+       CmdForms,
+    {$ENDIF}
+    {$ELSE}
+       CmdForms,
     {$ENDIF}
     ExecCommands,
     Executive,
@@ -3435,7 +3439,7 @@ begin
 end;
 
 function DoDI_PlotCmd: Integer;
-    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC) or defined(CONSOLE))}
 var
     ParamName, Param: String;
     ParamPointer, i: Integer;
@@ -3448,7 +3452,7 @@ var
     PeakDay: Boolean;
     {$ENDIF}
 begin
-    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC) or defined(CONSOLE))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
     if not Assigned(DSSPlotObj) then
@@ -3513,7 +3517,7 @@ var
     CaseName2, WhichFile: String;
     {$ENDIF}
 begin
-    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC) or defined(CONSOLE))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
     if not Assigned(DSSPlotObj) then
@@ -3585,7 +3589,7 @@ var
     WhichFile: String;
     {$ENDIF}
 begin
-    {$IF not (defined(DLL_ENGINE) or defined(FPC))}
+    {$IF not (defined(DLL_ENGINE) or defined(FPC) or defined(CONSOLE))}
     if DIFilesAreOpen[ActiveActor] then
         EnergyMeterClass[ActiveActor].CloseAllDIFiles(ActiveActor);
     if not Assigned(DSSPlotObj) then
@@ -3670,7 +3674,7 @@ var
     {$ENDIF}
 begin
     Result := 0;
-    {$IF not defined(FPC)}
+    {$IF not (defined(FPC) or defined(CONSOLE))}
      // Abort if no circuit or solution
     if not assigned(ActiveCircuit[ActiveActor]) then
     begin

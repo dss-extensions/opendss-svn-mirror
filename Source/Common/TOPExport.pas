@@ -88,6 +88,7 @@ var
 implementation
 
 {$IFNDEF FPC}
+{$IFNDEF CONSOLE}
 uses
     ComObj,
     AnsiStrings,
@@ -95,6 +96,9 @@ uses
     Dialogs,
     ActiveX,
     DSSGlobals;
+    {$ELSE}
+Uses ComObj, AnsiStrings, SysUtils, CmdForms, ActiveX, DSSGlobals;
+    {$ENDIF}
     {$ELSE}
 Uses SysUtils, DSSGlobals, CmdForms, Variants;
     {$ENDIF}
@@ -128,13 +132,21 @@ begin
                 StartTop;
                 TOP_Object.OpenFile(TOPTransferFile.FName);
             except
+                {$IFNDEF CONSOLE}
                 ShowMessage('Export to TOP failed.  Connection lost?');
+                {$ELSE}
+          DSSInfoMessageDlg ('Export to TOP failed.  Connection lost?');
+                {$ENDIF}
             end;
         end;
     except
 
         On E: Exception do
+            {$IFNDEF CONSOLE}
             ShowMessage('Error Connecting to TOP: ' + E.Message);
+        {$ELSE}
+          DSSInfoMessageDlg ('Error Connecting to TOP: '+E.Message);
+        {$ENDIF}
     end;
     {$ELSE}
   DSSInfoMessageDlg ('TOP Export (COM Interface) is not supported in FPC version');

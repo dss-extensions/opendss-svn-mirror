@@ -38,7 +38,9 @@ uses
     Utilities,
     Sysutils,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     ScriptEdit,
+    {$ENDIF}
     {$ENDIF}
     Solution,
     Energymeter,
@@ -1052,7 +1054,9 @@ var
     ParamName: String;
     Param: String;
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     ScriptEd: TScriptEdit;
+    {$ENDIF}
     {$ENDIF}
 
 begin
@@ -1403,7 +1407,9 @@ begin
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 114:
                     {$IFNDEF FPC}
+                    {$IFNDEF CONSOLE}
                     ScriptEd.UpdateProgressSummary
+                    {$ENDIF}
                     {$ENDIF}
                     ;
                 115:

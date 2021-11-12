@@ -34,7 +34,11 @@ implementation
 uses
     {$IFDEF MSWINDOWS}
     windows,
+    {$IFNDEF CONSOLE}
     Dialogs,
+    {$ELSE}
+     CmdForms,
+    {$ENDIF}
     {$ENDIF}
     sysutils,
     math,

@@ -63,7 +63,6 @@ uses
     Parallel_Lib,
     Windows,
     {$ENDIF}
-    Dialogs,
     Sparse_Math,
     SyncObjs,
     ExecHelper,
@@ -401,9 +400,11 @@ uses
     DSSClassDefs,
     DSSGlobals,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     SHELLAPI,
     DSSForms,
     ScriptEdit,
+    {$ENDIF}
     {$ELSE}
       CmdForms,
     {$ENDIF}
@@ -649,8 +650,10 @@ end;
 // ===========================================================================================
 procedure TSolutionObj.Solve(ActorID: Integer);
 {$IFNDEF FPC}
+{$IFNDEF CONSOLE}
 var
     ScriptEd: TScriptEdit;
+    {$ENDIF}
     {$ENDIF}
 begin
     ActiveCircuit[ActorID].Issolved := false;
@@ -2014,12 +2017,15 @@ end;
 ********************************************************************************}
 procedure DelFilesFromDir(Directory, FileMask: String; DelSubDirs: Boolean);
 {$IFNDEF FPC}
+{$IFNDEF CONSOLE}
 var
     SourceLst: String;
     FOS: TSHFileOpStruct;
     {$ENDIF}
+    {$ENDIF}
 begin
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     FillChar(FOS, SizeOf(FOS), 0);
     FOS.wFunc := FO_DELETE;
     SourceLst := Directory + '\' + FileMask + #0;
@@ -2032,6 +2038,7 @@ begin
     FOS.fFlags := FOS.fFlags or FOF_SILENT;
     {$IFDEF MSWINDOWS}
     SHFileOperation(FOS);
+    {$ENDIF}
     {$ENDIF}
     {$ENDIF}
 end;
@@ -3299,9 +3306,11 @@ end;
 }
 
 procedure TSolver.Execute;
+{$IFNDEF FPC}
+{$IFNDEF CONSOLE}
 var
-    {$IFNDEF FPC}
     ScriptEd: TScriptEdit;
+    {$ENDIF}
     {$ENDIF}
 
 begin

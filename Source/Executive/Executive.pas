@@ -98,9 +98,12 @@ uses
     DSSClass,
     IniRegSave,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     DSSForms,
     {$ELSE}
+ {$ELSE}
      CmdForms,
+    {$ENDIF}
     {$ENDIF}
     KLUSolve;
 
@@ -257,13 +260,16 @@ begin
             {Now, Start over}
         CreateDSSClasses;
         CreateDefaultDSSItems;
+        {$IFNDEF CONSOLE}
         RebuildHelpForm := true; // because class strings have changed
-
+        {$ENDIF}
     end;
 
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
+    {$ENDIF}
     {$ENDIF}
 
     DefaultEarthModel := DERI;
@@ -289,10 +295,14 @@ begin
     Parser[ActiveActor] := Tparser.Create;
     AuxParser[ActiveActor] := Tparser.Create;
     CreateDefaultDSSItems;
+    {$IFNDEF CONSOLE}
     RebuildHelpForm := true; // because class strings have changed
+    {$ENDIF}
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     if not IsDLL then
         ControlPanel.UpdateElementBox;
+    {$ENDIF}
     {$ENDIF}
        {Prepare for new variables}
     ParserVars.Free;

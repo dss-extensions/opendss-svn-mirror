@@ -46,7 +46,9 @@ uses
     ArrayDef,
     DSSGlobals,
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     DSSForms,
+    {$ENDIF}
     System.Classes,
     {$ENDIF}
     Utilities,

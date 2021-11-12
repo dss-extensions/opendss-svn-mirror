@@ -21,10 +21,14 @@ uses
     SolutionAlgs,
     Line,
     {$IFDEF FPC}
-CmdForms
+    CmdForms
     {$ELSE}
+    {$IFNDEF CONSOLE}
     DSSForms,
     ScriptEdit
+    {$ELSE}
+    CmdForms
+    {$ENDIF}
     {$ENDIF}
     ,
     System.classes;
@@ -574,7 +578,9 @@ var
     Links: array of String;                        // List of the Link Branches
     MQuit: Boolean;                                // To quit the State Machine
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     ScriptEd: TScriptEdit;
+    {$ENDIF}
     {$ENDIF}
 
 begin
@@ -811,10 +817,14 @@ begin
     GlobalResult := ErrorStr;
 
     {$IFNDEF FPC}
+    {$IFNDEF CONSOLE}
     if not IsDLL then
         ScriptEd.PublishMessage(prog_Str)
     else
         GlobalResult := prog_str;
+    {$ELSE}
+    GlobalResult  :=  prog_str;
+    {$ENDIF}
     {$ELSE}
     GlobalResult  :=  prog_str;
     {$ENDIF}

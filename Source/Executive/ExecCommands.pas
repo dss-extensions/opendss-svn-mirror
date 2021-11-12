@@ -42,7 +42,7 @@ uses
     SolutionAlgs,
     DSSClassDefs,
     Arraydef,
-    {$IFDEF FPC}
+    {$IF (defined(FPC) or defined(CONSOLE))}
      CmdForms,
     {$ELSE}
     PlotOptions,
@@ -820,7 +820,7 @@ begin
                 CmdResult := DoEnableCmd;
             11:
                 CmdResult := DoDisableCmd;
-            {$IFNDEF FPC}
+            {$IF not (defined(FPC) or defined(CONSOLE))}
             12:
                 CmdResult := DoPlotCmd; //'plot';
             {$ELSE}
@@ -994,7 +994,7 @@ begin
                 FinishTimeStep(ActiveActor);
             104:
                 CmdResult := DoNodeListCmd;
-            {$IFNDEF FPC}
+            {$IF not (defined(FPC) or defined(CONSOLE))}
             112:
                 CmdResult := DoConnectCmd; //'TCP/IP connect';
             113:

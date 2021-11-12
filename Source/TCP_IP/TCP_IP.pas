@@ -16,7 +16,11 @@ uses
     System.Win.ScktComp,
     TlHelp32,
     Winsock,
+    {$IFNDEF CONSOLE}
     DSSPlot,
+    {$ELSE}
+  CmdForms,
+    {$ENDIF}
     {$ENDIF}
     Windows;
 

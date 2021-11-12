@@ -168,9 +168,13 @@ uses
     {$IFNDEF FPC}
     Windows,
     ShellAPI,
+    {$IFNDEF CONSOLE}
     Dialogs,
-    Graphics,
     DSSForms,
+    Graphics,
+    {$ELSE}
+    CmdForms,
+    {$ENDIF}
     {$ELSE}
      Process, CmdForms,
     {$ENDIF}
@@ -3240,7 +3244,7 @@ end;
 
 function InterpretColorName(const s: String): Integer;
 begin
-    {$IFDEF FPC}
+    {$IF (defined(FPC) or defined(CONSOLE))}
         Result := 0; // RGB for black
     {$ELSE}
 
