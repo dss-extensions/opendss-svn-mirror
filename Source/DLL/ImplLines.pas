@@ -407,7 +407,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                R1 := Value;
+                R1 := Value * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
@@ -421,7 +421,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                X1 := Value;
+                X1 := Value * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
@@ -566,7 +566,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                C0 := Value * 1.0e-9;
+                C0 := Value * 1.0e-9 * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
@@ -580,7 +580,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                C1 := Value * 1.0e-9;
+                C1 := Value * 1.0e-9 * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
@@ -618,7 +618,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                R0 := Value;
+                R0 := Value * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
@@ -655,7 +655,7 @@ begin
         begin
             with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
             begin
-                X0 := Value;
+                X0 := Value * UnitsConvert;
                 SymComponentsChanged := true;
                 YprimInvalid[ActiveActor] := true;
             end;
