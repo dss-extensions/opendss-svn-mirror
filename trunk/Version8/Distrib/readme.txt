@@ -3,13 +3,16 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 9.3.0.2
+Version 9.4.0.1
 
 Changes this version
 ====================
-- Fixes bug located at COM/DLL interfaces when reading sequence R and X.
-- Fixes bug when calling the links to help documents.
+- Updates DLL interface to match with the msot recent properties/methods in transformers.
+- Adds a menu access to the COM help file from the help menu (EXE).
 - Includes updated COM help file.
+- Fixes an issue when defining reactors, delta connected in shunt.
+- Fixes an apparent issue making the autotransformer losses report to be inconsistent.
+- The new installer unregisters the COM interface after uninstalling.
 
 The Version 8 was the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions. Version 9 is the latest update. The files are still listed under the 'Version8' folder on Sourceforge.net.
