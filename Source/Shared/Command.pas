@@ -43,7 +43,6 @@ var
 begin
     inherited Create;
     CommandList := THashList.Create(High(Commands) + 1);
-
     for i := 0 to High(Commands) do
     begin
       // Fill the HashList

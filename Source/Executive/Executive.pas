@@ -97,13 +97,10 @@ uses
     Solution,
     DSSClass,
     IniRegSave,
-    {$IFNDEF FPC}
-    {$IFNDEF CONSOLE}
+    {$IF Not (defined(FPC) or defined(CONSOLE))}
     DSSForms,
     {$ELSE}
- {$ELSE}
      CmdForms,
-    {$ENDIF}
     {$ENDIF}
     KLUSolve;
 
