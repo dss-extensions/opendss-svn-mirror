@@ -167,7 +167,7 @@ begin
                     5:
                         elem.strCoreType := '5-leg';
                     9:
-                        elem.strCoreType := '1-phase-core-form';
+                        elem.strCoreType := 'core-1-phase';
                 else
                     elem.strCoreType := 'shell';
                 end;
