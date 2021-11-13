@@ -31,7 +31,7 @@ uses
     {$ENDIF}
     {$ENDIF}
     ,
-    System.classes;
+    Classes;
 
 function Solve_Diakoptics(): Integer;
 function ADiakoptics_Tearing(AddISrc: Boolean): Integer;

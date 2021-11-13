@@ -11,29 +11,33 @@ interface
 
 uses
     Command,
+    {$IFNDEF FPC}
     Tlhelp32,
+    {$ENDIF}
     DSSGlobals,
     Windows,
     SysUtils,
-    System.Classes,
+    Classes,
     ShellApi,
     djson,
-    VCl.forms,
     Line,
     Utilities,
     ArrayDef,
     {$IFNDEF CONSOLE}
+    VCl.forms,
     DSSForms,
     {$ELSE}
   Cmdforms,
     {$ENDIF}
     ExecHelper,
   // TCP Indy libraries
+    {$IFNDEF FPC}
     IdBaseComponent,
     IdComponent,
     IdTCPConnection,
     IdTCPClient,
     IdThreadComponent,
+    {$ENDIF}
     TCP_IP;
 
 const
@@ -81,14 +85,57 @@ function GISText(myText: String): String;
 function GISTextFromFile(myPath: String): String;
 
 var
+    {$IFNDEF FPC}
     GISTCPClient: TIdTCPClient; // ... TIdThreadComponent
     GISThreadComponent: TIdThreadComponent;
+    {$ENDIF}
     myCoords: array of Double;
     GISOption, GISHelp: array [1 .. NumGISOptions] of String;
     GISCommandList: TCommandList;
 
 implementation
 
+{$IFDEF FPC}
+FUNCTION DoGISCmd: string;begin Result:='GIS not implemented for FPC';end;
+function start_openDSSGIS(): boolean;begin Result:=False;end;
+function show_busGIS(BusName: string): string;begin Result:='GIS not implemented for FPC';end;
+function Get_routeGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function Get_edgesGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function Get_distanceGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function Show_routeGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function Get_JSONrouteGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function WindowLR(): string;begin Result:='GIS not implemented for FPC';end;
+function WindowRL(): string;begin Result:='GIS not implemented for FPC';end;
+function ReSizeWindow(): string;begin Result:='GIS not implemented for FPC';end;
+function GISDrawCircuit(): string;begin Result:='GIS not implemented for FPC';end;
+function show_lineGIS(LineName: string): string;begin Result:='GIS not implemented for FPC';end;
+function export_mapGIS(): string;begin Result:='GIS not implemented for FPC';end;
+function GetRouteSegDistances(): string;begin Result:='GIS not implemented for FPC';end;
+Procedure get_line_Coords(LineName: string);begin end;
+function set_map_View(myView: string): string;begin Result:='GIS not implemented for FPC';end;
+function clear_map(): string;begin Result:='GIS not implemented for FPC';end;
+function Draw_line_GIS(): string;begin Result:='GIS not implemented for FPC';end;
+function Zoom_area_GIS(): string;begin Result:='GIS not implemented for FPC';end;
+function GISPlotfile(myPath: string): string;begin Result:='GIS not implemented for FPC';end;
+function show_LatLong(): string;begin Result:='GIS not implemented for FPC';end;
+function GISPlotPoints(myPath: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISPlotPoint(const myShape: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISLoadBus(const myBus: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISShowBuffer(): string;begin Result:='GIS not implemented for FPC';end;
+function GISFormat(const FormatFrom, FormatTo, Coords: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISBatchFormat(const FormatFrom, FormatTo, myPath: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISClose(): string;begin Result:='GIS not implemented for FPC';end;
+function Get_distance(): string;begin Result:='GIS not implemented for FPC';end;
+function GISStartSelect(): string;begin Result:='GIS not implemented for FPC';end;
+function GISStopSelect(): string;begin Result:='GIS not implemented for FPC';end;
+function GISGetSelect(): string;begin Result:='GIS not implemented for FPC';end;
+function GISStartDrawLine(): string;begin Result:='GIS not implemented for FPC';end;
+function GISStopDrawLine(): string;begin Result:='GIS not implemented for FPC';end;
+function GISGetPolyline(): string;begin Result:='GIS not implemented for FPC';end;
+function GISGetAddress(): string;begin Result:='GIS not implemented for FPC';end;
+function GISText(myText: string): string;begin Result:='GIS not implemented for FPC';end;
+function GISTextFromFile(myPath: string): string;begin Result:='GIS not implemented for FPC';end;
+{$ELSE}
 procedure DefineOptions;
 
 begin
@@ -1866,5 +1913,7 @@ finalization
 
     DisposeStrings;
     GISCommandList.Free;
+
+    {$ENDIF}
 
 end.

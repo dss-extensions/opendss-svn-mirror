@@ -54,6 +54,7 @@ uses
     SysUtils,
     {$IFDEF FPC}
     Classes,
+    generics.collections,
     {$ELSE}
 //    {$IFDEF MSWINDOWS}
     System.Diagnostics,
