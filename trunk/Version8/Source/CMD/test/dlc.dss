@@ -16,5 +16,5 @@ calcv
 
 new fault.flt bus1=hi phases=3
 
-Solve
-// Show Voltages LN Nodes
+// Solve
+Show Voltages LN Nodes
