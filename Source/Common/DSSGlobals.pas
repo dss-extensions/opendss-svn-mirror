@@ -67,12 +67,13 @@ uses
     ExpControl,
     variants,
     {$IFNDEF FPC}
+    ShellApi,
     {$IFNDEF CONSOLE}
     ProgressForm,
     vcl.dialogs,
     WinAPI.UrlMon,
     {$ELSE}
-     UrlMon,
+         UrlMon,
     {$ENDIF}
     {$ENDIF}
     Strutils,
@@ -83,7 +84,6 @@ uses
     VSource,
     Executive,
     ExecOptions,
-    ShellApi,
 //     Parallel_Lib
 //   TCP Indy libraries
     {$IFNDEF FPC}

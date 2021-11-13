@@ -551,6 +551,9 @@ begin
                     if ActorHandle[ActiveActor] <> nil then
                     begin
                         ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
+                        {$IFDEF FPC}
+                        ActorHandle[ActiveActor].Priority := tpTimeCritical;
+                        {$ELSE}
                         ActorHandle[ActiveActor].Priority :=
                             {$IFDEF MSWINDOWS}
                             tpTimeCritical
@@ -558,6 +561,7 @@ begin
 6
                         {$ENDIF}
                         ;
+                        {$ENDIF}
                     end;
                 end
                 else
@@ -929,6 +933,9 @@ begin
                     if ActorHandle[ActiveActor] <> nil then
                     begin
                         ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
+                        {$IFDEF FPC}
+                        ActorHandle[ActiveActor].Priority := tpTimeCritical;
+                        {$ELSE}
                         ActorHandle[ActiveActor].Priority :=
                             {$IFDEF MSWINDOWS}
                             tpTimeCritical
@@ -936,6 +943,7 @@ begin
 6
                         {$ENDIF}
                         ;
+                        {$ENDIF}
                     end;
                 end
                 else

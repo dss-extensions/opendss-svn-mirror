@@ -13,12 +13,12 @@ uses
     Command,
     {$IFNDEF FPC}
     Tlhelp32,
+    Windows,
+    ShellApi,
     {$ENDIF}
     DSSGlobals,
-    Windows,
     SysUtils,
     Classes,
-    ShellApi,
     djson,
     Line,
     Utilities,

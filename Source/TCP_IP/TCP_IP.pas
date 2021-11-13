@@ -9,30 +9,29 @@ unit TCP_IP;
 interface
 
 uses
-    SysUtils,
+
     {$IFDEF FPC}
-fpjson
+    fpjson,
     {$ELSE}
-    System.JSON
+    System.JSON,
     {$ENDIF}
-    ,
-    ShellApi,
     {$IFDEF MSWINDOWS}
     {$IFDEF FPC}
-sockets
+      sockets,
     {$ELSE}
     TlHelp32,
-    System.Win.ScktComp
-    {$ENDIF}
-    ,
+    System.Win.ScktComp,
+    ShellApi,
+    Windows,
     Winsock,
+    {$ENDIF}
     {$IFNDEF CONSOLE}
     DSSPlot,
     {$ELSE}
-  CmdForms,
+      CmdForms,
     {$ENDIF}
     {$ENDIF}
-    Windows;
+    SysUtils;
 
 type
     IntegerArray1d = array of Integer;

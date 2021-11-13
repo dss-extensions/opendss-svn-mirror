@@ -27,7 +27,7 @@ uses
     DSSForms,
     ScriptEdit
     {$ELSE}
-    CmdForms
+      CmdForms
     {$ENDIF}
     {$ENDIF}
     ,
@@ -766,6 +766,9 @@ begin
                     if ActorHandle[DIdx] <> nil then
                     begin
                         ActorHandle[DIdx].CPU := ActorCPU[DIdx];
+                        {$IFDEF FPC}
+              ActorHandle[DIdx].Priority := tpTimeCritical;
+                        {$ELSE}
                         ActorHandle[DIdx].Priority :=
                             {$IFDEF MSWINDOWS}
                             tpTimeCritical
@@ -773,6 +776,7 @@ begin
 6
                         {$ENDIF}
                         ;
+                        {$ENDIF}
                     end;
                 end;
         // Compiles the interconnected Circuit for further calculations on actor 1
