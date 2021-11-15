@@ -303,6 +303,8 @@ type
         property MinModelVoltagePU: Double READ VminPu;
         property pf_wp_nominal: Double WRITE Set_pf_wp_nominal;
         property IrradianceNow: Double READ ShapeFactor.re;
+        property PctCutIn: Double READ FPctCutIn;   // for CIM export
+        property PctCutOut: Double READ FPctCutOut; // for CIM export
     end;
 
 var

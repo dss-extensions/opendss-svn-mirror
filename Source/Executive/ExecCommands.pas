@@ -691,7 +691,7 @@ begin
                 if SetCurrentDir(Param) then
                 begin
                     CmdResult := 0;
-                    SetDataPath(Param);  // change datadirectory
+                    SetDataPath(GetCurrentDir);  // change datadirectory
                 end
                 else
                     DoSimpleMsg('Directory "' + Param + '" not found.', 282);
