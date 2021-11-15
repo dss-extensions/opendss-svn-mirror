@@ -867,6 +867,7 @@ var
 begin
     if IsGISON then
     begin
+        {$IFNDEF CONSOLE}
         JSONCmd := '{"command":"resizewindow","coords":{"left":' +
             inttostr(Screen.Width div 2) + ',"top":0,"right":' +
             inttostr(Screen.Width) + ',"bottom":' +
@@ -884,6 +885,9 @@ begin
                 Result := 'Error while communicating to OpenDSS-GIS';
             end;
         end;
+        {$ElSE}
+    Result := 'Not available in console mode';
+        {$ENDIF}
     end
     else
         Result := 'OpenDSS-GIS is not installed or initialized'
@@ -902,6 +906,7 @@ var
 begin
     if IsGISON then
     begin
+        {$IFNDEF CONSOLE}
         JSONCmd := '{"command":"resizewindow","coords":{"left":0,"top":0,"right":' +
             inttostr(Screen.Width div 2) + ',"bottom":' +
             inttostr(Screen.Height - 40) + '}}';
@@ -918,6 +923,9 @@ begin
                 Result := 'Error while communicating to OpenDSS-GIS';
             end;
         end;
+        {$ELSE}
+    Result := 'Not available in console mode'
+        {$ENDIF}
     end
     else
         Result := 'OpenDSS-GIS is not installed or initialized'
