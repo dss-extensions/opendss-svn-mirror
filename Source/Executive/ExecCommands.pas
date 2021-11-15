@@ -12,7 +12,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 129;
+    NumExecCommands = 130;
 
 var
 
@@ -192,7 +192,7 @@ begin
     ExecCommand[127] := 'COMHelp';
     ExecCommand[128] := 'GIS';
     ExecCommand[129] := 'GISCoords';
-
+    ExecCommand[130] := 'HELICSPublish';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -572,7 +572,7 @@ begin
         'Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.' + CRLF + CRLF +
         'Example: GISCoords [file=]xxxx.csv' + CRLF + CRLF +
         'Note: For using only if OpenDSS-GIS is locally installed.';
-
+    CommandHelp[130] := 'Read HELICS publication topics from a JSON file';
 
 end;
 
@@ -1045,6 +1045,8 @@ begin
                 Globalresult := DoGISCmd;
             129:
                 CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
+            130:
+                DoHELICSPubCmd;
 
         else
        // Ignore excess parameters
