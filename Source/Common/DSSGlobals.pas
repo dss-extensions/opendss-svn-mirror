@@ -881,7 +881,7 @@ begin
     end;
     {$ELSE}
       // Adds the version info as a constant (for now)
-      Result := '8.5.10';
+      Result := '9.4.0.2';
     {$ENDIF}
 end;
 {$ENDIF}
