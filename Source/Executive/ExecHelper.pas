@@ -4377,8 +4377,8 @@ Var
   FileName       :String;
 Begin
   Result := 0;
-  ParamName      := Parser.NextParam;
-  Param          := Parser.StrValue;
+  ParamName      := Parser[ActiveActor].NextParam;
+  Param          := Parser[ActiveActor].StrValue;
   ParamPointer   := 0;
   while Length(Param) > 0 do Begin
     IF Length(ParamName) = 0 THEN Inc(ParamPointer)
@@ -4389,8 +4389,8 @@ Begin
     Else
        DoSimpleMsg('Error: Unknown Parameter on command line: '+Param, 28728);
     End;
-    ParamName := Parser.NextParam;
-    Param := Parser.StrValue;
+    ParamName := Parser[ActiveActor].NextParam;
+    Param := Parser[ActiveActor].StrValue;
   End;
   if Assigned (ActiveHELICS) then begin
     if ActiveHELICS.IsReady then begin
