@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2021/11/08 16:18:23.000.291,C:\OpenDSS\Version8\Source\CMD\OpenDSScmd.dproj=C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2021/11/08 16:19:14.000.944,=C:\OpenDSS\Version8\Source\TCP_IP\TCP_IP.pas</Transaction>
+    <Transaction>2021/11/15 15:07:11.000.389,=C:\OpenDSS\Version8\Source\CMD\CmdForms.pas</Transaction>
+  </Transactions>
+</BorlandProject>
