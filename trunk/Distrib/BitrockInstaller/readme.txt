@@ -7,13 +7,15 @@ All rights reserved.
 opendsscmd version 1.2.17
 =========================
 
-This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 7 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
+This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 8 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
 
 1 - There is no support for Windows COM automation, and no separate DLL version. (Use FNCS or HELICS instead)
 
 2 - There is no graphical user interface (GUI) or plotting. (Use MATLAB or Python instead)
 
 3 - Automation is provided through the Framework for Network Cosimulation (FNCS) library developed by Pacific Northwest National Laboratory (PNNL), and the HELICS framework developed by several US Department of Energy labs under the Grid Modernization Laboratory Consortium (GMLC) project 1.4.15.
+
+4 - It is built with Free Pascal instead of Delphi.
 
 Installation
 ============
@@ -159,6 +161,21 @@ Change Log
        - VCCS injects positive sequence current only when in RMS mode
        - Distance (21) and TD21 relays have a reverse-looking flag
        - Include the Microsoft Visual C++ 2019 redistributable installer
+
+1.3.0  - Version archived for GridAPPS-D co-simulation
+
+1.4.0  - Using the minP and maxP attributes of PowerElectronicsConnection for CIM export
+
+1.5.0  - builds from the Version 8 source tree, with support for most Version 8 features
+       - fixes to autotransformer losses and 3-winding short-circuit currents
+       - new CIM export of autotransformers, capacitor states, reactors
+       - fixed CIM export of secondary switches, center-tapped delta transformers
+       - fixed the line geometry "make like" to reset the number of phases
+       - increased precision of length conversion to 1609.344 m/mile
+       - fixed the change directory command on Linux
+       - properly initialize list of CIM operational limits in a circuit with no Lines
+       - fixes to CIM phase transpositions on lines and transformers
+       - first implementation of the IEC 61970-302 CIM Dynamics profile for DER
 
 Open Issues
 ===========
