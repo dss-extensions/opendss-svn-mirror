@@ -3332,6 +3332,7 @@ begin
     Result := false;
     PVSysClass := GetDSSClassPtr('PVSystem');
     StorageClass := GetDSSClassPtr('Storage');
+    PVSys := nil;
 
     if FListSize > 0 then
     begin    // Name list is defined - Use it
@@ -3616,7 +3617,10 @@ begin
         QDesiredWV[i] := 0.0;
         QOld[i] := -1.0;
         QOldVV[i] := -1.0;
-        QOldAVR[i] := -PVSys.kvarLimitNeg / 2.0;
+        if PVSys = nil then
+            QOldAVR[i] := 0.0
+        else
+            QOldAVR[i] := -PVSys.kvarLimitNeg / 2.0;
         QOldDRC[i] := -1.0;
         QOldVVDRC[i] := -1.0;
         QDesiredDRC[i] := 0.0;
