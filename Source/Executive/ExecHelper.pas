@@ -4062,7 +4062,8 @@ begin
                     if CompareText(DevClass, 'Bus') = 0 then
                     begin
                         idx := ActiveCircuit[ActiveActor].BusList.Find(DevName);
-                        pName := ActiveCircuit[ActiveActor].Buses^[idx];
+                        if idx > 0 then
+                            pName := ActiveCircuit[ActiveActor].Buses^[idx];
                     end
                     else
                     begin
