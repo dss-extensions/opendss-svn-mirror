@@ -248,6 +248,8 @@ const
     DISTANCE = 7;
     TD21 = 8;
 
+    MIN_DISTANCE_REACTANCE = -1.0e-8; {allow near-bolted faults to be detected}
+
 {--------------------------------------------------------------------------}
 constructor TRelay.Create;  // Creates superstructure for all Relay objects
 begin
@@ -1617,7 +1619,9 @@ begin
                     begin
                         Zloop := cdiv(Vloop, Iloop);
           // start with a very simple rectangular characteristic
-                        if (Zloop.re >= 0) and (Zloop.im >= 0.0) and (Zloop.re <= Zreach.re) and (Zloop.im <= Zreach.im) then
+                        if DebugTrace and (ActiveCircuit[ActiveActor].Solution.DynaVars.t > 0.043) then
+                            AppendToEventLog('Relay.' + self.Name, Format('Zloop[%d,%d]=%.4f+j%.4f', [i, j, Zloop.re, Zloop.im]), ActorID);
+                        if (Zloop.re >= 0) and (Zloop.im >= MIN_DISTANCE_REACTANCE) and (Zloop.re <= Zreach.re) and (Zloop.im <= Zreach.im) then
                         begin
                             if not PickedUp then
                             begin
