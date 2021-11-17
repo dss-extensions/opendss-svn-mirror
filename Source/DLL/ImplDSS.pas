@@ -230,6 +230,7 @@ end;
 
 procedure TDSS.Set_DataPath(const Value: Widestring);
 begin
+    SetCurrentDir(Value);
     SetDataPath(Value);
 end;
 
