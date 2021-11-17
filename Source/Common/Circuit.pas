@@ -184,7 +184,9 @@ type
         Relays,
         Fuses,
         Reclosers,
-        SwtControls: PointerList.TPointerList;
+        SwtControls,
+        InvControls2,
+        ExpControls: PointerList.TPointerList;
         CktElements: PointerList.TPointerList;
 
         ControlQueue: TControlQueue;
@@ -475,6 +477,8 @@ begin
      // Storage2Elements := TPointerList.Create(5);
     PVSystems := TPointerList.Create(5);
      // PVSystems2      := TPointerList.Create(5);
+    InvControls2 := TPointerList.Create(5);
+    ExpControls := TPointerList.Create(5);
     Feeders := TPointerList.Create(10);
     Substations := TPointerList.Create(5);
     Transformers := TPointerList.Create(10);
@@ -696,6 +700,8 @@ begin
     Transformers.Free;
     CapControls.Free;
     SwtControls.Free;
+    InvControls2.Free;
+    ExpControls.Free;
     RegControls.Free;
     Loads.Free;
     Lines.Free;
@@ -2356,6 +2362,11 @@ begin
         PVSYSTEM_ELEMENT:
             PVSystems.Add(ActiveCktElement);
 //       PVSYSTEM2_ELEMENT:PVSystems2.Add(ActiveCktElement);
+//       INV_CONTROL      :InvControls.Add(ActiveCktElement);
+        INV_CONTROL2:
+            InvControls2.Add(ActiveCktElement);
+        EXP_CONTROL:
+            ExpControls.Add(ActiveCktElement);
     end;
 
   // AddDeviceHandle(Handle); // Keep Track of this device result is handle

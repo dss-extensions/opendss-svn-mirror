@@ -78,6 +78,8 @@ uses
     Relay,
     Recloser,
     AutoTrans,
+    InvControl,
+    ExpControl,
     DSSObject,
     DSSClass;
 
@@ -88,9 +90,11 @@ type
         OpLimV, OpLimI, LoadResp, CIMVer, PosPt, CoordSys, TopoIsland, Station,
         GeoRgn, SubGeoRgn, ZData, OpLimT, XfInfo, FdrLoc, OpLimAHi, OpLimALo,
         OpLimBHi, OpLimBLo, MachLoc, PVPanels, Battery, SrcLoc, TankInfo, TankAsset,
-        TapInfo, TapCtrl, TapAsset, PUZ, WirePos, NormAmps, EmergAmps);
+        TapInfo, TapCtrl, TapAsset, PUZ, WirePos, NormAmps, EmergAmps,
+        I1547Control, I1547Nameplate, I1547Applied, I1547Signal, I1547VoltVar,
+        I1547WattVar, I1547ConstPF, I1547VoltWatt, I1547ConstQ);
 
-    ProfileChoice = (FunPrf, EpPrf, GeoPrf, TopoPrf, CatPrf, SshPrf);
+    ProfileChoice = (FunPrf, EpPrf, GeoPrf, TopoPrf, CatPrf, SshPrf, DynPrf);
 
     TBankObject = class(TNamedObject)
     PUBLIC
@@ -124,13 +128,14 @@ type
 
     TFileDealer = class(TObject)
     PRIVATE
-    // the Combined XML can be broken into six separate profiles
+    // the Combined XML can be broken into seven separate profiles
         F_FUN: TextFile;
         F_EP: TextFile;
         F_SSH: TextFile;
         F_CAT: TextFile;
         F_GEO: TextFile;
         F_TOPO: TextFile;
+        F_DYN: TextFile;
         roots: array[ProfileChoice] of String;
         ids: array[ProfileChoice] of TUuid;
     PUBLIC
@@ -183,6 +188,8 @@ begin
                 WriteLn(F_CAT, s);
             SshPrf:
                 WriteLn(F_SSH, s);
+            DynPrf:
+                WriteLn(F_DYN, s);
         end;
     end
     else
@@ -206,7 +213,8 @@ begin
         StartCIMFile(F_TOPO, FileName + '_TOPO.XML', TopoPrf);
         StartCIMFile(F_SSH, FileName + '_SSH.XML', SshPrf);
         StartCIMFile(F_CAT, FileName + '_CAT.XML', CatPrf);
-        StartCIMFile(F_EP, FileName + '_EP.XML', EpPrf)
+        StartCIMFile(F_EP, FileName + '_EP.XML', EpPrf);
+        StartCIMFile(F_DYN, FileName + '_DYN.XML', EpPrf)
     end
     else
     begin
@@ -266,11 +274,13 @@ begin
         WriteLn(F_SSH, '</rdf:RDF>');
         WriteLn(F_TOPO, '</rdf:RDF>');
         WriteLn(F_EP, '</rdf:RDF>');
+        WriteLn(F_DYN, '</rdf:RDF>');
         CloseFile(F_GEO);
         CloseFile(F_CAT);
         CloseFile(F_SSH);
         CloseFile(F_TOPO);
         CloseFile(F_EP);
+        CloseFile(F_DYN);
     end;
     inherited Destroy;
 end;
@@ -894,6 +904,24 @@ begin
             key := 'NormAmps=';
         EmergAmps:
             key := 'EmergAmps=';
+        I1547Control:
+            key := 'IControl=';
+        I1547Nameplate:
+            key := 'INameplate=';
+        I1547Applied:
+            key := 'IApplied=';
+        I1547Signal:
+            key := 'ISignal=';
+        I1547VoltVar:
+            key := 'IVVar=';
+        I1547WattVar:
+            key := 'IWVar=';
+        I1547ConstPF:
+            key := 'IPF=';
+        I1547VoltWatt:
+            key := 'IVWatt=';
+        I1547ConstQ:
+            key := 'IQ=';
     end;
     key := key + Name + '=' + IntToStr(Seq);
     Result := GetHashedUuid(key);
@@ -2062,6 +2090,7 @@ var
     pReg: TRegControlObj;
     pLine: TLineObj;
     pReac: TReactorObj;
+    pInv: TInvControlObj;
 
     clsLnCd: TLineCode;
     clsGeom: TLineGeometry;
@@ -2406,6 +2435,19 @@ begin
                 pBat.LocalName := s;
             end;
             pBat := ActiveCircuit[ActiveActor].StorageElements.Next;
+        end;
+
+        pInv := ActiveCircuit[ActiveActor].InvControls2.First;
+        while pInv <> nil do
+        begin
+            if pInv.Enabled then
+            begin
+                pName1.LocalName := pInv.Name;
+                pName1.UUID := GetDevUuid(I1547Control, pInv.LocalName, 1);
+                StartInstance(DynPrf, 'DERIEEEType1', pName1);
+                EndInstance(DynPrf, 'DERIEEEType1');
+            end;
+            pInv := ActiveCircuit[ActiveActor].InvControls2.Next;
         end;
 
         pVsrc := ActiveCircuit[ActiveActor].Sources.First; // pIsrc are in the same list
