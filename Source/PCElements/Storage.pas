@@ -408,6 +408,8 @@ type
 
         property MinModelVoltagePU: Double READ VminPu;
         property pf_wp_nominal: Double WRITE Set_pf_wp_nominal;
+        // for CIM export
+        property kWRating: Double READ StorageVars.kwRating;
     end;
 
 var
