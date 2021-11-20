@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.2.17</version>
+    <version>1.5.0</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
@@ -369,6 +369,9 @@
                         <distributionFile>
                             <origin>../Doc/OpenDSS Cheatsheet.pdf</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Getting Started With OpenDSS.pdf</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -378,46 +381,37 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>../Doc/TechNote CableModelling.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/OpenDSS Solution Technique.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/Voltage-Controlled-Current-Source.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/OpenDSS and State Estimation.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/SwtControl Modifications.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/OpenDSS CapControl DLL.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/OpenDSS FaultStudy Mode.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/OpenDSS_Computing_Currents.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/Recloser-Relay-Fuse-Documentation.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/Using the Timers in OpenDSS.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/XfmrCode_LineSpacing.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
                             <origin>../Doc/3-phase Transformer Core Modeling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/A-Diakoptics_Suite.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/BestOf-1.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/BestOf-2.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Circuit Reduction for Version8.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Common_Information_Model.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/Computing Element Currents in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
+                            <origin>../Doc/Distance_Relays.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/ExpControl.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
                             <origin>../Doc/Harmonics Load Modeling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/InverterCapabilityCurve.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/Modeling Multi-Winding Transformers.pdf</origin>
@@ -435,7 +429,34 @@
                             <origin>../Doc/Modeling Transformer Core Effects in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
+                            <origin>../Doc/OpenDSS and State Estimation.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS Bus Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS CallBack Routines.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS CapControl DLL.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS Circuit  Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS Circuit Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS CtrlQueue  Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS Custom Scripting.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
                             <origin>../Doc/OpenDSS Dynamics Mode.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS FaultStudy Mode.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/OpenDSS Generator User DLL.pdf</origin>
@@ -450,43 +471,76 @@
                             <origin>../Doc/OpenDSS Neutral Rules.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/OpenDSS PVSystem Model.pdf</origin>
+                            <origin>../Doc/OpenDSS Solution Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS Solution Technique.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/OpenDSS Storage Dynamics DLL.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/OpenDSS STORAGE Element.pdf</origin>
+                            <origin>../Doc/OpenDSS Time-based Simulations in Matlab.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/OpenDSS XYCurve Object.pdf</origin>
                         </distributionFile>
                         <distributionFile>
+                            <origin>../Doc/OpenDSS_Computing_Currents.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/OpenDSS_FPC_Build.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
                             <origin>../Doc/OpenDSSSmartInverterModeling-EPRI-000000003002002271.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Partial Key to DSV files.pdf</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../Doc/PCElementEssentials.pdf</origin>
                         </distributionFile>
                         <distributionFile>
+                            <origin>../Doc/PVSystem_InvControl.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Python-End-of-timestep-Cleanup-for-control.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Python-to-OpenDSS Control Interface.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Recloser-Relay-Fuse-Documentation.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Seasonal_Rating_Simulation.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/Storage.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/StorageController.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/SwtControl Modifications.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../Doc/TechNote CableModelling.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
                             <origin>../Doc/UPFC_Model_OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/OpenDSS CallBack Routines.pdf</origin>
+                            <origin>../Doc/User_Instructions_for_Parallel_Processing.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/OpenDSS Custom Scripting.pdf</origin>
+                            <origin>../Doc/Using the Timers in OpenDSS.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/Common_Information_Model.pdf</origin>
+                            <origin>../Doc/Voltage-Controlled-Current-Source.pdf</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../Doc/ExpControl.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>Doc/OpenDSS_FPC_Build.pdf</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../Doc/Distance_Relays.pdf</origin>
+                            <origin>../Doc/XfmrCode_LineSpacing.pdf</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
