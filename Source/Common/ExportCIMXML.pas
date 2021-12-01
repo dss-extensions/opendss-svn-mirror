@@ -83,7 +83,8 @@ uses
     DSSObject,
     DSSClass,
     Classes,
-    XYCurve;
+    XYCurve,
+    ArrayDef;
 
 type
     UuidChoice = (Bank, Wdg, XfCore, XfMesh, WdgInf, ScTest, OcTest,
@@ -150,6 +151,16 @@ type
         procedure EndInstance(prf: ProfileChoice; Root: String);
     end;
 
+    TRemoteSignalObject = class(TNamedObject)
+    PUBLIC
+        busName: String;
+        pElem: TDSSCktElement;
+        trm: Integer;
+        phase: String; // want A, B, C, s1 or s2
+        constructor Create(aBusName: String; seq: Integer; invName: String);
+        destructor Destroy; OVERRIDE;
+    end;
+
     TIEEE1547Controller = class(TObject)
     PRIVATE
         ND_acVmax, ND_acVmin, AD_pMax, AD_pMaxOverPF, AD_overPF, AD_pMaxUnderPF: Double;
@@ -173,6 +184,7 @@ type
         pSetName: TNamedObject;
         pDERNames: TStringList;
         pMonBuses: TStringList;
+        Signals: array of TRemoteSignalObject;
 
         bNameplateSet: Boolean;
 
@@ -181,6 +193,8 @@ type
         procedure SetPhotovoltaicNameplate(pPV: TPVSystemObj);
         procedure SetElementNameplate(pElem: TDSSCktElement);
         procedure SetDefaults(bCatB: Boolean);
+        procedure FindSignalTerminals;
+        function CheckSignalMatch(sig: TRemoteSignalObject; pElm: TDSSCktElement; seq: Integer): Boolean;
     PUBLIC
         constructor Create;
         destructor Destroy; OVERRIDE;
@@ -2105,6 +2119,136 @@ end;
 
 ///////// begin helper class for exporting IEEE 1547 model parameters /////////////
 
+constructor TRemoteSignalObject.Create(aBusName: String; seq: Integer; invName: String);
+begin
+    busName := aBusName;
+    pElem := nil;
+    trm := -1;
+    phase := 'A';
+    inherited Create('ISignal');
+    LocalName := invName + '_' + IntToStr(seq);
+    UUID := GetDevUUID(I1547Signal, LocalName, seq);
+end;
+
+destructor TRemoteSignalObject.Destroy;
+begin
+    inherited Destroy;
+end;
+
+function TIEEE1547Controller.CheckSignalMatch(sig: TRemoteSignalObject; pElm: TDSSCktElement; seq: Integer): Boolean;
+var
+    elmPhases, trmBus: String;
+begin
+    Result := false;
+    trmBus := pElm.GetBus(seq);
+    if CompareText(sig.busName, trmBus) = 0 then
+    begin
+        elmPhases := PhaseString(pElm, seq, true);
+        if Pos(sig.phase, elmPhases) > 0 then
+        begin
+            sig.trm := seq;
+            sig.pElem := pElm;
+            Result := true;
+        end
+        else
+        if (Pos('s1', elmPhases) > 0) and (sig.phase = 'A') then
+        begin  // switch to secondary phasing
+            sig.trm := seq;
+            sig.pElem := pElm;
+            sig.phase := 's1';
+            Result := true;
+        end
+        else
+        if (Pos('s2', elmPhases) > 0) and (sig.phase = 'B') then
+        begin  // switch to secondary phasing
+            sig.trm := seq;
+            sig.pElem := pElm;
+            sig.phase := 's2';
+            Result := true;
+        end;
+    end;
+end;
+
+procedure TIEEE1547Controller.FindSignalTerminals;
+var
+    i, j, k, dotpos: Integer;
+    bus, phase: String;
+    elements: DynStringArray;
+    found: Boolean;
+    pElem: TDSSCktElement;
+begin
+    SetLength(Signals, pMonBuses.Count);
+    if pMonBuses.Count < 1 then
+        exit;
+
+    for i := Low(Signals) to High(Signals) do
+    begin
+        bus := pMonBuses.Strings[i];
+        Signals[i] := TRemoteSignalObject.Create(bus, i + 1, pInvName.LocalName);
+        dotpos := ansipos('.', bus); // removes the dot
+        if dotpos > 0 then
+        begin
+            phase := bus.Substring(dotpos);
+            if Pos('3', phase) > 0 then
+                Signals[i].phase := 'C'
+            else
+            if Pos('2', phase) > 0 then
+                Signals[i].phase := 'B'
+            else
+                Signals[i].phase := 'A';
+            Signals[i].busName := bus.Substring(0, dotpos - 1);
+        end
+        else
+        begin // this is a three-phase bus, which must be ABC, not s1 and/or s2
+            Signals[i].phase := 'A'; // if user wants B and/or C as well, the MonBus input should have specified
+        end;
+
+        found := false;
+        with ActiveCircuit[ActiveActor] do
+        begin
+            elements := getPDEatBus(Signals[i].busName);
+            for j := Low(elements) to High(elements) do
+            begin
+                if found then
+                    break;
+                if SetElementActive(elements[j]) > 0 then
+                begin
+                    pElem := ActiveCktElement;
+                    for k := 1 to pElem.NTerms do
+                    begin
+                        if CheckSignalMatch(Signals[i], pElem, k) then
+                        begin
+                            found := true;
+                            break;
+                        end;
+                    end;
+                end;
+            end;
+            if not found then
+            begin
+                elements := getPCEatBus(bus);
+                for j := Low(elements) to High(elements) do
+                begin
+                    if found then
+                        break;
+                    if SetElementActive(elements[j]) > 0 then
+                    begin
+                        pElem := ActiveCktElement;
+                        for k := 1 to pElem.NTerms do
+                        begin
+                            if CheckSignalMatch(Signals[i], pElem, k) then
+                            begin
+                                found := true;
+                                break;
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+
 constructor TIEEE1547Controller.Create;
 begin
     inherited Create;
@@ -2114,6 +2258,7 @@ begin
     pSetName := TNamedObject.Create('Settings');
     pDERNames := TStringList.Create;
     pMonBuses := TStringList.Create;
+    Signals := nil;
 end;
 
 destructor TIEEE1547Controller.Destroy;
@@ -2123,6 +2268,7 @@ begin
     pSetName.Free;
     pDERNames.Free;
     pMonBuses.Free;
+    Signals := nil;
     inherited Destroy;
 end;
 
@@ -2375,8 +2521,6 @@ end;
 
 procedure TIEEE1547Controller.SetStorageNameplate(pBat: TStorageObj);
 begin
-    if bNameplateSet then
-        exit;
     AD_acVnom := pBat.acVnom * 1000.0;
     ND_acVmax := pBat.acVmax * 1000.0;
     ND_acVmin := pBat.acVmin * 1000.0;
@@ -2393,8 +2537,6 @@ end;
 
 procedure TIEEE1547Controller.SetPhotovoltaicNameplate(pPV: TPVSystemObj);
 begin
-    if bNameplateSet then
-        exit;
     AD_acVnom := pPV.acVnom * 1000.0;
     ND_acVmax := pPV.acVmax * 1000.0;
     ND_acVmin := pPV.acVmin * 1000.0;
@@ -2426,6 +2568,7 @@ var
     pPV: TPVSystemObj;
     pBat: TStorageObj;
 begin
+    FindSignalTerminals;
     StartInstance(prf, 'DERIEEEType1', pInvName);
     BooleanNode(prf, 'DynamicsFunctionBlock.enabled', true);
     with ActiveCircuit[ActiveActor] do
@@ -2463,11 +2606,18 @@ begin
             end;
         end;
     end;
-    for i := 1 to pMonBuses.Count do
-    begin
-        SetActiveBus(pMonBuses.Strings[i - 1]);
-    end;
+    for i := Low(Signals) to High(Signals) do
+        RefNode(prf, 'DERDynamics.RemoteInputSignal', Signals[i]);
     EndInstance(prf, 'DERIEEEType1');
+
+    for i := Low(Signals) to High(Signals) do
+    begin
+        StartInstance(prf, 'RemoteInputSignal', Signals[i]);
+        RemoteInputSignalEnum(prf, 'remoteBusVoltageAmplitude');
+        UuidNode(prf, 'RemoteInputSignal.Terminal', GetTermUuid(Signals[i].pElem, Signals[i].trm));
+        PhaseKindNode(prf, 'RemoteInputSignal', Signals[i].phase);
+        EndInstance(prf, 'RemoteInputSignal');
+    end;
 
     pPlateName.LocalName := pInvName.LocalName;
     pPlateName.UUID := GetDevUuid(I1547NameplateData, pInvName.LocalName, 1);
