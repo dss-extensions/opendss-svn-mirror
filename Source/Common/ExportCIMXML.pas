@@ -177,7 +177,7 @@ type
 
         ND_normalOPcatKind, PF_constPFexcitationKind: String;
         VV_enabled, WV_enabled, PF_enabled, Q_enabled, VW_enabled: Boolean;
-        VV_vrefAutoModeEnabled: Boolean;
+        VV_vRefAutoModeEnabled: Boolean;
 
         pInvName: TNamedObject;
         pPlateName: TNamedObject;
@@ -2516,7 +2516,7 @@ begin
     PF_enabled := true;
     Q_enabled := false;
     VW_enabled := false;
-    VV_vrefAutoModeEnabled := false;
+    VV_vRefAutoModeEnabled := false;
 end;
 
 procedure TIEEE1547Controller.FinishNameplate;
@@ -2629,7 +2629,7 @@ begin
     pPlateName.LocalName := pInvName.LocalName;
     pPlateName.UUID := GetDevUuid(I1547NameplateData, pInvName.LocalName, 1);
     StartInstance(prf, 'DERNameplateData', pPlateName);
-    RefNode(prf, 'DERNameplateData.DERIEEEType1', pPlateName);
+    RefNode(prf, 'DERNameplateData.DERIEEEType1', pInvName);
     NormalOpCatEnum(prf, ND_normalOPcatKind);
     if ND_normalOPcatKind = 'catB' then
     begin
@@ -2664,7 +2664,7 @@ begin
     StartInstance(prf, 'VoltVarSettings', pSetName);
     RefNode(prf, 'VoltVarSettings.DERIEEEType1', pInvName);
     BooleanNode(prf, 'VoltVarSettings.enabled', VV_enabled);
-    BooleanNode(prf, 'VoltVarSettings.vrefAutoModeEnabled', VV_vrefAutoModeEnabled);
+    BooleanNode(prf, 'VoltVarSettings.vRefAutoModeEnabled', VV_vRefAutoModeEnabled);
     DoubleNode(prf, 'VoltVarSettings.vRef', VV_vRef);
     DoubleNode(prf, 'VoltVarSettings.vRefOlrt', VV_vRefOlrt);
     DoubleNode(prf, 'VoltVarSettings.curveV1', VV_curveV1);
