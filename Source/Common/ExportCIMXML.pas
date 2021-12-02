@@ -2287,6 +2287,7 @@ var
 begin
     pInvName.LocalName := pInv.Name;
     pInvName.UUID := pInv.UUID;
+    pDERNames.Clear;
     pDERNames.Assign(pInv.DERNameList);
     if pInv.monBus.Count > 0 then
         pMonBuses.Assign(pInv.monBus)
@@ -2422,6 +2423,7 @@ procedure TIEEE1547Controller.PullFromExpControl(pExp: TExpControlObj);
 begin
     pInvName.LocalName := pExp.Name;
     pInvName.UUID := pExp.UUID;
+    pDERNames.Clear;
     pDERNames.Assign(pExp.DERNameList);
     pMonBuses.Clear;
 
@@ -2587,7 +2589,7 @@ begin
             begin
                 if pBat.Enabled then
                 begin
-                    RefNode(prf, 'DERIEEEType1.PowerElectronicsConnection', pBat);
+                    RefNode(prf, 'DERDynamics.PowerElectronicsConnection', pBat);
                     SetStorageNameplate(pBat);
                 end;
                 pBat := StorageElements.Next;
@@ -2597,7 +2599,7 @@ begin
             begin
                 if pPV.Enabled then
                 begin
-                    RefNode(prf, 'DERIEEEType1.PowerElectronicsConnection', pPV);
+                    RefNode(prf, 'DERDynamics.PowerElectronicsConnection', pPV);
                     SetPhotovoltaicNameplate(pPV);
                 end;
                 pPV := PVSystems.Next;
@@ -2608,7 +2610,7 @@ begin
             for i := 1 to pDERNames.Count do
             begin
                 ActiveCircuit[ActiveActor].SetElementActive(pDERNames.Strings[i - 1]);
-                RefNode(prf, 'DERIEEEType1.PowerElectronicsConnection', ActiveCktElement);
+                RefNode(prf, 'DERDynamics.PowerElectronicsConnection', ActiveCktElement);
                 SetElementNameplate(ActiveCktElement);
             end;
         end;
