@@ -11,6 +11,7 @@ unit UPFC;
 
 }
 
+{$HINTS OFF}
 interface
 
 uses

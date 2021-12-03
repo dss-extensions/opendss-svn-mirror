@@ -16,6 +16,7 @@ unit UPFCControl;
  
 }
 
+{$HINTS OFF}
 interface
 
 uses

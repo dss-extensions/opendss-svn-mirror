@@ -20,6 +20,8 @@ unit ESPVLControl;
  
 }
 
+{$HINTS OFF}
+
 interface
 
 uses

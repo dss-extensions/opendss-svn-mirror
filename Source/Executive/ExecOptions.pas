@@ -6,6 +6,7 @@ unit ExecOptions;
   ----------------------------------------------------------
 }
 
+{$HINTS OFF}
 interface
 
 uses
