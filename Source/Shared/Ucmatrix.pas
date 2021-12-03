@@ -173,6 +173,9 @@ begin
 {Allocate LT}
 //     LT:=nil;
 
+    {$IFDEF FPC}
+initialize(LT);
+    {$ENDIF}
     GetMem(LT, SizeOf(LT^[1]) * L);
     if LT = nil then
     begin
