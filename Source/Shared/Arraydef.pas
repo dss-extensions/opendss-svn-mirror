@@ -47,6 +47,9 @@ uses
 function AllocStringArray(Size: Integer): pStringArray;
 // Allocates a string array initialized with nil values
 begin
+    {$IFDEF FPC}
+initialize(Result);
+    {$ENDIF}
     Result := AllocMem(SizeOf(Result^[1]) * Size);
 end;
 

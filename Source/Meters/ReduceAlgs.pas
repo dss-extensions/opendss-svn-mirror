@@ -528,6 +528,7 @@ begin
  {
   Just march down the feeder until we encounter a 1-phase PD element
  }
+    HeadBasekV := 1.0;
    // Position BranchList at "beginning"
     PDElem := BranchList.First;
 

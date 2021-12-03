@@ -34,6 +34,9 @@ uses
 
 type
     TdJSON = class;
+    {$IFDEF FPC}
+{$push}{$warn 4046 off}{$notes off}
+    {$ENDIF}
 
     TdJSONItems = class(TDictionary<String, TdJSON>)
     PUBLIC
@@ -248,7 +251,13 @@ var
         prev, prevPrev: Char;
         ubuf, i, skip: Integer;
         s: String;
-        resultS: String;
+        resultS:
+        {$IFDEF FPC}
+WideString
+        {$ELSE}
+        String
+        {$ENDIF}
+        ;
     begin
         s := trim(AJSON.Substring(tag - 1, index - tag));
         result := unassigned;
@@ -286,7 +295,13 @@ var
                 begin
                     case s.chars[i] of
                         '\', '/', '"':
-                            resultS := resultS + s.chars[i];
+                            resultS := resultS +
+                                {$IFDEF FPC}
+WideString(s.chars[i])
+                                {$ELSE}
+                                s.chars[i]
+                            {$ENDIF}
+                            ;
                         'u':
                         begin
                             if not TryStrToInt('$' + s.Substring(i + 1, 4), ubuf) then
@@ -312,7 +327,13 @@ var
                         '\', '"':
                             continue;
                     else
-                        resultS := resultS + s.chars[i];
+                        resultS := resultS +
+                            {$IFDEF FPC}
+WideString(s.chars[i])
+                            {$ELSE}
+                            s.chars[i]
+                        {$ENDIF}
+                        ;
                     end;
             finally
                 if (prev = '\') and (prevPrev = '\') then
@@ -482,5 +503,7 @@ initialization
         ShortTimeFormat := 'hh:nn:ss';
         LongTimeFormat := 'hh:nn:ss';
     end;
-
+    {$IFDEF FPC}
+{$pop}
+    {$ENDIF}
 end.

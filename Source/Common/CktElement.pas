@@ -1180,6 +1180,9 @@ var
     cEpsilon: Complex;
 
 begin
+    {$IFDEF FPC}
+initialize(RowEliminated);
+    {$ENDIF}
      {Now Account for Open Conductors
       Perform a Kron Reduction on rows where I is forced to zero.
       Then for any conductor that is open, zero out row and column.

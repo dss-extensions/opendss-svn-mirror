@@ -1078,6 +1078,9 @@ var
     f: Double;
 
 begin
+    {$IFDEF FPC}
+initialize(SpectrumInUse);
+    {$ENDIF}
     {Make a List of all frequencies in Use}
 
     {accumulate all unique Frequencies}

@@ -1998,6 +1998,8 @@ begin
     // Reset CurrentkvarLimit to kvarLimit
     CurrentkvarLimit := StorageVars.Fkvarlimit;
     CurrentkvarLimitNeg := StorageVars.Fkvarlimitneg;
+    Qramp_limit := 0.0;
+    TempPF := 0.0;
 
     with StorageVars do
     begin
@@ -3341,6 +3343,8 @@ begin
             Result := pctkWOut * StorageVars.kWRating / 100.0;
         STORE_IDLING:
             Result := 0.0;
+    else
+        Result := 0.0;
     end;
 
 end;
@@ -4439,6 +4443,8 @@ begin
             Result := pctkWOut * StorageVars.kWRating / 100.0;
         STORE_IDLING:
             Result := -kWOutIdling;
+    else
+        Result := 0.0;
     end;
 
 end;

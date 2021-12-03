@@ -208,8 +208,8 @@ RegExpr,
 var
     SaveCommands, DistributeCommands, DI_PlotCommands,
     ReconductorCommands, RephaseCommands, AddMarkerCommands,
-    SetBusXYCommands, PstCalcCommands, RemoveCommands, FNCSPubCommands: TCommandList;
-    HELICSPubCommands: TCommandList;
+    SetBusXYCommands, PstCalcCommands, RemoveCommands,
+    FNCSPubCommands, HELICSPubCommands: TCommandList;
 
 //----------------------------------------------------------------------------
 procedure GetObjClassAndName(var ObjClass, ObjName: String);
@@ -1942,6 +1942,9 @@ var
 
 begin
     Result := 0;
+    {$IFDEF FPC}
+initialize(cBuffer);
+    {$ENDIF}
 
     if ActiveCircuit[ActiveActor] <> nil then
         with ActiveCircuit[ActiveActor].ActiveCktElement do
@@ -2029,6 +2032,9 @@ var
 begin
 
     Result := 0;
+    {$IFDEF FPC}
+initialize(cBuffer);
+    {$ENDIF}
 
     if ActiveCircuit[ActiveActor] <> nil then
 
@@ -2065,6 +2071,9 @@ begin
   // If Total = 1, returns the power sum at each terminal
 
     Result := 0;
+    {$IFDEF FPC}
+initialize(cBuffer);
+    {$ENDIF}
     if ActiveCircuit[ActiveActor] <> nil then
         with ActiveCircuit[ActiveActor].ActiveCktElement do
         begin
@@ -2114,6 +2123,9 @@ var
 begin
 
     Result := 0;
+    {$IFDEF FPC}
+initialize(cBuffer);
+    {$ENDIF}
     if ActiveCircuit[ActiveActor] <> nil then
         with ActiveCircuit[ActiveActor] do
         begin
@@ -2166,6 +2178,9 @@ var
 begin
 
     Result := 0;
+    {$IFDEF FPC}
+initialize(cBuffer);
+    {$ENDIF}
     if ActiveCircuit[ActiveActor] <> nil then
         with ActiveCircuit[ActiveActor] do
         begin
@@ -2576,6 +2591,9 @@ var
 
 begin
     Result := 0;
+    {$IFDEF FPC}
+initialize(Dummy);
+    {$ENDIF}
 
     with ActiveCircuit[ActiveActor].Solution do
         if CompareText(S, 'ALL') = 0 then
@@ -4366,6 +4384,7 @@ Begin
   end;
     {$ELSE}
 begin
+    Result := 0;
     DoSimpleMsg('Error: FNCS only supported in the Free Pascal version', 28728);
     {$ENDIF}
 end;
@@ -4748,6 +4767,9 @@ initialization
     FNCSPubCommands := TCommandList.Create(['Fname']);
     FNCSPubCommands.abbrev := true;
 
+    HELICSPubCommands := TCommandList.Create(['Fname']);
+    HELICSPubCommands.abbrev := true;
+
     RemoveCommands := TCommandList.Create(['ElementName', 'KeepLoad', 'Editstring']);
     RemoveCommands.abbrev := true;
 
@@ -4762,6 +4784,7 @@ finalization
     SetBusXYCommands.Free;
     PstCalcCommands.Free;
     FNCSPubCommands.Free;
+    HELICSPubCommands.Free;
     RemoveCommands.Free;
 
 end.

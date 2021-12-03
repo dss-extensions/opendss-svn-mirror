@@ -739,7 +739,7 @@ begin
             end;
         end;
     end;
-    Circuits.Free;
+    FreeAndNil(Circuits);
     Circuits := TPointerList.Create(2);   // Make a new list of circuits
     // Revert on key global flags to Original States
     DefaultEarthModel := DERI;
@@ -1021,7 +1021,7 @@ end;
 
 procedure WriteDSS_Registry;
 begin
-    if UpdateRegistry then
+    if UpdateRegistry and Assigned(DSS_Registry) then
     begin
         DSS_Registry.Section := 'MainSect';
         DSS_Registry.WriteString('Editor', DefaultEditor);
@@ -1217,7 +1217,7 @@ procedure New_Actor(ActorID: Integer);
 Begin
  ActorHandle[ActorID] :=  TSolver.Create(True,ActorCPU[ActorID],ActorID,nil,ActorMA_Msg[ActorID]); // TEMC: TODO: text-mode callback
  ActorHandle[ActorID].Priority :=  tpTimeCritical;
- ActorHandle[ActorID].Resume;  // TEMC: TODO: this reportedly does nothing on Unix and Mac
+ ActorHandle[ActorID].Start; // Resume;
  ActorStatus[ActorID] :=  1;
 End;
 {$ELSE}
@@ -1240,7 +1240,7 @@ begin
 6
     {$ENDIF}
     ;
-    ActorHandle[ActorID].Resume;
+    ActorHandle[ActorID].Start; // Resume;
     ActorStatus[ActorID] := 1;
 end;
 {$ENDIF}
@@ -1276,7 +1276,7 @@ end;
 //{$IFDEF MSWINDOWS}
 procedure Delay(TickTime: Integer);
 var
-    Past: Longint;
+    Past: Longword;
 begin
     Past := GetTickCount64;
     repeat
@@ -1314,6 +1314,7 @@ var
     myIdx: Integer;
 
 begin
+    myIdx := 0;
     myPath := TPath.GetTempPath + '\myDSSVersion.txt';
     myWebSrc := 'https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Source/Current_ver.txt';
   // Download the file into the Windows temporary folder
@@ -1481,6 +1482,26 @@ begin
 
 end;
 
+procedure LocalFinalization;
+var
+    Actor: Integer;
+begin
+    for Actor := 1 to NumOfActors do
+    begin
+        with DSSExecutive[Actor] do
+            if RecorderOn then
+                Recorderon := false;
+
+        FreeAndNil(DSSExecutive[Actor]);  {Writes to Registry}
+        FreeAndNil(DSS_Registry);  {Close Registry}
+
+        FreeAndNil(EventStrings[Actor]);
+        FreeAndNil(SavedFileList[Actor]);
+        FreeAndNil(ErrorStrings[Actor]);
+        FreeAndNil(ActorHandle[Actor]);
+        FreeAndNil(Auxparser[Actor]);
+    end;
+end;
 
 initialization
 
@@ -1747,25 +1768,6 @@ finalization
   // Dosimplemsg('Enter DSSGlobals Unit Finalization.');
 //  YBMatrix.Finish_Ymatrix_Critical;   // Ends the critical segment for the YMatrix class
 
-
-    ClearAllCircuits;
-
-    for ActiveActor := 1 to NumOfActors do
-    begin
-
-        with DSSExecutive[ActiveActor] do
-            if RecorderOn then
-                Recorderon := false;
-
-        DSSExecutive[ActiveActor].Free;  {Writes to Registry}
-        DSS_Registry.Free;  {Close Registry}
-
-        EventStrings[ActiveActor].Free;
-        SavedFileList[ActiveActor].Free;
-        ErrorStrings[ActiveActor].Free;
-        if ActorHandle[ActiveActor] <> nil then
-            ActorHandle[ActiveActor].Free;
-        Auxparser[ActiveActor].Free;
-    end;
-
+    ClearAllCircuits; // this is also done later, when Executive destroyed from LocalFinalization
+    LocalFinalization;
 end.

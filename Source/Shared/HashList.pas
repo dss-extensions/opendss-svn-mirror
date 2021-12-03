@@ -390,6 +390,9 @@ var
     i, j: Integer;
 
 begin
+    {$IFDEF FPC}
+initialize(NewStringPtr);initialize(NewListPtr);
+    {$ENDIF}
     if NewSize > NumElementsAllocated then
     begin
 

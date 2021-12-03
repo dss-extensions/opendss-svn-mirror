@@ -921,7 +921,7 @@ begin
             myByte := myMap[i];
       // Concatenates avoiding special chars (EOL)
             if (myByte >= 46) and (myByte < 58) then
-                myContent := myContent + Ansichar(myByte);
+                myContent := myContent + String(Ansichar(myByte));
             if myByte = 44 then       // a comma char was found
             begin                     // If we are at the column, exit, otherwise, keep looking
                 inc(j);                 // discarding the previous number (not needed anyway)
@@ -2336,6 +2336,9 @@ var
 
 begin
     Result := true;
+    {$IFDEF FPC}
+initialize(FieldLength);
+    {$ENDIF}
 
     try
         AssignFile(Fin, FileName);

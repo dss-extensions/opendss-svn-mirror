@@ -670,6 +670,9 @@ var
     pst, p01s, p1s, p3s, p10s, p50s: Single;
     p30, p50, p80, p17, p13, p10, p8, p6, p4, p3, p2p2, p1p5, p1, p0p7: Single;
 begin
+    {$IFDEF FPC}
+initialize(pBuf);
+    {$ENDIF}
     whp := 2.0 * Pi * 0.05;
     tau := 0.3;
     cf := 1.0 / 1.285e-6;

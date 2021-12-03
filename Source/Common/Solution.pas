@@ -40,6 +40,10 @@ unit Solution;
 
 }
 
+{$IFDEF FPC}
+{$push}{$warn 4046 off}{$notes off}
+{$ENDIF} // settle down generics.collections
+
 interface
 
 uses
@@ -1325,6 +1329,7 @@ function TSolutionObj.SolveAD(ActorID: Integer; Initialize: Boolean): Integer;  
 var
     i: Integer;
 begin
+    Result := 0;
     if Initialize then
     begin
         ZeroInjCurr(ActorID);
@@ -1867,6 +1872,7 @@ var
     val,                                          // Local Shared variable
     nPDE: Integer;                           // PDElements index
 begin
+    ZeroLevel := 0;
     try
         if ActiveCircuit[ActorID] <> nil then
         begin
@@ -2797,6 +2803,7 @@ var
     myMsg: String;
 
 begin
+    RetCode := 0;
 
  {Note: NodeV[0] = 0 + j0 always.  Therefore, pass the address of the element 1 of the array.
  }
@@ -3288,6 +3295,7 @@ var
     myCmplx: Complex;
 
 begin
+    Found := false;
     with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
     begin
         for i := 0 to (AD_IBus.Count - 1) do
@@ -3569,5 +3577,7 @@ initialization
     Rewrite(Fdebug);
     CloseFile(Fdebug);
     {$ENDIF}
-
+    {$IFDEF FPC}
+{$pop}
+    {$ENDIF}
 end.

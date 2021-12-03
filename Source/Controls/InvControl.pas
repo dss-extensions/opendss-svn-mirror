@@ -2712,6 +2712,8 @@ var
     Storage: TStorageObj;
 
 begin
+    PVSys := nil;
+    Storage := nil;
     // if list is not defined, go make one from all PVSystem/Storage in circuit
     if FDERPointerList.ListSize = 0 then
         RecalcElementData(ActorID);
@@ -3338,6 +3340,7 @@ begin
     PVSysClass := GetDSSClassPtr('PVSystem');
     StorageClass := GetDSSClassPtr('Storage');
     PVSys := nil;
+    DERElem := nil;
 
     if FListSize > 0 then
     begin    // Name list is defined - Use it
@@ -4028,6 +4031,8 @@ var
 
 begin
     tempVbuffer := nil;   // Initialize for Reallocmem
+    PVSys := nil;
+    Storage := nil;
 
     for j := 1 to FDERPointerList.ListSize do
     begin
@@ -4704,6 +4709,8 @@ begin
     QDesireWPpu[j] := 0.0;
 
     voltagechangesolution := 0.0;
+
+    pf_priority := false;
 
     // for first two seconds, keep voltagechangesolution equal to zero
     // we don't have solutions from the time-series power flow, yet

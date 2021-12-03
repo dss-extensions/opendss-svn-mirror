@@ -232,6 +232,7 @@ function TParallel_Lib.Get_Processor_Info(InfoType: Integer): Integer;
 var
     LProcInfo: TLogicalProcessorInformation;
 begin
+    Result := 0;
     LProcInfo := GetLogicalProcessorInfo;
     case InfoType of
         NumCPU:

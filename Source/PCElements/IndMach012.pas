@@ -1461,7 +1461,7 @@ var
     GenHarmonic: Double;
 
 begin
-
+    E := cZERO;  // because of the ??? line commented out below, E is never assigned a good value
    // Set the VTerminal array
     ComputeVterminal(ActorID);
 

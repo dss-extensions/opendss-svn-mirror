@@ -1705,6 +1705,7 @@ var
     pLine: TLineObj;
 
 begin
+    myShpCode := 0;
     if IsGISON then
     begin
         case myShape[1] of // Parse the shape specified
@@ -1812,6 +1813,8 @@ function GISLoadBus(const myBus: String): String;
 var
     myLat, myLong: Double;
 begin
+    myLat := 0.0;
+    myLong := 0.0;
     if (ActiveCircuit[ActiveActor] <> nil) then
         with ActiveCircuit[ActiveActor] do
         begin

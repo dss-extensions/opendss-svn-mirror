@@ -1204,6 +1204,9 @@ var
     i: Integer;
     FTemp: pDoubleArray;
 begin
+    {$IFDEF FPC}
+initialize(FTemp);
+    {$ENDIF}
 
     Result := '';
     case Index of  // Special cases

@@ -1684,6 +1684,7 @@ var
     Targets: TStringList;
     PickedUp: Boolean;
 begin
+    Targets := nil;
     if not LockedOut then
         with MonitoredElement do
         begin
