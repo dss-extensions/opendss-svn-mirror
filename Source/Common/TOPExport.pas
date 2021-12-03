@@ -205,15 +205,10 @@ begin
         IdxCurrentNames := IdxVoltNames + NVoltages * VoltNameSize;
         IDXData := IDXCurrentNames + NCurrents * CurrNameSize;
         IdxBaseData := 0;
-        {$IFDEF FPC}
-        StrCopy(Title1,pAnsiChar(Title));
-        {$ELSE}
-//    {$IFDEF MSWINDOWS}
-        sysutils.StrCopy(Title1, Pansichar(Title));
-//    {$ELSE}
-//         sysutils.StrCopy(Title1,pWidechar(Title));
-//    {$ENDIF}
+        {$IFNDEF FPC}
+        AnsiStrings.
         {$ENDIF}
+            StrCopy(Title1, Pansichar(Title));
         Title2[0] := #0;
         Title3[0] := #0;
         Title4[0] := #0;
@@ -232,24 +227,17 @@ procedure TOutFile32.WriteNames(var Vnames, Cnames: TStringList);
 var
     NumWrite: Integer;
     i: Integer;
-    Buf: array[0..120] of
-    {$IFDEF MSWINDOWS}
-    Ansichar
-    {$ELSE}
-WideChar
-    {$ENDIF}
-    ;  //120 char buffer to hold names  + null terminator
+    Buf: array[0..120] of Ansichar;  //120 char buffer to hold names  + null terminator
 
 begin
 
     if Header.NVoltages > 0 then
         for i := 0 to Vnames.Count - 1 do
         begin
-            {$IFDEF MSWINDOWS}
-            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Vnames.Strings[i])));    // Assign string to a buffer
-            {$ELSE}
-        Sysutils.StrCopy(Buf, pWideChar(String(Vnames.Strings[i])));    // Linux
+            {$IFNDEF FPC}
+            AnsiStrings.
             {$ENDIF}
+                StrCopy(Buf, Pansichar(Ansistring(Vnames.Strings[i])));    // Assign string to a buffer
             BlockWrite(Fout, Buf, Header.VoltNameSize, NumWrite);    // Strings is default property of TStrings
 
         end;
@@ -257,11 +245,10 @@ begin
     if Header.NCurrents > 0 then
         for i := 0 to Cnames.Count - 1 do
         begin
-            {$IFDEF MSWINDOWS}
-            Sysutils.StrCopy(Buf, Pansichar(Ansistring(Cnames.Strings[i])));    // Assign string to a buffer
-            {$ELSE}
-        Sysutils.StrCopy(Buf, pWidechar(String(Cnames.Strings[i])));    // Linux
+            {$IFNDEF FPC}
+            AnsiStrings.
             {$ENDIF}
+                StrCopy(Buf, Pansichar(Ansistring(Cnames.Strings[i])));    // Assign string to a buffer
             BlockWrite(Fout, Buf, Header.CurrNameSize, NumWrite);
         end;
 
