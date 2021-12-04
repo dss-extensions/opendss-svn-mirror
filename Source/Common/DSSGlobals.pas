@@ -1232,6 +1232,7 @@ End;
 var
     ScriptEd: TScriptEdit;
 begin
+    ScriptEd := TScriptEdit.Create;
     ActorHandle[ActorID] := TSolver.Create(true, ActorCPU[ActorID], ActorID, ScriptEd.UpdateSummaryform, ActorMA_Msg[ActorID]);
     ActorHandle[ActorID].Priority :=
         {$IFDEF MSWINDOWS}
@@ -1242,6 +1243,7 @@ begin
     ;
     ActorHandle[ActorID].Start; // Resume;
     ActorStatus[ActorID] := 1;
+    FreeAndNil(ScriptEd);
 end;
 {$ENDIF}
 {$ENDIF}

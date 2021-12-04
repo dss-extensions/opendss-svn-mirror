@@ -1415,12 +1415,15 @@ begin
                 113:
                     AppendGlobalResult(Format('%d', [ActorCPU[ActiveActor]]));
                 114:
+                begin
                     {$IFNDEF FPC}
                     {$IFNDEF CONSOLE}
-                    ScriptEd.UpdateProgressSummary
+                    ScriptEd := TScriptEdit.Create;
+                    ScriptEd.UpdateProgressSummary;
+                    FreeAndNil(ScriptEd);
                     {$ENDIF}
                     {$ENDIF}
-                    ;
+                end;
                 115:
                     if parallel_enabled then
                         AppendGlobalResult('Yes')
