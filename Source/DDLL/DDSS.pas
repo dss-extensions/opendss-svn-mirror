@@ -101,7 +101,6 @@ begin
         end;
         3:
         begin  // DSS.DataPath write
-            SetCurrentDir(arg);
             SetDataPath(Widestring(arg));
         end;
         4:
