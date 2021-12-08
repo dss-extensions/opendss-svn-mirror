@@ -1888,7 +1888,7 @@ end;
 procedure WriteXfmrCode(pXfCd: TXfmrCodeObj);
 var
     pName, pBank: TNamedObject;
-    ratShort, ratEmerg, val, Zbase: Double;
+    ratShort, ratEmerg, val, Zbase, pctIexc: Double;
     i, j, seq: Integer;
 begin
     pName := TNamedObject.Create('dummy');
@@ -1948,8 +1948,9 @@ begin
         StartInstance(CatPrf, 'NoLoadTest', pName);
         UuidNode(CatPrf, 'NoLoadTest.EnergisedEnd', GetDevUuid(WdgInf, pXfCd.Name, 1));
         DoubleNode(CatPrf, 'NoLoadTest.energisedEndVoltage', 1000.0 * Winding^[1].kvll);
-        DoubleNode(CatPrf, 'NoLoadTest.excitingCurrent', pctImag);
-        DoubleNode(CatPrf, 'NoLoadTest.excitingCurrentZero', pctImag);
+        pctIexc := sqrt(pctImag * pctImag + pctNoLoadLoss * pctNoLoadLoss);
+        DoubleNode(CatPrf, 'NoLoadTest.excitingCurrent', pctIexc);
+        DoubleNode(CatPrf, 'NoLoadTest.excitingCurrentZero', pctIexc);
         val := 0.01 * pctNoLoadLoss * Winding^[1].kva; // losses to be in kW
         DoubleNode(CatPrf, 'NoLoadTest.loss', val);
         DoubleNode(CatPrf, 'NoLoadTest.lossZero', val);
