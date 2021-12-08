@@ -33,7 +33,7 @@ begin
         end;
         1:
         begin  // DSS.ClearAll
-            DoClearCmd;
+            DoClearAllCmd;
         end;
         2:
         begin  // DSS.ShowPanel

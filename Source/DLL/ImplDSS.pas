@@ -127,7 +127,7 @@ end;
 
 procedure TDSS.ClearAll;
 begin
-    DoClearCmd;
+    DoClearAllCmd;
 end;
 
 procedure TDSS.ShowPanel;
