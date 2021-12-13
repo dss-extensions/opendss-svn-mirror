@@ -2041,7 +2041,7 @@ begin
 
         // Shift angle to cBuffer to be relative to cvBuffer
             for i := (1 + CondOffset) to (Fnphases + CondOffset) do
-                cBuffer^[i] := PDEGtoCompLeX(Cabs(cBuffer^[i]), CDANG(cBuffer^[i]) - CDANG(cvBuffer^[1 - CondOffset]));
+                cBuffer^[i] := PDEGtoCompLeX(Cabs(cBuffer^[i]), CDANG(cBuffer^[i]) - CDANG(cvBuffer^[i - CondOffset]));
 
             for i := (1 + CondOffset) to (Fnphases + CondOffset) do
             begin
