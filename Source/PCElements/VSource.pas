@@ -1149,9 +1149,9 @@ begin
                 else
                     case Fnphases of
                         1:
-                            Vmag := kVBase * ShapeFactor.re * 1000.0;
+                            Vmag := kVBase * PerUnit * ShapeFactor.re * 1000.0;
                     else
-                        Vmag := kVBase * ShapeFactor.re * 1000.0 / 2.0 / Sin((180.0 / Fnphases) * PI / 180.0);
+                        Vmag := kVBase * PerUnit * ShapeFactor.re * 1000.0 / 2.0 / Sin((180.0 / Fnphases) * PI / 180.0);
                     end;
             end
             else  // Normal Case
