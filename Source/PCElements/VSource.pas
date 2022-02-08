@@ -1,7 +1,7 @@
 unit VSource;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -13,6 +13,7 @@ unit VSource;
  6-18-00  Added ability to do specify impedance in ohms or short circuit current
  5-17-01 Moved Spectrum to Base class
  2-10-09 Converted to 2-terminal voltage source
+ 2-08-22 Fixed perunit bug in Dynamics mode
 
 }
 
@@ -1146,7 +1147,7 @@ begin
             begin  {Loadshape cases}
                 if ShapeIsActual then
                     Vmag := 1000.0 * ShapeFactor.re  // assumes actual L-N voltage or voltage across source
-                else
+                else   // added PerUnit value 2/07/22 to fix Dynamics mode bug where per unit value was lost
                     case Fnphases of
                         1:
                             Vmag := kVBase * PerUnit * ShapeFactor.re * 1000.0;
