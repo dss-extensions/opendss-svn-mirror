@@ -2057,7 +2057,7 @@ begin
                     ActiveDSSClass[ActiveActor].Active := i;
                     if (ActiveDSSClass[ActiveActor].DSSClassType and BASECLASSMASK) > 0 then
                     begin
-                        if TDSSCktElement(ActiveDSSObject).Enabled then
+                        if TDSSCktElement(ActiveDSSObject[ActiveActor]).Enabled then
                             Writeln(F, UpperCase(ActiveDssObject[ActiveActor].Name))
                         else
                             Writeln(Fdisabled, UpperCase(ActiveDssObject[ActiveActor].Name));
