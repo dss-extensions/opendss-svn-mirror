@@ -23,7 +23,6 @@ type
         function ClassEdit(const ActiveObj: Pointer; const ParamPointer: Integer): Integer;
         procedure ClassMakeLike(const OtherObj: Pointer);
     PUBLIC
-        NumCableClassProps: Integer;
         constructor Create;
         destructor Destroy; OVERRIDE;
     end;
@@ -46,7 +45,8 @@ type
 
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
-//        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
+        function GetPropertyValue(Index: Integer): String; OVERRIDE;
+        function GetNumProperties(ArrayOffset: Integer): Integer; OVERRIDE;
     end;
 
 implementation
@@ -60,10 +60,12 @@ uses
     Arraydef,
     LineUnits;
 
+const
+    NumCableClassProps = 4;
+
 constructor TCableData.Create;  // Creates superstructure for all Line objects
 begin
     inherited Create;
-    NumCableClassProps := 4;
     DSSClassType := DSS_OBJECT;
 end;
 
@@ -195,22 +197,30 @@ begin
         end;
     end;
 end;
-{
-Function TCableDataObj.GetPropertyValue(Index:Integer):String;
-Var
-  i :Integer;
-Begin
-  Result := '';
-  Case i of
-    1: Result :=  Format('%.3g',[FEpsR]);
-    2: Result :=  Format('%.6g',[FInsLayer]);
-    3: Result :=  Format('%.6g',[FDiaIns]);
-    4: Result :=  Format('%.6g',[FDiaCable]);
-  ELSE
-    Result := Inherited GetPropertyValue(index);
-  END;
+
+function TCableDataObj.GetNumProperties(ArrayOffset: Integer): Integer;
+begin
+    Result := NumCableClassProps + ArrayOffset;
 end;
-}
+
+function TCableDataObj.GetPropertyValue(Index: Integer): String;
+begin
+    Result := '';
+    case Index of
+        1:
+            Result := Format('%.3g', [FEpsR]);
+        2:
+            Result := Format('%.6g', [FInsLayer]);
+        3:
+            Result := Format('%.6g', [FDiaIns]);
+        4:
+            Result := Format('%.6g', [FDiaCable]);
+    else
+        Result := inherited GetPropertyValue(index - NumCableClassProps);
+    end;
+end;
+
+
 procedure TCableDataObj.InitPropertyValues(ArrayOffset: Integer);
 begin
     PropertyValue[ArrayOffset + 1] := '2.3';

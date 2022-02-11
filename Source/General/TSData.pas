@@ -50,6 +50,8 @@ type
 
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
+        function GetPropertyValue(Index: Integer): String; OVERRIDE;
+        function GetNumProperties(ArrayOffset: Integer): Integer; OVERRIDE;
     end;
 
 implementation
@@ -259,6 +261,26 @@ begin
             end;
         end;
     end;
+end;
+
+function TTSDataObj.GetPropertyValue(Index: Integer): String;
+begin
+    Result := '';
+    case Index of
+        1:
+            Result := Format('%.6g', [FDiaShield]);
+        2:
+            Result := Format('%.6g', [FTapeLayer]);
+        3:
+            Result := Format('%.2g', [FTapeLap]);
+    else
+        Result := inherited GetPropertyValue(index - NumPropsThisClass);
+    end;
+end;
+
+function TTSDataObj.GetNumProperties(ArrayOffset: Integer): Integer;
+begin
+    Result := inherited GetNumProperties(NumPropsThisClass + ArrayOffset);
 end;
 
 procedure TTSDataObj.InitPropertyValues(ArrayOffset: Integer);

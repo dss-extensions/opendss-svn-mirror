@@ -45,6 +45,7 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
+        function GetNumProperties(ArrayOffset: Integer): Integer; OVERRIDE;
     end;
 
 implementation
@@ -211,6 +212,11 @@ end;
 function TWireDataObj.GetPropertyValue(Index: Integer): String;
 begin
     Result := inherited GetPropertyValue(index);
+end;
+
+function TWireDataObj.GetNumProperties(ArrayOffset: Integer): Integer;
+begin
+    Result := NumPropsThisClass;
 end;
 
 procedure TWireDataObj.InitPropertyValues(ArrayOffset: Integer);
