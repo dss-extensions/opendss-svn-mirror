@@ -181,9 +181,9 @@ begin
     inherited DumpProperties(F, Complete);
     with ParentClass do
     begin
-        for i := 1 to NumProperties do
+        for i := 1 to NumCableClassProps do
         begin
-            Write(F, '~ ', PropertyName^[i], '=');
+            Write(F, '~ ', PropertyName^[GetNumProperties(0) - NumCableClassProps + i], '=');
             case i of
                 1:
                     Writeln(F, Format('%.3g', [FEpsR]));

@@ -308,9 +308,9 @@ begin
     inherited DumpProperties(F, Complete);
     with ParentClass do
     begin
-        for i := 1 to NumProperties do
+        for i := 1 to NumConductorClassProps do
         begin
-            Write(F, '~ ', PropertyName^[i], '=');
+            Write(F, '~ ', PropertyName^[GetNumProperties(0) + i], '=');
             case i of
                 1:
                     Writeln(F, Format('%.6g', [FRDC]));

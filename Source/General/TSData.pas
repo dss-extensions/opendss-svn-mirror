@@ -248,7 +248,7 @@ begin
     inherited DumpProperties(F, Complete);
     with ParentClass do
     begin
-        for i := 1 to NumProperties do
+        for i := 1 to NumPropsThisClass do
         begin
             Write(F, '~ ', PropertyName^[i], '=');
             case i of
