@@ -1225,15 +1225,16 @@ begin
         [CIM_NS, val]));
 end;
 
-procedure SupportedModesEnum(prf: ProfileChoice; val: String);
+{*
+procedure SupportedModesEnum (prf: ProfileChoice; val: String);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:DERNameplateData.supportedModesKind rdf:resource="%s#SupportedModesKind.%s"/>',
-        [CIM_NS, val]));
+  FD.WriteCimLn (prf, Format ('  <cim:DERNameplateData.supportedModesKind rdf:resource="%s#SupportedModesKind.%s"/>',
+    [CIM_NS, val]));
 end;
-
+*}
 procedure PowerFactorExcitationEnum(prf: ProfileChoice; val: String);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:ConstantPowerFactorSettings.constantPFexcitationKind rdf:resource="%s#ConstantPowerFactorSettingKind.%s"/>',
+    FD.WriteCimLn(prf, Format('  <cim:ConstantPowerFactorSettings.constantPowerFactorExcitationKind rdf:resource="%s#ConstantPowerFactorSettingKind.%s"/>',
         [CIM_NS, val]));
 end;
 
@@ -2768,6 +2769,9 @@ begin
     FindSignalTerminals;
     StartInstance(prf, 'DERIEEEType1', pInvName);
     BooleanNode(prf, 'DynamicsFunctionBlock.enabled', true);
+    BooleanNode(prf, 'DERIEEEType1.phaseToGroundApplicable', true); // seems to be the only OpenDSS option
+    BooleanNode(prf, 'DERIEEEType1.phaseToNeutralApplicable', false);
+    BooleanNode(prf, 'DERIEEEType1.phaseToPhaseApplicable', false);
     with ActiveCircuit[ActiveActor] do
     begin
         if pDERNames.Count < 1 then
@@ -2812,7 +2816,7 @@ begin
         StartInstance(prf, 'RemoteInputSignal', Signals[i]);
         RemoteInputSignalEnum(prf, 'remoteBusVoltageAmplitude');
         UuidNode(prf, 'RemoteInputSignal.Terminal', GetTermUuid(Signals[i].pElem, Signals[i].trm));
-        PhaseKindNode(prf, 'RemoteInputSignal', Signals[i].phase);
+//    PhaseKindNode (prf, 'RemoteInputSignal', Signals[i].phase);
         EndInstance(prf, 'RemoteInputSignal');
     end;
 
@@ -2821,14 +2825,20 @@ begin
     StartInstance(prf, 'DERNameplateData', pPlateName);
     RefNode(prf, 'DERNameplateData.DERIEEEType1', pInvName);
     NormalOpCatEnum(prf, ND_normalOPcatKind);
+    BooleanNode(prf, 'DERNameplateData.supportsConstPFmode', true);
+    BooleanNode(prf, 'DERNameplateData.supportsConstQmode', true);
+    BooleanNode(prf, 'DERNameplateData.supportsQVmode', true);
     if ND_normalOPcatKind = 'catB' then
     begin
-        SupportedModesEnum(prf, 'pv');
-        SupportedModesEnum(prf, 'qp');
+        BooleanNode(prf, 'DERNameplateData.supportsPVmode', true);
+        BooleanNode(prf, 'DERNameplateData.supportsQPmode', true);
+    end
+    else
+    begin
+        BooleanNode(prf, 'DERNameplateData.supportsPVmode', false);
+        BooleanNode(prf, 'DERNameplateData.supportsQPmode', false);
     end;
-    SupportedModesEnum(prf, 'constPF');
-    SupportedModesEnum(prf, 'constQ');
-    SupportedModesEnum(prf, 'qv');
+    BooleanNode(prf, 'DERNameplateData.supportsPFmode', false); // no frequency response in GridAPPS-D
     DoubleNode(prf, 'DERNameplateData.acVmax', ND_acVmax);
     DoubleNode(prf, 'DERNameplateData.acVmin', ND_acVmin);
     EndInstance(prf, 'DERNameplateData');
