@@ -126,6 +126,7 @@ type
         property VregMax: Double READ FVregMax;
         property QMaxLead: Double READ FQMaxLead;
         property QMaxLag: Double READ FQMaxLag;
+        property TResponse: Double READ FTResponse;
     end;
 
 var

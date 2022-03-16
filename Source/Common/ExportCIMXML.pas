@@ -2660,6 +2660,7 @@ begin
     VV_enabled := true;
     VV_vRefAutoModeEnabled := true;
     VV_vRefOlrt := pExp.VregTau;
+    VV_olrt := pExp.TResponse;
     VV_curveQ1 := pExp.QMaxLead;
     VV_curveQ2 := VV_curveQ1;
     VV_curveQ3 := -pExp.QMaxLag;
