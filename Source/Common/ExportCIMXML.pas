@@ -2397,8 +2397,8 @@ begin
         begin
             v := xy.XValue_pt[i];
             p := xy.YValue_pt[i];
-            if (v >= 1.05) and (v <= 1.10) then
-                bValid := true;
+            if (v >= 1.00) and (v <= 1.10) then
+                bValid := true; // TODO: per standard, v should be >= 1.05 but we loosen that criteria for testing
             if bValid then
             begin
                 if not bSet1 then
