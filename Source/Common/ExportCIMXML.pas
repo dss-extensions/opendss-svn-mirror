@@ -2294,7 +2294,7 @@ var
     xy: TXYcurveObj;
     bCatB, bValid, bSet1, bSet2, bSet3, bSet4, bSet5, bSet6: Boolean;
     mode, combi, i: Integer;
-    v, p, q: Double;
+    v, p, q, qvslope: Double;
 begin
     pInvName.LocalName := pInv.Name;
     pInvName.UUID := pInv.UUID;
@@ -2609,6 +2609,29 @@ begin
         VW_enabled := true;
     end
     else
+    if mode = 3 then
+    begin // approximating AVR with DRC
+        PF_enabled := false;
+        VV_enabled := true;
+        VV_vRefAutoModeEnabled := true;
+        VV_vRefOlrt := pInv.DynReacAvgWindowLen;
+        qvslope := 0.5 * (pInv.ArGraLowV + pInv.ArGraHiV);
+        if qvslope > 12.5 then
+            bCatB := true;  // for catA, maximum slope would be 12.5    
+        if bCatB then
+            q := 0.44
+        else
+            q := 0.25;
+        VV_curveQ1 := q;
+        VV_curveQ2 := VV_curveQ1;
+        VV_curveQ3 := -VV_curveQ1;
+        VV_curveQ4 := VV_curveQ3;
+        VV_curveV1 := 0.50;
+        VV_curveV2 := 1.0 - VV_curveQ2 / QVSlope;
+        VV_curveV3 := 1.0 - VV_curveQ3 / QVSlope;  // - because Q3 should be negative
+        VV_curveV4 := 1.50;
+    end
+    else
     if mode = 5 then
     begin
         PF_enabled := false;
@@ -2617,10 +2640,16 @@ begin
 end;
 
 procedure TIEEE1547Controller.PullFromExpControl(pExp: TExpControlObj);
+var
+    i: Integer;
 begin
     pInvName.LocalName := pExp.Name;
     pInvName.UUID := pExp.UUID;
-    pDERNames.Assign(pExp.DERNameList);
+    while i < pExp.PVNameList.Count do
+    begin
+        pDERNames.Add('pvsystem.' + pExp.PVNameList.Strings[i]);
+        inc(i);
+    end;
     pMonBuses.Clear;
 
     if pExp.QMaxLead > CatBQmin then // catB estimate
@@ -2628,16 +2657,17 @@ begin
     else
         SetDefaults(false);
 
+    VV_enabled := true;
     VV_vRefAutoModeEnabled := true;
     VV_vRefOlrt := pExp.VregTau;
     VV_curveQ1 := pExp.QMaxLead;
     VV_curveQ2 := VV_curveQ1;
     VV_curveQ3 := -pExp.QMaxLag;
     VV_curveQ4 := VV_curveQ3;
-    VV_curveV1 := 0.90;
+    VV_curveV1 := 0.50;
     VV_curveV2 := 1.0 - VV_curveQ2 / pExp.QVSlope;
     VV_curveV3 := 1.0 - VV_curveQ3 / pExp.QVSlope;  // - because Q3 should be negative
-    VV_curveV4 := 1.10;
+    VV_curveV4 := 1.50;
 end;
 
 procedure TIEEE1547Controller.SetDefaults(bCatB: Boolean);
@@ -3350,9 +3380,9 @@ begin
                     pInv := InvControls2.Next;
                 end;
                 pExp := ExpControls.First;
-                while pInv <> nil do
+                while pExp <> nil do
                 begin
-                    if pInv.Enabled then
+                    if pExp.Enabled then
                     begin
                         pI1547.PullFromExpControl(pExp);
                         pI1547.WriteCIM(DynPrf);
