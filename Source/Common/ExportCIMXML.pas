@@ -1130,12 +1130,12 @@ procedure BatteryStateEnum(prf: ProfileChoice; val: Integer);
 var
     str: String;
 begin
-    str := 'Waiting';
+    str := 'waiting';
     if val = STORE_CHARGING then
-        str := 'Charging'
+        str := 'charging'
     else
     if val = STORE_DISCHARGING then
-        str := 'Discharging';
+        str := 'discharging';
     FD.WriteCimLn(prf, Format('  <cim:BatteryUnit.batteryState rdf:resource="%s#BatteryState.%s"/>',
         [CIM_NS, str]));
 end;
@@ -2658,6 +2658,7 @@ begin
     else
         SetDefaults(false);
 
+    PF_enabled := false;
     VV_enabled := true;
     VV_vRefAutoModeEnabled := true;
     VV_vRefOlrt := pExp.VregTau;
