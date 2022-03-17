@@ -73,6 +73,13 @@ type
         function Get_CurrentsMagAng: Olevariant; SAFECALL;
         function Get_VoltagesMagAng: Olevariant; SAFECALL;
         function Get_TotalPowers: Olevariant; SAFECALL;
+        function Get_VariableByName(const MyVarName: Widestring; out Code: Integer): Double;
+            SAFECALL;
+        procedure Set_VariableByName(const MyVarName: Widestring; out Code: Integer; Value: Double);
+            SAFECALL;
+        function Get_VariableByIndex(Idx: Integer; out Code: Integer): Double; SAFECALL;
+        procedure Set_VariableByIndex(Idx: Integer; out Code: Integer; Value: Double); SAFECALL;
+
     end;
 
 implementation
@@ -1514,6 +1521,134 @@ begin
         end
     else
         Result := VarArrayCreate([0, 0], varDouble);
+
+end;
+
+function TCktElement.Get_VariableByName(const MyVarName: Widestring; out Code: Integer): Double;
+
+var
+    pPCElem: TPCElement;
+    VarIndex: Integer;
+
+begin
+    Result := 0.0;
+    Code := 1; // Signifies an error; no value set
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        VarIndex := pPCElem.LookupVariable(MyVarName);
+                        if (VarIndex > 0) and (VarIndex <= pPCElem.NumVariables) then
+                        begin
+                            Result := pPCElem.Variable[VarIndex];
+                            Code := 0;  // Signify result is OK.
+                        end;
+                    end;
+
+         {Else zero-length array null string}
+                end
+        end;
+
+end;
+
+procedure TCktElement.Set_VariableByName(const MyVarName: Widestring; out Code: Integer;
+    Value: Double);
+var
+    pPCElem: TPCElement;
+    VarIndex: Integer;
+
+begin
+    Code := 1; // Signifies an error; no value set
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        VarIndex := pPCElem.LookupVariable(MyVarName);
+                        if (VarIndex > 0) and (VarIndex <= pPCElem.NumVariables) then
+                        begin
+                            pPCElem.Variable[VarIndex] := Value;
+                            Code := 0;  // Signify value is set
+                        end;
+                    end;
+
+         {Else zero-length array null string}
+                end
+        end;
+
+end;
+
+function TCktElement.Get_VariableByIndex(Idx: Integer; out Code: Integer): Double;
+
+{Get Value of a variable by index}
+var
+    pPCElem: TPCElement;
+
+begin
+    Result := 0.0;
+    Code := 1; // Signifies an error; no value set
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        if (Idx > 0) and (Idx <= pPCElem.NumVariables) then
+                        begin
+                            Result := pPCElem.Variable[Idx];
+                            Code := 0;  // Signify result is OK.
+                        end;
+                    end;
+
+         {Else zero-length array null string}
+                end
+        end;
+
+end;
+
+procedure TCktElement.Set_VariableByIndex(Idx: Integer; out Code: Integer; Value: Double);
+
+{Set Value of a variable by index}
+var
+    pPCElem: TPCElement;
+
+begin
+    Code := 1; // Signifies an error; no value set
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        if (Idx > 0) and (Idx <= pPCElem.NumVariables) then
+                        begin
+                            pPCElem.Variable[Idx] := Value;
+                            Code := 0;  // Signify operation executed OK.
+                        end;
+                    end;
+
+         {Else zero-length array null string}
+                end
+        end;
 
 end;
 
