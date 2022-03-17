@@ -183,7 +183,7 @@ type
         FDRCMode: Boolean; //boolean indicating if under DRC mode from InvControl
         FWPMode: Boolean; //boolean indicating if under watt-pf mode from InvControl
         FWVMode: Boolean; //boolean indicating if under watt-var mode from InvControl
-
+        FAVRMode: Boolean; //boolean indicating whether under AVR mode from ExpControl (or InvControl, but that does not seem to be implemented yet)
 
         procedure CalcDailyMult(Hr: Double; ActorID: Integer);
         procedure CalcDutyMult(Hr: Double; ActorID: Integer);
@@ -266,6 +266,9 @@ type
         procedure Set_DRCmode(const Value: Boolean);
         function Get_DRCmode: Boolean;
 
+        procedure Set_AVRmode(const Value: Boolean);
+        function Get_AVRmode: Boolean;
+
         procedure Set_VWmode(const Value: Boolean);
         procedure kWOut_Calc;
 
@@ -290,6 +293,7 @@ type
         function Get_acVmax: Double;
         function Get_sMaxCharge: Double;
         function Get_pMaxCharge: Double;
+        function Get_CIMDynamicMode: Boolean;
 
     PROTECTED
         procedure Set_ConductorClosed(Index: Integer; ActorID: Integer; Value: Boolean); OVERRIDE;
@@ -400,6 +404,7 @@ type
         property WPmode: Boolean READ Get_WPmode WRITE Set_WPmode;
         property WVmode: Boolean READ Get_WVmode WRITE Set_WVmode;
         property DRCmode: Boolean READ Get_DRCmode WRITE Set_DRCmode;
+        property AVRmode: Boolean READ Get_AVRmode WRITE Set_AVRmode;
         property InverterON: Boolean READ Get_InverterON WRITE Set_InverterON;
         property CutOutkWAC: Double READ Get_CutOutkWAC;
         property CutInkWAC: Double READ Get_CutInkWAC;
@@ -433,6 +438,8 @@ type
         property pMaxOverPF: Double READ Get_pMaxOverPF;
         property pMaxCharge: Double READ Get_pMaxCharge;
         property apparentPowerChargeMax: Double READ Get_sMaxCharge;
+        property UsingCIMDynamics: Boolean READ Get_CIMDynamicMode;
+
     end;
 
 var
@@ -1226,6 +1233,7 @@ begin
             FDRCMode := OtherStorageObj.FDRCMode;
             FWPMode := OtherStorageObj.FWPMode;
             FWVMode := OtherStorageObj.FWVMode;
+            FAVRMode := OtherStorageObj.FAVRMode;
 
             UserModel.Name := OtherStorageObj.UserModel.Name;  // Connect to user written models
             DynaModel.Name := OtherStorageObj.DynaModel.Name;
@@ -1435,6 +1443,7 @@ begin
     FDRCMode := false;
     FWPMode := false;
     FWVMode := false;
+    FAVRMode := false;
 
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
@@ -4220,6 +4229,16 @@ end;
 
 //----------------------------------------------------------------------------
 
+function TStorageObj.Get_AVRmode: Boolean;
+begin
+    if FAVRmode then
+        Result := true
+    else
+        Result := false;
+end;
+
+//----------------------------------------------------------------------------
+
 function TStorageObj.Get_CutOutkWAC: Double;
 begin
     Result := FCutOutkWAC;
@@ -4304,6 +4323,11 @@ end;
 function TStorageObj.Get_pMaxCharge: Double;
 begin
     Result := abs(Get_Pmin);
+end;
+
+function TStorageObj.Get_CIMDynamicMode: Boolean;
+begin
+    Result := FVWMode or FVVMode or FWVMode or FAVRMode or FDRCMode; // FWPMode not in CIM Dynamics
 end;
 
 // ===========================================================================================
@@ -4396,6 +4420,13 @@ end;
 procedure TStorageObj.Set_DRCmode(const Value: Boolean);
 begin
     FDRCmode := Value;
+end;
+
+//----------------------------------------------------------------------------
+
+procedure TStorageObj.Set_AVRmode(const Value: Boolean);
+begin
+    FAVRmode := Value;
 end;
 
 //----------------------------------------------------------------------------

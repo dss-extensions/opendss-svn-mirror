@@ -782,26 +782,29 @@ begin
         begin
             PVSys := PVSysClass.Find(FPVSystemNameList.Strings[i - 1]);
             if Assigned(PVSys) and PVSys.Enabled then
+            begin
                 FPVSystemPointerList.New := PVSys;
+                PVSys.AVRmode := true;
+            end;
         end;
     end
     else
     begin
-     {Search through the entire circuit for enabled pvsysten objects and add them to the list}
+     {Search through the entire circuit for enabled pvsystem objects and add them to the list}
         for i := 1 to PVSysClass.ElementCount do
         begin
             PVSys := PVSysClass.ElementList.Get(i);
             if PVSys.Enabled then
+            begin
                 FPVSystemPointerList.New := PVSys;
-            FPVSystemNameList.Add(PVSys.Name);
+                PVSys.AVRmode := true;
+                FPVSystemNameList.Add(PVSys.Name);
+            end;
         end;
         FListSize := FPVSystemPointerList.ListSize;
-
         SetLength(ControlledElement, FListSize + 1);
-
         SetLength(FPriorVpu, FListSize + 1);
         SetLength(FPresentVpu, FListSize + 1);
-
         SetLength(FPendingChange, FListSize + 1);
         SetLength(FLastIterQ, FListSize + 1);
         SetLength(FLastStepQ, FListSize + 1);
