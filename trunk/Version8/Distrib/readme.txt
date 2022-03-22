@@ -1,12 +1,22 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 9.4.0.3
+Version 9.4.1.1
 
 Changes this version
 ====================
+
+- The ActiveCktelement interface includes new properties to allow users get/set state variables by name or index in the active circuit element. 
+- Corrects a recent bug introduced while fixing pu values for VSource when working on Dynamics mode.
+- Fixes version sync between exe, COM and DLL versions.
+- Solves old bug located within the fmonitor variables (proposed by UCF). 
+- Fixes DumpProperties procedures for conductor objects by utilizing the proper indexing. 
+- Brings back GetPropertyValue functions for ConductorData and child classes that allows properties to be kept in synch. Fixed indexing that was preventing those functions from properly working
+- Adds conditional compiles for debugging during Dynamic mode. Update comments in Vsource.
+- Fix bug in Dynamics calc where PerUnit was not taken into account.
+- Fixes issue when reporting Elements in class.
 - Normalizes the progress form.
 - Solves an issue detected when presenting the help form, the button at the bottom were missing.
 - Solves a bug inserted when updating the sequence impedance entries through COM/DLL.
