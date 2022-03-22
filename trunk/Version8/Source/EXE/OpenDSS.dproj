@@ -6,10 +6,10 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>19.3</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
@@ -120,11 +120,12 @@
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <DCC_ExeOutput>..\x86</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=9.4.0.6;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2022 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X86 Release Version Distribution System Simulator;FileVersion=9.4.1.1;InternalName=OpenDSS;LegalCopyright=Copyright (C) 2008-2022 EPRI, All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductName=OpenDSS;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_MajorVer>9</VerInfo_MajorVer>
         <VerInfo_MinorVer>4</VerInfo_MinorVer>
-        <VerInfo_Build>6</VerInfo_Build>
+        <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <Icon_MainIcon>OpenDSS_Icon3.ico</Icon_MainIcon>
@@ -132,11 +133,12 @@
         <VerInfo_AutoGenVersion>false</VerInfo_AutoGenVersion>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_ExeOutput>..\x64</DCC_ExeOutput>
-        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=9.4.0.6;InternalName=;LegalCopyright=Copyright (C) 2008-2022 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=EPRI;FileDescription=X64 Release Version OpenDSS;FileVersion=9.4.1.1;InternalName=;LegalCopyright=Copyright (C) 2008-2022 EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFilename=;ProductVersion=8.3;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_MajorVer>9</VerInfo_MajorVer>
         <VerInfo_MinorVer>4</VerInfo_MinorVer>
-        <VerInfo_Build>6</VerInfo_Build>
+        <VerInfo_Build>1</VerInfo_Build>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
