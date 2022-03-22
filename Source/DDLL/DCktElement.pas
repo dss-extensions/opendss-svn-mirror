@@ -22,13 +22,19 @@ uses
     Utilities;
 
 var
-    i, count, low: Integer;
     ctrl: TDSSCktElement;
     pPCElem: TPCElement;
     pPDElem: TPDElement;
     BData: Wordbool;
-    numcond, n, iV: Integer;
-    Volts, cResid: Complex;
+    i,
+    count,
+    low,
+    numcond,
+    n,
+    iV,
+    VarIdx: Integer;
+    Volts,
+    cResid: Complex;
     cBuffer: pComplexArray;
     S: String;
 
@@ -153,6 +159,7 @@ function CktElementI(mode: Longint; arg: Longint): Longint; CDECL;
 var
     pCktElement: TDSSCktElement;
     iControl: Integer;
+    pPCElem: TPCElement;
 
 begin
     Result := 0;  // Default return value
@@ -333,6 +340,30 @@ begin
                 BData := false;
             if ActiveCircuit[ActiveActor] <> nil then
                 ActiveCircuit[ActiveActor].ActiveCktElement.Enabled := BData;
+        end;
+        14:
+        begin                                   // CktElement.ActiveVariableIndex -Write
+            Result := -1; // Signifies an error; no variable found
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if ActiveCktElement <> nil then
+                        with ActiveCktElement do
+                        begin
+
+                            if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                            begin
+                                pPCElem := (ActiveCktElement as TPCElement);
+                                if (Arg > 0) and (Arg <= pPCElem.NumVariables) then
+                                begin
+                                    Result := 0;  // the variable seems to exist
+                                    VarIdx := Arg;
+                                end;
+                            end;
+
+                 {Else zero-length array null string}
+                        end
+                end;
         end
     else
         Result := -1;
@@ -418,6 +449,41 @@ begin
                {Else zero-length array null string}
                         end
                 end;
+        end;
+        5:
+        begin                                        // CktElement.SetActiveVariable
+            Result := -1;
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if ActiveCktElement <> nil then
+                        with ActiveCktElement do
+                        begin
+
+                            if (VarIdx > 0) and (VarIdx <= pPCElem.NumVariables) then       //Checks that the active Idx is valid
+                            begin
+                                Result := 0;        // No error, the variable exists and is set
+                                pPCElem.Variable[VarIdx] := Arg;
+                            end
+
+                        end;
+                end;
+        end;
+        6:
+        begin                                        // CktElement.GetActiveVariable
+            Result := -1;
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if ActiveCktElement <> nil then
+                        with ActiveCktElement do
+                        begin
+
+                            if (VarIdx > 0) and (VarIdx <= pPCElem.NumVariables) then       //Checks that the active Idx is valid
+                                Result := pPCElem.Variable[VarIdx];        // No error, the variable exists and is returned
+
+                        end;
+                end;
         end
     else
         Result := -1;
@@ -484,6 +550,28 @@ begin
                         if ctrl <> nil then
                             Result := Pansichar(Ansistring(Format('%s.%s', [ctrl.ParentClass.Name, ctrl.Name])));
                     end;
+                end;
+        end;
+        6:
+        begin                                          // CktElement.ActiveVariableName
+            Result := Ansistring('Error');  // Signifies an error; the variable doesn't exist
+            if ActiveCircuit[ActiveActor] <> nil then
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if ActiveCktElement <> nil then
+                        with ActiveCktElement do
+                        begin
+
+                            if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                            begin
+                                pPCElem := (ActiveCktElement as TPCElement);
+                                VarIdx := pPCElem.LookupVariable(Arg);
+                                if (VarIdx > 0) and (VarIdx <= pPCElem.NumVariables) then
+                                    Result := Ansistring('OK');     // we are good, the variable seems
+                            end;
+
+           {Else zero-length array null string}
+                        end
                 end;
         end
     else
