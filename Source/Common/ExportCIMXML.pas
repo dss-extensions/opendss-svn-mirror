@@ -92,8 +92,8 @@ type
         XfLoc, LoadLoc, LineLoc, CapLoc, Topo, ReacLoc, SolarLoc, BatteryLoc,
         OpLimV, OpLimI, LoadResp, CIMVer, PosPt, CoordSys, TopoIsland, Station,
         GeoRgn, SubGeoRgn, ZData, OpLimT, XfInfo, FdrLoc, OpLimAHi, OpLimALo,
-        OpLimBHi, OpLimBLo, MachLoc, PVPanels, Battery, SrcLoc, TankInfo, TankAsset,
-        TapInfo, TapCtrl, TapAsset, PUZ, WirePos, NormAmps, EmergAmps,
+        OpLimBHi, OpLimBLo, MachLoc, PVPanels, Battery, SrcLoc, TankInfo,
+        TapCtrl, PUZ, WirePos, NormAmps, EmergAmps,
         I1547NameplateData, I1547NameplateDataApplied, I1547Signal, I1547VoltVar,
         I1547WattVar, I1547ConstPF, I1547VoltWatt, I1547ConstQ);
 
@@ -945,14 +945,8 @@ begin
             key := 'Battery=';
         TankInfo:
             key := 'TankInfo=';
-        TankAsset:
-            key := 'TankAsset=';
-        TapInfo:
-            key := 'TapInfo=';
         TapCtrl:
             key := 'TapCtrl=';
-        TapAsset:
-            key := 'TapAsset=';
         PUZ:
             key := 'PUZ=';
         WirePos:
@@ -1282,53 +1276,11 @@ end;
 procedure XfmrTankPhasesAndGround(fprf: ProfileChoice; eprf: ProfileChoice; pXf: TTransfObj; bus: Integer);
 var
     ordered_phs, phs: String;
-    reversed: Boolean;
     j1, j2: Integer;
+    reverse_ground, wye_ground: Boolean;
 //  j, jmax: Integer;
 begin
 //  writeln(Format ('Xfmr Tank: %s end: %d Nconds: %d Nterms: %d Nphases: %d', [pXf.LocalName, bus, pXf.Nconds, pXf.Nterms, pXf.Nphases]));
-    reversed := false;
-    ordered_phs := PhaseOrderString(pXf, bus);
-    if (ordered_phs = 'BCA') or (ordered_phs = 'CAB') then
-    begin  // 'ABC' already fine
-        phs := 'ABC'
-    end
-    else
-    if (ordered_phs = 'ACB') or (ordered_phs = 'BAC') or (ordered_phs = 'CBA') then
-    begin
-        phs := 'ABC';
-        reversed := true
-    end
-    else
-    if (ordered_phs = 'BA') then
-    begin
-        phs := 'AB';
-        reversed := true
-    end
-    else
-    if (ordered_phs = 'CA') then
-    begin
-        phs := 'AC';
-        reversed := true
-    end
-    else
-    if (ordered_phs = 'CB') then
-    begin
-        phs := 'BC';
-        reversed := true
-    end
-    else
-    if (ordered_phs = 's2') then
-    begin
-        phs := 's2';
-        reversed := true
-    end
-    else
-    begin
-        phs := ordered_phs;
-    end;
-    FD.WriteCimLn(fprf, Format('  <cim:TransformerTankEnd.phases rdf:resource="%s#PhaseCode.%s"/>',
-        [CIM_NS, phs]));
   // interpret the grounding and reversal connections
 //  jmax := pXf.NConds * pXf.NTerms;
 //  for j := 1 to jmax do begin
@@ -1336,6 +1288,8 @@ begin
 //  end;
     j1 := (bus - 1) * pXf.NConds + 1;
     j2 := j1 + pXf.Nphases;
+    reverse_ground := false;
+    wye_ground := false;
 //  writeln(Format('  Testing %d and %d', [j1, j2]));
     if (pXf.Winding^[bus].Connection = 1) then
     begin // delta
@@ -1347,6 +1301,7 @@ begin
         BooleanNode(FunPrf, 'TransformerEnd.grounded', true);
         DoubleNode(EpPrf, 'TransformerEnd.rground', 0.0);
         DoubleNode(EpPrf, 'TransformerEnd.xground', 0.0);
+        wye_ground := true;
     end
     else
     if (pXf.NodeRef^[j1] = 0) then
@@ -1354,7 +1309,7 @@ begin
         BooleanNode(FunPrf, 'TransformerEnd.grounded', true);
         DoubleNode(EpPrf, 'TransformerEnd.rground', 0.0);
         DoubleNode(EpPrf, 'TransformerEnd.xground', 0.0);
-        reversed := true;
+        reverse_ground := true;
     end
     else
     if (pXf.Winding^[bus].Rneut < 0.0) then
@@ -1367,7 +1322,20 @@ begin
         DoubleNode(EpPrf, 'TransformerEnd.rground', pXf.Winding^[bus].Rneut);
         DoubleNode(EpPrf, 'TransformerEnd.xground', pXf.Winding^[bus].Xneut);
     end;
-    BooleanNode(fprf, 'TransformerTankEnd.reversed', reversed);
+    ordered_phs := PhaseOrderString(pXf, bus);
+    if (ordered_phs = 's1') then
+        ordered_phs := 's1N'
+    else
+    if (ordered_phs = 's2') then
+        ordered_phs := 'Ns2'
+    else
+    if reverse_ground then
+        ordered_phs := 'N' + ordered_phs
+    else
+    if wye_ground then
+        ordered_phs := ordered_phs + 'N';
+    FD.WriteCimLn(fprf, Format('  <cim:TransformerTankEnd.orderedPhases rdf:resource="%s#OrderedPhaseCodeKind.%s"/>',
+        [CIM_NS, ordered_phs]));
 end;
 
 procedure PhaseNode(prf: ProfileChoice; Root: String; val: String);
@@ -1902,20 +1870,14 @@ end;
 
 procedure WriteXfmrCode(pXfCd: TXfmrCodeObj);
 var
-    pName, pBank: TNamedObject;
+    pName: TNamedObject;
     ratShort, ratEmerg, val, Zbase, pctIexc: Double;
     i, j, seq: Integer;
 begin
     pName := TNamedObject.Create('dummy');
-    pBank := TNamedObject.Create('dummy');
     with pXfCd do
     begin
-        pBank.LocalName := pXfCd.Name + '_PowerXfInfo';
-        pBank.UUID := GetDevUuid(XfInfo, pXfCd.Name, 1);
-        StartInstance(CatPrf, 'PowerTransformerInfo', pBank);
-        EndInstance(CatPrf, 'PowerTransformerInfo');
         StartInstance(CatPrf, 'TransformerTankInfo', pXfCd);
-        RefNode(CatPrf, 'TransformerTankInfo.PowerTransformerInfo', pBank);
         EndInstance(CatPrf, 'TransformerTankInfo');
         ratShort := NormMaxHKVA / Winding^[1].kva;
         ratEmerg := EmergMaxHKVA / Winding^[1].kva;
@@ -3335,6 +3297,8 @@ begin
                     DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedU', pPV.Presentkv * 1000.0 * sqrt(3.0))
                 else
                     DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedU', pPV.Presentkv * 1000.0);
+                DoubleNode(EpPrf, 'PowerElectronicsConnection.maxQ', pPV.qMaxInj * 1000.0);
+                DoubleNode(EpPrf, 'PowerElectronicsConnection.minQ', -pPV.qMaxAbs * 1000.0);
                 UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
                 EndInstance(FunPrf, 'PowerElectronicsConnection');
                 AttachSolarPhases(pPV, geoUUID);
@@ -3376,6 +3340,8 @@ begin
                     DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedU', pBat.Presentkv * 1000.0 * sqrt(3.0))
                 else
                     DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedU', pBat.Presentkv * 1000.0);
+                DoubleNode(EpPrf, 'PowerElectronicsConnection.maxQ', pBat.qMaxInj * 1000.0);
+                DoubleNode(EpPrf, 'PowerElectronicsConnection.minQ', -pBat.qMaxAbs * 1000.0);
                 UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
                 EndInstance(FunPrf, 'PowerElectronicsConnection');
                 AttachStoragePhases(pBat, geoUUID);
@@ -3761,19 +3727,6 @@ begin
         while pXfCd <> nil do
         begin
             WriteXfmrCode(pXfCd);
-      // link to the transformers using this XfmrCode
-            pName1.LocalName := 'TankAsset_' + pXfCd.Name;
-            pName1.UUID := GetDevUuid(TankAsset, pXfCd.Name, 1);
-            StartInstance(CatPrf, 'Asset', pName1);
-            RefNode(CatPrf, 'Asset.AssetInfo', pXfCd);
-            pXf := ActiveCircuit[ActiveActor].Transformers.First;
-            while pXf <> nil do
-            begin
-                if pXf.XfmrCode = pXfCd.Name then
-                    RefNode(CatPrf, 'Asset.PowerSystemResources', pXf);
-                pXf := ActiveCircuit[ActiveActor].Transformers.Next;
-            end;
-            EndInstance(CatPrf, 'Asset');
             pXfCd := clsXfCd.ElementList.Next;
         end;
 
@@ -3823,6 +3776,8 @@ begin
                     begin
                         StartInstance(FunPrf, 'TransformerTank', pXf);
                         CircuitNode(FunPrf, ActiveCircuit[ActiveActor]);
+                        pXfCd := clsXfCd.Find(pXf.XfmrCode);
+                        RefNode(FunPrf, 'TransformerTank.TransformerTankInfo', pXfCd);
                         RefNode(FunPrf, 'TransformerTank.PowerTransformer', pBank);
                         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
                         EndInstance(FunPrf, 'TransformerTank');
@@ -3998,14 +3953,8 @@ begin
         begin
             with pReg do
             begin
-                pName1.LocalName := pReg.LocalName + '_Info';
-                pName1.UUID := GetDevUuid(TapInfo, pReg.LocalName, 1);
-                StartInstance(CatPrf, 'TapChangerInfo', pName1);
-                DoubleNode(CatPrf, 'TapChangerInfo.ptRatio', PT);
-                DoubleNode(CatPrf, 'TapChangerInfo.ctRatio', CT / 0.2);
-                DoubleNode(CatPrf, 'TapChangerInfo.ctRating', CT);
-                EndInstance(CatPrf, 'TapChangerInfo');
-
+                v1 := 120.0; // neutral voltage on secondary side
+                v1 := Transformer.BaseVoltage[TrWinding] / PT;
                 pName2.LocalName := pReg.LocalName + '_Ctrl';
                 pName2.UUID := GetDevUuid(TapCtrl, pReg.LocalName, 1);
                 StartInstance(FunPrf, 'TapChangerControl', pName2);
@@ -4030,9 +3979,14 @@ begin
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', 0.0)
                 end;
                 if UseLimit then
-                    DoubleNode(EpPrf, 'TapChangerControl.limitVoltage', VoltageLimit)
+                begin // maxLimitVoltage only in OpenDSS
+                    DoubleNode(EpPrf, 'TapChangerControl.maxLimitVoltage', VoltageLimit);
+                end
                 else
-                    DoubleNode(EpPrf, 'TapChangerControl.limitVoltage', 0.0);
+                begin
+                    DoubleNode(EpPrf, 'TapChangerControl.maxLimitVoltage', 1.05 * v1);
+                end;
+                DoubleNode(EpPrf, 'TapChangerControl.minLimitVoltage', 0.95 * v1);
                 UuidNode(GeoPrf, 'PowerSystemResource.Location',
                     GetDevUuid(XfLoc, Transformer.Name, 1));
                 EndInstance(FunPrf, 'TapChangerControl');
@@ -4047,22 +4001,18 @@ begin
                 IntegerNode(EpPrf, 'TapChanger.lowStep', -NumTaps div 2);
                 IntegerNode(EpPrf, 'TapChanger.neutralStep', 0);
                 IntegerNode(EpPrf, 'TapChanger.normalStep', 0);
-                DoubleNode(EpPrf, 'TapChanger.neutralU', 120.0 * PT);
+                DoubleNode(EpPrf, 'TapChanger.neutralU', v1 * PT);
                 DoubleNode(EpPrf, 'TapChanger.initialDelay', InitialDelay);
                 DoubleNode(EpPrf, 'TapChanger.subsequentDelay', SubsequentDelay);
                 BooleanNode(EpPrf, 'TapChanger.ltcFlag', true);
                 BooleanNode(SshPrf, 'TapChanger.controlEnabled', pReg.Enabled);
                 DoubleNode(SshPrf, 'TapChanger.step', TapNum);
+                DoubleNode(EpPrf, 'TapChanger.ptRatio', PT);
+                DoubleNode(EpPrf, 'TapChanger.ctRatio', CT / 0.2);
+                DoubleNode(EpPrf, 'TapChanger.ctRating', CT);
                 UuidNode(GeoPrf, 'PowerSystemResource.Location',
                     GetDevUuid(XfLoc, Transformer.Name, 1));
                 EndInstance(FunPrf, 'RatioTapChanger');
-
-                pName2.LocalName := 'TapChangerAsset_' + pReg.LocalName;
-                pName2.UUID := GetDevUuid(TapAsset, pReg.LocalName, 1);
-                StartInstance(CatPrf, 'Asset', pName2);
-                RefNode(CatPrf, 'Asset.AssetInfo', pName1);
-                RefNode(CatPrf, 'Asset.PowerSystemResources', pReg);
-                EndInstance(CatPrf, 'Asset');
             end;
             pReg := ActiveCircuit[ActiveActor].RegControls.Next;
         end;
