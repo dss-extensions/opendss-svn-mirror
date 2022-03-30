@@ -1277,23 +1277,19 @@ procedure XfmrTankPhasesAndGround(fprf: ProfileChoice; eprf: ProfileChoice; pXf:
 var
     ordered_phs, phs: String;
     j1, j2: Integer;
-    reverse_ground, wye_ground: Boolean;
-//  j, jmax: Integer;
+    reverse_ground, wye_ground, delta, wye_unground: Boolean;
 begin
-//  writeln(Format ('Xfmr Tank: %s end: %d Nconds: %d Nterms: %d Nphases: %d', [pXf.LocalName, bus, pXf.Nconds, pXf.Nterms, pXf.Nphases]));
-  // interpret the grounding and reversal connections
-//  jmax := pXf.NConds * pXf.NTerms;
-//  for j := 1 to jmax do begin
-//    writeln(Format ('  j: %d, noderef^[j]: %d', [j, pXf.NodeRef^[j]]));
-//  end;
     j1 := (bus - 1) * pXf.NConds + 1;
     j2 := j1 + pXf.Nphases;
     reverse_ground := false;
     wye_ground := false;
+    wye_unground := false;
+    delta := false;
 //  writeln(Format('  Testing %d and %d', [j1, j2]));
     if (pXf.Winding^[bus].Connection = 1) then
     begin // delta
         BooleanNode(fprf, 'TransformerEnd.grounded', false);
+        delta := true;
     end
     else
     if (pXf.NodeRef^[j2] = 0) then
@@ -1315,6 +1311,7 @@ begin
     if (pXf.Winding^[bus].Rneut < 0.0) then
     begin // probably wye ungrounded
         BooleanNode(FunPrf, 'TransformerEnd.grounded', false);
+        wye_unground := true;
     end
     else
     begin // not delta, not wye solidly grounded or ungrounded
@@ -1333,7 +1330,11 @@ begin
         ordered_phs := 'N' + ordered_phs
     else
     if wye_ground then
+        ordered_phs := ordered_phs + 'N'
+    else
+    if wye_unground then
         ordered_phs := ordered_phs + 'N';
+
     FD.WriteCimLn(fprf, Format('  <cim:TransformerTankEnd.orderedPhases rdf:resource="%s#OrderedPhaseCodeKind.%s"/>',
         [CIM_NS, ordered_phs]));
 end;
