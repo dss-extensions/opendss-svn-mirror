@@ -1,13 +1,13 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
-Copyright (c) 2017-2021, Battelle Memorial Institute
+Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
+Copyright (c) 2017-2022, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.2.17
-=========================
+opendsscmd version 1.7.0
+========================
 
-This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 8 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
+This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 9 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
 
 1 - There is no support for Windows COM automation, and no separate DLL version. (Use FNCS or HELICS instead)
 
@@ -176,6 +176,14 @@ Change Log
        - properly initialize list of CIM operational limits in a circuit with no Lines
        - fixes to CIM phase transpositions on lines and transformers
        - first implementation of the IEC 61970-302 CIM Dynamics profile for DER
+
+1.6.0  - exporting InvControl and ExpControl to the CIM Dynamics profile
+       - correction to CIM export of transformer magnetizing and exciting current
+
+1.7.0  - updated to version 9.4.1 model features from the Windows-only version
+       - updates for GMDM interoperability tests: orderedPhases, TapChanger, minQ, maxQ attributes
+       - updates for round-trip testing of CIM Dynamics and transformer connections
+       - improvements to ExpControl performance and static solutions
 
 Open Issues
 ===========
