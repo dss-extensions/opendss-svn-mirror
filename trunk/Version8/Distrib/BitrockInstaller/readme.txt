@@ -187,6 +187,7 @@ Change Log
 
 1.7.1  - export CIM leakage impedance as Z (was X)
        - distribute CIM load losses among short-circuit tests (was all on the first one)
+       - rename BatteryState to BatteryStateKind for CIM export
 
 Open Issues
 ===========
