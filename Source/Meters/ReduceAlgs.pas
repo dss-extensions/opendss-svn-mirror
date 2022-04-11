@@ -211,7 +211,7 @@ begin
                             with BranchList do
                             begin
      //   {****} WriteDLLDebugFile(Format('Processing Line.%s Bus1=%s Bus2=%s',[Uppercase(LineElement1.Name), LineElement1.GetBus(1), LineElement1.GetBus(2)]));
-                                if (PresentBranch.NumChildBranches = 0) and (PresentBranch.NumShuntObjects = 0) then
+                                if (PresentBranch.NumChildBranches = 0) and (PresentBranch.NumShuntObjects = 0) and (not ActiveCircuit[ActiveActor].Buses^[PresentBranch.ToBusReference].Keep) then
                                     LineElement1.Enabled := false     // just discard it
                                 else
                                 if (PresentBranch.NumChildBranches = 0) {****OR (PresentBranch.NumChildBranches>1)**} then                    {Merge with Parent and move shunt elements to TO node on parent branch}
