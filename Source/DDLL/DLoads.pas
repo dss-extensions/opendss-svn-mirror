@@ -459,6 +459,7 @@ end;
 function DSSLoadsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 var
     pLoad: TDSSCktElement;
+    Load: TLoadObj;
     ActiveSave: Integer;
     S: String;
     Found: Boolean;
@@ -468,14 +469,9 @@ begin
         0:
         begin                                     // Loads.Name - Read
             Result := Pansichar(Ansistring(''));
-            if ActiveCircuit[ActiveActor] <> nil then
-            begin
-                pLoad := ActiveCircuit[ActiveActor].ActiveCktElement;
-                if pLoad <> nil then
-                    Result := Pansichar(Ansistring(pLoad.Name))     // TODO PR getting any element name
-                else
-                    Result := Pansichar(Ansistring(''));  // signify no name
-            end;
+            load := ActiveLoad;
+            if load <> nil then
+                Result := Pansichar(Ansistring(Load.Name))
         end;
         1:
         begin                                     // Loads.Name - Write
