@@ -1578,6 +1578,7 @@
         <DCCReference Include="..\PCElements\generator.pas"/>
         <DCCReference Include="..\PCElements\GenUserModel.pas"/>
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
+        <DCCReference Include="..\General\DynamicExp.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
