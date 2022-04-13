@@ -126,7 +126,9 @@ begin
         end;
         5:
         begin                                   // Loads.Class  Read
-            Result := ActiveLoad.LoadClass;
+            pload := ActiveLoad;
+            if pload <> nil then
+                Result := pload.LoadClass;
         end;
         6:
         begin                                   // Loads.Class  Write
