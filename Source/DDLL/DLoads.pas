@@ -126,12 +126,7 @@ begin
         end;
         5:
         begin                                   // Loads.Class  Read
-            if ActiveCircuit[ActiveActor] <> nil then
-            begin
-                pload := ActiveCircuit[ActiveActor].Loads.Active;
-                if pload <> nil then
-                    Result := pload.LoadClass;
-            end;
+            Result := ActiveLoad.LoadClass;
         end;
         6:
         begin                                   // Loads.Class  Write

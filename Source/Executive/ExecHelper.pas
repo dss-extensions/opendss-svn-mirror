@@ -424,9 +424,14 @@ function DoRedirect(IsCompile: Boolean): Integer;
 
 var
     Fin: TextFile;
-    ParamName, InputLine, CurrDir, SaveDir: String;
+    ParamName,
+    InputLine,
+    CurrDir,
+    SaveDir: String;
     LocalCompFileName: String;
     InBlockComment: Boolean;
+    idx,
+    NumOfTimes: Integer;
 
 begin
     Result := 0;
@@ -504,7 +509,17 @@ begin
 
                         if not InBlockComment then   // process the command line
                             if not SolutionAbort then
-                                ProcessCommand(InputLine)
+                            begin
+                                NumOfTimes := 1;
+                                if AllActors then
+                                    NumOfTimes := NumOfActors;
+                                for idx := 1 to NumOfTimes do
+                                begin
+                                    if AllActors then
+                                        ActiveActor := idx;
+                                    ProcessCommand(InputLine)
+                                end;
+                            end
                             else
                                 Redirect_Abort := true;  // Abort file if solution was aborted
 
