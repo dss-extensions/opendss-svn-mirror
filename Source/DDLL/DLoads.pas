@@ -44,12 +44,18 @@ end;
 procedure Set_Parameter(const parm: String; const val: String);
 var
     cmd: String;
+    pLoad: TLoadObj;
 begin
-    if not Assigned(ActiveCircuit[ActiveActor]) then
-        exit;
-    SolutionAbort := false;  // Reset for commands entered from outside
-    cmd := Format('load.%s.%s=%s', [ActiveLoad.Name, parm, val]);
-    DSSExecutive[ActiveActor].Command := cmd;
+    if Assigned(ActiveCircuit[ActiveActor]) then
+    begin
+        pload := ActiveLoad;
+        if pload <> nil then
+        begin
+            SolutionAbort := false;  // Reset for commands entered from outside
+            cmd := Format('load.%s.%s=%s', [pload.Name, parm, val]);
+            DSSExecutive[ActiveActor].Command := cmd;
+        end;
+    end;
 end;
 //*********************Properties int Type***********************************
 function DSSLoads(mode: Longint; arg: Longint): Longint; CDECL;
