@@ -250,16 +250,16 @@ begin
     Reallocmem(ComplexBuffer, 0);
 
     if assigned(ControlElementList) then
-        ControlElementList.Free;
+        FreeAndNil(ControlElementList);
 
 
     {Dispose YPrims}
-    if Yprim_Series <> nil then
-        Yprim_Series.Free;
-    if Yprim_Shunt <> nil then
-        Yprim_Shunt.Free;
-    if Yprim <> nil then
-        Yprim.Free;
+    if Assigned(Yprim_Series) then
+        FreeAndNil(Yprim_Series);
+    if Assigned(Yprim_Shunt) then
+        FreeAndNil(Yprim_Shunt);
+    if Assigned(Yprim) then
+        FreeAndNil(Yprim);
 
     inherited Destroy;
 end;

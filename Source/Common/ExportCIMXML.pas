@@ -747,14 +747,24 @@ begin
 end;
 
 procedure FreeBankList;
+var
+    i: Integer;
 begin
     BankHash.Free;
+    for i := 0 to High(BankList) do
+        if Assigned(BankList[i]) then
+            FreeAndNil(BankList[i]);
     BankList := nil;
 end;
 
 procedure FreeOpLimitList;
+var
+    i: Integer;
 begin
     OpLimitHash.Free;
+    for i := 0 to High(OpLimitList) do
+        if Assigned(OpLimitList[i]) then
+            FreeAndNil(OpLimitList[i]);
     OpLimitList := nil;
 end;
 
@@ -1401,6 +1411,7 @@ begin
             GetDevUuid(LineLoc, pLine.Name, 1));
         EndInstance(FunPrf, 'ACLineSegmentPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachSwitchPhases(pLine: TLineObj);
@@ -1442,6 +1453,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', GetDevUuid(LineLoc, pLine.Name, 1));
         EndInstance(FunPrf, 'SwitchPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachCapPhases(pCap: TCapacitorObj; geoUUID: TUuid; sections: Double);
@@ -1477,6 +1489,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
         EndInstance(FunPrf, 'LinearShuntCompensatorPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachSecondaryPhases(pLoad: TLoadObj; geoUUID: TUuid; pPhase: TNamedObject; p, q: Double; phs: String);
@@ -1525,11 +1538,13 @@ begin
         begin
             AttachSecondaryPhases(pLoad, geoUUID, pPhase, p, q, 's1');
             AttachSecondaryPhases(pLoad, geoUUID, pPhase, p, q, 's2');
+            pPhase.Destroy;
             exit;
         end
         else
         begin
             AttachSecondaryPhases(pLoad, geoUUID, pPhase, p, q, s);
+            pPhase.Destroy;
             exit;
         end;
     end;
@@ -1547,6 +1562,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
         EndInstance(FunPrf, 'EnergyConsumerPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachSecondaryGenPhases(pGen: TGeneratorObj; geoUUID: TUuid; pPhase: TNamedObject; p, q: Double; phs: String);
@@ -1586,11 +1602,13 @@ begin
         begin
             AttachSecondaryGenPhases(pGen, geoUUID, pPhase, p, q, 's1');
             AttachSecondaryGenPhases(pGen, geoUUID, pPhase, p, q, 's2');
+            pPhase.Destroy;
             exit;
         end
         else
         begin
             AttachSecondaryGenPhases(pGen, geoUUID, pPhase, p, q, s);
+            pPhase.Destroy;
             exit;
         end;
     end;
@@ -1608,6 +1626,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
         EndInstance(FunPrf, 'SynchronousMachinePhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachSecondarySolarPhases(pPV: TPVSystemObj; geoUUID: TUuid; pPhase: TNamedObject; p, q: Double; phs: String);
@@ -1647,11 +1666,13 @@ begin
         begin
             AttachSecondarySolarPhases(pPV, geoUUID, pPhase, p, q, 's1');
             AttachSecondarySolarPhases(pPV, geoUUID, pPhase, p, q, 's2');
+            pPhase.Destroy;
             exit;
         end
         else
         begin
             AttachSecondarySolarPhases(pPV, geoUUID, pPhase, p, q, s);
+            pPhase.Destroy;
             exit;
         end;
     end;
@@ -1669,6 +1690,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
         EndInstance(FunPrf, 'PowerElectronicsConnectionPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure AttachSecondaryStoragePhases(pBat: TStorageObj; geoUUID: TUuid; pPhase: TNamedObject; p, q: Double; phs: String);
@@ -1708,11 +1730,13 @@ begin
         begin
             AttachSecondaryStoragePhases(pBat, geoUUID, pPhase, p, q, 's1');
             AttachSecondaryStoragePhases(pBat, geoUUID, pPhase, p, q, 's2');
+            pPhase.Destroy;
             exit;
         end
         else
         begin
             AttachSecondaryStoragePhases(pBat, geoUUID, pPhase, p, q, s);
+            pPhase.Destroy;
             exit;
         end;
     end;
@@ -1730,6 +1754,7 @@ begin
         UuidNode(GeoPrf, 'PowerSystemResource.Location', geoUUID);
         EndInstance(FunPrf, 'PowerElectronicsConnectionPhase');
     end;
+    pPhase.Destroy;
 end;
 
 procedure WriteLoadModel(Name: String; ID: TUuid;
@@ -3712,6 +3737,7 @@ begin
                     clsXfCd.NewObject(sBank);
                     clsXfCd.Code := sBank;
                     pXfCd := ActiveXfmrCodeObj;
+                    DSSObjs[ActiveActor].Add(pXfCd); // this is how ExecHelper.pas keeps track of "General Objects" for cleanup
                     pXfCd.UUID := GetDevUuid(TankInfo, pXfCd.Name, 1);
                     pXfCd.PullFromTransformer(pXf);
                     pXf.XfmrCode := pXfCd.Name;
@@ -3941,9 +3967,27 @@ begin
             EndInstance(FunPrf, 'PowerTransformer');
         end;
 
-        WdgList := nil;
-        CoreList := nil;
-        MeshList := nil;
+        if Assigned(WdgList) then
+        begin
+            for i := Low(WdgList) to High(WdgList) do
+                if Assigned(WdgList[i]) then
+                    FreeAndNil(WdgList[i]);
+            WdgList := nil;
+        end;
+        if Assigned(CoreList) then
+        begin
+            for i := Low(CoreList) to High(CoreList) do
+                if Assigned(CoreList[i]) then
+                    FreeAndNil(CoreList[i]);
+            CoreList := nil;
+        end;
+        if Assigned(MeshList) then
+        begin
+            for i := Low(MeshList) to High(MeshList) do
+                if Assigned(MeshList[i]) then
+                    FreeAndNil(MeshList[i]);
+            MeshList := nil;
+        end;
 
     // voltage regulators
         pReg := ActiveCircuit[ActiveActor].RegControls.First;
@@ -4419,8 +4463,21 @@ begin
             EndInstance(FunPrf, 'CurrentLimit');
         end;
 
-        pName1.Free;
-        pName2.Free;
+        FreeAndNil(pName1);
+        FreeAndNil(pName2);
+        FreeAndNil(pCRS);
+        FreeAndNil(pRegion);
+        FreeAndNil(pSubRegion);
+        FreeAndNil(pLocation);
+        FreeAndNil(pSubstation);
+        FreeAndNil(pSwing);
+        FreeAndNil(pIsland);
+        FreeAndNil(pNormLimit);
+        FreeAndNil(pEmergLimit);
+        FreeAndNil(pRangeALoLimit);
+        FreeAndNil(pRangeAHiLimit);
+        FreeAndNil(pRangeBLoLimit);
+        FreeAndNil(pRangeBHiLimit);
 
 //    FreeUuidList;  // this is deferred for UUID export
         FreeBankList;
@@ -4428,7 +4485,7 @@ begin
 
         GlobalResult := FileNm;
     finally
-        FD.Free;
+        FreeAndNil(FD);
     end;
 end;
 

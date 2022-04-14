@@ -240,20 +240,20 @@ var
 begin
     if (ActiveCircuit[ActiveActor] <> nil) then
     begin
+        ActiveCircuit[ActiveActor].NumCircuits := 0; // <<<< added, must preceed DisposeDSSClasses
+        FreeandNil(ActiveCircuit[ActiveActor]);      // <<<< added, must preceed DisposeDSSClasses
+
           {First get rid of all existing stuff}
         FreeAndNil(Circuits);
         Circuits := TPointerList.Create(2);         // Make a new list of circuits
         DisposeDSSClasses(false);
 
-        ActiveCircuit[ActiveActor].NumCircuits := 0; // <<<< added
-        FreeandNil(ActiveCircuit[ActiveActor]);             // <<<< added
            // In case the actor hasn't been destroyed
         if ActorHandle[ActiveActor] <> nil then
         begin
             ActorHandle[ActiveActor].Send_Message(EXIT_ACTOR);
             ActorHandle[ActiveActor].WaitFor;
             FreeandNil(ActorHandle[ActiveActor]);
-
         end;
 
             {Now, Start over}

@@ -178,6 +178,7 @@ end;
 destructor TLineGeometry.Destroy;
 
 begin
+    LineTypeList.Destroy;
     // ElementList and  CommandList freed in inherited destroy
     inherited Destroy;
 end;
@@ -944,9 +945,8 @@ begin
         begin
             newLineData.Nphases := FLineData.Nphases;
             newLineData.rhoearth := FLineData.rhoearth;
-        end
-        else
             FreeAndNil(FLineData);
+        end;
         FLineData := newLineData;
     end;
     FPhaseChoice^[ActiveCond] := newPhaseChoice;
@@ -963,23 +963,14 @@ begin
     if Assigned(FLineData) then
         FreeAndNil(FLineData);
 
-
   {Allocations}
     Reallocmem(FWireData, Sizeof(FWireData^[1]) * FNconds);
     Reallocmem(FX, Sizeof(FX^[1]) * FNconds);
     Reallocmem(FY, Sizeof(FY^[1]) * FNconds);
     Reallocmem(FUnits, Sizeof(Funits^[1]) * FNconds);
     Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
-
-    for i := 1 to FNconds do
-    begin
-        ActiveCond := i;
-        ChangeLineConstantsType(Overhead);    // works on activecond
-    end;
-
     FCondName := AllocStringArray(FNconds);
-
-{Initialize Allocations}
+  {Initialize Allocations}
     for i := 1 to FNconds do
         FWireData^[i] := nil;
     for i := 1 to FNconds do
@@ -988,8 +979,15 @@ begin
         FY^[i] := 0.0;
     for i := 1 to FNconds do
         FUnits^[i] := -1;  // default to ft
+    for i := 1 to FNconds do
+        FPhaseChoice^[i] := Unknown;
     FLastUnit := UNITS_FT;
 
+    for i := 1 to FNconds do
+    begin
+        ActiveCond := i;
+        ChangeLineConstantsType(Overhead);    // works on activecond
+    end;
 
 end;
 

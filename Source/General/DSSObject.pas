@@ -95,11 +95,13 @@ var
     i: Integer;
 
 begin
-    for i := 1 to ParentClass.NumProperties do
-        FPropertyValue^[i] := '';
-    Reallocmem(FPropertyValue, 0);
+    if Assigned(FPropertyValue) then
+    begin
+        for i := 1 to ParentClass.NumProperties do
+            FPropertyValue^[i] := '';
+        Reallocmem(FPropertyValue, 0);
+    end;
     Reallocmem(PrpSequence, 0);
-
     inherited Destroy;
 end;
 
