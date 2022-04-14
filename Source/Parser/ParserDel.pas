@@ -592,8 +592,11 @@ end;
 
 function TParser.ParseAsVector(ExpectedSize: Integer; VectorBuffer: pDoubleArray): Integer;
 var
-    ParseBufferPos, NumElements, i: Integer;
-    ParseBuffer, DelimSave: String;
+    ParseBufferPos,
+    NumElements,
+    i: Integer;
+    ParseBuffer,
+    DelimSave: String;
 
 begin
 
