@@ -874,6 +874,10 @@ begin
             Result := get_Cmatrix;
         12:
             Result := Format('%.g', [Basefrequency]); //  was defaultbasefrequency ??? 'baseFreq';
+        13:
+            Result := Format('%-.5g', [NormAmps]);
+        14:
+            Result := Format('%-.5g', [EmergAmps]);
         18:
             if ReduceByKron then
                 Result := 'Y'
