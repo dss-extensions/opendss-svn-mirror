@@ -130,14 +130,10 @@ uses
     Feeder,
     XfmrCode,
     Storage,
-//     Storage2,
     StorageController,
-//     StorageController2,
     SwtControl,
     PVSystem,
-//     PVSystem2,
     InvControl,
-//     InvControl2,
     GICLine,
     GICTransformer,
     VSConverter,
@@ -148,6 +144,7 @@ uses
     IndMach012,
     GICsource,
     AutoTrans,
+    DynamicExp,
      //by Dahei
     Generic5OrderMach,
      // By Dahei
@@ -266,6 +263,9 @@ begin
     FMonitorClass[ActiveActor] := TDSSFMonitor.Create;  // Have to do this AFTER Generator
     DSSClasses.New := FMonitorClass[ActiveActor];
     DSSClasses.New := TGeneric5.Create;
+
+   //-------------------------------------------------------------------------------
+    DSSClasses.New := TDynamicExp.Create;    //  dynamic expression obj - 04-19-2022
 
  { Create Classes for custom implementations }
     CreateMyDSSClasses;
