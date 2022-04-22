@@ -35,6 +35,7 @@ uses
     CktElement,
     Circuit,
     IniRegSave,
+    DynamicExp,
     {$IFNDEF FPC}
     System.IOUtils,
     {$IFNDEF CONSOLE}
@@ -278,6 +279,7 @@ Integer
     SolutionClass: array of TDSSClass;
     EnergyMeterClass: array of TEnergyMeter;
     FMonitorClass: array of TDSSFMonitor;      // By dahei UCF
+    TDynamicExpClass: array of TDynamicExp;
    // FeederClass        :TFeeder;
     MonitorClass: array of TDSSMonitor;
     SensorClass: array of TSensor;
@@ -1558,6 +1560,7 @@ initialization
     SetLength(ActorStatus, CPU_Cores + 1);
     SetLength(ActorMA_Msg, CPU_Cores + 1);
     SetLength(ActiveVSource, CPU_Cores + 1);
+    SetLength(TDynamicExpClass, CPU_Cores + 1);
 
     setlength(FMonitorClass, CPU_Cores + 1);    // by Dahei UCF
    // Init pointer repositories for the EnergyMeter in multiple cores

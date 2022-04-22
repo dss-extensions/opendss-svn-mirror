@@ -3,7 +3,7 @@ unit PCElement;
 {$M+}
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -17,7 +17,8 @@ uses
     Spectrum,
     Arraydef,
     Meterelement,
-    Fmonitor;
+    Fmonitor,
+    DynamicExp;
 
 type
     TPCElement = class(TDSSCktElement)
@@ -31,22 +32,25 @@ type
 
     PUBLIC
 
-
+        DynamicEq,                         // Name of the local Dynamic equation (if any)
         Spectrum: String;
         SpectrumObj: TSpectrumObj;
 
         MeterObj,  {Upline Energymeter}
-        SensorObj: TMeterElement; // Upline Sensor for this element
+        SensorObj: TMeterElement;    // Upline Sensor for this element
        {by Dahei}
         FMonObj: TFMonitorObj;
         cluster_num: Integer;
         NdNumInCluster: Integer;
-        nVLeaders: Integer;   // How many virtual leaders for this pcelement
+        nVLeaders: Integer;          // How many virtual leaders for this pcelement
         FMonObj2: TFMonitorObj;
         cluster_num2: Integer;
         NdNumInCluster2: Integer;
 
         InjCurrent: pComplexArray;
+        DynamicEqObj: TDynamicExpObj;   // Reference to the local Dynamic equation (if any)
+        DynamicEqVals: array of Double;
+        DynamicEqPair: array of Integer;
 
 
         constructor Create(ParClass: TDSSClass);
@@ -98,6 +102,10 @@ begin
     SensorObj := nil;
     MeterObj := nil;
     InjCurrent := nil;
+    DynamicEq := '';
+    DynamicEqObj := nil;
+    setlength(DynamicEqVals, 0);
+    setlength(DynamicEqPair, 0);
     FIterminalUpdated := false;
 
     DSSObjType := PC_ELEMENT;

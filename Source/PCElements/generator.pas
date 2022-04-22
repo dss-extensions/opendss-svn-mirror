@@ -102,7 +102,8 @@ uses
     GrowthShape,
     Spectrum,
     ArrayDef,
-    Dynamics;
+    Dynamics,
+    DynamicExp;
 
 const
     NumGenRegisters = 6;    // Number of energy meter registers
@@ -308,6 +309,7 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
+        function CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
 
         property PresentkW: Double READ Get_PresentkW WRITE Set_PresentkW;
         property Presentkvar: Double READ Get_Presentkvar WRITE Set_Presentkvar;
@@ -340,7 +342,7 @@ uses
     Utilities;
 
 const
-    NumPropsThisClass = 44;
+    NumPropsThisClass = 45;
   // Dispatch modes
     DEFAULT = 0;
     LOADMODE = 1;
@@ -503,6 +505,8 @@ begin
         'It only applies if UseFuel = Yes/True');
     AddProperty('Refuel', 44, 'It is a boolean value (Yes/True, No/False) that can be used to manually refuel the generator when needed. ' +
         'It only applies if UseFuel = Yes/True');
+    AddProperty('DynamicEq', 45, 'The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
+        'if not defined, the generator dynamics will follow the built-in dynamic equation.');
 
 
     ActiveProperty := NumPropsThisClass;
@@ -616,6 +620,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TGenerator.Edit(ActorID: Integer): Integer;
 var
+    Varidx,
     i,
     ParamPointer: Integer;
     ParamName: String;
@@ -746,10 +751,16 @@ begin
                             pctFuel := 100.0;
                             GenActive := true;
                         end;
+                    45:
+                        DynamicEq := Param;
 
                 else
+           // first, checks if there is a dynamic eq assigned, then
+           // checks if the new property edit the state variables within
+                    VarIdx := CheckIfDynVar(ParamName, ActorID);
            // Inherited parameters
-                    ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
+                    if VarIdx < 0 then
+                        ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
                 end;
 
             if ParamPointer > 0 then
@@ -811,6 +822,13 @@ begin
                         end;
                     26, 27:
                         kVANotSet := false;
+                    45:
+                    begin
+                        DynamicEqObj := TDynamicExpClass[ActorID].Find(DynamicEq);
+                        if Assigned(DynamicEqObj) then
+                            with DynamicEqObj do
+                                setlength(DynamicEqVals, NumVars);
+                    end;
                 end;
 
             ParamName := Parser[ActorID].NextParam;
@@ -990,8 +1008,8 @@ begin
     kvarMax := kvarBase * 2.0;
     kvarMin := -kvarmax;
     PFNominal := 0.88;
-  //   Rneut        := 0.0;
-  //   Xneut        := 0.0;
+  //   Rneut            := 0.0;
+  //   Xneut            := 0.0;
     YearlyShape := '';
     YearlyShapeObj := nil;  // if YearlyShapeobj = nil then the load alway stays nominal * global multipliers
     DailyDispShape := '';
@@ -1109,6 +1127,37 @@ begin
         LOGNORMAL:
             RandomMult := QuasiLognormal(YearlyShapeObj.Mean);
     end;
+end;
+
+//----------------------------------------------------------------------------
+{Evaluates if the value provided corresponds to a constant value or to an operand
+ for calculating the value using the simulation results}
+function TGeneratorObj.CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
+var
+    myOp: Integer;        // Operator found
+    myValue: String;         // Value entered by the user
+begin
+
+    if Assigned(DynamicEqObj) then
+    begin
+        Result := DynamicEqObj.Get_Var_Idx(myVar);
+        if (Result >= 0) and (Result < 50000) then
+        begin
+            myValue := Parser[ActorID].StrValue;
+            if (DynamicEqObj.Check_If_CalcValue(myValue, myOp)) then
+            begin
+        // Adss the pair (var index + operand index)
+                setlength(DynamicEqPair, length(DynamicEqPair) + 2);
+                DynamicEqPair[High(DynamicEqPair) - 1] := Result;
+                DynamicEqPair[High(DynamicEqPair)] := myOp;
+            end
+            else // Otherwise, move the value to the values array
+                DynamicEqVals[Result] := strtofloat(myValue);
+        end
+        else
+            Result := -1;
+    end;
+
 end;
 
 //----------------------------------------------------------------------------
@@ -2811,6 +2860,7 @@ begin
     PropertyValue[42] := '100.0';
     PropertyValue[43] := '20.0';
     PropertyValue[44] := 'No';
+    PropertyValue[45] := '';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

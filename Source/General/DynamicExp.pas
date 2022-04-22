@@ -41,6 +41,7 @@ type
         constructor Create;
         destructor Destroy; OVERRIDE;
 
+        function Find(const ObjName: String): Pointer;
         function Edit(ActorID: Integer): Integer; OVERRIDE;     // uses global parser
         function Init(Handle: Integer; ActorID: Integer): Integer; OVERRIDE;
         function NewObject(const ObjName: String): Integer; OVERRIDE;
@@ -54,11 +55,8 @@ type
     PRIVATE
         FNumvars: Integer;              // Number of state variables
         FvarNames: TStringList;          // List containing the state variable names
-        FVarConst,                                  // Array containing the numeric constants of the expression
-        FvarValues,                                 // Array containing the variable values of the expression
-        FvarInitValues: array of Double;      // Array containing the initial values of the state variables
-        FCmd,                                       // Sequence of commands that implement the expression
-        FvarIOType: array of Integer;     // Variable IO type
+        FVarConst: array of Double;      // Array containing the numeric constants of the expression
+        FCmd: array of Integer;     // Sequence of commands that implement the expression
         FActiveVar,                                 // Name of the active variable
         FXpression: String;               // Differential equiation in RPN format
 
@@ -74,6 +72,9 @@ type
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         function Get_Closer_Op(myExp: String; var myOp: String; var OpCode: Integer): Integer;
         function Get_Var_Idx(myVar: String): Integer;
+        function Check_If_CalcValue(myVal: String; var myOp: Integer): Boolean;
+
+        property NumVars: Integer READ FNumVars WRITE FNumVars;
 
 
     end;
@@ -99,7 +100,7 @@ uses
     math;
 
 const
-    NumPropsThisClass = 6;
+    NumPropsThisClass = 5;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TDynamicExp.Create;  // Creates superstructure for all DynamicExp objects
@@ -135,17 +136,15 @@ begin
 
     PropertyName[1] := 'nvariables';
     PropertyName[2] := 'varnames';
-    PropertyName[3] := 'varinit';
-    PropertyName[4] := 'var';
-    PropertyName[5] := 'varvalue';
-    PropertyName[6] := 'expression';
+    PropertyName[3] := 'var';
+    PropertyName[4] := 'varidx';
+    PropertyName[5] := 'expression';
 
     PropertyHelp[1] := '(Int) Number of state variables to be considered in the differential equation.';
     PropertyHelp[2] := '([String]) Array of strings with the names of the state variables.';
-    PropertyHelp[3] := '([dbl]) Array of doubles indicating the intial values of state variables.';
-    PropertyHelp[4] := '(String) Activates the state variable using the given name.';
-    PropertyHelp[5] := '(dbl) Floating point number indicating the value of the active state variable.';
-    PropertyHelp[6] := 'It is the differential expression using OpenDSS RPN syntax. The expression must be contained within brackets in case of having multiple equations, for example:' + CRLF + CRLF +
+    PropertyHelp[3] := '(String) Activates the state variable using the given name.';
+    PropertyHelp[4] := '(Int) read-only, returns the index of the active state variable.';
+    PropertyHelp[5] := 'It is the differential expression using OpenDSS RPN syntax. The expression must be contained within brackets in case of having multiple equations, for example:' + CRLF + CRLF +
         'expression = "[w dt = 1 M / (P_m D*w - P_e -) *]"';
 
 
@@ -162,6 +161,16 @@ begin
         ActiveDSSObject[ActiveActor] := TDynamicExpObj.Create(Self, ObjName);
         Result := AddObjectToList(ActiveDSSObject[ActiveActor]);
     end;
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TDynamicExp.Find(const ObjName: String): Pointer;
+begin
+    if (Length(ObjName) = 0) or (CompareText(ObjName, 'none') = 0) then
+        Result := nil
+    else
+        Result := inherited Find(ObjName);
 end;
 
 
@@ -203,7 +212,6 @@ begin
                 1:
                 begin
                     FNumVars := Parser[ActorID].IntValue;  // Use property value to force reallocations
-                    setlength(FVarValues, FNumVars);
                 end;
                 2:
                 begin
@@ -212,18 +220,8 @@ begin
                   // ensuring they are lower case
                     for idx := 0 to (FVarNames.Count - 1) do
                         FVarNames[idx] := LowerCase(FVarNames[idx]);
-                    if (FNumVars <> FVarnames.Count) then
-                    begin
-                        FNumVars := FVarNames.Count;
-                        setlength(FVarValues, FNumVars);
-                    end;
                 end;
                 3:
-                begin
-                    setlength(FVarInitValues, FNumVars);
-                    Parser[ActorID].ParseAsVector(FnumVars, @(FVarInitValues[0]))
-                end;
-                4:
                 begin
                     FActiveVar := LowerCase(Parser[ActorID].StrValue);
                     if not FVarNames.Find(FActiveVar, ActiveElement) then
@@ -235,17 +233,9 @@ begin
                 end;
                 5:
                 begin
-                    if ((ActiveElement < length(FVarValues)) and (ActiveElement >= 0)) then
-                        FVarValues[ActiveElement] := Parser[ActorID].DblValue
-                    else
-                        DoSimpleMsg('There is not valid DynamicExp active.', 50002);
-                end;
-                6:
-                begin
                     if (InterpretDiffEq(Parser[ActorID].StrValue)) then
                         DoSimpleMsg('There are errors in the differential equation.', 50003);
-                end
-
+                end;
             else
                 ClassEdit(ActiveDynamicExpObj, Parampointer - NumPropsThisClass)
             end;
@@ -316,7 +306,7 @@ end;
 
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //      TLineCode Obj
+  //      TDynamicExp Obj
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 constructor TDynamicExpObj.Create(ParClass: TDSSClass; const LineCodeName: String);
@@ -330,9 +320,6 @@ begin
     FActiveVar := '';
     FVarNames := TStringList.create;
     FVarNames.Clear;
-    setlength(FVarValues, 0);
-    setlength(FVarInitValues, 0);
-    setlength(FVarIOType, 0);
     setlength(FCmd, 0);
     setlength(FVarConst, 0);
 
@@ -340,12 +327,37 @@ begin
 end;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  {Checks if the given string is a value calculated by the element using the eq model}
+function TDynamicExpObj.Check_If_CalcValue(myVal: String; var myOp: Integer): Boolean;
+var
+    found: Boolean;
+    Val: String;
+    idx: Integer;
+const
+    ValNames: array [0..5] of String =
+        ('teminalp', 'teminalq', 'teminalvmag', 'teminalvang', 'teminalimag', 'teminaliang');
+
+begin
+    myOp := -1;
+    found := false;
+    Val := LowerCase(myVal);
+    for idx := 0 to High(ValNames) do
+    begin
+        if Val = ValNames[idx] then
+        begin
+            myOp := idx;
+            Found := true;
+            break;
+        end;
+    end;
+
+    Result := found;
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TDynamicExpObj.Destroy;
 begin
     FVarNames.Clear;
-    setlength(FVarValues, 0);
-    setlength(FVarInitValues, 0);
-    setlength(FVarIOType, 0);
     setlength(FVarConst, 0);
     inherited destroy;
 end;
@@ -381,8 +393,8 @@ var
 begin
     dblval := 0.0;
     Result := -1;   // error
-    for idx := 0 to High(FVarValues) do
-        if myVar = FVarNames[idx] then
+    for idx := 0 to (FVarNames.Count - 1) do
+        if Lowercase(myVar) = FVarNames[idx] then
         begin
             Result := idx;
             break;
