@@ -1156,7 +1156,11 @@ begin
                 Result := DailyTShape;
             propTDUTY:
                 Result := DutyTShape;
-        {propCONNECTION :;}
+            propCONNECTION:
+                if Connection = 0 then
+                    Result := 'wye'
+                else
+                    Result := 'delta';
             propKVAR:
                 Result := Format('%.6g', [kvar_out]);
             propPCTR:

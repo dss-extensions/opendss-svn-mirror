@@ -2643,6 +2643,11 @@ begin
             Result := Dailyshape;
         9:
             Result := Dutyshape;
+        11:
+            if Connection = 0 then
+                Result := 'wye'
+            else
+                Result := 'delta';
         12:
             Result := Format('%-g', [kvarbase]);
         22:
