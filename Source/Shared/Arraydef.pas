@@ -1,7 +1,7 @@
 unit Arraydef;
  {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -34,6 +34,9 @@ type
     pSingle = ^Single;
     pSmallInt = ^Smallint;
     pLongInt = ^Longint;
+
+    DynSlot = array [0..1] of Double; // dynamic memory slot, just 1 (z-1) slots for now
+    pDynSlot = ^DynSlot;
 
 function AllocStringArray(Size: Integer): pStringArray;
 procedure FreeStringArray(var pS: pStringArray; Size: Integer);

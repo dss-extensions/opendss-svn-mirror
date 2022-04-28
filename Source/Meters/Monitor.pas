@@ -743,7 +743,10 @@ begin
             case (Mode and MODEMASK) of
                 3:
                 begin
-                    NumStateVars := TPCElement(MeteredElement).Numvariables;
+                    if TPCElement(MeteredElement).DynamicEqObj = nil then
+                        NumStateVars := TPCElement(MeteredElement).Numvariables
+                    else
+                        NumStateVars := TPCElement(MeteredElement).DynamicEqObj.NumVars * length(TPCElement(MeteredElement).DynamicEqVals[0]);
                     ReallocMem(StateBuffer, Sizeof(StateBuffer^[1]) * NumStatevars);
                 end;
                 4:
@@ -815,8 +818,16 @@ begin
         case (Mode and MODEMASK) of
             3:
             begin
-                NumStateVars := TPCElement(MeteredElement).Numvariables;
-                ReallocMem(StateBuffer, Sizeof(StateBuffer^[1]) * NumStatevars);
+                if TPCElement(MeteredElement).DynamicEqObj = nil then
+                begin
+                    NumStateVars := TPCElement(MeteredElement).Numvariables;
+                    ReallocMem(StateBuffer, Sizeof(StateBuffer^[1]) * NumStatevars);
+                end
+                else
+                begin
+                    NumStateVars := TPCElement(MeteredElement).DynamicEqObj.NumVars * length(TPCElement(MeteredElement).DynamicEqVals[0]);
+                    ReallocMem(StateBuffer, Sizeof(StateBuffer^[1]) * NumStatevars);
+                end;
             end;
             4:
             begin
@@ -903,7 +914,10 @@ begin
                 RecordSize := NumStateVars;   // Statevariabes
                 for i := 1 to NumStateVars do
                 begin
-                    NameofState := Ansistring(TpcElement(MeteredElement).VariableName(i) + ',');
+                    if TpcElement(MeteredElement).DynamicEqObj = nil then
+                        NameofState := Ansistring(TpcElement(MeteredElement).VariableName(i) + ',')
+                    else
+                        NameofState := Ansistring(TpcElement(MeteredElement).DynamicEqObj.Get_VarName(i - 1) + ',');
                     Add2header(Pansichar(NameofState));
                 end;
             end;

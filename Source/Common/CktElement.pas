@@ -51,7 +51,11 @@ type
         function Get_Power(idxTerm: Integer; ActorID: Integer): Complex;    // Get total complex power in active terminal
         function Get_MaxPower(idxTerm: Integer; ActorID: Integer): Complex;    // Get equivalent total complex power in active terminal based on phase with max current
         function Get_MaxCurrent(idxTerm: Integer; ActorID: Integer): Double;    // Get equivalent total complex current on phase with max current
+        function Get_MaxCurrentAng(idxTerm: Integer; ActorID: Integer): Double; // Get equivalent angle of the total complex current on phase with max current
         function Get_MaxVoltage(idxTerm: Integer; ActorID: Integer): Double;    // Get equivalent total complex voltage on phase
+        function Get_MaxVoltageAng(idxTerm: Integer; ActorID: Integer): Double; // Get equivalent angle of the total complex voltage on phase
+
+        function Get_PCE_Value(idxTerm: Integer; ValType: Integer; ActorID: Integer): Double;     // Get a value for the active PCE such as P, Q, Vmag, IMag, etc.
 
 
         procedure DoYprimCalcs(Ymatrix: TCMatrix);
@@ -158,8 +162,11 @@ type
         property MaxPower[idxTerm: Integer; ActorID: Integer]: Complex READ Get_MaxPower;  // Total power in active terminal
         property MaxCurrent[idxTerm: Integer; ActorID: Integer]: Double READ Get_MaxCurrent;  // Max current in active terminal
         property MaxVoltage[idxTerm: Integer; ActorID: Integer]: Double READ Get_MaxVoltage;  // Max current in active terminal
+        property MaxCurrentAng[idxTerm: Integer; ActorID: Integer]: Double READ Get_MaxCurrentAng;  // Max current in active terminal
+        property MaxVoltageAng[idxTerm: Integer; ActorID: Integer]: Double READ Get_MaxVoltageAng;  // Max current in active terminal
         property ActiveTerminalIdx: Integer READ FActiveTerminal WRITE Set_ActiveTerminal;
         property Closed[Index: Integer;ActorID: Integer]: Boolean READ Get_ConductorClosed WRITE Set_ConductorClosed;
+        property PCEValue[Index: Integer; ValType: Integer; ActorID: Integer]: Double READ Get_PCE_Value;
         procedure SumCurrents(ActorID: Integer);
 
         procedure Get_Current_Mags(cMBuffer: pDoubleArray; ACtorID: Integer); // Returns the Currents vector in magnitude
@@ -891,6 +898,72 @@ begin
     Result := cabs(volts);
 end;
 
+function TDSSCktElement.Get_MaxVoltageAng(idxTerm: Integer; ActorID: Integer): Double;
+{Get Voltage angle at the specified terminal 04/26/2022}
+var
+    volts,
+    VN,
+    cPower: Complex;
+    ClassIdx,
+    i, k, l, m,
+    nrefN,
+    nref: Integer;
+    MaxCurr,
+    CurrMag: Double;
+    MaxPhase: Integer;
+
+begin
+
+    ActiveTerminalIdx := idxTerm;   // set active Terminal
+    Cpower := CZERO;
+    if FEnabled then
+    begin
+        ComputeIterminal(ActorID);
+
+    // Method: Checks what's the phase with maximum current
+    // retunrs the voltage for that phase
+
+        MaxCurr := 0.0;
+        MaxPhase := 1;  // Init this so it has a non zero value
+        k := (idxTerm - 1) * Fnconds; // starting index of terminal
+        for i := 1 to Fnphases do
+        begin
+            CurrMag := Cabs(Iterminal[k + i]);
+            if CurrMag > MaxCurr then
+            begin
+                MaxCurr := CurrMag;
+                MaxPhase := i
+            end;
+        end;
+
+
+        ClassIdx := DSSObjType and CLASSMASK;              // gets the parent class descriptor (int)
+        nref := ActiveTerminal.TermNodeRef^[MaxPhase]; // reference to the phase voltage with the max current
+        nrefN := ActiveTerminal.TermNodeRef^[Fnconds];  // reference to the ground terminal (GND or other phase)
+        with ActiveCircuit[ActorID].Solution do     // Get power into max phase of active terminal
+        begin
+            if not ADiakoptics or (ActorID = 1) then
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := NodeV^[nref]
+                else
+                    volts := csub(NodeV^[nref], NodeV^[nrefN]);
+            end
+            else
+            begin
+                if not (ClassIdx = XFMR_ELEMENT) then  // Only for transformers
+                    volts := VoltInActor1(nref)
+                else
+                    volts := csub(VoltInActor1(nref), VoltInActor1(nrefN));
+            end;
+
+        end;
+    end;
+
+    Result := cang(volts);
+end;
+
+
 function TDSSCktElement.Get_MaxPower(idxTerm: Integer; ActorID: Integer): Complex;
 {Get power in the phase with the max current and return equivalent power as if it were balanced in all phases
  2/12/2019}
@@ -972,6 +1045,7 @@ begin
 end;
 
 function TDSSCktElement.Get_MaxCurrent(idxTerm: Integer; ActorID: Integer): Double;
+{returns the magnitude fo the maximum current at the element's terminal}
 var
     i, k,
     nref: Integer;
@@ -1001,6 +1075,67 @@ begin
     end;
 
     Result := MaxCurr;
+end;
+
+
+function TDSSCktElement.Get_MaxCurrentAng(idxTerm: Integer; ActorID: Integer): Double;
+{returns the angle fo the maximum current at the element's terminal}
+var
+    i, k,
+    nref: Integer;
+    CurrAng,
+    MaxCurr,
+    CurrMag: Double;
+    MaxPhase: Integer;
+
+begin
+    ActiveTerminalIdx := idxTerm;   // set active Terminal
+    MaxCurr := 0.0;
+    CurrAng := 0.0;
+    if FEnabled then
+    begin
+        ComputeIterminal(ActorID);
+    // Method: Get max current at terminal (magnitude)
+        MaxCurr := 0.0;
+        MaxPhase := 1;  // Init this so it has a non zero value
+        k := (idxTerm - 1) * Fnconds; // starting index of terminal
+        for i := 1 to Fnphases do
+        begin
+            CurrMag := Cabs(Iterminal[k + i]);
+            if CurrMag > MaxCurr then
+            begin
+                MaxCurr := CurrMag;
+                CurrAng := Cang(Iterminal[k + i]);
+                MaxPhase := i
+            end;
+        end;
+    end;
+
+    Result := CurrAng;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TDSSCktElement.Get_PCE_Value(idxTerm: Integer; ValType: Integer; ActorID: Integer): Double;
+begin
+
+    case ValType of
+        0, 7:
+            Result := -Power[1, actorID].re;             // P, P0
+        1, 8:
+            Result := -Power[1, actorID].im;             // Q, Q0
+        2:
+            Result := MaxVoltage[1, ActorID];             // VMag
+        3:
+            Result := MaxVoltageAng[1, ActorID];          // VAng
+        4:
+            Result := MaxCurrent[1, ActorID];             // IMag
+        5:
+            Result := MaxCurrentAng[1, ActorID];          // IAng
+        6:
+            Result := cabs(Power[1, actorID]);            // S
+    end;
+
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

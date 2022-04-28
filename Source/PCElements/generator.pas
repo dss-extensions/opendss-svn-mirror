@@ -1,7 +1,7 @@
 unit generator;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -310,6 +310,7 @@ type
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
         function CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
+        procedure SetDynOutput(myVar: String);
 
         property PresentkW: Double READ Get_PresentkW WRITE Set_PresentkW;
         property Presentkvar: Double READ Get_Presentkvar WRITE Set_Presentkvar;
@@ -339,10 +340,11 @@ uses
     MathUtil,
     DSSClassDefs,
     DSSGlobals,
-    Utilities;
+    Utilities,
+    Classes;
 
 const
-    NumPropsThisClass = 45;
+    NumPropsThisClass = 46;
   // Dispatch modes
     DEFAULT = 0;
     LOADMODE = 1;
@@ -507,7 +509,11 @@ begin
         'It only applies if UseFuel = Yes/True');
     AddProperty('DynamicEq', 45, 'The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
         'if not defined, the generator dynamics will follow the built-in dynamic equation.');
-
+    AddProperty('DynOut', 46, 'The name of the variables within the Dynamic equation that will be used to govern the generator dynamics.' +
+        'This generator model requires 2 outputs from the dynamic equation: ' + CRLF + CRLF +
+        '1. Shaft speed (velocity) relative to synchronous speed.' + CRLF +
+        '2. Shaft, or power, angle (relative to synchronous reference frame).' + CRLF + CRLF +
+        'The output variables need to be defined in tha strict order.');
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -650,7 +656,13 @@ begin
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
                 PropertyValue[PropertyIdxMap[ParamPointer]] := Param
             else
-                DoSimpleMsg('Unknown parameter "' + ParamName + '" for Generator "' + Name + '"', 560);
+            begin
+           // first, checks if there is a dynamic eq assigned, then
+           // checks if the new property edit the state variables within
+                VarIdx := CheckIfDynVar(ParamName, ActorID);
+                if VarIdx < 0 then
+                    DoSimpleMsg('Unknown parameter "' + ParamName + '" for Generator "' + Name + '"', 560);
+            end;
 
             if ParamPointer > 0 then
                 case PropertyIdxMap[ParamPointer] of
@@ -753,14 +765,12 @@ begin
                         end;
                     45:
                         DynamicEq := Param;
+                    46:
+                        SetDynOutput(Param);
 
                 else
-           // first, checks if there is a dynamic eq assigned, then
-           // checks if the new property edit the state variables within
-                    VarIdx := CheckIfDynVar(ParamName, ActorID);
            // Inherited parameters
-                    if VarIdx < 0 then
-                        ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
+                    ClassEdit(ActiveGeneratorObj, ParamPointer - NumPropsThisClass)
                 end;
 
             if ParamPointer > 0 then
@@ -1138,8 +1148,10 @@ var
     myValue: String;         // Value entered by the user
 begin
 
+    Result := -1;
     if Assigned(DynamicEqObj) then
     begin
+
         Result := DynamicEqObj.Get_Var_Idx(myVar);
         if (Result >= 0) and (Result < 50000) then
         begin
@@ -1152,12 +1164,48 @@ begin
                 DynamicEqPair[High(DynamicEqPair)] := myOp;
             end
             else // Otherwise, move the value to the values array
-                DynamicEqVals[Result] := strtofloat(myValue);
+                DynamicEqVals[Result][0] := Parser[ActorID].DblValue;
         end
         else
-            Result := -1;
+            Result := -1;     // in case is a constant
+
     end;
 
+end;
+
+//----------------------------------------------------------------------------
+{Obtains the indexes of the given variables to use them as reference for setting
+the dynamic output for the generator}
+procedure TGeneratorObj.SetDynOutput(myVar: String);
+var
+    VarIdx,
+    idx: Integer;
+    myStrArray: TStringList;
+begin
+    if DynamicEqObj <> nil then        // Making sure we have a dynamic eq linked
+    begin
+    // First, set the length for the index array, 2 variables in this case
+        setlength(DynOut, 2);
+        myStrArray := TStringList.Create;
+        InterpretTStringListArray(myVar, myStrArray);
+    // ensuring they are lower case
+        for idx := 0 to 1 do
+        begin
+
+            myStrArray[idx] := LowerCase(myStrArray[idx]);
+            VarIdx := DynamicEqObj.Get_Out_Idx(myStrArray[idx]);
+            if (VarIdx < 0) then
+        // Being here means that the given name doesn't exist or is a constant
+                DoSimpleMsg('DynamicExp variable "' + myStrArray[idx] + '" not found or not defined as an output.', 50008)
+            else
+                DynOut[idx] := VarIdx;
+
+        end;
+
+        myStrArray.Free;
+    end
+    else
+        DoSimpleMsg('A DynamicExp object needs to be assigned to this element before this declaration: DynOut = [' + myVar + ']', 50007);
 end;
 
 //----------------------------------------------------------------------------
@@ -2861,6 +2909,7 @@ begin
     PropertyValue[43] := '20.0';
     PropertyValue[44] := 'No';
     PropertyValue[45] := '';
+    PropertyValue[46] := '[]';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -2869,7 +2918,7 @@ end;
 procedure TGeneratorObj.InitStateVars(ActorID: Integer);
 var
     {VNeut,}
-
+    NumData,
     i: Integer;
     V012,
     I012: array[0..2] of Complex;
@@ -2883,7 +2932,7 @@ var
 
 begin
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
-
+    NumData := 0;
     with GenVars do
     begin
 
@@ -2966,37 +3015,63 @@ begin
                     SolutionAbort := true;
                 end;
 
-
-         // Shaft variables
-         // Theta is angle on Vthev[1] relative to system reference
-         //Theta  := Cang(Vthev^[1]);   // Assume source at 0
-                Theta := Cang(Edp);
-                if GenModel = 7 then
-                    Model7LastAngle := Theta;
-
-                dTheta := 0.0;
-                w0 := Twopi * ActiveCircuit[ActorID].Solution.Frequency;
-         // recalc Mmass and D in case the frequency has changed
-                with GenVars do
+                if DynamicEqObj = nil then
                 begin
-                    GenVars.Mmass := 2.0 * GenVars.Hmass * GenVars.kVArating * 1000.0 / (w0);   // M = W-sec
-                    D := Dpu * kVArating * 1000.0 / (w0);
-                end;
-                Pshaft := -Power[1, ActorID].re; // Initialize Pshaft to present power Output
+           // Shaft variables
+           // Theta is angle on Vthev[1] relative to system reference
+           //Theta  := Cang(Vthev^[1]);   // Assume source at 0
+                    Theta := Cang(Edp);
+                    if GenModel = 7 then
+                        Model7LastAngle := Theta;
 
-                Speed := 0.0;    // relative to synch speed
-                dSpeed := 0.0;
-
-         // Init User-written models
-         //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
-                with ActiveCircuit[ActorID].Solution do
-                    if GenModel = 6 then
+                    dTheta := 0.0;
+                    w0 := Twopi * ActiveCircuit[ActorID].Solution.Frequency;
+           // recalc Mmass and D in case the frequency has changed
+                    with GenVars do
                     begin
-                        if UserModel.Exists then
-                            UserModel.FInit(Vterminal, Iterminal);
-                        if ShaftModel.Exists then
-                            ShaftModel.Finit(Vterminal, Iterminal);
+                        GenVars.Mmass := 2.0 * GenVars.Hmass * GenVars.kVArating * 1000.0 / (w0);   // M = W-sec
+                        D := Dpu * kVArating * 1000.0 / (w0);
                     end;
+                    Pshaft := -Power[1, ActorID].re; // Initialize Pshaft to present power Output
+
+                    Speed := 0.0;    // relative to synch speed
+                    dSpeed := 0.0;
+
+           // Init User-written models
+           //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
+                    with ActiveCircuit[ActorID].Solution do
+                        if GenModel = 6 then
+                        begin
+                            if UserModel.Exists then
+                                UserModel.FInit(Vterminal, Iterminal);
+                            if ShaftModel.Exists then
+                                ShaftModel.Finit(Vterminal, Iterminal);
+                        end;
+
+                end
+                else
+                begin
+           // Initializes the memory values for the dynamic equation
+                    for i := 0 to High(DynamicEqVals) do
+                        DynamicEqVals[i][1] := 0.0;
+           // Check for initializations using calculated values (P0, Q0)
+                    NumData := (length(DynamicEqPair) div 2) - 1;
+                    for i := 0 to NumData do
+                        if DynamicEqObj.IsInitVal(DynamicEqPair[(i * 2) + 1]) then
+                        begin
+                            case DynamicEqPair[(i * 2) + 1] of
+                                9:
+                                begin
+                                    DynamicEqVals[DynamicEqPair[i * 2]][0] := Cang(Edp);
+                                    if GenModel = 7 then
+                                        Model7LastAngle := DynamicEqVals[DynamicEqPair[i * 2]][0];
+                                end;
+                            else
+                                DynamicEqVals[DynamicEqPair[i * 2]][0] := PCEValue[1, DynamicEqPair[(i * 2) + 1], ActorID];
+                            end;
+                        end;
+
+                end;
 
             end
         else
@@ -3014,65 +3089,108 @@ end;
 procedure TGeneratorObj.IntegrateStates(ActorID: Integer);
 
 var
+    temp: Double;
+    i,
+    Numdata: Integer;
     TracePower: Complex;
-
-
 begin
    // Compute Derivatives and then integrate
 
     ComputeIterminal(ActorID);
 
 // Check for user-written exciter model.
-    //Function(V, I:pComplexArray; const Pshaft,Theta,Speed,dt,time:Double)
+  //Function(V, I:pComplexArray; const Pshaft,Theta,Speed,dt,time:Double)
 
     with ActiveCircuit[ActorID].Solution, GenVars do
     begin
 
-        with DynaVars do
-            if (IterationFlag = 0) then
-            begin {First iteration of new time step}
-                ThetaHistory := Theta + 0.5 * h * dTheta;
-                SpeedHistory := Speed + 0.5 * h * dSpeed;
-            end;
-
+        if DynamicEqObj = nil then
+        begin
+      // Dynamics using the internal equation
+            with DynaVars do
+                if (IterationFlag = 0) then
+                begin {First iteration of new time step}
+                    ThetaHistory := Theta + 0.5 * h * dTheta;
+                    SpeedHistory := Speed + 0.5 * h * dSpeed;
+                end;
+            temp := Mmass;
       // Compute shaft dynamics
-        TracePower := TerminalPowerIn(Vterminal, Iterminal, FnPhases);
-        dSpeed := (Pshaft + TracePower.re - D * Speed) / Mmass;
-//      dSpeed := (Torque + TerminalPowerIn(Vtemp,Itemp,FnPhases).re/Speed) / (Mmass);
-        dTheta := Speed;
+            TracePower := TerminalPowerIn(Vterminal, Iterminal, FnPhases);
+            dSpeed := (Pshaft + TracePower.re - D * Speed) / Mmass;
+  //      dSpeed := (Torque + TerminalPowerIn(Vtemp,Itemp,FnPhases).re/Speed) / (Mmass);
+            dTheta := Speed;
 
      // Trapezoidal method
-        with DynaVars do
-        begin
-            Speed := SpeedHistory + 0.5 * h * dSpeed;
-            Theta := ThetaHistory + 0.5 * h * dTheta;
-        end;
+            with DynaVars do
+            begin
+                Speed := SpeedHistory + 0.5 * h * dSpeed;
+                Theta := ThetaHistory + 0.5 * h * dTheta;
+            end;
 
       // Write Dynamics Trace Record
-        if DebugTrace then
-        begin
-            Append(TraceFile);
-            Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
-            Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
-            Write(TraceFile, Format(' Speed=%-.5g ', [Speed]));
-            Write(TraceFile, Format(' dSpeed=%-.5g ', [dSpeed]));
-            Write(TraceFile, Format(' Pshaft=%-.5g ', [PShaft]));
-            Write(TraceFile, Format(' P=%-.5g Q= %-.5g', [TracePower.Re, TracePower.im]));
-            Write(TraceFile, Format(' M=%-.5g ', [Mmass]));
-            Writeln(TraceFile);
-            CloseFile(TraceFile);
-        end;
+            if DebugTrace then
+            begin
+                Append(TraceFile);
+                Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
+                Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
+                Write(TraceFile, Format(' Speed=%-.5g ', [Speed]));
+                Write(TraceFile, Format(' dSpeed=%-.5g ', [dSpeed]));
+                Write(TraceFile, Format(' Pshaft=%-.5g ', [PShaft]));
+                Write(TraceFile, Format(' P=%-.5g Q= %-.5g', [TracePower.Re, TracePower.im]));
+                Write(TraceFile, Format(' M=%-.5g ', [Mmass]));
+                Writeln(TraceFile);
+                CloseFile(TraceFile);
+            end;
 
-        if GenModel = 6 then
-        begin
-            if UserModel.Exists then
-                UserModel.Integrate;
-            if ShaftModel.Exists then
-                ShaftModel.Integrate;
-        end;
+            if GenModel = 6 then
+            begin
+                if UserModel.Exists then
+                    UserModel.Integrate;
+                if ShaftModel.Exists then
+                    ShaftModel.Integrate;
+            end;
 
+        end
+        else
+        begin
+      // Dynamics using an external equation
+            with DynaVars do
+                if (IterationFlag = 0) then
+                begin {First iteration of new time step}
+                    SpeedHistory := DynamicEqVals[DynOut[0]][0] + 0.5 * h * DynamicEqVals[DynOut[0]][1]; // first speed
+                    ThetaHistory := DynamicEqVals[DynOut[1]][0] + 0.5 * h * DynamicEqVals[DynOut[1]][1]; // then angle
+                end;
+
+      // Check for initializations using calculated values (P, Q, VMag, VAng, IMag, IAng)
+            NumData := (length(DynamicEqPair) div 2) - 1;
+            for i := 0 to NumData do
+                if not DynamicEqObj.IsInitVal(DynamicEqPair[(i * 2) + 1]) then     // it's not intialization
+                begin
+                    case DynamicEqPair[(i * 2) + 1] of
+                        0:
+                            DynamicEqVals[DynamicEqPair[i * 2]][0] := -TerminalPowerIn(Vterminal, Iterminal, FnPhases).re;
+                        1:
+                            DynamicEqVals[DynamicEqPair[i * 2]][0] := -TerminalPowerIn(Vterminal, Iterminal, FnPhases).im;
+                    else
+                        DynamicEqVals[DynamicEqPair[i * 2]][0] := PCEValue[1, DynamicEqPair[(i * 2) + 1], ActorID];
+                    end;
+                end;
+      // solves the differential equation using the given values
+            DynamicEqObj.SolveEq(DynamicEqVals);
+      // Trapezoidal method   - Places the calues in the same vars to keep the code consistent
+            with DynaVars do
+            begin
+                Speed := SpeedHistory + 0.5 * h * DynamicEqVals[DynOut[0]][1];
+                Theta := ThetaHistory + 0.5 * h * DynamicEqVals[DynOut[1]][1];
+            end;
+
+      // saves the new integration values in memoryspace
+            DynamicEqVals[DynOut[0]][0] := Speed;
+            DynamicEqVals[DynOut[1]][0] := Theta;
+        end;
 
     end;
+
 end;
 
 function TGeneratorObj.Get_Variable(i: Integer): Double;
@@ -3173,11 +3291,17 @@ end;
 procedure TGeneratorObj.GetAllVariables(States: pDoubleArray);
 
 var
-    i, N: Integer;
+    i,
+    N: Integer;
 begin
     N := 0;
-    for i := 1 to NumGenVariables do
-        States^[i] := Variable[i];
+    if DynamiceqObj = nil then
+        for i := 1 to NumGenVariables do
+            States^[i] := Variable[i]
+    else
+        for i := 1 to DynamiceqObj.NumVars * length(DynamicEqVals[0]) do
+            States^[i] := DynamiceqObj.Get_DynamicEqVal(i - 1, DynamicEqVals);
+
 
     if UserModel.Exists then
     begin

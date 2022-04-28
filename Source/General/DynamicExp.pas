@@ -53,6 +53,7 @@ type
 
     TDynamicExpObj = class(TDSSObject)
     PRIVATE
+        FVarIdx,
         FNumvars: Integer;              // Number of state variables
         FvarNames: TStringList;          // List containing the state variable names
         FVarConst: array of Double;      // Array containing the numeric constants of the expression
@@ -73,6 +74,11 @@ type
         function Get_Closer_Op(myExp: String; var myOp: String; var OpCode: Integer): Integer;
         function Get_Var_Idx(myVar: String): Integer;
         function Check_If_CalcValue(myVal: String; var myOp: Integer): Boolean;
+        function Get_Out_Idx(myVar: String): Integer;           // gets the index for the given variable if it is an output
+        procedure SolveEq(var MemSpace: array of DynSlot);       // Equation solver
+        function IsInitVal(myCode: Integer): Boolean;            // returns true if the given code is for an initialization value
+        function Get_DynamicEqVal(myIdx: Integer; var MemSpace: array of DynSlot): Double;
+        function Get_VarName(myIdx: Integer): String;
 
         property NumVars: Integer READ FNumVars WRITE FNumVars;
 
@@ -80,8 +86,11 @@ type
     end;
 
 const
-    myOps: array [0..10] of String =
-        ('dt', '=', '+', '-', '*', '/', '(', ')', ';', '[', ']');
+    myOps: array [0..28] of String =
+        ('dt', '=', '+', '-', '*', '/', '(', ')', ';', '[', ']',
+        'sqr', 'sqrt', 'inv', 'ln', 'exp', 'log10', 'sin', 'cos',
+        'tan', 'asin', 'acos', 'atan', 'atan2', 'rollup', 'rolldn',
+        'swap', 'pi', '^');
 
 var
     DynamicExpClass: TDynamicExp;
@@ -97,7 +106,8 @@ uses
     Ucomplex,
     Utilities,
     LineUnits,
-    math;
+    math,
+    RPN;
 
 const
     NumPropsThisClass = 5;
@@ -216,7 +226,6 @@ begin
                 2:
                 begin
                     InterpretTStringListArray(Param, FVarNames);
-                    idx := FVarNames.Count;
                   // ensuring they are lower case
                     for idx := 0 to (FVarNames.Count - 1) do
                         FVarNames[idx] := LowerCase(FVarNames[idx]);
@@ -224,7 +233,8 @@ begin
                 3:
                 begin
                     FActiveVar := LowerCase(Parser[ActorID].StrValue);
-                    if not FVarNames.Find(FActiveVar, ActiveElement) then
+                    FVarIdx := FVarNames.IndexOf(FActiveVar);
+                    if FVarIdx < 0 then
                     begin
                     // Being here means that the given name doesn't exist
                         DoSimpleMsg('DynamicExp "' + FActiveVar + '" not found.', 50001);
@@ -318,6 +328,7 @@ begin
     FVarNames := nil;
     FNumVars := 20;
     FActiveVar := '';
+    FVarIdx := -1;
     FVarNames := TStringList.create;
     FVarNames.Clear;
     setlength(FCmd, 0);
@@ -334,8 +345,8 @@ var
     Val: String;
     idx: Integer;
 const
-    ValNames: array [0..5] of String =
-        ('teminalp', 'teminalq', 'teminalvmag', 'teminalvang', 'teminalimag', 'teminaliang');
+    ValNames: array [0..9] of String =
+        ('p', 'q', 'vmag', 'vang', 'imag', 'iang', 's', 'p0', 'q0', 'edp');
 
 begin
     myOp := -1;
@@ -391,6 +402,7 @@ var
     dblval: Double;
     idx: Integer;
 begin
+
     dblval := 0.0;
     Result := -1;   // error
     for idx := 0 to (FVarNames.Count - 1) do
@@ -415,6 +427,177 @@ end;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+function TDynamicExpObj.Get_Out_Idx(myVar: String): Integer;
+  {returns the index of the variable if it exists in the state variable list,
+  and if it is an output (-50 in the next cell ot the FCmd automation array)}
+var
+    dblval: Double;
+    CmdIdx,
+    idx: Integer;
+begin
+
+    dblval := 0.0;
+    Result := -1;   // error
+    for idx := 0 to (FVarNames.Count - 1) do
+        if Lowercase(myVar) = FVarNames[idx] then
+        begin
+        // now, check if the index corresponds to an output
+            for CmdIdx := 0 to High(FCmd) do
+            begin
+                if (idx = FCmd[CmdIdx]) and (CmdIdx < High(FCmd)) then
+                    if FCmd[CmdIdx + 1] = -50 then
+                    begin
+              // Means that the variable found is an output, we can leave
+                        Result := idx;
+                        break;
+                    end;
+            end;
+
+        end;
+
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TDynamicExpObj.Get_VarName(myIdx: Integer): String;
+var
+    diffstr: String;
+    myProt: DynSlot;
+    mylen,
+    myCol,
+    myRow: Integer;
+begin
+    mylen := length(myProt);
+    myRow := floor(Double(myIdx) / Double(mylen));
+    myCol := myIdx - (myRow * mylen);
+    diffstr := '';
+    if myCol > 0 then
+    begin
+        diffstr := 'd';
+        if myCol > 1 then
+            diffstr := diffstr + inttostr(myCol);
+    end;
+
+    Result := diffstr + FVarNames[myRow];
+
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TDynamicExpObj.Get_DynamicEqVal(myIdx: Integer; var MemSpace: array of DynSlot): Double;
+var
+    mylen,
+    myCol,
+    myRow: Integer;
+begin
+    mylen := length(MemSpace[0]);
+    myRow := floor(Double(myIdx) / Double(mylen));
+    myCol := myIdx - (myRow * mylen);
+    Result := MemSpace[myRow][myCol];
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TDynamicExpObj.IsInitVal(myCode: Integer): Boolean;
+begin
+    Result := false;
+    case myCode of
+        7, 8, 9:
+            Result := true;
+    end;
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TDynamicExpObj.SolveEq(var MemSpace: array of DynSlot);
+var
+    mylen,
+    MaxIdx,
+    OutIdx,
+    idx: Integer;
+    RPN: TRPNCalc;
+begin
+
+    RPN := TRPNCalc.Create;
+    OutIdx := -1;
+    for idx := 0 to High(FCmd) do
+    begin
+        if (FCmd[idx + 1] = -50) or (FCmd[idx] = -50) then    // it's the begining of an equation
+        begin
+            MaxIdx := 0;
+            if (FCmd[idx] <> -50) then                            // The index
+            begin
+                if OutIdx >= 0 then                                   // It's not the first equation
+                    MemSpace[OutIdx][1] := RPN.X;                     // Uploads value into memory space
+                OutIdx := FCmd[idx];
+            end;
+        end
+        else
+        begin
+            case FCmd[idx] of
+                -2:
+                    RPN.Add;             //Add
+                -3:
+                    RPN.Subtract;        //Sub
+                -4:
+                    RPN.Multiply;        //Mult
+                -5:
+                    RPN.Divide;          //Div
+                -11:
+                    RPN.Square;          //Sqr
+                -12:
+                    RPN.Sqrt;            //Sqrt
+                -13:
+                    RPN.Inv;             //Inv
+                -14:
+                    RPN.NatLog;          //ln
+                -15:
+                    RPN.etothex;         //exp
+                -16:
+                    RPN.TenLog;          //log10
+                -17:
+                    RPN.Sindeg;          //Sin
+                -18:
+                    RPN.Cosdeg;          //Cos
+                -19:
+                    RPN.Tandeg;          //Tan
+                -20:
+                    RPN.aSindeg;         //ASin
+                -21:
+                    RPN.aCosdeg;         //ACos
+                -22:
+                    RPN.aTandeg;         //ATan
+                -23:
+                    RPN.aTan2deg;        //ATan2
+                -24:
+                    RPN.RollUp;          //RollUp
+                -25:
+                    RPN.RollDn;          //RollDn
+                -26:
+                    RPN.SwapXY;          //Swap
+                -27:
+                    RPN.EnterPi;         //Pi
+                -28:
+                    RPN.YToTheXPower;    //^
+            else
+            begin
+                if FCmd[idx] >= 50000 then
+                    RPN.X := FVarConst[FCmd[idx] - 50000]  // It's a constant
+                else
+                    RPN.X := MemSpace[FCmd[idx]][0];       // It's a variable
+            end;
+
+            end;
+
+        end;
+
+    end;
+    MemSpace[OutIdx][1] := RPN.X;               // Uploads value into memory space
+    RPN.Free;                                     // Destroy RPN calculator
+end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function TDynamicExpObj.InterpretDiffEq(Exp: String): Boolean;
   {Builds the list of commands required for operating the equation declared, this
   automation is intended to acelerate the calculation in run time.
@@ -423,10 +606,10 @@ function TDynamicExpObj.InterpretDiffEq(Exp: String): Boolean;
     If the integer is a value >= 50000, it means that it is the index to a
     numeric constant that can be located at FVarConst
     If is a negative integer, represents one of the following operations:
-      2 = Add
-      3 = Subtraction
-      4 = Mult
-      5 = Div
+      -2 = Add
+      -3 = Subtraction
+      -4 = Mult
+      -5 = Div .... etc. For details, check myOps array defined above
     If the negative integer is -50, it means the begining of a new equation}
 var
     Idx,
@@ -442,7 +625,7 @@ begin
     myVars := TStringList.Create;
     myVars.Clear;
     setlength(FCmd, 0);
-    FXpression := Lowercase(Exp);
+    FXpression := '[' + Lowercase(Exp) + ']';
     while FXpression.Length > 0 do
     begin
         OpIdx := Get_Closer_Op(FXpression, Op, OpCode);
@@ -483,32 +666,32 @@ begin
                 begin
               // Do nothing, it's just for notation reference at the user side
                 end;
-                2, 3, 4, 5, 10:   // it is one of the basic operations or end of the diff eq
+            else   // it is one of the basic operations or end of the diff eq
+            begin
+                for Idx := 0 to (myVars.Count - 1) do
                 begin
-                    for Idx := 0 to (myVars.Count - 1) do
+                    setlength(FCmd, Length(FCmd) + 1);
+                    OpIdx := Get_Var_Idx(myVars[idx]);
+                    if OpIdx = 50001 then
                     begin
-                        setlength(FCmd, Length(FCmd) + 1);
-                        OpIdx := Get_Var_Idx(myVars[idx]);
-                        if OpIdx = 50001 then
-                        begin
-                            setlength(FVarConst, Length(FVarConst) + 1);
-                            FVarConst[High(FVarConst)] := strtofloat(myVars[idx]);
-                            FCmd[High(FCmd)] := 50000 + High(FVarConst);
-                        end
+                        setlength(FVarConst, Length(FVarConst) + 1);
+                        FVarConst[High(FVarConst)] := strtofloat(myVars[idx]);
+                        FCmd[High(FCmd)] := 50000 + High(FVarConst);
+                    end
+                    else
+                    begin
+                        if OpIdx < 0 then
+                            ErrorSrc := '"' + myVars[0] + '"'
                         else
-                        begin
-                            if OpIdx < 0 then
-                                ErrorSrc := '"' + myVars[0] + '"'
-                            else
-                                FCmd[High(FCmd)] := Get_Var_Idx(myVars[idx]);
-                        end;
-                    end;
-                    if OpCode <> 10 then
-                    begin
-                        setlength(FCmd, Length(FCmd) + 1);
-                        FCmd[High(FCmd)] := -1 * OpCode;    // assings the operator -> + - * /
+                            FCmd[High(FCmd)] := Get_Var_Idx(myVars[idx]);
                     end;
                 end;
+                if OpCode <> 10 then
+                begin
+                    setlength(FCmd, Length(FCmd) + 1);
+                    FCmd[High(FCmd)] := -1 * OpCode;    // assings the operator -> + - * /
+                end;
+            end;
 
             end;
         end;
@@ -555,6 +738,8 @@ begin
     case Index of
         1:
             Result := Format('%d', [FNumVars]);
+        4:
+            Result := Format('%d', [FVarIdx]);
 
     else
         Result := inherited GetPropertyValue(index);
