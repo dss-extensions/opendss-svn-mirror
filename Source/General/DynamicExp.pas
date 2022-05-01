@@ -5,6 +5,9 @@ unit DynamicExp;
   All rights reserved.
   ----------------------------------------------------------
 }
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ENDIF}
 
 interface
 
@@ -468,7 +471,11 @@ var
     myRow: Integer;
 begin
     mylen := length(myProt);
+    {$IFDEF FPC}
+    myRow   :=  myIdx div mylen;
+    {$ELSE}
     myRow := floor(Double(myIdx) / Double(mylen));
+    {$ENDIF}
     myCol := myIdx - (myRow * mylen);
     diffstr := '';
     if myCol > 0 then
@@ -491,7 +498,11 @@ var
     myRow: Integer;
 begin
     mylen := length(MemSpace[0]);
+    {$IFDEF FPC}
+    myRow   :=  myIdx div mylen;
+    {$ELSE}
     myRow := floor(Double(myIdx) / Double(mylen));
+    {$ENDIF}
     myCol := myIdx - (myRow * mylen);
     Result := MemSpace[myRow][myCol];
 end;
