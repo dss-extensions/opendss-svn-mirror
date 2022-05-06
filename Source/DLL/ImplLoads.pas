@@ -957,7 +957,7 @@ begin
     if ActiveCircuit[ActiveActor] <> nil then
     begin
         pLoad := ActiveCircuit[ActiveActor].Loads.Active;
-        if pLoad <> nil then
+        if (pLoad <> nil) and (pLoad.SensorObj <> nil) then
             Result := pLoad.SensorObj.ElementName
         else
             Result := '';  // signify no name
