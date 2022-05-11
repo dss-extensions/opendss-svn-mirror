@@ -79,6 +79,12 @@ type
             SAFECALL;
         function Get_VariableByIndex(Idx: Integer; out Code: Integer): Double; SAFECALL;
         procedure Set_VariableByIndex(Idx: Integer; out Code: Integer; Value: Double); SAFECALL;
+        function Get_VariableName: Widestring; SAFECALL;
+        procedure Set_VariableName(const Value: Widestring); SAFECALL;
+        function Get_VariableValue: Double; SAFECALL;
+        procedure Set_VariableValue(Value: Double); SAFECALL;
+        function Get_VariableIdx: Integer; SAFECALL;
+        procedure Set_VariableIdx(Value: Integer); SAFECALL;
 
     end;
 
@@ -97,6 +103,9 @@ uses
     Variants,
     CktElement,
     Utilities;
+
+var
+    VarIdx: Integer;        // Stores the index of the active state variable
 
 { - - - - - - - - - - - - -Helper Function- - - - - - - - - - - - - - - - - - -}
 function IsPDElement: Boolean;
@@ -1650,6 +1659,162 @@ begin
                 end
         end;
 
+end;
+
+function TCktElement.Get_VariableName: Widestring;
+var
+    pPCElem: TPCElement;
+begin
+    Result := '';
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        if (VarIdx >= 0) or (VarIdx <= pPCElem.NumVariables) then
+                            Result := pPCElem.VariableName(VarIdx);
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+       {Else zero-length array null string}
+                end
+        end;
+    end;
+end;
+
+procedure TCktElement.Set_VariableName(const Value: Widestring);
+var
+    pPCElem: TPCElement;
+begin
+    VarIdx := -1;
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        VarIdx := pPCElem.LookupVariable(Value);
+                        if (VarIdx <= 0) or (VarIdx > pPCElem.NumVariables) then
+                            DoSimpleMsg('The variable ' + Value + 'does not exist', 100001);
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+       {Else zero-length array null string}
+                end
+        end;
+
+end;
+
+function TCktElement.Get_VariableValue: Double;
+var
+    pPCElem: TPCElement;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        Result := 0.0;
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        if (VarIdx <= 0) or (VarIdx > pPCElem.NumVariables) then
+                            DoSimpleMsg('There is no state variable active for the active circuit element', 100002)
+                        else
+                            Result := pPCElem.Variable[VarIdx];
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+       {Else zero-length array null string}
+                end
+        end;
+    end;
+end;
+
+procedure TCktElement.Set_VariableValue(Value: Double);
+var
+    pPCElem: TPCElement;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        if (VarIdx <= 0) or (VarIdx > pPCElem.NumVariables) then
+                            DoSimpleMsg('There is no state variable active for the active circuit element', 100002)
+                        else
+                            pPCElem.Variable[VarIdx] := Value;
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+       {Else zero-length array null string}
+                end
+        end;
+    end;
+
+end;
+
+function TCktElement.Get_VariableIdx: Integer;
+var
+    pPCElem: TPCElement;
+begin
+    VarIdx := -1;
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        Result := VarIdx;
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+                end;
+        end
+
+end;
+
+procedure TCktElement.Set_VariableIdx(Value: Integer);
+var
+    pPCElem: TPCElement;
+begin
+    VarIdx := -1;
+    if ActiveCircuit[ActiveActor] <> nil then
+        with ActiveCircuit[ActiveActor] do
+        begin
+            if ActiveCktElement <> nil then
+                with ActiveCktElement do
+                begin
+                    if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        pPCElem := (ActiveCktElement as TPCElement);
+                        VarIdx := -1;
+                        if (Value > pPCElem.NumVariables) then
+                            DoSimpleMsg('The index provided exceeds the number of state variables for the active circuit element or is invalid', 100003)
+                        else
+                            Varidx := Value;
+                    end
+                    else
+                        DoSimpleMsg('The active circuit element is not a PC Element', 100004)
+                end;
+        end
 end;
 
 initialization

@@ -522,8 +522,6 @@ end;
 
 procedure TDynamicExpObj.SolveEq(var MemSpace: array of DynSlot);
 var
-    mylen,
-    MaxIdx,
     OutIdx,
     idx: Integer;
     RPN: TRPNCalc;
@@ -535,7 +533,6 @@ begin
     begin
         if (FCmd[idx + 1] = -50) or (FCmd[idx] = -50) then    // it's the begining of an equation
         begin
-            MaxIdx := 0;
             if (FCmd[idx] <> -50) then                            // The index
             begin
                 if OutIdx >= 0 then                                   // It's not the first equation
@@ -724,9 +721,7 @@ end;
 procedure TDynamicExpObj.DumpProperties(var F: TextFile; Complete: Boolean);
 
 var
-    k,
-    i, j: Integer;
-    TempStr: String;
+    i: Integer;
 
 begin
     inherited DumpProperties(F, Complete);
@@ -743,8 +738,6 @@ begin
 end;
 
 function TDynamicExpObj.GetPropertyValue(Index: Integer): String;
-var
-    j: Integer;
 begin
     case Index of
         1:
