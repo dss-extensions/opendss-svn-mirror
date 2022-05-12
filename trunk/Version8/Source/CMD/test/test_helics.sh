@@ -2,4 +2,4 @@
 (exec helics_player --input=opendsshelics.player --local --time_units=ns --stop 21600s &> helicsplayer.log &)
 (exec helics_recorder --input=recorder.json --period 1s --stop 21600s &> helicsrecorder.log &)
 #(export HELICS_CONFIG_FILE=opendss.json && exec ./opendsscmd -l 6h &> helicsopendss.log &)
-(export HELICS_CONFIG_FILE=opendss.json && export HELICS_LOG_LEVEL=DEBUG1 && exec ./opendsscmd -l 6h &> helicsopendss.log &)
+(export HELICS_CONFIG_FILE=opendss.json && exec ./opendsscmd -l 6h &> helicsopendss.log &)
