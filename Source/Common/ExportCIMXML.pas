@@ -6,7 +6,7 @@ unit ExportCIMXML;
 
 {
   ---------------------------------------------------------V-
-  Copyright (c) 2009-2021, Electric Power Research Institute, Inc.
+  Copyright (c) 2009-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -286,7 +286,7 @@ begin
         roots[prf] := Root;
         ids[prf] := Obj.UUID;
     end;
-    WriteCimLn(prf, Format('<cim:%s rdf:ID="%s">', [Root, Obj.CIM_ID]));
+    WriteCimLn(prf, Format('<cim:%s rdf:about="urn:uuid:%s">', [Root, Obj.CIM_ID]));
     WriteCimLn(prf, Format('  <cim:IdentifiedObject.mRID>%s</cim:IdentifiedObject.mRID>', [Obj.CIM_ID]));
     WriteCimLn(prf, Format('  <cim:IdentifiedObject.name>%s</cim:IdentifiedObject.name>', [Obj.localName]));
 end;
@@ -298,7 +298,7 @@ begin
         roots[prf] := Root;
         ids[prf] := uuid;
     end;
-    WriteCimLn(prf, Format('<cim:%s rdf:ID="%s">', [Root, UUIDToCIMString(uuid)]));
+    WriteCimLn(prf, Format('<cim:%s rdf:about="urn:uuid:%s">', [Root, UUIDToCIMString(uuid)]));
 end;
 
 procedure TFileDealer.EndInstance(prf: ProfileChoice; Root: String);
@@ -1073,12 +1073,12 @@ end;
 
 procedure RefNode(prf: ProfileChoice; Node: String; Obj: TNamedObject);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:%s rdf:resource="#%s"/>', [Node, Obj.CIM_ID]));
+    FD.WriteCimLn(prf, Format('  <cim:%s rdf:resource="urn:uuid:%s"/>', [Node, Obj.CIM_ID]));
 end;
 
 procedure UuidNode(prf: ProfileChoice; Node: String; ID: TUuid);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:%s rdf:resource="#%s"/>', [Node, UUIDToCIMString(ID)]));
+    FD.WriteCimLn(prf, Format('  <cim:%s rdf:resource="urn:uuid:%s"/>', [Node, UUIDToCIMString(ID)]));
 end;
 
 procedure LineCodeRefNode(prf: ProfileChoice; List: TLineCode; Name: String);
@@ -1088,7 +1088,7 @@ begin
     if List.SetActive(Name) then
     begin
         Obj := List.GetActiveObj;
-        FD.WriteCimLn(prf, Format('  <cim:ACLineSegment.PerLengthImpedance rdf:resource="#%s"/>', [Obj.CIM_ID]));
+        FD.WriteCimLn(prf, Format('  <cim:ACLineSegment.PerLengthImpedance rdf:resource="urn:uuid:%s"/>', [Obj.CIM_ID]));
     end;
 end;
 
@@ -1099,18 +1099,18 @@ begin
     if List.SetActive(Name) then
     begin
         Obj := List.GetActiveObj;
-        FD.WriteCimLn(prf, Format('  <cim:ACLineSegment.WireSpacingInfo rdf:resource="#%s"/>', [Obj.CIM_ID]));
+        FD.WriteCimLn(prf, Format('  <cim:ACLineSegment.WireSpacingInfo rdf:resource="urn:uuid:%s"/>', [Obj.CIM_ID]));
     end;
 end;
 
 procedure PhaseWireRefNode(prf: ProfileChoice; Obj: TConductorDataObj);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:ACLineSegmentPhase.WireInfo rdf:resource="#%s"/>', [Obj.CIM_ID]));
+    FD.WriteCimLn(prf, Format('  <cim:ACLineSegmentPhase.WireInfo rdf:resource="urn:uuid:%s"/>', [Obj.CIM_ID]));
 end;
 
 procedure CircuitNode(prf: ProfileChoice; Obj: TNamedObject);
 begin
-    FD.WriteCimLn(prf, Format('  <cim:Equipment.EquipmentContainer rdf:resource="#%s"/>', [Obj.CIM_ID]));
+    FD.WriteCimLn(prf, Format('  <cim:Equipment.EquipmentContainer rdf:resource="urn:uuid:%s"/>', [Obj.CIM_ID]));
 end;
 
 function FirstPhaseString(pElem: TDSSCktElement; bus: Integer): String;
@@ -1761,7 +1761,7 @@ procedure WriteLoadModel(Name: String; ID: TUuid;
     zP: Double; iP: Double; pP: Double; zQ: Double; iQ: Double; pQ: Double;
     eP: Double; eQ: Double);
 begin
-    FD.WriteCimln(FunPrf, Format('<cim:LoadResponseCharacteristic rdf:ID="%s">', [UUIDToCIMString(ID)]));
+    FD.WriteCimln(FunPrf, Format('<cim:LoadResponseCharacteristic rdf:about="urn:uuid:%s">', [UUIDToCIMString(ID)]));
     StringNode(FunPrf, 'IdentifiedObject.mRID', UUIDToCIMString(ID));
     StringNode(FunPrf, 'IdentifiedObject.name', Name);
     if (eP > 0.0) or (eQ > 0.0) then
@@ -1854,7 +1854,7 @@ begin
             StringNode(FunPrf, 'IdentifiedObject.name', TermName);
             UuidNode(FunPrf, 'Terminal.ConductingEquipment', RefUuid);
             IntegerNode(FunPrf, 'ACDCTerminal.sequenceNumber', j);
-            FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
+            FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="urn:uuid:%s"/>',
                 [ActiveCircuit[ActiveActor].Buses[ref].CIM_ID]));
             if (j = 1) and (norm > 0.0) then
             begin
@@ -2100,7 +2100,7 @@ begin
     Writeln(F, '<rdf:RDF xmlns:cim="' + CIM_NS + '#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">');
     Writeln(F, '<!--');
     Writeln(F, '-->');
-    WriteLn(F, Format('<cim:IEC61970CIMVersion rdf:ID="%s">', [UUIDToCIMString(GetDevUuid(CIMVer, 'IEC', 1))]));
+    WriteLn(F, Format('<cim:IEC61970CIMVersion rdf:about="urn:uuid:%s">', [UUIDToCIMString(GetDevUuid(CIMVer, 'IEC', 1))]));
     WriteLn(F, Format('  <cim:IEC61970CIMVersion.version>%s</cim:IEC61970CIMVersion.version>', ['IEC61970CIM100']));
     WriteLn(F, Format('  <cim:IEC61970CIMVersion.date>%s</cim:IEC61970CIMVersion.date>', ['2019-04-01']));
     WriteLn(F, '</cim:IEC61970CIMVersion>');
@@ -3245,7 +3245,7 @@ begin
                 StringNode(TopoPrf, 'IdentifiedObject.name', Buses^[i].localName);
                 UuidNode(TopoPrf, 'ConnectivityNode.TopologicalNode', geoUUID);
                 UuidNode(TopoPrf, 'ConnectivityNode.OperationalLimitSet', GetOpLimVUuid(sqrt(3.0) * ActiveCircuit[ActiveActor].Buses^[i].kVBase));
-                FD.WriteCimLn(TopoPrf, Format('  <cim:ConnectivityNode.ConnectivityNodeContainer rdf:resource="#%s"/>',
+                FD.WriteCimLn(TopoPrf, Format('  <cim:ConnectivityNode.ConnectivityNodeContainer rdf:resource="urn:uuid:%s"/>',
                     [ActiveCircuit[ActiveActor].CIM_ID]));
                 EndInstance(TopoPrf, 'ConnectivityNode');
             end;
@@ -3697,7 +3697,7 @@ begin
                         StartInstance(FunPrf, 'Terminal', pName2);
                         RefNode(FunPrf, 'Terminal.ConductingEquipment', pBank);
                         IntegerNode(FunPrf, 'ACDCTerminal.sequenceNumber', i);
-                        FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
+                        FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="urn:uuid:%s"/>',
                             [ActiveCircuit[ActiveActor].Buses[j].CIM_ID]));
                         if i = 1 then
                         begin   // write the current limit on HV winding, assuming that's winding 1
@@ -3927,7 +3927,7 @@ begin
                         StartInstance(FunPrf, 'Terminal', pName2);
                         RefNode(FunPrf, 'Terminal.ConductingEquipment', pBank);
                         IntegerNode(FunPrf, 'ACDCTerminal.sequenceNumber', i);
-                        FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="#%s"/>',
+                        FD.WriteCimLn(TopoPrf, Format('  <cim:Terminal.ConnectivityNode rdf:resource="urn:uuid:%s"/>',
                             [ActiveCircuit[ActiveActor].Buses[j].CIM_ID]));
                         if i = 1 then
                         begin   // write the current limit on HV winding, assuming that's winding 1
