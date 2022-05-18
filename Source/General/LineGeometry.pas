@@ -969,25 +969,25 @@ begin
     Reallocmem(FY, Sizeof(FY^[1]) * FNconds);
     Reallocmem(FUnits, Sizeof(Funits^[1]) * FNconds);
     Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
-    FCondName := AllocStringArray(FNconds);
-  {Initialize Allocations}
-    for i := 1 to FNconds do
-        FWireData^[i] := nil;
-    for i := 1 to FNconds do
-        FX^[i] := 0.0;
-    for i := 1 to FNconds do
-        FY^[i] := 0.0;
-    for i := 1 to FNconds do
-        FUnits^[i] := -1;  // default to ft
-    for i := 1 to FNconds do
-        FPhaseChoice^[i] := Unknown;
-    FLastUnit := UNITS_FT;
 
     for i := 1 to FNconds do
     begin
         ActiveCond := i;
         ChangeLineConstantsType(Overhead);    // works on activecond
     end;
+
+    FCondName := AllocStringArray(FNconds);
+  {Initialize Allocations}
+    for i := 1 to FNconds do
+    begin
+        FWireData^[i] := nil;
+        FX^[i] := 0.0;
+        FY^[i] := 0.0;
+        FUnits^[i] := -1;  // default to ft
+    end;
+//  For i := 1 to FNconds Do FPhaseChoice^[i] := Unknown;   // This was defined previously (ChangeLineConstantsType)
+                                                            // and overrides previous allocations
+    FLastUnit := UNITS_FT;
 
 end;
 
