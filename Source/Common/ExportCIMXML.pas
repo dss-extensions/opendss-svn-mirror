@@ -3642,7 +3642,7 @@ begin
                         for k := i + 1 to NumberOfWindings do
                         begin
                             val := BaseKVLL[i];
-                            zbase := 1000.0 * val * val / WdgKva[i];
+                            zbase := 1000.0 * val * val / WdgKVA[1]; // always based on Winding 1 kVA
                             StartInstance(EpPrf, 'TransformerMeshImpedance', MeshList[seq - 1]);
                             val := zbase * (WdgResistance[i] + WdgResistance[k]);
                             DoubleNode(EpPrf, 'TransformerMeshImpedance.r', val);
@@ -3845,7 +3845,7 @@ begin
                             for k := i + 1 to NumberOfWindings do
                             begin
                                 val := BaseKVLL[i];
-                                zbase := 1000.0 * val * val / WdgKva[i];
+                                zbase := 1000.0 * val * val / WdgKva[1]; // always based on Winding 1 kVA
                                 StartInstance(EpPrf, 'TransformerMeshImpedance', MeshList[seq - 1]);
                                 val := zbase * (WdgResistance[i] + WdgResistance[k]);
                                 DoubleNode(EpPrf, 'TransformerMeshImpedance.r', val);
