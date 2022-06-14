@@ -4,7 +4,7 @@ Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
 Copyright (c) 2017-2022, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.7.3
+opendsscmd version 1.7.4
 ========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 9 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
@@ -194,6 +194,10 @@ Change Log
 
 1.7.3  - update HELICS interface and examples to version 3.x
        - change rdf:id to rdf:about="urn:uuid:mRID" in CIM export, removed leading _ from mRIDs
+
+1.7.4  - export CIM TransformerCoreAdmittance.b as a negative number
+       - remove deprecated tculControlMode from CIM export
+       - export CIM TransformerMeshImpedance on the winding 1 kVA base
 
 Open Issues
 ===========
