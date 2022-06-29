@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.7.0</version>
+    <version>1.7.2</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
