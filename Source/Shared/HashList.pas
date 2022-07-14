@@ -125,25 +125,35 @@ destructor THashList.Destroy;
 var
     i, j: Integer;
 begin
-
-    for i := 1 to NumLists do
+    if Assigned(ListPtr) then
     begin
-         {DeAllocated  Sublists}
-        with ListPtr^[i] do
+
+        for i := 1 to NumLists do
         begin
-            for j := 1 to Nallocated do
-                Str^[j] := ''; // decrement ref count on string
-            Freemem(Str, SizeOf(Str^[1]) * Nallocated);
-            Freemem(Idx, SizeOf(Idx^[1]) * Nallocated);
+
+        {DeAllocated  Sublists}
+            with ListPtr^[i] do
+            begin
+                if Assigned(Str) then
+                begin
+                    for j := 1 to Nallocated do
+                        Str^[j] := ''; // decrement ref count on string
+                    ReallocMem(Str, 0);
+                    ReallocMem(Idx, 0);
+                end;
+            end;
+
         end;
+        ReallocMem(ListPtr, 0);
+
     end;
 
-    Freemem(ListPtr, Sizeof(Listptr^[1]) * NumLists);
-
-    for i := 1 to NumElementsAllocated do
-        StringPtr^[i] := ''; // get rid of string storage
-
-    Freemem(StringPtr, Sizeof(StringPtr^[1]) * NumElementsAllocated);
+    if Assigned(StringPtr) then
+    begin
+        for i := 1 to NumElementsAllocated do
+            StringPtr^[i] := ''; // get rid of string storage
+        ReallocMem(StringPtr, 0);
+    end;
 
     inherited Destroy;
 end;
