@@ -27,9 +27,11 @@ type
         destructor Destroy; OVERRIDE;
         procedure AddCommand(const cmd: String);
         function Getcommand(const Cmd: String): Integer;
+        function CheckifValid(): Boolean;
         function Get(i: Integer): String;
         property Abbrev: Boolean READ AbbrevAllowed WRITE AbbrevAllowed;
         property NumCommands: Integer READ Get_NumCommands;
+        property IsValidPtr: Boolean READ CheckifValid;
     PUBLISHED
 
     end;
@@ -86,6 +88,13 @@ end;
 function TCommandList.Get_NumCommands: Integer;
 begin
     Result := CommandList.ListSize;
+end;
+
+function TCommandList.CheckifValid(): Boolean;
+// Used to verify if the object is valid or has been cleared by someone else
+// Practical when destroying common Lists while working in parallel
+begin
+    Result := CommandList.IsValidPtr;
 end;
 
 end.

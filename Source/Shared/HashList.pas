@@ -61,6 +61,7 @@ type
         procedure ResizeSubList(var SubList: TSubList);
         function Hash(const S: String): Cardinal;
         procedure ResizeStrPtr;
+        function CheckIfValid(): Boolean;
     PROTECTED
 
     PUBLIC
@@ -76,6 +77,7 @@ type
         procedure DumpToFile(const fname: String);
         procedure Clear;
         property ListSize: Cardinal READ NumElements;
+        property IsValidPtr: Boolean READ CheckIfValid;
     PUBLISHED
 
     end;
@@ -186,6 +188,13 @@ begin
         Reallocmem(Idx, Sizeof(Idx^[1]) * Nallocated);
     end;
 
+end;
+
+function THashList.CheckIfValid(): Boolean;
+// Used to verify if the object is valid or has been cleared by someone else
+// Practical when destroying common Lists while working in parallel
+begin
+    result := Assigned(ListPtr)
 end;
 
 (*   This one was for AnsiStrings and just moved up to 8 bytes into an integer

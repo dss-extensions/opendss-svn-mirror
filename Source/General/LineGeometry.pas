@@ -178,7 +178,7 @@ end;
 destructor TLineGeometry.Destroy;
 
 begin
-    if ActiveActor = 1 then     // this to avoid conflicts when destroying shared vars with multiple actors
+    if LineTypeList.IsValidPtr then  // this to avoid conflicts when destroying shared vars with multiple actors
         LineTypeList.Destroy;
   // ElementList and  CommandList freed in inherited destroy
     inherited Destroy;

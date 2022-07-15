@@ -440,6 +440,8 @@ procedure Delay(TickTime: Integer);
 procedure GetDefaultPorts();
 procedure Show_COM_Help();
 
+function Check_DSS_WebVersion(myDialog: Boolean): String;
+
 
 implementation
 
@@ -1304,11 +1306,11 @@ begin
 end;
 
 //******Verifies the OpenDSS version using the reference at Sourceforge*********
-procedure Check_DSS_WebVersion();
-{$IFDEF FPC}
+function Check_DSS_WebVersion(myDialog: Boolean): String;
+    {$IFDEF FPC}
 begin
   DSSMessageDlg ('Check_DSS_Webversion() not implemented on FPC; needs Indy', False);
-{$ELSE}
+    {$ELSE}
 var
     myVersion,
     myText,
@@ -1339,17 +1341,27 @@ begin
     myVersion := VersionString.Substring(8);
     myIdx := pos(' ', myVersion);
     myVersion := myVersion.Substring(0, myIdx - 1);
+
     if myText <> myVersion then
     begin
         myPath := 'There is a new version of OpenDSS available for download' + CRLF +
             'The new version can be located at:' + CRLF + CRLF +
             'https://sourceforge.net/projects/electricdss/';
-        {$IFNDEF CONSOLE}
-        ShowMessage(myPath);
-        {$ELSE}
-    DSSMessageDlg(myPath, TRUE);
-        {$ENDIF}
-    end;
+
+        if myDialog then
+        begin
+            {$IFNDEF CONSOLE}
+            ShowMessage(myPath);
+            {$ELSE}
+        DSSMessageDlg(myPath, TRUE);
+            {$ENDIF}
+        end;
+
+    end
+    else
+        myPath := 'OpenDSS is up-to-date';
+
+    Result := myPath;
 
     {$ENDIF}
 end;
@@ -1543,11 +1555,8 @@ initialization
     setlength(TSDataClass, CPU_Cores + 1);
     setlength(LineSpacingClass, CPU_Cores + 1);
     setlength(StorageClass, CPU_Cores + 1);
-//   setlength(Storage2Class,CPU_Cores + 1);
     setlength(PVSystemClass, CPU_Cores + 1);
-//   setlength(PVSystem2Class,CPU_Cores + 1);
     setlength(InvControlClass, CPU_Cores + 1);
-//   setlength(InvControl2Class,CPU_Cores + 1);
     setlength(ExpControlClass, CPU_Cores + 1);
     setlength(EventStrings, CPU_Cores + 1);
     setlength(SavedFileList, CPU_Cores + 1);
@@ -1758,7 +1767,7 @@ NoFormsAllowed  := TRUE;
     DSS_GIS_installed := CheckOpenDSSViewer('OpenDSS_GIS');     // OpenDSS GIS (flag for detected installation)
     if not IsDLL then
     begin
-        Check_DSS_WebVersion;
+        Check_DSS_WebVersion(true);
     end;
     {$ENDIF}
 

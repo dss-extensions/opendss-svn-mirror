@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 130;
+    NumExecCommands = 131;
 
 var
 
@@ -194,6 +194,7 @@ begin
     ExecCommand[128] := 'GIS';
     ExecCommand[129] := 'GISCoords';
     ExecCommand[130] := 'HELICSPublish';
+    ExecCommand[131] := 'Check4Updates';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -574,6 +575,7 @@ begin
         'Example: GISCoords [file=]xxxx.csv' + CRLF + CRLF +
         'Note: For using only if OpenDSS-GIS is locally installed.';
     CommandHelp[130] := 'Read HELICS publication topics from a JSON file';
+    CommandHelp[131] := 'Returns a message indicating if there is a new version of OpenDSS avaialble for download. Requires internet connection.';
 
 end;
 
@@ -1043,11 +1045,13 @@ begin
             126:
                 CmdResult := DopowersCmd(1);
             128:
-                Globalresult := DoGISCmd;
+                GlobalResult := DoGISCmd;
             129:
                 CmdResult := DoBusCoordsCmd(false, 1);   // GIS coordinates
             130:
                 DoHELICSPubCmd;
+            131:
+                GlobalResult := Check_DSS_WebVersion(false);
 
         else
        // Ignore excess parameters
