@@ -96,6 +96,7 @@ uses
     IdThreadComponent,
     {$ENDIF}
     NumCPULib,
+    Command,
     ISource;
 
 const
@@ -396,6 +397,9 @@ Integer
     GISColor: String;
     GISCoords: pDoubleArray;
 
+
+//************************ Line related Global defs***************************
+    LineTypeList: TCommandList;
 
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
@@ -1762,6 +1766,10 @@ NoFormsAllowed  := TRUE;
     IsMultithread := true;
    //WriteDLLDebugFile('DSSGlobals');
 
+    LineTypeList := TCommandList.Create(
+        ['OH', 'UG', 'UG_TS', 'UG_CN', 'SWT_LDBRK', 'SWT_FUSE', 'SWT_SECT', 'SWT_REC', 'SWT_DISC', 'SWT_BRK', 'SWT_ELBOW']);
+    LineTypeList.Abbrev := true;  // Allow abbreviations for line type code
+
     {$IFNDEF FPC}
     DSS_Viz_installed := CheckOpenDSSViewer('OpenDSS_Viewer');  // OpenDSS Viewer (flag for detected installation)
     DSS_GIS_installed := CheckOpenDSSViewer('OpenDSS_GIS');     // OpenDSS GIS (flag for detected installation)
@@ -1779,4 +1787,5 @@ finalization
 
 //  ClearAllCircuits; // this is also done later, when Executive destroyed from LocalFinalization
     LocalFinalization;
+    LineTypeList.Destroy;
 end.

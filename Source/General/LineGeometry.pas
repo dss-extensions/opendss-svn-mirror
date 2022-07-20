@@ -137,7 +137,6 @@ type
 
 var
     ActiveLineGeometryObj: TLineGeometryObj;
-    LineTypeList: TCommandList;
 
 implementation
 
@@ -168,18 +167,12 @@ begin
     CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
     CommandList.Abbrev := true;
 
-    LineTypeList := TCommandList.Create(
-        ['OH', 'UG', 'UG_TS', 'UG_CN', 'SWT_LDBRK', 'SWT_FUSE', 'SWT_SECT', 'SWT_REC', 'SWT_DISC', 'SWT_BRK', 'SWT_ELBOW']);
-    LineTypeList.Abbrev := true;  // Allow abbreviations for line type code
-
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TLineGeometry.Destroy;
 
 begin
-    if LineTypeList.IsValidPtr then  // this to avoid conflicts when destroying shared vars with multiple actors
-        LineTypeList.Destroy;
   // ElementList and  CommandList freed in inherited destroy
     inherited Destroy;
 end;
