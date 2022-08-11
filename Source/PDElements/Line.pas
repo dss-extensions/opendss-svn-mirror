@@ -1468,6 +1468,11 @@ begin
             Result := GetBus(1);
         2:
             Result := GetBus(2);
+        3:
+            if FLineCodeSpecified then
+                Result := CondCode
+            else
+                Result := '';
         4:
             Result := Format('%-.7g', [Len]);
         5:
@@ -1558,6 +1563,11 @@ begin
             Result := Format('%-g', [Xg]);
         18:
             Result := Format('%-g', [Rho]);
+        19:
+            if GeometrySpecified then
+                Result := GeometryCode
+            else
+                Result := '';
         20:
             Result := LineUnitsStr(LengthUnits);
         23:
