@@ -1574,12 +1574,12 @@ begin
             Result := GetEarthModel(FEarthModel);
         26:
             if SymComponentsModel then
-                Result := Format('%.7g', [twopi * Basefrequency * C1 * 1.0e6])
+                Result := Format('%.7g', [twopi * Basefrequency * C1 * 1.0e6 / FUnitsConvert])
             else
                 Result := '----';
         27:
             if SymComponentsModel then
-                Result := Format('%.7g', [twopi * Basefrequency * C0 * 1.0e6])
+                Result := Format('%.7g', [twopi * Basefrequency * C0 * 1.0e6 / FUnitsConvert])
             else
                 Result := '----';
         28:
