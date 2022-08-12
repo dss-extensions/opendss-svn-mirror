@@ -71,7 +71,7 @@ begin
     MonitorVariable := '';
     MonitorVarIndex := 0;
     FControlledElement := nil;
-    ShowEventLog := true;
+    ShowEventLog := false;
 end;
 
 destructor TControlElem.Destroy;
