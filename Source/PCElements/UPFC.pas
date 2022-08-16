@@ -23,7 +23,8 @@ uses
     Spectrum,
     Arraydef,
     Loadshape,
-    XYCurve;
+    XYCurve,
+    CktElement;
 
 type
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -62,6 +63,8 @@ type
         VRef2: Double;   // Value for deadband's upper limit, it is calculated if tolerance is specified
         VRefD: Double;   // Dynamic reference for control modes 4 and 5
         KVARLim: Double;   // kvar limit, defines the maximum amount of kvars that the UPFC can absorb
+        MonElm: String;   // Name of the monitored element to perform PF compensation
+        myElm: TDSSCktElement; // ref to the monitored element
 
 
         // some state vars for reporting
@@ -148,7 +151,7 @@ uses
 
 const
     propLossCurve = 11;
-    NumPropsThisClass = 16;
+    NumPropsThisClass = 17;
     NumUPFCVariables = 14;
 
 
@@ -205,6 +208,7 @@ begin
     PropertyName[14] := 'CLimit';
     PropertyName[15] := 'refkv2';
     PropertyName[16] := 'kvarLimit';
+    PropertyName[17] := 'Element';
 
      // define Property help values
     PropertyHelp[1] := 'Name of bus to which the input terminal (1) is connected.' + CRLF + 'bus1=busname.1.3' + CRLF + 'bus1=busname.1.2.3';
@@ -234,6 +238,8 @@ begin
     PropertyHelp[15] := 'Base Voltage expected at the output of the UPFC for control modes 4 and 5.' + CRLF + CRLF +
         'This reference must be lower than refkv, see control modes 4 and 5 for details';
     PropertyHelp[16] := 'Maximum amount of reactive power (kvar) that can be absorved by the UPFC (Default = 5)';
+    PropertyHelp[17] := 'The name of the PD element monitored when operating with reactive power compensation. Normally, it should be the ' +
+        'PD element immediately upstream the UPFC. The element must be defined including the class, e.g. Line.myline.';
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
@@ -261,6 +267,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TUPFC.Edit(ActorID: Integer): Integer;
 var
+    Devindex,
     ParamPointer: Integer;
     ParamName,
     Param: String;
@@ -329,7 +336,15 @@ begin
                     VRef2 := Parser[ActorID].DblValue;
                 16:
                     kvarLim := Parser[ActorID].DblValue;
-
+                17:
+                begin
+                    MonElm := lowercase(param);
+                    Devindex := GetCktElementIndex(MonElm); // Global function
+                    if DevIndex > 0 then
+                        MyElm := ActiveCircuit[ActiveActor].CktElements.Get(DevIndex)
+                    else
+                        DoSimpleMsg('Monitored Element for UPFC operation does not exist:"' + MonElm + '"', 9002);
+                end
             else
                 ClassEdit(ActiveUPFCObj, ParamPointer - NumPropsThisClass)
             end;
@@ -1032,6 +1047,8 @@ end;
 function TUPFCObj.CheckStatus(ActorID: Integer): Boolean;
 var
     i: Integer;
+    mypf,
+    S,
     Error,
     TError,
     VinMag,
@@ -1039,6 +1056,7 @@ var
     RefL: Double;
     Vpolar: polar;
     VTemp,
+    MonPower,
     CurrOut: complex;
 begin
     Result := false;
@@ -1066,7 +1084,14 @@ begin
 
             end;
             2:
+            begin
                 CurrOut := cmplx(0, 0); //UPFC as a phase angle regulator
+                MonPower := MyElm.Power[1, ActorID];
+                S := sqrt(MonPower.re * MonPower.re + MonPower.im * MonPower.im);
+                mypf := MonPower.re / S;
+                mypf := abs(pf - mypf);    // calculates the difference to the target
+                Result := (mypf / pf) > Tol1;
+            end;
             3:
             begin              //UPFC in Dual mode Voltage and Phase angle regulator
                 Vpolar := ctopolar(Vbout);
