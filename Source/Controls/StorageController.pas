@@ -365,7 +365,7 @@ begin
         'Full object name of the circuit element, typically a line or transformer, ' +
         'which the control is monitoring. There is no default; Must be specified.';
     PropertyHelp[propTERMINAL] :=
-        'Number of the terminal of the circuit element to which the StorageController2 control is connected. ' +
+        'Number of the terminal of the circuit element to which the StorageController control is connected. ' +
         '1 or 2, typically.  Default is 1. Make sure to select the proper direction on the power for the respective dispatch mode.';
     PropertyHelp[propMONPHASE] :=
         'Number of the phase being monitored or one of {AVG | MAX | MIN} for all phases. Default=MAX. ' +
@@ -877,7 +877,7 @@ begin
 
         end
     else
-        DoSimpleMsg('Error in StorageController2 MakeLike: "' + StorageController2Name + '" Not Found.', 370);
+        DoSimpleMsg('Error in StorageController MakeLike: "' + StorageController2Name + '" Not Found.', 370);
 
 end;
 
@@ -1209,7 +1209,7 @@ begin
         MonitoredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
         if ElementTerminal > MonitoredElement.Nterms then
         begin
-            DoErrorMsg('StorageController2: "' + Name + '"',
+            DoErrorMsg('StorageController: "' + Name + '"',
                 'Terminal no. "' + '" Does not exist.',
                 'Re-specify terminal no.', 371);
         end
@@ -1227,11 +1227,11 @@ begin
         end;
     end
     else
-        DoSimpleMsg('Monitored Element in StorageController2.' + Name + ' Does not exist:"' + ElementName + '"', 372);
+        DoSimpleMsg('Monitored Element in StorageController.' + Name + ' Does not exist:"' + ElementName + '"', 372);
 
     if FleetListChanged then
         if not MakeFleetList then
-            DoSimpleMsg('No unassigned Storage Elements found to assign to StorageController2.' + Name, 37201);
+            DoSimpleMsg('No unassigned Storage Elements found to assign to StorageController.' + Name, 37201);
 
     GetkWTotal(TotalkWCapacity);
     GetkWhTotal(TotalkWhCapacity);
@@ -1434,7 +1434,7 @@ begin
                 begin
                         {Time is within 1 time step of the trigger time}
                     if ShowEventLog then
-                        AppendToEventLog('StorageController2.' + Self.Name, 'Fleet Set to Discharging (up ramp) by Schedule', ActorID);
+                        AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Discharging (up ramp) by Schedule', ActorID);
                     SetFleetToDischarge;
                     SetFleetDesiredState(STORE_DISCHARGING);
                     ChargingAllowed := false;
@@ -1480,7 +1480,7 @@ begin
                         ChargingAllowed := true;
                         pctDischargeRate := 0.0;
                         if ShowEventLog then
-                            AppendToEventLog('StorageController2.' + Self.Name, 'Fleet Set to Idling by Schedule', ActorID);
+                            AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Idling by Schedule', ActorID);
 
                     end
                     else
@@ -1535,7 +1535,7 @@ begin
                         begin
                         {Time is within 1 time step of the trigger time}
                             if ShowEventLog then
-                                AppendToEventLog('StorageController2.' + Self.Name, 'Fleet Set to Discharging by Time Trigger', ActorID);
+                                AppendToEventLog('StorageController1.' + Self.Name, 'Fleet Set to Discharging by Time Trigger', ActorID);
                             SetFleetToDischarge;
                             SetFleetkWRate(pctKWRate);
                             DischargeInhibited := false;
@@ -1561,7 +1561,7 @@ begin
                         begin
                           {Time is within 1 time step of the trigger time}
                             if ShowEventLog then
-                                AppendToEventLog('StorageController2.' + Self.Name, 'Fleet Set to Charging by Time Trigger', ActorID);
+                                AppendToEventLog('StorageController.' + Self.Name, 'Fleet Set to Charging by Time Trigger', ActorID);
                             SetFleetToCharge;
                             DischargeInhibited := true;
                             OutOfOomph := false;
@@ -1712,7 +1712,7 @@ begin
                 if DischargeTriggeredByTime then
                 begin
                     if ShowEventLog then
-                        AppendToEventLog('StorageController2.' + Self.Name,
+                        AppendToEventLog('StorageController.' + Self.Name,
                             Format('Fleet Set to Discharging by Time Trigger; Old kWTarget = %-.6g; New = %-.6g', [FkwTarget, S.re * 0.001]), ActorID);
                     FkwTarget := Max(FkWThreshold, S.re * 0.001);  // Capture present kW and reset target
                     if not FkWBandSpecified then
