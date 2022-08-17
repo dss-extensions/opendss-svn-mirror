@@ -113,6 +113,7 @@ type
         // Uploads the input/output currents when commanded by the controller - 09/02/2021
         procedure UploadCurrents(ActorID: Integer);
         function CheckStatus(ActorID: Integer): Boolean;
+        function CheckPFStatus(ActorID: Integer): Boolean;
 
         procedure MakePosSequence(ActorID: Integer); OVERRIDE;  // Make a positive Sequence Model
 
@@ -1042,13 +1043,33 @@ begin
 end;
 
 //===========================================================================
+//|     Checks if the monitored pf is out of range, returns true if so      |
+//===========================================================================
+
+function TUPFCObj.CheckPFStatus(ActorID: Integer): Boolean;
+var
+    mypf,
+    S: Double;
+    MonPower: Complex;
+begin
+    Result := false;
+    if myElm <> nil then
+    begin
+        MonPower := MyElm.Power[1, ActorID];
+        S := sqrt(MonPower.re * MonPower.re + MonPower.im * MonPower.im);
+        mypf := MonPower.re / S;
+        mypf := abs(pf - mypf);    // calculates the difference to the target
+        Result := (mypf / pf) > Tol1;
+    end
+end;
+
+//===========================================================================
 //|     Checks if the UPFC control needs an update, returns true if so      |
 //===========================================================================
 
 function TUPFCObj.CheckStatus(ActorID: Integer): Boolean;
 var
     i: Integer;
-    mypf,
     S,
     Error,
     TError,
@@ -1057,7 +1078,6 @@ var
     RefL: Double;
     Vpolar: polar;
     VTemp,
-    MonPower,
     CurrOut: complex;
 begin
     Result := false;
@@ -1087,16 +1107,7 @@ begin
             2:
             begin
                 CurrOut := cmplx(0, 0); //UPFC as a phase angle regulator
-                if myElm <> nil then
-                begin
-                    MonPower := MyElm.Power[1, ActorID];
-                    S := sqrt(MonPower.re * MonPower.re + MonPower.im * MonPower.im);
-                    mypf := MonPower.re / S;
-                    mypf := abs(pf - mypf);    // calculates the difference to the target
-                    Result := (mypf / pf) > Tol1;
-                end
-                else
-                    Result := false;
+                Result := CheckPFStatus(ActorID);
             end;
             3:
             begin              //UPFC in Dual mode Voltage and Phase angle regulator
@@ -1104,6 +1115,8 @@ begin
                 Error := abs(1 - abs(Vpolar.mag / (VRef * 1000)));
                 if Error > Tol1 then
                     Result := true
+                else
+                    Result := CheckPFStatus(ActorID);
 
             end;
             4:
@@ -1146,7 +1159,9 @@ begin
                     Vpolar := ctopolar(Vbout);
                     Error := abs(1 - abs(Vpolar.mag / (VRefD * 1000)));
                     if Error > Tol1 then
-                        Result := true;   // In case we need a control action
+                        Result := true   // In case we need a control action
+                    else
+                        Result := CheckPFStatus(ActorID);
                 end
             end
 
