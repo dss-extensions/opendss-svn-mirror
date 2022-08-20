@@ -146,14 +146,15 @@ type
         td21_dI: pComplexArray; // incremental currents
 
             {Directional Overcurrent Relay}
-        DOC_TiltAngleLow,  // Tilt angle for lower current magnitude
-        DOC_TiltAngleHigh,  // Tilt angle for higher current magnitude
-        DOC_TripSetLow,  // Trip setting for lower current magnitude
-        DOC_TripSetHigh,  // Trip setting for higher current magnitude
+        DOC_TiltAngleLow,  // Tilt angle for low-current trip line
+        DOC_TiltAngleHigh,  // Tilt angle for high-current trip line
+        DOC_TripSetLow,  // Trip setting for low-current trip line
+        DOC_TripSetHigh,  // Trip setting for high-current trip line
         DOC_TripSetMag,  // Current magnitude trip setting (define a circle for the relay characteristics)
-        DOC_DelayInner,  // Delay for trip in inner zone of the DOC characteristic
-        DOC_PhaseTripInner, // Multiplier for TCC Curve for tripping in inner zone of the DOC characteristic
+        DOC_DelayInner,  // Delay for trip in inner region of the DOC characteristic
+        DOC_PhaseTripInner, // Multiplier for TCC Curve for tripping in inner region of the DOC characteristic
         DOC_TDPhaseInner: Double;  // Time Dial for DOC_PhaseTripInner
+        DOC_P1Blocking: Boolean; // Block trip if there is no net balanced reverse active power
 
         DOC_PhaseCurveInner: TTCC_CurveObj;  // TCC Curve for tripping in inner zone of the DOC characteristic
 
@@ -200,6 +201,7 @@ type
         procedure DistanceLogic(ActorID: Integer);
         procedure TD21Logic(ActorID: Integer);
         procedure DirectionalOvercurrentLogic(ActorID: Integer);
+        procedure GetControlPower(var ControlPower: Complex; ActorID: Integer);
 
     PUBLIC
 
@@ -251,7 +253,7 @@ uses
 
 const
 
-    NumPropsThisClass = 49;
+    NumPropsThisClass = 50;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -328,7 +330,7 @@ begin
         '  Distance' + CRLF +
         '  TD21' + CRLF +
         '  DOC (directional overcurrent)' + CRLF + CRLF +
-        'Default is overcurrent relay (Current) ' +
+        'Default is overcurrent relay (Current). ' +
         'Specify the curve and pickup settings appropriate for each type. ' +
         'Generic relays monitor PC Element Control variables and trip on out of over/under range in definite time.');
     AddProperty('Phasecurve', 6, 'Name of the TCC Curve object that determines the phase trip.  ' +
@@ -352,7 +354,7 @@ begin
         'voltage that the reclose occurs. ' +
         'Reverse power relay is one shot to lockout, ' +
         'so this is ignored.  A locked out relay must be closed manually (set action=close).');
-    AddProperty('Delay', 24, 'Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current and voltage relays.  If >0 then this value is used instead of curves. ' +
+    AddProperty('Delay', 24, 'Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current, voltage and DOC relays. If >0 then this value is used instead of curves. ' +
         ' Used by Generic, RevPower, 46 and 47 relays. Defaults to 0.1 s for these relays.');
     AddProperty('Overvoltcurve', 15, 'TCC Curve object to use for overvoltage relay.  Curve is assumed to be defined with per unit voltage values. ' +
         'Voltage base should be defined for the relay. Default is none (ignored).');
@@ -389,18 +391,19 @@ begin
     AddProperty('State', 40, '{Open | Closed} Actual state of the relay. Upon setting, immediately forces state of the relay, overriding the Relay control. ' +
         'Simulates manual control on relay. Defaults to Closed. "Open" causes the controlled element to open and lock out. "Closed" causes the ' +
         'controlled element to close and the relay to reset to its first operation.');
-    AddProperty('DOC_TiltAngleLow', 41, 'Tilt angle for lower current magnitudes. Default is 90.');
-    AddProperty('DOC_TiltAngleHigh', 42, 'Tilt angle for higher current magnitudes. Default is 90.');
-    AddProperty('DOC_TripSettingLow', 43, 'Trip setting for lower current magnitude.  Default is 0.');
-    AddProperty('DOC_TripSettingHigh', 44, 'Trip setting for higher current magnitude.  Default is -1 (deactivated). To activate, set a positive value. Must be greater than "DOC_TripSettingLow".');
-    AddProperty('DOC_TripSettingMag', 45, 'Trip setting for current magnitude (define a circle for the relay characteristics). Default is -1 (deactivated). To activate, set a positive value.');
-    AddProperty('DOC_DelayInner', 46, 'Trip time delay (sec) for operation in inner zone for DOC relay, defined when "DOC_TripSettingMag" or "DOC_TripSettingHigh" are activate. Default is -1.0 (deactivated), meaning that ' +
-        'the relay characteristic is insensitive in the inner zone (no trip). Set to 0 for instantaneous trip and >0 for a definite time delay. ' +
+    AddProperty('DOC_TiltAngleLow', 41, 'Tilt angle for low-current trip line. Default is 90.');
+    AddProperty('DOC_TiltAngleHigh', 42, 'Tilt angle for high-current trip line. Default is 90.');
+    AddProperty('DOC_TripSettingLow', 43, 'Resistive trip setting for low-current line.  Default is 0.');
+    AddProperty('DOC_TripSettingHigh', 44, 'Resistive trip setting for high-current line.  Default is -1 (deactivated). To activate, set a positive value. Must be greater than "DOC_TripSettingLow".');
+    AddProperty('DOC_TripSettingMag', 45, 'Trip setting for current magnitude (defines a circle in the relay characteristics). Default is -1 (deactivated). To activate, set a positive value.');
+    AddProperty('DOC_DelayInner', 46, 'Trip time delay (sec) for operation in inner region for DOC relay, defined when "DOC_TripSettingMag" or "DOC_TripSettingHigh" are activate. Default is -1.0 (deactivated), meaning that ' +
+        'the relay characteristic is insensitive in the inner region (no trip). Set to 0 for instantaneous trip and >0 for a definite time delay. ' +
         'If "DOC_PhaseCurveInner" is specified, time delay from curve is utilized instead.');
-    AddProperty('DOC_PhaseCurveInner', 47, 'Name of the TCC Curve object that determines the phase trip for operation in inner zone for DOC relay. Must have been previously defined as a TCC_Curve object. ' +
+    AddProperty('DOC_PhaseCurveInner', 47, 'Name of the TCC Curve object that determines the phase trip for operation in inner region for DOC relay. Must have been previously defined as a TCC_Curve object. ' +
         'Default is none (ignored). Multiplying the current values in the curve by the "DOC_PhaseTripInner" value gives the actual current.');
     AddProperty('DOC_PhaseTripInner', 48, 'Multiplier for the "DOC_PhaseCurveInner" TCC curve.  Defaults to 1.0.');
     AddProperty('DOC_TDPhaseInner', 49, 'Time dial for "DOC_PhaseCurveInner" TCC curve. Multiplier on time axis of specified curve. Default=1.0.');
+    AddProperty('DOC_P1Blocking', 50, '{Yes/True* | No/False} Blocking element that impedes relay from tripping if balanced net three-phase active power is in the forward direction (i.e., flowing into the monitored terminal). ' + 'For a delayed trip, if at any given time the reverse power flow condition stops, the tripping is reset. Default=True.');
 
 
     ActiveProperty := NumPropsThisClass;
@@ -572,6 +575,8 @@ begin
                         DOC_PhaseTripInner := Parser[ActorID].DblValue;
                     49:
                         DOC_TDPhaseInner := Parser[ActorID].DblValue;
+                    50:
+                        DOC_P1Blocking := InterpretYesNo(Param);
 
                 else
            // Inherited parameters
@@ -801,6 +806,7 @@ begin
     DOC_PhaseCurveInner := nil;
     DOC_PhaseTripInner := 1.0;
     DOC_TDPhaseInner := 1.0;
+    DOC_P1Blocking := true;
 
     Operationcount := 1;
     LockedOut := false;
@@ -2018,12 +2024,50 @@ begin
         end;  {With MonitoredElement}
 end;
 
+procedure TRelayObj.GetControlPower(var ControlPower: Complex; ActorID: Integer);
+// Get power to control based on active power
+var
+    i, k: Integer;
+    S: Complex;
+    Vph, V012: array[1..3] of Complex;
+    Iph, I012: array[1..3] of Complex;
+
+begin
+
+    if MonitoredElement.NPhases >= 3 then
+    begin
+
+        MonitoredElement.GetCurrents(cBuffer, ActorID);
+        MonitoredElement.GetTermVoltages(MonitoredElementTerminal, cvBuffer, ActorID);
+
+        for i := 1 to 3 do
+        begin
+            k := (MonitoredElementTerminal - 1) * MonitoredElement.NConds + i;
+            Iph[i] := cBuffer[k];
+            Vph[i] := cvBuffer[i];
+        end;
+
+        Phase2SymComp(@Iph, @I012);
+        Phase2SymComp(@Vph, @V012);
+
+        ControlPower := cmulreal(Cmul(V012[2], conjg(I012[2])), 0.003);  // Convert to kilo
+
+    end
+    else
+    begin
+      // just take the total power (works also for 1ph elements with 2 conductors)
+        ControlPower := MonitoredElement.Power[MonitoredElementTerminal, ActorID];
+    end;
+
+end;
+
 procedure TRelayObj.DirectionalOvercurrentLogic(ActorID: Integer);
 var
 
     i: Integer;
     TripTime, TimeTest: Double;
     Cmag, Cangle: Double;
+    ControlPower: Complex;
 
 begin
 
@@ -2032,6 +2076,40 @@ begin
 
         if FPresentState = CTRL_CLOSE then
         begin
+
+        // Identify net balanced power flow.
+            if DOC_P1Blocking then
+            begin
+
+                GetControlPower(ControlPower, ActorID);
+
+                if ControlPower.re >= 0.0 then  // Forward Power
+                begin
+
+                    if ArmedForOpen then
+                        with ActiveCircuit[ActorID] do    // If net balanced active power is forward, disarm trip and set for reset
+                        begin
+                            LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+                            ArmedForOpen := false;
+                            ArmedForClose := false;
+
+                            if DebugTrace then
+                                AppendToEventLog('Relay.' + Self.Name, Format('DOC - Reset on Forward Net Balanced Active Power: %.2f kW', [ControlPower.re]), ActorID);
+
+                        end
+                    else
+                    begin
+
+                        if DebugTrace then
+                            AppendToEventLog('Relay.' + Self.Name, Format('DOC - Forward Net Balanced Active Power: %.2f kW. DOC Element blocked.', [ControlPower.re]), ActorID);
+
+                    end;
+
+                    Exit;  // Do not evaluate trip if power is forward.
+
+                end;
+            end;
+
 
             TripTime := -1.0;
 
