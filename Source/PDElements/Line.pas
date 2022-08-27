@@ -711,7 +711,7 @@ begin
                     GeometrySpecified := false;
                 end;
                 4, 20:     // for Reliability calcs -- see PDElement.Pas
-                    MilesThisLine := len * ConvertLineUnits(LengthUnits, UNITS_MILES);
+                    MilesThisLine := len / ConvertLineUnits(LengthUnits, UNITS_MILES);
 
                 5: {Change the number of phases ... only valid if SymComponentsModel=TRUE}
                     if Fnphases <> Parser[ActorID].IntValue then
