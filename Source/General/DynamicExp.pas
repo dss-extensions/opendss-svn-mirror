@@ -380,6 +380,7 @@ end;
 
 function TDynamicExpObj.Get_Closer_Op(myExp: String; var myOp: String; var OpCode: Integer): Integer;
 var
+    SetMark: Boolean;  // For validating special chars
     myPos,
     idx: Integer;
 begin
@@ -389,9 +390,16 @@ begin
         myPos := Pos(myOps[idx], myExp);
         if (myPos < Result) and (myPos > 0) then
         begin
-            Result := myPos;
-            myOp := myOps[idx];
-            OpCode := idx;
+            SetMark := true;
+            if myOps[idx] = '-' then    // Verify in case it is a negative number
+                if myExp[myPos + 1] <> ' ' then
+                    SetMark := false;
+            if SetMark then
+            begin
+                Result := myPos;
+                myOp := myOps[idx];
+                OpCode := idx;
+            end;
         end;
     end;
 end;
