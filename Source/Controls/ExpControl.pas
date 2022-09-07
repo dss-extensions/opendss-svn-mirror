@@ -41,7 +41,6 @@ type
     PUBLIC
         constructor Create;
         destructor Destroy; OVERRIDE;
-
         function Edit(ActorID: Integer): Integer; OVERRIDE;     // uses global parser
         function NewObject(const ObjName: String): Integer; OVERRIDE;
         procedure UpdateAll(ActorID: Integer);
@@ -57,7 +56,6 @@ type
         FPVSystemNameList: TStringList;
         FPVSystemPointerList: PointerList.TPointerList;
         FDERNameList: TStringList;
-
             // working storage for each PV system under management
         FPriorVpu: array of Double;
         FPresentVpu: array of Double;
@@ -67,10 +65,8 @@ type
         FLastStepQ: array of Double; // for FOpenTau
         FTargetQ: array of Double;
         FWithinTol: array of Boolean;
-
             // temp storage for biggest PV system, not each one
         cBuffer: array of Complex;
-
             // user-supplied parameters (also PVSystemList and EventLog)
         FVregInit: Double;
         FSlope: Double;
@@ -93,33 +89,23 @@ type
     PROTECTED
         procedure Set_Enabled(Value: Boolean); OVERRIDE;
     PUBLIC
-
         constructor Create(ParClass: TDSSClass; const ExpControlName: String);
         destructor Destroy; OVERRIDE;
-
         procedure MakePosSequence(ActorID: Integer); OVERRIDE;  // Make a positive Sequence Model
         procedure RecalcElementData(ActorID: Integer); OVERRIDE;
         procedure CalcYPrim(ActorID: Integer); OVERRIDE;    // Always Zero for an ExpControl
-
             // Sample control quantities and set action times in Control Queue
         procedure Sample(ActorID: Integer); OVERRIDE;
-
             // Do the action that is pending from last sample
         procedure DoPendingAction(const Code, ProxyHdl: Integer; ActorID: Integer); OVERRIDE;
-
         procedure Reset(ActorID: Integer); OVERRIDE;  // Reset to initial defined state
-
         procedure GetInjCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;
         procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;
-
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
-
         function MakePVSystemList: Boolean;
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
-
         property PendingChange[DevIndex: Integer]: Integer READ Get_PendingChange WRITE Set_PendingChange;
-
         property DERNameList: TStringList READ FDERNameList; // for CIM export, Storage control not implemented internally
         property VregTau: Double READ FVregTau;
         property QVSlope: Double READ FSlope;
@@ -132,7 +118,6 @@ type
 
 var
     ActiveExpControlObj: TExpControlObj;
-
 {--------------------------------------------------------------------------}
 implementation
 
@@ -147,12 +132,9 @@ uses
     Math;
 
 const
-
     NumPropsThisClass = 14;
-
     NONE = 0;
     CHANGEVARLEVEL = 1;
-
 {--------------------------------------------------------------------------}
 constructor TExpControl.Create;  // Creates superstructure for all ExpControl objects
 begin
@@ -163,23 +145,17 @@ begin
     CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
     CommandList.Abbrev := true;
 end;
-
 {--------------------------------------------------------------------------}
 destructor TExpControl.Destroy;
-
 begin
-
     inherited Destroy;
 end;
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TExpControl.DefineProperties;
 begin
-
     Numproperties := NumPropsThisClass;
     CountProperties;   // Get inherited property count
     AllocatePropertyArrays;
-
      // Define Property names
     PropertyName[1] := 'PVSystemList';
     PropertyName[2] := 'Vreg';
@@ -243,11 +219,9 @@ begin
     PropertyHelp[14] := 'Alternative to PVSystemList for CIM export and import.' + CRLF + CRLF +
         'However, storage is not actually implemented yet. ' +
         'Use fully qualified PVSystem names.';
-
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 end;
-
 {--------------------------------------------------------------------------}
 function TExpControl.NewObject(const ObjName: String): Integer;
 begin
@@ -258,7 +232,6 @@ begin
         Result := AddObjectToList(ActiveDSSObject[ActiveActor]);
     end;
 end;
-
 {--------------------------------------------------------------------------}
 function TExpControl.Edit(ActorID: Integer): Integer;
 var
@@ -280,10 +253,8 @@ begin
                 Inc(ParamPointer)
             else
                 ParamPointer := CommandList.GetCommand(ParamName);
-
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
                 PropertyValue[ParamPointer] := Param;
-
             case ParamPointer of
                 0:
                     DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '"', 364);
@@ -359,7 +330,6 @@ begin
     if OtherExpControl <> nil then
         with ActiveExpControlObj do
         begin
-
             NPhases := OtherExpControl.Fnphases;
             NConds := OtherExpControl.Fnconds; // Force Reallocation of terminal stuff
 
@@ -368,7 +338,6 @@ begin
                 ControlledElement[i] := OtherExpControl.ControlledElement[i];
                 FWithinTol[i] := OtherExpControl.FWithinTol[i];
             end;
-
             FListSize := OtherExpControl.FListSize;
             FVoltageChangeTolerance := OtherExpControl.FVoltageChangeTolerance;
             FVarChangeTolerance := OtherExpControl.FVarChangeTolerance;
@@ -386,26 +355,19 @@ begin
             FOpenTau := FTresponse / 2.3026;  // not sure if RecalcElementData will be invoked from the call stack
             for j := 1 to ParentClass.NumProperties do
                 PropertyValue[j] := OtherExpControl.PropertyValue[j];
-
         end
     else
         DoSimpleMsg('Error in ExpControl MakeLike: "' + ExpControlName + '" Not Found.', 370);
-
 end;
-
 {==========================================================================}
 {                    TExpControlObj                                        }
 {==========================================================================}
-
 constructor TExpControlObj.Create(ParClass: TDSSClass; const ExpControlName: String);
-
 begin
     inherited Create(ParClass);
     Name := LowerCase(ExpControlName);
     DSSObjType := ParClass.DSSClassType;
-
     ElementName := '';
-
      {
        Control elements are zero current sources that attach to a terminal of a
        power-carrying device, but do not alter voltage or current flow.
@@ -420,7 +382,6 @@ begin
      // because it controls more than one PVSystem
 
     ShowEventLog := false;
-
     ControlledElement := nil;
     FDERNameList := nil;
     FPVSystemNameList := nil;
@@ -433,14 +394,11 @@ begin
     FLastStepQ := nil;
     FTargetQ := nil;
     FWithinTol := nil;
-
     FVoltageChangeTolerance := 0.0001;  // per-unit
     FVarChangeTolerance := 0.0001;  // per-unit
-
     FDERNameList := TSTringList.Create;
     FPVSystemNameList := TSTringList.Create;
     FPVSystemPointerList := PointerList.TPointerList.Create(20);  // Default size and increment
-
      // user parameters for dynamic Vreg
     FVregInit := 1.0; // 0 means to find it during initialization
     FSlope := 50.0;
@@ -458,7 +416,6 @@ begin
 
      //generic for control
     FPendingChange := nil;
-
     InitPropertyValues(0);
 end;
 
@@ -486,14 +443,12 @@ begin
     FOpenTau := FTresponse / 2.3026;
     if FPVSystemPointerList.ListSize = 0 then
         MakePVSystemList;
-
     if FPVSystemPointerList.ListSize > 0 then
     begin
     {Setting the terminal of the ExpControl device to same as the 1st PVSystem element}
         MonitoredElement := TDSSCktElement(FPVSystemPointerList.Get(1));   // Set MonitoredElement to 1st PVSystem in lise
         Setbus(1, MonitoredElement.Firstbus);
     end;
-
     maxord := 0; // will be the size of cBuffer
     for i := 1 to FPVSystemPointerList.ListSize do
     begin
@@ -751,7 +706,10 @@ begin
     PropertyValue[7] := '1.05';  // Vreg max
     PropertyValue[8] := '0.44';  // Qmax leading
     PropertyValue[9] := '0.44';  // Qmax lagging
-    PropertyValue[10] := 'no';    // write event log?
+    if ShowEventLog then
+        PropertyValue[10] := 'YES'
+    else
+        PropertyValue[10] := 'NO';
     PropertyValue[11] := '0.7';   // DeltaQ_factor
     PropertyValue[12] := 'no';    // PreferQ
     PropertyValue[13] := '0';     // TResponse
@@ -812,7 +770,6 @@ begin
         SetLength(FWithinTol, FListSize + 1);
         SetLength(FVregs, FListSize + 1);
     end;  {Else}
-
   //Initialize arrays
     for i := 1 to FlistSize do
     begin
@@ -941,7 +898,6 @@ function TExpControlObj.Get_PendingChange(DevIndex: Integer): Integer;
 begin
     Result := FPendingChange[DevIndex];
 end;
-
 //Called at end of main power flow solution loop
 procedure TExpControl.UpdateAll(ActorID: Integer);
 var
@@ -956,5 +912,4 @@ end;
 initialization
 
 finalization
-
 end.

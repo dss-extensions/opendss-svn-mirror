@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 135;
+    NumExecOptions = 136;
 
 var
     ExecOption,
@@ -187,6 +187,7 @@ begin
     ExecOption[133] := 'GISThickness';
     ExecOption[134] := 'UseMyLinkBranches';
     ExecOption[135] := 'LineTypes';
+    ExecOption[136] := 'EventLogDefault';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -483,9 +484,7 @@ begin
         ' If FALSE, OpenDSS will use METIS for estimating the link branches to be used based on the number of sub-circuits given by the user through the command "set Num_SubCircuits".' +
         'Otherwise, OpenDSS will use the list of link branches given by the user with the command "set LinkBranches".';
     OptionHelp[135] := '(Read only) Returns the list of line types available in the code for reference. These line types apply to lines, line codes, and line geometry objects.';
-
-    // OptionHelp[132] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark Storage2 locations with a symbol. See StoreMarkerCode and StoreMarkerSize. ';
-   //  OptionHelp[130] := '{YES/TRUE | NO/FALSE}  Default is NO. Mark PVSystem locations with a symbol. See PVMarkerCode and PVMarkerSize. ';
+    OptionHelp[136] := '{YES/TRUE | NO/FALSE*} Sets/gets the default for the eventlog. After changing this flags the model needs to be recompiled to take effect.';
 
 end;
 //----------------------------------------------------------------------------
@@ -583,6 +582,10 @@ begin
             117:
             begin
                 DSS_Viz_enable := InterpretYesNo(Param);
+            end;
+            136:
+            begin
+                EventLogDefault := InterpretYesNo(Param);
             end;
         else
         begin
@@ -1033,6 +1036,10 @@ begin
             134:
             begin
                 UseUserLinks := InterpretYesNo(Param);
+            end;
+            136:
+            begin
+                EventLogDefault := InterpretYesNo(Param);
             end;
         else
            // Ignore excess parameters
@@ -1496,6 +1503,11 @@ begin
                         AppendGlobalResult('No');
                 135:
                     GlobalResult := GetLineTypes();
+                136:
+                    if EventLogDefault then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
             else
            // Ignore excess parameters
             end;
@@ -1580,6 +1592,11 @@ begin
                         AppendGlobalResult('No');
                 135:
                     GlobalResult := GetLineTypes();
+                136:
+                    if EventLogDefault then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
             else
             begin
                 DoSimpleMsg('You must create a new circuit object first: "new circuit.mycktname" to execute this Set command.', 301);

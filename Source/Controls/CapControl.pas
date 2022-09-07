@@ -1404,7 +1404,10 @@ begin
     PropertyValue[15] := '1';
     PropertyValue[16] := '1';
     PropertyValue[17] := '';
-    PropertyValue[18] := 'YES';
+    if ShowEventLog then
+        PropertyValue[18] := 'YES'
+    else
+        PropertyValue[18] := 'NO';
     PropertyValue[19] := '';
     PropertyValue[20] := '';
     PropertyValue[21] := '50';

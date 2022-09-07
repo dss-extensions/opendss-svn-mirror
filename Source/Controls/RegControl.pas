@@ -1497,7 +1497,10 @@ begin
     PropertyValue[23] := '100';
     PropertyValue[24] := '60';
     PropertyValue[25] := 'No';
-    PropertyValue[26] := 'YES';
+    if ShowEventLog then
+        PropertyValue[26] := 'YES'
+    else
+        PropertyValue[26] := 'NO';
     PropertyValue[27] := '60';
     PropertyValue[28] := '0';
     PropertyValue[29] := 'NO';
