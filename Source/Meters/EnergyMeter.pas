@@ -346,6 +346,7 @@ type
         SAIDI: Double;
         CAIDI: Double;
         CustInterrupts: Double;
+        AssumeRestoration: Boolean;
 
         // Source reliability
         Source_NumInterruptions: Double; // Annual interruptions for upline circuit
@@ -378,7 +379,7 @@ type
         procedure SaveZone(const dirname: String);
         procedure GetPCEatZone;
 
-        procedure CalcReliabilityIndices(AssumeRestoration: Boolean; ActorID: Integer);
+        procedure CalcReliabilityIndices(AssumeRestoration_input: Boolean; ActorID: Integer);
 
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
@@ -1021,6 +1022,7 @@ begin
     SAIDI := 0.0;
     CAIDI := 0.0;
     CustInterrupts := 0.0;
+    AssumeRestoration := false;
     Source_NumInterruptions := 0.0; // Annual interruptions for upline circuit
     Source_IntDuration := 0.0; // Aver interruption duration of upline circuit
 
@@ -1846,7 +1848,10 @@ begin
                 Checked := true;
                 Inc(BranchTotalCustomers, BranchNumCustomers);
                 if ParentPDElement <> nil then
-                    Inc(ParentPDElement.BranchTotalCustomers, BranchTotalCustomers);
+                    if HasOCPDevice and AssumeRestoration and HasAutoOCPDevice then
+                        Inc(ParentPDElement.BranchTotalCustomers, 0)
+                    else
+                        Inc(ParentPDElement.BranchTotalCustomers, BranchTotalCustomers);
             end;
     end;  {For i}
 
@@ -2694,7 +2699,7 @@ end;
 
 {--------------------------- CalcReliabilityIndices ----------------------------}
 
-procedure TEnergyMeterObj.CalcReliabilityIndices(AssumeRestoration: Boolean; ActorID: Integer);
+procedure TEnergyMeterObj.CalcReliabilityIndices(AssumeRestoration_input: Boolean; ActorID: Integer);
 var
     PD_Elem: TPDElement;
     pSection: TFeederSection;
@@ -2710,6 +2715,10 @@ begin
         DoSimpleMsg('Energymeter.' + Name + ' Zone not defined properly.', 52901);
         Exit;
     end;
+
+  // Update the number or customers
+    AssumeRestoration := AssumeRestoration_input;
+    TotalUpDownstreamCustomers;
 
   // Zero reliability accumulators
     for idx := SequenceList.ListSize downto 1 do
