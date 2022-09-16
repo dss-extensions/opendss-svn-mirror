@@ -212,6 +212,7 @@ var
     i, k: Integer;
     hr: Single;
     s: Single;
+    pStr: Pansichar;
 
 begin
 
@@ -251,7 +252,9 @@ begin
         begin
             SetLength(time^, 1, pMon.SampleCount);
             ReadMonitorHeader(Header, false);   // leave at beginning of data
-            AuxParser[ActiveActor].CmdString := String(Header.StrBuffer);
+            with pMon do
+                pStr := @StrBuffer[0];
+            AuxParser[ActiveActor].CmdString := pStr;
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;
@@ -617,6 +620,7 @@ var
     i, k, index: Integer;
     hr: Single;
     s: Single;
+    pStr: Pansichar;
 
 begin
     if (MySocket.Socket.Connected = false) then
@@ -658,7 +662,9 @@ begin
         begin
             SetLength(time, 1, pMon.SampleCount);
             ReadMonitorHeader(Header, false);   // leave at beginning of data
-            AuxParser[ActiveActor].CmdString := String(Header.StrBuffer);
+            with pMon do
+                pStr := @StrBuffer[0];
+            AuxParser[ActiveActor].CmdString := pStr;
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;
@@ -699,8 +705,11 @@ begin
     begin
         with ActiveCircuit[ActiveActor] do
         begin
+            pMon := ActiveCircuit[ActiveActor].Monitors.Active;
             ReadMonitorHeader(Header, true);
-            if Header.RecordSize > 0 then
+            with pMon do
+                pStr := @StrBuffer[0];
+            if length(pStr) > 0 then
             begin
                 ListSize := Header.RecordSize;
                 SetLength(headers, ListSize);
@@ -709,7 +718,7 @@ begin
                 AuxParser[ActiveActor].Delimiters := ',';
                 SaveWhiteSpace := AuxParser[ActiveActor].Whitespace;
                 AuxParser[ActiveActor].Whitespace := '';
-                AuxParser[ActiveActor].CmdString := String(Header.StrBuffer);
+                AuxParser[ActiveActor].CmdString := String(pStr);
                 AuxParser[ActiveActor].AutoIncrement := true;
                 AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                 AuxParser[ActiveActor].StrValue;
@@ -736,7 +745,7 @@ begin
             for index := Low(headers) to High(headers) do
             begin
                 ReadMonitorHeader(Header, false);  // FALSE = leave at beginning of data
-                AuxParser[ActiveActor].CmdString := String(Header.StrBuffer);
+                AuxParser[ActiveActor].CmdString := String(pMon.StrBuffer);
                 AuxParser[ActiveActor].AutoIncrement := true;
                 FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                 AuxParser[ActiveActor].AutoIncrement := false;
@@ -1182,7 +1191,7 @@ begin
                 SetObjectClass('Monitor');
                 for k := Low(load_names) to High(load_names) do
                 begin
-                    if SetElementActive('moitor.v_' + load_names[k]) <> 0 then
+                    if SetElementActive('monitor.v_' + load_names[k]) <> 0 then
         //IF ActiveDSSClass[ActiveActor].SetActive('V_'+load_names[k]) THEN
                     begin  // IF object already exists.
                         DssExecutive[ActiveActor].Command := 'edit monitor.V_' + load_names[k] +
@@ -1287,7 +1296,7 @@ begin
                         begin
               // FALSE = leave at beginning of data
                             ReadMonitorHeader(Header, false);
-                            AuxParser[ActiveActor].CmdString := String(Header.StrBuffer);
+                            AuxParser[ActiveActor].CmdString := String(pMon.StrBuffer);
                             AuxParser[ActiveActor].AutoIncrement := true;
                             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                             AuxParser[ActiveActor].AutoIncrement := false;
