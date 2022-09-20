@@ -9,7 +9,7 @@ uses
     ComObj;
 
 function CtrlQueueI(mode: Longint; arg: Longint): Longint; CDECL;
-procedure CtrlQueueV(mode: Longint; out arg: Variant); CDECL;
+procedure CtrlQueueV(mode: Longint; var arg: Variant); CDECL;
 
 implementation
 
@@ -46,6 +46,7 @@ type
 
 var
     ActiveAction: pAction;
+    COMControlProxyObj: TCOMControlProxyObj;
 
 procedure TCOMControlProxyObj.ClearActionList;
 begin
@@ -105,7 +106,6 @@ end;
 function CtrlQueueI(mode: Longint; arg: Longint): Longint; CDECL;
 
 var
-    COMControlProxyObj: TCOMControlProxyObj;
     Hour: Integer;
     Seconds: Double;
     ActionCode, DeviceHandle: Integer;
@@ -153,35 +153,27 @@ begin
                 Result := ActiveAction^.DeviceHandle;
         end;
         6:
-        begin  // CtrlQueue.Push
-            Result := 0;
-            if ActiveCircuit[ActiveActor] <> nil then
-            begin
-                Result := ActiveCircuit[ActiveActor].ControlQueue.push(Hour, Seconds, ActionCode, DeviceHandle, COMControlProxyObj, ActiveActor);
-            end;
-        end;
-        7:
         begin  // CtrlQueue.Show
             if ActiveCircuit[ActiveActor] <> nil then
                 ActiveCircuit[ActiveActor].ControlQueue.ShowQueue(DSSDirectory + 'COMProxy_ControlQueue.CSV');
         end;
-        8:
+        7:
         begin  // CtrlQueue.ClearActions
             COMControlProxyObj.ClearActionList;
         end;
-        9:
+        8:
         begin  // CtrlQueue.PopAction
             Result := COMControlProxyObj.ActionList.Count;
             COMControlProxyObj.PopAction;
         end;
-        10:
+        9:
         begin // CtrlQueue.Get_QueueSize
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 Result := ActiveCircuit[ActiveActor].ControlQueue.QueueSize;
             end;
         end;
-        11:
+        10:
         begin // CtrlQueue.DoAllQueue
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -193,9 +185,13 @@ begin
     end;
 end;
 
-procedure CtrlQueueV(mode: Longint; out arg: Variant); CDECL;
+procedure CtrlQueueV(mode: Longint; var arg: Variant); CDECL;
 var
-    i: Integer;
+    Hour,
+    ActionCode,
+    DeviceHandle,
+    Seconds: Double;
+    i,
     Qsize: Integer;
 begin
     case mode of
@@ -214,11 +210,42 @@ begin
             end
             else
                 arg[0] := 'No events';
+        end;
+        1:
+        begin  // CtrlQueue.Push
+            i := 0;
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                if not VarIsEmpty(arg) then
+                begin
+                    try
+                        begin
+                            Hour := arg[0];
+                            Seconds := arg[1];
+                            ActionCode := arg[2];
+                            DeviceHandle := arg[3];
+
+                            i := ActiveCircuit[ActiveActor].ControlQueue.push(trunc(Hour), Seconds, trunc(ActionCode), trunc(DeviceHandle), COMControlProxyObj, ActiveActor);
+                        end;
+                    except
+                        i := -10001;              // Something went wrong;
+                    end;
+                end
+                else
+                    i := -10000;    // The variant array is empty
+            end;
+            VarClear(arg);
+            arg := i;
         end
     else
         arg := VarArrayCreate([0, 0], varOleStr);
         arg[0] := 'Mode not recognized';
     end;
 end;
+
+initialization
+ {Make a Proxy Control Object to receiving control actions}
+    COMControlProxyObj := TCOMControlProxyObj.Create(nil, 'COM_Proxy');
+    ActiveAction := nil;
 
 end.

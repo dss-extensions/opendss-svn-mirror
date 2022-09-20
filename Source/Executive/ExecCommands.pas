@@ -1,7 +1,7 @@
 unit ExecCommands;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 131;
+    NumExecCommands = 132;
 
 var
 
@@ -195,6 +195,7 @@ begin
     ExecCommand[129] := 'GISCoords';
     ExecCommand[130] := 'HELICSPublish';
     ExecCommand[131] := 'Check4Updates';
+    ExecCommand[132] := 'DDLLHelp';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -576,6 +577,8 @@ begin
         'Note: For using only if OpenDSS-GIS is locally installed.';
     CommandHelp[130] := 'Read HELICS publication topics from a JSON file';
     CommandHelp[131] := 'Returns a message indicating if there is a new version of OpenDSS avaialble for download. Requires internet connection.';
+    CommandHelp[132] := 'Shows the documentation file for the Direct DLL shared library.' +
+        'This file provides guidance on the interfaces included in the DirectDLL shared library. Use this file to learn more about the DirectDLL and its different interfaces or just as a reference guide.';
 
 end;
 
@@ -761,6 +764,10 @@ begin
             127:
             begin
                 Show_COM_Help();
+            end;
+            132:
+            begin
+                Show_DDLL_Help();
             end;
 
         else
