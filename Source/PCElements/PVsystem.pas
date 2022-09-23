@@ -38,7 +38,9 @@ uses
     XYCurve,
     Spectrum,
     ArrayDef,
-    Dynamics;
+    Dynamics,
+    MathUtil,
+    InvDynamics;
 
 const
     NumPVSystemRegisters = 6;    // Number of energy meter registers
@@ -85,14 +87,6 @@ type
         P_Priority: Boolean;  // default False // added 10/30/2018
         PF_Priority: Boolean;  // default False // added 1/29/2019
     // Dynamic variables - introduced on 09/15/2022
-        Vgrid,                                      // Grid voltage at the point of connection per phase
-        dit,                                        // Current's first derivative per phase
-        it,                                         // Current's integration per phase
-        itHistory,                                  // Shift register for it
-        m: array of Double;    // Average duty cycle per phase
-        RatedVDC,                                   // Rated DC voltage at the inverter's input
-        LS,                                         // Series inductance, careful, it cannot be 0 in dyn mode
-        VDC: Double;             // DC voltage injected to the inverter
 
 
     end;
@@ -247,6 +241,7 @@ type
         procedure GetTerminalCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;
     PUBLIC
         PVSystemVars: TPVSystemVars;
+        myDynVars: TInvDynamicVars;    // Link to the dybamci variables record
         VBase: Double;  // Base volts suitable for computing currents
         CurrentkvarLimit: Double;
         CurrentkvarLimitNeg: Double;
@@ -275,6 +270,7 @@ type
         PFnominal: Double;
         Registers: array[1..NumPVSystemRegisters] of Double;
         Derivatives: array[1..NumPVSystemRegisters] of Double;
+        PICtrl: TPICtrl;
         constructor Create(ParClass: TDSSClass; const SourceName: String);
         destructor Destroy; OVERRIDE;
         procedure RecalcElementData(ActorID: Integer); OVERRIDE;
@@ -356,7 +352,6 @@ uses
     Sysutils,
     Command,
     Math,
-    MathUtil,
     DSSClassDefs,
     DSSGlobals,
     Utilities;
@@ -410,7 +405,11 @@ const
     propPminkvarLimit = 39;
     propkvarLimitneg = 40;
     propkVDC = 41;
-    NumPropsThisClass = 41; // Make this agree with the last property constant
+    propkp = 42;
+    propCtrlTol = 43;
+    propSMT = 44;
+    propSM = 45;
+    NumPropsThisClass = 45; // Make this agree with the last property constant
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
@@ -596,6 +595,19 @@ begin
 
     AddProperty('kVDC', propkVDC,
         'Indicates the rated voltage (kV) at the input of the inverter at the peak of PV energy production. The value is normally greater or equal to the kV base of the PV system. It is used for dynamics simulation ONLY.');
+
+    AddProperty('Kp', propkp,
+        'It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode or when operating as grid forming inverter.');
+
+    AddProperty('PITol', propCtrlTol,
+        'It is the tolerance (%) for the closed loop controller of the inverter. For dynamics or when the inverter is operating in grid forming mode.');
+
+    AddProperty('SafeVoltage', propSMT,
+        'Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter into safe mode (OFF). For dynamic simulation. By default is 80%');
+
+    AddProperty('SafeMode', propSM,
+        '(Read only) Indicates wheather the inverter entered (Yes) or not (No) into Safe Mode.');
+
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -819,7 +831,13 @@ begin
                         kvarLimitNegSet := true;
                     end;
                     propkVDC:
-                        PVSystemVars.RatedVDC := Parser[ActorID].DblValue * 1000;
+                        myDynVars.RatedVDC := Parser[ActorID].DblValue * 1000;
+                    propkp:
+                        myDynVars.kP := Parser[ActorID].DblValue;
+                    propCtrlTol:
+                        myDynVars.CtrlTol := Parser[ActorID].DblValue / 100.0;
+                    propSMT:
+                        myDynVars.SMThreshold := Parser[ActorID].DblValue;
 
                 else
                   // Inherited parameters
@@ -1048,7 +1066,7 @@ begin
     FVarFollowInverter := false;
     ForceBalanced := false;
     CurrentLimited := false;
-    with PVSystemVars do
+    with PVSystemVars, myDynVars do
     begin
         FTemperature := 25.0;
         FIrradiance := 1.0;  // kW/sq-m
@@ -1069,6 +1087,9 @@ begin
         P_Priority := false;    // This is a change from older versions
         PF_Priority := false;
         RatedVDC := 8000;
+        SMThreshold := 80;
+        SafeMode := false;
+        kP := 0.00001;
     end;
     FpctCutIn := 20.0;
     FpctCutOut := 20.0;
@@ -1104,6 +1125,9 @@ begin
     FWPMode := false;
     FDRCMode := false;
     FAVRMode := false;
+
+    PICtrl := nil;
+
     InitPropertyValues(0);
     RecalcElementData(ActiveActor);
 end;
@@ -1150,6 +1174,11 @@ begin
         PropertyValue[propkvarLimitneg] := Format('%-g', [Fkvarlimitneg]);
         PropertyValue[propPpriority] := 'NO';
         PropertyValue[propPFpriority] := 'NO';
+        PropertyValue[propKVDC] := '8000';
+        PropertyValue[propkp] := '0.00001';
+        PropertyValue[propCtrlTol] := '5';
+        PropertyValue[propSMT] := '80';
+        PropertyValue[propSM] := 'NO';
     end;
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
@@ -1157,7 +1186,7 @@ end;
 function TPVsystemObj.GetPropertyValue(Index: Integer): String;
 begin
     Result := '';
-    with PVSystemVars do
+    with PVSystemVars, myDynVars do
         case Index of
             propKV:
                 Result := Format('%.6g', [kVPVSystemBase]);
@@ -1240,7 +1269,19 @@ begin
                 Result := Format('%.6g', [Fkvarlimitneg]);
             propDutyStart:
                 Result := Format('%.6g', [DutyStart]);
-
+            propkVDC:
+                Result := Format('%.6g', [RatedVDC]);
+            propkp:
+                Result := Format('%.10g', [kP]);
+            propCtrlTol:
+                Result := Format('%.6g', [CtrlTol]);
+            propSMT:
+                Result := Format('%.6g', [SMThreshold]);
+            propSM:
+                if SafeMode then
+                    Result := 'Yes'
+                else
+                    Result := 'No';
         {propDEBUGTRACE = 33;}
         else  // take the generic handler
             Result := inherited GetPropertyValue(index);
@@ -1395,7 +1436,7 @@ begin
     begin
         if not (IsDynamicModel or IsHarmonicModel) then     // Leave PVSystem element in whatever state it was prior to entering Dynamic mode
         begin
-            // Check dispatch to see what state the PVSystem element should be in
+          // Check dispatch to see what state the PVSystem element should be in
             with Solution do
                 case Mode of
                     SNAPSHOT: ; {Just solve for the present kW, kvar}  // Don't check for state change
@@ -1409,15 +1450,18 @@ begin
                         CalcYearlyMult(DynaVars.dblHour);
                         CalcYearlyTemperature(DynaVars.dblHour);
                     end;
-             (*
-                MONTECARLO1,
-                MONTEFAULT,
-                FAULTSTUDY,
-                DYNAMICMODE:   ; // {do nothing yet}
-             *)
+           (*
+              MONTECARLO1,
+              MONTEFAULT,
+              FAULTSTUDY;*)
+                    DYNAMICMODE:
+                    begin   // Implemented 09/22/2022
+
+                    end;
+
                     GENERALTIME:
                     begin
-                         // This mode allows use of one class of load shape
+                             // This mode allows use of one class of load shape
                         case ActiveCircuit[ActiveActor].ActiveLoadShapeClass of
                             USEDAILY:
                             begin
@@ -1438,7 +1482,7 @@ begin
                             ShapeFactor := CDOUBLEONE     // default to 1 + j1 if not known
                         end;
                     end;
-                // Assume Daily curve, If any, for the following
+              // Assume Daily curve, If any, for the following
                     MONTECARLO2,
                     MONTECARLO3,
                     LOADDURATION1,
@@ -1457,13 +1501,13 @@ begin
                         CalcDutyMult(DynaVars.dblHour);
                         CalcDutyTemperature(DynaVars.dblHour);
                     end;
-                {AUTOADDFLAG:  ; }
+              {AUTOADDFLAG:  ; }
                 end;
-            ComputekWkvar;
+            ComputekWkvar();
             Pnominalperphase := 1000.0 * kW_out / Fnphases;
             Qnominalperphase := 1000.0 * kvar_out / Fnphases;
             case VoltageModel of
-              //****  Fix this when user model gets connected in
+            //****  Fix this when user model gets connected in
                 3: // YEQ := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
             else
                 YEQ := CDivReal(Cmplx(Pnominalperphase, -Qnominalperphase), Sqr(Vbase));   // Vbase must be L-N for 3-phase
@@ -1475,8 +1519,8 @@ begin
                     YEQ_Max := CDivReal(YEQ, SQR(Vmaxpu))   // at 105% voltage
                 else
                     YEQ_Max := YEQ;
-            { Like Model 7 generator, max current is based on amount of current to get out requested power at min voltage
-            }
+          { Like Model 7 generator, max current is based on amount of current to get out requested power at min voltage
+          }
                 with PVSystemvars do
                 begin
                     PhaseCurrentLimit := Cdivreal(Cmplx(Pnominalperphase, Qnominalperphase), VBaseMin);
@@ -1484,7 +1528,7 @@ begin
                 end;
 
             end;
-           { When we leave here, all the YEQ's are in L-N values}
+         { When we leave here, all the YEQ's are in L-N values}
         end;  {If  NOT (IsDynamicModel or IsHarmonicModel)}
     end;  {With ActiveCircuit[ActiveActor]}
 
@@ -2443,10 +2487,17 @@ var
 
 begin
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
-    with PVSystemVars do
+
+    if PICtrl = nil then
+        PICtrl := TPICtrl.Create;
+
+    PICtrl.Kp := myDynVars.kP;
+    PICtrl.kNum := 0.9502;
+    PICtrl.kDen := 0.04979;
+
+    with PVSystemVars, myDynVars do
     begin
         ComputePanelPower();
-        VDC := 0;
         NumPhases := Fnphases;     // set Publicdata vars
         NumConductors := Fnconds;
         Conn := Connection;
@@ -2456,10 +2507,15 @@ begin
         setlength(itHistory, NumPhases);
         setlength(Vgrid, NumPhases);
         setlength(m, NumPhases);
+
+        MaxVS := (1 + (SMThreshold / 100)) * PresentkV;
+        MinVS := (SMThreshold / 100) * PresentkV;
+        SafeMode := false;
+
         if XThev = 0 then
         begin
-            pctX := 10;         // forces the value to 10% in dynamics mode if not given
-            XThev := pctX * 0.01 * SQR(PresentkV) / FkVArating * 1000.0;
+            pctX := 50;         // forces the value to 10% in dynamics mode if not given
+            XThev := pctX * 0.01 * (SQR(PresentkV) / FkVArating) * 1000.0;
         end;
         Zthev := Cmplx(RThev, XThev);
         YEQ := Cinv(Zthev);      // used for current calcs  Always L-N
@@ -2470,8 +2526,12 @@ begin
             for i := 0 to (FNphases - 1) do
             begin
                 dit[i] := 0;
-                it[i] := ctopolar(ITerminal^[i + 1]).mag;
-                m[i] := 0;   // Duty factor in terms of actual voltage - 0 for now
+                it[i] := 0;
+                Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]).mag;
+                m[i] := ((Rthev * it[i]) + Vgrid[i]) / RatedVDC;   // Duty factor in terms of actual voltage
+                if m[i] > 1 then
+                    m[i] := 1;
+
             end;
 
         end;
@@ -2481,6 +2541,10 @@ end;
 procedure TPVsystemObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 var
+    myDCycle,
+    iDelta,
+    iErrorPct,
+    iError: Double;
     i: Integer;
 begin
     // Compute Derivatives and Then integrate
@@ -2492,8 +2556,12 @@ begin
         if DynamicEqObj = nil then                    // Uses the default dynamic model included
         begin
 
-            with ActiveCircuit[ActorID].Solution, PVSystemVars do
+            with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
             begin
+          // Compute the actual target (Amps)
+                ComputePanelPower();
+                ISP := (PanelkW / PresentkV);
+
                 with DynaVars do
                     if (IterationFlag = 0) then
                     begin {First iteration of new time step}
@@ -2501,24 +2569,53 @@ begin
                             itHistory[i] := it[i] + 0.5 * h * dit[i];
                     end;
 
-          // Compute the actual VDC at the inverter input
-                ComputePanelPower();
-                VDC := (PanelkW / FPmpp) * RatedVDC;
-
           // Compute inv dynamics
                 for i := 0 to (NumPhases - 1) do
                 begin
                     Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]).mag;        // Voltage at the Inv terminals
-                    m[i] := Vgrid[i] / VDC;                               // duty cycle at time h
+                    if Vgrid[i] < (0.2 * PresentkV * 1000) then
+                        ISP := 0.01;  // turn off the inverter
 
-                    dit[i] := ((m[i] * VDC) - (RThev * it[i]) - Vgrid[i]) / LS;
+                    if (DynaVars.IterationFlag <> 0) then
+                    begin                                                     // duty cycle at time h
+                        iError := (ISP - it[i]);                          // Only recalculated on the second iter
+                        iErrorPct := iError / ISP;
+                        if Abs(iErrorPct) > CtrlTol then
+                        begin
+                            iDelta := PICtrl.SolvePI(IError);
+                            myDCycle := m[i] + iDelta;
+                            if Vgrid[i] > MinVS then
+                            begin
+                                if SafeMode then
+                                begin
+                     //Coming back from safe operation, need to boost duty cycle
+                                    m[i] := ((Rthev * it[i]) + Vgrid[i]) / RatedVDC;
+                                    SafeMode := false;
+                                end
+                                else
+                                if (myDCycle <= 1) and (myDCycle > 0) then
+                                    m[i] := myDCycle;
+                            end
+                            else
+                            begin
+                                m[i] := 0;
+                                SafeMode := true;
+                            end;
+                        end;
+                    end;
+
+                    dit[i] := ((m[i] * RatedVDC) - (RThev * it[i]) - Vgrid[i]) / LS;
                 end;
 
           // Trapezoidal method
                 with DynaVars do
                 begin
                     for i := 0 to (NumPhases - 1) do
+                    begin
                         it[i] := itHistory[i] + 0.5 * h * dit[i];
+              //if it[i] > iMaxPPhase then it[i] :=  iMaxPPhase;
+                    end;
+
                 end;
 
             end;
@@ -2539,7 +2636,7 @@ begin
     if i < 1 then
         Exit;
     // for now, report kWhstored and mode
-    with PVSystemVars do
+    with PVSystemVars, myDynVars do
         case i of
             1:
                 Result := PresentIrradiance;
@@ -2580,7 +2677,7 @@ begin
             19:
                 Result := m[0];
             20:
-                Result := VDC;
+                Result := ISP;
             21:
                 Result := LS;
         else
@@ -2762,7 +2859,7 @@ var
 begin
     if i < 1 then
         Exit;  // No variables to set
-    with PVSystemVars do
+    with PVSystemVars, myDynVars do
         case i of
             1:
                 FIrradiance := Value;
@@ -2797,7 +2894,7 @@ begin
             19:
                 m[0] := Value;
             20:
-                VDC := Value;
+                ISP := Value;
             21:
                 LS := Value;
         else
@@ -2921,9 +3018,9 @@ begin
         19:
             Result := 'Avg duty cycle';
         20:
-            Result := 'Actual VDC';
+            Result := 'Target (Amps)';
         21:
-            Result := 'Equivlent series inductance'
+            Result := 'Series L'
     else
     begin
         if UserModel.Exists then

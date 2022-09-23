@@ -36,10 +36,52 @@ function TerminalPowerIn(V, I: pComplexArray; Nphases: Integer): Complex;
 function PctNemaUnbalance(Vph: pComplexArray): Double;
 procedure DblInc(var x: Double; const y: Double); inline; // increment a double
 
+type
+    TPICtrl = class(TObject)
+    PRIVATE
+        den,
+        num: array of Double;
+    PUBLIC
+        kNum,
+        kDen,
+        Kp: Double;
+        function SolvePI(SetPoint: Double): Double;
+        constructor Create;
+        destructor Destroy; OVERRIDE;
+    end;
+
 implementation
 
 uses
     Math;
+
+constructor TPICtrl.Create;
+begin
+  //Initializes the constants for a rising function of 5 steps
+    setlength(den, 2);
+    setlength(num, 2);
+    kNum := 0.8647;
+    kDen := 0.1353;
+    Kp := 0.02;
+    den[1] := 0;
+    num[1] := 0;
+end;
+
+destructor TPICtrl.Destroy;
+begin
+    setlength(den, 0);
+    setlength(num, 0);
+end;
+
+function TPICtrl.SolvePI(SetPoint: Double): Double;
+begin
+    num[0] := num[1];
+    num[1] := SetPoint * Kp;
+    den[0] := den[1];
+    den[1] := (num[0] * kNum) + (den[0] * kDen);
+    Result := den[1];
+
+end;
 
 
    // Sqrt23:Double;
