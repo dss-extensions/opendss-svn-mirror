@@ -247,6 +247,12 @@
                 <DeployFile LocalName="..\OpenDSS" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\OpenDSS" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>OpenDSS.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
@@ -1187,6 +1193,7 @@
         <DCCReference Include="..\PCElements\GenUserModel.pas"/>
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
         <DCCReference Include="..\General\DynamicExp.pas"/>
+        <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
