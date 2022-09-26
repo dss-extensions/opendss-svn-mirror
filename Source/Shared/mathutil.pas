@@ -50,6 +50,8 @@ type
         destructor Destroy; OVERRIDE;
     end;
 
+    PPICtrl = ^TPICtrl;
+
 implementation
 
 uses
