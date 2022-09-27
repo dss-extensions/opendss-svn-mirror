@@ -45,11 +45,13 @@ uses
     Spectrum,
     ArrayDef,
     Dynamics,
-    XYCurve;
+    XYCurve,
+    InvDynamics,
+    mathutil;
 
 const
     NumStorageRegisters = 6;    // Number of energy meter registers
-    NumStorageVariables = 25;    // No state variables
+    NumStorageVariables = 25 + 9;    // No state variables: 09/27/2022 includes inverter dynamics
     VARMODEPF = 0;
     VARMODEKVAR = 1;
 //= = = = = = = = = = = = = = DEFINE STATES = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -302,6 +304,7 @@ type
     PUBLIC
 
         StorageVars: TStorageVars;
+        myDynVars: TInvDynamicVars;    // Link to the dybamci variables record
 
         VBase: Double;  // Base volts suitable for computing currents
 
@@ -341,6 +344,7 @@ type
         StorageClass: Integer;
         VoltageModel: Integer;   // Variation with voltage
         PFNominal: Double;
+        PICtrl: TPICtrl;
 
         Registers, Derivatives: array[1..NumStorageRegisters] of Double;
 
@@ -455,7 +459,6 @@ uses
     Sysutils,
     Command,
     Math,
-    MathUtil,
     DSSClassDefs,
     DSSGlobals,
     Utilities;
@@ -522,8 +525,13 @@ const
     propkvarLimitneg = 50;
 
     propIDLEKVAR = 51;
+    propkVDC = 52;
+    propkp = 53;
+    propCtrlTol = 54;
+    propSMT = 55;
+    propSM = 56;
 
-    NumPropsThisClass = 51; // Make this agree with the last property constant
+    NumPropsThisClass = 56; // Make this agree with the last property constant
 
 var
 
@@ -754,6 +762,22 @@ begin
     AddProperty('debugtrace', propDEBUGTRACE,
         '{Yes | No }  Default is no.  Turn this on to capture the progress of the Storage model ' +
         'for each iteration.  Creates a separate file for each Storage element named "Storage_name.CSV".');
+
+    AddProperty('kVDC', propkVDC,
+        'Indicates the rated voltage (kV) at the input of the inverter at the peak of PV energy production. The value is normally greater or equal to the kV base of the PV system. It is used for dynamics simulation ONLY.');
+
+    AddProperty('Kp', propkp,
+        'It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode or when operating as grid forming inverter.');
+
+    AddProperty('PITol', propCtrlTol,
+        'It is the tolerance (%) for the closed loop controller of the inverter. For dynamics or when the inverter is operating in grid forming mode.');
+
+    AddProperty('SafeVoltage', propSMT,
+        'Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter into safe mode (OFF). For dynamic simulation. By default is 80%');
+
+    AddProperty('SafeMode', propSM,
+        '(Read only) Indicates wheather the inverter entered (Yes) or not (No) into Safe Mode.');
+
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -1056,6 +1080,14 @@ begin
                         StorageVars.Fkvarlimitneg := Abs(Parser[ActorID].DblValue);
                         kvarLimitNegSet := true;
                     end;
+                    propkVDC:
+                        myDynVars.RatedVDC := Parser[ActorID].DblValue * 1000;
+                    propkp:
+                        myDynVars.kP := Parser[ActorID].DblValue;
+                    propCtrlTol:
+                        myDynVars.CtrlTol := Parser[ActorID].DblValue / 100.0;
+                    propSMT:
+                        myDynVars.SMThreshold := Parser[ActorID].DblValue;
 
                 else
                // Inherited parameters
@@ -1380,6 +1412,7 @@ begin
         WVOperation := 9999;
 
     end;
+    PICtrl := nil;
 
     FDCkW := 25.0;
 
@@ -1532,6 +1565,12 @@ begin
     PropertyValue[propPpriority] := 'NO';   // Included
     PropertyValue[propPFPriority] := 'NO';
 
+    PropertyValue[propKVDC] := '8000';
+    PropertyValue[propkp] := '0.00001';
+    PropertyValue[propCtrlTol] := '5';
+    PropertyValue[propSMT] := '80';
+    PropertyValue[propSM] := 'NO';
+
     inherited  InitPropertyValues(NumPropsThisClass);
 
 end;
@@ -1542,7 +1581,7 @@ function TStorageObj.GetPropertyValue(Index: Integer): String;
 begin
 
     Result := '';
-    with StorageVars do
+    with StorageVars, myDynVars do
         case Index of
             propKV:
                 Result := Format('%.6g', [StorageVars.kVStorageBase]);
@@ -1623,7 +1662,6 @@ begin
             propKWHSTORED:
                 Result := Format('%.6g', [kWHStored]);
 
-
             propPCTRESERVE:
                 Result := Format('%.6g', [pctReserve]);
             propUSERMODEL:
@@ -1657,6 +1695,19 @@ begin
                 Result := Format('%.6g', [Fkvarlimit]);
             propkvarLimitneg:
                 Result := Format('%.6g', [Fkvarlimitneg]);
+            propkVDC:
+                Result := Format('%.6g', [RatedVDC]);
+            propkp:
+                Result := Format('%.10g', [kP]);
+            propCtrlTol:
+                Result := Format('%.6g', [CtrlTol]);
+            propSMT:
+                Result := Format('%.6g', [SMThreshold]);
+            propSM:
+                if SafeMode then
+                    Result := 'Yes'
+                else
+                    Result := 'No';
 
         else  // take the generic handler
             Result := inherited GetPropertyValue(index);
@@ -2796,8 +2847,11 @@ procedure TStorageObj.DoDynamicMode;
 {****}
 var
     i: Integer;
+    PolarN: Polar;
+    NeutAmps: Complex;
     V012,
     I012: array[0..2] of Complex;
+    iActual: Double;
 
 
     procedure CalcVthev_Dyn;
@@ -2813,56 +2867,33 @@ begin
 
     if DynaModel.Exists then
         DoDynaModel(ActorID)   // do user-written model
-
     else
     begin
 
         CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
         ZeroITerminal;
-
-       // Simple Thevenin equivalent
-       // compute terminal current (Iterminal) and take out the Yprim contribution
-
-        with StorageVars do
-            case Fnphases of
-                1:
-                begin
-                    CalcVthev_Dyn;  // Update for latest phase angle
-                    ITerminal^[1] := CDiv(CSub(Csub(VTerminal^[1], Vthev), VTerminal^[2]), Zthev);
-                    if CurrentLimited then
-                        if Cabs(Iterminal^[1]) > MaxDynPhaseCurrent then   // Limit the current but keep phase angle
-                            ITerminal^[1] := ptocomplex(topolar(MaxDynPhaseCurrent, cang(Iterminal^[1])));
-                    ITerminal^[2] := Cnegate(ITerminal^[1]);
-                end;
-                3:
-                begin
-                    Phase2SymComp(Vterminal, @V012);
-
-                  // Positive Sequence Contribution to Iterminal
-                    CalcVthev_Dyn;  // Update for latest phase angle
-
-                  // Positive Sequence Contribution to Iterminal
-                    I012[1] := CDiv(Csub(V012[1], Vthev), Zthev);
-
-                    if CurrentLimited and (Cabs(I012[1]) > MaxDynPhaseCurrent) then   // Limit the pos seq current but keep phase angle
-                        I012[1] := ptocomplex(topolar(MaxDynPhaseCurrent, cang(I012[1])));
-
-                    if ForceBalanced then
-                    begin
-                        I012[2] := CZERO;
-                    end
-                    else
-                        I012[2] := Cdiv(V012[2], Zthev);  // for inverter
-
-                    I012[0] := CZERO;
-
-                    SymComp2Phase(ITerminal, @I012);  // Convert back to phase components
-
-                end;
-            else
-                DoSimpleMsg(Format('Dynamics mode is implemented only for 1- or 3-phase Storage Element. Storage.%s has %d phases.', [name, Fnphases]), 5671);
-                SolutionAbort := true;
+    {This model has no limitation in the nmber of phases and is ideally unbalanced (no dq-dv, but is implementable as well)}
+    // First, get the phase angles for the currents
+        NeutAmps := cmplx(0, 0);
+        for i := 1 to FNphases do
+        begin
+            with myDynVars do
+            begin
+        // determine if the PV panel is ON
+                if it[i - 1] <= iMaxPPhase then
+                    iActual := it[i - 1]
+                else
+                    iActual := iMaxPPhase;
+        //--------------------------------------------------------
+                if iActual < MinAmps then
+                    iActual := 0;                // To mach with the %CutOut property
+                PolarN := topolar(iActual, Vgrid[i].ang);     // Output Current estimated for active power
+                Iterminal^[i] := ptocomplex(PolarN);
+                NeutAmps := csub(NeutAmps, Iterminal^[i]);
             end;
+        end;
+        if FnConds > FNphases then
+            Iterminal^[FnConds] := NeutAmps;
 
     {Add it into inj current array}
         for i := 1 to FnConds do
@@ -3552,12 +3583,18 @@ begin
 
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
 
+    if PICtrl = nil then
+        PICtrl := TPICtrl.Create;
+
+    PICtrl.Kp := myDynVars.kP;
+    PICtrl.kNum := 0.9502;
+    PICtrl.kDen := 0.04979;
+
     with StorageVars do
     begin
         ZThev := Cmplx(RThev, XThev);
         Yeq := Cinv(ZThev);  // used to init state vars
     end;
-
 
     if DynaModel.Exists then   // Checks existence and selects
     begin
@@ -3571,74 +3608,61 @@ begin
         end;
         DynaModel.FInit(Vterminal, Iterminal);
     end
-
     else
     begin
 
-     {Compute nominal Positive sequence voltage behind equivalent filter impedance}
-
+    {Compute nominal Positive sequence voltage behind equivalent filter impedance}
         if FState = STORE_DISCHARGING then
             with ActiveCircuit[ActorID].Solution do
             begin
-                ComputeIterminal(ActorID);
 
-                if FnPhases = 3 then
+                with StorageVars, myDynVars do
                 begin
-                    Phase2SymComp(ITerminal, @I012);
-                // Voltage behind Xdp  (transient reactance), volts
-                    case Connection of
-                        0:
+                    NumPhases := Fnphases;     // set Publicdata vars
+                    NumConductors := Fnconds;
+                    Conn := Connection;
+
+        // Sets the length of State vars to cover the num of phases
+                    setlength(dit, NumPhases);     // Includes the current and past values
+                    setlength(it, NumPhases);
+                    setlength(itHistory, NumPhases);
+                    setlength(Vgrid, NumPhases);
+                    setlength(m, NumPhases);
+
+                    MaxVS := (1 + (SMThreshold / 100)) * PresentkV * 1000;
+                    MinVS := (SMThreshold / 100) * PresentkV * 1000;
+                    MinAmps := (FpctCutOut / 100) * ((FkVArating / PresentkV) / NumPhases);
+                    SafeMode := false;
+                    iMaxPPhase := (FkVArating / PresentkV) / NumPhases;
+
+                    if ZThev.im = 0 then
+                    begin
+                        pctX := 50;         // forces the value to 10% in dynamics mode if not given
+                        XThev := pctX * 0.01 * (SQR(PresentkV) / FkVArating) * 1000.0;
+                    end;
+                    ZThev := Cmplx(RThev, XThev);
+                    Yeq := Cinv(ZThev);  // used to init state vars
+                    RS := Zthev.re;
+                    ComputeIterminal(ActorID);  // Gest the actual current value
+                    ISP := ctopolar(Iterminal[1]).mag;
+                    with ActiveCircuit[ActorID].Solution do
+                    begin
+                        LS := ZThev.im / (2 * PI * DefaultBaseFreq);
+                        for i := 0 to (NPhases - 1) do
                         begin
-                            if not ADiakoptics or (ActorID = 1) then
-                                Vneut := NodeV^[NodeRef^[Fnconds]]
-                            else
-                                Vneut := VoltInActor1(NodeRef^[Fnconds]);
+                            dit[i] := 0;
+                            it[i] := 0;
+                            Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
+                            m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;   // Duty factor in terms of actual voltage
 
-                        end
-                    else
-                        Vneut := CZERO;
+                            if m[i] > 1 then
+                                m[i] := 1;
+
+                        end;
                     end;
-
-                    for i := 1 to FNphases do
-                    begin
-                        if not ADiakoptics or (ActorID = 1) then
-                            Vabc[i] := NodeV^[NodeRef^[i]]          // Wye Voltage
-                        else
-                            Vabc[i] := VoltInActor1(NodeRef^[i]);   // Wye Voltage
-
-                    end;
-
-                    Phase2SymComp(@Vabc, @V012);
-                    with StorageVars do
-                    begin
-                        Vthev := Csub(V012[1], Cmul(I012[1], ZThev));    // Pos sequence
-                        VThevPolar := cToPolar(VThev);
-                        VThevMag := VThevPolar.mag;
-                        Theta := VThevPolar.ang;  // Initial phase angle
-                    end;
-                end
-                else
-                begin   // Single-phase Element
-                    for i := 1 to Fnconds do
-                    begin
-                        if not ADiakoptics or (ActorID = 1) then
-                            Vabc[i] := NodeV^[NodeRef^[i]]
-                        else
-                            Vabc[i] := VoltInActor1(NodeRef^[i]);
-
-                    end;
-                    with StorageVars do
-                    begin
-                        Vthev := Csub(VDiff(NodeRef^[1], NodeRef^[2], ActorID), Cmul(ITerminal^[1], ZThev));    // Pos sequence
-                        VThevPolar := cToPolar(VThev);
-                        VThevMag := VThevPolar.mag;
-                        Theta := VThevPolar.ang;  // Initial phase angle
-                    end;
-
                 end;
             end;
     end;
-
 end;
 
 //----------------------------------------------------------------------------
@@ -3647,55 +3671,70 @@ procedure TStorageObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 
 var
+    i: Integer;
     TracePower: Complex;
 
 begin
-   // Compute Derivatives and Then integrate
+ // Compute Derivatives and Then integrate
 
     ComputeIterminal(ActorID);
 
     if Dynamodel.Exists then   // Checks for existence and Selects
-
         DynaModel.Integrate
-
     else
-
-        with ActiveCircuit[ActorID].Solution, StorageVars do
+    begin
+        with ActiveCircuit[ActorID].Solution, StorageVars, myDynVars do
         begin
 
             with StorageVars do
-                if (Dynavars.IterationFlag = 0) then
-                begin {First iteration of new time step}
-//****          ThetaHistory := Theta + 0.5*h*dTheta;
-//****          SpeedHistory := Speed + 0.5*h*dSpeed;
+            begin
+                Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
+                if FState = STORE_DISCHARGING then
+                begin
+                    with DynaVars do
+                        if (IterationFlag = 0) then
+                        begin {First iteration of new time step}
+                            for i := 0 to (NumPhases - 1) do
+                                itHistory[i] := it[i] + 0.5 * h * dit[i];
+                        end;
+
+          // Compute inv dynamics
+                    for i := 0 to (NumPhases - 1) do
+                    begin
+                        if Vgrid[i].mag < MinVS then
+                        begin
+                            ISP := 0.01;                 // turn off the inverter
+                            FState := STORE_IDLING;
+                        end;
+                        SolveDynamicStep(i, ActorID, @PICtrl);                // Solves dynamic step for inverter
+                    end;
+
+          // Trapezoidal method
+                    with DynaVars do
+                    begin
+                        for i := 0 to (NumPhases - 1) do
+                            it[i] := itHistory[i] + 0.5 * h * dit[i];
+                    end;
+                end
+                else
+                    for i := 0 to (NumPhases - 1) do
+                        it[i] := -1 * PIdling / Vgrid[i].mag;   // To match with idling losses
+
+
+        // Write Dynamics Trace Record
+                if DebugTrace then
+                begin
+                    Append(TraceFile);
+                    Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
+                    Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
+                    Writeln(TraceFile);
+                    CloseFile(TraceFile);
                 end;
-
-      // Compute shaft dynamics
-            TracePower := TerminalPowerIn(Vterminal, Iterminal, FnPhases);
-
-//****      dSpeed := (Pshaft + TracePower.re - D*Speed) / Mmass;
-//      dSpeed := (Torque + TerminalPowerIn(Vtemp,Itemp,FnPhases).re/Speed) / (Mmass);
-//****      dTheta  := Speed ;
-
-     // Trapezoidal method
-            with StorageVars do
-            begin
-//****       Speed := SpeedHistory + 0.5*h*dSpeed;
-//****       Theta := ThetaHistory + 0.5*h*dTheta;
-            end;
-
-   // Write Dynamics Trace Record
-            if DebugTrace then
-            begin
-                Append(TraceFile);
-                Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
-                Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
-                Writeln(TraceFile);
-                CloseFile(TraceFile);
             end;
 
         end;
 
+    end;
 end;
 
 //----------------------------------------------------------------------------
@@ -3808,6 +3847,8 @@ begin
 
         else
         begin
+            with myDynVars do       // Dynamic state variables read
+                Result := Get_InvDynValue(i - 26);
             if UserModel.Exists then   // Checks for existence and Selects
             begin
                 N := UserModel.FNumVars;
@@ -3868,6 +3909,9 @@ begin
 
         else
         begin
+
+            with myDynVars do           // Dynamic state variables write
+                Set_InvDynValue(i - 26, Value);
             if UserModel.Exists then    // Checks for existence and Selects
             begin
                 N := UserModel.FNumVars;
@@ -4001,6 +4045,9 @@ begin
 
     else
     begin
+        with myDynVars do   // Adds dynamic state variables names
+            Result := Get_InvDynName(i - 26);
+
         if UserModel.Exists then    // Checks for existence and Selects
         begin
             pName := @Buff;
