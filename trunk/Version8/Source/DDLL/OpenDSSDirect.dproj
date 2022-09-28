@@ -397,6 +397,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="..\PCElements\WindGenUserModel.pas"/>
         <DCCReference Include="..\PCElements\WindGenVars.pas"/>
         <DCCReference Include="..\General\DynamicExp.pas"/>
+        <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
@@ -461,8 +462,12 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
             <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule"/>
                 <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\x86\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>OpenDSSDirect.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\x86\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win32\Debug\OpenDSSDirect.dll" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win64\Debug\OpenDSSDirect.dll" Configuration="Debug" Class="ProjectOutput"/>
