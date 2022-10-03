@@ -1193,6 +1193,7 @@
         <DCCReference Include="..\PCElements\GeneratorVars.pas"/>
         <DCCReference Include="..\General\DynamicExp.pas"/>
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
+        <DCCReference Include="..\Controls\GenController.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
