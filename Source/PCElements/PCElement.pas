@@ -82,6 +82,10 @@ type
         function VariableName(i: Integer): String; VIRTUAL;
         function LookupVariable(const s: String): Integer;
 
+        function CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
+        procedure SetDynOutput(myVar: String);
+        function GetDynOutputStr(): String;
+
         property Variable[i: Integer]: Double READ Get_Variable WRITE Set_Variable;
 
 //       Property ITerminalUpdated:Boolean read FITerminalUpdated write set_ITerminalUpdated;
@@ -94,7 +98,9 @@ implementation
 uses
     DSSClassDefs,
     DSSGlobals,
-    Sysutils;
+    Sysutils,
+    Classes,
+    Utilities;
 
 constructor TPCElement.Create(ParClass: TDSSClass);
 begin
@@ -138,6 +144,91 @@ procedure TPCElement.GetInjCurrents(Curr: pComplexArray; ActorID: Integer);
 begin
     DoErrorMsg('PCElement.InjCurrents', ('Improper call to GetInjCurrents for Element: ' + Name + '.'),
         'Called PCELEMENT class virtual function instead of actual.', 640)
+end;
+
+//----------------------------------------------------------------------------
+{Evaluates if the value provided corresponds to a constant value or to an operand
+ for calculating the value using the simulation results}
+function TPCElement.CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
+var
+    myOp: Integer;        // Operator found
+    myValue: String;         // Value entered by the user
+begin
+
+    Result := -1;
+    if Assigned(DynamicEqObj) then
+    begin
+
+        Result := DynamicEqObj.Get_Var_Idx(myVar);
+        if (Result >= 0) and (Result < 50000) then
+        begin
+            myValue := Parser[ActorID].StrValue;
+            if (DynamicEqObj.Check_If_CalcValue(myValue, myOp)) then
+            begin
+        // Adss the pair (var index + operand index)
+                setlength(DynamicEqPair, length(DynamicEqPair) + 2);
+                DynamicEqPair[High(DynamicEqPair) - 1] := Result;
+                DynamicEqPair[High(DynamicEqPair)] := myOp;
+            end
+            else // Otherwise, move the value to the values array
+                DynamicEqVals[Result][0] := Parser[ActorID].DblValue;
+        end
+        else
+            Result := -1;     // in case is a constant
+
+    end;
+
+end;
+
+//----------------------------------------------------------------------------
+{Returns the names of the variables to be used as outputs for the dynamic expression}
+function TPCElement.GetDynOutputStr(): String;
+var
+    idx: Integer;
+begin
+    Result := '[';                   // Open array str
+    if DynamicEqObj <> nil then        // Making sure we have a dynamic eq linked
+    begin
+        for idx := 0 to High(DynOut) do
+            Result := Result + DynamicEqObj.Get_VarName(DynOut[idx]) + ',';
+    end;
+
+    Result := Result + ']';         // Close array str
+end;
+
+//----------------------------------------------------------------------------
+{Obtains the indexes of the given variables to use them as reference for setting
+the dynamic output for the generator}
+procedure TPCElement.SetDynOutput(myVar: String);
+var
+    VarIdx,
+    idx: Integer;
+    myStrArray: TStringList;
+begin
+    if DynamicEqObj <> nil then        // Making sure we have a dynamic eq linked
+    begin
+    // First, set the length for the index array, 2 variables in this case
+        setlength(DynOut, 2);
+        myStrArray := TStringList.Create;
+        InterpretTStringListArray(myVar, myStrArray);
+    // ensuring they are lower case
+        for idx := 0 to 1 do
+        begin
+
+            myStrArray[idx] := LowerCase(myStrArray[idx]);
+            VarIdx := DynamicEqObj.Get_Out_Idx(myStrArray[idx]);
+            if (VarIdx < 0) then
+        // Being here means that the given name doesn't exist or is a constant
+                DoSimpleMsg('DynamicExp variable "' + myStrArray[idx] + '" not found or not defined as an output.', 50008)
+            else
+                DynOut[idx] := VarIdx;
+
+        end;
+
+        myStrArray.Free;
+    end
+    else
+        DoSimpleMsg('A DynamicExp object needs to be assigned to this element before this declaration: DynOut = [' + myVar + ']', 50007);
 end;
 
 //= = =  = = = = = = = = = = = = = = = = = = = = = = = = = = = =
