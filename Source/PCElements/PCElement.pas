@@ -212,7 +212,7 @@ begin
         myStrArray := TStringList.Create;
         InterpretTStringListArray(myVar, myStrArray);
     // ensuring they are lower case
-        for idx := 0 to 1 do
+        for idx := 0 to (myStrArray.Count - 1) do
         begin
 
             myStrArray[idx] := LowerCase(myStrArray[idx]);

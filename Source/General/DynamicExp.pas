@@ -66,7 +66,7 @@ type
 
     PUBLIC
         BaseFrequency: Double;
-
+        myDomain: Integer;
         constructor Create(ParClass: TDSSClass; const LineCodeName: String);
         destructor Destroy; OVERRIDE;
 
@@ -113,7 +113,7 @@ uses
     RPN;
 
 const
-    NumPropsThisClass = 5;
+    NumPropsThisClass = 6;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TDynamicExp.Create;  // Creates superstructure for all DynamicExp objects
@@ -152,6 +152,7 @@ begin
     PropertyName[3] := 'var';
     PropertyName[4] := 'varidx';
     PropertyName[5] := 'expression';
+    PropertyName[6] := 'Domain';
 
     PropertyHelp[1] := '(Int) Number of state variables to be considered in the differential equation.';
     PropertyHelp[2] := '([String]) Array of strings with the names of the state variables.';
@@ -159,7 +160,7 @@ begin
     PropertyHelp[4] := '(Int) read-only, returns the index of the active state variable.';
     PropertyHelp[5] := 'It is the differential expression using OpenDSS RPN syntax. The expression must be contained within brackets in case of having multiple equations, for example:' + CRLF + CRLF +
         'expression = "[w dt = 1 M / (P_m D*w - P_e -) *]"';
-
+    PropertyHelp[6] := 'It is the domain for which the equation is defined, it can be one of [time*, dq]. By deafult, dynamic epxressions are defined in the time domain.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -249,6 +250,13 @@ begin
                     if (InterpretDiffEq(Parser[ActorID].StrValue)) then
                         DoSimpleMsg('There are errors in the differential equation.', 50003);
                 end;
+                6:
+                begin
+                    if Parser[ActorID].StrValue = 'time' then
+                        myDomain := 0
+                    else
+                        myDomain := 1;
+                end
             else
                 ClassEdit(ActiveDynamicExpObj, Parampointer - NumPropsThisClass)
             end;
@@ -336,6 +344,7 @@ begin
     FVarNames.Clear;
     setlength(FCmd, 0);
     setlength(FVarConst, 0);
+    myDomain := 0;
 
     InitPropertyValues(0);
 end;
@@ -348,8 +357,8 @@ var
     Val: String;
     idx: Integer;
 const
-    ValNames: array [0..9] of String =
-        ('p', 'q', 'vmag', 'vang', 'imag', 'iang', 's', 'p0', 'q0', 'edp');
+    ValNames: array [0..11] of String =
+        ('p', 'q', 'vmag', 'vang', 'imag', 'iang', 's', 'p0', 'q0', 'edp', 'kvdc', 'mod');
 
 begin
     myOp := -1;

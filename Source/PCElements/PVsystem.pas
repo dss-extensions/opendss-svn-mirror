@@ -709,6 +709,7 @@ end;
 //- - - - - - - - - - - - - - -MAIN EDIT FUNCTION - - - - - - - - - - - - - - -
 function TPVsystem.Edit(ActorID: Integer): Integer;
 var
+    VarIdx,
     i, iCase, ParamPointer: Integer;
     ParamName: String;
     Param: String;
@@ -731,7 +732,13 @@ begin
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
                 PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
             else
-                DoSimpleMsg('Unknown parameter "' + ParamName + '" for PVSystem "' + Name + '"', 560);
+            begin
+            // first, checks if there is a dynamic eq assigned, then
+            // checks if the new property edit the state variables within
+                VarIdx := CheckIfDynVar(ParamName, ActorID);
+                if VarIdx < 0 then
+                    DoSimpleMsg('Unknown parameter "' + ParamName + '" for PVSystem "' + Name + '"', 560);
+            end;
             if (ParamPointer > 0) then
             begin
                 iCase := PropertyIdxMap[ParamPointer];
@@ -2484,7 +2491,7 @@ end;
 procedure TPVsystemObj.InitStateVars(ActorID: Integer);
 // for going into dynamics mode
 var
-
+    NumData,
     i,
     j: Integer;
 
@@ -2551,28 +2558,32 @@ begin
         iMaxPPhase := (FkVArating / BasekV) / NumPhases;
         if XThev = 0 then
         begin
-            pctX := 50;         // forces the value to 10% in dynamics mode if not given
+            pctX := 50;                                                             // forces the value to 10% in dynamics mode if not given
             XThev := pctX * 0.01 * (SQR(BasekV) / FkVArating) * 1000.0;
         end;
         Zthev := Cmplx(RThev, XThev);
         RS := Zthev.re;
-        YEQ := Cinv(Zthev);      // used for current calcs  Always L-N
+        YEQ := Cinv(Zthev);                                                       // used for current calcs  Always L-N
 
-//      ComputeIterminal(ActorID);     // Not needed at this point
+        ComputeIterminal(ActorID);
         with ActiveCircuit[ActorID].Solution do
         begin
             LS := ZThev.im / (2 * PI * DefaultBaseFreq);
+
             for i := 0 to (NPhases - 1) do
             begin
                 dit[i] := 0;
                 Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
                 it[i] := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
-                m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;   // Duty factor in terms of actual voltage
+                m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;                     // Duty factor in terms of actual voltage
 
                 if m[i] > 1 then
                     m[i] := 1;
 
             end;
+            if DynamicEqObj <> nil then
+                for i := 0 to High(DynamicEqVals) do
+                    DynamicEqVals[i][1] := 0.0;            // Initializes the memory values for the dynamic equation
         end;
     end;
 end;
@@ -2580,6 +2591,8 @@ end;
 procedure TPVsystemObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 var
+    NumData,
+    j,
     i: Integer;
 begin
     // Compute Derivatives and Then integrate
@@ -2588,31 +2601,36 @@ begin
         Usermodel.Integrate   // Checks for existence and Selects
     else
     begin
+
+      // Compute actual power output for the PVPanel
+        with ActiveCircuit[ActorID].Solution do
+        begin
+            case ActiveCircuit[ActiveActor].ActiveLoadShapeClass of
+                USEDAILY:
+                begin
+                    CalcDailyMult(DynaVars.dblHour);
+                    CalcDailyTemperature(DynaVars.dblHour);
+                end;
+                USEYEARLY:
+                begin
+                    CalcYearlyMult(DynaVars.dblHour);
+                    CalcYearlyTemperature(DynaVars.dblHour);
+                end;
+                USEDUTY:
+                begin
+                    CalcDutyMult(DynaVars.dblHour);
+                    CalcDutyTemperature(DynaVars.dblHour);
+                end;
+            else
+                ShapeFactor := CDOUBLEONE     // default to 1 + j1 if not known
+            end;
+        end;
+        ComputePanelPower();
+
         if DynamicEqObj = nil then                    // Uses the default dynamic model included
         begin
             with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
             begin
-          // Compute actual power output for the PVPanel
-                case ActiveCircuit[ActiveActor].ActiveLoadShapeClass of
-                    USEDAILY:
-                    begin
-                        CalcDailyMult(DynaVars.dblHour);
-                        CalcDailyTemperature(DynaVars.dblHour);
-                    end;
-                    USEYEARLY:
-                    begin
-                        CalcYearlyMult(DynaVars.dblHour);
-                        CalcYearlyTemperature(DynaVars.dblHour);
-                    end;
-                    USEDUTY:
-                    begin
-                        CalcDutyMult(DynaVars.dblHour);
-                        CalcDutyTemperature(DynaVars.dblHour);
-                    end;
-                else
-                    ShapeFactor := CDOUBLEONE     // default to 1 + j1 if not known
-                end;
-                ComputePanelPower();
 
                 with DynaVars do
                     if (IterationFlag = 0) then
@@ -2637,6 +2655,59 @@ begin
                 begin
                     for i := 0 to (NumPhases - 1) do
                         it[i] := itHistory[i] + 0.5 * h * dit[i];
+                end;
+            end;
+        end
+        else
+        begin      // Solves using dynamics expresions
+            with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
+            begin
+          // Check for initializations using calculated values (P, Q, VMag, VAng, IMag, IAng)
+                NumData := (length(DynamicEqPair) div 2) - 1;
+                for i := 0 to (NumPhases - 1) do
+                begin
+                    DynamicEqVals[DynOut[0]][0] := it[i];                                      // brings back the current values/phase
+                    DynamicEqVals[DynOut[0]][1] := dit[i];
+                    Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);    // Voltage at the Inv terminals/phase
+            // Dynamics using an external equation
+                    with DynaVars do
+                        if (IterationFlag = 0) then
+                        begin {First iteration of new time step}
+                            itHistory[i] := DynamicEqVals[DynOut[0]][0] + 0.5 * h * DynamicEqVals[DynOut[0]][1]; // first it
+                        end;
+
+                    for j := 0 to NumData do
+                    begin
+                        if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then          // it's not intialization
+                        begin
+                            case DynamicEqPair[(j * 2) + 1] of
+                                2:
+                                    DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;         // volt per phase
+                                4: ;                                                                 // Nothing for this object (current)
+                                10:
+                                    DynamicEqVals[DynamicEqPair[j * 2]][0] := RatedVDC;
+                                11:
+                                begin
+                                    ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
+                                    if Vgrid[i].mag < MinVS then
+                                        ISP := 0.01;                     // turn off the inverter
+                                    SolveModulation(i, ActorID, @PICtrl[i]);
+                                    DynamicEqVals[DynamicEqPair[j * 2]][0] := m[i]
+                                end
+                            else
+                                DynamicEqVals[DynamicEqPair[j * 2]][0] := PCEValue[1, DynamicEqPair[(j * 2) + 1], ActorID];
+                            end;
+                        end;
+                    end;
+            // solves the differential equation using the given values
+                    DynamicEqObj.SolveEq(DynamicEqVals);
+            // Trapezoidal method   - Places the calues in the same vars to keep the code consistent
+                    with DynaVars do
+                    begin
+                        it[i] := itHistory[i] + 0.5 * h * DynamicEqVals[DynOut[0]][1];
+                        dit[i] := DynamicEqVals[DynOut[0]][1];
+                    end;
+
                 end;
             end;
         end;
@@ -2943,10 +3014,16 @@ end;
 // ===========================================================================================
 procedure TPVsystemObj.GetAllVariables(States: pDoubleArray);
 var
-    i{, N}: Integer;
+    i,
+    N: Integer;
 begin
-    for i := 1 to NumPVSystemVariables do
-        States^[i] := Variable[i];
+    if DynamiceqObj = nil then
+        for i := 1 to NumPVSystemVariables do
+            States^[i] := Variable[i]
+    else
+        for i := 1 to DynamiceqObj.NumVars * length(DynamicEqVals[0]) do
+            States^[i] := DynamiceqObj.Get_DynamicEqVal(i - 1, DynamicEqVals);
+
     if UserModel.Exists then
         UserModel.FGetAllVars(@States^[NumPVSystemVariables + 1]);
 end;

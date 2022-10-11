@@ -34,6 +34,7 @@ type
         function Get_InvDynName(myindex: Integer): String;
         procedure Set_InvDynValue(myindex: Integer; myValue: Double);
         procedure SolveDynamicStep(i, ActorID: Integer; PICtrl: PPICtrl);
+        procedure SolveModulation(i, ActorID: Integer; PICtrl: PPICtrl);
 
     end;
 
@@ -153,6 +154,22 @@ var
 begin
     with ActiveCircuit[ActorID].Solution do
     begin
+        SolveModulation(i, ActorID, PICtrl);
+        dit[i] := ((m[i] * RatedVDC) - (RS * it[i]) - Vgrid[i].mag) / LS;  // Solves derivative
+    end;
+end;
+
+  // Calculates and stores the averaged modulation factor for controlling the inverter output
+procedure TInvDynamicVars.SolveModulation(i, ActorID: Integer; PICtrl: PPICtrl);
+var
+    myDCycle,
+    iDelta,
+    iErrorPct,
+    iError: Double;
+
+begin
+    with ActiveCircuit[ActorID].Solution do
+    begin
         if (DynaVars.IterationFlag <> 0) then
         begin                                                     // duty cycle at time h
             iError := (ISP - it[i]);                          // Only recalculated on the second iter
@@ -180,7 +197,7 @@ begin
                 end;
             end;
         end;
-        dit[i] := ((m[i] * RatedVDC) - (RS * it[i]) - Vgrid[i].mag) / LS;  // Solves derivative
+
     end;
 end;
 
