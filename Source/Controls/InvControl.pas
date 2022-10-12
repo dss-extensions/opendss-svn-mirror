@@ -1,7 +1,7 @@
 unit InvControl;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2015,  Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2022,  Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -1681,20 +1681,10 @@ begin
         if (ControlMode = VOLTVAR) and (CombiControlMode = NONE_COMBMODE) and (PendingChange[k] = CHANGEVARLEVEL) then
         begin
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).VVmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).VVmode := true;
-            end;
-
-            //--------------------------------------------- Main process ---------------------------------------------//
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_VVmode(true);
+             //--------------------------------------------- Main process ---------------------------------------------//
 
             // Calculates QDesireVVpu[k]
             CalcQVVcurve_desiredpu(k, ActorID);
@@ -1728,13 +1718,13 @@ begin
             //--------------------------------------------- end Main process ---------------------------------------------//
 
             // Sets PVSystem/Storage's kvar_out
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
+            if DERelem.DSSClassName = 'PVSystem' then
                 TPVSystemObj(DERelem).Presentkvar := QDesiredVV[k]
             else
                 TStorageObj(DERelem).kvarRequested := QDesiredVV[k];
 
             // Uptates PresentkW and Presentkvar considering watt and var priorities
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
+            if DERelem.DSSClassName = 'PVSystem' then
             begin
                 TPVSystemObj(DERelem).SetNominalPVSystemOuput(ActorID);
 
@@ -1786,19 +1776,9 @@ begin
         if (ControlMode = AVR) and (CombiControlMode = NONE_COMBMODE) and (PendingChange[k] = CHANGEVARLEVEL) then
         begin
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).AVRmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-//                TStorageObj(DERelem).VVmode     := TRUE;
-            end;
-
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_AVRmode(true);
             //--------------------------------------------- Main process ---------------------------------------------//
 
             if ActiveCircuit[ActorID].Solution.ControlIteration = 1 then
@@ -1903,18 +1883,10 @@ begin
         if (ControlMode = WATTPF) and (CombiControlMode = NONE_COMBMODE) and (PendingChange[k] = CHANGEVARLEVEL) then
         begin
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).WPmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).WPmode := true;
-            end;
+
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_WPmode(true);
 
             //--------------------------------------------- Main process ---------------------------------------------//
 
@@ -1994,18 +1966,11 @@ begin
         if (ControlMode = WATTVAR) and (CombiControlMode = NONE_COMBMODE) and (PendingChange[k] = CHANGEVARLEVEL) then
         begin
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).WVmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).WVmode := true;
-            end;
+
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_WVmode(true);
+
 
             //--------------------------------------------- Main process ---------------------------------------------//
 
@@ -2084,18 +2049,9 @@ begin
         begin
 
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).DRCmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).DRCmode := true;
-            end;
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_DRCmode(true);
 
             //--------------------------------------------- Main process ---------------------------------------------//
 
@@ -2190,20 +2146,10 @@ begin
         begin
 
             // Set var mode to VARMODEKVAR to indicate we might change kvar
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := false;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).VVmode := true;
-                TPVSystemObj(DERelem).DRCmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := false;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).VVmode := true;
-                TStorageObj(DERelem).DRCmode := true;
-            end;
+            DERelem.Set_VWmode(false);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_VVmode(true);
+            DERelem.Set_DRCmode(true);
 
             //--------------------------------------------- Main process ---------------------------------------------//
 
@@ -2298,15 +2244,7 @@ begin
         if (ControlMode = VOLTWATT) and (CombiControlMode = NONE_COMBMODE) and (PendingChange[k] = CHANGEWATTLEVEL) then
         begin
 
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := true;
-            end;
-
+            DERelem.Set_VWmode(true);
             //--------------------------------------------- Main process ---------------------------------------------//
 
             // Calculates QVWcurve_limitpu[k]
@@ -2390,19 +2328,9 @@ begin
         if (ControlMode = NONE_MODE) and (CombiControlMode = VV_VW) and (PendingChange[k] = CHANGEWATTVARLEVEL) then
         begin
 
-            if ControlledElement[k].DSSClassName = 'PVSystem' then
-            begin
-                TPVSystemObj(DERelem).VWmode := true;
-                TPVSystemObj(DERelem).Varmode := VARMODEKVAR;
-                TPVSystemObj(DERelem).VVmode := true;
-            end
-            else
-            begin
-                TStorageObj(DERelem).VWmode := true;
-                TStorageObj(DERelem).Varmode := VARMODEKVAR;
-                TStorageObj(DERelem).VVmode := true;
-            end;
-
+            DERelem.Set_VWmode(true);
+            DERelem.Set_Varmode(VARMODEKVAR);
+            DERelem.Set_VVmode(true);
             //--------------------------------------------- Main process ---------------------------------------------//
 
             // Calculates QDesireVVpu[k] and QVWcurve_limitpu[k]

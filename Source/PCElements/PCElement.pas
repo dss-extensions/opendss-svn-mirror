@@ -85,6 +85,24 @@ type
         function CheckIfDynVar(myVar: String; ActorID: Integer): Integer;
         procedure SetDynOutput(myVar: String);
         function GetDynOutputStr(): String;
+       // Functions for inverter based PCE
+        function Get_InverterON: Boolean; VIRTUAL;
+        function Get_Varmode: Integer; VIRTUAL;
+        function Get_VWmode: Boolean; VIRTUAL;
+        function Get_VVmode: Boolean; VIRTUAL;
+        function Get_WPmode: Boolean; VIRTUAL;
+        function Get_WVmode: Boolean; VIRTUAL;
+        function Get_DRCmode: Boolean; VIRTUAL;
+        function Get_AVRmode: Boolean; VIRTUAL;
+
+        procedure Set_InverterON(const Value: Boolean); VIRTUAL;
+        procedure Set_Varmode(const Value: Integer); VIRTUAL;
+        procedure Set_VWmode(const Value: Boolean); VIRTUAL;
+        procedure Set_VVmode(const Value: Boolean); VIRTUAL;
+        procedure Set_WPmode(const Value: Boolean); VIRTUAL;
+        procedure Set_WVmode(const Value: Boolean); VIRTUAL;
+        procedure Set_DRCmode(const Value: Boolean); VIRTUAL;
+        procedure Set_AVRmode(const Value: Boolean); VIRTUAL;
 
         property Variable[i: Integer]: Double READ Get_Variable WRITE Set_Variable;
 
@@ -406,6 +424,87 @@ end;
 procedure TPCElement.Set_Variable(i: Integer; Value: Double);
 begin
   {Do Nothing}
+end;
+
+function TPCElement.Get_InverterON: Boolean;
+begin
+    Result := false;
+end;
+// ============================================================Get_Varmode===============================
+function TPCElement.Get_Varmode: Integer;
+begin
+    Result := 0;
+end;
+// ============================================================Get_VWmode===============================
+function TPCElement.Get_VWmode: Boolean;
+begin
+    Result := false;
+end;
+// ============================================================Get_VVmode===============================
+function TPCElement.Get_VVmode: Boolean;
+begin
+    Result := false;
+end;
+// ============================================================Get_WPmode===============================
+function TPCElement.Get_WPmode: Boolean;
+begin
+    Result := false;
+end;
+// ============================================================Get_WVmode===============================
+function TPCElement.Get_WVmode: Boolean;
+begin
+    Result := false;                                                                //  engaged from InvControl (not ExpControl)
+end;
+// ============================================================Get_DRCmode===============================
+function TPCElement.Get_DRCmode: Boolean;
+begin
+    Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
+// ============================================================Get_AVRmode===============================
+function TPCElement.Get_AVRmode: Boolean;
+begin
+    Result := false;                                                               //  engaged from InvControl (not ExpControl)
+end;
+
+procedure TPCElement.Set_InverterON(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_Varmode(const Value: Integer);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_VWmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_VVmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_WPmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_WVmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_DRCmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
+end;
+
+procedure TPCElement.Set_AVRmode(const Value: Boolean);
+begin
+    // Do nothing if reaches this instance
 end;
 
 

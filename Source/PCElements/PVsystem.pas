@@ -209,20 +209,20 @@ type
         procedure Set_kVARating(const Value: Double);
         procedure Set_Pmpp(const Value: Double);
         procedure Set_puPmpp(const Value: Double);
-        function Get_Varmode: Integer;
-        procedure Set_Varmode(const Value: Integer);
-        function Get_VWmode: Boolean;
-        procedure Set_VWmode(const Value: Boolean);
-        function Get_VVmode: Boolean;
-        procedure Set_VVmode(const Value: Boolean);
-        function Get_WPmode: Boolean;
-        procedure Set_WPmode(const Value: Boolean);
-        function Get_WVmode: Boolean;
-        procedure Set_WVmode(const Value: Boolean);
-        function Get_DRCmode: Boolean;
-        procedure Set_DRCmode(const Value: Boolean);
-        function Get_AVRmode: Boolean;
-        procedure Set_AVRmode(const Value: Boolean);
+        function Get_Varmode: Integer; OVERRIDE;
+        procedure Set_Varmode(const Value: Integer); OVERRIDE;
+        function Get_VWmode: Boolean; OVERRIDE;
+        procedure Set_VWmode(const Value: Boolean); OVERRIDE;
+        function Get_VVmode: Boolean; OVERRIDE;
+        procedure Set_VVmode(const Value: Boolean); OVERRIDE;
+        function Get_WPmode: Boolean; OVERRIDE;
+        procedure Set_WPmode(const Value: Boolean); OVERRIDE;
+        function Get_WVmode: Boolean; OVERRIDE;
+        procedure Set_WVmode(const Value: Boolean); OVERRIDE;
+        function Get_DRCmode: Boolean; OVERRIDE;
+        procedure Set_DRCmode(const Value: Boolean); OVERRIDE;
+        function Get_AVRmode: Boolean; OVERRIDE;
+        procedure Set_AVRmode(const Value: Boolean); OVERRIDE;
         procedure kWOut_Calc;
       // CIM support
         function Get_Pmin: Double;
@@ -282,8 +282,8 @@ type
         function Get_Variable(i: Integer): Double; OVERRIDE;
         procedure Set_Variable(i: Integer; Value: Double); OVERRIDE;
         function VariableName(i: Integer): String; OVERRIDE;
-        function Get_InverterON: Boolean;
-        procedure Set_InverterON(const Value: Boolean);
+        function Get_InverterON: Boolean; OVERRIDE;
+        procedure Set_InverterON(const Value: Boolean); OVERRIDE;
         function Get_VarFollowInverter: Boolean;
         procedure Set_VarFollowInverter(const Value: Boolean);
         procedure Set_Maxkvar(const Value: Double);
@@ -2627,70 +2627,40 @@ begin
         end;
         ComputePanelPower();
 
-        if DynamicEqObj = nil then                    // Uses the default dynamic model included
+        with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
         begin
-            with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
+            for i := 0 to (NumPhases - 1) do                                              // multiphase approach
             begin
 
                 with DynaVars do
                     if (IterationFlag = 0) then
                     begin {First iteration of new time step}
-                        for i := 0 to (NumPhases - 1) do
-                            itHistory[i] := it[i] + 0.5 * h * dit[i];
+                        itHistory[i] := it[i] + 0.5 * h * dit[i];
                     end;
+                Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);                          // Voltage at the Inv terminals
+          // Compute the actual target (Amps)
+                ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
+                if Vgrid[i].mag < MinVS then
+                    ISP := 0.01;                                 // turn off the inverter
 
-          // Compute inv dynamics
-                for i := 0 to (NumPhases - 1) do
+                if DynamicEqObj <> nil then                                                 // Loads values into dynamic expression if any
                 begin
-                    Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
-            // Compute the actual target (Amps)
-                    ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
-                    if Vgrid[i].mag < MinVS then
-                        ISP := 0.01;                 // turn off the inverter
-                    SolveDynamicStep(i, ActorID, @PICtrl[i]);                // Solves dynamic step for inverter
-                end;
-
-          // Trapezoidal method
-                with DynaVars do
-                begin
-                    for i := 0 to (NumPhases - 1) do
-                        it[i] := itHistory[i] + 0.5 * h * dit[i];
-                end;
-            end;
-        end
-        else
-        begin      // Solves using dynamics expresions
-            with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
-            begin
-          // Check for initializations using calculated values (P, Q, VMag, VAng, IMag, IAng)
-                NumData := (length(DynamicEqPair) div 2) - 1;
-                for i := 0 to (NumPhases - 1) do
-                begin
-                    DynamicEqVals[DynOut[0]][0] := it[i];                                      // brings back the current values/phase
+                    NumData := (length(DynamicEqPair) div 2) - 1;
+                    DynamicEqVals[DynOut[0]][0] := it[i];                                    // brings back the current values/phase
                     DynamicEqVals[DynOut[0]][1] := dit[i];
-                    Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);    // Voltage at the Inv terminals/phase
-            // Dynamics using an external equation
-                    with DynaVars do
-                        if (IterationFlag = 0) then
-                        begin {First iteration of new time step}
-                            itHistory[i] := DynamicEqVals[DynOut[0]][0] + 0.5 * h * DynamicEqVals[DynOut[0]][1]; // first it
-                        end;
 
                     for j := 0 to NumData do
                     begin
-                        if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then          // it's not intialization
+                        if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then        // it's not intialization
                         begin
                             case DynamicEqPair[(j * 2) + 1] of
                                 2:
-                                    DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;         // volt per phase
-                                4: ;                                                                 // Nothing for this object (current)
+                                    DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;       // volt per phase
+                                4: ;                                                               // Nothing for this object (current)
                                 10:
                                     DynamicEqVals[DynamicEqPair[j * 2]][0] := RatedVDC;
                                 11:
                                 begin
-                                    ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
-                                    if Vgrid[i].mag < MinVS then
-                                        ISP := 0.01;                     // turn off the inverter
                                     SolveModulation(i, ActorID, @PICtrl[i]);
                                     DynamicEqVals[DynamicEqPair[j * 2]][0] := m[i]
                                 end
@@ -2699,19 +2669,22 @@ begin
                             end;
                         end;
                     end;
-            // solves the differential equation using the given values
-                    DynamicEqObj.SolveEq(DynamicEqVals);
-            // Trapezoidal method   - Places the calues in the same vars to keep the code consistent
-                    with DynaVars do
-                    begin
-                        it[i] := itHistory[i] + 0.5 * h * DynamicEqVals[DynOut[0]][1];
-                        dit[i] := DynamicEqVals[DynOut[0]][1];
-                    end;
+                    DynamicEqObj.SolveEq(DynamicEqVals);                                      // solves the differential equation using the given dynamic expression
+                end
+                else
+                    SolveDynamicStep(i, ActorID, @PICtrl[i]);                               // Solves dynamic step for inverter (no dynamic expression)
 
+          // Trapezoidal method
+                with DynaVars do
+                begin
+                    if DynamicEqObj <> nil then
+                        dit[i] := DynamicEqVals[DynOut[0]][1];
+                    it[i] := itHistory[i] + 0.5 * h * dit[i];
                 end;
+
             end;
         end;
-    end;
+    end
 end;
 
 // ===========================================================Get_Variable================================
@@ -2772,10 +2745,7 @@ end;
 
 function TPVsystemObj.Get_InverterON: Boolean;
 begin
-    if FInverterON then
-        Result := true
-    else
-        Result := false;
+    Result := FInverterON;
 end;
 // ============================================================Get_Varmode===============================
 function TPVsystemObj.Get_Varmode: Integer;
@@ -2785,51 +2755,33 @@ end;
 // ============================================================Get_VWmode===============================
 function TPVsystemObj.Get_VWmode: Boolean;
 begin
-    if FVWmode then
-        Result := true
-    else
-        Result := false;    // TRUE if volt-watt mode                                                            //  engaged from InvControl (not ExpControl)
+    Result := FVWmode;    // TRUE if volt-watt mode                                   //  engaged from InvControl (not ExpControl)
 end;
 // ============================================================Get_VVmode===============================
 function TPVsystemObj.Get_VVmode: Boolean;
 begin
-    if FVVmode then
-        Result := true
-    else
-        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+    Result := FVVmode;                                                                 //  engaged from InvControl (not ExpControl)
 end;
 // ============================================================Get_WPmode===============================
 function TPVsystemObj.Get_WPmode: Boolean;
 begin
-    if FWPmode then
-        Result := true
-    else
-        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+    Result := FWPmode;                                                                //  engaged from InvControl (not ExpControl)
 end;
 // ============================================================Get_WVmode===============================
 function TPVsystemObj.Get_WVmode: Boolean;
 begin
-    if FWVmode then
-        Result := true
-    else
-        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+    Result := FWVmode;                                                                //  engaged from InvControl (not ExpControl)
 end;
 // ============================================================Get_DRCmode===============================
 function TPVsystemObj.Get_DRCmode: Boolean;
 begin
-    if FDRCmode then
-        Result := true
-    else
-        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+    Result := FDRCmode;                                                               //  engaged from InvControl (not ExpControl)
 end;
 
 // ============================================================Get_AVRmode===============================
 function TPVsystemObj.Get_AVRmode: Boolean;
 begin
-    if FAVRmode then
-        Result := true
-    else
-        Result := false;                                                               //  engaged from InvControl (not ExpControl)
+    Result := FAVRmode;                                                               //  engaged from InvControl (not ExpControl)
 end;
 // ============================================================kWOut_Calc===============================
 

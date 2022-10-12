@@ -257,31 +257,31 @@ type
         // Procedures and functions for inverter functionalities
         procedure Set_kVARating(const Value: Double);
         procedure Set_pctkWrated(const Value: Double);
-        function Get_Varmode: Integer;
+        function Get_Varmode: Integer; OVERRIDE;
+        procedure Set_Varmode(const Value: Integer); OVERRIDE;
 
-        procedure Set_Varmode(const Value: Integer);
-        function Get_VWmode: Boolean;
+        function Get_VWmode: Boolean; OVERRIDE;
+        procedure Set_VWmode(const Value: Boolean); OVERRIDE;
 
-        procedure Set_VVmode(const Value: Boolean);
-        function Get_VVmode: Boolean;
+        procedure Set_VVmode(const Value: Boolean); OVERRIDE;
+        function Get_VVmode: Boolean; OVERRIDE;
 
-        procedure Set_DRCmode(const Value: Boolean);
-        function Get_DRCmode: Boolean;
+        procedure Set_DRCmode(const Value: Boolean); OVERRIDE;
+        function Get_DRCmode: Boolean; OVERRIDE;
 
-        procedure Set_AVRmode(const Value: Boolean);
-        function Get_AVRmode: Boolean;
+        procedure Set_AVRmode(const Value: Boolean); OVERRIDE;
+        function Get_AVRmode: Boolean; OVERRIDE;
 
-        procedure Set_VWmode(const Value: Boolean);
-        procedure kWOut_Calc;
+        function Get_WPmode: Boolean; OVERRIDE;
+        procedure Set_WPmode(const Value: Boolean); OVERRIDE;
 
-        function Get_WPmode: Boolean;
-        procedure Set_WPmode(const Value: Boolean);
-
-        function Get_WVmode: Boolean;
-        procedure Set_WVmode(const Value: Boolean);
+        function Get_WVmode: Boolean; OVERRIDE;
+        procedure Set_WVmode(const Value: Boolean); OVERRIDE;
 
         function Get_CutOutkWAC: Double;
         function Get_CutInkWAC: Double;
+
+        procedure kWOut_Calc;
 
         // CIM support
         function Get_Pmin: Double;
@@ -362,7 +362,7 @@ type
         procedure Set_Variable(i: Integer; Value: Double); OVERRIDE;
         function VariableName(i: Integer): String; OVERRIDE;
 
-        function Get_InverterON: Boolean;
+        function Get_InverterON: Boolean; OVERRIDE;
         procedure Set_InverterON(const Value: Boolean);
         function Get_VarFollowInverter: Boolean;
         procedure Set_VarFollowInverter(const Value: Boolean);
@@ -530,8 +530,9 @@ const
     propCtrlTol = 54;
     propSMT = 55;
     propSM = 56;
-
-    NumPropsThisClass = 56; // Make this agree with the last property constant
+    propDynEq = 57;
+    propDynOut = 58;
+    NumPropsThisClass = 58; // Make this agree with the last property constant
 
 var
 
@@ -777,6 +778,14 @@ begin
 
     AddProperty('SafeMode', propSM,
         '(Read only) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode.');
+    AddProperty('DynamicEq', propDynEq,
+        'The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
+        'if not defined, the generator dynamics will follow the built-in dynamic equation.');
+    AddProperty('DynOut', propDynOut,
+        'The name of the variables within the Dynamic equation that will be used to govern the PVSystem dynamics.' +
+        'This PVsystem model requires 1 output from the dynamic equation: ' + CRLF + CRLF +
+        '1. Current.' + CRLF +
+        'The output variables need to be defined in the same order.');
 
 
     ActiveProperty := NumPropsThisClass;
@@ -916,6 +925,7 @@ end;
 function TStorage.Edit(ActorID: Integer): Integer;
 
 var
+    VarIdx,
     i, iCase,
     ParamPointer: Integer;
     ParamName: String;
@@ -946,8 +956,13 @@ begin
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
                 PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
             else
-                DoSimpleMsg('Unknown parameter "' + ParamName + '" for Storage "' + Name + '"', 560);
-
+            begin
+            // first, checks if there is a dynamic eq assigned, then
+            // checks if the new property edit the state variables within
+                VarIdx := CheckIfDynVar(ParamName, ActorID);
+                if VarIdx < 0 then
+                    DoSimpleMsg('Unknown parameter "' + ParamName + '" for Storage "' + Name + '"', 560);
+            end;
             if ParamPointer > 0 then
             begin
                 iCase := PropertyIdxMap[ParamPointer];
@@ -1088,7 +1103,10 @@ begin
                         myDynVars.CtrlTol := Parser[ActorID].DblValue / 100.0;
                     propSMT:
                         myDynVars.SMThreshold := Parser[ActorID].DblValue;
-
+                    propDynEq:
+                        DynamicEq := Param;
+                    propDynOut:
+                        SetDynOutput(Param);
                 else
                // Inherited parameters
                     ClassEdit(ActiveStorageObj, ParamPointer - NumPropsThisClass)
@@ -1152,7 +1170,13 @@ begin
                         IsUserModel := UserModel.Exists;
                     propDynaDLL:
                         IsUserModel := DynaModel.Exists;
-
+                    propDynEq:
+                    begin
+                        DynamicEqObj := TDynamicExpClass[ActorID].Find(DynamicEq);
+                        if Assigned(DynamicEqObj) then
+                            with DynamicEqObj do
+                                setlength(DynamicEqVals, NumVars);
+                    end;
 //                propPFPriority: For i := 1 to ControlElementList.ListSize Do
 //                Begin
 //
@@ -1714,7 +1738,10 @@ begin
                     Result := 'Yes'
                 else
                     Result := 'No';
-
+            propDynEq:
+                Result := DynamicEq;
+            propDynOut:
+                GetDynOutputStr();
         else  // take the generic handler
             Result := inherited GetPropertyValue(index);
         end;
@@ -3662,21 +3689,24 @@ begin
                     ZThev := Cmplx(RThev, XThev);
                     Yeq := Cinv(ZThev);  // used to init state vars
                     RS := Zthev.re;
-
+                    ComputePresentkW();
                     with ActiveCircuit[ActorID].Solution do
                     begin
                         LS := ZThev.im / (2 * PI * DefaultBaseFreq);
                         for i := 0 to (NPhases - 1) do
                         begin
+                            Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
                             dit[i] := 0;
                             it[i] := 0;
-                            Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
                             m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;   // Duty factor in terms of actual voltage
 
                             if m[i] > 1 then
                                 m[i] := 1;
 
                         end;
+                        if DynamicEqObj <> nil then
+                            for i := 0 to High(DynamicEqVals) do
+                                DynamicEqVals[i][1] := 0.0;            // Initializes the memory values for the dynamic equation
                     end;
                 end;
             end;
@@ -3689,6 +3719,8 @@ procedure TStorageObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 
 var
+    NumData,
+    j,
     i: Integer;
     OFFVal: Double;
     TracePower: Complex;
@@ -3707,18 +3739,16 @@ begin
 
             with StorageVars do
             begin
-                if FState = STORE_DISCHARGING then
+                for i := 0 to (NumPhases - 1) do
                 begin
-                    with DynaVars do
-                        if (IterationFlag = 0) then
-                        begin {First iteration of new time step}
-                            for i := 0 to (NumPhases - 1) do
-                                itHistory[i] := it[i] + 0.5 * h * dit[i];
-                        end;
-                    ComputePresentkW();
-          // Compute inv dynamics
-                    for i := 0 to (NumPhases - 1) do
+                    if FState = STORE_DISCHARGING then
                     begin
+                        with DynaVars do
+                            if (IterationFlag = 0) then
+                            begin {First iteration of new time step}
+                                itHistory[i] := it[i] + 0.5 * h * dit[i];
+                            end;
+                        ComputePresentkW();
                         Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
                         if Vgrid[i].mag < MinVS then
                         begin
@@ -3728,20 +3758,46 @@ begin
                         else
                             ISP := ((kW_out * 1000) / Vgrid[i].mag) / NumPhases;
 
-                        SolveDynamicStep(i, ActorID, @PICtrl[i]);                // Solves dynamic step for inverter
-                    end;
+                        if DynamicEqObj <> nil then                                                 // Loads values into dynamic expression if any
+                        begin
+                            NumData := (length(DynamicEqPair) div 2) - 1;
+                            DynamicEqVals[DynOut[0]][0] := it[i];                                    // brings back the current values/phase
+                            DynamicEqVals[DynOut[0]][1] := dit[i];
 
-          // Trapezoidal method
-                    with DynaVars do
-                    begin
-                        for i := 0 to (NumPhases - 1) do
+                            for j := 0 to NumData do
+                            begin
+                                if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then        // it's not intialization
+                                begin
+                                    case DynamicEqPair[(j * 2) + 1] of
+                                        2:
+                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;       // volt per phase
+                                        4: ;                                                               // Nothing for this object (current)
+                                        10:
+                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := RatedVDC;
+                                        11:
+                                        begin
+                                            SolveModulation(i, ActorID, @PICtrl[i]);
+                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := m[i]
+                                        end
+                                    else
+                                        DynamicEqVals[DynamicEqPair[j * 2]][0] := PCEValue[1, DynamicEqPair[(j * 2) + 1], ActorID];
+                                    end;
+                                end;
+                            end;
+                            DynamicEqObj.SolveEq(DynamicEqVals);                                      // solves the differential equation using the given dynamic expression
+                        end
+                        else
+                            SolveDynamicStep(i, ActorID, @PICtrl[i]);                // Solves dynamic step for inverter
+
+            // Trapezoidal method
+                        with DynaVars do
+                        begin
+                            if DynamicEqObj <> nil then
+                                dit[i] := DynamicEqVals[DynOut[0]][1];
                             it[i] := itHistory[i] + 0.5 * h * dit[i];
-                    end;
-                end
-                else
-                begin
-
-                    for i := 0 to (NumPhases - 1) do
+                        end;
+                    end
+                    else
                     begin
                         if Vgrid[i].mag >= MinVS then
                             OFFVal := PIdling / Vgrid[i].mag   // To match with idling losses
@@ -3749,10 +3805,7 @@ begin
                             OFFVal := 0;
                         it[i] := OFFVal;   // To match with idling losses
                     end;
-
                 end;
-
-
         // Write Dynamics Trace Record
                 if DebugTrace then
                 begin
@@ -3975,17 +4028,21 @@ procedure TStorageObj.GetAllVariables(States: pDoubleArray);
 var
     i{, N}: Integer;
 begin
-    for i := 1 to NumStorageVariables do
-        States^[i] := Variable[i];
+    if DynamiceqObj = nil then
+        for i := 1 to NumStorageVariables do
+            States^[i] := Variable[i]
+    else
+        for i := 1 to DynamiceqObj.NumVars * length(DynamicEqVals[0]) do
+            States^[i] := DynamiceqObj.Get_DynamicEqVal(i - 1, DynamicEqVals);
 
     if UserModel.Exists then
     begin    // Checks for existence and Selects
-        {N := UserModel.FNumVars;}
+       {N := UserModel.FNumVars;}
         UserModel.FGetAllVars(@States^[NumStorageVariables + 1]);
     end;
     if DynaModel.Exists then
     begin    // Checks for existence and Selects
-        {N := UserModel.FNumVars;}
+       {N := UserModel.FNumVars;}
         DynaModel.FGetAllVars(@States^[NumStorageVariables + 1]);
     end;
 
