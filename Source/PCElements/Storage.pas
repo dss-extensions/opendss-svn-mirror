@@ -363,7 +363,7 @@ type
         function VariableName(i: Integer): String; OVERRIDE;
 
         function Get_InverterON: Boolean; OVERRIDE;
-        procedure Set_InverterON(const Value: Boolean);
+        procedure Set_InverterON(const Value: Boolean); OVERRIDE;
         function Get_VarFollowInverter: Boolean;
         procedure Set_VarFollowInverter(const Value: Boolean);
 
