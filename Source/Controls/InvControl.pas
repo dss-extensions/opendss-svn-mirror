@@ -299,6 +299,8 @@ type
         FvoltwattCH_curve: TXYcurveObj;
         FvoltwattCH_curvename: String;
 
+      // Controller model
+        CtrlModel: Integer;   // To differentiate control methods.
       {Others}
         CtrlVars: array of TInvVars;
         Fv_setpoint: Double;
@@ -428,7 +430,7 @@ uses
 
 const
 
-    NumPropsThisClass = 33;
+    NumPropsThisClass = 34;
 
     NONE = 0;
     CHANGEVARLEVEL = 1;
@@ -453,6 +455,11 @@ const
     WATTPF = 4;
     WATTVAR = 5;
     AVR = 6;
+    GFM = 7;      // Grid forming inverter mode
+
+    // Modes in string type
+    myCtrlModes: array [0..6] of String =
+        ('voltvar', 'voltwatt', 'dynamicreaccurr', 'wattpf', 'wattvar', 'avr', 'gfm');
 
     // Combi Modes
     NONE_COMBMODE = 0;
@@ -524,20 +531,22 @@ begin
     PropertyName[31] := 'VV_RefReactivePower';
     PropertyName[32] := 'PVSystemList';
     PropertyName[33] := 'Vsetpoint';
+    PropertyName[34] := 'ControlModel';
 
     PropertyHelp[1] := 'Array list of PVSystem and/or Storage elements to be controlled. ' +
         'If not specified, all PVSystem and Storage in the circuit are assumed to be controlled by this control. ' + CRLF + CRLF +
         'No capability of hierarchical control between two controls for a single element is implemented at this time.';
 
     PropertyHelp[2] := 'Smart inverter function in which the InvControl will control the PC elements specified in DERList, according to the options below:' + CRLF + CRLF +
-        'Must be one of: {VOLTVAR* | VOLTWATT | DYNAMICREACCURR | WATTPF | WATTVAR} ' + CRLF +
+        'Must be one of: {VOLTVAR* | VOLTWATT | DYNAMICREACCURR | WATTPF | WATTVAR | GFM} ' + CRLF +
         'if the user desires to use modes simultaneously, then set the CombiMode property. Setting the Mode to any valid value disables combination mode.' +
 
         CRLF + CRLF + 'In volt-var mode (Default). This mode attempts to CONTROL the vars, according to one or two volt-var curves, depending on the monitored voltages, present active power output, and the capabilities of the PVSystem/Storage. ' +
         CRLF + CRLF + 'In volt-watt mode. This mode attempts to LIMIT the watts, according to one defined volt-watt curve, depending on the monitored voltages and the capabilities of the PVSystem/Storage. ' +
         CRLF + CRLF + 'In dynamic reactive current mode. This mode attempts to increasingly counter deviations by CONTROLLING vars, depending on the monitored voltages, present active power output, and the capabilities of the of the PVSystem/Storage.' +
         CRLF + CRLF + 'In watt-pf mode. This mode attempts to CONTROL the vars, according to a watt-pf curve, depending on the present active power output, and the capabilities of the PVSystem/Storage. ' +
-        CRLF + CRLF + 'In watt-var mode. This mode attempts to CONTROL the vars, according to a watt-var curve, depending on the present active power output, and the capabilities of the PVSystem/Storage. ';
+        CRLF + CRLF + 'In watt-var mode. This mode attempts to CONTROL the vars, according to a watt-var curve, depending on the present active power output, and the capabilities of the PVSystem/Storage. ' +
+        CRLF + CRLF + 'In GFM (Grid Forming Inverter) mode, the inverter based resource will be used for stablishing the voltage level of the microgrid/grid they are connected to. In any other control mode, DER will behave as Grid FoLlowing inverter (GFL).';
 
     PropertyHelp[3] := 'Combination of smart inverter functions in which the InvControl will control the PC elements in DERList, according to the options below: ' + CRLF + CRLF +
         'Must be a combination of the following: {VV_VW | VV_DRC}. Default is to not set this property, in which case the single control mode in Mode is active.  ' +
@@ -616,7 +625,8 @@ begin
         'if numerical instability is noticed in solutions such as var sign changing from one control iteration to the next and voltages oscillating between two values with some separation, ' +
         'this is an indication of numerical instability (use the EventLog to diagnose). ' + CRLF + CRLF +
         'if the maximum control iterations are exceeded, and no numerical instability is seen in the EventLog of via monitors, then try increasing the value of this parameter to reduce the number ' +
-        'of control iterations needed to achieve the control criteria, and move to the power flow solution.';
+        'of control iterations needed to achieve the control criteria, and move to the power flow solution.' + CRLF +
+        'When operating the controller using expoenential control model (see CtrlModel), this parameter represents the sampling time gain of the controller, which is used for accelrating the controller response in terms of control iterations required.';
 
     PropertyHelp[15] := 'Defaults to 0.0001 per-unit voltage.  This parameter should only be modified by advanced users of the InvControl.  ' + CRLF + CRLF +
         'Tolerance in pu of the control loop convergence associated to the monitored voltage in pu. ' +
@@ -665,7 +675,9 @@ begin
         'If numerical instability is noticed in solutions such as active power changing substantially from one control iteration to the next and/or voltages oscillating between two values with some separation, ' +
         'this is an indication of numerical instability (use the EventLog to diagnose). ' + CRLF + CRLF +
         'If the maximum control iterations are exceeded, and no numerical instability is seen in the EventLog of via monitors, then try increasing the value of this parameter to reduce the number ' +
-        'of control iterations needed to achieve the control criteria, and move to the power flow solution.';
+        'of control iterations needed to achieve the control criteria, and move to the power flow solution.' + CRLF +
+        'When operating the controller using expoenential control model (see CtrlModel), this parameter represents the sampling time gain of the controller, which is used for accelrating the controller response in terms of control iterations required.';
+    ;
 
     PropertyHelp[22] := '{Yes/True* | No/False} Default is NO for InvControl. Log control actions to Eventlog.';
 
@@ -717,6 +729,11 @@ begin
     PropertyHelp[31] := 'Deprecated, use RefReactivePower instead.';
     PropertyHelp[32] := 'Deprecated, use DERList instead.';
     PropertyHelp[33] := 'Required for Active Voltage Regulation (AVR).';
+    PropertyHelp[34] := 'Integer defining the method for moving across the control curve. It can be one of the following: ' + CRLF + CRLF +
+        '0 = Lienar mode (default)' + CRLF +
+        '1 = Exponential' + CRLF + CRLF +
+        'Use this property for better tunning your controller and improve the controller response in terms of control iterations needed to reach the target.' + CRLF +
+        'This property alters the meaning of deltaQ_factor and deltaP_factor properties accroding to its value (Check help). The method can also be combined with the controller tolerance for improving performance.';
 
 
     ActiveProperty := NumPropsThisClass;
@@ -780,47 +797,19 @@ begin
                     InterpretTStringListArray(Param, FDERNameList); // Read list of PVSystem and Storage objects in OpenDSS format and add to FDERNameList StringList.
                 2:
                 begin
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'voltvar') = 0 then
+                    StrTemp := Parser[ActorID].StrValue;
+                    j := 0;
+                    for i := 0 to High(myCtrlModes) do
                     begin
-                        ControlMode := VOLTVAR;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'voltwatt') = 0 then
-                    begin
-                        ControlMode := VOLTWATT;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'dynamicreaccurr') = 0 then
-                    begin
-                        ControlMode := DRC;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-//                  else if CompareTextShortest(Parser[ActorID].StrValue, 'fixedpf')= 0 then     // (PR) what is this?
-//                    begin
-//                      ControlMode := 'FIXEDPF';
-//                      CombiControlMode := '';
-//                    end
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'wattpf') = 0 then
-                    begin
-                        ControlMode := WATTPF;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'wattvar') = 0 then
-                    begin
-                        ControlMode := WATTVAR;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-                    else
-                    if CompareTextShortest(Parser[ActorID].StrValue, 'avr') = 0 then
-                    begin
-                        ControlMode := AVR;
-                        CombiControlMode := NONE_COMBMODE;
-                    end
-                    else
+                        if CompareTextShortest(StrTemp, myCtrlModes[i]) = 0 then
+                        begin
+                            ControlMode := i + 1;
+                            CombiControlMode := NONE_COMBMODE;
+                            j := 1;
+                            break;
+                        end;
+                    end;
+                    if j = 0 then
                     begin
                         if ControlMode = NONE_MODE then
                             DoSimpleMsg('Invalid Control Mode selected', 1366);
@@ -1087,6 +1076,8 @@ begin
 
                 33:
                     Fv_setpoint := Parser[ActorID].DblValue;
+                34:
+                    CtrlModel := Parser[ActorID].IntValue;
 
             else
                 // Inherited parameters
@@ -1320,6 +1311,7 @@ begin
 
     // AVR
     Fv_setpoint := 1.0;
+    CtrlModel := 0;        // Linear mode
 
     InitPropertyValues(0);
 
@@ -2469,14 +2461,14 @@ var
 begin
     PVSys := nil;
     Storage := nil;
-    // if list is not defined, go make one from all PVSystem/Storage in circuit
+  // if list is not defined, go make one from all PVSystem/Storage in circuit
     if FDERPointerList.ListSize = 0 then
         RecalcElementData(ActorID);
 
     if (FListSize > 0) then
     begin
-        // if an InvControl controls more than one PVSystem/Storage, control each one
-        // separately based on the PVSystem/Storage's terminal voltages, etc.
+    // if an InvControl controls more than one PVSystem/Storage, control each one
+    // separately based on the PVSystem/Storage's terminal voltages, etc.
         for i := 1 to FDERPointerList.ListSize do
         begin
             UpdateDERParameters(i);
@@ -2491,7 +2483,7 @@ begin
 
                 GetmonVoltage(ActorID, Vpresent, i, BasekV);
 
-              // for reporting Vpriorpu correctly in EventLog (this update is normally perform at DoPendingAction)
+        // for reporting Vpriorpu correctly in EventLog (this update is normally perform at DoPendingAction)
                 if ActiveCircuit[ActorID].Solution.ControlIteration = 1 then
                 begin
                     FAvgpVpuPrior := FPresentVpu;
@@ -2500,9 +2492,9 @@ begin
 
                 kW_out_desired := FpresentkW; // necessary to update kW_out_desired at every control iteration for Storage with SC
 
-              // Help says that it must be used just for vv and vw
-              // convert to per-unit on bus' kvbase, or
-              // if using averaging window values, then set prior voltage to averaging window
+        // Help says that it must be used just for vv and vw
+        // convert to per-unit on bus' kvbase, or
+        // if using averaging window values, then set prior voltage to averaging window
                 if (FVoltage_CurveX_ref = 1) and (FRollAvgWindow.Get_AvgVal <> 0.0) then
                     FPresentVpu := Vpresent / (FRollAvgWindow.Get_AvgVal)
                 else
@@ -2513,530 +2505,489 @@ begin
 
                 FPresentDRCVpu := Vpresent / (BasekV * 1000.0);
 
-              // Sets internal variables of controlled element.
-              // FVreg is the pu voltage used in the volt-var and volt-watt curves
+        // Sets internal variables of controlled element.
+        // FVreg is the pu voltage used in the volt-var and volt-watt curves
                 FVreg := FPresentVpu;
-
-                if CombiControlMode = VV_DRC then
+        // First, determine what control mode are we
+                if CombiControlMode <> 0 then
                 begin
-                    // Sets internal variables of controlled element.
-                    // FVVDRCOperation is a flag which indicates if VVDRC function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(6, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
-                        PVSys.Set_Variable(10, FVVDRCOperation);
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(15, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
-                        Storage.Set_Variable(19, FVVDRCOperation);
-                    end;
-
-                    // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                    // if the volt-var curve does not exist, exit
-                    if Length(Fvvc_curvename) = 0 then
-                    begin
-                        DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
-                        exit
-                    end;
-
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                    begin
-                        PVSys.VVmode := true;
-                        PVSys.DRCmode := true;
-                    end
-                    else
-                    begin
-                        Storage.VVmode := true;
-                        Storage.DRCmode := true;
-                    end;
-
-                    //DRC triggers
-                    if (priorDRCRollAvgWindow = 0.0) then
-                    begin
-
-                        if (Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
-                            (Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) then
+          // IT's CombiControl mode
+                    case CombiControlMode of
+                        VV_DRC:
                         begin
+                          // Sets internal variables of controlled element.
+                          // FVVDRCOperation is a flag which indicates if VVDRC function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(6, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
+                                PVSys.Set_Variable(10, FVVDRCOperation);
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(15, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
+                                Storage.Set_Variable(19, FVVDRCOperation);
+                            end;
+
+                          // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+
+                          // if the volt-var curve does not exist, exit
+                            if Length(Fvvc_curvename) = 0 then
+                            begin
+                                DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
+                                exit
+                            end;
+
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                            begin
+                                PVSys.VVmode := true;
+                                PVSys.DRCmode := true;
+                            end
+                            else
+                            begin
+                                Storage.VVmode := true;
+                                Storage.DRCmode := true;
+                            end;
+
+                          //DRC triggers
+                            if (priorDRCRollAvgWindow = 0.0) then
+                            begin
+
+                                if (Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
+                                    (Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) then
+                                begin
+                                  // Resets DER state variable only if it has not converged yet
+                                    FVVDRCOperation := 0.0;
+
+                                    Set_PendingChange(CHANGEDRCVVARLEVEL, i);
+
+                                    with ActiveCircuit[ActorID].Solution.DynaVars do
+                                        ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                            (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+
+                                    if ShowEventLog then
+                                        AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                            Format('**Ready to change var output due to DRC trigger in VV_DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                            [FPresentDRCVpu, FAvgpDRCVpuPrior]), ActorID);
+                                end;
+
+                            end;
+
+                            //Trigger from volt-var mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                (Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(QoutputVVDRCpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+                              // Resets DER state variable only if it has not converged yet
+                                FVVDRCOperation := 0.0;
+
+                                Set_PendingChange(CHANGEDRCVVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                        (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change VV_DRC output due to volt-var trigger in VV_DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+
+                            end;
+                        end;
+                        VV_VW:
+                        begin
+                        // Sets internal variables of controlled element.
+                        // FVVOperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+                        // FVWOperation is a flag which indicates if volt-watt function operates or not
+                        // Combined modes operation is shown through TWO flags. It allows us to verify which of the individual function operates or not
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(7, FVVOperation);
+                                PVSys.Set_Variable(8, FVWOperation)
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(16, FVVOperation);
+                                Storage.Set_Variable(17, FVWOperation)
+                            end;
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+
+                        // if volt-watt curve does not exist, exit
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                if Length(Fvoltwatt_curvename) = 0 then
+                                begin
+                                    DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
+                                    exit
+                                end;
+                            end
+                            else
+                            begin
+                                if (Length(Fvoltwatt_curvename) = 0) and (Length(FvoltwattCH_curvename) = 0) then
+                                begin
+                                    DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
+                                    exit
+                                end;
+                            end;
+
+                        // if the volt-var curve does not exist, exit
+                            if Length(Fvvc_curvename) = 0 then
+                            begin
+                                DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
+                                exit
+                            end;
+                            ControlledElement.Set_VVmode(true);
+                            ControlledElement.Set_VWmode(true);
+                        // Trigger from volt-watt mode
+                            if ((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or (Abs(PLimitEndpu - POldVWpu) > FActivePChangeTolerance) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+
+                            begin
                             // Resets DER state variable only if it has not converged yet
-                            FVVDRCOperation := 0.0;
+                                FVWOperation := 0;
+                                Set_PendingChange(CHANGEWATTVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                        (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change VV_VW output due to volt-watt trigger**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                                ;
+                            end;
 
-                            Set_PendingChange(CHANGEDRCVVARLEVEL, i);
+                          //Trigger from volt-var mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(Qoutputpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
 
-                            with ActiveCircuit[ActorID].Solution.DynaVars do
-                                ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                    (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                            begin
 
-                            if ShowEventLog then
-                                AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                    Format('**Ready to change var output due to DRC trigger in VV_DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                    [FPresentDRCVpu, FAvgpDRCVpuPrior]), ActorID);
-                        end;
+                            // Resets DER state variable only if it has not converged yet
+                                FVVOperation := 0;
+                                Set_PendingChange(CHANGEWATTVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                        (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
 
-                    end;
-
-                      //Trigger from volt-var mode
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        (Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(QoutputVVDRCpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-                    begin
-                        // Resets DER state variable only if it has not converged yet
-                        FVVDRCOperation := 0.0;
-
-                        Set_PendingChange(CHANGEDRCVVARLEVEL, i);
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change VV_DRC output due to volt-var trigger in VV_DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change VV_VW output due to volt-var trigger**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                            end;
+                        end
+                    else
+            {Do nothing}
                     end;
                 end
-
                 else
-                if CombiControlMode = VV_VW then
+                if ControlMode <> 0 then
                 begin
-                  // Sets internal variables of controlled element.
-                  // FVVOperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-                  // FVWOperation is a flag which indicates if volt-watt function operates or not
-                  // Combined modes operation is shown through TWO flags. It allows us to verify which of the individual function operates or not
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(7, FVVOperation);
-                        PVSys.Set_Variable(8, FVWOperation)
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(16, FVVOperation);
-                        Storage.Set_Variable(17, FVWOperation)
-                    end;
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                  // if volt-watt curve does not exist, exit
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        if Length(Fvoltwatt_curvename) = 0 then
+                    case ControLMode of
+          // volt-watt control mode
+                        VOLTWATT:
                         begin
-                            DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
-                            exit
+                        // Sets internal variables of controlled element.
+                        // FVWOperation is a flag which indicates if volt-watt function operates or not
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(8, FVWOperation)
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(17, FVWOperation)
+                            end;
+
+
+                            if (FInverterON = false) then
+                                continue;
+
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                if Length(Fvoltwatt_curvename) = 0 then
+                                begin
+                                    DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
+                                    exit
+                                end;
+                            end
+                            else
+                            begin
+                                if (Length(Fvoltwatt_curvename) = 0) and (Length(FvoltwattCH_curvename) = 0) then
+                                begin
+                                    DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
+                                    exit
+                                end;
+
+                            end;
+
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.VWmode := true
+                            else
+                                Storage.VWmode := true;
+
+                            if ((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or (Abs(PLimitEndpu - POldVWpu) > FActivePChangeTolerance) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+
+                            // Resets DER state variable only if it has not converged yet
+                                FVWOperation := 0;
+
+                                Set_PendingChange(CHANGEWATTLEVEL, i);
+
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                        (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to limit watt output due to VOLTWATT mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                            end;
                         end;
-                    end
-                    else
-                    begin
-                        if (Length(Fvoltwatt_curvename) = 0) and (Length(FvoltwattCH_curvename) = 0) then
+          // Active voltage regulation control mode
+                        AVR:
                         begin
-                            DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
-                            exit
+                        // Sets internal variables of PVSystem/Storage.
+                        // FAVROperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.AVRmode := true
+                            else
+                                Storage.VVmode := true;
+                          //Trigger from AVR mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(QoutputAVRpu) - Abs(QDesireEndpu)) > FVarChangeTolerance)) or
+                                (Abs(FPresentVpu - Fv_setpointLimited) > FVoltageChangeTolerance)) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+                            // Resets DER state variable only if it has not converged yet
+                                FAVROperation := 0;
+                                Set_PendingChange(CHANGEVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change var output due to AVR trigger in AVR mode**, Vavgpu= %.5g, VPriorpu=%.5g, Vsetpoint=%.5g, VsetpointLimited=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior, Fv_setpoint, Fv_setpointLimited]), ActorID);
+                            end;
                         end;
-                    end;
-
-                  // if the volt-var curve does not exist, exit
-                    if Length(Fvvc_curvename) = 0 then
-                    begin
-                        DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
-                        exit
-                    end;
-
-                    ControlledElement.Set_VVmode(true);
-                    ControlledElement.Set_VWmode(true);
-
-
-                  // Trigger from volt-watt mode
-                    if ((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or (Abs(PLimitEndpu - POldVWpu) > FActivePChangeTolerance) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FVWOperation := 0;
-
-                        Set_PendingChange(CHANGEWATTVARLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change VV_VW output due to volt-watt trigger**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                        ;
-                    end;
-
-                    //Trigger from volt-var mode
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(Qoutputpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FVVOperation := 0;
-                        Set_PendingChange(CHANGEWATTVARLEVEL, i);
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change VV_VW output due to volt-var trigger**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = VOLTWATT then  // volt-watt control mode
-                begin
-                  // Sets internal variables of controlled element.
-                  // FVWOperation is a flag which indicates if volt-watt function operates or not
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(8, FVWOperation)
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(17, FVWOperation)
-                    end;
-
-
-                    if (FInverterON = false) then
-                        continue;
-
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        if Length(Fvoltwatt_curvename) = 0 then
+          // volt-var control mode
+                        VOLTVAR:
                         begin
-                            DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
-                            exit
-                        end;
-                    end
-                    else
-                    begin
-                        if (Length(Fvoltwatt_curvename) = 0) and (Length(FvoltwattCH_curvename) = 0) then
-                        begin
-                            DoSimpleMsg('XY Curve object representing voltwatt_curve does not exist or is not tied to InvControl.', 381);
-                            exit
-                        end;
+                        // Sets internal variables of PVSystem/Storage.
+                        // FVVOperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
 
-                    end;
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(7, FVVOperation);
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(16, FVVOperation);
+                            end;
 
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.VWmode := true
-                    else
-                        Storage.VWmode := true;
-
-                    if ((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or (Abs(PLimitEndpu - POldVWpu) > FActivePChangeTolerance) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FVWOperation := 0;
-
-                        Set_PendingChange(CHANGEWATTLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to limit watt output due to VOLTWATT mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = AVR then // Active voltage regulation control mode
-                begin
-                  // Sets internal variables of PVSystem/Storage.
-                  // FAVROperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-
-
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.AVRmode := true
-                    else
-                        Storage.VVmode := true;
-
-                    //Trigger from AVR mode
-
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(QoutputAVRpu) - Abs(QDesireEndpu)) > FVarChangeTolerance)) or
-                        (Abs(FPresentVpu - Fv_setpointLimited) > FVoltageChangeTolerance)) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FAVROperation := 0;
-
-                        Set_PendingChange(CHANGEVARLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change var output due to AVR trigger in AVR mode**, Vavgpu= %.5g, VPriorpu=%.5g, Vsetpoint=%.5g, VsetpointLimited=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior, Fv_setpoint, Fv_setpointLimited]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = VOLTVAR then // volt-var control mode
-                begin
-                  // Sets internal variables of PVSystem/Storage.
-                  // FVVOperation is a flag which indicates if volt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(7, FVVOperation);
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(16, FVVOperation);
-                    end;
-
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                    if Length(Fvvc_curvename) = 0 then
-                    begin
-                        DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
-                        exit
-                    end;
-
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.VVmode := true
-                    else
-                        Storage.VVmode := true;
-
-                    //Trigger from volt-var mode
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FVVOperation := 0;
-
-                        Set_PendingChange(CHANGEVARLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change var output due to volt-var trigger in volt-var mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = WATTPF then // watt-pf control mode
-                begin
-                  // Sets internal variables of PVSystem/Storage.
-                  // FWPOperation is a flag which indicates if watt-pf function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(11, FWPOperation);
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(16, FWPOperation);
-                    end;
-
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                    if Length(Fwattpf_curvename) = 0 then
-                    begin
-                        DoSimpleMsg('XY Curve object representing wattpf_curve does not exist or is not tied to InvControl.', 382);
-                        exit
-                    end;
-
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.WPmode := true
-                    else
-                        Storage.WPmode := true;
-
-                    //Trigger from volt-var mode
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FWPOperation := 0;
-
-                        Set_PendingChange(CHANGEVARLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change var output due to watt-pf trigger in watt-pf mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = WATTVAR then // watt-var control mode
-                begin
-                  // Sets internal variables of PVSystem/Storage.
-                  // FWVOperation is a flag which indicates if watt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(12, FWVOperation);        //CHANGE HERE
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(16, FWVOperation);
-                    end;
-
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                    if Length(Fwattvar_curvename) = 0 then
-                    begin
-                        DoSimpleMsg('XY Curve object representing wattvar_curve does not exist or is not tied to InvControl.', 382);
-                        exit
-                    end;
-
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.WVmode := true
-                    else
-                        Storage.WVmode := true;
-
-                    //Trigger from volt-var mode
-                    if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
-                        ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-
-                    begin
-
-                      // Resets DER state variable only if it has not converged yet
-                        FWVOperation := 0;
-
-                        Set_PendingChange(CHANGEVARLEVEL, i);
-
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change var output due to watt-var trigger in watt-var mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                    end;
-                end
-
-                else
-                if ControlMode = DRC then // dynamic reactive current control mode
-                begin
-                  // Sets internal variables of PVSystem/Storage.
-                  // FDRCOperation is a flag which indicates if DRC function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
-
-                    if ControlledElement.DSSClassName = 'PVSystem' then
-                    begin
-                        PVSys.Set_Variable(5, FVreg);
-                        PVSys.Set_Variable(6, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
-                        PVSys.Set_Variable(9, FDRCOperation);
-                    end
-                    else
-                    begin
-                        Storage.Set_Variable(14, FVreg);
-                        Storage.Set_Variable(15, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
-                        Storage.Set_Variable(18, FDRCOperation);
-                    end;
-
-                  // if inverter is off then exit
-                    if (FInverterON = false) and (FVarFollowInverter = true) then
-                        continue;
-
-                  //DRC triggers
-                    if (priorDRCRollAvgWindow = 0.0) then
-                    begin
-
-                        if ((Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance)) then
-                        begin
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+                            if Length(Fvvc_curvename) = 0 then
+                            begin
+                                DoSimpleMsg('XY Curve object representing vvc1_curve does not exist or is not tied to InvControl.', 382);
+                                exit
+                            end;
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.VVmode := true
+                            else
+                                Storage.VVmode := true;
+                          //Trigger from volt-var mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
 
                           // Resets DER state variable only if it has not converged yet
-                            FDRCOperation := 0;
-
-
-                            Set_PendingChange(CHANGEVARLEVEL, i);
-
-                            with ActiveCircuit[ActorID].Solution.DynaVars do
-                                ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                    (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                            if ShowEventLog then
-                                AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                    Format('**Ready to change var output due to DRC trigger in DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
-                                    [FPresentDRCVpu, FAvgpDRCVpuPrior]), ActorID);
+                                FVVOperation := 0;
+                                Set_PendingChange(CHANGEVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change var output due to volt-var trigger in volt-var mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                            end;
                         end;
-                    end;
+          // watt-pf control mode
+                        WATTPF:
+                        begin
+                        // Sets internal variables of PVSystem/Storage.
+                        // FWPOperation is a flag which indicates if watt-pf function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(11, FWPOperation);
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(16, FWPOperation);
+                            end;
 
-                    if (ControlledElement.DSSClassName = 'PVSystem') then
-                        PVSys.DRCmode := true
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+                            if Length(Fwattpf_curvename) = 0 then
+                            begin
+                                DoSimpleMsg('XY Curve object representing wattpf_curve does not exist or is not tied to InvControl.', 382);
+                                exit
+                            end;
+
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.WPmode := true
+                            else
+                                Storage.WPmode := true;
+                          //Trigger from volt-var mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+                          // Resets DER state variable only if it has not converged yet
+                                FWPOperation := 0;
+                                Set_PendingChange(CHANGEVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change var output due to watt-pf trigger in watt-pf mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                            end;
+                        end;
+          // watt-var control mode
+                        WATTVAR:
+                        begin
+                        // Sets internal variables of PVSystem/Storage.
+                        // FWVOperation is a flag which indicates if watt-var function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(12, FWVOperation);        //CHANGE HERE
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(16, FWVOperation);
+                            end;
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+                            if Length(Fwattvar_curvename) = 0 then
+                            begin
+                                DoSimpleMsg('XY Curve object representing wattvar_curve does not exist or is not tied to InvControl.', 382);
+                                exit
+                            end;
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.WVmode := true
+                            else
+                                Storage.WVmode := true;
+                          //Trigger from volt-var mode
+                            if (((Abs(FPresentVpu - FAvgpVpuPrior) > FVoltageChangeTolerance) or
+                                ((Abs(Abs(QoutputVVpu) - Abs(QDesireEndpu)) > FVarChangeTolerance))) or
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+                            // Resets DER state variable only if it has not converged yet
+                                FWVOperation := 0;
+                                Set_PendingChange(CHANGEVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push(intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change var output due to watt-var trigger in watt-var mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                        [FPresentVpu, FAvgpVpuPrior]), ActorID);
+                            end;
+                        end;
+          // dynamic reactive current control mode
+                        DRC:
+                        begin
+                        // Sets internal variables of PVSystem/Storage.
+                        // FDRCOperation is a flag which indicates if DRC function operates or not (-1=absorbing Q, 1=injecting Q, 0=No operation)
+
+                            if ControlledElement.DSSClassName = 'PVSystem' then
+                            begin
+                                PVSys.Set_Variable(5, FVreg);
+                                PVSys.Set_Variable(6, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
+                                PVSys.Set_Variable(9, FDRCOperation);
+                            end
+                            else
+                            begin
+                                Storage.Set_Variable(14, FVreg);
+                                Storage.Set_Variable(15, FDRCRollAvgWindow.Get_AvgVal / (basekV * 1000.0)); // save rolling average voltage in monitor
+                                Storage.Set_Variable(18, FDRCOperation);
+                            end;
+
+                        // if inverter is off then exit
+                            if (FInverterON = false) and (FVarFollowInverter = true) then
+                                continue;
+
+                        //DRC triggers
+                            if (priorDRCRollAvgWindow = 0.0) then
+                            begin
+
+                                if ((Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance)) then
+                                begin
+
+                                // Resets DER state variable only if it has not converged yet
+                                    FDRCOperation := 0;
+
+
+                                    Set_PendingChange(CHANGEVARLEVEL, i);
+
+                                    with ActiveCircuit[ActorID].Solution.DynaVars do
+                                        ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                            (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+
+                                    if ShowEventLog then
+                                        AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                            Format('**Ready to change var output due to DRC trigger in DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g',
+                                            [FPresentDRCVpu, FAvgpDRCVpuPrior]), ActorID);
+                                end;
+                            end;
+                            if (ControlledElement.DSSClassName = 'PVSystem') then
+                                PVSys.DRCmode := true
+                            else
+                                Storage.DRCmode := true;
+                            if ((Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
+                                (Abs(Abs(QoutputDRCpu) - Abs(QDesireEndpu)) > FVarChangeTolerance) or // TEMc; also tried checking against QDesireEndpu
+                                (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
+                            begin
+                                Set_PendingChange(CHANGEVARLEVEL, i);
+                                with ActiveCircuit[ActorID].Solution.DynaVars do
+                                    ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
+                                        (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
+                                if ShowEventLog then
+                                    AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
+                                        Format('**Ready to change var output due to DRC trigger in DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g, QoutPU=%.3g, QDesiredEndpu=%.3g',
+                                        [FPresentDRCVpu, FAvgpDRCVpuPrior, QoutputDRCpu, QDesireEndpu]), ActorID);
+
+                            end;
+                        end;
                     else
-                        Storage.DRCmode := true;
-
-                    if ((Abs(FPresentDRCVpu - FAvgpDRCVpuPrior) > FVoltageChangeTolerance) or
-                        (Abs(Abs(QoutputDRCpu) - Abs(QDesireEndpu)) > FVarChangeTolerance) or // TEMc; also tried checking against QDesireEndpu
-                        (ActiveCircuit[ActorID].Solution.ControlIteration = 1)) then
-                    begin
-
-                        Set_PendingChange(CHANGEVARLEVEL, i);
-                        with ActiveCircuit[ActorID].Solution.DynaVars do
-                            ControlActionHandle := ActiveCircuit[ActorID].ControlQueue.Push
-                                (intHour, t + TimeDelay, PendingChange[i], 0, Self, ActorID);
-
-                        if ShowEventLog then
-                            AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
-                                Format('**Ready to change var output due to DRC trigger in DRC mode**, Vavgpu= %.5g, VPriorpu=%.5g, QoutPU=%.3g, QDesiredEndpu=%.3g',
-                                [FPresentDRCVpu, FAvgpDRCVpuPrior, QoutputDRCpu, QDesireEndpu]), ActorID);
-
+            {do nothing}
                     end;
                 end;
-
             end;
-
         end;
     end;
-
 end;
 
 procedure TInvControlObj.InitPropertyValues(ArrayOffset: Integer);
@@ -3144,8 +3095,8 @@ begin
     end
     else
     begin
-      {Search through the entire circuit for enabled PVSystem and Storage objects and add them to the list}
-      // Adding PVSystem elements
+    {Search through the entire circuit for enabled PVSystem and Storage objects and add them to the list}
+    // Adding PVSystem elements
         for i := 1 to PVSysClass.ElementCount do
         begin
             PVSys := PVSysClass.ElementList.Get(i);
@@ -3153,7 +3104,7 @@ begin
                 FDERPointerList.New := PVSys;
             FDERNameList.Add(PVSys.QualifiedName);
         end;
-      // Adding Storage elements
+    // Adding Storage elements
         for i := 1 to StorageClass.ElementCount do
         begin
             Storage := StorageClass.ElementList.Get(i);
@@ -3190,9 +3141,7 @@ begin
         begin
       // Sets the constants for the PI controller
             PICtrl := TPICtrl.Create();
-            PICtrl.Kp := 1;
-            PICtrl.kNum := 0.6321;
-            PICtrl.kDen := 0.3679;
+            PICtrl.Kp := 1;    // Uses deltaQ-factor as sample time for tunning the controller
 
             setlength(FVpuSolution, 3);
             setlength(cBuffer, 7);
@@ -3565,6 +3514,8 @@ begin
 
         28:
             Result := Format('%s', [FvoltwattCH_curvename]);
+        34:
+            Result := Format('%d', [CtrlModel]);
 
     else  // take the generic handler
         Result := inherited GetPropertyValue(index);
@@ -3777,19 +3728,23 @@ begin
         if (FlagChangeCurve = false) then
         begin
             if QDesireEndpu >= 0.0 then
-                DeltaQ := QDesireEndpu * QHeadRoom - QOldVV
+                DeltaQ := QDesireEndpu * QHeadRoom
             else
-                DeltaQ := QDesireEndpu * QHeadRoomNeg - QOldVV;
-
-            if FdeltaQ_factor = FLAGDELTAQ then
-                Change_deltaQ_factor(ActorID, j);
-
-            QDesiredVV := QOldVV + DeltaQ * FdeltaQFactor;
-{    if QDesireEndpu >= 0.0 then DeltaQ := QDesireEndpu * QHeadRoom
-    else                        DeltaQ := QDesireEndpu * QHeadRoomNeg;
-    PICtrl.kNum :=  0.5416;
-    PICtrl.kDen :=  0.4584;
-    QDesiredVV  :=  PICtrl.SolvePI( DeltaQ );  }
+                DeltaQ := QDesireEndpu * QHeadRoomNeg;
+            if CtrlModel = 0 then
+            begin
+                DeltaQ := DeltaQ - QOldVV;
+                if FdeltaQ_factor = FLAGDELTAQ then
+                    Change_deltaQ_factor(ActorID, j);
+                QDesiredVV := QOldVV + DeltaQ * FdeltaQFactor;
+            end
+            else
+            begin
+        // recalculates the constants in case they've changed on the go
+                PICtrl.kDen := exp(-1 * abs(FdeltaQ_factor));
+                PICtrl.kNum := 1 - PICtrl.kDen;
+                QDesiredVV := PICtrl.SolvePI(DeltaQ);
+            end;
         end
     // else, stay at present var output level
         else
@@ -3808,18 +3763,24 @@ begin
     with CtrlVars[j] do
     begin
         if QDesireEndpu >= 0.0 then
-            DeltaQ := QDesireEndpu * QHeadRoom - QOldAVR
+            DeltaQ := QDesireEndpu * QHeadRoom
         else
-            DeltaQ := QDesireEndpu * QHeadRoomNeg - QOldAVR;
-
-        if FdeltaQ_factor = FLAGDELTAQ then
-            Change_deltaQ_factor(ActorID, j)
+            DeltaQ := QDesireEndpu * QHeadRoomNeg;
+        if CtrlModel = 0 then
+        begin
+            DeltaQ := DeltaQ - QOldAVR;
+            if FdeltaQ_factor = FLAGDELTAQ then
+                Change_deltaQ_factor(ActorID, j);
+            QDesiredAVR := QOldAVR + 0.2 * DeltaQ;
+    //      QDesiredAVR := QDesireEndpu * QHeadRoomNeg
+        end
         else
-            FdeltaQFactor := FdeltaQ_factor;
-
-        QDesiredAVR := QOldAVR + 0.2 * DeltaQ;
-
-  //      QDesiredAVR := QDesireEndpu * QHeadRoomNeg
+        begin
+      // recalculates the constants in case they've changed on the go
+            PICtrl.kDen := exp(-1 * abs(FdeltaQ_factor));
+            PICtrl.kNum := 1 - PICtrl.kDen;
+            QDesiredAVR := PICtrl.SolvePI(DeltaQ);
+        end;
     end;
 end;
 
@@ -3854,16 +3815,23 @@ begin
     with CtrlVars[j] do
     begin
         if QDesireEndpu >= 0.0 then
-            DeltaQ := QDesireEndpu * QHeadRoom - QOldDRC
+            DeltaQ := QDesireEndpu * QHeadRoom
         else
-            DeltaQ := QDesireEndpu * QHeadRoomNeg - QOldDRC;
-
-        if FdeltaQ_factor = FLAGDELTAQ then
-            Change_deltaQ_factor(ActorID, j)
+            DeltaQ := QDesireEndpu * QHeadRoomNeg;
+        if CtrlModel = 0 then
+        begin
+            DeltaQ := DeltaQ - QOldDRC;
+            if FdeltaQ_factor = FLAGDELTAQ then
+                Change_deltaQ_factor(ActorID, j);
+            QDesiredDRC := QOldDRC + DeltaQ * FdeltaQFactor;
+        end
         else
-            FdeltaQFactor := FdeltaQ_factor;
-
-        QDesiredDRC := QOldDRC + DeltaQ * FdeltaQFactor;
+        begin
+      // recalculates the constants in case they've changed on the go
+            PICtrl.kDen := exp(-1 * abs(FdeltaQ_factor));
+            PICtrl.kNum := 1 - PICtrl.kDen;
+            QDesiredDRC := PICtrl.SolvePI(DeltaQ);
+        end;
     end;
 end;
 
@@ -3875,16 +3843,23 @@ begin
     with CtrlVars[j] do
     begin
         if QDesireEndpu >= 0.0 then
-            DeltaQ := QDesireEndpu * QHeadRoom - QOldVVDRC
+            DeltaQ := QDesireEndpu * QHeadRoom
         else
-            DeltaQ := QDesireEndpu * QHeadRoomNeg - QOldVVDRC;
-
-        if FdeltaQ_factor = FLAGDELTAQ then
-            Change_deltaQ_factor(ActorID, j)
+            DeltaQ := QDesireEndpu * QHeadRoomNeg;
+        if CtrlModel = 0 then
+        begin
+            DeltaQ := DeltaQ - QOldVVDRC;
+            if FdeltaQ_factor = FLAGDELTAQ then
+                Change_deltaQ_factor(ActorID, j);
+            QDesiredVVDRC := QOldVVDRC + DeltaQ * FdeltaQFactor;
+        end
         else
-            FdeltaQFactor := FdeltaQ_factor;
-
-        QDesiredVVDRC := QOldVVDRC + DeltaQ * FdeltaQFactor;
+        begin
+      // recalculates the constants in case they've changed on the go
+            PICtrl.kDen := exp(-1 * abs(FdeltaQ_factor));
+            PICtrl.kNum := 1 - PICtrl.kDen;
+            QDesiredVVDRC := PICtrl.SolvePI(DeltaQ);
+        end;
     end;
 end;
 
