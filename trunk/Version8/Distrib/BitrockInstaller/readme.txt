@@ -199,6 +199,10 @@ Change Log
        - remove deprecated tculControlMode from CIM export
        - export CIM TransformerMeshImpedance on the winding 1 kVA base
 
+1.7.5  - allow execution to continue if UUIDs file does not exist
+
+1.7.6  - initialize ExpControl.Vreg in state variable monitor
+
 Open Issues
 ===========
 
