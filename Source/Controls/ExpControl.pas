@@ -743,6 +743,7 @@ begin
             begin
                 FPVSystemPointerList.New := PVSys;
                 PVSys.AVRmode := true;
+                PVSys.Set_Variable(5, FVRegInit);
             end;
         end;
     end
