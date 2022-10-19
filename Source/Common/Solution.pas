@@ -103,7 +103,8 @@ type
 
     TNodeVarray = array[0..1000] of Complex;
     pNodeVarray = ^TNodeVarray;
-   ///////////////////////////////////
+
+//********  Code additions by dahei (UCF) ***********************
      {define LD_FM_Arry-by dahei}
     TLDs_sys_fms = packed record
      //properties for Nodes
@@ -122,7 +123,7 @@ type
         volt_lw_lmt: Double;  //p.u.
         Pinjec_lwst: Double; // net P injection on this node
     end;
-   //////////////////////////////////////
+//****************************************************************
 
     TDSSSolution = class(TDSSClass)
 
@@ -170,9 +171,9 @@ type
         procedure Set_Processing(Nval: Boolean);
         function Get_CPU(): Integer;
         procedure Set_CPU(CPU: Integer);
-        procedure IndexBuses();           // Locates the actor buses within the bus array in Actor 1 (interconnected)
+        procedure IndexBuses();            // Locates the actor buses within the bus array in Actor 1 (interconnected)
         function HasInjObj(): Boolean;    // returns true if the actor has natural injection objects
-        procedure ZeroLocalV();           // Sets the local voltage vector (solution) equal to zero
+        procedure ZeroLocalV();            // Sets the local voltage vector (solution) equal to zero
 
 //*******************************Public components******************************
     PUBLIC
@@ -190,11 +191,13 @@ type
 
         dV: pNodeVArray;   // Array of delta V for Newton iteration
         FFrequency: Double;
-       // //by Dahei
+
+//*******  Variables for Code additions by dahei (UCF) ******
+       // by Dahei  ===================================================
         nNZ_yii: Longword;       //how many lines in Yii
-        pColIdx_Yii, pRowIdx_Yii: pLongIntArray;//array of LongWord;  //cols and rows
-        pcVals_Yii: pComplexArray;   //vals of yii
-       // =========
+        pColIdx_Yii, pRowIdx_Yii: pLongIntArray;  //array of LongWord;  //cols and rows
+        pcVals_Yii: pComplexArray;  //vals of yii
+       // ======================================================================
 
         function Converged(ActorID: Integer): Boolean;
         function OK_for_Dynamics(const Value: Integer): Boolean;
@@ -274,15 +277,18 @@ type
 //******************************************************************************
         IncMat,                                // Incidence sparse matrix
         Laplacian: Tsparse_matrix; // Laplacian sparse matrix
-       {by Dahei for FMonitor}
-              {------------------}
+
+       //********  Code additions by dahei (UCF) ******
+           {by Dahei for FMonitor}
         NodeYii: pNodeVArray;         // Main System Y = G + jB, Bii for all nodes
 
         NodeYiiEmpty: Boolean;
-       {Leaders of all FMonitors}
+           {Leaders of all FMonitors}
         clstr_num_hghst, clstr_num_lwst: Integer;
         LD_FM: array [0..3] of TLDs_sys_fms;
         bCurtl: Boolean;
+       {================================================================}
+
 //****************************Timing variables**********************************
         SolveStartTime: Int64;
         SolveEndtime: Int64;
@@ -294,6 +300,7 @@ type
         Total_Solve_Time_Elapsed: Double;
         Step_Time_Elapsed: Double;
 //******************************************************************************
+
 // ActiveCell of the Incidence Matrix:
 // [0] = row
 // [1] = col
@@ -347,10 +354,12 @@ type
         procedure RestoreNodeVfromVbus;  // opposite   of updatebus
 
         function VDiff(i, j, ActorID: Integer): Complex;  // Difference between two node voltages
-       {by Dahei}
+
+       //================================== {additions by Dahei} =======================
         procedure Get_Yiibus; // updates voltages for each bus    from NodeV
         function Get_Yij(node_ref_i, node_ref_j: Integer): Complex; // get Gij + j Bij
-       {}
+       {======================================================================}
+
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         procedure WriteConvergenceReport(const Fname: String);
@@ -531,6 +540,7 @@ begin
     LoadsNeedUpdating := true;
     VoltageBaseChanged := true;  // Forces Building of convergence check arrays
 
+    // Initial values of solution flags
     MaxIterations := 15;
     MinIterations := 2;
     MaxControlIterations := 10;
@@ -543,7 +553,6 @@ begin
     IsHarmonicModel := false;
 
     Frequency := DefaultBaseFreq;
-    {Fundamental := 60.0; Moved to Circuit and used as default base frequency}
     Harmonic := 1.0;
 
     FrequencyChanged := true;  // Force Building of YPrim matrices
@@ -613,7 +622,9 @@ begin
         DeleteSparseSet(hYsystem);
     if hYseries <> 0 then
         DeleteSparseSet(hYseries);
-      {by Dahei: }
+
+      //==============================
+      //********  Code additions by dahei (UCF) ******
     Reallocmem(NodeYii, 0);  // for bii
     Reallocmem(pColIdx_Yii, 0);
     Reallocmem(pRowIdx_Yii, 0);
@@ -621,7 +632,8 @@ begin
 
     Reallocmem(Node_dV, 0);
     Reallocmem(Ic_Local, 0);
-      {---------------------------}
+      //===================================================
+
 //      SetLogFile ('c:\\temp\\KLU_Log.txt', 0);
 
     Reallocmem(HarmonicList, 0);
@@ -666,6 +678,7 @@ var
     ScriptEd: TScriptEdit;
     {$ENDIF}
     {$ENDIF}
+
 begin
     ActiveCircuit[ActorID].Issolved := false;
     SolutionWasAttempted[ActorID] := true;
@@ -939,30 +952,30 @@ begin
                 begin
 
                     pGen.InitDQDVCalc;
-
+           (*
                    // solve at base var setting
-                    Iteration := 0;
-                    repeat
-                        Inc(Iteration);
-                        ZeroInjCurr(ActorID);
-                        GetSourceInjCurrents(ActorID);
-                        pGen.InjCurrents(ActorID);   // get generator currents with nominal vars
-                        SolveSystem(NodeV, ActorID);
-                    until Converged(ActorID) or (Iteration >= Maxiterations);
+                   Iteration := 0;
+                   Repeat
+                       Inc(Iteration);
+                       ZeroInjCurr(ActorID);
+                       GetSourceInjCurrents(ActorID);
+                       pGen.InjCurrents(ActorID);   // get generator currents with nominal vars
+                       SolveSystem(NodeV, ActorID);
+                   Until Converged(ActorID) or (Iteration >= Maxiterations);
 
-                    pGen.RememberQV(ActorID);  // Remember Q and V
-                    pGen.BumpUpQ;
+                   pGen.RememberQV(ActorID);  // Remember Q and V
+                   pGen.BumpUpQ;
 
                    // solve after changing vars
-                    Iteration := 0;
-                    repeat
-                        Inc(Iteration);
-                        ZeroInjCurr(ActorID);
-                        GetSourceInjCurrents(ActorID);
-                        pGen.InjCurrents(ActorID);   // get generator currents with nominal vars
-                        SolveSystem(NodeV, ActorID);
-                    until Converged(ActorID) or (Iteration >= Maxiterations);
-
+                   Iteration := 0;
+                   Repeat
+                       Inc(Iteration);
+                       ZeroInjCurr(ActorID);
+                       GetSourceInjCurrents(ActorID);
+                       pGen.InjCurrents(ActorID);   // get generator currents with nominal vars
+                       SolveSystem(NodeV, ActorID);
+                   Until Converged(ActorID) or (Iteration >= Maxiterations);
+             *)
                     pGen.CalcdQdV(ActorID); // bssed on remembered Q and V and present values of same
                     pGen.ResetStartPoint;
 
@@ -1043,6 +1056,7 @@ begin
                 begin
                     BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
                 end;
+
         {by Dahei}if NodeYiiEmpty then
                     Get_Yiibus;
 
@@ -1113,6 +1127,7 @@ begin
             begin
                 BuildYMatrix(WHOLEMATRIX, false, ActorID);   // Does not realloc V, I
             end;
+
           {by Dahei}if NodeYiiEmpty then
                 Get_Yiibus;  //
 
@@ -1306,6 +1321,7 @@ begin
         begin
             BuildYMatrix(WHOLEMATRIX, false, ActorID); // Rebuild Y matrix, but V stays same
         end;
+
     {by Dahei}if NodeYiiEmpty then
             Get_Yiibus;
 
@@ -1354,8 +1370,10 @@ begin
         begin
             BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
         end;
-    {by Dahei}if NodeYiiEmpty then
+
+    {Addition by Dahei}if NodeYiiEmpty then
             Get_Yiibus;
+
         if UseAuxCurrents then
             AddInAuxCurrents(NORMALSOLVE, ActorID);
 
@@ -1449,7 +1467,8 @@ begin
         begin
             BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
         end;
-    {by Dahei}if NodeYiiEmpty then
+
+    {addition by Dahei}if NodeYiiEmpty then
             Get_Yiibus;  //
 
         ZeroInjCurr(ActorID);   // Side Effect: Allocates InjCurr
@@ -1511,7 +1530,9 @@ begin
                 if not ADiakoptics or (ActorID <> 1) then
                     BuildYMatrix(WHOLEMATRIX, true, ActorID);   // Side Effect: Allocates V
             end;
-              {by Dahei: Get Y matrix for solution}
+
+               {-------------------------------------}
+              {Addition by Dahei: Get Y matrix for solution}
             if NodeYiiEmpty then
                 Get_Yiibus;   //IF SystemYChanged
               {-------------------------------------}
@@ -2530,7 +2551,7 @@ begin
 
    // Reset Meters and Monitors
     MonitorClass[ActiveActor].ResetAll(ActiveActor);
-   {by Dahei}FMonitorClass[ActiveActor].ResetAll(ActiveActor);
+     {Addition by Dahei}FMonitorClass[ActiveActor].ResetAll(ActiveActor);
     EnergyMeterClass[ActiveActor].ResetAll(ActiveActor);
     DoResetFaults;
     DoResetControls;
@@ -3460,8 +3481,10 @@ begin
                         begin
                             BuildYMatrix(WHOLEMATRIX, false, ActorID);  // Does not realloc V, I
                         end;
-                {by Dahei}if NodeYiiEmpty then
+
+                {addition by Dahei}if NodeYiiEmpty then
                             Get_Yiibus;
+
                     end;
                     GETCTRLMODE:
                     begin
