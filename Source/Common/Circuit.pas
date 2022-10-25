@@ -259,6 +259,7 @@ type
         MeterZonesComputed: Boolean;
         PositiveSequence: Boolean;  // Model is to be interpreted as Pos seq
         NeglectLoadY: Boolean;
+        LongLineCorrection: Boolean;  // Apply long line correction where feasible (single phase lines, positive sequence models, 3-phase lines with Symmetrical Components Model)
 
           // Voltage limits
         NormalMinVolts,
@@ -550,6 +551,7 @@ begin
     MeterZonesComputed := false;
     PositiveSequence := false;
     NeglectLoadY := false;
+    LongLineCorrection := false;
 
     NormalMinVolts := 0.95;
     NormalMaxVolts := 1.05;
@@ -2920,6 +2922,8 @@ begin
             Writeln(F, 'Set Cktmodel=Positive');
         if DuplicatesAllowed then
             Writeln(F, 'set allowdup=yes');
+        if LongLineCorrection then
+            Writeln(F, 'Set LongLineCorrection=True');
         Writeln(F);
 
       // Write Redirect for all populated DSS Classes  Except Solution Class
