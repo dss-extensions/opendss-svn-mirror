@@ -190,6 +190,7 @@ type
 // moved to GeneratorVars        VthevMag        :Double;    {Thevinen equivalent voltage for dynamic model}
         YPrimOpenCond: TCmatrix;  // To handle cases where one conductor of load is open ; We revert to admittance for inj currents
         YQFixed: Double;  // Fixed value of y for type 7 load
+        Yii: Double; // for Type 3 Generator
         ShapeIsActual: Boolean;
         ForceBalanced: Boolean;
 
@@ -340,7 +341,9 @@ uses
     DSSClassDefs,
     DSSGlobals,
     Utilities,
-    Classes;
+    Classes,
+    KLUSolve,
+    Solution;
 
 const
     NumPropsThisClass = 46;
@@ -1479,6 +1482,11 @@ begin
 
             Y := cnegate(Yeq);  // negate for generation    Yeq is L-N quantity
 
+       // if Type 3 generator, only put a little (1%) in Yprim
+            if GenModel = 3 then
+                Y := CdivReal(Y, 100.0);
+
+
        // ****** Need to modify the base admittance for real harmonics calcs
             Y.im := Y.im / FreqMultiplier;
 
@@ -1623,11 +1631,11 @@ begin
                 GetSolutionModeID, ', ',
                 GetLoadModel, ', ',
                 GenModel: 0, ', ',
-                DQDV: 8: 0, ', ',
-                (V_Avg * 0.001732 / GenVars.kVgeneratorbase): 8: 3, ', ',
+                DQDV: 10: 4, ', ',
+                (V_Avg * 0.001732 / GenVars.kVgeneratorbase): 10: 5, ', ',
                 (GenVars.Vtarget - V_Avg): 9: 1, ', ',
-                (Genvars.Qnominalperphase * 3.0 / 1.0e6): 8: 2, ', ',
-                (Genvars.Pnominalperphase * 3.0 / 1.0e6): 8: 2, ', ',
+                (Genvars.Qnominalperphase * 3.0 / 1.0e6): 8: 3, ', ',
+                (Genvars.Pnominalperphase * 3.0 / 1.0e6): 8: 3, ', ',
                 s, ', ');
             for i := 1 to nphases do
                 Write(TraceFile, (Cabs(InjCurrent^[i])): 8: 1, ', ');
@@ -2680,22 +2688,32 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 procedure TGeneratorObj.CalcDQDV(ActorID: Integer);
 var
-    Vdiff: Double;
-    i: Integer;
+//   Vdiff :Double;
+    i: Longword;
+    cYii: Complex;
 begin
+  (*
+     CalcVTerminal(ActorID);
+     V_Avg := 0.0;
+     For i := 1 to Fnphases Do V_Avg := V_Avg + Cabs(Vterminal^[i]);
+     V_Avg := V_Avg / Fnphases;
 
-    CalcVTerminal(ActorID);
-    V_Avg := 0.0;
-    for i := 1 to Fnphases do
-        V_Avg := V_Avg + Cabs(Vterminal^[i]);
-    V_Avg := V_Avg / Fnphases;
-
-    Vdiff := V_Avg - V_Remembered;
-    if (Vdiff <> 0.0) then
-        DQDV := (Genvars.Qnominalperphase - var_Remembered) / Vdiff
-    else
-        DQDV := 0.0;  // Something strange has occured
+     Vdiff := V_Avg - V_Remembered;
+     If (Vdiff <> 0.0) Then DQDV := (Genvars.Qnominalperphase - var_Remembered) / Vdiff
+                       Else DQDV := 0.0;  // Something strange has occured
                        // this will force a de facto P,Q model
+  *)
+
+     // use 1st node element of Y matrix For DQDV
+    i := Noderef^[1];
+
+     // FUNCTION GetMatrixElement(id:NativeUInt; i,j:LongWord; Value:pComplex):LongWord
+    GetMatrixElement(ActiveSolutionObj.hYsystem, i, i, @cYii);
+    Yii := Cabs(cYii);
+     // DQDV := Yii;  // Save in DQDV for now
+    DQDV := 2.0 * Yii * Vbase * vpu;  // Save in DQDV for now
+
+
     DQDVSaved := DQDV;  //Save for next time  Allows generator to be enabled/disabled during simulation
 end;
 
