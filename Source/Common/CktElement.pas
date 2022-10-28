@@ -116,6 +116,8 @@ type
                              // Accessing app has to know the structure
                              // Inited to Nil.  If Nil, accessing app should ignore
 
+        GFM_Mode: Boolean; // To indicate if the PCE (normally IBR) is working in Grod forming inverter mode
+
         constructor Create(ParClass: TDSSClass);
         destructor Destroy; OVERRIDE;
 
@@ -221,6 +223,7 @@ begin
     IsMonitored := false;
     IsPartofFeeder := false;
     IsIsolated := false;
+    GFM_Mode := false;
 
     Drawn := false;
 

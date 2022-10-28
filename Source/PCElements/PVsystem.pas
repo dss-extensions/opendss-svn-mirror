@@ -21,6 +21,7 @@ unit PVSystem;
   // WGS: Updated 9/24/2015 to allow for simultaneous modes and additional functionality in the InvControl.
 
   09/11/2022 Compatibility with dynamics simulation added
+  10/28/2022 Grid forming inverter capabilities added
 }
 //  The PVSystem element is assumed balanced over the no. of phases defined
 
@@ -184,7 +185,7 @@ type
         procedure CalcInjCurrentArray(ActorID: Integer);
       (*PROCEDURE CalcVterminal;*)
         procedure CalcVTerminalPhase(ActorID: Integer);
-        procedure CalcYPrimMatrix(Ymatrix: TcMatrix);
+        procedure CalcYPrimMatrix(Ymatrix: TcMatrix; ActorID: Integer);
         procedure DoConstantPQPVSystemObj(ActorID: Integer);
         procedure DoConstantZPVSystemObj(ActorID: Integer);
         procedure DoDynamicMode(ActorID: Integer);
@@ -302,6 +303,9 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
+        procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;
+        function CheckOLInverter(ActorID: Integer): Boolean;
+        procedure DoGFM_Mode(ActorID: Integer);
 
       {Porperties}
         property PresentIrradiance: Double READ Get_PresentIrradiance WRITE Set_PresentIrradiance;
@@ -413,7 +417,8 @@ const
     propSM = 45;
     propDynEq = 46;
     propDynOut = 47;
-    NumPropsThisClass = 47; // Make this agree with the last property constant
+    propGFM = 48;
+    NumPropsThisClass = 48; // Make this agree with the last property constant
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
@@ -601,10 +606,10 @@ begin
         'Indicates the rated voltage (kV) at the input of the inverter at the peak of PV energy production. The value is normally greater or equal to the kV base of the PV system. It is used for dynamics simulation ONLY.');
 
     AddProperty('Kp', propkp,
-        'It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode or when operating as grid forming inverter.');
+        'It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode.');
 
     AddProperty('PITol', propCtrlTol,
-        'It is the tolerance (%) for the closed loop controller of the inverter. For dynamics or when the inverter is operating in grid forming mode.');
+        'It is the tolerance (%) for the closed loop controller of the inverter. For dynamics simulation mode.');
 
     AddProperty('SafeVoltage', propSMT,
         'Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter safe mode (OFF). For dynamic simulation. By default is 80%');
@@ -619,6 +624,10 @@ begin
         'This PVsystem model requires 1 output from the dynamic equation: ' + CRLF + CRLF +
         '1. Current.' + CRLF +
         'The output variables need to be defined in the same order.');
+    AddProperty('ControlMode', propGFM,
+        'Defines the control mode for the inverter. It can be one of {GFM | GFL*}. By default it is GFL (Grid Following Inverter).' +
+        ' Use GFM (Grid Forming Inverter) for energizing islanded microgrids, but, if the device is conencted to the grid, it is highly recommended to use GFL.' + CRLF + CRLF +
+        'GFM control mode disables any control action set by the InvControl device.');
 
 
     ActiveProperty := NumPropsThisClass;
@@ -861,6 +870,18 @@ begin
                         DynamicEq := Param;
                     propDynOut:
                         SetDynOutput(Param);
+                    propGFM:
+                    begin
+                        if lowercase(Parser[ActorID].StrValue) = 'gfm' then
+                        begin
+                            GFM_mode := true;
+                            if length(myDynVars.Vgrid) < NPhases then
+                                setlength(myDynVars.Vgrid, NPhases);  // Used to store the voltage per phase
+                        end
+                        else
+                            GFM_mode := false;
+                        YprimInvalid[ActorID] := true;
+                    end
 
                 else
                   // Inherited parameters
@@ -1209,6 +1230,7 @@ begin
         PropertyValue[propCtrlTol] := '5';
         PropertyValue[propSMT] := '80';
         PropertyValue[propSM] := 'NO';
+        PropertyValue[propGFM] := 'GFL';
     end;
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
@@ -1316,6 +1338,11 @@ begin
                 Result := DynamicEq;
             propDynOut:
                 GetDynOutputStr();
+            propGFM:
+                if GFM_Mode then
+                    Result := 'GFM'
+                else
+                    Result := 'GFL';
         {propDEBUGTRACE = 33;}
         else  // take the generic handler
             Result := inherited GetPropertyValue(index);
@@ -1403,6 +1430,109 @@ begin
     end
     else
         CalcDailyTemperature(Hr);  // Defaults to Daily curve
+end;
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// Required for operation in GFM mode
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+procedure TPVsystemObj.GetCurrents(Curr: pComplexArray; ActorID: Integer);
+var
+    i: Integer;
+begin
+    if GFM_Mode then
+    begin
+        try
+            with ActiveCircuit[ActorID].Solution do
+            begin
+       //FOR i := 1 TO (Nterms * NConds) DO Vtemp^[i] := V^[NodeRef^[i]];
+       // This is safer    12/7/99
+                for     i := 1 to Yorder do
+                begin
+                    if not ADiakoptics or (ActorID = 1) then
+                        Vterminal^[i] := NodeV^[NodeRef^[i]]
+                    else
+                        Vterminal^[i] := VoltInActor1(NodeRef^[i]);
+                end;
+
+                YPrim.MVMult(Curr, Vterminal);  // Current from Elements in System Y
+
+                GetInjCurrents(ComplexBuffer, ActorID);  // Get present value of inj currents
+      // Add Together  with yprim currents
+                for i := 1 to Yorder do
+                    Curr^[i] := Csub(Curr^[i], ComplexBuffer^[i]);
+
+            end;  {With}
+        except
+            On E: Exception do
+                DoErrorMsg(('GetCurrents for Element: ' + Name + '.'), E.Message,
+                    'Inadequate storage allotted for circuit element.', 327);
+        end;
+
+    end
+    else
+        inherited GetCurrents(Curr, ActorID);
+
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// Returns True if any of the inverter phases is overloaded
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+function TPVsystemObj.CheckOLInverter(ActorID: Integer): Boolean;
+var
+    myCurr: complex;
+    MaxAmps,
+    PhaseAmps: Double;
+    i: Integer;
+begin
+  // Check if reaching saturation point in GFM
+    Result := false;
+    if GFM_Mode then
+    begin
+        ComputePanelPower();
+        MaxAmps := ((PVSystemvars.PanelkW * 1000) / NPhases) / VBase;
+        ComputeIterminal(ActorID);
+        for i := 1 to NPhases do
+        begin
+            myCurr := Iterminal^[i];
+            PhaseAmps := cabs(myCurr);
+            if PhaseAmps > MaxAmps then
+            begin
+                Result := true;
+                break;
+            end;
+        end;
+    end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// Implements the grid forming inverter control routine for the PVSystem device
+//------------------------------------------------------------------------------------
+procedure TPVsystemObj.DoGFM_Mode(ActorID: Integer);
+var
+    j,
+    i: Integer;
+    myW,
+    myError: Double;
+
+begin
+
+    myDynVars.BasekV := VBase;
+    myDynVars.Discharging := true;
+
+    with ActiveCircuit[ActorID].Solution, myDynVars do
+    begin
+    {Initialization just in case}
+        if length(myDynVars.Vgrid) < NPhases then
+            setlength(myDynVars.Vgrid, NPhases);
+
+        for i := 1 to NPhases do
+            Vgrid[i - 1] := ctopolar(NodeV^[NodeRef^[i]]);
+        myDynVars.CalcGFMVoltage(ActorID, NPhases, Vterminal);
+        YPrim.MVMult(InjCurrent, Vterminal);
+
+        set_ITerminalUpdated(false, ActorID);
+    end;
 end;
 
 procedure TPVsystemObj.RecalcElementData(ActorID: Integer);
@@ -1568,7 +1698,7 @@ begin
 end;
 
 // ===========================================================================================
-procedure TPVsystemObj.CalcYPrimMatrix(Ymatrix: TcMatrix);
+procedure TPVsystemObj.CalcYPrimMatrix(Ymatrix: TcMatrix; ActorID: Integer);
 var
     Y, Yij: Complex;
     i, j: Integer;
@@ -1579,7 +1709,7 @@ begin
     with ActiveCircuit[ActiveActor].solution do
         if IsDynamicModel or IsHarmonicModel then
         begin
-          {YEQ is computed from %R and %X -- inverse of Rthev + j Xthev}
+        {YEQ is computed from %R and %X -- inverse of Rthev + j Xthev}
             Y := YEQ;   // L-N value computed in initialization routines
             if Connection = 1 then
                 Y := CDivReal(Y, 3.0); // Convert to delta impedance
@@ -1606,37 +1736,50 @@ begin
         end
         else
         begin  //  Regular power flow PVSystem element model
+            if not GFM_Mode then
+            begin
           {YEQ is always expected as the equivalent line-neutral admittance}
-            Y := cnegate(YEQ);   // negate for generation    YEQ is L-N quantity
+                Y := cnegate(YEQ);   // negate for generation    YEQ is L-N quantity
           // ****** Need to modify the base admittance for real harmonics calcs
-            Y.im := Y.im / FreqMultiplier;
-            case Connection of
-                0:
-                    with YMatrix do
-                    begin // WYE
-                        Yij := Cnegate(Y);
-                        for i := 1 to Fnphases do
-                        begin
-                            SetElement(i, i, Y);
-                            AddElement(Fnconds, Fnconds, Y);
-                            SetElemsym(i, Fnconds, Yij);
+                Y.im := Y.im / FreqMultiplier;
+                case Connection of
+                    0:
+                        with YMatrix do
+                        begin // WYE
+                            Yij := Cnegate(Y);
+                            for i := 1 to Fnphases do
+                            begin
+                                SetElement(i, i, Y);
+                                AddElement(Fnconds, Fnconds, Y);
+                                SetElemsym(i, Fnconds, Yij);
+                            end;
                         end;
-                    end;
-                1:
-                    with YMatrix do
-                    begin  // Delta  or L-L
-                        Y := CDivReal(Y, 3.0); // Convert to delta impedance
-                        Yij := Cnegate(Y);
-                        for i := 1 to Fnphases do
-                        begin
-                            j := i + 1;
-                            if j > Fnconds then
-                                j := 1;  // wrap around for closed connections
-                            AddElement(i, i, Y);
-                            AddElement(j, j, Y);
-                            AddElemSym(i, j, Yij);
+                    1:
+                        with YMatrix do
+                        begin  // Delta  or L-L
+                            Y := CDivReal(Y, 3.0); // Convert to delta impedance
+                            Yij := Cnegate(Y);
+                            for i := 1 to Fnphases do
+                            begin
+                                j := i + 1;
+                                if j > Fnconds then
+                                    j := 1;  // wrap around for closed connections
+                                AddElement(i, i, Y);
+                                AddElement(j, j, Y);
+                                AddElemSym(i, j, Yij);
+                            end;
                         end;
-                    end;
+                end;
+            end
+            else
+            begin
+          // Otherwise, the inverter is in GFM control modem calculation changes
+                with myDynVars do
+                begin
+                    BasekV := PresentkV;
+                    ISP := PVSystemVars.FkVArating;
+                    CalcGFMYprim(ActorID, NPhases, @YMatrix);
+                end;
             end;
         end;  {ELSE IF Solution.mode}
 end;
@@ -1893,7 +2036,7 @@ begin
         YPrim.Clear;
     end;
     SetNominalPVSystemOuput(ActorID);
-    CalcYPrimMatrix(YPrim_Shunt);
+    CalcYPrimMatrix(YPrim_Shunt, ActorID);
     // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages Doesn't fail
     for i := 1 to Yorder do
         Yprim_Series.SetElement(i, i, CmulReal(Yprim_Shunt.Getelement(i, i), 1.0e-10));
@@ -2261,16 +2404,21 @@ begin
             DoHarmonicMode(ActorID)
         else
         begin
-            //  compute currents and put into InjTemp array;
-            case VoltageModel of
-                1:
-                    DoConstantPQPVSystemObj(ActorID);
-                2:
-                    DoConstantZPVSystemObj(ActorID);
-                3:
-                    DoUserModel(ActorID);
+          //  compute currents and put into InjTemp array;
+            if GFM_Mode then
+                DoGFM_Mode(ActorID)
             else
-                DoConstantPQPVSystemObj(ActorID);  // for now, until we implement the other models.
+            begin
+                case VoltageModel of
+                    1:
+                        DoConstantPQPVSystemObj(ActorID);
+                    2:
+                        DoConstantZPVSystemObj(ActorID);
+                    3:
+                        DoUserModel(ActorID);
+                else
+                    DoConstantPQPVSystemObj(ActorID);  // for now, until we implement the other models.
+                end;
             end;
         end; {ELSE}
     end; {WITH}

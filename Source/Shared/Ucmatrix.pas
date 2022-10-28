@@ -57,6 +57,8 @@ type
         property Order: Integer READ Norder;
 
     end;
+
+    pTcMatrix = ^TcMatrix;
 {--------------------------------------------------------------------------}
 
 
