@@ -6,7 +6,7 @@
         <MainSource>OpenDSSDirect.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -398,6 +398,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="..\PCElements\WindGenVars.pas"/>
         <DCCReference Include="..\General\DynamicExp.pas"/>
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
+        <DCCReference Include="..\Controls\GenController.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

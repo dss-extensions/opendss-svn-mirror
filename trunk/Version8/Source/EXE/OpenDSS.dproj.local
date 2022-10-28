@@ -52,6 +52,7 @@
     <File Path="..\Controls\StorageController.pas"/>
     <File Path="..\Controls\SwtControl.pas"/>
     <File Path="..\Controls\UPFCControl.pas"/>
+    <File Path="..\Controls\GenController.pas"/>
     <File Path="..\Executive"/>
     <File Path="..\Executive\ConnectOptions.pas"/>
     <File Path="..\Executive\ExecCommands.pas"/>
