@@ -315,7 +315,9 @@ begin
     Z.Invert();
     YMatrix^.CopyFrom(Z);
 end;
-
+//---------------------------------------------------------------------------------------
+//|   Calculates the voltage magnitudes and angles for facilitating GFM control mode    |
+//---------------------------------------------------------------------------------------
 procedure TInvDynamicVars.CalcGFMVoltage(ActorID, NPhases: Integer; x: pComplexArray);
 var
     refAngle: Double;

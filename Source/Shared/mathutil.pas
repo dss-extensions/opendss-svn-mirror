@@ -476,7 +476,6 @@ begin
     end
     else
         Result := 9999.0;
-    ;
 
 
 end;

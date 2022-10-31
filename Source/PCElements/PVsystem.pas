@@ -720,7 +720,8 @@ function TPVsystem.Edit(ActorID: Integer): Integer;
 var
     VarIdx,
     i, iCase, ParamPointer: Integer;
-    ParamName: String;
+    TmpStr,
+    ParamName,
     Param: String;
 begin
   // continue parsing with contents of Parser
@@ -874,12 +875,14 @@ begin
                     begin
                         if lowercase(Parser[ActorID].StrValue) = 'gfm' then
                         begin
-                            GFM_mode := true;
+                            GFM_mode := true;               // Enables GFM mode for this IBR
                             if length(myDynVars.Vgrid) < NPhases then
                                 setlength(myDynVars.Vgrid, NPhases);  // Used to store the voltage per phase
                         end
                         else
+                        begin
                             GFM_mode := false;
+                        end;
                         YprimInvalid[ActorID] := true;
                     end
 
@@ -1152,7 +1155,6 @@ begin
     kvar_out := 0.0;
     PFnominal := 1.0;
     pctR := 50.0;
-    ;
     pctX := 0.0;
     PublicDataStruct := @PVSystemVars;
     PublicDataSize := SizeOf(TPVSystemVars);
@@ -1387,8 +1389,7 @@ begin
         TShapeValue := DailyTShapeObj.GetTemperature(Hr);
     end
     else
-        TShapeValue := PVSystemVars.FTemperature;
-    ;  // Default to no  variation
+        TShapeValue := PVSystemVars.FTemperature;  // Default to no  variation
 end;
 
 procedure TPVsystemObj.CalcDutyMult(Hr: Double);

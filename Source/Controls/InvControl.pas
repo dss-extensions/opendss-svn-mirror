@@ -1136,7 +1136,6 @@ begin
                     FVBase := OtherInvControl.CtrlVars[i].FVBase;
                     FVarFollowInverter := OtherInvControl.CtrlVars[i].FVarFollowInverter;
                     FInverterON := OtherInvControl.CtrlVars[i].FInverterON;
-                    ;
                     FpresentkW := OtherInvControl.CtrlVars[i].FpresentkW;
                     FkVARating := OtherInvControl.CtrlVars[i].FkVARating;
                     Fpresentkvar := OtherInvControl.CtrlVars[i].Fpresentkvar;
@@ -2652,7 +2651,6 @@ begin
                                     AppendtoEventLog('InvControl.' + Self.Name + ', ' + ControlledElement.QualifiedName,
                                         Format('**Ready to change VV_VW output due to volt-watt trigger**, Vavgpu= %.5g, VPriorpu=%.5g',
                                         [FPresentVpu, FAvgpVpuPrior]), ActorID);
-                                ;
                             end;
 
                           //Trigger from volt-var mode

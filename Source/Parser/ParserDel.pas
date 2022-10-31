@@ -793,7 +793,6 @@ begin
             end
             else
                 Result := Round(Temp);
-            ;
         end;
     end;
 end;

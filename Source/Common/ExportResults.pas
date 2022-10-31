@@ -1688,7 +1688,6 @@ begin
                         begin
                             if MaxCurr < Cabs(BusCurrent^[i]) then
                                 MaxCurr := Cabs(BusCurrent^[i]);
-                            ;
                         end;
                         Write(F, Separator, maxCurr: 10: 0);
 

@@ -222,6 +222,7 @@ type
         procedure CheckStateTriggerLevel(Level: Double; ActorID: Integer);
         procedure UpdateStorage(ActorID: Integer);    // Update Storage elements based on present kW and IntervalHrs variable
         function NormalizeToTOD(h: Integer; sec: Double): Double;
+        function CheckIfDelivering(ActorID: Integer): Boolean;
 
         function InterpretState(const S: String): Integer;
 //        FUNCTION  StateToStr:String;
@@ -940,7 +941,8 @@ var
     VarIdx,
     i, iCase,
     ParamPointer: Integer;
-    ParamName: String;
+    TmpStr,
+    ParamName,
     Param: String;
 
 begin
@@ -1123,12 +1125,14 @@ begin
                     begin
                         if lowercase(Parser[ActorID].StrValue) = 'gfm' then
                         begin
-                            GFM_mode := true;
+                            GFM_mode := true;               // Enables GFM mode for this IBR
                             if length(myDynVars.Vgrid) < NPhases then
-                                setlength(myDynVars.Vgrid, NPhases);  // Used to store the voltage per phase
+                                setlength(myDynVars.Vgrid, NPhases);    // Used to store the voltage per phase
                         end
                         else
+                        begin
                             GFM_mode := false;
+                        end;
                         YprimInvalid[ActorID] := true;
                     end
 
@@ -1466,7 +1470,6 @@ begin
         SMThreshold := 80;
         SafeMode := false;
         kP := 0.00001;
-
     end;
     setlength(PICtrl, 0);
 
@@ -1486,7 +1489,6 @@ begin
     PFNominal := 1.0;
 
     pctR := 0.0;
-    ;
     pctX := 50.0;
 
      {Make the StorageVars struct as public}
@@ -3430,15 +3432,37 @@ begin
             end;
     end;
 end;
+//---------------------------------------------------------------------------
+// Checks if delivering or abosrbing power in GFM control mode
+function TStorageObj.CheckIfDelivering(ActorID: Integer): Boolean;
+var
+
+    i: Integer;
+    myVolt,
+    myCurr: array of Complex;
+begin
+
+  // If in GFM mode, check if we are actually delivering power
+    ComputeIterminal(ActorID);
+    setlength(myVolt, NPhases + 1);
+    setlength(myCurr, NPhases + 1);
+    Result := false;                              // Start assuming we are not delivering power
+    for i := 1 to NPhases do
+    begin
+        myCurr[i] := Iterminal^[i];
+        myVolt[i] := ActiveCircuit[ActorID].Solution.NodeV^[NodeRef^[i]];
+        CalckPowers(@myVolt[i], @myVolt[i], @myCurr[i], 1);
+        Result := (myVolt[i].re < 0) or Result; // If at least 1 phase is delivering, then returns True
+    end;
+
+end;
 
 //----------------------------------------------------------------------------
 
 procedure TStorageObj.UpdateStorage(ActorID: Integer);
 var
     UpdateSt: Boolean;
-    i: Integer;
-    myVolt,
-    myCurr: array of Complex;
+
 {Update Storage levels}
 begin
 
@@ -3458,22 +3482,8 @@ begin
                 begin
                     UpdateSt := true;
                     if GFM_Mode then
-                    begin
-                                  // If in GFM mode, check if we are actually delivering power
-                        ComputeIterminal(ActorID);
-                        setlength(myVolt, NPhases + 1);
-                        setlength(myCurr, NPhases + 1);
-                        UpdateSt := false;                              // Start assuming we are not delivering power
-                        for i := 1 to NPhases do
-                        begin
-                            myCurr[i] := Iterminal^[i];
-                            myVolt[i] := ActiveCircuit[ActorID].Solution.NodeV^[NodeRef^[i]];
-                            CalckPowers(@myVolt[i], @myVolt[i], @myCurr[i], 1);
-                            UpdateSt := (myVolt[i].re < 0) or UpdateSt; // If at least 1 phase is delivering, update
-                        end;
-                        if kW_out < 0 then
-                            UpdateSt := false;
-                    end;
+                        UpdateSt := CheckIfDelivering(ActorID);
+
                     if UpdateSt then
                         kWhStored := kWhStored - (DCkW + kWIdlingLosses) / DischargeEff * IntervalHrs
                     else
@@ -4050,6 +4060,7 @@ function TStorageObj.Get_Variable(i: Integer): Double;
 {Return variables one at a time}
 
 var
+    A, B: Boolean;
     N, k: Integer;
 
 begin
@@ -4062,17 +4073,32 @@ begin
             1:
                 Result := kWhStored;
             2:
-                Result := FState;
-            3:
-                if not (FState = STORE_DISCHARGING) then
-                    Result := 0.0
+            begin
+                if not GFM_Mode then
+                    Result := FState
                 else
-                    Result := abs(Power[1, ActiveActor].re * 0.001);
-            4:
-                if (FState = STORE_CHARGING) or (FState = STORE_IDLING) then
+                begin
+                    if CheckIFDelivering(ActiveActor) then
+                        Result := STORE_DISCHARGING
+                    else
+                    if kWhStored = kWhRating then
+                        Result := STORE_IDLING
+                    else
+                        Result := STORE_CHARGING;
+                end;
+            end;
+            3, 4:
+            begin
+                A := GFM_mode and CheckIFDelivering(ActiveActor);
+                B := (FState = STORE_DISCHARGING) and not GFM_mode;
+                A := A or B;
+                if i = 4 then
+                    A := not A;
+                if A then
                     Result := abs(Power[1, ActiveActor].re * 0.001)
                 else
-                    Result := 0;
+                    Result := 0.0;
+            end;
             5:
                 Result := -1 * Power[1, ActiveActor].im * 0.001;
             6:

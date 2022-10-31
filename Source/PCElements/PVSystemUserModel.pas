@@ -229,7 +229,6 @@ begin
         begin
             FID := FNew(ActiveCircuit[ActiveActor].Solution.Dynavars, CallBackRoutines);  // Create new instance of user model
         end;
-        ;
     end;
 end;
 
