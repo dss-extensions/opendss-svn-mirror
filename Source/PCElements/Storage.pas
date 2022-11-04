@@ -2576,10 +2576,10 @@ begin
         begin
 
          // set charge and discharge modes based on sign of loadshape
-            if (Level > 0.0) and (kWhStored > kWhReserve) then
+            if (Level > 0.0) and (kWhStored - kWhReserve > EPSILON) then
                 StorageState := STORE_DISCHARGING
             else
-            if (Level < 0.0) and (kWhStored < kWhRating) then
+            if (Level < 0.0) and (kWhStored - kWhRating < -EPSILON) then
                 StorageState := STORE_CHARGING
             else
                 StorageState := STORE_IDLING;
