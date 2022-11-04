@@ -1652,7 +1652,7 @@ end;
 procedure ExportFaultStudy(FileNm: String);
 
 var
-    i, iBus, iphs: Integer;
+    i, iBus, iphs, iphs2: Integer;
     YFault: Tcmatrix;
     Vfault: pComplexArray;  {Big temp array}
     F: Textfile;
@@ -1676,7 +1676,7 @@ begin
             with Solution do
             begin
 
-     {All Phase Faults}
+          {All Phase Faults}
                 Writeln(F, 'Bus,  3-Phase,  1-Phase,  L-L');
                 for iBus := 1 to NumBuses do
            {Bus Norton Equivalent Current, Isc has been previously computed}
@@ -1691,9 +1691,9 @@ begin
                         end;
                         Write(F, Separator, maxCurr: 10: 0);
 
-           {One Phase Faults}
+            {One Phase Faults}
 
-   { Solve for Fault Injection Currents}
+            { Solve for Fault Injection Currents}
 
                         YFault := TcMatrix.CreateMatrix(NumNodesThisBus);
                         Getmem(VFault, Sizeof(Complex) * NumNodesThisBus);
@@ -1735,21 +1735,30 @@ begin
 
                         MaxCurr := 0.0;
 
-                        for iphs := 1 to NumNodesThisBus - 1 do
+                        for iphs := 1 to NumNodesThisBus do
                         begin
+
                             YFault.CopyFrom(Ysc);
+
+                            if iphs = NumNodesThisBus then
+                                iphs2 := 1
+                            else
+                                iphs2 := iphs + 1;
+
                             YFault.AddElement(iphs, iphs, GFault);
-                            YFault.AddElement(iphs + 1, iphs + 1, GFault);
-                            YFault.AddElemSym(iphs, iphs + 1, Cnegate(GFault));
+                            YFault.AddElement(iphs2, iphs2, GFault);
+                            YFault.AddElemSym(iphs, iphs2, Cnegate(GFault));
 
                    { Solve for Injection Currents}
                             YFault.Invert;
                             YFault.MvMult(VFault, BusCurrent);  {Gets voltage appearing at fault}
 
-                            CurrMag := Cabs(Cmul(Csub(VFault^[iphs], VFault^[iphs + 1]), GFault));
+                            CurrMag := Cabs(Cmul(Csub(VFault^[iphs], VFault^[iphs2]), GFault));
+
                             if CurrMag > MaxCurr then
                                 MaxCurr := CurrMag;
                         end; {For iphase}
+
              {Now, Stuff it in the Css Array where it belongs}
 
                         Write(F, Separator, MaxCurr: 10: 0);
@@ -4260,7 +4269,7 @@ begin
 
         Assignfile(F, FileNm);
         ReWrite(F);
-        Writeln(F, 'Name, Tap, Min, Max, Step, Position');
+        Writeln(F, 'Name, RegControl, Tap, Min, Max, Step, Position, Winding, Direction, CogenMode');
 
         with ActiveCircuit[ActiveActor] do
         begin
@@ -4271,7 +4280,9 @@ begin
                 begin
                     iWind := pReg.TrWinding;
                     Write(F, Name);
-                    Writeln(F, Format(', %8.5f, %8.5f, %8.5f, %8.5f, %d', [PresentTap[iWind, ActiveActor], MinTap[iWind], MaxTap[iWind], TapIncrement[iWind], TapPosition(pREg.Transformer, iWind)]));
+                    Writeln(F, Format(', %s , %8.5f, %8.5f, %8.5f, %8.5f, %d, %d, %s, %s', [pReg.Name, PresentTap[iWind, ActiveActor], MinTap[iWind], MaxTap[iWind],
+                        TapIncrement[iWind], TapPosition(pREg.Transformer, iWind), iWind,
+                        pReg.ActiveDirectionMode, BoolToStr(pReg.CogenModeIsActive, true)]));
                 end;
                 pReg := RegControls.Next;
             end;
