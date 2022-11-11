@@ -4,7 +4,7 @@ Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
 Copyright (c) 2017-2022, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.7.4
+opendsscmd version 1.7.6
 ========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 9 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
@@ -202,6 +202,8 @@ Change Log
 1.7.5  - allow execution to continue if UUIDs file does not exist
 
 1.7.6  - initialize ExpControl.Vreg in state variable monitor
+       - move CIM p, q, ratedS, ratedU from SynchronousMachine to RotatingMachine
+       - other changes from version 9.5.1.1 in the native Windows build
 
 Open Issues
 ===========
