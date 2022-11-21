@@ -2723,7 +2723,10 @@ begin
             begin
                 dit[i] := 0;
                 Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
-                it[i] := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
+                if GFM_Mode then
+                    it[i] := 0
+                else
+                    it[i] := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
                 m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;                     // Duty factor in terms of actual voltage
 
                 if m[i] > 1 then
@@ -2740,6 +2743,7 @@ end;
 procedure TPVsystemObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 var
+    VDelta: Double;
     NumData,
     j,
     i: Integer;
@@ -2788,10 +2792,18 @@ begin
                     end;
                 Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);                          // Voltage at the Inv terminals
           // Compute the actual target (Amps)
-                ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
-                if Vgrid[i].mag < MinVS then
-                    ISP := 0.01;                                 // turn off the inverter
 
+                if not GFM_Mode then
+                begin
+                    ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
+                    if Vgrid[i].mag < MinVS then
+                        ISP := 0.01;                                 // turn off the inverter
+                end
+                else
+                begin
+                    VDelta := BasekV - (Vgrid[i].mag / 1000);
+                    ISP := (PanelkW / (BasekV + VDelta)) / NumPhases;
+                end;
                 if DynamicEqObj <> nil then                                                 // Loads values into dynamic expression if any
                 begin
                     NumData := (length(DynamicEqPair) div 2) - 1;

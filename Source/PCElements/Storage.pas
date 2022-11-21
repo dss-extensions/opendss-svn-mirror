@@ -4004,13 +4004,14 @@ begin
                                 dit[i] := DynamicEqVals[DynOut[0]][1];
                             it[i] := itHistory[i] + 0.5 * h * dit[i];
                         end;
+                        if GFM_mode then
+                            FixPhaseAngle(ActorID, i);
                     end
                     else
                     begin
                         if Vgrid[i].mag >= MinVS then
-                            OFFVal := PIdling / Vgrid[i].mag   // To match with idling losses
-                        else
-                            OFFVal := 0;
+                            OFFVal := PIdling / Vgrid[i].mag;   // To match with idling losses
+            //else OFFVal :=  0;
                         it[i] := OFFVal;   // To match with idling losses
                     end;
                 end;

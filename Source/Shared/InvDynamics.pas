@@ -38,7 +38,7 @@ type
         procedure Set_InvDynValue(myindex: Integer; myValue: Double);
         procedure SolveDynamicStep(i, ActorID: Integer; PICtrl: PPICtrl);
         procedure SolveModulation(i, ActorID: Integer; PICtrl: PPICtrl);
-        function DoGFM_Mode(ActorID, NPhases: Integer): Boolean;
+        procedure FixPhaseAngle(ActorID, idx: Integer);
         procedure CalcGFMYprim(ActorID, NPhases: Integer; YMatrix: pTcMatrix);
         procedure CalcGFMVoltage(ActorID, NPhases: Integer; x: pComplexArray);
 
@@ -209,51 +209,16 @@ end;
 //---------------------------------------------------------------------------------------
 //|             Calculates the current phasors to match with the target (v)             |
 //---------------------------------------------------------------------------------------
-function TInvDynamicVars.DoGFM_Mode(ActorID, NPhases: Integer): Boolean;
+procedure TInvDynamicVars.FixPhaseAngle(ActorID, idx: Integer);
 var
     j,
     i: Integer;
     myError: Double;
 
 begin
-    // Checks for initialization
-    if length(it) < NPhases then
-    begin
-      // If enters here is because probably this is the first iteration
-        setlength(it, NPhases);  // Used to correct the magnitude
-        setlength(dit, NPhases); // Used to correct the phase angle
-      // Initializes the currents vector for phase and angle
-        for j := 1 to NPhases do
-        begin
-            it[j - 1] := 0;
-            dit[j - 1] := (j - 1) * (TwoPi / -3);
-        end;
-    end;
-
-    with ActiveCircuit[ActorID].Solution do
-    begin
-        iMaxPPhase := ISP / BasekV;
-        for i := 1 to NPhases do
-        begin
-            myError := 1 - (Vgrid[i - 1].mag / BasekV);
-            if Discharging then
-            begin
-          // Corrects the magnitude
-                it[i - 1] := it[i - 1] + (myError * (ISP / BasekV) * kP * 1000);
-          // Checks if the IBR is out of the saturaton point
-                if it[i - 1] > (ISP / BasekV) then
-                    it[i - 1] := (ISP / BasekV);
-
-          // Corrects the phase angle
-                myError := (((i - 1) * TwoPi / -3) - Vgrid[i - 1].ang);
-                dit[i - 1] := dit[i - 1] + myError;
-                Vgrid[i - 1].ang := dit[i - 1];  // Saves at the Vgrid register for future use
-            end
-            else
-            if not Discharging then
-                Result := false;
-        end;
-    end;
+    // Corrects the phase angle
+    myError := (((i - 1) * TwoPi / -3) - Vgrid[idx].ang);
+    Vgrid[idx].ang := Vgrid[idx].ang + myError;
 end;
 
 //---------------------------------------------------------------------------------------
