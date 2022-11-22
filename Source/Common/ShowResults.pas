@@ -500,7 +500,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -846,7 +847,8 @@ initialize(cBuffer);
         finally
 
             CloseFile(F);
-            FireOffEditor(FileNm);
+            if AutoDisplayShowReport then
+                FireOffEditor(FileNm);
             ParserVars.Add('@lastshowfile', FileNm);
 
         end;
@@ -1305,7 +1307,8 @@ begin
         if Assigned(C_buffer) then
             Freemem(c_Buffer);
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
 
@@ -1828,7 +1831,8 @@ begin
         if Assigned(C_buffer) then
             Freemem(c_Buffer);
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2032,7 +2036,8 @@ initialize(Vfault);
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 end;
@@ -2181,9 +2186,11 @@ begin
     finally
 
         CloseFile(FDisabled);
-        FireOffEditor(DisabledFileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(DisabledFileNm);
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2248,7 +2255,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2320,7 +2328,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2373,7 +2382,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2428,7 +2438,8 @@ begin
         end;
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -2521,7 +2532,8 @@ begin
 
         case length(Param) of
             0:
-                FireOffEditor(FileNm);
+                if AutoDisplayShowReport then
+                    FireOffEditor(FileNm);
         else
             ShowTreeView(FileNm);
         end;
@@ -2640,7 +2652,8 @@ begin
         if Assigned(C_buffer) then
             Freemem(c_Buffer);
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2702,7 +2715,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2807,7 +2821,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -2856,7 +2871,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -3034,7 +3050,8 @@ begin
 
         CloseFile(F);
         Branch_List.Free;
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -3068,7 +3085,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -3123,7 +3141,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 end;
@@ -3284,7 +3303,8 @@ begin
     finally
         CloseFile(F);
         CloseFile(Ftree);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
         ShowTreeView(TreeNm);
 
@@ -3532,8 +3552,10 @@ begin
 
         CloseFile(F);
         CloseFile(F2);
-        FireOffEditor(FileNm);
-        FireOffEditor(LineCodesFileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(LineCodesFileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 end;
@@ -3596,7 +3618,8 @@ begin
                 finally
 
                     CloseFile(F);
-                    FireOffEditor(FileNm);
+                    if AutoDisplayShowReport then
+                        FireOffEditor(FileNm);
                     ParserVars.Add('@lastshowfile', FileNm);
                 end;
 
@@ -3663,7 +3686,8 @@ begin
 
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -3783,7 +3807,8 @@ begin
 
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
         ReallocMem(MaxNodeCurrent, 0); // Dispose of temp memory
     end;
@@ -3892,7 +3917,8 @@ begin
 
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 end;
@@ -3977,7 +4003,8 @@ begin
 
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -4018,7 +4045,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
 
     end;
@@ -4043,7 +4071,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 
@@ -4060,7 +4089,8 @@ begin
         GlobalResult := FileNm;
 
     finally
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
     end;
 

@@ -232,6 +232,7 @@ var
     In_Redirect: Boolean;
     DIFilesAreOpen: array of Boolean;
     AutoShowExport: Boolean;
+    AutoDisplayShowReport: Boolean;
     EventLogDefault: Boolean;
     SolutionWasAttempted: array of Boolean;
 
@@ -1721,6 +1722,7 @@ NoFormsAllowed  := TRUE;
     MaxAllocationIterations := 2;
     SolutionAbort := false;
     AutoShowExport := false;
+    AutoDisplayShowReport := true;
     SolutionWasAttempted[ActiveActor] := false;
 
     DefaultBaseFreq := 60.0;
