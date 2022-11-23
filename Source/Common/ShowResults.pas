@@ -1888,39 +1888,41 @@ initialize(Vfault);
                Write(F,Pad(EncloseQuotes('Voltage:')+',',MaxBusNameLength+2));
                For i := 1 to NumNodesThisBus Do Begin
                  VPolar := Ctopolardeg(VBus^[i]);
-                 If i>1 Then Write(F,', ');
+                 If i>1 Then Write(F,' ');
                  Write(F, Vpolar.mag:10:0,'/_', Vpolar.ang:5:0);
                End;
                Writeln(F);
-               Write(F,Pad(EncloseQuotes('Current:')+',',MaxBusNameLength+2));
+               Write(F,Pad(EncloseQuotes('Current:')+' ',MaxBusNameLength+2));
                For i := 1 to NumNodesThisBus Do Begin
                  IPolar := Ctopolardeg(BusCurrent^[i]);
-                 If i>1 Then Write(F,', ');
+                 If i>1 Then Write(F,' ');
                  Write(F, Ipolar.mag:10:0, '/_', Ipolar.ang:5:0);
                End;
                Writeln(F);
                Write(F,Pad(EncloseQuotes('R + jX:')+',',MaxBusNameLength+2));
                For i := 1 to NumNodesThisBus Do Begin
                  Zbus := Cdiv(VBus^[i],BusCurrent^[i]);
-                 If i>1 Then Write(F,', ');
+                 If i>1 Then Write(F,' ');
                  Write(F, Zbus.re:7:4,'+j', Zbus.im:8:4);
                End;
                Writeln(F);
+                        {$ELSE}
+                        Write(F, Pad(EncloseQuotes(UpperCase(BusList.Get(iBus))) + ' ', MaxBusNameLength + 2));
                         {$ENDIF}
 
                         for i := 1 to NumNodesThisBus do
                         begin
                             CurrMag := Cabs(BusCurrent^[i]);
                             if i > 1 then
-                                Write(F, ', ');
+                                Write(F, ' ');
                             Write(F, CurrMag: 10: 0);
                             if Currmag > 0.0 then
                             begin
                                 Zbus := Cdiv(VBus^[i], BusCurrent^[i]);
-                                Write(F, ', ', GetXR(ZBus): 5: 1)
+                                Write(F, ' ', GetXR(ZBus): 5: 1)
                             end
                             else
-                                Write(F, ',   N/A');
+                                Write(F, '   N/A');
                         end;
                         Writeln(F);
                     end;
