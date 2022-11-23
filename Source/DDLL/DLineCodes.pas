@@ -12,7 +12,7 @@ uses
 function LineCodesI(mode: Longint; arg: Longint): Longint; CDECL;
 function LineCodesF(mode: Longint; arg: Double): Double; CDECL;
 function LineCodesS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure LineCodesV(mode: Longint; out arg: Variant); CDECL;
+procedure LineCodesV(mode: Longint; var arg: Variant); CDECL;
 
 implementation
 
@@ -321,7 +321,7 @@ end;
 
 //*****************************Variants interface***************************************
 
-procedure LineCodesV(mode: Longint; out arg: Variant); CDECL;
+procedure LineCodesV(mode: Longint; var arg: Variant); CDECL;
 var
     pLineCode: TLineCodeObj;
     i, j, k: Integer;
