@@ -5,7 +5,7 @@ interface
 function DSSLoads(mode: Longint; arg: Longint): Longint; CDECL;
 function DSSLoadsF(mode: Longint; arg: Double): Double; CDECL;
 function DSSLoadsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure DSSLoadsV(mode: Longint; out arg: Variant); CDECL;
+procedure DSSLoadsV(mode: Longint; var arg: Variant); CDECL;
 
 implementation
 
@@ -581,7 +581,7 @@ begin
 end;
 
 //*********************Properties Variant Type***********************************
-procedure DSSLoadsV(mode: Longint; out arg: Variant); CDECL;
+procedure DSSLoadsV(mode: Longint; var arg: Variant); CDECL;
 var
     pLoad: TLoadObj;
     k, i, Looplimit: Integer;
