@@ -5,7 +5,7 @@ interface
 function CapacitorsI(mode: Longint; arg: Longint): Longint; CDECL;
 function CapacitorsF(mode: Longint; arg: Double): Double; CDECL;
 function CapacitorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure CapacitorsV(mode: Longint; out arg: Variant); CDECL;
+procedure CapacitorsV(mode: Longint; var arg: Variant); CDECL;
 
 implementation
 
@@ -266,7 +266,7 @@ begin
 end;
 
 //*********************************Variant type properties***********************
-procedure CapacitorsV(mode: Longint; out arg: Variant); CDECL;
+procedure CapacitorsV(mode: Longint; var arg: Variant); CDECL;
 
 var
     elem: TCapacitorObj;
