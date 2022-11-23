@@ -5,7 +5,7 @@ interface
 function MetersI(mode: Longint; arg: Longint): Longint; CDECL;
 function MetersF(mode: Longint; arg: Double): Double; CDECL;
 function MetersS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure MetersV(mode: Longint; out arg: Variant); CDECL;
+procedure MetersV(mode: Longint; var arg: Variant); CDECL;
 
 implementation
 
@@ -605,7 +605,7 @@ begin
 end;
 
 //***************************Variant type properties******************************
-procedure MetersV(mode: Longint; out arg: Variant); CDECL;
+procedure MetersV(mode: Longint; var arg: Variant); CDECL;
 
 var
     pMeter,
