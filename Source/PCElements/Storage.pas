@@ -1126,13 +1126,12 @@ begin
                         if lowercase(Parser[ActorID].StrValue) = 'gfm' then
                         begin
                             GFM_mode := true;               // Enables GFM mode for this IBR
+                            myDynVars.ResetIBR := false;
                             if length(myDynVars.Vgrid) < NPhases then
                                 setlength(myDynVars.Vgrid, NPhases);    // Used to store the voltage per phase
                         end
                         else
-                        begin
                             GFM_mode := false;
-                        end;
                         YprimInvalid[ActorID] := true;
                     end
 
@@ -2441,10 +2440,10 @@ begin
     FreqMultiplier := FYprimFreq / BaseFrequency;
 
     with ActiveCircuit[ActorID].solution do
-        if {IsDynamicModel or} IsHarmonicModel then
+        if IsHarmonicModel then
         begin
-       {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
-            Y := Yeq;     // L-N value computed in initialization routines
+   {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
+            Y := YEQ;   // L-N value computed in initialization routines
 
             if Connection = 1 then
                 Y := CDivReal(Y, 3.0); // Convert to delta impedance
@@ -2468,37 +2467,38 @@ begin
                     end;
                 end;
             end;
-        end
 
+        end
         else
         begin  //  Regular power flow Storage element model
 
-       {Yeq is always expected as the equivalent line-neutral admittance}
-
-
+     {Yeq is always expected as the equivalent line-neutral admittance}
             case Fstate of
                 STORE_CHARGING, STORE_IDLING:
                     Y := YeqDischarge;
                 STORE_DISCHARGING:
                 begin
                     if not GFM_mode then
-                        Y := cnegate(YeqDischarge)
+                        if IsDynamicModel then
+                            Y := cmplx(0, 0)
+                        else
+                            Y := cnegate(YeqDischarge)
                     else
                     begin
                         with myDynVars, StorageVars do
                         begin
-                            BasekV := PresentkV;
+                            RatedkVLL := PresentkV;
                             Discharging := StorageState = STORE_DISCHARGING;
-                            ISP := FkVArating;
+                            mKVARating := FkVArating;
                             CalcGFMYprim(ActorID, NPhases, @YMatrix);
                         end;
                     end;
                 end;
             end;
 
-       //---DEBUG--- WriteDLLDebugFile(Format('t=%.8g, Change To State=%s, Y=%.8g +j %.8g',[ActiveCircuit[ActiveActor].Solution.dblHour, StateToStr, Y.re, Y.im]));
+     //---DEBUG--- WriteDLLDebugFile(Format('t=%.8g, Change To State=%s, Y=%.8g +j %.8g',[ActiveCircuit[ActiveActor].Solution.dblHour, StateToStr, Y.re, Y.im]));
 
-       // ****** Need to modify the base admittance for real harmonics calcs
+     // ****** Need to modify the base admittance for real harmonics calcs
             Y.im := Y.im / FreqMultiplier;
             if not GFM_mode then
             begin
@@ -2956,52 +2956,52 @@ begin
         DoDynaModel(ActorID)   // do user-written model
     else
     begin
-
-        CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
-        ZeroITerminal;
-    {This model has no limitation in the nmber of phases and is ideally unbalanced (no dq-dv, but is implementable as well)}
-    // First, get the phase angles for the currents
-        NeutAmps := cmplx(0, 0);
-        for i := 1 to FNphases do
+        if not GFM_Mode then
         begin
-            with myDynVars do
+            CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
+            ZeroITerminal;
+      {This model has no limitation in the nmber of phases and is ideally unbalanced (no dq-dv, but is implementable as well)}
+      // First, get the phase angles for the currents
+            NeutAmps := cmplx(0, 0);
+            for i := 1 to FNphases do
             begin
-                AngCmp := 0;
-        // determine if the PV panel is ON
-                if it[i - 1] <= iMaxPPhase then
-                    iActual := it[i - 1]
-                else
-                    iActual := iMaxPPhase;
-                if not GFM_Mode then
-                    AngCmp := PI;
-        //--------------------------------------------------------
-                if iActual < MinAmps then
-                    iActual := 0;                 // To mach with the %CutOut property
-                if FState <> STORE_DISCHARGING then
+                with myDynVars do
                 begin
-                    iActual := (PIdling / Vgrid[i - 1].mag) / NPhases;
+                    AngCmp := 0;
+          // determine if the PV panel is ON
+                    if it[i - 1] <= iMaxPPhase then
+                        iActual := it[i - 1]
+                    else
+                        iActual := iMaxPPhase;
+          //if not GFM_Mode then AngCmp        :=  PI;
+          //--------------------------------------------------------
+                    if iActual < MinAmps then
+                        iActual := 0;                 // To mach with the %CutOut property
+                    if FState <> STORE_DISCHARGING then
+                    begin
+                        iActual := (PIdling / Vgrid[i - 1].mag) / NPhases;
+                    end;
 
-                    if GFM_Mode then
-                        GFM_Mode := false;
+                    PolarN := topolar(iActual, Vgrid[i - 1].ang + AngCmp);     // Output Current estimated for active power
+                    Curr := cnegate(ptocomplex(PolarN));
+                    NeutAmps := csub(NeutAmps, Curr);
+                    Iterminal^[i] := Curr;
                 end;
-
-                PolarN := topolar(iActual, Vgrid[i - 1].ang + AngCmp);     // Output Current estimated for active power
-                Curr := ptocomplex(PolarN);
-                NeutAmps := csub(NeutAmps, Curr);
-                Iterminal^[i] := Curr;
             end;
+            if FnConds > FNphases then
+                Iterminal^[FnConds] := NeutAmps;
+      {Add it into inj current array}
+            for i := 1 to FnConds do
+                Caccum(InjCurrent^[i], Cnegate(Iterminal^[i]));
             set_ITerminalUpdated(true, ActorID);
-
+        end
+        else
+        begin
+            myDynVars.BaseV := myDynVars.BasekV * 1000 * (myDynVars.it[0] / myDynVars.iMaxPPhase);
+            myDynVars.CalcGFMVoltage(ActorID, NPhases, Vterminal);
+            YPrim.MVMult(InjCurrent, Vterminal);
         end;
-        if FnConds > FNphases then
-            Iterminal^[FnConds] := NeutAmps;
-
-    {Add it into inj current array}
-        for i := 1 to FnConds do
-            Caccum(InjCurrent^[i], Cnegate(Iterminal^[i]));
-
     end;
-
 
 end;
 
@@ -3016,17 +3016,15 @@ var
 
 begin
 
-    myDynVars.BasekV := VBase;
+    myDynVars.BaseV := VBase;
     myDynVars.Discharging := StorageState = STORE_DISCHARGING;
 
     with ActiveCircuit[ActorID].Solution, myDynVars do
     begin
     {Initialization just in case}
-        if length(myDynVars.Vgrid) < NPhases then
-            setlength(myDynVars.Vgrid, NPhases);
+//    if length( myDynVars.Vgrid ) < NPhases then setlength(myDynVars.Vgrid, NPhases);
 
-        for i := 1 to NPhases do
-            Vgrid[i - 1] := ctopolar(NodeV^[NodeRef^[i]]);
+//    for i := 1 to NPhases do Vgrid[i - 1]      :=  ctopolar( NodeV^[ NodeRef^[ i ] ] );
         myDynVars.CalcGFMVoltage(ActorID, NPhases, Vterminal);
         YPrim.MVMult(InjCurrent, Vterminal);
 
@@ -3823,6 +3821,7 @@ var
     V012,
     I012: array[0..2] of Complex;
     Vabc: array[1..3] of Complex;
+    BaseZt: Double;
 
 
 begin
@@ -3863,61 +3862,68 @@ begin
     begin
 
     {Compute nominal Positive sequence voltage behind equivalent filter impedance}
-        if FState = STORE_DISCHARGING then
-            with ActiveCircuit[ActorID].Solution do
-            begin
+        with ActiveCircuit[ActorID].Solution do
+        begin
 
-                with StorageVars, myDynVars do
-                begin
-                    NumPhases := Fnphases;     // set Publicdata vars
-                    NumConductors := Fnconds;
-                    Conn := Connection;
+            with StorageVars, myDynVars do
+            begin
+                NumPhases := Fnphases;     // set Publicdata vars
+                NumConductors := Fnconds;
+                Conn := Connection;
 
         // Sets the length of State vars to cover the num of phases
-                    setlength(dit, NumPhases);     // Includes the current and past values
-                    setlength(it, NumPhases);
-                    setlength(itHistory, NumPhases);
-                    setlength(Vgrid, NumPhases);
-                    setlength(m, NumPhases);
-                    if NumPhases > 1 then
-                        BasekV := PresentkV / sqrt(3)
-                    else
-                        BasekV := PresentkV;
-                    MaxVS := (1 + (SMThreshold / 100)) * BasekV * 1000;
-                    MinVS := (SMThreshold / 100) * BasekV * 1000;
-                    MinAmps := (FpctCutOut / 100) * ((FkVArating / BasekV) / NumPhases);
-                    SafeMode := false;
-                    iMaxPPhase := (FkVArating / BasekV) / NumPhases;
+                setlength(dit, NumPhases);     // Includes the current and past values
+                setlength(it, NumPhases);
+                setlength(itHistory, NumPhases);
+                setlength(Vgrid, NumPhases);
+                setlength(m, NumPhases);
+                setlength(VDelta, NumPhases);
+                setlength(ISPDelta, NumPhases);
+                setlength(AngDelta, NumPhases);
 
-                    if ZThev.im = 0 then
+                if NumPhases > 1 then
+                    BasekV := PresentkV / sqrt(3)
+                else
+                    BasekV := PresentkV;
+
+                ResetIBR := false;
+                BaseZt := 0.01 * (SQR(PresentkV) / FkVArating) * 1000;
+                MaxVS := (1 + (SMThreshold / 100)) * BasekV * 1000;
+                MinVS := (SMThreshold / 100) * BasekV * 1000;
+                MinAmps := (FpctCutOut / 100) * ((FkVArating / BasekV) / NumPhases);
+                ResetIBR := false;
+                iMaxPPhase := (FkVArating / BasekV) / NumPhases;
+
+                if pctX = 0 then
+                    pctX := 50;                                                             // forces the value to 50% in dynamics mode if not given
+
+                XThev := pctX * BaseZt;
+                RS := pctR * BaseZt;
+                Zthev := Cmplx(RS, XThev);
+                YEQ := Cinv(Zthev);                                                       // used for current calcs  Always L-N
+                ComputePresentkW();
+                with ActiveCircuit[ActorID].Solution do
+                begin
+                    LS := ZThev.im / (2 * PI * DefaultBaseFreq);
+                    for i := 0 to (NPhases - 1) do
                     begin
-                        pctX := 50;         // forces the value to 10% in dynamics mode if not given
-                        XThev := pctX * 0.01 * (SQR(BasekV) / FkVArating) * 1000.0;
-                    end;
-                    ZThev := Cmplx(RThev, XThev);
-                    Yeq := Cinv(ZThev);  // used to init state vars
-                    RS := Zthev.re;
-                    ComputePresentkW();
-                    with ActiveCircuit[ActorID].Solution do
-                    begin
-                        LS := ZThev.im / (2 * PI * DefaultBaseFreq);
-                        for i := 0 to (NPhases - 1) do
-                        begin
-                            Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
-                            dit[i] := 0;
-                            it[i] := 0;
-                            m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;   // Duty factor in terms of actual voltage
+                        Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);
+                        dit[i] := 0;
+                        it[i] := 0;
+                        m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;   // Duty factor in terms of actual voltage
 
-                            if m[i] > 1 then
-                                m[i] := 1;
+                        if m[i] > 1 then
+                            m[i] := 1;
+                        ISPDelta[i] := 0;
+                        AngDelta[i] := 0;
 
-                        end;
-                        if DynamicEqObj <> nil then
-                            for i := 0 to High(DynamicEqVals) do
-                                DynamicEqVals[i][1] := 0.0;            // Initializes the memory values for the dynamic equation
                     end;
+                    if DynamicEqObj <> nil then
+                        for i := 0 to High(DynamicEqVals) do
+                            DynamicEqVals[i][1] := 0.0;            // Initializes the memory values for the dynamic equation
                 end;
             end;
+        end;
     end;
 end;
 
@@ -3930,6 +3936,7 @@ var
     NumData,
     j,
     i: Integer;
+    IMaxPhase,
     OFFVal: Double;
     TracePower: Complex;
 
@@ -3942,90 +3949,108 @@ begin
         DynaModel.Integrate
     else
     begin
-        with ActiveCircuit[ActorID].Solution, StorageVars, myDynVars do
+        if FState = STORE_DISCHARGING then
         begin
-
-            with StorageVars do
+            with ActiveCircuit[ActorID].Solution, StorageVars, myDynVars do
             begin
-                for i := 0 to (NumPhases - 1) do
+                with StorageVars do
                 begin
-                    if FState = STORE_DISCHARGING then
+                    ComputePresentkW();
+                    IMaxPhase := (kW_out / BasekV) / NumPhases;
+                    for i := 0 to (NumPhases - 1) do
                     begin
-                        with DynaVars do
-                            if (IterationFlag = 0) then
-                            begin {First iteration of new time step}
-                                itHistory[i] := it[i] + 0.5 * h * dit[i];
-                            end;
-                        ComputePresentkW();
-                        Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
-                        if Vgrid[i].mag < MinVS then
+                        if FState = STORE_DISCHARGING then
                         begin
-                            ISP := 0.01;                 // turn off the inverter
-                            FState := STORE_IDLING;
-                        end
-                        else
-                            ISP := ((kW_out * 1000) / Vgrid[i].mag) / NumPhases;
-
-                        if DynamicEqObj <> nil then                                                 // Loads values into dynamic expression if any
-                        begin
-                            NumData := (length(DynamicEqPair) div 2) - 1;
-                            DynamicEqVals[DynOut[0]][0] := it[i];                                    // brings back the current values/phase
-                            DynamicEqVals[DynOut[0]][1] := dit[i];
-
-                            for j := 0 to NumData do
+                            with DynaVars do
+                                if (IterationFlag = 0) then
+                                begin {First iteration of new time step}
+                                    itHistory[i] := it[i] + 0.5 * h * dit[i];
+                                end;
+                            Vgrid[i] := ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
+                            if not GFM_Mode then
                             begin
-                                if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then        // it's not intialization
+                                if Vgrid[i].mag < MinVS then
                                 begin
-                                    case DynamicEqPair[(j * 2) + 1] of
-                                        2:
-                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;       // volt per phase
-                                        4: ;                                                               // Nothing for this object (current)
-                                        10:
-                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := RatedVDC;
-                                        11:
-                                        begin
-                                            SolveModulation(i, ActorID, @PICtrl[i]);
-                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := m[i]
-                                        end
+                                    ISP := 0.01;                 // turn off the inverter
+                                    FState := STORE_IDLING;
+                                end
+                                else
+                                    ISP := ((kW_out * 1000) / Vgrid[i].mag) / NumPhases;
+                            end
+                            else
+                            begin
+                                VDelta[i] := (BasekV - (Vgrid[i].mag / 1000)) / BasekV;
+                                if abs(VDelta[i]) > CtrlTol then
+                                begin
+                                    ISPDelta[i] := ISPDelta[i] + (IMaxPhase * VDelta[i]) * kP * 100;
+                                    if ISPDelta[i] > IMaxPhase then
+                                        ISPDelta[i] := IMaxPhase
                                     else
-                                        DynamicEqVals[DynamicEqPair[j * 2]][0] := PCEValue[1, DynamicEqPair[(j * 2) + 1], ActorID];
+                                    if ISPDelta[i] < 0 then
+                                        ISPDelta[i] := 0.01;
+                                end;
+                                ISP := ISPDelta[i];
+                                FixPhaseAngle(ActorID, i);
+                            end;
+                            if DynamicEqObj <> nil then                                                 // Loads values into dynamic expression if any
+                            begin
+                                NumData := (length(DynamicEqPair) div 2) - 1;
+                                DynamicEqVals[DynOut[0]][0] := it[i];                                    // brings back the current values/phase
+                                DynamicEqVals[DynOut[0]][1] := dit[i];
+
+                                for j := 0 to NumData do
+                                begin
+                                    if not DynamicEqObj.IsInitVal(DynamicEqPair[(j * 2) + 1]) then        // it's not intialization
+                                    begin
+                                        case DynamicEqPair[(j * 2) + 1] of
+                                            2:
+                                                DynamicEqVals[DynamicEqPair[j * 2]][0] := Vgrid[i].mag;       // volt per phase
+                                            4: ;                                                               // Nothing for this object (current)
+                                            10:
+                                                DynamicEqVals[DynamicEqPair[j * 2]][0] := RatedVDC;
+                                            11:
+                                            begin
+                                                SolveModulation(i, ActorID, @PICtrl[i]);
+                                                DynamicEqVals[DynamicEqPair[j * 2]][0] := m[i]
+                                            end
+                                        else
+                                            DynamicEqVals[DynamicEqPair[j * 2]][0] := PCEValue[1, DynamicEqPair[(j * 2) + 1], ActorID];
+                                        end;
                                     end;
                                 end;
+                                DynamicEqObj.SolveEq(DynamicEqVals);                                      // solves the differential equation using the given dynamic expression
+                            end
+                            else
+                                SolveDynamicStep(i, ActorID, @PICtrl[i]);                // Solves dynamic step for inverter
+
+              // Trapezoidal method
+                            with DynaVars do
+                            begin
+                                if DynamicEqObj <> nil then
+                                    dit[i] := DynamicEqVals[DynOut[0]][1];
+                                it[i] := itHistory[i] + 0.5 * h * dit[i];
                             end;
-                            DynamicEqObj.SolveEq(DynamicEqVals);                                      // solves the differential equation using the given dynamic expression
                         end
                         else
-                            SolveDynamicStep(i, ActorID, @PICtrl[i]);                // Solves dynamic step for inverter
-
-            // Trapezoidal method
-                        with DynaVars do
                         begin
-                            if DynamicEqObj <> nil then
-                                dit[i] := DynamicEqVals[DynOut[0]][1];
-                            it[i] := itHistory[i] + 0.5 * h * dit[i];
+                            if (Vgrid[i].mag >= MinVS) or ResetIBR then
+                                OFFVal := PIdling / Vgrid[i].mag;   // To match with idling losses
+              //else OFFVal :=  0;
+                            it[i] := OFFVal;   // To match with idling losses
                         end;
-                        if GFM_mode then
-                            FixPhaseAngle(ActorID, i);
-                    end
-                    else
+                    end;
+          // Write Dynamics Trace Record
+                    if DebugTrace then
                     begin
-                        if Vgrid[i].mag >= MinVS then
-                            OFFVal := PIdling / Vgrid[i].mag;   // To match with idling losses
-            //else OFFVal :=  0;
-                        it[i] := OFFVal;   // To match with idling losses
+                        Append(TraceFile);
+                        Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
+                        Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
+                        Writeln(TraceFile);
+                        CloseFile(TraceFile);
                     end;
                 end;
-        // Write Dynamics Trace Record
-                if DebugTrace then
-                begin
-                    Append(TraceFile);
-                    Write(TraceFile, Format('t=%-.5g ', [Dynavars.t]));
-                    Write(TraceFile, Format(' Flag=%d ', [Dynavars.Iterationflag]));
-                    Writeln(TraceFile);
-                    CloseFile(TraceFile);
-                end;
-            end;
 
+            end;
         end;
 
     end;
@@ -4158,7 +4183,7 @@ begin
         else
         begin
             with myDynVars do       // Dynamic state variables read
-                Result := Get_InvDynValue(i - 26);
+                Result := Get_InvDynValue(i - 26, NPhases);
             if UserModel.Exists then   // Checks for existence and Selects
             begin
                 N := UserModel.FNumVars;

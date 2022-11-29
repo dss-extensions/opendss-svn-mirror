@@ -2249,11 +2249,17 @@ begin
                         begin
                             DER_OL := true;
                             TStorageObj(ControlledElement).StorageState := 0;  // It's burning, Turn it off
+                            TStorageObj(ControlledElement).myDynVars.ResetIBR := true;
                             TStorageObj(ControlledElement).StateChanged := true;
                         end;
                     end
                     else
+                    begin
                         DER_OL := TPVSystemObj(ControlledElement).CheckOLInverter(ActorID);
+                        if DER_OL then
+                            TPVSystemObj(ControlledElement).myDynVars.ResetIBR := true;
+
+                    end;
 
                     if DER_OL then
                     begin
