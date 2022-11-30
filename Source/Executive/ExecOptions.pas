@@ -190,7 +190,7 @@ begin
     ExecOption[135] := 'LineTypes';
     ExecOption[136] := 'EventLogDefault';
     ExecOption[137] := 'LongLineCorrection';
-    ExecOption[138] := 'AutoDisplayShowReport';
+    ExecOption[138] := 'ShowReports';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
