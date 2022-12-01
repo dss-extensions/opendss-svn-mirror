@@ -203,6 +203,7 @@ Change Log
 
 1.7.6  - initialize ExpControl.Vreg in state variable monitor
        - move CIM p, q, ratedS, ratedU from SynchronousMachine to RotatingMachine
+       - exporting EnergyConnectionProfile for CIM (load, PV, storage, generator shapes)
        - other changes from version 9.5.1.1 in the native Windows build
 
 Open Issues
