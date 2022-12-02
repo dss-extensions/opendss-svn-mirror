@@ -149,6 +149,7 @@ type
         // CIM XML access
         property UserLengthUnits: Integer READ FUserLengthUnits;
         property LineCodeSpecified: Boolean READ FLineCodeSpecified;
+        property LineCodeUnits: Integer READ FLineCodeUnits;
         property PhaseChoice: ConductorChoice READ FPhaseChoice;
 
         property UnitsConvert: Double READ FUnitsConvert;  // conversion to present Line units
