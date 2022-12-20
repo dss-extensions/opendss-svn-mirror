@@ -690,7 +690,10 @@ begin
                     LoadModel := DefaultLoadModel;
                 end;
             20:
+            begin
                 ActiveCircuit[ActiveActor].LoadMultiplier := Parser[ActiveActor].DblValue;  // Set using LoadMultiplier property
+                ActiveCircuit[ActiveActor].Solution.SystemYChanged := true;
+            end;
             21:
                 ActiveCircuit[ActiveActor].NormalMinVolts := Parser[ActiveActor].DblValue;
             22:
