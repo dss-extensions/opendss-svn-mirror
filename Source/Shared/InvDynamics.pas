@@ -324,7 +324,13 @@ begin
     setlength(SfModePhase, NPhases);
 
     for i := 0 to (NPhases - 1) do
+    begin
         SfModePhase[i] := false;
+        it[i] := 0;
+        itHistory[i] := 0;
+        dit[i] := 0;
+        m[i] := 0;
+    end;
     SafeMode := false;
 
 end;
