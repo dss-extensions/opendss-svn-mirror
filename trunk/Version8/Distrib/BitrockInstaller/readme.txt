@@ -207,6 +207,7 @@ Change Log
        - Fix: CIM export fills in missing ACLineSegment length units from LineCode
        - Fix: CIM storage export of Pmin and Pmax with pctRated
        - Fix: CIM export of capacitor b0PerSection was aVRDelay
+       - Fix: added some reverse regulator parameters to CIM export
        - includes other changes from version 9.6.1.1 in the native Windows build
 
 Open Issues
