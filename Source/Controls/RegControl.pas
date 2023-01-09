@@ -169,12 +169,17 @@ type
         property PT: Double READ PTRatio;
         property LineDropR: Double READ R;
         property LineDropX: Double READ X;
+
+        property UseReverseSettings: Boolean READ IsReversible;
+        property ReversingDelay: Double READ revDelay;
+        property ReversingThreshold: Double READ revPowerThreshold; // Watts
+        property ReverseToNeutral: Boolean READ ReverseNeutral;
         property RevLineDropR: Double READ revR;
         property RevLineDropX: Double READ revX;
         property RevTargetVoltage: Double READ revVreg;
         property RevBandVoltage: Double READ revBandWidth;
+
         property UseLineDrop: Boolean READ LDCActive;
-        property UseReverseDrop: Boolean READ IsReversible;
         property UseLimit: Boolean READ VLimitActive;
         property VoltageLimit: Double READ VLimit;
         property InitialDelay: Double READ TimeDelay;

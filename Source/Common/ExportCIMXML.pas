@@ -4209,15 +4209,20 @@ begin
                 BooleanNode(EpPrf, 'TapChangerControl.lineDropCompensation', UseLineDrop);
                 DoubleNode(EpPrf, 'TapChangerControl.lineDropR', LineDropR);
                 DoubleNode(EpPrf, 'TapChangerControl.lineDropX', LineDropX);
-                if UseReverseDrop then
+                if UseReverseSettings then
                 begin
+                    BooleanNode(EpPrf, 'TapChangerControl.reversible', true);
+                    BooleanNode(EpPrf, 'TapChangerControl.reverseToNeutral', ReverseToNeutral);
+                    DoubleNode(EpPrf, 'TapChangerControl.reversingDelay', ReversingDelay);
+                    DoubleNode(EpPrf, 'TapChangerControl.reversingPowerThreshold', ReversingThreshold);
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropR', RevLineDropR);
-                    DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', RevLineDropX)
+                    DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', RevLineDropX);
+                    DoubleNode(EpPrf, 'RegulatingControl.reverseTargetValue', RevTargetVoltage);
+                    DoubleNode(EpPrf, 'RegulatingControl.reverseTargetDeadband', RevBandVoltage);
                 end
                 else
                 begin
-                    DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropR', 0.0);
-                    DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', 0.0)
+                    BooleanNode(EpPrf, 'TapChangerControl.reversible', false);
                 end;
                 if UseLimit then
                 begin // maxLimitVoltage only in OpenDSS
