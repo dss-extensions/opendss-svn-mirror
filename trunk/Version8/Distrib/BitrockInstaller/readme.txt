@@ -206,7 +206,8 @@ Change Log
        - exporting EnergyConnectionProfile for CIM (load, PV, storage, generator shapes)
        - Fix: CIM export fills in missing ACLineSegment length units from LineCode
        - Fix: CIM storage export of Pmin and Pmax with pctRated
-       - other changes from version 9.6.1.1 in the native Windows build
+       - Fix: CIM export of capacitor b0PerSection was aVRDelay
+       - includes other changes from version 9.6.1.1 in the native Windows build
 
 Open Issues
 ===========
