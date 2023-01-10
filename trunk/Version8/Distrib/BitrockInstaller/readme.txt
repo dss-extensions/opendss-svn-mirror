@@ -208,6 +208,7 @@ Change Log
        - Fix: CIM storage export of Pmin and Pmax with pctRated
        - Fix: CIM export of capacitor b0PerSection was aVRDelay
        - Fix: added some reverse regulator parameters to CIM export
+       - Fix: added CableInfo.relativePermittivity extension
        - includes other changes from version 9.6.1.1 in the native Windows build
 
 Open Issues
