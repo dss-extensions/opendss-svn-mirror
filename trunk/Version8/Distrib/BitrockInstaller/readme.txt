@@ -1,7 +1,7 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
-Copyright (c) 2017-2022, Battelle Memorial Institute
+Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
+Copyright (c) 2017-2023, Battelle Memorial Institute
 All rights reserved.
 
 opendsscmd version 1.7.6
