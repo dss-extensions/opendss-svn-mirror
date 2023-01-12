@@ -1,7 +1,7 @@
 <project>
     <shortName>opendsscmd</shortName>
     <fullName>OpenDSS</fullName>
-    <version>1.7.2</version>
+    <version>1.7.6</version>
     <readmeFile>readme.txt</readmeFile>
     <licenseFile>license.txt</licenseFile>
     <componentList>
@@ -108,13 +108,13 @@
                             <origin>../../../../Documents/windows_executable/helics_recorder.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/windows_executable/helics-apps-shared.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helicscpp-apps.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/windows_executable/helics-shared.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helicscpp.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/windows_executable/helicsSharedLib.dll</origin>
+                            <origin>../../../../Documents/windows_executable/helics.dll</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../../../../Documents/windows_executable/KLUSolve.dll</origin>
@@ -315,13 +315,13 @@
                             <origin>../../../../Documents/linux_executable/lib/libfncs.so.1.1.1</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/linux_executable/lib/libhelics-apps-shared.so.2.6.1</origin>
+                            <origin>../../../../Documents/linux_executable/lib/libhelicscpp-apps.so.3.2.1</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/linux_executable/lib/libhelics-shared.so.2.6.1</origin>
+                            <origin>../../../../Documents/linux_executable/lib/libhelicscpp.so.3.2.1</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/linux_executable/lib/libhelicsSharedLib.so.2.6.1</origin>
+                            <origin>../../../../Documents/linux_executable/lib/libhelics.so.3.2.1</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -338,13 +338,13 @@
                             <origin>../../../../Documents/macosx_executable/lib/liblinenoise.dylib</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/macosx_executable/lib/libhelics-apps-shared.2.6.1.dylib</origin>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelicscpp-apps.3.2.1.dylib</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/macosx_executable/lib/libhelics-shared.2.6.1.dylib</origin>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelicscpp.3.2.1.dylib</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../../../../Documents/macosx_executable/lib/libhelicsSharedLib.2.6.1.dylib</origin>
+                            <origin>../../../../Documents/macosx_executable/lib/libhelics.3.2.1.dylib</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../../../../Documents/macosx_executable/lib/libfncs.dylib</origin>
