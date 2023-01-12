@@ -2766,7 +2766,7 @@ begin
       // Compute actual power output for the PVPanel
         with ActiveCircuit[ActorID].Solution do
         begin
-            case ActiveCircuit[ActiveActor].ActiveLoadShapeClass of
+            case ActiveCircuit[ActorID].ActiveLoadShapeClass of
                 USEDAILY:
                 begin
                     CalcDailyMult(DynaVars.dblHour);

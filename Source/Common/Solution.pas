@@ -1200,10 +1200,10 @@ begin
 
 
     case Algorithm of
-        NORMALSOLVE:
-            DoNormalSolution(ActorID);
         NEWTONSOLVE:
             DoNewtonSolution(ActorID);
+    else
+        DoNormalSolution(ActorID);
     end;
 
     ActiveCircuit[ActorID].Issolved := ConvergedFlag;
