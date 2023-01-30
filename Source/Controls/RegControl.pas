@@ -161,6 +161,7 @@ type
         property PendingTapChange: Double READ FPendingTapChange WRITE set_PendingTapChange;
         property ActiveDirectionMode: String READ GetDirectionModeString;
         property CogenModeIsActive: Boolean READ InCogenMode;
+        property UseReverseSettings: Boolean READ IsReversible;
 
        // CIM XML accessors
         property TargetVoltage: Double READ Vreg;
@@ -170,7 +171,6 @@ type
         property LineDropR: Double READ R;
         property LineDropX: Double READ X;
 
-        property UseReverseSettings: Boolean READ IsReversible;
         property ReversingDelay: Double READ revDelay;
         property ReversingThreshold: Double READ revPowerThreshold; // Watts
         property ReverseToNeutral: Boolean READ ReverseNeutral;

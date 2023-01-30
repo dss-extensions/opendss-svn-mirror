@@ -114,7 +114,7 @@ begin
             Result := 0;
             elem := ActiveRegControl;
             if elem <> nil then
-                if elem.UseReverseDrop then
+                if elem.UseReverseSettings then
                     Result := 1;
         end;
         7:
