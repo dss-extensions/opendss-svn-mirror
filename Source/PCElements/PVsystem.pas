@@ -305,6 +305,7 @@ type
         function GetPropertyValue(Index: Integer): String; OVERRIDE;
         procedure GetCurrents(Curr: pComplexArray; ActorID: Integer); OVERRIDE;
         function CheckOLInverter(ActorID: Integer): Boolean;
+        function CheckAmpsLimit(ActorID: Integer): Boolean;
         procedure DoGFM_Mode(ActorID: Integer);
 
       {Porperties}
@@ -418,7 +419,9 @@ const
     propDynEq = 46;
     propDynOut = 47;
     propGFM = 48;
-    NumPropsThisClass = 48; // Make this agree with the last property constant
+    propAmpsLimit = 49;
+    propAmpsError = 50;
+    NumPropsThisClass = 50; // Make this agree with the last property constant
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
@@ -628,7 +631,11 @@ begin
         'Defines the control mode for the inverter. It can be one of {GFM | GFL*}. By default it is GFL (Grid Following Inverter).' +
         ' Use GFM (Grid Forming Inverter) for energizing islanded microgrids, but, if the device is conencted to the grid, it is highly recommended to use GFL.' + CRLF + CRLF +
         'GFM control mode disables any control action set by the InvControl device.');
-
+    AddProperty('AmpLimit', propAmpsLimit,
+        'Is the current limiter per phase for the IBR when operating in GFM mode. This limit is imposed to prevent the IBR to enter into Safe Mode when reaching the IBR power ratings.' + CRLF +
+        'Once the IBR reaches this value, it remains there without moving into Safe Mode. This value needs to be set lower than the IBR Amps rating.');
+    AddProperty('AmpLimitGain', propAmpsError,
+        'Use it for fine tunning the current limiter when active, by default is 0.8, it has to be a value between 0.1 and 1. This value allows users to fine tune the IBRs current limiter to match with the user requirements.');
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -1143,6 +1150,9 @@ begin
         SMThreshold := 80;
         SafeMode := false;
         kP := 0.00001;
+        ILimit := -1;         // No Amps limit
+        IComp := 0;
+        VError := 0.8;
     end;
     FpctCutIn := 20.0;
     FpctCutOut := 20.0;
@@ -1506,6 +1516,41 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+// Returns True if any of the inverter phases has reached the current limit
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+function TPVsystemObj.CheckAmpsLimit(ActorID: Integer): Boolean;
+var
+    myCurr: complex;
+    myVolts,
+    NomP,
+    PhaseP,
+    PhaseAmps: Double;
+    i: Integer;
+begin
+  // Check if reaching saturation point in GFM
+    Result := false;
+    NomP := myDynvars.ILimit * VBase;
+    if GFM_Mode then
+    begin
+        GetCurrents(Iterminal, ActorID);
+        myDynVars.IComp := 0.0;
+        for i := 1 to NPhases do
+        begin
+            myCurr := Iterminal^[i];
+            PhaseAmps := cabs(myCurr);
+            myVolts := ctopolar(ActiveCircuit[ActorID].Solution.NodeV[NodeRef[i]]).mag;
+            PhaseP := PhaseAmps * myVolts;
+            if PhaseP > NomP then
+            begin
+                if PhaseP > myDynVars.IComp then
+                    myDynVars.IComp := PhaseP;
+                Result := true;
+            end;
+        end;
+    end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
 // Implements the grid forming inverter control routine for the PVSystem device
 //------------------------------------------------------------------------------------
 procedure TPVsystemObj.DoGFM_Mode(ActorID: Integer);
@@ -1513,7 +1558,7 @@ var
     j,
     i: Integer;
     myW,
-    myError: Double;
+    ZSys: Double;
 
 begin
 
@@ -1528,6 +1573,11 @@ begin
 
         for i := 1 to NPhases do
             Vgrid[i - 1] := ctopolar(NodeV^[NodeRef^[i]]);
+        if IComp > 0 then
+        begin
+            ZSys := (2 * (Vbase * ILimit)) - IComp;
+            BaseV := (ZSys / ILimit) * VError;
+        end;
         myDynVars.CalcGFMVoltage(ActorID, NPhases, Vterminal);
         YPrim.MVMult(InjCurrent, Vterminal);
 
@@ -2749,12 +2799,13 @@ end;
 procedure TPVsystemObj.IntegrateStates(ActorID: Integer);
 // dynamics mode integration routine
 var
+    GFMUpdate: Boolean;              // To avoid updating the IBR if current limit reached
     NumData,
     k,
     j,
     i: Integer;
-    myCurr,
-    myVolt: array of complex;
+    IPresent: Double;               // present amps per phase
+    myCurr: array of Complex;     // For storing the present currents when using current limiter
 begin
     // Compute Derivatives and Then integrate
     ComputeIterminal(ActorID);
@@ -2814,7 +2865,19 @@ begin
                         VDelta[i] := (0.001 - (Vgrid[i].mag / 1000)) / BasekV
                     else
                         VDelta[i] := (BasekV - (Vgrid[i].mag / 1000)) / BasekV;
-                    if abs(VDelta[i]) > CtrlTol then
+                    GFMUpdate := true;
+              // Checks if there is current limit set
+                    if ILimit > 0 then
+                    begin
+                        setlength(myCurr, NPhases + 1);
+                        GetCurrents(@myCurr[0], ActorID);
+                        for j := 0 to (Nphases - 1) do
+                        begin
+                            IPresent := ctopolar(myCurr[j]).mag;
+                            GFMUpdate := GFMUpdate and (IPresent < (ILimit * VError));
+                        end;
+                    end;
+                    if (abs(VDelta[i]) > CtrlTol) and GFMUpdate then
                     begin
                         ISPDelta[i] := ISPDelta[i] + (IMaxPPhase * VDelta[i]) * kP * 100;
                         if ISPDelta[i] > IMaxPPhase then
