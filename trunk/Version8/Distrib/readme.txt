@@ -1,12 +1,14 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
 All rights reserved.
 
 Version 9.6.1.1
 
 Changes this version
 ====================
+- Adds a feature in the load shape object for aproximating the multipliers within given smaples using different techniques.
+- Adds properties for limiting IBR (Storage, PVSystem) current in GFM control mode.
 - New flag added to avoid displaying reports automatically when generated (ShowReports).
 - New color themes added to the GUI. Go to Set -> Color Themes and check if you like it (Just added 2 as an experiment).
 - Adds grid forming inverter capabilities to Inverter-base resources (Storage and PVSystem) for microgrid studies in QSTS.
