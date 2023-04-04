@@ -1497,7 +1497,7 @@ end;
 function TLoadShapeObj.Get_Interpolation_Idx(StrValue: String): Integer;
 begin
     Result := 1;
-    if StrValue = 'EDGE' then
+    if lowercase(StrValue) = 'edge' then
         Result := EDGE_IP;
 end;
 
