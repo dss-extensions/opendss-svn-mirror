@@ -68,6 +68,7 @@ type
         FCapSpecified: Boolean; // To make sure user specifies C in some form
         FLineType: Integer; // Pointer to code for type of line
         FUserLengthUnits: Integer; // keep track of the user's input length units
+        FRatingsSpecified: Boolean; // To track if ratings should be overriden from geometry + spacing spec
 
         procedure FMakeZFromGeometry(f: Double); // make new Z, Zinv, Yc, etc
         procedure KillGeometrySpecified;
@@ -329,7 +330,7 @@ begin
     PropertyHelp[29] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
         CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in lines.';
     PropertyHelp[30] := 'Code designating the type of line. ' + CRLF +
-        'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW' + CRLF + CRLF +
+        'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW, BUSBAR' + CRLF + CRLF +
         'OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.';
 
     ActiveProperty := NumPropsThisClass;
@@ -778,9 +779,12 @@ begin
                         SymComponentsModel := false;
                         SymComponentsChanged := false;
                         KillGeometrySpecified;
+                        FRatingsSpecified := false;
                     end;
                     YprimInvalid[ActorID] := true;
                 end;
+                28, 29, 31, 32:
+                    FRatingsSpecified := true;
             else
             end;
 
@@ -928,6 +932,7 @@ begin
     FEarthModel := DefaultEarthModel;
     FLineType := 1;  // Default to OH  Line
 
+    FRatingsSpecified := false;
     SpacingSpecified := false;
     FLineSpacingObj := nil;
     FLineWireData := nil;
@@ -2290,9 +2295,12 @@ begin
 
     if FrhoSpecified then
         pGeo.rhoearth := rho;
-    NormAmps := pGeo.NormAmps;
-    EmergAmps := pGeo.EmergAmps;
-    UpdatePDProperties;
+    if not FRatingsSpecified then
+    begin
+        NormAmps := pGeo.NormAmps;
+        EmergAmps := pGeo.EmergAmps;
+        UpdatePDProperties;
+    end;
 
     ActiveEarthModel[ActiveActor] := FEarthModel;
 
