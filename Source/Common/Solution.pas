@@ -741,7 +741,7 @@ begin
             begin
                 case Dynavars.SolutionMode of
                     YEARLYMODE, DUTYCYCLE, LOADDURATION1,
-                    LOADDURATION2, HARMONICMODE, HARMONICMODET:
+                    LOADDURATION2, HARMONICMODE, HARMONICMODET, DAILYMODE:
                     begin
                         if Progress_Actor <> nil then
                         begin
