@@ -31,6 +31,7 @@ type
         KVARCONTROL,
         TIMECONTROL,
         PFCONTROL,
+        FOLLOWCONTROL,
         USERCONTROL
         );
 
