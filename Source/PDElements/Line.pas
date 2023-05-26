@@ -1622,7 +1622,8 @@ begin
             Result := Format('%-g', [PctPerm]);
         35:
             Result := Format('%-g', [HrsToRepair]);
-
+        36:
+            Result := Format('%-g', [BaseFrequency]);
 
     else
         Result := inherited GetPropertyValue(index);
