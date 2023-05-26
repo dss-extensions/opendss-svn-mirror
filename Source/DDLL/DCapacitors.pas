@@ -329,7 +329,7 @@ begin
                     k := 0;
                     for i := 1 to elem.Numsteps do
                     begin
-                        myIntArray[k] := elem.States[i, ActiveActor];
+                        myIntArray^[k] := elem.States[i, ActiveActor];
                         Inc(k);
                     end;
                 end;
