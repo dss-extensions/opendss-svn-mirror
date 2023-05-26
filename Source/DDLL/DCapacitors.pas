@@ -5,7 +5,11 @@ interface
 function CapacitorsI(mode: Longint; arg: Longint): Longint; CDECL;
 function CapacitorsF(mode: Longint; arg: Double): Double; CDECL;
 function CapacitorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure CapacitorsV(mode: Longint; var arg: Variant); CDECL;
+procedure CapacitorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
+
+var
+    myStrArray: array of Byte;
+    myIntArray: pIntegerArray;
 
 implementation
 
@@ -266,7 +270,7 @@ begin
 end;
 
 //*********************************Variant type properties***********************
-procedure CapacitorsV(mode: Longint; var arg: Variant); CDECL;
+procedure CapacitorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TCapacitorObj;
@@ -274,48 +278,65 @@ var
     S: String;
     Found: Boolean;
     lst: TPointerList;
-    k, i, LoopLimit: Integer;
+    k,
+    i,
+    LoopLimit: Integer;
+    Pint: ^Integer;
 
 begin
     case mode of
         0:
         begin  // Capacitors.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            setlength(myStrArray, 1);
+            myStrArray[0] := 0;
+            mySize := 0;
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                     if ShuntCapacitors.ListSize > 0 then
                     begin
+                        setlength(myStrArray, 0);
                         lst := ShuntCapacitors;
-                        VarArrayRedim(arg, lst.ListSize - 1);
                         k := 0;
                         elem := lst.First;
                         while elem <> nil do
                         begin
-                            arg[k] := elem.Name;
-                            Inc(k);
+                            S := elem.Name;
+                            for i := 0 to High(S) do
+                            begin
+                                setlength(myStrArray, length(myStrArray) + 1);
+                                myStrArray[High(myStrArray)] := Byte(S[i]);
+                            end;
                             elem := lst.Next;
                         end;
                     end;
+            end;
+            myType := 4;                  // String
+            mySize := length(myStrArray);
+            myPointer := @(myStrArray[0]);
         end;
+
         1:
         begin  // Capacitors.States read
-            arg := VarArrayCreate([0, 0], varInteger);
-            arg[0] := -1;     // error code
+            ReAllocmem(myIntArray, sizeof(i) + 1);
+            myIntArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 Elem := ActiveCapacitor;
                 if Elem <> nil then
                 begin
-                    VarArrayRedim(arg, elem.NumSteps - 1);
+                    ReAllocmem(myIntArray, sizeof(myIntArray^[1]) * elem.Numsteps);
                     k := 0;
                     for i := 1 to elem.Numsteps do
                     begin
-                        arg[k] := elem.States[i, ActiveActor];
+                        myIntArray[k] := elem.States[i, ActiveActor];
                         Inc(k);
                     end;
                 end;
             end;
+            myType := 1;                  // Integer
+            mySize := 4 * (elem.Numsteps);
+            myPointer := myIntArray;
         end;
         2:
         begin  // Capacitors.States write
@@ -325,20 +346,22 @@ begin
          // allocate space based on present value of NumSteps
          // setting NumSteps allocates the memory
          // only put as many elements as proviced up to nZIPV
-                LoopLimit := VarArrayHighBound(arg, 1);
-                if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > elem.NumSteps then
-                    LoopLimit := VarArrayLowBound(arg, 1) + elem.NumSteps - 1;
-                k := 1;
-                for i := VarArrayLowBound(arg, 1) to LoopLimit do
+//         myIntArray   :=  myPointer;
+                k := 0;
+                for i := 1 to elem.Numsteps do
                 begin
-                    elem.States[k, ActiveActor] := arg[i];
-                    inc(k);
+                    PInt := myPointer;
+                    elem.States[i, ActiveActor] := PInt^;
+                    inc(Pbyte(myPointer), 4);
                 end;
                 elem.FindLastStepInService;
             end;
+            myType := 1;                  // Integer
         end
     else
-        arg[0] := 'Error, parameter not valid';
+        setlength(myStrArray, 1);
+        myStrArray[0] := 0;
+        myPointer := @(myStrArray[0]);
     end;
 end;
 
