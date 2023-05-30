@@ -1173,7 +1173,7 @@ end;
 
 
 //===========================================================================
-//|      Uploads the calculated currents into memeory for further use       |
+//|      Uploads the calculated currents into memory for further use       |
 //===========================================================================
 
 procedure TUPFCObj.UploadCurrents(ActorID: Integer);
