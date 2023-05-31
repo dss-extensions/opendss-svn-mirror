@@ -89,6 +89,8 @@ type
 
         DoHarmonicRecalc: Boolean;
         Bus2Defined: Boolean;
+        FNormAmpsSpecified: Boolean;
+        FEmergAmpsSpecified: Boolean;
 
         SpecType: Integer;
         NumTerm: Integer;   // Flag used to indicate The number of terminals
@@ -231,6 +233,9 @@ begin
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
+    PropertyHelp[NumPropsThisClass + 1] := PropertyHelp[NumPropsThisClass + 1] + ' Defaults to 135% of per-phase rated current.';
+    PropertyHelp[NumPropsThisClass + 2] := PropertyHelp[NumPropsThisClass + 2] + ' Defaults to 180% of per-phase rated current.';
+
 end;
 
 
@@ -296,14 +301,31 @@ begin
                 end;
 
         end;
+
         case Connection of
             1:
+            begin
                 Nterms := 1;  // Force reallocation of terminals
+
+                case Fnphases of
+                    1, 2:
+                        Nconds := Fnphases + 1;
+                else
+                    Nconds := Fnphases
+                end;
+            end;
+
             0:
+            begin
                 if Fnterms <> 2 then
                     Nterms := 2;
+                Nconds := Fnphases
+            end;
+
         end;
+
     end;
+
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -427,7 +449,12 @@ begin
                     if Fnphases <> Parser[ActorID].IntValue then
                     begin
                         Nphases := Parser[ActorID].IntValue;
-                        NConds := Fnphases;  // Force Reallocation of terminal info
+
+                        if Connection = 1 then
+                            NConds := Fnphases + 1
+                        else
+                            NConds := Fnphases; // Force Reallocation of terminal info
+
                         Yorder := Fnterms * Fnconds;
                     end;
                 4:
@@ -448,6 +475,10 @@ begin
                                 FR^[i] := Abs(FXL^[i]) / 1000.0;  // put in something so it doesn't fail
                     DoHarmonicRecalc := false;  // XL is specified
                 end;
+                14:
+                    FNormAmpsSpecified := true;
+                15:
+                    FEmergAmpsSpecified := true;
             else
             end;
 
@@ -588,6 +619,8 @@ begin
 
     NormAmps := FkvarRating^[1] * SQRT3 / kvrating * 1.35;   // 135%
     EmergAmps := NormAmps * 1.8 / 1.35;   //180%
+    FNormAmpsSpecified := false;
+    FEmergAmpsSpecified := false;
     FaultRate := 0.0005;
     PctPerm := 100.0;
     HrsToRepair := 3.0;
@@ -693,9 +726,11 @@ begin
 
 
     kvarPerPhase := Ftotalkvar / Fnphases;
-    NormAmps := kvarPerPhase / PhasekV * 1.35;
-    EmergAmps := NormAmps * 1.8 / 1.35;
 
+    if not FNormAmpsSpecified then
+        NormAmps := kvarPerPhase / PhasekV * 1.35;
+    if not FEmergAmpsSpecified then
+        EmergAmps := kvarPerPhase / PhasekV * 1.8;
 
 end;
 
@@ -839,8 +874,7 @@ begin
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
-       // Override Inherited properties
-       //  Override Inherited properties
+     // Override Inherited properties
     PropertyValue[NumPropsThisClass + 1] := Format('%g', [Normamps]);
     PropertyValue[NumPropsThisClass + 2] := Format('%g', [Emergamps]);
     PropertyValue[NumPropsThisClass + 3] := Str_Real(FaultRate, 0);
@@ -1115,13 +1149,17 @@ begin
                 case Connection of
                     1:
                     begin   // Line-Line
-                        Value2 := CmulReal(Value, 2.0);
-                        Value := cnegate(Value);
+
                         for i := 1 to Fnphases do
                         begin
-                            SetElement(i, i, Value2);
-                            for j := 1 to i - 1 do
-                                SetElemSym(i, j, Value);
+
+                            j := i + 1;
+                            if j > Fnconds then
+                                j := 1;  // wrap around for closed connections
+
+                            AddElement(i, i, Value);
+                            AddElement(j, j, Value);
+                            AddElemSym(i, j, cnegate(Value));
                         end;
                 // Remainder of the matrix is all zero
                     end;
