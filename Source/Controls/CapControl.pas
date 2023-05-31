@@ -648,6 +648,7 @@ procedure TCapControlObj.RecalcElementData(ActorID: Integer);
 
 var
     DevIndex: Integer;
+    ElmReq: Boolean;  // To signal if the property element is required according to the control type
 
 begin
 
@@ -663,7 +664,7 @@ begin
         Nphases := ControlledElement.NPhases;  // Force number of phases to be same   Added 5/21/01  RCD
         Nconds := FNphases;
         ControlledElement.ActiveTerminalIdx := 1;  // Make the 1 st terminal active
-                 // Get control synched up with capacitor
+         // Get control synched up with capacitor
         with ControlledCapacitor do
             if ControlVars.AvailableSteps = Numsteps then
                 ControlledElement.Closed[0, ActorID] := false
@@ -684,31 +685,35 @@ begin
 
     ControlVars.InitialState := ControlVars.PresentState;
 
-{Check for existence of monitored element}
-
-    Devindex := GetCktElementIndex(ElementName); // Global function
-    if DevIndex > 0 then
+  {Check for existence of monitored element- if needed}
+    ElmReq := true;
+    ElmReq := ElmReq and (ControlType <> TIMECONTROL) and (ControlType <> FOLLOWCONTROL);
+    if ElmReq then
     begin
-        MonitoredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
-        if ElementTerminal > MonitoredElement.Nterms then
+        Devindex := GetCktElementIndex(ElementName); // Global function
+        if DevIndex > 0 then
         begin
-            DoErrorMsg('CapControl.' + Name + ':',
-                'Terminal no. "' + '" does not exist.',
-                'Re-specify terminal no.', 362);
+            MonitoredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
+            if ElementTerminal > MonitoredElement.Nterms then
+            begin
+                DoErrorMsg('CapControl.' + Name + ':',
+                    'Terminal no. "' + '" does not exist.',
+                    'Re-specify terminal no.', 362);
+            end
+            else
+            begin
+        // Sets name of i-th terminal's connected bus in CapControl's buslist
+                Setbus(1, MonitoredElement.GetBus(ElementTerminal));
+        // Allocate a buffer bigenough to hold everything from the monitored element
+                ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder);
+                ControlVars.CondOffset := (ElementTerminal - 1) * MonitoredElement.NConds; // for speedy sampling
+            end;
         end
         else
-        begin
-               // Sets name of i-th terminal's connected bus in CapControl's buslist
-            Setbus(1, MonitoredElement.GetBus(ElementTerminal));
-               // Allocate a buffer bigenough to hold everything from the monitored element
-            ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder);
-            ControlVars.CondOffset := (ElementTerminal - 1) * MonitoredElement.NConds; // for speedy sampling
-        end;
-    end
-    else
-        DoSimpleMsg('Monitored Element in CapControl.' + Name + ' does not exist:"' + ElementName + '"', 363);
+            DoSimpleMsg('Monitored Element in CapControl.' + Name + ' does not exist:"' + ElementName + '"', 363);
+    end;
 
-         {Alternative override bus}
+  {Alternative override bus}
     if ControlVars.VoverrideBusSpecified then
         with ControlVars do
         begin
@@ -721,7 +726,7 @@ begin
 
         end;
 
-         // User model property update, if necessary
+  // User model property update, if necessary
     if Usermodel.Exists then
         UserModel.UpdateModel;  // Checks for existence and Selects
 
