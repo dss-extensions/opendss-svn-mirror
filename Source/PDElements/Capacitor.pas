@@ -475,10 +475,10 @@ begin
                                 FR^[i] := Abs(FXL^[i]) / 1000.0;  // put in something so it doesn't fail
                     DoHarmonicRecalc := false;  // XL is specified
                 end;
-                14:
-                    FNormAmpsSpecified := true;
-                15:
-                    FEmergAmpsSpecified := true;
+                NumPropsThisClass + 1:
+                    FNormAmpsSpecified := true;  // Normamps
+                NumPropsThisClass + 2:
+                    FEmergAmpsSpecified := true; // Emergamps
             else
             end;
 
@@ -1272,9 +1272,9 @@ initialize(FTemp);
             Result := GetDSSArray_Real(FNumSteps, Fharm);
         13:
             Result := GetDSSArray_Integer(FNumSteps, FStates);
-        14:
+        NumPropsThisClass + 1:
             Result := Format('%g', [Normamps]);
-        15:
+        NumPropsThisClass + 2:
             Result := Format('%g', [Emergamps]);
     else
         Result := inherited GetPropertyValue(index);

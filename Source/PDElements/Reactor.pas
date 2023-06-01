@@ -106,6 +106,8 @@ type
         Z2Specified: Boolean;
         Z0Specified: Boolean;
 
+        FNormAmpsSpecified: Boolean;
+        FEmergAmpsSpecified: Boolean;
 
     PUBLIC
 
@@ -252,6 +254,8 @@ begin
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
+    PropertyHelp^[NumPropsThisClass + 1] := PropertyHelp^[NumPropsThisClass + 1] + ' Defaults to per-phase rated current when reactor is specified with rated power and voltage.';
+    PropertyHelp^[NumPropsThisClass + 2] := PropertyHelp^[NumPropsThisClass + 2] + ' Defaults to 135% of per-phase rated current when reactor is specified with rated power and voltage.';
 end;
 
 
@@ -319,12 +323,28 @@ begin
         end;
         case Connection of
             1:
+            begin
                 Nterms := 1;  // Force reallocation of terminals
+
+                case Fnphases of
+                    1, 2:
+                        Nconds := Fnphases + 1;
+                else
+                    Nconds := Fnphases
+                end;
+            end;
+
             0:
+            begin
                 if Fnterms <> 2 then
                     Nterms := 2;
+                Nconds := Fnphases
+            end;
+
         end;
+
     end;
+
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -458,7 +478,12 @@ begin
                     if Fnphases <> Parser[ActorID].IntValue then
                     begin
                         Nphases := Parser[ActorID].IntValue;
-                        NConds := Fnphases;  // Force Reallocation of terminal info
+
+                        if Connection = 1 then
+                            NConds := Fnphases + 1
+                        else
+                            NConds := Fnphases; // Force Reallocation of terminal info
+
                         Yorder := Fnterms * Fnconds;
                     end;
                 4:
@@ -495,7 +520,11 @@ begin
                 begin
                     SpecType := 2;
                     X := L * TwoPi * BaseFrequency;
-                end
+                end;
+                NumPropsThisClass + 1:
+                    FNormAmpsSpecified := true; // Normamps
+                NumPropsThisClass + 2:
+                    FEmergAmpsSpecified := true; // Emergamps
             else
             end;
 
@@ -648,6 +677,8 @@ begin
     SpecType := 1; // 1=kvar, 2=Cuf, 3=Cmatrix
     NormAmps := kvarRating * SQRT3 / kvrating;
     EmergAmps := NormAmps * 1.35;
+    FNormAmpsSpecified := false;
+    FEmergAmpsSpecified := false;
     FaultRate := 0.0005;
     PctPerm := 100.0;
     HrsToRepair := 3.0;
@@ -704,8 +735,11 @@ begin
             X := SQR(PhasekV) * 1000.0 / kvarPerPhase;
             L := X / twopi / BaseFrequency;
           {Leave R as specified}
-            NormAmps := kvarPerPhase / PhasekV;
-            EmergAmps := NormAmps * 1.35;
+
+            if not FNormAmpsSpecified then
+                NormAmps := kvarPerPhase / PhasekV;
+            if not FEmergAmpsSpecified then
+                EmergAmps := kvarPerPhase / PhasekV * 1.35;
         end;
         2:
         begin // R + j X
@@ -841,13 +875,17 @@ begin
                 case Connection of
                     1:
                     begin   // Line-Line
-                        Value2 := CmulReal(Value, 2.0);
-                        Value := cnegate(Value);
+
                         for i := 1 to Fnphases do
                         begin
-                            SetElement(i, i, Value2);
-                            for j := 1 to i - 1 do
-                                SetElemSym(i, j, Value);
+
+                            j := i + 1;
+                            if j > Fnconds then
+                                j := 1;  // wrap around for closed connections
+
+                            AddElement(i, i, Value);
+                            AddElement(j, j, Value);
+                            AddElemSym(i, j, cnegate(Value));
                         end;
                         // Remainder of the matrix is all zero
                     end;
@@ -1203,6 +1241,10 @@ begin
             Result := Format('[%-.8g, %-.8g]', [R, X]);
         19:
             Result := Format('%-.8g', [L * 1000.0]);
+        NumPropsThisClass + 1:
+            Result := Format('%g', [Normamps]);
+        NumPropsThisClass + 2:
+            Result := Format('%g', [Emergamps]);
     else
         Result := inherited GetPropertyValue(index);
     end;
