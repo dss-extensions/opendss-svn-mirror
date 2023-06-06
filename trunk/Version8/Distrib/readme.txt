@@ -3,12 +3,14 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 9.6.1.1
+Version 9.6.1.2
 
 Changes this version
 ====================
-- Adds a feature in the load shape object for aproximating the multipliers within given smaples using different techniques.
-- Adds properties for limiting IBR (Storage, PVSystem) current in GFM control mode.
+- Bug in Yprim formation for 1-ph and 2-ph delta-connected capacitors fixed. Fix to user-specified NormAmps and EmergAmps for capacitors, which were always being overridden with default values. Pending to check for same issues on Reactors.
+- Variant-like interfaces updated to pointers to faciltiate its adoption cross platform and to match the Cpp version.
+- Fixes losses in UPFC model, there was a bug introduced several years ago when trying to redefine losses based on residual currents.
+- CapControl updated with control mode Follow, in this mode the capacitor activation depends on the value of a given loadshape (ControlSignal).
 - New flag added to avoid displaying reports automatically when generated (ShowReports).
 - New color themes added to the GUI. Go to Set -> Color Themes and check if you like it (Just added 2 as an experiment).
 - Adds grid forming inverter capabilities to Inverter-base resources (Storage and PVSystem) for microgrid studies in QSTS.
