@@ -2,13 +2,6 @@ unit DBus;
 
 interface
 
-function BUSI(mode: Longint; arg: Longint): Longint; CDECL;
-function BUSF(mode: Longint; arg: Double): Double; CDECL;
-function BUSS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure BUSV(mode: Longint; out arg: Variant); CDECL;
-
-implementation
-
 uses
     DSSGlobals,
     Circuit,
@@ -23,6 +16,20 @@ uses
     CktElement,
     Ucmatrix,
     Arraydef;
+
+function BUSI(mode: Longint; arg: Longint): Longint; CDECL;
+function BUSF(mode: Longint; arg: Double): Double; CDECL;
+function BUSS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
+procedure BUSV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
+
+var
+    myStrArray: array of Byte;
+    myDBLArray: array of Double;
+    myCmplxArray: array of Complex;
+    myPolarArray: array of Polar;
+    myIntArray: array of Integer;
+
+implementation
 
 function CheckBusReference(cktElem: TDSSCktElement; BusReference: Integer; var TerminalIndex: Integer): Boolean;
 
@@ -271,7 +278,7 @@ begin
     end;
 end;
 
-procedure BUSV(mode: Longint; out arg: Variant); CDECL;
+procedure BUSV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     BusReference,
@@ -302,60 +309,61 @@ var
     Zsc012Temp: TCmatrix;
     pValues: pDoubleArray;
     myPXEList: DynStringArray;
+    S: String;
 
 begin
     case mode of
         0:
         begin                                           // Bus.Voltages
+            myType := 3;                  // Complex
             if ActiveCircuit[ActiveActor] = nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
+                setlength(myCmplxArray, 1);
             end
             else
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
+                        setlength(myCmplxArray, 0);
                         pBus := Buses^[ActiveBusIndex];
                         Nvalues := pBus.NumNodesThisBus;
-                        arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
-                        iV := 0;
                         jj := 1;
                         with pBus do
                             for i := 1 to NValues do
                             begin
-                // this code so nodes come out in order from smallest to larges
+          // this code so nodes come out in order from smallest to larges
                                 repeat
                                     NodeIdx := FindIdx(jj);  // Get the index of the Node that matches jj
                                     inc(jj)
                                 until NodeIdx > 0;
-                                Volts := Solution.NodeV^[GetRef(NodeIdx)];  // referenced to pBus
-                                arg[iV] := Volts.re;
-                                Inc(iV);
-                                arg[iV] := Volts.im;
-                                Inc(iV);
+                                setlength(myCmplxArray, length(myCmplxArray) + 1);
+                                myCmplxArray[High(myCmplxArray)] := Solution.NodeV^[GetRef(NodeIdx)];   // referenced to pBus
                             end;
                     end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+
+                end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * length(myCmplxArray);
         end;
+
         1:
         begin                                           // Bus.SeqVoltages
+            myType := 3;
             if ActiveCircuit[ActiveActor] = nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
+                setlength(myDBLArray, 1);
             end
             else
                 with ActiveCircuit[ActiveActor] do
+                begin
+                    setlength(myDBLArray, 3);
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         Nvalues := Buses^[ActiveBusIndex].NumNodesThisBus;
-                        if Nvalues > 3 then
-                            Nvalues := 3;
-          // Assume nodes 1, 2, and 3 are the 3 phases
-                        arg := VarArrayCreate([0, 2], varDouble);
                         if Nvalues <> 3 then
                             for i := 1 to 3 do
-                                arg[i - 1] := -1.0  // Signify seq voltages n/A for less then 3 phases
+                                myDBLArray[i - 1] := -1.0  // Signify seq voltages n/A for less then 3 phases
                         else
                         begin
                             iV := 0;
@@ -366,19 +374,21 @@ begin
                             Phase2SymComp(@Vph, @V012);   // Compute Symmetrical components
                             for i := 1 to 3 do  // Stuff it in the result
                             begin
-                                arg[iV] := Cabs(V012[i]);
+                                myDBLArray[iV - 1] := Cabs(V012[i]);
                                 Inc(iV);
                             end;
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);
+                    end;
+                end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * 3;
         end;
         2:
         begin                                           // Bus.Nodes
+            myType := 1;
             if ActiveCircuit[ActiveActor] = nil then
             begin
-                arg := VarArrayCreate([0, 0], varInteger)
+                setlength(myIntArray, 1);
             end
             else
                 with ActiveCircuit[ActiveActor] do
@@ -387,92 +397,79 @@ begin
                         pBus := Buses^[ActiveBusIndex];
                         with pBus do
                         begin
+                            setlength(myIntArray, NumNodesThisBus);
                             Nvalues := NumNodesThisBus;
-                            arg := VarArrayCreate([0, NValues - 1], varInteger);
                             iV := 0;
                             jj := 1;
                             for i := 1 to NValues do
                             begin
-                    // this code so nodes come out in order from smallest to larges
+              // this code so nodes come out in order from smallest to larges
                                 repeat
                                     NodeIdx := FindIdx(jj);  // Get the index of the Node that matches jj
                                     inc(jj)
                                 until NodeIdx > 0;
-                                arg[iV] := Buses^[ActiveBusIndex].GetNum(NodeIdx);
+                                myIntArray[iV] := Buses^[ActiveBusIndex].GetNum(NodeIdx);
                                 Inc(iV);
                             end;
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varInteger);  // just return null array
+                    end;
+            myPointer := @(myIntArray[0]);
+            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
         end;
         3:
         begin                                           // Bus.Voc
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         if Buses^[ActiveBusIndex].VBus <> nil then
                         begin
                             NValues := Buses^[ActiveBusIndex].NumNodesThisBus;
-                            arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
-                            iV := 0;
+                            setlength(myCmplxArray, NValues);
                             for i := 1 to NValues do
                             begin
-                                Voc := Buses^[ActiveBusIndex].VBus^[i];
-                                arg[iV] := Voc.Re;
-                                Inc(iV);
-                                arg[iV] := Voc.Im;
-                                Inc(iV);
+                                myCmplxArray[i - 1] := Buses^[ActiveBusIndex].VBus^[i];
                             end;
-                        end
-                        else
-                            arg := VarArrayCreate([0, 0], varDouble);
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                        end;
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         4:
         begin // Bus.Isc
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         if Buses^[ActiveBusIndex].BusCurrent <> nil then
                         begin
                             NValues := Buses^[ActiveBusIndex].NumNodesThisBus;
-                            arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
-                            iV := 0;
+                            setlength(myCmplxArray, NValues);
                             for i := 1 to NValues do
                             begin
-                                Isc := Buses^[ActiveBusIndex].BusCurrent^[i];
-                                arg[iV] := Isc.Re;
-                                Inc(iV);
-                                arg[iV] := Isc.Im;
-                                Inc(iV);
+                                myCmplxArray[i - 1] := Buses^[ActiveBusIndex].BusCurrent^[i];
                             end;
-                        end
-                        else
-                            arg := VarArrayCreate([0, 0], varDouble);
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                        end;
+                    end;
+                end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         5:
         begin  // Bus.PuVoltages
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
@@ -480,7 +477,7 @@ begin
                         with pBus do
                         begin
                             Nvalues := NumNodesThisBus;
-                            arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+                            setlength(myCmplxArray, NValues);
                             iV := 0;
                             jj := 1;
                             if kVBase > 0.0 then
@@ -489,150 +486,127 @@ begin
                                 BaseFactor := 1.0;
                             for i := 1 to NValues do
                             begin
-                    // this code so nodes come out in order from smallest to larges
+            // this code so nodes come out in order from smallest to larges
                                 repeat
                                     NodeIdx := FindIdx(jj);  // Get the index of the Node that matches jj
                                     inc(jj)
                                 until NodeIdx > 0;
-                                Volts := Solution.NodeV^[GetRef(NodeIdx)];
-                                arg[iV] := Volts.re / BaseFactor;
-                                Inc(iV);
-                                arg[iV] := Volts.im / BaseFactor;
-                                Inc(iV);
+                                myCmplxArray[i - 1] := cdivreal(Solution.NodeV^[GetRef(NodeIdx)], BaseFactor);
                             end;
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         6:
         begin  // Bus.ZscMatrix
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
-            try
-                with ActiveCircuit[ActiveActor] do
-                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
-                    begin
-                        if Assigned(Buses^[ActiveBusIndex].Zsc) then
+                try
+                    with ActiveCircuit[ActiveActor] do
+                        if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                         begin
-                            Nelements := Buses^[ActiveBusIndex].Zsc.Order;
-                            arg := VarArrayCreate([0, ((2 * Nelements * Nelements) - 1)], varDouble);
-                            iV := 0;
-                            with Buses^[ActiveBusIndex] do
-                                for i := 1 to Nelements do
-                                    for j := 1 to Nelements do
-                                    begin
-                                        Z := Zsc.GetElement(i, j);
-                                        arg[iV] := Z.Re;
-                                        Inc(iV);
-                                        arg[iV] := Z.Im;
-                                        Inc(iV);
-                                    end;
-                        end
-                        else
-                            arg := VarArrayCreate([0, 0], varDouble);  // just return null array
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
-            except
-                On E: Exception do
-                    DoSimpleMsg('ZscMatrix Error: ' + E.message + CRLF, 5016);
+                            if Assigned(Buses^[ActiveBusIndex].Zsc) then
+                            begin
+                                Nelements := Buses^[ActiveBusIndex].Zsc.Order;
+                                setlength(myCmplxArray, (Nelements * Nelements));
+                                iV := 0;
+                                with Buses^[ActiveBusIndex] do
+                                    for i := 1 to Nelements do
+                                        for j := 1 to Nelements do
+                                        begin
+                                            myCmplxArray[iV] := Zsc.GetElement(i, j);
+                                            inc(iV);
+                                        end;
+                            end;
+                        end;
+                except
+                    On E: Exception do
+                        DoSimpleMsg('ZscMatrix Error: ' + E.message + CRLF, 5016);
+                end;
             end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         7:
         begin  // Bus.Zcs1
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
-                        Z := Buses^[ActiveBusIndex].Zsc1;
-                        arg := VarArrayCreate([0, 1], varDouble);
-                        arg[0] := Z.Re;
-                        arg[1] := Z.Im;
+                        myCmplxArray[0] := Buses^[ActiveBusIndex].Zsc1;
                     end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         8:
         begin  // Bus.Zsc0
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
-                        Z := Buses^[ActiveBusIndex].Zsc0;
-                        arg := VarArrayCreate([0, 1], varDouble);
-                        arg[0] := Z.Re;
-                        arg[1] := Z.Im;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                        myCmplxArray[0] := Buses^[ActiveBusIndex].Zsc0;
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         9:
         begin   // Bus.YscMatrix
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
-            try
-                with ActiveCircuit[ActiveActor] do
-                    if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
-                    begin
-                        if Assigned(Buses^[ActiveBusIndex].Ysc) then
+                try
+                    with ActiveCircuit[ActiveActor] do
+                        if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                         begin
-                            Nelements := Buses^[ActiveBusIndex].Ysc.Order;
-                            arg := VarArrayCreate([0, ((2 * Nelements * Nelements) - 1)], varDouble);
-                            iV := 0;
-                            with Buses^[ActiveBusIndex] do
-                                for i := 1 to Nelements do
-                                    for j := 1 to Nelements do
-                                    begin
-                                        Y1 := Ysc.GetElement(i, j);
-                                        arg[iV] := Y1.Re;
-                                        Inc(iV);
-                                        arg[iV] := Y1.Im;
-                                        Inc(iV);
-                                    end;
-                        end
-                        else
-                            arg := VarArrayCreate([0, 0], varDouble);  // just return null array
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
-            except
-                On E: Exception do
-                    DoSimpleMsg('ZscMatrix Error: ' + E.message + CRLF, 5017);
+                            if Assigned(Buses^[ActiveBusIndex].Ysc) then
+                            begin
+                                Nelements := Buses^[ActiveBusIndex].Ysc.Order;
+                                setlength(myCmplxArray, (Nelements * Nelements));
+                                iV := 0;
+                                with Buses^[ActiveBusIndex] do
+                                    for i := 1 to Nelements do
+                                        for j := 1 to Nelements do
+                                        begin
+                                            myCmplxArray[iV] := Ysc.GetElement(i, j);
+                                            Inc(iV);
+                                        end;
+                            end;
+                        end;
+                except
+                    On E: Exception do
+                        DoSimpleMsg('ZscMatrix Error: ' + E.message + CRLF, 5017);
+                end;
             end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         10:
         begin  // Bus.CplxSeqVoltages
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         Nvalues := Buses^[ActiveBusIndex].NumNodesThisBus;
-                        if Nvalues > 3 then
-                            Nvalues := 3;
-          // Assume nodes labelled 1, 2, and 3 are the 3 phases
-                        arg := VarArrayCreate([0, 5], varDouble);
+                        setlength(myCmplxArray, 3);
                         if Nvalues <> 3 then
-                            for i := 1 to 6 do
-                                arg[i - 1] := -1.0  // Signify seq voltages n/A for less then 3 phases
+                            for i := 0 to 2 do
+                                myCmplxArray[i] := cmplx(-1.0, -1.0)  // Signify seq voltages n/A for less then 3 phases
                         else
                         begin
                             iV := 0;
@@ -641,23 +615,21 @@ begin
                             Phase2SymComp(@Vph, @V012);   // Compute Symmetrical components
                             for i := 1 to 3 do  // Stuff it in the result
                             begin
-                                arg[iV] := V012[i].re;
-                                Inc(iV);
-                                arg[iV] := V012[i].im;
+                                myCmplxArray[iV] := V012[i];
                                 Inc(iV);
                             end;
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         11:
         begin  // Bus.VLL
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
@@ -670,7 +642,7 @@ begin
                         begin
                             if Nvalues = 2 then
                                 Nvalues := 1;  // only one L-L voltage if 2 phase
-                            arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+                            setlength(myCmplxArray, (2 * NValues) - 1);
                             iV := 0;
                             with pBus do
                             begin
@@ -680,10 +652,10 @@ begin
                                     BaseFactor := 1.0;
                                 for i := 1 to NValues do     // for 2- or 3-phases
                                 begin
-                      // this code assumes the nodes are ordered 1, 2, 3
-//------------------------------------------------------------------------------------------------
-// This section was added to prevent measuring using disconnected nodes, for example, if the
-// bus has 2 nodes but those are 1 and 3, that will bring a problem.
+                    // this code assumes the nodes are ordered 1, 2, 3
+      //------------------------------------------------------------------------------------------------
+      // This section was added to prevent measuring using disconnected nodes, for example, if the
+      // bus has 2 nodes but those are 1 and 3, that will bring a problem.
                                     jj := i;
                                     repeat
                                         NodeIdxi := FindIdx(jj);  // Get the index of the Node that matches i
@@ -697,35 +669,32 @@ begin
                                         else
                                             inc(jj);
                                     until NodeIdxj > 0;
-//------------------------------------------------------------------------------------------------
-//                      if jj>3 then jj := 1; // wrap around
-//                      NodeIdxj := FindIdx(jj);
+      //------------------------------------------------------------------------------------------------
+      //                      if jj>3 then jj := 1; // wrap around
+      //                      NodeIdxj := FindIdx(jj);
                                     with Solution do
                                         Volts := Csub(NodeV^[GetRef(NodeIdxi)], NodeV^[GetRef(NodeIdxj)]);
-                                    arg[iV] := Volts.re;
-                                    Inc(iV);
-                                    arg[iV] := Volts.im;
+                                    myCmplxArray[iV] := Volts;
                                     Inc(iV);
                                 end;
                             end;  {With pBus}
                         end
                         else
                         begin  // for 1-phase buses, do not attempt to compute.
-                            arg := VarArrayCreate([0, 1], varDouble);  // just return -1's in array
-                            arg[0] := -99999.0;
-                            arg[1] := 0.0;
+                            setlength(myCmplxArray, 1);  // just return -1's in array
+                            myCmplxArray[0] := cmplx(-99999.0, 0);
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         12:
         begin   // Bus. PuVLL
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myCmplxArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
@@ -737,7 +706,7 @@ begin
                         begin
                             if Nvalues = 2 then
                                 Nvalues := 1;  // only one L-L voltage if 2 phase
-                            arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+                            setlength(myCmplxArray, (2 * NValues) - 1);
                             iV := 0;
                             with pBus do
                             begin
@@ -747,10 +716,10 @@ begin
                                     BaseFactor := 1.0;
                                 for i := 1 to NValues do     // for 2- or 3-phases
                                 begin
-                      // this code assumes the nodes are ordered 1, 2, 3
-//------------------------------------------------------------------------------------------------
-// This section was added to prevent measuring using disconnected nodes, for example, if the
-// bus has 2 nodes but those are 1 and 3, that will bring a problem.
+                    // this code assumes the nodes are ordered 1, 2, 3
+      //------------------------------------------------------------------------------------------------
+      // This section was added to prevent measuring using disconnected nodes, for example, if the
+      // bus has 2 nodes but those are 1 and 3, that will bring a problem.
                                     jj := i;
                                     repeat
                                         NodeIdxi := FindIdx(jj);  // Get the index of the Node that matches i
@@ -764,74 +733,69 @@ begin
                                         else
                                             inc(jj);
                                     until NodeIdxj > 0;
-//------------------------------------------------------------------------------------------------
-//                      if jj>3 then jj := 1; // wrap around
-//                      NodeIdxj := FindIdx(jj);
+      //------------------------------------------------------------------------------------------------
+      //                      if jj>3 then jj := 1; // wrap around
+      //                      NodeIdxj := FindIdx(jj);
                                     with Solution do
                                         Volts := Csub(NodeV^[GetRef(NodeIdxi)], NodeV^[GetRef(NodeIdxj)]);
-                                    arg[iV] := Volts.re / BaseFactor;
-                                    Inc(iV);
-                                    arg[iV] := Volts.im / BaseFactor;
+                                    myCmplxArray[iV] := cdivreal(Volts, BaseFactor);
                                     Inc(iV);
                                 end;
                             end;  {With pBus}
                         end
                         else
                         begin  // for 1-phase buses, do not attempt to compute.
-                            arg := VarArrayCreate([0, 1], varDouble);  // just return -1's in array
-                            arg[0] := -99999.0;
-                            arg[1] := 0.0;
+                            setlength(myCmplxArray, 1);  // just return -1's in array
+                            myCmplxArray[0] := cmplx(-99999.0, 0);
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                    end;
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         13:
         begin  // Bus.VMagAngle
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myPolarArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         pBus := Buses^[ActiveBusIndex];
                         Nvalues := pBus.NumNodesThisBus;
-                        arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+                        setlength(myPolarArray, (2 * NValues) - 1);
                         iV := 0;
                         jj := 1;
                         with pBus do
                             for i := 1 to NValues do
                             begin
-                // this code so nodes come out in order from smallest to larges
+              // this code so nodes come out in order from smallest to larges
                                 repeat
                                     NodeIdx := FindIdx(jj);  // Get the index of the Node that matches jj
                                     inc(jj)
                                 until NodeIdx > 0;
                                 Voltsp := ctopolardeg(Solution.NodeV^[GetRef(NodeIdx)]);  // referenced to pBus
-                                arg[iV] := Voltsp.mag;
-                                Inc(iV);
-                                arg[iV] := Voltsp.ang;
+                                myPolarArray[iV] := Voltsp;
                                 Inc(iV);
                             end;
                     end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+            end;
+            myPointer := @(myPolarArray[0]);
+            mySize := SizeOf(myPolarArray[0]) * Length(myCmplxArray);
         end;
         14:
         begin   // Bus.PuVMagAngle
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 3;
+            setlength(myPolarArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         pBus := Buses^[ActiveBusIndex];
                         Nvalues := pBus.NumNodesThisBus;
-                        arg := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+                        setlength(myPolarArray, (2 * NValues) - 1);
                         iV := 0;
                         jj := 1;
                         with pBus do
@@ -842,29 +806,31 @@ begin
                                 BaseFactor := 1.0;
                             for i := 1 to NValues do
                             begin
-                    // this code so nodes come out in order from smallest to larges
+            // this code so nodes come out in order from smallest to larges
                                 repeat
                                     NodeIdx := FindIdx(jj);  // Get the index of the Node that matches jj
                                     inc(jj)
                                 until NodeIdx > 0;
-                                Voltsp := ctopolardeg(Solution.NodeV^[GetRef(NodeIdx)]);  // referenced to pBus
-                                arg[iV] := Voltsp.mag / BaseFactor;
-                                Inc(iV);
-                                arg[iV] := Voltsp.ang;
+                                myPolarArray[iV] := ctopolardeg(Solution.NodeV^[GetRef(NodeIdx)]);  // referenced to pBus
+                                myPolarArray[iV].mag := myPolarArray[iV].mag / BaseFactor;
                                 Inc(iV);
                             end;
                         end;
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+                    end;
+            end;
+            myPointer := @(myPolarArray[0]);
+            mySize := SizeOf(myPolarArray[0]) * Length(myCmplxArray);
         end;
         15:
         begin   // Bus.LineList
+            myType := 4;        // String
+            setlength(myStrArray, 1);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     BusReference := ActiveBusIndex;
-           { Count number of Lines connected to this bus }
+       { Count number of Lines connected to this bus }
                     LineCount := 0;
                     pElem := TDSSCktElement(Lines.First);
                     while Assigned(pElem) do
@@ -873,37 +839,42 @@ begin
                             Inc(LineCount);
                         pElem := TDSSCktElement(Lines.Next);
                     end;
-
                     if LineCount > 0 then
                     begin
-           // Allocate Variant Array
-                        arg := VarArrayCreate([0, LineCount - 1], varOleStr);
+       // Allocate Array
+                        setlength(myStrArray, 0);
                         pElem := TDSSCktElement(Lines.First);
-                        k := 0;
                         while Assigned(pElem) do
                         begin
                             if CheckBusReference(pElem, BusReference, j) then
                             begin
-                                arg[k] := 'LINE.' + pElem.name;
-                                Inc(k);
+                                S := 'LINE.' + pElem.name;
+                                for i := 1 to High(S) do
+                                begin
+                                    setlength(myStrArray, length(myStrArray) + 1);
+                                    myStrArray[High(myStrArray)] := Byte(S[i]);
+                                end;
+                                setlength(myStrArray, length(myStrArray) + 1);
+                                myStrArray[High(myStrArray)] := Byte(0);
                             end;
                             pElem := TDSSCktElement(Lines.Next);
                         end;
-
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varOleStr);
-                end
-            else
-                arg := VarArrayCreate([0, 0], varOleStr);
+                    end;
+                end;
+            end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         16:
         begin   // Bus.LoadList
+            myType := 4;        // String
+            setlength(myStrArray, 1);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     BusReference := ActiveBusIndex;
-         { Count number of LOAD elements connected to this bus }
+       { Count number of LOAD elements connected to this bus }
                     LoadCount := 0;
                     pElem := TDSSCktElement(Loads.First);
                     while Assigned(pElem) do
@@ -915,108 +886,142 @@ begin
 
                     if LoadCount > 0 then
                     begin
-         // Allocate Variant Array
-                        arg := VarArrayCreate([0, LoadCount - 1], varOleStr);
-
-                        k := 0;
+       // Allocate Array
+                        setlength(myStrArray, 0);
                         pElem := TDSSCktElement(Loads.First);
                         while Assigned(pElem) do
                         begin
                             if CheckBusReference(pElem, BusReference, j) then
                             begin
-                                arg[k] := 'LOAD.' + pElem.name;
-                                Inc(k);
+                                S := 'LOAD.' + pElem.name;
+                                for i := 1 to High(S) do
+                                begin
+                                    setlength(myStrArray, length(myStrArray) + 1);
+                                    myStrArray[High(myStrArray)] := Byte(S[i]);
+                                end;
+                                setlength(myStrArray, length(myStrArray) + 1);
+                                myStrArray[High(myStrArray)] := Byte(0);
                             end;
                             pElem := TDSSCktElement(Loads.Next);
                         end;
-
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varOleStr);
-                end
-            else
-                arg := VarArrayCreate([0, 0], varOleStr);
+                    end;
+                end;
+            end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         17:
         begin   // Bus.ZSC012Matrix
-            if ActiveCircuit[ActiveActor] = nil then
+            myType := 2;          // Double
+            setlength(myDBLArray, 1);
+            if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, 0], varDouble)
-            end
-            else
                 with ActiveCircuit[ActiveActor] do
-                    with ActiveCircuit[ActiveActor] do
+                begin
+                    pBus := Buses^[ActiveBusIndex];
+                    with pBus do
                     begin
-                        pBus := Buses^[ActiveBusIndex];
-                        with pBus do
+                        if NumNodesThisBus = 3 then
                         begin
+                            Nvalues := SQR(NumNodesThisBus) * 2;  // Should be 9 complex numbers
+                            setlength(myDBLArray, NValues);
+            // Compute ZSC012 for 3-phase buses else leave it zeros
+            // ZSC012 = Ap2s Zsc As2p
+                            Zsc012Temp := Zsc.MtrxMult(As2p);  // temp for intermediate result
+                            if Assigned(ZSC012) then
+                                ZSC012.Free;
+                            ZSC012 := Ap2s.MtrxMult(Zsc012Temp);
+            // Cleanup
+                            Zsc012Temp.Free;
 
-                            if NumNodesThisBus = 3 then
+            {Return all the elements of ZSC012}
+                            k := 0;
+                            pValues := pDoubleArray(ZSC012.GetValuesArrayPtr(Norder));
+                            for i := 1 to Nvalues do
                             begin
-                                Nvalues := SQR(NumNodesThisBus) * 2;  // Should be 9 complex numbers
-                                arg := VarArrayCreate([0, NValues - 1], varDouble);
-                      // Compute ZSC012 for 3-phase buses else leave it zeros
-                      // ZSC012 = Ap2s Zsc As2p
-                                Zsc012Temp := Zsc.MtrxMult(As2p);  // temp for intermediate result
-                                if Assigned(ZSC012) then
-                                    ZSC012.Free;
-                                ZSC012 := Ap2s.MtrxMult(Zsc012Temp);
-                      // Cleanup
-                                Zsc012Temp.Free;
-
-                  {Return all the elements of ZSC012}
-                                k := 0;
-                                pValues := pDoubleArray(ZSC012.GetValuesArrayPtr(Norder));
-                                for i := 1 to Nvalues do
-                                begin
-                                    arg[k] := pValues^[i];
-                                    Inc(k);
-                                end;
-                            end
-
-                            else
-                                arg := VarArrayCreate([0, 0], varDouble);   // default null array
-                        end;
+                                myDBLArray[k] := pValues^[i];
+                                Inc(k);
+                            end;
+                        end
                     end;
+                end;
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         18:
         begin   // Bus.AllPCEatBus
+            myType := 4;        // String
+            setlength(myStrArray, 1);
             if (ActiveCircuit[ActiveActor] <> nil) then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         myPXEList := getPCEatBus(BusList.Get(ActiveBusIndex));
-                        arg := VarArrayCreate([0, length(myPXEList) - 1], varOleStr);
+                        setlength(myStrArray, 0);
                         for i := 0 to High(myPXEList) do
-                            arg[i] := myPXEList[i];
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varOleStr);
-                end
-            else
-                arg := VarArrayCreate([0, 0], varOleStr);
+                        begin
+                            if myPXEList[i] <> '' then
+                            begin
+                                for j := 1 to High(myPXEList[i]) do
+                                begin
+                                    setlength(myStrArray, length(myStrArray) + 1);
+                                    myStrArray[High(myStrArray)] := Byte(myPXEList[i][j]);
+                                end;
+                                setlength(myStrArray, length(myStrArray) + 1);
+                                myStrArray[High(myStrArray)] := Byte(0);
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         19:
         begin   // Bus.AllPDEatBus
+            myType := 4;        // String
+            setlength(myStrArray, 1);
             if (ActiveCircuit[ActiveActor] <> nil) then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
                     begin
                         myPXEList := getPDEatBus(BusList.Get(ActiveBusIndex));
-                        arg := VarArrayCreate([0, length(myPXEList) - 1], varOleStr);
+                        setlength(myStrArray, 0);
                         for i := 0 to High(myPXEList) do
-                            arg[i] := myPXEList[i];
-                    end
-                    else
-                        arg := VarArrayCreate([0, 0], varOleStr);
-                end
-            else
-                arg := VarArrayCreate([0, 0], varOleStr);
-        end
+                        begin
+                            if myPXEList[i] <> '' then
+                            begin
+                                for j := 1 to High(myPXEList[i]) do
+                                begin
+                                    setlength(myStrArray, length(myStrArray) + 1);
+                                    myStrArray[High(myStrArray)] := Byte(myPXEList[i][j]);
+                                end;
+                                setlength(myStrArray, length(myStrArray) + 1);
+                                myStrArray[High(myStrArray)] := Byte(0);
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
+        end;
     else
-        arg := VarArrayCreate([0, 0], varDouble);  // just return null array
+        myType := 4;        // String
+        S := 'Command not recognized';
+        setlength(myStrArray, 0);
+        for j := 1 to High(myPXEList[i]) do
+        begin
+            setlength(myStrArray, length(myStrArray) + 1);
+            myStrArray[High(myStrArray)] := Byte(S[j]);
+        end;
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 

@@ -4,7 +4,10 @@ interface
 
 function ActiveClassI(mode: Longint; arg: Longint): Longint; CDECL;
 function ActiveClassS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure ActiveClassV(mode: Longint; out arg: Variant); CDECL;
+procedure ActiveClassV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
+
+var
+    myStrArray: array of Byte;
 
 implementation
 
@@ -119,34 +122,52 @@ begin
 end;
 
 //*****************************Variant type properties**************************
-procedure ActiveClassV(mode: Longint; out arg: Variant); CDECL;
+procedure ActiveClassV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
-    idx: Integer;
-    k: Integer;
+    idx,
+    i: Integer;
+    S: String;
 
 begin
     case mode of
         0:
         begin
+            setlength(myStrArray, 1);
+            myStrArray[0] := 0;
+            mySize := 0;
             if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    arg := VarArrayCreate([0, ActiveDSSClass[ActiveActor].ElementCount - 1], varOleStr);
-                    k := 0;
+                    setlength(myStrArray, 0);
                     idx := ActiveDSSClass[ActiveActor].First;
                     while idx > 0 do
                     begin
-                        arg[k] := ActiveDSSObject[ActiveActor].Name;
-                        Inc(k);
+                        S := ActiveDSSObject[ActiveActor].Name;
+                        for i := 1 to High(S) do
+                        begin
+                            setlength(myStrArray, length(myStrArray) + 1);
+                            myStrArray[High(myStrArray)] := Byte(S[i]);
+                        end;
                         idx := ActiveDSSClass[ActiveActor].Next;
+                        if idx > 0 then
+                        begin
+                            setlength(myStrArray, length(myStrArray) + 1);
+                            myStrArray[High(myStrArray)] := Byte(0);
+                        end;
                     end;
                 end
-            else
-                arg := VarArrayCreate([0, 0], varOleStr);
+            end;
+            myType := 4;                  // String
+            mySize := length(myStrArray);
+            myPointer := @(myStrArray[0]);
         end
     else
-        arg[0] := 'Error,parameter not recognized';
+        setlength(myStrArray, 1);
+        myStrArray[0] := 0;
+        myPointer := @(myStrArray[0]);
+        myType := -1;                  // Error
     end;
 end;
 
