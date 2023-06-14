@@ -29,24 +29,8 @@ function CircuitF(mode: Longint; arg1, arg2: Double): Double; CDECL;
 function CircuitS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 procedure CircuitV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
-var
-    myStrArray: array of Byte;
-    myCmplxArray: array of complex;
-    myDBLArray: array of Double;
 
 implementation
-
-
-procedure WriteStr2Array(myStr: String);
-var
-    i: Integer;
-begin
-    for i := 1 to High(myStr) do
-    begin
-        setlength(myStrArray, Length(myStrArray) + 1);
-        myStrArray[High(myStrArray)] := Byte(myStr[i]);
-    end;
-end;
 
 function CircuitI(mode: Longint; arg: Longint): Longint; CDECL;
 

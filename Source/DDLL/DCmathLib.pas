@@ -3,13 +3,15 @@ unit DCmathLib;
 interface
 
 function CmathLibF(mode: Longint; arg1: Double; arg2: Double): Double; CDECL;
-procedure CmathLibV(mode: Longint; Realpart: Double; ImagPart: Double; out arg: Variant); CDECL;
+procedure CmathLibV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
 uses
     Ucomplex,
-    variants;
+    variants,
+    DSSGLobals,
+    sysutils;
 
 function CmathLibF(mode: Longint; arg1: Double; arg2: Double): Double; CDECL;
 begin
@@ -29,36 +31,53 @@ begin
 end;
 
 //***************************Variant type properties****************************
-procedure CmathLibV(mode: Longint; Realpart: Double; ImagPart: Double; out arg: Variant); CDECL;
+procedure CmathLibV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
-    TempPolar: polar;
-    cTemp: Complex;
+    pCmplx: ^Complex;
+    pPolar: ^Polar;
+    pDbl: ^Double;
+    a,
+    b: Double;
 
 begin
     case mode of
         0:
         begin  // CmathLib.Cmplx
-            arg := VarArrayCreate([0, 1], varDouble);
-            arg[0] := RealPart;
-            arg[1] := ImagPart;
+            pDbl := myPointer;
+            myType := 3;        // Complex
+            setlength(myCmplxArray, 1);
+            a := pDbl^;
+            inc(Pbyte(pDbl), 8);
+            b := pDbl^;
+            myCmplxArray[0] := cmplx(a, b);
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         1:
         begin  // CmathLib.ctopolardeg
-            arg := VarArrayCreate([0, 1], varDouble);
-            TempPolar := ctopolardeg(cmplx(RealPart, ImagPart));
-            arg[0] := TempPolar.mag;
-            arg[1] := TempPolar.ang;
+            pCmplx := myPointer;
+            myType := 3;        // Complex
+            setlength(myPolarArray, 1);
+            myPolarArray[0] := ctopolardeg(pCmplx^);
+            myPointer := @(myPolarArray[0]);
+            mySize := SizeOf(myPolarArray[0]) * Length(myPolarArray);
         end;
         2:
         begin  // CmathLib.pdegtocomplex
-            arg := VarArrayCreate([0, 1], varDouble);
-            cTemp := pdegtocomplex(RealPart, ImagPart);
-            arg[0] := cTemp.re;
-            arg[1] := cTemp.im;
+            pPolar := myPointer;
+            myType := 3;        // Complex
+            setlength(myCmplxArray, 1);
+            myCmplxArray[0] := pdegtocomplex(pPolar^.mag, pPolar^.ang);
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 

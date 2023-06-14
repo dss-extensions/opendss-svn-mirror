@@ -7,10 +7,6 @@ function CapacitorsF(mode: Longint; arg: Double): Double; CDECL;
 function CapacitorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 procedure CapacitorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
-var
-    myStrArray: array of Byte;
-    myIntArray: pIntegerArray;
-
 implementation
 
 uses
@@ -324,25 +320,25 @@ begin
 
         1:
         begin  // Capacitors.States read
-            ReAllocmem(myIntArray, sizeof(i) + 1);
+            setlength(myIntArray, 1);
             myIntArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 Elem := ActiveCapacitor;
                 if Elem <> nil then
                 begin
-                    ReAllocmem(myIntArray, sizeof(myIntArray^[1]) * elem.Numsteps);
+                    setlength(myIntArray, elem.Numsteps);
                     k := 0;
                     for i := 1 to elem.Numsteps do
                     begin
-                        myIntArray^[k] := elem.States[i, ActiveActor];
+                        myIntArray[k] := elem.States[i, ActiveActor];
                         Inc(k);
                     end;
                 end;
             end;
             myType := 1;                  // Integer
             mySize := 4 * (elem.Numsteps);
-            myPointer := myIntArray;
+            myPointer := @myIntArray[0];
         end;
         2:
         begin  // Capacitors.States write

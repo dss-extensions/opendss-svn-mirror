@@ -403,6 +403,19 @@ Integer
 //************************ Line related Global defs***************************
     LineTypeList: TCommandList;
 
+//********************* Globals for DirectDLL Interface ***********************
+
+    myStrArray: array of Byte;
+    myDBLArray: array of Double;
+    myCmplxArray: array of Complex;
+    myPolarArray: array of Polar;
+    myIntArray: array of Integer;
+
+procedure WriteStr2Array(myStr: String);
+function BArray2Str(myPtr: Pointer; var idx: Integer): String;
+
+//*****************************************************************************
+
 procedure DoErrorMsg(const S, Emsg, ProbCause: String; ErrNum: Integer);
 procedure DoSimpleMsg(const S: String; ErrNum: Integer);
 procedure DoThreadSafeMsg(const S: String; ErrNum: Integer);
@@ -1146,6 +1159,41 @@ begin
     FreeAndNil(ini);
 end;
 
+//***********************DirectDLL interfacing globals**************************
+
+procedure WriteStr2Array(myStr: String);
+var
+    i: Integer;
+begin
+// Writes the given string into an array of Bytes char by char
+    for i := 1 to High(myStr) do
+    begin
+        setlength(myStrArray, Length(myStrArray) + 1);
+        myStrArray[High(myStrArray)] := Byte(myStr[i]);
+    end;
+end;
+
+function BArray2Str(myPtr: Pointer; var idx: Integer): String;
+var
+    S: String;
+    Pchar: ^Byte;
+begin
+// Returns the first string found in the pointed Byte array (until a NULL char is found)
+    Result := '';
+    Pchar := myPtr;
+    inc(Pbyte(Pchar), idx);
+    while Pchar^ <> 0 do
+    begin
+        S := S + Char(Pchar^);
+        inc(Pbyte(Pchar), 1);
+        inc(idx);
+    end;
+    inc(idx);
+    Result := S;
+end;
+
+//******************************************************************************
+
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType: Integer);
 var
@@ -1732,6 +1780,16 @@ NoFormsAllowed  := TRUE;
     Parallel_enabled := false;
     ConcatenateReports := false;
 
+//******************************************************************************
+// Empty Globals for DirectDLL in case they are not used
+
+    setlength(myStrArray, 0);
+    setlength(myDBLArray, 0);
+    setlength(myCmplxArray, 0);
+    setlength(myPolarArray, 0);
+    setlength(myIntArray, 0);
+
+//******************************************************************************
 
    {Initialize filenames and directories}
 

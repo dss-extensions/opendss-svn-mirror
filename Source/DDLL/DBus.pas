@@ -22,13 +22,6 @@ function BUSF(mode: Longint; arg: Double): Double; CDECL;
 function BUSS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 procedure BUSV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
-var
-    myStrArray: array of Byte;
-    myDBLArray: array of Double;
-    myCmplxArray: array of Complex;
-    myPolarArray: array of Polar;
-    myIntArray: array of Integer;
-
 implementation
 
 function CheckBusReference(cktElem: TDSSCktElement; BusReference: Integer; var TerminalIndex: Integer): Boolean;
