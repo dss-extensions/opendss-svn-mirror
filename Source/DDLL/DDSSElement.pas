@@ -4,7 +4,7 @@ interface
 
 function DSSElementI(mode: Longint; arg: Longint): Longint; CDECL;
 function DSSElementS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure DSSElementV(mode: Longint; out arg: Variant); CDECL;
+procedure DSSElementV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -57,7 +57,7 @@ begin
 end;
 
 //*****************************Variant type properties**************************
-procedure DSSElementV(mode: Longint; out arg: Variant); CDECL;
+procedure DSSElementV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     k: Integer;
@@ -66,7 +66,8 @@ begin
     case mode of
         0:
         begin  // DSSElement.AllPropertyNames
-            arg := VarArrayCreate([0, 0], varOleStr);
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -75,17 +76,23 @@ begin
                         begin
                             with ParentClass do
                             begin
-                                arg := VarArrayCreate([0, NumProperties - 1], varOleStr);
                                 for k := 1 to NumProperties do
                                 begin
-                                    arg[k - 1] := PropertyName^[k];
+                                    WriteStr2Array(PropertyName^[k]);
+                                    WriteStr2Array(Char(0));
                                 end;
                             end;
                         end
                 end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, parameter not recognized';
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 

@@ -5,7 +5,7 @@ interface
 function GeneratorsI(mode: Longint; arg: Longint): Longint; CDECL;
 function GeneratorsF(mode: Longint; arg: Double): Double; CDECL;
 function GeneratorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure GeneratorsV(mode: Longint; out arg: Variant); CDECL;
+procedure GeneratorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -456,7 +456,7 @@ begin
 end;
 
 //*******************************Variant type properties************************
-procedure GeneratorsV(mode: Longint; out arg: Variant); CDECL;
+procedure GeneratorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     GenElem: TGeneratorObj;
@@ -467,55 +467,68 @@ begin
     case mode of
         0:
         begin  // Generators.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if Generators.ListSize > 0 then
                     begin
-                        VarArrayRedim(arg, Generators.ListSize - 1);
-                        k := 0;
                         GenElem := Generators.First;
                         while GenElem <> nil do
                         begin
-                            arg[k] := GenElem.Name;
-                            Inc(k);
+                            WriteStr2Array(GenElem.Name);
+                            WriteStr2Array(Char(0));
                             GenElem := Generators.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // Generators.RegisterNames
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             GeneratorClass := DssClassList[ActiveActor].Get(Classnames[ActiveActor].Find('Generator'));
-            arg := VarArrayCreate([0, NumGenRegisters - 1], varOleStr);
             for k := 0 to NumGenRegisters - 1 do
             begin
-                arg[k] := GeneratorClass.RegisterNames[k + 1];
+                WriteStr2Array(GeneratorClass.RegisterNames[k + 1]);
+                WriteStr2Array(Char(0));
             end;
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         2:
         begin // Generators.RegisterValues
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 GenElem := TGeneratorObj(ActiveCircuit[ActiveActor].Generators.Active);
                 if GenElem <> nil then
                 begin
-                    arg := VarArrayCreate([0, numGenRegisters - 1], varDouble);
-                    for k := 0 to numGenRegisters - 1 do
+                    setlength(myDBLArray, numGenRegisters);
+                    for k := 0 to (numGenRegisters - 1) do
                     begin
-                        arg[k] := GenElem.Registers[k + 1];
+                        myDBLArray[k] := GenElem.Registers[k + 1];
                     end;
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-            end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
-        arg[0] := 'Error, parameter not recognized'
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 

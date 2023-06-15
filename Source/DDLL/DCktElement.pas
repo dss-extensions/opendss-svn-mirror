@@ -623,12 +623,12 @@ begin
         1:
         begin                                          // CktElement.BusNames - Write
             myType := 4;          // String
+            j := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     Count := ActiveCktElement.NTerms;
-                    j := 0;
                     for i := 1 to Count do
                     begin
                         S := BArray2Str(myPointer, j);

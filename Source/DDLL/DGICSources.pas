@@ -5,7 +5,7 @@ interface
 function GICSourcesI(mode: Longint; arg: Longint): Longint; CDECL;
 function GICSourcesF(mode: Longint; arg: Double): Double; CDECL;
 function GICSourcesS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure GICSourcesV(mode: Longint; out arg: Variant); CDECL;
+procedure GICSourcesV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -244,7 +244,7 @@ begin
 end;
 
 //*****************************Variant ype properties*****************************
-procedure GICSourcesV(mode: Longint; out arg: Variant); CDECL;
+procedure GICSourcesV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 var
     GICElem: TGICSourceObj;
     ElementList: Tpointerlist;
@@ -253,27 +253,33 @@ begin
     case mode of
         0:
         begin  // GISource.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ElementList := GICsourceClass.ElementList;
                 if ElementList.ListSize > 0 then
                 begin
-                    VarArrayRedim(arg, ElementList.ListSize - 1);
-                    k := 0;
                     GICElem := ElementList.First;
                     while GICElem <> nil do
                     begin
-                        arg[k] := GICElem.Name;
-                        Inc(k);
+                        WriteStr2Array(GICElem.Name);
+                        WriteStr2Array(Char(0));
                         GICElem := ElementList.Next;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 

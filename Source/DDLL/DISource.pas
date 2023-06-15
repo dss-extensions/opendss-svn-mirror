@@ -5,7 +5,7 @@ interface
 function IsourceI(mode: Longint; arg: Longint): Longint; CDECL;
 function IsourceF(mode: Longint; arg: Double): Double; CDECL;
 function IsourceS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure IsourceV(mode: Longint; out arg: Variant); CDECL;
+procedure IsourceV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -163,7 +163,7 @@ begin
 end;
 
 //***************************Variant type properties*******************************
-procedure IsourceV(mode: Longint; out arg: Variant); CDECL;
+procedure IsourceV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TIsourceObj;
@@ -173,28 +173,34 @@ var
 begin
     case mode of
         0:
-        begin  // Isources.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+        begin                // Isources.AllNames
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if IsourceClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
                     pList := IsourceClass[ActiveActor].ElementList;
-                    VarArrayRedim(arg, pList.ListSize - 1);
-                    k := 0;
                     elem := pList.First;
                     while elem <> nil do
                     begin
-                        arg[k] := elem.Name;
-                        Inc(k);
+                        WriteStr2Array(elem.Name);
+                        WriteStr2Array(Char(0));
                         elem := pList.next;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
     end;
 end;
 
