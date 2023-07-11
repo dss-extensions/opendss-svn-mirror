@@ -5,7 +5,7 @@ interface
 function DSSLoads(mode: Longint; arg: Longint): Longint; CDECL;
 function DSSLoadsF(mode: Longint; arg: Double): Double; CDECL;
 function DSSLoadsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure DSSLoadsV(mode: Longint; var arg: Variant); CDECL;
+procedure DSSLoadsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -581,65 +581,85 @@ begin
 end;
 
 //*********************Properties Variant Type***********************************
-procedure DSSLoadsV(mode: Longint; var arg: Variant); CDECL;
+procedure DSSLoadsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 var
     pLoad: TLoadObj;
-    k, i, Looplimit: Integer;
+    k,
+    i,
+    Looplimit: Integer;
+    PDouble: ^Double;
 begin
     case mode of
         0:
         begin                                   // Loads.Allnames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                     if Loads.ListSize > 0 then
                     begin
-                        VarArrayRedim(arg, Loads.ListSize - 1);
-                        k := 0;
                         pLoad := Loads.First;
                         while pLoad <> nil do
                         begin
-                            arg[k] := pLoad.Name;
-                            Inc(k);
+                            WriteStr2Array(pLoad.Name);
+                            WriteStr2Array(Char(0));
                             pLoad := Loads.Next;
                         end;
                     end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin                                   // Loads.ZIPV - read
-            arg := VarArrayCreate([0, 0], varDouble);
-            arg[0] := 0.0;  // error condition: one element array=0
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
             pLoad := ActiveLoad;
             if pLoad <> nil then
             begin
-                VarArrayRedim(arg, pLoad.nZIPV - 1);
-                for k := 0 to pLoad.nZIPV - 1 do
-                    arg[k] := pLoad.ZipV^[k + 1];
-            end;
+                setlength(myDBLArray, pLoad.nZIPV);
+                for k := 0 to (pLoad.nZIPV - 1) do
+                    myDBLArray[k] := pLoad.ZipV^[k + 1];
+            end
+            else
+                myDBLArray[0] := 0;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         2:
         begin
             pLoad := ActiveLoad;
+            k := 1;
             if pLoad <> nil then
             begin
-             // allocate space for 7
+          // allocate space for 7
                 pLoad.nZIPV := 7;
-             // only put as many elements as proviced up to nZIPV
-                LoopLimit := VarArrayHighBound(arg, 1);
-                if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > 7 then
-                    LoopLimit := VarArrayLowBound(arg, 1) + 6;
-
-                k := 1;
-                for i := VarArrayLowBound(arg, 1) to LoopLimit do
+          // only put as many elements as proviced up to nZIPV
+                if (mySize) > 7 then
+                    LoopLimit := 6
+                else
+                    LoopLimit := mySize - 1;
+                for i := 0 to LoopLimit do
                 begin
-                    pLoad.ZIPV^[k] := arg[i];
+                    PDouble := myPointer;
+                    pLoad.ZIPV^[k] := PDouble^;
                     inc(k);
+                    inc(Pbyte(myPointer), 8);
                 end;
             end;
+            mySize := k - 1;
         end
     else
-        arg[0] := 'NONE';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 
