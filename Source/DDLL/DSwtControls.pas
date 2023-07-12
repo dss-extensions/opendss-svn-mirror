@@ -5,7 +5,7 @@ interface
 function SwtControlsI(mode: Longint; arg: Longint): Longint; CDECL;
 function SwtControlsF(mode: Longint; arg: Double): Double; CDECL;
 function SwtControlsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure SwtControlsV(mode: Longint; out arg: Variant); CDECL;
+procedure SwtControlsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -251,7 +251,7 @@ begin
 end;
 
 //******************************Variant type properties*****************************
-procedure SwtControlsV(mode: Longint; out arg: Variant); CDECL;
+procedure SwtControlsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TSwtControlObj;
@@ -262,26 +262,38 @@ begin
     case mode of
         0:
         begin  // SwtControls.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if SwtControls.ListSize > 0 then
                     begin
                         lst := SwtControls;
-                        arg := VarArrayCreate([0, lst.ListSize - 1], varOleStr);
-                        k := 0;
                         elem := lst.First;
                         while elem <> nil do
                         begin
-                            arg[k] := elem.Name;
-                            Inc(k);
+                            WriteStr2Array(elem.Name);
+                            WriteStr2Array(Char(0));
                             elem := lst.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

@@ -614,7 +614,7 @@ begin
             mySize := Length(myStrArray);
         end;
         1:
-        begin                                   // Loads.ZIPV - read
+        begin                   // Loads.ZIPV - read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
             pLoad := ActiveLoad;
@@ -630,8 +630,9 @@ begin
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         2:
-        begin
+        begin                   // Loads.ZIPV - write
             pLoad := ActiveLoad;
+            myType := 2;        // Double
             k := 1;
             if pLoad <> nil then
             begin

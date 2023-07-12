@@ -4,7 +4,7 @@ interface
 
 function MonitorsI(mode: Longint; arg: Longint): Longint; CDECL;
 function MonitorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure MonitorsV(mode: Longint; out arg: Variant; arg2: Longint); CDECL;
+procedure MonitorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -369,7 +369,7 @@ begin
 end;
 
 //****************************Variant type properties***************************
-procedure MonitorsV(mode: Longint; out arg: Variant; arg2: Longint); CDECL;
+procedure MonitorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     MonitorElem: TMonitorObj;
@@ -387,52 +387,61 @@ var
     s,
     freq: Single;
     SngBuffer: pSingleArray;
-
+    PInt: ^Integer;
 
 begin
     case mode of
         0:
         begin  // Monitors.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if Monitors.ListSize > 0 then
                     begin
-                        VarArrayRedim(arg, Monitors.ListSize - 1);
-                        k := 0;
                         MonitorElem := Monitors.First;
                         while MonitorElem <> nil do
                         begin
-                            arg[k] := MonitorElem.Name;
-                            Inc(k);
+                            WriteStr2Array(MonitorElem.Name);
+                            WriteStr2Array(Char(0));
                             MonitorElem := Monitors.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // Monitor.ByteStream
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMon := ActiveCircuit[ActiveActor].Monitors.Active;
                 if PMon <> nil then
                 begin
-                    arg := VarArrayCreate([0, pmon.MonitorStream.Size - 1], varByte);
+                    setlength(myStrArray, pmon.MonitorStream.Size);
                     pmon.MonitorStream.Seek(0, soFromBeginning);
-                    p := VarArrayLock(arg);
+                    p := @(myStrArray[0]);
                     pmon.MonitorStream.Read(p^, pmon.MonitorStream.Size);   // Move it all over
-              // leaves stream at the end
-                    VarArrayUnlock(arg);
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varByte);
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         2:
         begin  // Monitors.Header
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     pMon := ActiveCircuit[ActiveActor].Monitors.Active;
@@ -440,8 +449,6 @@ begin
                     if length(pMon.StrBuffer) > 0 then
                     begin
                         ListSize := Header.RecordSize;
-                        VarArrayRedim(arg, ListSize - 1);
-                        k := 0;
                         SaveDelims := AuxParser[ActiveActor].Delimiters;
                         AuxParser[ActiveActor].Delimiters := ',';
                         SaveWhiteSpace := AuxParser[ActiveActor].Whitespace;
@@ -454,25 +461,31 @@ begin
                         AuxParser[ActiveActor].AutoIncrement := true;
                         AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                         AuxParser[ActiveActor].StrValue;
+                        k := 0;
                         while k < ListSize do
                         begin
-                            arg[k] := AuxParser[ActiveActor].StrValue;
-                            Inc(k);
+                            WriteStr2Array(AuxParser[ActiveActor].StrValue);
+                            WriteStr2Array(Char(0));
+                            inc(k);
                         end;
                         AuxParser[ActiveActor].AutoIncrement := false; // be a good citizen
                         AuxParser[ActiveActor].Delimiters := SaveDelims;
                         AuxParser[ActiveActor].Whitespace := SaveWhiteSpace;
                     end;
                 end;
+            end;
         end;
         3:
         begin  // Monitors.dblHour
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMon := ActiveCircuit[ActiveActor].Monitors.Active;
                 if pMon.SampleCount > 0 then
                 begin
-                    arg := VarArrayCreate([0, pMon.SampleCount - 1], varDouble);
+                    setlength(myDBLArray, pMon.SampleCount);
                     ReadMonitorHeader(Header, false);   // leave at beginning of data
 
                     TempStr := '';
@@ -483,7 +496,7 @@ begin
                     AuxParser[ActiveActor].AutoIncrement := true;
                     FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                     AuxParser[ActiveActor].AutoIncrement := false;
-               // check first col to see if it is "Hour"
+          // check first col to see if it is "Hour"
                     if System.Sysutils.CompareText(FirstCol, 'hour') = 0 then
                     begin
                         AllocSize := Sizeof(SngBuffer^[1]) * Header.RecordSize;
@@ -497,29 +510,31 @@ begin
                                 Read(s, SizeOf(s));   // Seconds past the hour
                                 Read(sngBuffer^[1], AllocSize);  // read rest of record
                             end;
-                            arg[k] := hr + s / 3600.0;
+                            myDBLArray[k] := hr + s / 3600.0;
                             inc(k);
                         end;
                         Reallocmem(SngBuffer, 0);  // Dispose of buffer
                     end
                     else
                     begin   // Not time solution, so return nil array
-                        arg := VarArrayCreate([0, 0], varDouble);
                         pMon.MonitorStream.Seek(0, soFromEnd); // leave stream at end
                     end;
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         4:
         begin  // Monitors.dblFreq
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMon := ActiveCircuit[ActiveActor].Monitors.Active;
                 if pMon.SampleCount > 0 then
                 begin
-                    arg := VarArrayCreate([0, pMon.SampleCount - 1], varDouble);
+                    setlength(myDBLArray, pMon.SampleCount);
                     ReadMonitorHeader(Header, false);   // leave at beginning of data
                     TempStr := '';
                     for i := 0 to High(pMon.StrBuffer) do       // Moves the content to a string var
@@ -529,7 +544,7 @@ begin
                     AuxParser[ActiveActor].AutoIncrement := true;
                     FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
                     AuxParser[ActiveActor].AutoIncrement := false;
-               // check first col to see if it is "Freq" for harmonics solution
+          // check first col to see if it is "Freq" for harmonics solution
                     if System.Sysutils.CompareText(FirstCol, 'freq') = 0 then
                     begin
                         AllocSize := Sizeof(SngBuffer^[1]) * Header.RecordSize;
@@ -543,30 +558,33 @@ begin
                                 Read(s, SizeOf(s));   // harmonic
                                 Read(sngBuffer^[1], AllocSize);  // read rest of record
                             end;
-                            arg[k] := freq;
+                            myDBLArray[k] := freq;
                             inc(k);
                         end;
                         Reallocmem(SngBuffer, 0);  // Dispose of buffer
                     end
                     else
                     begin   // Not harmonic solution, so return nil array
-                        arg := VarArrayCreate([0, 0], varDouble);
                         pMon.MonitorStream.Seek(0, soFromEnd); // leave stream at end
                     end;
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         5:
         begin    // Monitors.Channel
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMon := ActiveCircuit[ActiveActor].Monitors.Active;
                 if pMon.SampleCount > 0 then
                 begin
-                    index := Integer(arg2);
-                    arg := VarArrayCreate([0, pMon.SampleCount - 1], varDouble);
+                    PInt := myPointer;
+                    index := Integer(PInt^);
+                    setlength(myDBLArray, pMon.SampleCount);
                     ReadMonitorHeader(Header, false);   // FALSE = leave at beginning of data
                     TempStr := '';
                     for i := 0 to High(pMon.StrBuffer) do       // Moves the content to a string var
@@ -587,17 +605,23 @@ begin
                             Read(s, SizeOf(s));
                             Read(sngBuffer^[1], AllocSize);  // read rest of record
                         end;
-                        arg[k] := sngBuffer^[index];
+                        myDBLArray[k] := sngBuffer^[index];
                         inc(k);
                     end;
                     Reallocmem(SngBuffer, 0);  // Dispose of buffer
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
-        arg[0] := 'Error, parameter not recognized';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

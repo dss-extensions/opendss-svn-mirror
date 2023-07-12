@@ -5,7 +5,7 @@ interface
 function LoadShapeI(mode: Longint; arg: Longint): Longint; CDECL;
 function LoadShapeF(mode: Longint; arg: Double): Double; CDECL;
 function LoadShapeS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure LoadShapeV(mode: Longint; var arg: Variant); CDECL;
+procedure LoadShapeV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -215,7 +215,7 @@ begin
 end;
 
 //**********************Variant type properties***************************
-procedure LoadShapeV(mode: Longint; var arg: Variant); CDECL;
+procedure LoadShapeV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     i,
@@ -225,39 +225,42 @@ var
     pList: TPointerList;
     Sample: Complex;
     UseHour: Boolean;
+    PDouble: ^Double;
 
 begin
     case mode of
         0:
         begin  // LoadShapes.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if LoadShapeClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
                     pList := LoadShapeClass[ActiveActor].ElementList;
-                    VarArrayRedim(arg, pList.ListSize - 1);
-                    k := 0;
                     elem := pList.First;
                     while elem <> nil do
                     begin
-                        arg[k] := elem.Name;
-                        Inc(k);
+                        WriteStr2Array(elem.Name);
+                        WriteStr2Array(Char(0));
                         elem := pList.next;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // LoadShapes.PMult read
-            arg := VarArrayCreate([0, 0], varDouble);
-            arg[0] := 0.0;  // error condition: one element array=0
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                 begin
-                    VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);
+                    setlength(myDBLArray, ActiveLSObject.NumPoints);
                     UseHour := ActiveLSObject.Interval = 0;
                     for k := 1 to ActiveLSObject.NumPoints do
                     begin
@@ -265,54 +268,60 @@ begin
                             Sample := ActiveLSObject.GetMult(ActiveLSObject.Hours^[k]) // For variable step
                         else
                             Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);     // This change adds compatibility with MMF
-                        arg[k - 1] := Sample.re;
+                        myDBLArray[k - 1] := Sample.re;
                     end;
                 end
                 else
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end;
+            end
+            else
+                myDBLArray[0] := 0;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         2:
         begin  // LoadShapes.PMult write
+            myType := 2;        // Double
+            k := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                     with ActiveLSObject do
                     begin
-
-        // Only put in as many points as we have allocated
-                        LoopLimit := VarArrayHighBound(arg, 1);
-                        if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > NumPoints then
-                            LoopLimit := VarArrayLowBound(arg, 1) + NumPoints - 1;
-
+          // Only put in as many points as we have allocated
+                        if (mySize > NumPoints) then
+                            LoopLimit := NumPoints - 1
+                        else
+                            LoopLimit := mySize - 1;
                         ReallocMem(PMultipliers, Sizeof(PMultipliers^[1]) * NumPoints);
-                        k := 1;
-                        for i := VarArrayLowBound(arg, 1) to LoopLimit do
+                        for i := 0 to LoopLimit do
                         begin
-                            ActiveLSObject.Pmultipliers^[k] := arg[i];
+                            PDouble := myPointer;
+                            ActiveLSObject.Pmultipliers^[k] := PDOuble^;
                             inc(k);
+                            inc(Pbyte(myPointer), 8);
                         end;
-
                     end
                 else
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61002);
                 end;
             end;
+            mySize := k - 1;
         end;
         3:
         begin  // LoadShapes.QMult read
-            arg := VarArrayCreate([0, 0], varDouble);
-            arg[0] := 0.0;  // error condition: one element array=0
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                 begin
                     if assigned(ActiveLSObject.QMultipliers) then
                     begin
-                        VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);    // This change adds compatibility with MMF
+                        setlength(myDBLArray, ActiveLSObject.NumPoints);    // This change adds compatibility with MMF
                         UseHour := ActiveLSObject.Interval = 0;
                         for k := 1 to ActiveLSObject.NumPoints do
                         begin
@@ -320,7 +329,7 @@ begin
                                 Sample := ActiveLSObject.GetMult(ActiveLSObject.Hours^[k]) // For variable step
                             else
                                 Sample := ActiveLSObject.GetMult(k * ActiveLSObject.Interval);
-                            arg[k - 1] := Sample.im;
+                            myDBLArray[k - 1] := Sample.im;
                         end;
                     end;
                 end
@@ -328,27 +337,35 @@ begin
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end;
+            end
+            else
+                myDBLArray[0] := 0;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         4:
         begin  // LoadShapes.QMult write
+            myType := 2;        // Double
+            k := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                     with ActiveLSObject do
                     begin
 
-        // Only put in as many points as we have allocated
-                        LoopLimit := VarArrayHighBound(arg, 1);
-                        if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > NumPoints then
-                            LoopLimit := VarArrayLowBound(arg, 1) + NumPoints - 1;
+          // Only put in as many points as we have allocated
+                        if (mySize > NumPoints) then
+                            LoopLimit := NumPoints - 1
+                        else
+                            LoopLimit := mySize - 1;
 
                         ReallocMem(QMultipliers, Sizeof(QMultipliers^[1]) * NumPoints);
-                        k := 1;
-                        for i := VarArrayLowBound(arg, 1) to LoopLimit do
+                        for i := 0 to LoopLimit do
                         begin
-                            ActiveLSObject.Qmultipliers^[k] := arg[i];
+                            PDouble := myPointer;
+                            ActiveLSObject.Qmultipliers^[k] := PDouble^;
                             inc(k);
+                            inc(Pbyte(myPointer), 8);
                         end;
 
                     end
@@ -357,58 +374,72 @@ begin
                     DoSimpleMsg('No active Loadshape Object found.', 61002);
                 end;
             end;
+            mySize := k - 1;
         end;
         5:
         begin   // LoadShapes.Timearray read
-            arg := VarArrayCreate([0, 0], varDouble);
-            arg[0] := 0.0;  // error condition: one element array=0
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                 begin
                     if ActiveLSObject.hours <> nil then
                     begin
-                        VarArrayRedim(arg, ActiveLSObject.NumPoints - 1);
+                        setlength(myDBLArray, ActiveLSObject.NumPoints);
                         for k := 0 to ActiveLSObject.NumPoints - 1 do
-                            arg[k] := ActiveLSObject.Hours^[k + 1];
+                            myDBLArray[k] := ActiveLSObject.Hours^[k + 1];
                     end
                 end
                 else
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end;
+            end
+            else
+                myDBLArray[0] := 0;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         6:
         begin   // LoadShapes.Timearray write
+            myType := 2;        // Double
+            k := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
                     with ActiveLSObject do
                     begin
-
-        // Only put in as many points as we have allocated
-                        LoopLimit := VarArrayHighBound(arg, 1);
-                        if (LoopLimit - VarArrayLowBound(arg, 1) + 1) > NumPoints then
-                            LoopLimit := VarArrayLowBound(arg, 1) + NumPoints - 1;
-
+          // Only put in as many points as we have allocated
+                        if (mySize > NumPoints) then
+                            LoopLimit := NumPoints - 1
+                        else
+                            LoopLimit := mySize - 1;
                         ReallocMem(Hours, Sizeof(Hours^[1]) * NumPoints);
                         k := 1;
-                        for i := VarArrayLowBound(arg, 1) to LoopLimit do
+                        for i := 0 to LoopLimit do
                         begin
-                            ActiveLSObject.Hours^[k] := arg[i];
+                            PDouble := myPointer;
+                            ActiveLSObject.Hours^[k] := PDouble^;
                             inc(k);
+                            inc(Pbyte(myPointer), 8);
                         end;
-
                     end
                 else
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61002);
                 end;
             end;
+            mySize := k - 1;
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

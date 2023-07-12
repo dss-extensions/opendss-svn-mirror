@@ -5,7 +5,7 @@ interface
 function MetersI(mode: Longint; arg: Longint): Longint; CDECL;
 function MetersF(mode: Longint; arg: Double): Double; CDECL;
 function MetersS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure MetersV(mode: Longint; var arg: Variant); CDECL;
+procedure MetersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -605,7 +605,7 @@ begin
 end;
 
 //***************************Variant type properties******************************
-procedure MetersV(mode: Longint; var arg: Variant); CDECL;
+procedure MetersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     pMeter,
@@ -621,237 +621,270 @@ var
     elem: TDSSCktElement;
     node: TCktTreeNode;
     MyPCEList: array of String;
+    PDouble: ^Double;
 
 begin
     case mode of
         0:
         begin  // Meters.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
-                    if EnergyMeters.ListSize > 0 then
+                begin
+                    if (EnergyMeters.ListSize > 0) then
                     begin
-                        VarArrayRedim(arg, EnergyMeters.ListSize - 1);
-                        k := 0;
                         MeterElem := EnergyMeters.First;
                         while MeterElem <> nil do
                         begin
-                            arg[k] := MeterElem.Name;
-                            Inc(k);
+                            WriteStr2Array(MeterElem.Name);
+                            WriteStr2Array(Char(0));
                             MeterElem := EnergyMeters.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // Meters.RegisterNames
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
             if Assigned(pMeterObj) then
             begin
-                arg := VarArrayCreate([0, NumEMRegisters - 1], varOleStr);
                 for k := 0 to NumEMRegisters - 1 do
                 begin
-                    arg[k] := pMeterObj.RegisterNames[k + 1];
+                    WriteStr2Array(pMeterObj.RegisterNames[k + 1]);
+                    WriteStr2Array(Char(0));
                 end;
             end
             else
-                arg := VarArrayCreate([0, 0], varOleStr); // null array
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         2:
         begin  // Meters.RegisterValues
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    arg := VarArrayCreate([0, numEMRegisters - 1], varDouble);
+                    setlength(myDBLArray, numEMRegisters);
                     for k := 0 to numEMRegisters - 1 do
                     begin
-                        arg[k] := pMeterObj.Registers[k + 1];
-                    end;
-                end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-            end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
-            end;
-        end;
-        3:
-        begin  // Meters.Totals
-            if ActiveCircuit[ActiveActor] <> nil then
-                with ActiveCircuit[ActiveActor] do
-                begin
-                    TotalizeMeters;
-                    arg := VarArrayCreate([0, NumEMRegisters - 1], varDouble);
-                    for i := 1 to NumEMregisters do
-                        arg[i - 1] := RegisterTotals[i];
-                end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
-            end;
-        end;
-        4:
-        begin  // Meters.PeakCurrent read
-            if ActiveCircuit[ActiveActor] <> nil then
-            begin
-                pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
-                if pMeterObj <> nil then
-                begin
-                    arg := VarArrayCreate([0, pMeterObj.NPhases - 1], varDouble);
-                    for k := 0 to pMeterObj.NPhases - 1 do
-                        arg[k] := pMeterObj.SensorCurrent^[k + 1];
-                end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-            end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
-            end;
-        end;
-        5:
-        begin  // Meters.PeakCurrent Write
-            if ActiveCircuit[ActiveActor] <> nil then
-            begin
-                pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
-                if pMeterObj <> nil then
-                begin
-                    k := VarArrayLowBound(arg, 1);   // get starting index for Value array
-                    for i := 1 to pMeterObj.NPhases do
-                    begin
-                        pMeterObj.SensorCurrent^[i] := arg[k];
-                        inc(k);
+                        myDBLArray[k] := pMeterObj.Registers[k + 1];
                     end;
                 end;
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
-        6:
-        begin  // Meter.CalcCurrent read
+        3:
+        begin  // Meters.Totals
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    TotalizeMeters;
+                    setlength(myDBLArray, NumEMRegisters);
+                    for i := 1 to NumEMregisters do
+                        myDBLArray[i - 1] := RegisterTotals[i];
+                end;
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
+        end;
+        4:
+        begin  // Meters.PeakCurrent read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    arg := VarArrayCreate([0, pMeterObj.NPhases - 1], varDouble);
+                    setlength(myDBLArray, pMeterObj.NPhases);
                     for k := 0 to pMeterObj.NPhases - 1 do
-                        arg[k] := Cabs(pMeterObj.CalculatedCurrent^[k + 1]);
+                        myDBLArray[k] := pMeterObj.SensorCurrent^[k + 1];
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-            end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
+        end;
+        5:
+        begin  // Meters.PeakCurrent Write
+            myType := 2;        // Double
+            k := 1;
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
+                if pMeterObj <> nil then
+                begin
+                    for i := 1 to pMeterObj.NPhases do
+                    begin
+                        PDouble := myPointer;
+                        pMeterObj.SensorCurrent^[i] := PDouble^;
+                        inc(k);
+                        inc(Pbyte(myPointer), 8);
+                    end;
+                end;
+            end;
+            mySize := k - 1;
+        end;
+        6:
+        begin  // Meter.CalcCurrent read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
+                if pMeterObj <> nil then
+                begin
+                    setlength(myDBLArray, pMeterObj.NPhases);
+                    for k := 0 to pMeterObj.NPhases - 1 do
+                        myDBLArray[k] := Cabs(pMeterObj.CalculatedCurrent^[k + 1]);
+                end;
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         7:
         begin  // Meters.CalcCurrent Write
     // First make sure active circuit element is a meter
+            myType := 2;        // Double
+            k := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    k := VarArrayLowBound(arg, 1);   // get starting index for Value array
                     for i := 1 to pMeterObj.NPhases do
                     begin
-                        pMeterObj.CalculatedCurrent^[i] := cmplx(arg[k], 0.0);   // Just set the real part
+                        PDouble := myPointer;
+                        pMeterObj.CalculatedCurrent^[i] := cmplx(PDouble^, 0.0);   // Just set the real part
                         inc(k);
+                        inc(Pbyte(myPointer), 8);
                     end;
                 end;
             end;
+            mySize := k - 1;
         end;
         8:
         begin  // Meters.AllocFactors read
     // First make sure active circuit element is a meter
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    arg := VarArrayCreate([0, pMeterObj.NPhases - 1], varDouble);
+                    setlength(myDBLArray, pMeterObj.NPhases);
                     for k := 0 to pMeterObj.NPhases - 1 do
-                        arg[k] := pMeterObj.PhsAllocationFactor^[k + 1];
-                end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-            end
-            else
-            begin
-                arg := VarArrayCreate([0, 0], varDouble);
+                        myDBLArray[k] := pMeterObj.PhsAllocationFactor^[k + 1];
+                end;
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         9:
         begin   // Meters.AllocFactors Write
     // First make sure active circuit element is a meter
+            myType := 2;        // Double
+            k := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    k := VarArrayLowBound(arg, 1);   // get starting index for Value array
                     for i := 1 to pMeterObj.NPhases do
                     begin
-                        pMeterObj.PhsAllocationFactor^[i] := arg[k];   // Just set the real part
+                        PDouble := myPointer;
+                        pMeterObj.PhsAllocationFactor^[i] := PDouble^;   // Just set the real part
                         inc(k);
+                        inc(Pbyte(myPointer), 8);
                     end;
                 end;
             end;
+            mySize := k - 1;
         end;
         10:
         begin  // Meters.AllEndElements
-            arg := VarArrayCreate([0, 0], varOleStr);
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     pMeterObj := EnergyMeters.Active;
                     if pMeterObj <> nil then
                     begin
                         last := pMeterObj.BranchList.ZoneEndsList.NumEnds - 1;
-                        VarArrayRedim(arg, last);
                         for k := 0 to last do
                         begin
                             pMeterObj.BranchList.ZoneEndsList.Get(k + 1, node);
                             elem := node.CktObject;
-                            arg[k] := Format('%s.%s', [elem.ParentClass.Name, elem.Name]);
+                            WriteStr2Array(Format('%s.%s', [elem.ParentClass.Name, elem.Name]));
+                            WriteStr2Array(Char(0));
                         end;
                     end;
                 end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         11:
         begin  // Meters.ALlBranchesInZone
-            arg := VarArrayCreate([0, 0], varOleStr);
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
                 begin
                     pMeterObj := EnergyMeters.Active;
                     if pMeterObj <> nil then
                     begin
-          // Get count of branches
+            // Get count of branches
                         BranchCount := MetersI(15, 0);
                         if BranchCount > 0 then
                         begin
-                            VarArrayRedim(arg, BranchCount - 1);
                             pElem := pMeterObj.BranchList.First;
-                            k := 0;
                             while pElem <> nil do
                             begin
-                                arg[k] := Format('%s.%s', [pElem.ParentClass.Name, pElem.Name]);
-                                inc(k);
+                                WriteStr2Array(Format('%s.%s', [pElem.ParentClass.Name, pElem.Name]));
+                                WriteStr2Array(Char(0));
                                 pElem := pMeterObj.BranchList.GoForward;
                             end;
                         end;
                     end;
                 end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         12:
         begin  // Meters.ALLPCEinZone
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
-
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -863,17 +896,28 @@ begin
             // moves the list to the variant output
                         if (length(pMeter.ZonePCE) > 0) and (pMeter.ZonePCE[0] <> '') then
                         begin
-                            VarArrayRedim(arg, length(pMeter.ZonePCE) + 1);
                             for k := 0 to High(pMeter.ZonePCE) do
-                                arg[k] := pMeter.ZonePCE[k];
+                            begin
+                                WriteStr2Array(pMeter.ZonePCE[k]);
+                                WriteStr2Array(Char(0));
+                            end;
                         end;
                     end;
                 end;
-            end;
-
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, Parameter not recognized';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

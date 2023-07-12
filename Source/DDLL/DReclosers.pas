@@ -5,7 +5,7 @@ interface
 function ReclosersI(mode: Longint; arg: Longint): Longint; CDECL;
 function ReclosersF(mode: Longint; arg: Double): Double; CDECL;
 function ReclosersS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure ReclosersV(mode: Longint; out arg: Variant); CDECL;
+procedure ReclosersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -349,7 +349,7 @@ begin
 end;
 
 //********************Variant type properties******************************
-procedure ReclosersV(mode: Longint; out arg: Variant); CDECL;
+procedure ReclosersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TRecloserObj;
@@ -360,46 +360,57 @@ begin
     case mode of
         0:
         begin  // Reclosers.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if RecloserClass.ElementList.ListSize > 0 then
                 begin
                     pList := RecloserClass.ElementList;
-                    VarArrayRedim(arg, pList.ListSize - 1);
-                    k := 0;
                     elem := pList.First;
                     while elem <> nil do
                     begin
-                        arg[k] := elem.Name;
-                        Inc(k);
+                        WriteStr2Array(elem.Name);
+                        WriteStr2Array(Char(0));
                         elem := pList.next;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // Reclosers.RecloseIntervals
-            arg := VarArrayCreate([0, 0], varDouble);
-            arg[0] := -1.0;
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 elem := RecloserClass.ElementList.Active;
                 if elem <> nil then
                 begin
-                    VarArrayRedim(arg, elem.NumReclose - 1);
+                    setlength(myDBLArray, elem.NumReclose);
                     k := 0;
                     for i := 1 to elem.NumReclose do
                     begin
-                        arg[k] := elem.RecloseIntervals^[i];
+                        myDBLArray[k] := elem.RecloseIntervals^[i];
                         Inc(k);
                     end;
                 end;
             end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

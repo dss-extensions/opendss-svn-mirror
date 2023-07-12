@@ -4,7 +4,7 @@ interface
 
 function RelaysI(mode: Longint; arg: Longint): Longint; CDECL;
 function RelaysS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure RelaysV(mode: Longint; out arg: Variant); CDECL;
+procedure RelaysV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -255,7 +255,7 @@ begin
 end;
 
 //****************************Variant type properties****************************
-procedure RelaysV(mode: Longint; out arg: Variant); CDECL;
+procedure RelaysV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TRelayObj;
@@ -266,27 +266,35 @@ begin
     case mode of
         0:
         begin  // Relays.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if RelayClass.ElementList.ListSize > 0 then
                 begin
                     pList := RelayClass.ElementList;
-                    VarArrayRedim(arg, pList.ListSize - 1);
-                    k := 0;
                     elem := pList.First;
                     while elem <> nil do
                     begin
-                        arg[k] := elem.Name;
-                        Inc(k);
+                        WriteStr2Array(elem.Name);
+                        WriteStr2Array(Char(0));
                         elem := pList.next;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

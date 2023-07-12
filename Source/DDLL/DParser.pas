@@ -5,7 +5,7 @@ interface
 function ParserI(mode: Longint; arg: Longint): Longint; CDECL;
 function ParserF(mode: Longint; arg: Double): Double; CDECL;
 function ParserS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure ParserV(mode: Longint; out arg: Variant); CDECL;
+procedure ParserV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -13,7 +13,10 @@ uses
     ComServ,
     ParserDel,
     Variants,
-    ArrayDef;
+    ArrayDef,
+    DSSGlobals,
+    sysutils,
+    Dialogs;
 
 var
     ComParser: ParserDel.TParser;
@@ -120,55 +123,79 @@ begin
 end;
 
 //***************************Variant type properties****************************
-procedure ParserV(mode: Longint; out arg: Variant); CDECL;
+procedure ParserV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
-    i, ActualSize, MatrixSize: Integer;
+    i,
+    ActualSize,
+    ExpectedSize,
+    ExpectedOrder,
+    MatrixSize: Integer;
     VectorBuffer: pDoubleArray;
-    ExpectedSize, ExpectedOrder: Integer;
     MatrixBuffer: pDoubleArray;
 
 begin
     case mode of
         0:
         begin  // Parser.Vector
-            ExpectedSize := Integer(arg);
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            ExpectedSize := Integer(mySize);
             VectorBuffer := Allocmem(SizeOf(VectorBuffer^[1]) * ExpectedSize);
             ActualSize := ComParser.ParseAsVector(ExpectedSize, VectorBuffer);
-            arg := VarArrayCreate([0, (ActualSize - 1)], varDouble);
+            setlength(myDBLArray, ActualSize);
             for i := 0 to (ActualSize - 1) do
-                arg[i] := VectorBuffer^[i + 1];
+                myDBLArray[i] := VectorBuffer^[i + 1];
             Reallocmem(VectorBuffer, 0);
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         1:
         begin  // Parser.Matrix
-            ExpectedOrder := Integer(arg);
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            ExpectedOrder := Integer(mySize);
             MatrixSize := ExpectedOrder * ExpectedOrder;
             MatrixBuffer := Allocmem(SizeOf(MatrixBuffer^[1]) * MatrixSize);
             ComParser.ParseAsMatrix(ExpectedOrder, MatrixBuffer);
 
-            arg := VarArrayCreate([0, (MatrixSize - 1)], varDouble);
+            setlength(myDBLArray, MatrixSize);
             for i := 0 to (MatrixSize - 1) do
-                arg[i] := MatrixBuffer^[i + 1];
+                myDBLArray[i] := MatrixBuffer^[i + 1];
 
             Reallocmem(MatrixBuffer, 0);
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         2:
         begin  // Parser.SymMatrix
-            ExpectedOrder := Integer(arg);
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            ExpectedOrder := Integer(mySize);
             MatrixSize := ExpectedOrder * ExpectedOrder;
             MatrixBuffer := Allocmem(SizeOf(MatrixBuffer^[1]) * MatrixSize);
             ComParser.ParseAsSymMatrix(ExpectedOrder, MatrixBuffer);
 
-            arg := VarArrayCreate([0, (MatrixSize - 1)], varDouble);
+            setlength(myDBLArray, MatrixSize);
             for i := 0 to (MatrixSize - 1) do
-                arg[i] := MatrixBuffer^[i + 1];
+                myDBLArray[i] := MatrixBuffer^[i + 1];
 
             Reallocmem(MatrixBuffer, 0);
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
+
+initialization
+    ComParser := ParserDel.TParser.Create;  // create COM Parser object
 
 end.
