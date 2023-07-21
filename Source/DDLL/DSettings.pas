@@ -5,7 +5,7 @@ interface
 function SettingsI(mode: Longint; arg: Longint): Longint; CDECL;
 function SettingsF(mode: Longint; arg: Double): Double; CDECL;
 function SettingsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure SettingsV(mode: Longint; out arg: Variant); CDECL;
+procedure SettingsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -266,102 +266,132 @@ begin
 end;
 
 //*******************************Variant type properties******************************
-procedure SettingsV(mode: Longint; out arg: Variant); CDECL;
+procedure SettingsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
-    i, j, Count, Num: Integer;
+    i,
+    j,
+    Count,
+    Num: Integer;
+    PInt: ^Integer;
+    PDouble: ^Double;
 
 begin
     case mode of
         0:
         begin  // Settings.UERegs read
+            myType := 1;        // Integer
+            setlength(myIntArray, 1);
+            myIntArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, ActiveCircuit[ActiveActor].NumUERegs - 1], varInteger);
+                setlength(myIntArray, ActiveCircuit[ActiveActor].NumUERegs);
                 for i := 0 to ActiveCircuit[ActiveActor].NumUERegs - 1 do
                 begin
-                    arg[i] := ActiveCircuit[ActiveActor].UERegs^[i + 1]
+                    myIntArray[i] := ActiveCircuit[ActiveActor].UERegs^[i + 1]
                 end;
-            end
-            else
-                arg := VarArrayCreate([0, 0], varInteger);
+            end;
+            myPointer := @(myIntArray[0]);
+            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
         end;
         1:
         begin  // Settings.UERegs write
+            j := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                ReAllocMem(ActiveCircuit[ActiveActor].UERegs, Sizeof(ActiveCircuit[ActiveActor].UERegs^[1]) * (1 - VarArrayLowBound(arg, 1) + VarArrayHighBound(arg, 1)));
-                j := 1;
-                for i := VarArrayLowBound(arg, 1) to VarArrayHighBound(arg, 1) do
+                ReAllocMem(ActiveCircuit[ActiveActor].UERegs, Sizeof(ActiveCircuit[ActiveActor].UERegs^[1]) * mySize);
+                for i := 1 to mySize do
                 begin
-                    ActiveCircuit[ActiveActor].UERegs^[j] := arg[i];
+                    PInt := myPointer;
+                    ActiveCircuit[ActiveActor].UERegs^[j] := PInt^;
+                    inc(Pbyte(myPointer), 4);
                     Inc(j);
                 end;
             end;
+            mySize := j - 1;
         end;
         2:
         begin  // Settings.LossRegs read
+            myType := 1;        // Integer
+            setlength(myIntArray, 1);
+            myIntArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                arg := VarArrayCreate([0, ActiveCircuit[ActiveActor].NumLossRegs - 1], varInteger);
+                setlength(myIntArray, ActiveCircuit[ActiveActor].NumLossRegs);
                 for i := 0 to ActiveCircuit[ActiveActor].NumLossRegs - 1 do
                 begin
-                    arg[i] := ActiveCircuit[ActiveActor].LossRegs^[i + 1]
+                    myIntArray[i] := ActiveCircuit[ActiveActor].LossRegs^[i + 1]
                 end;
-            end
-            else
-                arg := VarArrayCreate([0, 0], varInteger);
+            end;
+            myPointer := @(myIntArray[0]);
+            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
         end;
         3:
         begin  // Settings.LossRegs write
+            j := 1;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                ReAllocMem(ActiveCircuit[ActiveActor].LossRegs, Sizeof(ActiveCircuit[ActiveActor].LossRegs^[1]) * (1 - VarArrayLowBound(arg, 1) + VarArrayHighBound(arg, 1)));
-                j := 1;
-                for i := VarArrayLowBound(arg, 1) to VarArrayHighBound(arg, 1) do
+                ReAllocMem(ActiveCircuit[ActiveActor].LossRegs, Sizeof(ActiveCircuit[ActiveActor].LossRegs^[1]) * mySize);
+                for i := 1 to mySize do
                 begin
-                    ActiveCircuit[ActiveActor].LossRegs^[j] := arg[i];
+                    PInt := myPointer;
+                    ActiveCircuit[ActiveActor].LossRegs^[j] := PInt^;
+                    inc(Pbyte(myPointer), 4);
                     Inc(j);
                 end;
             end;
+            mySize := j - 1;
         end;
         4:
         begin  // Settings.VoltageBases read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
-          {Count the number of voltagebases specified}
+        {Count the number of voltagebases specified}
                     i := 0;
                     repeat
                         Inc(i);
                     until LegalVoltageBases^[i] = 0.0;
                     Count := i - 1;
-                    arg := VarArrayCreate([0, Count - 1], varDouble);
+                    setlength(myDBLArray, Count);
                     for i := 0 to Count - 1 do
-                        arg[i] := LegalVoltageBases^[i + 1];
-                end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+                        myDBLArray[i] := LegalVoltageBases^[i + 1];
+                end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         5:
         begin  // Settings.VoltageBases write
-            Num := VarArrayHighBound(arg, 1) - VarArrayLowBound(arg, 1) + 1;
-     {LegalVoltageBases is a zero-terminated array, so we have to allocate
+            myType := 2;            // Double
+            j := 1;
+            Num := mySize;
+      {LegalVoltageBases is a zero-terminated array, so we have to allocate
       one more than the number of actual values}
             with ActiveCircuit[ActiveActor] do
             begin
                 Reallocmem(LegalVoltageBases, Sizeof(LegalVoltageBases^[1]) * (Num + 1));
-                j := 1;
-                for i := VarArrayLowBound(arg, 1) to VarArrayHighBound(arg, 1) do
+                for i := 1 to mySize do
                 begin
-                    LegalVoltageBases^[j] := arg[i];
+                    PDouble := myPointer;
+                    LegalVoltageBases^[j] := PDouble^;
+                    inc(Pbyte(myPointer), 8);
                     Inc(j)
                 end;
                 LegalVoltageBases^[Num + 1] := 0.0;
             end;
+            mySize := j - 1;
         end
     else
-        arg[0] := 'Error, parameter not recognized'
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

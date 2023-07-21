@@ -5,7 +5,7 @@ interface
 function TransformersI(mode: Longint; arg: Longint): Longint; CDECL;
 function TransformersF(mode: Longint; arg: Double): Double; CDECL;
 function TransformersS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure TransformersV(mode: Longint; out arg: Variant); CDECL;
+procedure TransformersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -399,7 +399,7 @@ begin
 end;
 
 //*****************************Variant ype properties*****************************
-procedure TransformersV(mode: Longint; out arg: Variant); CDECL;
+procedure TransformersV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TTransfObj;
@@ -415,81 +415,89 @@ begin
     case mode of
         0:
         begin  // Transformers.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if Transformers.ListSize > 0 then
                     begin
                         lst := Transformers;
-                        VarArrayRedim(arg, lst.ListSize - 1);
                         k := 0;
                         elem := lst.First;
                         while elem <> nil do
                         begin
-                            arg[k] := elem.Name;
+                            WriteStr2Array(elem.Name);
+                            WriteStr2Array(Char(0));
                             Inc(k);
                             elem := lst.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin // Transformers.WdgVoltages
-
+            myType := 3;        // Complex
+            setlength(myCmplxArray, 1);
+            myCmplxArray[0] := cmplx(0, 0);
             elem := ActiveTransformer;
             if elem <> nil then
             begin
                 if (elem.ActiveWinding > 0) and (elem.ActiveWinding <= elem.NumberOfWindings) then
                 begin
-                    arg := VarArrayCreate([0, 2 * elem.nphases - 1], varDouble);
+                    setlength(myCmplxArray, (2 * elem.nphases));
                     TempVoltageBuffer := AllocMem(Sizeof(Complex) * elem.nphases);
                     elem.GetWindingVoltages(elem.ActiveWinding, TempVoltageBuffer, ActiveActor);
                     iV := 0;
                     for i := 1 to elem.Nphases do
                     begin
-                        arg[iV] := TempVoltageBuffer^[i].re;
-                        Inc(iV);
-                        arg[iV] := TempVoltageBuffer^[i].im;
+                        myCmplxArray[iV] := TempVoltageBuffer^[i];
                         Inc(iV);
                     end;
-
                     Reallocmem(TempVoltageBuffer, 0);
                 end
-                else
-                    arg := VarArrayCreate([0, 0], varDouble);
-                ;
-
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end;
         2:
         begin  // Transformers.WdgCurrents
+            myType := 3;        // Complex
+            setlength(myCmplxArray, 1);
+            myCmplxArray[0] := cmplx(0, 0);
             elem := ActiveTransformer;
             if elem <> nil then
             begin
                 NumCurrents := 2 * elem.NPhases * elem.NumberOfWindings; // 2 currents per winding
-                arg := VarArrayCreate([0, 2 * NumCurrents - 1], varDouble);
+                setlength(myCmplxArray, (2 * NumCurrents));
                 TempCurrentBuffer := AllocMem(Sizeof(Complex) * NumCurrents);
                 ;
                 elem.GetAllWindingCurrents(TempCurrentBuffer, ActiveActor);
                 iV := 0;
                 for i := 1 to NumCurrents do
                 begin
-                    arg[iV] := TempCurrentBuffer^[i].re;
-                    Inc(iV);
-                    arg[iV] := TempCurrentBuffer^[i].im;
+                    myCmplxArray[iV] := TempCurrentBuffer^[i];
                     Inc(iV);
                 end;
-
                 Reallocmem(TempCurrentBuffer, 0);
-
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+            end;
+            myPointer := @(myCmplxArray[0]);
+            mySize := SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
         end
     else
-        arg[0] := 'Error, parameter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 

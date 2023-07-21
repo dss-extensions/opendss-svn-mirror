@@ -5,7 +5,7 @@ interface
 function SensorsI(mode: Longint; arg: Longint): Longint; CDECL;
 function SensorsF(mode: Longint; arg: Double): Double; CDECL;
 function SensorsS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
-procedure SensorsV(mode: Longint; var arg: Variant); CDECL;
+procedure SensorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 implementation
 
@@ -258,122 +258,160 @@ begin
 end;
 
 //***************************Variant type properties*****************************
-procedure SensorsV(mode: Longint; var arg: Variant); CDECL;
+procedure SensorsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
     elem: TSensorObj;
-    k, i: Integer;
+    k,
+    i: Integer;
+    PDouble: ^Double;
 
 begin
     case mode of
         0:
         begin // Sensors.AllNames
-            arg := VarArrayCreate([0, 0], varOleStr);
-            arg[0] := 'NONE';
+            myType := 4;        // String
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
+            begin
                 with ActiveCircuit[ActiveActor] do
+                begin
                     if Sensors.ListSize > 0 then
                     begin
-                        VarArrayRedim(arg, Sensors.ListSize - 1);
-                        k := 0;
                         elem := Sensors.First;
                         while elem <> nil do
                         begin
-                            arg[k] := elem.Name;
-                            Inc(k);
+                            WriteStr2Array(elem.Name);
+                            WriteStr2Array(Char(0));
                             elem := Sensors.Next;
                         end;
                     end;
+                end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin // Sensors.Currents read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                arg := VarArrayCreate([0, elem.NPhases - 1], varDouble);
+                setlength(myDBLArray, elem.NPhases);
                 for k := 0 to elem.NPhases - 1 do
-                    arg[k] := elem.SensorCurrent^[k + 1];
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+                    myDBLArray[k] := elem.SensorCurrent^[k + 1];
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         2:
         begin // Sensors.Currents write
+            myType := 2;            // Double
             elem := ActiveSensor;
+            k := 1;
             if elem <> nil then
             begin
-                k := VarArrayLowBound(arg, 1);
                 for i := 1 to elem.NPhases do
                 begin
-                    elem.SensorCurrent^[i] := arg[k];
+                    PDouble := myPointer;
+                    elem.SensorCurrent^[i] := PDouble^;
+                    inc(Pbyte(myPointer), 8);
                     inc(k);
                 end;
             end;
+            mySize := k - 1;
         end;
         3:
         begin // Sensors.KVARS read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                arg := VarArrayCreate([0, elem.NPhases - 1], varDouble);
+                setlength(myDBLArray, elem.NPhases);
                 for k := 0 to elem.NPhases - 1 do
-                    arg[k] := elem.SensorQ^[k + 1];
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+                    myDBLArray[k] := elem.SensorQ^[k + 1];
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         4:
         begin // Sensors.KVARS write
+            myType := 2;            // Double
+            k := 1;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                k := VarArrayLowBound(arg, 1);
                 for i := 1 to elem.NPhases do
                 begin
-                    elem.SensorQ^[i] := arg[k];
+                    PDouble := myPointer;
+                    elem.SensorQ^[i] := PDouble^;
+                    inc(Pbyte(myPointer), 8);
                     inc(k);
                 end;
             end;
+            mySize := k - 1;
         end;
         5:
         begin // Sensors.KWS read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                arg := VarArrayCreate([0, elem.NPhases - 1], varDouble);
+                setlength(myDBLArray, elem.NPhases);
                 for k := 0 to elem.NPhases - 1 do
-                    arg[k] := elem.SensorP^[k + 1];
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+                    myDBLArray[k] := elem.SensorP^[k + 1];
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
         6:
         begin // Sensors.KWS write
+            myType := 2;            // Double
+            k := 1;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                k := VarArrayLowBound(arg, 1);
                 for i := 1 to elem.NPhases do
                 begin
-                    elem.SensorP^[i] := arg[k];
+                    PDouble := myPointer;
+                    elem.SensorP^[i] := PDouble^;
+                    inc(Pbyte(myPointer), 8);
                     inc(k);
                 end;
             end;
+            mySize := k - 1;
         end;
         7:
         begin  // Sensors.AllocFactors read
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             elem := ActiveSensor;
             if elem <> nil then
             begin
-                arg := VarArrayCreate([0, elem.NPhases - 1], varDouble);
+                setlength(myDBLArray, elem.NPhases);
                 for k := 0 to elem.NPhases - 1 do
-                    arg[k] := elem.PhsAllocationFactor^[k + 1];
-            end
-            else
-                arg := VarArrayCreate([0, 0], varDouble);
+                    myDBLArray[k] := elem.PhsAllocationFactor^[k + 1];
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
-        arg[0] := 'Error, paremeter not valid';
+    begin
+        myType := 4;        // String
+        setlength(myStrArray, 0);
+        WriteStr2Array('Error, parameter not recognized');
+        myPointer := @(myStrArray[0]);
+        mySize := Length(myStrArray);
+    end;
     end;
 end;
 
