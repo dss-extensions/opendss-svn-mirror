@@ -1004,29 +1004,31 @@ begin
                     LineElem := Lines.First;
                     while LineElem <> nil do
                     begin
-                        TxtRow := '';
-                        Add2file := true;
-                        for k := 1 to 2 do
+                        if LineElem.Enabled then
                         begin
-                            myBus := StripExtension(LineElem.GetBus(k));
-                            DSSGlobals.SetActiveBus(myBus);
-                            if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
-                                .GISCoorddefined) then
+                            TxtRow := '';
+                            Add2file := true;
+                            for k := 1 to 2 do
                             begin
-                                TxtRow := TxtRow +
-                                    floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
-                                    .long) + ',' +
-                                    floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
-                                    .lat) + ',';
+                                myBus := StripExtension(LineElem.GetBus(k));
+                                DSSGlobals.SetActiveBus(myBus);
+                                if (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                    .GISCoorddefined) then
+                                begin
+                                    TxtRow := TxtRow +
+                                        floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                        .long) + ',' +
+                                        floattostr(Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                        .lat) + ',';
+                                end;
+                                Add2file := Add2file and
+                                    (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long <> 0) and (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
+                                    .lat <> 0);
                             end;
-                            Add2file := Add2file and
-                                (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long <> 0) and (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex]
-                                .lat <> 0);
+                            if Add2file then
+                                Writeln(F, TxtRow);
                         end;
-                        if Add2file then
-                            Writeln(F, TxtRow);
                         LineElem := Lines.Next;
-
                     end;
                     CloseFile(F);
                     JSONCmd := '{"command":"plotcircuit","path":"' + OutputDirectory
