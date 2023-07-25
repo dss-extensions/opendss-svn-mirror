@@ -15,7 +15,8 @@ uses
     PDElement,
     PCElement,
     Variants,
-    SysUtils;
+    SysUtils,
+    Dialogs;
 
 function ActiveTree: TCktTree;
 begin
@@ -346,7 +347,8 @@ begin
         begin  // Topology.AllLoopedPairs
             myType := 4;        // String
             setlength(myStrArray, 0);
-            setlength(TStr, 0);
+            setlength(TStr, 1);
+            TStr[0] := 'NONE';
             k := -1;  // because we always increment by 2!
             topo := ActiveTree;
             if topo <> nil then
@@ -371,7 +373,7 @@ begin
                         if not found then
                         begin
                             k := k + 2;
-                            setlength(TStr, k);
+                            setlength(TStr, k + 1);
                             TStr[k - 1] := pdElem.QualifiedName;
                             TStr[k] := pdLoop.QualifiedName;
                         end;
@@ -383,20 +385,24 @@ begin
             begin
                 for i := 0 to High(TStr) do
                 begin
-                    WriteStr2Array(TStr[i]);
-                    WriteStr2Array(Char(0));
+                    if TStr[i] <> '' then
+                    begin
+                        WriteStr2Array(TStr[i]);
+                        WriteStr2Array(Char(0));
+                    end;
                 end;
             end
             else
                 WriteStr2Array('');
-            myPointer := @(myIntArray[0]);
-            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         1:
         begin  // Topology.AllIsolatedBranches
             myType := 4;        // String
             setlength(myStrArray, 0);
-            setlength(TStr, 0);
+            setlength(TStr, 1);
+            TStr[0] := 'NONE';
             k := 0;
             topo := ActiveTree;
             if Assigned(topo) then
@@ -409,7 +415,7 @@ begin
                         TStr[k] := elm.QualifiedName;
                         Inc(k);
                         if k > 0 then
-                            setlength(TStr, k);
+                            setlength(TStr, k + 1);
                     end;
                     elm := ActiveCircuit[ActiveActor].PDElements.Next;
                 end;
@@ -418,20 +424,24 @@ begin
             begin
                 for i := 0 to High(TStr) do
                 begin
-                    WriteStr2Array(TStr[i]);
-                    WriteStr2Array(Char(0));
+                    if TStr[i] <> '' then
+                    begin
+                        WriteStr2Array(TStr[i]);
+                        WriteStr2Array(Char(0));
+                    end;
                 end;
             end
             else
                 WriteStr2Array('');
-            myPointer := @(myIntArray[0]);
-            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         2:
         begin  // Topology.AllIsolatedLoads
             myType := 4;        // String
             setlength(myStrArray, 0);
-            setlength(TStr, 0);
+            setlength(TStr, 1);
+            TStr[0] := 'NONE';
             k := 0;
             topo := ActiveTree;
             if Assigned(topo) then
@@ -444,7 +454,7 @@ begin
                         TStr[k] := elm.QualifiedName;
                         Inc(k);
                         if k > 0 then
-                            setlength(TStr, k);
+                            setlength(TStr, k + 1);
                     end;
                     elm := ActiveCircuit[ActiveActor].PCElements.Next;
                 end;
@@ -453,14 +463,17 @@ begin
             begin
                 for i := 0 to High(TStr) do
                 begin
-                    WriteStr2Array(TStr[i]);
-                    WriteStr2Array(Char(0));
+                    if TStr[i] <> '' then
+                    begin
+                        WriteStr2Array(TStr[i]);
+                        WriteStr2Array(Char(0));
+                    end;
                 end;
             end
             else
                 WriteStr2Array('');
-            myPointer := @(myIntArray[0]);
-            mySize := SizeOf(myIntArray[0]) * Length(myIntArray);
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end
     else
     begin
