@@ -858,6 +858,7 @@ begin
         begin  // Lines.Yprim read
             myType := 3;        // Complex
             setlength(myCmplxArray, 1);
+            myCmplxArray[k] := cmplx(0, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -867,12 +868,7 @@ begin
                         begin
                             NValues := SQR(Yorder);
                             cValues := GetYprimValues(ALL_YPRIM);  // Get pointer to complex array of values
-                            if cValues = nil then
-                            begin   // check for unassigned array
-                                myCmplxArray[0] := cmplx(0, 0);  // just return null array
-                                Exit;  // Get outta here
-                            end
-                            else
+                            if cValues <> nil then
                             begin
                                 setlength(myCmplxArray, NValues);  // Make variant array
                                 for i := 1 to NValues do
@@ -880,10 +876,8 @@ begin
                                     myCmplxArray[i - 1] := cValues^[i];
                                 end;
                             end;
-                        end
-                    end
-                    else
-                        myCmplxArray[k] := cmplx(0, 0);
+                        end;
+                    end;
                 myPointer := @(myCmplxArray[0]);
                 mySize := SizeOf(myCmplxArray[0]) * length(myCmplxArray);
             end;
