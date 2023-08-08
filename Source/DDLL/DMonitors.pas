@@ -473,7 +473,11 @@ begin
                         AuxParser[ActiveActor].Whitespace := SaveWhiteSpace;
                     end;
                 end;
-            end;
+            end
+            else
+                WriteStr2Array('');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
         end;
         3:
         begin  // Monitors.dblHour
