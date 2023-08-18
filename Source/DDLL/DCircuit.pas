@@ -541,7 +541,7 @@ begin
             begin
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    setlength(myCmplxArray, 2 * NumDevices);
+                    setlength(myCmplxArray, NumDevices);
                     k := 0;
                     pCktElem := CktElements.First;
                     while pCktElem <> nil do
@@ -723,7 +723,7 @@ begin
                         end;
                     end;
         // Assign to result and free temp array
-                    setlength(myDBLArray, k - 1);
+                    setlength(myDBLArray, k);
                     for i := 0 to (k - 1) do
                         myDBLArray[i] := Temp^[i + 1];
                     Freemem(Temp, SizeOF(Temp^[1]) * NumNodes);
