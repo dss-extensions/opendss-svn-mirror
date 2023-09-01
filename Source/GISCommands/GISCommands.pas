@@ -41,7 +41,7 @@ uses
     TCP_IP;
 
 const
-    NumGISOptions = 37;
+    NumGISOptions = 39;
 
 function DoGISCmd: String;
 
@@ -83,6 +83,8 @@ function GISGetPolyline(): String;
 function GISGetAddress(): String;
 function GISText(myText: String): String;
 function GISTextFromFile(myPath: String): String;
+function GISShowLayer(myLayer: String): String;
+function GISRemoveLayer(myLayer: String): String;
 
 var
     {$IFNDEF FPC}
@@ -177,6 +179,8 @@ begin
     GISOption[35] := 'GetAddress';
     GISOption[36] := 'Text';
     GISOption[37] := 'TextFromFile';
+    GISOption[38] := 'ShowLayer';
+    GISOption[39] := 'HideLayer';
 
     GISHelp[1] :=
         'Starts OpenDSS-GIS only if it is installed in the local machine';
@@ -354,7 +358,38 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
-
+    GISHelp[38] :=
+        'Shows the given layer on the map. The layer is specified as an integer representing one of the following layers:' + CRLF + CRLF +
+        '0 = Tree canopy (NLDC US 2021)' + CRLF +
+        '1 = Land cover change (NLDC US 2021)' + CRLF +
+        '2 = Impervious surface (NLDC US 2021)' + CRLF +
+        '3 = Annual Herb Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '4 = Bare Ground Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '5 = Big Sagebrush Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '6 = Herbaceous Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '7 = Litter Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '8 = Sagebrush Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '9 = Sagebrush Height Shrubland Fractional Component (NLDC US 2016)' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    GISHelp[39] :=
+        'REmoves the given layer from the map (if active). The layer is specified as an integer representing one of the following layers:' + CRLF + CRLF +
+        '0 = Tree canopy (NLDC US 2021)' + CRLF +
+        '1 = Land cover change (NLDC US 2021)' + CRLF +
+        '2 = Impervious surface (NLDC US 2021)' + CRLF +
+        '3 = Annual Herb Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '4 = Bare Ground Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '5 = Big Sagebrush Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '6 = Herbaceous Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '7 = Litter Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '8 = Sagebrush Shrubland Fractional Component (NLDC US 2016)' + CRLF +
+        '9 = Sagebrush Height Shrubland Fractional Component (NLDC US 2016)' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
 end;
 
 function DoGISCmd: String;
@@ -532,6 +567,16 @@ begin
             begin
                 Parser[ActiveActor].NextParam;
                 Result := GISTextFromFile(Parser[ActiveActor].StrValue);
+            end;
+            38:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISShowLayer(Parser[ActiveActor].StrValue);
+            end;
+            39:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISRemoveLayer(Parser[ActiveActor].StrValue);
             end
         else
         end;
@@ -1693,6 +1738,72 @@ begin
     end
     else
         Result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{ *******************************************************************************
+  *        Commands OpenDSS-GIS to draw the given layer in the map              *
+  ******************************************************************************* }
+
+function GISShowLayer(myLayer: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode, activesave, i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"showlayer","layer":"' + myLayer + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['textfromfile'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        Result := 'OpenDSS-GIS is not installed or initialized';
+
+end;
+
+{ *******************************************************************************
+  *        Commands OpenDSS-GIS to rempve the given layer in the map            *
+  ******************************************************************************* }
+
+function GISRemoveLayer(myLayer: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode, activesave, i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"removelayer","layer":"' + myLayer + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['textfromfile'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        Result := 'OpenDSS-GIS is not installed or initialized';
+
 end;
 
 { *******************************************************************************
