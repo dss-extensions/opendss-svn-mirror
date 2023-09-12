@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 5/11/2022 12:15:58 PM from Type Library described below.
+// File generated on 9/12/2023 10:14:05 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -690,8 +690,8 @@ type
         function Get_AllBusVmag: Olevariant; SAFECALL;
         function Get_AllElementNames: Olevariant; SAFECALL;
         function Get_ActiveElement: ICktElement; SAFECALL;
-        procedure Disable(const Name: Widestring); SAFECALL;
-        procedure Enable(const Name: Widestring); SAFECALL;
+        procedure Disable(const myName: Widestring); SAFECALL;
+        procedure Enable(const myName: Widestring); SAFECALL;
         function Get_Solution: ISolution; SAFECALL;
         function Get_ActiveBus: IBus; SAFECALL;
         function FirstPCElement: Integer; SAFECALL;
@@ -840,8 +840,8 @@ type
         property AllBusVmag: Olevariant READONLY DISPID 12;
         property AllElementNames: Olevariant READONLY DISPID 13;
         property ActiveElement: ICktElement READONLY DISPID 14;
-        procedure Disable(const Name: Widestring); DISPID 15;
-        procedure Enable(const Name: Widestring); DISPID 16;
+        procedure Disable(const myName: Widestring); DISPID 15;
+        procedure Enable(const myName: Widestring); DISPID 16;
         property Solution: ISolution READONLY DISPID 17;
         property ActiveBus: IBus READONLY DISPID 18;
         function FirstPCElement: Integer; DISPID 19;
