@@ -7,7 +7,7 @@ mkdir $TARGET/bin
 mkdir $TARGET/lib
 #mkdir $TARGET/java
 
-cp $SOURCE/bin/opendsscmd $TARGET/bin
+#cp $SOURCE/bin/opendsscmd $TARGET/bin
 cp $SOURCE/bin/fncs_broker $TARGET/bin
 cp $SOURCE/bin/fncs_player $TARGET/bin
 cp $SOURCE/bin/fncs_tracer $TARGET/bin
@@ -20,7 +20,11 @@ cp $SOURCE/bin/helics_recorder $TARGET/bin
 
 cp -a $SOURCE/lib/*fncs*.* $TARGET/lib
 cp -a $SOURCE/lib/*helics*.* $TARGET/lib
-cp -a $SOURCE/lib/liblinenoise.dylib $TARGET/lib
-cp -a $SOURCE/lib/libklusolve.dylib $TARGET/lib
+#cp -a $SOURCE/lib/liblinenoise.dylib $TARGET/lib
+#cp -a $SOURCE/lib/libklusolve.dylib $TARGET/lib
+
+cp test/opendsscmd $TARGET/bin
+cp -a ../../../linenoise-ng/build/liblinenoise.dylib $TARGET/lib
+cp -a ../../../KLUSolve/Lib/libklusolve.dylib $TARGET/lib
 
 ls -altR $TARGET
