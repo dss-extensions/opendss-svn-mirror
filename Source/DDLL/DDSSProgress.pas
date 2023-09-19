@@ -8,7 +8,52 @@ function DSSProgressS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 implementation
 
 uses
-    DSSForms, {Progressform,} DSSGlobals;
+    {$IFDEF FPC}
+CmdForms
+    {$ELSE}
+    DSSForms
+    {$ENDIF}
+    ,
+    DSSGlobals;
+
+{$IFDEF FPC}
+function DSSProgressI(mode: longint; arg: longint): longint; cdecl;
+begin
+  Result:=0; // Default return value
+  case mode of
+  0: begin // DSSProgress.PctProgress
+      If NoFormsAllowed Then Exit;
+      InitProgressForm;
+  end;
+  1: begin // DSSProgress.Show()
+     If NoFormsAllowed Then Exit;
+        InitProgressForm;
+        ProgressFormCaption( ' ');
+  end;
+  2: begin  // DSSProgress.Close()
+      If NoFormsAllowed Then Exit;
+      ProgressHide;
+  end
+  else
+      Result:=-1;
+  end;
+end;
+
+function DSSProgressS(mode: longint; arg: pAnsiChar): pAnsiChar; cdecl;
+begin
+  Result:=pAnsiChar(AnsiString('0')); // Default return value
+  case mode of
+  0: begin // DSSProgress.Caption
+     If NoFormsAllowed Then Exit;
+     InitProgressForm;
+     ProgressCaption (widestring(arg));
+  end
+  else
+      Result:=pAnsiChar(AnsiString('Error, parameter not recognized'));
+  end;
+end;
+
+    {$ELSE}
 
 function DSSProgressI(mode: Longint; arg: Longint): Longint; CDECL;
 begin
@@ -56,5 +101,5 @@ begin
         Result := Pansichar(Ansistring('Error, parameter not recognized'));
     end;
 end;
-
+{$ENDIF}
 end.

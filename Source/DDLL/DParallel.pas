@@ -21,7 +21,12 @@ uses
     CktElement,
     ParserDel,
     KLUSolve,
-    System.Classes;
+    {$IFDEF FPC}
+Classes
+    {$ELSE}
+    System.Classes
+    {$ENDIF}
+    ;
 
 function ParallelI(mode: Longint; arg: Longint): Longint; CDECL;
 var

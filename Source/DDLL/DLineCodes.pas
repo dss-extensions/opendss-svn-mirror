@@ -5,8 +5,10 @@ interface
 uses
     ComObj,
     ActiveX,
+    {$IFNDEF FPC}
     OpenDSSengine_TLB,
     StdVcl,
+    {$ENDIF}
     LineCode;
 
 function LineCodesI(mode: Longint; arg: Longint): Longint; CDECL;
@@ -24,6 +26,11 @@ uses
     ParserDel,
     Variants,
     Ucomplex;
+
+{$IFDEF FPC}
+const
+  dssLineUnitsMaxnum = $00000009;  // from OpenDSSEngine_TLB.pas
+    {$ENDIF}
 
 //*****************************Integer interface***************************************
 

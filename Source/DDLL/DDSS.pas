@@ -11,9 +11,13 @@ implementation
 uses
     DSSClassDefs,
     DSSGlobals,
+    {$IFDEF FPC}
+     CmdForms,
+    {$ELSE}
     DSSForms,
     Forms,
     ScriptFormNormal,
+    {$ENDIF}
     DSSClass,
     Exechelper,
     sysUtils,
@@ -36,7 +40,10 @@ begin
             DoClearAllCmd;
         end;
         2:
-        begin  // DSS.ShowPanel
+        begin
+            {$IFDEF FPC}
+    Result:=0; // edit form not supported in FPC, but don't throw an error for trying...
+            {$ELSE}
             if not Assigned(MainEditFormNormal) then
             begin
                 MainEditFormNormal := TMainEditFormnormal.Create(nil);
@@ -44,6 +51,7 @@ begin
                 MainEditFormNormal.isMainWindow := true;
             end;
             MainEditFormNormal.Show;
+            {$ENDIF}
         end;
         3:
         begin  // DSS.Start
