@@ -4,12 +4,12 @@ Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
 Copyright (c) 2017-2023, Battelle Memorial Institute
 All rights reserved.
 
-opendsscmd version 1.7.6
+opendsscmd version 1.7.7
 ========================
 
 This is a 64-bit command-line version of the simulator for Windows, Linux and Mac OSX operating systems. It is model-compatible with version 9 of the Windows-only version. The major differences between opendsscmd and Windows-only OpenDSS are:
 
-1 - There is no support for Windows COM automation, and no separate DLL version. (Use FNCS or HELICS instead)
+1 - There is no support for Windows COM automation, and no separate DLL version. (Use FNCS, HELICS, or py_dss_interface instead)
 
 2 - There is no graphical user interface (GUI) or plotting. (Use MATLAB or Python instead)
 
@@ -210,6 +210,9 @@ Change Log
        - Fix: added some reverse regulator parameters to CIM export
        - Fix: added CableInfo.relativePermittivity extension
        - includes other changes from version 9.6.1.1 in the native Windows build
+
+1.7.7  - compatible with version 9.7.1.1 in the native Windows build
+       - includes the new dynamics feature and wind generator models
 
 Open Issues
 ===========
