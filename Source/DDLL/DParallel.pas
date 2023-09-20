@@ -70,17 +70,11 @@ begin
                 if ActorHandle[ActiveActor] <> nil then
                 begin
                     ActorHandle[ActiveActor].CPU := ActorCPU[ActiveActor];
-                    ActorHandle[ActiveActor].Priority :=
-                        {$IFDEF MSWINDOWS}
-                        tpTimeCritical
-                    {$ELSE}
-6
-                    {$ENDIF}
-                    ;
+                    ActorHandle[ActiveActor].Priority := tpTimeCritical;
                 end;
             end
             else
-                DoSimpleMsg('The CPU does not exists', 7004);
+                DoSimpleMsg('The CPU does not exist', 7004);
         end;
         7:
         begin  // Parallel.NumActors Read

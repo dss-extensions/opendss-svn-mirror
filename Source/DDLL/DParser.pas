@@ -10,7 +10,9 @@ procedure ParserV(mode: Longint; var myPointer: Pointer; var myType, mySize: Lon
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     ParserDel,
     Variants,
     ArrayDef,

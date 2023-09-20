@@ -10,7 +10,9 @@ procedure PVsystemsV(mode: Longint; var myPointer: Pointer; var myType, mySize: 
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     DSSGlobals,
     PVSystem,
     Variants,

@@ -10,7 +10,9 @@ procedure IsourceV(mode: Longint; var myPointer: Pointer; var myType, mySize: Lo
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     Variants,
     PointerList,
     Isource,

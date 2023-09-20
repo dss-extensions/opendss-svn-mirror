@@ -3,9 +3,9 @@ unit DLineCodes;
 interface
 
 uses
+    {$IFNDEF FPC}
     ComObj,
     ActiveX,
-    {$IFNDEF FPC}
     OpenDSSengine_TLB,
     StdVcl,
     {$ENDIF}
@@ -19,7 +19,9 @@ procedure LineCodesV(mode: Longint; var myPointer: Pointer; var myType, mySize: 
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     sysutils,
     DSSGlobals,
     LineUnits,

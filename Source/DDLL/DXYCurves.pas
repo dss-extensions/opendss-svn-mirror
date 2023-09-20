@@ -3,7 +3,9 @@ unit DXYCurves;
 interface
 
 uses
+    {$IFNDEF FPC}
     ActiveX,
+    {$ENDIF}
     XYCurve,
     DSSClass,
     Arraydef,
@@ -18,7 +20,9 @@ procedure XYCurvesV(mode: Longint; var myPointer: Pointer; var myType, mySize: L
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     DSSGlobals,
     DSSObject,
     Variants;

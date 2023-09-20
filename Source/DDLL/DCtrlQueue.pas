@@ -3,10 +3,12 @@ unit DCtrlQueue;
 interface
 
 uses
+    {$IFNDEF FPC}
     Windows,
     ActiveX,
-    Classes,
-    ComObj;
+    ComObj,
+    {$ENDIF}
+    Classes;
 
 function CtrlQueueI(mode: Longint; arg: Longint): Longint; CDECL;
 procedure CtrlQueueV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
@@ -14,7 +16,9 @@ procedure CtrlQueueV(mode: Longint; var myPointer: Pointer; var myType, mySize: 
 implementation
 
 uses
+    {$IFNDEF FPC}
     ComServ,
+    {$ENDIF}
     DSSGlobals,
     ControlQueue,
     ControlElem,
