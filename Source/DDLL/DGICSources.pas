@@ -227,7 +227,7 @@ begin
         begin  // GICSources.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                S := Widestring(arg);
+                S := arg;
                 if GICsourceClass.SetActive(S) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := GICsourceClass.ElementList.Active;

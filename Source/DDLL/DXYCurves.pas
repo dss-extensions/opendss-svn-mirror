@@ -314,8 +314,8 @@ begin
         begin  // XYCurve.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if not XYCurveClass[ActiveActor].SetActive(Widestring(arg)) then
-                    DoSimpleMsg('XYCurve "' + Widestring(arg) + '" Not Found in Active Circuit.', 51008);
+                if not XYCurveClass[ActiveActor].SetActive(arg) then
+                    DoSimpleMsg('XYCurve "' + arg + '" Not Found in Active Circuit.', 51008);
          // Still same active object if not found
             end;
         end

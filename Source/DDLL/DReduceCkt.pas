@@ -187,7 +187,7 @@ begin
         end;
         1:
         begin  // ReduceCkt.EditString - Write
-            ReduceEditString := Widestring(arg);
+            ReduceEditString := arg;
         end;
         2:
         begin  // ReduceCkt.EnergyMeter - Read
@@ -195,11 +195,11 @@ begin
         end;
         3:
         begin  // ReduceCkt.EnergyMeter - Write
-            EnergyMeterName := Widestring(arg);
+            EnergyMeterName := arg;
         end;
         4:
         begin  // ReduceCkt.SaveCircuit
-            DSSExecutive[ActiveActor].Command := 'Save Circuit Dir=' + Widestring(arg);
+            DSSExecutive[ActiveActor].Command := 'Save Circuit Dir=' + arg;
         // Master file name is returned in DSSText.Result
         end;
         5:
@@ -208,7 +208,7 @@ begin
         end;
         6:
         begin  // ReduceCkt.StartPDElement - Write
-            FirstPDelement := Widestring(arg);
+            FirstPDelement := arg;
         end
     end;
 

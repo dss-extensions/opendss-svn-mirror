@@ -219,7 +219,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].Sensors;
-                S := Widestring(arg);  // Convert to Pascal String
+                S := arg;  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -250,7 +250,7 @@ begin
         end;
         3:
         begin  // Sensors.MeteredElement write
-            Set_Parameter('element', Widestring(arg));
+            Set_Parameter('element', arg);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));

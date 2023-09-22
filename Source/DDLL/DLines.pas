@@ -503,7 +503,7 @@ begin
             begin      // Search list of Lines in active circuit for name
                 with ActiveCircuit[ActiveActor].Lines do
                 begin
-                    S := Widestring(arg);  // Convert to Pascal String
+                    S := arg;  // Convert to Pascal String
                     Found := false;
                     ActiveSave := ActiveIndex;
                     pLine := First;
@@ -542,7 +542,7 @@ begin
                 begin
                     with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
                     begin
-                        SetBus(1, Widestring(arg));
+                        SetBus(1, arg);
                     end;
                 end;
         end;
@@ -562,7 +562,7 @@ begin
                 begin
                     with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
                     begin
-                        SetBus(2, Widestring(arg));
+                        SetBus(2, arg);
                     end;
                 end;
         end;
@@ -582,7 +582,7 @@ begin
                 begin
                     with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
                     begin
-                        FetchLineCode(Widestring(arg));
+                        FetchLineCode(arg);
                         YprimInvalid[ActiveActor] := true;
                     end;
                 end;
@@ -603,7 +603,7 @@ begin
                 begin
                     with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
                     begin
-                        Parser[ActiveActor].CmdString := 'geometry=' + Widestring(arg);
+                        Parser[ActiveActor].CmdString := 'geometry=' + arg;
                         Edit(ActiveActor);
                         YprimInvalid[ActiveActor] := true;
                     end;
@@ -625,7 +625,7 @@ begin
                 begin
                     with TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement) do
                     begin
-                        Parser[ActiveActor].CmdString := 'spacing=' + Widestring(arg);
+                        Parser[ActiveActor].CmdString := 'spacing=' + arg;
                         Edit(ActiveActor);
                         YprimInvalid[ActiveActor] := true;
                     end;

@@ -255,7 +255,7 @@ begin
         begin  // Topology.BranchName write
             Found := false;
             elem := nil;
-            S := Widestring(arg);  // Convert to Pascal String
+            S := arg;  // Convert to Pascal String
             topo := ActiveTree;
             if assigned(topo) then
             begin
@@ -294,7 +294,7 @@ begin
         begin  // Topology.BusName write
             Found := false;
             elem := nil;
-            S := Widestring(arg);  // Convert to Pascal String
+            S := arg;  // Convert to Pascal String
             topo := ActiveTree;
             if assigned(topo) then
             begin

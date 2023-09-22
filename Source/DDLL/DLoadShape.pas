@@ -198,14 +198,14 @@ begin
         begin  // LoadShapes.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if LoadshapeClass[ActiveActor].SetActive(Widestring(arg)) then
+                if LoadshapeClass[ActiveActor].SetActive(arg) then
                 begin
                     ActiveLSObject := LoadshapeClass[ActiveActor].ElementList.Active;
                     ActiveDSSObject[ActiveActor] := ActiveLSObject;
                 end
                 else
                 begin
-                    DoSimpleMsg('Relay "' + Widestring(arg) + '" Not Found in Active Circuit.', 77003);
+                    DoSimpleMsg('Relay "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
             end;
         end

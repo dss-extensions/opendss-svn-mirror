@@ -485,7 +485,7 @@ begin
             begin      // Search list of Loads in active circuit for name
                 with ActiveCircuit[ActiveActor].Loads do
                 begin
-                    S := Widestring(arg);  // Convert to Pascal String
+                    S := arg;  // Convert to Pascal String
                     Found := false;
                     ActiveSave := ActiveIndex;
                     pLoad := First;
@@ -516,7 +516,7 @@ begin
         end;
         3:
         begin                                     // Loads.CVRCurve - Write
-            Set_Parameter('CVRcurve', Widestring(arg));
+            Set_Parameter('CVRcurve', arg);
             Result := Pansichar(Ansistring(''));
         end;
         4:
@@ -526,7 +526,7 @@ begin
         end;
         5:
         begin                                     // Loads.Daily - Write
-            Set_Parameter('Daily', Widestring(arg));
+            Set_Parameter('Daily', arg);
             Result := Pansichar(Ansistring(''));
         end;
         6:
@@ -536,7 +536,7 @@ begin
         end;
         7:
         begin                                     // Loads.Duty - Write
-            Set_Parameter('Duty', Widestring(arg));
+            Set_Parameter('Duty', arg);
             Result := Pansichar(Ansistring(''));
         end;
         8:
@@ -546,7 +546,7 @@ begin
         end;
         9:
         begin                                     // Loads.Spectrum - Write
-            Set_Parameter('Spectrum', Widestring(arg));
+            Set_Parameter('Spectrum', arg);
             Result := Pansichar(Ansistring(''));
         end;
         10:
@@ -556,7 +556,7 @@ begin
         end;
         11:
         begin                                    // Loads.Yearly - Write
-            Set_Parameter('Yearly', Widestring(arg));
+            Set_Parameter('Yearly', arg);
             Result := Pansichar(Ansistring(''));
         end;
         12:
@@ -566,7 +566,7 @@ begin
         end;
         13:
         begin                                    // Loads.Growth - Write
-            Set_Parameter('Growth', Widestring(arg));
+            Set_Parameter('Growth', arg);
             Result := Pansichar(Ansistring(''));
         end;
         14:

@@ -96,7 +96,7 @@ begin
     case mode of
         0:
         begin  // DSS.NewCircuit
-            MakeNewCircuit(Widestring(arg));
+            MakeNewCircuit(arg);
             Result := Pansichar(Ansistring('New Circuit'));
         end;
         1:
@@ -109,7 +109,7 @@ begin
         end;
         3:
         begin  // DSS.DataPath write
-            SetDataPath(Widestring(arg));
+            SetDataPath(arg);
         end;
         4:
         begin  // DSS.DefaultEditor

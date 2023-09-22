@@ -275,7 +275,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    SetElementActive(Widestring(arg));
+                    SetElementActive(arg);
                     if ActiveCktElement <> nil then
                         ActiveCktElement.Enabled := false;
                 end;
@@ -284,7 +284,7 @@ begin
         begin                                             // Circuit.Enable
             with ActiveCircuit[ActiveActor] do
             begin
-                SetElementActive(Widestring(arg));
+                SetElementActive(arg);
                 if ActiveCktElement <> nil then
                     ActiveCktElement.Enabled := true;
             end;
@@ -294,14 +294,14 @@ begin
             Result := Pansichar(Ansistring('-1'));
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := Pansichar(Ansistring(Inttostr(ActiveCircuit[ActiveActor].SetElementActive(Widestring(arg)) - 1)));   // make zero based to be compatible with collections and variant arrays
+                Result := Pansichar(Ansistring(Inttostr(ActiveCircuit[ActiveActor].SetElementActive(arg) - 1)));   // make zero based to be compatible with collections and variant arrays
             end
             else
                 DoSimpleMsg('Create a circuit before trying to set an element active!', 5015);
         end;
         4:
         begin                                             // Circuit.SetActiveBus
-            DSSGlobals.SetActiveBus(StripExtension(Widestring(arg)));
+            DSSGlobals.SetActiveBus(StripExtension(arg));
             if Assigned(ActiveCircuit[ActiveActor]) then
                 Result := Pansichar(Ansistring(InttoStr(ActiveCircuit[ActiveActor].ActiveBusIndex - 1)))
             else
@@ -310,10 +310,10 @@ begin
         5:
         begin                                             // Circuit.SetActiveClass
             Result := Pansichar(Ansistring('0'));
-            DevClassIndex := ClassNames[ActiveActor].Find(Widestring(arg));
+            DevClassIndex := ClassNames[ActiveActor].Find(arg);
             if DevClassIndex = 0 then
             begin
-                DoSimplemsg('Error: Class ' + Widestring(arg) + ' not found.', 5016);
+                DoSimplemsg('Error: Class ' + arg + ' not found.', 5016);
                 Exit;
             end;
 

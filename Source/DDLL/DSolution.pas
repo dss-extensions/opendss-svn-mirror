@@ -629,7 +629,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    LoadDurCurve := Widestring(arg);
+                    LoadDurCurve := arg;
                     LoadDurCurveObj := LoadShapeClass[ActiveActor].Find(LoadDurCurve);
                     if LoadDurCurveObj = nil then
                         DoSimpleMsg('Load-Duration Curve not found.', 5001);
@@ -646,7 +646,7 @@ begin
         begin  // Solution.DefaultDaily Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                TestLoadShapeObj := LoadShapeClass[ActiveActor].Find(Widestring(arg));
+                TestLoadShapeObj := LoadShapeClass[ActiveActor].Find(arg);
                 if TestLoadShapeObj <> nil then
                     ActiveCircuit[ActiveActor].DefaultDailyShapeObj := TestLoadShapeObj;
             end;
@@ -662,7 +662,7 @@ begin
         begin  // Solution.DefaultYearly Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                TestLoadShapeObj := LoadShapeClass[ActiveActor].Find(Widestring(arg));
+                TestLoadShapeObj := LoadShapeClass[ActiveActor].Find(arg);
                 if TestLoadShapeObj <> nil then
                     ActiveCircuit[ActiveActor].DefaultYearlyShapeObj := TestLoadShapeObj;
             end;

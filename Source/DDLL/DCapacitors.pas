@@ -238,7 +238,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].ShuntCapacitors;
-                S := Widestring(arg);  // Convert to Pascal String
+                S := arg;  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;

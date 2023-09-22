@@ -427,7 +427,7 @@ begin
             begin      // Search list of generators in active circuit for name
                 with ActiveCircuit[ActiveActor].Generators do
                 begin
-                    S := Widestring(arg);  // Convert to Pascal String
+                    S := arg;  // Convert to Pascal String
                     Found := false;
                     ActiveSave := ActiveIndex;
                     Gen := First;

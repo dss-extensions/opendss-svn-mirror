@@ -46,7 +46,7 @@ begin
   0: begin // DSSProgress.Caption
      If NoFormsAllowed Then Exit;
      InitProgressForm;
-     ProgressCaption (widestring(arg));
+     ProgressCaption (arg);
   end
   else
       Result:=pAnsiChar(AnsiString('Error, parameter not recognized'));
@@ -95,7 +95,7 @@ begin
             if NoFormsAllowed then
                 Exit;
             InitProgressForm(ActiveActor);
-            ProgressCaption(Widestring(arg), ActiveActor);
+            ProgressCaption(arg, ActiveActor);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not recognized'));

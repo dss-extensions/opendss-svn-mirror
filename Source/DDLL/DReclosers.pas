@@ -260,13 +260,13 @@ begin
         begin  // Reclosers.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if RecloserClass.SetActive(Widestring(arg)) then
+                if RecloserClass.SetActive(arg) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := RecloserClass.ElementList.Active;
                 end
                 else
                 begin
-                    DoSimpleMsg('Recloser "' + Widestring(arg) + '" Not Found in Active Circuit.', 77003);
+                    DoSimpleMsg('Recloser "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
             end;
         end;
@@ -281,7 +281,7 @@ begin
         begin  // Reclosers.MonitoredObj write
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('monitoredObj', Widestring(arg));
+                Set_parameter('monitoredObj', arg);
         end;
         4:
         begin  // Reclosers.SwitchedObj read
@@ -294,7 +294,7 @@ begin
         begin  // Reclosers.SwitchedObj write
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('SwitchedObj', Widestring(arg));
+                Set_parameter('SwitchedObj', arg);
         end;
         6:
         begin  // Reclosers.State read                                          // TODO
@@ -314,7 +314,7 @@ begin
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(Widestring(arg))[1] = 'c' then
+                if LowerCase(arg)[1] = 'c' then
                     elem.PresentState := CTRL_CLOSE
                 else
                     elem.PresentState := CTRL_OPEN;
@@ -337,7 +337,7 @@ begin
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(Widestring(arg))[1] = 'c' then
+                if LowerCase(arg)[1] = 'c' then
                     elem.NormalState := CTRL_CLOSE
                 else
                     elem.NormalState := CTRL_OPEN;

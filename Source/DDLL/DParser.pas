@@ -77,7 +77,7 @@ begin
         end;
         1:
         begin  // Parser.CmdString write
-            ComParser.CmdString := Widestring(arg);
+            ComParser.CmdString := arg;
         end;
         2:
         begin  // Parser.NextParam
@@ -93,7 +93,7 @@ begin
         end;
         5:
         begin  // Parser.WhiteSpace write
-            ComParser.Whitespace := Widestring(arg);
+            ComParser.Whitespace := arg;
         end;
         6:
         begin  // Parser.BeginQuote read
@@ -101,7 +101,7 @@ begin
         end;
         7:
         begin  // Parser.BeginQuote write
-            ComParser.BeginQuoteChars := Widestring(arg);
+            ComParser.BeginQuoteChars := arg;
         end;
         8:
         begin  // Parser.EndQuote read
@@ -109,7 +109,7 @@ begin
         end;
         9:
         begin  // Parser.EndQuote write
-            ComParser.EndQuoteChars := Widestring(arg);
+            ComParser.EndQuoteChars := arg;
         end;
         10:
         begin  // Parser.Delimiters read
@@ -117,7 +117,7 @@ begin
         end;
         11:
         begin  // Parser.Delimiters write
-            ComParser.Delimiters := Widestring(arg);
+            ComParser.Delimiters := arg;
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));

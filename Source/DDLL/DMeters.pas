@@ -544,7 +544,7 @@ begin
             begin      // Search list of EnergyMeters in active circuit for name
                 with ActiveCircuit[ActiveActor].EnergyMeters do
                 begin
-                    TestStr := Widestring(arg);  // Convert to Pascal String for testing
+                    TestStr := arg;  // Convert to Pascal String for testing
                     Found := false;
                     ActiveSave := ActiveIndex;
                     pMeterObj := First;
@@ -593,7 +593,7 @@ begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    pMeterObj.elementName := Widestring(arg);
+                    pMeterObj.elementName := arg;
                     pMeterObj.MeteredElementChanged := true;
                     pMeterObj.RecalcElementData(ActiveActor);
                 end;

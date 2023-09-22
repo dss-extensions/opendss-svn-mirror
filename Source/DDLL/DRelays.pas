@@ -166,13 +166,13 @@ begin
         begin   // Relays.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if RelayClass.SetActive(Widestring(arg)) then
+                if RelayClass.SetActive(arg) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := RelayClass.ElementList.Active;
                 end
                 else
                 begin
-                    DoSimpleMsg('Relay "' + Widestring(arg) + '" Not Found in Active Circuit.', 77003);
+                    DoSimpleMsg('Relay "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
             end;
         end;
@@ -187,7 +187,7 @@ begin
         begin   // Relays.MonitoredObj write
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('monitoredObj', Widestring(arg));
+                Set_parameter('monitoredObj', arg);
         end;
         4:
         begin   // Relays.SwitchedObj read
@@ -200,7 +200,7 @@ begin
         begin   // Relays.SwitchedObj write
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('SwitchedObj', Widestring(arg));
+                Set_parameter('SwitchedObj', arg);
         end;
         6:
         begin  // Relays.State read
@@ -220,7 +220,7 @@ begin
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(Widestring(arg))[1] = 'c' then
+                if LowerCase(arg)[1] = 'c' then
                     elem.PresentState := CTRL_CLOSE
                 else
                     elem.PresentState := CTRL_OPEN;
@@ -243,7 +243,7 @@ begin
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(Widestring(arg))[1] = 'c' then
+                if LowerCase(arg)[1] = 'c' then
                     elem.NormalState := CTRL_CLOSE
                 else
                     elem.NormalState := CTRL_OPEN;

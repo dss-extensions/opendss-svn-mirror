@@ -1180,6 +1180,7 @@ var
 begin
 // Returns the first string found in the pointed Byte array (until a NULL char is found)
     Result := '';
+    S := '';
     Pchar := myPtr;
     inc(Pbyte(Pchar), idx);
     while Pchar^ <> 0 do

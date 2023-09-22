@@ -516,7 +516,7 @@ begin
         2:
         begin                                          // CktElement.Display - Write
             if ActiveCircuit[ActiveActor] <> nil then
-                ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName := Widestring(arg);
+                ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName := arg;
             Result := Pansichar(Ansistring(''));
         end;
         3:

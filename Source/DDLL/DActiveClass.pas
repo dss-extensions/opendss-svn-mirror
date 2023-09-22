@@ -79,7 +79,7 @@ begin
         begin  // ActiveClass.Name write
             if Assigned(ActiveDSSClass[ActiveActor]) then
             begin
-                pelem := ActiveDSSClass[ActiveActor].Find(Widestring(arg));
+                pelem := ActiveDSSClass[ActiveActor].Find(arg);
                 if pelem <> nil then
                 begin
                     if pelem is TDSSCktElement then

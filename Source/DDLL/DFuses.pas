@@ -242,13 +242,13 @@ begin
         begin  // Fuses.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if FuseClass.SetActive(Widestring(arg)) then
+                if FuseClass.SetActive(arg) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := FuseClass.ElementList.Active;
                 end
                 else
                 begin
-                    DoSimpleMsg('Fuse "' + Widestring(arg) + '" Not Found in Active Circuit.', 77003);
+                    DoSimpleMsg('Fuse "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
             end;
         end;
@@ -263,7 +263,7 @@ begin
         begin  // Fuses. MonitoredObj write
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('monitoredObj', Widestring(arg));
+                Set_parameter('monitoredObj', arg);
         end;
         4:
         begin  // Fuses.SwitchedObj read
@@ -276,7 +276,7 @@ begin
         begin  // Fuses.SwitchedObj write
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('SwitchedObj', Widestring(arg));
+                Set_parameter('SwitchedObj', arg);
         end;
         6:
         begin  // Fuses.TCCcurve read
@@ -290,7 +290,7 @@ begin
         begin  // Fuses.TCCcurve write
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('FuseCurve', Widestring(arg));
+                Set_parameter('FuseCurve', arg);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));

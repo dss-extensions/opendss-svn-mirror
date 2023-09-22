@@ -303,7 +303,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].CapControls;
-                S := Widestring(arg);  // Convert to Pascal String
+                S := arg;  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -334,7 +334,7 @@ begin
         end;
         3:
         begin  // CapControl.Capacitor write
-            Set_Parameter('Capacitor', Widestring(arg));
+            Set_Parameter('Capacitor', arg);
         end;
         4:
         begin  // CapControl.MonitoredObj read
@@ -345,7 +345,7 @@ begin
         end;
         5:
         begin  // CapControl.MonitoredObj write
-            Set_Parameter('Element', Widestring(arg));
+            Set_Parameter('Element', arg);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));

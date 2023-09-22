@@ -302,7 +302,7 @@ begin
             begin      // Search list of PVSystems in active circuit for name
                 with ActiveCircuit[ActiveActor].PVSystems do
                 begin
-                    S := Widestring(arg);  // Convert to Pascal String
+                    S := arg;  // Convert to Pascal String
                     Found := false;
                     ActiveSave := ActiveIndex;
                     PVSystem := First;

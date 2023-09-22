@@ -353,7 +353,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].RegControls;
-                S := Widestring(arg);  // Convert to Pascal String
+                S := arg;  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -384,7 +384,7 @@ begin
         end;
         3:
         begin  // RegControls.MonitoredBus write
-            Set_Parameter('Bus', Widestring(arg));
+            Set_Parameter('Bus', arg);
         end;
         4:
         begin  // RegControls.Transformer read

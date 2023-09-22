@@ -307,7 +307,7 @@ begin
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    TestString := Widestring(arg);
+                    TestString := arg;
           // Search through list of PD Elements until we find this one
                     ActivePDElement := PDElements.First;
                     while Assigned(ActivePDElement) do
