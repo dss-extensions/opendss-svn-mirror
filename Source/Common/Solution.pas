@@ -437,7 +437,7 @@ uses
     {$IFDEF DLL_ENGINE}
       ImplGlobals,  // to fire events
     {$ENDIF}
-    {$IFDEF FPC}
+    {$IFDEF FPC_HELICS}
       FNCS, // to check for messages at the end of each time step
       HELICS,
     {$ENDIF}
@@ -2717,7 +2717,7 @@ begin
 end;
 
 procedure TSolutionObj.Increment_time;
-{$IFDEF FPC}
+{$IFDEF FPC_HELICS}
 var
   next_fncs: fncs_time;
   next_helics: helics_time;
@@ -2732,7 +2732,7 @@ begin
             t := t - 3600.0;
         end;
         Update_dblHour;
-        {$IFDEF FPC}
+        {$IFDEF FPC_HELICS}
     if Assigned (ActiveFNCS) then begin
       if ActiveFNCS.IsReady then begin
         next_fncs := fncs_time (intHour) * fncs_time (3600) + Trunc(t);

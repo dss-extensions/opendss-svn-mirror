@@ -199,7 +199,7 @@ RegExpr,
     PstCalc,
     PDELement,
     ReduceAlgs
-    {$IFDEF FPC}
+    {$IFDEF FPC_HELICS}
 , Fncs, Helics
     {$ENDIF}
     ,
@@ -4375,7 +4375,7 @@ end;
 
 
 function DoFNCSPubCmd: Integer;
-    {$IFDEF FPC}
+    {$IFDEF FPC_HELICS}
 Var
   Param          :String;
   ParamName      :String;
@@ -4411,7 +4411,7 @@ begin
 end;
 
 function DoHELICSPubCmd: Integer;
-    {$IFDEF FPC}
+    {$IFDEF FPC_HELICS}
 Var
   Param          :String;
   ParamName      :String;
