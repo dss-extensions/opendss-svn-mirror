@@ -10,7 +10,7 @@ procedure VsourcesV(mode: Longint; var myPointer: Pointer; var myType, mySize: L
 implementation
 
 uses
-    {$IFNDEF FPC}
+    {$IFNDEF FPC_DLL}
     ComServ,
     {$ENDIF}
     Vsource,

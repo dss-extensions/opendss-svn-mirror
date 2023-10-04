@@ -11,7 +11,7 @@ implementation
 uses
     DSSClassDefs,
     DSSGlobals,
-    {$IFDEF FPC}
+    {$IFDEF FPC_DLL}
      CmdForms,
     {$ELSE}
     DSSForms,
@@ -41,7 +41,7 @@ begin
         end;
         2:
         begin
-            {$IFDEF FPC}
+            {$IFDEF FPC_DLL}
     Result:=0; // edit form not supported in FPC, but don't throw an error for trying...
             {$ELSE}
             if not Assigned(MainEditFormNormal) then

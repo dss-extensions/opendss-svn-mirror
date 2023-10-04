@@ -15,15 +15,15 @@ implementation
 uses
     DSSGlobals,
     Executive,
-    Dialogs,
     SysUtils,
     Variants,
     CktElement,
     ParserDel,
     KLUSolve,
-    {$IFDEF FPC}
+    {$IFDEF FPC_DLL}
 Classes
     {$ELSE}
+    Dialogs,
     System.Classes
     {$ENDIF}
     ;

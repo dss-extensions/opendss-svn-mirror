@@ -10,15 +10,15 @@ procedure ParserV(mode: Longint; var myPointer: Pointer; var myType, mySize: Lon
 implementation
 
 uses
-    {$IFNDEF FPC}
+    {$IFNDEF FPC_DLL}
     ComServ,
+    Dialogs,
     {$ENDIF}
     ParserDel,
     Variants,
     ArrayDef,
     DSSGlobals,
-    sysutils,
-    Dialogs;
+    sysutils;
 
 var
     ComParser: ParserDel.TParser;

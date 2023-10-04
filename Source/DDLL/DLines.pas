@@ -17,7 +17,9 @@ uses
     XYCurve,
     uComplex,
     ExecHelper,
+    {$IFNDEF FPC_DLL}
     dialogs,
+    {$ENDIF}
     Sysutils,
     ParserDel,
     Variants,

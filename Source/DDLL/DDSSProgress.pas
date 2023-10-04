@@ -8,7 +8,7 @@ function DSSProgressS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 implementation
 
 uses
-    {$IFDEF FPC}
+    {$IFDEF FPC_DLL}
 CmdForms
     {$ELSE}
     DSSForms
@@ -16,7 +16,7 @@ CmdForms
     ,
     DSSGlobals;
 
-{$IFDEF FPC}
+{$IFDEF FPC_DLL}
 function DSSProgressI(mode: longint; arg: longint): longint; cdecl;
 begin
   Result:=0; // Default return value

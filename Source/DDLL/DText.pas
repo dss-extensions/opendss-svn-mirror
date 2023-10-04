@@ -9,7 +9,9 @@ implementation
 uses
     DSSGlobals,
     Executive,
+    {$IFNDEF FPC_DLL}
     Dialogs,
+    {$ENDIF}
     SysUtils;
 
 function DSSPut_Command(a: Pansichar): Pansichar; CDECL;

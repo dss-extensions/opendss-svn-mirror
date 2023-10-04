@@ -16,7 +16,9 @@ uses
     PDElement,
     Monitor,
     EnergyMeter,
+    {$IFNDEF FPC_DLL}
     dialogs,
+    {$ENDIF}
     YMatrix,
     Variants,
     arrayDef,

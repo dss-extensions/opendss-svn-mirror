@@ -15,8 +15,12 @@ uses
     PDElement,
     PCElement,
     Variants,
-    SysUtils,
-    Dialogs;
+    SysUtils
+    {$IFNDEF FPC_DLL}
+    ,
+    Dialogs
+    {$ENDIF}
+    ;
 
 function ActiveTree: TCktTree;
 begin

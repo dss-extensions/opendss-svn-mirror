@@ -10,7 +10,7 @@ procedure FusesV(mode: Longint; var myPointer: Pointer; var myType, mySize: Long
 implementation
 
 uses
-    {$IFNDEF FPC}
+    {$IFNDEF FPC_DLL}
     ComServ,
     {$ENDIF}
     Executive,
