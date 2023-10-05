@@ -391,6 +391,9 @@ var
     PInt: ^Integer;
 
 begin
+    {$IFDEF FPC_DLL}
+initialize(SngBuffer);
+    {$ENDIF}
     case mode of
         0:
         begin  // Monitors.AllNames

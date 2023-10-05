@@ -47,6 +47,9 @@ var
     cBuffer: pComplexArray;
 
 begin
+    {$IFDEF FPC_DLL}
+initialize(cBuffer);
+    {$ENDIF}
     with pActiveElement, ActiveCircuit[ActiveActor] do
     begin
         Nvalues := NPhases;
