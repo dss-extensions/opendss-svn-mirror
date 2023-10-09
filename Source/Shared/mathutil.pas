@@ -353,15 +353,17 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RCDSUM(Data: Pointer; Count: Integer): Extended; REGISTER;
+{$IFDEF CPUX64}
 
-    {$IFDEF CPUX64}
+function RCDSUM(Data: Pointer; Count: Integer): Extended;
 
 begin
     Result := 0.0;
 end;
 
 {$ELSE ! CPUX86}
+
+function RCDSUM( Data:Pointer; Count:Integer): Extended; register;
 
 // Sums an array of doubles quickly
 
