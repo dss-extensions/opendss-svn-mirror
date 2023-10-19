@@ -1841,7 +1841,7 @@ NoFormsAllowed  := TRUE;
       DefaultFontName := 'Arial';
     {$ENDIF}
     {$IF (defined(Windows) or defined(MSWindows))}
-    DefaultEditor := 'NotePad.exe';
+    DefaultEditor := 'Notepad.exe';
     DefaultFontSize := 8;
     DefaultFontName := 'MS Sans Serif';
     {$ENDIF}
