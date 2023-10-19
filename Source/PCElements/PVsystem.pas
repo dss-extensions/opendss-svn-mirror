@@ -441,7 +441,7 @@ begin
     RegisterNames[5] := 'Hours';
     RegisterNames[6] := 'Price($)';
     DefineProperties;
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
 end;
 
@@ -640,7 +640,7 @@ begin
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
     // Override default help string
-    PropertyHelp[NumPropsThisClass + 1] := 'Name of harmonic voltage or current spectrum for this PVSystem element. ' +
+    PropertyHelp^[NumPropsThisClass + 1] := 'Name of harmonic voltage or current spectrum for this PVSystem element. ' +
         'A harmonic voltage source is assumed for the inverter. ' +
         'Default value is "default", which is defined when the DSS starts.';
 end;
@@ -747,7 +747,7 @@ begin
             else
                 ParamPointer := CommandList.GetCommand(ParamName);  // Look up the name in the list for this class
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
-                PropertyValue[PropertyIdxMap[ParamPointer]] := Param   // Update the string value of the property
+                PropertyValue[PropertyIdxMap^[ParamPointer]] := Param   // Update the string value of the property
             else
             begin
             // first, checks if there is a dynamic eq assigned, then
@@ -758,7 +758,7 @@ begin
             end;
             if (ParamPointer > 0) then
             begin
-                iCase := PropertyIdxMap[ParamPointer];
+                iCase := PropertyIdxMap^[ParamPointer];
                 case iCASE of
                     0:
                         DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '"', 561);
@@ -1028,7 +1028,7 @@ begin
             CurrentLimited := OtherPVSystemObj.CurrentLimited;
             ClassMakeLike(OtherPVSystemObj);
             for i := 1 to ParentClass.NumProperties do
-                FPropertyValue^[i] := OtherPVSystemObj.FPropertyValue^[i];
+                FPropertyValue[i] := OtherPVSystemObj.FPropertyValue[i];
             Result := 1;
         end;
     end
@@ -2639,7 +2639,7 @@ begin
     begin                              // HERE
         for i := 1 to NumProperties do
         begin
-            idx := PropertyIdxMap[i];
+            idx := PropertyIdxMap^[i];
             case idx of
                 propUSERDATA:
                     Writeln(F, '~ ', PropertyName^[i], '=(', PropertyValue[idx], ')')

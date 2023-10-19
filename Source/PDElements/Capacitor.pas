@@ -163,7 +163,7 @@ begin
 
     DefineProperties;
 
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
     CapacitorClass := Self;
 end;

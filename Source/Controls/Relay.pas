@@ -277,7 +277,7 @@ begin
 
     DefineProperties;
 
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
 
     TCC_CurveClass := GetDSSClassPtr('TCC_Curve');
@@ -463,12 +463,12 @@ begin
                 ParamPointer := CommandList.GetCommand(ParamName);
 
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
-                PropertyValue[PropertyIdxMap[ParamPointer]] := Param
+                PropertyValue[PropertyIdxMap^[ParamPointer]] := Param
             else
                 DoSimpleMsg('Unknown parameter "' + ParamName + '" for Relay "' + Name + '"', 381);
 
             if ParamPointer > 0 then
-                case PropertyIdxMap[ParamPointer] of
+                case PropertyIdxMap^[ParamPointer] of
            {internal Relay Property commands}
                     0:
                         DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '"', 382);
@@ -584,7 +584,7 @@ begin
                 end;
 
             if ParamPointer > 0 then
-                case PropertyIdxMap[ParamPointer] of
+                case PropertyIdxMap^[ParamPointer] of
               {Default the controlled element to the monitored element}
                     1:
                         ElementName := MonitoredElementName;
@@ -1170,7 +1170,7 @@ begin
     with ParentClass do
         for i := 1 to NumProperties do
         begin
-            Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[PropertyIdxMap[i]]);
+            Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[PropertyIdxMap^[i]]);
         end;
 
     if Complete then

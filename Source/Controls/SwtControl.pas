@@ -97,7 +97,7 @@ begin
 
     DefineProperties;
 
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
 end;
 
@@ -115,28 +115,28 @@ begin
 
     AllocatePropertyArrays;   {see DSSClass}
 
-    PropertyName[1] := 'SwitchedObj';
-    PropertyName[2] := 'SwitchedTerm';
-    PropertyName[3] := 'Action';
-    PropertyName[4] := 'Lock';
-    PropertyName[5] := 'Delay';
-    PropertyName[6] := 'Normal';
-    PropertyName[7] := 'State';
-    PropertyName[8] := 'Reset';
+    PropertyName^[1] := 'SwitchedObj';
+    PropertyName^[2] := 'SwitchedTerm';
+    PropertyName^[3] := 'Action';
+    PropertyName^[4] := 'Lock';
+    PropertyName^[5] := 'Delay';
+    PropertyName^[6] := 'Normal';
+    PropertyName^[7] := 'State';
+    PropertyName^[8] := 'Reset';
 
-    PropertyHelp[1] := 'Name of circuit element switch that the SwtControl operates. ' +
+    PropertyHelp^[1] := 'Name of circuit element switch that the SwtControl operates. ' +
         'Specify the full object class and name.';
-    PropertyHelp[2] := 'Terminal number of the controlled element switch. ' +
+    PropertyHelp^[2] := 'Terminal number of the controlled element switch. ' +
         '1 or 2, typically.  Default is 1.';
-    PropertyHelp[3] := '{Open | Close}  After specified delay time, and if not locked, causes the controlled switch to open or close. ';
-    PropertyHelp[4] := '{Yes | No} Delayed action. Sends CTRL_LOCK or CTRL_UNLOCK message to control queue. ' +
+    PropertyHelp^[3] := '{Open | Close}  After specified delay time, and if not locked, causes the controlled switch to open or close. ';
+    PropertyHelp^[4] := '{Yes | No} Delayed action. Sends CTRL_LOCK or CTRL_UNLOCK message to control queue. ' +
         'After delay time, controlled switch is locked in its present open / close state or unlocked. ' +
         'Switch will not respond to either manual (Action) or automatic (COM interface) control or internal OpenDSS Reset when locked.';
-    PropertyHelp[5] := 'Operating time delay (sec) of the switch. Defaults to 120.';
-    PropertyHelp[6] := '{Open | Closed] Normal state of the switch. If not Locked, the switch reverts to this state for reset, change of mode, etc.' +
+    PropertyHelp^[5] := 'Operating time delay (sec) of the switch. Defaults to 120.';
+    PropertyHelp^[6] := '{Open | Closed] Normal state of the switch. If not Locked, the switch reverts to this state for reset, change of mode, etc.' +
         ' Defaults to first Action or State specified if not specifically declared.';
-    PropertyHelp[7] := '{Open | Closed] Present state of the switch. Upon setting, immediately forces state of switch.';
-    PropertyHelp[8] := '{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal ' +
+    PropertyHelp^[7] := '{Open | Closed] Present state of the switch. Upon setting, immediately forces state of switch.';
+    PropertyHelp^[8] := '{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal ' +
         'reset command for mode change, etc.';
 
     ActiveProperty := NumPropsThisClass;
@@ -504,7 +504,7 @@ begin
     inherited DumpProperties(F, Complete);
     with ParentClass do
         for i := 1 to NumProperties do
-            Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[PropertyIdxMap[i]]);
+            Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[PropertyIdxMap^[i]]);
     if Complete then
         Writeln(F);
 end;

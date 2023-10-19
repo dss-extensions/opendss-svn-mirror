@@ -474,7 +474,7 @@ begin
 
     DefineProperties;
 
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
 end;
 
@@ -497,11 +497,11 @@ begin
 
 
      // Define Property names
-    PropertyName[1] := '-------';
+    PropertyName^[1] := '-------';
 
 
      // define Property help values
-    PropertyHelp[1] := 'Use Set Command to set Solution properties.';
+    PropertyHelp^[1] := 'Use Set Command to set Solution properties.';
 
 
     ActiveProperty := NumPropsThisClass;
@@ -2146,7 +2146,7 @@ begin
     {WITH ParentClass Do
      FOR i := 1 to NumProperties Do
      Begin
-        Writeln(F,'Set ',PropertyName^[i],'=',PropertyValue^[i]);
+        Writeln(F,'Set ',PropertyName^[i],'=',PropertyValue[i]);
      End;
      }
     Writeln(F, 'Set Mode=', GetSolutionModeID);

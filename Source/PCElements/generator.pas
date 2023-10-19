@@ -376,7 +376,7 @@ begin
 
     DefineProperties;
 
-    CommandList := TCommandList.Create(Slice(PropertyName^, NumProperties));
+    CommandList := TCommandList.Create(PropertyName, NumProperties);
     CommandList.Abbrev := true;
 
     GeneratorClass := Self;
@@ -521,7 +521,7 @@ begin
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
      // Override default help string
-    PropertyHelp[NumPropsThisClass + 1] := 'Name of harmonic voltage or current spectrum for this generator. ' +
+    PropertyHelp^[NumPropsThisClass + 1] := 'Name of harmonic voltage or current spectrum for this generator. ' +
         'Voltage behind Xd" for machine - default. Current injection for inverter. ' +
         'Default value is "default", which is defined when the DSS starts.';
 
@@ -656,7 +656,7 @@ begin
                 ParamPointer := CommandList.GetCommand(ParamName);
 
             if (ParamPointer > 0) and (ParamPointer <= NumProperties) then
-                PropertyValue[PropertyIdxMap[ParamPointer]] := Param
+                PropertyValue[PropertyIdxMap^[ParamPointer]] := Param
             else
             begin
            // first, checks if there is a dynamic eq assigned, then
@@ -667,7 +667,7 @@ begin
             end;
 
             if ParamPointer > 0 then
-                case PropertyIdxMap[ParamPointer] of
+                case PropertyIdxMap^[ParamPointer] of
                     0:
                         DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '"', 561);
                     1:
@@ -776,7 +776,7 @@ begin
                 end;
 
             if ParamPointer > 0 then
-                case PropertyIdxMap[ParamPointer] of
+                case PropertyIdxMap^[ParamPointer] of
                     1:
                         SetNcondsForConnection;  // Force Reallocation of terminal info
 
@@ -933,7 +933,7 @@ begin
             ClassMakeLike(OtherGenerator);
 
             for i := 1 to ParentClass.NumProperties do
-                FPropertyValue^[i] := OtherGenerator.FPropertyValue^[i];
+                FPropertyValue[i] := OtherGenerator.FPropertyValue[i];
 
             Result := 1;
         end
@@ -2740,7 +2740,7 @@ begin
     with ParentClass do
         for i := 1 to NumProperties do
         begin
-            idx := PropertyIdxMap[i];
+            idx := PropertyIdxMap^[i];
             case idx of
                 34, 36:
                     Writeln(F, '~ ', PropertyName^[i], '=(', PropertyValue[idx], ')');
