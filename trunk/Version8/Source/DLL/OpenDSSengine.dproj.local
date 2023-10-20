@@ -2,6 +2,7 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
+    <Transaction>2023/10/19 13:16:54.818,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -199,6 +200,7 @@
     <File Path="..\Shared\StackDef.pas"/>
     <File Path="..\Shared\Ucmatrix.pas"/>
     <File Path="..\Shared\Ucomplex.pas"/>
+    <File Path="..\Shared\ExceptionTrace.pas"/>
     <File Path="..\TCP_IP"/>
     <File Path="..\TCP_IP\TCP_IP.pas"/>
     <File Path="ImplActiveClass.pas"/>

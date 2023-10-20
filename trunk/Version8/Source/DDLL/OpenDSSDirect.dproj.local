@@ -1,4 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-	<Transactions/>
+	<Transactions>
+    <Transaction>2023/10/19 13:08:24.000.532,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
+  </Transactions>
 </BorlandProject>

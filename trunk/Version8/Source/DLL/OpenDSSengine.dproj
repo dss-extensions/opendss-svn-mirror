@@ -216,6 +216,12 @@
                 </DeployFile>
                 <DeployFile LocalName="..\x86\OpenDSSengine.dll" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSSengine.dll" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x86\OpenDSSengine.dll" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>OpenDSSengine.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
                         <Operation>1</Operation>
@@ -1276,6 +1282,7 @@
         <DCCReference Include="..\General\DynamicExp.pas"/>
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <DCCReference Include="..\Controls\GenController.pas"/>
+        <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -9,7 +9,7 @@
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
@@ -1196,6 +1196,7 @@
         <DCCReference Include="..\General\DynamicExp.pas"/>
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <DCCReference Include="..\Controls\GenController.pas"/>
+        <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
