@@ -173,7 +173,8 @@ uses
     Utilities,
     Mathutil,
     ControlElem,
-    LineUnits;
+    LineUnits,
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 30;
@@ -2426,7 +2427,11 @@ begin
 end;
 
 initialization
-
+try
     CAP_EPSILON := cmplx(0.0, 4.2e-8);  // 5 kvar of capacitive reactance at 345 kV to avoid open line problem
     ONE_THIRD := 1.0 / 3.0;  // Do this to get more precision in certain calculations
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

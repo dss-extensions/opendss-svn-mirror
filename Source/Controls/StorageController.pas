@@ -221,7 +221,8 @@ uses
     MathUtil,
     Math,
     Dynamics,
-    XYCurve;
+    XYCurve,
+    ExceptionTrace;
 
 const
 
@@ -2818,7 +2819,10 @@ end;
 {--------------------------------------------------------------------------}
 
 initialization
-
+try
     CDoubleOne := Cmplx(1.0, 1.0);
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

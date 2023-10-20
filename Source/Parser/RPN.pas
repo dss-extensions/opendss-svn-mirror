@@ -69,7 +69,9 @@ implementation
 
 
 uses
-    Math;
+    Math,
+    SysUtils,
+    ExceptionTrace;
 
 { TRPNCalc }
 var
@@ -250,8 +252,12 @@ begin
 end;
 
 initialization
-
+try
     DegToRad := 3.14159265359 / 180.0;
     RadToDeg := 1.0 / DegToRad;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 end.

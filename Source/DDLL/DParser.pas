@@ -18,7 +18,8 @@ uses
     Variants,
     ArrayDef,
     DSSGlobals,
-    sysutils;
+    sysutils,
+    ExceptionTrace;
 
 var
     ComParser: ParserDel.TParser;
@@ -201,6 +202,10 @@ initialize(VectorBuffer);initialize(MatrixBuffer);
 end;
 
 initialization
+try
     ComParser := ParserDel.TParser.Create;  // create COM Parser object
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

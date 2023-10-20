@@ -450,7 +450,8 @@ uses
     Transformer,
     Reactor,
     Diakoptics,
-    StrUtils;
+    StrUtils,
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 1;
@@ -3604,7 +3605,7 @@ begin
 end;
 
 initialization
-
+try
     IsMultiThread := true;
     {$IFDEF debugtrace}
     Assignfile(Fdebug, 'Debugtrace.csv');
@@ -3614,4 +3615,9 @@ initialization
     {$IFDEF FPC}
 {$pop}
     {$ENDIF}
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
+
 end.

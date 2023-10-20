@@ -138,7 +138,8 @@ uses
     Dynamics,
     Utilities,
     Sysutils,
-    Command;
+    Command,
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 31;
@@ -1479,6 +1480,10 @@ begin
 end;
 
 initialization
-
+try
     CDOUBLEONE := CMplx(1.0, 1.0);
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

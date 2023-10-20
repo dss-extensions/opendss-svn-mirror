@@ -32,6 +32,7 @@ uses
     Utilities,
     DSSGlobals,
     sysutils,
+    ExceptionTrace,
     {$IF not (defined(FPC) or defined(CONSOLE))}
     DSSForms,
     {$ELSE}
@@ -485,11 +486,15 @@ begin
 end;
 
 initialization
-
+try
     DefineOptions;
 
     ShowCommands := TCommandList.Create(ShowOption);
     ShowCommands.Abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

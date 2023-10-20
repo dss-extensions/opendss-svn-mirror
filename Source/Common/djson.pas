@@ -109,7 +109,8 @@ XMLUtils
     ,
     Windows
     {$ENDIF}
-    ;
+    ,
+    ExceptionTrace;
 
     {$M+}
     {$TYPEINFO ON}
@@ -491,6 +492,7 @@ begin
 end;
 
 initialization
+try
     {$IFNDEF FPC}
     DJSONFormatSettings := TFormatsettings.Create;
     {$ENDIF}
@@ -506,4 +508,8 @@ initialization
     {$IFDEF FPC}
 {$pop}
     {$ENDIF}
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

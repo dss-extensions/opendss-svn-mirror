@@ -30,7 +30,8 @@ uses
     DSSGlobals,
     SysUtils,
     ParserDel,
-    Utilities;
+    Utilities,
+    ExceptionTrace;
 
 procedure DefineOptions;
 
@@ -499,11 +500,15 @@ end;
 
 
 initialization
-
+try
     DefineOptions;
 
     PlotCommands := TCommandList.Create(PlotOption);
     PlotCommands.Abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

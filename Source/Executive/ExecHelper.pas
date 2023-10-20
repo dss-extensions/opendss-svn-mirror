@@ -203,7 +203,8 @@ RegExpr,
 , Fncs, Helics
     {$ENDIF}
     ,
-    Ucmatrix;
+    Ucmatrix,
+    ExceptionTrace;
 
 var
     SaveCommands, DistributeCommands, DI_PlotCommands,
@@ -4763,7 +4764,7 @@ end;
 initialization
 
 {Initialize Command lists}
-
+try
     SaveCommands := TCommandList.Create(['class', 'file', 'dir', 'keepdisabled']);
     SaveCommands.Abbrev := true;
     DI_PlotCommands := TCommandList.Create(['case', 'year', 'registers', 'peak', 'meter']);
@@ -4793,6 +4794,10 @@ initialization
 
     RemoveCommands := TCommandList.Create(['ElementName', 'KeepLoad', 'Editstring']);
     RemoveCommands.abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

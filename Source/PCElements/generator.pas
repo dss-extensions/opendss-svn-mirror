@@ -343,7 +343,8 @@ uses
     Utilities,
     Classes,
     KLUSolve,
-    Solution;
+    Solution,
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 46;
@@ -3561,8 +3562,11 @@ begin
 end;
 
 initialization
-
+try
     CDOUBLEONE := CMPLX(1.0, 1.0);
 //   TWOPI3     := twopi/3.0;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

@@ -34,7 +34,8 @@ uses
     DSSGlobals,
     ExportCIMXML,
     Utilities,
-    NamedObject;
+    NamedObject,
+    ExceptionTrace;
 
 function AssignNewUUID(val: String): TUuid;
 begin
@@ -689,11 +690,15 @@ begin
 end;
 
 initialization
-
+try
     DefineOptions;
 
     ExportCommands := TCommandList.Create(ExportOption);
     ExportCommands.Abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

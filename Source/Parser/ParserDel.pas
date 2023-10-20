@@ -126,7 +126,8 @@ implementation
 {$IFDEF MSWINDOWS}
 {$IFNDEF CONSOLE}
 uses
-    Dialogs;
+    Dialogs,
+    ExceptionTrace;
     {$ENDIF}
     {$ENDIF}
 
@@ -1030,9 +1031,13 @@ begin
 end;
 
 initialization
-
+try
     // Variables
     ParserVars := TParserVar.Create(100);  // start with space for 100 variables
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

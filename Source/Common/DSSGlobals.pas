@@ -486,7 +486,8 @@ uses {Forms,   Controls,}
      BaseUnix,
     {$ENDIF}
     djson,
-    SysUtils;
+    SysUtils,
+    ExceptionTrace;
      {Intrinsic Ckt Elements}
 
 type
@@ -1605,6 +1606,7 @@ end;
 
 initialization
 
+try
 //***************Initialization for Parallel Processing*************************
 
     Get_processor_info();
@@ -1876,6 +1878,10 @@ NoFormsAllowed  := TRUE;
     end;
     {$ENDIF}
 
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

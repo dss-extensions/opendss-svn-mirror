@@ -171,7 +171,8 @@ uses
     Sysutils,      // Delphi misc utility functions
     Math,          // Delphi Math functions
     MathUtil,      // DSS Math utilities
-    Utilities;     // DSS misc utility functions
+    Utilities,     // DSS misc utility functions
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 36; // Set this constant to the actual number of properties you define
@@ -1746,10 +1747,12 @@ end;
 initialization
 
 // Initialize any variables here
-
+try
 
   // For Example:  1 + j 1
     CDOUBLEONE := CMPLX(1.0, 1.0);
-
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

@@ -27,7 +27,9 @@ implementation
 uses
     DSSGlobals,
     Ymatrix,
-    KLUSolve;
+    KLUSolve,
+    SysUtils,
+    ExceptionTrace;
 
 var {Global variables in this Module}
     Yhandle: Nativeuint;
@@ -175,9 +177,14 @@ end;
 initialization
 
 // Initialize so Reallocmem will work reliably
+try
     Ycolumns := nil;
     YRows := nil;
     YValues := nil;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

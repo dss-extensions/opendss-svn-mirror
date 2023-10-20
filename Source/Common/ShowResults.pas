@@ -83,7 +83,8 @@ uses
     LineGeometry,
     YMatrix,
     SwtControl,
-    KLUSolve;
+    KLUSolve,
+    ExceptionTrace;
 
 var
     MaxBusNameLength: Integer;
@@ -4102,7 +4103,11 @@ end;
 
 initialization
 
+try
     MaxDeviceNameLength := 30;
     MaxBusNameLength := 12;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

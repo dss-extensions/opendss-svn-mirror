@@ -269,7 +269,8 @@ uses
     DSSClassDefs,
     DSSGlobals,
     Utilities,
-    Classes;
+    Classes,
+    ExceptionTrace;
 
 const
     NumPropsThisClass = 41;  // removed Fuel variables
@@ -3435,8 +3436,11 @@ begin
 end;
 
 initialization
-
+try
     CDOUBLEONE := CMPLX(1.0, 1.0);
 //   TWOPI3     := twopi/3.0;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

@@ -361,7 +361,8 @@ uses
     DSSClassDefs,
     DSSGlobals,
     Utilities,
-    Classes;
+    Classes,
+    ExceptionTrace;
 
 const
 // ===========================================================================================
@@ -3408,5 +3409,10 @@ begin
 end;
 
 initialization
+try
     CDOUBLEONE := Cmplx(1.0, 1.0);
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

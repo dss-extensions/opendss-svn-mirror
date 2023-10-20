@@ -148,7 +148,8 @@ uses
     Command,
     solution,
     YMatrix,
-    UPFCControl;
+    UPFCControl,
+    ExceptionTrace;
 
 const
     propLossCurve = 11;
@@ -1451,6 +1452,10 @@ end;
 // ======================== END STATE VARIABLES ===============================
 
 initialization
-
+try
     CDOUBLEONE := CMplx(1.0, 1.0);
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

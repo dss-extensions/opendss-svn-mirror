@@ -126,7 +126,8 @@ uses
     Utilities,
     Sysutils,
     Command,
-    Solution;
+    Solution,
+    ExceptionTrace;
 
 var
     NumPropsThisClass: Integer;
@@ -951,6 +952,11 @@ begin
 end;
 
 initialization
+try
     ALPHA1 := cmplx(-0.5, 0.5 * sqrt(3.0));  // 1 at 120 degrees
     ALPHA2 := cmplx(-0.5, -ALPHA1.im);       // 1 at 240 degrees
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

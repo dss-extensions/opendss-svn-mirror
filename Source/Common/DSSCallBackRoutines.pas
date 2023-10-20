@@ -36,7 +36,8 @@ uses
     SysUtils,
     CktElement,
     Math,
-    PDElement;
+    PDElement,
+    ExceptionTrace;
 
 var
     CallBackParser: TParser;
@@ -479,7 +480,7 @@ end;
 initialization
 
 {Initialize Function Interface variables for user-Written Callbacks}
-
+try
     with CallBackRoutines do
     begin
         MsgCallBack := DoSimpleMsgCallback; // for user-written callbacks
@@ -520,6 +521,10 @@ initialization
     end;
 
     CallBackParser := TParser.Create;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 {====================================================================================================================}
 

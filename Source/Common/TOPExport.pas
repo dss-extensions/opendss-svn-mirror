@@ -95,12 +95,13 @@ uses
     SysUtils,
     Dialogs,
     ActiveX,
-    DSSGlobals;
+    DSSGlobals,
+    ExceptionTrace;
     {$ELSE}
-Uses ComObj, AnsiStrings, SysUtils, CmdForms, ActiveX, DSSGlobals;
+Uses ComObj, AnsiStrings, SysUtils, CmdForms, ActiveX, DSSGlobals, ExceptionTrace;
     {$ENDIF}
     {$ELSE}
-Uses SysUtils, DSSGlobals, CmdForms, Variants;
+Uses SysUtils, DSSGlobals, CmdForms, Variants, ExceptionTrace;
     {$ENDIF}
 
 var
@@ -317,10 +318,15 @@ end;
 
 initialization
 
+try
     TOP_Inited := false;
     TOPTransferFile := TOutFile32.Create;
     TOPTransferFile.Fname := 'DSSTransfer.STO';
     {$IFNDEF FPC}
     CoInitialize(nil);
     {$ENDIF}
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

@@ -56,7 +56,8 @@ uses
     sparse_math,
     MemoryMap_lib,
     EnergyMeter,
-    GISCommands;
+    GISCommands,
+    ExceptionTrace;
 
 procedure DefineCommands;
 
@@ -1089,8 +1090,12 @@ begin
 end;
 
 initialization
-
+try
     DefineCommands;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

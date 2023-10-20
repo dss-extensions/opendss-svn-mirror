@@ -59,6 +59,10 @@ var
 
 implementation
 
+uses
+    ExceptionTrace,
+    SysUtils;
+
 function CMPLX(const a, b: Double): complex; inline;
 begin
     Result.RE := A;
@@ -298,8 +302,11 @@ end;
 
 
 initialization
-
+try
     cZERO := cmplx(0.0, 0.0);
     cONE := cmplx(1.0, 0.0);
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

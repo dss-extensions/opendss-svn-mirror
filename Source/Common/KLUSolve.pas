@@ -136,8 +136,14 @@ FUNCTION GetMatrixElement(id:NativeUInt; i,j:LongWord; Value:pComplex):LongWord;
 
 implementation
 
+uses
+    ExceptionTrace;
+
 initialization
-
+try
     IsMultiThread := true;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

@@ -63,7 +63,8 @@ uses
     Spectrum,
     Vsource,
     Isource,
-    KLUSolve;
+    KLUSolve,
+    ExceptionTrace;
 
 var
     ProgressCount: Integer;
@@ -1292,7 +1293,10 @@ begin
 end;
 
 initialization
-
+try
     IsMultiThread := true;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

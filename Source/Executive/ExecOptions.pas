@@ -47,7 +47,8 @@ uses
     Solution,
     Energymeter,
     Diakoptics,
-    Classes;
+    Classes,
+    ExceptionTrace;
 
 procedure DefineOptions;
 
@@ -1669,8 +1670,12 @@ end;
 
 
 initialization
-
+try
     DefineOptions;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

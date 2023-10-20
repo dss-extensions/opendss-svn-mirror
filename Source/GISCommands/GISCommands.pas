@@ -97,6 +97,9 @@ var
 
 implementation
 
+uses
+    ExceptionTrace;
+
 {$IFDEF FPC}
 FUNCTION DoGISCmd: string;begin Result:='GIS not implemented for FPC';end;
 function start_openDSSGIS(): boolean;begin Result:=False;end;
@@ -2030,10 +2033,15 @@ end;
 
 initialization
 
+try
     DefineOptions;
 
     GISCommandList := TCommandList.Create(GISOption);
     GISCommandList.Abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
 

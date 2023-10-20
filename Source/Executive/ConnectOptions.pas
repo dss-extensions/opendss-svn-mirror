@@ -31,7 +31,8 @@ uses
     DSSGlobals,
     SysUtils,
     ParserDel,
-    Utilities;
+    Utilities,
+    ExceptionTrace;
 
 procedure DefineOptions;
 begin
@@ -97,9 +98,14 @@ end;
 
 
 initialization
+try
     DefineOptions;
     ConnectCommands := TCommandList.Create(ConnectOption);
     ConnectCommands.Abbrev := true;
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 
 finalization
     DoDisConnectCmd;

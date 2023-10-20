@@ -23,7 +23,9 @@ uses
     ControlQueue,
     ControlElem,
     DSSClass,
-    Variants;
+    Variants,
+    SysUtils,
+    ExceptionTrace;
 
 type
     pAction = ^Taction;
@@ -259,7 +261,11 @@ end;
 
 initialization
  {Make a Proxy Control Object to receiving control actions}
+try
     COMControlProxyObj := TCOMControlProxyObj.Create(nil, 'COM_Proxy');
     ActiveAction := nil;
-
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
 end.

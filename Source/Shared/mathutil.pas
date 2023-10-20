@@ -55,7 +55,9 @@ type
 implementation
 
 uses
-    Math;
+    Math,
+    SysUtils,
+    ExceptionTrace;
 
 constructor TPICtrl.Create;
 begin
@@ -583,6 +585,7 @@ begin
 end;
 
 initialization
+try
     Randomize;
     As2p := TcMatrix.CreateMatrix(3);
     Ap2s := TcMatrix.CreateMatrix(3);
@@ -593,6 +596,11 @@ initialization
     Ap2s.Invert;
     SetClarkeMatrices;
     // Sqrt23 := Sqrt(2.0/3.0); // for park
+except
+    On E: Exception do
+        DumpExceptionCallStack(E);
+end;
+
 finalization
     As2p.Free;
     Ap2s.Free;
