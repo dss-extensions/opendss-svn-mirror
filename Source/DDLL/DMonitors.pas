@@ -422,7 +422,7 @@ initialize(SngBuffer);
         end;
         1:
         begin  // Monitor.ByteStream
-            myType := 4;        // String
+            myType := 5;        // NOT a String
             setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
