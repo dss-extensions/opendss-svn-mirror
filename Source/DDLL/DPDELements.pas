@@ -25,7 +25,6 @@ begin
     case mode of
         0:
         begin  // PDElements.Count
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -34,7 +33,6 @@ begin
         end;
         1:
         begin  // PDElements.First
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -55,7 +53,6 @@ begin
         end;
         2:
         begin  // PDElements.Next
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -76,7 +73,6 @@ begin
         end;
         3:
         begin  // PDElements.IsShunt
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -90,7 +86,6 @@ begin
         end;
         4:
         begin  // PDElements.NumCustomers
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -103,7 +98,6 @@ begin
         end;
         5:
         begin  // PDElements.TotalCustomers
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -116,7 +110,6 @@ begin
         end;
         6:
         begin  // PDElements.ParentPDElement
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -133,7 +126,6 @@ begin
         end;
         7:
         begin   // PDElements.FromTerminal
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -146,7 +138,6 @@ begin
         end;
         8:
         begin  // PDElements.SectionID
-            Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -307,7 +298,7 @@ begin
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    TestString := arg;
+                    TestString := String(arg);
           // Search through list of PD Elements until we find this one
                     ActivePDElement := PDElements.First;
                     while Assigned(ActivePDElement) do

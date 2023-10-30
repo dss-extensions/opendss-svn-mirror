@@ -346,7 +346,7 @@ begin
         end;
         1:
         begin  // Transformers.XfmrCode write
-            Set_Parameter('XfmrCode', arg);
+            Set_Parameter('XfmrCode', String(arg));
         end;
         2:
         begin  // Transformers.Name read
@@ -363,7 +363,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].Transformers;
-                S := arg;  // Convert to Pascal String
+                S := String(arg);  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -390,7 +390,7 @@ begin
             elem := ActiveTransformer;
             if elem <> nil then
             begin
-                Result := Pansichar(elem.GetWindingCurrentsResult(ActiveActor));
+                Result := Pansichar(Ansistring(elem.GetWindingCurrentsResult(ActiveActor)));
             end;
         end
     else
@@ -406,8 +406,7 @@ var
     lst: TPointerList;
     i,
     iV,
-    NumCurrents,
-    k: Integer;
+    NumCurrents: Integer;
     TempCurrentBuffer,
     TempVoltageBuffer: pComplexArray;
 
@@ -424,13 +423,11 @@ begin
                     if Transformers.ListSize > 0 then
                     begin
                         lst := Transformers;
-                        k := 0;
                         elem := lst.First;
                         while elem <> nil do
                         begin
                             WriteStr2Array(elem.Name);
                             WriteStr2Array(Char(0));
-                            Inc(k);
                             elem := lst.Next;
                         end;
                     end;

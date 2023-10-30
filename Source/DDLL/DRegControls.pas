@@ -353,7 +353,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].RegControls;
-                S := arg;  // Convert to Pascal String
+                S := String(arg);  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -384,7 +384,7 @@ begin
         end;
         3:
         begin  // RegControls.MonitoredBus write
-            Set_Parameter('Bus', arg);
+            Set_Parameter('Bus', String(arg));
         end;
         4:
         begin  // RegControls.Transformer read
@@ -395,7 +395,7 @@ begin
         end;
         5:
         begin  // RegControls.Transformer write
-            Set_Parameter('Transformer', arg);
+            Set_Parameter('Transformer', String(arg));
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));
@@ -408,7 +408,6 @@ procedure RegControlsV(mode: Longint; var myPointer: Pointer; var myType, mySize
 var
     elem: TRegControlObj;
     lst: TPointerList;
-    k: Integer;
 
 begin
     case mode of

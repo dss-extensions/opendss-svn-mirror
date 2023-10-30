@@ -231,7 +231,7 @@ end;
 
 procedure TPDElement.GetCurrents(Curr: pComplexArray; ActorID: Integer);
 var
-    i, j: Integer;
+    i: Integer;
 begin
     try
 

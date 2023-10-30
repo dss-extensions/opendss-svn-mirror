@@ -259,8 +259,6 @@ begin
     case mode of
         0:
         begin                                           // Bus.Name read
-            Result := Pansichar(Ansistring(''));
-
             if (ActiveCircuit[ActiveActor] <> nil) then
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then
@@ -288,11 +286,7 @@ var
     Nelements,
     j,
     NodeIdxi: Integer;
-    Volts,
-    Voc,
-    Z,
-    Y1,
-    Isc: Complex;
+    Volts: Complex;
     pBus: TDSSBus;
     VPh,
     V012: array[1..3] of Complex;
@@ -471,7 +465,6 @@ begin
                         begin
                             Nvalues := NumNodesThisBus;
                             setlength(myCmplxArray, NValues);
-                            iV := 0;
                             jj := 1;
                             if kVBase > 0.0 then
                                 BaseFactor := 1000.0 * kVBase
@@ -628,7 +621,6 @@ begin
                     begin
                         pBus := Buses^[ActiveBusIndex];
                         Nvalues := pBus.NumNodesThisBus;
-                        jj := 1;
                         if Nvalues > 3 then
                             Nvalues := 3;
                         if Nvalues > 1 then
@@ -639,10 +631,6 @@ begin
                             iV := 0;
                             with pBus do
                             begin
-                                if kVBase > 0.0 then
-                                    BaseFactor := 1000.0 * kVBase * sqrt3
-                                else
-                                    BaseFactor := 1.0;
                                 for i := 1 to NValues do     // for 2- or 3-phases
                                 begin
                     // this code assumes the nodes are ordered 1, 2, 3
@@ -1008,7 +996,7 @@ begin
         myType := 4;        // String
         S := 'Command not recognized';
         setlength(myStrArray, 0);
-        for j := 1 to High(myPXEList[i]) do
+        for j := 1 to High(S) do
         begin
             setlength(myStrArray, length(myStrArray) + 1);
             myStrArray[High(myStrArray)] := Byte(S[j]);

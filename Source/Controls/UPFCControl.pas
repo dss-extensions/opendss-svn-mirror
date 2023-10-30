@@ -165,7 +165,6 @@ var
     ParamPointer: Integer;
     ParamName: String;
     Param: String;
-    i: Integer;
 
 begin
 
@@ -366,9 +365,7 @@ end;
 {--------------------------------------------------------------------------}
 procedure TUPFCControlObj.DoPendingAction;
 var
-    Update: Boolean;
     i: Integer;
-    MyClass: TDSSClass;
     myUPFC: TUPFCObj;
 
 begin
@@ -387,7 +384,6 @@ procedure TUPFCControlObj.Sample(ActorID: Integer);
 var
     Update: Boolean;
     i: Integer;
-    MyClass: TDSSClass;
     myUPFC: TUPFCObj;
 
 begin

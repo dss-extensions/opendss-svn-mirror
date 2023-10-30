@@ -315,7 +315,7 @@ begin
         begin  // LineCodes.Name Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if not LineCodeClass.SetActive(arg) then
+                if not LineCodeClass.SetActive(String(arg)) then
                     DoSimpleMsg('LineCode "' + arg + '" Not Found in Active Circuit.', 51008);
 
                // Still same active object if not found
@@ -338,7 +338,6 @@ var
     k: Integer;
     Ztemp: Complex;
     Factor: Double;
-    Pint: ^Integer;
     PDouble: ^Double;
 
 begin
@@ -505,7 +504,6 @@ begin
                 begin
                     if LineCodeClass.ElementList.ListSize > 0 then
                     begin
-                        k := 0;
                         pLineCode := LineCodeClass.ElementList.First;
                         while pLineCode <> nil do
                         begin

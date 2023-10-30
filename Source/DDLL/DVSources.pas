@@ -174,7 +174,7 @@ begin
         begin  // Vsources.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if VsourceClass[ActiveActor].SetActive(arg) then
+                if VsourceClass[ActiveActor].SetActive(String(arg)) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := VsourceClass[ActiveActor].ElementList.Active;
                 end
@@ -195,7 +195,6 @@ procedure VsourcesV(mode: Longint; var myPointer: Pointer; var myType, mySize: L
 var
     elem: TVsourceObj;
     pList: TPointerList;
-    k: Integer;
 
 begin
     case mode of

@@ -1853,8 +1853,8 @@ var
     S: String;
 
     Zbus: Complex;
-    Vpolar: Polar;
-    Ipolar: Polar;
+   //Vpolar  :Polar;
+   //Ipolar  :Polar;
 
 begin
 

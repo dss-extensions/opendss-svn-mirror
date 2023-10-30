@@ -110,12 +110,6 @@ begin
 end;
 
 function CtrlQueueI(mode: Longint; arg: Longint): Longint; CDECL;
-
-var
-    Hour: Integer;
-    Seconds: Double;
-    ActionCode, DeviceHandle: Integer;
-
 begin
     Result := 0;
     case mode of
@@ -135,7 +129,6 @@ begin
         end;
         2:
         begin  // CtrlQueue.NumActions
-            Result := 0;
             Result := COMControlProxyObj.ActionList.Count;
         end;
         3:
@@ -148,13 +141,11 @@ begin
         end;
         4:
         begin  // CtrlQueue.ActionCode
-            Result := 0;
             if ActiveAction <> nil then
                 Result := ActiveAction^.ActionCode;
         end;
         5:
         begin  // CtrlQueue.DeviceHandle
-            Result := 0;
             if ActiveAction <> nil then
                 Result := ActiveAction^.DeviceHandle;
         end;
@@ -233,15 +224,11 @@ begin
                     begin
                         Hour := pDBL^;
                         inc(Pbyte(pDBL), 8);
-                        inc(QSize);
                         Seconds := pDBL^;
                         inc(Pbyte(pDBL), 8);
-                        inc(QSize);
                         ActionCode := pDBL^;
                         inc(Pbyte(pDBL), 8);
-                        inc(QSize);
                         DeviceHandle := pDBL^;
-                        inc(QSize);
                         QSize := ActiveCircuit[ActiveActor].ControlQueue.push(trunc(Hour), Seconds, trunc(ActionCode), trunc(DeviceHandle), COMControlProxyObj, ActiveActor);
                     end;
                 except

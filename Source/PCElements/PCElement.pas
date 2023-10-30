@@ -509,8 +509,6 @@ end;
 
 
 procedure TPCElement.ComputeIterminal(ActorID: Integer);
-var
-    i: Integer;
 begin
     if IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount then
     begin

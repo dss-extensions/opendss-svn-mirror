@@ -240,7 +240,7 @@ begin
         1:
         begin  // Settings.AutoBusLits write
             if ActiveCircuit[ActiveActor] <> nil then
-                DoAutoAddBusList(arg);
+                DoAutoAddBusList(String(arg));
         end;
         2:
         begin  // Settings.PriceCurve read
@@ -254,7 +254,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    PriceCurve := arg;
+                    PriceCurve := String(arg);
                     PriceCurveObj := LoadShapeClass[ActiveActor].Find(Pricecurve);
                     if PriceCurveObj = nil then
                         DoSimpleMsg('Price Curve: "' + Pricecurve + '" not found.', 5006);

@@ -2802,7 +2802,6 @@ var
 
 begin
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
-    NumData := 0;
     with WindGenvars do
     begin
 
@@ -2928,7 +2927,6 @@ end;
 
 procedure TWindGenObj.IntegrateStates(ActorID: Integer);
 var
-    temp: Double;
     i,
     Numdata: Integer;
     TracePower: Complex;

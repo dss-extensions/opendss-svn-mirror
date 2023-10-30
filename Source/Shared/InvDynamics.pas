@@ -163,12 +163,13 @@ end;
 
   // Solves the derivative term of the differential equation to be integrated
 procedure TInvDynamicVars.SolveDynamicStep(i, ActorID: Integer; PICtrl: PPICtrl);
-var
+  {
+  var
     myDCycle,
     iDelta,
     iErrorPct,
-    iError: Double;
-
+    iError  : Double;
+  }
 begin
     with ActiveCircuit[ActorID].Solution do
     begin
@@ -229,8 +230,8 @@ end;
 //|             Calculates the current phasors to match with the target (v)             |
 //---------------------------------------------------------------------------------------
 procedure TInvDynamicVars.FixPhaseAngle(ActorID, idx: Integer);
-var
-    myError: Double;
+{  Var
+    myError     : Double;}
 
 begin
     // Corrects the phase angle
@@ -254,9 +255,9 @@ var
     X0,
     X1,
     R1,
-    R2,
-    X2,
-    X1R1,
+   // R2,
+   // X2,
+   // X1R1,
     X0R0,
     Isc1,
     Xs,
@@ -270,11 +271,11 @@ begin
 
     X1 := (Sqr(RatedkVLL) / mKVARating) / Sqrt(1.0 + 0.0625);
     R1 := X1 / 4; // Uses defaults
-    R2 := R1;     // default Z2 = Z1
-    X2 := X1;
+    // R2    := R1;     // default Z2 = Z1
+    // X2    := X1;
     R0 := 1.9;
     X0 := 5.7;
-    X1R1 := X1 / R1;
+    // X1R1  := X1/R1;
     X0R0 := X0 / R0;
     Isc1 := (mKVARating * 1000.0 / (sqrt(3) * RatedkVLL)) / NPhases;
   //  Compute R0, X0

@@ -166,7 +166,7 @@ begin
         begin   // Relays.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if RelayClass.SetActive(arg) then
+                if RelayClass.SetActive(String(arg)) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := RelayClass.ElementList.Active;
                 end
@@ -187,7 +187,7 @@ begin
         begin   // Relays.MonitoredObj write
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('monitoredObj', arg);
+                Set_parameter('monitoredObj', String(arg));
         end;
         4:
         begin   // Relays.SwitchedObj read
@@ -200,7 +200,7 @@ begin
         begin   // Relays.SwitchedObj write
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('SwitchedObj', arg);
+                Set_parameter('SwitchedObj', String(arg));
         end;
         6:
         begin  // Relays.State read
@@ -220,7 +220,7 @@ begin
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(arg)[1] = 'c' then
+                if LowerCase(String(arg))[1] = 'c' then
                     elem.PresentState := CTRL_CLOSE
                 else
                     elem.PresentState := CTRL_OPEN;
@@ -243,7 +243,7 @@ begin
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(arg)[1] = 'c' then
+                if LowerCase(String(arg))[1] = 'c' then
                     elem.NormalState := CTRL_CLOSE
                 else
                     elem.NormalState := CTRL_OPEN;
@@ -260,7 +260,6 @@ procedure RelaysV(mode: Longint; var myPointer: Pointer; var myType, mySize: Lon
 var
     elem: TRelayObj;
     pList: TPointerList;
-    k: Integer;
 
 begin
     case mode of

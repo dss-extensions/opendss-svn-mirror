@@ -276,9 +276,8 @@ end;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TDynamicExp.MakeLike(const LineName: String): Integer;
-var
-    OtherDynExpCode: TDynamicExpObj;
-    i: Integer;
+  //VAR
+  //   OtherDynExpCode:TDynamicExpObj;
 begin
     Result := 0;
      {See if we can find this DynamicExp code in the present collection}
@@ -419,11 +418,9 @@ end;
   or -1 if the string entered is neither a numeric constant or state varaible}
 function TDynamicExpObj.Get_Var_Idx(myVar: String): Integer;
 var
-    dblval: Double;
     idx: Integer;
 begin
 
-    dblval := 0.0;
     Result := -1;   // error
     for idx := 0 to (FVarNames.Count - 1) do
         if Lowercase(myVar) = FVarNames[idx] then
@@ -436,7 +433,6 @@ begin
     begin
       // so, it's not a state variable, maybe a constant
         try
-            dblval := strtofloat(myVar);
             Result := 50001;  // returns this code to indicate that it is a constant
         except
             Result := -1;  // it's not a number
@@ -451,12 +447,10 @@ function TDynamicExpObj.Get_Out_Idx(myVar: String): Integer;
   {returns the index of the variable if it exists in the state variable list,
   and if it is an output (-50 in the next cell ot the FCmd automation array)}
 var
-    dblval: Double;
     CmdIdx,
     idx: Integer;
 begin
 
-    dblval := 0.0;
     Result := -1;   // error
     for idx := 0 to (FVarNames.Count - 1) do
         if Lowercase(myVar) = FVarNames[idx] then

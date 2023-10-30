@@ -144,11 +144,9 @@ begin
         begin  // Meters.DIFilesAreOpen
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := 0;
                 if DIFilesAreOpen[ActiveActor] then
                     Result := 1;    // Global variable
             end;
-            Result := 0;
         end;
         9:
         begin  // Meters.SampleAll
@@ -413,7 +411,6 @@ begin
     case mode of
         0:
         begin  // Meters.SAIFI
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -428,7 +425,6 @@ begin
         end;
         1:
         begin   // Meters.SAIFIkW
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -443,7 +439,6 @@ begin
         end;
         2:
         begin  // Meters.SAIDI
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -456,7 +451,6 @@ begin
         end;
         3:
         begin  // Meters.CustItnerrupts
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -469,7 +463,6 @@ begin
         end;
         4:
         begin  // Meters.AvgRepairTime
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -484,7 +477,6 @@ begin
         end;
         5:
         begin  // Meters.FaultRateXRepairHrs
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -499,7 +491,6 @@ begin
         end;
         6:
         begin  // Meters.SumBranchFltRates
-            Result := 0.0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -544,7 +535,7 @@ begin
             begin      // Search list of EnergyMeters in active circuit for name
                 with ActiveCircuit[ActiveActor].EnergyMeters do
                 begin
-                    TestStr := arg;  // Convert to Pascal String for testing
+                    TestStr := String(arg);  // Convert to Pascal String for testing
                     Found := false;
                     ActiveSave := ActiveIndex;
                     pMeterObj := First;
@@ -593,7 +584,7 @@ begin
                 pMeterObj := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
                 if pMeterObj <> nil then
                 begin
-                    pMeterObj.elementName := arg;
+                    pMeterObj.elementName := String(arg);
                     pMeterObj.MeteredElementChanged := true;
                     pMeterObj.RecalcElementData(ActiveActor);
                 end;
@@ -615,12 +606,9 @@ var
     last,
     k,
     i: Integer;
-    cktElem,
-    shuntElement,
     pElem,
     elem: TDSSCktElement;
     node: TCktTreeNode;
-    MyPCEList: array of String;
     PDouble: ^Double;
 
 begin

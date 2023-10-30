@@ -11,12 +11,12 @@ procedure DumpExceptionCallStack(E: Exception);
 implementation
 
 procedure DumpExceptionCallStack(E: Exception);
+{$IFDEF FPC}
 var
-    I: Integer;
-    Frames: PPointer;
-    Report: String;
+  I: Integer;
+  Frames: PPointer;
+  Report: string;
 begin
-    {$IFDEF FPC}
   Report := 'Program exception! ' + LineEnding +
     'Stacktrace:' + LineEnding + LineEnding;
   if E <> nil then begin
@@ -29,7 +29,10 @@ begin
     Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
   Writeln(Report);
   Halt; // End of program execution
-    {$ELSE}
+{$ELSE}
+var
+    Report: String;
+begin
 // TODO: https://www.testrail.com/blog/working-with-delphis-new-exception-stacktrace/
     Report := 'Exception Class:' + E.ClassName + ' Message:' + E.Message;
     Writeln(Report);

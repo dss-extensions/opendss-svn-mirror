@@ -15,7 +15,6 @@ uses
 
 function DSSElementI(mode: Longint; arg: Longint): Longint; CDECL;
 begin
-    Result := 0; // Default return value
     case mode of
         0:
         begin  // DSSElement.NumProperties

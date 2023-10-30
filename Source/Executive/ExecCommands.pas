@@ -594,7 +594,6 @@ var
     Param,
     ObjName,
     PropName: String;
-    MeterElem: TEnergyMeterObj;
 
 begin
 

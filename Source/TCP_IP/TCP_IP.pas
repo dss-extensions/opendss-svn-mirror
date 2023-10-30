@@ -81,6 +81,7 @@ integer
 integer
         {$ENDIF}
             ; var ErrorCode: Integer);
+        {$IFNDEF FPC}
     PRIVATE
         myStr: String;
         MySocket:
@@ -90,6 +91,7 @@ integer
 integer
         {$ENDIF}
         ;
+        {$ENDIF}
     PUBLIC
         constructor Create;
         destructor Destroy; OVERRIDE;
@@ -258,7 +260,7 @@ begin
             ReadMonitorHeader(Header, false);   // leave at beginning of data
             with pMon do
                 pStr := @StrBuffer[0];
-            AuxParser[ActiveActor].CmdString := pStr;
+            AuxParser[ActiveActor].CmdString := String(pStr);
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;
@@ -668,7 +670,7 @@ begin
             ReadMonitorHeader(Header, false);   // leave at beginning of data
             with pMon do
                 pStr := @StrBuffer[0];
-            AuxParser[ActiveActor].CmdString := pStr;
+            AuxParser[ActiveActor].CmdString := String(pStr);
             AuxParser[ActiveActor].AutoIncrement := true;
             FirstCol := AuxParser[ActiveActor].StrValue;  // Get rid of first two columns
             AuxParser[ActiveActor].AutoIncrement := false;

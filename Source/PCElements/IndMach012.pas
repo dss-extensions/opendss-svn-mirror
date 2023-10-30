@@ -134,7 +134,7 @@ type
         FirstIteration, FixedSlip: Boolean;
 
         RandomMult: Double;
-        IndMach012SolutionCount: Integer;
+        // IndMach012SolutionCount : Integer;
         IndMach012SwitchOpen: Boolean;
 
         // Debugging
@@ -1822,8 +1822,10 @@ procedure TIndMach012Obj.InitHarmonics(ActorID: Integer);
  Refer to Load for how to do a Norton equivalent
  }
 
-var
-    E, Va: complex;
+{
+Var
+  E, Va:complex;
+}
 begin
 
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
@@ -2220,9 +2222,8 @@ procedure TIndMach012Obj.GetAllVariables(States: pDoubleArray);
   if you are not defining state variables.
 }
 var
-    i, N: Integer;
+    i: Integer;
 begin
-    N := 0;
     for i := 1 to NumIndMach012Variables do
         States^[i] := Variable[i];
 end;
@@ -2257,9 +2258,9 @@ procedure TIndMach012Obj.MakePosSequence(ActorID: Integer);
 // Routine to convert existing three-phase models to a single-phase positive-
 // sequence model
 
-var
-    S: String;
-    V: Double;
+//Var
+    //S :String;
+    //V :Double;
 
 begin
 
@@ -2279,7 +2280,7 @@ begin
  // example from Generator class
  // Modify as necessary
 
-    S := 'Phases=1 conn=wye';    // Positive sequence model is 1-phase wye
+  //S := 'Phases=1 conn=wye';    // Positive sequence model is 1-phase wye
 
   (****
 

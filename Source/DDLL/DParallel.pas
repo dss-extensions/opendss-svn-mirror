@@ -29,9 +29,6 @@ Classes
     ;
 
 function ParallelI(mode: Longint; arg: Longint): Longint; CDECL;
-var
-    i: Integer;
-
 begin
     Result := 0;             // Default return value
     case mode of

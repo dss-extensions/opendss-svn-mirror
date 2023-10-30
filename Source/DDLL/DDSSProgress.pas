@@ -95,7 +95,7 @@ begin
             if NoFormsAllowed then
                 Exit;
             InitProgressForm(ActiveActor);
-            ProgressCaption(arg, ActiveActor);
+            ProgressCaption(String(arg), ActiveActor);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not recognized'));

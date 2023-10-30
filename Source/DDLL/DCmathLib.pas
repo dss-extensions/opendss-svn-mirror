@@ -15,7 +15,6 @@ uses
 
 function CmathLibF(mode: Longint; arg1: Double; arg2: Double): Double; CDECL;
 begin
-    Result := 0.0; // Default return value
     case mode of
         0:
         begin  // CmathLib.Cabs

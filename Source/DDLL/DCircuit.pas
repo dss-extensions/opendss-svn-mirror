@@ -181,7 +181,6 @@ begin
         end;
         10:
         begin                                            // Circuit.FirstElement
-            Result := 0;
             if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then
             begin
                 Result := ActiveDSSClass[ActiveActor].First;
@@ -191,7 +190,6 @@ begin
         end;
         11:
         begin                                            // Circuit.NextElement
-            Result := 0;
             if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then
             begin
                 Result := ActiveDSSClass[ActiveActor].Next;
@@ -241,14 +239,8 @@ begin
                     CapacityStart := arg1;
                     CapacityIncrement := arg2;
                     if ComputeCapacity(ActiveActor) then
-                        Result := RegisterTotals[3] + RegisterTotals[19]
-                    else
-                        Result := 0.0;
-                end
-            else
-            begin
-                Result := 0.0;
-            end;
+                        Result := RegisterTotals[3] + RegisterTotals[19];
+                end;
         end
     else
         Result := -1.0;
@@ -277,7 +269,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
-                    SetElementActive(arg);
+                    SetElementActive(String(arg));
                     if ActiveCktElement <> nil then
                         ActiveCktElement.Enabled := false;
                 end;
@@ -286,7 +278,7 @@ begin
         begin                                             // Circuit.Enable
             with ActiveCircuit[ActiveActor] do
             begin
-                SetElementActive(arg);
+                SetElementActive(String(arg));
                 if ActiveCktElement <> nil then
                     ActiveCktElement.Enabled := true;
             end;
@@ -296,14 +288,14 @@ begin
             Result := Pansichar(Ansistring('-1'));
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                Result := Pansichar(Ansistring(Inttostr(ActiveCircuit[ActiveActor].SetElementActive(arg) - 1)));   // make zero based to be compatible with collections and variant arrays
+                Result := Pansichar(Ansistring(Inttostr(ActiveCircuit[ActiveActor].SetElementActive(String(arg)) - 1)));   // make zero based to be compatible with collections and variant arrays
             end
             else
                 DoSimpleMsg('Create a circuit before trying to set an element active!', 5015);
         end;
         4:
         begin                                             // Circuit.SetActiveBus
-            DSSGlobals.SetActiveBus(StripExtension(arg));
+            DSSGlobals.SetActiveBus(StripExtension(String(arg)));
             if Assigned(ActiveCircuit[ActiveActor]) then
                 Result := Pansichar(Ansistring(InttoStr(ActiveCircuit[ActiveActor].ActiveBusIndex - 1)))
             else
@@ -312,7 +304,7 @@ begin
         5:
         begin                                             // Circuit.SetActiveClass
             Result := Pansichar(Ansistring('0'));
-            DevClassIndex := ClassNames[ActiveActor].Find(arg);
+            DevClassIndex := ClassNames[ActiveActor].Find(String(arg));
             if DevClassIndex = 0 then
             begin
                 DoSimplemsg('Error: Class ' + arg + ' not found.', 5016);
@@ -331,22 +323,17 @@ end;
 procedure CircuitV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
-    LossValue: complex;
     pLine: TLineObj;
     Loss: Complex;
     pTransf: TTransfObj;
     pCktElem: TDSSCktElement;
-    cPower,
-    cLoss,
-    Volts,
-    Curr: Complex;
+    cPower: Complex;
     i, j, k,
     NodeIdx,
     Phase: Integer;
-    BaseFactor,
-    VoltsD: Double;
+    BaseFactor: Double;
     BusName: String;
-    iV, p,
+    iV, p, i_lwd, j_lwd,
     NValues,
     nBus, nNZ: Longword;
     hY: Nativeuint;
@@ -480,10 +467,7 @@ initialize(Temp);
                     k := 0;
                     for i := 1 to NumBuses do
                     begin
-                        if Buses^[i].kVBase > 0.0 then
-                            BaseFactor := 1000.0 * Buses^[i].kVBase
-                        else
-                            BaseFactor := 1.0;
+          // If Buses^[i].kVBase >0.0 then BaseFactor :=  1000.0* Buses^[i].kVBase  Else BaseFactor := 1.0;
                         for j := 1 to Buses^[i].NumNodesThisBus do
                         begin
                             myDBLArray[k] := Cabs(ActiveCircuit[ActiveActor].Solution.NodeV^[Buses^[i].GetRef(j)]);
@@ -647,12 +631,12 @@ initialize(Temp);
                     for iV := 0 to (NValues - 1) do
                         myCmplxArray[iV] := cmplx(0, 0);
         // then back-fill the non-zero values
-                    for j := 0 to nBus - 1 do
+                    for j_lwd := 0 to nBus - 1 do
                     begin /// the zero-based column
-                        for p := ColPtr[j] to (ColPtr[j + 1] - 1) do
+                        for p := ColPtr[j_lwd] to (ColPtr[j_lwd + 1] - 1) do
                         begin
-                            i := RowIdx[p];  // the zero-based row
-                            iV := i * nBus + j; // the zero-based, row-wise, complex result index
+                            i_lwd := RowIdx[p];  // the zero-based row
+                            iV := i_lwd * nBus + j_lwd; // the zero-based, row-wise, complex result index
                             myCmplxArray[iV] := cVals[p];
                         end;
                     end;
@@ -904,7 +888,7 @@ initialize(Temp);
                     myPointer := @(ActiveCircuit[ActiveActor].Solution.Currents^[1]);
             end
             else
-                myCmplxArray[k] := cmplx(0, 0);
+                myCmplxArray[0] := cmplx(0, 0);
             mySize := SizeOf(ActiveCircuit[ActiveActor].Solution.Currents^[1]) * ActiveCircuit[ActiveActor].NumNodes;
         end
     else

@@ -227,7 +227,7 @@ begin
         begin  // GICSources.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                S := arg;
+                S := String(arg);
                 if GICsourceClass.SetActive(S) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := GICsourceClass.ElementList.Active;
@@ -248,7 +248,6 @@ procedure GICSourcesV(mode: Longint; var myPointer: Pointer; var myType, mySize:
 var
     GICElem: TGICSourceObj;
     ElementList: Tpointerlist;
-    k: Integer;
 begin
     case mode of
         0:

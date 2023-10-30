@@ -18,11 +18,10 @@ var
 function DSSProperties(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 begin
     Result := Pansichar(Ansistring('')); // Default return value
-    FPropIndex := StrToInt(arg);
+    FPropIndex := StrToInt(String(arg));
     case mode of
         0:
         begin                                           // DSSProperties.Name
-            Result := Pansichar(Ansistring(''));
             if (ActiveCircuit[ActiveActor] <> nil) and (FPropIndex <> 0) {and (FPropClass <> Nil)} then
                 with ActiveDSSObject[ActiveActor].ParentClass do
                     if FPropIndex <= NumProperties then
@@ -30,7 +29,6 @@ begin
         end;
         1:
         begin                                           // DSSProperties.Description
-            Result := Pansichar(Ansistring(''));
             if (ActiveCircuit[ActiveActor] <> nil) and (FPropIndex <> 0) {and (FPropClass <> Nil)} then
                 with ActiveDSSObject[ActiveActor].ParentClass do
                     if FPropIndex <= NumProperties then
@@ -38,7 +36,6 @@ begin
         end;
         2:
         begin                                           // DSSProperties.Value - read
-            Result := Pansichar(Ansistring(''));
             if (ActiveCircuit[ActiveActor] <> nil) then
                 with ActiveDSSObject[ActiveActor] do
                     if FPropIndex <= ParentClass.NumProperties then

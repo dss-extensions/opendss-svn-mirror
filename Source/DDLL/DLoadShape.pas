@@ -198,7 +198,7 @@ begin
         begin  // LoadShapes.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if LoadshapeClass[ActiveActor].SetActive(arg) then
+                if LoadshapeClass[ActiveActor].SetActive(String(arg)) then
                 begin
                     ActiveLSObject := LoadshapeClass[ActiveActor].ElementList.Active;
                     ActiveDSSObject[ActiveActor] := ActiveLSObject;

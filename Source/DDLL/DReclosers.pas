@@ -260,7 +260,7 @@ begin
         begin  // Reclosers.Name write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-                if RecloserClass.SetActive(arg) then
+                if RecloserClass.SetActive(String(arg)) then
                 begin
                     ActiveCircuit[ActiveActor].ActiveCktElement := RecloserClass.ElementList.Active;
                 end
@@ -281,7 +281,7 @@ begin
         begin  // Reclosers.MonitoredObj write
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('monitoredObj', arg);
+                Set_parameter('monitoredObj', String(arg));
         end;
         4:
         begin  // Reclosers.SwitchedObj read
@@ -294,7 +294,7 @@ begin
         begin  // Reclosers.SwitchedObj write
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
-                Set_parameter('SwitchedObj', arg);
+                Set_parameter('SwitchedObj', String(arg));
         end;
         6:
         begin  // Reclosers.State read                                          // TODO
@@ -314,7 +314,7 @@ begin
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(arg)[1] = 'c' then
+                if LowerCase(String(arg))[1] = 'c' then
                     elem.PresentState := CTRL_CLOSE
                 else
                     elem.PresentState := CTRL_OPEN;
@@ -337,7 +337,7 @@ begin
             elem := RecloserClass.GetActiveObj;
             if elem <> nil then
             begin
-                if LowerCase(arg)[1] = 'c' then
+                if LowerCase(String(arg))[1] = 'c' then
                     elem.NormalState := CTRL_CLOSE
                 else
                     elem.NormalState := CTRL_OPEN;

@@ -183,19 +183,19 @@ begin
     case mode of
         0:
         begin  // ReduceCkt.EditString - Read
-            Result := Pansichar(ReduceEditString);
+            Result := Pansichar(Ansistring(ReduceEditString));
         end;
         1:
         begin  // ReduceCkt.EditString - Write
-            ReduceEditString := arg;
+            ReduceEditString := String(arg);
         end;
         2:
         begin  // ReduceCkt.EnergyMeter - Read
-            Result := Pansichar(EnergyMeterName);
+            Result := Pansichar(Ansistring(EnergyMeterName));
         end;
         3:
         begin  // ReduceCkt.EnergyMeter - Write
-            EnergyMeterName := arg;
+            EnergyMeterName := String(arg);
         end;
         4:
         begin  // ReduceCkt.SaveCircuit
@@ -204,11 +204,11 @@ begin
         end;
         5:
         begin  // ReduceCkt.StartPDElement - Read
-            Result := Pansichar(FirstPDelement);
+            Result := Pansichar(Ansistring(FirstPDelement));
         end;
         6:
         begin  // ReduceCkt.StartPDElement - Write
-            FirstPDelement := arg;
+            FirstPDelement := String(arg);
         end
     end;
 

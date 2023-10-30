@@ -29,15 +29,12 @@ var
     BData: Wordbool;
     i,
     count,
-    low,
     numcond,
     n,
     iV,
     VarIdx: Integer;
-    Volts,
     cResid: Complex;
     cBuffer: pComplexArray;
-    S: String;
 
 procedure CalcSeqCurrents(pActiveElement: TDSSCktElement; i012: pComplexArray);
 {Assumes V012 is properly allocated before call.}
@@ -225,8 +222,8 @@ begin
                     with ActiveCktElement do
                         ActiveTerminal := Terminals^[arg];
                     Result := 0;
-                    for i := 1 to ActiveCktElement.NConds do
-                        if not ActiveCktElement.Closed[i, ActiveActor] then
+                    for iControl := 1 to ActiveCktElement.NConds do
+                        if not ActiveCktElement.Closed[iControl, ActiveActor] then
                         begin
                             Result := 1;
                             Exit;
@@ -235,7 +232,6 @@ begin
         end;
         6:
         begin                                    // CktElement.NumProperties
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -248,7 +244,6 @@ begin
         end;
         7:
         begin                                    // CktElement.HasSwitchControl
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ctrl := ActiveCircuit[ActiveActor].ActiveCktElement.ControlElementList.First;
@@ -268,7 +263,6 @@ begin
         end;
         8:
         begin                                    // CktElement.HasVoltControl
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 ctrl := ActiveCircuit[ActiveActor].ActiveCktElement.ControlElementlist.First;
@@ -289,7 +283,6 @@ begin
         end;
         9:
         begin                                    // CktElement.NumControls
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 Result := ActiveCircuit[ActiveActor].ActiveCktElement.ControlElementList.listSize;
@@ -297,7 +290,6 @@ begin
         end;
         10:
         begin                                   // CktElement.OCPDevIndex
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -320,14 +312,12 @@ begin
         end;
         11:
         begin                                   // CktElement.OCPDevType
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                     Result := GetOCPDeviceType(ActiveCktElement);     // see Utilities.pas
         end;
         12:
         begin                                   // CktElement.enabled -read
-            Result := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveCircuit[ActiveActor].ActiveCktElement.Enabled then
@@ -505,33 +495,25 @@ begin
                 with ActiveCircuit[ActiveActor].ActiveCktElement do
                 begin
                     Result := Pansichar(Ansistring(ParentClass.Name + '.' + Name));
-                end
-            else
-                Result := Pansichar(Ansistring(''));
+                end;
         end;
         1:
         begin                                          // CktElement.Display - read
             if ActiveCircuit[ActiveActor] <> nil then
-                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName))
-            else
-                Result := Pansichar(Ansistring(''));
+                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName));
         end;
         2:
         begin                                          // CktElement.Display - Write
             if ActiveCircuit[ActiveActor] <> nil then
-                ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName := arg;
-            Result := Pansichar(Ansistring(''));
+                ActiveCircuit[ActiveActor].ActiveCktElement.DisplayName := String(arg);
         end;
         3:
         begin                                          // CktElement.GUID
             if ActiveCircuit[ActiveActor] <> nil then
-                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.ID))
-            else
-                Result := Pansichar(Ansistring(''));
+                Result := Pansichar(Ansistring(ActiveCircuit[ActiveActor].ActiveCktElement.ID));
         end;
         4:
         begin                                          // CktElement.EnergyMeter
-            Result := Pansichar(Ansistring(''));
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveCircuit[ActiveActor].ActiveCktElement.HasEnergyMeter then
@@ -543,8 +525,7 @@ begin
         end;
         5:
         begin                                          // CktElement.Controller
-            Result := Pansichar(Ansistring(''));
-            i := strtoInt(arg);
+            i := strtoInt(String(arg));
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -569,7 +550,7 @@ begin
                             if (DSSObjType and BASECLASSMASK) = PC_ELEMENT then
                             begin
                                 pPCElem := (ActiveCktElement as TPCElement);
-                                VarIdx := pPCElem.LookupVariable(Arg);
+                                VarIdx := pPCElem.LookupVariable(String(Arg));
                                 if (VarIdx > 0) and (VarIdx <= pPCElem.NumVariables) then
                                     Result := Ansistring('OK');     // we are good, the variable seems
                             end;
@@ -597,7 +578,6 @@ var
     i,
     NValues: Integer;
     cValues: pComplexArray;
-    CMagAng: polar;
     myBuffer: array of Complex;
     S: String;
 

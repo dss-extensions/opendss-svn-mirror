@@ -2031,7 +2031,7 @@ procedure TRelayObj.GetControlPower(var ControlPower: Complex; ActorID: Integer)
 // Get power to control based on active power
 var
     i, k: Integer;
-    S: Complex;
+   //S: Complex;
     Vph, V012: array[1..3] of Complex;
     Iph, I012: array[1..3] of Complex;
 

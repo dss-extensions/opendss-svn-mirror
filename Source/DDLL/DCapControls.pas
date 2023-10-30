@@ -303,7 +303,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 lst := ActiveCircuit[ActiveActor].CapControls;
-                S := arg;  // Convert to Pascal String
+                S := String(arg);  // Convert to Pascal String
                 Found := false;
                 ActiveSave := lst.ActiveIndex;
                 elem := lst.First;
@@ -334,7 +334,7 @@ begin
         end;
         3:
         begin  // CapControl.Capacitor write
-            Set_Parameter('Capacitor', arg);
+            Set_Parameter('Capacitor', String(arg));
         end;
         4:
         begin  // CapControl.MonitoredObj read
@@ -345,7 +345,7 @@ begin
         end;
         5:
         begin  // CapControl.MonitoredObj write
-            Set_Parameter('Element', arg);
+            Set_Parameter('Element', String(arg));
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));
@@ -358,9 +358,6 @@ procedure CapControlsV(mode: Longint; var myPointer: Pointer; var myType, mySize
 var
     elem: TCapControlObj;
     lst: TPointerList;
-    i,
-    k: Integer;
-    S: String;
 
 begin
     case mode of
@@ -375,7 +372,6 @@ begin
                     begin
                         lst := CapControls;
                         setlength(myStrArray, 0);
-                        k := 0;
                         elem := lst.First;
                         while elem <> nil do
                         begin

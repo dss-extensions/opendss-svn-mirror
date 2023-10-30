@@ -4090,8 +4090,9 @@ begin
                     else
                     begin
                         if (Vgrid[i].mag >= MinVS) or ResetIBR then
-                            OFFVal := PIdling / Vgrid[i].mag;   // To match with idling losses
-            //else OFFVal :=  0;
+                            OFFVal := PIdling / Vgrid[i].mag   // To match with idling losses
+                        else
+                            OFFVal := 0;
                         it[i] := OFFVal;   // To match with idling losses
                     end;
                 end;

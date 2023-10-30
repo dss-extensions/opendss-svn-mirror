@@ -767,7 +767,7 @@ end;
 procedure TEquivalent.InterpretAllBuses(const S: String);
 //  routine expecting all winding connections expressed in one array of strings
 var
-    S1, BusNam: String;
+    BusNam: String;
     i: Integer;
 begin
 
@@ -777,7 +777,7 @@ begin
     with ActiveEquivalentObj do
         for i := 1 to FNterms do
         begin
-            S1 := AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
+            AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
             BusNam := AuxParser[ActiveActor].StrValue;
             if Length(BusNam) > 0 then
                 SetBus(i, BusNam);

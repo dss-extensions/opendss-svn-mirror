@@ -83,7 +83,6 @@ begin
     case mode of
         0:
         begin  // Topology.NumLoops
-            Result := 0;
             topo := ActiveTree;
             if topo <> nil then
             begin
@@ -100,7 +99,6 @@ begin
         end;
         1:
         begin  // Topology.NumIsolatedBranches
-            Result := 0;
             topo := ActiveTree;
             if Assigned(topo) then
             begin
@@ -115,7 +113,6 @@ begin
         end;
         2:
         begin  // Topology.NumIsolatedLoads
-            Result := 0;
             topo := ActiveTree;
             if Assigned(topo) then
             begin
@@ -130,7 +127,6 @@ begin
         end;
         3:
         begin  // Topology.First
-            Result := 0;
             topo := ActiveTree;
             if assigned(topo) then
             begin
@@ -155,7 +151,6 @@ begin
         end;
         7:
         begin  // Topology.BackwardBranch
-            Result := 0;
             topo := ActiveTree;
             if assigned(topo) then
             begin
@@ -168,7 +163,6 @@ begin
         end;
         8:
         begin  // Topology.LoopedBranch
-            Result := 0;
             node := ActiveTreeNode;
             if assigned(node) then
             begin
@@ -181,7 +175,6 @@ begin
         end;
         9:
         begin  // Topology.ParallelBranch
-            Result := 0;
             node := ActiveTreeNode;
             if assigned(node) then
             begin
@@ -194,7 +187,6 @@ begin
         end;
         10:
         begin  // Topology.FirstLoad
-            Result := 0;
             node := ActiveTreeNode;
             if assigned(node) then
             begin
@@ -208,7 +200,6 @@ begin
         end;
         11:
         begin  // Topology.NextLoad
-            Result := 0;
             node := ActiveTreeNode;
             if assigned(node) then
             begin
@@ -259,7 +250,7 @@ begin
         begin  // Topology.BranchName write
             Found := false;
             elem := nil;
-            S := arg;  // Convert to Pascal String
+            S := String(arg);  // Convert to Pascal String
             topo := ActiveTree;
             if assigned(topo) then
             begin
@@ -298,7 +289,7 @@ begin
         begin  // Topology.BusName write
             Found := false;
             elem := nil;
-            S := arg;  // Convert to Pascal String
+            S := String(arg);  // Convert to Pascal String
             topo := ActiveTree;
             if assigned(topo) then
             begin

@@ -56,7 +56,6 @@ end;
 //***************************Floating point type properties*********************
 function ParserF(mode: Longint; arg: Double): Double; CDECL;
 begin
-    Result := 0.0; // Default return value
     case mode of
         0:
         begin  // Parser.DblValue
@@ -78,7 +77,7 @@ begin
         end;
         1:
         begin  // Parser.CmdString write
-            ComParser.CmdString := arg;
+            ComParser.CmdString := String(arg);
         end;
         2:
         begin  // Parser.NextParam
@@ -94,7 +93,7 @@ begin
         end;
         5:
         begin  // Parser.WhiteSpace write
-            ComParser.Whitespace := arg;
+            ComParser.Whitespace := String(arg);
         end;
         6:
         begin  // Parser.BeginQuote read
@@ -102,7 +101,7 @@ begin
         end;
         7:
         begin  // Parser.BeginQuote write
-            ComParser.BeginQuoteChars := arg;
+            ComParser.BeginQuoteChars := String(arg);
         end;
         8:
         begin  // Parser.EndQuote read
@@ -110,7 +109,7 @@ begin
         end;
         9:
         begin  // Parser.EndQuote write
-            ComParser.EndQuoteChars := arg;
+            ComParser.EndQuoteChars := String(arg);
         end;
         10:
         begin  // Parser.Delimiters read
@@ -118,7 +117,7 @@ begin
         end;
         11:
         begin  // Parser.Delimiters write
-            ComParser.Delimiters := arg;
+            ComParser.Delimiters := String(arg);
         end
     else
         Result := Pansichar(Ansistring('Error, parameter not valid'));

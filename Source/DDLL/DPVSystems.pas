@@ -302,7 +302,7 @@ begin
             begin      // Search list of PVSystems in active circuit for name
                 with ActiveCircuit[ActiveActor].PVSystems do
                 begin
-                    S := arg;  // Convert to Pascal String
+                    S := String(arg);  // Convert to Pascal String
                     Found := false;
                     ActiveSave := ActiveIndex;
                     PVSystem := First;
@@ -349,7 +349,6 @@ procedure PVsystemsV(mode: Longint; var myPointer: Pointer; var myType, mySize: 
 
 var
     PVSystemElem: TPVSystemObj;
-    k: Integer;
 
 begin
     case mode of

@@ -17,7 +17,7 @@ uses
 function DSSPut_Command(a: Pansichar): Pansichar; CDECL;
 begin
     SolutionAbort := false;  // Reset for commands entered from outside
-    DSSExecutive[ActiveActor].Command := a;  {Convert to String}
+    DSSExecutive[ActiveActor].Command := String(a);  {Convert to String}
     Result := Pansichar(Ansistring(GlobalResult));
 end;
 

@@ -57,7 +57,7 @@ type
         HalfkWBand,
         FkvarLimit: Double;
 
-        FWeights: pDoubleArray;
+            // FWeights:pDoubleArray;
 
     PUBLIC
 
@@ -181,7 +181,6 @@ var
     ParamPointer: Integer;
     ParamName: String;
     Param: String;
-    i: Integer;
 
 begin
 
@@ -431,13 +430,13 @@ end;
 procedure TGenControllerobj.Sample(ActorID: Integer);
 
 var
-    i: Integer;
-    PDiff,
-    QDiff: Double;
+   //i           :Integer;
+    PDiff: Double;
+   //QDiff       :Double;
     S: Complex;
-    Gen: TGeneratorObj;
-    GenkWChanged, Genkvarchanged: Boolean;
-    GenkW, Genkvar: Double;
+   //Gen         :TGeneratorObj;
+   //GenkWChanged, Genkvarchanged: Boolean;
+   //GenkW, Genkvar :Double;
 
 begin
 
@@ -447,12 +446,12 @@ begin
 
     PDiff := S.re * 0.001 - FkWLimit;
 
-    QDiff := S.im * 0.001 - FkvarLimit;
+       //QDiff := S.im * 0.001 - FkvarLimit;
 
        // Redispatch the vars.
 
-    GenkWChanged := false;
-    GenkvarChanged := false;
+       //GenkWChanged := FALSE;
+       //GenkvarChanged := FALSE;
 
     if Abs(PDiff) > HalfkWBand then
     begin // Redispatch Generators
