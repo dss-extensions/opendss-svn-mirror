@@ -2,7 +2,7 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
-    <Transaction>2023/10/19 13:16:54.818,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
+    <Transaction>2023/10/19 13:16:54.000.818,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>

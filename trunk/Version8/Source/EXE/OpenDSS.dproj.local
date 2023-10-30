@@ -3,7 +3,7 @@
 	<Transactions>
     <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm</Transaction>
     <Transaction>2020/10/02 18:04:32.000.788,C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
-    <Transaction>2023/10/19 13:14:18.943,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
+    <Transaction>2023/10/19 13:14:18.000.943,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -185,6 +185,7 @@
     <File Path="..\Shared\CktTree.pas"/>
     <File Path="..\Shared\Command.pas"/>
     <File Path="..\Shared\Dynamics.pas"/>
+    <File Path="..\Shared\ExceptionTrace.pas"/>
     <File Path="..\Shared\HashList.pas"/>
     <File Path="..\Shared\IniRegSave.pas"/>
     <File Path="..\Shared\InvDynamics.pas"/>
@@ -195,7 +196,6 @@
     <File Path="..\Shared\StackDef.pas"/>
     <File Path="..\Shared\Ucmatrix.pas"/>
     <File Path="..\Shared\Ucomplex.pas"/>
-    <File Path="..\Shared\ExceptionTrace.pas"/>
     <File Path="..\TCP_IP"/>
     <File Path="..\TCP_IP\TCP_IP.pas"/>
     <File Path="MyDSSClassDefs.Pas"/>
