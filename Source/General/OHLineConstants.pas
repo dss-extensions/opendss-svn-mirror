@@ -41,6 +41,4 @@ begin
     inherited;
 end;
 
-initialization
-
 end.
