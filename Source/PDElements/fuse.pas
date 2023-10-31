@@ -861,6 +861,4 @@ begin
 
 end;
 
-initialization
-
 end.
