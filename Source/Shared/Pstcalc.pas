@@ -756,7 +756,4 @@ initialize(pBuf);
     end;
 end;
 
-
-initialization
-
 end.
