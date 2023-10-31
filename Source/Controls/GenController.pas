@@ -510,8 +510,4 @@ begin
 
 end;
 
-
-initialization
-
-
 end.

@@ -1095,6 +1095,4 @@ begin
 
 end;
 
-initialization
-
 end.

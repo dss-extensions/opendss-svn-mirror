@@ -689,8 +689,4 @@ begin
 
 end;
 
-
-initialization
-
-
 end.

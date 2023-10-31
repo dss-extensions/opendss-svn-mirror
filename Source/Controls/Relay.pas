@@ -2831,6 +2831,4 @@ begin
 
 end;
 
-initialization
-
 end.

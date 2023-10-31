@@ -598,8 +598,4 @@ begin
 
 end;
 
-
-initialization
-
-
 end.

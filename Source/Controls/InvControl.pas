@@ -4834,11 +4834,4 @@ begin
     {$ENDIF}
 end;
 
-
-initialization
-
-
-finalization
-
-
 end.

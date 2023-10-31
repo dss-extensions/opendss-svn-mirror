@@ -483,8 +483,4 @@ begin
 
 end;
 
-
-initialization
-
-
 end.

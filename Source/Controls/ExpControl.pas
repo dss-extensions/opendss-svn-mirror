@@ -910,7 +910,4 @@ begin
                 UpdateExpControl(i, ActorID);
 end;
 
-initialization
-
-finalization
 end.
