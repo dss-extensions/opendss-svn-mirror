@@ -2345,7 +2345,4 @@ begin
         Result := GetOutputDirectory + CircuitName_[ActorID] + 'Mon_' + Name + '_' + inttostr(ActorID) + '.csv'
 end;
 
-initialization
-  //WriteDLLDebugFile('Monitor');
-
 end.
