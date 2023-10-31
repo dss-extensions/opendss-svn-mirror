@@ -1,7 +1,7 @@
 unit Solution;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2021, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -326,6 +326,7 @@ type
         AD_IBus: TList<Integer>;       // Location of the Current injection bus
         AD_ISrcIdx: TList<Integer>;       // Locator of the ISource bus in actor 1
 //******************************************************************************
+
         constructor Create(ParClass: TDSSClass; const solutionname: String);
         destructor Destroy; OVERRIDE;
 
@@ -606,6 +607,7 @@ begin
     ADiakoptics_Ready := false;   // A-Diakoptics needs to be initialized
     if not Assigned(ActorMA_Msg[ActiveActor]) then
         ActorMA_Msg[ActiveActor] := TEvent.Create(nil, true, false, '');
+
 end;
 
 // ===========================================================================================
@@ -1038,7 +1040,6 @@ var
 
 begin
 
-
     Iteration := 0;
  {**** Main iteration loop ****}
     with ActiveCircuit[ActorID] do
@@ -1175,6 +1176,7 @@ begin
         try
         //SolveZeroLoadSnapShot;
             SolveYDirect(ActorID);  // 8-14-06 This should give a better answer than zero load snapshot
+
         except
             ON E: EEsolv32Problem do
             begin

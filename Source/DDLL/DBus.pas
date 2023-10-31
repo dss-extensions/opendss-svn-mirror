@@ -763,7 +763,7 @@ begin
                     end
             end;
             myPointer := @(myPolarArray[0]);
-            mySize := SizeOf(myPolarArray[0]) * Length(myCmplxArray);
+            mySize := SizeOf(myPolarArray[0]) * Length(myPolarArray);
         end;
         14:
         begin   // Bus.PuVMagAngle
@@ -800,7 +800,7 @@ begin
                     end;
             end;
             myPointer := @(myPolarArray[0]);
-            mySize := SizeOf(myPolarArray[0]) * Length(myCmplxArray);
+            mySize := SizeOf(myPolarArray[0]) * Length(myPolarArray);
         end;
         15:
         begin   // Bus.LineList
