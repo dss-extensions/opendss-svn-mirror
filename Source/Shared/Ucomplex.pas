@@ -302,7 +302,9 @@ end;
 
 
 initialization
-//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$IFDEF FPC_TRACE_INIT}
+writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$ENDIF}
 try
     ALPHA1 := cmplx(-0.5, 0.5 * sqrt(3.0));  // 1 at 120 degrees
     ALPHA2 := cmplx(-0.5, -ALPHA1.im);       // 1 at 240 degrees

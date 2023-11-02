@@ -685,7 +685,9 @@ begin
 end;
 
 initialization
-//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$IFDEF FPC_TRACE_INIT}
+writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$ENDIF}
 try
     b1 := 1.0 / (3.0 * sqrt(2.0));
     b2 := 1.0 / 16.0;

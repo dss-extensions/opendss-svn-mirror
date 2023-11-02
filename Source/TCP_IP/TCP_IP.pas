@@ -1704,7 +1704,9 @@ end;
 {$ENDIF}
 
 initialization
-//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$IFDEF FPC_TRACE_INIT}
+writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$ENDIF}
 try
     DSSConnectObj := nil; // Instantiate only if connect command issued
 except

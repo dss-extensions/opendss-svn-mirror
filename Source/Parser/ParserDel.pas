@@ -1031,7 +1031,9 @@ begin
 end;
 
 initialization
-//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$IFDEF FPC_TRACE_INIT}
+writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
+    {$ENDIF}
 try
     // Variables
     ParserVars := TParserVar.Create(100);  // start with space for 100 variables
