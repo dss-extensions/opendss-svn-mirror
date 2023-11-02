@@ -317,7 +317,7 @@ begin
 end;
 
 initialization
-
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     TOP_Inited := false;
     TOPTransferFile := TOutFile32.Create;

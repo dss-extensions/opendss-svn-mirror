@@ -486,6 +486,7 @@ begin
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     DefineOptions;
 
@@ -500,5 +501,4 @@ finalization
 
     DisposeStrings;
     ShowCommands.Free;
-
 end.

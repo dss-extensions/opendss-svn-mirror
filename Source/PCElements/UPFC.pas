@@ -148,8 +148,7 @@ uses
     Command,
     solution,
     YMatrix,
-    UPFCControl,
-    ExceptionTrace;
+    UPFCControl;
 
 const
     propLossCurve = 11;

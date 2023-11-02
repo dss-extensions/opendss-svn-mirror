@@ -221,8 +221,7 @@ uses
     MathUtil,
     Math,
     Dynamics,
-    XYCurve,
-    ExceptionTrace;
+    XYCurve;
 
 const
 
@@ -285,9 +284,6 @@ const
 
 //= = = = = = = = = = = = = = DEFINE OTHER CONSTANTS = = = = = = = = = = = = = = = = = = = = = = = = =
     RELEASE_INHIBIT = 999;
-
-var
-    CDoubleOne: Complex;
 
 {--------------------------------------------------------------------------}
 constructor TStorageController.Create;  // Creates superstructure for all StorageController objects
@@ -2810,14 +2806,4 @@ begin
 
 end;
 
-
-{--------------------------------------------------------------------------}
-
-initialization
-try
-    CDoubleOne := Cmplx(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

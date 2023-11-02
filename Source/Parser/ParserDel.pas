@@ -1031,6 +1031,7 @@ begin
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     // Variables
     ParserVars := TParserVar.Create(100);  // start with space for 100 variables
@@ -1042,5 +1043,4 @@ end;
 finalization
 
     ParserVars.Free;
-
 end.

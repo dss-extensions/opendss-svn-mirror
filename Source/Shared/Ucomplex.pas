@@ -55,7 +55,7 @@ function pdegtocomplex(const magn, angle: Double): complex;
 function pclx(const magn, angle: Double): complex;
 
 var
-    cZERO, cONE: Complex;
+    CZERO, CONE, CDOUBLEONE, CAP_EPSILON, C1_J1, ALPHA1, ALPHA2: Complex;
 
 implementation
 
@@ -302,9 +302,15 @@ end;
 
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
-    cZERO := cmplx(0.0, 0.0);
-    cONE := cmplx(1.0, 0.0);
+    ALPHA1 := cmplx(-0.5, 0.5 * sqrt(3.0));  // 1 at 120 degrees
+    ALPHA2 := cmplx(-0.5, -ALPHA1.im);       // 1 at 240 degrees
+    CZERO := cmplx(0.0, 0.0);
+    CONE := cmplx(1.0, 0.0);
+    CDOUBLEONE := cmplx(1.0, 1.0);
+    C1_J1 := cmplx(1.0, 1.0);
+    CAP_EPSILON := cmplx(0.0, 4.2e-8);  // 5 kvar of capacitive reactance at 345 kV to avoid open line problem
 except
     On E: Exception do
         DumpExceptionCallStack(E);

@@ -247,6 +247,7 @@ begin
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
  {Make a Proxy Control Object to receiving control actions}
 try
     COMControlProxyObj := TCOMControlProxyObj.Create(nil, 'COM_Proxy');

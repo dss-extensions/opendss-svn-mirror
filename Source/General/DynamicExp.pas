@@ -79,7 +79,7 @@ type
         function Check_If_CalcValue(myVal: String; var myOp: Integer): Boolean;
         function Get_Out_Idx(myVar: String): Integer;           // gets the index for the given variable if it is an output
         procedure SolveEq(var MemSpace: array of DynSlot);       // Equation solver
-        function IsInitVal(myCode: Integer): Boolean;            // returns true if the given code is for an initialization value
+        function IsInitVal(myCode: Integer): Boolean;            // returns true if the given code is for an initial value
         function Get_DynamicEqVal(myIdx: Integer; var MemSpace: array of DynSlot): Double;
         function Get_VarName(myIdx: Integer): String;
 

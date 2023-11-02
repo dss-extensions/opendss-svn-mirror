@@ -181,7 +181,6 @@ const
     //  MaxPhases = 20; // for fixed buffers
 
 var
-    CAP_EPSILON: Complex;
     LineCodeClass: TLineCode;
     ONE_THIRD: Double;
 
@@ -2427,8 +2426,8 @@ begin
 end;
 
 initialization
+    writeln(format('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
-    CAP_EPSILON := cmplx(0.0, 4.2e-8);  // 5 kvar of capacitive reactance at 345 kV to avoid open line problem
     ONE_THIRD := 1.0 / 3.0;  // Do this to get more precision in certain calculations
 except
     On E: Exception do

@@ -343,8 +343,7 @@ uses
     Utilities,
     Classes,
     KLUSolve,
-    Solution,
-    ExceptionTrace;
+    Solution;
 
 const
     NumPropsThisClass = 46;
@@ -355,7 +354,7 @@ const
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase generator?
-    CDOUBLEONE: Complex;
+
 //    TwoPI3:Double;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1437,7 +1436,7 @@ begin
         if IsDynamicModel or IsHarmonicModel then
         begin
             if GenON then
-                Y := Yeq   // L-N value computed in initialization routines
+                Y := Yeq   // L-N value computed in initial condition routines
             else
                 Y := Cmplx(EPSILON, 0.0);
 
@@ -3002,7 +3001,7 @@ begin
            // Initializes the memory values for the dynamic equation
                     for i := 0 to High(DynamicEqVals) do
                         DynamicEqVals[i][1] := 0.0;
-           // Check for initializations using calculated values (P0, Q0)
+           // Check for initial conditions using calculated values (P0, Q0)
                     NumData := (length(DynamicEqPair) div 2) - 1;
                     for i := 0 to NumData do
                         if DynamicEqObj.IsInitVal(DynamicEqPair[(i * 2) + 1]) then
@@ -3109,7 +3108,7 @@ begin
                     ThetaHistory := DynamicEqVals[DynOut[1]][0] + 0.5 * h * DynamicEqVals[DynOut[1]][1]; // then angle
                 end;
 
-      // Check for initializations using calculated values (P, Q, VMag, VAng, IMag, IAng)
+      // Check for initial conditions using calculated values (P, Q, VMag, VAng, IMag, IAng)
             NumData := (length(DynamicEqPair) div 2) - 1;
             for i := 0 to NumData do
                 if not DynamicEqObj.IsInitVal(DynamicEqPair[(i * 2) + 1]) then     // it's not intialization
@@ -3560,12 +3559,4 @@ begin
 
 end;
 
-initialization
-try
-    CDOUBLEONE := CMPLX(1.0, 1.0);
-//   TWOPI3     := twopi/3.0;
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

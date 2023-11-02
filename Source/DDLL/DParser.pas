@@ -201,6 +201,7 @@ initialize(VectorBuffer);initialize(MatrixBuffer);
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     ComParser := ParserDel.TParser.Create;  // create COM Parser object
 except

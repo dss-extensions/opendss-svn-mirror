@@ -280,14 +280,10 @@ uses
     Command,
     Math,
     MathUtil,
-    Utilities,
-    ExceptionTrace;
+    Utilities;
 
 const
     NumPropsThisClass = 38;
-
-var
-    CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLoad.Create;  // Creates superstructure FOR all Line objects
@@ -2678,12 +2674,4 @@ begin
     end;
 end;
 
-
-initialization
-try
-    CDOUBLEONE := CMplx(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

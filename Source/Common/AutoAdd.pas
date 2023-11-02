@@ -832,7 +832,4 @@ begin
     BaseEEN := kWEEN;
 end;
 
-initialization
-
-
 end.

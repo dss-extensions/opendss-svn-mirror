@@ -179,7 +179,8 @@ const
 
 var  // Define any useful module vars here, for example:
     cBuffer: array[1..24] of Complex;  // Temp buffer for complex math calcs; allows up to 24-phase models.
-    CDOUBLEONE: Complex;   // 1 + j1  (see Initialization section below)
+
+     // CDOUBLEONE: Complex;   // 1 + j1  (Initialized at the end of this file)
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TPCPrototype.Create;  // Creates main collection handler for all PCPrototype objects
@@ -626,7 +627,7 @@ begin
        // Example from Generator
        // If the generator is on, use equivalent Y else some very small value
             if GenON then
-                Y := Yeq   // L-N value computed in initialization routines
+                Y := Yeq   // L-N value computed in initial condition routines
             else
                 Y := Cmplx(EPSILON, 0.0);
 
@@ -1746,11 +1747,12 @@ end;
 
 initialization
 
-// Initialize any variables here
+// Initialize any unit-level variables here. However, the example of CDOUBLEONE
+//  is now available in the ucomplex unit, so you should not create another one in this file.
 try
 
   // For Example:  1 + j 1
-    CDOUBLEONE := CMPLX(1.0, 1.0);
+  //  CDOUBLEONE := CMPLX(1.0, 1.0);
 except
     On E: Exception do
         DumpExceptionCallStack(E);

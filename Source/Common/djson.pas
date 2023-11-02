@@ -491,11 +491,11 @@ begin
     inherited;
 end;
 
+{$IFNDEF FPC}
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
-    {$IFNDEF FPC}
     DJSONFormatSettings := TFormatsettings.Create;
-    {$ENDIF}
     with DJSONFormatSettings do
     begin
         DateSeparator := '-';
@@ -512,4 +512,5 @@ except
     On E: Exception do
         DumpExceptionCallStack(E);
 end;
+    {$ENDIF}
 end.

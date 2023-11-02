@@ -471,8 +471,7 @@ uses
     Math,
     DSSClassDefs,
     DSSGlobals,
-    Utilities,
-    ExceptionTrace;
+    Utilities;
 
 const
 
@@ -551,7 +550,6 @@ const
 var
 
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase Storage element?
-    CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TStorage.Create;  // Creates superstructure for all Storage elements
@@ -2456,7 +2454,7 @@ begin
         if IsHarmonicModel then
         begin
    {Yeq is computed from %R and %X -- inverse of Rthev + j Xthev}
-            Y := YEQ;   // L-N value computed in initialization routines
+            Y := YEQ;   // L-N value computed in initial condition routines
 
             if Connection = 1 then
                 Y := CDivReal(Y, 3.0); // Convert to delta impedance
@@ -5022,12 +5020,4 @@ begin
         Registers[Reg] := Value;
 end;
 
-//----------------------------------------------------------------------------
-initialization
-try
-    CDOUBLEONE := CMPLX(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

@@ -34,7 +34,7 @@ unit Solution;
 
  9-28-03 Redefined V to NodeV and changed from an array from 1..n to 0..n where
          0-th element is alway ground(complex zero volts).
- 8-14-06 Revised power flow initialization; removed forward/backward sweep
+ 8-14-06 Revised power flow initial condition; removed forward/backward sweep
 
  9-14-16 Added SampleTheMeters Flag to allow sampling energy meters in Time and DutyCycle mode
 
@@ -338,7 +338,7 @@ type
         procedure SnapShotInit(ActorID: Integer);
         function SolveSnap(ActorID: Integer): Integer;    // solve for now once
         function SolveDirect(ActorID: Integer): Integer;  // solve for now once, direct solution
-        function SolveYDirect(ActorID: Integer): Integer; // Similar to SolveDirect; used for initialization
+        function SolveYDirect(ActorID: Integer): Integer; // Similar to SolveDirect; used for initial conditions
         function SolveCircuit(ActorID: Integer): Integer; // SolveSnap sans control iteration
         procedure CheckControls(ActorID: Integer);       // Snapshot checks with matrix rebuild
         procedure SampleControlDevices(ActorID: Integer);
@@ -1185,7 +1185,7 @@ begin
             end;
         end;
         if SolutionAbort then
-            Exit; // Initialization can result in abort
+            Exit; // Initializing can result in abort
 
         try
             SetGeneratordQdV(ActorID);  // Set dQdV for Model 3 generators
@@ -1217,7 +1217,7 @@ end;
 // ===========================================================================================
 function TSolutionObj.SolveZeroLoadSnapShot(ActorID: Integer): Integer;
 
-// Solve without load for initialization purposes;
+// Solve without load for initial condition purposes;
 
 begin
     Result := 0;
@@ -3607,6 +3607,7 @@ begin
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     IsMultiThread := true;
     {$IFDEF debugtrace}
@@ -3621,5 +3622,4 @@ except
     On E: Exception do
         DumpExceptionCallStack(E);
 end;
-
 end.

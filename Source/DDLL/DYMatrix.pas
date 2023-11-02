@@ -175,6 +175,7 @@ end;
 //---------------------------------------------------------------------------------
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 
 // Initialize so Reallocmem will work reliably
 try
@@ -192,5 +193,4 @@ finalization
     ReAllocmem(YColumns, 0);
     ReAllocmem(YRows, 0);
     ReAllocmem(YValues, 0);
-
 end.

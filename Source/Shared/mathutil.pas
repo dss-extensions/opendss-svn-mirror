@@ -585,6 +585,7 @@ begin
 end;
 
 initialization
+//  writeln(format ('init %s:%s', [{$I %FILE%}, {$I %LINE%}]));
 try
     Randomize;
     As2p := TcMatrix.CreateMatrix(3);

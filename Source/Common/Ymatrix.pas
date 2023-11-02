@@ -267,7 +267,7 @@ begin
                 SeriesYInvalid := false;  // SystemYChange unchanged
         end;
     // Deleted RCD only done now on mode change
-    // SolutionInitialized := False;  //Require initialization of voltages if Y changed
+    // SolutionInitialized := False;  //Require new initial condition of voltages if Y changed
 
         if PreserveNodeVoltages then
             RestoreNodeVfromVbus;

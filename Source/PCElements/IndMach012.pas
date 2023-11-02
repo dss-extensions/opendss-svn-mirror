@@ -282,8 +282,7 @@ uses
     Sysutils,      // Delphi misc utility functions
     Math,          // Delphi Math functions
     MathUtil,      // DSS Math utilities
-    Utilities,     // DSS misc utility functions
-    ExceptionTrace;
+    Utilities;     // DSS misc utility functions
 
 const
     NumPropsThisClass = 21; // Set this constant to the actual number of properties you define
@@ -292,7 +291,6 @@ const
 
 var  // Define any useful module vars here, for example:
     cBuffer: array[1..24] of Complex;  // Temp buffer for complex math calcs; allows up to 24-phase models.
-    CDOUBLEONE: Complex;   // 1 + j1  (see Initialization section below)
 
 
 function CmplxArrayToString(cpxarray: pComplexArray; count: Integer): String;
@@ -1204,7 +1202,7 @@ begin
    // for Dynamics and Harmonics modes use constant equivalent Y
         begin
             if MachineON then
-                Y := Yeq   // L-N value computed in initialization routines
+                Y := Yeq   // L-N value computed in initial condition routines
             else
                 Y := Cmplx(EPSILON, 0.0);
 
@@ -2386,16 +2384,4 @@ begin
     CloseFile(TraceFile);
 end;
 
-initialization
-
-// Initialize any variables here
-
-
-  // For Example:  1 + j 1
-try
-    CDOUBLEONE := CMPLX(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

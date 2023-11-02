@@ -138,14 +138,10 @@ uses
     Dynamics,
     Utilities,
     Sysutils,
-    Command,
-    ExceptionTrace;
+    Command;
 
 const
     NumPropsThisClass = 31;
-
-var
-    CDOUBLEONE: Complex;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TVsource.Create;  // Creates superstructure for all Line objects
@@ -1479,11 +1475,4 @@ begin
 
 end;
 
-initialization
-try
-    CDOUBLEONE := CMplx(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

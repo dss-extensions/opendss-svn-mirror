@@ -361,8 +361,7 @@ uses
     DSSClassDefs,
     DSSGlobals,
     Utilities,
-    Classes,
-    ExceptionTrace;
+    Classes;
 
 const
 // ===========================================================================================
@@ -426,7 +425,6 @@ const
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
-    CDOUBLEONE: Complex;
 
 constructor TPVsystem.Create;  // Creates superstructure for all PVSystem elements
 begin
@@ -1567,7 +1565,7 @@ begin
 
     with ActiveCircuit[ActorID].Solution, myDynVars do
     begin
-    {Initialization just in case}
+    {Initial conditions just in case}
         if length(myDynVars.Vgrid) < NPhases then
             setlength(myDynVars.Vgrid, NPhases);
 
@@ -1760,7 +1758,7 @@ begin
         if IsHarmonicModel then
         begin
       {YEQ is computed from %R and %X -- inverse of Rthev + j Xthev}
-            Y := YEQ;   // L-N value computed in initialization routines
+            Y := YEQ;   // L-N value computed in initial condition routines
             if Connection = 1 then
                 Y := CDivReal(Y, 3.0); // Convert to delta impedance
             Y.im := Y.im / FreqMultiplier;
@@ -3408,11 +3406,4 @@ begin
         Registers[Reg] := Value;
 end;
 
-initialization
-try
-    CDOUBLEONE := Cmplx(1.0, 1.0);
-except
-    On E: Exception do
-        DumpExceptionCallStack(E);
-end;
 end.

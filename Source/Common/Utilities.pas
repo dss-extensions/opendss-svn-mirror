@@ -3703,9 +3703,4 @@ begin
         Result := Copy(BusName, dotpos, length(BusName));    // preserve node designations if any
 end;
 
-initialization
-
-finalization
-
-
 end.
