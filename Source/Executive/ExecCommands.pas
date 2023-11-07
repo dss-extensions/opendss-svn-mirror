@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecCommands = 132;
+    NumExecCommands = 131;
 
 var
 
@@ -191,12 +191,11 @@ begin
     ExecCommand[124] := 'AllPCEatBus';
     ExecCommand[125] := 'AllPDEatBus';
     ExecCommand[126] := 'TotalPowers';
-    ExecCommand[127] := 'COMHelp';
+    ExecCommand[127] := 'UserManual';
     ExecCommand[128] := 'GIS';
     ExecCommand[129] := 'GISCoords';
     ExecCommand[130] := 'HELICSPublish';
     ExecCommand[131] := 'Check4Updates';
-    ExecCommand[132] := 'DDLLHelp';
 
     CommandHelp[1] := 'Create a new object within the DSS. Object becomes the ' +
         'active object' + CRLF +
@@ -568,8 +567,8 @@ begin
     CommandHelp[126] := 'Returns the total powers (complex) at ALL terminals of the active circuit element in the Result string. ' +
         '(See Select command.)' +
         'Returned as comma-separated kW and kvar.';
-    CommandHelp[127] := 'Shows the documentation file for the COM interface.' +
-        'This file provides guidance on the properties and methods included in the COM interface as well as examples and tips. Use this file to learn more about the COM interface and its different interfaces or just as a reference guide.';
+    CommandHelp[127] := 'Shows the OpenDSS user manual.' +
+        'This file provides guidance on the program usage at all levels, including interfaces such as COM and DLL. This file is the off-line version of the documentation found in the web.';
     CommandHelp[128] := 'Executes GIS options working with OpenDSS-GIS. See GIS command help.';
     CommandHelp[129] := 'Define x,y coordinates for buses using real GIS Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. ' +
         'Execute after Solve command or MakeBusList command is executed so that bus lists are defined.' +
@@ -578,8 +577,7 @@ begin
         'Note: For using only if OpenDSS-GIS is locally installed.';
     CommandHelp[130] := 'Read HELICS publication topics from a JSON file';
     CommandHelp[131] := 'Returns a message indicating if there is a new version of OpenDSS avaialble for download. Requires internet connection.';
-    CommandHelp[132] := 'Shows the documentation file for the Direct DLL shared library.' +
-        'This file provides guidance on the interfaces included in the DirectDLL shared library. Use this file to learn more about the DirectDLL and its different interfaces or just as a reference guide.';
+
 
 end;
 
@@ -765,11 +763,6 @@ begin
             begin
                 Show_COM_Help();
             end;
-            132:
-            begin
-                Show_DDLL_Help();
-            end;
-
         else
             if ActiveCircuit[ActiveActor] = nil then
             begin

@@ -458,7 +458,6 @@ procedure Delay(TickTime: Integer);
 
 procedure GetDefaultPorts();
 procedure Show_COM_Help();
-procedure Show_DDLL_Help();
 
 function Check_DSS_WebVersion(myDialog: Boolean): String;
 
@@ -1401,17 +1400,7 @@ begin
     {$IFDEF FPC}
   DSSMessageDlg ('Show_COM_Help() not implemented on FPC', False);
     {$ELSE}
-    ShellExecute(0, 'open', Pwidechar(DSSDirectory + '\OpenDSS_COM.chm'), nil, nil, SW_SHOWNORMAL);
-    {$ENDIF}
-end;
-
-//**********************Launches the DirectDLL help file******************************
-procedure Show_DDLL_Help();
-begin
-    {$IFDEF FPC}
-  DSSMessageDlg ('Show_DDLL_Help() not implemented on FPC', False);
-    {$ELSE}
-    ShellExecute(0, 'open', Pwidechar(DSSDirectory + '\DirectDLL_Help.chm'), nil, nil, SW_SHOWNORMAL);
+    ShellExecute(0, 'open', Pwidechar(DSSDirectory + '\Doc\OpenDSS Documentation.chm'), nil, nil, SW_SHOWNORMAL);
     {$ENDIF}
 end;
 
