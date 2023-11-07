@@ -2041,7 +2041,7 @@ begin
 
     end;
 
-    if Show then
+    if (Show and AutoDisplayShowReport) then
         FireOffEditor(CSVName);
 
     GlobalResult := CSVName;

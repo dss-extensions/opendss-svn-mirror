@@ -2313,7 +2313,8 @@ begin
     finally
 
         CloseFile(F);
-        FireOffEditor(Fname);
+        if AutoDisplayShowReport then
+            FireOffEditor(Fname);
 
     end;
 

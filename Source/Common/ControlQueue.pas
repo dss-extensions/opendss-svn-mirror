@@ -512,7 +512,8 @@ begin
         end;
     finally
         CloseFile(F);
-        FireOffEditor(FileNm);
+        if AutoDisplayShowReport then
+            FireOffEditor(FileNm);
     end;
 
 
