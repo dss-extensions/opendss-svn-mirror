@@ -7,6 +7,8 @@ Version 9.7.1.1
 
 Changes this version
 ====================
+- Includes an integrated help file that brings together all the information for users and developers in a single source.
+- Solves issues with the follwing interfaces for DirectDLL: BusV. 
 - Grid Forming Capabilities for PV/Storage.
 - CapControlMode Follow added for helping to represent deterministic capacitor behavior.
 - Load shape EDGE and Averaging (linear) interpolation for facilitating the description of loadshapes in time.
