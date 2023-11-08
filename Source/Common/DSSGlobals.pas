@@ -1396,11 +1396,15 @@ end;
 
 //**********************Launches the COM Help file******************************
 procedure Show_COM_Help();
+var
+    BaseDir: String;
+
 begin
     {$IFDEF FPC}
   DSSMessageDlg ('Show_COM_Help() not implemented on FPC', False);
     {$ELSE}
-    ShellExecute(0, 'open', Pwidechar(DSSDirectory + '\Doc\OpenDSS Documentation.chm'), nil, nil, SW_SHOWNORMAL);
+    BaseDir := TPath.GetDirectoryName(DSSDirectory.Substring(0, length(DSSDirectory) - 1));   // temporary for redirecting the path outside x64/86
+    ShellExecute(0, 'open', Pwidechar(BaseDir + '\Doc\OpenDSS Documentation.chm'), nil, nil, SW_SHOWNORMAL);
     {$ENDIF}
 end;
 
