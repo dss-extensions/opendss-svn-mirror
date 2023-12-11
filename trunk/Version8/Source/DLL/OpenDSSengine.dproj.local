@@ -190,6 +190,7 @@
     <File Path="..\Shared\CktTree.pas"/>
     <File Path="..\Shared\Command.pas"/>
     <File Path="..\Shared\Dynamics.pas"/>
+    <File Path="..\Shared\ExceptionTrace.pas"/>
     <File Path="..\Shared\HashList.pas"/>
     <File Path="..\Shared\IniRegSave.pas"/>
     <File Path="..\Shared\InvDynamics.pas"/>
@@ -200,7 +201,6 @@
     <File Path="..\Shared\StackDef.pas"/>
     <File Path="..\Shared\Ucmatrix.pas"/>
     <File Path="..\Shared\Ucomplex.pas"/>
-    <File Path="..\Shared\ExceptionTrace.pas"/>
     <File Path="..\TCP_IP"/>
     <File Path="..\TCP_IP\TCP_IP.pas"/>
     <File Path="ImplActiveClass.pas"/>
