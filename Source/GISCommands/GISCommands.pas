@@ -41,7 +41,7 @@ uses
     TCP_IP;
 
 const
-    NumGISOptions = 39;
+    NumGISOptions = 41;
 
 function DoGISCmd: String;
 
@@ -85,6 +85,8 @@ function GISText(myText: String): String;
 function GISTextFromFile(myPath: String): String;
 function GISShowLayer(myLayer: String): String;
 function GISRemoveLayer(myLayer: String): String;
+function GISShowGeoTIFF(myPath: String): String;
+function GISRemoveGeoTIFF(): String;
 
 var
     {$IFNDEF FPC}
@@ -186,6 +188,8 @@ begin
     GISOption[37] := 'TextFromFile';
     GISOption[38] := 'ShowLayer';
     GISOption[39] := 'HideLayer';
+    GISOption[40] := 'GeoTIF';
+    GISOption[41] := 'RemoveGeoTIF';
 
     GISHelp[1] :=
         'Starts OpenDSS-GIS only if it is installed in the local machine';
@@ -380,7 +384,7 @@ begin
         '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
     GISHelp[39] :=
-        'REmoves the given layer from the map (if active). The layer is specified as an integer representing one of the following layers:' + CRLF + CRLF +
+        'Removes the given layer from the map (if active). The layer is specified as an integer representing one of the following layers:' + CRLF + CRLF +
         '0 = Tree canopy (NLDC US 2021)' + CRLF +
         '1 = Land cover change (NLDC US 2021)' + CRLF +
         '2 = Impervious surface (NLDC US 2021)' + CRLF +
@@ -395,6 +399,20 @@ begin
         '1. OpenDSS-GIS must be installed' + CRLF +
         '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
         '3. The model needs to have the correct GISCoords file';
+    GISHelp[40] :=
+        'Commands OpenDSS-GIS to display the layer described by the GeoTIFF file given in the argument. The argument contains the file path for DSS-GIS to reach out to the layer.' + CRLF +
+        'The .TIF must contian not only the layer graphical data but also its geographic coordinates. See https://support.esri.com/en-us/knowledge-base/how-to-export-to-geotiff-with-arcgis-pro-000028392.' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+    GISHelp[41] :=
+        'Commands OpenDSS-GIS to remove the active GeoTIFF layer (if any).' + CRLF + CRLF +
+        'The following conditions need to be fulfilled:' + CRLF + CRLF +
+        '1. OpenDSS-GIS must be installed' + CRLF +
+        '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+        '3. The model needs to have the correct GISCoords file';
+
 end;
 
 function DoGISCmd: String;
@@ -582,6 +600,16 @@ begin
             begin
                 Parser[ActiveActor].NextParam;
                 Result := GISRemoveLayer(Parser[ActiveActor].StrValue);
+            end;
+            40:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISShowGeoTIFF(Parser[ActiveActor].StrValue);
+            end;
+            41:
+            begin
+                Parser[ActiveActor].NextParam;
+                Result := GISRemoveGeoTIFF();
             end
         else
         end;
@@ -1793,6 +1821,71 @@ begin
     if IsGISON then
     begin
         InMsg := '{"command":"removelayer","layer":"' + myLayer + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['textfromfile'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        Result := 'OpenDSS-GIS is not installed or initialized';
+
+end;
+
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to draw GeoTIFF layer in the active Map        *
+  ******************************************************************************* }
+
+function GISShowGeoTIFF(myPath: String): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode, activesave, i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"geotif","path":"' + myPath + '"}';
+        try
+            GISTCPClient.IOHandler.WriteLn(InMsg);
+            InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+            TCPJSON := TdJSON.Parse(InMsg);
+            Result := TCPJSON['textfromfile'].AsString;
+        except
+            on E: Exception do
+            begin
+                IsGISON := false;
+                Result := 'Error while communicating to OpenDSS-GIS';
+            end;
+        end;
+    end
+    else
+        Result := 'OpenDSS-GIS is not installed or initialized';
+end;
+
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to the active GeoTIFF layer (if any)           *
+  ******************************************************************************* }
+
+function GISRemoveGeoTIFF(): String;
+var
+    TCPJSON: TdJSON;
+    myShpCode, activesave, i: Integer;
+    InMsg: String;
+    Found: Boolean;
+    pLine: TLineObj;
+begin
+    if IsGISON then
+    begin
+        InMsg := '{"command":"removegeotif"}';
         try
             GISTCPClient.IOHandler.WriteLn(InMsg);
             InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
