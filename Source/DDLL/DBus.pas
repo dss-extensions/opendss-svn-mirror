@@ -306,6 +306,7 @@ begin
             if ActiveCircuit[ActiveActor] = nil then
             begin
                 setlength(myCmplxArray, 1);
+                myCmplxArray[0] := CZero;
             end
             else
                 with ActiveCircuit[ActiveActor] do
@@ -340,6 +341,7 @@ begin
             if ActiveCircuit[ActiveActor] = nil then
             begin
                 setlength(myDBLArray, 1);
+                myDBLArray[0] := 0;
             end
             else
                 with ActiveCircuit[ActiveActor] do
@@ -376,6 +378,7 @@ begin
             if ActiveCircuit[ActiveActor] = nil then
             begin
                 setlength(myIntArray, 1);
+                myIntArray[0] := 0;
             end
             else
                 with ActiveCircuit[ActiveActor] do
@@ -407,6 +410,7 @@ begin
         begin                                           // Bus.Voc
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -430,6 +434,7 @@ begin
         begin // Bus.Isc
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -455,6 +460,7 @@ begin
         begin  // Bus.PuVoltages
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -489,6 +495,7 @@ begin
         begin  // Bus.ZscMatrix
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 try
@@ -521,6 +528,7 @@ begin
         begin  // Bus.Zcs1
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -536,6 +544,7 @@ begin
         begin  // Bus.Zsc0
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -551,6 +560,7 @@ begin
         begin   // Bus.YscMatrix
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 try
@@ -583,6 +593,7 @@ begin
         begin  // Bus.CplxSeqVoltages
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -614,6 +625,7 @@ begin
         begin  // Bus.VLL
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -674,6 +686,7 @@ begin
         begin   // Bus. PuVLL
             myType := 3;
             setlength(myCmplxArray, 1);
+            myCmplxArray[0] := CZero;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -738,6 +751,7 @@ begin
         begin  // Bus.VMagAngle
             myType := 3;
             setlength(myPolarArray, 1);
+            myPolarArray[0] := ctopolar(CZero);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -769,6 +783,7 @@ begin
         begin   // Bus.PuVMagAngle
             myType := 3;
             setlength(myPolarArray, 1);
+            myPolarArray[0] := ctopolar(CZero);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -805,7 +820,7 @@ begin
         15:
         begin   // Bus.LineList
             myType := 4;        // String
-            setlength(myStrArray, 1);
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -830,26 +845,23 @@ begin
                             if CheckBusReference(pElem, BusReference, j) then
                             begin
                                 S := 'LINE.' + pElem.name;
-                                for i := 1 to High(S) do
-                                begin
-                                    setlength(myStrArray, length(myStrArray) + 1);
-                                    myStrArray[High(myStrArray)] := Byte(S[i]);
-                                end;
-                                setlength(myStrArray, length(myStrArray) + 1);
-                                myStrArray[High(myStrArray)] := Byte(0);
+                                WriteStr2Array(S);
+                                WriteStr2Array(Char(0));
                             end;
                             pElem := TDSSCktElement(Lines.Next);
                         end;
                     end;
                 end;
             end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
         16:
         begin   // Bus.LoadList
             myType := 4;        // String
-            setlength(myStrArray, 1);
+            setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -875,19 +887,16 @@ begin
                             if CheckBusReference(pElem, BusReference, j) then
                             begin
                                 S := 'LOAD.' + pElem.name;
-                                for i := 1 to High(S) do
-                                begin
-                                    setlength(myStrArray, length(myStrArray) + 1);
-                                    myStrArray[High(myStrArray)] := Byte(S[i]);
-                                end;
-                                setlength(myStrArray, length(myStrArray) + 1);
-                                myStrArray[High(myStrArray)] := Byte(0);
+                                WriteStr2Array(S);
+                                WriteStr2Array(Char(0));
                             end;
                             pElem := TDSSCktElement(Loads.Next);
                         end;
                     end;
                 end;
             end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -895,6 +904,7 @@ begin
         begin   // Bus.ZSC012Matrix
             myType := 2;          // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -933,7 +943,7 @@ begin
         18:
         begin   // Bus.AllPCEatBus
             myType := 4;        // String
-            setlength(myStrArray, 1);
+            setlength(myStrArray, 0);
             if (ActiveCircuit[ActiveActor] <> nil) then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -946,25 +956,22 @@ begin
                         begin
                             if myPXEList[i] <> '' then
                             begin
-                                for j := 1 to High(myPXEList[i]) do
-                                begin
-                                    setlength(myStrArray, length(myStrArray) + 1);
-                                    myStrArray[High(myStrArray)] := Byte(myPXEList[i][j]);
-                                end;
-                                setlength(myStrArray, length(myStrArray) + 1);
-                                myStrArray[High(myStrArray)] := Byte(0);
+                                WriteStr2Array(myPXEList[i]);
+                                WriteStr2Array(Char(0));
                             end;
                         end;
                     end;
                 end;
             end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
         19:
         begin   // Bus.AllPDEatBus
             myType := 4;        // String
-            setlength(myStrArray, 1);
+            setlength(myStrArray, 0);
             if (ActiveCircuit[ActiveActor] <> nil) then
             begin
                 with ActiveCircuit[ActiveActor] do
@@ -989,18 +996,14 @@ begin
                     end;
                 end;
             end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
     else
         myType := 4;        // String
-        S := 'Command not recognized';
-        setlength(myStrArray, 0);
-        for j := 1 to High(S) do
-        begin
-            setlength(myStrArray, length(myStrArray) + 1);
-            myStrArray[High(myStrArray)] := Byte(S[j]);
-        end;
+        WriteStr2Array('Command not recognized');
         myPointer := @(myStrArray[0]);
         mySize := Length(myStrArray);
     end;

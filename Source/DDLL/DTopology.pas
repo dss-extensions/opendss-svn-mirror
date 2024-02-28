@@ -386,9 +386,9 @@ begin
                         WriteStr2Array(Char(0));
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -425,9 +425,9 @@ begin
                         WriteStr2Array(Char(0));
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -464,9 +464,9 @@ begin
                         WriteStr2Array(Char(0));
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end

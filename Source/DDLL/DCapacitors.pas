@@ -278,8 +278,7 @@ begin
     case mode of
         0:
         begin  // Capacitors.AllNames
-            setlength(myStrArray, 1);
-            myStrArray[0] := 0;
+            setlength(myStrArray, 0);
             mySize := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -291,22 +290,14 @@ begin
                         elem := lst.First;
                         while elem <> nil do
                         begin
-                            S := elem.Name;
-                            for i := 1 to High(S) do
-                            begin
-                                setlength(myStrArray, length(myStrArray) + 1);
-                                myStrArray[High(myStrArray)] := Byte(S[i]);
-                            end;
+                            WriteStr2Array(elem.Name);
+                            WriteStr2Array(Char(0));
                             elem := lst.Next;
-                            if elem <> nil then
-                            begin
-                                setlength(myStrArray, length(myStrArray) + 1);
-                                myStrArray[High(myStrArray)] := Byte(0);
-                            end;
-
                         end;
                     end;
             end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myType := 4;                  // String
             mySize := length(myStrArray);
             myPointer := @(myStrArray[0]);

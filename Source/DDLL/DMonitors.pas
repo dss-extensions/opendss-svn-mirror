@@ -414,9 +414,9 @@ initialize(SngBuffer);
                         end;
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -434,9 +434,9 @@ initialize(SngBuffer);
                     p := @(myStrArray[0]);
                     pmon.MonitorStream.Read(p^, pmon.MonitorStream.Size);   // Move it all over
                 end
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -477,9 +477,9 @@ initialize(SngBuffer);
                         AuxParser[ActiveActor].Whitespace := SaveWhiteSpace;
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;

@@ -346,6 +346,7 @@ begin
         begin  // LineCodes.Rmatrix Read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;
@@ -362,9 +363,7 @@ begin
                         end;
                     end;
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
@@ -396,6 +395,7 @@ begin
         begin  // LineCodes.Xmatrix Read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;
@@ -412,9 +412,7 @@ begin
                         end;
                     end;
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
@@ -446,6 +444,7 @@ begin
         begin  // LineCodes.Cmatrix Read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;
@@ -463,9 +462,7 @@ begin
                         end;
                     end;
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
@@ -514,9 +511,9 @@ begin
                         end;
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end

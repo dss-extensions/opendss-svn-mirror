@@ -592,9 +592,9 @@ begin
                             pLoad := Loads.Next;
                         end;
                     end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -602,15 +602,14 @@ begin
         begin                   // Loads.ZIPV - read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             pLoad := ActiveLoad;
             if pLoad <> nil then
             begin
                 setlength(myDBLArray, pLoad.nZIPV);
                 for k := 0 to (pLoad.nZIPV - 1) do
                     myDBLArray[k] := pLoad.ZipV^[k + 1];
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;

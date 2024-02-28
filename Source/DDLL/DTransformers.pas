@@ -432,9 +432,9 @@ begin
                         end;
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -442,7 +442,7 @@ begin
         begin // Transformers.WdgVoltages
             myType := 3;        // Complex
             setlength(myCmplxArray, 1);
-            myCmplxArray[0] := cmplx(0, 0);
+            myCmplxArray[0] := CZero;
             elem := ActiveTransformer;
             if elem <> nil then
             begin
@@ -467,7 +467,7 @@ begin
         begin  // Transformers.WdgCurrents
             myType := 3;        // Complex
             setlength(myCmplxArray, 1);
-            myCmplxArray[0] := cmplx(0, 0);
+            myCmplxArray[0] := CZero;
             elem := ActiveTransformer;
             if elem <> nil then
             begin

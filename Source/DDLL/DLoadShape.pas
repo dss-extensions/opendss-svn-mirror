@@ -246,9 +246,9 @@ begin
                         elem := pList.next;
                     end;
                 end;
-            end
-            else
-                WriteStr2Array('');
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
         end;
@@ -256,6 +256,7 @@ begin
         begin  // LoadShapes.PMult read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
@@ -275,9 +276,7 @@ begin
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
@@ -315,6 +314,7 @@ begin
         begin  // LoadShapes.QMult read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
@@ -337,9 +337,7 @@ begin
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
@@ -380,6 +378,7 @@ begin
         begin   // LoadShapes.Timearray read
             myType := 2;        // Double
             setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if ActiveLSObject <> nil then
@@ -395,9 +394,7 @@ begin
                 begin
                     DoSimpleMsg('No active Loadshape Object found.', 61001);
                 end;
-            end
-            else
-                myDBLArray[0] := 0;
+            end;
             myPointer := @(myDBLArray[0]);
             mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end;
