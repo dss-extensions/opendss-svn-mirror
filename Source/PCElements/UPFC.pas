@@ -498,6 +498,7 @@ begin
         myCtrl.UPFCListSize := 0;
     end;
 
+    NumStateVars := NumUPFCVariables;
 
     Yorder := Fnterms * Fnconds;
     RecalcElementData(ActiveActor);

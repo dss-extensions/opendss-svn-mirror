@@ -1060,6 +1060,7 @@ begin
 
      //GenVars.Vd         := 7200.0;
 
+    NumStateVars := NumGenVariables;
 
     with GenVars do
     begin

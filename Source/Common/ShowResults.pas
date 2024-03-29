@@ -1258,7 +1258,6 @@ begin
                 begin
                     if p_Elem.Enabled then
                     begin
-
                         NCond := p_Elem.NConds;
                         Nterm := p_Elem.Nterms;
                         p_Elem.GetCurrents(c_Buffer, ActiveActor);
@@ -1488,7 +1487,6 @@ procedure ShowBusPowers(FileNm, BusName: String; opt, ShowOptionCode: Integer);
 var
 
     F: TextFile;
-
     j, Ncond, Nterm: Integer;
     p_Elem: TDSSCktElement;
     PDElem: TPDElement;

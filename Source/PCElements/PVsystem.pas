@@ -1125,6 +1125,7 @@ begin
     FVarFollowInverter := false;
     ForceBalanced := false;
     CurrentLimited := false;
+    NumStateVars := NumPVSystemVariables;
     with PVSystemVars, myDynVars do
     begin
         FTemperature := 25.0;
