@@ -6,10 +6,10 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>..\OpenDSS.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>20.1</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
@@ -253,6 +253,12 @@
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>OpenDSS.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="MyDSSClassDefs.Pas" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="MyDSSClassDefs.Pas" Configuration="Release" Class="ProjectFile"/>
                 <DeployFile LocalName="OpenDSS3.ico" Configuration="Debug" Class="ProjectFile"/>
@@ -1323,6 +1329,7 @@
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <DCCReference Include="..\Controls\GenController.pas"/>
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
+        <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
