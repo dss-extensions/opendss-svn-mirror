@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm=C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm</Transaction>
+    <Transaction>2017/06/11 12:24:16.000.040,C:\OpenDSS\Parallel_Version\Source\DLL\Unit1.dfm=C:\OpenDSS\Parallel_Version\Source\Forms\Diakoptics.dfm</Transaction>
     <Transaction>2023/10/19 13:16:54.000.818,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
+    <Transaction>2024/04/05 17:02:20.000.615,=C:\OpenDSS\Version8\Source\PCElements\WTG3_Model.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -171,6 +172,7 @@
     <File Path="..\PCElements\WindGen.pas"/>
     <File Path="..\PCElements\WindGenUserModel.pas"/>
     <File Path="..\PCElements\WindGenVars.pas"/>
+    <File Path="..\PCElements\WTG3_Model.pas"/>
     <File Path="..\PDElements"/>
     <File Path="..\PDElements\AutoTrans.pas"/>
     <File Path="..\PDElements\Capacitor.pas"/>
