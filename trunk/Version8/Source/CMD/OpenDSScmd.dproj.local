@@ -2,5 +2,7 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2021/11/08 16:18:23.000.291,C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\OpenDSS\Version8\Source\CMD\OpenDSScmd.dproj</Transaction>
+    <Transaction>2024/04/16 09:36:01.000.373,=C:\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
+    <Transaction>2024/04/16 09:42:30.000.935,=C:\OpenDSS\Version8\Source\PCElements\WTG3_Model.pas</Transaction>
   </Transactions>
 </BorlandProject>

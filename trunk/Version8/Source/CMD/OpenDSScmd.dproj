@@ -309,6 +309,8 @@
         <DCCReference Include="..\General\DynamicExp.pas"/>
         <DCCReference Include="..\Shared\InvDynamics.pas"/>
         <DCCReference Include="..\Controls\GenController.pas"/>
+        <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
+        <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
