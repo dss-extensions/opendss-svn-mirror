@@ -412,7 +412,9 @@ begin
 
          {PF Controller changes}
             if ControlType = PFCONTROL then
+            begin
                 with ControlVars do
+                begin
                     case ParamPointer of
                         1:
                             PropertyValue[1] := ElementName;  // Synch up with change
@@ -450,27 +452,30 @@ begin
                                 DoSimpleMsg('Invalid PF OFF value for CapControl.' + ActiveCapControlObj.Name, 35301);
                             end;
                         end;
-
-                        15:
-                            if FCTPhase > FNphases then
-                            begin
-                                DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FCTPhase, FNphases]), 35302);
-                                FCTPhase := 1;
-                            end;
-
-                        16:
-                            if FPTPhase > FNphases then
-                            begin
-                                DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FPTPhase, FNphases]), 35303);
-                                FPTPhase := 1;
-                            end;
                     end;
+                end;
+            end;
 
-            case ParamPointer of
-                19:
-                    IsUserModel := UserModel.Exists;
-                23:
-                    myShapeObj := LoadShapeClass[ActorID].Find(myShapeName);
+            with ControlVars do
+            begin
+                case ParamPointer of
+                    15:
+                        if FCTPhase > FNphases then
+                        begin
+                            DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FCTPhase, FNphases]), 35302);
+                            FCTPhase := 1;
+                        end;
+                    16:
+                        if FPTPhase > FNphases then
+                        begin
+                            DoSimpleMsg(Format('Error: Monitored phase(%d) must be less than or equal to number of phases(%d). ', [FPTPhase, FNphases]), 35303);
+                            FPTPhase := 1;
+                        end;
+                    19:
+                        IsUserModel := UserModel.Exists;
+                    23:
+                        myShapeObj := LoadShapeClass[ActorID].Find(myShapeName);
+                end;
             end;
 
             if IsUserModel then

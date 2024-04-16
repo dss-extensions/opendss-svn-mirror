@@ -124,11 +124,12 @@ var  //Parser : TParser;
 implementation
 
 {$IFDEF MSWINDOWS}
-{$IFNDEF CONSOLE}
 uses
+    {$IFNDEF CONSOLE}
+
     Dialogs,
-    ExceptionTrace;
     {$ENDIF}
+    ExceptionTrace;
     {$ENDIF}
 
 const
