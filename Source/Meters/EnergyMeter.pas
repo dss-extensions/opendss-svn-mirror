@@ -272,7 +272,7 @@ type
         FVBaseLosses: Boolean;
 
         FeederObj: TFeederObj;   // not used at present
-        DefinedZoneList: pStringArray;
+        DefinedZoneList: DynStringArray;
         DefinedZoneListSize: Integer;
 
        {Limits on the entire load in the zone for networks where UE cannot be determined
@@ -669,7 +669,9 @@ begin
                 7:
                     parser[ActorID].ParseAsVector(Fnphases, SensorCurrent);   // Inits to zero
                 8:
-                    InterpretAndAllocStrArray(Param, DefinedZoneListSize, DefinedZoneList);
+                begin
+                    DefinedZoneList := InterpretAndAllocStrArray(Param, DefinedZoneListSize);
+                end;
                 9:
                     LocalOnly := InterpretYesNo(Param);
                 10:
@@ -753,12 +755,11 @@ begin
             Source_NumInterruptions := OtherEnergyMeter.Source_NumInterruptions;
             Source_IntDuration := OtherEnergyMeter.Source_IntDuration;
 
-            FreeStringArray(DefinedZoneList, DefinedZoneListSize);
             DefinedZoneListSize := OtherEnergyMeter.DefinedZoneListSize;
-            DefinedZoneList := AllocStringArray(DefinedZoneListSize);
+            SetLength(DefinedZoneList, DefinedZoneListSize + 1);
        // Copy Strings over (actually incr ref count on string)
             for i := 1 to DefinedZoneListSize do
-                DefinedZoneList^[i] := OtherEnergyMeter.DefinedZoneList^[i];
+                DefinedZoneList[i] := OtherEnergyMeter.DefinedZoneList[i];
 
             LocalOnly := OtherEnergyMeter.LocalOnly;
             VoltageUEOnly := OtherEnergyMeter.VoltageUEOnly;
@@ -1030,7 +1031,7 @@ begin
     ZoneIsRadial := true;
     HasFeeder := false; // Not used; leave as False
     FeederObj := nil;  // initialize to not assigned
-    DefinedZoneList := nil;
+    SetLength(DefinedZoneList, 0);
     DefinedZoneListSize := 0;
 
     FLosses := true;   {Loss Reporting switches}
@@ -1181,7 +1182,8 @@ begin
         SequenceList.Free;
     if Assigned(LoadList) then
         LoadList.Free;
-    FreeStringArray(DefinedZoneList, DefinedZoneListSize);
+    DefinedZoneListSize := 0;
+    SetLength(DefinedZoneList, DefinedZoneListSize);
 
     if Assigned(FeederSections) then
         Reallocmem(FeederSections, 0);
@@ -2120,7 +2122,7 @@ begin
                         Inc(ZoneListCounter);
                         while ZoneListCounter <= DefinedZoneListSize do
                         begin
-                            if SetElementActive(DefinedZoneList^[ZoneListCounter]) = 0 then
+                            if SetElementActive(DefinedZoneList[ZoneListCounter]) = 0 then
                                 Inc(ZoneListCounter) // Not Found. Let's search for another
                             else
                             begin
@@ -2132,7 +2134,7 @@ begin
                                     if (TestElement.DSSObjType and BaseClassMask) <> PD_ELEMENT then
                                         Inc(ZoneListCounter)  // Lets ignore non-PD elements
                                     else
-                                        BranchList.AddNewChild(TestElement, 0, 0); // add it as a child to the previous element
+                                        BranchList.AddNewChild(TestElement, TDSSCktElement(TestElement).Terminals^[1].BusRef, 1); // add it as a child to the previous element
                                     Break;                                         // Can't do reductions if manually spec'd
                                 end;
                             end;

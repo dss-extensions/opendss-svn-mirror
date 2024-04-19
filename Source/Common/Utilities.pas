@@ -55,7 +55,7 @@ procedure InitDblArray(NumValues: Integer; Xarray: pDoubleArray; Value: Double);
 procedure InitIntArray(NumValues: Integer; Xarray: pIntegerArray; Value: Integer);
 function InterpretDblArray(const s: String; MaxValues: Integer; ResultArray: pDoubleArray): Integer;
 function InterpretIntArray(const s: String; MaxValues: Integer; ResultArray: pIntegerArray): Integer;
-procedure InterpretAndAllocStrArray(const s: String; var Size: Integer; var ResultArray: pStringArray);
+function InterpretAndAllocStrArray(const s: String; var Size: Integer): DynStringArray;
 procedure InterpretTStringListArray(const s: String; var ResultList: TStringList);
 function InterpretTimeStepSize(const s: String): Double;
 function InterpretLoadShapeClass(const s: String): Integer;
@@ -1067,7 +1067,7 @@ begin
 end;
 
 //----------------------------------------------------------------------------
-procedure InterpretAndAllocStrArray(const s: String; var Size: Integer; var ResultArray: pStringArray);
+function InterpretAndAllocStrArray(const s: String; var Size: Integer): DynStringArray;
 
 { Get string values from an array specified either as a list on strings or a text file spec.
   ResultArray is allocated as needed.
@@ -1078,46 +1078,17 @@ var
     Param: String;
     F: Textfile;
     MaxSize: Integer;
+    LocalArray: DynStringArray;
 
-
-    procedure ReallocStringArray;
-    var
-        j: Integer;
-    begin
-        Reallocmem(ResultArray, Sizeof(ResultArray^[1]) * MaxSize);
-        for j := Size + 1 to MaxSize do
-            InitStringToNull(ResultArray^[j]);    // Init string values
-    end;
-
-    procedure BumpUpStringArray;
-    begin
-        Inc(MaxSize, 100);
-        ReallocStringArray;
-    end;
-
-    procedure FreeStringArray;
-    var
-        j: Integer;
-    begin
-        if Assigned(ResultArray) then
-        begin
-            for j := 1 to Size do
-            begin
-                ResultArray^[j] := '';
-            end;
-            ReallocMem(ResultArray, 0);
-        end;
-    end;
 
 begin
 
      //  Throw Away any Previous Allocation
-    FreeStringArray;
+    SetLength(LocalArray, 1);
+    LocalArray[0] := '';
 
      // Now Reallocate
-    MaxSize := 100;  // initialize
     Size := 0;
-    ReAllocStringArray;
 
     AuxParser[ActiveActor].CmdString := S;
     ParmName := AuxParser[ActiveActor].NextParam;
@@ -1138,9 +1109,8 @@ begin
                 if Param <> '' then
                 begin     // Ignore Blank Lines in File
                     Inc(Size);
-                    if Size > Maxsize then
-                        BumpUpStringArray;
-                    ResultArray^[Size] := Param;
+                    SetLength(LocalArray, length(LocalArray) + 1);
+                    LocalArray[Size] := Param;
                 end;
             end;
             CloseFile(F);
@@ -1159,16 +1129,15 @@ begin
         while Param <> '' do
         begin
             Inc(Size);
-            if Size > Maxsize then
-                BumpUpStringArray;
-            ResultArray^[Size] := Param;
+            SetLength(LocalArray, length(LocalArray) + 1);
+            LocalArray[Size] := Param;
             ParmName := AuxParser[ActiveActor].NextParam;
             Param := AuxParser[ActiveActor].StrValue;
         end;
     end;
 
     MaxSize := Size;   // Get rid of Excess Allocation
-    ReallocStringArray;
+    Result := LocalArray;
 
 end;
 
