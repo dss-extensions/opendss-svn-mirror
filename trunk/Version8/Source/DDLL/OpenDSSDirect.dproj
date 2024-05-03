@@ -404,6 +404,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="..\Controls\GenController.pas"/>
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
+        <DCCReference Include="DStorages.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

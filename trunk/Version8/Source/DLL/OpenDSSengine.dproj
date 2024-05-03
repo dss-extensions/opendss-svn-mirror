@@ -1410,6 +1410,9 @@
         <DCCReference Include="..\Controls\GenController.pas"/>
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
+        <DCCReference Include="ImplWindGens.pas">
+            <CoClasses>Vsources</CoClasses>
+        </DCCReference>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
