@@ -97,7 +97,8 @@ uses
     {$ENDIF}
     NumCPULib,
     Command,
-    ISource;
+    ISource,
+    WindGen;
 
 const
     CRLF = sLineBreak; // cross-platform
@@ -293,6 +294,7 @@ Integer
     LineSpacingClass: array of TLineSpacing;
     StorageClass: array of TStorage;
     PVSystemClass: array of TPVSystem;
+    WindGenClass: array of TWindGen;
     InvControlClass: array of TInvControl;
     ExpControlClass: array of TExpControl;
     ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -1612,6 +1614,7 @@ try
     setlength(LineSpacingClass, CPU_Cores + 1);
     setlength(StorageClass, CPU_Cores + 1);
     setlength(PVSystemClass, CPU_Cores + 1);
+    setlength(WindGenClass, CPU_Cores + 1);
     setlength(InvControlClass, CPU_Cores + 1);
     setlength(ExpControlClass, CPU_Cores + 1);
     setlength(EventStrings, CPU_Cores + 1);

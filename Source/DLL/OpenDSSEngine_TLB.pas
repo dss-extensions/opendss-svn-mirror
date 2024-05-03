@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 9/12/2023 10:14:05 AM from Type Library described below.
+// File generated on 5/2/2024 5:24:04 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -148,6 +148,8 @@ const
     CLASS_ReduceCkt: TGUID = '{553148EA-97CB-4559-933A-A734250E95C6}';
     IID_IStorages: TGUID = '{36049833-30B6-415A-992A-63CDD6CAE432}';
     CLASS_Storages: TGUID = '{E9322B91-C7CA-4573-803E-90AC4B4B1AA0}';
+    IID_IWindGens: TGUID = '{6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}';
+    CLASS_WindGens: TGUID = '{347418F7-928D-458D-B32D-681C00F33DF0}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library
@@ -366,6 +368,8 @@ type
     IReduceCktDisp = dispinterface;
     IStorages = interface;
     IStoragesDisp = dispinterface;
+    IWindGens = interface;
+    IWindGensDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library
@@ -415,6 +419,7 @@ type
     GICSources = IGICSources;
     ReduceCkt = IReduceCkt;
     Storages = IStorages;
+    WindGens = IWindGens;
 
 
 // *********************************************************************//
@@ -3978,6 +3983,49 @@ type
         procedure Set_State(Value: Integer); SAFECALL;
         function Get_puSOC: Double; SAFECALL;
         procedure Set_puSOC(Value: Double); SAFECALL;
+        function Get_EffCharge: Double; SAFECALL;
+        procedure Set_EffCharge(Value: Double); SAFECALL;
+        function Get_EffDischarge: Double; SAFECALL;
+        procedure Set_EffDischarge(Value: Double); SAFECALL;
+        function Get_kWRated: Double; SAFECALL;
+        procedure Set_kWRated(Value: Double); SAFECALL;
+        function Get_ControlMode: Integer; SAFECALL;
+        procedure Set_ControlMode(Value: Integer); SAFECALL;
+        function Get_Kp: Double; SAFECALL;
+        procedure Set_Kp(Value: Double); SAFECALL;
+        function Get_kV: Double; SAFECALL;
+        procedure Set_kV(Value: Double); SAFECALL;
+        function Get_kVA: Double; SAFECALL;
+        procedure Set_kVA(Value: Double); SAFECALL;
+        function Get_kvar: Double; SAFECALL;
+        procedure Set_kvar(Value: Double); SAFECALL;
+        function Get_kWhRated: Double; SAFECALL;
+        procedure Set_kWhRated(Value: Double); SAFECALL;
+        function Get_LimitCurrent: Double; SAFECALL;
+        procedure Set_LimitCurrent(Value: Double); SAFECALL;
+        function Get_PF: Double; SAFECALL;
+        procedure Set_PF(Value: Double); SAFECALL;
+        function Get_SafeMode: Integer; SAFECALL;
+        function Get_SafeVoltage: Double; SAFECALL;
+        procedure Set_SafeVoltage(Value: Double); SAFECALL;
+        function Get_AmpLimit: Double; SAFECALL;
+        procedure Set_AmpLimit(Value: Double); SAFECALL;
+        function Get_AmpLimitGain: Double; SAFECALL;
+        procedure Set_AmpLimitGain(Value: Double); SAFECALL;
+        function Get_kVDC: Double; SAFECALL;
+        procedure Set_kVDC(Value: Double); SAFECALL;
+        function Get_kW: Double; SAFECALL;
+        procedure Set_kW(Value: Double); SAFECALL;
+        function Get_PITol: Double; SAFECALL;
+        procedure Set_PITol(Value: Double); SAFECALL;
+        function Get_ChargeTrigger: Double; SAFECALL;
+        procedure Set_ChargeTrigger(Value: Double); SAFECALL;
+        function Get_DischargeTrigger: Double; SAFECALL;
+        procedure Set_DischargeTrigger(Value: Double); SAFECALL;
+        function Get_TimeChargeTrig: Double; SAFECALL;
+        procedure Set_TimeChargeTrig(Value: Double); SAFECALL;
+        function Get_VarFollowInverter: Integer; SAFECALL;
+        procedure Set_VarFollowInverter(Value: Integer); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property RegisterNames: Olevariant READ Get_RegisterNames;
         property RegisterValues: Olevariant READ Get_RegisterValues;
@@ -3988,6 +4036,28 @@ type
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property State: Integer READ Get_State WRITE Set_State;
         property puSOC: Double READ Get_puSOC WRITE Set_puSOC;
+        property EffCharge: Double READ Get_EffCharge WRITE Set_EffCharge;
+        property EffDischarge: Double READ Get_EffDischarge WRITE Set_EffDischarge;
+        property kWRated: Double READ Get_kWRated WRITE Set_kWRated;
+        property ControlMode: Integer READ Get_ControlMode WRITE Set_ControlMode;
+        property Kp: Double READ Get_Kp WRITE Set_Kp;
+        property kV: Double READ Get_kV WRITE Set_kV;
+        property kVA: Double READ Get_kVA WRITE Set_kVA;
+        property kvar: Double READ Get_kvar WRITE Set_kvar;
+        property kWhRated: Double READ Get_kWhRated WRITE Set_kWhRated;
+        property LimitCurrent: Double READ Get_LimitCurrent WRITE Set_LimitCurrent;
+        property PF: Double READ Get_PF WRITE Set_PF;
+        property SafeMode: Integer READ Get_SafeMode;
+        property SafeVoltage: Double READ Get_SafeVoltage WRITE Set_SafeVoltage;
+        property AmpLimit: Double READ Get_AmpLimit WRITE Set_AmpLimit;
+        property AmpLimitGain: Double READ Get_AmpLimitGain WRITE Set_AmpLimitGain;
+        property kVDC: Double READ Get_kVDC WRITE Set_kVDC;
+        property kW: Double READ Get_kW WRITE Set_kW;
+        property PITol: Double READ Get_PITol WRITE Set_PITol;
+        property ChargeTrigger: Double READ Get_ChargeTrigger WRITE Set_ChargeTrigger;
+        property DischargeTrigger: Double READ Get_DischargeTrigger WRITE Set_DischargeTrigger;
+        property TimeChargeTrig: Double READ Get_TimeChargeTrig WRITE Set_TimeChargeTrig;
+        property VarFollowInverter: Integer READ Get_VarFollowInverter WRITE Set_VarFollowInverter;
     end;
 
 // *********************************************************************//
@@ -4007,6 +4077,160 @@ type
         property Name: Widestring DISPID 208;
         property State: Integer DISPID 209;
         property puSOC: Double DISPID 210;
+        property EffCharge: Double DISPID 211;
+        property EffDischarge: Double DISPID 212;
+        property kWRated: Double DISPID 213;
+        property ControlMode: Integer DISPID 214;
+        property Kp: Double DISPID 215;
+        property kV: Double DISPID 216;
+        property kVA: Double DISPID 217;
+        property kvar: Double DISPID 218;
+        property kWhRated: Double DISPID 219;
+        property LimitCurrent: Double DISPID 220;
+        property PF: Double DISPID 221;
+        property SafeMode: Integer READONLY DISPID 222;
+        property SafeVoltage: Double DISPID 223;
+        property AmpLimit: Double DISPID 224;
+        property AmpLimitGain: Double DISPID 225;
+        property kVDC: Double DISPID 226;
+        property kW: Double DISPID 227;
+        property PITol: Double DISPID 228;
+        property ChargeTrigger: Double DISPID 229;
+        property DischargeTrigger: Double DISPID 230;
+        property TimeChargeTrig: Double DISPID 231;
+        property VarFollowInverter: Integer DISPID 232;
+    end;
+
+// *********************************************************************//
+// Interface: IWindGens
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}
+// *********************************************************************//
+    IWindGens = interface(IDispatch)
+        ['{6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}']
+        function Get_AllNames: Olevariant; SAFECALL;
+        function Get_RegisterNames: Olevariant; SAFECALL;
+        function Get_RegisterValues: Olevariant; SAFECALL;
+        function Get_First: Integer; SAFECALL;
+        function Get_Next: Integer; SAFECALL;
+        function Get_Count: Integer; SAFECALL;
+        function Get_Ag: Double; SAFECALL;
+        procedure Set_Ag(Value: Double); SAFECALL;
+        function Get_Idx: Integer; SAFECALL;
+        procedure Set_Idx(Value: Integer); SAFECALL;
+        function Get_Cp: Double; SAFECALL;
+        procedure Set_Cp(Value: Double); SAFECALL;
+        function Get_kV: Double; SAFECALL;
+        procedure Set_kV(Value: Double); SAFECALL;
+        function Get_kVA: Double; SAFECALL;
+        procedure Set_kVA(Value: Double); SAFECALL;
+        function Get_kvar: Double; SAFECALL;
+        procedure Set_kvar(Value: Double); SAFECALL;
+        function Get_kW: Double; SAFECALL;
+        procedure Set_kW(Value: Double); SAFECALL;
+        function Get_Lamda: Double; SAFECALL;
+        procedure Set_Lamda(Value: Double); SAFECALL;
+        function Get_N_WTG: Integer; SAFECALL;
+        procedure Set_N_WTG(Value: Integer); SAFECALL;
+        function Get_NPoles: Integer; SAFECALL;
+        procedure Set_NPoles(Value: Integer); SAFECALL;
+        function Get_pd: Double; SAFECALL;
+        procedure Set_pd(Value: Double); SAFECALL;
+        function Get_PF: Double; SAFECALL;
+        procedure Set_PF(Value: Double); SAFECALL;
+        function Get_PSS: Double; SAFECALL;
+        procedure Set_PSS(Value: Double); SAFECALL;
+        function Get_QFlag: Integer; SAFECALL;
+        procedure Set_QFlag(Value: Integer); SAFECALL;
+        function Get_QMode: Integer; SAFECALL;
+        procedure Set_QMode(Value: Integer); SAFECALL;
+        function Get_QSS: Double; SAFECALL;
+        procedure Set_QSS(Value: Double); SAFECALL;
+        function Get_Rad: Double; SAFECALL;
+        procedure Set_Rad(Value: Double); SAFECALL;
+        function Get_RThev: Double; SAFECALL;
+        procedure Set_RThev(Value: Double); SAFECALL;
+        function Get_VCutIn: Double; SAFECALL;
+        procedure Set_VCutIn(Value: Double); SAFECALL;
+        function Get_VCoutOut: Double; SAFECALL;
+        procedure Set_VCoutOut(Value: Double); SAFECALL;
+        function Get_Vss: Double; SAFECALL;
+        procedure Set_Vss(Value: Double); SAFECALL;
+        function Get_WindSpeed: Double; SAFECALL;
+        procedure Set_WindSpeed(Value: Double); SAFECALL;
+        function Get_XThev: Double; SAFECALL;
+        procedure Set_XThev(Value: Double); SAFECALL;
+        function Get_Name: Widestring; SAFECALL;
+        procedure Set_Name(const Value: Widestring); SAFECALL;
+        property AllNames: Olevariant READ Get_AllNames;
+        property RegisterNames: Olevariant READ Get_RegisterNames;
+        property RegisterValues: Olevariant READ Get_RegisterValues;
+        property First: Integer READ Get_First;
+        property Next: Integer READ Get_Next;
+        property Count: Integer READ Get_Count;
+        property Ag: Double READ Get_Ag WRITE Set_Ag;
+        property Idx: Integer READ Get_Idx WRITE Set_Idx;
+        property Cp: Double READ Get_Cp WRITE Set_Cp;
+        property kV: Double READ Get_kV WRITE Set_kV;
+        property kVA: Double READ Get_kVA WRITE Set_kVA;
+        property kvar: Double READ Get_kvar WRITE Set_kvar;
+        property kW: Double READ Get_kW WRITE Set_kW;
+        property Lamda: Double READ Get_Lamda WRITE Set_Lamda;
+        property N_WTG: Integer READ Get_N_WTG WRITE Set_N_WTG;
+        property NPoles: Integer READ Get_NPoles WRITE Set_NPoles;
+        property pd: Double READ Get_pd WRITE Set_pd;
+        property PF: Double READ Get_PF WRITE Set_PF;
+        property PSS: Double READ Get_PSS WRITE Set_PSS;
+        property QFlag: Integer READ Get_QFlag WRITE Set_QFlag;
+        property QMode: Integer READ Get_QMode WRITE Set_QMode;
+        property QSS: Double READ Get_QSS WRITE Set_QSS;
+        property Rad: Double READ Get_Rad WRITE Set_Rad;
+        property RThev: Double READ Get_RThev WRITE Set_RThev;
+        property VCutIn: Double READ Get_VCutIn WRITE Set_VCutIn;
+        property VCoutOut: Double READ Get_VCoutOut WRITE Set_VCoutOut;
+        property Vss: Double READ Get_Vss WRITE Set_Vss;
+        property WindSpeed: Double READ Get_WindSpeed WRITE Set_WindSpeed;
+        property XThev: Double READ Get_XThev WRITE Set_XThev;
+        property Name: Widestring READ Get_Name WRITE Set_Name;
+    end;
+
+// *********************************************************************//
+// DispIntf:  IWindGensDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}
+// *********************************************************************//
+    IWindGensDisp = dispinterface
+        ['{6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}']
+        property AllNames: Olevariant READONLY DISPID 201;
+        property RegisterNames: Olevariant READONLY DISPID 202;
+        property RegisterValues: Olevariant READONLY DISPID 203;
+        property First: Integer READONLY DISPID 204;
+        property Next: Integer READONLY DISPID 205;
+        property Count: Integer READONLY DISPID 206;
+        property Ag: Double DISPID 208;
+        property Idx: Integer DISPID 207;
+        property Cp: Double DISPID 209;
+        property kV: Double DISPID 210;
+        property kVA: Double DISPID 211;
+        property kvar: Double DISPID 212;
+        property kW: Double DISPID 213;
+        property Lamda: Double DISPID 214;
+        property N_WTG: Integer DISPID 215;
+        property NPoles: Integer DISPID 216;
+        property pd: Double DISPID 217;
+        property PF: Double DISPID 218;
+        property PSS: Double DISPID 220;
+        property QFlag: Integer DISPID 221;
+        property QMode: Integer DISPID 222;
+        property QSS: Double DISPID 223;
+        property Rad: Double DISPID 224;
+        property RThev: Double DISPID 225;
+        property VCutIn: Double DISPID 226;
+        property VCoutOut: Double DISPID 227;
+        property Vss: Double DISPID 228;
+        property WindSpeed: Double DISPID 229;
+        property XThev: Double DISPID 230;
+        property Name: Widestring DISPID 219;
     end;
 
 // *********************************************************************//
@@ -4537,6 +4761,18 @@ type
         class function CreateRemote(const MachineName: String): IStorages;
     end;
 
+// *********************************************************************//
+// The Class CoWindGens provides a Create and CreateRemote method to
+// create instances of the default interface IWindGens exposed by
+// the CoClass WindGens. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+    CoWindGens = class
+        class function Create: IWindGens;
+        class function CreateRemote(const MachineName: String): IWindGens;
+    end;
+
 implementation
 
 uses
@@ -4980,6 +5216,16 @@ end;
 class function CoStorages.CreateRemote(const MachineName: String): IStorages;
 begin
     Result := CreateRemoteComObject(MachineName, CLASS_Storages) as IStorages;
+end;
+
+class function CoWindGens.Create: IWindGens;
+begin
+    Result := CreateComObject(CLASS_WindGens) as IWindGens;
+end;
+
+class function CoWindGens.CreateRemote(const MachineName: String): IWindGens;
+begin
+    Result := CreateRemoteComObject(MachineName, CLASS_WindGens) as IWindGens;
 end;
 
 end.
