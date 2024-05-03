@@ -44,7 +44,6 @@ type
         function Get_QSS: Double; SAFECALL;
         function Get_Rad: Double; SAFECALL;
         function Get_RThev: Double; SAFECALL;
-        function Get_VCoutOut: Double; SAFECALL;
         function Get_VCutIn: Double; SAFECALL;
         function Get_Vss: Double; SAFECALL;
         function Get_WindSpeed: Double; SAFECALL;
@@ -60,13 +59,14 @@ type
         procedure Set_QSS(Value: Double); SAFECALL;
         procedure Set_Rad(Value: Double); SAFECALL;
         procedure Set_RThev(Value: Double); SAFECALL;
-        procedure Set_VCoutOut(Value: Double); SAFECALL;
         procedure Set_VCutIn(Value: Double); SAFECALL;
         procedure Set_Vss(Value: Double); SAFECALL;
         procedure Set_WindSpeed(Value: Double); SAFECALL;
         procedure Set_XThev(Value: Double); SAFECALL;
         function Get_Name: Widestring; SAFECALL;
         procedure Set_Name(const Value: Widestring); SAFECALL;
+        function Get_VCutOut: Double; SAFECALL;
+        procedure Set_VCutOut(Value: Double); SAFECALL;
     end;
 
 implementation
@@ -562,7 +562,7 @@ begin
 
 end;
 
-function TWindGens.Get_VCoutOut: Double;
+function TWindGens.Get_VCutOut: Double;
 var
     WindGenElem: TWindGenObj;
 
@@ -776,7 +776,7 @@ begin
 
 end;
 
-procedure TWindGens.Set_VCoutOut(Value: Double);
+procedure TWindGens.Set_VCutOut(Value: Double);
 var
     WindGenElem: TWindGenObj;
 
@@ -893,6 +893,7 @@ begin
     end;
 
 end;
+
 
 initialization
     TAutoObjectFactory.Create(ComServer, TWindGens, CLASS_WindGens,

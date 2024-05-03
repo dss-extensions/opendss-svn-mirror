@@ -459,7 +459,7 @@ initialize(Temp);
         begin                                             // Circuit.AllBusVMag
             myType := 2;        // Double
             setlength(myDBLArray, 1);
-            myDBLArray := 0;
+            myDBLArray[0] := 0;
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 with ActiveCircuit[ActiveActor] do
