@@ -442,7 +442,7 @@ begin
                 end;
             end;
         end;
-        24:
+        23:
         begin             // Storages.kVDC Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -453,7 +453,7 @@ begin
                 end;
             end;
         end;
-        25:
+        24:
         begin            // Storages.kW Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -464,7 +464,7 @@ begin
                 end;
             end;
         end;
-        26:
+        25:
         begin            // Storages.kW Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -475,7 +475,7 @@ begin
                 end;
             end;
         end;
-        27:
+        26:
         begin           // Storages.kWhRated Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -486,7 +486,7 @@ begin
                 end;
             end;
         end;
-        28:
+        27:
         begin           // Storages.kWhRated Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -497,7 +497,7 @@ begin
                 end;
             end;
         end;
-        29:
+        28:
         begin           // Storages.kWRated Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -508,7 +508,7 @@ begin
                 end;
             end;
         end;
-        30:
+        29:
         begin           // Storages.kWRated Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -519,7 +519,7 @@ begin
                 end;
             end;
         end;
-        31:
+        30:
         begin           // Storages.LimitCurrent Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -531,7 +531,7 @@ begin
                 end;
             end;
         end;
-        32:
+        31:
         begin           // Storages.LimitCurrent Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -544,7 +544,7 @@ begin
                 end;
             end;
         end;
-        33:
+        32:
         begin           // Storages.PF Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -555,7 +555,7 @@ begin
                 end;
             end;
         end;
-        34:
+        33:
         begin           // Storages.PF Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -566,7 +566,7 @@ begin
                 end;
             end;
         end;
-        35:
+        34:
         begin           // Storages.PITol Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -577,7 +577,7 @@ begin
                 end;
             end;
         end;
-        36:
+        35:
         begin           // Storages.PITol Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -588,7 +588,7 @@ begin
                 end;
             end;
         end;
-        37:
+        36:
         begin           // Storages.SafeVoltage Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -599,7 +599,7 @@ begin
                 end;
             end;
         end;
-        38:
+        37:
         begin           // Storages.SafeVoltage Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -610,7 +610,7 @@ begin
                 end;
             end;
         end;
-        39:
+        38:
         begin            // Storages.TimeChargeTrig Read
             if ActiveCircuit[ActiveActor] <> nil then
             begin
@@ -621,7 +621,7 @@ begin
                 end;
             end;
         end;
-        40:
+        39:
         begin            // Storages.TimeChargeTrig Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
