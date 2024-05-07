@@ -106,6 +106,8 @@ var
     FParallel: IParallel;
     FLineCodes: ILineCodes;
     FGICSources: IGICSources;
+    FStorages: IStorages;
+    FWindGens: IWindGens;
     FreduceCkt: IReduceCkt;
 
     FPropIndex: Integer;

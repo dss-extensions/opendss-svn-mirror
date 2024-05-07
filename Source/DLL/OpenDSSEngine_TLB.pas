@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 5/3/2024 5:16:36 PM from Type Library described below.
+// File generated on 5/7/2024 10:14:56 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -760,6 +760,8 @@ type
         function Get_LineCodes: ILineCodes; SAFECALL;
         function Get_GICsources: IGICSources; SAFECALL;
         function Get_ReduceCkt: IReduceCkt; SAFECALL;
+        function Get_Storages: IStorages; SAFECALL;
+        function Get_WindGens: IWindGens; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumCktElements: Integer READ Get_NumCktElements;
         property NumBuses: Integer READ Get_NumBuses;
@@ -822,6 +824,8 @@ type
         property LineCodes: ILineCodes READ Get_LineCodes;
         property GICsources: IGICSources READ Get_GICsources;
         property ReduceCkt: IReduceCkt READ Get_ReduceCkt;
+        property Storages: IStorages READ Get_Storages;
+        property WindGens: IWindGens READ Get_WindGens;
     end;
 
 // *********************************************************************//
@@ -910,6 +914,8 @@ type
         property LineCodes: ILineCodes READONLY DISPID 239;
         property GICsources: IGICSources READONLY DISPID 240;
         property ReduceCkt: IReduceCkt READONLY DISPID 241;
+        property Storages: IStorages READONLY DISPID 242;
+        property WindGens: IWindGens READONLY DISPID 243;
     end;
 
 // *********************************************************************//

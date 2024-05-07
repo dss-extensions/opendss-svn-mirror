@@ -102,6 +102,8 @@ type
         function Get_LineCodes: ILineCodes; SAFECALL;
         function Get_GICsources: IGICSources; SAFECALL;
         function Get_ReduceCkt: IReduceCkt; SAFECALL;
+        function Get_Storages: IStorages; SAFECALL;
+        function Get_WindGens: IWindGens; SAFECALL;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -1312,6 +1314,16 @@ begin
     Result := FReduceCkt as IReduceCkt;
 end;
 
+
+function TCircuit.Get_Storages: IStorages;
+begin
+    Result := FStorages as IStorages;
+end;
+
+function TCircuit.Get_WindGens: IWindGens;
+begin
+    Result := FWindGens as IWindGens;
+end;
 
 initialization
     TAutoObjectFactory.Create(ComServer, TCircuit, Class_Circuit, ciInternal, tmApartment);
