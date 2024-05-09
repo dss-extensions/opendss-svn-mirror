@@ -1,7 +1,7 @@
 unit Solution;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2023, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -73,6 +73,7 @@ uses
     Sparse_Math,
     SyncObjs,
     ExecHelper,
+    Ucmatrix,
     CktElement;
 
 const
@@ -95,6 +96,10 @@ const
 
     ALL_ACTORS = 0; // Wait flag for all the actors
     AD_ACTORS = 1; // Wait flag to wait only for the A-Diakoptics actors
+
+     // Constants for the NCIM solution algorithm
+    PQ_Node = 0; // For indicating if the node is PQ (NCIM solver)
+    PV_Node = 1; // For indicating if the node is PV (NCIM solver)
 
 type
 
@@ -327,6 +332,51 @@ type
         AD_ISrcIdx: TList<Integer>;       // Locator of the ISource bus in actor 1
 //******************************************************************************
 
+//=============================================================================================================================================================
+      { NCIM algorithm rotuines and variables }
+
+        deltaZ,                                         // delta for Injection currents
+        deltaF,                                         // delta for Voltages
+        pNodePower,                                     // Array of complex storing the total power per node
+        pGenPower,                                      // Stores the total generation power per iteration
+        NCIMY,                                          // Stores the Non-zero values of the YBus Marix for multiplication
+        pNodeLimits: array of Complex;     // Stores the total Q limits for PV buses using all the nodes in the model
+        InitGenQ: Boolean;              // Used to initialize variables the first time the algorithm runs or needs to be reinitialized
+        NCIMYRow,                                       // Rows index of the Non-zero values of the Y Bus matrix
+        NCIMYCol: array of Integer;     // Cols index of the Non-zero values of Y
+        pNodeType,                                      // Array with the node type (PQ/PV)
+        pNodeNumGen: array of Integer;     // Stores the number of generators per node for further use
+        pNodePVTarget: array of Double;      // Array with the target (voltage) of the PV Buses
+        PVBusIdx,                                       // Stores the PVBus current index when indexing the jacobian matrix
+        PV2PQList: array of Integer;     // To list the generators converted from PV to PQ when the condition is forced
+        Jacobian: Nativeuint;           // Sparse Jacobian matrix
+        NCIMRdy,                                        // Indicates if the NCIM environment and structures are initialized
+        IgnoreQLimit: Boolean;              // To indicate if the user wants to ignore the Q limits for generators
+        GenGainNCIM: Double;               // Global gain for reactive power injection/absorption when using NCIM
+        NCIMNodes: Integer;              // Stores the number of nodes within the YBus matrix with only PDE
+
+        procedure LoadYBusNCIM(ActorID: Integer);                              // Loads the Y bus admittance matrix into another structure for linear algebra purposes
+        procedure CalcInjCurr(ActorID: Integer; InitGenQ: Boolean);           // Calculates the injection currents using the actual voltages ( I = Y * V )
+        function GetNumGenerators(ActorID: Integer; InitQ: Boolean): Integer; // Gets and initializes all the generators in the model as PV buses
+        procedure BuildJacobian(ActorID: Integer);                             // BUilds the jacobian matrix
+        function InitNCIM(ActorID: Integer; InitY: Boolean): Integer;         // Hosts all the initialization routines for NCIM
+        procedure DOForceFlatStart(ActorID: Integer);                          // Forces the voltage vector to a flat start (magnitude only).
+        procedure InitNCIMVectors(ActorID: Integer);                           // Initializes the vectors for the node total power in NCIM
+        procedure GetNCIMPowers(ActorID: Integer);                             // Populate the total power vector before solving
+      // Apply the PV bus current injection for NCIM
+        procedure DoPVBusNCIM(ActorID, i: Integer; VTarget: Double; Power: Complex);
+      // Apply the PQ bus current injection for NCIM
+        procedure DoPQBusNCIM(ActorID, i: Integer; V: Complex; Power: Complex);
+      // Apply the COnstant impedance bus current injection for NCIM
+        procedure DoZBusNCIM(ActorID, i: Integer; V: Complex; YPrim: TcMatrix);
+
+        procedure ApplyCurrNCIM(ActorID: Integer);                             // Apply the current injections before solving NCIM
+        procedure UpdateGenQ(ActorID: Integer);                                // Updates the reacitve power delta for all the generators in the model.
+        procedure InitPQGen(ActorID: Integer);                                 // Initializes the generators declared as PQ type
+        procedure DistGenClusters(ActorID: Integer);                           // Distributes the reactive power among clustered generators
+        procedure ReversePQ2PV(ActorID: Integer);                              // Reverses the generators converted from PV 2 PQ for the next solution
+
+//=============================================================================================================================================================
         constructor Create(ParClass: TDSSClass; const solutionname: String);
         destructor Destroy; OVERRIDE;
 
@@ -607,6 +657,17 @@ begin
     ADiakoptics_Ready := false;   // A-Diakoptics needs to be initialized
     if not Assigned(ActorMA_Msg[ActiveActor]) then
         ActorMA_Msg[ActiveActor] := TEvent.Create(nil, true, false, '');
+
+    // Initialize NCIM variables
+    SetLength(deltaF, 0);
+    SetLength(deltaZ, 0);
+    SetLength(NCIMY, 0);
+    SetLength(NCIMYRow, 0);
+    SetLength(NCIMYCol, 0);
+    NCIMRdy := false;
+    SetLength(PV2PQList, 0);
+    IgnoreQLimit := false;
+    GenGainNCIM := 1.0;
 
 end;
 
@@ -1154,6 +1215,125 @@ begin
 
         until (Converged(ActorID) and (Iteration >= MinIterations)) or (Iteration >= MaxIterations);
     end;
+end;
+
+// ===========================================================================================
+
+procedure TSolutionObj.ApplyCurrNCIM(ActorID: Integer);                             // Apply the current injections before solving NCIM
+var
+    i: Integer;
+begin
+    with ActiveCircuit[ActorID].Solution do
+    begin
+        for i := 1 to High(pNodePower) do
+        begin
+            if (pNodePower[i].re <> 0) and (pNodePower[i].im <> 0) then
+            begin
+                if pNodeType[i] = PV_Node then
+                    DOPVBusNCIM(ActorID, i, pNodePVTarget[i], pNodePower[i])
+                else
+                    DOPQBusNCIM(ActorID, i, NodeV[i], pNodePower[i]);
+            end;
+        end;
+    end;
+
+end;
+
+// --------------------*****************************************-------------------------------
+
+procedure TSolutionObj.GetNCIMPowers(ActorID: Integer);                             // Populate the total power vector before solving
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+// Apply the PV bus current injection for NCIM
+procedure TSolutionObj.DoPVBusNCIM(ActorID, i: Integer; VTarget: Double; Power: Complex);
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+// Apply the PQ bus current injection for NCIM
+procedure TSolutionObj.DoPQBusNCIM(ActorID, i: Integer; V: Complex; Power: Complex);
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+// Apply the COnstant impedance bus current injection for NCIM
+procedure TSolutionObj.DoZBusNCIM(ActorID, i: Integer; V: Complex; YPrim: TcMatrix);
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.InitNCIMVectors(ActorID: Integer);                           // Initializes the vectors for the node total power in NCIM
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.DOForceFlatStart(ActorID: Integer);                          // Forces the voltage vector to a flat start (magnitude only).
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+{  Initializes the registries for generators declared as PQ buses (Mode 4) by loading up their deltaQ
+    with the q nominal per phase given at the generator's declaration}
+procedure TSolutionObj.InitPQGen(ActorID: Integer);                                 // Initializes the generators declared as PQ type
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.DistGenClusters(ActorID: Integer);                           // Distributes the reactive power among clustered generators
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.ReversePQ2PV(ActorID: Integer);                              // Reverses the generators converted from PV 2 PQ for the next solution
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+function TSolutionObj.InitNCIM(ActorID: Integer; InitY: Boolean): Integer;         // Hosts all the initialization routines for NCIM
+begin
+    Result := 1;
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.LoadYBusNCIM(ActorID: Integer);                              // Loads the Y bus admittance matrix into another structure for linear algebra purposes
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.CalcInjCurr(ActorID: Integer; InitGenQ: Boolean);           // Calculates the injection currents using the actual voltages ( I = Y * V )
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+function TSolutionObj.GetNumGenerators(ActorID: Integer; InitQ: Boolean): Integer; // Gets and initializes all the generators in the model as PV buses
+begin
+    Result := 1;
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.UpdateGenQ(ActorID: Integer);                                // Updates the reacitve power delta for all the generators in the model.
+begin
+
+end;
+
+// --------------------*****************************************-------------------------------
+procedure TSolutionObj.BuildJacobian(ActorID: Integer);                             // BUilds the jacobian matrix
+begin
+
 end;
 
 
