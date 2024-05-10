@@ -261,6 +261,8 @@ type
         property FixedLoad: Boolean READ Fixed;
         property nZIPV: Integer READ FnZIPV WRITE set_nZIPV;
         property IsPFSpecified: Boolean READ PFSpecified;
+        property Get_WNominal: Double READ WNominal;
+        property Get_varNominal: Double READ varNominal;
     end;
 
 var

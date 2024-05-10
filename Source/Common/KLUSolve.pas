@@ -87,6 +87,10 @@ function AddMatrixElement(id: Nativeuint; i, j: Longword; Value: pComplex): Long
 
 // GetMatrixElement is deprecated, use GetCompressedMatrix or GetTripletMatrix
 function GetMatrixElement(id: Nativeuint; i, j: Longword; Value: pComplex): Longword; STDCALL; EXTERNAL KLULib;
+
+// SetMatrixElement used for implementing NCIM
+function SetMatrixElement(id: Nativeuint; i, j: Longword; Value: pComplex): Longword; STDCALL; EXTERNAL KLULib;
+
 {$ELSE}
 Const
   KLU_CALL ='libklusolve.a';

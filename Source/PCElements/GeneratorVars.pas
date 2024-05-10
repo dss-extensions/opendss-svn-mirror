@@ -38,6 +38,7 @@ type
         SpeedHistory,   {history variables for integration}
         Pnominalperphase,
         Qnominalperphase  {Target P and Q for power flow solution, watts, vars}: Double;    { All Doubles }
+        deltaQNom: array of Double;  // Used for updating Q when using NCIM algorithm
 
         {32-bit integers}
         NumPhases,       {Number of phases}

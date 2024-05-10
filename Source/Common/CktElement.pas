@@ -73,8 +73,8 @@ type
 
         BusIndex: Integer;
         YPrim_Series,
-        YPrim_Shunt,
-        YPrim: TCMatrix;   // Order will be NTerms * Ncond
+        YPrim_Shunt: TCMatrix;
+
         FYprimFreq: Double;     // Frequency at which YPrim has been computed
 
         procedure Set_Enabled(Value: Boolean); VIRTUAL;
@@ -86,7 +86,7 @@ type
       {Total Noderef array for element}
         NodeRef: pIntegerArray;  // Need fast access to this
         Yorder: Integer;
-
+        YPrim: TCMatrix;   // Order will be NTerms * Ncond
         LastTerminalChecked: Integer;  // Flag used in tree searches
 
         Checked,

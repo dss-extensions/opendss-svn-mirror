@@ -249,6 +249,7 @@ type
         DutyStart: Double; // starting time offset into the DutyShape [hrs] for this generator
         GenClass: Integer;
         GenModel: Integer;   // Variation with voltage
+        NCIMIdx: Integer;   // Index for voltage regulation when solving with NCIM algorithm
         GenVars: TGeneratorVars; {State Variables}
         kvarBase: Double;
         kvarMax: Double;

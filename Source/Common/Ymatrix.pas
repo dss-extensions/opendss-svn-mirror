@@ -21,6 +21,7 @@ uses
     windows,
     {$ENDIF}
     DSSClass,
+    DSSClassDefs,
     DSSObject;
 
 
@@ -28,6 +29,7 @@ uses
 const
     SERIESONLY = 1;
     WHOLEMATRIX = 2;
+    PDE_ONLY = 3;
 
 type
     EEsolv32Problem = class(Exception);
@@ -146,6 +148,7 @@ var
     YMatrixsize: Integer;
 //   CmatArray    :pComplexArray;   Replaced with a global array for thread safe operation
     pElem: TDSSCktElement;
+    ValidElm: Boolean;
 
    //{****} FTrace: TextFile;
 
@@ -179,6 +182,11 @@ begin
                 ResetSparseMatrix(hYseries, YMatrixSize, ActorID);
                 hY := hYSeries;
             end;
+            PDE_ONLY:
+            begin
+                ResetSparseMatrix(hYseries, YMatrixSize, ActorID);
+                hY := hYSeries;
+            end;
         end;
      // tune up the Yprims if necessary
         if (FrequencyChanged) then
@@ -201,6 +209,8 @@ begin
                     LogThisEvent('Building Whole Y Matrix', ActorID);
                 SERIESONLY:
                     LogThisEvent('Building Series Y Matrix', ActorID);
+                PDE_ONLY:
+                    LogThisEvent('Building PDE only Y Matrix', ActorID);
             end;
           // Add in Yprims for all devices
         pElem := ActiveCircuit[ActorID].CktElements.First;
@@ -210,6 +220,16 @@ begin
                 if (Enabled) then
                 begin          // Add stuff only if enabled
                     case BuildOption of
+                        PDE_ONLY:
+                        begin
+                            ValidElm := ((pElem.ParentClass.DSSClassType and BASECLASSMASK) = PD_ELEMENT);
+                            ValidElm := ValidElm or ((pElem.DSSObjType and CLASSMASK) = SOURCE);
+
+                            if ValidElm then
+                                ActiveYPrim[ActorID] := GetYPrimValues(ALL_YPRIM)
+                            else
+                                ActiveYPrim[ActorID] := nil;
+                        end;
                         WHOLEMATRIX:
                             ActiveYPrim[ActorID] := GetYPrimValues(ALL_YPRIM);
                         SERIESONLY:
@@ -265,6 +285,11 @@ begin
             end;
             SERIESONLY:
                 SeriesYInvalid := false;  // SystemYChange unchanged
+            PDE_ONLY:
+            begin
+                SeriesYInvalid := true;  // Indicate that the Series matrix may not match
+                SystemYChanged := false;
+            end;
         end;
     // Deleted RCD only done now on mode change
     // SolutionInitialized := False;  //Require new initial condition of voltages if Y changed
