@@ -889,8 +889,11 @@ begin
                         else
                             GFM_mode := false;
                         YprimInvalid[ActorID] := true;
-                    end
-
+                    end;
+                    propAmpsLimit:
+                        myDynVars.ILimit := Parser[ActorID].DblValue;
+                    propAmpsError:
+                        myDynVars.VError := Parser[ActorID].DblValue
                 else
                   // Inherited parameters
                     ClassEdit(ActivePVSystemObj, ParamPointer - NumPropsThisClass)
