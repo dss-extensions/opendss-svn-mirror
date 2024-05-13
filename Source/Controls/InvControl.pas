@@ -3779,7 +3779,9 @@ begin
             begin
                 DeltaQ := DeltaQ - QOldVV;
                 if FdeltaQ_factor = FLAGDELTAQ then
-                    Change_deltaQ_factor(ActorID, j);
+                    Change_deltaQ_factor(ActorID, j)
+                else
+                    FdeltaQFactor := FdeltaQ_factor;
                 QDesiredVV := QOldVV + DeltaQ * FdeltaQFactor;
             end
             else
@@ -3814,7 +3816,9 @@ begin
         begin
             DeltaQ := DeltaQ - QOldAVR;
             if FdeltaQ_factor = FLAGDELTAQ then
-                Change_deltaQ_factor(ActorID, j);
+                Change_deltaQ_factor(ActorID, j)
+            else
+                FdeltaQFactor := FdeltaQ_factor;
             QDesiredAVR := QOldAVR + 0.2 * DeltaQ;
     //      QDesiredAVR := QDesireEndpu * QHeadRoomNeg
         end
@@ -3866,7 +3870,9 @@ begin
         begin
             DeltaQ := DeltaQ - QOldDRC;
             if FdeltaQ_factor = FLAGDELTAQ then
-                Change_deltaQ_factor(ActorID, j);
+                Change_deltaQ_factor(ActorID, j)
+            else
+                FdeltaQFactor := FdeltaQ_factor;
             QDesiredDRC := QOldDRC + DeltaQ * FdeltaQFactor;
         end
         else
@@ -3894,7 +3900,9 @@ begin
         begin
             DeltaQ := DeltaQ - QOldVVDRC;
             if FdeltaQ_factor = FLAGDELTAQ then
-                Change_deltaQ_factor(ActorID, j);
+                Change_deltaQ_factor(ActorID, j)
+            else
+                FdeltaQFactor := FdeltaQ_factor;
             QDesiredVVDRC := QOldVVDRC + DeltaQ * FdeltaQFactor;
         end
         else
