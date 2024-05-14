@@ -3568,106 +3568,110 @@ initialize(cBuffer);
         else
             SeasonalRating := false;    // The user didn't define the seasonal signal
     end;
-
+    try
  { CHECK PDELEMENTS ONLY}
-    PDelem := ActiveCircuit[ActorID].PDElements.First;
-    while PDelem <> nil do
-    begin
-        if (PDelem.Enabled) and (not PDelem.IsShunt) then
-        begin   // Ignore shunts
+        PDelem := ActiveCircuit[ActorID].PDElements.First;
+        while PDelem <> nil do
+        begin
+            if (PDelem.Enabled) and (not PDelem.IsShunt) then
+            begin   // Ignore shunts
 
-            if (PdElem.Normamps > 0.0) or (PdElem.Emergamps > 0.0) then
-            begin
-                PDelem.ComputeIterminal(ActorID);
-                Cmax := PDElem.MaxTerminalOneImag(ActorID); // For now, check only terminal 1 for overloads
+                if (PdElem.Normamps > 0.0) or (PdElem.Emergamps > 0.0) then
+                begin
+                    PDelem.ComputeIterminal(ActorID);
+                    Cmax := PDElem.MaxTerminalOneImag(ActorID); // For now, check only terminal 1 for overloads
 
              // Section introduced in 02/20/2019 for allowing the automatic change of ratings
              // when the seasonal ratings option is active
-                ClassName := lowercase(PDElem.DSSClassName);
+                    ClassName := lowercase(PDElem.DSSClassName);
              //if SeasonalRating and (ClassName = 'line') and (PDElem.NumAmpRatings > 1) then
-                if SeasonalRating and (PDElem.NumAmpRatings > 1) then  // Includes all PDE
-                begin
-                    if RatingIdx > PDElem.NumAmpRatings then
+                    if SeasonalRating and (PDElem.NumAmpRatings > 1) then  // Includes all PDE
                     begin
-                        NormAmps := PDElem.NormAmps;
-                        EmergAmps := pdelem.EmergAmps;
-                    end
-                    else
-                    begin
-                        NormAmps := PDElem.AmpRatings[RatingIdx];
-                        EmergAmps := PDElem.AmpRatings[RatingIdx];
-                    end;
-                end
-                else
-                begin
-                    NormAmps := PDElem.NormAmps;
-                    EmergAmps := pdelem.EmergAmps;
-                end;
-
-
-                if (Cmax > NormAmps) or (Cmax > EmergAmps) then
-                begin
-
-              // Gets the currents for the active Element
-                    cBuffer := Allocmem(sizeof(cBuffer^[1]) * PDElem.NPhases * PDElem.NTerms);
-                    PDElem.Get_Current_Mags(cBuffer, ActorID);
-                    cVector := Allocmem(sizeof(cBuffer^[1]) * 3); // for storing
-                    for i := 1 to 3 do
-                        cVector^[i] := 0.0;
-                    if PDElem.NPhases < 3 then
-                    begin
-                        ClassName := PDElem.FirstBus;
-                        j := ansipos('.', ClassName);     // Removes the name of the bus
-                        ClassName := ClassName.Substring(j);
-                        for i := 1 to 3 do
+                        if RatingIdx > PDElem.NumAmpRatings then
                         begin
-                            j := ansipos('.', ClassName);   // goes for the phase Number
-                            if j = 0 then
-                            begin
-                                k := strtoint(ClassName);
-                                cVector^[k] := cBuffer^[i];
-                                break
-                            end
-                            else
-                            begin
-                                k := strtoint(ClassName.Substring(0, j - 1));
-                                cVector^[k] := cBuffer^[i];
-                                ClassName := ClassName.Substring(j);
-                            end;
+                            NormAmps := PDElem.NormAmps;
+                            EmergAmps := pdelem.EmergAmps;
+                        end
+                        else
+                        begin
+                            NormAmps := PDElem.AmpRatings[RatingIdx];
+                            EmergAmps := PDElem.AmpRatings[RatingIdx];
                         end;
                     end
                     else
                     begin
-                        for i := 1 to 3 do
-                            cVector^[i] := cBuffer^[i];
+                        NormAmps := PDElem.NormAmps;
+                        EmergAmps := pdelem.EmergAmps;
                     end;
 
-                    with ActiveCircuit[ActorID].Solution do
-                        WriteintoMem(OV_MHandle[ActorID], DynaVars.dblHour);
-                    WriteintoMemStr(OV_MHandle[ActorID], ', ' + FullName(PDelem));
-                    WriteintoMem(OV_MHandle[ActorID], NormAmps);
-                    WriteintoMem(OV_MHandle[ActorID], EmergAmps);
 
-                    if PDElem.Normamps > 0.0 then
-                        WriteintoMem(OV_MHandle[ActorID], Cmax / Normamps * 100.0)
-                    else
-                        WriteintoMem(OV_MHandle[ActorID], 0.0);
-                    if PDElem.Emergamps > 0.0 then
-                        WriteintoMem(OV_MHandle[ActorID], Cmax / Emergamps * 100.0)
-                    else
-                        WriteintoMem(OV_MHandle[ActorID], 0.0);
-                    with ActiveCircuit[ActorID] do // Find bus of first terminal
-                        WriteintoMem(OV_MHandle[ActorID], Buses^[MapNodeToBus^[PDElem.NodeRef^[1]].BusRef].kVBase);
+                    if (Cmax > NormAmps) or (Cmax > EmergAmps) then
+                    begin
+
+              // Gets the currents for the active Element
+                        cBuffer := Allocmem(sizeof(cBuffer^[1]) * PDElem.NPhases * PDElem.NTerms);
+                        PDElem.Get_Current_Mags(cBuffer, ActorID);
+                        cVector := Allocmem(sizeof(cBuffer^[1]) * 10); // for storing
+                        for i := 1 to 3 do
+                            cVector^[i] := 0.0;
+                        if PDElem.NPhases < 3 then
+                        begin
+                            ClassName := PDElem.FirstBus;
+                            j := ansipos('.', ClassName);     // Removes the name of the bus
+                            ClassName := ClassName.Substring(j);
+                            for i := 1 to 3 do
+                            begin
+                                j := ansipos('.', ClassName);   // goes for the phase Number
+                                if j = 0 then
+                                begin
+                                    k := strtoint(ClassName);
+                                    cVector^[k] := cBuffer^[i];
+                                    break
+                                end
+                                else
+                                begin
+                                    k := strtoint(ClassName.Substring(0, j - 1));
+                                    cVector^[k] := cBuffer^[i];
+                                    ClassName := ClassName.Substring(j);
+                                end;
+                            end;
+                        end
+                        else
+                        begin
+                            for i := 1 to 3 do
+                                cVector^[i] := cBuffer^[i];
+                        end;
+
+                        with ActiveCircuit[ActorID].Solution do
+                            WriteintoMem(OV_MHandle[ActorID], DynaVars.dblHour);
+                        WriteintoMemStr(OV_MHandle[ActorID], ', ' + FullName(PDelem));
+                        WriteintoMem(OV_MHandle[ActorID], NormAmps);
+                        WriteintoMem(OV_MHandle[ActorID], EmergAmps);
+
+                        if PDElem.Normamps > 0.0 then
+                            WriteintoMem(OV_MHandle[ActorID], Cmax / Normamps * 100.0)
+                        else
+                            WriteintoMem(OV_MHandle[ActorID], 0.0);
+                        if PDElem.Emergamps > 0.0 then
+                            WriteintoMem(OV_MHandle[ActorID], Cmax / Emergamps * 100.0)
+                        else
+                            WriteintoMem(OV_MHandle[ActorID], 0.0);
+                        with ActiveCircuit[ActorID] do // Find bus of first terminal
+                            WriteintoMem(OV_MHandle[ActorID], Buses^[MapNodeToBus^[PDElem.NodeRef^[1]].BusRef].kVBase);
               // Adds the currents in Amps per phase at the end of the report
-                    for i := 1 to 3 do
-                        WriteintoMem(OV_MHandle[ActorID], cVector^[i]);
+                        for i := 1 to 3 do
+                            WriteintoMem(OV_MHandle[ActorID], cVector^[i]);
 
-                    WriteintoMemStr(OV_MHandle[ActorID], ' ' + Char(10));
+                        WriteintoMemStr(OV_MHandle[ActorID], ' ' + Char(10));
 
-                end;
-            end; { }
+                    end;
+                end; { }
+            end;
+            PDelem := ActiveCircuit[ActorID].PDElements.Next;
         end;
-        PDelem := ActiveCircuit[ActorID].PDElements.Next;
+    except
+        On E: Exception do
+            DoSimpleMsg('Error Writing the OV report in memory: "' + E.Message, 548)
     end;
 end;
 
