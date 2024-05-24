@@ -12,7 +12,7 @@ interface
 Uses Command;
 
 CONST
-        NumShowOptions = 34;
+        NumShowOptions = 35;
 
 FUNCTION DoShowCmd:Integer;
 
@@ -72,6 +72,7 @@ Begin
     ShowOption[32] := 'QueryLog';
     ShowOption[33] := 'Controlled';
     ShowOption[34] := 'Result';
+    ShowOption[35] := 'PV2PQ_Conversions';
 
 
 
@@ -146,6 +147,7 @@ Begin
     ShowHelp[32] := 'Show Query Log file. ';
     ShowHelp[33] := 'Show Controlled elements and the names of the controls connected to them in CSV format.';
     ShowHelp[34] := 'Show last result (in @result variable).';
+    ShowHelp[35] := 'Show the list of generators converted from PV bus to PQ during the last soltuion step (NCIM).';
 
 End;
 
@@ -383,6 +385,7 @@ Begin
       32: FireOffEditor(QueryLogFileName);
       33: ShowControlledElements(GetOutputDirectory + CircuitName_[ActiveActor] + 'ControlledElements.CSV');
       34: ShowResult(GetOutputDirectory + CircuitName_[ActiveActor] + 'Result.CSV');
+      35: ShowPV2PQGen(GetOutputDirectory + CircuitName_[ActiveActor] + 'PV2PQ_Generators.CSV');
    ELSE
    End;
 
