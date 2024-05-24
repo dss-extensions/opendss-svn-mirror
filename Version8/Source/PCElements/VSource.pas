@@ -1,7 +1,7 @@
 unit VSource;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
@@ -107,6 +107,7 @@ TYPE
         Procedure CalcYPrim(ActorID : Integer); Override;
 
         Function  InjCurrents(ActorID : Integer):Integer; Override;
+        Procedure CalcInjCurrAtBus(Curr:pComplexArray; ActorID : Integer);
         Procedure GetInjCurrents(Curr:pComplexArray; ActorID : Integer); Override;
         Procedure GetCurrents(Curr: pComplexArray; ActorID : Integer);Override;
 
@@ -126,7 +127,8 @@ VAR
 implementation
 
 
-USES  ParserDel, Circuit, DSSClassDefs, DSSGlobals, Dynamics, Utilities, Sysutils, Command;
+USES  ParserDel, Circuit, DSSClassDefs, DSSGlobals, Dynamics, Utilities, Sysutils,
+      Command, Solution, CktElement, ArrayDef;
 
 Const NumPropsThisClass = 31;
 
@@ -1079,6 +1081,104 @@ Begin
 End;
 
 //===========================================================================
+
+Procedure TVsourceObj.CalcInjCurrAtBus(Curr:pComplexArray; ActorID : Integer);
+Var
+  ElmCurrents : Array of Complex;                             // For storing the currents of the PDE
+  myName,
+  BusName     : String;                                       // Gets the name of the bus we are connected to
+  ActivePDE,
+  ActivePCE,
+  ActiveElem  : TDSSCktElement;
+  id,
+  idx,
+  j,
+  myTerm      : Integer;                                      // saves whatever the active ckt element is
+  myList      : DynStringArray;
+
+Begin
+  // Initialization
+  BusName :=  StripExtension(GetBus(1));
+  myName  :=  LowerCase(ParentClass.Name + '.' + Name);
+  With ActiveCircuit[ActorID] do
+  Begin
+
+    ActiveElem  :=  ActiveCktElement;                         // saves whatever the active ckt element is
+    myList      :=  getPDEatBus(BusName);                     // Obtains the list of PDE connected to the Bus
+    myTerm      :=  0;                                        // The terminal of the PDE connected to the Bus
+
+    for idx := 1 to (Yorder) do
+      Curr[idx] :=  CZero;
+
+    for idx := 0 to High(myList) do
+    Begin
+
+      if myList[idx] <> '' then
+      Begin
+
+        myTerm    :=  0;
+        SetElementActive(myList[idx]);
+        ActivePDE := ActiveCktElement;
+        SetLength(ElmCurrents, ActivePDE.Yorder + 1);
+        ActivePDE.GetCurrents(@(ElmCurrents[1]), ActorID);
+
+        for j := 1 to ActivePDE.NPhases do
+        Begin
+
+          if BusName = StripExtension(ActivePDE.GetBus(j)) then
+            break;
+          inc(myTerm);
+
+        End;
+
+        for j := 1 to NPhases do
+          Curr[j] :=  csub(Curr[j], ElmCurrents[(myTerm * Round(ActivePDE.Yorder / 2)) + j]);
+
+      End;
+    End;
+
+
+    SetLength(ElmCurrents, 0);
+    SetLength(myList, 0);
+
+    // Now check the PCE at the same Bus
+    myList  :=  getPCEatBus(BusName);                           // Obtains the list of PCE connected to the Bus
+    myTerm  :=  0;                                              // The terminal of the PCE connected to the Bus
+
+    for idx := 0 to High(myList) do                            // We go through all the devices
+    Begin
+
+      if (LowerCase(myList[idx]) <> myName) and (myList[idx] <> '') then
+      Begin
+
+        SetElementActive(myList[idx]);
+        ActivePCE :=  ActiveCktElement;                           // To prevent super long statements
+
+        SetLength(ElmCurrents, ActivePCE.Yorder + 1);
+        ActivePCE.GetCurrents(@(ElmCurrents[1]), ActorID);
+
+        for j := 1 to ActivePCE.NPhases do
+        Begin
+
+          if BusName = StripExtension(ActivePCE.GetBus(j)) then
+            break;
+          inc(myTerm);
+
+        End;
+        for j := 1 to NPhases do
+          Curr[j] :=  cadd(Curr[j], ElmCurrents[(myTerm * ActivePCE.NPhases) + j]);
+
+      End;
+
+    End;
+
+    ActiveCktElement := ActiveElem;
+
+  End;
+
+End;
+
+//===========================================================================
 Procedure TVsourceObj.GetCurrents(Curr: pComplexArray; ActorID : Integer);
 
 VAR
@@ -1090,6 +1190,13 @@ Begin
    DO Begin
      //FOR i := 1 TO (Nterms * NConds) DO Vtemp^[i] := V^[NodeRef^[i]];
      // This is safer    12/7/99
+     // Added modification to guarantee compatibility with NCIM solution
+     if ((Algorithm = NCIMSOLVE) and (NodeREf[1] = 1)) then
+      CalcInjCurrAtBus(Curr, ActorID)
+
+     else
+     Begin
+
        FOR     i := 1 TO Yorder DO
        Begin
         if not ADiakoptics or (ActorID = 1) then
@@ -1103,6 +1210,8 @@ Begin
        GetInjCurrents(ComplexBuffer, ActorID);  // Get present value of inj currents
       // Add Together  with yprim currents
        FOR i := 1 TO Yorder DO Curr^[i] := Csub(Curr^[i], ComplexBuffer^[i]);
+
+     End;
 
    End;  {With}
   EXCEPT
