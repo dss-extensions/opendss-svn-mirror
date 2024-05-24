@@ -580,9 +580,13 @@ VAR
 Begin
     SLC := copy(lowercase(s), 1, 2);
 
-    If CompareText( SLC, 'ne')=0
-    Then  Result := NEWTONSOLVE
-    ELSE  Result := NORMALSOLVE;
+    If CompareText( SLC, 'ne')=0 Then
+      Result := NEWTONSOLVE                   // Newton method
+    ELSE
+      IF CompareText( SLC, 'nc')=0 Then
+        Result := NCIMSOLVE                   // NCIM method
+      ELSE
+        Result := NORMALSOLVE;                // floating-point method (default)
 
 End;
 

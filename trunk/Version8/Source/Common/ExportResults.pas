@@ -70,7 +70,9 @@ Procedure ExportZLL(FileNm:String);
 Procedure ExportZCC(FileNm:String);
 Procedure ExportY4(FileNm:String);
 Procedure ExportC(FileNm:String);
-
+Procedure ExportJacobian(FileNm:String);
+Procedure ExportdeltaF(FileNm:String);
+Procedure ExportdeltaZ(FileNm:String);
 
 IMPLEMENTATION
 
@@ -2911,6 +2913,126 @@ Begin
   Finally
 
      CloseFile(F);
+
+  End;
+
+End;
+
+// Exports the Jacobian matrix calculated when using NCIM solution algorithm
+Procedure ExportJacobian(FileNm:String);
+Var
+  F         : TextFile;
+  i,
+  j,
+  nBus,
+  nNZ,
+  p         : LongWord;
+  hY        : NativeUInt;
+  ColPtr,
+  RowIdx    : array of LongWord;
+  cVals     : array of Complex;
+
+Begin
+
+  If ActiveCircuit[ActiveActor] = Nil then
+    Exit;
+
+  hY  :=  ActiveCircuit[ActiveActor].Solution.Jacobian;
+  if hY < 0 then
+  Begin
+
+    DoSimpleMsg('Jacobian Matrix not Built.', 222);
+    Exit;
+
+  End;
+  // this compresses the entries if necessary - no extra work if already solved
+  FactorSparseMAtrix(hY);
+  GetNNZ(hY, @nNZ);
+  GetSize(hY, @nBus);      // we should already know this
+
+  Try
+    Assignfile(F,FileNm);
+    ReWrite(F);
+    SetLength (ColPtr, nNZ);
+    SetLength (RowIdx, nNZ);
+    SetLength (cVals, nNZ);
+    GetTripletMatrix (hY, nNZ, @RowIdx[0], @ColPtr[0], @cVals[0]);
+    Writeln(F, 'Row,Col,Value');
+    for i := 0 to (nNZ - 1) do
+    begin
+
+       Writeln (F, Format('%d,%d,%.10g', [RowIdx[i], ColPtr[i], cVals[i].re]));
+
+    end;
+
+    GlobalResult := FileNm;
+  Finally
+    CloseFile(F);
+
+  End;
+
+
+End;
+
+// Exports the deltaF vector obtained in the last iteration of the NCIM solution algorithm (if used)
+Procedure ExportdeltaF(FileNm:String);
+Var
+  F         : TextFile;
+  re        : double;
+  i         : Integer;
+
+Begin
+
+  if (ActiveCircuit[ActiveActor] = nil) or ( Length(ActiveCircuit[ActiveActor].Solution.deltaF) = 0) then
+    Exit;
+
+  Try
+
+    Assignfile(F,FileNm);
+    ReWrite(F);
+    for i := 0 to High(ActiveCircuit[ActiveActor].Solution.deltaF) do
+    Begin
+
+      re    :=  ActiveCircuit[ActiveActor].Solution.deltaF[i].re;
+      Writeln(F, Format('%.10g', [re]));
+
+    End;
+
+    GlobalResult := FileNm;
+  Finally
+    CloseFile(F);
+
+  End;
+
+End;
+
+// Exports the deltaZ vector obtained in the last iteration of the NCIM solution algorithm (if used)
+Procedure ExportdeltaZ(FileNm:String);
+Var
+  F         : TextFile;
+  re        : double;
+  i         : Integer;
+
+Begin
+
+  if (ActiveCircuit[ActiveActor] = nil) or ( Length(ActiveCircuit[ActiveActor].Solution.deltaZ) = 0) then
+    Exit;
+
+  Try
+
+    Assignfile(F,FileNm);
+    ReWrite(F);
+    for i := 0 to High(ActiveCircuit[ActiveActor].Solution.deltaZ) do
+    Begin
+
+      re    :=  ActiveCircuit[ActiveActor].Solution.deltaZ[i].re;
+      Writeln(F, Format('%.10g', [re]));
+
+    End;
+
+    GlobalResult := FileNm;
+  Finally
+    CloseFile(F);
 
   End;
 

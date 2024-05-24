@@ -205,6 +205,7 @@ TYPE
 
        PROCEDURE DoNewtonSolution(ActorID : Integer);
        PROCEDURE DoNormalSolution(ActorID : Integer);
+       PROCEDURE DoNCIMSolution(ActorID : Integer);
 //       PROCEDURE GetMachineInjCurrents;
        PROCEDURE SetGeneratordQdV(ActorID : Integer);
        PROCEDURE SumAllCurrents(ActorID : Integer);
@@ -643,6 +644,7 @@ Begin
     SetLength(PV2PQList, 0);
     IgnoreQLimit := false;
     GenGainNCIM := 1.0;
+    InitGenQ    := True;
 
 End;
 
@@ -812,58 +814,74 @@ End;
 FUNCTION TSolutionObj.Converged(ActorID : Integer):Boolean;
 
 VAR
-  i:Integer;
-  VMag:Double;
+  i     : Integer;
+  VMag  : Double;
 
 Begin
 
-// base convergence on voltage magnitude
+  if (ActiveCircuit[ActorID].Solution.Algorithm <> NCIMSOLVE) then
+  Begin
+    // base convergence on voltage magnitude
 
-    MaxError := 0.0;
-    FOR i := 1 to ActiveCircuit[ActorID].NumNodes Do  Begin
-        if not ADiakoptics or (ActorID = 1) then
-          VMag := Cabs(NodeV^[i])
-        else
-          VMag := Cabs(VoltInActor1(i));
+        MaxError := 0.0;
+        FOR i := 1 to ActiveCircuit[ActorID].NumNodes Do  Begin
+            if not ADiakoptics or (ActorID = 1) then
+              VMag := Cabs(NodeV^[i])
+            else
+              VMag := Cabs(VoltInActor1(i));
 
-    { If base specified, use it; otherwise go on present magnitude  }
-        If      NodeVbase^[i] > 0.0 Then ErrorSaved^[i] := Abs(Vmag - VmagSaved^[i])/NodeVbase^[i]
-        Else If Vmag <> 0.0         Then ErrorSaved^[i] := Abs(1.0 - VmagSaved^[i]/Vmag);
+        { If base specified, use it; otherwise go on present magnitude  }
+            If      NodeVbase^[i] > 0.0 Then ErrorSaved^[i] := Abs(Vmag - VmagSaved^[i])/NodeVbase^[i]
+            Else If Vmag <> 0.0         Then ErrorSaved^[i] := Abs(1.0 - VmagSaved^[i]/Vmag);
 
-        VMagSaved^[i] := Vmag;  // for next go-'round
+            VMagSaved^[i] := Vmag;  // for next go-'round
 
-        MaxError := Max(MaxError, ErrorSaved^[i]);  // update max error
+            MaxError := Max(MaxError, ErrorSaved^[i]);  // update max error
+
+        End;
+
+    {$IFDEF debugtrace}
+                  Assignfile(Fdebug, 'Debugtrace.csv');
+                  Append(FDebug);
+                  If Iteration=1 Then Begin
+                    Write(Fdebug,'Iter');
+                    For i := 1 to ActiveCircuit[ActorID].NumNodes Do
+                        Write(Fdebug, ', ', ActiveCircuit[ActorID].Buslist.get(ActiveCircuit[ActorID].MapNodeToBus^[i].BusRef), '.', ActiveCircuit[ActiveActor].MapNodeToBus^[i].NodeNum:0);
+                    Writeln(Fdebug);
+                  End;
+                  {*****}
+                    Write(Fdebug,Iteration:2);
+                    For i := 1 to ActiveCircuit[ActorID].NumNodes Do
+                        Write(Fdebug, ', ', VMagSaved^[i]:8:1);
+                    Writeln(Fdebug);
+                    Write(Fdebug,'Err');
+                    For i := 1 to ActiveCircuit[ActorID].NumNodes Do
+                        Write(Fdebug, ', ', Format('%-.5g',[ErrorSaved^[i]]));
+                    Writeln(Fdebug);
+                    Write(Fdebug,'Curr');
+                    For i := 1 to ActiveCircuit[ActorID].NumNodes Do
+                        Write(Fdebug, ', ', Cabs(Currents^[i]):8:1);
+                    Writeln(Fdebug);
+                  {*****}
+                    CloseFile(FDebug);
+    {$ENDIF};
+
+        IF MaxError <= ConvergenceTolerance THEN Result := TRUE
+                                            ELSE Result := FALSE;
+  End
+  Else
+  Begin
+
+    for i := 0 to High(deltaF) do
+    Begin
+
+      Result  :=  Abs(deltaF[i].re) <= ConvergenceTolerance;
+      if not Result then
+        break;
 
     End;
 
-{$IFDEF debugtrace}
-              Assignfile(Fdebug, 'Debugtrace.csv');
-              Append(FDebug);
-              If Iteration=1 Then Begin
-                Write(Fdebug,'Iter');
-                For i := 1 to ActiveCircuit[ActorID].NumNodes Do
-                    Write(Fdebug, ', ', ActiveCircuit[ActorID].Buslist.get(ActiveCircuit[ActorID].MapNodeToBus^[i].BusRef), '.', ActiveCircuit[ActiveActor].MapNodeToBus^[i].NodeNum:0);
-                Writeln(Fdebug);
-              End;
-              {*****}
-                Write(Fdebug,Iteration:2);
-                For i := 1 to ActiveCircuit[ActorID].NumNodes Do
-                    Write(Fdebug, ', ', VMagSaved^[i]:8:1);
-                Writeln(Fdebug);
-                Write(Fdebug,'Err');
-                For i := 1 to ActiveCircuit[ActorID].NumNodes Do
-                    Write(Fdebug, ', ', Format('%-.5g',[ErrorSaved^[i]]));
-                Writeln(Fdebug);
-                Write(Fdebug,'Curr');
-                For i := 1 to ActiveCircuit[ActorID].NumNodes Do
-                    Write(Fdebug, ', ', Cabs(Currents^[i]):8:1);
-                Writeln(Fdebug);
-              {*****}
-                CloseFile(FDebug);
-{$ENDIF};
-
-    IF MaxError <= ConvergenceTolerance THEN Result := TRUE
-                                        ELSE Result := FALSE;
+  End;
 
     ConvergedFlag := Result;
 End;
@@ -1075,6 +1093,75 @@ Begin
 
 End;
 
+// ===========================================================================================
+PROCEDURE TSolutionObj.DoNCIMSolution(ActorID : Integer);
+Var
+  dVIdx,
+  i         : Integer;
+  Solved    : Boolean;
+  dV        : Complex;
+
+Begin
+
+  { Implements the N conductor current injection method (NCIM) for solving the power flow problem.
+
+   This mehtod is a Newton-Raphson like solution method, and is implemented here to address
+   transmission system-like simulations. For more info, check:
+
+   https://www.sciencedirect.com/science/article/abs/pii/S0142061512004310
+
+  }
+
+  Iteration :=  0;                                // Initializes iteration counter
+
+  if InitGenQ then                                // If the system needs to be initialized
+  Begin
+
+    InitPQGen(ActorID);                           // Initialize PQ like generators
+    setLength(PV2PQList, 0);
+
+  End;
+
+  if (SystemYChanged or not NCIMRdy) then
+    NCIMNodes :=  InitNCIM(ActorID, InitgenQ);    // Initializes the NCIM environment vars and structures (takes time)
+
+  {/***** Main iteration loop *****/}
+
+  Repeat
+
+    inc(Iteration);
+    CalcInjCurr(ActorID, InitGenQ);               // Calc Injection currents using the latest solution ( I = Y * V )
+    BuildJacobian(ActorID);                       // Resets the jacobian's diagonal for the next iteration
+    GetNCIMPowers(ActorID);                       // Populate the total power vector
+    ApplyCurrNCIM(ActorID);                       // Adjust Jacobian and populate the currents vector
+
+    if ActiveCircuit[ACtorID].LogEvents then
+      LogThisEvent('Solve Power flow DoNCIMSolution ...', ActorID);
+
+    // Solves the Jacobian
+    SolveSparseSet(Jacobian, @(deltaZ[0]), @(deltaF[0]));
+
+    //Updates the Voltage vector
+    dVIdx :=  0;
+    dV    :=  CZero;
+    for i := 1 to ActiveCircuit[ActorID].NumNodes do
+    Begin
+
+      dVIdx     :=  (i - 1) * 2;
+      dV        :=  cmplx(deltaZ[dvIdx].re, deltaZ[dVIdx + 1].re);
+      NodeV[i]  :=  csub(NodeV[i], dV);
+
+    End;
+
+    Solved  := Converged(ActorID);
+    // Updates the Generator's Q using the calculated deltaQ
+    UpdateGenQ(ActorID);
+    InitGenQ  :=  False;
+
+  Until (Solved and (Iteration >= MinIterations)) or (Iteration >= MaxIterations);
+
+End;
+
 
 // ===========================================================================================
 PROCEDURE TSolutionObj.DoNewtonSolution(ActorID : Integer);
@@ -1154,7 +1241,7 @@ Begin
   Begin
     for i := 1 to High(pNodePower) do
     Begin
-      if (pNodePower[i].re <> 0) and (pNodePower[i].im <> 0) then
+      if (pNodePower[i].re <> 0) or (pNodePower[i].im <> 0) then
       Begin
         if pNodeType[i] = PV_Node then
           DOPVBusNCIM(ActorID, i, pNodePVTarget[i], pNodePower[i])
@@ -1326,9 +1413,9 @@ Begin
               Temp.re := -1.0 * cmul(FaVr, Pow).re;
             End;
       end;
-
+      SetMatrixElement(Jacobian, GCoord + LCoords[j][0], GCoord + LCoords[j][1], @Temp);
     End;
-    SetMatrixElement(Jacobian, GCoord + LCoords[j][0], GCoord + LCoords[j][1], @Temp);
+
   End;
 
   // Add current injection contributions to deltaF
@@ -1412,9 +1499,9 @@ Begin
               Temp.re := cmul(FaVr, Pow).re;
             End;
       end;
-
+      SetMatrixElement(Jacobian, GCoord + LCoords[j][0], GCoord + LCoords[j][1], @Temp);
     End;
-    SetMatrixElement(Jacobian, GCoord + LCoords[j][0], GCoord + LCoords[j][1], @Temp);
+
   End;
 
   // Add current injection contributions to deltaF
@@ -1493,7 +1580,7 @@ Begin
     for i := 0 to (NumBuses - 1) do
     Begin
       myBName   := BusList.Get(i + 1);
-      With Buses[i] do
+      With Buses[i + 1] do
       Begin
         for j := 0 to (NumNodesThisBus - 1) do
         Begin
@@ -1683,7 +1770,7 @@ End;
 FUNCTION TSolutionObj.InitNCIM(ActorID : Integer; InitY : Boolean): Integer;         // Hosts all the initialization routines for NCIM
 Var
   i         : Integer;
-  NNodes    : pLongWord;
+  NNodes    : LongWord;
 Begin
   With ActiveCircuit[ActorID] do
   Begin
@@ -1705,13 +1792,13 @@ Begin
       DOForceFlatStart(ActorID);
     End;
     // Gets the number of buses for the system
-    GetSize(hY, NNodes);
+    GetSize(hY, @NNodes);
 
     // 4. Setup the Y admittance matrix equivalent for lienar algebra orperations
     LoadYBusNCIM(ActorID);
     NCIMRdy :=  True;
   End;
-  Result := NNodes^;
+  Result := NNodes;
 
 End;
 
@@ -1719,7 +1806,7 @@ End;
 PROCEDURE TSolutionObj.LoadYBusNCIM(ActorID : Integer);                              // Loads the Y bus admittance matrix into another structure for linear algebra purposes
 Var
   NBus,
-  nNZ       : pLongWord;
+  nNZ       : LongWord;
   ColPtr,
   RowIdx    : array of Integer;
   cVals     : array of Complex;
@@ -1739,13 +1826,13 @@ Begin
     Begin
       // this compresses the entries if necessary - no extra work if already solved
       FactorSparseMatrix(myhY);
-      GetNNZ(myhY, nNZ);
-      GetSize(myhY, NBus); // we should already know this
+      GetNNZ(myhY, @nNZ);
+      GetSize(myhY, @NBus); // we should already know this
 
-      SetLength(NCIMYCol, nNZ^);
-      SetLength(NCIMYRow, nNZ^);
-      SetLength(NCIMY, nNZ^);
-      GetTripletMatrix(myhY, nNZ^, @(NCIMYRow[0]), @(NCIMYCol[0]), @(NCIMY[0]));
+      SetLength(NCIMYCol, nNZ);
+      SetLength(NCIMYRow, nNZ);
+      SetLength(NCIMY, nNZ);
+      GetTripletMatrix(myhY, nNZ, @(NCIMYRow[0]), @(NCIMYCol[0]), @(NCIMY[0]));
     End;
 
   End;
@@ -1794,21 +1881,542 @@ End;
     Use it ONLY for initializing the structures within the NCIM algorithm
     }
 FUNCTION TSolutionObj.GetNumGenerators(ActorID : Integer; InitQ : Boolean): Integer; // Gets and initializes all the generators in the model as PV buses
+Var
+  pGen      : TGeneratorObj;
+  Idx,
+  i,
+  k,
+  NumGens,
+  BIdx      : Integer;
+  BusRefs   : Array of Integer;
+  qMax,
+  qMin      : Double;
+  Add2Limits: Boolean;
+  j: Integer;
+
 Begin
-  Result := 1;
+  NumGens   :=  ActiveCircuit[ActorID].Generators.ListSize;
+  BIdx      :=  0;
+  qMax      :=  0.0;
+  qMin      :=  0.0;
+  Add2Limits:=  False;
+  Result    :=  0;
+
+  SetLength(BusRefs,0);
+  for Idx := 0 to High(pNodeNumGen) do
+  Begin
+    pNodeNumGen[Idx]  :=  0;
+    pNodeLimits[Idx]  :=  CZero;
+  End;
+
+  if (NumGens > 0) then
+  Begin
+    pGen  :=  ActiveCircuit[ActorID].Generators.First;
+    for i := 0 to (NumGens - 1) do
+    Begin
+      Add2Limits  :=  False;
+      if (pGen.Enabled) then
+      Begin
+        qMax  :=  (pGen.kvarMax * 1e3) / pGen.NPhases;   // Stores the Q limits for further use
+        qMin  :=  (pGen.kvarMin * 1e3) / pGen.NPhases;
+
+        if (pGen.GenModel = 3) then
+        Begin
+          if InitQ then
+          Begin
+            SetLength(pGen.GenVars.deltaQNom, pGen.NPhases);
+            for k := 0 to (pGen.NPhases - 1) do
+              pGen.GenVars.deltaQNom[k] := 0.0;          // Initializes delta Q = 0 for all the generators (PV buses)
+          End;
+
+          if ((pGen.kvarMax = 0) and (pGen.kvarMin = 0)) then
+          Begin
+            pGen.GenModel :=  4;
+            if InitQ then
+            Begin
+              SetLength(PV2PQList,Length(PV2PQList) + 1);
+              PV2PQList[High(PV2PQList)]  :=  i;
+            End
+          End
+          Else
+          Begin                                        // It'll be used later by the generator to locate its voltage control signals (PV bus)
+            // Search for the BusRef in the list, aiming at gens connected to the same bus
+            BIdx  :=  -1;
+            for k := 0 to High(BusRefs) do
+            Begin
+              if BusRefs[k] = pGen.NodeRef[1] then
+              Begin
+                BIdx  :=  k;
+                break
+              End;
+            End;
+            // Now if the active generator is not inthe list
+            if (BIdx < 0) then
+            Begin
+              pGen.NCIMIdx  :=  Result + 1;
+              Result        :=  Result + pGen.NPhases;
+              for j := 1 to pGen.NPhases do
+              Begin
+                SetLength(BusRefs, Length(BusRefs) + 1);
+                BusRefs[High(BusRefs)]  :=  pGen.NodeRef[j];
+              End;
+            End
+            Else
+              pGen.NCIMIdx  :=  BIdx + 1;
+
+            Add2Limits  := True;
+
+          End;
+        End
+        Else
+          Add2Limits  :=  pGen.GenModel = 4;
+
+        if Add2Limits then
+        Begin
+          for j := 1 to pGen.NPhases do
+          Begin
+            pNodeLimits[pGen.NodeRef[j]]  :=  cadd(pNodeLimits[pGen.NodeRef[j]], cmplx(qMax,qMin));
+            inc(pNodeNumGen[pGen.NodeRef[j]]);
+          End;
+        End;
+
+      End;
+      pGen  :=  ActiveCircuit[ActorID].Generators.Next;
+    End;
+  End;
 End;
 
 // --------------------*****************************************-------------------------------
     {  Updates the reactive power delivery for generators model 3,
        this will be reflected in the next solution step. }
 PROCEDURE TSolutionObj.UpdateGenQ(ActorID : Integer);                                // Updates the reacitve power delta for all the generators in the model.
+Var
+  pGen      : TGeneratorObj;
+  NumGens,
+  GenIdx,                                                // Index of the generator within the node space
+  Shift,                                                 // shift of the Q delta within the solution space
+  i,
+  k,
+  j,
+  Checked,
+  PQIdx,
+  BIdx      : Integer;
+  Volt      : Complex;                                   // Votlage at the generator's terminals (per phase)
+  QDelta    : Array of double;                           // Vector to copy deltaZ and assign Q updates incrementally
+  qMax,                                                  // For storing the Q max limit of the active generator
+  qMin,                                                  // For storing the Q min limit of the active generator
+  GenQ,                                                  // Temporary register for storing the unbound expected Q for the active generator
+  VNode,                                                 // To remporarily store the voltage at the active Node
+  myVMax    : double;                                    // Stores the active generator's scheduled voltage
+  myPVOK,
+  myPQOK    : Boolean;
+  qNodeRef,
+  qNodeRefPQ,
+  IdxTmp    : Array of Integer;
+  PQChecked : Array of Integer;
+
+
 Begin
+  With ActiveCircuit[ActorID] do
+  Begin
+    NumGens :=  Generators.ListSize;
+    if NumGens > 0 then
+    Begin
+
+      GenIdx  :=  NumNodes * 2;
+      SetLength(QDelta, 1);
+      QDelta[High(QDelta)]  :=  0;                       // leaves the first one as zero, to avoid subtractions in the below
+
+      for i := GenIdx to High(deltaZ) do
+      Begin
+
+        SetLength(QDelta, Length(QDelta) + 1);
+        QDelta[High(QDelta)]  :=  -1 * deltaZ[i].re;     // Moves deltaZ (only delta Q section) into the backup vector
+
+      End;
+
+      SetLength(qNodeRef, 0);
+      SetLength(qNodeRefPQ, 0);
+      SetLength(PQChecked, 0);
+      pGen    :=  Generators.First;
+
+      for i := 0 to (NumGens - 1) do
+      Begin
+
+        if pGen.Enabled then
+        Begin
+
+          if (pGen.GenModel = 3) then
+          Begin
+
+            myPVOK  :=  True;
+            // Search for the qNodeRef in the list, aiming at gens connected to the same bus
+            BIdx  :=  -1;
+            for k := 0 to High(qNodeRef) do
+            Begin
+              if qNodeRef[k] = pGen.NodeRef[1] then
+              Begin
+                BIdx  :=  k;
+                break
+              End;
+            End;
+
+            if (BIdx < 0) then
+            Begin
+
+              for j := 0 to (pGen.NPhases - 1) do
+              Begin
+
+                qMax    :=  pNodeLimits[pGen.NodeRef[j + 1]].re;      // gets the upper kvar limit per phase
+                qMin    :=  pNodeLimits[pGen.NodeRef[j + 1]].im;      // gets the lower kvar limit per phase
+                // Update the current at the gnerator's terminal for reporting purposes
+
+                Volt  :=  NodeV[pGen.NodeRef[j + 1]];
+                // Updates Q per generator
+                Shift :=  pGen.NCIMIdx + j;
+                GenQ  :=  pGen.GenVars.deltaQNom[j] + (QDelta[Shift] * GenGainNCIM);
+
+                if (not IgnoreQLimit) then
+                Begin
+
+                  if (GenQ >= 0) then
+                    myPVOK  :=  myPVOK and (GenQ < qMax)
+                  else
+                    myPVOK  :=  myPVOK and (GenQ > qMin);
+
+                End
+                Else
+                Begin
+
+                  if ((pGen.kvarMax = 0) and (pGen.kvarMin = 0)) then   // this if the limits are 0
+                    GenQ := 0;
+
+                End;
+
+                QDelta[Shift]             :=  0.0;
+                pGen.GenVars.deltaQNom[j] :=  GenQ;
+                pGen.Iterminal[j + 1]     :=  cnegate(conjg(cdiv(cmplx(pGen.GenVars.Pnominalperphase,pGen.GenVars.deltaQNom[j]),Volt)));
+
+              End;
+
+            End
+            Else
+              myPVOK  :=  False;
+
+            //-------------- Changes the model type for generator if needed ----------------------------
+            if not myPVOK then
+            Begin
+
+              pGen.GenModel :=  4;                                      // If exceeds the limits changes the generator to model 4 (PQ bus)
+
+              with pGen.GenVars do
+              Begin
+
+                if BIdx < 0 then
+                Begin                                                  // add all the node refs to the temp array if not there already
+
+                  for j := 1 to pGen.NPhases do
+                  Begin
+
+                    SetLength(qNodeRef, Length(qNodeRef) + 1);
+                    qNodeRef[High(qNodeRef)]  :=  pGen.NodeRef[j];
+
+                  End;
+
+                  qMax    :=  pNodeLimits[pGen.NodeRef[1]].re;         // gets the upper kvar limit per phase
+                  qMin    :=  pNodeLimits[pGen.NodeRef[1]].im;         // gets the lower kvar limit per phase
+
+                End
+                Else
+                Begin
+
+                  qMax  :=  0;
+                  qMin  :=  0;
+
+                End;
+
+                for j := 0 to (pGen.NPhases - 1) do
+                Begin
+
+                  if deltaQNom[0] >= 0 then                            // and fixes the values for the next solution try
+                    deltaQNom[j]  :=  qMax
+                  else
+                    deltaQNom[j]  :=  qMin;
+
+                End;
+
+                SetLength(PV2PQList, Length(PV2PQList) + 1);
+                PV2PQList[High(PV2PQList)]  :=  i;
+
+              End;
+
+            End;
+
+          End
+          Else
+          Begin
+
+            if pGen.GenModel = 4 then
+            Begin
+
+              if ((pGen.kvarMax <> 0) and (pGen.kvarMin <> 0)) then
+              Begin
+
+                myPQOK  :=  True;
+                // Search for the qNodeRef in the list, aiming at gens already converted to PQ
+                BIdx  :=  -1;
+                for k := 0 to High(qNodeRefPQ) do
+                Begin
+                  if qNodeRefPQ[k] = pGen.NodeRef[1] then
+                  Begin
+                    BIdx  :=  k;
+                    break
+                  End;
+                End;
+
+                if BIdx < 0 then
+                Begin
+
+                  Checked   :=  -1;
+                  for k := 0 to High(PQChecked) do
+                  Begin
+                    if PQChecked[k] = pGen.NodeRef[1] then
+                    Begin
+                      Checked  :=  k;
+                      break
+                    End;
+                  End;
+
+                  if Checked < 0 then
+                  Begin
+
+                    myVMax  :=  pGen.Get_VBase * pGen.Vpu;
+                    for j := 0 to (pGen.NPhases - 1) do
+                    Begin
+
+                      Volt  :=  NodeV[pGen.NodeRef[j + 1]];
+                      VNode :=  ctopolar(Volt).mag;
+                      if pGen.GenVars.deltaQNom[0] > 0 then
+                        myPQOK  :=  myPQOK and (VNode <= myVMax)
+                      else
+                        myPQOK  :=  myPQOK and (VNode >= myVMax);
+
+                      SetLength(PQChecked, Length(PQChecked) + 1);
+                      PQChecked[High(PQChecked)]  :=  pGen.NodeRef[j + 1];
+
+                    End;
+
+                  End;
+
+                End
+                Else
+                  myPQOK  :=  False;        // belongs to a cluster and needs to be changed
+
+                //----------------------------- this in case we need to go back to PV ---------------------------
+                if not myPQOK then
+                Begin
+
+                  pGen.GenModel :=  3;
+                  With pGen.GenVars do
+                  Begin
+
+                    for j := 0 to (pGen.NPhases - 1) do
+                    Begin
+
+                      if BIdx < 0 then
+                      Begin
+
+                        qMax    :=  pNodeLimits[pGen.NodeRef[j + 1]].re;    // gets the upper kvar limit per phase
+                        qMin    :=  pNodeLimits[pGen.NodeRef[j + 1]].im;    // gets the lower kvar limit per phase
+                        SetLength(qNodeRefPQ,Length(qNodeRefPQ) + 1);
+                        qNodeRefPQ[High(qNodeRefPQ)]  :=  pGen.NodeRef[j + 1];
+
+                      End
+                      Else
+                      Begin
+
+                        qMax  :=  0;                // If it's part of a cluster it needs to inject only P
+                        qMin  :=  0;
+
+                      End;
+
+                      if deltaQNom[0] >= 0 then     // and fixes the values for the next solution try
+                        deltaQNom[j]  :=  qMax
+                      else
+                        deltaQNom[j]  :=  qMin;
+
+                    End;
+
+                    PQIdx :=  -1;
+                    for k := 0 to High(PV2PQList) do
+                    Begin
+                      if PV2PQList[k] = i then
+                      Begin
+                        PQIdx  :=  k;
+                        break
+                      End;
+                    End;
+
+                    if PQIdx >= 0 then
+                    Begin   // If the generator is indexed in the list of converter PV buses, remove it
+                      SetLength(IdxTmp, Length(PV2PQList));
+                      for j := Low(PV2PQList) to High(PV2PQList) do
+                        IdxTmp[j]  :=  PV2PQList[j];
+
+                      SetLength(PV2PQList, 0);
+                      for j := 0 to High(IdxTmp) do
+                      Begin
+
+                        if j <> PQIdx  then
+                        Begin
+
+                          SetLength(PV2PQList, Length(PV2PQList) + 1);
+                          PV2PQList[High(PV2PQList)]  :=  IdxTmp[j];
+
+                        End;
+
+                      End;
+
+                      SetLength(IdxTmp, 0);
+                    End;
+
+                  End;
+
+                End;
+
+              End;
+
+            End;
+            // Update currents for all the other gen models
+            for j := 0 to (pGen.NPhases - 1) do
+            Begin
+
+              Volt  :=  NodeV[pGen.NodeRef[j + 1]];
+              pGen.Iterminal[j + 1] :=  cnegate(conjg(cdiv(cmplx(pGen.GenVars.Pnominalperphase, pGen.GenVars.deltaQNom[0]), Volt)));
+
+            End;
+
+          End;
+
+        End;
+
+        pGen  :=  Generators.Next;
+
+      End;
+
+    End;
+
+  End;
 
 End;
 
 // --------------------*****************************************-------------------------------
+{/* Builds the Jacobian matrix using the data already allocated within the Y Bus matrix }
 PROCEDURE TSolutionObj.BuildJacobian(ActorID : Integer);                             // BUilds the jacobian matrix
+Var
+  Values      : Array [0..3] of double;
+  i,
+  j,
+  NumGens,
+  GRow,
+  GCol        : Integer;
+  myValue     : Complex;
+  pGen        : TGeneratorObj;
+
+
+const
+  GCoords     : Array [0..3] of Array [0..1] of Integer = ((0,0), (0,1), (1,0), (1,1));
+
 Begin
+  //Initialization
+  for i := 0 to High(Values) do
+    Values[i] :=  0;
+  myValue   :=  CZero;
+  GRow      :=  0;
+  GCol      :=  0;
+
+  if (Jacobian <> 0) then
+  Begin
+
+    DeleteSparseSet(Jacobian);
+    Jacobian  := 0;
+
+  End;
+
+  Jacobian := NewSparseSet(Length(deltaF));
+  for i := 0 to High(NCIMY) do
+  Begin
+
+    GRow  :=  NCIMYRow[i] * 2;
+    GCol  :=  NCIMYCol[i] * 2;
+    if ((GRow = GCol) and (GRow < 6)) then
+    Begin
+
+      // This is a diagonal for the swing bus, always 1
+      myValue.re  :=  1;
+      inc(GRow);                                      // Needed to match with the indexes within the library
+      inc(GCol);
+      SetMatrixElement(Jacobian, GRow, GCol, @myValue);
+      SetMatrixElement(Jacobian, GRow + 1, GCol + 1, @myValue);
+
+    End
+    Else
+    Begin
+
+      if ((GRow >= 6) and (GCol >= 6)) then           // Elements beyond the swing bus
+      Begin
+
+        Values[0] :=  NCIMY[i].im;                    // B
+        Values[1] :=  NCIMY[i].re;                    // G
+        Values[2] :=  NCIMY[i].re;                    // G
+        Values[3] :=  -1 * NCIMY[i].im;               // -B
+        inc(GRow);
+        inc(GCol);                                    // Needed to match with the indexes within the library
+        for j := 0 to 3 do
+        Begin
+
+          myValue.re:=  Values[j];
+          SetMatrixElement(Jacobian, (GCoords[j][0] + GRow), (GCoords[j][1] + GCol), @myValue);
+
+        End;
+
+
+      End;
+
+
+    End;
+
+  End;
+
+  // Add the Voltage regulation cells to the Jacobian for later use by PV buses
+  // Update 03/05/2024 - not needed any more
+
+  NumGens :=  ActiveCircuit[ActorID].Generators.ListSize;
+  if (NumGens > 0) then
+  Begin
+
+    pGen  :=   ActiveCircuit[ActorID].Generators.First;
+    for i := 1 to NumGens do
+    Begin
+
+      if ((pGen.Enabled) and (pGen.GenModel = 3)) then
+        pGen.InitPVBUsJac(ActorID);
+
+      pGen  :=  ActiveCircuit[ActorID].Generators.Next;
+
+    End;
+
+  End;
+
+  // Clears the total power vector
+  for j := 0 to High(pNodePower) do
+  Begin
+
+    pNodePower[j] :=  CZero;
+    pGenPower[j]  :=  CZero;
+    pNodeType[j]  :=  PQ_Node;
+
+  End;
 
 End;
 
@@ -1854,7 +2462,7 @@ Begin
 
    CASE Algorithm of
       NEWTONSOLVE : DoNewtonSolution(ActorID);
-      NCIMSOLVE   : //DoNCIMSolution(ActorID);   // Commented out for now
+      NCIMSOLVE   : DoNCIMSolution(ActorID);
       else          DoNormalSolution(ActorID);
    End;
 
@@ -1969,7 +2577,10 @@ Begin
 
     IF SystemYChanged THEN
     begin
-      BuildYMatrix(WHOLEMATRIX, FALSE, ActorID); // Rebuild Y matrix, but V stays same
+      if Algorithm = NCIMSOLVE then
+        NCIMRdy :=  False
+      else
+        BuildYMatrix(WHOLEMATRIX, FALSE, ActorID); // Rebuild Y matrix, but V stays same
     end;
 
     {by Dahei}IF NodeYiiEmpty THEN Get_Yiibus;

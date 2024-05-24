@@ -298,6 +298,8 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
+       // Functions for NCIM solution algorithm
+       PROCEDURE InitPVBusJac(ActorID : Integer);
 
 
        Property PresentkW    :Double  Read Get_PresentkW   Write Set_PresentkW;
@@ -305,6 +307,7 @@ TYPE
        Property ForcedON     :Boolean Read FForcedON       Write FForcedON;
        Property PresentkV    :Double  Read Get_PresentkV   Write Set_PresentkV;
        Property PowerFactor  :Double  Read PFNominal       Write Set_PowerFactor;
+       Property Get_VBase    :Double  Read VBase;
 
    End;
 
@@ -2124,6 +2127,36 @@ Begin
    END; {WITH}
 
    {When this is done, ITerminal is up to date}
+
+End;
+
+// - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
+PROCEDURE TGeneratorObj.InitPVBusJac(ActorID : Integer);
+Var
+  i,
+  j,
+  GCoord,
+  GCoordY   : Integer;
+  Temp      : Complex;
+
+Begin
+
+  Temp    :=  cmplx(1e-20, 0);
+
+  With ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
+  Begin
+    // Adds space for the voltage and power regulation coefficients Z and X
+    for i := 1 to NPhases do
+    Begin
+
+      GCoord  :=  (NumNodes * 2) + (NCIMIdx + i - 1);
+      GCoordY :=  (NodeRef[i] * 2) - 1;
+      for j := 0 to 1 do
+        AddMatrixElement(Jacobian, GCoord, GCoordY + j, @Temp);
+
+    End;
+
+  End;
 
 End;
 

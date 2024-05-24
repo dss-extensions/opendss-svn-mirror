@@ -40,6 +40,7 @@ Procedure ShowDeltaV(FileNm:String);
 Procedure ShowControlledElements(FileNm:String);
 Procedure ShowResult(FileNm:String);
 Procedure ShowEventLog(FileNm:String);
+Procedure ShowPV2PQGen(FileNm:String);
 
 implementation
 
@@ -3603,6 +3604,83 @@ Begin
   FINALLY
      If AutoDisplayShowReport Then FireOffEditor(FileNm);
      ParserVars.Add('@lastshowfile', FileNm);
+  End;
+
+End;
+
+//-----Shows the list of generators converted from PV to PQ bus during an NCIM solution step --------------
+Procedure ShowPV2PQGen(FileNm:String);
+Var
+  pGen    : TGeneratorobj;
+  i,
+  j,
+  NumGens,
+  BIdx    : Integer;
+  F       : TextFile;
+
+Begin
+
+  With ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+  Begin
+
+
+    Assignfile(F, FileNm);
+    ReWrite(F);
+    Writeln(F,'------------------------------------------------------------------------------');
+    Writeln(F, 'LIST OF GENERATORS CONVERTED FROM PV TO PQ BUS DURING THE LAST SOLUTION (NCIM)');
+    Writeln(F,'------------------------------------------------------------------------------');
+    Writeln(F);
+    Writeln(F);
+
+    NumGens :=  Generators.ListSize;
+
+    if NumGens > 0 then
+    Begin
+
+      Try
+
+        pGen  :=  Generators.First;
+        for i := 0 to (Numgens - 1) do
+        Begin
+
+          if pGen.Enabled then
+          Begin
+
+            BIdx  :=  -1;
+            for j := 0 to High(PV2PQList) do
+            Begin
+
+              if PV2PQList[j] = i then
+              Begin
+
+                BIdx  :=  j;
+                break;
+
+              End;
+
+            End;
+
+            if BIdx >= 0 then
+              Writeln(F,'Generator.' + pGen.Name);
+
+          End;
+
+          pGen  :=  Generators.Next;
+
+        End;
+
+        GlobalResult := FileNm;
+
+      Finally
+
+        CloseFile(F);
+        If AutoDisplayShowReport Then FireOffEditor(FileNm);
+        ParserVars.Add('@lastshowfile', FileNm);
+
+      End;
+
+    End;
+
   End;
 
 End;
