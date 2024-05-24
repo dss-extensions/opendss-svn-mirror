@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumShowOptions = 34;
+    NumShowOptions = 35;
 
 function DoShowCmd: Integer;
 
@@ -78,6 +78,7 @@ begin
     ShowOption[32] := 'QueryLog';
     ShowOption[33] := 'Controlled';
     ShowOption[34] := 'Result';
+    ShowOption[35] := 'PV2PQ_Conversions';
 
 
     ShowHelp[1] := 'Shows auto added capacitors or generators. See AutoAdd solution mode.';
@@ -151,6 +152,7 @@ begin
     ShowHelp[32] := 'Show Query Log file. ';
     ShowHelp[33] := 'Show Controlled elements and the names of the controls connected to them in CSV format.';
     ShowHelp[34] := 'Show last result (in @result variable).';
+    ShowHelp[35] := 'Show the list of generators converted from PV bus to PQ during the last soltuion step (NCIM).';
 
 end;
 
@@ -464,6 +466,8 @@ begin
             ShowControlledElements(GetOutputDirectory + CircuitName_[ActiveActor] + 'ControlledElements.CSV');
         34:
             ShowResult(GetOutputDirectory + CircuitName_[ActiveActor] + 'Result.CSV');
+        35:
+            ShowPV2PQGen(GetOutputDirectory + CircuitName_[ActiveActor] + 'PV2PQ_Generators.CSV');
     else
     end;
 

@@ -650,9 +650,12 @@ begin
     SLC := copy(lowercase(s), 1, 2);
 
     if CompareText(SLC, 'ne') = 0 then
-        Result := NEWTONSOLVE
+        Result := NEWTONSOLVE                   // Newton method
     else
-        Result := NORMALSOLVE;
+    if CompareText(SLC, 'nc') = 0 then
+        Result := NCIMSOLVE                   // NCIM method
+    else
+        Result := NORMALSOLVE;                // floating-point method (default)
 
 end;
 

@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExportOptions = 61;
+    NumExportOptions = 64;
 
 function DoExportCmd: Integer;
 
@@ -109,6 +109,9 @@ begin
     ExportOption[59] := 'ZCC';
     ExportOption[60] := 'Contours';
     ExportOption[61] := 'Y4';
+    ExportOption[62] := 'Jacobian';
+    ExportOption[63] := 'deltaF';
+    ExportOption[64] := 'deltaZ';
 
     ExportHelp[1] := '(Default file = EXP_VOLTAGES.CSV) Voltages to ground by bus/node.';
     ExportHelp[2] := '(Default file = EXP_SEQVOLTAGES.CSV) Sequence voltages.';
@@ -179,6 +182,9 @@ begin
     ExportHelp[59] := 'Exports the connectivity matrix (ZCC) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are complex conjugates.  If A-Diakoptics is not initialized this command does nothing';
     ExportHelp[60] := 'Exports the Contours matrix (C) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are integers.  If A-Diakoptics is not initialized this command does nothing';
     ExportHelp[61] := 'Exports the inverse of Z4 (ZCC) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are complex conjugates.  If A-Diakoptics is not initialized this command does nothing';
+    ExportHelp[62] := 'Exports the Jacobian matrix, this matrix is calculated when using the NCIM solution algorithm. The matrix is exported as triplets.';
+    ExportHelp[63] := 'Exports the coeficients of the vector deltaF, which is used for storing the injection current estimation when using the NCIM solution algorithm.';
+    ExportHelp[64] := 'Exports the coeficients of the vector deltaZ, which is used for storing the voltage delta estimation when using the NCIM solution algorithm.';
 
 end;
 
@@ -482,6 +488,12 @@ begin
                 FileName := 'C.csv';
             61:
                 FileName := 'Y4.csv';
+            62:
+                FileName := 'Jacobian.csv';
+            63:
+                FileName := 'deltaF.csv';
+            64:
+                FileName := 'deltaZ.csv';
 
         else
             FileName := 'EXP_VOLTAGES.CSV';    // default
@@ -653,7 +665,12 @@ begin
             ExportC(FileName);
         61:
             ExportY4(FileName);
-//     62: ExportPVSystem2Meters(FileName);
+        62:
+            ExportJacobian(FileName);
+        63:
+            ExportdeltaF(FileName);
+        64:
+            ExportdeltaZ(FileName);
 
     else
         // ExportVoltages(FileName);    // default

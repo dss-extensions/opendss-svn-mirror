@@ -40,6 +40,7 @@ procedure ShowDeltaV(FileNm: String);
 procedure ShowControlledElements(FileNm: String);
 procedure ShowResult(FileNm: String);
 procedure ShowEventLog(FileNm: String);
+procedure ShowPV2PQGen(FileNm: String);
 
 implementation
 
@@ -4094,6 +4095,84 @@ begin
         if AutoDisplayShowReport then
             FireOffEditor(FileNm);
         ParserVars.Add('@lastshowfile', FileNm);
+    end;
+
+end;
+
+//-----Shows the list of generators converted from PV to PQ bus during an NCIM solution step --------------
+procedure ShowPV2PQGen(FileNm: String);
+var
+    pGen: TGeneratorobj;
+    i,
+    j,
+    NumGens,
+    BIdx: Integer;
+    F: TextFile;
+
+begin
+
+    with ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution do
+    begin
+
+
+        Assignfile(F, FileNm);
+        ReWrite(F);
+        Writeln(F, '------------------------------------------------------------------------------');
+        Writeln(F, 'LIST OF GENERATORS CONVERTED FROM PV TO PQ BUS DURING THE LAST SOLUTION (NCIM)');
+        Writeln(F, '------------------------------------------------------------------------------');
+        Writeln(F);
+        Writeln(F);
+
+        NumGens := Generators.ListSize;
+
+        if NumGens > 0 then
+        begin
+
+            try
+
+                pGen := Generators.First;
+                for i := 0 to (Numgens - 1) do
+                begin
+
+                    if pGen.Enabled then
+                    begin
+
+                        BIdx := -1;
+                        for j := 0 to High(PV2PQList) do
+                        begin
+
+                            if PV2PQList[j] = i then
+                            begin
+
+                                BIdx := j;
+                                break;
+
+                            end;
+
+                        end;
+
+                        if BIdx >= 0 then
+                            Writeln(F, 'Generator.' + pGen.Name);
+
+                    end;
+
+                    pGen := Generators.Next;
+
+                end;
+
+                GlobalResult := FileNm;
+
+            finally
+
+                CloseFile(F);
+                if AutoDisplayShowReport then
+                    FireOffEditor(FileNm);
+                ParserVars.Add('@lastshowfile', FileNm);
+
+            end;
+
+        end;
+
     end;
 
 end;

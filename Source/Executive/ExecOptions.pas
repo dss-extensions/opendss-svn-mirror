@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 140;
+    NumExecOptions = 141;
 
 var
     ExecOption,
@@ -193,7 +193,9 @@ begin
     ExecOption[136] := 'EventLogDefault';
     ExecOption[137] := 'LongLineCorrection';
     ExecOption[138] := 'ShowReports';
-    ExecOption[139] := 'StateVar';
+    ExecOption[139] := 'IgnoreGenQLimits';
+    ExecOption[140] := 'NCIMQGain';
+    ExecOption[141] := 'StateVar';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -300,10 +302,10 @@ begin
         'When the CalcVoltageBases command is issued, a snapshot solution is performed ' +
         'with no load injections and the bus base voltage is set to the nearest legal voltage base. ' +
         'The defaults are as shown in the example above.';
-    OptionHelp[40] := '{Normal | Newton}  Solution algorithm type.  Normal is a fixed point iteration ' +
+    OptionHelp[40] := '{Normal | Newton | NCIM}  Solution algorithm type.  Normal is a fixed point iteration ' +
         'that is a little quicker than the Newton iteration.  Normal is adequate for most radial ' +
         'distribution circuits.  Newton is more robust for circuits that are difficult to solve.' +
-        'Diakoptics is used for accelerating the simulation using multicore computers';
+        'NCIM or the N Conductor Current Injection Method is a Newton-Raphson based method to be used for Transmission like cases.';
     OptionHelp[41] := '{YES/TRUE | NO/FALSE}  Default is "No/False". Specifies whether to use trapezoidal integration for accumulating energy meter registers. ' +
         'Applies to EnergyMeter and Generator objects.  Default method simply multiplies the ' +
         'present value of the registers times the width of the interval (Euler). ' +
@@ -493,7 +495,9 @@ begin
     OptionHelp[136] := '{YES/TRUE | NO/FALSE*} Sets/gets the default for the eventlog. After changing this flags the model needs to be recompiled to take effect.';
     OptionHelp[137] := '{YES/TRUE | NO/FALSE*} Defines whether the long-line correctlion is applied or not. Long-line correction only affects lines modelled with sequence components.';
     OptionHelp[138] := '{YES/TRUE | NO/FALSE} Default = TRUE. If YES/TRUE will automatically show the results of a Show Command after it is written.';
-    OptionHelp[139] := 'Reads or Writes the value of the given state variable for the given PCE. Depending on the access mode (read/write) the syntax may vary. For writing the variable use the following syntax:' + CRLF +
+    OptionHelp[139] := '{YES/TRUE | NO/FALSE*} Use this flag to indicate if you want to ignore the Q limits for generators during an NCIM solution. The default is NO/FALSE, signaling that generators will always respect their Q generation/absorbtion limits.';
+    OptionHelp[140] := '{1.0*} Use this option to set a gain for the reactive power compensation provided by PV buses (generator model 3) when using the NCIM solution algorithm. The default value is 1.0.';
+    OptionHelp[141] := 'Reads or Writes the value of the given state variable for the given PCE. Depending on the access mode (read/write) the syntax may vary. For writing the variable use the following syntax:' + CRLF +
         CRLF +
         'set StateVar = myObjName myVarName myValue' + CRLF +
         CRLF +
@@ -761,7 +765,13 @@ begin
             39:
                 DoLegalVoltageBases;
             40:
+            begin
+
                 ActiveCircuit[ActiveActor].Solution.Algorithm := InterpretSolveAlg(Param);
+                if ActiveCircuit[ActiveActor].Solution.Algorithm = NCIMSOLVE then
+                    ActiveCircuit[ActiveActor].Solution.NCIMRdy := false;
+
+            end;
             41:
                 ActiveCircuit[ActiveActor].TrapezoidalIntegration := InterpretYesNo(Param);
             42:
@@ -1075,6 +1085,10 @@ begin
             138:
                 AutoDisplayShowReport := InterpretYesNo(Param);
             139:
+                ActiveCircuit[ActiveActor].Solution.IgnoreQLimit := InterpretYesNo(Param);
+            140:
+                ActiveCircuit[ActiveActor].Solution.GenGainNCIM := Parser[ActiveActor].DblValue;
+            141:
             begin
                 with ActiveCircuit[ActiveActor] do
                 begin
@@ -1291,6 +1305,8 @@ begin
                             AppendGlobalResult('normal');
                         NEWTONSOLVE:
                             AppendGlobalResult('newton');
+                        NCIMSOLVE:
+                            AppendGlobalResult('ncim');
                     end;
                 41:
                     if ActiveCircuit[ActiveActor].TrapezoidalIntegration then
@@ -1614,6 +1630,13 @@ begin
                     else
                         AppendGlobalResult('No');
                 139:
+                    if ActiveCircuit[ActiveActor].Solution.IgnoreQLimit then
+                        AppendGlobalResult('Yes')
+                    else
+                        AppendGlobalResult('No');
+                140:
+                    AppendGlobalResult(Format('%-g', [ActiveCircuit[ActiveActor].Solution.GenGainNCIM]));
+                141:
                 begin
                     with ActiveCircuit[ActiveActor] do
                     begin
