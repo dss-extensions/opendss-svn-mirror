@@ -387,6 +387,7 @@ begin
             if ActiveIndex <> 0 then
             begin
                 TGeneratorObj(Active).Presentkvar := Value;
+                TGeneratorObj(Active).RecalcElementData(ActiveActor);
             end;
         end;
     end;
