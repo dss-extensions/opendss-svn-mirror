@@ -208,6 +208,7 @@ begin
          WITH ActiveCircuit[ActiveActor].Generators Do Begin
              IF ActiveIndex<>0 THEN Begin
                   TGeneratorObj(Active).Presentkvar := arg;
+                  TGeneratorObj(Active).RecalcElementData(ActiveActor);
              End;
          End;
    End;
