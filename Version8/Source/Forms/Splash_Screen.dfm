@@ -5592,16 +5592,16 @@ object SplashScreen: TSplashScreen
     ParentFont = False
   end
   object Version: TLabel
-    Left = 376
+    Left = 328
     Top = 122
-    Width = 123
+    Width = 329
     Height = 19
     Caption = 'Version 1.0.2.3.4'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Tahoma'
-    Font.Style = []
+    Font.Style = [fsItalic]
     ParentFont = False
   end
   object LicenseText: TRichEdit

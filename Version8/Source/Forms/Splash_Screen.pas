@@ -42,7 +42,7 @@ begin
     Left:=(Screen.Width-Width)  div 2;
     Top:=(Screen.Height-Height) div 2;
 
-     Version.Caption := VersionString;
+     Version.Caption := VersionString + '- Columbus ';
 
      LicenseText.Lines.Clear();
      LicenseText.Lines.Add('Copyright (c) 2008-2024, Electric Power Research Institute, Inc.');
