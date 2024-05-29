@@ -40,9 +40,14 @@ uses DssGlobals,  DSSForms;
 
 procedure TAboutBox.FormCreate(Sender: TObject);
 begin
-     Version.Caption := VersionString;
+     Version.Caption := VersionString + ' - Columbus ';
 
      LicenseText.Lines.Clear();
+     LicenseText.Lines.Add('This version is an homage to celebrate the work of the father of');
+     LicenseText.Lines.Add('OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work');
+     LicenseText.Lines.Add('for the electric power industry. This software is a small part of his legacy,');
+     LicenseText.Lines.Add('as well as his countless publications and other contributions to the industry.');
+     LicenseText.Lines.Add('');
      LicenseText.Lines.Add('Copyright (c) 2008-2024, Electric Power Research Institute, Inc.');
      LicenseText.Lines.Add('All rights reserved.');
      LicenseText.Lines.Add('');
