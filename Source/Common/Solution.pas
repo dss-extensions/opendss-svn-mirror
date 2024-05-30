@@ -38,6 +38,8 @@ unit Solution;
 
  9-14-16 Added SampleTheMeters Flag to allow sampling energy meters in Time and DutyCycle mode
 
+ 5-30-24 Adds the NCIM solution method
+
 }
 
 {$IFDEF FPC}

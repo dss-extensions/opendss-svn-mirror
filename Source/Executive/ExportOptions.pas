@@ -178,13 +178,13 @@ begin
     ExportHelp[56] := 'Exports the names and the level of each Bus inside the Circuit based on its topology information. The level value defines' +
         'how far or close is the bus from the circuits backbone (0 means that the bus is at the backbone)';
     ExportHelp[57] := 'Exports the Laplacian matrix calculated using the branch-to-node Incidence matrix in compressed coordinated format (Row,Col,Value)';
-    ExportHelp[58] := 'Exports the Link branches matrix (ZLL) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are complex conjugates. If A-Diakoptics is not initialized this command does nothing';
-    ExportHelp[59] := 'Exports the connectivity matrix (ZCC) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are complex conjugates.  If A-Diakoptics is not initialized this command does nothing';
-    ExportHelp[60] := 'Exports the Contours matrix (C) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are integers.  If A-Diakoptics is not initialized this command does nothing';
+    ExportHelp[58] := 'Exports the Link branches matrix (ZLL) calculated after initializing A-Diakoptics. The output format is compressed coordinated and the values are complex conjugates. If A-Diakoptics is not initialized this command does nothing';
+    ExportHelp[59] := 'Exports the connectivity matrix (ZCC) calculated after initilaizing A-Diakoptics. The output format is compressed coordinated and the values are complex conjugates.  If A-Diakoptics is not initialized this command does nothing';
+    ExportHelp[60] := 'Exports the Contours matrix (C) calculated after initializing A-Diakoptics. The output format is compressed coordinated and the values are integers.  If A-Diakoptics is not initialized this command does nothing';
     ExportHelp[61] := 'Exports the inverse of Z4 (ZCC) calculated after initilizing A-Diakoptics. The output format is compressed coordianted and the values are complex conjugates.  If A-Diakoptics is not initialized this command does nothing';
     ExportHelp[62] := 'Exports the Jacobian matrix, this matrix is calculated when using the NCIM solution algorithm. The matrix is exported as triplets.';
-    ExportHelp[63] := 'Exports the coeficients of the vector deltaF, which is used for storing the injection current estimation when using the NCIM solution algorithm.';
-    ExportHelp[64] := 'Exports the coeficients of the vector deltaZ, which is used for storing the voltage delta estimation when using the NCIM solution algorithm.';
+    ExportHelp[63] := 'Exports the coefficients of the vector deltaF, which is used for storing the injection current estimation when using the NCIM solution algorithm.';
+    ExportHelp[64] := 'Exports the coefficients of the vector deltaZ, which is used for storing the voltage delta estimation when using the NCIM solution algorithm.';
 
 end;
 

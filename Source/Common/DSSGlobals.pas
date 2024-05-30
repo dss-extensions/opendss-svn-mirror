@@ -1774,9 +1774,9 @@ NoFormsAllowed  := TRUE;
    // want to know if this was built for 64-bit, not whether running on 64 bits
    // (i.e. we could have a 32-bit build running on 64 bits; not interested in that
     {$IFDEF CPUX64}
-    VersionString := 'Version ' + GetDSSVersion + ' (64-bit build)';
+    VersionString := 'Version ' + GetDSSVersion + ' (64-bit build) - Columbus';
     {$ELSE ! CPUX86}
-   VersionString    := 'Version ' + GetDSSVersion + ' (32-bit build)';
+   VersionString    := 'Version ' + GetDSSVersion + ' (32-bit build) - Columbus';
     {$ENDIF}
 
     {$IFNDEF FPC}
