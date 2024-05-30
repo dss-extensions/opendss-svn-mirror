@@ -251,8 +251,8 @@
     <File Path="ImplTopology.pas"/>
     <File Path="ImplTransformers.pas"/>
     <File Path="ImplVsources.pas"/>
-    <File Path="ImplXYCurves.pas"/>
     <File Path="ImplWindGens.pas"/>
+    <File Path="ImplXYCurves.pas"/>
     <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
   </ProjectSortOrder>

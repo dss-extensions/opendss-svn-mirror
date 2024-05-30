@@ -40,7 +40,7 @@ uses DssGlobals,  DSSForms;
 
 procedure TAboutBox.FormCreate(Sender: TObject);
 begin
-     Version.Caption := VersionString + ' - Columbus ';
+     Version.Caption := VersionString;
 
      LicenseText.Lines.Clear();
      LicenseText.Lines.Add('This version is an homage to celebrate the work of the father of');

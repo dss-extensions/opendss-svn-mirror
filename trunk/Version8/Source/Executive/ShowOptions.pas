@@ -147,7 +147,7 @@ Begin
     ShowHelp[32] := 'Show Query Log file. ';
     ShowHelp[33] := 'Show Controlled elements and the names of the controls connected to them in CSV format.';
     ShowHelp[34] := 'Show last result (in @result variable).';
-    ShowHelp[35] := 'Show the list of generators converted from PV bus to PQ during the last soltuion step (NCIM).';
+    ShowHelp[35] := 'Show the list of generators converted from PV bus to PQ during the last solution step (NCIM).';
 
 End;
 
