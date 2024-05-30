@@ -482,7 +482,7 @@ Begin
      OptionHelp[136] := '{YES/TRUE | NO/FALSE*} Sets/gets the default for the eventlog. After changing this flags the model needs to be recompiled to take effect.';
      OptionHelp[137] := '{YES/TRUE | NO/FALSE*} Defines whether the long-line correctlion is applied or not. Long-line correction only affects lines modelled with sequence components.';
      OptionHelp[138] := '{YES/TRUE | NO/FALSE} Default = TRUE. If YES/TRUE will automatically show the results of a Show Command after it is written.';
-     OptionHelp[139] := '{YES/TRUE | NO/FALSE*} Use this flag to indicate if you want to ignore the Q limits for generators during an NCIM solution. The default is NO/FALSE, signaling that generators will always respect their Q generation/absorbtion limits.';
+     OptionHelp[139] := '{YES/TRUE | NO/FALSE*} Use this flag to indicate if you want to ignore the Q limits for generators during an NCIM solution. The default is NO/FALSE, signaling that generators will always respect their Q generation/absorption limits.';
      OptionHelp[140] := '{1.0*} Use this option to set a gain for the reactive power compensation provided by PV buses (generator model 3) when using the NCIM solution algorithm. The default value is 1.0.';
      OptionHelp[141] := 'Reads or Writes the value of the given state variable for the given PCE. Depending on the access mode (read/write) the syntax may vary. For writing the variable use the following syntax:' + CRLF +
                         CRLF +
