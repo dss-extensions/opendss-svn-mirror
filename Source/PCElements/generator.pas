@@ -298,6 +298,7 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        Procedure DumpProperties(Var F:TextFile; Complete:Boolean);Override;
        FUNCTION  GetPropertyValue(Index:Integer):String;Override;
+       Procedure GetCurrents(Curr:pComplexArray; ActorID:Integer);Override;   // overrides the standard procedure for model 8
        // Functions for NCIM solution algorithm
        PROCEDURE InitPVBusJac(ActorID : Integer);
 
@@ -1394,6 +1395,23 @@ Begin
      // Account for Open Conductors
      Inherited CalcYPrim(ActorID);
 
+End;
+
+Procedure TGeneratorObj.GetCurrents(Curr:pComplexArray; ActorID:Integer);
+Var
+  i : Integer;
+Begin
+  with ActiveCircuit[ActorID].Solution, GenVars do
+  Begin
+    if Algorithm = NCIMSOLVE then
+    Begin
+      for i := 1 to nphases do
+        Curr[i] :=  ITerminal[i];
+    End
+    Else
+      inherited GetCurrents(Curr, ActorID);
+
+  End;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -

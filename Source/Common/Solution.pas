@@ -1709,6 +1709,9 @@ Begin
       Begin
         if (pNodeNumGen[pGen.NodeRef[1]] > 1) and ((pGen.GenModel = 3) or (pGen.GenModel = 4)) then
         Begin
+          if pGen.GenModel = 4 then
+            j := 0;
+
           for j := 1 to pGen.NPhases do
           Begin
             Qlocal  := Abs(pGen.GenVars.Pnominalperphase / pGenPower[pGen.NodeRef[j]].re) * pGenPower[pgen.NodeRef[j]].im;
@@ -2290,11 +2293,11 @@ Begin
 
             End;
             // Update currents for all the other gen models
-            for j := 0 to (pGen.NPhases - 1) do
+            for j := 1 to pGen.NPhases do
             Begin
 
-              Volt  :=  NodeV[pGen.NodeRef[j + 1]];
-              pGen.Iterminal[j + 1] :=  cnegate(conjg(cdiv(cmplx(pGen.GenVars.Pnominalperphase, pGen.GenVars.deltaQNom[0]), Volt)));
+              Volt  :=  NodeV[pGen.NodeRef[j]];
+              pGen.Iterminal[j] :=  cnegate(conjg(cdiv(cmplx(pGen.GenVars.Pnominalperphase, pGen.GenVars.deltaQNom[0]), Volt)));
 
             End;
 
