@@ -3,51 +3,17 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 9.8.0.1
+Version 10.0.0.2 - Columbus
+
+This version is an homage to celebrate the work of the father of OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work for the electric power industry. This software is a small part of his legacy, as well as his countless publications and other contributions to the industry.
 
 Changes this version
 ====================
-- Includes an integrated help file that brings together all the information for users and developers in a single source.
-- Solves issues with the follwing interfaces for DirectDLL: BusV. 
-- Grid Forming Capabilities for PV/Storage.
-- CapControlMode Follow added for helping to represent deterministic capacitor behavior.
-- Load shape EDGE and Averaging (linear) interpolation for facilitating the description of loadshapes in time.
-- DirectDLL methods for accessing structures updated to reflect the structures in other versions.
-- solves bug found in the Circuit interface (COM), preventing users from enabling/disabling elements through it.
-- Solves a bug introduced in version 9.6.1.2 when using CapControl in time or follow control modes. 
-- Bug in Yprim formation for 1-ph and 2-ph delta-connected capacitors fixed. Fix to user-specified NormAmps and EmergAmps for capacitors, which were always being overridden with default values. Pending to check for same issues on Reactors.
-- Variant-like interfaces updated to pointers to faciltiate its adoption cross platform and to match the Cpp version.
-- Fixes losses in UPFC model, there was a bug introduced several years ago when trying to redefine losses based on residual currents.
-- CapControl updated with control mode Follow, in this mode the capacitor activation depends on the value of a given loadshape (ControlSignal).
-- New flag added to avoid displaying reports automatically when generated (ShowReports).
-- New color themes added to the GUI. Go to Set -> Color Themes and check if you like it (Just added 2 as an experiment).
-- Adds grid forming inverter capabilities to Inverter-base resources (Storage and PVSystem) for microgrid studies in QSTS.
-- Adds dynamics simulation capabilities to Inverter-based Resources (Storage and PVSystem), including Black start operation. Includes DynamicExp compatibility. Examples and documentation included.
-- Adds LL faults between all pair of nodes of a bus to FaultStudy reports. Adding RegControl name, Transformer Winding number, DirectionMode and Cogen flag to Taps reports.
-- Adds functionality for closing all but one or all tabs when using the standalone editor.
-- Adds option EventlogDefault to the global context for setting the default for enabling/disabling the eventlog in control objects. 
-- Adds "Element" property to UPFC for triggering the reactive power compensation mode. Not needed in the past, but given the new control mode it requires it. 
-- Adds DOC_P1Blocking property to relays. This enables/disables a positive sequence power blocking element according to IEEE Std C57.12.44-2014.
-- Solved issue introduced with long-line correction changes of rev 3464. Single-phase lines without symmetrical component definition were being affected by change.
-- Adding command for getting the line type list as string for reference.
-- Includes new command for checking if there is a new version of OpenDSS available for download. The same command was implemented in the GUI's menu -> Help options.
-- Solves an issue found in the LineTypeList container. It was generating an unexpected issue when clearing memory during parallel processing operations. It was also creating redundant constants between Line, LineCode and LineGeometry classes.
-- Adding alternative method for accessing PCE state variables through the ActiveCktElement interface.
-- First version of DynamicExp object released, still under test. 
-- The ActiveCktelement interface includes new properties to allow users get/set state variables by name or index in the active circuit element. 
-- Corrects a recent bug introduced while fixing pu values for VSource when working on Dynamics mode.
-- Fixes version sync between exe, COM and DLL versions.
-- Solves old bug located within the fmonitor variables (proposed by UCF). 
-- Fixes DumpProperties procedures for conductor objects by utilizing the proper indexing. 
-- Brings back GetPropertyValue functions for ConductorData and child classes that allows properties to be kept in synch. Fixed indexing that was preventing those functions from properly working
-- Adds conditional compiles for debugging during Dynamic mode. Update comments in Vsource.
-- Fix bug in Dynamics calc where PerUnit was not taken into account.
-- Fixes issue when reporting Elements in class.
-- Normalizes the progress form.
-- Solves an issue detected when presenting the help form, the button at the bottom were missing.
-- Solves a bug inserted when updating the sequence impedance entries through COM/DLL.
-- COM interface help link added to Help option at the menu bar in EXE.
-- UPFC device updated to operate at the control queue increasing the stability of the device when widely installed on a large-scale model.
+- Solves a bug found when reporting powers for generators while using NCIM solution mode.
+- Adds interfaces in COM / DLL for directly handling Storage and WindGen objects.
+- Adds the WindGen object for modeling wind generators in QSTS and dynamics domains.
+- Introduces the NCIM solution method for handling transmission circuits that can be difficult to solve with the other methods already available in OpenDSS.
+- Implements corrections in COM / DLL for recently noticed bugs found around.
 
 The Version 8 was the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions. Version 9 is the latest update. The files are still listed under the 'Version8' folder on Sourceforge.net.
