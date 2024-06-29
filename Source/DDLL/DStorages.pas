@@ -684,10 +684,10 @@ Begin
           myDBLArray[0] := 0;
           IF ActiveCircuit[ActiveActor] <> Nil THEN
           Begin
-            StorageElem :=  TStorageObj(ActiveCircuit[ActiveActor].StorageElements.Active);
+            StorageElem :=  TStorageObj(ActiveCircuit[ActiveActor].ActiveCktElement);
             If StorageElem <> Nil Then
             Begin
-              setlength(myIntArray, numStorageRegisters);
+              setlength(myDBLArray, NumStorageRegisters);
               FOR k := 0 to numStorageRegisters-1 DO
               Begin
                   myDBLArray[k] := StorageElem.Registers[k+1];
