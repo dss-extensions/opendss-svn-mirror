@@ -516,6 +516,20 @@ Begin
           myType    :=  2;      // Double
           setlength(myDBLArray, 1);
           myDBLArray[0] := 0;
+          IF ActiveCircuit[ActiveActor] <> Nil THEN
+          Begin
+            WindGenElem :=  TWindGenObj(ActiveCircuit[ActiveActor].ActiveCktElement);
+            If WindGenElem <> Nil Then
+            Begin
+              setlength(myDBLArray, NumWGenRegisters);
+              FOR k := 0 to NumWGenRegisters-1 DO
+              Begin
+                  myDBLArray[k] := WindGenElem.Registers[k+1];
+              End;
+            End
+          End;
+          myPointer :=  @(myDBLArray[0]);
+          mySize    :=  SizeOf(myDBLArray[0]) * Length(myDBLArray);
     End
     Else
     Begin
