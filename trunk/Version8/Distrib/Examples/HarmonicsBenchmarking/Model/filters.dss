@@ -1,0 +1,25 @@
+! Single tunned notch filters in parallel: RLC in series, various RLC in parallel
+
+New Reactor.Filter_at9_2ndHarm_L bus1=8_bus8 bus2=8_bus8_1 phases=3 R=0.0 X=15.8300069652 basefreq=60 
+New Reactor.Filter_at9_2ndHarm_R bus1=8_bus8_1 bus2=8_bus8__1 phases=3 R=1.00000044 X=0.0 basefreq=60 
+New Capacitor.Filter_at9_2ndHarm bus1=8_bus8__1 phases=3 cuf=41.9950424825023 basefreq=60 
+
+New Reactor.Filter_at9_5thHarm_L bus1=8_bus8 bus2=8_bus8_2 phases=3 R=0.0 X=2.525901111396 basefreq=60 
+New Reactor.Filter_at9_5thHarm_R bus1=8_bus8_2 bus2=8_bus8__2 phases=3 R=1.00000044 X=0.0 basefreq=60 
+New Capacitor.Filter_at9_5thHarm bus1=8_bus8__2 phases=3 cuf=41.9950424825023 basefreq=60  
+
+New Reactor.Filter_at9_7thHarm_L bus1=8_bus8 bus2=8_bus8_3 phases=3 R=0.0 X=1.281800563992 basefreq=60 
+New Reactor.Filter_at9_7thHarm_R bus1=8_bus8_3 bus2=8_bus8__3 phases=3 R=1.00000044 X=0.0 basefreq=60 
+New Capacitor.Filter_at9_7Harm bus1=8_bus8__3 phases=3 cuf=41.9950424825023 basefreq=60 
+
+New Reactor.Filter_at9_11thHarm_L bus1=8_bus8 bus2=8_bus8_4 phases=3 R=0.0 X=0.52400023056 basefreq=60 
+New Reactor.Filter_at9_11thHarm_R bus1=8_bus8_4 bus2=8_bus8__4 phases=3 R=1.00000044 X=0.0 basefreq=60 
+New Capacitor.Filter_at9_11thHarm bus1=8_bus8__4 phases=3 cuf=41.9950424825023 basefreq=60 
+
+New Reactor.Filter_at3_11thHarm_1_L bus1=3_bus3 bus2=3_bus3_1 phases=3 R=0.0 X=14.66521308 basefreq=60
+New Reactor.Filter_at3_11thHarm_1_R bus1=3_bus3_1 bus2=3_bus3__1 phases=3 R=0.7187334147 X=0.0 basefreq=60
+New Capacitor.Filter_at3_11Harm_1 bus1=3_bus3__1 phases=3 cuf=1.24937131760481 basefreq=60
+
+New Reactor.Filter_at3_11thHarm_2_L bus1=3_bus3 bus2=3_bus3_2 phases=3 R=0.0 X=14.66521308 basefreq=60
+New Reactor.Filter_at3_11thHarm_2_R bus1=3_bus3_2 bus2=3_bus3__2 phases=3 R=0.7187334147 X=0.0 basefreq=60
+New Capacitor.Filter_at3_11thHarm_2 bus1=3_bus3__2 phases=3 cuf=1.24937131760481 basefreq=60

@@ -1,0 +1,16 @@
+setkvbase bus=1_bus1 kVLL=230.0
+setkvbase bus=2_bus2 kVLL=230.0
+setkvbase bus=5_bus5 kVLL=230.0
+setkvbase bus=3_bus3 kVLL=230.0
+setkvbase bus=4_bus4 kVLL=230.0
+setkvbase bus=6_bus6 kVLL=115.0
+setkvbase bus=11_bus11 kVLL=115.0
+setkvbase bus=12_bus12 kVLL=115.0
+setkvbase bus=13_bus13 kVLL=115.0
+setkvbase bus=9_bus9 kVLL=115.0
+setkvbase bus=10_bus10 kVLL=115.0
+setkvbase bus=14_bus14 kVLL=115.0
+setkvbase bus=8_bus8 kVLL=13.8
+setkvbase bus=301_bus301 kVLL=35.4
+setkvbase bus=302_bus302 kVLL=35.4
+setkvbase bus=7_bus7 kVLL=230.0

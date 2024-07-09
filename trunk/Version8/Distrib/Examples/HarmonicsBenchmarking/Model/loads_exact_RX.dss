@@ -1,0 +1,33 @@
+! This is exactly how opendss represent the loads 100% series R+jX values in harmonics
+
+/********************************************************************************************************  load definitions for 230.0kV  ***/
+
+New Reactor.Load_at_4_1_S phases=3 bus=4_bus4 R=1106.93 X=80.806
+New Reactor.Load_at_4_1_P phases=3 bus=4_bus4 R=0 X=-860.24
+
+
+New Reactor.Load_at_5_1_S phases=3 bus=5_bus5 R=6961.44 X=508.185
+New Reactor.Load_at_5_1_P phases=3 bus=5_bus5 R=0 X=10392.85
+
+
+
+/********************************************************************************************************  load definitions for 115.0kV  ***/
+
+New Reactor.Load_at_9_1_S phases=3 bus=9_bus9 R=448.32 X=32.727
+New Reactor.Load_at_9_1_P phases=3 bus=9_bus9 R=0 X=147.96
+
+New Reactor.Load_at_10_1_S phases=3 bus=10_bus10 R=1469.44 X=107.269
+New Reactor.Load_at_10_1_P phases=3 bus=10_bus10 R=0 X=410.80
+
+New Reactor.Load_at_11_1_S phases=3 bus=11_bus11 R=3777.49 X=275.757
+New Reactor.Load_at_11_1_P phases=3 bus=11_bus11 R=0 X=1396.62
+
+New Reactor.Load_at_12_1_S phases=3 bus=12_bus12 R=2168.39 X=158.292
+New Reactor.Load_at_12_1_P phases=3 bus=12_bus12 R=0 X=2133.05
+
+New Reactor.Load_at_13_1_S phases=3 bus=13_bus13 R=979.63 X=71.513
+New Reactor.Load_at_13_1_P phases=3 bus=13_bus13 R=0 X=458.19
+
+New Reactor.Load_at_14_1_S phases=3 bus=14_bus14 R=887.52 X=64.789
+New Reactor.Load_at_14_1_P phases=3 bus=14_bus14 R=0 X=588.30
+

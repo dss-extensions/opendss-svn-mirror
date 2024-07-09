@@ -1,0 +1,31 @@
+
+/********************************************************************************************************  load definitions for 230.0kV  ***/
+
+New Load.Load_at_4_1 phases=3 bus=4_bus4 kv=230.0 kW=47790.0 kvar=-3900.0 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_5_1 phases=3 bus=5_bus5 kv=230.0 kW=7599.0 kvar=1599.0 model=1 daily=Default spectrum=Linear 
+
+
+/********************************************************************************************************  load definitions for 115.0kV  ***/
+
+New Load.Load_at_9_1 phases=3 bus=9_bus9 kv=115.0 kW=29499.000000000004 kvar=16599.0 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_10_1 phases=3 bus=10_bus10 kv=115.0 kW=9000.0 kvar=5798.999999999999 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_11_1 phases=3 bus=11_bus11 kv=115.0 kW=3501.0000000000005 kvar=1800.0 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_12_1 phases=3 bus=12_bus12 kv=115.0 kW=6099.0 kvar=1599.0 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_13_1 phases=3 bus=13_bus13 kv=115.0 kW=13500.0 kvar=5798.999999999999 model=1 daily=Default spectrum=Linear 
+New Load.Load_at_14_1 phases=3 bus=14_bus14 kv=115.0 kW=14901.0 kvar=5001.0 model=1 daily=Default spectrum=Linear 
+
+
+/********************************************************************************************************  load definitions for 13.8kV  ***/
+new spectrum.TCR_PU numharm=10 csvfile=TCR_PU.csv
+New Load.Load_at_8_1 phases=3 bus=8_bus8 kv=13.8 kW=1.0 kvar=12900.0 model=1 daily=Default spectrum=TCR_PU
+
+
+
+/********************************************************************************************************  load definitions for 35.4kV  ***/
+new spectrum.HVDC_PU numharm=10 csvfile=HVDC_PU.csv
+
+New Load.Load_at_301_1 phases=3 bus=301_bus301 kv=35.4 kW=59505.0 kvar=3363.0 model=1 daily=Default spectrum=HVDC_PU 
+New Load.Load_at_302_1 phases=3 bus=302_bus302 kv=35.4 kW=59505.0 kvar=3363.0 model=1 daily=Default spectrum=HVDC_PU 
+
+
+

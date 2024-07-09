@@ -1,0 +1,73 @@
+/*
+"Benchmarking Test Systems for Harmonics Modeling and Simulation against Open Source and Commercial Tools"
+
+Script to reproduce published results in IEEE PES GM 2024.
+Authors: Celso Rocha, Andres Ovalle, Robert Arritt, Roger Dugan and Krishnat Patil
+
+Instructions:
+    - In OpenDSS, load this file 
+	- Change the Active directory to the location of this one ("right click" over script >> "Change to this directory")
+	- Do Ctrl + A, then Ctrl + D, to select the script contents and execute all
+	- Explore the exported monitor files newone_Mon_with_longline_correction_1.csv and newone_Mon_without_longline_correction_1.csv
+	--- These CSV files get exported to the folder called "Model".
+	--- The V1 columns contain the voltage seen at the source for the injected currents. Since the currents are already normalized 
+	--- by the base impedance, these voltages are actually identical to the per unit impedance at the bus where the source is placed.
+*/
+
+// Compile model
+Compile "Model\master_file.dss"
+
+
+// Disable long line correct for the first run
+Set LongLineCorrection=false
+
+// Short-circuit 60 Hz voltage sources to hide their contributions from the scan
+batchedit vsource..* pu=0.0
+
+// Disable loads to remove their fundamental frequency model and the contribution of non-linear ones
+batchedit Load..* enabled=no
+
+// Include load models for harmonics 
+redirect loads_exact_RX.dss
+
+// Create a spectrum object with the desired frequency injections defined by frequency steps defined by 1/3.
+// Go all the way until the 40.6667th harmonic.
+new spectrum.scanspec numharm=122 
+~ harmonic=(0.333333333,0.666666667,1,1.333333333,1.666666667,2,2.333333333,2.666666667,3,3.333333333,3.666666667,4,4.333333333,4.666666667,5,5.333333333,5.666666667,6,6.333333333,6.666666667,7,7.333333333,7.666666667,8,8.333333333,8.666666667,9,9.333333333,9.666666667,10,10.33333333,10.66666667,11,11.33333333,11.66666667,12,12.33333333,12.66666667,13,13.33333333,13.66666667,14,14.33333333,14.66666667,15,15.33333333,15.66666667,16,16.33333333,16.66666667,17,17.33333333,17.66666667,18,18.33333333,18.66666667,19,19.33333333,19.66666667,20,20.33333333,20.66666667,21,21.33333333,21.66666667,22,22.33333333,22.66666667,23,23.33333333,23.66666667,24,24.33333333,24.66666667,25,25.33333333,25.66666667,26,26.33333333,26.66666667,27,27.33333333,27.66666667,28,28.33333333,28.66666667,29,29.33333333,29.66666667,30,30.33333333,30.66666667,31,31.33333333,31.66666667,32,32.33333333,32.66666667,33,33.33333333,33.66666667,34,34.33333333,34.66666667,35,35.33333333,35.66666667,36,36.33333333,36.66666667,37,37.33333333,37.66666667,38,38.33333333,38.66666667,39,39.33333333,39.66666667,40,40.33333333,40.66666667)
+~ %mag = (100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100)
+~ angle = (0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0)
+
+// Add a current source to perform the frequency scan. The source will inject currents with magnitude defined 
+// by (1.0 / 529.0) where 529.0 ohm is the base impedance of the system (230 kV *230 kV / 100 MVA = 529.0 ohm).
+// The current source is placed at the bus where we wish to perform the frequency scan
+new isource.scansource bus1=3_bus3 amps=(1.0 529.0 /), angle=0.0 scantype=pos spectrum=scanspec
+
+// Attach a monitor to the source to store voltage and current quantities (mode=0) at each frequency
+new monitor.without_longline_correction isource.scansource terminal=1 mode=0
+
+// Solve for the fundamental frequency 
+set frequency = 60
+solve mode=snapshot
+
+// Solve for the harmonics in the scanspectrum0_33.csv spectrum
+solve mode=harmonics
+
+// Show contents of monitor
+export monitor without_longline_correction
+
+
+// Disable long line correct for the first run
+Set LongLineCorrection=true
+
+// Add a new monitor to export the scan for the case with long-line correction
+new monitor.with_longline_correction isource.scansource terminal=1 mode=0
+
+// Solve for the fundamental frequency 
+set frequency = 60
+solve mode=snapshot
+
+// Solve for the harmonics in the scanspectrum0_33.csv spectrum
+solve mode=harmonics
+
+// Show contents of monitor
+export monitor with_longline_correction

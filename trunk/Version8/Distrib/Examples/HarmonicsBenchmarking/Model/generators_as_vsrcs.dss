@@ -1,0 +1,18 @@
+
+/********************************************************************************************************  generators definitions as Vsources for 230.0kV  ***/
+
+New Vsource.Vsrc_at_2_1 bus1=2_bus2 basekv=230.0 phases=3 pu=1.059271304598 angle=-3.307781661533 frequency=60.0 baseMVA=100.0 puZ1=[1e-6, 0.25] !Model=ideal
+
+/********************************************************************************************************  generators definitions as Vsources for 115.0kV  ***/
+
+New Vsource.Vsrc_at_6_1 bus1=6_bus6 basekv=115.0 phases=3 pu=1.172633020375 angle=-17.202358845635 frequency=60.0 baseMVA=100.0 puZ1=[1e-6, 0.25] !Model=ideal
+
+
+/********************************************************************************************************  generators definitions as Vsources for 13.8kV  ***/
+
+
+/********************************************************************************************************  generators definitions as Vsources for 35.4kV  ***/
+
+
+/********************************************************************************************************  generators definitions as Vsources for 20.0kV  ***/
+

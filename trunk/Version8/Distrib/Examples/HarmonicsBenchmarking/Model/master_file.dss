@@ -1,0 +1,27 @@
+Clear
+
+/**** Base DSS Model has been generated from a conversion form PSS/E RAW data file ****/
+
+New Circuit.newone
+~ basekv=230.0 phases=3 pu=1.168693132879689 angle=31.877852217854276 frequency=60.0 baseMVA=100.0 puZ1=[1e-6, 0.25] !Model=ideal
+~ bus1=1_bus1
+
+/**** Circuit elements definition ****/
+Set LongLineCorrection=True  ! Apply long-line correction.
+
+redirect generators_as_vsrcs.dss     ! definitions for generators
+redirect lines.dss                   ! definitions for lines
+redirect transformers.dss            ! definitions for transformers
+redirect loads.dss                   ! definitions of loads for power flow solution. Changing definition on-the-fly in python for the Harmonics solution
+redirect shunts.dss                  ! definitions for reactors and capacitors
+redirect filters.dss
+
+batchedit transformer..* xrconst=no
+batchedit load..* %seriesrl=100
+
+/**** Voltage bases for all buses ****/
+Set VoltageBases = [230.0, 115.0, 13.8, 35.4]
+Calcv
+redirect confirm_kv_bases.dss
+
+set tolerance = 0.0007
