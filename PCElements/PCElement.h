@@ -88,9 +88,9 @@ public:
 	virtual	bool IsGenerator();
 	virtual	bool CheckForGeneratorModel();
 
-	int CheckIfDynVar(std::string myVar, int ActorID);
-	void SetDynOutput(std::string myVar);
-	std::string GetDynOutputStr();
+	int CheckIfDynVar(string myVar, int ActorID);
+	void SetDynOutput(string myVar);
+	string GetDynOutputStr();
 
 	//__declspec ( property ( get = Get_Variable, put = Set_Variable ) )  double Variable[];
 	////       Property ITerminalUpdated:Boolean read FITerminalUpdated write set_ITerminalUpdated;

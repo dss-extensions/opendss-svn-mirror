@@ -13,7 +13,7 @@ namespace GeneratorVars
 
 /*
   ----------------------------------------------------------
-  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 

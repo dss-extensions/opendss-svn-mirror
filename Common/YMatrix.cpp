@@ -132,7 +132,7 @@ namespace YMatrix
          // SetLogFile ('KLU_Log.txt', 1);
         /*# with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do */
         {
-            TDSSCircuit* with0 = ActiveCircuit[ActorID];
+            auto with0 = ActiveCircuit[ActorID];
             {
                 if (with0->Solution->PreserveNodeVoltages)
                     with0->Solution->UpdateVBus(ActorID); // Update voltage values stored with Bus object
@@ -142,6 +142,19 @@ namespace YMatrix
                 if (with0->get_FBusNameRedefined())
                     with0->ReProcessBusDefs(ActorID);      // This changes the node references into the system Y matrix!!
                 YMatrixsize = with0->NumNodes;
+                if (AllocateVI)
+                {
+                    if (with0->LogEvents)
+                        LogThisEvent("ReAllocating Solution Arrays", ActorID);
+                    with0->Solution->NodeV.resize(with0->NumNodes + 1); // Allocate System Voltage array - allow for zero element
+                    (with0->Solution->NodeV)[0] = CZero;
+                    with0->Solution->Currents.resize(with0->NumNodes + 1); // Allocate System current array
+                    with0->Solution->AuxCurrents = (pNodeVarray)realloc(with0->Solution->AuxCurrents, sizeof(complex) * (with0->NumNodes + 1)); // Allocate System current array
+
+                    /*A-Diakoptics vectors memory allocation*/
+                    with0->Solution->Node_dV.resize(with0->NumNodes + 1); // Allocate the partial solution voltage
+                    with0->Solution->Ic_Local.resize(with0->NumNodes + 1); // Allocate the Complementary currents
+                }
                 switch (BuildOption)
                 {
                 case WHOLEMATRIX:
@@ -231,17 +244,6 @@ namespace YMatrix
                 // Allocate voltage and current vectors if requested
                 if (AllocateVI)
                 {
-                    if (with0->LogEvents)
-                        LogThisEvent("ReAllocating Solution Arrays", ActorID);
-                    with0->Solution->NodeV.resize(with0->NumNodes + 1);       // Allocate System Voltage array - allow for zero element
-                    (with0->Solution->NodeV)[0]     = CZero;
-                    with0->Solution->Currents.resize(with0->NumNodes + 1);    // Allocate System current array
-                    with0->Solution->AuxCurrents    = (pNodeVarray) realloc(with0->Solution->AuxCurrents, sizeof(complex) * (with0->NumNodes + 1)); // Allocate System current array
-
-                     /*A-Diakoptics vectors memory allocation*/
-                    with0->Solution->Node_dV.resize(with0->NumNodes + 1);     // Allocate the partial solution voltage
-                    with0->Solution->Ic_Local.resize(with0->NumNodes + 1);    // Allocate the Complementary currents
-                    
                     if (!with0->Solution->VmagSaved.empty())    with0->Solution->VmagSaved.clear();
                     if (!with0->Solution->ErrorSaved.empty())   with0->Solution->ErrorSaved.clear();
                     if (!with0->Solution->NodeVbase.empty())    with0->Solution->NodeVbase.clear();

@@ -160,7 +160,7 @@ void TPCElement::GetCurrents(pComplexArray Curr, int ActorID)
 //----------------------------------------------------------------------------
 // Evaluates if the value provided corresponds to a constant value or to an operand
 // for calculating the value using the simulation results
-int TPCElement::CheckIfDynVar(std::string myVar, int ActorID)
+int TPCElement::CheckIfDynVar(string myVar, int ActorID)
 {
 	int myOp, Result = 0;
 	string myValue = "";
@@ -214,7 +214,7 @@ std::string TPCElement::GetDynOutputStr()
 //----------------------------------------------------------------------------
 //{Obtains the indexes of the given variables to use them as reference for setting
 //the dynamic output for the generator}
-void TPCElement::SetDynOutput(std::string myVar)
+void TPCElement::SetDynOutput(string myVar)
 {
 	int idx					= 0;
 	int VarIdx				= 0;

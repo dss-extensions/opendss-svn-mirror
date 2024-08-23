@@ -131,6 +131,7 @@ if(MyOutputType STREQUAL "EXE")
 		PCElements/WindGen.cpp
 		PCElements/WindGenUserModel.cpp
 		PCElements/WindGenVars.cpp
+		PCElements/WTG3_Model.cpp
 		PDElements/AutoTrans.cpp
 		PDElements/Capacitor.cpp
 		PDElements/Fault.cpp
@@ -174,7 +175,7 @@ if(MyOutputType STREQUAL "EXE")
 		#Shared/IntegrationMethods.cpp
 	    Plot/DSSPlot.cpp
 		Plot/DSSGraph.cpp
-	)
+	 "PCElements/WTG3_Model.h" "PCElements/WTG3_Model.cpp")
 else()
 	add_library(OpenDSSC SHARED
 		DLL/OpenDSSCDLL.cpp
@@ -285,6 +286,7 @@ else()
 		PCElements/WindGen.cpp
 		PCElements/WindGenUserModel.cpp
 		PCElements/WindGenVars.cpp
+		PCElements/WTG3_Model.cpp
 		PDElements/AutoTrans.cpp
 		PDElements/Capacitor.cpp
 		PDElements/Fault.cpp
