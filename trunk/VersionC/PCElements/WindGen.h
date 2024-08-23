@@ -22,6 +22,8 @@
 #include <math.h>
 #include "mathutil.h"
 #include "DSSClassDefs.h"
+#include "WTG3_Model.h"
+#include "XYCurve.h"
 
 
 
@@ -32,7 +34,7 @@ namespace WindGen
 
 /*
   ----------------------------------------------------------
-  Copyright (c) 2022, Electric Power Research Institute, Inc.
+  Copyright (c) 2024, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 */
@@ -53,8 +55,9 @@ namespace WindGen
 //    Yearly:  Defaults to No variation (i.e. multiplier = 1.0 always)
 //    Daily:   Defaults to No variation
 //    Dutycycle: Defaults to Daily shape
-const int NumGenRegisters = 6;    // Number of energy meter registers
-const int NumGenVariables = 6;
+
+const int NumWGenRegisters = 6;    // Number of energy meter registers
+const int NumWGenVariables = 22;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -143,6 +146,7 @@ public:
 	double YQFixed;  // Fixed value of y for type 7 load
 	bool ShapeIsActual;
 	bool ForceBalanced;
+
 	void CalcDailyMult(double hr);
 	void CalcDutyMult(double hr);  // now incorporates DutyStart offset
 	void CalcGenModelContribution(int ActorID);
@@ -153,6 +157,7 @@ public:
 	void CalcVthev_Dyn_Mod7(const Ucomplex::complex& V);
 	void CalcYearlyMult(double hr);
 	void CalcYPrimMatrix(Ucmatrix::TcMatrix* Ymatrix, int ActorID);
+
 	void DoConstantPQGen(int ActorID);
 	void DoConstantZGen(int ActorID);
 	void DoCurrentLimitedPQ(int ActorID);
@@ -165,8 +170,12 @@ public:
 	void Integrate(int reg, double Deriv, double Interval, int ActorID);
 	void SetDragHandRegister(int reg, double Value);
 	void StickCurrInTerminalArray(Ucomplex::pComplexArray TermArray, const Ucomplex::complex& Curr, int i);
+
 	void WriteTraceRecord(const String s, int ActorID);
+
 	void SyncUpPowerQuantities();
+
+
 	double Get_PresentkW();
 	double Get_Presentkvar();
 	double Get_PresentkV();
@@ -174,40 +183,49 @@ public:
 	void Set_Presentkvar(double Value);
 	void Set_PresentkW(double Value);
 	void Set_PowerFactor(double Value);
+
 	void SetkWkvar(double PkW, double Qkvar);
-protected:
+//protected:
 	virtual void Set_ConductorClosed(int Index, int ActorID, bool Value);
 	virtual void GetTerminalCurrents(Ucomplex::pComplexArray Curr, int ActorID);
 public:
-	int Connection;  /*0 = line-neutral; 1=Delta*/
-	String DailyDispShape;  // Daily (24 HR) WindGen shape
-	LoadShape::TLoadShapeObj* DailyDispShapeObj;  // Daily WindGen Shape for this load
-	String DutyShape;  // Duty cycle load shape for changes typically less than one hour
-	LoadShape::TLoadShapeObj* DutyShapeObj;  // Shape for this WindGen
-	double DutyStart; // starting time offset into the DutyShape [hrs] for this WindGen
-	int GenClass;
-	int GenModel;   // Variation with voltage
-	WindGenVars::TWindGenVars WindGenVars; /*State Variables*/
-	double kvarBase;
-	double kvarMax;
-	double kvarMin;
-	double kWBase;
-	double PFNominal;
-	double Vpu;   // per unit Target voltage for WindGen with voltage control
-	double Vmaxpu;
-	double Vminpu;
-	bool GenActive;
+    TGE_WTG3_Model* WindModelDyn;
+	int				Connection;			/*0 = line-neutral; 1=Delta*/
+	String			DailyDispShape;		// Daily (24 HR) WindGen shape
+	TLoadShapeObj*	DailyDispShapeObj;  // Daily WindGen Shape for this load
+	String			DutyShape;			// Duty cycle load shape for changes typically less than one hour
+	TLoadShapeObj*	DutyShapeObj;		// Shape for this WindGen
+	double			DutyStart;			// starting time offset into the DutyShape [hrs] for this WindGen
+	int				GenClass;		
+	int				GenModel;			// Variation with voltage
+	TWindGenVars	WindGenVars;		/*State Variables*/
+    double			kvarBase,
+					kvarMax,
+					kvarMin,
+					kWBase,
+					PFNominal,
+					Vpu,				// per unit Target voltage for WindGen with voltage control
+					Vmaxpu,
+					Vminpu;
+    String			VV_Curve;
+    TXYcurveObj*	VV_CurveObj;
+    TXYcurveObj*	Loss_CurveObj;
+
+	bool			GenActive;
 // Fuel variables from Generator model removed
 
 // moved to WindGenVars        VTarget         :Double;  // Target voltage for WindGen with voltage control
-	String YearlyShape;  // ='fixed' means no variation  on all the time
-	LoadShape::TLoadShapeObj* YearlyShapeObj;  // Shape for this WindGen
-	double Registers[6/*# range 1..NumGenRegisters*/];
-	double Derivatives[6/*# range 1..NumGenRegisters*/];
+	String			YearlyShape;  // ='fixed' means no variation  on all the time
+	TLoadShapeObj*	YearlyShapeObj;  // Shape for this WindGen
+	double			Registers[6/*# range 1..NumGenRegisters*/];
+	double			Derivatives[6/*# range 1..NumGenRegisters*/];
+
 	TWindGenObj(DSSClass::TDSSClass* ParClass, const String SourceName);
 	virtual ~TWindGenObj();
+
 	virtual void RecalcElementData(int ActorID);
 	virtual void CalcYPrim(int ActorID);
+
 	virtual int InjCurrents(int ActorID);
 	virtual void GetInjCurrents(Ucomplex::pComplexArray Curr, int ActorID);
 	virtual int NumVariables();
@@ -215,28 +233,37 @@ public:
 	virtual double Get_Variable(int i);
 	virtual void Set_Variable(int i, double Value);
 	virtual String VariableName(int i);
+
+
 	void SetNominalGeneration(int ActorID);
 	void Randomize(int Opt);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
+
 	void ResetRegisters();
 	void TakeSample(int ActorID);
 
-        // Procedures for setting the DQDV used by the Solution Object
+    // Procedures for setting the DQDV used by the Solution Object
 	void InitDQDVCalc();
 	void BumpUpQ();
 	void RememberQV(int ActorID);
 	void CalcDQDV(int ActorID);
 	void ResetStartPoint();
 
-        // Support for Dynamics Mode
+    // Support for Dynamics Mode
 	virtual void InitStateVars(int ActorID);
 	virtual void IntegrateStates(int ActorID);
 
-        // Support for Harmonics Mode
+    // Support for Harmonics Mode
 	virtual void InitHarmonics(int ActorID);
+
 	virtual void MakePosSequence(int ActorID);  // Make a positive Sequence Model
+
 	virtual void InitPropertyValues(int ArrayOffset);
 	virtual void DumpProperties(System::TTextRec& f, bool Complete);
 	virtual String GetPropertyValue(int Index);
+
+	virtual int CheckIfDynVar(string myVar, int ActorID);
+    virtual void SetDynOutput(string myVar);
+    virtual string GetDynOutputStr();
 
 	bool get_FForcedON();
 	void set_FForcedON(bool myState);

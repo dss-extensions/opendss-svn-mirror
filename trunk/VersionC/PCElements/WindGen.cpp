@@ -7,6 +7,7 @@
 #include "Circuit.h"
 #include "DSSGlobals.h"
 #include "Utilities.h"
+#include "d2c_structures.h"
 
 using namespace std;
 using namespace Arraydef;
@@ -41,12 +42,12 @@ TWindGenObj::TWindGenObj() {}
 
 TWindGenObj* ActiveWindGenObj = nullptr;
 TWindGen* WinGenClass = nullptr;
-const int NumPropsThisClass = 39;  // removed Fuel variables
+const int NumPropsThisClass = 44;  // removed Fuel variables
   // Dispatch modes
 const int Default = 0;
 const int LOADMODE = 1;
-complex cBuffer[24/*# range 1..24*/];  // Temp buffer for calcs  24-phase WindGen?
-complex CDoubleOne = {};
+complex cBuffer[25];  // Temp buffer for calcs  24-phase WindGen?
+complex CDoubleOne = cmplx(1,1);
 //    TwoPI3:Double;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,18 +96,22 @@ void TWindGen::DefineProperties()
      // Define Property names
 	PropertyName[1 - 1] ="phases";
 	PropertyHelp[1 - 1] ="Number of Phases, this WindGen.  Power is evenly divided among phases.";
+
 	PropertyName[2 - 1] ="bus1";
 	PropertyHelp[2 - 1] ="Bus to which the WindGen is connected.  May include specific node specification.";
+
 	PropertyName[3 - 1] ="kv";
 	PropertyHelp[3 - 1] ="Nominal rated (1.0 per unit) voltage, kV, for WindGen. For 2- and 3-phase WindGens, specify phase-phase kV. "
 	          "Otherwise, for phases=1 or phases>3, specify actual kV across each branch of the WindGen. "
 	          "If wye (star), specify phase-neutral kV. "
 	          "If delta or phase-phase connected, specify phase-phase kV.";
+
 	PropertyName[4 - 1] ="kW";
 	PropertyHelp[4 - 1] = String("Total base kW for the WindGen.  A positive value denotes power coming OUT of the element, ") + CRLF
 	           +"which is the opposite of a load. This value is modified depending on the dispatch mode. "
 	           +"Unaffected by the global load multiplier and growth curves. "
 	           +"If you want there to be more generation, you must add more WindGens or change this value.";
+
 	PropertyName[5 - 1] ="PF";
 	PropertyHelp[5 - 1] = String("WindGen power factor. Default is 0.80. Enter negative for leading powerfactor ""(when kW and kvar have opposite signs.)") + CRLF
 	           +"A positive power factor for a WindGen signifies that the WindGen produces vars "
@@ -114,6 +119,7 @@ void TWindGen::DefineProperties()
 	           +"as is typical for a synchronous WindGen.  Induction machines would be "
 	           + CRLF
 	           +"generally specified with a negative power factor.";
+
 	PropertyName[6 - 1] ="model";
 	PropertyHelp[6 - 1] = String("Integer code for the model to use for generation variation with voltage. ""Valid values are:") + CRLF
 	           + CRLF
@@ -128,16 +134,19 @@ void TWindGen::DefineProperties()
 	           +"5:Const kW, Fixed Q(as a constant reactance)"
 	           + CRLF
 	           +"6:Compute load injection from User-written Model.(see usage of Xd, Xdp)";
+
 	PropertyName[7 - 1] ="yearly";
 	PropertyHelp[7 - 1] ="Dispatch shape to use for yearly-mode simulations.  Must be previously defined "
 	          "as a Loadshape object. If this is not specified, a constant value is assumed (no variation). "
 	          "Set to NONE to reset to no loadahape. "
 	          "Nominally for 8760 simulations.  If there are fewer points in the designated shape than "
 	          "the number of points in the solution, the curve is repeated.";
+
 	PropertyName[8 - 1] ="daily";
 	PropertyHelp[8 - 1] ="Dispatch shape to use for daily-mode simulations.  Must be previously defined "
 	          "as a Loadshape object of 24 hrs, typically."
 	          "Set to NONE to reset to no loadahape. "; // daily dispatch (hourly)
+
 	PropertyName[9 - 1] ="duty";
 	PropertyHelp[9 - 1] ="Load shape to use for duty cycle dispatch simulations such as for wind or solar generation. "
 	          "Must be previously defined as a Loadshape object. "
@@ -145,80 +154,124 @@ void TWindGen::DefineProperties()
 	          "Set to NONE to reset to no loadahape. "
 	          "Designate the number of points to solve using the Set Number=xxxx command. "
 	          "If there are fewer points in the actual shape, the shape is assumed to repeat.";  // as for wind generation
-	PropertyName[10 - 1] =" ";
-	PropertyHelp[10 - 1] =" "; // = 0 | >0
-	PropertyName[11 - 1] =" ";
-	PropertyHelp[11 - 1] =" ";  // = 0 | >0
-	PropertyName[12 - 1] ="conn";
-	PropertyHelp[12 - 1] ="={wye|LN|delta|LL}.  Default is wye.";
-	PropertyName[13 - 1] ="kvar";
-	PropertyHelp[13 - 1] ="Specify the base kvar.  Alternative to specifying the power factor.  Side effect: "
+
+	PropertyName[10 - 1] ="conn";
+	PropertyHelp[10 - 1] ="={wye|LN|delta|LL}.  Default is wye.";
+
+	PropertyName[11 - 1] ="kvar";
+	PropertyHelp[11 - 1] ="Specify the base kvar.  Alternative to specifying the power factor.  Side effect: "
 	          " the power factor value is altered to agree based on present value of kW.";
-	PropertyName[16 - 1] ="status";
-	PropertyHelp[16 - 1] ="={Fixed | Variable*}.  If Fixed, then dispatch multipliers do not apply. "
-	          "The WindGen is always at full power when it is ON. "
-	          " Default is Variable  (follows curves or windspeed).";  // fixed or variable
-	PropertyName[17 - 1] ="class";
-	PropertyHelp[17 - 1] ="An arbitrary integer number representing the class of WindGen so that WindGen values may "
+
+	PropertyName[12 - 1] ="class";
+	PropertyHelp[12 - 1] ="An arbitrary integer number representing the class of WindGen so that WindGen values may "
 	          "be segregated by class."; // integer
-	PropertyName[18 - 1] ="Vpu";
-	PropertyHelp[18 - 1] ="Per Unit voltage set point for Model = 3  (Regulated voltage model).  Default is 1.0 pu. "; // per unit set point voltage for power flow model
-	PropertyName[19 - 1] ="maxkvar";
-	PropertyHelp[19 - 1] ="Maximum kvar limit for Model = 3.  Defaults to twice the specified load kvar.  "
-	          "Always reset this if you change PF or kvar properties.";
-	PropertyName[20 - 1] ="minkvar";
-	PropertyHelp[20 - 1] ="Minimum kvar limit for Model = 3. Enter a negative number if WindGen can absorb vars."
-	          " Defaults to negative of Maxkvar.  Always reset this if you change PF or kvar properties.";
-	PropertyName[21 - 1] ="pvfactor";
-	PropertyHelp[21 - 1] ="Deceleration factor for P-V WindGen model (Model=3).  Default is 0.1. "
-	          "If the circuit converges easily, you may want to use a higher number such as 1.0. "
-	          "Use a lower number if solution diverges. Use Debugtrace=yes to create a file that will "
-	          "trace the convergence of a WindGen model.";
-	PropertyName[22 - 1] ="debugtrace";
-	PropertyHelp[22 - 1] ="{Yes | No }  Default is no.  Turn this on to capture the progress of the WindGen model "
-	          "for each iteration.  Creates a separate file for each WindGen named \"GEN_name.CSV\".";
-	PropertyName[23 - 1] ="Vminpu";
-	PropertyHelp[23 - 1] ="Default = 0.90.  Minimum per unit voltage for which the Model is assumed to apply. "
+
+	PropertyName[13 - 1] ="debugtrace";
+	PropertyHelp[13 - 1] ="{Yes | No }  Default is no.  Turn this on to capture the progress of the WindGen model "
+                          "for each iteration. Creates a separate file for each WindGen named \"GEN_name.CSV\""; // per unit set point voltage for power flow model
+
+	PropertyName[14 - 1] ="Vminpu";
+	PropertyHelp[14 - 1] ="Default = 0.90.  Minimum per unit voltage for which the Model is assumed to apply. "
 	          "Below this value, the Windgen model reverts to a constant impedance model. For model 7, the current is "
 	          "limited to the value computed for constant power at Vminpu.";
-	PropertyName[24 - 1] ="Vmaxpu";
-	PropertyHelp[24 - 1] ="Default = 1.10.  Maximum per unit voltage for which the Model is assumed to apply. "
+
+	PropertyName[15 - 1] ="Vmaxpu";
+	PropertyHelp[15 - 1] ="Default = 1.10.  Maximum per unit voltage for which the Model is assumed to apply. "
 	          "Above this value, the Windgen model reverts to a constant impedance model.";
-	PropertyName[25 - 1] ="forceon";
-	PropertyHelp[25 - 1] ="{Yes | No}  Forces WindGen ON despite requirements of other dispatch modes. "
-	          "Stays ON until this property is set to NO, or an internal algorithm cancels the forced ON state.";
-	PropertyName[26 - 1] ="kVA";
-	PropertyHelp[26 - 1] ="kVA rating of electrical machine. Defaults to 1.2* kW if not specified. Applied to machine or inverter definition for Dynamics mode solutions. ";
-	PropertyName[27 - 1] ="MVA";
-	PropertyHelp[27 - 1] ="MVA rating of electrical machine.  Alternative to using kVA=.";
-	PropertyName[28 - 1] ="Xd";
-	PropertyHelp[28 - 1] ="Per unit synchronous reactance of machine. Presently used only for Thevinen impedance for power flow calcs of user models (model=6). "
-	          "Typically use a value 0.4 to 1.0. Default is 1.0";
-	PropertyName[29 - 1] ="Xdp";
-	PropertyHelp[29 - 1] ="Per unit transient reactance of the machine.  Used for Dynamics mode and Fault studies.  Default is 0.27."
-	          "For user models, this value is used for the Thevinen/Norton impedance for Dynamics Mode.";
-	PropertyName[30 - 1] ="Xdpp";
-	PropertyHelp[30 - 1] ="Per unit subtransient reactance of the machine.  Used for Harmonics. Default is 0.20.";
-	PropertyName[31 - 1] ="H";
-	PropertyHelp[31 - 1] ="Per unit mass constant of the machine.  MW-sec/MVA.  Default is 1.0.";
-	PropertyName[32 - 1] ="D";
-	PropertyHelp[32 - 1] ="Damping constant.  Usual range is 0 to 4. Default is 1.0.  Adjust to get damping";
-	PropertyName[33 - 1] ="UserModel";
-	PropertyHelp[33 - 1] ="Name of DLL containing user-written model, which computes the terminal currents for Dynamics studies, "
+
+	PropertyName[16 - 1] ="kVA";
+	PropertyHelp[16 - 1] ="kVA rating of electrical machine. Defaults to 1.2* kW if not specified. Applied to machine or inverter definition for Dynamics mode solutions. ";
+
+	PropertyName[17 - 1] ="MVA";
+	PropertyHelp[17 - 1] ="MVA rating of electrical machine.  Alternative to using kVA=.";
+
+	PropertyName[18 - 1] ="UserModel";
+	PropertyHelp[18 - 1] ="Name of DLL containing user-written model, which computes the terminal currents for Dynamics studies, "
 	          "overriding the default model.  Set to \"none\" to negate previous setting.";
-	PropertyName[34 - 1] ="UserData";
-	PropertyHelp[34 - 1] ="String (in quotes or parentheses) that gets passed to user-written model for defining the data required for that model.";
-	PropertyName[35 - 1] ="ShaftModel";
-	PropertyHelp[35 - 1] ="Name of user-written DLL containing a Shaft model, which models the prime mover and determines the power on the shaft for Dynamics studies. "
-	          "Models additional mass elements other than the single-mass model in the DSS default model. Set to \"none\" to negate previous setting.";
-	PropertyName[36 - 1] ="ShaftData";
-	PropertyHelp[36 - 1] ="String (in quotes or parentheses) that gets passed to user-written shaft dynamic model for defining the data for that model.";
-	PropertyName[37 - 1] ="DutyStart";
-	PropertyHelp[37 - 1] ="Starting time offset [hours] into the duty cycle shape for this WindGen, defaults to 0";
-	PropertyName[38 - 1] ="Balanced";
-	PropertyHelp[38 - 1] ="{Yes | No*} Default is No.  For Model=7, force balanced current only for 3-phase WindGens. Force zero- and negative-sequence to zero.";
-	PropertyName[39 - 1] ="XRdp";
-	PropertyHelp[39 - 1] ="Default is 20. X/R ratio for Xdp property for FaultStudy and Dynamic modes.";
+
+	PropertyName[19 - 1] ="UserData";
+	PropertyHelp[19 - 1] ="String (in quotes or parentheses) that gets passed to user-written model for defining the data required for that model.";
+
+	PropertyName[20 - 1] ="DutyStart";
+	PropertyHelp[20 - 1] ="Starting time offset [hours] into the duty cycle shape for this WindGen, defaults to 0";
+
+	PropertyName[21 - 1] ="DynamicEq";
+	PropertyHelp[21 - 1] ="The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. "
+                          "if not defined, the generator dynamics will follow the built-in dynamic equation.";
+
+	PropertyName[22 - 1] ="DynOut";
+	PropertyHelp[22 - 1] ="The name of the variables within the Dynamic equation that will be used to govern the generator dynamics."
+						  "This generator model requires 2 outputs from the dynamic equation: "
+						  + CRLF + CRLF + 
+						  "1. Shaft speed (velocity) relative to synchronous speed." + CRLF + 
+					      "2. Shaft, or power, angle (relative to synchronous reference frame)." + CRLF + CRLF + 
+						  "The output variables need to be defined in the same order.";
+        
+	PropertyName[23 - 1] = "Rthev";
+    PropertyHelp[23 - 1] = "per unit Thevenin equivalent R.";
+
+	PropertyName[24 - 1] = "Xthev";
+    PropertyHelp[24 - 1] = "per unit Thevenin equivalent X.";
+
+	PropertyName[25 - 1] = "Vss";
+    PropertyHelp[25 - 1] = "Steady state voltage magnitude.";
+
+	PropertyName[26 - 1] = "Pss";
+    PropertyHelp[26 - 1] = "Steady state output real power.";
+
+	PropertyName[27 - 1] = "Qss";
+    PropertyHelp[27 - 1] = "Steady state output reactive power.";
+
+    PropertyName[28 - 1] = "vwind";
+    PropertyHelp[28 - 1] = "Wind speed in m/s";
+
+    PropertyName[29 - 1] = "QMode";
+    PropertyHelp[29 - 1] = "Q control mode (0:Q, 1:PF, 2:VV).";
+
+    PropertyName[30 - 1] = "SimMechFlg";
+    PropertyHelp[30 - 1] = "1 to simulate mechanical system. Otherwise (0) only uses the electrical system. For dynamics simulation purposes.";
+
+    PropertyName[31 - 1] = "APCFlg";
+    PropertyHelp[31 - 1] = "1 to enable active power control.";
+
+    PropertyName[32 - 1] = "QFlg";
+    PropertyHelp[32 - 1] = "1 to enable reactive power and voltage control.";
+
+    PropertyName[33 - 1] = "delt0";
+    PropertyHelp[33 - 1] = "User defined internal simulation step.";
+
+    PropertyName[34 - 1] = "N_WTG";
+    PropertyHelp[34 - 1] = "Number of WTG in aggregation.";
+
+    PropertyName[35 - 1] = "VV_Curve";
+    PropertyHelp[35 - 1] = "Name of the XY curve defining the control curve for implementing Vol-var control with this inverter.";
+
+    PropertyName[36 - 1] = "Ag";
+    PropertyHelp[36 - 1] = "Gearbox ratio (Default 1/90).";
+
+    PropertyName[37 - 1] = "Cp";
+    PropertyHelp[37 - 1] = "Turbine performance coefficient (deafult 0.41).";
+
+    PropertyName[38 - 1] = "Lamda";
+    PropertyHelp[38 - 1] = "Tip speed ratio (Default 7.95).";
+
+    PropertyName[39 - 1] = "P";
+    PropertyHelp[39 - 1] = "Number of pole pairs of the induction generator (Default 2).";
+
+    PropertyName[40 - 1] = "pd";
+    PropertyHelp[40 - 1] = "Air density in kg/m3 (Default 1.225).";
+
+    PropertyName[41 - 1] = "PLoss";
+    PropertyHelp[41 - 1] = "Name of the XYCurve object describing the active power losses in pct versus the wind speed.";
+
+    PropertyName[42 - 1] = "Rad";
+    PropertyHelp[42 - 1] = "Rotor radius in meters (Default 40).";
+
+    PropertyName[43 - 1] = "VCutIn";
+    PropertyHelp[43 - 1] = "Cut-in speed for the wind generator (m/s - default 5).";
+
+    PropertyName[44 - 1] = "VCutOut";
+    PropertyHelp[44 - 1] = "Cut-out speed for the wind generator (m/s - default 23).";
 
       /*Removed Fuel-related variables 40-44 from Generator model*/
 	ActiveProperty = NumPropsThisClass - 1;
@@ -389,145 +442,151 @@ int TWindGen::Edit(int ActorID)
 			if((ParamPointer > 0) && (ParamPointer <= NumProperties))
 				with0->Set_PropertyValue((PropertyIdxMap)[ParamPointer - 1],Param);
 			else
-				DoSimpleMsg(String("Unknown parameter \"") + ParamName
-	           +"\" for WindGen \""
-	           + with0->get_Name()
-	           +"\"", 560);
+				DoSimpleMsg("Unknown parameter \"" + ParamName + "\" for WindGen \"" + with0->get_Name() + "\"", 560);
 			if(ParamPointer > 0)
 				switch((PropertyIdxMap)[ParamPointer - 1])
 				{
 					case 	0:
-					DoSimpleMsg(String("Unknown parameter \"") + ParamName
-	           +"\" for Object \""
-	           + Class_Name
-	           +"."
-	           + with0->get_Name()
-	           +"\"", 561);
+						DoSimpleMsg("Unknown parameter \"" + ParamName + "\" for Object \"" + Class_Name + "." + with0->get_Name() + "\"", 561);
 					break;
 					case 	1:
-					with0->Set_NPhases(Parser[ActorID]->MakeInteger_());
+						with0->Set_NPhases(Parser[ActorID]->MakeInteger_());
 					break; // num phases
 					case 	2:
-					with0->SetBus(1, Param);
+						with0->SetBus(1, Param);
 					break;
 					case 	3:
-					with0->Set_PresentkV(Parser[ActorID]->MakeDouble_());
+						with0->Set_PresentkV(Parser[ActorID]->MakeDouble_());
 					break;
 					case 	4:
-					with0->kWBase = Parser[ActorID]->MakeDouble_();
+						with0->kWBase = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	5:
-					with0->PFNominal = Parser[ActorID]->MakeDouble_();
+						with0->PFNominal = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	6:
-					with0->GenModel = Parser[ActorID]->MakeInteger_();
+						with0->GenModel = Parser[ActorID]->MakeInteger_();
 					break;
 					case 	7:
-					with0->YearlyShape = Param;
+						with0->YearlyShape = Param;
 					break;
 					case 	8:
-					with0->DailyDispShape = Param;
+						with0->DailyDispShape = Param;
 					break;
 					case 	9:
-					with0->DutyShape = Param;
+						with0->DutyShape = Param;
 					break;
 					case 	10:
-					;
+						InterpretConnection(Param);
 					break;
 					case 	11:
-					;
+						with0->Set_Presentkvar(Parser[ActorID]->MakeDouble_());
 					break;
-					case 	12:
-					InterpretConnection(Param);
-					break;
-					case 	13:
-					with0->Set_Presentkvar(Parser[ActorID]->MakeDouble_());
-					break;
+                    case	12:
+                        with0->GenClass = Parser[ActorID]->MakeInteger_();
+                    break;
 					case 	14:
-					;
+						with0->Vminpu = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	15:
-					;
+						with0->Vmaxpu = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	16:
-					if(LowerCase(&(Param[1])) =="f")
-						with0->IsFixed = true;
-					else
-						with0->IsFixed = false;
+                    case	16:
+                    {
+                        with0->WindModelDyn->EditProp(13, Param);
+                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_();
+                    }
 					break;
-					case 	17:
-					with0->GenClass = Parser[ActorID]->MakeInteger_();
+                    case	17:
+                    {
+                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_() * 1e3;  // 'MVA'
+                        with0->WindModelDyn->EditProp(13, to_string(with0->WindGenVars.kVArating));
+                    }
 					break;
 					case 	18:
-					with0->Vpu = Parser[ActorID]->MakeDouble_();
-					break;
+						with0->UserModel->Set_Name(Parser[ActorID]->MakeString_());
+					break;  // Connect to user written models
 					case 	19:
-					with0->kvarMax = Parser[ActorID]->MakeDouble_();
-					break;
+						with0->UserModel->Set_Edit(Parser[ActorID]->MakeString_());
+					break;  // Send edit string to user model
 					case 	20:
-					with0->kvarMin = Parser[ActorID]->MakeDouble_();
+						with0->DutyStart = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	21:
-					with0->PVFactor = Parser[ActorID]->MakeDouble_();
-					break;  //decelaration factor
-					case 	22:
-					with0->DebugTrace = InterpretYesNo(Param);
+						with0->DynamicEq = Param;
 					break;
-					case 	23:
-					with0->Vminpu = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	24:
-					with0->Vmaxpu = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	25:
-					with0->FForcedON = InterpretYesNo(Param);
-					break;
-					case 	26:
-					with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	27:
-					with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_() * 1000.0;
-					break;  // 'MVA';
-					case 	28:
-					with0->WindGenVars.puXd = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	29:
-					with0->WindGenVars.puXdp = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	30:
-					with0->WindGenVars.puXdpp = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	31:
-					with0->WindGenVars.Hmass = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	32:
-					with0->WindGenVars.Dpu = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	33:
-					with0->UserModel->Set_Name(Parser[ActorID]->MakeString_());
-					break;  // Connect to user written models
-					case 	34:
-					with0->UserModel->Set_Edit(Parser[ActorID]->MakeString_());
-					break;  // Send edit string to user model
-					case 	35:
-					with0->ShaftModel->Set_Name(Parser[ActorID]->MakeString_());
-					break;
-					case 	36:
-					with0->ShaftModel->Set_Edit(Parser[ActorID]->MakeString_());
-					break;
-					case 	37:
-					with0->DutyStart = Parser[ActorID]->MakeDouble_();
-					break;
-					case 	38:
-					with0->ForceBalanced = InterpretYesNo(Param);
-					break;
-					case 	39:
-					with0->WindGenVars.XRdp = Parser[ActorID]->MakeDouble_();
-					break;  // X/R for dynamics model
-
+                    case 22:
+                        with0->SetDynOutput(Param);
+                    break;
+                    case 23:
+                        with0->WindModelDyn->EditProp(1,Param);
+                    break;
+                    case 24:
+                        with0->WindModelDyn->EditProp(2, Param);
+                    break;
+                    case 25:
+                        with0->WindModelDyn->EditProp(3, Param);
+                    break;
+                    case 26:
+                        with0->WindModelDyn->EditProp(4, Param);
+                    break;
+                    case 27:
+                        with0->WindModelDyn->EditProp(5, Param);
+                    break;
+                    case 28:
+                        with0->WindModelDyn->EditProp(6, Param);
+                    break;
+                    case 29:
+                        with0->WindModelDyn->EditProp(7, Param);
+                    break;
+                    case 30:
+                        with0->WindModelDyn->EditProp(8, Param);
+                    break;
+                    case 31:
+                        with0->WindModelDyn->EditProp(9, Param);
+                    break;
+                    case 32:
+                        with0->WindModelDyn->EditProp(10, Param);
+                    break;
+                    case 33:
+                        with0->WindModelDyn->EditProp(12, Param);
+                    break;
+                    case 34:
+                        with0->WindModelDyn->EditProp(22, Param);
+                    break;
+                    case 35:
+                        with0->VV_Curve = Param;
+                    break;
+                    case 36:
+                        with0->WindGenVars.ag = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 37:
+                        with0->WindGenVars.Cp = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 38:
+                        with0->WindGenVars.Lamda = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 39:
+                        with0->WindGenVars.Poles = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 40:
+                        with0->WindGenVars.pd = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 41:
+                        with0->WindGenVars.PLoss = Parser[ActorID]->MakeString_();
+                    break;
+                    case 42:
+                        with0->WindGenVars.Rad = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 43:
+                        with0->WindGenVars.VCutin = Parser[ActorID]->MakeDouble_();
+                    break;
+                    case 44:
+                        with0->WindGenVars.VCutout = Parser[ActorID]->MakeDouble_();
+                    break;
            // Inherited parameters
 					default:
-					inherited::ClassEdit(ActiveWindGenObj, ParamPointer - NumPropsThisClass);
+						inherited::ClassEdit(ActiveWindGenObj, ParamPointer - NumPropsThisClass);
 					break;
 				}
 			if(ParamPointer > 0)
@@ -586,7 +645,7 @@ int TWindGen::Edit(int ActorID)
 							}
 					}
 					break;
-					case 	22:
+					case 	13:
 					if(with0->DebugTrace)
 					{
 						int stop = 0;
@@ -611,9 +670,42 @@ int TWindGen::Edit(int ActorID)
 						CloseFile(with0->Tracefile);
 					}
 					break;
-					case 	26: case 27:
+					case 	16: case 17:
 					with0->kVANotSet = false;
 					break;
+					case	21:
+					{
+                        with0->DynamicEqObj = (TDynamicExpObj*) TDynamicExpClass[ActorID]->Find(with0->DynamicEq);
+                        if (ASSIGNED(with0->DynamicEqObj))
+                        {
+                            with0->DynamicEqVals.resize(with0->DynamicEqObj->get_FNumVars());
+                            for (int idx = 0; idx < with0->DynamicEqVals.size(); idx++)
+                                with0->DynamicEqVals[idx].resize(2);
+                        }
+					}
+                    break;
+                    case 35:		// get the Volt-var control curve
+                    {
+                        with0->VV_CurveObj = (TXYcurveObj*) XYCurveClass[ActorID]->Find(with0->VV_Curve);
+                        if (ASSIGNED(with0->VV_CurveObj))
+                        {
+                            auto with1 = with0->VV_CurveObj;
+                            for (int idx = 1; idx < 4; idx++)
+                                with0->WindModelDyn->EditProp(13 + idx, to_string(with1->Get_XValue(idx)));
+                            for (int idx = 1; idx < 4; idx++)
+                                with0->WindModelDyn->EditProp(17 + idx, to_string(with1->Get_YValue(idx)));
+                        }
+                        else
+                            DoSimpleMsg("Volt-var control curve \"" + with0->VV_Curve + "\" not found, make sure that it was not defined before this element", 565);
+                    }
+                    break;
+                    case 41: // get the losses curve
+                    {
+                        with0->Loss_CurveObj = (TXYcurveObj*)XYCurveClass[ActorID]->Find(with0->WindGenVars.PLoss);
+                        if (!(ASSIGNED(with0->Loss_CurveObj)))
+							DoSimpleMsg("Losses curve \"" + with0->VV_Curve + "\" not found, make sure that it was not defined before this element", 566);
+                    }
+                    break;
 					default:
 					  ;
 					break;
@@ -882,6 +974,22 @@ TWindGenObj::TWindGenObj(TDSSClass* ParClass, const String SourceName)
 		with0.dSpeed = 0.0;
 		with0.D = 1.0;
 		with0.XRdp = 20.0;
+
+        // Added for the wind generator specifically
+        with0.PLoss = "";
+        with0.ag	= 1 / 90;
+        with0.Cp	= 0.41;
+        with0.Lamda = 7.95;
+        with0.Poles = 2;
+        with0.pd    = 1.225;
+        with0.Rad   = 40;
+        with0.VCutin = 5;
+        with0.VCutout = 23;
+        with0.Pm    = 0;
+        with0.Ps    = 0;
+        with0.Pr    = 0;
+        with0.Pg    = 0;
+        with0.s     = 0;
 	}
 
      /*Advertise Genvars struct as public*/
@@ -903,12 +1011,23 @@ TWindGenObj::TWindGenObj(TDSSClass* ParClass, const String SourceName)
 	GenSwitchOpen = false;
 	ShapeIsActual = false;
 	ForceBalanced = false;
+
 	Spectrum ="defaultgen";  // override base class
+
 	GenActive = true;   // variable to use if needed
+
+	     // Creates the Dynamic model for the Wind Turbine
+	WindModelDyn = new TGE_WTG3_Model(WindGenVars, ActiveCircuit[ActiveActor]->Solution->DynaVars);
+    WindModelDyn->EditProp(6, "12");
+    WindModelDyn->QMode = 0;
+
+	Loss_CurveObj = nullptr;
+    VV_CurveObj = nullptr;
+
 	InitPropertyValues(0);
 	RecalcElementData(ActiveActor);
 
-	for (i = 0; i < NumGenRegisters; i++)
+	for (i = 0; i < NumWGenRegisters; i++)
 	{
 		Registers[i] = 0.0;
 		Derivatives[i] = 0.0;
@@ -949,6 +1068,87 @@ void TWindGenObj::Randomize(int Opt)
 		  ;
 		break;
 	}
+}
+
+//----------------------------------------------------------------------------
+/*Evaluates if the value provided corresponds to a constant value or to an operand
+ for calculating the value using the simulation results*/
+
+int TWindGenObj::CheckIfDynVar(String myVar, int ActorID)
+{
+    int result = 0;
+    int myOp = 0; // Operator found
+
+    String myValue; // Value entered by the user
+    result = -1;
+    if ((DynamicEqObj != NULL))
+    {
+        result = DynamicEqObj->Get_Var_Idx(myVar);
+        if ((result >= 0) && (result < 50000))
+        {
+            myValue = Parser[ActorID]->MakeString_();
+            if (DynamicEqObj->Check_If_CalcValue(myValue, myOp))
+            {
+                // Adss the pair (var index + operand index)
+                DynamicEqPair.push_back(result);
+                DynamicEqPair.push_back(myOp);
+            }
+            else // Otherwise, move the value to the values array
+                DynamicEqVals[result][0] = Parser[ActorID]->MakeDouble_();
+        }
+        else
+            result = -1; // in case is a constant
+    }
+    return result;
+}
+
+//----------------------------------------------------------------------------
+/*Obtains the indexes of the given variables to use them as reference for setting
+the dynamic output for the generator*/
+
+void TWindGenObj::SetDynOutput(String myVar)
+{
+    int VarIdx = 0, 
+		idx = 0;
+    TStringList myStrArray;
+
+    if (DynamicEqObj != NULL) // Making sure we have a dynamic eq linked
+    {
+        // First, set the length for the index array, 2 variables in this case
+        DynOut.resize(2);
+        InterpretTStringListArray(myVar, myStrArray);
+        // ensuring they are lower case
+        for (int stop = 1, idx = 0; idx <= stop; idx++)
+        {
+            myStrArray[idx] = LowerCase(myStrArray[idx]);
+            VarIdx = DynamicEqObj->Get_Out_Idx(myStrArray[idx]);
+            if (VarIdx < 0)
+                // Being here means that the given name doesn't exist or is a constant
+                DoSimpleMsg("DynamicExp variable \"" + myStrArray[idx] + "\" not found or not defined as an output.", 50008);
+            else
+                DynOut[idx] = VarIdx;
+        }
+        myStrArray.clear();
+    }
+    else
+        DoSimpleMsg(String("A DynamicExp object needs to be assigned to this element before this declaration: DynOut = [") + myVar + "]", 50007);
+}
+
+//----------------------------------------------------------------------------
+/*Returns the names of the variables to be used as outputs for the dynamic expression*/
+
+String TWindGenObj::GetDynOutputStr()
+{
+    String result = "[";
+    int idx = 0;
+    
+    if (DynamicEqObj != nullptr) // Making sure we have a dynamic eq linked
+    {
+        for (int stop = DynOut.size() - 1, idx = 0; idx <= stop; idx++)
+            result = result + DynamicEqObj->Get_VarName(DynOut[idx]) + ",";
+    }
+    result = result + "]"; // Close array str
+    return result;
 }
 
 //----------------------------------------------------------------------------
@@ -999,180 +1199,221 @@ void TWindGenObj::CalcYearlyMult(double hr)
 
 void TWindGenObj::SetNominalGeneration(int ActorID)
 {
-	double Factor = 0.0;
-	bool GenOn_Saved = false;
+    complex myV = CZero;
+	double	VMag = 0.0, 
+			VMagTmp = 0.0,	
+			LeadLag = 0.0, 
+			kVATmp = 0.0, 
+			kvarCalc = 0.0, 
+			myLosses = 0.0, 
+			Factor = 0.0;
+	bool	GenOn_Saved = false;
+	int i = 0;
+
+
 	GenOn_Saved = GenON;
-	ShapeFactor = CDoubleOne;
-    // Check to make sure the generation is ON
+	ShapeFactor = cmplx(WindModelDyn->vwind, 0);
+	// Check to make sure the generation is ON
 	/*# with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do */
+    auto with0 = ActiveCircuit[ActorID];
+    auto with1 = ActiveCircuit[ActorID]->Solution;
 	{
-		
-		auto with1 = ActiveCircuit[ActorID]->Solution;
-		if(!(with1->IsDynamicModel || with1->IsHarmonicModel))     // Leave WindGen in whatever state it was prior to entering Dynamic mode
 		{
-			GenON = true;   // Init to on then check if it should be off
- //       IF NOT FForcedON
- //       THEN CASE DispatchMode of
- //****          LOADMODE: IF (DispatchValue > 0.0)   AND (WindGenDispatchReference < DispatchValue)  THEN GenON := FALSE;
- //****          PRICEMODE:IF (DispatchValue > 0.0)   AND (PriceSignal < DispatchValue) THEN GenON := FALSE;
- //       END;
-		}
-		if(!GenON)
-         // If WindGen is OFF enter as tiny resistive load (.0001 pu) so we don't get divide by zero in matrix
-		{
-			WindGenVars.Pnominalperphase = -0.1 * kWBase / Fnphases;
-          // Pnominalperphase   := 0.0;
-			WindGenVars.Qnominalperphase = 0.0;
-		}
-		else
-    // WindGen is on, compute it's nominal watts and vars
-		{
-			/*# with Solution do */
-			{
-				auto with2 = ActiveCircuit[ActorID]->Solution;
-				if(IsFixed)
-				{
-					Factor = 1.0;   // for fixed WindGens, set constant
-				}
-				else
-				{
-					switch(with2->Get_SolMode())
-					{
-						case 	SNAPSHOT:
-						Factor = ActiveCircuit[ActorID]->GenMultiplier * 1.0;
-						break;
-						case 	DAILYMODE:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier; // Daily dispatch curve
-							CalcDailyMult(with2->DynaVars.dblHour);
-						}
-						break;
-						case 	YEARLYMODE:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier;
-							CalcYearlyMult(with2->DynaVars.dblHour);
-						}
-						break;
-						case 	DUTYCYCLE:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier;
-							CalcDutyMult(with2->DynaVars.dblHour);
-						}
-						break;   // General sequential time simulation
-						case 	GENERALTIME: case DYNAMICMODE:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier;
-                                       // This mode allows use of one class of load shape
-							switch(ActiveCircuit[ActorID]->ActiveLoadShapeClass)
-							{
-								case 	USEDAILY:
-								CalcDailyMult(with2->DynaVars.dblHour);
-								break;
-								case 	USEYEARLY:
-								CalcYearlyMult(with2->DynaVars.dblHour);
-								break;
-								case 	USEDUTY:
-								CalcDutyMult(with2->DynaVars.dblHour);
-								break;
-								default:     // default to 1 + j1 if not known
-								ShapeFactor = CDoubleOne;
-								break;
-							}
-						}
-						break;
-						case 	MONTECARLO1: case MONTEFAULT: case FAULTSTUDY:
-						Factor = ActiveCircuit[ActorID]->GenMultiplier * 1.0;
-						break;
-						case 	MONTECARLO2: case MONTECARLO3: case LOADDURATION1: case LOADDURATION2:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier;
-							CalcDailyMult(with2->DynaVars.dblHour);
-						}
-						break;
-						case 	PEAKDAY:
-						{
-							Factor = ActiveCircuit[ActorID]->GenMultiplier;
-							CalcDailyMult(with2->DynaVars.dblHour);
-						}
-						break;
-						case 	AUTOADDFLAG:
-						Factor = 1.0;
-						break;
-						default:
-						Factor = 1.0;
-						break;
-					}
-				}
-			}
-			if(!(with1->IsDynamicModel || with1->IsHarmonicModel))         //******
-			{
-				if(ShapeIsActual)
-					WindGenVars.Pnominalperphase = 1000.0 * ShapeFactor.re / Fnphases;
-				else
-					WindGenVars.Pnominalperphase = 1000.0 * kWBase * Factor * ShapeFactor.re / Fnphases;
-				/*# with WindGenVars do */
-				{
-					auto& with3 = WindGenVars;
-					if(GenModel == 3)   /* Just make sure present value is reasonable*/
-					{
-						if(with3.Qnominalperphase > varMax)
-							with3.Qnominalperphase = varMax;
-						else
-						{
-							if(with3.Qnominalperphase < varMin)
-								with3.Qnominalperphase = varMin;
-						}
-					}
-					else
+			kvarCalc = 0.0;
+			GenON = true; // The first assumption is that the generator is ON
 
-                   /* for other WindGen models*/
-					{
-						if(ShapeIsActual)
-							with3.Qnominalperphase = 1000.0 * ShapeFactor.im / Fnphases;
-						else
-							with3.Qnominalperphase = 1000.0 * kvarBase * Factor * ShapeFactor.im / Fnphases;
-					}
-				}
-			}
-		} /*ELSE GenON*/
-		if(!(with1->IsDynamicModel || with1->IsHarmonicModel))       //******
-		{
-			switch(GenModel)
+			// first, get wind speed (Factor)
+			if (IsFixed)
 			{
-				case 	6:
-				Yeq = cinv(cmplx(0.0, -WindGenVars.XD));
-				break;  // Gets negated in CalcYPrim
-				default:
-				/*# with WindGenVars do */
+				Factor = 1.0; // for fixed WindGens, set constant
+			}
+			else
+			{
+				switch (with1->Get_SolMode())
 				{
-					auto& with4 = WindGenVars;
-					Yeq = cdivreal(cmplx(with4.Pnominalperphase, -with4.Qnominalperphase), Sqr(VBase));
-				}   // Vbase must be L-N for 3-phase
-				if(Vminpu != 0.0)  // at 95% voltage
-					Yeq95 = cdivreal(Yeq, Sqr(Vminpu));
-				else
-					Yeq95 = Yeq; // Always a constant Z model
-				if(Vmaxpu != 0.0)   // at 105% voltage
-					Yeq105 = cdivreal(Yeq, Sqr(Vmaxpu));
-				else
-					Yeq105 = Yeq;
+				case SNAPSHOT:
+					Factor = with0->GenMultiplier;
+					break;
+				case DAILYMODE:
+				{
+					Factor = with0->GenMultiplier;
+					CalcDailyMult(with1->DynaVars.dblHour); // Daily dispatch curve
+				}
 				break;
-			}
-
-          /* When we leave here, all the Yeq's are in L-N values*/
-			if(GenModel == 7)
-				/*# with WindGenVars do */
+				case YEARLYMODE:
 				{
-					auto& with5 = WindGenVars;
-					PhaseCurrentLimit = cdivreal(cmplx(with5.Pnominalperphase, -with5.Qnominalperphase), VBase95);
-					Model7MaxPhaseCurr = cabs(PhaseCurrentLimit);
+					Factor = with0->GenMultiplier;
+					CalcYearlyMult(with1->DynaVars.dblHour);
 				}
-		}
-	}  /*With ActiveCircuit[ActiveActor]*/
+				break;
+				case DUTYCYCLE:
+				{
+                    Factor = with0->GenMultiplier;
+					CalcDutyMult(with1->DynaVars.dblHour);
+				}
+				break;
+				case GENERALTIME:
+				case // General sequential time simulation
+					DYNAMICMODE:
+				{
+                    Factor = with0->GenMultiplier;
+					// This mode allows use of one class of load shape
+					switch (with0->ActiveLoadShapeClass)
+					{
+					case USEDAILY:
+						CalcDailyMult(with1->DynaVars.dblHour);
+						break;
+					case USEYEARLY:
+						CalcYearlyMult(with1->DynaVars.dblHour);
+						break;
+					case USEDUTY:
+						CalcDutyMult(with1->DynaVars.dblHour);
+						break;
+					default:
+						ShapeFactor = cmplx(WindModelDyn->vwind, 0); // default to the wind speed set by default
+					}
+				}
+				break;
+				case MONTECARLO1:
+				case MONTEFAULT:
+				case FAULTSTUDY:
+					Factor = with0->GenMultiplier * 1.0;
+					break;
+				case MONTECARLO2:
+				case MONTECARLO3:
+				case LOADDURATION1:
+				case LOADDURATION2:
+				{
+					Factor = with0->GenMultiplier;
+					CalcDailyMult(with1->DynaVars.dblHour);
+				}
+				break;
+				case PEAKDAY:
+				{
+					Factor = with0->GenMultiplier;
+					CalcDailyMult(with1->DynaVars.dblHour);
+				}
+				break;
+				case AUTOADDFLAG:
+					Factor = 1.0;
+					break;
+				default:
+					Factor = with0->GenMultiplier;
+				}
+			}
+			WindModelDyn->vwind = ShapeFactor.re;
+			if ((ShapeFactor.re > WindGenVars.VCutout) || (ShapeFactor.re < WindGenVars.VCutin))
+			{
+				WindGenVars.Pnominalperphase = 0.001 * kWBase;
+				WindGenVars.Qnominalperphase = 0.0;
+				WindGenVars.Pm = 0.0;
+				WindGenVars.Pg = 0.0;
+				WindGenVars.Ps = 0.0;
+				WindGenVars.Pr = 0.0;
+				WindGenVars.s = 0.0;
+			}
+			else
+			{
+				if (!(with1->IsDynamicModel || with1->IsHarmonicModel)) //******
+				{
+					// start by getting the losses from the provided curve (if any)
+					if (ASSIGNED(Loss_CurveObj))
+						myLosses = Loss_CurveObj->GetYValue_(WindModelDyn->vwind);
+					else
+						myLosses = 0.0; // no losses given that the curve was not provided
+					LeadLag = 1;
+					/*# with WindGenVars do */
+					{
+                        auto& with2 = WindGenVars;
 
-   // If WindGen state changes, force re-calc of Y matrix
-	if(GenON != GenOn_Saved)
-		Set_YprimInvalid(ActorID,true);
+						with2.Pm = 0.5 * with2.pd * PI * pow(with2.Rad, 2) * pow(ShapeFactor.re, 3) * with2.Cp;
+                        myLosses = with2.Pm * myLosses / 100;
+                        with2.Pg = (with2.Pm - myLosses) / 1e3; // in kW
+                        if (with2.Pg > kWBase)
+                            with2.Pg = kWBase; // Generation limits
+                        with2.s = 1 - ((with2.Poles * ShapeFactor.re * with2.Lamda) / (with2.w0 * with2.ag * with2.Rad));
+                        with2.Ps = with2.Pg / (1 - with2.s);
+                        with2.Pr = with2.Ps * with2.s;
+                        with2.Pnominalperphase = (1e3 * Factor * with2.Pg) / Fnphases;
+						// Now check for Q depending on QMode
+						switch (WindModelDyn->QMode)
+						{
+							case 1: // PF
+							{
+                                kvarCalc = pow((with2.Pg / Abs(PFNominal)), 2) - pow(with2.Pg, 2);
+								kvarCalc = sqrt(kvarCalc);
+                                kVATmp = sqrt(pow(with2.Pg, 2) + pow(kvarCalc, 2));
+                                if (kVATmp > with2.kVArating) // Check saturation
+									kvarCalc = kvarBase;
+								if (PFNominal < 0)
+									LeadLag = -1.0;
+							}
+							break;
+							case 2: // Volt-var ctrl
+							{
+								if (!(NodeRef.empty()))
+								{
+									// get the highest voltage done locally given with whatever is on memory
+									for (int stop = WindGenVars.NumPhases, i = 1; i <= stop; i++)
+									{
+										myV = with1->NodeV[NodeRef[i - 1]];
+										VMagTmp = ctopolar(myV).mag;
+										if (VMagTmp > VMag)
+											VMag = VMagTmp;
+									}
+									VMag = VMag / VBase; // in pu
+
+									// start by getting the losses from the provided curve (if any)
+									if ((VV_CurveObj != nullptr))
+										VMagTmp = VV_CurveObj->GetYValue_(VMag);
+									else
+										VMagTmp = 0.0; // no losses given that the curve was not provided
+								}
+								else
+									VMagTmp = 0.0;
+
+								// Calculates Q based on the
+								kvarCalc = kvarBase * VMagTmp;
+								if (Abs(kvarCalc) > kvarBase)
+								{
+									kvarCalc = kvarBase;
+									if (VMagTmp < 0)
+										LeadLag = -1.0;
+								}
+							}
+							break;
+							default:
+								kvarCalc = 0;
+						}
+						WindGenVars.Qnominalperphase = 1e3 * kvarCalc * LeadLag * Factor / Fnphases;
+					}
+				}
+			}
+		}
+	}
+    if (!(with1->IsDynamicModel || with1->IsHarmonicModel))    //******
+    {
+        // build the Y primitive eq
+        switch (GenModel)
+        {
+			case 6:
+				Yeq = cinv(cmplx(0, -WindGenVars.XD));	// Gets negated in CalcYPrim
+            break;
+            default:
+				auto with4 = WindGenVars;
+                Yeq = cdivreal(cmplx(with4.Pnominalperphase, -with4.Qnominalperphase), sqr(VBase)); // Vbase must be L-N for 3-phase
+                if (Vminpu != 0)
+                    Yeq95 = cdivreal(Yeq, sqr(Vminpu)); // at 95% voltage
+                else
+					Yeq95 = Yeq; // Always a constant Z model
+                if (Vmaxpu != 0)
+                    Yeq105 = cdivreal(Yeq, sqr(Vmaxpu)); // at 105% voltage
+                else
+                    Yeq105 = Yeq; 
+            break;
+        }
+    }
+
 }
 
 //----------------------------------------------------------------------------
@@ -1189,12 +1430,23 @@ void TWindGenObj::RecalcElementData(int ActorID)
 	/*# with WindGenVars do */
 	{
 		auto& with0 = WindGenVars;
-		with0.XD = with0.puXd * 1000.0 * Sqr(with0.kVWindGenBase) / with0.kVArating;
+		with0.XD =	with0.puXd * 1000.0 * Sqr(with0.kVWindGenBase) / with0.kVArating;
 		with0.Xdp = with0.puXdp * 1000.0 * Sqr(with0.kVWindGenBase) / with0.kVArating;
 		with0.Xdpp = with0.puXdpp * 1000.0 * Sqr(with0.kVWindGenBase) / with0.kVArating;
 		with0.Conn = Connection;
 		with0.NumPhases = Fnphases;
 		with0.NumConductors = Fnconds;
+
+		if (!kVANotSet)
+        {
+            kWBase = (with0.kVArating * Abs(PFNominal));
+            kvarBase = sqrt(sqr(with0.kVArating) - sqr(kWBase));
+        }
+        else
+        {
+			with0.kVArating = kWBase / Abs(PFNominal);
+            WindModelDyn->EditProp(13, to_string(with0.kVArating));
+        }
 	}
 	SetNominalGeneration(ActorID);
 
@@ -1208,24 +1460,21 @@ void TWindGenObj::RecalcElementData(int ActorID)
 	if(YearlyShapeObj == nullptr)
 	{
 		if(YearlyShape.size() > 0)
-			DoSimpleMsg(String("WARNING! Yearly load shape: \"") + YearlyShape
-	           +"\" Not Found.", 563);
+			DoSimpleMsg("WARNING! Yearly load shape: \"" + YearlyShape + "\" Not Found.", 563);
 	}
 	if(DailyDispShapeObj == nullptr)
 	{
 		if(DailyDispShape.size() > 0)
-			DoSimpleMsg(String("WARNING! Daily load shape: \"") + DailyDispShape
-	           +"\" Not Found.", 564);
+			DoSimpleMsg("WARNING! Daily load shape: \"" + DailyDispShape + "\" Not Found.", 564);
 	}
 	if(DutyShapeObj == nullptr)
 	{
 		if(DutyShape.size() > 0)
-			DoSimpleMsg(String("WARNING! Duty load shape: \"") + DutyShape
-	           +"\" Not Found.", 565);
+			DoSimpleMsg("WARNING! Duty load shape: \"" + DutyShape + "\" Not Found.", 565);
 	}
 	SpectrumObj = ((TSpectrumObj*) SpectrumClass[ActorID]->Find(Spectrum));
 	if(SpectrumObj == nullptr)
-		DoSimpleMsg(String("ERROR! Spectrum \"") + Spectrum +"\" Not Found.", 566);
+		DoSimpleMsg("ERROR! Spectrum \"" + Spectrum +"\" Not Found.", 566);
 	YQFixed = -varBase / Sqr(VBase);   //10-17-02  Fixed negative sign
 	WindGenVars.VTarget = Vpu * 1000.0 * WindGenVars.kVWindGenBase;
 	if(Fnphases > 1)
@@ -1242,121 +1491,122 @@ void TWindGenObj::RecalcElementData(int ActorID)
 		UserModel->FUpdateModel();
 	if(ShaftModel->Get_Exists())
 		ShaftModel->FUpdateModel();
+
+	if (ASSIGNED(WindModelDyn))
+		WindModelDyn->ReCalcElementData();
 }
 
-//----------------------------------------------------------------------------
-
-void TWindGenObj::CalcYPrimMatrix(TcMatrix* Ymatrix, int ActorID)
+void TWindGenObj::CalcYPrimMatrix(Ucmatrix::TcMatrix* Ymatrix, int ActorID)
 {
-	complex Y = {};
-	complex Yij = {};
-	int i = 0;
-	int j = 0;
-	double FreqMultiplier = 0.0;
-	FYprimFreq = ActiveCircuit[ActorID]->Solution->get_FFrequency();
-	FreqMultiplier = FYprimFreq / BaseFrequency;
-	/*# with ActiveCircuit[ActorID].Solution do */
-	{
-		auto with0 = ActiveCircuit[ActorID]->Solution;
-		if(with0->IsDynamicModel || with0->IsHarmonicModel)
-		{
-			int stop = 0;
-			if(GenON)   // L-N value computed in initialization routines
-				Y = Yeq;
-			else
-				Y = cmplx(EPSILON, 0.0);
-			if(Connection == 1)
-				Y = cdivreal(Y, 3.0); // Convert to delta impedance
-			Y.im = Y.im / FreqMultiplier;
-			Yij = cnegate(Y);
-			for(stop = Fnphases, i = 1; i <= stop; i++)
-			{
-				switch(Connection)
+    complex Y	= CZero, 
+			Yij = CZero;
+    int		i = 0, 
+			j = 0;
+    double	FreqMultiplier = 0.0;
+    double	WTGZLV = 0.0;
+
+	auto with0 = ActiveCircuit[ActorID];
+    auto with1 = with0->Solution;
+
+    FYprimFreq = with1->get_FFrequency();
+    FreqMultiplier = FYprimFreq / BaseFrequency;
+    /*# with ActiveCircuit[ActorID].Solution do */
+
+    if (with1->IsDynamicModel || with1->IsHarmonicModel)
+    {
+        if (GenON)
+        {
+            /*# with WindModelDyn do */
+            auto with2 = WindModelDyn;
+            {
+                WTGZLV = sqr(Get_PresentkV()) * 1e3 / WindGenVars.kVArating;
+                Y = cmplx(EPSILON, (-with2->N_WTG) / (with2->Xthev * WTGZLV)); // Yeq  // L-N value computed in initial condition routines
+            }
+        }
+        else
+            Y = cmplx(EPSILON, 0.0);
+        if (Connection == 1)
+            Y = cdivreal(Y, 3.0); // Convert to delta impedance
+        Y.im = double(Y.im) / FreqMultiplier;
+        Yij = cnegate(Y);
+        for (int stop = Fnphases, i = 1; i <= stop; i++)
+        {
+            switch (Connection)
+            {
+				case 0:
 				{
-					case 	0:
-					{
-						Ymatrix->SetElement(i, i, Y);
-						Ymatrix->AddElement(Fnconds, Fnconds, Y);
-						Ymatrix->SetElemsym(i, Fnconds, Yij);
-					}
-					break;   /*Delta connection*/
-					case 	1:
-					{
-						int stop1 = 0;
-						Ymatrix->SetElement(i, i, Y);
-						Ymatrix->AddElement(i, i, Y);  // put it in again
-						for(stop1 = i - 1, j = 1; j <= stop1; j++)
-						{
-							Ymatrix->SetElemsym(i, j, Yij);
-						}
-					}
-					break;
-					default:
-					  ;
-					break;
-				}
-			}
-
-      /**** Removed Neutral / Neutral may float
-
-       IF Connection = 0 Then   With Ymatrix Do  // Take care of neutral issues
-         Begin
-           AddElement(Fnconds, Fnconds, YNeut);  // Add in user specified Neutral Z, if any
-           // Bump up neutral-ground in case neutral ends up floating
-           SetElement(Fnconds, Fnconds, CmulReal(GetElement(Fnconds, Fnconds), 1.000001));
-         End;
-
-      */
-		}
-		else
-  //  Regular power flow WindGen model
-		
-       /*Yeq is always expected as the equivalent line-neutral admittance*/
-		{
-			Y = cnegate(Yeq);  // negate for generation    Yeq is L-N quantity
-
-       // ****** Need to modify the base admittance for real harmonics calcs
-			Y.im = Y.im / FreqMultiplier;
-			switch(Connection)
-			{
-				case 	0:
-				/*# with Ymatrix do */
-				{
-					auto with1 = Ymatrix; // WYE
-					int stop = 0;
-					Yij = cnegate(Y);
-					for(stop = Fnphases, i = 1; i <= stop; i++)
-					{
-						with1->SetElement(i, i, Y);
-						with1->AddElement(Fnconds, Fnconds, Y);
-						with1->SetElemsym(i, Fnconds, Yij);
-					}
+					Ymatrix->SetElement(i, i, Y);
+					Ymatrix->AddElement(Fnconds, Fnconds, Y);
+					Ymatrix->SetElemsym(i, Fnconds, Yij);
 				}
 				break;
-				case 	1:
-				/*# with Ymatrix do */
-				{
-					auto with2 = Ymatrix;  // Delta  or L-L
-					int stop = 0;
-					Y = cdivreal(Y, 3.0); // Convert to delta impedance
-					Yij = cnegate(Y);
-					for(stop = Fnphases, i = 1; i <= stop; i++)
-					{
-						j = i + 1;
-						if(j > Fnconds)
-							j = 1;  // wrap around for closed connections
-						with2->AddElement(i, i, Y);
-						with2->AddElement(j, j, Y);
-						with2->AddElemsym(i, j, Yij);
-					}
+				case 1:
+				{ /*Delta connection*/
+					Ymatrix->SetElement(i, i, Y);
+					Ymatrix->AddElement(i, i, Y); // put it in again
+					for (int stop = i - 1, j = 1; j <= stop; j++)
+						Ymatrix->SetElemsym(i, j, Yij);
 				}
 				break;
-				default:
-				  ;
-				break;
-			}
-		}
-	}  /*ELSE IF Solution.mode*/
+                default:
+                break;
+            }
+        }
+
+        /**** Removed Neutral / Neutral may float
+
+         IF Connection = 0 Then   With Ymatrix Do  // Take care of neutral issues
+           Begin
+             AddElement(Fnconds, Fnconds, YNeut);  // Add in user specified Neutral Z, if any
+             // Bump up neutral-ground in case neutral ends up floating
+             SetElement(Fnconds, Fnconds, CmulReal(GetElement(Fnconds, Fnconds), 1.000001));
+           End;
+
+        */
+    }
+    else
+    { //  Regular power flow WindGen model
+
+        /*Yeq is always expected as the equivalent line-neutral admittance*/
+        Y = cnegate(Yeq); // negate for generation    Yeq is L-N quantity
+                          // ****** Need to modify the base admittance for real harmonics calcs
+        Y.im = (Y.im) / FreqMultiplier;
+        auto with3 = Ymatrix;
+        switch (Connection)
+        {
+			case 0:
+            /*# with Ymatrix do */
+
+            { // WYE
+                Yij = cnegate(Y);
+                for (int stop = Fnphases, i = 1; i <= stop; i++)
+                {
+                    with3->SetElement(i, i, Y);
+                    with3->AddElement(Fnconds, Fnconds, Y);
+                    with3->SetElemsym(i, Fnconds, Yij);
+                }
+            }
+            break;
+			case 1:
+            /*# with Ymatrix do */
+            { // Delta  or L-L
+                Y = cdivreal(Y, 3.0); // Convert to delta impedance
+                Yij = cnegate(Y);
+                for (int stop = Fnphases, i = 1; i <= stop; i++)
+                {
+                    j = i + 1;
+                    if (j > Fnconds)
+                        j = 1; // wrap around for closed connections
+                    with3->AddElement(i, i, Y);
+                    with3->AddElement(j, j, Y);
+                    with3->AddElemsym(i, j, Yij);
+                }
+            }
+            break;
+            default:
+            break;
+        }
+    } /*ELSE IF Solution.mode*/
 }
 
 
@@ -1512,8 +1762,8 @@ void TWindGenObj::WriteTraceRecord(const String s, int ActorID)
 void TWindGenObj::DoConstantPQGen(int ActorID)
 {
 	int i = 0;
-	complex Curr = {};
-	complex V = {};
+	complex Curr = CZero;
+	complex V = CZero;
 	double Vmag = 0.0;
 //   V012,I012 :Array[0..2] of Complex;
 //   Iabc :Array[1..3] of Complex;
@@ -1521,56 +1771,13 @@ void TWindGenObj::DoConstantPQGen(int ActorID)
      //Treat this just like the Load model
 	int stop = 0;
 	CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
+    for (i = 0; i < Fnconds; i++)
+        InjCurrent[i] = CZero;
+
 	ZeroITerminal();
 
-    /*****   Tried this but couldn't get it to work
-    CASE Fnphases of
-
-    3:With Genvars Do Begin     // Use Symmetrical Components
-          Phase2SymComp(Vterminal, @V012);   // Vterminal is L-N voltages here
-                         // Phase2SymComp(InjCurrent, @I012);   // Vterminal is L-G voltages here
-          V := V012[1]; // Positive sequence L-N voltage
-          Vmag := Cabs(V012[1]);
-
-           { IF   VMag <= VBase95
-            THEN Curr := Cnegate(Cmul(Yeq95, V))  // Below 95% (Vminpu) use an impedance model
-            ELSE If VMag > VBase105
-            THEN Curr := Cnegate(Cmul(Yeq105, V))  // above 105% (Vmaxpu) use an impedance model
-            }
-            IF   (VMag <= VBase95) or (VMag > VBase105) THEN    Curr := Conjg( Cdiv( CurrentLimit, CDivReal(V, -Vmag)) )
-            ELSE With Genvars Do Curr := Conjg(Cdiv(Cmplx(-Pnominalperphase, -Qnominalperphase), V));    // Current INTO pos seq model
-
-         I012[1] := Curr;  // Pos sequence current into the terminal
-
-          If Connection=1 Then I012[0] := CZERO  Else I012[0] := Cdiv(V012[0], cmplx(0.0, xdpp));
-          I012[2] := Cdiv(V012[2], cmplx(0.0, xdpp));
-
-          // Negative and Zero Sequence Contributions
-         SymComp2Phase(@Iabc, @I012);    // Iabc now desired terminal current
-         IF DebugTrace Then Begin
-             Append(TraceFile);
-			 IOResultToException();
-             Write(TraceFile,Format('V1=%-.5g, /_%-.5g, ',[Cabs(V), CDang(V)]));
-             Write(TraceFile,Format('I1=%-.5g, /_%-.5g, ',[Cabs(Curr), CDang(Curr)]));
-             Write(TraceFile,'Iabc=');
-             For i := 1 to 3 Do Write(TraceFile,Format('%-.5g, /_%-.5g, ',[ Cabs(Iabc[i]), CDang(Iabc[i])]));
-             Writeln(TraceFile);
-             CloseFile(TraceFile);
-         End;
-
-          For i := 1 to 3 Do Begin
-            ITerminal^[i] := Iabc[i];  // Put into Terminal array directly because we have computed line current above
-            Caccum(InjCurrent^[i], Cnegate(Iabc[i]));  // subtract in
-            If Connection=0 Then Begin
-               Caccum(Iterminal^[Fnconds], Cnegate(Iabc[i]));  // Neutral
-               Caccum(InjCurrent^[Fnconds], Iabc[i]);  // Neutral
-            End;
-          End;
-          IterminalUpdated := TRUE;  // so that we con't have to recompute for a report
-      End
-    ELSE
-    ****/
 	CalcVTerminalPhase(ActorID); // get actual voltage across each phase of the load
+
 	for(stop = Fnphases, i = 1; i <= stop; i++)
 	{
 		V = (Vterminal)[i - 1];
@@ -1588,7 +1795,7 @@ void TWindGenObj::DoConstantPQGen(int ActorID)
 					else
 						/*# with WindGenVars do */
 						{
-							auto& with0 = WindGenVars;
+							auto with0 = WindGenVars;
 							Curr = conjg(cdiv(cmplx(with0.Pnominalperphase, with0.Qnominalperphase), V));
 						}  // Between 95% -105%, constant PQ
 				}
@@ -2291,54 +2498,6 @@ void TWindGenObj::CalcInjCurrentArray(int ActorID)
 	else
 		CalcGenModelContribution(ActorID);
 
-/*  We're not going to mess with this logic here -- too complicated: Use an open line in series
-    to look at open phase conditions.
-
-  ELSE Begin
-
-   // some terminals not closed  use admittance model for injection
-      If OpenWindGenSolutionCount <> ActiveCircuit[ActiveActor].Solution.SolutionCount Then Begin
-
-      // Rebuild the Yprimopencond if a new solution because values may have changed.
-
-        // only reallocate when necessary
-        If YPrimOpenCond=nil Then YPrimOpenCond := TcMatrix.CreateMatrix(Yorder)
-        ELSE YPrimOpenCond.Clear;
-        If YPrimOpenCond.Order <> Yorder Then Begin
-           YPrimOpenCond.Free;
-           YPrimOpenCond := TcMatrix.CreateMatrix(Yorder);
-        End;
-        CalcYPrimMatrix(YPrimOpenCond);
-
-        {Now Account for the Open Conductors}
-        {For any conductor that is open, zero out row and column}
-         With YPrimOpenCond Do Begin
-           k := 0;
-           FOR i := 1 TO Fnterms Do Begin
-             FOR j := 1 TO Fnconds Do Begin
-                 If Not Terminals^[i].Conductors^[j].Closed Then Begin
-                    ZeroRow(j+k);
-                    ZeroCol(j+k);
-                    SetElement(j+k, j+k, Cmplx(1.0e-12,0.0));  // In case node gets isolated
-                 End;
-             End;
-             k := k+Fnconds;
-           End;
-         End;
-         OpenWindGenSolutionCount := ActiveCircuit[ActiveActor].Solution.SolutionCount;
-         
-      End;
-
-      With ActiveCircuit[ActiveActor].Solution Do
-      FOR i := 1 TO Yorder Do Begin
-          Ref := NodeRef^[i];
-          If Ref=0 Then Vterminal^[i] := cZero
-          ELSE  Vterminal^[i] := V^[ref];
-      End;
-      YPrimOpenCond.MVmult(InjTemp, Vterminal);
-      For i := 1 to Yorder Do InjTemp^[i] := Cnegate(InjTemp^[i]);
-   End;
- */
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
@@ -2417,11 +2576,11 @@ void TWindGenObj::ResetRegisters()
 {
 	int i = 0;
 	int stop = 0;
-	for(stop = NumGenRegisters, i = 1; i <= stop; i++)
+	for(stop = NumWGenRegisters, i = 1; i <= stop; i++)
 	{
 		Registers[i - 1] = 0.0;
 	}
-	for(stop = NumGenRegisters, i = 1; i <= stop; i++)
+	for(stop = NumWGenRegisters, i = 1; i <= stop; i++)
 	{
 		Derivatives[i - 1] = 0.0;
 	}
@@ -2672,50 +2831,50 @@ void TWindGenObj::InitHarmonics(int ActorID)
 
 void TWindGenObj::InitPropertyValues(int ArrayOffset)
 {
-	Set_PropertyValue(1,"3");     //'phases';
+	Set_PropertyValue(1,"3");				//'phases';
 	Set_PropertyValue(2,GetBus(1));         //'bus1';
-	Set_PropertyValue(3,"12.47");
-	Set_PropertyValue(4,"100");
-	Set_PropertyValue(5,".80");
-	Set_PropertyValue(6,"1");
-	Set_PropertyValue(7,"");
-	Set_PropertyValue(8,"");
-	Set_PropertyValue(9,"");
-	Set_PropertyValue(10,"Default");
-	Set_PropertyValue(11,"0.0");
-	Set_PropertyValue(12,"wye");
-	Set_PropertyValue(13,"60");
-	Set_PropertyValue(14,"0"); // 'rneut'; // if entered -, assume open
-	Set_PropertyValue(15,"0");  //'xneut';
-	Set_PropertyValue(16,"variable"); //'status'  fixed or variable
-	Set_PropertyValue(17,"1"); //'class'
-	Set_PropertyValue(18,"1.0");
-	Set_PropertyValue(19,Str_Real(kvarMax, 3));
-	Set_PropertyValue(20,Str_Real(kvarMin, 3));
-	Set_PropertyValue(21,"0.1");
-	Set_PropertyValue(22,"no");
-	Set_PropertyValue(23,"0.90");
-	Set_PropertyValue(24,"1.10");
-	Set_PropertyValue(25,"No");
-	Set_PropertyValue(26,Format("%-g", WindGenVars.kVArating));
-	Set_PropertyValue(27,Format("%-g", WindGenVars.kVArating * 0.001));
-	Set_PropertyValue(28,Format("%-g", WindGenVars.puXd));
-	Set_PropertyValue(29,Format("%-g", WindGenVars.puXdp));
-	Set_PropertyValue(30,Format("%-g", WindGenVars.puXdpp));
-	Set_PropertyValue(31,Format("%-g", WindGenVars.Hmass));
-	Set_PropertyValue(32,Format("%-g", WindGenVars.Dpu));
-	Set_PropertyValue(33,"");
-	Set_PropertyValue(34,"");
-	Set_PropertyValue(35,"");
-	Set_PropertyValue(36,"");
-	Set_PropertyValue(37,"0");
-	Set_PropertyValue(38,"No");
-	Set_PropertyValue(39,"20");
-	Set_PropertyValue(40,"No");
-	Set_PropertyValue(41,"0.0");
-	Set_PropertyValue(42,"100.0");
-	Set_PropertyValue(43,"20.0");
-	Set_PropertyValue(44,"No");
+	Set_PropertyValue(3,"12.47");			//kV
+	Set_PropertyValue(4,"100");				//kW
+	Set_PropertyValue(5,".80");				//PF
+	Set_PropertyValue(6,"1");				//model
+	Set_PropertyValue(7,"");				//yearly
+	Set_PropertyValue(8,"");				//daily
+	Set_PropertyValue(9,"");				//duty
+	Set_PropertyValue(10,"wye");			//conn
+	Set_PropertyValue(11,"60.0");			//kvar
+	Set_PropertyValue(12,"100");			//class
+	Set_PropertyValue(13,"no");				//debugtrace
+	Set_PropertyValue(14,"0.90");			//VMinPu
+	Set_PropertyValue(15,"1.1");			//VMaxPu;
+    Set_PropertyValue(16, Format("%-g", WindGenVars.kVArating));			//kVA
+    Set_PropertyValue(17, Format("%-g", WindGenVars.kVArating * 1e-3));		//MVA
+	Set_PropertyValue(18, "");				//UserModel
+    Set_PropertyValue(19, "");				//UserData
+    Set_PropertyValue(20, "0.0");			//DutyStart
+	Set_PropertyValue(21,"");				//DynamicEq
+	Set_PropertyValue(22,"");				//DynOut
+    Set_PropertyValue(23, Format("%-g", WindModelDyn->Rthev));				//RThev
+    Set_PropertyValue(24, Format("%-g", WindModelDyn->Xthev));				//XThev
+    Set_PropertyValue(25, Format("%-g", WindModelDyn->Vss));				//Vss
+    Set_PropertyValue(26, Format("%-g", WindModelDyn->Pss));				//Pss
+    Set_PropertyValue(27, Format("%-g", WindModelDyn->Qss));				//Qss
+    Set_PropertyValue(28, Format("%-g", WindModelDyn->vwind));				//VWind
+    Set_PropertyValue(29, Format("%-g", WindModelDyn->QMode));				//QMode
+    Set_PropertyValue(30, Format("%-g", WindModelDyn->SimMechFlg));			//SimMechFlg
+    Set_PropertyValue(31, Format("%-g", WindModelDyn->APCFLG));				//APCFlg
+    Set_PropertyValue(32, Format("%-g", WindModelDyn->QFlg));				//QFlg
+    Set_PropertyValue(33, Format("%-g", WindModelDyn->delt0));				//delt0
+    Set_PropertyValue(34, Format("%-g", WindModelDyn->N_WTG));				//N_WTG
+	Set_PropertyValue(35,"");												//VV_Curve
+    Set_PropertyValue(36, Format("%-g", WindGenVars.ag));					//Ag
+    Set_PropertyValue(37, Format("%-g", WindGenVars.Cp));					//Cp
+    Set_PropertyValue(38, Format("%-g", WindGenVars.Lamda));				//Lamda
+    Set_PropertyValue(39, Format("%-g", WindGenVars.Poles));				//Poles
+    Set_PropertyValue(40, Format("%-g", WindGenVars.pd));					//pd
+    Set_PropertyValue(41, WindGenVars.PLoss);								//PLoss
+    Set_PropertyValue(42, Format("%-g", WindGenVars.Rad));					//Rad
+    Set_PropertyValue(43, Format("%-g", WindGenVars.VCutin));				//VCutIn
+    Set_PropertyValue(44, Format("%-g", WindGenVars.VCutout));				//VCutOut
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
@@ -2894,59 +3053,54 @@ void TWindGenObj::IntegrateStates(int ActorID)
 
 double TWindGenObj::Get_Variable(int i)
 {
-	double result = 0.0;
-	int n = 0;
-	int k = 0;
-	n = 0;
-	result = -9999.99;  // error return value
-	if(i < 1)
-		return result;  // Someone goofed
-	/*# with WindGenVars do */
-	{
-		auto& with0 = WindGenVars;
-		switch(i)
-		{
-			case 	1:
-			result = (with0.w0 + with0.Speed) / TwoPi;
-			break;  // Frequency, Hz
-			case 	2:
-			result = (with0.Theta) * RadiansToDegrees;
-			break;  // Report in Deg
-			case 	3:
-			result = cabs(Vthev) / VBase;
-			break;      // Report in pu
-			case 	4:
-			result = with0.Pshaft;
-			break;
-			case 	5:
-			result = with0.dSpeed * RadiansToDegrees;
-			break; // Report in Deg      57.29577951
-			case 	6:
-			result = with0.dTheta;
-			break;
-			default:
-			if(UserModel->Get_Exists())
-			{
-				n = UserModel->FNumVars();
-				k = (i - NumGenVariables);
-				if(k <= n)
-				{
-					result = UserModel->FGetVariable(k);
-					return result;
-				}
-			}
+    double	result = -9999.99;	// error return value
+    int		N = 0, 
+			k = 0;
 
-           /*If we get here, must be in the Shaft Model if anywhere*/
-			if(ShaftModel->Get_Exists())
-			{
-				k = i - (NumGenVariables + n);
-				if(k > 0)
-					result = ShaftModel->FGetVariable(k);
-			}
-			break;
-		}
-	}
-	return result;
+    if (i < 1)
+        return result; // Someone goofed
+    if (i < 19)
+        result = WindModelDyn->Get_Variable(i);
+    else
+    {
+        switch (i)
+        {
+        case 19:
+            result = WindGenVars.Pg;
+            break;
+        case 20:
+            result = WindGenVars.Ps;
+            break;
+        case 21:
+            result = WindGenVars.Pr;
+            break;
+        case 22:
+            result = WindGenVars.s;
+            break;
+        default:
+            result = -9999.99;
+        }
+    }
+    if (UserModel->Get_Exists())
+    {
+        N = UserModel->FNumVars();
+        k = (i - NumWGenVariables);
+        if (k <= N)
+        {
+            result = UserModel->FGetVariable(k);
+            return result;
+        }
+    }
+
+    /*If we get here, must be in the Shaft Model if anywhere*/
+    if (ShaftModel->Get_Exists())
+    {
+        k = i - (NumWGenVariables + N);
+        if (k > 0)
+            result = ShaftModel->FGetVariable(k);
+    }
+    return result;
+
 }
 
 void TWindGenObj::Set_Variable(int i, double Value)
@@ -2983,7 +3137,7 @@ void TWindGenObj::Set_Variable(int i, double Value)
 			if(UserModel->Get_Exists())
 			{
 				n = UserModel->FNumVars();
-				k = (i - NumGenVariables);
+				k = (i - NumWGenVariables);
 				if(k <= n)
 				{
 					UserModel->FSetVariable(k, Value);
@@ -2993,7 +3147,7 @@ void TWindGenObj::Set_Variable(int i, double Value)
          // If we get here, must be in the shaft model
 			if(ShaftModel->Get_Exists())
 			{
-				k = (i - (NumGenVariables + n));
+				k = (i - (NumWGenVariables + n));
 				if(k > 0)
 					ShaftModel->FSetVariable(k, Value);
 			}
@@ -3008,25 +3162,25 @@ void TWindGenObj::GetAllVariables(pDoubleArray States)
 	int n = 0;
 	int stop = 0;
 	n = 0;
-	for(stop = NumGenVariables, i = 1; i <= stop; i++)
+	for(stop = NumWGenVariables, i = 1; i <= stop; i++)
 	{
 		(States)[i - 1] = Get_Variable(i);
 	}
 	if(UserModel->Get_Exists())
 	{
 		n = UserModel->FNumVars();
-		UserModel->FGetAllVars((pDoubleArray)&(States)[NumGenVariables + 1 - 1]);
+		UserModel->FGetAllVars((pDoubleArray)&(States)[NumWGenVariables + 1 - 1]);
 	}
 	if(ShaftModel->Get_Exists())
 	{
-		ShaftModel->FGetAllVars((pDoubleArray)&(States)[NumGenVariables + 1 + n - 1]);
+		ShaftModel->FGetAllVars((pDoubleArray)&(States)[NumWGenVariables + 1 + n - 1]);
 	}
 }
 
 int TWindGenObj::NumVariables()
 {
 	int result = 0;
-	result = NumGenVariables;
+	result = NumWGenVariables;
 	if(UserModel->Get_Exists())
 		result = result + UserModel->FNumVars();
 	if(ShaftModel->Get_Exists())
@@ -3093,7 +3247,7 @@ String TWindGenObj::VariableName(int i)
 		{
 			PName = (PAnsiChar) &Buff;
 			n = UserModel->FNumVars();
-			I2 = i - NumGenVariables;
+			I2 = i - NumWGenVariables;
 			if(I2 <= n)
                  // DLL functions require AnsiString (AnsiString) type
 			{
@@ -3105,7 +3259,7 @@ String TWindGenObj::VariableName(int i)
 		if(ShaftModel->Get_Exists())
 		{
 			PName = (PAnsiChar) &Buff;
-			I2 = i - NumGenVariables - n;
+			I2 = i - NumWGenVariables - n;
 			if(I2 > 0)
 				UserModel->FGetVarName(I2, PName, (unsigned int) BuffSize);
 			result = PName;
