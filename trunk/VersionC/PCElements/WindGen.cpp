@@ -977,7 +977,7 @@ TWindGenObj::TWindGenObj(TDSSClass* ParClass, const String SourceName)
 
         // Added for the wind generator specifically
         with0.PLoss = "";
-        with0.ag	= 1 / 90;
+        with0.ag	= 0.0111111111111111111;
         with0.Cp	= 0.41;
         with0.Lamda = 7.95;
         with0.Poles = 2;
@@ -2213,9 +2213,13 @@ void TWindGenObj::DoDynamicMode(int ActorID)
 	complex V012[4] = { CZero, CZero, CZero, CZero, };
 	complex I012[4] = { CZero, CZero, CZero, CZero, };
 	int stop = 0;
-	CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array  and computes VTerminal L-N
+	//CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array  and computes VTerminal L-N
+    ComputeVterminal(ActorID);
+   
+    for (i = 0; i < Get_NConds(); i++)
+        InjCurrent[i] = CZero;
 
-   /*Inj = -Itotal (in) - Yprim*Vtemp*/
+	/*Inj = -Itotal (in) - Yprim*Vtemp*/
 	switch(GenModel)
 	{
 		case 	6:
@@ -2227,90 +2231,11 @@ void TWindGenObj::DoDynamicMode(int ActorID)
 		else
 		{
 			DoSimpleMsg("Dynamics model missing for WindGen." + get_Name() + " ", 5671);
-			SolutionAbort = true;
+			DSSGlobals::SolutionAbort = true;
 		}
 		break;
 		default:
-		switch(Fnphases)
-		{
-			case 	1:
-			/*# with WindGenVars do */
-			{
-				auto& with0 = WindGenVars;  /*No user model, use default Thevinen equivalent for standard WindGen model*/
-                   // 1-phase WindGens have 2 conductors
-				switch(GenModel)
-				{
-					case 	7:  // simple inverter model
-                                  // Assume inverter stays in phase with terminal voltage
-					{
-						CalcVthev_Dyn_Mod7(csub((Vterminal)[1 - 1], (Vterminal)[2 - 1]));
-					}
-					break;
-					default:
-					CalcVthev_Dyn();  // Update for latest phase angle
-					break;
-				}
-				(Iterminal)[1 - 1] = cdiv(csub(csub((Vterminal)[1 - 1], Vthev), (Vterminal)[2 - 1]), with0.Zthev);  // ZThev is based on Xd'
-				if(GenModel == 7)
-				{
-					if(cabs((Iterminal)[1 - 1]) > Model7MaxPhaseCurr)   // Limit the current but keep phase angle
-						(Iterminal)[1 - 1] = ptocomplex(topolar(Model7MaxPhaseCurr, cang((Iterminal)[1 - 1])));
-				}
-				(Iterminal)[2 - 1] = cnegate((Iterminal)[1 - 1]);
-			}
-			break;
-			case 	3:
-			/*# with WindGenVars do */
-			{
-				auto& with1 = WindGenVars;
-				Phase2SymComp(&(Vterminal[0]), &V012[0]);
-				switch(GenModel)
-				{
-					case 	7:  // simple inverter model
-                                // Positive Sequence Contribution to Iterminal
-                                // Assume inverter stays in phase with pos seq voltage
-                                // and pos seq current is limited
-					{
-						CalcVthev_Dyn_Mod7(V012[1]);
-
-                                // Positive Sequence Contribution to Iterminal
-                                // Ref Frame here is all L-N
-						I012[1] = cdiv(csub(V012[1], Vthev), with1.Zthev); // ZThev is based on Xd'
-						if(cabs(I012[1]) > Model7MaxPhaseCurr)  // Limit the current but keep phase angle
-							I012[1] = ptocomplex(topolar(Model7MaxPhaseCurr, cang(I012[1])));
-						if(ForceBalanced)  // set the negative sequence current
-							I012[2] = CZero;
-						else
-							I012[2] = cdiv(V012[2], with1.Zthev);  // for inverter ZThev is  (Xd' + j0)
-					}
-					break;
-                            // Positive Sequence Contribution to Iterminal
-					default:
-					CalcVthev_Dyn();  // Update for latest phase angle
-
-                            // Positive Sequence Contribution to Iterminal
-					I012[1] = cdiv(csub(V012[1], Vthev), with1.Zthev);  // ZThev is based on Xd'
-					I012[2] = cdiv(V012[2], cmplx(0.0, with1.Xdpp));  // machine use Xd"
-					break;
-				}
-
-                      /*Adjust for WindGen connection*/
-				if((Connection == 1) || ForceBalanced)
-					I012[0] = CZero;
-				else
-					I012[0] = cdiv(V012[0], cmplx(0.0, with1.Xdpp));
-				SymComp2Phase(&(Iterminal[0]), (pComplexArray) &I012);  // Convert back to phase components
-
-                      // Neutral current
-				if(Connection == 0)
-					(Iterminal)[Fnconds - 1] = cnegate(cmulreal(I012[0], 3.0));
-			}
-			break;
-			default:
-			DoSimpleMsg(Format("Dynamics mode is implemented only for 1- or 3-phase WindGens. WindGen.%s has %d phases.", get_Name().c_str(), Fnphases), 5671);
-			SolutionAbort = true;
-			break;
-		}
+            WindModelDyn->CalcDynamic(&(Vterminal[0]), &(Iterminal[0]));
 		break;
 	}
 	set_ITerminalUpdated(true, ActorID);
@@ -2893,90 +2818,120 @@ void TWindGenObj::InitStateVars(int ActorID)
 		switch(GenModel)
 		{
 			case 	7:
-			with0.Zthev = cmplx(with0.Xdp, 0.0);
+				with0.Zthev = cmplx(with0.Xdp, 0.0);
 			break; // use Xd' as an equivalent R for the inverter
 			default:
-			with0.Zthev = cmplx(with0.Xdp / with0.XRdp, with0.Xdp);
+				with0.Zthev = cmplx(with0.Xdp / with0.XRdp, with0.Xdp);
 			break;
 		}
 		Yeq = cinv(with0.Zthev);
 
      /*Compute nominal Positive sequence voltage behind transient reactance*/
 		if(GenON)
-			/*# with ActiveCircuit[ActorID].Solution do */
+		/*# with ActiveCircuit[ActorID].Solution do */
+		{
+			auto with1 = ActiveCircuit[ActorID]->Solution;
+			ComputeIterminal(ActorID);
+			switch(Fnphases)
 			{
-				auto with1 = ActiveCircuit[ActorID]->Solution;
-				ComputeIterminal(ActorID);
-				switch(Fnphases)
+				case 	1:
 				{
-					case 	1:
+					if(!ADiakoptics || (ActorID == 1))
+						Edp = csub(csub(with1->NodeV[(NodeRef)[1 - 1]], with1->NodeV[(NodeRef)[2 - 1]]), cmul((Iterminal)[1 - 1], with0.Zthev));
+					else
+						Edp = csub(csub(with1->VoltInActor1((NodeRef)[1 - 1]), with1->VoltInActor1((NodeRef)[2 - 1])), cmul((Iterminal)[1 - 1], with0.Zthev));
+					with0.VthevMag = cabs(Edp);
+				}
+				break;
+                // Calculate Edp based on Pos Seq only
+				case 	3:
+				{
+					int stop = 0;
+					Phase2SymComp(&(Iterminal[0]), &I012[0]);
+                    // Voltage behind Xdp  (transient reactance), volts
+					for(stop = Fnphases, i = 1; i <= stop; i++)
 					{
 						if(!ADiakoptics || (ActorID == 1))
-							Edp = csub(csub(with1->NodeV[(NodeRef)[1 - 1]], with1->NodeV[(NodeRef)[2 - 1]]), cmul((Iterminal)[1 - 1], with0.Zthev));
+							Vabc[i] = with1->NodeV[(NodeRef)[i - 1]];
 						else
-							Edp = csub(csub(with1->VoltInActor1((NodeRef)[1 - 1]), with1->VoltInActor1((NodeRef)[2 - 1])), cmul((Iterminal)[1 - 1], with0.Zthev));
-						with0.VthevMag = cabs(Edp);
-					}
-					break;
-                 // Calculate Edp based on Pos Seq only
-					case 	3:
-					{
-						int stop = 0;
-						Phase2SymComp(&(Iterminal[0]), &I012[0]);
-                     // Voltage behind Xdp  (transient reactance), volts
-						for(stop = Fnphases, i = 1; i <= stop; i++)
-						{
-							if(!ADiakoptics || (ActorID == 1))
-								Vabc[i] = with1->NodeV[(NodeRef)[i - 1]];
-							else
-								Vabc[i] = with1->VoltInActor1((NodeRef)[i - 1]);
-						}   // Wye Voltage
-						Phase2SymComp(&Vabc[1], &V012[0]);
-						Edp = csub(V012[1], cmul(I012[1], with0.Zthev));    // Pos sequence
-						with0.VthevMag = cabs(Edp);
-					}
-					break;
-					default:
-					DoSimpleMsg(Format(("Dynamics mode is implemented only for 1- or 3-phase WindGens. WindGen." + with1->get_Name()
-	           +" has %d phases.").c_str(), Fnphases), 5672);
-					SolutionAbort = true;
-					break;
+							Vabc[i] = with1->VoltInActor1((NodeRef)[i - 1]);
+					}   // Wye Voltage
+					Phase2SymComp(&Vabc[1], &V012[0]);
+					Edp = csub(V012[1], cmul(I012[1], with0.Zthev));    // Pos sequence
+					with0.VthevMag = cabs(Edp);
 				}
+				break;
+				default:
+				DoSimpleMsg(Format(("Dynamics mode is implemented only for 1- or 3-phase WindGens. WindGen." + with1->get_Name()
+	        +" has %d phases.").c_str(), Fnphases), 5672);
+				SolutionAbort = true;
+				break;
+			}
 
-
-         // Shaft variables
-         // Theta is angle on Vthev[1] relative to system reference
-         //Theta  := Cang(Vthev^[1]);   // Assume source at 0
+			if (!ASSIGNED(DynamicEqObj))
+			{
+                // Shaft variables
+				// Theta is angle on Vthev[1] relative to system reference
+				// Theta  := Cang(Vthev^[1]);   // Assume source at 0
 				with0.Theta = cang(Edp);
-				if(GenModel == 7)
+                if (GenModel == 7)
 					Model7LastAngle = with0.Theta;
+
 				with0.dTheta = 0.0;
 				with0.w0 = TwoPi * ActiveCircuit[ActorID]->Solution->get_FFrequency();
-         // recalc Mmass and D in case the frequency has changed
-				/*# with WindGenVars do */
-				{
-					auto& with2 = WindGenVars;
-					WindGenVars.Mmass = 2.0 * WindGenVars.Hmass * WindGenVars.kVArating * 1000.0 / (with2.w0);   // M = W-sec
-					with2.D = with2.Dpu * with2.kVArating * 1000.0 / (with2.w0);
-				}
+                // recalc Mmass and D in case the frequency has changed
+                with0.Mmass = 2.0 * with0.Hmass * with0.kVArating * 1000.0 / (with0.w0); // M = W-sec
+                with0.D = with0.Dpu * with0.kVArating * 1000.0 / (with0.w0);
+                
 				with0.Pshaft = -Get_Power(1, ActorID).re; // Initialize Pshaft to present power Output
-				with0.Speed = 0.0;    // relative to synch speed
+
+				with0.Speed = 0.0; // relative to synch speed
 				with0.dSpeed = 0.0;
 
-         // Init User-written models
-         //Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
-				/*# with ActiveCircuit[ActorID].Solution do */
-				{
-					auto with3 = ActiveCircuit[ActorID]->Solution;
-					if(GenModel == 6)
-					{
-						if(UserModel->Get_Exists())
-							UserModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
-						if(ShaftModel->Get_Exists())
-							ShaftModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
-					}
-				}
+				// Init User-written models
+                // Ncond:Integer; V, I:pComplexArray; const X,Pshaft,Theta,Speed,dt,time:Double
+				
+				auto with4 = ActiveCircuit[ActorID]->Solution;
+                
+				if (GenModel == 6)
+                {
+                    if (UserModel->Get_Exists())
+                        UserModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
+                    if (ShaftModel->Get_Exists())
+                        ShaftModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
+                }
+                else
+                    WindModelDyn->Init(&(Vterminal[0]), &(Iterminal[0]));
 			}
+            else
+            {
+                // Initializes the memory values for the dynamic equation
+				for( i = 0; i < DynamicEqVals.size(); i++) 
+					DynamicEqVals[i][1] = 0.0;
+				// Check for initial conditions using calculated values (P0, Q0)
+				int NumData	= (DynamicEqPair.size() / 2) - 1;
+				  
+				for (i = 0; i <= NumData; i++)
+                {
+                    if (DynamicEqObj->IsInitVal(DynamicEqPair[(i * 2) + 1]))
+                    {
+                        switch (DynamicEqPair[(i * 2) + 1])
+                        {
+							case 9:
+							{
+								DynamicEqVals[DynamicEqPair[i * 2]][0] = cang(Edp);
+
+								if (GenModel == 7)
+									Model7LastAngle = DynamicEqVals[DynamicEqPair[i * 2]][0];
+							}
+							break;
+                            default:
+								DynamicEqVals[DynamicEqPair[i * 2]][0] = Get_PCEValue(1, DynamicEqPair[(i * 2) + 1], ActorID);
+                        }
+                    }
+                }
+            }
+		}
 		else
 		{
 			Vthev = CZero;
@@ -2991,7 +2946,7 @@ void TWindGenObj::InitStateVars(int ActorID)
 
 void TWindGenObj::IntegrateStates(int ActorID)
 {
-	complex TracePower = {};
+	complex TracePower = CZero;
    // Compute Derivatives and then integrate
 	ComputeIterminal(ActorID);
 
@@ -3001,52 +2956,101 @@ void TWindGenObj::IntegrateStates(int ActorID)
 	{
 		auto with0 = ActiveCircuit[ActorID]->Solution;
 		auto& with1 = WindGenVars;
-		/*# with DynaVars do */
-		{
-			auto& with2 = with0->DynaVars;
-			if(with2.IterationFlag == 0) /*Get_First() iteration of new time step*/
-			{
-				with1.ThetaHistory = with1.Theta + 0.5 * with2.h * with1.dTheta;
-				with1.SpeedHistory = with1.Speed + 0.5 * with2.h * with1.dSpeed;
-			}
-		}
 
-      // Compute shaft dynamics
-		TracePower = TerminalPowerIn(&(Vterminal[0]), &(Iterminal[0]), Fnphases);
-		with1.dSpeed = (with1.Pshaft + TracePower.re - with1.D * with1.Speed) / with1.Mmass;
-//      dSpeed := (Torque + TerminalPowerIn(Vtemp,Itemp,FnPhases).re/Speed) / (Mmass);
-		with1.dTheta = with1.Speed;
+		if (!ASSIGNED(DynamicEqObj))
+		{
+            /*# with DynaVars do */
+            {
+                auto& with2 = with0->DynaVars;
+                if (with2.IterationFlag == 0) /*Get_First() iteration of new time step*/
+                {
+                    with1.ThetaHistory = with1.Theta + 0.5 * with2.h * with1.dTheta;
+                    with1.SpeedHistory = with1.Speed + 0.5 * with2.h * with1.dSpeed;
+                }
+            }
+            // Compute shaft dynamics
+            TracePower = TerminalPowerIn(&(Vterminal[0]), &(Iterminal[0]), Fnphases);
+            with1.dSpeed = (with1.Pshaft + TracePower.re - with1.D * with1.Speed) / with1.Mmass;
+            //      dSpeed := (Torque + TerminalPowerIn(Vtemp,Itemp,FnPhases).re/Speed) / (Mmass);
+            with1.dTheta = with1.Speed;
+            // Trapezoidal method
+            /*# with DynaVars do */
+            {
+                auto& with3 = with0->DynaVars;
+                with1.Speed = with1.SpeedHistory + 0.5 * with3.h * with1.dSpeed;
+                with1.Theta = with1.ThetaHistory + 0.5 * with3.h * with1.dTheta;
+            }
 
-     // Trapezoidal method
-		/*# with DynaVars do */
-		{
-			auto& with3 = with0->DynaVars;
-			with1.Speed = with1.SpeedHistory + 0.5 * with3.h * with1.dSpeed;
-			with1.Theta = with1.ThetaHistory + 0.5 * with3.h * with1.dTheta;
-		}
+            // Write Dynamics Trace Record
+            if (DebugTrace)
+            {
+                Append(Tracefile);
+                IOResultToException();
+                Write(Tracefile, Format("t=%-.5g ", with0->DynaVars.T));
+                Write(Tracefile, Format(" Flag=%d ", with0->DynaVars.IterationFlag));
+                Write(Tracefile, Format(" Speed=%-.5g ", with1.Speed));
+                Write(Tracefile, Format(" dSpeed=%-.5g ", with1.dSpeed));
+                Write(Tracefile, Format(" Pshaft=%-.5g ", with1.Pshaft));
+                Write(Tracefile, Format(" P=%-.5g Q= %-.5g", TracePower.re, TracePower.im));
+                Write(Tracefile, Format(" M=%-.5g ", with1.Mmass));
+                WriteLn(Tracefile);
+                CloseFile(Tracefile);
+            }
 
-      // Write Dynamics Trace Record
-		if(DebugTrace)
-		{
-			Append(Tracefile);
-			IOResultToException();
-			Write(Tracefile, Format("t=%-.5g ", with0->DynaVars.T));
-			Write(Tracefile, Format(" Flag=%d ", with0->DynaVars.IterationFlag));
-			Write(Tracefile, Format(" Speed=%-.5g ", with1.Speed));
-			Write(Tracefile, Format(" dSpeed=%-.5g ", with1.dSpeed));
-			Write(Tracefile, Format(" Pshaft=%-.5g ", with1.Pshaft));
-			Write(Tracefile, Format(" P=%-.5g Q= %-.5g", TracePower.re, TracePower.im));
-			Write(Tracefile, Format(" M=%-.5g ", with1.Mmass));
-			WriteLn(Tracefile);
-			CloseFile(Tracefile);
+            if (GenModel == 6)
+            {
+                if (UserModel->Get_Exists())
+                    UserModel->Integrate();
+                if (ShaftModel->Get_Exists())
+                    ShaftModel->Integrate();
+            }
+            else
+            {
+                WindModelDyn->Integrate();
+            }
 		}
-		if(GenModel == 6)
-		{
-			if(UserModel->Get_Exists())
-				UserModel->Integrate();
-			if(ShaftModel->Get_Exists())
-				ShaftModel->Integrate();
-		}
+        else
+        {
+            // Dynamics using an external equation
+            auto With5 = with0->DynaVars;
+            
+			if (With5.IterationFlag == 0)
+            {
+				//{ First iteration of new time step }
+				with1.SpeedHistory = DynamicEqVals[DynOut[0]][0] + 0.5 * h * DynamicEqVals[DynOut[0]][1]; // first speed
+				with1.ThetaHistory = DynamicEqVals[DynOut[1]][0] + 0.5 * h * DynamicEqVals[DynOut[1]][1]; // then angle
+            }
+            // Check for initial conditions using calculated values (P, Q, VMag, VAng, IMag, IAng)
+			int NumData = round(DynamicEqPair.size() / 2) - 1;
+            for (int i = 0; i <= NumData; i++)
+            {
+                if (!DynamicEqObj->IsInitVal(DynamicEqPair[(i * 2) + 1]))
+                { // it's not intialization
+                switch( DynamicEqPair[(i * 2) + 1])
+                {
+                    case 0:
+						DynamicEqVals[DynamicEqPair[i * 2]][0] = -TerminalPowerIn(&(Vterminal[0]), &(Iterminal[0]), Fnphases).re;
+                    break;
+					case	1: 
+						DynamicEqVals[DynamicEqPair[i * 2]][0] = -TerminalPowerIn(&(Vterminal[0]), &(Iterminal[0]), Fnphases).im;
+					break;
+					default:
+						DynamicEqVals[DynamicEqPair[i * 2]][0] = Get_PCEValue(1, DynamicEqPair[(i * 2) + 1], ActorID);
+                    break;
+                }
+				}
+            }
+
+			// solves the differential equation using the given values
+            DynamicEqObj->SolveEq(&DynamicEqVals);
+            // Trapezoidal method   - Places the calues in the same vars to keep the code consistent
+            with1.Speed = with1.SpeedHistory + 0.5 * h * DynamicEqVals[DynOut[0]][1];
+			with1.Theta = with1.ThetaHistory + 0.5 * h * DynamicEqVals[DynOut[1]][1];
+            
+            // saves the new integration values in memoryspace
+            DynamicEqVals[DynOut[0]][0] = with1.Speed;
+            DynamicEqVals[DynOut[1]][0] = with1.Theta;
+        }
 	}
 }
 /*Return variables one at a time*/
@@ -3161,11 +3165,22 @@ void TWindGenObj::GetAllVariables(pDoubleArray States)
 	int i = 0;
 	int n = 0;
 	int stop = 0;
-	n = 0;
-	for(stop = NumWGenVariables, i = 1; i <= stop; i++)
-	{
-		(States)[i - 1] = Get_Variable(i);
-	}
+
+	if (!ASSIGNED(DynamicEqObj))
+    {
+		for (stop = NumWGenVariables, i = 1; i <= stop; i++)
+		{
+			(States)[i - 1] = Get_Variable(i);
+		}
+    }
+    else
+    {
+        for (stop = DynamicEqObj->get_FNumVars(), i = 1; i <= stop; i++)
+        {
+            (States)[i - 1] = DynamicEqObj->Get_DynamicEqVal(i - 1, &DynamicEqVals);
+        }
+    }
+
 	if(UserModel->Get_Exists())
 	{
 		n = UserModel->FNumVars();
@@ -3225,23 +3240,71 @@ String TWindGenObj::VariableName(int i)
 	switch(i)
 	{
 		case 	1:
-		result ="Frequency";
+			result ="userTrip";
 		break;
 		case 	2:
-		result ="Theta (Deg)";
+			result ="wtgTrip";
 		break;
 		case 	3:
-		result ="Vd";
+			result ="Pcurtail";
 		break;
 		case 	4:
-		result ="PShaft";
+			result ="Pcmd";
 		break;
 		case 	5:
-		result ="dSpeed (Deg/sec)";
+			result ="Pgen";
 		break;
 		case 	6:
-		result ="dTheta (Deg)";
+			result ="Qcmd";
 		break;
+        case	7:
+            result = "Qgen";
+        break;
+        case	8:
+            result = "Vref";
+        break;
+        case	9:
+            result = "Vmag";
+        break;
+        case	10:
+            result = "vwind";
+        break;
+        case	11:
+            result = "WtRef";
+        break;
+        case	12:
+            result = "WtAct";
+        break;
+        case	13:
+            result = "dOmg";
+        break;
+        case	14:
+            result = "dFrqPuTest";
+        break;
+        case	15:
+            result = "QMode";
+        break;
+        case	16:
+            result = "Qref";
+        break;
+        case	17:
+            result = "PFref";
+        break;
+        case	18:
+            result = "thetaPitch";
+        break;
+        case	19:
+            result = "Pg";
+        break;
+        case	20:
+            result = "Ps";
+        break;
+        case	21:
+            result = "Pr";
+        break;
+        case	22:
+            result = "s";
+        break;
 		default:
 		if(UserModel->Get_Exists())  // Checks for existence and Selects
 		{
