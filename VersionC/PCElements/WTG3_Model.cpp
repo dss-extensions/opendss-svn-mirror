@@ -702,35 +702,35 @@ namespace WTG3_Model
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void TGE_WTG3_Model::abc2seq(TPhArray* abc, TSymCompArray* seq, double ang)
+    void TGE_WTG3_Model::abc2seq(complex* abc, complex* seq, double ang)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         int ii = 0;
         complex temp;
         // phase to sequence conversion
-        Phase2SymComp(abc[0], seq[0]);
+        Phase2SymComp(abc, seq);
         // rotation of the sequence components
         temp = cmplx(cos(-ang), sin(-ang));
         for (int stop = 2, ii = 0; ii <= stop; ii++)
         {
-            *(seq[ii]) = cmul(*(seq[ii]), temp);
+            (seq[ii]) = cmul((seq[ii]), temp);
         }
     }
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void TGE_WTG3_Model::seq2abc(TPhArray* abc, TSymCompArray* seq, double ang)
+    void TGE_WTG3_Model::seq2abc(complex* abc, complex* seq, double ang)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         int ii = 0;
         complex temp;
         // sequence to phase conversion
-        SymComp2Phase(abc[0], seq[0]);
+        SymComp2Phase(abc, seq);
         // rotation of the sequence components
         temp = cmplx(cos(ang), sin(ang));
         for (int stop = 3, ii = 1; ii <= stop; ii++)
         {
-            *(abc[ii - 1]) = cmul(*(abc[ii - 1]), temp);
+            abc[ii - 1] = cmul(abc[ii - 1], temp);
         }
     }
 
@@ -744,18 +744,18 @@ namespace WTG3_Model
         // per-unitize abc voltage and current
         for (int stop = 3, ii = 1; ii <= stop; ii++)
         {
-            Vabc[ii - 1] = MagLimiter(cdivreal(V[ii], ratedVln), 0, VmeasMax);
+            Vabc[ii - 1] = MagLimiter(cdivreal(V[ii - 1], ratedVln), 0, VmeasMax);
             // Iabc = -(I/AmpBase+Vabc/Zthev)
-            Iabc[ii - 1] = MagLimiter(csub(cdivreal(i[ii], -ratedAmp * N_WTG), cdiv(Vabc[ii - 1], Zthev)), 0, ImeasMax);
+            Iabc[ii - 1] = MagLimiter(csub(cdivreal(i[ii - 1], -ratedAmp * N_WTG), cdiv(Vabc[ii - 1], Zthev)), 0, ImeasMax);
         }
 
         // phase to sequence conversion
-        abc2seq(&(Vabc), &(V012), Vang);
-        abc2seq(&(Iabc), &(I012), Vang);
+        abc2seq(&(Vabc[0]), &(V012[0]), Vang);
+        abc2seq(&(Iabc[0]), &(I012[0]), Vang);
 
         // get rid of zero sequence component in voltage
         V012[0] = cmplx(0, 0);
-        seq2abc(&(Vabc), &(V012), Vang);
+        seq2abc(&(Vabc[0]), &(V012[0]), Vang);
 
         // voltage magnitude
         Vmag = cabs(V012[1]);
@@ -776,7 +776,7 @@ namespace WTG3_Model
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void __fastcall TGE_WTG3_Model::CalcPFlow(pComplexArray& V, pComplexArray& i)
+    void __fastcall TGE_WTG3_Model::CalcPFlow(pComplexArray V, pComplexArray i)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         complex Vtemp = CZero, 
@@ -1199,7 +1199,7 @@ namespace WTG3_Model
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         int ii = 0;
-        for (int stop = /*# High( intg_x ) */ 11, ii = /*# Low( intg_x ) */ 0; ii <= stop; ii++)
+        for (int stop = 11, ii = 0; ii <= stop; ii++)
         {
             intg_x[ii] = intg_x[ii] + delt / 2 * (intg_d_old[ii] + intg_d[ii]);
             intg_d_old[ii] = intg_d[ii];
@@ -1506,16 +1506,16 @@ namespace WTG3_Model
     {
         int ii = 0;
         // sequence to phase
-        seq2abc(&Eabc, &E012, Vang);
+        seq2abc(&(Eabc[0]), &(E012[0]), Vang);
 
         // Thevenin to Norton (current injection)
         for (int stop = 3, ii = 1; ii <= stop; ii++)
-            i[ii] = cmulreal(cdiv(Eabc[ii - 1], Zthev), -ratedAmp * N_WTG);
+            i[ii - 1] = cmulreal(cdiv(Eabc[ii - 1], Zthev), -ratedAmp * N_WTG);
     }
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void TGE_WTG3_Model::CalcDynamic(pComplexArray& V, pComplexArray& i)
+    void TGE_WTG3_Model::CalcDynamic(pComplexArray V, pComplexArray i)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         int ii = 0;
