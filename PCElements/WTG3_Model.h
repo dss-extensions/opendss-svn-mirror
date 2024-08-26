@@ -145,8 +145,8 @@ namespace WTG3_Model
         double debugVar[10 /*# range 1..10*/];
         double Get_Variable(int i);
         void  Set_Variable(int i, const double Value);
-        void  abc2seq(TPhArray* abc, TSymCompArray* seq, double ang);
-        void  seq2abc(TPhArray* abc, TSymCompArray* seq, double ang);
+        void  abc2seq(complex* abc, complex* seq, double ang);
+        void  seq2abc(complex* abc, complex* seq, double ang);
         complex MagLimiter(complex x, double magmin, double magMax);
         double LinearInterp(double* xTable, int xTable_maxidx, double* yTable, int yTable_maxidx, double x);
         double CalcCp(double Theta, double lmbda);
@@ -208,8 +208,8 @@ namespace WTG3_Model
         void  Edit(); // Uses ModelParser
         void  EditProp(int ParamPointer, String StrVal);
         void  Integrate();
-        void  CalcDynamic(pComplexArray& V, pComplexArray& i);
-        void  CalcPFlow(pComplexArray& V, pComplexArray& i);
+        void  CalcDynamic(pComplexArray V, pComplexArray i);
+        void  CalcPFlow(pComplexArray V, pComplexArray i);
         void  ReCalcElementData();
         TGE_WTG3_Model(TWindGenVars& GenVars, TDynamicsRec& DynaVars);
         virtual ~TGE_WTG3_Model();
