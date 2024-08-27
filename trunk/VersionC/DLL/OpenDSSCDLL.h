@@ -254,6 +254,13 @@ extern "C" {
 
 	//**************************************************************************************************
 
+    DSS_DLL int __stdcall StoragesI(int mode, int arg);
+    DSS_DLL double __stdcall StoragesF(int mode, double arg);
+    DSS_DLL char* __stdcall StoragesS(int mode, char* arg);
+    DSS_DLL void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+
+	//**************************************************************************************************
+
 	DSS_DLL int __stdcall SwtControlsI(int mode, int arg);
 	DSS_DLL double __stdcall SwtControlsF(int mode, double arg);
 	DSS_DLL char* __stdcall SwtControlsS(int mode, char* arg);
@@ -278,6 +285,13 @@ extern "C" {
 	DSS_DLL double __stdcall VsourcesF(int mode, double arg);
 	DSS_DLL char* __stdcall VsourcesS(int mode, char* arg);
 	DSS_DLL void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+
+	//**************************************************************************************************
+
+    DSS_DLL int __stdcall WindGensI(int mode, int arg);
+    DSS_DLL double __stdcall WindGensF(int mode, double arg);
+    DSS_DLL char* __stdcall WindGensS(int mode, char* arg);
+    DSS_DLL void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 

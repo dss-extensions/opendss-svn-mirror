@@ -41,7 +41,7 @@ TWindGenObj::TWindGenObj() {}
 
 
 TWindGenObj* ActiveWindGenObj = nullptr;
-TWindGen* WinGenClass = nullptr;
+
 const int NumPropsThisClass = 44;  // removed Fuel variables
   // Dispatch modes
 const int Default = 0;
@@ -72,7 +72,7 @@ TWindGen::TWindGen()
 	CommandList = TCommandList(slc, NumProperties);
 	delete[] slc;
 	CommandList.set_AbbrevAllowed(true);
-	WinGenClass = this;
+    WindGenClass[ActiveActor] = this;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -690,10 +690,11 @@ int TWindGen::Edit(int ActorID)
                         if (ASSIGNED(with0->VV_CurveObj))
                         {
                             auto with1 = with0->VV_CurveObj;
-                            for (int idx = 1; idx < 4; idx++)
+                            for (int idx = 1; idx <= with1->FNumPoints; idx++)
+                            {
                                 with0->WindModelDyn->EditProp(13 + idx, to_string(with1->Get_XValue(idx)));
-                            for (int idx = 1; idx < 4; idx++)
                                 with0->WindModelDyn->EditProp(17 + idx, to_string(with1->Get_YValue(idx)));
+                            }
                         }
                         else
                             DoSimpleMsg("Volt-var control curve \"" + with0->VV_Curve + "\" not found, make sure that it was not defined before this element", 565);

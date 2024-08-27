@@ -14026,6 +14026,820 @@ void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 }
 
 //--------------------------------------------------------------------------------
+// Implements the Storages interface for the DLL
+//--------------------------------------------------------------------------------
+// ******************************int type properties************************* 
+int __stdcall StoragesI(int mode, int arg)
+{
+    TStorageObj* pStorageElem	 = nullptr;
+    int			Result			= 0;	// Default return value
+
+	switch (mode)
+	{
+        case 0:							 // Storages.First
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_First();
+                if (ASSIGNED(pStorageElem))
+                {
+                    do
+                    {
+                        if (pStorageElem->Get_Enabled())
+                        {
+                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
+                            Result = 1;
+                        }
+						else
+                            pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Next();
+                    } while ((Result != 1) || (!ASSIGNED(pStorageElem)));
+                }
+            }
+        }
+        break;
+        case 1:							// Storages.Next
+        {
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Next();
+                if (ASSIGNED(pStorageElem))
+                {
+                    do
+                    {
+                        if (pStorageElem->Get_Enabled())
+                        {
+                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
+                            Result = 1;
+                        }
+                        else
+                            pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Next();
+                    } while ((Result < 0) || (!ASSIGNED(pStorageElem)));
+                }
+			}
+        }
+        break;
+        case 2:							// Storages.Count
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor])) 
+                Result = ActiveCircuit[ActiveActor]->StorageElements.NumInList;
+        }
+        break;
+        case 3:							// Storages.Idx read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+                Result = ActiveCircuit[ActiveActor]->StorageElements.ActiveItem;
+        }
+        break;
+        case 4:							// Storages.Idx write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get(arg);
+                if (ASSIGNED(pStorageElem))
+                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
+            }
+        }
+        break;
+        case 5:							// Storages.State Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                    Result = pStorageElem->fState;
+            }
+        }
+        break;
+        case 6:							// Storages.State Write
+        {
+            /*   Legal States
+                 STORE_CHARGING = -1;
+                 STORE_IDLING = 0;
+                 STORE_DISCHARGING = 1;
+             */
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                    pStorageElem->Set_StorageState(arg);
+            }
+        }
+        break;
+        case 7:							// Storages.ControlMode Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    if (pStorageElem->GFM_Mode)
+                        Result = 1;
+                }
+            }
+        }
+        break;
+        case 8:							// Storages.ControlMode Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+	                pStorageElem->GFM_Mode = (arg != 0);
+                }
+            }
+        }
+        break;
+        case 9:							// Storages.SafeMode
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    if (pStorageElem->myDynVars.SafeMode)
+						Result = 1;
+                }
+            }
+        }
+        break;
+        case 10:						// Storages.VarFollowInverter Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    if (pStorageElem->FVarFollowInverter)
+                        Result = 1;
+                }
+            }
+        }
+        break;
+        case 11:						// Storages.VarFollowInverter Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->FVarFollowInverter = (arg != 1);
+                }
+            }
+        }
+        break;
+		default:
+            Result = -1;					// Just sent the wrong command
+        break;
+	}
+
+	return Result;
+}
+//******************************Float point type properties****************************
+double __stdcall StoragesF(int mode, double arg)
+{
+    TStorageObj*	pStorageElem	= nullptr;
+    double			Result			= 0;		// Default return value
+
+	switch(mode)
+    {
+        case 0:							// Storages.puSOC Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+					Result = pStorageElem->StorageVars.kWhStored / pStorageElem->StorageVars.kWhRating;
+                }
+            }
+        }
+        break;
+        case 1:							// Storages.puSOC Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->StorageVars.kWhStored = pStorageElem->StorageVars.kWhRating * arg;
+                }
+            }
+        }
+        break;
+        case 2:							// Storages.AmpLimit Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.ILimit;
+                }
+            }
+        }
+        break;
+        case 3:							// Storages.AmpLimit Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.ILimit = arg;
+                }
+            }
+        }
+        break;
+        case 4:							// Storages.AmpLimitGain Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.VError;
+                }
+            }
+        }
+        break;
+        case 5:							// Storages.AmpLimitGain Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.VError = arg;
+                }
+            }
+        }
+        break;
+        case 6:							// Storages.ChargeTrigger Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->ChargeTrigger;
+                }
+            }
+        }
+        break;
+        case 7:							// Storages.ChargeTrigger Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->ChargeTrigger = arg;
+                }
+            }
+        }
+        break;
+        case 8:							// Storages.DisChargeTrigger Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->DischargeTrigger;
+                }
+            }
+        }
+        break;
+        case 9:							// Storages.DisChargeTrigger Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->DischargeTrigger = arg;
+                }
+            }
+        }
+        break;
+        case 10:						// Storages.EffCharge Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->pctChargeEff;
+                }
+            }
+        }
+        break;
+        case 11:						// Storages.EffCharge Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->pctChargeEff = arg;
+                }
+            }
+        }
+        break;
+        case 12:						// Storages.EffDisCharge Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->pctDischargeEff;
+                }
+            }
+        }
+        break;
+        case 13:						// Storages.EffDisCharge Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->pctDischargeEff = arg;
+                }
+            }
+        }
+        break;
+        case 14:						// Storages.kP Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.Kp * 1e3;
+                }
+            }
+        }
+        break;
+        case 15:						// Storages.kP Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.Kp = arg / 1e3;
+                }
+            }
+        }
+        break;
+        case 16:						// Storages.kV Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->Get_PresentkV();
+                }
+            }
+        }
+        break;
+        case 17:						// Storages.kV Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->Set_PresentkV(arg);
+                }
+            }
+        }
+        break;
+        case 18:						// Storages.kVA Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->StorageVars.FkVArating;
+                }
+            }
+        }
+        break;
+        case 19:						// Storages.kVA Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->StorageVars.FkVArating = arg;
+                }
+            }
+        }
+        break;
+        case 20:						// Storages.kvar Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->Get_kvarRequested();
+                }
+            }
+        }
+        break;
+        case 21:						// Storages.kvar Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->Set_kvarRequested(arg);
+                }
+            }
+        }
+        break;
+        case 22:						// Storages.kVDC Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.RatedVDC / 1e3;
+                }
+            }
+        }
+        break;
+        case 23:						// Storages.kVDC Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.RatedVDC = arg  * 1e3;
+                }
+            }
+        }
+        break;
+        case 24:						// Storages.kW Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->Get_PresentkW();
+                }
+            }
+        }
+        break;
+        case 25:						// Storages.kW Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->Set_kW(arg);
+                }
+            }
+        }
+        break;
+        case 26:						// Storages.kWhRated Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->StorageVars.kWhRating;
+                }
+            }
+        }
+        break;
+        case 27:						// Storages.kWhRated Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->StorageVars.kWhRating = arg;
+                }
+            }
+        }
+        break;
+        case 28:						// Storages.kWRated Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->StorageVars.kWrating;
+                }
+            }
+        }
+        break;
+        case 29:						// Storages.kWRated Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->StorageVars.kWrating = arg;
+                }
+            }
+        }
+        break;
+        case 30:						// Storages.LimitCurrent Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    if (pStorageElem->CurrentLimited)
+                        Result = 1;
+                }
+            }
+        }
+        break;
+        case 31:						// Storages.LimitCurrent Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->CurrentLimited = (arg != 0);
+                }
+            }
+        }
+        break;
+        case 32:						// Storages.PF Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->PFNominal;
+                }
+            }
+        }
+        break;
+        case 33:						// Storages.PF Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->PFNominal = arg;
+                }
+            }
+        }
+        break;
+        case 34:						// Storages.PITol Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.CtrlTol * 100;
+                }
+            }
+        }
+        break;
+        case 35:						// Storages.PITol Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.CtrlTol = arg / 100;
+                }
+            }
+        }
+        break;
+        case 36:						// Storages.SafeVoltage Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->myDynVars.SMThreshold;
+                }
+            }
+        }
+        break;
+        case 37:						// Storages.SafeVoltage Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->myDynVars.SMThreshold = arg;
+                }
+            }
+        }
+        break;
+        case 38:						// Storages.TimeChargeTrig Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->ChargeTime;
+                }
+            }
+        }
+        break;
+        case 39:						// Storages.TimeChargeTrig Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    pStorageElem->ChargeTime = arg;
+                }
+            }
+        }
+        break;
+		default:
+            Result = -1.0;
+        break;
+    }
+    return Result;
+}
+//******************************String type properties****************************
+char* __stdcall StoragesS(int mode, char* arg)
+{
+    TStorageObj*	pStorageElem	= nullptr;
+    string			S				= "",
+    				Result			= ""; // Default return value
+    bool			Found			= false;
+    TPointerList*	lst				= nullptr;
+    int				ActiveSave		= 0;
+
+
+	switch (mode)
+    {
+        case 0:							// Storages.Name Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
+                if (ASSIGNED(pStorageElem))
+                {
+                    Result = pStorageElem->get_Name();
+                }
+            }
+        }
+        break;
+        case 1:							// Storages.Name Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                lst = &(ActiveCircuit[ActiveActor]->StorageElements);
+                S = arg;
+                Found = false;
+                ActiveSave = lst->get_myActiveItem();
+                pStorageElem = (TStorageObj*)lst->Get_First();
+                while (pStorageElem != nullptr)
+                {
+                    if (CompareText(pStorageElem->get_Name(), S) == 0)
+                    {
+                        ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
+                        Found = true;
+                        break;
+                    }
+                    pStorageElem = (TStorageObj*)lst->Get_Next();
+                }
+                if (!Found)
+                {
+                    DoSimpleMsg("Storage '" + S + "' Not Found in Active Circuit.", 5003);
+                    pStorageElem = (TStorageObj*)lst->Get(ActiveSave);
+                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
+                }
+            }
+        }
+        break;
+		default:
+			Result = "Error, parameter not valid";
+    }
+    char* presult = new char[Result.size() + 1];
+    strcpy(presult, Result.c_str());
+    return presult;
+}
+//************************Structure type properties*******************************
+void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+{
+    TStorageObj*	pStorageElem = nullptr;
+    int				k			 = 0;
+
+	switch (mode)
+    {
+        case 0:							// Storages.AllNames
+        {
+			*myType = 4; //String
+            myStrArray.resize(0);
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                auto with0 = ActiveCircuit[ActiveActor];
+                if (with0->StorageElements.NumInList > 0)
+                {
+                    k = 0;
+                    pStorageElem = (TStorageObj*)with0->StorageElements.Get_First();
+                    while (ASSIGNED(pStorageElem))
+                    {
+                        WriteStr2Array(pStorageElem->get_Name());
+                        WriteStr2Array(Char0());
+                        k++;
+                        pStorageElem = (TStorageObj*)with0->StorageElements.Get_Next();
+                    }
+                }
+            }
+            if (myStrArray.empty())
+            WriteStr2Array("None");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        }
+        break;
+        case 1:							// Storages.RegisterNames
+        {
+            *myType = 4; // String
+            myStrArray.resize(0);
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                for (k = 0; k < NumStorageRegisters; k++)
+                {
+                    WriteStr2Array(StorageClass[ActiveActor]->RegisterNames[k + 1]);
+                    WriteStr2Array(Char0());
+                }
+            }
+            if (myStrArray.empty())
+                WriteStr2Array("None");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        }
+        break;
+        case 2:							// Storages.RegisterValues
+        {
+			*myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0.0;
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+                auto with0 = ActiveCircuit[ActiveActor];
+                pStorageElem = (TStorageObj*)with0->FActiveCktElement;
+                if (ASSIGNED(pStorageElem))
+				{
+					myDblArray.resize(NumStorageRegisters);
+					for (k = 0; k < NumStorageRegisters; k++)
+					{
+                        myDblArray[k] = pStorageElem->Registers[k + 1];
+					}
+				}
+			}
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+        }
+        break;
+        default:
+        {
+            *myType = 4; // String
+            myStrArray.resize(0);
+            WriteStr2Array("Error, parameter not recognized");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        }
+        break;
+
+    }
+
+    
+}
+
+//--------------------------------------------------------------------------------
 // Implements the SwtControls  interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************Help Functions************************* 
@@ -15561,7 +16375,220 @@ void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	}
 }
 
+//--------------------------------------------------------------------------------
+// Implements the WindGens interface for the DLL
+//--------------------------------------------------------------------------------
+// ******************************int type properties*************************
+int __stdcall WindGensI(int mode, int arg)
+{
+    TWindGenObj* WindGenElem = nullptr;
+    TPointerList pList = {}; 
+    int Result = 0; // Default return value
 
+	switch (mode)
+    {
+        case 0:									// WindGens.First
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                if (WindGenClass[ActiveActor]->ElementList.NumInList > 0)
+                {
+                    pList = WindGenClass[ActiveActor]->ElementList;
+                    WindGenElem = (TWindGenObj*)pList.Get_First();
+                    do
+                    {
+                        if (WindGenElem->FEnabled)
+                        {
+                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+                            Result = 1;
+                        }
+                        else
+                            WindGenElem = (TWindGenObj*)pList.Get_Next();
+                    } while ((Result != 1) || (!ASSIGNED(WindGenElem)));
+                }
+                else
+                    Result = 0; // signify no more
+            }
+        }
+        break;
+        case 1:									// WindGens.Next
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                if (WindGenClass[ActiveActor]->ElementList.NumInList > 0)
+                {
+                    pList = WindGenClass[ActiveActor]->ElementList;
+                    WindGenElem = (TWindGenObj*)pList.Get_First();
+                    do
+                    {
+                        if (WindGenElem->FEnabled)
+                        {
+                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+                            Result = 1;
+                        }
+                        else
+                            WindGenElem = (TWindGenObj*)pList.Get_Next();
+                    } while ((Result < 1) || (!ASSIGNED(WindGenElem)));
+                }
+                else
+                    Result = 0; // signify no more
+            }
+        }
+        break;
+        case 2:										// WindGens.Count
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Result = WindGenClass[ActiveActor]->ElementList.NumInList;
+            }
+        }
+        break;
+        case 3:										// WindGens.Idx read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Result = WindGenClass[ActiveActor]->ElementList.ActiveItem;
+            }
+        }
+        break;
+        case 4:										// WindGens.Idx Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get(arg);
+                if (ASSIGNED(WindGenElem))
+                {
+                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+                }
+            }
+        }
+        break;
+        case 5:										// WindGens.N_WTG Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->N_WTG;
+                }
+            }
+        }
+        break;
+        case 6:										// WindGens.N_WTG Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->N_WTG = arg;
+                }
+            }
+        }
+        break;
+        case 7:										// WindGens.NPoles Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = (int)round(WindGenElem->WindGenVars.Poles);
+                }
+            }
+        }
+        break;
+        case 8:										// WindGens.NPoles Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.Poles = (double)arg;
+                }
+            }
+        }
+        break;
+        case 9:										// WindGens.QFlag Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->QFlg;
+                }
+            }
+        }
+        break;
+        case 10:									// WindGens.QFlag Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->QFlg = arg;
+                }
+            }
+        }
+        break;
+        case 11:									// WindGens.QMode Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->QMode;
+                }
+            }
+        }
+        break;
+        case 12:									// WindGens.QMode Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->QMode = arg;
+                }
+            }
+        }
+        break;
+        default:
+            Result = -1; // The user is asking for the wrong command
+        break;
+    }
+
+	return Result;
+
+
+}
+//******************************Float point type properties****************************
+double __stdcall WindGensF(int mode, double arg)
+{
+    double Result = 0.0; // Default return value
+
+    return Result;
+}
+//******************************String type properties****************************
+char* __stdcall WindGensS(int mode, char* arg)
+{
+    string Result = ""; // Default return value
+
+    char* presult = new char[Result.size() + 1];
+    strcpy(presult, Result.c_str());
+    return presult;
+}
+//************************Structure type properties*******************************
+void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+{
+
+}
 
 //--------------------------------------------------------------------------------
 // Implements the XYCurves    interface for the DLL

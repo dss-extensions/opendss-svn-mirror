@@ -51,6 +51,7 @@
 #include "TempShape.h"
 #include "Storage.h"
 #include "PVsystem.h"
+#include "WindGen.h"
 #include "Isource.h"
 #include "InvControl.h"
 #include "ExpControl.h"
@@ -289,6 +290,7 @@ namespace DSSGlobals
     extern std::vector < TLineSpacing* > LineSpacingClass;
     extern std::vector < TStorage* > StorageClass;
     extern std::vector < TPVSystem* > PVSystemClass;
+    extern std::vector <TWindGen*> WindGenClass;
     extern std::vector < TInvControl* > InvControlClass;
     extern std::vector < TExpControl* > ExpControlClass;
     extern std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating

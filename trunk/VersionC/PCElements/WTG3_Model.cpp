@@ -680,22 +680,28 @@ namespace WTG3_Model
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         double  result = 0.0;
-        int     iLeft = 0, iRight = 0, ii = 0;
+        int     iLeft = 0, 
+                iRight = 0, 
+                ii = 0;
+
         iLeft = 0 /*# Low(xTable) */;
         iRight = xTable_maxidx /*# High(xTable) */;
         result = yTable[iLeft];
         if (x < xTable[iLeft])
             result = yTable[iLeft];
-        else if (x > xTable[iRight])
-            result = yTable[iRight];
         else
         {
-            for (int stop = iRight - 1, ii = iLeft; ii <= stop; ii++)
-                if ((x >= xTable[ii]) && (x <= xTable[ii + 1]))
-                {
-                    result = (yTable[ii + 1] - yTable[ii]) / (xTable[ii + 1] - xTable[ii]) * (x - xTable[ii]) + yTable[ii];
-                    break;
-                }
+            if (x > xTable[iRight])
+                result = yTable[iRight];
+            else
+            {
+                for (int stop = iRight - 1, ii = iLeft; ii <= stop; ii++)
+                    if ((x >= xTable[ii]) && (x <= xTable[ii + 1]))
+                    {
+                        result = ((yTable[ii + 1] - yTable[ii]) / (xTable[ii + 1] - xTable[ii])) * (x - xTable[ii]) + yTable[ii];
+                        break;
+                    }
+            }
         }
         return result;
     }
@@ -1096,7 +1102,7 @@ namespace WTG3_Model
         else if (QMode == 1)
         // constant PF mode (negative means absorption)
         {
-            Qord = double(sqrt(1 - PFref * PFref)) / max(0.000001, abs(PFref)) * Pgen;
+            Qord = sqrt(1 - PFref * PFref) / max(0.000001, abs(PFref)) * Pgen;
             if (PFref < 0)
                 Qord = -Qord;
         }
@@ -1108,6 +1114,9 @@ namespace WTG3_Model
         // ramp rate limiter on Qcmd
         temp = rrlQcmd * delt;
         Qcmd = min(Qcmd + temp, max(Qcmd - temp, Qord));
+
+        if (Qcmd <= -0.0078)
+            Qcmd = Qcmd;
 
         // reactive power regulator
         errQgenOld = errQgen;
@@ -1534,6 +1543,7 @@ namespace WTG3_Model
             nRec = trunc(int(double(DynaData->h) / delt0 / 2) * 2 + 1);
             delt = double(DynaData->h) / nRec;
             tsim = DynaData->T;
+
             if (wtgTrip == 0)
             {
                 for (int stop = nRec, ii = 1; ii <= stop; ii++)
