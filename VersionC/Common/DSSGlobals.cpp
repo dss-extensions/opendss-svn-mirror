@@ -125,6 +125,7 @@ namespace DSSGlobals
      std::vector < TLineSpacing* > LineSpacingClass;
      std::vector < TStorage* > StorageClass;
      std::vector < TPVSystem* > PVSystemClass;
+     std::vector<TWindGen*> WindGenClass;
      std::vector < TInvControl* > InvControlClass;
      std::vector < TExpControl* > ExpControlClass;
      std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -1271,6 +1272,7 @@ namespace DSSGlobals
       LineSpacingClass.resize(CPU_Cores + 1);
       StorageClass.resize(CPU_Cores + 1);
       PVSystemClass.resize(CPU_Cores + 1);
+      WindGenClass.resize(CPU_Cores + 1);
      InvControlClass.resize(CPU_Cores + 1);
       ExpControlClass.resize(CPU_Cores + 1);
       EventStrings.resize(CPU_Cores + 1);

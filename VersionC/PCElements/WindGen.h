@@ -274,7 +274,7 @@ public:
 	TWindGenObj();
 };
 extern TWindGenObj* ActiveWindGenObj;
-extern TWindGen* WinGenClass;
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

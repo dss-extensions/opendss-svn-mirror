@@ -138,7 +138,8 @@ namespace DSSClassDefs
         DSSClasses->Set_New(new TCapControl());
         DSSClasses->Set_New(new TFault());
         DSSClasses->Set_New(new TGenerator());
-        DSSClasses->Set_New(new TWindGen());
+        WindGenClass[ActiveActor] = new TWindGen();
+        DSSClasses->Set_New(WindGenClass[ActiveActor]);
         DSSClasses->Set_New(new TGenDispatcher());
         StorageClass[ActiveActor] = new TStorage();
         DSSClasses->Set_New(StorageClass[ActiveActor]);
