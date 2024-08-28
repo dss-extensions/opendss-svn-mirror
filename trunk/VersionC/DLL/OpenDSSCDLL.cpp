@@ -14779,7 +14779,7 @@ void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 }
             }
             if (myStrArray.empty())
-            WriteStr2Array("None");
+				WriteStr2Array("None");
             *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
             *mySize = myStrArray.size();
         }
@@ -16571,14 +16571,506 @@ int __stdcall WindGensI(int mode, int arg)
 //******************************Float point type properties****************************
 double __stdcall WindGensF(int mode, double arg)
 {
+    TWindGenObj* WindGenElem = nullptr;
     double Result = 0.0; // Default return value
 
+	switch (mode)
+    {
+        case 0:										// WindGens.Ag Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.ag;
+                }
+            }
+        }
+        break;
+        case 1:										// WindGens.Ag Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                   WindGenElem->WindGenVars.ag = arg;
+                }
+            }
+        }
+        break;
+        case 2:										// WindGens.Cp Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.Cp;
+                }
+            }
+        }
+        break;
+        case 3:										// WindGens.Cp Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.Cp = arg;
+                }
+            }
+        }
+        break;
+        case 4:										// WindGens.kV Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->Get_PresentkV();
+                }
+            }
+        }
+        break;
+        case 5:										// WindGens.kV Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->Set_PresentkV(arg);
+                }
+            }
+        }
+        break;
+        case 6:										// WindGens.kVA Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.kVArating;
+                }
+            }
+        }
+        break;
+        case 7:										// WindGens.kVA Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.kVArating = arg;
+                    WindGenElem->WindModelDyn->EditProp(13, to_string(arg));
+                }
+            }
+        }
+        break;
+        case 8:										// WindGens.kvar Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->Get_Presentkvar();
+                }
+            }
+        }
+        break;
+        case 9:										// WindGens.kvar Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->Set_Presentkvar(arg);
+                }
+            }
+        }
+        break;
+        case 10:									// WindGens.kW Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->Get_PresentkW();
+                }
+            }
+        }
+        break;
+        case 11:									// WindGens.kW Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->Set_PresentkW(arg);
+                }
+            }
+        }
+        break;
+        case 12:									// WindGens.Lamda Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.Lamda;
+                }
+            }
+        }
+        break;
+        case 13:									// WindGens.Lamda Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.Lamda = arg;
+                }
+            }
+        }
+        break;
+        case 14:									// WindGens.pd Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.pd;
+                }
+            }
+        }
+        break;
+        case 15:									// WindGens.pd Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.pd = arg;
+                }
+            }
+        }
+        break;
+        case 16:									// WindGens.PF Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->PFNominal;
+                }
+            }
+        }
+        break;
+        case 17:									// WindGens.PF Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->PFNominal = arg;
+                }
+            }
+        }
+        break;
+        case 18:									// WindGens.Pss Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->Pss;
+                }
+            }
+        }
+        break;
+        case 19:									// WindGens.Pss Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->Pss = arg;
+                }
+            }
+        }
+        break;
+        case 20:									// WindGens.Qss Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->Qss;
+                }
+            }
+        }
+        break;
+        case 21:									// WindGens.Qss Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->Qss = arg;
+                }
+            }
+        }
+        break;
+        case 22:									// WindGens.Rad Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.Rad;
+                }
+            }
+        }
+        break;
+        case 23:									// WindGens.Rad Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.Rad = arg;
+                }
+            }
+        }
+        break;
+        case 24:									// WindGens.RThev Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->Rthev;
+                }
+            }
+        }
+        break;
+        case 25:									// WindGens.RThev Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->Rthev = arg;
+                }
+            }
+        }
+        break;
+        case 26:									// WindGens.VCutOut Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.VCutout;
+                }
+            }
+        }
+        break;
+        case 27:									// WindGens.VCutOut Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.VCutout = arg;
+                }
+            }
+        }
+        break;
+        case 28:									// WindGens.VCutIn Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindGenVars.VCutin;
+                }
+            }
+        }
+        break;
+        case 29:									// WindGens.VCutIn Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindGenVars.VCutin = arg;
+                }
+            }
+        }
+        break;
+        case 30:									// WindGens.Vss Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->Vss;
+                }
+            }
+        }
+        break;
+        case 31:									// WindGens.Vss Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->Vss = arg;
+                }
+            }
+        }
+        break;
+        case 32:									// WindGens.WindSpeed Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->vwind;
+                }
+            }
+        }
+        break;
+        case 33:									// WindGens.WindSpeed Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->vwind = arg;
+                }
+            }
+        }
+        break;
+        case 34:									// WindGens.XThev Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->WindModelDyn->Xthev;
+                }
+            }
+        }
+        break;
+        case 35:									// WindGens.XThev Write
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    WindGenElem->WindModelDyn->Xthev = arg;
+                }
+            }
+        }
+        break;
+        default:
+            Result = -1.0; // we got the wrong command
+        break;
+    }
     return Result;
 }
 //******************************String type properties****************************
 char* __stdcall WindGensS(int mode, char* arg)
 {
-    string Result = ""; // Default return value
+    TWindGenObj*	WindGenElem = nullptr;
+	int				k	=	0,
+					ActiveSave = 0;
+    TPointerList*	pList = nullptr;
+    string			Result = "", // Default return value
+					S = "";
+    bool			Found = false;
+
+	switch (mode)
+    {
+        case 0:										// WindGen.Name Read
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    Result = WindGenElem->get_Name();
+                }
+            }
+        }
+        break;
+        case 1:
+        {
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                pList = &(ActiveCircuit[ActiveActor]->WindGens);
+                S = arg;
+                Found = false;
+                ActiveSave = pList->get_myActiveItem();
+                WindGenElem = (TWindGenObj*)pList->Get_First();
+                while (WindGenElem != nullptr)
+                {
+                    if (CompareText(WindGenElem->get_Name(), S) == 0)
+                    {
+                        ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+                        Found = true;
+                        break;
+                    }
+                    WindGenElem = (TWindGenObj*)pList->Get_Next();
+                }
+                if (!Found)
+                {
+                    DoSimpleMsg("WindGen '" + S + "' Not Found in Active Circuit.", 5003);
+                    WindGenElem = (TWindGenObj*)pList->Get(ActiveSave);
+                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+                }
+            }
+        }
+        break;
+        default:
+            Result = "Error, parameter not valid";
+    }
 
     char* presult = new char[Result.size() + 1];
     strcpy(presult, Result.c_str());
@@ -16587,7 +17079,84 @@ char* __stdcall WindGensS(int mode, char* arg)
 //************************Structure type properties*******************************
 void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+    TWindGenObj*	WindGenElem = nullptr;
+    int				k = 0;
+    TPointerList*	pList = nullptr;
 
+	switch (mode)
+    {
+        case 0:									// WindGen.AllNames
+        {
+			*myType = 4; //string
+            myStrArray.resize(0);
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                if (WindGenClass[ActiveActor]->ElementList.NumInList > 0)
+                {
+                    pList = &(WindGenClass[ActiveActor]->ElementList);
+                    k = 0;
+                    WindGenElem = (TWindGenObj*)pList->Get_First();
+                    while (ASSIGNED(WindGenElem))
+                    {
+                        WriteStr2Array(WindGenElem->get_Name());
+                        WriteStr2Array(Char0());
+						k++;
+                        WindGenElem = (TWindGenObj*)pList->Get_Next();
+                    }
+                }
+            }
+            if (myStrArray.empty())
+                WriteStr2Array("None");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        }
+        break;
+        case 1:									// WindGen.RegisterNames
+        {
+            *myType = 4; // string
+            myStrArray.resize(0);
+
+			for (k = 0; k < NumWGenRegisters; k++)
+            {
+                WriteStr2Array(WindGenClass[ActiveActor]->RegisterNames[k + 1]);
+                WriteStr2Array(Char0());
+            }
+
+			if (myStrArray.empty())
+                WriteStr2Array("None");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        }
+        break;
+        case 2:									// WindGen.RegisterValues
+        {
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                WindGenElem = (TWindGenObj*)WindGenClass[ActiveActor]->ElementList.Get_Active();
+                if (ASSIGNED(WindGenElem))
+                {
+                    myDblArray.resize(NumWGenRegisters);
+                    for (k = 0; k < NumWGenRegisters; k++)
+                    {
+                        myDblArray[k] = WindGenElem->Registers[k + 1];
+                    }
+                }
+            }
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+        }
+        break;
+		default:								// Something else
+            *myType = 4; // string
+            myStrArray.resize(0);
+            WriteStr2Array("Error, parameter not recognized");
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            *mySize = myStrArray.size();
+        break;
+    }
 }
 
 //--------------------------------------------------------------------------------
