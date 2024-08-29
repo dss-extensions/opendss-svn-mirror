@@ -260,7 +260,7 @@ namespace CktElement
       int i = 0;
       if ( Index == 0 )
       {  // Do all conductors
-        for ( int stop = Fnphases + 1, i = 1; i <= stop; i++)
+        for ( int stop = Fnphases, i = 1; i <= stop; i++)
           Terminals[(FActiveTerminal) - 1].Conductors[i- 1].Closed = Value;
         ActiveCircuit[ActorID]->Solution->SystemYChanged = true;  // force Y matrix rebuild
         Set_YprimInvalid(ActorID,true);
@@ -1040,7 +1040,7 @@ namespace CktElement
           if ( CurrMag > MaxCurr )
           {
             MaxCurr = CurrMag;
-            MaxPhase = i;
+            MaxPhase = i + 1;
           }
         }
       }

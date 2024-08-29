@@ -921,7 +921,7 @@ namespace DSSGlobals
         Parallel_enabled = false;
         if (((NumOfActors + NumClones) <= CPU_Cores) && (NumClones > 0))
         {
-            for (int stop = NumClones, I = 1; I < stop; I++)
+            for (int stop = NumClones, I = 1; I <= stop; I++)
             {
                 //New_Actor_Slot();
                 DSSExecutive[ActiveActor]->Set_Command( String("compile \"") + Ref_Ckt + "\"");

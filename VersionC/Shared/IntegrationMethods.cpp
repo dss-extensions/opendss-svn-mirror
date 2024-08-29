@@ -16,7 +16,7 @@ template <class ModelType>
 void IntegrationMethods::ab2order(ModelType *gen, double *delta)
 {
 	double xold, temp;
-	for (int i = 0; i <= gen->nstates; i++) {
+	for (int i = 0; i < gen->nstates; i++) {
 		
 		//	This is done to hold the state value from two time steps ago
 		xold = gen->ss[i];						//	This is the state value at the previous time step
