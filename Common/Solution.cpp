@@ -2214,7 +2214,7 @@ namespace Solution
                 LineBus = elem->GetBus( TermIdx );
                 BusdotIdx = LineBus.find( '.');
                 if ( BusdotIdx != String::npos )
-                  LineBus = LineBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
+                  LineBus = LineBus.substr( 0, BusdotIdx );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
                 EndFlag = true;
@@ -2250,14 +2250,13 @@ namespace Solution
       int TermIdx = 0, CIdx = 0;
       size_t BusdotIdx = 0;
       bool EndFlag = false;
-      TPointerList lst;
       int counter = 0;
     // This rouitne adds the Transformers to the incidence matrix vectors
       /*# with ActiveCircuit[ActorID] do */
       {
         TDSSCircuit* with0 = ActiveCircuit[ActorID];
         {
-          lst = ActiveCircuit[ActorID]->Transformers;
+          TPointerList& lst = ActiveCircuit[ActorID]->Transformers;
           elem = (TTransfObj*) lst.Get_First();
           while ( elem != NULL )
           {
@@ -2272,7 +2271,7 @@ namespace Solution
                 LineBus = elem->GetBus( TermIdx );
                 BusdotIdx = LineBus.find( '.' );
                 if ( BusdotIdx != String::npos )
-                  LineBus = LineBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
+                  LineBus = LineBus.substr( 0, BusdotIdx );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
                 EndFlag = true;
@@ -2300,7 +2299,6 @@ namespace Solution
     {
       String CapBus;
       TCapacitorObj* elem;
-      TPointerList lst;
       int CapTermIdx = 0, CIdx = 0;
       size_t BusdotIdx = 0;
       bool CapEndFlag = false;
@@ -2309,7 +2307,7 @@ namespace Solution
       {
         TDSSCircuit* with0 = ActiveCircuit[ActorID];
         {
-          lst = with0->ShuntCapacitors;
+          TPointerList& lst = with0->ShuntCapacitors;
           elem = (TCapacitorObj*) lst.Get_First();
           while ( elem != NULL )
           {
@@ -2326,7 +2324,7 @@ namespace Solution
                   CapBus = elem->GetBus( CapTermIdx );
                   BusdotIdx = CapBus.find( '.' );
                   if ( BusdotIdx != String::npos )
-                    CapBus = CapBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
+                    CapBus = CapBus.substr( 0, BusdotIdx );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                   ActiveIncCell[1] = 1;
                   CapEndFlag = true;
@@ -2381,7 +2379,7 @@ namespace Solution
                 RBus = with0->get_FActiveCktElement()->GetBus( TermIdx );
                 BusdotIdx = RBus.find( '.' );
                 if ( BusdotIdx != String::npos )
-                  RBus = RBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
+                  RBus = RBus.substr( 0, BusdotIdx );  // removes the dot from the Bus Name
               // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
                 EndFlag = true;
@@ -2581,7 +2579,7 @@ namespace Solution
                     PDE_Buses[i - 1] = with0->get_FActiveCktElement()->GetBus( i );
                     BusdotIdx2 = PDE_Buses[i - 1].find( '.' );
                     if ( BusdotIdx2 != String::npos )
-                      PDE_Buses[i - 1] = PDE_Buses[i - 1].substr( 0, BusdotIdx2 - 1 );  // removes the dot from the Bus Name
+                      PDE_Buses[i - 1] = PDE_Buses[i - 1].substr( 0, BusdotIdx2 );  // removes the dot from the Bus Name
                   }
                   if ( Inc_Mat_Cols.size() == 0 )  //Get_First() iteration so the Cols array will be loaded
                   {
