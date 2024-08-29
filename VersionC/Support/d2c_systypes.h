@@ -72,7 +72,7 @@
 
 #if defined( WIN32 ) || defined( WIN64 )
 
-#include "Windows.h"
+#include "windows.h"
 #define windows 1
 
 #elif defined(linux)

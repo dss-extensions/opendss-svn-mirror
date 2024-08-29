@@ -88,7 +88,9 @@
 #include <ShellAPI.h> // CommandLineToArgvW
 #endif
 #if defined(windows)
+#ifdef _MSC_VER
 #include <atlstr.h>
+#endif
 #endif
 #include <cstring>
 

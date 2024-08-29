@@ -433,7 +433,7 @@ target_include_directories(OpenDSSC PRIVATE
 	Plot
 )
 
-if(MSVC)
+if((MSVC) OR (MINGW))
 # Windows:
 target_link_libraries(OpenDSSC
 	${CMAKE_THREAD_LIBS_INIT}

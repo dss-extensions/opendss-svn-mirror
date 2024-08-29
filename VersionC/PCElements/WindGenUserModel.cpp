@@ -133,35 +133,35 @@ void TWindGenUserModel::Set_Name(const String Value)
 
             // Now set up all the procedure variables			
 		FuncError = false;
-		FNew = (WindGenUserModelProc__0) CheckFuncError(GetProcAddress( (HMODULE) FHandle, "New"), "New");
+		FNew = (WindGenUserModelProc__0) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, "New"), "New");
 		if(!FuncError)
-			FSelect = (WindGenUserModelProc__2) CheckFuncError(GetProcAddress((HMODULE) FHandle, "Select" ), "Select");
+			FSelect = (WindGenUserModelProc__2) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, "Select" ), "Select");
 		if(!FuncError)
-			FInit = (WindGenUserModelProc__4) CheckFuncError(GetProcAddress((HMODULE) FHandle, "Init"), "Init");
+			FInit = (WindGenUserModelProc__4) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, "Init"), "Init");
 		if(!FuncError)
-			FCalc = (WindGenUserModelProc__5) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
+			FCalc = (WindGenUserModelProc__5) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
 		if(!FuncError)
-			FIntegrate = (WindGenUserModelProc__6) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
+			FIntegrate = (WindGenUserModelProc__6) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
 		if(!FuncError)
-			FSave = (WindGenUserModelProc__8) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
+			FSave = (WindGenUserModelProc__8) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
 		if(!FuncError)
-			fRestore = (WindGenUserModelProc__9) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
+			fRestore = (WindGenUserModelProc__9) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
 		if(!FuncError)
-			FEdit = (WindGenUserModelProc__3) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
+			FEdit = (WindGenUserModelProc__3) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (WindGenUserModelProc__7) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (WindGenUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
 		if(!FuncError)
-			FDelete = (WindGenUserModelProc__1) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
+			FDelete = (WindGenUserModelProc__1) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
-			FNumVars = (WindGenUserModelProc__10) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
+			FNumVars = (WindGenUserModelProc__10) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
 		if(!FuncError)
-			FGetAllVars = (WindGenUserModelProc__11) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
+			FGetAllVars = (WindGenUserModelProc__11) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
 		if(!FuncError)
-			FGetVariable = (WindGenUserModelProc__12) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
+			FGetVariable = (WindGenUserModelProc__12) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
 		if(!FuncError)
-			FSetVariable = (WindGenUserModelProc__13) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
+			FSetVariable = (WindGenUserModelProc__13) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
 		if(!FuncError)
-			FGetVarName = (WindGenUserModelProc__14) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
+			FGetVarName = (WindGenUserModelProc__14) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
 		if(FuncError)
 		{
 			FreeLibrary((HMODULE) FHandle);

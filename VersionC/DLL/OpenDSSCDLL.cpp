@@ -524,7 +524,7 @@ void __stdcall DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		WriteStr2Array("Error, parameter not recognized");
 		WriteStr2Array(Char0());
 		*mySize = myStrArray.size();
-		myPtr = (uint64_t*)&(myStrArray[0]);
+		myPtr = (uintptr_t*)&(myStrArray[0]);
 	}
 
 

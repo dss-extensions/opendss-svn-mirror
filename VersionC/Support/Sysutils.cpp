@@ -1115,7 +1115,7 @@ void AppendStr( String& Dest, const String& S )
 string UpperCase( const string& xs )
 {
   string s;
-#ifdef linux
+#if defined(linux) or not defined(_MSC_VER)
   string::const_iterator t, tEnd;
   for( t = xs.begin(); t != xs.end(); ++t)
     s.append(1, toupper(*t));
@@ -1137,7 +1137,7 @@ wstring UpperCase( const wstring& xs )
 string LowerCase( const string& xs )
 {
   string s;
-#ifdef linux
+#if defined(linux) or not defined(_MSC_VER)
   string::const_iterator t, tEnd;
   for( t = xs.begin(); t != xs.end(); ++t)
     s.append(1, tolower(*t));
@@ -7715,7 +7715,7 @@ void LoadVersionInfo( )  // and getfreespaceex
   Win32MinorVersion = VersionInfo.dwMinorVersion;
   Win32BuildNumber = VersionInfo.dwBuildNumber;
   Move( (void*) VersionInfo.szCSDVersion, &Win32CSDVersion[1], 128 );
-  Win32CSDVersion.SetLength(unsigned char( StrLen( (Char*) ( &VersionInfo.szCSDVersion[0] ) ) ) );
+  Win32CSDVersion.SetLength((unsigned char)( StrLen( (Char*) ( &VersionInfo.szCSDVersion[0] ) ) ) );
 }
 
 void Beep( )
