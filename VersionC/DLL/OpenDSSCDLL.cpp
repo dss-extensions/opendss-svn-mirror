@@ -5025,7 +5025,7 @@ int __stdcall CktElementI(int mode, int arg)
 			if (with0->FActiveCktElement != nullptr)
 			{
 				auto with1 = with0->FActiveCktElement;
-				with1->ActiveTerminal = &(with1->Terminals[arg]);
+				with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
 				with1->Set_ConductorClosed(3, ActiveActor, false);
 			}
 		}
@@ -5037,7 +5037,7 @@ int __stdcall CktElementI(int mode, int arg)
 			if (with0->FActiveCktElement != nullptr)
 			{
 				auto with1 = with0->FActiveCktElement;
-				with1->ActiveTerminal = &(with1->Terminals[arg]);
+				with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
 				with1->Set_ConductorClosed(3, ActiveActor, true);
 			}
 		}
@@ -5047,7 +5047,7 @@ int __stdcall CktElementI(int mode, int arg)
 		{
 			auto with0 = ActiveCircuit[ActiveActor];
 			auto with1 = with0->FActiveCktElement;
-			with1->ActiveTerminal = &(with1->Terminals[arg]);
+			with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
 			result = 0;
 			for (i = 1; i <= with1->Get_NConds(); i++)
 			{

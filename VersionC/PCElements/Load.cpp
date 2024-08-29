@@ -2299,7 +2299,7 @@ void TLoadObj::CalcInjCurrentArray(int ActorID)
 					int stop1 = 0;
 					for(stop1 = Fnconds, j = 1; j <= stop1; j++)
 					{
-						if(! ( Terminals[i].Conductors[j].Closed ) )
+						if(! ( Terminals[i - 1].Conductors[j - 1].Closed ) )
 						{
 							with0->ZeroRow(j + k);
 							with0->ZeroCol(j + k);

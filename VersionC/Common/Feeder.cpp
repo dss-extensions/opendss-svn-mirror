@@ -248,7 +248,7 @@ namespace Feeder
             Fnconds = RootElement.Get_NConds();
             Set_NTerms(1);
             Yorder = Fnterms * Fnconds;
-            Terminals[1].BusRef = BranchList.PresentBranch->FromBusReference;
+            Terminals[0].BusRef = BranchList.PresentBranch->FromBusReference;
             SetBus(1, RootElement.GetBus(BranchList.PresentBranch->FromTerminal));  // set bus name same as first element
             FromTerminalOffset = (BranchList.PresentBranch->FromTerminal - 1) * Fnconds;
             SetNodeRef(1, *(pIntegerArray*)  & RootElement.NodeRef[FromTerminalOffset]);

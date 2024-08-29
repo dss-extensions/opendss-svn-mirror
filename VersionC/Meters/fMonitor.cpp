@@ -1866,7 +1866,7 @@ void TFMonitorObj::Get_PDElem_terminal_voltage(int nd_num_in_cluster, String dev
 		tempElement = ((TDSSCktElement*) ActiveCircuit[ActorID]->CktElements.Get(DevIndex));
 	}
               //
-	tempTerminal = &(tempElement->Terminals)[Tern_num];
+	tempTerminal = &(tempElement->Terminals)[Tern_num - 1];
 	for(stop = tempElement->Get_NPhases(), j = 1; j <= stop; j++)
 	{// how many phases of this element
 		i = (tempTerminal->TermNodeRef)[j - 1];  // global node number
@@ -2579,7 +2579,7 @@ double TFMonitorObj::Get_power_trans(int ActorID)
       //tempCplx := MeteredElement.power[MeteredTerminal];
 	int stop = 0;
 	((TPDElement*) MeteredElement)->GetCurrents(&(MeteredElement->Iterminal[0]), ActorID); //Curr
-	pTerminal = &((MeteredElement->Terminals)[MeteredTerminal]);
+	pTerminal = &((MeteredElement->Terminals)[MeteredTerminal - 1]);
 	tempCplx = CZero;
 	k = (MeteredTerminal - 1) * MeteredElement->Get_NConds();
 	for(stop = MeteredElement->Get_NConds(), j = 1; j <= stop; j++)
@@ -2650,7 +2650,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
       //find the voltage of this phase on this terminal
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
-		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i - 1];
+		j = ((PElem->Terminals)[jTempTerminal - 1].TermNodeRef)[i - 1];
 		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
@@ -2658,7 +2658,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 				vtemp = ActiveCircuit[ActorID]->Solution->NodeV[nodeRefj];
 			else
 				vtemp = ActiveCircuit[ActorID]->Solution->VoltInActor1(nodeRefj);
-			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i - 1]; // node ref of this node
+			nodeRefi = ((PElem->Terminals)[k - 1].TermNodeRef)[i - 1]; // node ref of this node
 		}
 	} //  cannot deal with pos seq
 	if(phase_num == 0)
@@ -2885,7 +2885,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
       //find the voltage of this phase on this terminal
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
-		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i - 1];
+		j = ((PElem->Terminals)[jTempTerminal - 1].TermNodeRef)[i - 1];
 		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
@@ -2893,7 +2893,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 				vtemp = ActiveCircuit[ActorID]->Solution->NodeV[nodeRefj];
 			else
 				vtemp = ActiveCircuit[ActorID]->Solution->VoltInActor1(nodeRefj);
-			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i - 1]; // node ref of this node
+			nodeRefi = ((PElem->Terminals)[k - 1].TermNodeRef)[i - 1]; // node ref of this node
 		}
 	} //  cannot deal with pos seq
 	if(phase_num == 0)
