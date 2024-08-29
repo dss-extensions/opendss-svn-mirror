@@ -1583,15 +1583,15 @@ void Reset( TTextRec& t )
 }
 
 
-int GetFileHandle( file& F )
+intptr_t GetFileHandle( file& F )
 {
-  return (int) ((TFileRec*) &F )->Handle;
+  return (intptr_t) ((TFileRec*) &F )->Handle;
 }
 
 
-int GetFileHandle( TTextRec& F )
+intptr_t GetFileHandle( TTextRec& F )
 {
-  return (int) ((TTextRec*) &F )->Handle;
+  return (intptr_t) ((TTextRec*) &F )->Handle;
 }
 
 
