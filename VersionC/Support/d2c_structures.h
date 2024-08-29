@@ -58,7 +58,7 @@ typedef struct _GUID {
 #endif
 
 GUID StringToGuid(const std::string& str);
-std::string GuidToString(GUID guid);
+std::string GuidToString(const GUID& guid);
 void val(std::string S, double* result, int* Code);
 
 //-----------------------------------------------------------------------------------

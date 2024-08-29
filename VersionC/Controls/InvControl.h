@@ -24,6 +24,7 @@
 #include "d2c_structures.h"
 #include <queue>
 
+class TIEEE1547Controller;
 
 namespace InvControl
 {
@@ -100,6 +101,7 @@ public:
 class TInvControlObj : public ControlElem::TControlElem
 {
 	friend class TInvControl;
+	friend class ::TIEEE1547Controller;	
 public:
 	typedef ControlElem::TControlElem inherited;	
 private:

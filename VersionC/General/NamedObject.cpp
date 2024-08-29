@@ -84,7 +84,7 @@ namespace NamedObject
 		String result;
 		String s;
 		s = GuidToString(UUID);
-		result = "_" + s.substr(2, (int)(s.length() - 2));
+		result = s.substr(1, s.length() - 2);
 		return result;
 	}
 
@@ -134,16 +134,14 @@ namespace NamedObject
 		(*puuid) = Value;
 	}
 
-	TUuid TNamedObject::Get_UUID()
+	const TUuid& TNamedObject::Get_UUID()
 	{
-		TUuid result = {};
 		if (puuid == nullptr)
 		{
 			puuid = new TUuid;
 			CreateUUID4(*puuid);
 		}
-		result = (*puuid);
-		return result;
+		return *puuid;
 	}
 
 	String TNamedObject::Get_ID()

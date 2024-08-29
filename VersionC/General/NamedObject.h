@@ -31,7 +31,7 @@ public:
 	std::string Get_QualifiedName();
 	std::string Get_DisplayName();
 	void Set_DisplayName(const std::string Value);
-	TUuid Get_UUID();
+	const TUuid& Get_UUID();
 	std::string Get_ID();
 	std::string Get_CIM_ID();
 	void Set_UUID(const TUuid& Value);
@@ -44,10 +44,10 @@ public:
 	virtual ~TNamedObject();
 	TNamedObject();
 };
-//int CreateUUID4(TUuid& UUID);
+int CreateUUID4(TUuid& UUID);
 TUuid StringToUUID(std::string s);
 std::string UUIDToString(const TUuid& UUID);
-//std::string UUIDToCIMString(const TUuid& UUID);
+String UUIDToCIMString(const TUuid& cUUID);
 
 
 }  // namespace NamedObject

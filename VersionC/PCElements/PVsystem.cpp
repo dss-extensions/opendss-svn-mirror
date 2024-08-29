@@ -3657,6 +3657,85 @@ double TPVsystemObj::Get_FShapefactorRe()
 	return ShapeFactor.re;
 }
 
+// for CIM export
+
+double TPVsystemObj::Get_Pmin()
+{
+	return std::min(FpctCutIn, FpctCutOut) * Get_FkVArating() / 100.0;
+}
+
+double TPVsystemObj::Get_Pmax()
+{
+	return Get_FPmpp();
+}
+
+double TPVsystemObj::Get_qMaxInj()
+{
+    double result = PVSystemVars.Fkvarlimit;
+    if (!kvarLimitSet)
+        result = 0.25 * Get_FkVArating(); // unlike storage, defaults to category A
+
+	return result;
+}
+
+double TPVsystemObj::Get_qMaxAbs()
+{
+    double result = PVSystemVars.Fkvarlimitneg;
+    if (!kvarLimitNegSet)
+        result = 0.25 * Get_FkVArating(); // unlike storage, defaults to category A
+
+	return result;
+}
+
+double TPVsystemObj::Get_acVmin()
+{
+	return Get_PresentkV() * Vminpu;
+}
+
+double TPVsystemObj::Get_acVmax()
+{
+	return Get_PresentkV() * Vmaxpu;
+}
+
+double TPVsystemObj::Get_acVnom()
+{
+	return Get_PresentkV();
+}
+
+double TPVsystemObj::Get_pMaxUnderPF()
+{
+	double q = Get_qMaxAbs();
+	auto& with0 = PVSystemVars;
+	return sqrt( Sqr(with0.FkVArating) - q * q);
+}
+
+double TPVsystemObj::Get_pMaxOverPF()
+{
+	double q = Get_qMaxInj();
+	auto& with0 = PVSystemVars;
+	return sqrt(Sqr(with0.FkVArating) - q * q);
+}
+
+double TPVsystemObj::Get_pMaxCharge()
+{
+	return 0.0;
+}
+
+double TPVsystemObj::Get_sMaxCharge()
+{
+	return 0.0;
+}
+
+bool TPVsystemObj::Get_CIMDynamicMode()
+{
+    bool result = false;
+
+	result = FVWMode || FVVMode || FWVMode || FAVRMode || FDRCMode; // FWPMode not in CIM Dynamics
+
+	return result;
+}
+
+
 		class 		PVSystem_unit
 		{
 		public:
