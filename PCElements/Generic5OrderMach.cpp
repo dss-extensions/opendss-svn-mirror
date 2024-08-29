@@ -1053,26 +1053,26 @@ TGeneric5Obj::~TGeneric5Obj()
 
     //A, B matrix
 	if(ASSIGNED(Amm))
-		free(Amm);
+		delete[] Amm;
 	if(ASSIGNED(Bmn))
-		free(Bmn);
+		delete[] Bmn;
 	if(ASSIGNED(Cnm))
-		free(Cnm);
+		delete[] Cnm;
 	if(ASSIGNED(Dnn))
-		free(Dnn);
+		delete[] Dnn;
 	if(ASSIGNED(X_var))
-		free(X_var);
+		delete[] X_var;
 	if(ASSIGNED(dX_vardt))
-		free(dX_vardt);
+		delete[] dX_vardt;
 	if(ASSIGNED(X_varn))
-		free(X_varn);
+		delete[] X_varn;
 	if(ASSIGNED(dX_vardtn))
-		free(dX_vardtn);
+		delete[] dX_vardtn;
 	if(ASSIGNED(Y_out_var))
-		free(Y_out_var);
+		delete[] Y_out_var;
 	if(ASSIGNED(V_in_var))
-		free(V_in_var);
-	free(pV_f_CC);
+		delete[] V_in_var;
+	delete[] pV_f_CC;
 	// inherited::Destroy();   // This will take care of most common circuit element arrays, etc.
 }
 
