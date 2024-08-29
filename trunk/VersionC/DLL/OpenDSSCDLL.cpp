@@ -2529,7 +2529,7 @@ void __stdcall ActiveClassV(int mode, uintptr_t* myPtr, int* myType, int* mySize
 // Implements the Bus interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************Bus Functions************************* 
-bool CheckBusReference(TDSSCktElement* CktElement, int BusReference, int TerminalIndex)
+bool CheckBusReference(TDSSCktElement* CktElement, int BusReference)
 {
 	int		i = 0;
 	bool	result = false;
@@ -2539,7 +2539,6 @@ bool CheckBusReference(TDSSCktElement* CktElement, int BusReference, int Termina
 	{
 		if (with0->Terminals[i].BusRef == BusReference)
 		{
-			TerminalIndex = 1;
 			result = true;
 			break;
 		}
@@ -3426,7 +3425,7 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_First();
 			while (ASSIGNED(pElem))
 			{
-				if (CheckBusReference(pElem, BusReference, j))
+				if (CheckBusReference(pElem, BusReference))
 				{
 					LineCount++;
 				}
@@ -3438,7 +3437,7 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_First();
 				while (ASSIGNED(pElem))
 				{
-					if (CheckBusReference(pElem, BusReference, j))
+					if (CheckBusReference(pElem, BusReference))
 					{
 						S = "LINE." + pElem->LName;
 						WriteStr2Array(S);
@@ -3467,7 +3466,7 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_First();
 			while (ASSIGNED(pElem))
 			{
-				if (CheckBusReference(pElem, BusReference, j))
+				if (CheckBusReference(pElem, BusReference))
 				{
 					LoadCount++;
 				}
@@ -3479,7 +3478,7 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_First();
 				while (ASSIGNED(pElem))
 				{
-					if (CheckBusReference(pElem, BusReference, j))
+					if (CheckBusReference(pElem, BusReference))
 					{
 						S = "LOAD." + pElem->LName;
 						WriteStr2Array(S);
