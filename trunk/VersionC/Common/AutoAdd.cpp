@@ -107,7 +107,7 @@ namespace AutoAdd
                 BusIdxList = (pIntegerArray) realloc(BusIdxList, sizeof(long) * BusIdxListSize);
                 for (int stop = BusIdxListSize, i = 1; i <= stop; i++)
                 {
-                    (BusIdxList)[i] = i;
+                    (BusIdxList)[i - 1] = i;
                 }
                 BusIdxListCreated = true;
                 return;
@@ -148,7 +148,7 @@ namespace AutoAdd
         BusIdxList = (pIntegerArray)realloc(BusIdxList, sizeof(long) * BusIdxListSize); 
         for (int stop = BusIdxListSize, i = 1; i <= stop; i++)
         {
-            (BusIdxList)[i] = ActiveCircuit[ActorID]->BusList.Find(FBusList.Get(i));
+            (BusIdxList)[i - 1] = ActiveCircuit[ActorID]->BusList.Find(FBusList.Get(i));
         }
         if (FBusListCreatedHere)
             FBusList.Clear();
@@ -386,7 +386,7 @@ namespace AutoAdd
                     for (int stop = BusIdxListSize, i = 1; i <= stop; i++)
                     {
                         ProgressCount++;
-                        BusIndex = (BusIdxList)[i];
+                        BusIndex = (BusIdxList)[i - 1];
                         if (BusIndex > 0)
                         {
                             Testbus = with0->BusList.Get(BusIndex);
@@ -497,7 +497,7 @@ namespace AutoAdd
                     {
                         ProgressCount++;
                         /*Make sure testbus is actually in the circuit*/
-                        BusIndex = (BusIdxList)[i];
+                        BusIndex = (BusIdxList)[i - 1];
                         if (BusIndex > 0)
                         {
                             Testbus = with0->BusList.Get(BusIndex);
