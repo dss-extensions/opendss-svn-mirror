@@ -346,7 +346,20 @@ public:
 	double get_PFNominal();
 	double get_Vminpu();
 	double get_Fkvarlimitneg();
-		 
+
+	double Get_Pmin();
+	double Get_Pmax();
+	double Get_qMaxInj();
+	double Get_qMaxAbs();
+	double Get_acVmin();
+	double Get_acVmax();
+	double Get_acVnom();
+	double Get_pMaxUnderPF();
+	double Get_pMaxOverPF();
+	double Get_pMaxCharge();
+	double Get_sMaxCharge();
+	bool Get_CIMDynamicMode();
+
 	//--------------------------------------------------------------------------------------------------------
 	// Functions for NCIM solution algorithm
 	void DoPQBusNCIM(int ActorID, int i, complex V, complex Curr);
