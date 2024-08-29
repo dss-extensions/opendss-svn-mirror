@@ -1475,7 +1475,7 @@ void TMonitorObj::TakeSample(int ActorID)
 				int stop = 0;
 				for(stop = with4->Get_FNumSteps(), i = 1; i <= stop; i++)
 				{
-					AddDblToBuffer((double) with4->get_States(i,ActorID,0));
+					AddDblToBuffer((double) with4->get_States(i,ActorID));
 				}
 			}
 			return;
