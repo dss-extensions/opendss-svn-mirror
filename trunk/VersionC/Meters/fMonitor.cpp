@@ -1,4 +1,4 @@
-﻿
+
 #pragma hdrstop
 
 #include "fMonitor.h"
@@ -1609,7 +1609,7 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 				{
 					if(PElem->ActiveTerminal->BusRef == (*pNodeFMs)[iNodeNum].Bus_Idx)
 					{
-						if(LowerCase(((TDSSObject*)PElem)->Get_myPName()).find("generic5"))
+						if(LowerCase(((TDSSObject*)PElem)->Get_myPName()).find("generic5") != String::npos)
 
                                   //vl_nodeType should be define per phase
 						{

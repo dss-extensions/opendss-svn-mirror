@@ -474,10 +474,10 @@ namespace DSSGlobals
         String ObjName, ObjClass;
 
         // Split off Obj class and name
-        int dotpos = param.find(".");
+        size_t dotpos = param.find(".");
         switch (dotpos)
         {
-        case 0:
+        case String::npos:
             ObjName = param.substr(0, param.length());
             break;  // assume it is all name; class defaults
         default:
