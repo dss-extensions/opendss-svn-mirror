@@ -2394,7 +2394,9 @@ namespace ShowResults
                                 System::Write(F, 0); System::Write(F, ' ');
                             }
                             else
+                            {
                                 System::Write(F, Format("%8.0f", pElem->Registers[j])); System::Write(F, ' ');
+                            }
                         }
                     }
                     pElem = (TGeneratorObj*)ActiveCircuit[ActiveActor]->Generators.Get_Next();
@@ -3741,8 +3743,6 @@ namespace ShowResults
     {
 
 
-      typedef double* pNodeDoubleArray;
-      typedef double NodeDoubleArray [ 101/*# range 0..100*/ ];
       TTextRec F;
       int       i = 0, 
                 j = 0, 

@@ -3364,7 +3364,7 @@ namespace DSSPlot
 
                     /* Look for a line with this name */
                     IsLine = true;
-                    if (Param.find(".") > 0)
+                    if (Param.find(".") != String::npos)
                     {
                         if (CompareTextShortest(Param, "line") == 0)
                             LineNm = Param.substr(Param.find("."), Param.size());

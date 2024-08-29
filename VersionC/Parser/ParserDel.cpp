@@ -100,14 +100,14 @@ namespace ParserDel
 	{
 		String VariableValue;
 		String VariableName;
-		int dotpos = 0;
-		int CaratPos = 0;
+		size_t dotpos = 0;
+		size_t CaratPos = 0;
 
 		/*-------------------------------------*/
 
 		auto ReplaceToDotPos = [&](const String s) -> void
 		{
-			if (dotpos > 0)
+			if (dotpos != String::npos)
 				TokenBuffer = s + TokenBuffer.substr(dotpos, TokenBuffer.length() - dotpos + 1);
 			else
 				TokenBuffer = s;
@@ -121,9 +121,9 @@ namespace ParserDel
 			{
 				dotpos = TokenBuffer.find(".");
 				CaratPos = TokenBuffer.find("^");
-				if (CaratPos > 0)
+				if (CaratPos != String::npos)
 					dotpos = CaratPos;   // Carat takes precedence
-				if (dotpos > 0)
+				if (dotpos != String::npos)
 					VariableName = StriptoDotPos(dotpos, TokenBuffer);
 				else
 					VariableName = TokenBuffer;
@@ -485,7 +485,7 @@ namespace ParserDel
 	String TParser::ParseAsBusName(int& NumNodes, Arraydef::pIntegerArray NodeArray, int ActorID)
 	{
 		String result;
-		int dotpos = 0;
+		size_t dotpos = 0;
 		int NodeBufferPos = 0;
 		String NodeBuffer;
 		String DelimSave;
@@ -494,7 +494,7 @@ namespace ParserDel
 			GetNextParam();
 		NumNodes = 0;
 		dotpos = TokenBuffer.find(".");
-		if (dotpos < 0)
+		if (dotpos == String::npos)
 			result = TokenBuffer;
 		else
 		{
@@ -873,7 +873,7 @@ namespace ParserDel
 		}
 
 		/*If a variable used in the definition of a variable, enclose in quotes.*/
-		if (varValue.find("@") > 0)
+		if (varValue.find("@") != String::npos)
 			VarDefinition = EncloseQuotes(varValue);
 		else
 			VarDefinition = varValue;

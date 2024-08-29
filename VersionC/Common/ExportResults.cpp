@@ -3443,7 +3443,7 @@ namespace ExportResults
         }
 
         // Create string object from buffer
-	      std:string am_pm = (tm.tm_hour < 12 ) ? "AM" : "PM";		
+	      std::string am_pm = (tm.tm_hour < 12 ) ? "AM" : "PM";		
         std::string formattedTime(buffer2);
 	      formattedTime += " " + am_pm;
         //Write( F, "\"" + DateTimeToStr(Now())  + "\"" + ", " );

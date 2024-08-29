@@ -397,11 +397,11 @@ String PhaseString( TDSSCktElement pElem, int Bus, bool bAllowSec = true ) // if
 {/*
   String result;
   String val, phs;
-  int dot = 0;
+  size_t dot = 0;
   bool bSec = false;
-  phs = pElem.FirstBus;
-  for ( int stop = Bus, dot = 2; dot <= stop; dot++)
-    phs = pElem.NextBus;
+  phs = pElem->Get_FirstBus();
+  for ( size_t stop = (size_t) Bus, dot = 2; dot <= stop; dot++)
+    phs = pElem->Get_NextBus();
   bSec = false;
   if ( bAllowSec )
   {
@@ -413,37 +413,37 @@ String PhaseString( TDSSCktElement pElem, int Bus, bool bAllowSec = true ) // if
         bSec = true;
   }
   dot = phs.find( "." );
-  if ( dot < 1 )
+  if ( dot == String::npos )
   {
     val = "ABC";
   }
   else
   {
     phs = phs.substr( dot + 1, phs.size() ) );
-    if ( phs.find( "3" ) > 0 )
+    if ( phs.find( "3" ) != String::npos )
       bSec = false; // i.e. it's a three-phase secondary, not split-phase
     if ( bSec )
     {
-      if ( phs.find( "1" ) > 0 )
+      if ( phs.find( "1" ) != String::npos )
       {
         val = "s1";
-        if ( phs.find( "2" ) > 0 )
+        if ( phs.find( "2" ) != String::npos )
           val = val + "2";
       }
       else
-        if ( phs.find( "2" ) > 0 )
+        if ( phs.find( "2" ) != String::npos )
           val = "s2";
     }
     else
     {
       val = "";
-      if ( phs.find( "1" ) > 0 )
+      if ( phs.find( "1" ) != String::npos )
         val = val + "A";
-      if ( phs.find( "2" ) > 0 )
+      if ( phs.find( "2" ) != String::npos )
         val = val + "B";
-      if ( phs.find( "3" ) > 0 )
+      if ( phs.find( "3" ) != String::npos )
         val = val + "C";
-      if ( phs.find( "4" ) > 0 )
+      if ( phs.find( "4" ) != String::npos )
         val = val + "N";
     }
   }
@@ -465,11 +465,11 @@ String PhaseOrderString( TDSSCktElement pElem, int Bus, bool bAllowSec = true ) 
 /*
   String result;
   String phs;
-  int dot = 0;
+  size_t dot = 0;
   bool bSec = false;
-  phs = pElem.FirstBus;
-  for ( int stop = Bus, dot = 2; dot <= stop; dot++)
-    phs = pElem.NextBus;
+  phs = pElem->Get_FirstBus();
+  for ( size_t stop = (size_t) Bus, dot = 2; dot <= stop; dot++)
+    phs = pElem->Get_NextBus();
   bSec = false;
   if ( bAllowSec )
   {
@@ -481,68 +481,68 @@ String PhaseOrderString( TDSSCktElement pElem, int Bus, bool bAllowSec = true ) 
         bSec = true;
   }
   dot = phs.find( "." );
-  if ( dot < 1 )
+  if ( dot == String::npos )
   {
     result = "ABC";
   }
   else
   {
     phs = phs.substr( dot + 1, phs.size() ) );
-    if ( phs.find( "3" ) > 0 )
+    if ( phs.find( "3" ) != String::npos )
       bSec = false; // i.e. it's a three-phase secondary, not split-phase
     if ( bSec )
     {
-      if ( phs.find( "1" ) > 0 )
+      if ( phs.find( "1" ) != String::npos )
       {
         result = "s1";
-        if ( phs.find( "2" ) > 0 )
+        if ( phs.find( "2" ) != String::npos )
           result = result + "2";
       }
       else
-        if ( phs.find( "2" ) > 0 )
+        if ( phs.find( "2" ) != String::npos )
           result = "s2";
     }
     else
-      if ( phs.find( "1.2.3" ) > 0 )
+      if ( phs.find( "1.2.3" ) != String::npos )
         result = "ABC";
       else
-        if ( phs.find( "1.3.2" ) > 0 )
+        if ( phs.find( "1.3.2" ) != String::npos )
           result = "ACB";
         else
-          if ( phs.find( "2.3.1" ) > 0 )
+          if ( phs.find( "2.3.1" ) != String::npos )
             result = "BCA";
           else
-            if ( phs.find( "2.1.3" ) > 0 )
+            if ( phs.find( "2.1.3" ) != String::npos )
               result = "BAC";
             else
-              if ( phs.find( "3.2.1" ) > 0 )
+              if ( phs.find( "3.2.1" ) != String::npos )
                 result = "CBA";
               else
-                if ( phs.find( "3.1.2" ) > 0 )
+                if ( phs.find( "3.1.2" ) != String::npos )
                   result = "CAB";
                 else
-                  if ( phs.find( "1.2" ) > 0 )
+                  if ( phs.find( "1.2" ) != String::npos )
                     result = "AB";
                   else
-                    if ( phs.find( "1.3" ) > 0 )
+                    if ( phs.find( "1.3" ) != String::npos )
                       result = "AC";
                     else
-                      if ( phs.find( "2.3" ) > 0 )
+                      if ( phs.find( "2.3" ) != String::npos )
                         result = "BC";
                       else
-                        if ( phs.find( "2.1" ) > 0 )
+                        if ( phs.find( "2.1" ) != String::npos )
                           result = "BA";
                         else
-                          if ( phs.find( "3.2" ) > 0 )
+                          if ( phs.find( "3.2" ) != String::npos )
                             result = "CB";
                           else
-                            if ( phs.find( "3.1" ) > 0 )
+                            if ( phs.find( "3.1" ) != String::npos )
                               result = "CA";
                             else
-                              if ( phs.find( "1" ) > 0 )
+                              if ( phs.find( "1" ) != String::npos )
                                 result = "A";
                               else
-                                if ( phs.find( "2" ) > 0 )
+                                if ( phs.find( "2" ) != String::npos )
                                   result = "B";
                                 else
                                   result = "C";
@@ -560,7 +560,7 @@ String DeltaPhaseString( TDSSCktElement pElem )
   int dot = 0;
   phs = pElem.Get_FirstBus();
   dot = phs.find( "." );
-  if ( ( dot < 1 ) || ( pElem.Get_NPhases() == 3 ) )
+  if ( ( dot == String::npos ) || ( pElem.Get_NPhases() == 3 ) )
   {
     result = "ABC"; // if Nphases < 3 this would be a user input error
   }
@@ -569,42 +569,42 @@ String DeltaPhaseString( TDSSCktElement pElem )
     phs = phs.substr( dot + 1, phs.size() ) ;
     if ( pElem.Get_NPhases() == 1 )
     {
-      if ( phs.find( "1.2" ) > 0 )
+      if ( phs.find( "1.2" ) != String::npos )
         result = "A";
       else
-        if ( phs.find( "2.1" ) > 0 )
+        if ( phs.find( "2.1" ) != String::npos )
           result = "A";
         else
-          if ( phs.find( "2.3" ) > 0 )
+          if ( phs.find( "2.3" ) != String::npos )
             result = "B";
           else
-            if ( phs.find( "3.2" ) > 0 )
+            if ( phs.find( "3.2" ) != String::npos )
               result = "B";
             else
-              if ( phs.find( "1.3" ) > 0 )
+              if ( phs.find( "1.3" ) != String::npos )
                 result = "C";
               else
-                if ( phs.find( "3.1" ) > 0 )
+                if ( phs.find( "3.1" ) != String::npos )
                   result = "C";
     }
     else
     {
-      if ( phs.find( "1.2.3" ) > 0 )
+      if ( phs.find( "1.2.3" ) != String::npos )
         result = "AB";
       else
-        if ( phs.find( "1.3.2" ) > 0 )
+        if ( phs.find( "1.3.2" ) != String::npos )
           result = "CB";
         else
-          if ( phs.find( "2.1.3" ) > 0 )
+          if ( phs.find( "2.1.3" ) != String::npos )
             result = "AC";
           else
-            if ( phs.find( "2.3.1" ) > 0 )
+            if ( phs.find( "2.3.1" ) != String::npos )
               result = "BC";
             else
-              if ( phs.find( "3.1.2" ) > 0 )
+              if ( phs.find( "3.1.2" ) != String::npos )
                 result = "CA";
               else
-                if ( phs.find( "3.2.1" ) > 0 )
+                if ( phs.find( "3.2.1" ) != String::npos )
                   result = "BA";
     }
   }
@@ -692,11 +692,11 @@ void TBankObject::AddTransformer( TTransfObj pXf )
   for ( int stop = pXf.NumberOfWindings, i = 1; i <= stop; i++)
   {
     phs = PhaseString( pXf, i );
-    if ( phs.find( "A" ) > 0 )
+    if ( phs.find( "A" ) != String::npos )
       phaseA[i - 1] = 1;
-    if ( phs.find( "B" ) > 0 )
+    if ( phs.find( "B" ) != String::npos )
       phaseB[i - 1] = 1;
-    if ( phs.find( "C" ) > 0 )
+    if ( phs.find( "C" ) != String::npos )
       phaseC[i - 1] = 1;
     connections[i - 1] = pXf.WdgConnection[i];
     if ( connections[i - 1] != connections[0] )
@@ -1946,19 +1946,19 @@ void WriteLoadModel( String Name, TUuid ID, double zP, double iP, double pP, dou
 bool IsGroundBus( const String S )
 {
   bool result = false;
-  int i = 0;
+  size_t i = 0;
   result = true;
   i = S.find( ".1" );
-  if ( i > 0 )
+  if ( i != String::npos )
     result = false;
   i = S.find( ".2" );
-  if ( i > 0 )
+  if ( i != String::npos )
     result = false;
   i = S.find( ".3" );
-  if ( i > 0 )
+  if ( i != String::npos )
     result = false;
   i = S.find( "." );
-  if ( i == 0 )
+  if ( i == String::npos )
     result = false;
   return result;
 }
@@ -1969,7 +1969,7 @@ void WritePositions( TDSSCktElement pElem, TUuid geoUUID, TUuid crsUUID )
   int Nterm = 0, j = 0, ref = 0;
   String BusName;/**
   Nterm = pElem.Nterms;
-  BusName = pElem.FirstBus;
+  BusName = pElem->Get_FirstBus();
   StartFreeInstance( GeoPrf, "Location", geoUUID );
   StringNode( GeoPrf, "IdentifiedObject.mRID", UUIDToCIMString( geoUUID ) );
   StringNode( GeoPrf, "IdentifiedObject.name", pElem.LocalName + "_Loc" );
@@ -1987,7 +1987,7 @@ void WritePositions( TDSSCktElement pElem, TUuid geoUUID, TUuid crsUUID )
       StringNode( GeoPrf, "PositionPoint.yPosition", floattostr( ActiveCircuit[ActiveActor]->Buses[ref - 1].y ) );
       EndInstance( GeoPrf, "PositionPoint" );
     }
-    BusName = pElem.NextBus;
+    BusName = pElem->Get_NextBus();
   }*/
 }
 
@@ -1999,7 +1999,7 @@ void WriteReferenceTerminals( TDSSCktElement pElem, TUuid RefUuid, double norm =
   TUuid TermUuid, LimiTUuid;
   TOpLimitObject* pLimit = NULL;/**
   Nterm = pElem.Nterms;
-  BusName = pElem.FirstBus;
+  BusName = pElem->Get_FirstBus();
   for ( int stop = Nterm, j = 1; j <= stop; j++)
   {
     if ( IsGroundBus( BusName ) == false )
@@ -2031,7 +2031,7 @@ void WriteReferenceTerminals( TDSSCktElement pElem, TUuid RefUuid, double norm =
       }
       EndInstance( FunPrf, "Terminal" );
     }
-    BusName = pElem.NextBus;
+    BusName = pElem->Get_NextBus();
   }*/
 }
 

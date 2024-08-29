@@ -1,4 +1,4 @@
-﻿
+
 #pragma hdrstop
 
 #include <chrono>
@@ -2190,7 +2190,8 @@ namespace Solution
     {
       String LineBus;
       TLineObj* elem;
-      int TermIdx = 0, CIdx = 0, BusdotIdx = 0;
+      int TermIdx = 0, CIdx = 0;
+      size_t BusdotIdx = 0;
       bool EndFlag = false;
       int counter = 0;
     // This rouitne adds the Lines to the incidence matrix vectors
@@ -2212,7 +2213,7 @@ namespace Solution
               {
                 LineBus = elem->GetBus( TermIdx );
                 BusdotIdx = LineBus.find( '.');
-                if ( BusdotIdx != 0 )
+                if ( BusdotIdx != String::npos )
                   LineBus = LineBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
@@ -2246,7 +2247,8 @@ namespace Solution
     {
       String LineBus;
       TTransfObj* elem;
-      int TermIdx = 0, BusdotIdx = 0, CIdx = 0;
+      int TermIdx = 0, CIdx = 0;
+      size_t BusdotIdx = 0;
       bool EndFlag = false;
       TPointerList lst;
       int counter = 0;
@@ -2269,7 +2271,7 @@ namespace Solution
               {
                 LineBus = elem->GetBus( TermIdx );
                 BusdotIdx = LineBus.find( '.' );
-                if ( BusdotIdx != 0 )
+                if ( BusdotIdx != String::npos )
                   LineBus = LineBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
@@ -2299,7 +2301,8 @@ namespace Solution
       String CapBus;
       TCapacitorObj* elem;
       TPointerList lst;
-      int CapTermIdx = 0, BusdotIdx = 0, CIdx = 0;
+      int CapTermIdx = 0, CIdx = 0;
+      size_t BusdotIdx = 0;
       bool CapEndFlag = false;
     // This rouitne adds the series capacitors to the incidence matrix vectors
       /*# with ActiveCircuit[ActorID] do */
@@ -2322,7 +2325,7 @@ namespace Solution
                 {
                   CapBus = elem->GetBus( CapTermIdx );
                   BusdotIdx = CapBus.find( '.' );
-                  if ( BusdotIdx != 0 )
+                  if ( BusdotIdx != String::npos )
                     CapBus = CapBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
                 // Evaluates the position of the Bus in the array
                   ActiveIncCell[1] = 1;
@@ -2351,7 +2354,8 @@ namespace Solution
     {
       String RBus;
       int elem = 0, DevClassIndex = 0;
-      int TermIdx = 0, BusdotIdx = 0, CIdx = 0;
+      int TermIdx = 0, CIdx = 0;
+      size_t BusdotIdx = 0;
       bool EndFlag = false;
     // This rouitne adds the series reactors to the incidence matrix vectors
       /*# with ActiveCircuit[ActorID] do */
@@ -2366,7 +2370,7 @@ namespace Solution
           {
             RBus = with0->get_FActiveCktElement()->GetBus( 2 );
             BusdotIdx = RBus.find( ".0" );
-            if ( BusdotIdx == 0 )
+            if ( BusdotIdx == String::npos )
             {
               temp_counter++;
               Inc_Mat_Rows.resize(temp_counter);
@@ -2376,7 +2380,7 @@ namespace Solution
               {
                 RBus = with0->get_FActiveCktElement()->GetBus( TermIdx );
                 BusdotIdx = RBus.find( '.' );
-                if ( BusdotIdx != 0 )
+                if ( BusdotIdx != String::npos )
                   RBus = RBus.substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
               // Evaluates the position of the Bus in the array
                 ActiveIncCell[1] = 1;
@@ -2435,7 +2439,8 @@ namespace Solution
     int TSolutionObj::get_PDE_Bus1_Location( String myPDE )
     {
       int result = 0;
-      int i = 0, j = 0;
+      int i = 0;
+      size_t j = 0;
       String myBUS;
       /*# with ActiveCircuit[ActiveActor] do */
       {
@@ -2444,7 +2449,7 @@ namespace Solution
           with0->SetElementActive( myPDE );
           myBUS = with0->get_FActiveCktElement()->GetBus( 2 );
           j = myBUS.find( '.' );
-          if ( j != 0 )
+          if ( j != String::npos )
             myBUS = myBUS.substr( 0, j - 1 );
           for ( int stop = (Inc_Mat_Cols.size() - 1), i = 0; i <= stop; i++)
             if ( Inc_Mat_Cols[i] == myBUS )
@@ -2541,6 +2546,7 @@ namespace Solution
 
       int nLevels = 0                           // PDElements index
       , i = 0, j = 0, j2 = 0, ZeroLevel = 0, BusdotIdx = 0, Row = 0, Col = 0, val = 0, nPDE = 0;
+      size_t BusdotIdx2 = 0;
       try
       {
         if ( ActiveCircuit[ActorID] != NULL )
@@ -2573,9 +2579,9 @@ namespace Solution
                   for ( int stop = with0->get_FActiveCktElement()->Get_NTerms(), i = 1; i <= stop; i++)
                   {
                     PDE_Buses[i - 1] = with0->get_FActiveCktElement()->GetBus( i );
-                    BusdotIdx = PDE_Buses[i - 1].find( '.' );
-                    if ( BusdotIdx != 0 )
-                      PDE_Buses[i - 1] = PDE_Buses[i - 1].substr( 0, BusdotIdx - 1 );  // removes the dot from the Bus Name
+                    BusdotIdx2 = PDE_Buses[i - 1].find( '.' );
+                    if ( BusdotIdx2 != String::npos )
+                      PDE_Buses[i - 1] = PDE_Buses[i - 1].substr( 0, BusdotIdx2 - 1 );  // removes the dot from the Bus Name
                   }
                   if ( Inc_Mat_Cols.size() == 0 )  //Get_First() iteration so the Cols array will be loaded
                   {
@@ -4309,7 +4315,7 @@ namespace Solution
 
     void TSolver::Start_Diakoptics( )
     {
-      int jj = 0;
+      size_t jj = 0;
       TVsourceObj* VSourceObj;
       String BusName;
       DynStringArray myPDEList;
@@ -4324,7 +4330,7 @@ namespace Solution
         // (applies to all actors but actor 2 - first chunk of the system)
           BusName = VSourceObj->GetBus( 1 );
           jj = BusName.find( '.' );   // removes the dot
-          if ( jj > 0 )
+          if ( jj != String::npos )
             BusName = BusName.substr( 0, ( jj - 1 ) );
           SetActiveBus( BusName );                            // Activates the Bus
           myPDEList = with0->getPDEatBus( with0->BusList.Get( with0->ActiveBusIndex + 1 ) );

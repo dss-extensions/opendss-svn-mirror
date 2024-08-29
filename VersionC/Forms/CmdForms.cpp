@@ -200,7 +200,7 @@ void ShowAnyHelp( const int num, pStringArray cmd, pStringArray hlp, const Strin
   {
     for ( int stop = num, i = 1; i <= stop; i++)
     {
-      if ( (LowerCase((cmd)[i]).find( opt ) ) >= 0 )
+      if ( (LowerCase((cmd)[i]).find( opt ) ) != String::npos )
       {
         CoutLn( UpperCase( (cmd)[i]));
         CoutLn( "======================" );
@@ -222,7 +222,7 @@ void ShowClassHelp( const String opt )
     pDSSClass = (TDSSClass*) DSSClassList[ActiveActor].Get_First();
     while ( pDSSClass != NULL )
     {
-      if (LowerCase(pDSSClass->get_myClass_name()).find( opt ) >= 0 )
+      if (LowerCase(pDSSClass->get_myClass_name()).find( opt ) != String::npos )
       {
         CoutLn( UpperCase( pDSSClass->get_myClass_name() ) );
         CoutLn( "======================" );
@@ -263,19 +263,19 @@ void ShowHelpForm( )
   Param = LowerCase( Parser[ActiveActor]->MakeString_() );
   dummy = Parser[ActiveActor]->GetNextParam();
   OptName = LowerCase( Parser[ActiveActor]->MakeString_() );
-  if ( Param.find("com") >= 0 )
+  if ( Param.find("com") != String::npos)
     ShowAnyHelp( NumExecCommands, *(pStringArray*) ExecCommand, *(pStringArray*) CommandHelp, OptName );
   else
-    if (Param.find( "op" ) >= 0)
+    if (Param.find( "op" ) != String::npos)
       ShowAnyHelp( NumExecOptions, *(pStringArray*) ExecOption, *(pStringArray*) OptionHelp, OptName );
     else
-      if (Param.find( "sh" ) >= 0 )
+      if (Param.find( "sh" ) != String::npos)
         ShowAnyHelp( NumShowOptions, *(pStringArray*) ShowOption, *(pStringArray*) ShowHelp, OptName );
       else
-        if (Param.find( 'e' ) >= 0 )
+        if (Param.find( 'e' ) != String::npos)
           ShowAnyHelp( NumExportOptions, *(pStringArray*) ExportOption, *(pStringArray*) ExportHelp, OptName );
         else
-          if (Param.find( "cl" ) >= 0 )
+          if (Param.find( "cl" ) != String::npos)
             ShowClassHelp( OptName );
           else
             ShowGeneralHelp();

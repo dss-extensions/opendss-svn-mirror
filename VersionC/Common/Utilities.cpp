@@ -75,7 +75,7 @@ namespace Utilities
     {
         String result = "", StrXtra = "";
         /*
-        if (S.find('$'))
+        if (S.find('$') != String::npos)
         {
             S._Equal(" ");
             StrXtra._Equal(" ");
@@ -140,9 +140,9 @@ namespace Utilities
     /*Strips off everything up to a period.*/
     {
       String result;
-      int dotpos = 0;
+      size_t dotpos = 0;
       dotpos = S.find( "." );
-      if ( dotpos < 0 )
+      if ( dotpos == String::npos )
         dotpos = S.size( );
       result = S.substr( 0, dotpos );
       return result;
@@ -156,7 +156,7 @@ namespace Utilities
     /*Returns everything past the first period*/
     {
       String result;
-      int dotpos = 0;
+      size_t dotpos = 0;
       dotpos = S.find( "." );
       result = S.substr(( dotpos) + 1, S.size() );
       return result;
@@ -853,7 +853,7 @@ namespace Utilities
       int result = 0;
       String ParmName, Param;
       TTextRec F;
-      char* MyStream;
+      char* MyStream = nullptr;
       int i = 0;
       float temp = 0.0;
       String CSVFileName;
@@ -1392,13 +1392,13 @@ namespace Utilities
 
     void ParseObjectClassandName( const String FullObjName, String& ClassName, String& ObjName )
     {
-      int dotpos = 0;
+      size_t dotpos = 0;
 
           // Split off Obj class and name
       dotpos = FullObjName.find( "." );
       switch ( dotpos )
       {
-        case 0:
+        case String::npos:
         {
           ObjName = FullObjName.substr( 0, FullObjName.size() );  // assume it is all objname; class defaults
           ClassName = "";
@@ -1712,11 +1712,11 @@ namespace Utilities
     String ReplaceCRLF( const String S )
     {
       String result;
-      int nPos = 0;
+      size_t nPos = 0;
         /*Replace CRLF with a \n character sequence*/
       result = S;
       nPos = result.find( CRLF );
-      while ( nPos > 0 )
+      while ( nPos != String::npos )
       {
         result[nPos] = '\\';
         result[(nPos) + 1] = 'n';
@@ -1731,11 +1731,11 @@ namespace Utilities
     String RestoreCRLF( const String S )
     {
       String result;
-      int nPos = 0;
+      size_t nPos = 0;
         /*Replace CRLF with a \n character sequence*/
       result = S;
       nPos = result.find( "\\n" );
-      while ( nPos > 0 )
+      while ( nPos != String::npos )
       {
         result[nPos] = Char( 13 );
         result[(nPos) + 1] = Char( 10 );
@@ -2654,7 +2654,7 @@ namespace Utilities
                   String dummy = AuxParser[ActiveActor]->GetNextParam();
                   Field = AuxParser[ActiveActor]->MakeString_();
                   FieldLen = Field.length();
-                  if (Field.find(" ") > 0)
+                  if (Field.find(" ") != String::npos)
                       FieldLen = FieldLen + 2;
                   if (FieldLen > 0)
                   {
@@ -2684,7 +2684,7 @@ namespace Utilities
               {
                   String dummy = AuxParser[ActiveActor]->GetNextParam();
                   Field = AuxParser[ActiveActor]->MakeString_();
-                  if (Field.find(" ") > 0)
+                  if (Field.find(" ") != String::npos)
                       Field = String("\"") + Field + "\"";  // add quotes if a space in field
                   FieldLen = Field.length();
                   if (FieldLen > 0)
@@ -2693,7 +2693,7 @@ namespace Utilities
                       Write(Fout, Pad(Field, FieldLength[FieldNum] + 1));
                   }
               } while (!(FieldLen == 0));
-              if (Line.find("!") > 0)
+              if (Line.find("!") != String::npos)
                   Write(Fout, ExtractComment(Line));
               WriteLn(Fout);
           }
@@ -3637,7 +3637,7 @@ namespace Utilities
     /*Rename Buses and element names to generic names to remove identifiable names*/
     {
       int i = 0, bref = 0;
-      int dotpos = 0;
+      size_t dotpos = 0;
       int DevListSize = 0;
       THashList TempBusList;
       TDSSCktElement* pCktElem;
@@ -3679,7 +3679,7 @@ namespace Utilities
               {
                 OldBusName = pCktElem->GetBus( i );
                 dotpos = OldBusName.find( "." );
-                if ( dotpos == 0 )
+                if ( dotpos == String::npos )
                   Nodes = "";
                 else
                   Nodes = OldBusName.substr( dotpos, OldBusName.size() );    // preserve node designations if any
@@ -3907,9 +3907,9 @@ namespace Utilities
     String GetNodeString( const String BusName )
     {
       String result;
-      int dotpos = 0;
+      size_t dotpos = 0;
       dotpos = BusName.find( "." );
-      if ( dotpos == 0 )
+      if ( dotpos == String::npos )
         result = "";
       else
         result = BusName.substr( dotpos, BusName.size() );    // preserve node designations if any

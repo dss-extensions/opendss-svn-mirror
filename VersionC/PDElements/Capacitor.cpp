@@ -225,8 +225,10 @@ void TCapacitor::InterpretConnection(const String s)
 			break;  
 			case 	0:
 			if(with0->Fnterms != 2)
+			{
 				with0->Set_NTerms(2);
-				with0->Set_Nconds(with0->Fnphases);
+			}
+			with0->Set_Nconds(with0->Fnphases);
 			break;
 			default:
 			  ;

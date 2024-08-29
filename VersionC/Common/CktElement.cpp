@@ -1395,19 +1395,19 @@ namespace CktElement
     bool IsGroundBus( const String S )
     {
       bool result = false;
-      int i = 0;
+      size_t i = 0;
       result = true;
       i = S.find( ".1" );
-      if ( i > 0 )
+      if ( i != String::npos )
         result = false;
       i = S.find( ".2" );
-      if ( i > 0 )
+      if ( i != String::npos )
         result = false;
       i = S.find( ".3" );
-      if ( i > 0 )
+      if ( i != String::npos )
         result = false;
       i = S.find( "." );
-      if ( i == 0 )
+      if ( i == String::npos )
         result = false;
       return result;
     }
