@@ -1,5 +1,0 @@
-
-friend struct TWindGenVars;
-
-
-

@@ -1,6 +1,0 @@
-
-friend class TCapUserControl;
-
-
-
-

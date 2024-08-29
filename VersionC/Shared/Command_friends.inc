@@ -1,5 +1,0 @@
-
-friend class TCommandList;
-
-
-
