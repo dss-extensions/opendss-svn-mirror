@@ -1,6 +1,0 @@
-
-friend struct TCapControlVars;
-
-
-
-
