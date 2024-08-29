@@ -40,7 +40,6 @@ public:
 	typedef TDSSClass inherited;	
 private:
 	String Get_Code();
-	void Set_Code(const String Value);
 	void SetActiveWinding(int W);
 	void InterpretWindings(const String s, WdgParmChoice Which);
 protected:
@@ -52,6 +51,7 @@ public:
 	virtual int Edit(int ActorID);     // uses global parser
 	virtual int Init(int Handle, int ActorID);
 	virtual int NewObject(const String ObjName);
+	void Set_Code(const String Value);
 
        // Set this property to point ActiveXfmrCodeObj to the right value
 };

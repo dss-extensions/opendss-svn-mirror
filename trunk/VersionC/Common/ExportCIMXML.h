@@ -21,7 +21,7 @@ void ExportCDPSM( String Filenm, String SUBSTATION, String SubGeographicRegion, 
 void StartUuidList( int Size );
 void FreeUuidList( );
 void WriteHashedUUIDs( Textfile& F );
-void AddHashedUUID( String key, String UuidVal );
+void AddHashedUUID( const String& key, const String& UuidVal );
 void DefaultCircuitUUIDs( TUuid& fdrID, TUuid& subID, TUuid& rgnID, TUuid& subGeoID );
 
 #endif //  ExportCIMXMLH

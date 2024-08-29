@@ -145,12 +145,12 @@ protected:
 	double m_thermal;  /*Exponents*/
 	double FLrise;
 	double HSrise;
-	double pctLoadLoss;
-	double pctNoLoadLoss;
 	bool HVLeadsLV;
 	bool XHXChanged;
 	void SetTermRef();
 public:
+	double pctLoadLoss;
+	double pctNoLoadLoss;
 	int ActiveWinding;  // public for COM interface
 	bool IsSubstation;
 	String SubstationName;

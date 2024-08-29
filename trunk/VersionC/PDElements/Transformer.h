@@ -154,13 +154,13 @@ protected:
 	double m_thermal;  /*Exponents*/
 	double FLrise;
 	double HSrise;
-	double pctLoadLoss;
-	double pctNoLoadLoss;
 	bool HVLeadsLV;
 	bool XHLChanged;
 	Arraydef::TRatingsArray kVARatings;
 	void SetTermRef();
 public:
+	double pctLoadLoss;
+	double pctNoLoadLoss;
 	int ActiveWinding;  // public for COM interface
 	bool IsSubstation;
 	String SubstationName;
@@ -212,6 +212,7 @@ public:
 };
 extern TTransfObj* ActiveTransfObj;
 
+int XSCSize(int NumWindings);
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
