@@ -23,7 +23,7 @@
 #include "mathutil.h"
 #include "DSSClassDefs.h"
 #include "WTG3_Model.h"
-#include "XYCurve.h"
+#include "XYcurve.h"
 
 
 
