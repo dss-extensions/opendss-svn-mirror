@@ -3358,10 +3358,11 @@ String TInvControlObj::GetPropertyValue(int Index)
 		break;
 		case 	28:
 		result = FvoltwattCH_curvename;
-		break;  // take the generic handler
+		break;
         case    34:
         result = Format("%d", CtrlModel);
-		default:
+		break;
+		default:  // take the generic handler
 		result = inherited::GetPropertyValue(Index);
 		break;
 	}
