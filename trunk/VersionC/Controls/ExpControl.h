@@ -59,7 +59,8 @@ private:
 
             // PVSystemList information
 	int FListSize;
-	TStringList* FPVSystemNameList;
+        TStringList* FPVSystemNameList;
+        TStringList* FDERNameList;
 	PointerList::TPointerList* FPVSystemPointerList;
 
             // working storage for each PV system under management

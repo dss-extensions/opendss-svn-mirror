@@ -40,7 +40,7 @@ TExpControlObj::TExpControlObj() {}
 
 
 TExpControlObj* ActiveExpControlObj = nullptr;
-const int NumPropsThisClass = 13;
+const int NumPropsThisClass = 14;
 const int None = 0;
 const int CHANGEVARLEVEL = 1;
 
@@ -88,6 +88,7 @@ void TExpControl::DefineProperties()
 	PropertyName[11 - 1] = "DeltaQ_factor";
 	PropertyName[12 - 1] = "PreferQ";
 	PropertyName[13 - 1] = "Tresponse";
+	PropertyName[14 - 1] = "DERList";
 	PropertyHelp[1 - 1] = String("Array list of PVSystems to be controlled.") + CRLF
 	           + CRLF
 	           + "If not specified, all PVSystems in the circuit are assumed to be controlled by this ExpControl.";
@@ -141,6 +142,9 @@ void TExpControl::DefineProperties()
 	           + "IEEE1547-2018 default is 10s for Catagory A and 5s for Category B, "
 	           + "adjustable from 1s to 90s for both categories. However, the default is 0 for "
 	           + "backward compatibility of OpenDSS models.";
+    PropertyHelp[14 - 1] = "Alternative to PVSystemList for CIM export and import." + CRLF + CRLF 
+			   + "However, storage is not actually implemented yet. " 
+			   + "Use fully qualified PVSystem names.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -198,6 +202,12 @@ int TExpControl::Edit(int ActorID)
 				case 	1:
 				{
 					InterpretTStringListArray(Param, *(with0->FPVSystemNameList));
+					// Reset FDERNameList
+					with0->FDERNameList->clear();
+					for(int stop = with0->FPVSystemNameList->size(), i = 0; i < stop; i++)
+					{
+						with0->FDERNameList->push_back("PVSystem." + (*with0->FPVSystemNameList)[i]);
+					}
 					with0->FPVSystemPointerList->Clear(); // clear this for resetting on first sample
 					with0->FListSize = with0->FPVSystemNameList->size();
 				}
@@ -245,6 +255,17 @@ int TExpControl::Edit(int ActorID)
 				case 	13:
 				if(Parser[ActorID]->MakeDouble_() >= 0)
 					with0->FTresponse = Parser[ActorID]->MakeDouble_();
+				break;
+				case 	14:
+				InterpretTStringListArray(Param, *(with0->FDERNameList));
+				// Reset FPVSystemNameList
+				with0->FPVSystemNameList->clear();
+				for(int stop = (*with0->FDERNameList).size(), i = 0; i < stop; i++)
+				{
+					with0->FPVSystemNameList->push_back((*with0->FDERNameList)[i]);
+				}
+				with0->FPVSystemPointerList->Clear();
+				with0->FListSize = with0->FPVSystemNameList->size(); // To match the new size
 				break;
         // Inherited parameters
 				default:
@@ -332,8 +353,8 @@ TExpControlObj::TExpControlObj(TDSSClass* ParClass, const String ExpControlName)
 	Set_Name(LowerCase(ExpControlName));
 	DSSObjType = ParClass->DSSClassType;
 	ElementName = "";
-	FPVSystemNameList->clear();
-	FPVSystemPointerList = NULL,
+	//FPVSystemNameList->clear();
+	//FPVSystemPointerList = NULL,
 
      /*
        Control elements are zero current sources that attach to a terminal of a
@@ -349,7 +370,7 @@ TExpControlObj::TExpControlObj(TDSSClass* ParClass, const String ExpControlName)
      // because it controls more than one PVSystem
 	ShowEventLog = false;
 	ControlledElement.clear();
-	FPVSystemNameList->clear();
+	//FPVSystemNameList->clear();
 	FPVSystemPointerList = NULL;
 	cBuffer.clear();
 	FPriorVpu = NULL;
@@ -361,8 +382,11 @@ TExpControlObj::TExpControlObj(TDSSClass* ParClass, const String ExpControlName)
 	FWithinTol = NULL;
 	FVoltageChangeTolerance = 0.0001;  // per-unit
 	FVarChangeTolerance = 0.0001;  // per-unit
+	FDERNameList = new TStringList();
 	FPVSystemNameList = new TStringList();
 	FPVSystemPointerList = new PointerList::TPointerList(20);  // Default size and increment
+
+	ElementTerminal = 1;
 
      // user parameters for dynamic Vreg
 	FVregInit = 1.0; // 0 means to find it during initialization
@@ -389,6 +413,9 @@ TExpControlObj::~TExpControlObj()
 	ElementName = "";
 	ControlledElement.clear();
 	cBuffer.clear();
+    FDERNameList->clear();
+    FPVSystemNameList->clear();
+    FPVSystemPointerList = NULL;
 	free(FPriorVpu);
 	free(FPresentVpu);
 	free(FPendingChange);
@@ -561,7 +588,7 @@ void TExpControlObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 			}
 
       // put FTargetQ through the low-pass open-loop filter
-			if(FOpenTau > 0.0)
+			if(FOpenTau > 0.0 && ActiveCircuit[ActorID]->Solution->ControlMode != CTRLSTATIC)
 			{
 				DT = ActiveCircuit[ActorID]->Solution->DynaVars.h;
 				FTargetQ[i] = FLastStepQ[i] + (FTargetQ[i] - FLastStepQ[i]) * (1 - exp(-DT / FOpenTau)); // TODO - precalculate?
@@ -609,20 +636,34 @@ void TExpControlObj::sample(int ActorID)
 			PVSys->ComputeVterminal(ActorID);
 			for(stop1 = PVSys->Yorder, j = 1; j <= stop1; j++)
 			{
-				cBuffer[j] = (PVSys)->Vterminal[j - 1];
+				cBuffer[j - 1] = (PVSys)->Vterminal[j - 1];
 			}
 			BaseKV = ActiveCircuit[ActorID]->Buses[((TDSSCktElement*)PVSys)->Terminals[0].BusRef - 1]->kVBase;
+
 			Vpresent = 0;
 			for(stop1 = ((TDSSCktElement*)PVSys)->Get_NPhases(), j = 1; j <= stop1; j++)
 			{
-				Vpresent = Vpresent + cabs(cBuffer[j]);
+				Vpresent = Vpresent + cabs(cBuffer[j - 1]);
 			}
 			FPresentVpu[i] = (Vpresent / ((TDSSCktElement*)PVSys)->Get_NPhases()) / (BaseKV * 1000.0);
       // if initializing with Vreg=0 in static mode, we want to FIND Vreg
 			if((ActiveCircuit[ActorID]->Solution->ControlMode == CTRLSTATIC) && (FVregInit <= 0.0))
+			{
 				FVregs[i] = FPresentVpu[i];
+				
+				if (FVregs[i] < FVregMin)
+				{
+					FVregs[i] = FVregMin;
+					FVregInit = 0.01; // Don't let it outside the band
+				}
+				if (FVregs[i] > FVregMax)
+				{
+					FVregs[i] = FVregMax;
+					FVregInit = 0.01; // Don't let it outside the band
+				}
+			}
       // both errors are in per-unit
-			Verr = Abs((FPresentVpu[i] - FPriorVpu[i]));
+			Verr = Abs(FPresentVpu[i] - FPriorVpu[i]);
 			Qerr = double(Abs( (PVSys->Get_Presentkvar() - FTargetQ[i])) / PVSys->Get_FkVArating());
       // process the sample
 			if((PVSys->Get_InverterON() == false) && (PVSys->Get_VarFollowInverter() == true)) // not injecting
@@ -668,7 +709,8 @@ void TExpControlObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(10, ShowEventLog ? "YES" : "NO");    // write event log?
 	Set_PropertyValue(11, "0.7");   // DeltaQ_factor
 	Set_PropertyValue(12, "no");    // PreferQ
-	Set_PropertyValue(13, "0");     // TResponse
+    Set_PropertyValue(13, "0"); // TResponse
+    Set_PropertyValue(14, ""); // Der Name List
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
