@@ -3005,9 +3005,9 @@ namespace ExportResults
         TTextRec F;
         unsigned int i = 0, j = 0, p = 0;
         klusparseset_t hY;
-        longInt NBus = 0, nNZ = 0;
-        std::vector <longInt> ColPtr;
-        std::vector <longInt> RowIdx;
+        unsigned int NBus = 0, nNZ = 0;
+        std::vector <unsigned int> ColPtr;
+        std::vector <unsigned int> RowIdx;
         std::vector <complex> cVals;
 
         if (ActiveCircuit[ActiveActor] == NULL)
@@ -3115,9 +3115,9 @@ namespace ExportResults
       unsigned int i = 0, j = 0, p = 0;
       unsigned int col = 0, Row = 0;
       klusparseset_t hY;
-      longInt NBus = 0, nNZ = 0;
-      longInt* ColPtr = nullptr;
-      longInt* RowIdx = nullptr;
+      unsigned int NBus = 0, nNZ = 0;
+      unsigned int* ColPtr = nullptr;
+      unsigned int* RowIdx = nullptr;
       complex* cVals = nullptr;
       double re = 0.0, im = 0.0;
       if ( ActiveCircuit[ActiveActor] == NULL )
@@ -3140,8 +3140,8 @@ namespace ExportResults
         IOResultToException();
         if ( TripletOpt )
         {
-          ColPtr = new longInt[nNZ];
-          RowIdx = new longInt[nNZ];
+          ColPtr = new unsigned[nNZ];
+          RowIdx = new unsigned[nNZ];
           cVals = new complex[nNZ];
           GetTripletMatrix( hY, nNZ, RowIdx, ColPtr, &(cVals[0]));
           WriteLn( F, "Row,Col,G,B" );
@@ -3159,8 +3159,8 @@ namespace ExportResults
         }
         else
         {
-          ColPtr = new longInt[NBus + 1];
-          RowIdx = new longInt[nNZ];
+          ColPtr = new unsigned[NBus + 1];
+          RowIdx = new unsigned[nNZ];
           cVals  = new complex[nNZ];
 
           GetCompressedMatrix( hY, NBus + 1, nNZ, ColPtr, RowIdx, cVals);
