@@ -742,7 +742,7 @@ namespace WTG3_Model
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void __fastcall TGE_WTG3_Model::Instrumentation(pComplexArray V, pComplexArray i)
+    void TGE_WTG3_Model::Instrumentation(pComplexArray V, pComplexArray i)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         int ii = 0;
@@ -775,14 +775,14 @@ namespace WTG3_Model
             Sele = cadd(Sele, cdivreal(cmul(Vabc[ii - 1], conjg(Iabc[ii - 1])), 3));
         Pele = Sele.re;
         Qele = Sele.im;
-        ktemp = min(1, deltSim / TfltPQM);
+        ktemp = min(1.0, deltSim / TfltPQM);
         Pgen = Pgen + (Pele - Pgen) * ktemp;
         Qgen = Qgen + (Qele - Qgen) * ktemp;
     }
 
     /* ------------------------------------------------------------------------------------------------------------- */
 
-    void __fastcall TGE_WTG3_Model::CalcPFlow(pComplexArray V, pComplexArray i)
+    void TGE_WTG3_Model::CalcPFlow(pComplexArray V, pComplexArray i)
     /* ------------------------------------------------------------------------------------------------------------- */
     {
         complex Vtemp = CZero, 
@@ -975,7 +975,7 @@ namespace WTG3_Model
         IdNeg = I012[2].re;
         IqNeg = -I012[2].im;
         // LPF on voltage feedback
-        kFltTemp = min(1, double(DynaData->h) / TfltVfbk);
+        kFltTemp = min(1.0, double(DynaData->h) / TfltVfbk);
         VdFbkPos = VdFbkPos + (VdPos - VdFbkPos) * kFltTemp;
         VqFbkPos = VqFbkPos + (VqPos - VqFbkPos) * kFltTemp;
         VdFbkNeg = VdFbkNeg + (VdNeg - VdFbkNeg) * kFltTemp;
@@ -992,21 +992,21 @@ namespace WTG3_Model
 
         y0 = min(Iqhl, max(QordMax, (QordMax - 2.15) * Vmag + 2.15));
         if (y0 > Iqmxv)
-            temp = min(1, delt / TfltIqmxvUp);
+            temp = min(1.0, delt / TfltIqmxvUp);
         else
-            temp = min(1, delt / TfltIqmxvDn);
+            temp = min(1.0, delt / TfltIqmxvDn);
         Iqmxv = Iqmxv + (y0 - Iqmxv) * temp;
-        Iqmxv = min(Iqhl, max(0, Iqmxv));
+        Iqmxv = min(Iqhl, max(0.0, Iqmxv));
         if (PQFlag == 1)
         {
             // P priority
             Ipmx = min(ImaxTD, Iphl);
-            Iqmx = min(Iqhl, sqrt(max(0, sqr(ImaxTD) - sqr(Iplv))));
+            Iqmx = min(Iqhl, sqrt(max(0.0, sqr(ImaxTD) - sqr(Iplv))));
         }
         else
         {
             Iqmx = min(ImaxTD, Iqmxv);
-            Ipmx = min(Iphl, sqrt(max(0, sqr(ImaxTD) - sqr(Iqlv))));
+            Ipmx = min(Iphl, sqrt(max(0.0, sqr(ImaxTD) - sqr(Iqlv))));
         }
         Ipmn = -Ipmx;
         Iqmn = -Iqmx;
@@ -1025,7 +1025,7 @@ namespace WTG3_Model
                 y2 = 0.0;
 
         // low pass filter on Vmag
-        temp = min(1, delt / TfltVmagLVPL);
+        temp = min(1.0, delt / TfltVmagLVPL);
         VmagLVPL = VmagLVPL + (VmagMin - VmagLVPL) * temp;
         // LVPL curve interpolation
         y0 = (P1LVPL - P0LVPL) / (V1LVPL - V0LVPL) * (VmagLVPL - V0LVPL) + P0LVPL;
@@ -1042,14 +1042,14 @@ namespace WTG3_Model
             y1Sub = 0.2;
         else
             y1Sub = 0.0;
-        y1 = max(0, y1 - y1Sub);
+        y1 = max(0.0, y1 - y1Sub);
         // limit on torque
         y2 = min(MaxTrq * Wt * WtBase / ratedKVA / 1000, y1);
         // low pass filter
         if (y2 > PplvLim)
-            temp = min(1, delt / TfltPplvLimUp);
+            temp = min(1.0, delt / TfltPplvLimUp);
         else
-            temp = min(1, delt / TfltPplvLimDn);
+            temp = min(1.0, delt / TfltPplvLimDn);
         PplvLim = PplvLim + (y2 - PplvLim) * temp;
     }
 
@@ -1061,16 +1061,16 @@ namespace WTG3_Model
         double temp = 0.0;
         double y0 = 0.0;
         // low pass filter on Vmag
-        temp = min(1, delt / TfltVmagLVQL);
+        temp = min(1.0, delt / TfltVmagLVQL);
         VmagLVQL = VmagLVQL + (VmagMin - VmagLVQL) * temp;
         // LVQL curve interpolation
         y0 = (I1LVQL - I0LVQL) / (V1LVQL - V0LVQL) * (VmagLVQL - V0LVQL) + I0LVQL;
         y0 = min(I0LVQL, max(I1LVQL, y0));
         // low pass filter
         if (y0 > IqlvLim)
-            temp = min(1, delt / TfltIqlvLimUp);
+            temp = min(1.0, delt / TfltIqlvLimUp);
         else
-            temp = min(1, delt / TfltIqlvLimDn);
+            temp = min(1.0, delt / TfltIqlvLimDn);
         IqlvLim = IqlvLim + (y0 - IqlvLim) * temp;
         if (AsymFltFlag == 1)
             IqlvLim = IqLimAsymFlt;
@@ -1155,7 +1155,7 @@ namespace WTG3_Model
         complex tempE2 = CZero;
 
         // positive sequence current regulator
-        ktemp = min(1, delt / TfltIcmdPos);
+        ktemp = min(1.0, delt / TfltIcmdPos);
         Iplv = Iplv + (IdCmdPos - Iplv) * ktemp;
         Iqlv = min(IqlvLim, max(-IqlvLim, Iqlv + (IqCmdPos - Iqlv) * ktemp));
         // anti windup
@@ -1233,7 +1233,7 @@ namespace WTG3_Model
         // current limit on negative sequence
         E012[2] = cmplx(EdNeg, -EqNeg);
         I012[2] = cdiv(csub(E012[2], V012[2]), Zthev);
-        I2Max = max(0, 1.1 - cabs(I012[1]));
+        I2Max = max(0.0, 1.1 - cabs(I012[1]));
         if (cabs(I012[2]) > I2Max)
         {
             I012[2] = cmulreal(cdivreal(I012[2], max(0.000001, cabs(I012[2]))), I2Max);
@@ -1287,7 +1287,7 @@ namespace WTG3_Model
     {
         double result = 0.0;
         double lmbda = 0.0, Cp = 0.0;
-        lmbda = min(20, max(0, wrotor / max(0.01, spdwind) * KbAero));
+        lmbda = min(20.0, max(0.0, wrotor / max(0.01, spdwind) * KbAero));
         Cp = CalcCp(Theta, lmbda);
         result = min(1.2, HalfRhoArAero * pow(spdwind, 3) * Cp);
         return result;
@@ -1336,7 +1336,7 @@ namespace WTG3_Model
     {
         double result = 0.0;
         double temp = 0.0;
-        temp = min(1, elePwr);
+        temp = min(1.0, elePwr);
         result = max(WtRefMin, min(WtRefMax, -0.75 * temp * temp + 1.59 * temp + 0.63));
         return result;
     }
@@ -1354,7 +1354,7 @@ namespace WTG3_Model
 
         y1 = CalcWtRef(Pele);
         // low pass filter
-        temp = min(1, delt / TfltWtRef);
+        temp = min(1.0, delt / TfltWtRef);
         WtRef = WtRef + (y1 - WtRef) * temp;
         // PI regulator
         errWtOld = errWt;
@@ -1365,16 +1365,16 @@ namespace WTG3_Model
         // convert torque to power
         y2 = TrqRef * Wt;
         // low pass filter on Pinp
-        temp = min(1, delt / TfltPinp);
+        temp = min(1.0, delt / TfltPinp);
         Pinp1 = min(PinpMax, max(PinpMin, Pinp1 + (y2 - Pinp1) * temp));
         // ramp rate limiter
         temp = rrlPinp * delt;
         Pinp = min(Pinp + temp, max(Pinp - temp, Pinp1));
         // power response rate limit
-        PinpSat = min(Pstl, max(0, Pinp));
+        PinpSat = min(Pstl, max(0.0, Pinp));
         errPinp = Pinp - PinpSat;
         // high pass filter on errPinp
-        temp = min(1, delt / TfltErrPinp);
+        temp = min(1.0, delt / TfltErrPinp);
         errPinpFlt = errPinpFlt + (errPinp - errPinpFlt) * temp;
         errPinpHpf = errPinp - errPinpFlt;
         // get the final Pord
@@ -1404,7 +1404,7 @@ namespace WTG3_Model
         }
         y2 = max(thetaPitchMin, min(thetaPitchMax, y1));
         // low pass filter
-        temp = min(1, delt / TfltPitch);
+        temp = min(1.0, delt / TfltPitch);
         thetaPitch0 = thetaPitch0 + (y2 - thetaPitch0) * temp;
         // ramp rate limiter
         temp = rrlThetaPitch * delt;
@@ -1427,9 +1427,9 @@ namespace WTG3_Model
                 PmechMax = 0.0, 
                 PmechMin = 0.0;
 
-        y1 = min(1, max(0.000001, PmechAvl));
+        y1 = min(1.0, max(0.000001, PmechAvl));
         // low pass filter on available power
-        temp = min(1, delt / TfltPavlAPC);
+        temp = min(1.0, delt / TfltPavlAPC);
         PavlAPC = PavlAPC + (y1 - PavlAPC) * temp;
         // power curtailment
         temp = max(0.4, min(1.0, Pcurtail / PavlAPC));
@@ -1440,7 +1440,7 @@ namespace WTG3_Model
         y2 = LinearInterp(FrqTableAPC, MAXIDX(FrqTableAPC), PwrTableAPC, MAXIDX(PwrTableAPC), gridFrq);
         y3 = PavlAPC * y2;
         // low pass filter on set power
-        temp = min(1, delt / TfltPsetAPC);
+        temp = min(1.0, delt / TfltPsetAPC);
         PsetAPC = PsetAPC + (y3 - PsetAPC) * temp;
         // APCFLG
         if (APCFLG == 0)
@@ -1455,7 +1455,7 @@ namespace WTG3_Model
         PmechMin = 0.2;
         y4 = min(PmechMax, max(PmechMin, y4));
         // Pade delay function
-        temp = min(1, delt / TdelayAPC * 2);
+        temp = min(1.0, delt / TdelayAPC * 2);
         PadeAPC = PadeAPC + (y4 - PadeAPC) * temp;
         Pstl = min(PmechMax, max(PmechMin, 2 * PadeAPC - y4));
     }
@@ -1475,14 +1475,14 @@ namespace WTG3_Model
 
         y1 = -dOmg / ratedOmg + dFrqPuTest;
         // deadband
-        y2 = max(0, y1 - dbWindInertia);
+        y2 = max(0.0, y1 - dbWindInertia);
         // low pass filter
-        temp = min(1, delt / TfltDFrqWindInertia);
+        temp = min(1.0, delt / TfltDFrqWindInertia);
         dFrqWindInertia = dFrqWindInertia + (y2 - dFrqWindInertia) * temp;
         // multiplier
         y3 = dFrqWindInertia * KWindInertia;
         // high pass filter
-        temp = min(1, delt / TfltDPinpWindInertia);
+        temp = min(1.0, delt / TfltDPinpWindInertia);
         y3Lpf = y3Lpf + (y3 - y3Lpf) * temp;
         y4 = min(dPinpMax, max(dPinpMin, y3 - y3Lpf));
         // ramp rate limiter
