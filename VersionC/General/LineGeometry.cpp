@@ -1022,6 +1022,10 @@ void TLineGeometryObj::Set_Nconds(int Value)
 	FPhaseChoice = (pConductorChoiceArray) realloc(FPhaseChoice, sizeof(FPhaseChoice[0]) * Fnconds);
 	for(stop = Fnconds, i = 1; i <= stop; i++)
 	{
+		FPhaseChoice[i - 1] = unknown;
+	}
+	for(stop = Fnconds, i = 1; i <= stop; i++)
+	{
 		set_ActiveCond(i);
 		ChangeLineConstantsType(Overhead);    // works on activecond
 	}

@@ -186,13 +186,13 @@ TLineConstants::TLineConstants(int NumConductors)
 	int i = 0;
 	int stop = 0;
 	Set_NPhases(FNumConds);
-	FX.resize(FNumConds);
-	FY.resize(FNumConds);
-	FGMR.resize(FNumConds);
-	Fradius.resize(FNumConds);
-	Fcapradius.resize(FNumConds);
-	FRDC.resize(FNumConds);
-	Frac.resize(FNumConds);
+	FX.resize(FNumConds, 0);
+	FY.resize(FNumConds, 0);
+	FGMR.resize(FNumConds, 0);
+	Fradius.resize(FNumConds, 0);
+	Fcapradius.resize(FNumConds, 0);
+	FRDC.resize(FNumConds, 0);
+	Frac.resize(FNumConds, 0);
 
 
      /*Initialize to  not set*/

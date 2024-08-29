@@ -548,6 +548,7 @@ TCapControlObj::TCapControlObj(TDSSClass* ParClass, const String CapControlName)
 		with0.PresentState			= CTRL_CLOSE;
 		with0.ShouldSwitch			= false;
 		with0.Armed					= false;
+		with0.AvailableSteps		= 0;
 		Set_PendingChange(CTRL_NONE);
 	}
 	PublicDataStruct				= &ControlVars;   // So User-written models can access
