@@ -9905,7 +9905,7 @@ char* __stdcall MonitorsS(int mode, char* arg)
 			S			= arg;
 			Found		= false;
 			pMon		= (TMonitorObj*)with0.Get_First();
-			if (pMon != nullptr)
+			while (pMon != nullptr)
 			{
 				if (CompareText(pMon->LName, S) == 0)
 				{
@@ -9913,14 +9913,13 @@ char* __stdcall MonitorsS(int mode, char* arg)
 					Found = true;
 					break;
 				}
-				else
-					pMon = (TMonitorObj*)with0.Get_Next();
-				if (not(Found))
-				{
-					DoSimpleMsg("Monitor \"" + S + "\" Not Found in Active Circuit.", 5004);
-					pMon = (TMonitorObj*)with0.Get(activesave);    // Restore active Monerator
-					ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pMon);
-				}
+				pMon = (TMonitorObj*)with0.Get_Next();
+			}
+			if (not(Found))
+			{
+				DoSimpleMsg("Monitor \"" + S + "\" Not Found in Active Circuit.", 5004);
+				pMon = (TMonitorObj*)with0.Get(activesave);    // Restore active Monerator
+				ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pMon);
 			}
 		}
 		result = "";
@@ -10764,6 +10763,7 @@ char* __stdcall PDElementsS(int mode, char* arg)
 				if (CompareText(TestString, Format("%s.%s", with1->ParentClass->Class_Name.c_str(), with1->LName.c_str())))
 				{
 					with0->Set_ActiveCktElement(ActivePDElement);
+					break;
 				}
 				ActivePDElement = (TPDElement*)with0->PDElements.Get_Next();
 			}
