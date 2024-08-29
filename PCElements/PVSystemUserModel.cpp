@@ -132,35 +132,35 @@ void TPVsystemUserModel::Set_Name(const String Value)
 
             // Now set up all the procedure variables
 		FuncError = false;
-		FNew = (PVsystemUserModelProc__0) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("New")), "New");
+		FNew = (PVsystemUserModelProc__0) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("New")), "New");
 		if(!FuncError)
-			FSelect = (PVsystemUserModelProc__2) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
+			FSelect = (PVsystemUserModelProc__2) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
 		if(!FuncError)
-			FInit = (PVsystemUserModelProc__4) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
+			FInit = (PVsystemUserModelProc__4) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
 		if(!FuncError)
-			FCalc = (PVsystemUserModelProc__5) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
+			FCalc = (PVsystemUserModelProc__5) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
 		if(!FuncError)
-			FIntegrate = (PVsystemUserModelProc__6) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
+			FIntegrate = (PVsystemUserModelProc__6) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
 		if(!FuncError)
-			FSave = (PVsystemUserModelProc__8) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
+			FSave = (PVsystemUserModelProc__8) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
 		if(!FuncError)
-			fRestore = (PVsystemUserModelProc__9) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
+			fRestore = (PVsystemUserModelProc__9) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
 		if(!FuncError)
-			FEdit = (PVsystemUserModelProc__3) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
+			FEdit = (PVsystemUserModelProc__3) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (PVsystemUserModelProc__7) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (PVsystemUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
 		if(!FuncError)
-			FDelete = (PVsystemUserModelProc__1) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
+			FDelete = (PVsystemUserModelProc__1) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
-			FNumVars = (PVsystemUserModelProc__10) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
+			FNumVars = (PVsystemUserModelProc__10) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
 		if(!FuncError)
-			FGetAllVars = (PVsystemUserModelProc__11) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
+			FGetAllVars = (PVsystemUserModelProc__11) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
 		if(!FuncError)
-			FGetVariable = (PVsystemUserModelProc__12) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
+			FGetVariable = (PVsystemUserModelProc__12) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
 		if(!FuncError)
-			FSetVariable = (PVsystemUserModelProc__13) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
+			FSetVariable = (PVsystemUserModelProc__13) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
 		if(!FuncError)
-			FGetVarName = (PVsystemUserModelProc__14) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
+			FGetVarName = (PVsystemUserModelProc__14) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
 		if(FuncError)
 		{
 			FreeLibrary((HMODULE) FHandle);

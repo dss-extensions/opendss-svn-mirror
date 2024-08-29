@@ -136,35 +136,35 @@ void TStoreUserModel::Set_Name(const String Value)
 
             // Now set up all the procedure variables
 		FuncError = false;
-		FNew = (StoreUserModelProc__13) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("New")), "New");
+		FNew = (StoreUserModelProc__13) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("New")), "New");
 		if(!FuncError)
-			FSelect = (StoreUserModelProc__15) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
+			FSelect = (StoreUserModelProc__15) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
 		if(!FuncError)
-			FInit = (StoreUserModelProc__17) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
+			FInit = (StoreUserModelProc__17) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
 		if(!FuncError)
-			FCalc = (StoreUserModelProc__18) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
+			FCalc = (StoreUserModelProc__18) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
 		if(!FuncError)
-			FIntegrate = (StoreUserModelProc__19) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
+			FIntegrate = (StoreUserModelProc__19) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
 		if(!FuncError)
-			FSave = (StoreUserModelProc__21) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
+			FSave = (StoreUserModelProc__21) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Save")), "Save");
 		if(!FuncError)
-			fRestore = (StoreUserModelProc__22) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
+			fRestore = (StoreUserModelProc__22) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Restore")), "Restore");
 		if(!FuncError)
-			FEdit = (StoreUserModelProc__16) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
+			FEdit = (StoreUserModelProc__16) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (StoreUserModelProc__20) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (StoreUserModelProc__20) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
 		if(!FuncError)
-			FDelete = (StoreUserModelProc__14) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
+			FDelete = (StoreUserModelProc__14) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
-			FNumVars = (StoreUserModelProc__23) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
+			FNumVars = (StoreUserModelProc__23) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
 		if(!FuncError)
-			FGetAllVars = (StoreUserModelProc__24) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
+			FGetAllVars = (StoreUserModelProc__24) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
 		if(!FuncError)
-			FGetVariable = (StoreUserModelProc__25) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
+			FGetVariable = (StoreUserModelProc__25) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
 		if(!FuncError)
-			FSetVariable = (StoreUserModelProc__26) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
+			FSetVariable = (StoreUserModelProc__26) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
 		if(!FuncError)
-			FGetVarName = (StoreUserModelProc__27) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
+			FGetVarName = (StoreUserModelProc__27) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
 		if(FuncError)
 		{
 			FreeLibrary((HMODULE) FHandle);
@@ -282,31 +282,31 @@ void TStoreDynaModel::Set_Name(const String Value)
 
             // Now set up all the procedure variables
 		FuncError = false;
-		FNew = (StoreUserModelProc__0) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("New")), "New");
+		FNew = (StoreUserModelProc__0) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("New")), "New");
 		if(!FuncError)
-			FSelect = (StoreUserModelProc__2) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
+			FSelect = (StoreUserModelProc__2) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Select")), "Select");
 		if(!FuncError)
-			FInit = (StoreUserModelProc__4) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
+			FInit = (StoreUserModelProc__4) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Init")), "Init");
 		if(!FuncError)
-			FCalc = (StoreUserModelProc__5) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
+			FCalc = (StoreUserModelProc__5) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Calc")), "Calc");
 		if(!FuncError)
-			FIntegrate = (StoreUserModelProc__6) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
+			FIntegrate = (StoreUserModelProc__6) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Integrate")), "Integrate");
 		if(!FuncError)
-			FEdit = (StoreUserModelProc__3) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
+			FEdit = (StoreUserModelProc__3) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (StoreUserModelProc__7) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (StoreUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
 		if(!FuncError)
-			FDelete = (StoreUserModelProc__1) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
+			FDelete = (StoreUserModelProc__1) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
-			FNumVars = (StoreUserModelProc__8) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
+			FNumVars = (StoreUserModelProc__8) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("NumVars")), "NumVars");
 		if(!FuncError)
-			FGetAllVars = (StoreUserModelProc__9) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
+			FGetAllVars = (StoreUserModelProc__9) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetAllVars")), "GetAllVars");
 		if(!FuncError)
-			FGetVariable = (StoreUserModelProc__10) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
+			FGetVariable = (StoreUserModelProc__10) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVariable")), "GetVariable");
 		if(!FuncError)
-			FSetVariable = (StoreUserModelProc__11) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
+			FSetVariable = (StoreUserModelProc__11) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("SetVariable")), "SetVariable");
 		if(!FuncError)
-			FGetVarName = (StoreUserModelProc__12) CheckFuncError(GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
+			FGetVarName = (StoreUserModelProc__12) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("GetVarName")), "GetVarName");
 		if(FuncError)
 		{
 			FreeLibrary((HMODULE) FHandle);
