@@ -2597,9 +2597,9 @@ double TFMonitorObj::Get_power_trans(int ActorID)
 	{// how many conds of this element
 		i = (pTerminal->TermNodeRef)[j - 1];  // global node number
 		if(!ADiakoptics || (ActorID == 1))//power
-			caccum(tempCplx, cmul(ActiveCircuit[ActorID]->Solution->NodeV[i], conjg((MeteredElement->Iterminal)[k + j])));
+			caccum(tempCplx, cmul(ActiveCircuit[ActorID]->Solution->NodeV[i], conjg((MeteredElement->Iterminal)[k + j - 1])));
 		else
-			caccum(tempCplx, cmul(ActiveCircuit[ActorID]->Solution->VoltInActor1(i), conjg((MeteredElement->Iterminal)[k + j])));
+			caccum(tempCplx, cmul(ActiveCircuit[ActorID]->Solution->VoltInActor1(i), conjg((MeteredElement->Iterminal)[k + j - 1])));
 	}
 	result = tempCplx.re;
 	return result;
@@ -2876,9 +2876,9 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 			for(stop = PElem->Yorder, i = 1; i <= stop; i++)
 			{
 				if(!ADiakoptics || (ActorID == 1))
-					(PElem->Vterminal)[i] = with0->NodeV[(PElem->NodeRef)[i - 1]];
+					(PElem->Vterminal)[i - 1] = with0->NodeV[(PElem->NodeRef)[i - 1]];
 				else
-					(PElem->Vterminal)[i] = with0->VoltInActor1((PElem->NodeRef)[i - 1]);
+					(PElem->Vterminal)[i - 1] = with0->VoltInActor1((PElem->NodeRef)[i - 1]);
 			}
 		}
 	}

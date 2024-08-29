@@ -1,4 +1,4 @@
-﻿#pragma hdrstop
+#pragma hdrstop
 
 #include "ExecHelper.h"
 #include "dirsep.h"
@@ -2111,7 +2111,7 @@ int DoseqpowersCmd()
 							k = (j - 1) * with1->Get_NConds();
 							for(stop1 = 3, i = 1; i <= stop1; i++)
 							{
-								Vph[i - 1] = ActiveCircuit[ActiveActor]->Solution->NodeV[(with1->Terminals[static_cast<size_t>(j) - 1].TermNodeRef)[i]];
+								Vph[i - 1] = ActiveCircuit[ActiveActor]->Solution->NodeV[(with1->Terminals[static_cast<size_t>(j) - 1].TermNodeRef)[i - 1]];
 							}
 							for(stop1 = 3, i = 1; i <= stop1; i++)
 							{
