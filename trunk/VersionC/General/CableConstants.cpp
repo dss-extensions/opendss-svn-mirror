@@ -161,14 +161,22 @@ TCableConstants::TCableConstants(int NumConductors)
 	FInsLayer	= new double[FNumConds];
 	FDiaIns		= new double[FNumConds];
 	FDiaCable	= new double[FNumConds];
+
+	for (int i = 0; i < FNumConds; ++i)
+	{
+		FEpsR[i] = 0;
+		FInsLayer[i] = 0;
+		FDiaIns[i] = 0;
+		FDiaCable[i] = 0;
+	}
 }
 
 TCableConstants::~TCableConstants()
 {
-	free(FEpsR);
-	free(FInsLayer);
-	free(FDiaIns);
-	free(FDiaCable);
+	delete[] FEpsR;
+	delete[] FInsLayer;
+	delete[] FDiaIns;
+	delete[] FDiaCable;
 	// inherited;
 }
 

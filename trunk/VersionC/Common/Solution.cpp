@@ -197,6 +197,7 @@ namespace Solution
       IsHarmonicModel = false;
       if (DefaultBaseFreq == 0)
           DefaultBaseFreq = 60;
+      FFrequency = -1; // initialize to avoid potential issues and warnings
       Set_Frequency(DefaultBaseFreq);
         /*Fundamental := 60.0; Moved to Circuit and used as default base frequency*/
       Harmonic = 1.0;
@@ -272,7 +273,7 @@ namespace Solution
 
     TSolutionObj::~TSolutionObj( )
     {
-      AuxCurrents       = (pComplexArray)   realloc(AuxCurrents,0);
+      free(AuxCurrents);
       Currents.clear();
       //dV                = (pNodeVarray)     realloc(dV, 0);
       free(dV);

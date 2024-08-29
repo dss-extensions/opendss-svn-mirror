@@ -2783,10 +2783,12 @@ void TInvControlObj::sample(int ActorID)
 								{
 									// storage case
 									if (((TStorageObj*)withi.ControlledElement)->get_fState() == 1)                       // Check if it's in discharging mode
+									{
 										if (((TStorageObj*)withi.ControlledElement)->myDynVars.ILimit > 0)
 											Valid = ((TStorageObj*)withi.ControlledElement)->CheckAmpsLimit(ActorID);           // Checks if reached the Amps limit
 										else
 											Valid = ((TStorageObj*)withi.ControlledElement)->CheckOLInverter(ActorID);          // Checks if Inv OL
+									}
 									Valid = Valid && !(((TStorageObj*)withi.ControlledElement)->myDynVars.ResetIBR);     // Check if we are not resetting
 								}
 								else

@@ -36,9 +36,9 @@ namespace Bus
         Nodes.resize( Allocation );
         RefNo.resize( Allocation );
         FNumNodesThisBus = 0;
-        Ysc = NULL;
-        Zsc = NULL;
-        Zsc012 = NULL;
+        Ysc = TcMatrix(0);
+        Zsc = TcMatrix(0);
+        Zsc012 = TcMatrix(0);
         VBus.clear();
         BusCurrent.clear();
         kVBase = 0.0;  // Signify that it has not been set

@@ -1820,7 +1820,7 @@ void TEnergyMeterObj::MakeMeterZoneLists(int ActorID)
 								elem->IsIsolated = false;
 								elem->Set_ActiveTerminal(1);
                       /*Totalize Number of Customers if Load Type*/
-								if(pLoad = dynamic_cast<TLoadObj*>(elem))
+								if((pLoad = dynamic_cast<TLoadObj*>(elem)))
 								{
 									((TPDElement*) ActiveBranch)->BranchNumCustomers += pLoad->NumCustomers;
 									LoadList->Add(pLoad);  // Add to list of loads in this zone.)

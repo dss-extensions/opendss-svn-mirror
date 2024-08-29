@@ -2500,7 +2500,7 @@ namespace Circuit
     void TDSSCircuit::FreeTopology()
     {
         if ((Branch_List != NULL))
-            free(Branch_List);
+            delete Branch_List;
         Branch_List = NULL;
         if ((BusAdjPC.empty()))
             FreeAndNilBusAdjacencyLists(BusAdjPD, BusAdjPC);

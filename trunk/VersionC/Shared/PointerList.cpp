@@ -10,7 +10,7 @@ using namespace System;
 
 namespace PointerList
 {
-	PointerList::TPointerList::TPointerList() {};
+	PointerList::TPointerList::TPointerList(): TPointerList(0) {};
 
 	//-------------------------------------------------------------------------
 	PointerList::TPointerList::TPointerList(int Size)

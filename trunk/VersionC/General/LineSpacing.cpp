@@ -411,10 +411,16 @@ void TLineSpacingObj::InitPropertyValues(int ArrayOffset)
 
 void TLineSpacingObj::set_Nwires(int Value)
 {
+	int ncondsPrev = Fnconds;
 	Fnconds = Value;
 	FX = (pDoubleArray) realloc(FX, sizeof(double) * Fnconds);
 	FY = (pDoubleArray) realloc(FY, sizeof(double) * Fnconds);
 	FUnits = UNITS_FT;
+	for (int i = ncondsPrev; i < Fnconds; ++i)
+	{
+		FX[i] = 0.0;
+		FY[i] = 0.0;
+	}
 }
 
 
