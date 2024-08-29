@@ -2572,15 +2572,12 @@ void TStorageObj::CheckStateTriggerLevel(double Level, int ActorID)
 
          // set charge and discharge modes based on sign of loadshape
 		{
-			if((Level > 0.0) && (with0.kWhStored > with0.kWhReserve))
+			if(Level > 0.0 && (with0.kWhStored - with0.kWhReserve) > EPSILON)
 				Set_StorageState(STORE_DISCHARGING);
+			else if(Level < 0.0 && (with0.kWhStored - with0.kWhRating) < -EPSILON)
+				Set_StorageState(STORE_CHARGING);
 			else
-			{
-				if((Level < 0.0) && (with0.kWhStored < with0.kWhRating))
-					Set_StorageState(STORE_CHARGING);
-				else
-					Set_StorageState(STORE_IDLING);
-			}
+				Set_StorageState(STORE_IDLING);
 		}
 		else
    // All other dispatch modes  Just compare to trigger value
@@ -3628,6 +3625,7 @@ void TStorageObj::UpdateStorage(int ActorID)
 							with0.kWhStored = with0.kWhRating;
 							fState = STORE_IDLING;  // It's full Turn it off
 							FStateChanged = true;
+							GFM_Mode = 0;
 						}
 					}
 					else
@@ -3999,13 +3997,13 @@ void TStorageObj::InitHarmonics(int ActorID)
 
 void TStorageObj::InitStateVars(int ActorID) 
 {
-	complex VNeut			= cmplx(0,0);
-	polar	VThevPolar		= topolar(0,0);
+	//complex VNeut			= cmplx(0,0);
+	//polar	VThevPolar		= topolar(0,0);
 	int		i				= 0;
 	int		j				= 0;
-	complex V012[3]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
-	complex I012[3]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
-	complex Vabc[4]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0), cmplx(0,0) };
+	//complex V012[3]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
+	//complex I012[3]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
+	//complex Vabc[4]			= { cmplx(0,0), cmplx(0,0) , cmplx(0,0), cmplx(0,0) };
 	double	BaseZt			= 0;
 	Set_YprimInvalid(ActorID,true);  // Force rebuild of YPrims
 
@@ -4014,6 +4012,7 @@ void TStorageObj::InitStateVars(int ActorID)
 		PICtrl.resize(Fnphases);
 		for (i = 0; i < Fnphases; i++)
 		{
+			PICtrl[i] = TPICtrl();
 			PICtrl[i].Kp	= myDynVars.Kp;
 			PICtrl[i].kNum	= 0.9502;
 			PICtrl[i].kDen	= 0.04979;
@@ -4039,7 +4038,7 @@ void TStorageObj::InitStateVars(int ActorID)
 		}
 		DynaModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
 	}
-	else
+	else if(fState == STORE_DISCHARGING)
 	{
 		auto with2			= ActiveCircuit[ActorID]->Solution;
 		auto& with3			= StorageVars;
@@ -4094,12 +4093,16 @@ void TStorageObj::InitStateVars(int ActorID)
 
 void TStorageObj::IntegrateStates(int ActorID)
 {
-	complex TracePower	= {};
+    //complex TracePower = {};
+    vector<complex> myCurr = {};
 	int		NumData		= 0,
+			IPresent    = 0, // Present amps per phase
 			j			= 0,
 			i			= 0;
 	double	IMaxPhase	= 0,
 			OFFVal		= 0;
+	bool    GFMUpdate   = 0;
+
    // Compute Derivatives and Then integrate
 	ComputeIterminal(ActorID);
 	if(DynaModel->Get_Exists())   // Checks for existence and Selects
@@ -4139,7 +4142,24 @@ void TStorageObj::IntegrateStates(int ActorID)
 				{
 					if (wDynV.ResetIBR)	wDynV.VDelta[i] = ((0.001 - (wDynV.Vgrid[i].mag / 1000)) / wDynV.BasekV);
 					else				wDynV.VDelta[i] = (wDynV.BasekV - (wDynV.Vgrid[i].mag / 1000)) / wDynV.BasekV;
-					if (abs(wDynV.VDelta[i]) > wDynV.CtrlTol)
+					
+					// Set true to update the IBR
+					GFMUpdate = 1;
+
+					// Checks if there is current limit set
+					if (wDynV.ILimit > 0)
+					{
+						myCurr.resize(Fnphases);
+						GetCurrents(&(myCurr[0]), ActorID);
+
+						for (int stop = Fnphases, j = 1; j <= stop; j++)
+						{
+							IPresent = ctopolar(myCurr[j - 1]).mag;
+							GFMUpdate = GFMUpdate && (IPresent < wDynV.ILimit * wDynV.VError);
+						}
+					}
+
+					if (abs(wDynV.VDelta[i]) > wDynV.CtrlTol && GFMUpdate)
 					{
 						wDynV.ISPDelta[i]	= wDynV.ISPDelta[i] + (IMaxPhase * wDynV.VDelta[i]) * wDynV.Kp * 100;
 						if (wDynV.ISPDelta[i] > wDynV.iMaxPPhase)	wDynV.ISPDelta[i] = wDynV.iMaxPPhase;
