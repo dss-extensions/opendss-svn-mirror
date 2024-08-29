@@ -549,7 +549,7 @@ void TVVControlObj::DoPendingAction(int Code, int ProxyHdl)
   // we need P and/or we need Q
 	if(PendingChange == CHANGEVARLEVEL)
 	{
-		SMonitoredElement = MonitoredElement->Power[ElementTerminal]; // s is in va
+		SMonitoredElement = MonitoredElement->Get_Power(ElementTerminal, ActiveActor); // s is in va
     // PMonitoredElement := SMonitoredElement.re;
 		QMonitoredElement = SMonitoredElement.im;
 
@@ -564,7 +564,7 @@ void TVVControlObj::DoPendingAction(int Code, int ProxyHdl)
 			int stop = 0;
 			for(stop = FListSize, i = 1; i <= stop; i++)
 			{
-				SPresentGenOutput = ControlledElement->Power[1];
+				SPresentGenOutput = ControlledElement->Get_Power(1, ActiveActor);
         // s is in va; we want terminal 1 of the generator
 				PPresentGenOutput = SPresentGenOutput.re;
 				QPresentGenOutput = SPresentGenOutput.im;
