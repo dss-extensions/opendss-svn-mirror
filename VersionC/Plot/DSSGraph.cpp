@@ -189,7 +189,6 @@ namespace DSSGraph
     void AddNewText(double X1, double Y1, int Color, int Size, String S)
     {
         WriteLn(ActiveDSSGraphFile, Format("Text, %.8g, %.8g, %d, %d, \"%s\"", X1, Y1, Color, Size, S.c_str()));
-        Write(ActiveDSSGraphFile, S);
         Checkminmax(X1, Y1);
     }
 
@@ -218,7 +217,7 @@ namespace DSSGraph
     }
 
 
-    void Get_Properties(TDSSGraphProperties* Props)
+    void Get_Properties(TDSSGraphProperties* &Props)
     {
         Props = ActiveGraphProps;
     }
@@ -226,25 +225,25 @@ namespace DSSGraph
     //\"%s\"" Not needed
     void Set_XaxisLabel(String S)
     {
-        WriteLn(ActiveDSSGraphFile, "Xlabel, " + S);
+        WriteLn(ActiveDSSGraphFile, "Xlabel, \"" + S + "\"");
     }
 
 
     void Set_YaxisLabel(String S)
     {
-        WriteLn(ActiveDSSGraphFile, "Ylabel, " + S);
+        WriteLn(ActiveDSSGraphFile, "Ylabel, \"" + S + "\"");
     }
 
 
     void Set_Caption(String S)
     {
-        WriteLn(ActiveDSSGraphFile, "Caption " + S); 
+        WriteLn(ActiveDSSGraphFile, "Caption, \"" + S + "\"");
     }
 
 
     void Set_ChartCaption(String S)
     {
-        WriteLn(ActiveDSSGraphFile, "ChartCaption, " + S);
+        WriteLn(ActiveDSSGraphFile, "ChartCaption, \"" + S + "\"");
     }
 
 

@@ -3587,9 +3587,65 @@ namespace Utilities
 
     int InterpretColorName( const String S )
     {
-      int result = 0;
-      result = 0; // RGB for black
-      return result;
+      if (CompareTextShortest(S, "black") == 0)
+        return clBlack;
+
+      if (CompareTextShortest(S, "Maroon") == 0)
+        return clMaroon;
+
+      if (CompareTextShortest(S, "Green") == 0)
+        return clGreen;
+
+      if (CompareTextShortest(S, "Olive") == 0)
+        return clOlive;
+
+      if (CompareTextShortest(S, "Navy") == 0)
+        return clNavy;
+
+      if (CompareTextShortest(S, "Purple") == 0)
+        return clPurple;
+
+      if (CompareTextShortest(S, "Teal") == 0)
+        return clTeal;
+
+      if (CompareTextShortest(S, "Gray") == 0)
+        return clGray;
+
+      if (CompareTextShortest(S, "Silver") == 0)
+        return clSilver;
+
+      if (CompareTextShortest(S, "Red") == 0)
+        return clRed;
+
+      if (CompareTextShortest(S, "Lime") == 0)
+        return clLime;
+
+      if (CompareTextShortest(S, "Yellow") == 0)
+        return clYellow;
+
+      if (CompareTextShortest(S, "Blue") == 0)
+        return clBlue;
+
+      if (CompareTextShortest(S, "Fuchsia") == 0)
+        return clFuchsia;
+
+      if (CompareTextShortest(S, "Aqua") == 0)
+        return clAqua;
+
+      if (CompareTextShortest(S, "LtGray") == 0)
+        return clLtGray;
+
+      if (CompareTextShortest(S, "DkGray") == 0)
+        return clDkGray;
+
+      if (CompareTextShortest(S, "White") == 0)
+        return clWhite;
+
+      if (S.size() && S[0] == '$')
+      {
+        return stoi(S.substr(1), nullptr, 16);
+      }
+      return StrToInt(S);
     }
 
     String MakeNewCktElemName( const String oldname )

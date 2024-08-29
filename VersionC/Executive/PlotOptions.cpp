@@ -245,7 +245,8 @@ int DoPlotCmd()
 			i				= 0,
 			NumChannels		= 0;
 	String	ParamName		= "",
-			Param			= "";
+			Param			= "",
+			OrgParam;
 
 	double DblBuffer[51];
 
@@ -261,7 +262,8 @@ int DoPlotCmd()
     /*Get next parameter on command line*/
 	ParamPointer = 0;
 	ParamName = UpperCase(Parser[ActiveActor]->GetNextParam());
-	Param = UpperCase(Parser[ActiveActor]->MakeString_());
+	OrgParam = Parser[ActiveActor]->MakeString_();
+	Param = UpperCase(OrgParam);
 	while(Param.size() > 0)
 
       /*Interpret Parameter*/
@@ -457,12 +459,12 @@ int DoPlotCmd()
 					if(NumChannels > 0)   // Else take the defaults
 					{
 						int stop = 0;
-						with0->Channels.resize(NumChannels + 1);
+						with0->Channels.resize(NumChannels);
 						for(stop = NumChannels - 1, i = 0; i <= stop; i++)
 						{
 							with0->Channels[i] = (unsigned int) Round(DblBuffer[i]);
 						}
-						with0->Bases.resize(NumChannels + 1);
+						with0->Bases.resize(NumChannels);
 						for(stop = NumChannels - 1, i = 0; i <= stop; i++)
 						{
 							with0->Bases[i] = 1.0;
@@ -491,7 +493,7 @@ int DoPlotCmd()
 				with0->FMaxLineThickness = Parser[ActiveActor]->MakeInteger_();
 				break;
 				case 	17:
-				InterpretTStringListArray(Param, with0->DaisyBusList);
+				InterpretTStringListArray(OrgParam, with0->DaisyBusList);
 				break;  /*read in Bus list*/
 				case 	18:
 				{
@@ -558,7 +560,8 @@ int DoPlotCmd()
 			}
 		}
 		ParamName = UpperCase(Parser[ActiveActor]->GetNextParam());
-		Param = UpperCase(Parser[ActiveActor]->MakeString_());
+		OrgParam = Parser[ActiveActor]->MakeString_();
+		Param = UpperCase(OrgParam);
 	}
 	if(!ActiveCircuit[ActiveActor]->Issolved)
 		DSSPlotObj->Quantity = pqNone;
