@@ -225,7 +225,7 @@ void Calc_Y4( )
 void Calc_ZCC( int Links )
 {
   int Row = 0, col = 0, idx3 = 0, idx2 = 0, idx = 0;
-  longInt NNodes = 0;
+  unsigned int NNodes = 0;
   pComplexArray CVector, ZVector;
   complex Ctemp;
 // 4 Debugging
