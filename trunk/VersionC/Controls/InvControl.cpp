@@ -989,6 +989,7 @@ TInvControlObj::TInvControlObj(TDSSClass* ParClass, const String InvControlName)
 	Fnconds = 3;
 	Set_NTerms(1);  // this forces allocation of terminals and conductors
                        // in base class
+	ElementTerminal = 1;
 
     /*Variables for voltages*/
 	FVpuSolutionIdx = 0;
@@ -2173,7 +2174,7 @@ void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double 
 			}
 			break;
 			default:
-			Vpresent = cabs(withi.cBuffer[FMonBusesPhase]);
+			Vpresent = cabs(withi.cBuffer[FMonBusesPhase - 1]);
 			break;
 		}
 	}
@@ -2220,7 +2221,7 @@ void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double 
 			}
 			break;
 			default:
-			Vpresent = cabs(withi.cBuffer[FMonBusesPhase]);
+			Vpresent = cabs(withi.cBuffer[FMonBusesPhase - 1]);
 			break;
 		}
 	}
@@ -3428,7 +3429,7 @@ void TInvControlObj::UpdateInvControl(int i, int ActorID)
 			PVSyst = (TPVsystemObj*) (withj.ControlledElement);
 		else
 			Storage = (TStorageObj*) (withj.ControlledElement);
-		BaseKV = CtrlVars[i].FVBase / 1000.0;
+		BaseKV = withj.FVBase / 1000.0;
 
           //             FPriorvars[j]  := PVSys.Presentkvar;
           //             FPriorWatts[j]  := PVSys.PresentkW;
