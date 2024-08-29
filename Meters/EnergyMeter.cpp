@@ -2212,7 +2212,7 @@ void TEnergyMeterObj::AllocateLoad(int ActorID)
 					{
 						auto with0 = LoadElem;
                  /*For Single phase loads, allocate based on phase factor, else average factor*/
-						ConnectedPhase = (ActiveCircuit[ActorID]->MapNodeToBus)[ (with0->NodeRef)[1 - 1] ].NodeNum;
+						ConnectedPhase = (ActiveCircuit[ActorID]->MapNodeToBus)[ (with0->NodeRef)[1 - 1] - 1 ].NodeNum;
 						if((ConnectedPhase > 0) && (ConnectedPhase < 4))
 						{
 							if ( ( ( with0->SensorObj ) )->Get_NPhases() == 1)   // Restrict to phases 1..3
@@ -3540,7 +3540,7 @@ void TEnergyMeter::WriteOverloadReport(int ActorID)
 					/*# with ActiveCircuit[ActorID] do */
 					{
 						 // Find bus of first terminal
-						WriteintoMem(OV_MHandle[ActorID], ActiveCircuit[ActorID]->Buses[ ActiveCircuit[ActorID]->MapNodeToBus[ ( PDElem->NodeRef)[1 - 1] ].BusRef - 1]->kVBase);
+						WriteintoMem(OV_MHandle[ActorID], ActiveCircuit[ActorID]->Buses[ ActiveCircuit[ActorID]->MapNodeToBus[ ( PDElem->NodeRef)[1 - 1] - 1 ].BusRef - 1]->kVBase);
 					}
               // Adds the currents in Amps per phase at the end of the report
 					for(stop = 3, i = 1; i <= stop; i++)

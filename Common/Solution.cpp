@@ -3899,7 +3899,7 @@ namespace Solution
             {
               /*# with MapNodeToBus^[i] do */
               {
-                auto& with1 = with0->MapNodeToBus[i];
+                auto& with1 = with0->MapNodeToBus[i - 1];
                 SrcBus[SrcBus.size() - 1] = ToUpperCaseStr(with0->BusList.Get(with1.BusRef)) + Format(".%-d", with1.NodeNum );
               }
               SrcBus.resize( SrcBus.size() + 1 );
@@ -3921,7 +3921,7 @@ namespace Solution
             {
               /*# with MapNodeToBus^[i] do */
               {
-                auto& with3 = with2->MapNodeToBus[i];
+                auto& with3 = with2->MapNodeToBus[i - 1];
                 LclBus[LclBus.size() - 1] = ToUpperCaseStr(with2->BusList.Get(with3.BusRef)) + Format(".%-d", with3.NodeNum );
               }
               LclBus.resize( LclBus.size() + 1 );
