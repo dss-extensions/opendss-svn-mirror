@@ -527,7 +527,7 @@ void DSSCallBackRoutines_initialization()
 {
   /*# with CallBackRoutines do */
   {
-    auto with0 = CallBackRoutines;
+    auto &with0 = CallBackRoutines;
     //with0.MsgCallBack = (void*);// &((int)DoSimpleMsgCallback()); // for user-written callbacks
     with0.GetIntValue = ParserIntValue;
     with0.GetDblValue = ParserDblValue;
