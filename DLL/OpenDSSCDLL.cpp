@@ -960,7 +960,7 @@ double __stdcall LinesF(int mode, double arg)
 			if (IsLine(ActiveCircuit[ActiveActor]->FActiveCktElement))
 			{
 				auto with0 = (TLineObj*)ActiveCircuit[ActiveActor]->FActiveCktElement;
-				auto with1 = ActiveCircuit[ActiveActor]->Solution->DynaVars;
+				auto& with1 = ActiveCircuit[ActiveActor]->Solution->DynaVars;
 				result = with0->NormAmps;
 				if ((!SeasonSignal.empty()) && SeasonalRating)
 				{
@@ -1005,7 +1005,7 @@ char* __stdcall LinesS(int mode, char* arg)
 	case 1:												// Lines.Name write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Lines;
+			auto& with0 = ActiveCircuit[ActiveActor]->Lines;
 			S = arg;
 			activesave = with0.ActiveItem;
 			pLine = (TDSSCktElement*)with0.Get_First();
@@ -1868,7 +1868,7 @@ char* __stdcall DSSLoadsS(int mode, char* arg)
 	case 1:												// Load.Name Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Loads;
+			auto& with0 = ActiveCircuit[ActiveActor]->Loads;
 			Found		= false;
 			ActiveSave	= with0.get_myActiveItem();
 			pload = (TDSSCktElement*) with0.Get_First();
@@ -6247,7 +6247,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 		result = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				if ( ((TGeneratorObj*)with0.Get_Active())->get_FForcedON())
@@ -6258,7 +6258,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 	case	3:						// Generators.ForcedON Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				if (arg == 1)
@@ -6276,7 +6276,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 		result = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->Get_NPhases();
@@ -6287,7 +6287,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 		result = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Set_NPhases(arg);
@@ -6320,7 +6320,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 		result = -1;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->GenModel;
@@ -6330,7 +6330,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 	case	10:						// Generators.Model Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->GenModel = arg;
@@ -6357,7 +6357,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = -1.0;	//not set
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->GenVars.kVGeneratorBase;
@@ -6367,7 +6367,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	1:							// Generators.kV Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Set_PresentkV(arg);
@@ -6378,7 +6378,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = 0.0;	//not set
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->Get_PresentkW();
@@ -6388,7 +6388,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	3:							// Generators.kW Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Set_PresentkW(arg);
@@ -6399,7 +6399,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = 0.0;	//not set
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->Get_Presentkvar();
@@ -6409,7 +6409,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	5:							// Generators.kvar Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Set_Presentkvar(arg);
@@ -6420,7 +6420,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = 0.0;	//not set
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->get_PFNominal();
@@ -6430,7 +6430,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	7:							// Generators.PF Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Set_PowerFactor(arg);
@@ -6441,7 +6441,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = -1.0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->GenVars.kVArating;
@@ -6451,7 +6451,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	9:							// Generators.KVARated Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->GenVars.kVArating = arg;
@@ -6462,7 +6462,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = -1.0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->Vmaxpu;
@@ -6472,7 +6472,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	11:							// Generators.Vmaxpu Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Vmaxpu = arg;
@@ -6483,7 +6483,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 		result = -1.0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TGeneratorObj*)with0.Get_Active())->Vminpu;
@@ -6493,7 +6493,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	case	13:							// Generators.Vminpu Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			if (with0.ActiveItem != 0)
 			{
 				((TGeneratorObj*)with0.Get_Active())->Vminpu = arg;
@@ -6535,7 +6535,7 @@ char* __stdcall GeneratorsS(int mode, char* arg)
 	case	1:						// Generators.Name Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->Generators;
+			auto& with0 = ActiveCircuit[ActiveActor]->Generators;
 			S = std::string(arg);
 			Found = false;
 			ActiveSave = with0.get_myActiveItem();
@@ -9263,7 +9263,7 @@ char* __stdcall MetersS(int mode, char* arg)
 	case 1:													// Meters.Name Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->EnergyMeters;
+			auto& with0 = ActiveCircuit[ActiveActor]->EnergyMeters;
 			TestStr = arg;
 			Found = false;
 			ActiveSave = with0.ActiveItem;
@@ -9901,7 +9901,7 @@ char* __stdcall MonitorsS(int mode, char* arg)
 	case 2:													// Monitors.Name Write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0	= ActiveCircuit[ActiveActor]->Monitors;
+			auto& with0	= ActiveCircuit[ActiveActor]->Monitors;
 			S			= arg;
 			Found		= false;
 			pMon		= (TMonitorObj*)with0.Get_First();
@@ -10870,7 +10870,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 0:													// PVsystems.Irradiance readif (ActiveCircuit[ActiveActor] != nullptr)
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->PVSystemVars.FIrradiance;
@@ -10880,7 +10880,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 1:													// PVsystems.Irradiance write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				((TPVsystemObj*)with0.Get_Active())->PVSystemVars.FIrradiance = arg;
@@ -10890,7 +10890,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 2:													// PVsystems.kW
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_PresentkW();
@@ -10900,7 +10900,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 3:													// PVsystems.kvar read
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_Presentkvar();
@@ -10910,7 +10910,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 4:													// PVsystems.kvar write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				((TPVsystemObj*)with0.Get_Active())->Set_Presentkvar(arg);
@@ -10920,7 +10920,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 5:													// PVsystems.pf read
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->PFNominal;
@@ -10930,7 +10930,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 6:													// PVsystems.pf write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				((TPVsystemObj*)with0.Get_Active())->PFNominal = arg;
@@ -10940,7 +10940,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 7:													// PVsystems.KVARated read
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_FkVArating();
@@ -10950,7 +10950,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 8:													// PVsystems.KVARated write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				((TPVsystemObj*)with0.Get_Active())->Set_kVARating(arg);
@@ -10960,7 +10960,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 9:													// PVsystems.pmpp read
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_FPmpp();
@@ -10970,7 +10970,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 10:												// PVsystems.pmpp write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				((TPVsystemObj*)with0.Get_Active())->Set_Pmpp(arg);
@@ -10980,7 +10980,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	case 11:												// PVsystems.IrradianceNow
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			if (with0.ActiveItem != 0)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_PresentIrradiance();
@@ -11020,7 +11020,7 @@ char* __stdcall PVsystemsS(int mode, char* arg)
 	case 1:													// PVsystems.Name write
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->PVSystems;
+			auto& with0 = ActiveCircuit[ActiveActor]->PVSystems;
 			S = arg;
 			Found = false;
 			ActiveSave = with0.ActiveItem;
@@ -13088,7 +13088,7 @@ char* __stdcall SettingsS(int mode, char* arg)
 	case 0:													// Settings.AutoBusList read
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor]->AutoAddBusList;
+			auto& with0 = ActiveCircuit[ActiveActor]->AutoAddBusList;
 			for (i = 1; i <= with0.ListPtr.size(); i++)
 			{
 				AppendGlobalResult(with0.Get(i));

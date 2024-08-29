@@ -1723,7 +1723,7 @@ TWinding::TWinding()
 	MinTap = 0.90;
 }
 
-double TTransfObj::Get_PresentTap(int i, int ActorID)
+double TTransfObj::Get_PresentTap(int i, int ActorID) const
 {
 	double result = 0.0;
 	if((i > 0) && (i <= NumWindings))
@@ -1840,7 +1840,7 @@ int TTransfObj::Get_WdgConnection(int i)
 	return result;
 }
 
-double TTransfObj::Get_MinTap(int i)
+double TTransfObj::Get_MinTap(int i) const
 {
 	double result = 0.0;
 	if((i > 0) && (i <= NumWindings))
@@ -1850,7 +1850,7 @@ double TTransfObj::Get_MinTap(int i)
 	return result;
 }
 
-double TTransfObj::Get_MaxTap(int i)
+double TTransfObj::Get_MaxTap(int i) const
 {
 	double result = 0.0;
 	if((i > 0) && (i <= NumWindings))
@@ -1870,7 +1870,7 @@ int TTransfObj::Get_NumTaps(int i)
 	return result;
 }
 
-double TTransfObj::Get_TapIncrement(int i)
+double TTransfObj::Get_TapIncrement(int i) const
 {
 	double result = 0.0;
 	if((i > 0) && (i <= NumWindings))
