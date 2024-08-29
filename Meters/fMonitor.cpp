@@ -406,7 +406,7 @@ int TDSSFMonitor::Edit(int ActorID)
 				{
 					int stop = 0;
 					with0->T_intvl_smpl = Parser[ActorID]->MakeDouble_(); //
-					for(stop = with0->Nodes, i = 1; i <= stop; i++)
+					for(stop = with0->Nodes, i = 0; i < stop; i++)
 					{
 						with0->ResetDelaySteps(i);
 					}
@@ -436,7 +436,7 @@ int TDSSFMonitor::Edit(int ActorID)
 				}
 				break;
 				case 	24:
-				with0->virtual_Ld_Nd = Parser[ActorID]->MakeInteger_();
+				with0->virtual_Ld_Nd = Parser[ActorID]->MakeInteger_() - 1;
 				break;
 				case 	25:
 				with0->Set_EquivalentGenerator(Param);
@@ -848,7 +848,7 @@ TFMonitorObj::TFMonitorObj(TDSSClass* ParClass, const String MonitorName)
 		ld_fm_info[i].total_pl = 0.0;
 		ld_fm_info[i].b_Curt_Ctrl = false;
 	}
-	virtual_Ld_Nd = 1;
+	virtual_Ld_Nd = 0;
 	nup_dlys = 0;
      //bCurtl_Clstr := false;
      /*end of leader initialization*/
@@ -1099,19 +1099,18 @@ void TFMonitorObj::Set_nodes_for_fm(int intNodes)
 	if(pCommNode_Hide != nullptr)
 		free(pCommNode_Hide);
 	
-	// allocate one extra as a temporary workaround to avoid changing all the code
-	pNodeFMs = new TVLNodeVars[intNodes + 1];
+	pNodeFMs = new TVLNodeVars[intNodes];
 	pCommMatrix = (pSmallIntArray)malloc(sizeof(pCommMatrix[0]) * intNodes * intNodes);
 	pCommHide = (pSmallIntArray)malloc(sizeof(pCommHide[0]) * intNodes * intNodes);
 	pCommNode_Hide = (pSmallIntArray)malloc(sizeof(pCommNode_Hide[0]) * intNodes * intNodes);
 	pCommDelayMatrix = (pDoubleArray)malloc(sizeof(pCommDelayMatrix[0]) * intNodes * intNodes);
 	pCommDelaySteps = (pSmallIntArray)malloc(sizeof(pCommDelaySteps[0]) * intNodes * intNodes);
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		int stop1 = 0;
-		for(stop1 = Nodes, j = 1; j <= stop1; j++)
+		for(stop1 = Nodes, j = 0; j < stop1; j++)
 		{
-			(pCommDelayMatrix)[Nodes * (i - 1) + j - 1] = 0.0;
+			(pCommDelayMatrix)[Nodes * i + j] = 0.0;
 		}
 	}
 }
@@ -1168,30 +1167,30 @@ void TFMonitorObj::Set_CommVector(String strParam)
     //iMin := min(Nodes, )
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
-	iNodeNum = AuxParser[ActiveActor]->MakeInteger_(); //node number defined in cluster
+	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
 	for(stop = Nodes + 1, i = 2; i <= stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
 		if(DataStr.size() > 0)
 		{
-			(pCommMatrix)[(iNodeNum - 1) * Nodes + i - 1] = (short int) AuxParser[ActiveActor]->MakeInteger_();
-			(pCommHide)[(iNodeNum - 1) * Nodes + i - 1] = (short int) AuxParser[ActiveActor]->MakeInteger_();       //default
-			(pCommNode_Hide)[(iNodeNum - 1) * Nodes + i - 1] = (short int) AuxParser[ActiveActor]->MakeInteger_();  //default
+			(pCommMatrix)[iNodeNum * Nodes + i] = (short int) AuxParser[ActiveActor]->MakeInteger_();
+			(pCommHide)[iNodeNum * Nodes + i] = (short int) AuxParser[ActiveActor]->MakeInteger_();       //default
+			(pCommNode_Hide)[iNodeNum * Nodes + i] = (short int) AuxParser[ActiveActor]->MakeInteger_();  //default
 		}
 	}
 
 // Updates the value of the property for future queries
 // Added y Davis 02072019
 	TempStr = "";
-	for(stop = Nodes, j = 1; j <= stop; j++)
+	for(stop = Nodes, j = 0; j < stop; j++)
 	{
 		int stop1 = 0;
 		iNodeNum = j;
 		TempStr = TempStr + IntToStr(iNodeNum) + ",";
 		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
 		{
-			TempStr = TempStr + IntToStr(pCommMatrix[(iNodeNum - 1) * Nodes + i - 1]) + ",";
+			TempStr = TempStr + IntToStr(pCommMatrix[iNodeNum * Nodes + i]) + ",";
 		}
 		TempStr = TempStr + "|";
 	}
@@ -1210,13 +1209,13 @@ void TFMonitorObj::Set_CommVector_Hide(String strParam)
     //iMin := min(Nodes, )
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
-	iNodeNum = AuxParser[ActiveActor]->MakeInteger_(); //node number defined in cluster
+	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
 	for(stop = Nodes + 1, i = 2; i <= stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
 		if(DataStr.size() > 0)
-			pCommHide[(iNodeNum - 1) * Nodes + i - 1] = (short int) AuxParser[ActiveActor]->MakeInteger_();
+			pCommHide[iNodeNum * Nodes + i] = (short int) AuxParser[ActiveActor]->MakeInteger_();
 	}
 }
 
@@ -1232,13 +1231,13 @@ void TFMonitorObj::Set_CommVector_NodeHide(String strParam)
     //iMin := min(Nodes, )
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
-	iNodeNum = AuxParser[ActiveActor]->MakeInteger_(); //node number defined in cluster
+	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
 	for(stop = Nodes + 1, i = 2; i <= stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
 		if(DataStr.size() > 0)
-			pCommNode_Hide[(iNodeNum - 1) * Nodes + i - 1] = (short int) AuxParser[ActiveActor]->MakeInteger_();
+			pCommNode_Hide[iNodeNum * Nodes + i] = (short int) AuxParser[ActiveActor]->MakeInteger_();
 	}
 }
 
@@ -1255,27 +1254,27 @@ void TFMonitorObj::Set_CommDelayVector(String strParam)
     //iMin := min(Nodes, )
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
-	iNodeNum = AuxParser[ActiveActor]->MakeInteger_(); //node number defined in cluster
+	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
 	for(stop = (Nodes + 1), i = 2; i <= stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
 		if(DataStr.size() > 0)
-			pCommDelayMatrix[(iNodeNum - 1) * Nodes + i - 1] = AuxParser[ActiveActor]->MakeDouble_();
+			pCommDelayMatrix[iNodeNum * Nodes + i] = AuxParser[ActiveActor]->MakeDouble_();
 	}
 	ResetDelaySteps(iNodeNum);  //Use pCommDelayMatrix^ to calculate pCommDelaySteps^
 
 // Updates the value of the property for future queries
 // Added y Davis 02072019
 	TempStr = "";
-	for(stop = Nodes, j = 1; j <= stop; j++)
+	for(stop = Nodes, j = 0; j < stop; j++)
 	{
 		int stop1 = 0;
 		iNodeNum = j;
 		TempStr = TempStr + IntToStr(iNodeNum) + ",";
 		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
 		{
-			TempStr = TempStr + FloatToStr(pCommDelayMatrix[(iNodeNum - 1) * Nodes + i - 1]) + ",";
+			TempStr = TempStr + FloatToStr(pCommDelayMatrix[iNodeNum * Nodes + i]) + ",";
 		}
 		TempStr = TempStr + "|";
 	}
@@ -1323,7 +1322,7 @@ void TFMonitorObj::Set_atk_dfs(String strParam)
 	dummy = AuxParser[ActiveActor]->GetNextParam(); //       atk_time
 	atk_time = AuxParser[ActiveActor]->MakeDouble_();
 	dummy = AuxParser[ActiveActor]->GetNextParam(); //       atk_node_num
-	atk_node_num = AuxParser[ActiveActor]->MakeInteger_();
+	atk_node_num = AuxParser[ActiveActor]->MakeInteger_() - 1;
 	dummy = AuxParser[ActiveActor]->GetNextParam(); //       d_atk0
 	(pNodeFMs)[atk_node_num].d_atk0 = AuxParser[ActiveActor]->MakeDouble_();
 	dummy = AuxParser[ActiveActor]->GetNextParam(); //       beta_dfs
@@ -1345,7 +1344,7 @@ void TFMonitorObj::Set_ElemTable_line(String strParam)
 	int stop = 0;
 	AuxParser[ActiveActor]->SetCmdString(strParam);  // Load up Parser
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the number of the iNode
-	iNodeNum = AuxParser[ActiveActor]->MakeInteger_(); //node number defined in the cluster
+	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in the cluster
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the number of the iNode
 	(pNodeFMs)[iNodeNum].vl_strBusName = AuxParser[ActiveActor]->MakeString_(); //node number defined in the cluster
 	dummy = AuxParser[ActiveActor]->GetNextParam();
@@ -1364,7 +1363,7 @@ void TFMonitorObj::Set_ElemTable_line(String strParam)
 // Updates the value of the property for future queries
 // Added y Davis 02072019
 	TempStr = "";
-	for(stop = iNodeNum, i = 1; i <= stop; i++)
+	for(stop = iNodeNum, i = 0; i <= stop; i++)
 	{
 		TempStr = TempStr
 	           + IntToStr(i)
@@ -1406,7 +1405,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 				PElement->GetPhasePower(cBuffer, ActorID);// power
 				for(stop = Num, j = 1; j <= stop; j++)
 				{
-					i = (PElement->Terminals[0].TermNodeRef)[j];
+					i = (PElement->Terminals[0].TermNodeRef)[j - 1];
 					switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
 					{
 						case 	1:
@@ -1448,7 +1447,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					PElement->GetPhasePower(cBuffer, ActorID);// power
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
-						i = (PElement->Terminals[0].TermNodeRef)[j];
+						i = (PElement->Terminals[0].TermNodeRef)[j - 1];
 						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
 						{
 							case 	1:
@@ -1484,7 +1483,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					PElement->GetPhasePower(cBuffer, ActorID);// power
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
-						i = PElement->Terminals[0].TermNodeRef[j];
+						i = PElement->Terminals[0].TermNodeRef[j - 1];
 						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
 						{
 							case 	1:
@@ -1520,7 +1519,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					PElement->GetPhasePower(cBuffer, ActorID);// power
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
-						i = (PElement->Terminals[0].TermNodeRef)[j];
+						i = (PElement->Terminals[0].TermNodeRef)[j - 1];
 						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
 						{
 							case 	1:
@@ -1602,7 +1601,7 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 		(pNodeFMs)[iNodeNum].vl_phase_num_dg = -1; //-1 -- no dg under this nodes;0 --3 phases by default
 		for(stop = 3, j = 1; j <= stop; j++)
 		{
-			(pNodeFMs)[iNodeNum].vl_nodeType_phase[j] = 2;
+			(pNodeFMs)[iNodeNum].vl_nodeType_phase[j - 1] = 2;
 		}// by default not dg
 		/*# with ActiveCircuit[ActorID] do */
 		{
@@ -1651,7 +1650,7 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 								pDG->Set_Variable(28, (double) Cluster_num); //28:  TPCElement(self).cluster_num :=  trunc(Value);
                                                                          //if cluster_num >= 1 then      // assign the virtue leader to this DG
 								pDG->FMonObj = this;    //FMonObj := ActiveCircuit.Fmonitors.Get(cluster_num); cluster_num can not be used for 'Get'
-								pDG->Set_Variable(29, (double) iNodeNum); //29:  TPCElement(self).NdNumInCluster := trunc(Value) ;
+								pDG->Set_Variable(29, (double) (iNodeNum + 1)); //29:  TPCElement(self).NdNumInCluster := trunc(Value) ;
 								pDG->Set_Variable(30, 1);         //TPCElement(self).nVLeaders := trunc(Value) ;
 							}
 							else
@@ -1663,7 +1662,7 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 									pDG->Set_Variable(31, (double) Cluster_num); //28:  TPCElement(self).cluster_num2 :=  trunc(Value);
                                                                          //if cluster_num >= 1 then      // assign the virtue leader to this DG
 									pDG->FMonObj2 = this;             //FMonObj := ActiveCircuit.Fmonitors.Get(cluster_num); cluster_num can not be used for 'Get'
-									pDG->Set_Variable(32, (double) iNodeNum);    //29:  TPCElement(self).NdNumInCluster2 := trunc(Value) ;
+									pDG->Set_Variable(32, (double) (iNodeNum + 1));    //29:  TPCElement(self).NdNumInCluster2 := trunc(Value) ;
 									pDG->Set_Variable(30, 2);           //  TPCElement(self).nVLeaders := trunc(Value) ;
 								}
 							}
@@ -1870,7 +1869,7 @@ void TFMonitorObj::Get_PDElem_terminal_voltage(int nd_num_in_cluster, String dev
 	tempTerminal = &(tempElement->Terminals)[Tern_num];
 	for(stop = tempElement->Get_NPhases(), j = 1; j <= stop; j++)
 	{// how many phases of this element
-		i = (tempTerminal->TermNodeRef)[j];  // global node number
+		i = (tempTerminal->TermNodeRef)[j - 1];  // global node number
 		phase_num = (ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum;
 		if(!ADiakoptics || (ActorID == 1))
 			vabs = cabs(ActiveCircuit[ActorID]->Solution->NodeV[i]);
@@ -1921,7 +1920,7 @@ void TFMonitorObj::update_all_nodes_info(int ActorID)
 {
 	int i = 0;
 	int stop = 0;
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		/*# with pNodeFMs^[i] do */
 		{
@@ -1947,17 +1946,17 @@ void TFMonitorObj::ResetDelaySteps(int iNodeNum)
 	int Tmp = 0;
           //calc delay array
 	int stop = 0;
-	for(stop = Nodes, j = 1; j <= stop; j++)
+	for(stop = Nodes, j = 0; j < stop; j++)
 	{
-		if((T_intvl_smpl == 0.0) || ((pCommDelayMatrix)[(iNodeNum - 1) * Nodes + j - 1] == 0.0))
-			(pCommDelaySteps)[(iNodeNum - 1) * Nodes + j - 1] = 0;
+		if((T_intvl_smpl == 0.0) || ((pCommDelayMatrix)[iNodeNum * Nodes + j] == 0.0))
+			(pCommDelaySteps)[iNodeNum * Nodes + j] = 0;
 		else
 		{
-			Tmp = Trunc((pCommDelayMatrix)[(iNodeNum - 1) * Nodes + j - 1] / T_intvl_smpl);
-			if(Frac((pCommDelayMatrix)[(iNodeNum - 1) * Nodes + j - 1] / T_intvl_smpl) == 0.0L)
-				(pCommDelaySteps)[(iNodeNum - 1) * Nodes + j - 1] = (short int) Tmp;
+			Tmp = Trunc((pCommDelayMatrix)[iNodeNum * Nodes + j] / T_intvl_smpl);
+			if(Frac((pCommDelayMatrix)[iNodeNum * Nodes + j] / T_intvl_smpl) == 0.0L)
+				(pCommDelaySteps)[iNodeNum * Nodes + j] = (short int) Tmp;
 			else
-				(pCommDelaySteps)[(iNodeNum - 1) * Nodes + j - 1] = (short int) (Tmp + 1);
+				(pCommDelaySteps)[iNodeNum * Nodes + j] = (short int) (Tmp + 1);
                       //How many delays for communication
 		}
 	}
@@ -1982,7 +1981,7 @@ void TFMonitorObj::ResetIt(int ActorID)
 			else
 				Smpl_stps = iTmp + 1;// uper
 		}
-		for(stop = Nodes, iTmp = 1; iTmp <= stop; iTmp++)
+		for(stop = Nodes, iTmp = 0; iTmp < stop; iTmp++)
 		{
 			(pNodeFMs)[iTmp].vl_SmplCnt = 0;
 			(pNodeFMs)[iTmp].vl_crnt_smp_time = ActiveCircuit[ActorID]->Solution->DynaVars.intHour * 3600 + ActiveCircuit[ActorID]->Solution->DynaVars.T;
@@ -2467,14 +2466,14 @@ void TFMonitorObj::Calc_Alpha_for_PDNode(int NodeNum)
 					int stop1 = 0;
 					TempAlpha = 0.0;//init as zero
 					sum_Sij_j = 0.0;
-					for(stop1 = Nodes, j = 1; j <= stop1; j++)
+					for(stop1 = Nodes, j = 0; j < stop1; j++)
 					{
                  //for j := 1 to NodeNumofDG-1 do
 
                           //if pnodeFMs^[j].vl_phase_num=phase_num then
                           //begin
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNum - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
-						sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNum - 1) * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNum * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+						sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNum * Nodes + j];
                           //end;
 					}
                  //for j := NodeNumofDG + 1 to Nodes do
@@ -2492,11 +2491,11 @@ void TFMonitorObj::Calc_Alpha_for_PDNode(int NodeNum)
 					int stop1 = 0;
 					TempAlpha = 0.0;//init as zero
 					sum_Sij_j = 0.0;
-					for(stop1 = Nodes, j = 1; j <= stop1; j++)
+					for(stop1 = Nodes, j = 0; j < stop1; j++)
 					{
                  //for j := 1 to NodeNumofDG-1 do
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNum - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
-						sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNum - 1) * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNum * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+						sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNum * Nodes + j];
 					}
                  //for j := NodeNumofDG + 1 to Nodes do
                  //begin
@@ -2513,11 +2512,11 @@ void TFMonitorObj::Calc_Alpha_for_PDNode(int NodeNum)
 					int stop1 = 0;
 					TempAlpha = 0.0;//init as zero
 					sum_Sij_j = 0.0;
-					for(stop1 = Nodes, j = 1; j <= stop1; j++)
+					for(stop1 = Nodes, j = 0; j < stop1; j++)
 					{
                  //for j := 1 to NodeNumofDG-1 do
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNum - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
-						sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNum - 1) * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNum * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+						sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNum * Nodes + j];
 					}
                  //for j := NodeNumofDG + 1 to Nodes do
                  //begin
@@ -2534,11 +2533,11 @@ void TFMonitorObj::Calc_Alpha_for_PDNode(int NodeNum)
 					int stop1 = 0;
 					TempAlpha = 0.0;//init as zero
 					sum_Sij_j = 0.0;
-					for(stop1 = Nodes, j = 1; j <= stop1; j++)
+					for(stop1 = Nodes, j = 0; j < stop1; j++)
 					{
                  //for j := 1 to NodeNumofDG-1 do
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNum - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
-						sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNum - 1) * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNum * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+						sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNum * Nodes + j];
 					}
                  //for j := NodeNumofDG + 1 to Nodes do
                  //begin
@@ -2585,7 +2584,7 @@ double TFMonitorObj::Get_power_trans(int ActorID)
 	k = (MeteredTerminal - 1) * MeteredElement->Get_NConds();
 	for(stop = MeteredElement->Get_NConds(), j = 1; j <= stop; j++)
 	{// how many conds of this element
-		i = (pTerminal->TermNodeRef)[j];  // global node number
+		i = (pTerminal->TermNodeRef)[j - 1];  // global node number
 		if(!ADiakoptics || (ActorID == 1))//power
 			caccum(tempCplx, cmul(ActiveCircuit[ActorID]->Solution->NodeV[i], conjg((MeteredElement->Iterminal)[k + j])));
 		else
@@ -2651,7 +2650,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
       //find the voltage of this phase on this terminal
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
-		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i];
+		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i - 1];
 		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
@@ -2659,7 +2658,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 				vtemp = ActiveCircuit[ActorID]->Solution->NodeV[nodeRefj];
 			else
 				vtemp = ActiveCircuit[ActorID]->Solution->VoltInActor1(nodeRefj);
-			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i]; // node ref of this node
+			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i - 1]; // node ref of this node
 		}
 	} //  cannot deal with pos seq
 	if(phase_num == 0)
@@ -2886,7 +2885,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
       //find the voltage of this phase on this terminal
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
-		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i];
+		j = ((PElem->Terminals)[jTempTerminal].TermNodeRef)[i - 1];
 		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
@@ -2894,7 +2893,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 				vtemp = ActiveCircuit[ActorID]->Solution->NodeV[nodeRefj];
 			else
 				vtemp = ActiveCircuit[ActorID]->Solution->VoltInActor1(nodeRefj);
-			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i]; // node ref of this node
+			nodeRefi = ((PElem->Terminals)[k].TermNodeRef)[i - 1]; // node ref of this node
 		}
 	} //  cannot deal with pos seq
 	if(phase_num == 0)
@@ -3039,12 +3038,12 @@ double TFMonitorObj::Calc_AlphaP(int NodeNuminClstr, int phase_num, int ActorID)
 			int stop = 0;
 			den_dij = 0;
 			TempAlpha = 0;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if((pNodeFMs)[j].vl_ndphases_dg == 3)   //only 3 phase nodes
 				{
-					den_dij = den_dij + (pCommMatrix)[(nn - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(nn - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
+					den_dij = den_dij + (pCommMatrix)[nn * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[nn * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
 				}
 			}
 			if(den_dij == 0)
@@ -3081,15 +3080,15 @@ double TFMonitorObj::Calc_AlphaP(int NodeNuminClstr, int phase_num, int ActorID)
 				int stop = 0;
 				den_dij = 0;
 				TempAlpha = 0;
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_phase_num_dg == phase_num))     //only count dgs with 3 phases or 1 phase that is same number
 
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP1_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP1_dg;
                               //end;
 					}
 				}
@@ -3114,15 +3113,15 @@ double TFMonitorObj::Calc_AlphaP(int NodeNuminClstr, int phase_num, int ActorID)
 				int stop = 0;
 				den_dij = 0;
 				TempAlpha = 0;
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_phase_num_dg == phase_num))     //only count dgs with 3 phases or 1 phase that is same number
 
                                 //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                 //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP2_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP2_dg;
                                 //end;
 					}
 				}
@@ -3148,15 +3147,15 @@ double TFMonitorObj::Calc_AlphaP(int NodeNuminClstr, int phase_num, int ActorID)
 				den_dij = 0;
 				TempAlpha = 0;
                   //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_phase_num_dg == phase_num))     //only count dgs with 3 phases or 1 phase that is same number
 
                                 //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                 //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP3_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP3_dg;
                                 //end;
 					}
 				}
@@ -3218,15 +3217,15 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
 				int stop = 0;
 				den_dij = 0;
 				TempAlpha = 0;
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if((pNodeFMs)[j].vl_ndphases_dg == 3)   //only 3 phase nodes
 
                                     //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                     //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
                                     //end;
 					}
 				}
@@ -3267,7 +3266,7 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
 				TempAlpha = 0;
                 //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
                 //tmp1 := Nodes;
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[1] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                             //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3276,8 +3275,8 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
                               //end;
 					}
 				}
@@ -3321,7 +3320,7 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
 				den_dij = 0;
 				TempAlpha = 0;
                   //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[2] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                               //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3330,8 +3329,8 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                                 //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                 //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
                                 //end;
 					}
 				}
@@ -3378,8 +3377,8 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                                 //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                 //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-						TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+						TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
                                 //end;
 					}
 				}
@@ -3466,7 +3465,7 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
 			TempAlpha = 0;
                 //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
                 //tmp1 := Nodes;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[1] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                             //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3475,8 +3474,8 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
                               //end;
 				}
 			}
@@ -3512,7 +3511,7 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
 			TempAlpha = 0;
                 //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
                 //tmp1 := Nodes;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[2] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                             //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3521,8 +3520,8 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
                               //end;
 				}
 			}
@@ -3567,8 +3566,8 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
                               //end;
 				}
 			}
@@ -3633,7 +3632,7 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
 			TempAlpha = 0;
                 //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
                 //tmp1 := Nodes;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[1] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                             //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3642,8 +3641,8 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
                               //end;
 				}
 			}
@@ -3679,7 +3678,7 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
 			TempAlpha = 0;
                 //for i := 1 to nodes do den_dij := den_dij+pCommMatrix^[(NodeNumofDG-1)*Nodes+ i]; //4.is this correct
                 //tmp1 := Nodes;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) || ((pNodeFMs)[j].vl_nodeType_phase[2] == 1))     //only count dgs with 3 phases or 1 phase that is same number
                             //or (pnodeFMs^[j].vl_phase_num_dg = phase_num) then
@@ -3688,8 +3687,8 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
                               //end;
 				}
 			}
@@ -3734,8 +3733,8 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
                               //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                               //begin
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
                               //end;
 				}
 			}
@@ -3793,15 +3792,15 @@ double TFMonitorObj::Calc_sum_dij_Alphaj(int NodeNumofDG, int phase_num, int Act
 				(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = 0.0;//init as zero
 				sum_Sij_j = 0.0;
                  //for j := 1 to Nodes do
-				for(stop = NodeNumofDG - 1, j = 1; j <= stop; j++)
+				for(stop = NodeNumofDG, j = 0; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha1_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha1_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
-				for(stop = Nodes, j = NodeNumofDG + 1; j <= stop; j++)
+				for(stop = Nodes, j = NodeNumofDG + 1; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha1_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha1_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha1_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
 				(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha1_dg / sum_Sij_j;
                  //Alpha1 := Alpha1 - kcq* gradient1;
@@ -3814,15 +3813,15 @@ double TFMonitorObj::Calc_sum_dij_Alphaj(int NodeNumofDG, int phase_num, int Act
 				(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = 0.0;//init as zero
 				sum_Sij_j = 0.0;
                  //for j := 1 to Nodes do
-				for(stop = NodeNumofDG - 1, j = 1; j <= stop; j++)
+				for(stop = NodeNumofDG, j = 0; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha2_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha2_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
-				for(stop = Nodes, j = NodeNumofDG + 1; j <= stop; j++)
+				for(stop = Nodes, j = NodeNumofDG + 1; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha2_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha2_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha2_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
 				(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha2_dg / sum_Sij_j;
                  //Alpha2 := Alpha2 - kcq* gradient2;
@@ -3835,15 +3834,15 @@ double TFMonitorObj::Calc_sum_dij_Alphaj(int NodeNumofDG, int phase_num, int Act
 				(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = 0.0;//init as zero
 				sum_Sij_j = 0.0;
                  //for j := 1 to Nodes do
-				for(stop = NodeNumofDG - 1, j = 1; j <= stop; j++)
+				for(stop = NodeNumofDG, j = 0; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha3_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha3_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
-				for(stop = Nodes, j = NodeNumofDG + 1; j <= stop; j++)
+				for(stop = Nodes, j = NodeNumofDG + 1; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha3_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha3_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha3_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
 				(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha3_dg / sum_Sij_j;
                  //Alpha3 := Alpha3 - kcq* gradient3;
@@ -3856,15 +3855,15 @@ double TFMonitorObj::Calc_sum_dij_Alphaj(int NodeNumofDG, int phase_num, int Act
 				(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = 0.0;//init as zero
 				sum_Sij_j = 0.0;
                  //for j := 1 to Nodes do
-				for(stop = NodeNumofDG - 1, j = 1; j <= stop; j++)
+				for(stop = NodeNumofDG, j = 0; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
-				for(stop = Nodes, j = NodeNumofDG + 1; j <= stop; j++)
+				for(stop = Nodes, j = NodeNumofDG + 1; j < stop; j++)
 				{
-					(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha_dg + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
-					sum_Sij_j = sum_Sij_j + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+					(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha_dg + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+					sum_Sij_j = sum_Sij_j + (pCommMatrix)[NodeNumofDG * Nodes + j];
 				}
 				(pNodeFMs)[NodeNumofDG].vl_Alpha_dg = (pNodeFMs)[NodeNumofDG].vl_Alpha_dg / sum_Sij_j;
                  //Alpha := Alpha - kcq* gradient;
@@ -3888,7 +3887,7 @@ double TFMonitorObj::AvgPmax()
 	result = 0.0;
 	k = 1;
      //nodes;//all nodes included;
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		/*# with pNodeFMs^[i] do */
 		{
@@ -3913,7 +3912,7 @@ double TFMonitorObj::AvgQmax()
 	result = 0.0;
 	k = 1;
      //nodes;//all nodes included;
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		/*# with pNodeFMs^[i] do */
 		{
@@ -3972,12 +3971,12 @@ double TFMonitorObj::Calc_fm_ul_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //this phase has DG
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
 						if(j != atk_node_num) // regular nodes
 
                              //Sumation of all alpha s
 						{
-							TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
+							TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
 						}
 						else
 
@@ -3986,10 +3985,10 @@ double TFMonitorObj::Calc_fm_ul_0(int NodeNumofDG, int phase_num, int dbNodeRef,
                              //Sumation of all alpha s
 						{
 							if((atk == true) && (ActiveCircuit[ActorID]->Solution->DynaVars.T >= atk_time))
-								TempAlpha = TempAlpha + D_p * (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
+								TempAlpha = TempAlpha + D_p * (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
 							else
   // attack starts from here
-								TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
+								TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dgn;
 						} /*--attack and defense ends---------------------------------*/
                          // attack and defense
 						                         /*-----------------------------------*/
@@ -4008,21 +4007,21 @@ double TFMonitorObj::Calc_fm_ul_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 			else
 			{
 				int stop = 0;
-				for(stop = NodeNumofDG - 1, j = 0; j < stop; j++)
+				for(stop = NodeNumofDG, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //this phase has DG
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
                          //how many steps of delay from node j to node 'NodeNumofDG'
-						dly = (pCommDelaySteps)[(NodeNumofDG - 1) * Nodes + j];
+						dly = (pCommDelaySteps)[NodeNumofDG * Nodes + j];
 						if(dly == 0)
 						{
-							TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+							TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
 						}
 						else
 						{
-							TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[1][dly];
+							TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[1][dly];
 						}
 					}
 				}
@@ -4030,23 +4029,23 @@ double TFMonitorObj::Calc_fm_ul_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //this phase has DG
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-					TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+					TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
 				}
-				for(stop = Nodes, j = NodeNumofDG; j < stop; j++)
+				for(stop = Nodes, j = NodeNumofDG + 1; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //this phase has DG
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j];
-						dly = (pCommDelaySteps)[(NodeNumofDG - 1) * Nodes + j];
+						den_dij = den_dij + (pCommMatrix)[NodeNumofDG * Nodes + j];
+						dly = (pCommDelaySteps)[NodeNumofDG * Nodes + j];
 						if(dly == 0)
 						{
-							TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
+							TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_Alpha_dg;
 						}
 						else
 						{
-							TempAlpha = TempAlpha + (pCommMatrix)[(NodeNumofDG - 1) * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[1][dly];
+							TempAlpha = TempAlpha + (pCommMatrix)[NodeNumofDG * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[1][dly];
 						}
 					}
 				}
@@ -4169,8 +4168,8 @@ double TFMonitorObj::Calc_fm_us_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 
                                                  //Sumation of all Z and alpha s
 										{
-											den_dij = den_dij + (pCommMatrix)[(j - 1) * Nodes + i];
-											tempUl = tempUl + (pCommMatrix)[(j - 1) * Nodes + i] * (pNodeFMs)[i].vl_Alpha_dgn;
+											den_dij = den_dij + (pCommMatrix)[j * Nodes + i];
+											tempUl = tempUl + (pCommMatrix)[j * Nodes + i] * (pNodeFMs)[i].vl_Alpha_dgn;
 										}
                                               ///
 									}
@@ -4338,7 +4337,7 @@ void TFMonitorObj::Init_delay_array(int NodeNumofDG, int ActorID)
 	int i = 0;
               //measure all voltages
 	int stop = 0;
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		Get_PDElem_terminal_voltage(i, (pNodeFMs)[i].vl_strMeasuredName, (pNodeFMs)[i].vl_terminalNum, ActorID);
 	}
@@ -4437,8 +4436,8 @@ double TFMonitorObj::Calc_ul_P(int NodeNuminClstr, int phase_num)
                                           //if pnodeFMs^[j].vl_nodeType = 1 then // only DG nodes
                                           //begin
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-						TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+						TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
                                           //end;
 					}
 				}
@@ -4448,21 +4447,22 @@ double TFMonitorObj::Calc_ul_P(int NodeNuminClstr, int phase_num)
            // with delay
 			{
 				int stop = 0;
-				for(stop = NodeNuminClstr - 1, j = 0; j < stop; j++)
+
+				for(stop = NodeNuminClstr, j = 0; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //has 3-phase  DG
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
                              //how many steps of delay from node j to node 'NodeNumofDG'
-						dly = (pCommDelaySteps)[(NodeNuminClstr - 1) * Nodes + j];
+						dly = (pCommDelaySteps)[NodeNuminClstr * Nodes + j];
 						if(dly == 0)
 						{
-							TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
+							TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
 						}
 						else
 						{
-							TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[2][dly];
+							TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[2][dly];
 						}
 					}
 				}
@@ -4470,23 +4470,23 @@ double TFMonitorObj::Calc_ul_P(int NodeNuminClstr, int phase_num)
 				if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //has 3-phase DG
 				{
-					den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-					TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
+					den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+					TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
 				}
-				for(stop = Nodes, j = NodeNuminClstr; j < stop; j++)
+				for(stop = Nodes, j = NodeNuminClstr + 1; j < stop; j++)
 				{
 					if(((pNodeFMs)[j].vl_ndphases_dg == 3) && (((pNodeFMs)[j].vl_nodeType_phase[0] + (pNodeFMs)[j].vl_nodeType_phase[1] + (pNodeFMs)[j].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //has 3-phase DG
 					{
-						den_dij = den_dij + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j];
-						dly = (pCommDelaySteps)[(NodeNuminClstr - 1) * Nodes + j];
+						den_dij = den_dij + (pCommMatrix)[NodeNuminClstr * Nodes + j];
+						dly = (pCommDelaySteps)[NodeNuminClstr * Nodes + j];
 						if(dly == 0)
 						{
-							TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
+							TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_AlphaP_dg;
 						}
 						else
 						{
-							TempAlphaP = TempAlphaP + (pCommMatrix)[(NodeNuminClstr - 1) * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[2][dly];
+							TempAlphaP = TempAlphaP + (pCommMatrix)[NodeNuminClstr * Nodes + j] * (pNodeFMs)[j].vl_smpl_dg[2][dly];
 						}
 					}
 				}
@@ -4577,7 +4577,7 @@ void TFMonitorObj::update_ld_dly(int ActorID)
 	ld_fm_info[0].volt_avg = 0.0; //recalculate voltage average
 	ld_fm_info[0].volt_lwst = 999999; //search new value at each round
 	ld_fm_info[0].volt_hghst = (double) -99999;
-	for(stop = Nodes, i = 1; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
            //update vl_v1/v2/v3, vl_v_1c/v_2c/v_3c, update vl_v for node i
 		Get_PDElem_terminal_voltage(i, (pNodeFMs)[i].vl_strMeasuredName, (pNodeFMs)[i].vl_terminalNum, ActorID);
@@ -4639,7 +4639,7 @@ void TFMonitorObj::update_ld_dly(int ActorID)
                      //end;
 			}
                  // delay steps from agent to virtual leader
-			ndlys = (pCommDelaySteps)[(virtual_Ld_Nd - 1) * Nodes + i - 1];
+			ndlys = (pCommDelaySteps)[virtual_Ld_Nd * Nodes + i];
                  // total delay steps: ndlys+nup_dlys
                  //if pnodefms^[i].vl_basevolt <> 0.0 then
 			v0_tmp = (pNodeFMs)[i].vl_smpl_dg[3][ndlys + nup_dlys] / ((pNodeFMs)[i].vl_basevolt);
@@ -4684,7 +4684,7 @@ void TFMonitorObj::update_attack(int ActorID)
 		if(d_atk_inited == false)
 		{
 			int stop = 0;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				if(j == atk_node_num) // only the node being attacked is affected
 				{
@@ -4694,7 +4694,7 @@ void TFMonitorObj::update_attack(int ActorID)
 			d_atk_inited = true;
 		}
            // attack
-		for(stop = Nodes, j = 1; j <= stop; j++)
+		for(stop = Nodes, j = 0; j < stop; j++)
 		{
 			if(j == atk_node_num) // only the node being attacked is affected
 			{
@@ -4705,7 +4705,7 @@ void TFMonitorObj::update_attack(int ActorID)
 	else
 	{
 		int stop = 0;
-		for(stop = Nodes, j = 1; j <= stop; j++)
+		for(stop = Nodes, j = 0; j < stop; j++)
 		{
            // no attack
 			(pNodeFMs)[j].d_atk = 0.0;
@@ -4736,7 +4736,7 @@ void TFMonitorObj::update_defense(int ActorID)
              // IF THERE IS NO ATTACK YET, Z FOLLOWS ALPHA
 		{
 			int stop = 0;
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
 				(pNodeFMs)[j].z_dfs = (pNodeFMs)[j].vl_Alpha_dg; //the let z : alpha
 				(pNodeFMs)[j].z_dfsn = (pNodeFMs)[j].z_dfs;
@@ -4749,7 +4749,7 @@ void TFMonitorObj::update_defense(int ActorID)
 			if(z_dfs_inited == false)
 			{
 				int stop = 0;
-				for(stop = Nodes, j = 1; j <= stop; j++)
+				for(stop = Nodes, j = 0; j < stop; j++)
 				{
 					(pNodeFMs)[j].z_dfs = (pNodeFMs)[j].vl_Alpha_dgn; //the let z : alpha
 					(pNodeFMs)[j].z_dfsn = (pNodeFMs)[j].z_dfs;
@@ -4760,7 +4760,7 @@ void TFMonitorObj::update_defense(int ActorID)
 
 
               //update for each node
-			for(stop = Nodes, j = 1; j <= stop; j++)
+			for(stop = Nodes, j = 0; j < stop; j++)
 			{
                   // x_i'  =  A_i x + \beta K_i z + \beta B_i x_0 + d_i
                   // z_i'  =  H_i Z + \beta G_i x + \beta D_i x_0
@@ -4801,10 +4801,10 @@ void TFMonitorObj::update_defense(int ActorID)
 
                          //Sumation of all Z and alpha s
 					{
-						den_dij_z = den_dij + (pCommHide)[(j - 1) * Nodes + i];
-						tempZ = tempZ + (pCommHide)[(j - 1) * Nodes + i] * (pNodeFMs)[i].z_dfsn;
-						den_dij = den_dij + (pCommMatrix)[(j - 1) * Nodes + i];
-						TempAlpha = TempAlpha + (pCommMatrix)[(j - 1) * Nodes + i] * (pNodeFMs)[i].vl_Alpha_dgn;
+						den_dij_z = den_dij + (pCommHide)[j * Nodes + i];
+						tempZ = tempZ + (pCommHide)[j * Nodes + i] * (pNodeFMs)[i].z_dfsn;
+						den_dij = den_dij + (pCommMatrix)[j * Nodes + i];
+						TempAlpha = TempAlpha + (pCommMatrix)[j * Nodes + i] * (pNodeFMs)[i].vl_Alpha_dgn;
 					}
                       ///
 				}
@@ -4851,8 +4851,8 @@ double TFMonitorObj::organise_dfs_node(int j)
 		if(((pNodeFMs)[i].vl_ndphases_dg == 3) && (((pNodeFMs)[i].vl_nodeType_phase[0] + (pNodeFMs)[i].vl_nodeType_phase[1] + (pNodeFMs)[i].vl_nodeType_phase[2]) == 3))   //only 3 phase nodes
  //this phase has DG
 		{
-			den_dij = den_dij + (pCommMatrix)[(j - 1) * Nodes + i];
-			tempZ = tempZ + (pCommMatrix)[(j - 1) * Nodes + i] * (pNodeFMs)[i].z_dfsn;
+			den_dij = den_dij + (pCommMatrix)[j * Nodes + i];
+			tempZ = tempZ + (pCommMatrix)[j * Nodes + i] * (pNodeFMs)[i].z_dfsn;
 		}
 	}
 
