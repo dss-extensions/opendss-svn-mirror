@@ -109,7 +109,7 @@ public:
 
 	int SpecType;
 	int NumTerm;   // Flag used to indicate The number of terminals
-	int get_States(int Idx, int ActorID, int value);
+	int get_States(int Idx, int ActorID);
 	void set_States(int Idx, int ActorID, int Value);
 	void set_LastStepInService(int Value);
 	void ProcessHarmonicSpec(const String Param);

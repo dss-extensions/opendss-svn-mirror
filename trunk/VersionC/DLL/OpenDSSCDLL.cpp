@@ -2335,7 +2335,7 @@ void __stdcall CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				k = 0;
 				for (i = 1; i <= elem->Get_FNumSteps(); i++)
 				{
-					myIntArray[k] = elem->get_States(i, ActiveActor, 0);
+					myIntArray[k] = elem->get_States(i, ActiveActor);
 					k++;
 				}
 			}
