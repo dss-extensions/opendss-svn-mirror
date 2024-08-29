@@ -228,6 +228,7 @@ int TCapControl::Edit(int ActorID)
 				break;
 				case 	3:
 				with0->ControlVars.CapacitorName = String("capacitor.") + Param;
+				with0->ControlVars.CapacitorNamePtr = with0->ControlVars.CapacitorName.data();
 				break;   // will automatically substitute @var value
 				case 	4:
 				switch(LowerCase(Param)[0])
@@ -321,6 +322,7 @@ int TCapControl::Edit(int ActorID)
 				{
 					with0->ControlVars.VoverrideBusSpecified = true;
 					with0->ControlVars.VOverrideBusName = Param;
+					with0->ControlVars.VOverrideBusNamePtr = with0->ControlVars.VOverrideBusName.data();
 				}
 				break;
 				case 	18:
@@ -463,6 +465,7 @@ int TCapControl::MakeLike(const String CapControlName)
 			with0->Set_Nconds(OtherCapControl->Fnconds); // Force Reallocation of terminal stuff
 			with0->ElementName = OtherCapControl->ElementName;
 			with0->ControlVars.CapacitorName = OtherCapControl->ControlVars.CapacitorName;
+			with0->ControlVars.CapacitorNamePtr = with0->ControlVars.CapacitorName.data();
 			with0->Set_ControlledElement(OtherCapControl->get_FControlledElement());  // Pointer to target circuit element
 			with0->Set_MonitoredElement(OtherCapControl->get_FMonitoredElement());  // Pointer to target circuit element
 			with0->ElementTerminal = OtherCapControl->ElementTerminal;
@@ -484,6 +487,7 @@ int TCapControl::MakeLike(const String CapControlName)
 				with1.Voverride = OtherCapControl->ControlVars.Voverride;
 				with1.VoverrideBusSpecified = OtherCapControl->ControlVars.VoverrideBusSpecified;     // Added 8-11-11
 				with1.VOverrideBusName = OtherCapControl->ControlVars.VOverrideBusName;
+				with1.VOverrideBusNamePtr = with1.VOverrideBusName.data();
 			}
 			with0->UserModel->Set_Name(OtherCapControl->UserModel->get_FName());  // Connect to user written models
 			with0->IsUserModel = OtherCapControl->IsUserModel;
@@ -543,6 +547,7 @@ TCapControlObj::TCapControlObj(TDSSClass* ParClass, const String CapControlName)
 		with0.VoverrideEvent		= false;
 		with0.VoverrideBusSpecified = false;
 		with0.VOverrideBusName		= "";   // This is not in public data Struct at this time
+		with0.VOverrideBusNamePtr	= nullptr;
 		with0.Vmax					= 126;
 		with0.Vmin					= 115;
 		with0.PresentState			= CTRL_CLOSE;
@@ -557,6 +562,7 @@ TCapControlObj::TCapControlObj(TDSSClass* ParClass, const String CapControlName)
 	Set_ControlledElement(nullptr);
 	ElementTerminal					= 1;
 	ControlVars.CapacitorName		= "";
+	ControlVars.CapacitorNamePtr	= nullptr;
 	Set_MonitoredElement(nullptr);
 	myShapeName						= "";
 	myShapeObj						= nullptr;
