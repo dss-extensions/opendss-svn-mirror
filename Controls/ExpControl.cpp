@@ -611,7 +611,7 @@ void TExpControlObj::sample(int ActorID)
 			{
 				cBuffer[j] = (PVSys)->Vterminal[j - 1];
 			}
-			BaseKV = ActiveCircuit[ActorID]->Buses[((TDSSCktElement*)PVSys)->Terminals[1].BusRef - 1]->kVBase;
+			BaseKV = ActiveCircuit[ActorID]->Buses[((TDSSCktElement*)PVSys)->Terminals[0].BusRef - 1]->kVBase;
 			Vpresent = 0;
 			for(stop1 = ((TDSSCktElement*)PVSys)->Get_NPhases(), j = 1; j <= stop1; j++)
 			{

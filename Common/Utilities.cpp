@@ -2735,7 +2735,7 @@ namespace Utilities
           result = true;
           return result;
         }
-      if ( Line1->Terminals[1].BusRef == Line2->Terminals[1].BusRef )
+      if ( Line1->Terminals[1].BusRef == Line2->Terminals[0].BusRef )
         if ( Line1->Terminals[0].BusRef == Line2->Terminals[1].BusRef )
         {
           result = true;

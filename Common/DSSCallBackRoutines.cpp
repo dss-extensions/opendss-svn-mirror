@@ -282,7 +282,7 @@ int __stdcall GetActiveElementBusRefCallBack( int Terminal )
       auto with0 = ActiveCircuit[ActiveActor];
       /*# with ActiveCktElement do */
       {
-        result = with0->get_FActiveCktElement()->Terminals[Terminal].BusRef;
+        result = with0->get_FActiveCktElement()->Terminals[Terminal - 1].BusRef;
       }
     }
   return result;
