@@ -14051,7 +14051,7 @@ int __stdcall StoragesI(int mode, int arg)
                         }
 						else
                             pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Next();
-                    } while ((Result != 1) || (!ASSIGNED(pStorageElem)));
+                    } while (!((Result == 1) || (!ASSIGNED(pStorageElem))));
                 }
             }
         }
@@ -14068,11 +14068,11 @@ int __stdcall StoragesI(int mode, int arg)
                         if (pStorageElem->Get_Enabled())
                         {
                             ActiveCircuit[ActiveActor]->Set_ActiveCktElement(pStorageElem);
-                            Result = 1;
+                            Result = ActiveCircuit[ActiveActor]->StorageElements.ActiveItem;
                         }
                         else
                             pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Next();
-                    } while ((Result < 0) || (!ASSIGNED(pStorageElem)));
+                    } while (!((Result > 0) || (!ASSIGNED(pStorageElem))));
                 }
 			}
         }
@@ -16381,7 +16381,7 @@ void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 int __stdcall WindGensI(int mode, int arg)
 {
     TWindGenObj* WindGenElem = nullptr;
-    TPointerList pList = {}; 
+    TPointerList* pList = nullptr; 
     int Result = 0; // Default return value
 
 	switch (mode)
@@ -16392,18 +16392,21 @@ int __stdcall WindGensI(int mode, int arg)
             {
                 if (WindGenClass[ActiveActor]->ElementList.NumInList > 0)
                 {
-                    pList = WindGenClass[ActiveActor]->ElementList;
-                    WindGenElem = (TWindGenObj*)pList.Get_First();
-                    do
-                    {
-                        if (WindGenElem->FEnabled)
-                        {
-                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
-                            Result = 1;
-                        }
-                        else
-                            WindGenElem = (TWindGenObj*)pList.Get_Next();
-                    } while ((Result != 1) || (!ASSIGNED(WindGenElem)));
+                    pList = &WindGenClass[ActiveActor]->ElementList;
+                    WindGenElem = (TWindGenObj*)pList->Get_First();
+					if (WindGenElem != nullptr)
+					{
+						do
+						{
+							if (WindGenElem->FEnabled)
+							{
+								ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+								Result = 1;
+							}
+							else
+								WindGenElem = (TWindGenObj*)pList->Get_Next();
+						} while (!((Result == 1) || (!ASSIGNED(WindGenElem))));
+					}
                 }
                 else
                     Result = 0; // signify no more
@@ -16416,18 +16419,21 @@ int __stdcall WindGensI(int mode, int arg)
             {
                 if (WindGenClass[ActiveActor]->ElementList.NumInList > 0)
                 {
-                    pList = WindGenClass[ActiveActor]->ElementList;
-                    WindGenElem = (TWindGenObj*)pList.Get_First();
-                    do
-                    {
-                        if (WindGenElem->FEnabled)
-                        {
-                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
-                            Result = 1;
-                        }
-                        else
-                            WindGenElem = (TWindGenObj*)pList.Get_Next();
-                    } while ((Result < 1) || (!ASSIGNED(WindGenElem)));
+                    pList = &WindGenClass[ActiveActor]->ElementList;
+                    WindGenElem = (TWindGenObj*)pList->Get_Next();
+					if (WindGenElem != nullptr)
+					{
+						do
+						{
+							if (WindGenElem->FEnabled)
+							{
+								ActiveCircuit[ActiveActor]->Set_ActiveCktElement(WindGenElem);
+								Result = pList->ActiveItem;
+							}
+							else
+								WindGenElem = (TWindGenObj*)pList->Get_Next();
+						} while (!((Result > 0) || (!ASSIGNED(WindGenElem))));
+					}
                 }
                 else
                     Result = 0; // signify no more
