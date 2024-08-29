@@ -329,7 +329,7 @@ namespace ControlQueue
             //**************After this point, the additional control actions are performed************
             Temp_dbl[7] = ActiveCircuit[ActorID]->Solution->DynaVars.T;                        // Saving the current time (secs)
             /*# with ActiveCircuit[ActorID]->Solution->DynaVars do */
-            auto with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
+            auto& with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
             Temp_Int[2] = with0.intHour;          // Saving the current time (hour)
             Temp_dbl[2] = Temp_dbl[6];
             //*************** Simulation time is recalculated considering the next control action event ************
@@ -389,7 +389,7 @@ namespace ControlQueue
         Ltimer.Hour = Temp_Int[0];
         Ltimer.Sec = Temp_dbl[2];
         /*# with ActiveCircuit[ActorID]->Solution->DynaVars do */
-        auto with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
+        auto& with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
         with0.intHour = Temp_Int[0];               // Sets the simulation time
         ActiveCircuit[ActorID]->Solution->DynaVars.T = Temp_dbl[2];
         ActiveCircuit[ActorID]->Solution->Update_dblHour();
@@ -399,7 +399,7 @@ namespace ControlQueue
     void TControlQueue::Restore_Time_Step(int ActorID)
     {
         /*# with ActiveCircuit[ActorID]->Solution->DynaVars do */
-        auto with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
+        auto& with0 = ActiveCircuit[ActorID]->Solution->DynaVars;
         with0.intHour = Temp_Int[2];
         ActiveCircuit[ActorID]->Solution->DynaVars.T = Temp_dbl[7];
         ActiveCircuit[ActorID]->Solution->Update_dblHour();
