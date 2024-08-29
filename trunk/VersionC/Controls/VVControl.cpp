@@ -636,7 +636,7 @@ void TVVControlObj::sample()
 		cBuffer = MonitoredElement->Vterminal;
 
     // get the basekV for the monitored bus
-		BaseKV = ActiveCircuit.Buses[Terminals[ElementTerminal].BusRef - 1].kVBase;
+		BaseKV = ActiveCircuit.Buses[Terminals[ElementTerminal - 1].BusRef - 1].kVBase;
 		Vavg = 0;
 
     // Calculate the average voltage

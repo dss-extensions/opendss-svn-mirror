@@ -1979,7 +1979,7 @@ void WritePositions( TDSSCktElement pElem, TUuid geoUUID, TUuid crsUUID )
   {
     if ( IsGroundBus( BusName ) == false )
     {
-      ref = pElem.Terminals[j].BusRef;
+      ref = pElem.Terminals[j - 1].BusRef;
       StartFreeInstance( GeoPrf, "PositionPoint", GetDevUuid( PosPt, pElem.ParentClass.Name + "." + pElem.LocalName, j ) );
       UuidNode( GeoPrf, "PositionPoint.Location", geoUUID );
       IntegerNode( GeoPrf, "PositionPoint.sequenceNumber", j );
@@ -2004,7 +2004,7 @@ void WriteReferenceTerminals( TDSSCktElement pElem, TUuid RefUuid, double norm =
   {
     if ( IsGroundBus( BusName ) == false )
     {
-      ref = pElem.Terminals[j].BusRef;
+      ref = pElem.Terminals[j - 1].BusRef;
       TermName = pElem.Name + "_T" + IntToStr( j );
       TermUuid = GetTermUuid( pElem, j );
       StartFreeInstance( FunPrf, "Terminal", TermUuid );

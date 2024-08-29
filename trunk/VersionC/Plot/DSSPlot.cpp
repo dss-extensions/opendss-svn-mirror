@@ -3513,7 +3513,7 @@ namespace DSSPlot
             Fname = Fname + Format("%s_%s_V.DSV", Element->ParentClass->Class_Name.c_str(), Element->LName.c_str());
             cBuffer = Element->Vterminal;
             for (int stop = min<int>(2, Nterm), i = 1; i <= stop; i++)
-                kVBase1[i - 1] = max<double>(1.0, 1000.0 * ActiveCircuit[ActiveActor]->Buses[Element->Terminals[i].BusRef - 1]->kVBase);
+                kVBase1[i - 1] = max<double>(1.0, 1000.0 * ActiveCircuit[ActiveActor]->Buses[Element->Terminals[i - 1].BusRef - 1]->kVBase);
         }
         break;
         case vizCURRENT:
