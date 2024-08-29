@@ -85,7 +85,6 @@ if(MyOutputType STREQUAL "EXE")
 		Meters/MeterClass.cpp
 		Meters/EnergyMeter.cpp
 		Meters/fMonitor.cpp
-		Meters/LD_fm_infos.cpp
 		Meters/MemoryMap_lib.cpp
 		Meters/MeterElement.cpp
 		Meters/Monitor.cpp
@@ -240,7 +239,6 @@ else()
 		Meters/MeterClass.cpp
 		Meters/EnergyMeter.cpp
 		Meters/fMonitor.cpp
-		Meters/LD_fm_infos.cpp
 		Meters/MemoryMap_lib.cpp
 		Meters/MeterElement.cpp
 		Meters/Monitor.cpp
