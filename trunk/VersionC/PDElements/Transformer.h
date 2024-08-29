@@ -109,11 +109,11 @@ public:
 	double ppm_FloatFactor; //  parts per million winding float factor
 	double pctImag;
 	bool XRConst;
-	double Get_PresentTap(int i, int ActorID);
+	double Get_PresentTap(int i, int ActorID) const;
 	void Set_PresentTap(int i, int ActorID, double Value);
-	double Get_MinTap(int i);
-	double Get_MaxTap(int i);
-	double Get_TapIncrement(int i);
+	double Get_MinTap(int i) const;
+	double Get_MaxTap(int i) const;
+	double Get_TapIncrement(int i) const;
 	double Get_BaseVoltage(int i);
 	double Get_BasekVLL(int i);
         // CIM accessors

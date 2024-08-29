@@ -4303,14 +4303,14 @@ namespace ExportResults
 
 
 
-    int TapPosition( const TTransfObj Transformer, int iWind )
+    int TapPosition( const TTransfObj* Transformer, int iWind )
 
     /*Assumes 0  is 1.0 per unit tap*/
     {
       int result = 0;
       /*# with Transformer do */
       auto with0 = Transformer;
-      result = Round( double( (with0.Get_PresentTap(iWind,ActiveActor) - double( (with0.Get_MaxTap(iWind) + with0.Get_MinTap(iWind) ) ) / 2.0 ) ) / with0.Get_TapIncrement(iWind) );
+      result = Round( double( (with0->Get_PresentTap(iWind,ActiveActor) - double( (with0->Get_MaxTap(iWind) + with0->Get_MinTap(iWind) ) ) / 2.0 ) ) / with0->Get_TapIncrement(iWind) );
       return result;
     }
 
@@ -4342,7 +4342,7 @@ namespace ExportResults
                 iWind = pReg->Get_Winding();
                 Write( F, with1->get_Name() );
                 WriteLn( F, Format(", %8.5f, %8.5f, %8.5f, %8.5f, %d", with1->Get_PresentTap(iWind,ActiveActor), with1->Get_MinTap(iWind),
-                    with1->Get_MaxTap(iWind), with1->Get_TapIncrement(iWind), TapPosition(*(pReg->Get_Transformer()), iWind)));
+                    with1->Get_MaxTap(iWind), with1->Get_TapIncrement(iWind), TapPosition((pReg->Get_Transformer()), iWind)));
               }
               pReg = (TRegControlObj*) with0->RegControls.Get_Next();
             }
@@ -4514,7 +4514,7 @@ namespace ExportResults
             for ( int stop = with0.SectionCount, i = 1; i <= stop; i++)
               /*# with FeederSections^[i] do */
               {
-                auto with1 = with0.FeederSections[i - 1];
+                auto& with1 = with0.FeederSections[i - 1];
                 {
                   ActiveCircuit[ActiveActor]->Set_ActiveCktElement((TDSSCktElement*) (with0.SequenceList->Get(with1.SeqIndex ) ));
                   WriteLn( F, with0.get_Name() +
@@ -4544,7 +4544,7 @@ namespace ExportResults
               for ( int stop = MyMeterPtr->SectionCount, i = 1; i <= stop; i++)
                 /*# with FeederSections^[i] do */
                 {
-                  auto with1 = MyMeterPtr->FeederSections[i];
+                  auto& with1 = MyMeterPtr->FeederSections[i];
                   {
                     ActiveCircuit[ActiveActor]->Set_ActiveCktElement((TDSSCktElement*)( MyMeterPtr->SequenceList->Get( with1.SeqIndex ) ));
                     WriteLn( F, MyMeterPtr->get_Name() +
