@@ -943,18 +943,18 @@ namespace ShowResults
                   S = cmul( V012[2], conjg( I012[2] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[3], conjg( I012[3] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[1], conjg( I012[1] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%8.1f", S.re * 0.003));
+                  System::Write( F, Format("%8.1f", S.im * 0.003));
                   System::WriteLn( F );
                 }
               }
@@ -1007,31 +1007,31 @@ namespace ShowResults
                   S = cmul( V012[2], conjg( I012[2] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[3], conjg( I012[3] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[1], conjg( I012[1] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%8.1f", S.re * 0.003));
+                  System::Write( F, Format("%8.1f", S.im * 0.003));
                   if ( j == 1 )
                   {
                    //----PDelem.ActiveTerminalIdx := 1;
                     S = PDElem->Get_ExcessKVANorm(1, ActiveActor);
                     if ( Opt == 1 )
                       S = cmulreal( S, 0.001 );
-                    System::Write( F, Format("%10.1f", S.re));
-                    System::Write( F, Format("%10.1f", S.im));
+                    System::Write( F, Format("%11.1f", S.re));
+                    System::Write( F, Format("%11.1f", S.im));
                     S = PDElem->Get_ExcessKVAEmerg(1, ActiveActor);
                     if ( Opt == 1 )
                       S = cmulreal( S, 0.001 );
-                    System::Write( F, Format("%10.1f", S.re));
-                    System::Write( F, Format("%10.1f", S.im));
+                    System::Write( F, Format("%11.1f", S.re));
+                    System::Write( F, Format("%11.1f", S.im));
                   }
                   System::WriteLn( F );
                 }
@@ -1084,18 +1084,18 @@ namespace ShowResults
                   S = cmul( V012[2], conjg( I012[2] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[3], conjg( I012[3] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%11.1f", S.re * 0.003));
+                  System::Write( F, Format("%11.1f", S.im * 0.003));
                   S = cmul( V012[1], conjg( I012[1] ) );
                   if ( Opt == 1 )
                     S = cmulreal( S, 0.001 );
-                  System::Write( F, Format("%10.1f", S.re * 0.003));
-                  System::Write( F, Format("%10.1f", S.im * 0.003));
+                  System::Write( F, Format("%8.1f", S.re * 0.003));
+                  System::Write( F, Format("%8.1f", S.im * 0.003));
                   System::WriteLn( F );
                 }
               }
@@ -4219,10 +4219,3 @@ namespace ShowResults
     ShowResults_unit _ShowResults_unit;
 
 }// namespace ShowResults
-
-
-
-
-
-
-
