@@ -3683,7 +3683,7 @@ namespace Utilities
                   Nodes = "";
                 else
                   Nodes = OldBusName.substr( dotpos, OldBusName.size() );    // preserve node designations if any
-                bref = pCktElem->Terminals[i].BusRef;
+                bref = pCktElem->Terminals[i - 1].BusRef;
                 NewBusName = "B_" + to_string(bref) + Nodes;
                         //Check for Transformer because that will be an exception
                 switch ( pCktElem->DSSObjType & CLASSMASK )

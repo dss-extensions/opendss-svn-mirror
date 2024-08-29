@@ -842,8 +842,8 @@ namespace CktElement
           }
         }
         ClassIdx = DSSObjType & CLASSMASK;              // gets the parent class descriptor (int)
-        Nref = (ActiveTerminal->TermNodeRef)[MaxPhase]; // reference to the phase voltage with the max current
-        nrefN = (ActiveTerminal->TermNodeRef)[Fnconds];  // reference to the ground terminal (GND or other phase)
+        Nref = (ActiveTerminal->TermNodeRef)[MaxPhase - 1]; // reference to the phase voltage with the max current
+        nrefN = (ActiveTerminal->TermNodeRef)[Fnconds - 1];  // reference to the ground terminal (GND or other phase)
         /*# with ActiveCircuit[ActorID].Solution do */     // Get power into max phase of active terminal
         TDSSCircuit* with0 = ActiveCircuit[ActorID];
         {
@@ -924,8 +924,8 @@ namespace CktElement
                 }
             }
             ClassIdx = DSSObjType & CLASSMASK;              // gets the parent class descriptor (int)
-            Nref = (ActiveTerminal->TermNodeRef)[MaxPhase]; // reference to the phase voltage with the max current
-            nrefN = (ActiveTerminal->TermNodeRef)[Fnconds];  // reference to the ground terminal (GND or other phase)
+            Nref = (ActiveTerminal->TermNodeRef)[MaxPhase - 1]; // reference to the phase voltage with the max current
+            nrefN = (ActiveTerminal->TermNodeRef)[Fnconds - 1];  // reference to the ground terminal (GND or other phase)
             /*# with ActiveCircuit[ActorID].Solution do */     // Get power into max phase of active terminal
             TDSSCircuit* with0 = ActiveCircuit[ActorID];
             {
@@ -972,7 +972,7 @@ namespace CktElement
         k = ( idxTerm - 1 ) * Fnconds; // starting index of terminal
         for ( int stop = Fnphases, i = 1; i <= stop; i++)
         {
-          CurrMag = cabs( (Iterminal)[(k) + i] );
+          CurrMag = cabs( (Iterminal)[(k) + i - 1] );
           if ( CurrMag > MaxCurr )
           {
             MaxCurr = CurrMag;
@@ -980,8 +980,8 @@ namespace CktElement
           }
         }
         ClassIdx = DSSObjType & CLASSMASK;              // gets the parent class descriptor (int)
-        Nref = (ActiveTerminal->TermNodeRef)[MaxPhase]; // reference to the phase voltage with the max current
-        nrefN = (ActiveTerminal->TermNodeRef)[Fnconds];  // reference to the ground terminal (GND or other phase)
+        Nref = (ActiveTerminal->TermNodeRef)[MaxPhase - 1]; // reference to the phase voltage with the max current
+        nrefN = (ActiveTerminal->TermNodeRef)[Fnconds - 1];  // reference to the ground terminal (GND or other phase)
         /*# with ActiveCircuit[ActorID].Solution do */     // Get power into max phase of active terminal
         TDSSCircuit* with0 = ActiveCircuit[ActorID];
         {
@@ -999,7 +999,7 @@ namespace CktElement
             else
               Volts = csub(with0->Solution->VoltInActor1( Nref ), with0->Solution->VoltInActor1( nrefN ) );
           }
-          cPower = cmul( Volts, conjg( (Iterminal)[(k) + MaxPhase] ) );
+          cPower = cmul( Volts, conjg( (Iterminal)[(k) + MaxPhase - 1] ) );
         }
 
            // Compute equivalent total power of all phases assuming equal to max power in all phases
