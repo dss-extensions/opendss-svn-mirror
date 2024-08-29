@@ -1271,6 +1271,7 @@ namespace Solution
             {
                 pGen->GenVars.deltaQNom.resize(1);
                 pGen->GenVars.deltaQNom[0] = pGen->GenVars.Qnominalperphase;
+                pGen->GenVars.deltaQNomPtr = pGen->GenVars.deltaQNom.data();
             }
             pGen = (TGeneratorObj*)with0->Generators.Get_Next();
         }
@@ -1467,6 +1468,7 @@ namespace Solution
                         if (InitQ)
                         {
                             pGen->GenVars.deltaQNom.resize(pGen->Get_NPhases());
+                            pGen->GenVars.deltaQNomPtr = pGen->GenVars.deltaQNom.data();
                             for (int k = 0; k < pGen->Get_NPhases(); k++)
                                 pGen->GenVars.deltaQNom[k] = 0.0;                     // Initializes delta Q = 0 for all the generators (PV buses)
                         }

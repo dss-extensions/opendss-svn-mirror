@@ -66,10 +66,13 @@ struct TCapControlVars
 	int NumCapSteps;
 	int AvailableSteps;   // available steps in controlled capacitor
 	int LastStepInService;   // Change this to force an update of cap states
-	String VOverrideBusName;
-	String CapacitorName;
+	char const* VOverrideBusNamePtr; // Required for backwards compatibility, points to VOverrideBusName's data
+	char const* CapacitorNamePtr; // Required for backwards compatibility, points to CapacitorName's data
 	int ControlActionHandle;
 	int CondOffset; // Offset for monitored terminal
+
+	String VOverrideBusName;
+	String CapacitorName;
 };
 #pragma pack (pop)
 
