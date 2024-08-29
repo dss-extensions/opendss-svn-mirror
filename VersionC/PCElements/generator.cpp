@@ -948,6 +948,7 @@ TGeneratorObj::TGeneratorObj(TDSSClass* ParClass, const String SourceName)
 		with0.dSpeed	= 0.0;
 		with0.D			= 1.0;
 		with0.XRdp		= 20.0;
+		with0.deltaQNomPtr = nullptr;
 	}
 
      /*Advertise Genvars struct as public*/

@@ -52,7 +52,7 @@ struct TGeneratorVars
 	double SpeedHistory;
 	double Pnominalperphase;
 	double Qnominalperphase;    /* All Doubles */
-	std::vector <double> deltaQNom;			// Used for updating Q when using NCIM algorithm
+	double *deltaQNomPtr; // Pointer to deltaQNom's data, for plain C compat
 
         /*32-bit integers*/       /*Number of phases*/   /*Total Number of conductors (wye-connected will have 4)*/
 	int NumPhases;
@@ -69,6 +69,8 @@ struct TGeneratorVars
 	double VTarget;   // Target voltage for generator with voltage control
 	Ucomplex::complex Zthev;
 	double XRdp;  // Assumed X/R for Xd'
+
+	std::vector<double> deltaQNom;
 };
 #pragma pack (pop)
 
