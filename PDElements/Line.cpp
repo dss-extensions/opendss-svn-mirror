@@ -362,7 +362,7 @@ void TLine::DoRmatrix(int ActorID)
 					}
 				}
 			}
-		free(MatBuffer); //# FreeMemory accepts one parameter only;
+		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
 }
 
@@ -395,7 +395,7 @@ void TLine::DoXmatrix(int ActorID)
 					}
 				}
 			}
-		free(MatBuffer); //# FreeMemory accepts one parameter only;
+		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
 }
 
@@ -430,7 +430,7 @@ void TLine::DoCmatrix(int ActorID)
 					}
 				}
 			}
-		free(MatBuffer); //# FreeMemory accepts one parameter only;
+		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
 }
 

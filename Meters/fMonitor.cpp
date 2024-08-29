@@ -1083,7 +1083,10 @@ void TFMonitorObj::Set_nodes_for_fm(int intNodes)
 	int stop = 0;
 	Nodes = intNodes;//initalize the size according to nodes
 	if(pNodeFMs != nullptr)
-		pNodeFMs = (pNodeArray) realloc(pNodeFMs, 0);
+	{
+		delete[] pNodeFMs;
+		pNodeFMs = nullptr;
+	}
 	if(pCommMatrix != nullptr)
 		free(pCommMatrix);
 	if(pCommDelayMatrix != nullptr)

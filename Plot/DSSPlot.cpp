@@ -1549,8 +1549,11 @@ namespace DSSPlot
             try
             {
                 if (!Eof(F))
+                {
                     if (PeakDay)
+                    {
                         PeakDayLoadRegisters(F, &Registers1[0]);
+                    }
                     else
                     {
                         ReadLn(F, S);
@@ -1564,6 +1567,7 @@ namespace DSSPlot
                             }
                         }
                     }
+                }
                 while (!Eof(F))
                 {
                     if (PeakDay)

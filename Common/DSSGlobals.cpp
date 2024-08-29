@@ -1337,8 +1337,8 @@ namespace DSSGlobals
         FM_MHandle[ActiveActor] = NULL;
         DIFilesAreOpen[ActiveActor] = false;
         ActiveVSource[ActiveActor] = NULL;
-        DSSObjs[ActiveActor] = NULL;
-        DSSClassList[ActiveActor] = NULL;
+        // DSSObjs[ActiveActor] = NULL;
+        // DSSClassList[ActiveActor] = NULL;
       }
 
       AutoDisplayShowReport = true;
