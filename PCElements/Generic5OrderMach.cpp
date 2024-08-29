@@ -1148,7 +1148,7 @@ void TGeneric5Obj::RecalcElementData(int ActorID)
 				dotpos = Pos(".", StrTemp);
 				if(dotpos != 0)
 				{
-					numPhase = Sysutils::StrToInt(Trim(StrTemp.substr(dotpos + 1, 1))); // Bus Name . node Num
+					numPhase = Sysutils::StrToInt(Trim(StrTemp.substr(dotpos, 1))); // Bus Name . node Num
 					if(numPhase == ctrl_mode)
 						modetest = true;
 				}

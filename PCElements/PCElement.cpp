@@ -341,7 +341,7 @@ int TPCElement::LookupVariable(const String s)
 	TestLength = (int) s.size();
 	for(stop = NumVariables(), i = 1; i <= stop; i++)
 	{
-		if(CompareText(VariableName(i).substr(1, TestLength), s) == 0)
+		if(CompareText(VariableName(i).substr(0, TestLength), s) == 0)
 		{
 			result = i;
 			break;
