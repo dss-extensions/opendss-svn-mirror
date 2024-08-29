@@ -311,7 +311,7 @@ namespace YMatrix
                     if (cabs(c) == 0.0)
                         /*# with MapNodeToBus^[i] do */
                     {
-                        TNodeBus with1 = with0->MapNodeToBus[i];
+                        TNodeBus with1 = with0->MapNodeToBus[i - 1];
                         {
                             result = result + Format("%sZero diagonal for bus %s, node %d", CRLF.c_str(), with0->BusList.Get(with1.BusRef).c_str(), with1.NodeNum);
                         }
@@ -323,7 +323,7 @@ namespace YMatrix
                 if (sCol > 0)
                     /*# with MapNodeToBus^[sCol] do */
                 {
-                    TNodeBus with1 = with0->MapNodeToBus[sCol];
+                    TNodeBus with1 = with0->MapNodeToBus[sCol - 1];
                     {
                         result = result + Format("%sMatrix singularity at bus %s, node %d", CRLF.c_str(), with0->BusList.Get(with1.BusRef).c_str(), sCol);
                     }
@@ -348,7 +348,7 @@ namespace YMatrix
                         }
                         /*# with MapNodeToBus^[iFirst] do */
                         {
-                            TNodeBus with1 = with0->MapNodeToBus[iFirst];
+                            TNodeBus with1 = with0->MapNodeToBus[iFirst - 1];
                             {
                                 result = result + Format("%s  #%d has %d nodes, including bus %s (node %d)", CRLF.c_str(), i, iCount, with0->BusList.Get(with1.BusRef).c_str(), iFirst);
                             }

@@ -1,4 +1,4 @@
-﻿
+
 #pragma hdrstop
 
 #include "fMonitor.h"
@@ -1406,7 +1406,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 				for(stop = Num, j = 1; j <= stop; j++)
 				{
 					i = (PElement->Terminals[0].TermNodeRef)[j - 1];
-					switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
+					switch((ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum)
 					{
 						case 	1:
 						{
@@ -1448,7 +1448,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
 						i = (PElement->Terminals[0].TermNodeRef)[j - 1];
-						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
+						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum)
 						{
 							case 	1:
 							{
@@ -1484,7 +1484,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
 						i = PElement->Terminals[0].TermNodeRef[j - 1];
-						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
+						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum)
 						{
 							case 	1:
 							{
@@ -1520,7 +1520,7 @@ void TFMonitorObj::Get_PQ_DI(int i_NodeNum, int ActorID)
 					for(stop = Num, j = 1; j <= stop; j++)
 					{
 						i = (PElement->Terminals[0].TermNodeRef)[j - 1];
-						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
+						switch((ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum)
 						{
 							case 	1:
 							{
@@ -1698,7 +1698,7 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 									if(Num == 1)
 									{
 										i = (PElem->Terminals[0].TermNodeRef)[0];
-										switch((ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum)
+										switch((ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum)
 										{
 											case 	1:
 											(pNodeFMs)[iNodeNum].ldIdx1 = PCindex_ld;
@@ -1870,7 +1870,7 @@ void TFMonitorObj::Get_PDElem_terminal_voltage(int nd_num_in_cluster, String dev
 	for(stop = tempElement->Get_NPhases(), j = 1; j <= stop; j++)
 	{// how many phases of this element
 		i = (tempTerminal->TermNodeRef)[j - 1];  // global node number
-		phase_num = (ActiveCircuit[ActorID]->MapNodeToBus)[i].NodeNum;
+		phase_num = (ActiveCircuit[ActorID]->MapNodeToBus)[i - 1].NodeNum;
 		if(!ADiakoptics || (ActorID == 1))
 			vabs = cabs(ActiveCircuit[ActorID]->Solution->NodeV[i]);
 		else
@@ -2651,7 +2651,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
 		j = ((PElem->Terminals)[jTempTerminal - 1].TermNodeRef)[i - 1];
-		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
+		if((ActiveCircuit[ActorID]->MapNodeToBus)[j - 1].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
 			if(!ADiakoptics || (ActorID == 1))
@@ -2886,7 +2886,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 	for(stop = PElem->Get_NPhases(), i = 1; i <= stop; i++)
 	{// how many conds of this element
 		j = ((PElem->Terminals)[jTempTerminal - 1].TermNodeRef)[i - 1];
-		if((ActiveCircuit[ActorID]->MapNodeToBus)[j].NodeNum == phase_num)
+		if((ActiveCircuit[ActorID]->MapNodeToBus)[j - 1].NodeNum == phase_num)
 		{
 			nodeRefj = j;                                   // node ref of the other end of this element and this phase
 			if(!ADiakoptics || (ActorID == 1))

@@ -1862,10 +1862,10 @@ bool TLineObj::MergeWith(TLineObj* OtherLine, bool SERIES)
 			while((Common1 == 0) && (i <= 2))
 			{
 				int stop = 0;
-				TestBusNum = (ActiveCircuit[ActiveActor]->MapNodeToBus)[NodeRef[(i - 1) * Fnconds]].BusRef;
+				TestBusNum = (ActiveCircuit[ActiveActor]->MapNodeToBus)[NodeRef[(i - 1) * Fnconds] - 1].BusRef;
 				for(int stop = 2, j = 1; j <= stop; j++)
 				{
-					if((ActiveCircuit[ActiveActor]->MapNodeToBus)[OtherLine->NodeRef[(j - 1) * OtherLine->Get_NConds()]].BusRef == TestBusNum)
+					if((ActiveCircuit[ActiveActor]->MapNodeToBus)[OtherLine->NodeRef[(j - 1) * OtherLine->Get_NConds()] - 1].BusRef == TestBusNum)
 					{
 						Common1 = i;
 						Common2 = j;
