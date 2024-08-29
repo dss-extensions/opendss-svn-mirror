@@ -5,6 +5,7 @@
 #include "CmdForms.h"
 
 #ifndef linux
+  #define NOMINMAX
   #include <windows.h>
 #else
   #include <unistd.h>

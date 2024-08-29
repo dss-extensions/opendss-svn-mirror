@@ -57,6 +57,7 @@
 #include "ExpControl.h"
 #ifndef linux
 #include <shellapi.h>
+#define NOMINMAX
 #include <windows.h>
 #else
 #include "windows2posix.h"
