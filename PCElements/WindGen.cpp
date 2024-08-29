@@ -3335,63 +3335,104 @@ String TWindGenObj::VariableName(int i)
 
 String TWindGenObj::GetPropertyValue(int Index)
 {
-	String result;
-	result ="";
+	String Result;
+	Result ="";
 	switch(Index)
 	{
-		case 	3:
-		result = Format("%.6g", WindGenVars.kVWindGenBase);
-		break;
-		case 	4:
-		result = Format("%.6g", kWBase);
-		break;
-		case 	5:
-		result = Format("%.6g", PFNominal);
-		break;
-		case 	7:
-		result = YearlyShape;
-		break;
-		case 	8:
-		result = DailyDispShape;
-		break;
-		case 	9:
-		result = DutyShape;
-		break;
-		case 	13:
-		result = Format("%.6g", kvarBase);
-		break;
-		case 	19:
-		result = Format("%.6g", kvarMax);
-		break;
-		case 	20:
-		result = Format("%.6g", kvarMin);
-		break;
-		case 	26:
-		result = Format("%.6g", WindGenVars.kVArating);
-		break;
-		case 	27:
-		result = Format("%.6g", WindGenVars.kVArating * 0.001);
-		break;
-		case 	34:
-		 case 36:
-		{
-			result = String("(") + inherited::GetPropertyValue(Index) +")";
-		}
-		break;
-		case 	37:
-		result = Format("%.6g", DutyStart);
-		break;
-		case 	38:
-		if(ForceBalanced)
-			result ="Yes";
-		else
-			result ="No";
-		break;
+        case 3: Result = Format("%.6g", Get_PresentkV());
+            break;
+        case 4 : Result = Format("%.6g", kWBase);
+            break;
+        case 5 : Result = Format("%.6g", PFNominal);
+            break;
+        case 7 : Result = YearlyShape;
+            break;
+        case 8 : Result = DailyDispShape;
+            break;
+        case 9 : Result = DutyShape;
+            break;
+        case 10:
+            if (Connection == 0)
+                Result = "wye";
+            else
+                Result = "delta";
+            break;
+        case 11 : Result = Format("%.6g", Get_Presentkvar());
+            break;
+        case 12 : Result = Format("%.d", GenClass);
+            break;
+        case 13:
+            if (DebugTrace)
+                Result = "Yes";
+            else
+				Result = "No";
+            break;
+        case 14 : Result = Format("%.6g", Vminpu);
+            break;
+        case 15 : Result = Format("%.6g", Vmaxpu);
+            break;
+        case 16 : Result = Format("%.6g", WindGenVars.kVArating);
+            break;
+        case 17 : Result = Format("%.6g", (WindGenVars.kVArating / 1e3));
+            break;
+        case 18:
+            Result = UserModel->get_FName();
+            break;
+        case 20 : Result = Format("%.6g", DutyStart);
+            break;
+        case 21 : Result = DynamicEq;
+            break;
+        case 22 : Result = GetDynOutputStr();
+            break;
+        case 23 : Result = Format("%.6g", WindModelDyn->Rthev);
+            break;
+        case 24 : Result = Format("%.6g", WindModelDyn->Xthev);
+            break;
+        case 25 : Result = Format("%.6g", WindModelDyn->Vss);
+            break;
+        case 26 : Result = Format("%.6g", WindModelDyn->Pss);
+            break;
+        case 27 : Result = Format("%.6g", WindModelDyn->Qss);
+            break;
+        case 28 : Result = Format("%.6g", WindModelDyn->vwind);
+            break;
+        case 29 : Result = Format("%.d", WindModelDyn->QMode);
+            break;
+        case 30 : Result = Format("%.d", WindModelDyn->SimMechFlg);
+            break;
+        case 31 : Result = Format("%.d", WindModelDyn->APCFLG);
+            break;
+        case 32:  Result = Format("%.d", WindModelDyn->QFlg);
+            break;
+        case 33:  Result = Format("%.6g", WindModelDyn->delt0);
+            break;
+        case 34:  Result = Format("%.d", WindModelDyn->N_WTG);
+            break;
+        case 35 : Result = VV_Curve;
+            break;
+        case 36 : Result = Format("%.6g", WindGenVars.ag);
+            break;
+        case 37 : Result = Format("%.6g", WindGenVars.Cp);
+            break;
+        case 38 : Result = Format("%.6g", WindGenVars.Lamda);
+            break;
+        case 39 : Result = Format("%.6g", WindGenVars.Poles);
+            break;
+        case 40 : Result = Format("%.6g", WindGenVars.pd);
+            break;
+        case 41 : Result = WindGenVars.PLoss;
+            break;
+        case 42 : Result = Format("%.6g", WindGenVars.Rad);
+            break;
+        case 43 : Result = Format("%.6g", WindGenVars.VCutin);
+            break;
+        case 44 : Result = Format("%.6g", WindGenVars.VCutout);
+            break;
 		default:
-		result = inherited::GetPropertyValue(Index);
+		Result = inherited::GetPropertyValue(Index);
 		break;
 	}
-	return result;
+	return Result;
 }
 
 void TWindGenObj::MakePosSequence(int ActorID)
