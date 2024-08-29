@@ -1,4 +1,4 @@
-
+﻿
 #pragma hdrstop
 
 #include "fMonitor.h"
@@ -1111,6 +1111,10 @@ void TFMonitorObj::Set_nodes_for_fm(int intNodes)
 		for(stop1 = Nodes, j = 0; j < stop1; j++)
 		{
 			(pCommDelayMatrix)[Nodes * i + j] = 0.0;
+			pCommMatrix[Nodes * i + j] = 0;
+			pCommHide[Nodes * i + j] = 0;
+			pCommNode_Hide[Nodes * i + j] = 0;
+			pCommDelaySteps[Nodes * i + j] = 0;
 		}
 	}
 }
@@ -1188,7 +1192,7 @@ void TFMonitorObj::Set_CommVector(String strParam)
 		int stop1 = 0;
 		iNodeNum = j;
 		TempStr = TempStr + IntToStr(iNodeNum + 1) + ",";
-		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
+		for(stop1 = Nodes, i = 0; i < stop1; i++)
 		{
 			TempStr = TempStr + IntToStr(pCommMatrix[iNodeNum * Nodes + i]) + ",";
 		}
@@ -1272,7 +1276,7 @@ void TFMonitorObj::Set_CommDelayVector(String strParam)
 		int stop1 = 0;
 		iNodeNum = j;
 		TempStr = TempStr + IntToStr(iNodeNum + 1) + ",";
-		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
+		for(stop1 = Nodes, i = 0; i < stop1; i++)
 		{
 			TempStr = TempStr + FloatToStr(pCommDelayMatrix[iNodeNum * Nodes + i]) + ",";
 		}
@@ -1842,6 +1846,13 @@ void TFMonitorObj::Init_nodeFM(int iNodeNum, int ActorID)
 		(pNodeFMs)[iNodeNum].z_dfs = 0.0;
 		(pNodeFMs)[iNodeNum].z_dfsn = 0.0;
 		(pNodeFMs)[iNodeNum].d_atk0 = 0.0;
+
+		// init the remaining to zero
+		(pNodeFMs)[iNodeNum].vl_V_c = CZero;
+		(pNodeFMs)[iNodeNum].vl_V_1c = CZero;
+		(pNodeFMs)[iNodeNum].vl_V_2c = CZero;
+		(pNodeFMs)[iNodeNum].vl_V_3c = CZero;
+		(pNodeFMs)[iNodeNum].vl_q_DG = 0;
 	}
 }
 
@@ -1857,7 +1868,7 @@ void TFMonitorObj::Get_PDElem_terminal_voltage(int nd_num_in_cluster, String dev
 	int phase_num = 0;
 	double vabs = 0.0;
     //V012 :TSymCompArray5;
-	complex V012[4]		= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) , cmplx(0,0) };
+	complex V012[3]		= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
 	complex VaVbVc[4]	= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) , cmplx(0,0) };
 	int stop = 0;
 	DevIndex = GetCktElementIndex(devName);                   // Global function
@@ -1911,7 +1922,7 @@ void TFMonitorObj::Get_PDElem_terminal_voltage(int nd_num_in_cluster, String dev
 		VaVbVc[1] = (pNodeFMs)[nd_num_in_cluster].vl_V_1c;//phase A
 		VaVbVc[2] = (pNodeFMs)[nd_num_in_cluster].vl_V_2c;
 		VaVbVc[3] = (pNodeFMs)[nd_num_in_cluster].vl_V_3c;
-		Phase2SymComp(&VaVbVc[1],&V012[1]);  // Convert abc voltages to 012
+		Phase2SymComp(&VaVbVc[1],&V012[0]);  // Convert abc voltages to 012
 		(pNodeFMs)[nd_num_in_cluster].vl_V = cabs(V012[1]);  //pos. seq. Voltage
 	}
 } //PD nodes
