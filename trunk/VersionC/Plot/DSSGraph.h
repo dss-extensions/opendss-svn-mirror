@@ -78,7 +78,7 @@ namespace DSSGraph
     /*Routines to manage DSSGraph Properties. */
     /*Invoke a Get_Properties to populate the Props struct first then change values*/
     void Set_Properties(TDSSGraphProperties* Props);
-    void Get_Properties(TDSSGraphProperties* Props);
+    void Get_Properties(TDSSGraphProperties* &Props);
     void Set_XaxisLabel(String S);
     void Set_YaxisLabel(String S);
     void Set_Caption(String S);

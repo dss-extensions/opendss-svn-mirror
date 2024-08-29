@@ -50,6 +50,36 @@
 
 namespace Utilities
 {
+	enum LineStyle {
+		psSolid,
+		psDash,
+		psDot,
+		psDashDot,
+		psDashDotDot,
+		psClear,
+		psInsideFrame		
+	};
+
+	const int
+		clAqua = 0xFFFF00,
+		clBlack = 0x000000,
+		clBlue = 0xFF0000,
+		clDkGray = 0x808080,
+		clFuchsia = 0xFF00FF,
+		clGray = 0x808080,
+		clGreen = 0x008000,
+		clLime = 0x00FF00,
+		clLtGray = 0xC0C0C0,
+		clMaroon = 0x000080,
+		clNavy = 0x800000,
+		clOlive = 0x008080,
+		clPurple = 0x800080,
+		clRed = 0x0000FF,
+		clSilver = 0xC0C0C0,
+		clTeal = 0x808000,
+		clWhite = 0xFFFFFF,
+		clYellow = 0x00FFFF;
+
 	/// Map IOResult from d2c to a C++ exception; required for compatibility.
 	/// Without this, we never get exceptions in case of file errors.
 	void IOResultToException();
