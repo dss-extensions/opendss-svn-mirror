@@ -140,10 +140,6 @@ struct TVLNodeVars
 };
 #pragma pack (pop)
 
-typedef TVLNodeVars NodeArray[33/*# range 1..33*/];
-typedef NodeArray* pNodeArray;
-
-
 }  // namespace VLNodeVars
 
 #if !defined(DELPHIHEADER_NO_IMPLICIT_NAMESPACE_USE)
