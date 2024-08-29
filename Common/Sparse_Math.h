@@ -58,9 +58,9 @@ public:
   std::vector < TData > data;
   void sparse_matrix( int r, int c );
   int Insert( int r, int c, int val );
-  Tsparse_matrix* Add( Tsparse_matrix* b );
-  Tsparse_matrix* Transpose( );
-  Tsparse_matrix* multiply( Tsparse_matrix* b );
+  Tsparse_matrix Add( Tsparse_matrix* b );
+  Tsparse_matrix Transpose( );
+  Tsparse_matrix multiply( Tsparse_matrix* b );
   void Reset( );
   int NZero( );
   int NCols( );
@@ -86,10 +86,10 @@ public:
   std::vector < TCmplx_Data > CData;
   void sparse_matrix_Cmplx( int r, int c );
   int Insert( int r, int c, complex val );
-  TSparse_Complex* Add( TSparse_Complex* b );
-  TSparse_Complex* Transpose( );
-  TSparse_Complex* TransposeConj( );
-  TSparse_Complex* multiply( TSparse_Complex* b );
+  TSparse_Complex Add( TSparse_Complex* b );
+  TSparse_Complex Transpose( );
+  TSparse_Complex TransposeConj( );
+  TSparse_Complex multiply( TSparse_Complex* b );
   void Reset( );
   int NZero( );
   int NCols( );

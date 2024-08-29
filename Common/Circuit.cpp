@@ -887,8 +887,8 @@ namespace Circuit
             // Initializes the METIS related variables
             myPDEList.clear();
             MyGraph.clear();
-            with0.Laplacian = *(with0.IncMat.Transpose());                        // Transposes the Incidence Matrix
-            with0.Laplacian = *(with0.Laplacian.multiply(&(with0.IncMat)));                // Laplacian Matrix calculated
+            with0.Laplacian = with0.IncMat.Transpose();                        // Transposes the Incidence Matrix
+            with0.Laplacian = with0.Laplacian.multiply(&(with0.IncMat));                // Laplacian Matrix calculated
             // Filters the incidence matrix to remove duplicated branches (parallel)
             for (int stop = (with0.Inc_Mat_Cols.size() - 1), i = 0; i <= stop; i++)
             {
