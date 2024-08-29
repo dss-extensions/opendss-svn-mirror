@@ -409,7 +409,7 @@ Begin
                                  'The output variables need to be defined in the same order.';
 
       PropertyName^[23] := 'Rthev';
-      PropertyHelp^[23] := 'per unit Thevenin equivalent R.';;
+      PropertyHelp^[23] := 'per unit Thevenin equivalent R.';
 
       PropertyName^[24] := 'Xthev';
       PropertyHelp^[24] := 'per unit Thevenin equivalent X.';
@@ -739,7 +739,7 @@ Begin
                   DoSimpleMsg('Volt-var control curve "'+VV_Curve+'" not found, make sure that it was not defined before this element', 565);
                 End;
               End;
-          41: Begin     // get the Volt-var control curve
+          41: Begin     // get the losses curve
                 Loss_CurveObj := XYCurveClass[ActorID].Find(WindgenVars.PLoss);
                 If not Assigned(Loss_CurveObj) then
                 Begin
@@ -2596,14 +2596,14 @@ begin
          End;
 
        End
-     ELSE  Begin
-         Vthev  := cZERO;
-         Theta  := 0.0;
-         dTheta := 0.0;
-         w0     := 0;
-         Speed  := 0.0;
-         dSpeed := 0.0;
-     End;
+       ELSE  Begin
+           Vthev  := cZERO;
+           Theta  := 0.0;
+           dTheta := 0.0;
+           w0     := 0;
+           Speed  := 0.0;
+           dSpeed := 0.0;
+       End;
   End;  {With}
 end;
 
@@ -2886,24 +2886,46 @@ function TWindGenObj.GetPropertyValue(Index: Integer): String;
 begin
       Result := '';
       CASE Index of
-         3:  Result := Format('%.6g', [WindGenvars.kVWindGenBase]);
+         3:  Result := Format('%.6g', [presentkV]);
          4:  Result := Format('%.6g', [kWBase]);
          5:  Result := Format('%.6g', [PFNominal]);
          7:  Result := Yearlyshape;
          8:  Result := Dailydispshape;
          9:  Result := DutyShape;
-         13: Result := Format('%.6g', [kvarBase]);
-         19: Result := Format('%.6g', [kvarMax]);
-         20: Result := Format('%.6g', [kvarMin]);
-         26: Result := Format('%.6g', [WindGenvars.kVArating]);
-         27: Result := Format('%.6g', [WindGenvars.kVArating*0.001]);
-         34,36: Begin
-                    Result := '(' + inherited GetPropertyValue(index) + ')';
-                End;
-         37: Result := Format('%.6g', [DutyStart]);
-         38: If ForceBalanced Then Result := 'Yes' else Result := 'No';
-         40: Result :=  DynamicEq;
-         41: Result :=  GetDynOutputStr();
+         10: if Connection = 0 then Result := 'wye' else Result := 'delta';
+         11: Result := Format('%.6g', [presentkvar]);
+         12: Result := Format('%.d', [GenClass]);
+         13: if debugtrace then Result := 'Yes' else Result := 'No';
+         14: Result := Format('%.6g', [VMinPu]);
+         15: Result := Format('%.6g', [VMaxPu]);
+         16: Result := Format('%.6g', [WindGenVars.kVArating]);
+         17: Result := Format('%.6g', [WindGenVars.kVArating / 1e3]);
+         18: Result := UserModel.Name;
+         20: Result := Format('%.6g', [DutyStart]);
+         21: Result := DynamicEq;
+         22: Result := GetDynOutputStr();
+         23: Result := Format('%.6g', [WindModelDyn.Rthev]);
+         24: Result := Format('%.6g', [WindModelDyn.Xthev]);
+         25: Result := Format('%.6g', [WindModelDyn.Vss]);
+         26: Result := Format('%.6g', [WindModelDyn.Pss]);
+         27: Result := Format('%.6g', [WindModelDyn.Qss]);
+         28: Result := Format('%.6g', [WindModelDyn.vwind]);
+         29: Result := Format('%.d', [WindModelDyn.QMode]);
+         30: Result := Format('%.d', [WindModelDyn.SimMechFlg]);
+         31: Result := Format('%.d', [WindModelDyn.APCFLG]);
+         32: Result := Format('%.d', [WindModelDyn.QFlg]);
+         33: Result := Format('%.6g', [WindModelDyn.delt0]);
+         34: Result := Format('%.d', [WindModelDyn.N_WTG]);
+         35: Result := VV_Curve;
+         36: Result := Format('%.6g', [WindgenVars.ag]);
+         37: Result := Format('%.6g', [WindgenVars.Cp]);
+         38: Result := Format('%.6g', [WindgenVars.Lamda]);
+         39: Result := Format('%.6g', [WindgenVars.Poles]);
+         40: Result := Format('%.6g', [WindgenVars.pd]);
+         41: Result := WindgenVars.PLoss;
+         42: Result := Format('%.6g', [WindgenVars.Rad]);
+         43: Result := Format('%.6g', [WindgenVars.VCutin]);
+         44: Result := Format('%.6g', [WindgenVars.VCutout]);
       ELSE
          Result := Inherited GetPropertyValue(index);
       END;

@@ -175,7 +175,7 @@ begin
                ActiveDSSObject[ActiveActor]    := ActiveLSObject;
           End
           Else Begin
-              DoSimpleMsg('Relay "'+ arg +'" Not Found in Active Circuit.', 77003);
+              DoSimpleMsg('LoadShape "'+ arg +'" Not Found in Active Circuit.', 77003);
           End;
      End;
   end
