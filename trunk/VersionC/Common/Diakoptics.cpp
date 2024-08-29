@@ -57,8 +57,8 @@ int Solve_Diakoptics( )
         myRow = myRow + 2;
       }
     // Loads the partial solution considering the previous iteration
-      Vpartial = *( with0->Y4.multiply( &Vpartial ) );
-      with0->Ic = *( with0->Contours.multiply( &Vpartial ) );  // Calculates the new Injecting Currents
+      Vpartial = with0->Y4.multiply( &Vpartial );
+      with0->Ic = with0->Contours.multiply( &Vpartial );  // Calculates the new Injecting Currents
 
     // Commands the actors to complement the solution
       with1->SendCmd2Actors( SOLVE_AD2 );
@@ -266,9 +266,9 @@ void Calc_ZCC( int Links )
     // At this point we have calculated the right side of the equation
     // ZCC = CTZ(TT)C -> Z(TT)C
     // It is needed transpose the contours matrix and multiply it
-      with0->ContoursT = *( with0->Contours.Transpose() );
-      with0->ZCC = *( with0->ContoursT.multiply(&with0->ZCT ) );   // Calculates ZCC with no Link impedances
-      with0->ZCC = *( with0->ZCC.Add(&with0->ZLL ) );              // Adds the link impedance
+      with0->ContoursT = with0->Contours.Transpose();
+      with0->ZCC = with0->ContoursT.multiply(&with0->ZCT );   // Calculates ZCC with no Link impedances
+      with0->ZCC = with0->ZCC.Add(&with0->ZLL );              // Adds the link impedance
       free( CVector );
       free( ZVector );
 //********************Dbug************************************

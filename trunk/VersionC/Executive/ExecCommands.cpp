@@ -900,8 +900,8 @@ namespace ExecCommands
 					/*# with ActiveCircuit[ActiveActor]->Solution do */
 					{
 						auto with3 = ActiveCircuit[ActiveActor]->Solution;
-						with3->Laplacian = *( with3->IncMat.Transpose() );          // Transposes the Incidence Matrix
-						with3->Laplacian = *( with3->Laplacian.multiply( &(with3->IncMat) ) );  // IncMatT*IncMat
+						with3->Laplacian = with3->IncMat.Transpose();          // Transposes the Incidence Matrix
+						with3->Laplacian = with3->Laplacian.multiply( &(with3->IncMat) );  // IncMatT*IncMat
 					}
 				}
 				break;

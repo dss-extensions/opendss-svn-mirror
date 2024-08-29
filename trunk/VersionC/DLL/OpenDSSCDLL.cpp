@@ -13901,7 +13901,7 @@ void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myType = 1;			//Integer
 		myIntArray.resize(1);
 		myIntArray[0] = 0;
-		if ((ActiveCircuit[ActiveActor] != nullptr) && (&(with1->IncMat) != nullptr))
+		if ((ActiveCircuit[ActiveActor] != nullptr) && (with1->IncMat.len != 0))
 		{
 
 			ArrSize = with1->IncMat.NZero() * 3;
@@ -13994,7 +13994,7 @@ void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myType = 1;			//Integer
 		myIntArray.resize(1);
 		myIntArray[0] = 0;
-		if (ActiveCircuit[ActiveActor] != nullptr && (&(with1->Laplacian) != nullptr))
+		if (ActiveCircuit[ActiveActor] != nullptr && (with1->Laplacian.len != 0))
 		{
 			ArrSize = with1->Laplacian.NZero() * 3;
 			myIntArray.resize(ArrSize);
