@@ -71,7 +71,7 @@
 
 
 #if defined( WIN32 ) || defined( WIN64 )
-
+#define NOMINMAX
 #include "windows.h"
 #define windows 1
 
@@ -96,6 +96,10 @@
 
 #ifdef _UNICODE  // Visual C**
 #define _WIDESTRING 1
+#endif
+
+#ifdef _MSC_VER
+typedef ptrdiff_t ssize_t;
 #endif
 
 // definitions in one word are needed with C++Builder for properties
@@ -155,7 +159,7 @@ typedef unsigned char cuint8;
 typedef cuint8 cuchar;
 typedef WORD cuint16;
 typedef cuint16 cushort;
-typedef int cint32;
+typedef int32_t cint32;
 typedef cint32 cint;
 
 #define __cdecl
@@ -166,14 +170,13 @@ typedef long HRESULT;
 #endif
 
 
-
-   // CPU32
-
+// Updated below to use standard int types 
+// (original version was bonkers on 64-bit systems)
 typedef double real;
-typedef int SizeInt;
-typedef DWORD SizeUInt;
-typedef int PtrInt;
-typedef DWORD PtrUInt;
+typedef ssize_t SizeInt;
+typedef size_t SizeUInt;
+typedef intptr_t PtrInt;
+typedef uintptr_t PtrUInt;
 typedef int ValSInt;
 typedef unsigned int ValUInt;
 
@@ -254,18 +257,12 @@ typedef Char* TPCharArray [ ( MaxLongint / sizeof( Char* ) ) - 1 - 0 + 1 ];
 
 typedef Char** PPCharArray;
 
-#ifdef WIN32
-typedef uint32_t NativeUInt ;
-#elif defined( WIN64 )
-typedef uint64_t NativeUInt ;
-#elif defined( linux )
-typedef uint64_t NativeUInt;
-#endif
+typedef uintptr_t NativeUInt;
 
 #ifdef linux
 
-typedef PtrInt THandle;
-typedef PtrInt TLibHandle;
+typedef uintptr_t THandle;
+typedef uintptr_t TLibHandle;
 typedef TLibHandle HMODULE;
 
 #endif

@@ -7523,7 +7523,7 @@ void Sleep( unsignedint milliseconds )
 
 TLibHandle LoadLibrary( string Name )
 {
-  return ((TLibHandle) *((int *) dlopen( Name.c_str(), RTLD_LAZY )) );
+  return ((TLibHandle) ((uintptr_t) dlopen( Name.c_str(), RTLD_LAZY )));
 }
 
 TLibHandle LoadLibrary( wstring Name )
@@ -7536,7 +7536,7 @@ TLibHandle LoadLibrary( wstring Name )
 
 void* GetProcedureAddress( TLibHandle lib, string ProcName )
 {
-  return dlsym( (void*) (size_t) lib, ProcName.c_str());
+  return dlsym( (void*) lib, ProcName.c_str());
 }
 
 void* GetProcedureAddress( TLibHandle lib, wstring ProcName )
@@ -7549,7 +7549,7 @@ void* GetProcedureAddress( TLibHandle lib, wstring ProcName )
 
 bool UnloadLibrary( TLibHandle lib )
 {
-  return dlclose( (void*) (size_t) lib ) == 0;
+  return dlclose( (void*) lib ) == 0;
 }
 
 
@@ -7858,7 +7858,7 @@ void FSplit( const PathStr Path, dirstr& Dir, NameStr& Name, extstr& Ext )
 }
 
 
-int FileOpen( const string& Filename, int Mode )
+uintptr_t FileOpen( const string& Filename, int Mode )
 {
   int result = 0;
   int LinuxFlags = 0;
@@ -7880,7 +7880,7 @@ int FileOpen( const string& Filename, int Mode )
   return result;
 }
 
-int FileOpen( const wstring& Filename, int Mode )
+uintptr_t FileOpen( const wstring& Filename, int Mode )
 {
   string s = wstr2str(Filename);
   return FileOpen(s, Mode);
@@ -7921,12 +7921,6 @@ int FileWrite( int Handle, const void* Buffer, int Count )
 {
   return fpWrite( Handle, (const char*) Buffer, Count );
 }
-
-int FileSeek( int Handle, int FOffset, int Origin )
-{
-  return((int) FileSeek( Handle, ((int64_t) FOffset ), Origin ) );
-}
-
 
 int64_t FileSeek( int Handle, int64_t FOffset, int Origin )
 {
