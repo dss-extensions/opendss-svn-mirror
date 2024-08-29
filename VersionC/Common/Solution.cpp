@@ -2448,7 +2448,7 @@ namespace Solution
           myBUS = with0->get_FActiveCktElement()->GetBus( 2 );
           j = myBUS.find( '.' );
           if ( j != String::npos )
-            myBUS = myBUS.substr( 0, j - 1 );
+            myBUS = myBUS.substr( 0, j );
           for ( int stop = (Inc_Mat_Cols.size() - 1), i = 0; i <= stop; i++)
             if ( Inc_Mat_Cols[i] == myBUS )
               break;
@@ -4329,7 +4329,7 @@ namespace Solution
           BusName = VSourceObj->GetBus( 1 );
           jj = BusName.find( '.' );   // removes the dot
           if ( jj != String::npos )
-            BusName = BusName.substr( 0, ( jj - 1 ) );
+            BusName = BusName.substr( 0, jj );
           SetActiveBus( BusName );                            // Activates the Bus
           myPDEList = with0->getPDEatBus( with0->BusList.Get( with0->ActiveBusIndex + 1 ) );
         // Disables the link branch

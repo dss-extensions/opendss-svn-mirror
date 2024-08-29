@@ -3621,7 +3621,7 @@ namespace Utilities
     {
       /*# with pElem do */
       {
-        pElem.Set_Name(pElem.ParentClass->get_myClass_name().substr(1,4) + Format("%d", pElem.ClassIndex));
+        pElem.Set_Name(pElem.ParentClass->get_myClass_name().substr(0,4) + Format("%d", pElem.ClassIndex));
         ActiveCircuit[ActiveActor]->DeviceList.Add(pElem.get_Name() ); // Make a new device list corresponding to the CktElements List
         
 
@@ -3715,7 +3715,7 @@ namespace Utilities
               case CAP_CONTROL:
               {
                 S = "Element=" + MakeNewCktElemName( pCktElem->GetPropertyValue( 1 ));
-                ControlUpDateStrings.push_back( S + "Capacitor=" + MakeNewCktElemName( "capacitor." + pCktElem->GetPropertyValue( 3 ) ).substr( 11, 100 ) );
+                ControlUpDateStrings.push_back( S + "Capacitor=" + MakeNewCktElemName( "capacitor." + pCktElem->GetPropertyValue( 3 ) ).substr( 10, 100 ) );
                 ControlUpDatePtrs.push_back(pCktElem);
               }
               break;

@@ -2212,7 +2212,7 @@ namespace ExportResults
           {
             Read( F, TestStr );
                  /*See if it likely that the file is OK*/
-            if ( CompareText( TestStr.substr( 1, 4 ), "Year" ) == 0 )
+            if ( CompareText( TestStr.substr( 0, 4 ), "Year" ) == 0 )
               RewriteFile = false;       // Assume the file is OK
             else
               RewriteFile = true;
@@ -2373,7 +2373,7 @@ namespace ExportResults
           {
             Read( F, TestStr );
                  /*See if it likely that the file is OK*/
-            if ( CompareText( TestStr.substr( 1, 4 ), "Year" ) == 0 )
+            if ( CompareText( TestStr.substr( 0, 4 ), "Year" ) == 0 )
               RewriteFile = false;       // Assume the file is OK
             else
               RewriteFile = true;
@@ -2530,7 +2530,7 @@ namespace ExportResults
           {
             Read( F, TestStr );
                  /*See if it likely that the file is OK*/
-            if ( CompareText( TestStr.substr( 1, 4 ), "Year" ) == 0 )
+            if ( CompareText( TestStr.substr( 0, 4 ), "Year" ) == 0 )
               RewriteFile = false;       // Assume the file is OK
             else
               RewriteFile = true;
@@ -2606,7 +2606,7 @@ namespace ExportResults
     // If switch /m is specified, a separate file is created for each generator using the generator's name
 
     {
-      if ( LowerCase( Filenm.substr( 1, 2 ) ) == "/m" )
+      if ( LowerCase( Filenm.substr( 0, 2 ) ) == "/m" )
         WriteMultipleGenMeterFiles();
       else
         WriteSingleGenMeterFile( Filenm );
@@ -2622,7 +2622,7 @@ namespace ExportResults
     // If switch /m is specified, a separate file is created for each generator using the generator's name
 
     {
-      if ( LowerCase( Filenm.substr( 1, 2 ) ) == "/m" )
+      if ( LowerCase( Filenm.substr( 0, 2 ) ) == "/m" )
         WriteMultiplePVSystemMeterFiles();
       else
         WriteSinglePVSystemMeterFile( Filenm );
@@ -2638,7 +2638,7 @@ namespace ExportResults
     // If switch /m is specified, a separate file is created for each generator using the generator's name
 
     {
-      if ( LowerCase( Filenm.substr( 1, 2 ) ) == "/m" )
+      if ( LowerCase( Filenm.substr( 0, 2 ) ) == "/m" )
         WriteMultipleStorageMeterFiles();
       else
         WriteSingleStorageMeterFile( Filenm );

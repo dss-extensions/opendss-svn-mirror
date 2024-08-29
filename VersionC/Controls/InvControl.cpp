@@ -814,7 +814,7 @@ int TInvControl::Edit(int ActorID)
 					StrTemp = Parser[ActorID]->MakeString_();
 					CharPos = AnsiPos("_", StrTemp);
 					if(CharPos != 0)
-						StrTemp = StrTemp.substr(0 + 1, CharPos - 1);
+						StrTemp = StrTemp.substr(0, CharPos - 1);
 					if(CompareTextShortest(StrTemp, "varaval") == 0)
 						with0->FReacPower_ref = "VARAVAL";
 					else
@@ -3153,7 +3153,7 @@ int TInvControlObj::InterpretAvgVWindowLen(const String s)
 
     /*Error occurred so must have a units specifier*/
 	ch = s[s.size() - 1];  // get last character
-	S2 = s.substr(1, s.size() - 1);
+	S2 = s.substr(0, s.size() - 1);
 	Val(S2, &result, Code);
 	if(Code > 0)   /*check for error*/
 	{
@@ -3211,7 +3211,7 @@ int TInvControlObj::InterpretDRCAvgVWindowLen(const String s)
 
     /*Error occurred so must have a units specifier*/
 	ch = s[s.size() - 1];  // get last character
-	S2 = s.substr(1, s.size() - 1);
+	S2 = s.substr(0, s.size() - 1);
 	Val(S2, &result, Code);
 	if(Code > 0)   /*check for error*/
 	{
