@@ -141,9 +141,9 @@ void TVSConverter::VscSetBus1(const String s)
 		with0->SetBus(1, s);
 		dotpos = Pos(".", s);
 		if(dotpos > 0)
-			S2 = s.substr(1, dotpos - 1);
+			S2 = s.substr(0, dotpos - 1);
 		else
-			S2 = s.substr(1, s.size());
+			S2 = s.substr(0, s.size());
 		for(stop = with0->Fnphases, i = 1; i <= stop; i++)
 		{
 			S2 = S2 + ".0";

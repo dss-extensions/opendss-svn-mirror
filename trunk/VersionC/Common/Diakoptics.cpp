@@ -342,7 +342,7 @@ int Calc_C_Matrix( PString PLinks, int NLinks )
             Elem_Buses[i - 1] = with0->get_FActiveCktElement()->GetBus( i );
             j = ansipos( ".", Elem_Buses[i - 1] );
             if ( j != 0 )
-              Elem_Buses[i - 1] = Elem_Buses[i - 1].substr( 0, j );
+              Elem_Buses[i - 1] = Elem_Buses[i - 1].substr( 0, j - 1 );
             else
               Elem_Buses[i - 1] = Elem_Buses[i - 1] + ".";
           }

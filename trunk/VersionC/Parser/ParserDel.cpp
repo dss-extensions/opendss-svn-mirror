@@ -88,7 +88,7 @@ namespace ParserDel
 		String result;
 		if (dotpos == 0)
 			result = s;
-		result = s.substr(1, dotpos - 1);
+		result = s.substr(0, dotpos - 1);
 		return result;
 	}
 

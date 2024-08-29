@@ -602,7 +602,7 @@ namespace Circuit
                 BusName = with0->get_FActiveCktElement()->GetBus(BusNum);
                 jj = BusName.find('.');     // removes the dot
                 if (jj != String::npos)
-                    BusName = BusName.substr(0, jj - 1);
+                    BusName = BusName.substr(0, jj);
                 SetActiveBus(BusName);
                 Bus::TDSSBus& pBus = *Buses[ActiveBusIndex];
                 for (int stop = pBus.get_FNumNodesThisBus(), kk = 1; kk <= stop; kk++)
@@ -944,7 +944,7 @@ namespace Circuit
                             //MyIdx.Length = MyIdx.Length + 1;
                             // Now, get the number of Phases
                             myIntVar = myName.find(".");
-                            myClass = myName.substr(0, (static_cast<size_t>(myIntVar) - 1));
+                            myClass = myName.substr(0, static_cast<size_t>(myIntVar));
                             // if transformer, the weigth is the lowest
                             if (myClass != "Transformer")
                             {
@@ -1376,10 +1376,10 @@ namespace Circuit
                             // Determines the best place to connect the EnergyMeter
                             Term_volts[0] = Term_volts[0] - Term_volts[1];
                             jj = Link_Branches[i].find(".");
-                            BusName = get_Line_Bus(Link_Branches[i].substr(jj), 2);
+                            BusName = get_Line_Bus(Link_Branches[i].substr(jj + 1), 2);
                             jj = BusName.find(".");     // removes the dot
                             if (jj > 0)
-                                BusName = BusName.substr(0, static_cast<size_t>(jj) - 1);
+                                BusName = BusName.substr(0, static_cast<size_t>(jj));
                             Terminal = "terminal=1";
                             PConn_Names[i] = BusName;
                             SetActiveBus(BusName);           // Activates the Bus

@@ -3507,7 +3507,7 @@ void TEnergyMeter::WriteOverloadReport(int ActorID)
 							}
 							else
 							{
-								k = StrToInt(ClassName.substr(0 + 1, j - 1));
+								k = StrToInt(ClassName.substr(0, j - 1));
 								cVector[k] = cBuffer[i - 1];
 								ClassName = ClassName.substr(j, ClassName.size());
 							}
