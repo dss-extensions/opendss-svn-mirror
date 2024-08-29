@@ -157,7 +157,7 @@ void TCapUserControl::Set_Name(const String Value)
 		if(!FuncError)
 			FEdit = (CapUserControlProc__6) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (CapUserControlProc__3) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (CapUserControlProc__3) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("UpdateModel")), "UpdateModel");
 		if(!FuncError)
 			FDelete = (CapUserControlProc__1) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Delete")), "Delete");
 		if(FuncError)

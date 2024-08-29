@@ -149,7 +149,7 @@ void TWindGenUserModel::Set_Name(const String Value)
 		if(!FuncError)
 			FEdit = (WindGenUserModelProc__3) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (WindGenUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (WindGenUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateModel")), "UpdateModel");
 		if(!FuncError)
 			FDelete = (WindGenUserModelProc__1) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
