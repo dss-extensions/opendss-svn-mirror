@@ -3680,11 +3680,11 @@ namespace ShowResults
     {
       TTextRec F;
       klusparseset_t hY;
-      longInt nNZ = 0, NBus = 0;
+      unsigned int nNZ = 0, NBus = 0;
       unsigned int i = 0, Row = 0, col = 0;
       double re = 0.0, im = 0.0;
-      longInt* ColIdx;
-      longInt* RowIdx;
+      unsigned int* ColIdx;
+      unsigned int* RowIdx;
       complex* cVals;
       if ( ActiveCircuit[ActiveActor] == NULL )
         return;
@@ -3701,8 +3701,8 @@ namespace ShowResults
       GetSize( hY, &NBus ); // we should already know this
       try
       {
-        ColIdx = new longInt[nNZ];
-        RowIdx = new longInt[nNZ];
+        ColIdx = new unsigned[nNZ];
+        RowIdx = new unsigned[nNZ];
         cVals = new complex[nNZ];
         GetTripletMatrix( hY, nNZ, RowIdx, ColIdx, cVals );
         AssignFile( F, Filenm );

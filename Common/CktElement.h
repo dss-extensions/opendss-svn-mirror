@@ -79,7 +79,7 @@ namespace CktElement
     public:
         void LossCalc(int& ActorID, complex& cLoss, int& k, int& n);
         /*Total Noderef array for element*/
-        std::vector <longInt> NodeRef;  // Need fast access to this
+        std::vector <unsigned int> NodeRef;  // Need fast access to this
         longInt Yorder;
         int LastTerminalChecked;  // Flag used in tree searches
         bool Checked, HasEnergyMeter, HasSensorObj, IsIsolated, HasControl, IsMonitored, IsPartofFeeder, Drawn;  // Flag used in tree searches etc

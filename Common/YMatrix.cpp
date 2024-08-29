@@ -296,9 +296,9 @@ namespace YMatrix
         unsigned int i = 0;
         complex c;
         klusparseset_t hY;
-        longInt sCol = 0;
+        unsigned int sCol = 0;
         unsigned int nIslands = 0, iCount = 0, iFirst = 0, p = 0;
-        vector < longInt > Cliques;
+        vector < unsigned int > Cliques;
         result = "";
         /*# with ActiveCircuit[ActorID] do */
         {

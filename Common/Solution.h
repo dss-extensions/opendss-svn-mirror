@@ -275,7 +275,7 @@ namespace Solution
                                 NCIMY,                                      // Stores the Non-zero values of the YBus Marix for multiplication
                                 pNodeLimits;                                // Stores the total Q limits for PV buses using all the nodes in the model
         bool                    InitGenQ;                                   // Used to initialize variables the first time the algorithm runs or needs to be reinitialized
-        vector <longInt>        NCIMYRow,                                   // Rows index of the Non-zero values of the Y Bus matrix
+        vector <unsigned int>   NCIMYRow,                                   // Rows index of the Non-zero values of the Y Bus matrix
                                 NCIMYCol;                                   // Cols index of the Non-zero values of Y
         vector <int>            pNodeType,                                  // Array with the node type (PQ/PV)
                                 pNodeNumGen;                                // Stores the number of generators per node for further use

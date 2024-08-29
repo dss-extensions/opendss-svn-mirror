@@ -1335,7 +1335,7 @@ namespace Solution
     int TSolutionObj::InitNCIM(int ActorID, bool InitY)
     {
         auto        with0 = ActiveCircuit[ActorID];
-        longInt     NNodes = 0;
+        unsigned int NNodes = 0;
         int         i = 0;
 
         // 1. Calculate the Y Bus, PDE only
@@ -1367,7 +1367,7 @@ namespace Solution
     /* Loads the active Y bus matrix (sparse) into its equivalent for sparse linear algebra ops */
     void TSolutionObj::LoadYBusNCIM(int ActorID)
     {
-        longInt             NBus = 0, nNZ = 0;
+        unsigned int        NBus = 0, nNZ = 0;
         vector <longInt>    ColPtr,
                             RowIdx;
         vector <complex>    cVals;
@@ -2813,9 +2813,9 @@ namespace Solution
       , j = 0;
       unsigned int p = 0;
       klusparseset_t hY;
-      longInt nBus = 0, nNZ = 0;
-      std::vector < longInt > ColPtr;
-      std::vector < longInt >  RowIdx;
+      unsigned int nBus = 0, nNZ = 0;
+      std::vector < unsigned int > ColPtr;
+      std::vector < unsigned int >  RowIdx;
       complex* cVals;
       WriteLn( F, "! OPTIONS" );
 
@@ -3665,11 +3665,12 @@ namespace Solution
 
     void TSolutionObj::Get_Yiibus( )
     {
-      longInt nNZ = 0, result = 0;
+      unsigned int nNZ = 0;
+      longInt result = 0;
       unsigned int i = 0, Row = 0, Col = 0;
       double re = 0.0, im = 0.0;
-      std::vector <longInt> ColIdx;
-      std::vector <longInt> RowIdx;
+      std::vector <unsigned int> ColIdx;
+      std::vector <unsigned int> RowIdx;
       std::vector <complex> cVals;
       int sf = 0;
       if ( ! hY )
