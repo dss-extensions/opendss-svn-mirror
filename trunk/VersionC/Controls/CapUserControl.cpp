@@ -147,19 +147,19 @@ void TCapUserControl::Set_Name(const String Value)
 
             // Now set up all the procedure variables
 		FuncError = false;
-		FNew = (CapUserControlProc__0) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("New")), "New");
+		FNew = (CapUserControlProc__0) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("New")), "New");
 		if(!FuncError)
-			FSelect = (CapUserControlProc__2) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("Select")), "Select");
+			FSelect = (CapUserControlProc__2) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Select")), "Select");
 		if(!FuncError)
-			FSample = (CapUserControlProc__4) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("Sample")), "Sample");
+			FSample = (CapUserControlProc__4) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Sample")), "Sample");
 		if(!FuncError)
-			FDoPending = (CapUserControlProc__5) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("DoPending")), "DoPending");
+			FDoPending = (CapUserControlProc__5) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("DoPending")), "DoPending");
 		if(!FuncError)
-			FEdit = (CapUserControlProc__6) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("Edit")), "Edit");
+			FEdit = (CapUserControlProc__6) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (CapUserControlProc__3) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (CapUserControlProc__3) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
 		if(!FuncError)
-			FDelete = (CapUserControlProc__1) CheckFuncError(GetProcAddress( (HMODULE) FHandle, ("Delete")), "Delete");
+			FDelete = (CapUserControlProc__1) CheckFuncError((void *) GetProcAddress( (HMODULE) FHandle, ("Delete")), "Delete");
 		if(FuncError)
 		{
 			if(!FreeLibrary( (HMODULE) FHandle))
