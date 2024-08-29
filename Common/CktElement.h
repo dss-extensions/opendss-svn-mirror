@@ -99,7 +99,7 @@ namespace CktElement
 
         bool GFM_Mode;
         TDSSCktElement(TDSSClass* ParClass);
-        ~TDSSCktElement();
+        virtual ~TDSSCktElement();
         virtual int GetYPrim(TcMatrix& Ymatrix, int Opt)  //returns values of array
             ;
         virtual pComplexArray GetYPrimValues(int Opt);
