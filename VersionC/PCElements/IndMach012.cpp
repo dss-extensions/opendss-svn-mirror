@@ -975,7 +975,7 @@ void TIndMach012Obj::InitStateVars(int ActorID)
 					case 	3:
 					{
 						int stop = 0;
-						Phase2SymComp(&(Iterminal[0]), &I012[1]);   // terminal currents
+						Phase2SymComp(&(Iterminal[0]), &I012[0]);   // terminal currents
 
                      // Voltage behind Zsp  (transient reactance), volts
 						for(stop = Fnphases, i = 1; i <= stop; i++)
@@ -985,7 +985,7 @@ void TIndMach012Obj::InitStateVars(int ActorID)
 							else
 								Vabc[i - 1] = with1->VoltInActor1((NodeRef)[i - 1]);   // Wye Voltage
 						}
-						Phase2SymComp(&Vabc[0], &V012[1]);
+						Phase2SymComp(&Vabc[0], &V012[0]);
 						E1 = csub(V012[1], cmul(I012[1], Zsp));    // Pos sequence
 					}
 					break;

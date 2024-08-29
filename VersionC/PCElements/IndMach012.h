@@ -108,7 +108,7 @@ public:
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /* Class definition for this class of element*/
-typedef Ucomplex::complex TSymCompArray[4];
+typedef Ucomplex::complex TSymCompArray[3];
     //pTDynamicsRec =  ^TDynamicsRec;
     //pTGeneratorVars = ^TGeneratorVars;
 
