@@ -223,42 +223,41 @@ namespace Sparse_Math
     }
     */
 
-    Tsparse_matrix* Tsparse_matrix::Add(Tsparse_matrix* b)
+    Tsparse_matrix Tsparse_matrix::Add(Tsparse_matrix* b)
     {
-        Tsparse_matrix* result = NULL;
+        Tsparse_matrix result; // Creates a memory space to store the result
         int addeval = 0, apos = 0, bpos = 0;
-        // Creates a memory space to store the result
-        result = new Tsparse_matrix;
+
         // First checks if the matrices have the same dimensions
         if ((Row != b->Row) || (col != b->col))
         {
-            result->sparse_matrix(1, 1);
-            result->Insert(0, 0, -1);
+            result.sparse_matrix(1, 1);
+            result.Insert(0, 0, -1);
         }
         else
         {
             apos = 0;
             bpos = 0;
-            result->sparse_matrix(Row, col);
+            result.sparse_matrix(Row, col);
             while ((apos < len) && (bpos < b->len))
             {
                 if ((data[apos][0] > b->data[bpos][0]) || ((data[apos][0] == b->data[bpos][0]) && (data[apos][1] > b->data[bpos][1])))
                 {
-                    result->Insert(b->data[bpos][0], b->data[bpos][1], b->data[bpos][2]);
+                    result.Insert(b->data[bpos][0], b->data[bpos][1], b->data[bpos][2]);
                     bpos++;
                 }
                 else
                 {
                     if ((data[apos][0] < b->data[bpos][0]) || ((data[apos][0] == b->data[bpos][0]) && (data[apos][1] < b->data[bpos][1])))
                     {
-                        result->Insert(data[apos][0], data[apos][1], data[apos][2]);
+                        result.Insert(data[apos][0], data[apos][1], data[apos][2]);
                         apos++;
                     }
                     else
                     {
                         addeval = data[apos][2] + b->data[bpos][2];
                         if (addeval != 0)
-                            result->Insert(data[apos][0], data[apos][1], addeval);
+                            result.Insert(data[apos][0], data[apos][1], addeval);
                         apos++;
                         bpos++;
                     }
@@ -267,12 +266,12 @@ namespace Sparse_Math
             // Inserts the remaining elements
             while (apos < (len - 1))
             {
-                result->Insert(data[apos][0], data[apos][1], data[apos + 1][2]);
+                result.Insert(data[apos][0], data[apos][1], data[apos + 1][2]);
                 apos++;
             }
             while (bpos < (b->len - 1))
             {
-                result->Insert(b->data[bpos][0], b->data[bpos][1], b->data[bpos + 1][2]);
+                result.Insert(b->data[bpos][0], b->data[bpos][1], b->data[bpos + 1][2]);
                 bpos++;
             }
         }
@@ -283,18 +282,16 @@ namespace Sparse_Math
 
 
 
-    Tsparse_matrix* Tsparse_matrix::Transpose()
+    Tsparse_matrix Tsparse_matrix::Transpose()
     {
-        Tsparse_matrix* result = NULL;
+        Tsparse_matrix result; // Creates a memory space to store the result
         std::vector < int > count, Index;
         int i = 0, rpos = 0;
-        // Creates a memory space to store the result
-        result = new Tsparse_matrix;
-        // new matrix with inversed row X col
-        result->sparse_matrix(col, Row);
+                // new matrix with inversed row X col
+        result.sparse_matrix(col, Row);
         // same number of elements
         for (int stop = len, i = 1; i <= stop; i++)
-            result->Insert(i, 0, 0);
+            result.Insert(i, 0, 0);
         count.resize(col + 1);
         Index.resize(col + 1);
         // Initialize all to 0
@@ -315,13 +312,13 @@ namespace Sparse_Math
             rpos = Index[data[i][1]];
             Index[data[i][1]]++;
             // transpose row=col
-            result->data[rpos][0] = data[i][1];
+            result.data[rpos][0] = data[i][1];
 
             // transpose col=row
-            result->data[rpos][1] = data[i][0];
+            result.data[rpos][1] = data[i][0];
 
             // same value
-            result->data[rpos][2] = data[i][2];
+            result.data[rpos][2] = data[i][2];
         }
 
         // the above method ensures
@@ -350,26 +347,25 @@ namespace Sparse_Math
 
 
 
-    Tsparse_matrix* Tsparse_matrix::multiply(Tsparse_matrix* b)
+    Tsparse_matrix Tsparse_matrix::multiply(Tsparse_matrix* B)
     {
-        Tsparse_matrix* result = NULL;
+        Tsparse_matrix result; // Creates a memory space to store the result
         int sum = 0, c = 0, tempa = 0, tempb = 0, r = 0, apos = 0, bpos = 0;
-        // Creates a memory space to store the result
-        result = new Tsparse_matrix;
         // First checks if the matrices have the right dimensions
-        if (col != b->Row)
+        if (col != B->Row)
         {
-            result->sparse_matrix(1, 1);
-            result->Insert(0, 0, -1);    //Invalid multiplication
+            result.sparse_matrix(1, 1);
+            result.Insert(0, 0, -1);    //Invalid multiplication
         }
         else
         {
             // transpose b to compare row
             // and col values and to add them at the end
-            b = b->Transpose();
+            Tsparse_matrix b_ = B->Transpose();
+            Tsparse_matrix *b = &b_; // added to minimize changes to the code
             // result matrix of dimension row X b.col
             // however b has been transposed, hence row X b.row
-            result->sparse_matrix(Row, b->Row);
+            result.sparse_matrix(Row, b->Row);
             // iterate over all elements of A (this matrix)
             apos = 0;
             while (apos < len)
@@ -413,7 +409,7 @@ namespace Sparse_Math
                     // insert sum obtained in result[r]
                     // if its not equal to 0
                     if (sum != 0)
-                        result->Insert(r, c, sum);
+                        result.Insert(r, c, sum);
                     while ((bpos < b->len) && (b->data[bpos][0] == c))
                         bpos++;    // Jump to next column
                 }
@@ -428,26 +424,24 @@ namespace Sparse_Math
 
     void Tsparse_matrix::Sort()
     {
-        Tsparse_matrix* myTemp;
+        Tsparse_matrix myTemp;
 
-        myTemp = new Tsparse_matrix;
-
-        myTemp->Reset();
+        myTemp.Reset();
 
         for (int idx = 0; idx <= Row; idx++)
         {
             for (int i = 0; i < data.size(); i++)
             {
                 if (data[i][0] == idx)
-                    myTemp->Insert(data[i][0], data[i][1], data[i][2]);
+                    myTemp.Insert(data[i][0], data[i][1], data[i][2]);
             }
         }
         // moves the new data into the local object
-        for (int i = 0; i < myTemp->data.size(); i++)
+        for (int i = 0; i < myTemp.data.size(); i++)
         {
-            data[i][0] = myTemp->data[i][0];
-            data[i][1] = myTemp->data[i][1];
-            data[i][2] = myTemp->data[i][2];
+            data[i][0] = myTemp.data[i][0];
+            data[i][1] = myTemp.data[i][1];
+            data[i][2] = myTemp.data[i][2];
         }
     }
 
@@ -660,43 +654,41 @@ namespace Sparse_Math
 
 
 
-    TSparse_Complex* TSparse_Complex::Add(TSparse_Complex* b)
+    TSparse_Complex TSparse_Complex::Add(TSparse_Complex* b)
     {
-        TSparse_Complex* result = NULL;
+        TSparse_Complex result; // Creates a memory space to store the result
         complex addeval;
         int apos = 0, bpos = 0;
-        // Creates a memory space to store the result
-        result = new TSparse_Complex;
         // First checks if the matrices have the same dimensions
         if ((Row != b->Row) || (col != b->col))
         {
-            result->sparse_matrix_Cmplx(1, 1);
-            result->Insert(0, 0, cmplx(-1, 0));
+            result.sparse_matrix_Cmplx(1, 1);
+            result.Insert(0, 0, cmplx(-1, 0));
         }
         else
         {
             apos = 0;
             bpos = 0;
-            result->sparse_matrix_Cmplx(Row, col);
+            result.sparse_matrix_Cmplx(Row, col);
             while ((apos < len) && (bpos < b->len))
             {
                 if ((CData[apos].Row > b->CData[bpos].Row) || ((CData[apos].Row == b->CData[bpos].Row) && (CData[apos].col > b->CData[bpos].col)))
                 {
-                    result->Insert(b->CData[bpos].Row, b->CData[bpos].col, b->CData[bpos].Value);
+                    result.Insert(b->CData[bpos].Row, b->CData[bpos].col, b->CData[bpos].Value);
                     bpos++;
                 }
                 else
                 {
                     if ((CData[apos].Row < b->CData[bpos].Row) || ((CData[apos].Row == b->CData[bpos].Row) && (CData[apos].col < b->CData[bpos].col)))
                     {
-                        result->Insert(CData[apos].Row, CData[apos].col, CData[apos].Value);
+                        result.Insert(CData[apos].Row, CData[apos].col, CData[apos].Value);
                         apos++;
                     }
                     else
                     {
                         addeval = cadd(CData[apos].Value, b->CData[bpos].Value);
                         if ((addeval.re != 0) && (addeval.im != 0))
-                            result->Insert(CData[apos].Row, CData[apos].col, addeval);
+                            result.Insert(CData[apos].Row, CData[apos].col, addeval);
                         apos++;
                         bpos++;
                     }
@@ -705,12 +697,12 @@ namespace Sparse_Math
             // Inserts the remaining elements
             while (apos < (len - 1))
             {
-                result->Insert(CData[apos].Row, CData[apos].col, CData[apos + 1].Value);
+                result.Insert(CData[apos].Row, CData[apos].col, CData[apos + 1].Value);
                 apos++;
             }
             while (bpos < (b->len - 1))
             {
-                result->Insert(b->CData[bpos].Row, b->CData[bpos].col, b->CData[bpos + 1].Value);
+                result.Insert(b->CData[bpos].Row, b->CData[bpos].col, b->CData[bpos + 1].Value);
                 bpos++;
             }
         }
@@ -735,21 +727,20 @@ namespace Sparse_Math
 
 
 
-    TSparse_Complex* TSparse_Complex::Transpose()
+    TSparse_Complex TSparse_Complex::Transpose()
     {
-        TSparse_Complex* result = NULL;
+        TSparse_Complex result; // Creates a memory space to store the result
         std::vector < int > count, Index;
         int i = 0, j = 0, k = 0, rpos = 0;
-        // Creates a memory space to store the result
-        result = new TSparse_Complex;
+        
         // new matrix with inversed row X col
-        result->sparse_matrix_Cmplx(col, Row);
+        result.sparse_matrix_Cmplx(col, Row);
         // same number of elements
         j = 0;
         k = 0;
         for (int stop = len, i = 1; i <= stop; i++)
         {
-            result->Insert(j, k, CZero);
+            result.Insert(j, k, CZero);
             k++;
             if (k == Row)
             {
@@ -777,13 +768,13 @@ namespace Sparse_Math
             rpos = Index[CData[i].col];
             Index[CData[i].col]++;
             // transpose row=col
-            result->CData[rpos].Row = CData[i].col;
+            result.CData[rpos].Row = CData[i].col;
 
             // transpose col=row
-            result->CData[rpos].col = CData[i].Row;
+            result.CData[rpos].col = CData[i].Row;
 
             // same value
-            result->CData[rpos].Value = CData[i].Value;
+            result.CData[rpos].Value = CData[i].Value;
         }
 
         // the above method ensures
@@ -796,18 +787,17 @@ namespace Sparse_Math
 
 
 
-    TSparse_Complex* TSparse_Complex::TransposeConj()
+    TSparse_Complex TSparse_Complex::TransposeConj()
     {
-        TSparse_Complex* result = NULL;
+        TSparse_Complex result; // Creates a memory space to store the result
         std::vector < int > count, Index;
         int i = 0, rpos = 0;
-        // Creates a memory space to store the result
-        result = new TSparse_Complex;
+        
         // new matrix with inversed row X col
-        result->sparse_matrix_Cmplx(col, Row);
+        result.sparse_matrix_Cmplx(col, Row);
         // same number of elements
         for (int stop = len, i = 1; i <= stop; i++)
-            result->Insert(i, 0, cmplx(0, 0));
+            result.Insert(i, 0, cmplx(0, 0));
         count.resize( col + 1 );
         Index.resize( col + 1 );
         // Initialize all to 0
@@ -828,13 +818,13 @@ namespace Sparse_Math
             rpos = Index[CData[i].col];
             Index[CData[i].col]++;
             // transpose row=col
-            result->CData[rpos].Row = CData[i].col;
+            result.CData[rpos].Row = CData[i].col;
 
             // transpose col=row
-            result->CData[rpos].col = CData[i].Row;
+            result.CData[rpos].col = CData[i].Row;
 
             // same value
-            result->CData[rpos].Value = conjg(CData[i].Value);
+            result.CData[rpos].Value = conjg(CData[i].Value);
         }
 
         // the above method ensures
@@ -862,27 +852,28 @@ namespace Sparse_Math
     */
 
 
-    TSparse_Complex* TSparse_Complex::multiply(TSparse_Complex* b)
+    TSparse_Complex TSparse_Complex::multiply(TSparse_Complex* B)
     {
-        TSparse_Complex* result = NULL;
+        TSparse_Complex result; // Creates a memory space to store the result
         complex sum;
         int c = 0, tempa = 0, tempb = 0, r = 0, apos = 0, bpos = 0;
-        // Creates a memory space to store the result
-        result = new TSparse_Complex;
+        
         // First checks if the matrices have the right dimensions
-        if (col != b->Row)
+        if (col != B->Row)
         {
-            result->sparse_matrix_Cmplx(1, 1);
-            result->Insert(0, 0, cmplx(-1, 0));    //Invalid multiplication
+            result.sparse_matrix_Cmplx(1, 1);
+            result.Insert(0, 0, cmplx(-1, 0));    //Invalid multiplication
         }
         else
         {
             // transpose b to compare row
             // and col values and to add them at the end
-            b = b->Transpose();
+            TSparse_Complex b_ = B->Transpose();
+            TSparse_Complex *b = &b_; // added to minimize changes to the code
+
             // result matrix of dimension row X b.col
             // however b has been transposed, hence row X b.row
-            result->sparse_matrix_Cmplx(Row, b->Row);
+            result.sparse_matrix_Cmplx(Row, b->Row);
             // iterate over all elements of A (this matrix)
             apos = 0;
             while (apos < len)
@@ -926,7 +917,7 @@ namespace Sparse_Math
                     // insert sum obtained in result[r]
                     // if its not equal to 0
                     if ((sum.re != 0) && (sum.im != 0))
-                        result->Insert(r, c, sum);
+                        result.Insert(r, c, sum);
                     while ((bpos < b->len) && (b->CData[bpos].Row == c))
                         bpos++;    // Jump to next column
                 }
@@ -941,26 +932,24 @@ namespace Sparse_Math
 
     void TSparse_Complex::Sort()
     {
-        TSparse_Complex* myTemp;
+        TSparse_Complex myTemp;
 
-        myTemp = new TSparse_Complex;
-
-        myTemp->Reset();
+        myTemp.Reset();
 
         for (int idx = 0; idx <= Row; idx++)
         {
             for (int i = 0; i < CData.size(); i++)
             {
                 if (CData[i].Row == idx)
-                    myTemp->Insert(CData[i].Row, CData[i].col, CData[i].Value);
+                    myTemp.Insert(CData[i].Row, CData[i].col, CData[i].Value);
             }
         }
         // moves the new data into the local object
-        for (int i = 0; i < myTemp->CData.size(); i++)
+        for (int i = 0; i < myTemp.CData.size(); i++)
         {
-            CData[i].Row    = myTemp->CData[i].Row;
-            CData[i].col    = myTemp->CData[i].col;
-            CData[i].Value  = myTemp->CData[i].Value;
+            CData[i].Row    = myTemp.CData[i].Row;
+            CData[i].col    = myTemp.CData[i].col;
+            CData[i].Value  = myTemp.CData[i].Value;
         }
     }
 
