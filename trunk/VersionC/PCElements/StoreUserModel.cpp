@@ -152,7 +152,7 @@ void TStoreUserModel::Set_Name(const String Value)
 		if(!FuncError)
 			FEdit = (StoreUserModelProc__16) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (StoreUserModelProc__20) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (StoreUserModelProc__20) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateModel")), "UpdateModel");
 		if(!FuncError)
 			FDelete = (StoreUserModelProc__14) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
@@ -294,7 +294,7 @@ void TStoreDynaModel::Set_Name(const String Value)
 		if(!FuncError)
 			FEdit = (StoreUserModelProc__3) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Edit")), "Edit");
 		if(!FuncError)
-			FUpdateModel = (StoreUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateMode")), "UpdateMode");
+			FUpdateModel = (StoreUserModelProc__7) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("UpdateModel")), "UpdateModel");
 		if(!FuncError)
 			FDelete = (StoreUserModelProc__1) CheckFuncError((void *) GetProcAddress((HMODULE) FHandle, ("Delete")), "Delete");
 		if(!FuncError)
