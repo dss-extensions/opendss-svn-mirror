@@ -197,7 +197,7 @@ namespace DSSPlot
           /*# with ActiveCircuit[ActiveActor] do */
             {
                 auto with0 = ActiveCircuit[ActiveActor];
-                if ((abs(1.0 - abs(with0->Buses[i1]->x / with0->Buses[i2]->x)) < Eps) && (abs(1.0 - abs(with0->Buses[i1]->y / with0->Buses[i2]->y)) < Eps))
+                if ((abs(1.0 - abs(with0->Buses[i1 - 1]->x / with0->Buses[i2 - 1]->x)) < Eps) && (abs(1.0 - abs(with0->Buses[i1 - 1]->y / with0->Buses[i2 - 1]->y)) < Eps))
                     result = true;
                 else
                     result = false;
@@ -263,14 +263,14 @@ namespace DSSPlot
     {
         /* Only label a bus once */
         if (Idx > 0)
-            if (Length(BusLabels[Idx]) == 0)
+            if (Length(BusLabels[Idx - 1]) == 0)
                 switch (PlotType)
                 {
                 case ptMeterZones:
-                    BusLabels[Idx] = BusLabel + "(" + FeederName + ")";
+                    BusLabels[Idx - 1] = BusLabel + "(" + FeederName + ")";
                     break;
                 default:
-                    BusLabels[Idx] = BusLabel;
+                    BusLabels[Idx - 1] = BusLabel;
                 }
     }
 
@@ -280,8 +280,8 @@ namespace DSSPlot
         if (CoordinateSame(Idx1, Idx2))
         {
             /* Special label for overlapping labels */
-            BusLabels[Idx1] = ""; // Force label to change
-            BusLabels[Idx2] = "";
+            BusLabels[Idx1 - 1] = ""; // Force label to change
+            BusLabels[Idx2 - 1] = "";
             DoBusLabel(Idx1, ActiveCircuit[ActiveActor]->BusList.Get(Idx1) + "/" + ActiveCircuit[ActiveActor]->BusList.Get(Idx2));
         }
         else
@@ -348,7 +348,7 @@ namespace DSSPlot
                                 AddNewLine(with0->Buses[Bus1Idx]->x, with0->Buses[Bus1Idx]->y, with0->Buses[Bus2Idx]->x, with0->Buses[Bus2Idx]->y, GetColor(), Thickness(), LineStyleType, Dots, "Line." + pLine->LName, false, 0, with0->NodeMarkerCode, with0->NodeMarkerWidth);
                             }
                         if (Labels)
-                            DoBusLabels(Bus1Idx, Bus2Idx);
+                            DoBusLabels(Bus1Idx + 1, Bus2Idx + 1);
                     }
                 }
                 pLine = (TLineObj*) with0->Lines.Get_Next();
@@ -380,7 +380,7 @@ namespace DSSPlot
                         GICThickness = min<int>(7, Round(5.0 * (MaxGICCurrent(pGICLine) / MaxScale)));
                         AddNewLine(with1->Buses[Bus1Idx]->x, with1->Buses[Bus1Idx]->y, with1->Buses[Bus2Idx]->x, with1->Buses[Bus2Idx]->y, Color1, GICThickness, LineStyleType, Dots, "GICLine." + pGICLine->LName, false, 0, with1->NodeMarkerCode, with1->NodeMarkerWidth);
                         if (Labels)
-                            DoBusLabels(Bus1Idx, Bus2Idx);
+                            DoBusLabels(Bus1Idx + 1, Bus2Idx + 1);
                     }
                 }
                 pGICLine = (TGICLineObj*) pGICLineClass->ElementList.Get_Next();
@@ -573,7 +573,7 @@ namespace DSSPlot
 
         TDSSGraphProperties* ActiveGraphProps = new TDSSGraphProperties;
 
-        BusCount.resize(ActiveCircuit[ActiveActor]->NumBuses + 1);
+        BusCount.resize(ActiveCircuit[ActiveActor]->NumBuses);
         if (DaisyBusList.empty())
         {
             /* If Daisy Bus List not filled, then fill it with Generator Buses by default */
@@ -593,7 +593,7 @@ namespace DSSPlot
         {
             Idx = ActiveCircuit[ActiveActor]->BusList.Find(DaisyBusList[i]);
             if (Idx > 0)
-                BusCount[Idx]++;
+                BusCount[Idx - 1]++;
         }
         //Randomize;
 
@@ -602,16 +602,16 @@ namespace DSSPlot
         Radius = 0.005 * DaisySize * (ActiveGraphProps->Xmax - ActiveGraphProps->Xmin);
         for (int stop = ActiveCircuit[ActiveActor]->NumBuses, i = 1; i <= stop; i++)
         {
-            if ((BusCount[i] > 0) && ActiveCircuit[ActiveActor]->Buses[i]->CoordDefined)
+            if ((BusCount[i - 1] > 0) && ActiveCircuit[ActiveActor]->Buses[i - 1]->CoordDefined)
             {
                 StartAngle = TwoPi; /* * Random */
-                Angle = (double(TwoPi) / BusCount[i]); // Radians
-                for (int stop = BusCount[i], j = 1; j <= stop; j++)
+                Angle = (double(TwoPi) / BusCount[i - 1]); // Radians
+                for (int stop = BusCount[i - 1], j = 1; j <= stop; j++)
                 {
-                    Xc = ActiveCircuit[ActiveActor]->Buses[i]->x + 2.0 * Radius * cos(Angle * (j - 1) + StartAngle);
-                    Yc = ActiveCircuit[ActiveActor]->Buses[i]->y + 2.0 * Radius * sin(Angle * (j - 1) + StartAngle);
-                    AddNewLine(ActiveCircuit[ActiveActor]->Buses[i]->x, ActiveCircuit[ActiveActor]->Buses[i]->y, Xc, Yc, 0x000000FF, 1, 0, false, "Gen", false, 0, 0, 0);
-                    AddNewCircle(Xc, Yc, Radius, 0x000000FF, 0x00FFEA00);
+                    Xc = ActiveCircuit[ActiveActor]->Buses[i - 1]->x + 2.0 * Radius * cos(Angle * (j - 1) + StartAngle);
+                    Yc = ActiveCircuit[ActiveActor]->Buses[i - 1]->y + 2.0 * Radius * sin(Angle * (j - 1) + StartAngle);
+                    AddNewLine(ActiveCircuit[ActiveActor]->Buses[i - 1]->x, ActiveCircuit[ActiveActor]->Buses[i - 1]->y, Xc, Yc, clRed, 1, 0, false, "Gen", false, 0, 0, 0);
+                    AddNewCircle(Xc, Yc, Radius, clRed, clYellow);
                 }
             }
         }
@@ -619,7 +619,7 @@ namespace DSSPlot
         /* Put Labels on */
         if (Labels)
             for (int stop = ActiveCircuit[ActiveActor]->NumBuses, i = 1; i <= stop; i++)
-                if ((BusCount[i] > 0) && ActiveCircuit[ActiveActor]->Buses[i]->CoordDefined)
+                if ((BusCount[i - 1] > 0) && ActiveCircuit[ActiveActor]->Buses[i - 1]->CoordDefined)
                     DoBusLabel(i, ActiveCircuit[ActiveActor]->BusList.Get(i));
         BusCount.resize(0); /* Clean up allocated memory */
     }
@@ -931,7 +931,7 @@ namespace DSSPlot
                             S = String(ActiveCircuit[ActiveActor]->FCaseName) + ":" + QuantityString() + " " + Format("max=%.3g", MaxScale);
                             Set_ChartCaption(S);
                             DoCircuitPlot();
-                            //MarkSpecialClasses();
+                            MarkSpecialClasses();
                         }
                         break;
                         case ptGeneralDataPlot:
@@ -1176,7 +1176,7 @@ namespace DSSPlot
         Bases[1]            = 1.0;
         Bases[2]            = 1.0;
         Color1              = 0x00FF0000;
-        Color2              = 0x0000FF00;
+        Color2              = 0x00008000;
         Color3              = 0x000000FF;
         TriColorMax         = 0.85;
         TriColorMid         = 0.50;
@@ -1192,28 +1192,28 @@ namespace DSSPlot
         switch (Code)
         {
         case 1:
-            result = 0; // psSolid;
+            result = psSolid;
             break;
         case 2:
-            result = 1; // psDash;
+            result = psDash;
             break;
         case 3:
-            result = 2; // psDot;
+            result = psDot;
             break;
         case 4:
-            result = 3; // psDashDot;
+            result = psDashDot;
             break;
         case 5:
-            result = 4; // psDashDotDot;
+            result = psDashDotDot;
             break;
         case 6:
-            result = 5; // psClear;
+            result = psClear;
             break;
         case 7:
-            result = 6; // psInsideFrame;
+            result = psInsideFrame;
             break;
         default:
-            result = 7; // psSolid;
+            result = psSolid;
         }
         return result;
     }
@@ -2395,8 +2395,8 @@ namespace DSSPlot
                     // Allocate arrays for plotting
                     Xarray.resize(NumberofRecords);
                     for (int stop = Channels.size(), i = 0; i < stop; i++)
-                        Yarray[i].resize(NumberofRecords + 1);
-                    iCount = 0;  // Loop count
+                        Yarray[i].resize(NumberofRecords);
+                    iCount = -1;  // Loop count
                     while (!(with0->MonitorStream.Position() >= with0->MonitorStream.Size()))
                     {
                         /*# with MonitorStream do */
@@ -2438,7 +2438,7 @@ namespace DSSPlot
                     ActiveColorIdx = 0;
                     for (int stop = Channels.size(), i = 0; i < stop; i++)
                     {
-                        AddNewCurve(&(Xarray[0]), &(Yarray[i][0]), iCount, NextColor(), 2, 0, false, 1, ChannelNames[Channels[i]]);
+                        AddNewCurve(&(Xarray[0]), &(Yarray[i][0]), iCount + 1, NextColor(), 2, 0, false, 1, ChannelNames[Channels[i]]);
                     }
                     if (ItsAFreqScan)
                         Str = "Frequency, Hz";
@@ -2640,9 +2640,9 @@ namespace DSSPlot
                                         if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0))
                                         {
                                             if (Bus1->kVBase < 1.0)
-                                                LineType = 1; // psDot;
+                                                LineType = psDot;
                                             else
-                                                LineType = 0; // psSolid;
+                                                LineType = psSolid;
                                             MyColor = ColorArray[iphs - 1];
                                             puV1 = cabs(with0->Solution->NodeV[Bus1->GetRef(Bus1->FindIdx(iphs))]) / Bus1->kVBase / DenomLN;
                                             puV2 = cabs(with0->Solution->NodeV[Bus2->GetRef(Bus2->FindIdx(iphs))]) / Bus2->kVBase / DenomLN;
@@ -2659,9 +2659,9 @@ namespace DSSPlot
                                             if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0))
                                             {
                                                 if (Bus1->kVBase < 1.0)
-                                                    LineType = 1; // psDot;
+                                                    LineType = psDot;
                                                 else
-                                                    LineType = 0; //psSolid;
+                                                    LineType = psSolid;
                                                 MyColor = ColorArray[iphs - 1];
                                                 puV1 = cabs(with0->Solution->NodeV[Bus1->GetRef(Bus1->FindIdx(iphs))]) / Bus1->kVBase / DenomLN;
                                                 puV2 = cabs(with0->Solution->NodeV[Bus2->GetRef(Bus2->FindIdx(iphs))]) / Bus2->kVBase / DenomLN;
@@ -2681,9 +2681,9 @@ namespace DSSPlot
                                             if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0) && (Bus1->FindIdx(iphs2) > 0) && (Bus2->FindIdx(iphs2) > 0))
                                             {
                                                 if (Bus1->kVBase < 1.0)
-                                                    LineType = 1; // psDot;
+                                                    LineType = psDot;
                                                 else
-                                                    LineType = 0; // psSolid;
+                                                    LineType = psSolid;
                                                 MyColor = ColorArray[iphs - 1];
                                                 /*# with Solution do */
                                                 {
@@ -2707,9 +2707,9 @@ namespace DSSPlot
                                         if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0) && (Bus1->FindIdx(iphs2) > 0) && (Bus2->FindIdx(iphs2) > 0))
                                         {
                                             if (Bus1->kVBase < 1.0)
-                                                LineType = 1; // psDot;
+                                                LineType = psDot;
                                             else
-                                                LineType = 0; // psSolid;
+                                                LineType = psSolid;
                                             MyColor = ColorArray[iphs - 1];
                                             /*# with Solution do */
                                             {
@@ -2734,9 +2734,9 @@ namespace DSSPlot
                                             if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0) && (Bus1->FindIdx(iphs2) > 0) && (Bus2->FindIdx(iphs2) > 0))
                                             {
                                                 if (Bus1->kVBase < 1.0)
-                                                    LineType = 1; // psDot;
+                                                    LineType = psDot;
                                                 else
-                                                    LineType = 0; // psSolid;
+                                                    LineType = psSolid;
                                                 MyColor = ColorArray[iphs - 1];
                                                 /*# with Solution do */
                                                 {
@@ -2755,9 +2755,9 @@ namespace DSSPlot
                                     if ((Bus1->FindIdx(iphs) > 0) && (Bus2->FindIdx(iphs) > 0))
                                     {
                                         if (Bus1->kVBase < 1.0)
-                                            LineType = 1; // psDot;
+                                            LineType = psDot;
                                         else
-                                            LineType = 0; // psSolid;
+                                            LineType = psSolid;
                                         MyColor = ColorArray[iphs - 1];
                                         puV1 = cabs(with0->Solution->NodeV[Bus1->GetRef(Bus1->FindIdx(iphs))]) / Bus1->kVBase / DenomLN;
                                         puV2 = cabs(with0->Solution->NodeV[Bus2->GetRef(Bus2->FindIdx(iphs))]) / Bus2->kVBase / DenomLN;
@@ -3305,7 +3305,7 @@ namespace DSSPlot
                                 AddNewLine(with0->Buses[Bus1Idx]->x, with0->Buses[Bus1Idx]->y, with0->Buses[Bus2Idx]->x, with0->Buses[Bus2Idx]->y, GetColor(), Thickness(), LineStyleType, Dots, Format("Line.%s", pLine->LName.c_str()), false, 0, with0->NodeMarkerCode, with0->NodeMarkerWidth);
                             }
                         if (Labels)
-                            DoBusLabels(Bus1Idx, Bus2Idx);
+                            DoBusLabels(Bus1Idx + 1, Bus2Idx + 1);
                     }
                 }
                 pLine = (TLineObj*) with0->Lines.Get_Next();
