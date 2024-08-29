@@ -11409,7 +11409,7 @@ char* __stdcall ReclosersS(int mode, char* arg)
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			if (elem->FPresentState == CTRL_CLOSE)
+			if (elem->get_State() == CTRL_CLOSE)
 				result = "closed";
 			else
 				result = "open";
@@ -11421,9 +11421,9 @@ char* __stdcall ReclosersS(int mode, char* arg)
 		{
 			S = arg;
 			if (LowerCase(S)[0] == 'c')
-				elem->FPresentState = CTRL_CLOSE;
+				elem->set_State(CTRL_CLOSE);
 			else
-				elem->FPresentState = CTRL_OPEN;;
+				elem->set_State(CTRL_OPEN);
 		}
 		break;
 	case 8:													// Reclosers.NormalState read  TBD
@@ -12381,12 +12381,14 @@ char* __stdcall RelaysS(int mode, char* arg)
 		break;
 	case 6:													// Relays.State read 
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem->nstates == CTRL_CLOSE)
+		if (elem->get_State() == CTRL_CLOSE)
 		{
 			result = "closed";
 		}
-		else 
+		else
+		{
 			result = "open";
+		}
 		break;
 	case 7:													// Relays.State write 
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
@@ -12394,21 +12396,26 @@ char* __stdcall RelaysS(int mode, char* arg)
 		{
 			if (LowerCase((string)arg)[0] == 'c')
 			{
-				elem->nstates = CTRL_CLOSE;
+				elem->set_State(CTRL_CLOSE);
 			}
-			elem->nstates = CTRL_OPEN;
+			else
+			{
+				elem->set_State(CTRL_OPEN);
+			}
 		}
 		else
 			result = "open";
 		break;
 	case 8:													// Relays.NormalState read 
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem->nstates == CTRL_CLOSE)
+		if (elem->get_NormalState() == CTRL_CLOSE)
 		{
 			result = "closed";
 		}
 		else
+		{
 			result = "open";
+		}
 		break;
 	case 9:													// Relays.NormalState write 
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
@@ -12416,9 +12423,12 @@ char* __stdcall RelaysS(int mode, char* arg)
 		{
 			if (LowerCase((string)arg)[0] == 'c')
 			{
-				elem->nstates = CTRL_CLOSE;
+				elem->set_NormalState(CTRL_CLOSE);
 			}
-			elem->nstates = CTRL_OPEN;
+			else
+			{
+				elem->set_NormalState(CTRL_OPEN);
+			}
 		}
 		break;
 	default:
