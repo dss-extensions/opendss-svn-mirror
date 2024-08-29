@@ -1,4 +1,4 @@
-﻿#ifndef FmonitorH
+#ifndef FmonitorH
 #define FmonitorH
 
 #include "System.h"
@@ -203,7 +203,7 @@ private:
 	double Get_power_trans(int ActorID);
 	double Coef_Phi(double X);  // a coeffient
 public:
-	VLNodeVars::pNodeArray pNodeFMs;
+	VLNodeVars::TVLNodeVars* pNodeFMs;
 	int Mode;
        //MonitorStream :TMemoryStream;
 	int SampleCount;  // This is the number of samples taken

@@ -1,4 +1,4 @@
-﻿
+
 
 #pragma hdrstop
 
@@ -1797,7 +1797,7 @@ void TGeneric5Obj::InfoPublish(int ActorID)
 	{
 		/*# with FMonObj->pNodeFMs^[NdNumInCluster] do */
 		{
-			auto with0 = (*FMonObj->pNodeFMs)[NdNumInCluster];
+			auto with0 = (FMonObj->pNodeFMs)[NdNumInCluster];
 			switch(ctrl_mode)
 			{
 				case 	1:
