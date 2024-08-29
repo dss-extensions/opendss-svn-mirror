@@ -82,7 +82,7 @@ namespace ExportResults
             {
               auto with0 = ActiveCircuit[ActiveActor];
               {
-                bref = with0->MapNodeToBus[Nref].BusRef;
+                bref = with0->MapNodeToBus[Nref - 1].BusRef;
                 if ( with0->Buses[bref - 1]->kVBase != 0.0 )
                   Vpu = Vmag / with0->Buses[bref - 1]->kVBase;
                 else
@@ -585,7 +585,7 @@ namespace ExportResults
       {
         auto with0 = ActiveCircuit[ActiveActor];
         {
-           Write( F, Format(", %-.3g ", (with0->Buses[with0->MapNodeToBus[pElem->NodeRef[0]].BusRef - 1]->kVBase)));
+           Write( F, Format(", %-.3g ", (with0->Buses[with0->MapNodeToBus[pElem->NodeRef[0] - 1].BusRef - 1]->kVBase)));
         }
       }
       WriteLn( F );

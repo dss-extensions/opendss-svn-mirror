@@ -320,7 +320,7 @@ int Calc_C_Matrix( PString PLinks, int NLinks )
       {
         /*# with MapNodeToBus^[i] do */
         {
-          auto with1 = with0->MapNodeToBus[i];
+          auto with1 = with0->MapNodeToBus[i - 1];
           Node_Names.push_back( Format( "%s.%-d",  LowerCase( with0->BusList.Get( with1.BusRef ) ).c_str(), with1.NodeNum));
         }
       }
