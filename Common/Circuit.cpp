@@ -587,7 +587,8 @@ namespace Circuit
 
     void TDSSCircuit::AppendIsources(String myPath, int BusNum, String LinkBranch)
     {
-        int jj = 0, kk = 0;
+        size_t jj = 0;
+        int kk = 0;
         String text, BusName;
         TTextRec myFile;
         System::AssignFile(myFile, myPath);
@@ -600,8 +601,8 @@ namespace Circuit
                 SetElementActive(LinkBranch);
                 BusName = with0->get_FActiveCktElement()->GetBus(BusNum);
                 jj = BusName.find('.');     // removes the dot
-                if (jj > 0)
-                    BusName = BusName.substr(0, static_cast<size_t>(jj) - 1);
+                if (jj != String::npos)
+                    BusName = BusName.substr(0, jj - 1);
                 SetActiveBus(BusName);
                 Bus::TDSSBus& pBus = *Buses[ActiveBusIndex];
                 for (int stop = pBus.get_FNumNodesThisBus(), kk = 1; kk <= stop; kk++)
@@ -629,7 +630,8 @@ namespace Circuit
         String Temp_txt, Temp_txt2, text;
         std::vector < String > Xtra, File_Struc;
         bool Str_Found = false;
-        int Local_Temp = 0, FS_Idx = 0, FS_Idx1 = 0, FS_Idx2 = 0;
+        size_t Local_Temp = 0;
+        int FS_Idx = 0, FS_Idx1 = 0, FS_Idx2 = 0;
         String Reference[6/*# range 0..5*/];
         Reference[0] = "Redirect EnergyM";
         Reference[1] = "Redirect Monitor";
@@ -661,7 +663,7 @@ namespace Circuit
             for (int stop = 5, FS_Idx1 = 0; FS_Idx1 <= stop; FS_Idx1++)
             {
                 Local_Temp = File_Struc[FS_Idx].find(Reference[FS_Idx1]);
-                Str_Found = (Local_Temp != 0) || Str_Found;
+                Str_Found = (Local_Temp != String::npos) || Str_Found;
             }
             if (Str_Found)
             {
@@ -684,13 +686,13 @@ namespace Circuit
         for (int stop = (File_Struc.size() - 1), FS_Idx = 0; FS_Idx <= stop; FS_Idx++)
         {
             Local_Temp = File_Struc[FS_Idx].find("Redirect zone");
-            if (Local_Temp == 0)
+            if (Local_Temp == String::npos)
             {
                 Local_Temp = File_Struc[FS_Idx].find("Redirect EnergyM");
-                if (Local_Temp == 0)
+                if (Local_Temp == String::npos)
                 {
                     Local_Temp = File_Struc[FS_Idx].find("Redirect Monitor");
-                    if (Local_Temp == 0)
+                    if (Local_Temp == String::npos)
                         System::WriteLn(myFile, File_Struc[FS_Idx]);
                 }
             }
@@ -706,10 +708,10 @@ namespace Circuit
         while (FS_Idx != -1)
         {
             Local_Temp = File_Struc[FS_Idx].find("Redirect zone");
-            if (Local_Temp == 0)
+            if (Local_Temp == String::npos)
             {
                 Local_Temp = File_Struc[FS_Idx].find("Redirect ");
-                if (Local_Temp != 0)
+                if (Local_Temp != String::npos)
                 {
                     text = regex_replace(File_Struc[FS_Idx], std::regex("Redirect "), "");
                     for (int stop = NumCkts, FS_Idx1 = 2; FS_Idx1 <= stop; FS_Idx1++)
@@ -732,7 +734,7 @@ namespace Circuit
             while (FS_Idx1 != -1)                      // Writes the global files
             {
                 Local_Temp = File_Struc[FS_Idx1].find("Redirect zone");
-                if (Local_Temp == 0)
+                if (Local_Temp == String::npos)
                 {
                     System::WriteLn(myFile, File_Struc[FS_Idx1]);
                     FS_Idx1++;
@@ -743,7 +745,7 @@ namespace Circuit
             for (int stop = (File_Struc.size() - 1), FS_Idx1 = 0; FS_Idx1 <= stop; FS_Idx1++)   // Writes the zone files
             {
                 Local_Temp = File_Struc[FS_Idx1].find("Redirect zone_" + IntToStr(FS_Idx));
-                if (Local_Temp != 0)
+                if (Local_Temp != String::npos)
                 {
                     text = regex_replace(File_Struc[FS_Idx1], std::regex("zone_" + IntToStr(FS_Idx) + DIRSEP_STR), "");
                     System::WriteLn(myFile, text);
@@ -1026,7 +1028,7 @@ namespace Circuit
             do
             {
                 TextCmd = RunMeTIS(DSSDirectory + MeTISCmd + " \"" + Filename + "\" " + IntToStr(Num_Pieces));  // Executes MeTIS
-                Flag = (TextCmd.find("I detected an error") < 0);
+                Flag = (TextCmd.find("I detected an error") == String::npos);
                 if (Flag)       // The # of edges was wrong, use the one proposed by MeTIS
                 {
                     TextCmd = GetNumEdges(TextCmd);                     // Gest the # of edges proposed by MeTIS

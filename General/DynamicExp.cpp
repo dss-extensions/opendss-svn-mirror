@@ -365,12 +365,13 @@ int TDynamicExpObj::Get_Closer_Op(String myExp, String& myOp, int& OpCode)
     int result = 0;
     bool SetMark = false;  // For validating special chars
 
-    int myPos = 0, idx = 0;
+    size_t myPos = 0;
+    int idx = 0;
     result = 10000;
     for (int stop = /*# High( myOps ) */ 28, idx = 0; idx <= stop; idx++)
     {
         myPos = myExp.find(myOps[idx]);
-        if ((myPos < result) && (myPos >= 0))
+        if ((((int) myPos) < result) && (myPos != String::npos))
         {
             SetMark = true;
             if (myOps[idx] == "-")    // Verify in case it is a negative number
@@ -378,7 +379,7 @@ int TDynamicExpObj::Get_Closer_Op(String myExp, String& myOp, int& OpCode)
                     SetMark = false;
             if (SetMark)
             {
-                result = myPos;
+                result = (int) myPos;
                 myOp = myOps[idx];
                 OpCode = idx;
             }
