@@ -14791,7 +14791,7 @@ void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
             {
                 for (k = 0; k < NumStorageRegisters; k++)
                 {
-                    WriteStr2Array(StorageClass[ActiveActor]->RegisterNames[k + 1]);
+                    WriteStr2Array(StorageClass[ActiveActor]->RegisterNames[k]);
                     WriteStr2Array(Char0());
                 }
             }
@@ -14815,7 +14815,7 @@ void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					myDblArray.resize(NumStorageRegisters);
 					for (k = 0; k < NumStorageRegisters; k++)
 					{
-                        myDblArray[k] = pStorageElem->Registers[k + 1];
+                        myDblArray[k] = pStorageElem->Registers[k];
 					}
 				}
 			}
@@ -17117,7 +17117,7 @@ void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 			for (k = 0; k < NumWGenRegisters; k++)
             {
-                WriteStr2Array(WindGenClass[ActiveActor]->RegisterNames[k + 1]);
+                WriteStr2Array(WindGenClass[ActiveActor]->RegisterNames[k]);
                 WriteStr2Array(Char0());
             }
 
@@ -17140,7 +17140,7 @@ void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                     myDblArray.resize(NumWGenRegisters);
                     for (k = 0; k < NumWGenRegisters; k++)
                     {
-                        myDblArray[k] = WindGenElem->Registers[k + 1];
+                        myDblArray[k] = WindGenElem->Registers[k];
                     }
                 }
             }
