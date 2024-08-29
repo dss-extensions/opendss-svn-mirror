@@ -917,7 +917,7 @@ void TCapacitorObj::MakePosSequence(int ActorID)
 	inherited::MakePosSequence(ActorID);
 }
 
-int TCapacitorObj::get_States(int Idx, int ActorID, int value)
+int TCapacitorObj::get_States(int Idx, int ActorID)
 {
 	int result = 0;
 	result = FStates[Idx - 1];
