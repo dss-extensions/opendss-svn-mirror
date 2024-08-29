@@ -4261,7 +4261,7 @@ double TGeneric5Obj::Get_Variable(int i)
 		result = (double) Cluster_num;
 		break;
 		case 	29:
-		result = (double) NdNumInCluster;
+		result = (double) NdNumInCluster + 1;
 		break;
 		case 	30:
 		result = (double) ctrl_mode;
@@ -4410,7 +4410,7 @@ void TGeneric5Obj::Set_Variable(int i, double Value)
 		}
 		break;
 		case 	29:
-		((TPCElement*) this)->NdNumInCluster = Trunc(Value);
+		((TPCElement*) this)->NdNumInCluster = Trunc(Value) - 1;
 		break;
 		case 	30:
 		((TPCElement*) this)->nVLeaders = Trunc(Value);
@@ -4419,7 +4419,7 @@ void TGeneric5Obj::Set_Variable(int i, double Value)
 		((TPCElement*) this)->cluster_num2 = Trunc(Value);
 		break;
 		case 	32:
-		((TPCElement*) this)->NdNumInCluster2 = Trunc(Value);
+		((TPCElement*) this)->NdNumInCluster2 = Trunc(Value) - 1;
 		break;
         /*Do Nothing for other variables: they are read only*/
 		default:

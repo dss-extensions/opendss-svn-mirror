@@ -1,4 +1,4 @@
-
+﻿
 #pragma hdrstop
 
 #include "fMonitor.h"
@@ -1168,7 +1168,7 @@ void TFMonitorObj::Set_CommVector(String strParam)
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
 	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
-	for(stop = Nodes + 1, i = 2; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
@@ -1187,7 +1187,7 @@ void TFMonitorObj::Set_CommVector(String strParam)
 	{
 		int stop1 = 0;
 		iNodeNum = j;
-		TempStr = TempStr + IntToStr(iNodeNum) + ",";
+		TempStr = TempStr + IntToStr(iNodeNum + 1) + ",";
 		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
 		{
 			TempStr = TempStr + IntToStr(pCommMatrix[iNodeNum * Nodes + i]) + ",";
@@ -1210,7 +1210,7 @@ void TFMonitorObj::Set_CommVector_Hide(String strParam)
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
 	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
-	for(stop = Nodes + 1, i = 2; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
@@ -1232,7 +1232,7 @@ void TFMonitorObj::Set_CommVector_NodeHide(String strParam)
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
 	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
-	for(stop = Nodes + 1, i = 2; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
@@ -1255,7 +1255,7 @@ void TFMonitorObj::Set_CommDelayVector(String strParam)
     /*Loop for no more than the expected number of windings;  Ignore omitted values*/
 	dummy = AuxParser[ActiveActor]->GetNextParam(); // the first entry is the No. of iNode
 	iNodeNum = AuxParser[ActiveActor]->MakeInteger_() - 1; //node number defined in cluster
-	for(stop = (Nodes + 1), i = 2; i <= stop; i++)
+	for(stop = Nodes, i = 0; i < stop; i++)
 	{
 		dummy = AuxParser[ActiveActor]->GetNextParam(); // ignore any parameter name  not expecting any
 		DataStr = AuxParser[ActiveActor]->MakeString_();
@@ -1271,7 +1271,7 @@ void TFMonitorObj::Set_CommDelayVector(String strParam)
 	{
 		int stop1 = 0;
 		iNodeNum = j;
-		TempStr = TempStr + IntToStr(iNodeNum) + ",";
+		TempStr = TempStr + IntToStr(iNodeNum + 1) + ",";
 		for(stop1 = (Nodes + 1), i = 2; i <= stop1; i++)
 		{
 			TempStr = TempStr + FloatToStr(pCommDelayMatrix[iNodeNum * Nodes + i]) + ",";
@@ -1366,7 +1366,7 @@ void TFMonitorObj::Set_ElemTable_line(String strParam)
 	for(stop = iNodeNum, i = 0; i <= stop; i++)
 	{
 		TempStr = TempStr
-	           + IntToStr(i)
+	           + IntToStr(i + 1)
 	           + ","
 	           + (pNodeFMs)[i].vl_strBusName
 	           + ","
@@ -4875,8 +4875,4 @@ double TFMonitorObj::organise_dfs_node(int j)
 
 
 }  // namespace Fmonitor
-
-
-
-
 
