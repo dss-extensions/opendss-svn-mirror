@@ -436,7 +436,6 @@ begin
 
     PropertyName^[23] := 'Rthev';
     PropertyHelp^[23] := 'per unit Thevenin equivalent R.';
-    ;
 
     PropertyName^[24] := 'Xthev';
     PropertyHelp^[24] := 'per unit Thevenin equivalent X.';
@@ -843,7 +842,7 @@ begin
                         end;
                     end;
                     41:
-                    begin     // get the Volt-var control curve
+                    begin     // get the losses curve
                         Loss_CurveObj := XYCurveClass[ActorID].Find(WindgenVars.PLoss);
                         if not Assigned(Loss_CurveObj) then
                         begin
@@ -3246,7 +3245,7 @@ begin
     Result := '';
     case Index of
         3:
-            Result := Format('%.6g', [WindGenvars.kVWindGenBase]);
+            Result := Format('%.6g', [presentkV]);
         4:
             Result := Format('%.6g', [kWBase]);
         5:
@@ -3257,31 +3256,80 @@ begin
             Result := Dailydispshape;
         9:
             Result := DutyShape;
+        10:
+            if Connection = 0 then
+                Result := 'wye'
+            else
+                Result := 'delta';
+        11:
+            Result := Format('%.6g', [presentkvar]);
+        12:
+            Result := Format('%.d', [GenClass]);
         13:
-            Result := Format('%.6g', [kvarBase]);
-        19:
-            Result := Format('%.6g', [kvarMax]);
-        20:
-            Result := Format('%.6g', [kvarMin]);
-        26:
-            Result := Format('%.6g', [WindGenvars.kVArating]);
-        27:
-            Result := Format('%.6g', [WindGenvars.kVArating * 0.001]);
-        34, 36:
-        begin
-            Result := '(' + inherited GetPropertyValue(index) + ')';
-        end;
-        37:
-            Result := Format('%.6g', [DutyStart]);
-        38:
-            if ForceBalanced then
+            if debugtrace then
                 Result := 'Yes'
             else
                 Result := 'No';
-        40:
+        14:
+            Result := Format('%.6g', [VMinPu]);
+        15:
+            Result := Format('%.6g', [VMaxPu]);
+        16:
+            Result := Format('%.6g', [WindGenVars.kVArating]);
+        17:
+            Result := Format('%.6g', [WindGenVars.kVArating / 1e3]);
+        18:
+            Result := UserModel.Name;
+        20:
+            Result := Format('%.6g', [DutyStart]);
+        21:
             Result := DynamicEq;
-        41:
+        22:
             Result := GetDynOutputStr();
+        23:
+            Result := Format('%.6g', [WindModelDyn.Rthev]);
+        24:
+            Result := Format('%.6g', [WindModelDyn.Xthev]);
+        25:
+            Result := Format('%.6g', [WindModelDyn.Vss]);
+        26:
+            Result := Format('%.6g', [WindModelDyn.Pss]);
+        27:
+            Result := Format('%.6g', [WindModelDyn.Qss]);
+        28:
+            Result := Format('%.6g', [WindModelDyn.vwind]);
+        29:
+            Result := Format('%.d', [WindModelDyn.QMode]);
+        30:
+            Result := Format('%.d', [WindModelDyn.SimMechFlg]);
+        31:
+            Result := Format('%.d', [WindModelDyn.APCFLG]);
+        32:
+            Result := Format('%.d', [WindModelDyn.QFlg]);
+        33:
+            Result := Format('%.6g', [WindModelDyn.delt0]);
+        34:
+            Result := Format('%.d', [WindModelDyn.N_WTG]);
+        35:
+            Result := VV_Curve;
+        36:
+            Result := Format('%.6g', [WindgenVars.ag]);
+        37:
+            Result := Format('%.6g', [WindgenVars.Cp]);
+        38:
+            Result := Format('%.6g', [WindgenVars.Lamda]);
+        39:
+            Result := Format('%.6g', [WindgenVars.Poles]);
+        40:
+            Result := Format('%.6g', [WindgenVars.pd]);
+        41:
+            Result := WindgenVars.PLoss;
+        42:
+            Result := Format('%.6g', [WindgenVars.Rad]);
+        43:
+            Result := Format('%.6g', [WindgenVars.VCutin]);
+        44:
+            Result := Format('%.6g', [WindgenVars.VCutout]);
     else
         Result := inherited GetPropertyValue(index);
     end;

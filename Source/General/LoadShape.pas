@@ -533,7 +533,7 @@ begin
                 Result := -1;
             end;
         except
-            DoSimpleMsg(Format('There was a proble mapping file "%s". Process cancelled.', [Param]), 800001);
+            DoSimpleMsg(Format('There was a problem mapping file "%s". Process cancelled.', [Param]), 800001);
             Result := -1;
         end;
 

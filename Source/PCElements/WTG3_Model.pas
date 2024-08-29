@@ -638,19 +638,20 @@ begin
     if x < xTable[iLeft] then
         Result := yTable[iLeft]
     else
-    if x > xTable[iRight] then
-        Result := yTable[iRight]
-    else
     begin
-        for ii := iLeft to iRight - 1 do
-            if (x >= xTable[ii]) and (x <= xTable[ii + 1]) then
-            begin
-                Result := (yTable[ii + 1] - yTable[ii]) /
-                    (xTable[ii + 1] - xTable[ii]) * (x - xTable[ii]) + yTable[ii];
-                break;
-            end;
+        if x > xTable[iRight] then
+            Result := yTable[iRight]
+        else
+        begin
+            for ii := iLeft to iRight - 1 do
+                if (x >= xTable[ii]) and (x <= xTable[ii + 1]) then
+                begin
+                    Result := ((yTable[ii + 1] - yTable[ii]) /
+                        (xTable[ii + 1] - xTable[ii])) * (x - xTable[ii]) + yTable[ii];
+                    break;
+                end;
+        end;
     end;
-
 end;
 
 { ------------------------------------------------------------------------------------------------------------- }
@@ -1082,6 +1083,7 @@ begin
   // ramp rate limiter on Qcmd
     temp := rrlQcmd * delt;
     Qcmd := min(Qcmd + temp, max(Qcmd - temp, Qord));
+
 
   // reactive power regulator
     errQgenOld := errQgen;
@@ -1519,6 +1521,7 @@ begin
         nRec := trunc(int(DynaData^.h / delt0 / 2) * 2 + 1);
         delt := DynaData^.h / nRec;
         tsim := DynaData^.t;
+
         if (wtgTrip = 0) then
         begin
             for ii := 1 to nRec do

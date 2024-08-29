@@ -205,7 +205,7 @@ begin
                 end
                 else
                 begin
-                    DoSimpleMsg('Relay "' + arg + '" Not Found in Active Circuit.', 77003);
+                    DoSimpleMsg('LoadShape "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
             end;
         end
