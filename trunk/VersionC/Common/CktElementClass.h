@@ -33,7 +33,7 @@ namespace CktElementClass
     public:
         int NumCktElemClassProps;
         TCktElementClass();
-        ~TCktElementClass();
+        virtual ~TCktElementClass();
         //__published:
     };
 
