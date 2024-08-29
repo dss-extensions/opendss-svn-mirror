@@ -1334,7 +1334,7 @@ void TPCPrototypeObj::InitStateVars()
 					GenVars.Mmass = 2.0 * GenVars.Hmass * GenVars.kVArating * 1000.0 / (w0);   // M = W-sec
 					D = Dpu * kVArating * 1000.0 / (w0);
 				}
-				Pshaft = -Power[1].re; // Initialize Pshaft to present power Output
+				Pshaft = -Get_Power(1, ActiveActor).re; // Initialize Pshaft to present power Output
 				Speed = 0.0;    // relative to synch speed
 				dSpeed = 0.0;
 
