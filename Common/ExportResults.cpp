@@ -4514,7 +4514,7 @@ namespace ExportResults
             for ( int stop = with0.SectionCount, i = 1; i <= stop; i++)
               /*# with FeederSections^[i] do */
               {
-                auto& with1 = with0.FeederSections[i - 1];
+                auto& with1 = with0.FeederSections[i];
                 {
                   ActiveCircuit[ActiveActor]->Set_ActiveCktElement((TDSSCktElement*) (with0.SequenceList->Get(with1.SeqIndex ) ));
                   WriteLn( F, with0.get_Name() +

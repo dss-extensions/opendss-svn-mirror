@@ -165,9 +165,9 @@ void __stdcall GetActiveElementVoltagesCallBack( int& NumVoltages, pComplexArray
           for ( int stop = NumVoltages, i = 1; i <= stop; i++)
           {
             if ( (!ADiakoptics) || (ActiveActor == 1) )
-              (V)[i] = with0->Solution->NodeV[with1->NodeRef[i - 1]];
+              (V)[i - 1] = with0->Solution->NodeV[with1->NodeRef[i - 1]];
             else
-              (V)[i] = with0->Solution->VoltInActor1( with1->NodeRef[i - 1] );
+              (V)[i - 1] = with0->Solution->VoltInActor1( with1->NodeRef[i - 1] );
           }
         }
       }
@@ -264,7 +264,7 @@ void __stdcall GetActiveElementNodeRefCallBack( int Maxsize, pIntegerArray NodeR
       {
           auto with1 = with0->get_FActiveCktElement();
         for ( int stop = min<long>(  with1->Yorder,  Maxsize ), i = 1; i <= stop; i++)
-          NodeReferenceArray[i] = with1->NodeRef[i - 1];
+          NodeReferenceArray[i - 1] = with1->NodeRef[i - 1];
       }
     }
 }
