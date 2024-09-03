@@ -8617,7 +8617,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		break;
 	case	2:					// LoadShapes.PMult write
 		*myType = 2;
-		k = 1;
+		k = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
 			if (ActiveLSObject != nullptr)
@@ -8645,7 +8645,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				DoSimpleMsg("No active Loadshape Object found.", 61002);
 			}
 		}
-		*mySize = k - 1;
+		*mySize = k;
 		break;
 	case	3:					// LoadShapes.QMult read
 		*myType = 2;		//Double
@@ -8663,7 +8663,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					{
 						if (UseHour)
 						{
-							Sample = ActiveLSObject->GetMult(ActiveLSObject->Hours[k]);
+							Sample = ActiveLSObject->GetMult(ActiveLSObject->Hours[k - 1]);
 						}
 						else
 						{
@@ -8684,7 +8684,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		break;
 	case	4:					// LoadShapes.QMult write
 		*myType = 2;		//Double
-		k = 1;
+		k = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
 			if (ActiveLSObject != nullptr)
@@ -8712,7 +8712,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				DoSimpleMsg("No active Loadshape Object found.", 61002);
 			}
 		}
-		*mySize = k - 1;
+		*mySize = k;
 		break;
 	case	5:					// LoadShapes.Timearray read
 		*myType = 2;		//Double
@@ -8742,7 +8742,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		break;
 	case	6:					 // LoadShapes.Timearray write
 		*myType = 2;		//Double
-		k = 1;
+		k = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
 			if (ActiveLSObject != nullptr)
@@ -8757,7 +8757,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					LoopLimit = *mySize - 1;
 				}
 				with0->Hours.resize(with0->get_FNumPoints());
-				k = 1;
+				k = 0;
 				PDouble = *(double**)myPtr;
 				for (i = 0; i <= LoopLimit; i++)
 				{
@@ -8771,7 +8771,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				DoSimpleMsg("No active Loadshape Object found.", 61002);
 			}
 		}
-		*mySize = k - 1;
+		*mySize = k;
 		break;
 	default:
 		*myType = 4;			//String
