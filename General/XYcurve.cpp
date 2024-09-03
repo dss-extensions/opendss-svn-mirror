@@ -1037,7 +1037,7 @@ namespace XYCurve
 	void TXYcurveObj::Set_XValue(int Index, double Value)
 	{
 		if(Index <= FNumPoints)
-			XValues[Index] = Value;
+			XValues[Index - 1] = Value;
 	}
 
 	void TXYcurveObj::Set_Y(double Value)
@@ -1049,7 +1049,7 @@ namespace XYCurve
 	void TXYcurveObj::Set_YValue(int Index, double Value)
 	{
 		if(Index <= FNumPoints)
-			YValues[Index] = Value;
+			YValues[Index - 1] = Value;
 	}
 
 	/*Override standard SaveWrite*/
