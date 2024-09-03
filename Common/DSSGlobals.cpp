@@ -923,13 +923,12 @@ namespace DSSGlobals
         {
             for (int stop = NumClones, I = 1; I <= stop; I++)
             {
-                //New_Actor_Slot();
+                New_Actor_Slot();
                 DSSExecutive[ActiveActor]->Set_Command( String("compile \"") + Ref_Ckt + "\"");
                 // sets the previous maxiterations and controliterations
                 ActiveCircuit[ActiveActor]->Solution->MaxIterations = ActiveCircuit[1]->Solution->MaxIterations;
-                //Solution::TSolutionObj::MaxIterations = 1;
                 ActiveCircuit[ActiveActor]->Solution->MaxControlIterations = ActiveCircuit[1]->Solution->MaxControlIterations;
-                // Solves the circuitcompcom
+                // Solves the circuit
                 CmdResult = ExecOptions::DoSetCmd(1);
             }
         }
