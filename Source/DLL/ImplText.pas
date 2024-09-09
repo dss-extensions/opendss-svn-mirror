@@ -31,7 +31,8 @@ uses
     DSSGlobals,
     Executive,
     Dialogs,
-    SysUtils;
+    SysUtils,
+    Classes;
 
 const
     nothing: Widestring = #0#0;
@@ -43,9 +44,33 @@ end;
 
 
 procedure TText.Set_Command(const Value: Widestring);
+var
+    CmdList: TStringList;
+    i: Integer;
+    DSSReply: String;
+
 begin
     SolutionAbort := false;  // Reset for commands entered from outside
-    DSSExecutive[ActiveActor].Command := Value;  {Convert to String}
+
+    CmdList := TStringList.Create;
+    CmdList.clear;
+    CmdList.Delimiter := Char(#10);
+    CmdList.StrictDelimiter := true;
+    CmdList.DelimitedText := Value;
+    DSSReply := '';
+
+    for i := 0 to (CmdList.Count - 1) do
+    begin
+        DSSExecutive[ActiveActor].Command := CmdList[i];  {Convert to String}
+        if not GlobalResult.IsEmpty then
+            DSSReply := DSSReply + GlobalResult + Char(#10);
+        if ErrorNumber > 0 then
+            break;
+    end;
+    if not DSSReply.IsEmpty then
+        DSSReply := Copy(DSSReply, 0, length(DSSReply) - 1);
+
+    GlobalResult := DSSReply;
 end;
 
 
