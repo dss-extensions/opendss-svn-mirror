@@ -530,13 +530,48 @@ void __stdcall DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 }
 
+vector<string> Str2StrArray(char* myStr, char Delimiter)
+{
+    vector<string>	Result;
+    char EvalChar	= 0x01;
+    int charidx		= 0;
+    string StElm	= "";
+
+	Result.clear();
+    
+	while (!(EvalChar == 0))
+    {
+        EvalChar = myStr[charidx];
+        if (!(EvalChar == 0x0A))
+            StElm = StElm + EvalChar;
+        else
+        {
+            Result.push_back(StElm);
+            StElm = "";   // reset accumulator
+        }
+        charidx++;
+    }
+    Result.push_back(StElm);
+    return Result;
+}
+
 //****************************************************************************************************************
 //--------------------------------------------------------------------------------
 // Implements the text interface for the DLL
 //--------------------------------------------------------------------------------
 char* __stdcall DSSPut_Command(char* myCmd)
 {
-	string  result = Application.Execute(myCmd);
+    vector<string>	myCmds;
+    string			result = "",
+					DSSReply = "";
+
+    myCmds = Str2StrArray(myCmd, 0x0A);
+    for (int i = 0; i < myCmds.size(); i++)
+    {
+        DSSReply = Application.Execute(myCmds[i].c_str());
+        if (!(DSSReply.empty()))
+            result = result + DSSReply + char(0x0A);
+    }
 	char* presult = new char[result.size() + 1];
 	strcpy(presult, result.c_str());
 	return  presult;
