@@ -441,7 +441,7 @@ begin
       Set_Parameter ('Daily', string(arg));
   end;
   6: begin                                     // Loads.Duty - read
-      Result := pAnsiChar(AnsiString(ActiveLoad.DailyShape));
+      Result := pAnsiChar(AnsiString(ActiveLoad.DutyShape));
   end;
   7: begin                                     // Loads.Duty - Write
       Set_Parameter ('Duty', string(arg));
