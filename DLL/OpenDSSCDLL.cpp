@@ -11083,7 +11083,7 @@ char* __stdcall PVsystemsS(int mode, char* arg)
 			pPVSystem = (TPVsystemObj*)ActiveCircuit[ActiveActor]->PVSystems.Get_Active();
 			if (pPVSystem != nullptr && pPVSystem->SensorObj != nullptr)
 			{
-				result = pPVSystem->SensorObj->ElementName;
+				result = pPVSystem->SensorObj->get_Name();
 			}
 			else
 				result = "";  // signify no name
