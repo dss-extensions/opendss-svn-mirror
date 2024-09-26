@@ -392,7 +392,7 @@ Begin
 
       WITH ActiveCircuit[ActiveActor].PVSystems Do Begin
         IF ActiveIndex<>0 THEN Begin
-            Result := TPVSystemObj(Active).SensorObj.ElementName;
+            Result := TPVSystemObj(Active).SensorObj.Name;
         End;
       End;
    End;
