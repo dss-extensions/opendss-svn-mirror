@@ -445,7 +445,7 @@ begin
         begin
             if ActiveIndex <> 0 then
             begin
-                Result := TPVSystemObj(Active).SensorObj.ElementName;
+                Result := TPVSystemObj(Active).SensorObj.Name;
             end;
         end;
     end;
