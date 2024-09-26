@@ -525,7 +525,7 @@ begin
         end;
         6:
         begin                                     // Loads.Duty - read
-            Result := Pansichar(Ansistring(ActiveLoad.DailyShape));
+            Result := Pansichar(Ansistring(ActiveLoad.DutyShape));
         end;
         7:
         begin                                     // Loads.Duty - Write
