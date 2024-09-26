@@ -265,7 +265,7 @@ begin
               pPVSystem := ActiveCircuit[ActiveActor].PVSystems.Active;
               If pPVSystem <> Nil Then
               Begin
-                Result := pAnsiChar(AnsiString(pPVSystem.SensorObj.ElementName));
+                Result := pAnsiChar(AnsiString(pPVSystem.SensorObj.Name));
               End
               Else
                   Result := pAnsiChar(AnsiString(''));  // signify no name
