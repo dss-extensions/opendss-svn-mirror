@@ -437,7 +437,7 @@ var
 begin
   Result := '';
   elem := ActiveLoad;
-  if elem <> nil then Result := elem.DailyShape;
+  if elem <> nil then Result := elem.DutyShape;
 end;
 
 function TLoads.Get_Growth: WideString;
