@@ -125,7 +125,8 @@ namespace DSSGlobals
      std::vector < TLineSpacing* > LineSpacingClass;
      std::vector < TStorage* > StorageClass;
      std::vector < TPVSystem* > PVSystemClass;
-     std::vector<TWindGen*> WindGenClass;
+     std::vector <TWindGen*> WindGenClass;
+     std::vector <TReactor*> ReactorClass;
      std::vector < TInvControl* > InvControlClass;
      std::vector < TExpControl* > ExpControlClass;
      std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -891,7 +892,8 @@ namespace DSSGlobals
         // WType defines the starting point in which the actors will be evaluated,
         // modification introduced in 01-10-2019 to facilitate the coordination
         // between actors when a simulation is performed using A-Diakoptics
-        CoutLn("Waiting...");
+        if (!NoFormsAllowed)
+            CoutLn("Waiting...");
         for (int stop = NumOfActors, I = (WType + 1); I <= stop; I++)
         {
             try
@@ -1272,7 +1274,8 @@ namespace DSSGlobals
       StorageClass.resize(CPU_Cores + 1);
       PVSystemClass.resize(CPU_Cores + 1);
       WindGenClass.resize(CPU_Cores + 1);
-     InvControlClass.resize(CPU_Cores + 1);
+      ReactorClass.resize(CPU_Cores + 1);
+      InvControlClass.resize(CPU_Cores + 1);
       ExpControlClass.resize(CPU_Cores + 1);
       EventStrings.resize(CPU_Cores + 1);
       SavedFileList.resize(CPU_Cores + 1);

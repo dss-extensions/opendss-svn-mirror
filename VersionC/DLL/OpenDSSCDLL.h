@@ -207,6 +207,13 @@ extern "C" {
 
 	//**************************************************************************************************
 
+	DSS_DLL int __stdcall ReactorsI(int mode, int arg);
+    DSS_DLL double __stdcall ReactorsF(int mode, double arg);
+    DSS_DLL char* __stdcall ReactorsS(int mode, char* arg);
+    DSS_DLL void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+
+    //**************************************************************************************************
+
 	DSS_DLL int __stdcall ReclosersI(int mode, int arg);
 	DSS_DLL double __stdcall ReclosersF(int mode, double arg);
 	DSS_DLL char* __stdcall ReclosersS(int mode, char* arg);

@@ -101,6 +101,7 @@ type
     function Get_ReduceCkt: IReduceCkt; safecall;
     function Get_Storages: IStorages; safecall;
     function Get_WindGens: IWindGens; safecall;
+    function Get_Reactors: IReactors; safecall;
 //    function Get_Loads: ILoads; safecall;  function ICircuit.Get_Loads = ICircuit_Get_Loads;
 
 //  function ICircuit_Get_Loads: IUnknown; safecall;
@@ -1240,6 +1241,12 @@ end;
 function TCircuit.Get_WindGens: IWindGens;
 begin
   Result := FWindGens as IWindGens;
+end;
+
+function TCircuit.Get_Reactors: IReactors;
+begin
+  Result := FReactors as IReactors;
+
 end;
 
 initialization

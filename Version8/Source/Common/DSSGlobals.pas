@@ -84,6 +84,7 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      NumCPULib,
      Command,
      ISource,
+     Reactor,
      WindGen;
 
 
@@ -271,7 +272,8 @@ VAR
    LineSpacingClass   :Array of TLineSpacing;
    StorageClass       :Array of TStorage;
    PVSystemClass      :Array of TPVSystem;
-   WindGenClass         :Array of TWindGen;
+   WindGenClass       :Array of TWindGen;
+   ReactorClass       :Array of TReactor;
    InvControlClass    :Array of TInvControl;
    ExpControlClass    :Array of TExpControl;
    ActiveVSource      :Array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -1521,6 +1523,7 @@ initialization
    setlength(StorageClass,CPU_Cores + 1);
    setlength(PVSystemClass,CPU_Cores + 1);
    setlength(WindGenClass,CPU_Cores + 1);
+   setlength(ReactorClass,CPU_Cores + 1);
    setlength(InvControlClass,CPU_Cores + 1);
    setlength(ExpControlClass,CPU_Cores + 1);
    setlength(EventStrings,CPU_Cores + 1);

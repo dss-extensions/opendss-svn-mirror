@@ -80,7 +80,7 @@ TYPE
    end;
 
    TReactorObj = class(TPDElement)
-      Private
+      Public
         R, Rp, Gp,
         X, L,
         kvarrating,
@@ -92,16 +92,14 @@ TYPE
         Connection :Integer;   // 0 or 1 for wye (default) or delta, respectively
         SpecType   :Integer;   // 1=kvar, 2=R+jX, 3=R and X matrices, 4=sym components
 
+        FNormAmpsSpecified  :Boolean;
+        FEmergAmpsSpecified :Boolean;
+
         IsParallel  :Boolean;
         RpSpecified :Boolean;
         Bus2Defined :Boolean;
         Z2Specified :Boolean;
         Z0Specified :Boolean;
-
-        FNormAmpsSpecified  :Boolean;
-        FEmergAmpsSpecified :Boolean;
-
-      Public
 
         RCurve      :String;
         RCurveObj   :TXYCurveObj;
@@ -115,6 +113,9 @@ TYPE
         PROCEDURE GetLosses(Var TotalLosses, LoadLosses, NoLoadLosses:Complex; ActorID : Integer); Override;
 
         PROCEDURE MakePosSequence(ActorID : Integer);   Override;  // Make a positive Sequence Model
+        PROCEDURE Set_kV(kVValue : double);
+        PROCEDURE Set_kvar(kvarValue : double);
+        PROCEDURE Set_L(Value : double);
 
         Procedure RecalcElementData(ActorID : Integer); Override;
         Procedure CalcYPrim(ActorID : Integer);         Override;
@@ -125,6 +126,9 @@ TYPE
 				// CIM XML access - this is only tested for the IEEE 8500-node feeder
 				property SimpleR: double read R;
 				property SimpleX: double read X;
+        property kVNominal:double  read kvrating write Set_kV;
+        property kvarNominal:double  read kvarrating write Set_kvar;
+        property LNominal:double read L write Set_L;
    end;
 
 VAR
@@ -149,6 +153,8 @@ BEGIN
 
      CommandList := TCommandList.Create(PropertyName, NumProperties);
      CommandList.Abbrev := TRUE;
+
+     ReactorClass[ActiveActor] := Self;
 END;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -616,6 +622,26 @@ BEGIN
     ReallocMem(Bmatrix,0);
     Inherited destroy;
 END;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROCEDURE TReactorObj.Set_kV(kVValue : double);
+Begin
+
+  kVrating := kVValue;
+
+End;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROCEDURE TReactorObj.Set_kvar(kvarValue : double);
+Begin
+  kvarrating := kvarValue;
+End;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROCEDURE TReactorObj.Set_L(Value : double);
+Begin
+  L := Value;
+End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure TReactorObj.RecalcElementData(ActorID : Integer);
