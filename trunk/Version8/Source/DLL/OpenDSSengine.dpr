@@ -242,7 +242,8 @@ uses
   GenController in '..\Controls\GenController.pas',
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
-  ImplWindGens in 'ImplWindGens.pas' {WindGens: CoClass};
+  ImplWindGens in 'ImplWindGens.pas' {Vsources: CoClass},
+  ImplReactors in 'ImplReactors.pas';
 
 exports
   DllGetClassObject,

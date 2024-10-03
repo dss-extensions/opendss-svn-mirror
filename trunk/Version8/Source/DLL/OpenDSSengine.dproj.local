@@ -6,6 +6,8 @@
     <Transaction>2024/04/05 17:02:20.000.615,=C:\OpenDSS\Version8\Source\PCElements\WTG3_Model.pas</Transaction>
     <Transaction>2024/05/02 10:48:36.000.595,=C:\OpenDSS\Version8\Source\DLL\Unit1.pas</Transaction>
     <Transaction>2024/05/02 10:48:48.000.468,C:\OpenDSS\Version8\Source\DLL\Unit1.pas=C:\OpenDSS\Version8\Source\DLL\ImplWindGens.pas</Transaction>
+    <Transaction>2024/10/02 08:56:44.000.467,=C:\OpenDSS\Version8\Source\DLL\Unit1.pas</Transaction>
+    <Transaction>2024/10/02 08:57:01.000.714,C:\OpenDSS\Version8\Source\DLL\ImplReactors.pas=C:\OpenDSS\Version8\Source\DLL\Unit1.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -255,5 +257,6 @@
     <File Path="ImplXYCurves.pas"/>
     <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
+    <File Path="ImplReactors.pas"/>
   </ProjectSortOrder>
 </BorlandProject>

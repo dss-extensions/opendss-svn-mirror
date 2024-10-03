@@ -50,6 +50,8 @@ TReactor::TReactor()
 	CommandList = TCommandList(slc, NumProperties);
 	delete[] slc;
 	CommandList.set_AbbrevAllowed(true);
+
+	ReactorClass[ActiveActor] = this;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1418,6 +1418,7 @@
         <DCCReference Include="ImplWindGens.pas">
             <CoClasses>Vsources</CoClasses>
         </DCCReference>
+        <DCCReference Include="ImplReactors.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

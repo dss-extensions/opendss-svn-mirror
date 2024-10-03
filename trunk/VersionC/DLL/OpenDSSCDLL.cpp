@@ -11556,6 +11556,543 @@ void __stdcall ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	}
 }
 
+//--------------------------------------------------------------------------------
+// Implements the ReduceCkt   interface for the DLL
+//--------------------------------------------------------------------------------
+// ******************************int type properties************************* 
+
+int __stdcall ReactorsI(int mode, int arg)
+{
+    int Result = 0;
+    TReactorObj* Elem = nullptr;
+    TPointerList pList = {};
+
+	switch (mode)
+    {
+		case 0:					// Reactors.First
+			if (ReactorClass[ActiveActor]->ElementList.NumInList > 0)
+			{
+				pList = ReactorClass[ActiveActor]->ElementList;
+				Elem = (TReactorObj*)pList.Get_First();
+				do
+				{
+					if (Elem->FEnabled)
+					{
+						ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+						Result = 1;
+					}
+					else
+						Elem = (TReactorObj*)pList.Get_Next();
+				} while ((Result == 0) && (ASSIGNED(Elem)));
+			}
+			else
+				Result = 0; // signify no more
+            break;
+        case 1:					// Reactors.Next
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+
+			if (ReactorClass[ActiveActor]->ElementList.NumInList > 0) 
+			{
+			pList = ReactorClass[ActiveActor]->ElementList;
+			Elem = (TReactorObj*)pList.Get_First();
+            do
+            {
+                if (Elem->Get_Enabled())
+                {
+                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+                    Result = pList.ActiveItem;
+                }
+                else 
+					Elem = (TReactorObj*)pList.Get_Next();
+            }
+			while( (Result == 0) && (ASSIGNED(Elem)));
+			}
+			else
+				Result = 0;  // signify no more
+			}
+			break;
+        case 2:					// Reactors.Count
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+                Result = ReactorClass[ActiveActor]->ElementList.NumInList;
+            break;
+        case 3:					// Parallel.read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+            {
+                if (Elem->IsParallel)
+					Result = 1;
+            }
+            break;
+        case 4:					// Parallel.write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+            {
+                Elem->IsParallel = (arg > 0);
+            }
+            break;
+		default:
+            Result = -1; // The user is asking for the wrong command
+            break;
+	}
+    return Result;
+}
+
+//******************************Float point type properties****************************
+double __stdcall ReactorsF(int mode, double arg)
+{
+    double Result = 0.0;
+    TReactorObj* Elem = nullptr;
+    TPointerList pList = {};
+
+    switch (mode)
+    {
+		case 0:						// Reactor.kV Read
+			Elem   = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+			if (ASSIGNED(Elem)) 
+				Result = Elem->kvrating;
+			break;
+        case 1:						// Reactor.kV Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->kvrating = arg;
+            break;
+        case 2:						// Reactor.kvar Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Result = Elem->kvarrating;
+            break;
+        case 3:						// Reactor.kvar Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->kvarrating = arg;
+            break;
+        case 4:						// Reactor.lmH Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Result = Elem->l;
+            break;
+        case 5:						// Reactor.lmH Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->l = arg;
+            break;
+        case 6:						// Reactor.R Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Result = Elem->R;
+            break;
+        case 7:						// Reactor.R Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->R = arg;
+            break;
+        case 8:						// Reactor.Rp Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Result = Elem->Rp;
+            break;
+        case 9:						// Reactor.Rp Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->Rp = arg;
+            break;
+        case 10:					// Reactor.X Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Result = Elem->X;
+            break;
+        case 11:					// Reactor.X Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+                Elem->X = arg;
+            break;
+        default:
+            Result = -1.0; // We got the wrong command
+            break;
+    }
+    return Result;
+}
+
+//******************************String type properties*********************************
+char* __stdcall ReactorsS(int mode, char* arg)
+{
+    string	Result = "", // Default return value
+			S = "";
+    bool	found = false;
+    TReactorObj* Elem = nullptr;
+    TPointerList pList = {};
+    int		activesave = 0,
+			k = 0;
+
+	switch (mode)
+    {
+        case 0:						// Reactor.Name Read
+			Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+			if (ASSIGNED(Elem))
+			{
+			  Result = Elem->get_Name();
+			}
+			break;
+        case 1:						// Reactor.Name Write
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            { // Search list of Storages in active circuit for name
+				if (ReactorClass[ActiveActor]->ElementList.NumInList > 0)
+				{
+					S           = arg;  // Convert to Pascal String
+					found       = false;
+					pList       = ReactorClass[ActiveActor]->ElementList;
+                    activesave = pList.get_myActiveItem();
+                    Elem = (TReactorObj*)pList.Get_First();
+                    while (ASSIGNED(Elem))
+                    {
+                        if (CompareText(Elem->Get_myLName(), S) == 0)
+                        {
+                            ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+                            found = true;
+                            break;
+                        }
+                        Elem = (TReactorObj*)pList.Get_Next();
+                        
+                    }
+					if (!found)
+                    {
+						DoSimpleMsg("Reactor " + S + " Not Found in Active Circuit.", 20003);
+                        Elem = (TReactorObj*)pList.Get(activesave); // Restore active Storage
+                        ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+					}
+					
+				}
+			}
+            break;
+        case 2:							// Reactor.LCurve Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+			if (ASSIGNED(Elem))
+			{
+			  Result = Elem->LCurve;
+			}
+            break;
+        case 3:							// Reactor.LCurve Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+            {
+                Elem->LCurve = arg;
+            }
+            break;
+        case 4:							// Reactor.RCurve Read
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+            {
+                Result = Elem->RCurve;
+            }
+            break;
+        case 5:							// Reactor.RCurve Write
+            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+            if (ASSIGNED(Elem))
+            {
+                Elem->RCurve = arg;
+            }
+            break;
+    }
+
+	char* presult = new char[Result.size() + 1];
+    strcpy(presult, Result.c_str());
+    return presult;
+}
+
+//************************Structure type properties*******************************
+void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+{
+    TReactorObj* Elem = nullptr;
+    TPointerList pList = {};
+    int		idx = 0,
+			i = 0,
+			k = 0;
+    double* PDouble = nullptr;
+
+	switch (mode)
+    {
+        case 0:							// Reactors.AllNames 
+			*myType  =  4;				// String
+			myStrArray.clear();
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+				if (ReactorClass[ActiveActor]->ElementList.NumInList > 0)
+				{
+					pList = ReactorClass[ActiveActor]->ElementList;
+
+					k = 0;
+					Elem = (TReactorObj*)pList.Get_First();
+					while (ASSIGNED(Elem))
+					{
+						WriteStr2Array(Elem->LName);
+						WriteStr2Array(Char0());
+						k++;
+						Elem = (TReactorObj*)pList.Get_Next();
+					}
+				}
+			}
+
+			if (myStrArray.empty()) 
+				WriteStr2Array("None");
+			*mySize = myStrArray.size();
+			*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+			break;
+        case 1:							// Reactors.RMatrix read
+			*myType  =  2;        // Double
+			myDblArray.resize(1);
+			myDblArray[0] = 0;
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+				Elem    = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+				if (ASSIGNED(Elem))
+				{
+					auto with0 = Elem;
+					
+					if (with0->Rmatrix != nullptr)
+					{
+						myDblArray.resize(Sqr(with0->Get_NPhases()));
+						for (i = 0; i < Sqr(with0->Get_NPhases()); i++) 
+						{
+							myDblArray[i] =  with0->Rmatrix[i];
+						}
+					}
+					
+				}
+			}
+			*mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 2:							// Reactors.RMatrix write
+			*myType  =  2;        // Double
+			k =  0;
+			if (ASSIGNED(ActiveCircuit[ActiveActor]))
+			{
+				Elem    =  (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+				if (ASSIGNED(Elem))
+				{
+					auto with0 = Elem;
+					
+					realloc(with0->Rmatrix,sizeof(double) *  Sqr(with0->Get_NPhases()));
+                    for( i = 0; i < Sqr(with0->Get_NPhases()); i++)
+					{
+                        PDouble = *(double**)myPtr;
+						with0->Rmatrix[i] = *PDouble;
+						k++;
+						PDouble++;
+					}
+					with0->Set_YprimInvalid(ActiveActor,true);
+				}
+			}
+			*mySize  =  k;
+            break;
+        case 3:							// Reactors.XMatrix read
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+
+                    if (with0->Rmatrix != nullptr)
+                    {
+                        myDblArray.resize(Sqr(with0->Get_NPhases()));
+                        for (i = 0; i < Sqr(with0->Get_NPhases()); i++)
+                        {
+                            myDblArray[i] = with0->XMatrix[i];
+                        }
+                    }
+                }
+            }
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 4:							// Reactors.XMatrix write
+            *myType = 2; // Double
+            k = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+
+                    realloc(with0->XMatrix, sizeof(double) * Sqr(with0->Get_NPhases()));
+                    for (i = 0; i < Sqr(with0->Get_NPhases()); i++)
+                    {
+                        PDouble = *(double**)myPtr;
+                        with0->XMatrix[i] = *PDouble;
+                        k++;
+                        PDouble++;
+                    }
+                    with0->Set_YprimInvalid(ActiveActor, true);
+                }
+            }
+            *mySize = k;
+            break;
+        case 5:							// Reactors.Z read
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+					myDblArray.resize(2);
+                    myDblArray[0] = with0->Z.re;
+                    myDblArray[1] = with0->Z.im;
+                }
+            }
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 6:							// Reactors.Z write
+            *myType = 2; // Double
+            k = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    PDouble = *(double**)myPtr;
+                    with0->Z.re = *PDouble;
+                    PDouble++;
+                    with0->Z.im = *PDouble;
+                    k = 2;
+                    with0->Set_YprimInvalid(ActiveActor, true);
+                }
+            }
+            *mySize = k;
+            break;
+        case 7:							// Reactors.Z0 read
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    myDblArray.resize(2);
+                    myDblArray[0] = with0->Z0.re;
+                    myDblArray[1] = with0->Z0.im;
+                }
+            }
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 8:							// Reactors.Z0 write
+            *myType = 2; // Double
+            k = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    PDouble = *(double**)myPtr;
+                    with0->Z0.re = *PDouble;
+                    PDouble++;
+                    with0->Z0.im = *PDouble;
+                    k = 2;
+                    with0->Set_YprimInvalid(ActiveActor, true);
+                }
+            }
+            *mySize = k;
+            break;
+        case 9:							// Reactors.Z1 read
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    myDblArray.resize(2);
+                    myDblArray[0] = with0->Z1.re;
+                    myDblArray[1] = with0->Z1.im;
+                }
+            }
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 10:						// Reactors.Z1 write
+            *myType = 2; // Double
+            k = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    PDouble = *(double**)myPtr;
+                    with0->Z1.re = *PDouble;
+                    PDouble++;
+                    with0->Z1.im = *PDouble;
+                    k = 2;
+                    with0->Set_YprimInvalid(ActiveActor, true);
+                }
+            }
+            *mySize = k;
+            break;
+        case 11:						// Reactors.Z2 read
+            *myType = 2; // Double
+            myDblArray.resize(1);
+            myDblArray[0] = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    myDblArray.resize(2);
+                    myDblArray[0] = with0->Z2.re;
+                    myDblArray[1] = with0->Z2.im;
+                }
+            }
+            *mySize = myDblArray.size() * sizeof(myDblArray[0]);
+            *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+            break;
+        case 12:						// Reactors.Z2 write
+            *myType = 2; // Double
+            k = 0;
+            if (ASSIGNED(ActiveCircuit[ActiveActor]))
+            {
+                Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+                if (ASSIGNED(Elem))
+                {
+                    auto with0 = Elem;
+                    PDouble = *(double**)myPtr;
+                    with0->Z2.re = *PDouble;
+                    PDouble++;
+                    with0->Z2.im = *PDouble;
+                    k = 2;
+                    with0->Set_YprimInvalid(ActiveActor, true);
+                }
+            }
+            *mySize = k;
+            break;
+        default:
+            *myType = 4; // String
+            myStrArray.resize(0);
+            WriteStr2Array("Error, parameter not recognized");
+            WriteStr2Array(Char0());
+            *mySize = myStrArray.size();
+            *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+            break;
+    }
+}
+
+
 string ReduceEditString = "";
 string EnergyMeterName = "";
 string FirstPDelement = "";

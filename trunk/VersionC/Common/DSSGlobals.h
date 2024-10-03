@@ -292,6 +292,7 @@ namespace DSSGlobals
     extern std::vector < TStorage* > StorageClass;
     extern std::vector < TPVSystem* > PVSystemClass;
     extern std::vector <TWindGen*> WindGenClass;
+    extern std::vector <TReactor*> ReactorClass;
     extern std::vector < TInvControl* > InvControlClass;
     extern std::vector < TExpControl* > ExpControlClass;
     extern std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
