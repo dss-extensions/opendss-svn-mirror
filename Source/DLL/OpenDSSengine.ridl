@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 5/9/2024 11:20:25 AM (- $Rev: 12980 $, 2371359).
+// File generated on 10/2/2024 5:16:23 PM (- $Rev: 12980 $, 14932468).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -111,6 +111,8 @@ library OpenDSSengine
   coclass Storages;
   interface IWindGens;
   coclass WindGens;
+  interface IReactors;
+  coclass Reactors;
 
 
   [
@@ -668,6 +670,8 @@ library OpenDSSengine
     HRESULT _stdcall Storages([out, retval] IStorages** Value);
     [propget, id(0x000000F3), helpstring("Connect to WindGens Interface")]
     HRESULT _stdcall WindGens([out, retval] IWindGens** Value);
+    [propget, id(0x000000F4), helpstring("Connect to Reactors Interface")]
+    HRESULT _stdcall Reactors([out, retval] IReactors** Value);
   };
 
   [
@@ -3287,7 +3291,7 @@ library OpenDSSengine
     HRESULT _stdcall RegisterValues([out, retval] VARIANT* Value);
     [propget, id(0x000000CC), helpstring("Set first Storage element active; returns 0 if none.")]
     HRESULT _stdcall First([out, retval] long* Value);
-    [propget, id(0x000000CD), helpstring("Set Next Storage element active; returns 0 if none.")]
+    [propget, id(0x000000CD), helpstring("Set Next WindGen element active; returns 0 if none.")]
     HRESULT _stdcall Next([out, retval] long* Value);
     [propget, id(0x000000CE), helpstring("Returns the number of WindGen objects defined in the active model")]
     HRESULT _stdcall Count([out, retval] long* Value);
@@ -3387,6 +3391,88 @@ library OpenDSSengine
     HRESULT _stdcall Name([out, retval] BSTR* Value);
     [propput, id(0x000000DB), helpstring("Get/Set the active windgen obj by name")]
     HRESULT _stdcall Name([in] BSTR Value);
+  };
+
+  [
+    uuid(C547269D-03FB-427F-BF45-61EC4704DCE4),
+    helpstring("Interface for exposing the properties of Reactor objects"),
+    dual,
+    oleautomation
+  ]
+  interface IReactors: IDispatch
+  {
+    [propget, id(0x000000C9), helpstring("Set the first Fuse to be the active reactor. Returns 0 if none.")]
+    HRESULT _stdcall First([out, retval] long* Value);
+    [propget, id(0x000000CA), helpstring("Set Next Reactor element active; returns 0 if none.")]
+    HRESULT _stdcall Next([out, retval] long* Value);
+    [propget, id(0x000000CB), helpstring("Returns the number of reactor objects defined in the active model")]
+    HRESULT _stdcall Count([out, retval] long* Value);
+    [propget, id(0x000000CC), helpstring("Gets the name of the active reactor")]
+    HRESULT _stdcall Name([out, retval] BSTR* Value);
+    [propput, id(0x000000CC), helpstring("Sets the name of the active reactor")]
+    HRESULT _stdcall Name([in] BSTR Value);
+    [propget, id(0x000000CD), helpstring("Gets the kV rating of the active reactor")]
+    HRESULT _stdcall kV([out, retval] double* Value);
+    [propput, id(0x000000CD), helpstring("Sets the kV rating of the active reactor")]
+    HRESULT _stdcall kV([in] double Value);
+    [propget, id(0x000000CF), helpstring("Gets the kvar rating for the active reactor")]
+    HRESULT _stdcall kvar([out, retval] double* Value);
+    [propput, id(0x000000CF), helpstring("Sets the kvar rating for the active reactor")]
+    HRESULT _stdcall kvar([in] double Value);
+    [propget, id(0x000000D0), helpstring("Gets the name of XYCurve object describing per-unit variation of phase inductance, L=X/w, vs. frequency for the active reactor")]
+    HRESULT _stdcall LCurve([out, retval] BSTR* Value);
+    [propput, id(0x000000D0), helpstring("Sets the ame of XYCurve object describing per-unit variation of phase inductance, L=X/w, vs. frequency for the active reactor")]
+    HRESULT _stdcall LCurve([in] BSTR Value);
+    [propget, id(0x000000D1), helpstring("Gets the Inductance, mH for the active reactor")]
+    HRESULT _stdcall lmH([out, retval] double* Value);
+    [propput, id(0x000000D1), helpstring("Sets the Inductance, mH for the active reactor")]
+    HRESULT _stdcall lmH([in] double Value);
+    [propget, id(0x000000D2), helpstring("Gets the flag indicating  whether Rmatrix and Xmatrix are to be considered in parallel for the active reactor")]
+    HRESULT _stdcall Parallel([out, retval] VARIANT_BOOL* Value);
+    [propput, id(0x000000D2), helpstring("Sets the flag indicating  whether Rmatrix and Xmatrix are to be considered in parallel for the active reactor")]
+    HRESULT _stdcall Parallel([in] VARIANT_BOOL Value);
+    [propget, id(0x000000D3), helpstring("Gets the Resistance (in series with reactance), each phase, ohms for the active reactor")]
+    HRESULT _stdcall R([out, retval] double* Value);
+    [propput, id(0x000000D3), helpstring("Sets the Resistance (in series with reactance), each phase, ohms for the active reactor")]
+    HRESULT _stdcall R([in] double Value);
+    [propget, id(0x000000D4), helpstring("Gets the Name of XYCurve object, previously defined, describing per-unit variation of phase resistance, R, vs. frequency for the active reactor")]
+    HRESULT _stdcall RCurve([out, retval] BSTR* Value);
+    [propput, id(0x000000D4), helpstring("Sets the Name of XYCurve object, previously defined, describing per-unit variation of phase resistance, R, vs. frequency for the active reactor")]
+    HRESULT _stdcall RCurve([in] BSTR Value);
+    [propget, id(0x000000D5), helpstring("Gets the Resistance matrix, lower triangle, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall Rmatrix([out, retval] VARIANT* Value);
+    [propput, id(0x000000D5), helpstring("Sets the Resistance matrix, lower triangle, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall Rmatrix([in] VARIANT Value);
+    [propget, id(0x000000D6), helpstring("Gets the Resistance in parallel with R and X (the entire branch) for the active reactor")]
+    HRESULT _stdcall Rp([out, retval] double* Value);
+    [propput, id(0x000000D6), helpstring("Sets the Resistance in parallel with R and X (the entire branch) for the active reactor")]
+    HRESULT _stdcall Rp([in] double Value);
+    [propget, id(0x000000D7), helpstring("Gets the Reactance, each phase, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall X([out, retval] double* Value);
+    [propput, id(0x000000D7), helpstring("Sets the Reactance, each phase, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall X([in] double Value);
+    [propget, id(0x000000D8), helpstring("Gets the Reactance matrix, lower triangle, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall Xmatrix([out, retval] VARIANT* Value);
+    [propput, id(0x000000D8), helpstring("Sets the Reactance matrix, lower triangle, ohms at base frequency for the active reactor")]
+    HRESULT _stdcall Xmatrix([in] VARIANT Value);
+    [propget, id(0x000000D9), helpstring("Alternative way of getting R and X properties")]
+    HRESULT _stdcall Z([out, retval] VARIANT* Value);
+    [propput, id(0x000000D9), helpstring("Alternative way of setting R and X properties")]
+    HRESULT _stdcall Z([in] VARIANT Value);
+    [propget, id(0x000000DA), helpstring("Gets the Zer0-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z0([out, retval] VARIANT* Value);
+    [propput, id(0x000000DA), helpstring("Sets the Zer0-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z0([in] VARIANT Value);
+    [propget, id(0x000000DB), helpstring("Gets the Positive-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z1([out, retval] VARIANT* Value);
+    [propput, id(0x000000DB), helpstring("Sets the Positive-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z1([in] VARIANT Value);
+    [propget, id(0x000000DC), helpstring("Gets the Negative-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z2([out, retval] VARIANT* Value);
+    [propput, id(0x000000DC), helpstring("Sets the Negative-sequence impedance, ohms, as a 2-element array representing a complex number for the active reactor")]
+    HRESULT _stdcall Z2([in] VARIANT Value);
+    [propget, id(0x000000CE), helpstring("Gets the names of all the reactors in the active circuit")]
+    HRESULT _stdcall AllNames([out, retval] VARIANT* Value);
   };
 
   [
@@ -3833,6 +3919,15 @@ library OpenDSSengine
   coclass WindGens
   {
     [default] interface IWindGens;
+  };
+
+  [
+    uuid(CFEAA38F-3EAA-44E9-9F4F-ADB90DE9E961),
+    helpstring("Reactors Class interface")
+  ]
+  coclass Reactors
+  {
+    [default] interface IReactors;
   };
 
 };

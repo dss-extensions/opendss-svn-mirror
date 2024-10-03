@@ -98,6 +98,7 @@ uses
     NumCPULib,
     Command,
     ISource,
+    Reactor,
     WindGen;
 
 const
@@ -295,6 +296,7 @@ Integer
     StorageClass: array of TStorage;
     PVSystemClass: array of TPVSystem;
     WindGenClass: array of TWindGen;
+    ReactorClass: array of TReactor;
     InvControlClass: array of TInvControl;
     ExpControlClass: array of TExpControl;
     ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
@@ -1615,6 +1617,7 @@ try
     setlength(StorageClass, CPU_Cores + 1);
     setlength(PVSystemClass, CPU_Cores + 1);
     setlength(WindGenClass, CPU_Cores + 1);
+    setlength(ReactorClass, CPU_Cores + 1);
     setlength(InvControlClass, CPU_Cores + 1);
     setlength(ExpControlClass, CPU_Cores + 1);
     setlength(EventStrings, CPU_Cores + 1);

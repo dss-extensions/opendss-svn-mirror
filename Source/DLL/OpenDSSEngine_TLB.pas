@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 5/7/2024 10:14:56 AM from Type Library described below.
+// File generated on 10/2/2024 2:22:44 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -150,6 +150,8 @@ const
     CLASS_Storages: TGUID = '{E9322B91-C7CA-4573-803E-90AC4B4B1AA0}';
     IID_IWindGens: TGUID = '{6DACB971-F9EE-4E4E-B0B9-7C16913BC83A}';
     CLASS_WindGens: TGUID = '{347418F7-928D-458D-B32D-681C00F33DF0}';
+    IID_IReactors: TGUID = '{C547269D-03FB-427F-BF45-61EC4704DCE4}';
+    CLASS_Reactors: TGUID = '{CFEAA38F-3EAA-44E9-9F4F-ADB90DE9E961}';
 
 // *********************************************************************//
 // Declaration of Enumerations defined in Type Library
@@ -370,6 +372,8 @@ type
     IStoragesDisp = dispinterface;
     IWindGens = interface;
     IWindGensDisp = dispinterface;
+    IReactors = interface;
+    IReactorsDisp = dispinterface;
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library
@@ -420,6 +424,7 @@ type
     ReduceCkt = IReduceCkt;
     Storages = IStorages;
     WindGens = IWindGens;
+    Reactors = IReactors;
 
 
 // *********************************************************************//
@@ -762,6 +767,7 @@ type
         function Get_ReduceCkt: IReduceCkt; SAFECALL;
         function Get_Storages: IStorages; SAFECALL;
         function Get_WindGens: IWindGens; SAFECALL;
+        function Get_Reactors: IReactors; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumCktElements: Integer READ Get_NumCktElements;
         property NumBuses: Integer READ Get_NumBuses;
@@ -826,6 +832,7 @@ type
         property ReduceCkt: IReduceCkt READ Get_ReduceCkt;
         property Storages: IStorages READ Get_Storages;
         property WindGens: IWindGens READ Get_WindGens;
+        property Reactors: IReactors READ Get_Reactors;
     end;
 
 // *********************************************************************//
@@ -916,6 +923,7 @@ type
         property ReduceCkt: IReduceCkt READONLY DISPID 241;
         property Storages: IStorages READONLY DISPID 242;
         property WindGens: IWindGens READONLY DISPID 243;
+        property Reactors: IReactors READONLY DISPID 244;
     end;
 
 // *********************************************************************//
@@ -4240,6 +4248,100 @@ type
     end;
 
 // *********************************************************************//
+// Interface: IReactors
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {C547269D-03FB-427F-BF45-61EC4704DCE4}
+// *********************************************************************//
+    IReactors = interface(IDispatch)
+        ['{C547269D-03FB-427F-BF45-61EC4704DCE4}']
+        function Get_First: Integer; SAFECALL;
+        function Get_Next: Integer; SAFECALL;
+        function Get_Count: Integer; SAFECALL;
+        function Get_Name: Widestring; SAFECALL;
+        procedure Set_Name(const Value: Widestring); SAFECALL;
+        function Get_kV: Double; SAFECALL;
+        procedure Set_kV(Value: Double); SAFECALL;
+        function Get_kvar: Double; SAFECALL;
+        procedure Set_kvar(Value: Double); SAFECALL;
+        function Get_LCurve: Widestring; SAFECALL;
+        procedure Set_LCurve(const Value: Widestring); SAFECALL;
+        function Get_lmH: Double; SAFECALL;
+        procedure Set_lmH(Value: Double); SAFECALL;
+        function Get_Parallel: Wordbool; SAFECALL;
+        procedure Set_Parallel(Value: Wordbool); SAFECALL;
+        function Get_R: Double; SAFECALL;
+        procedure Set_R(Value: Double); SAFECALL;
+        function Get_RCurve: Widestring; SAFECALL;
+        procedure Set_RCurve(const Value: Widestring); SAFECALL;
+        function Get_Rmatrix: Olevariant; SAFECALL;
+        procedure Set_Rmatrix(Value: Olevariant); SAFECALL;
+        function Get_Rp: Double; SAFECALL;
+        procedure Set_Rp(Value: Double); SAFECALL;
+        function Get_X: Double; SAFECALL;
+        procedure Set_X(Value: Double); SAFECALL;
+        function Get_Xmatrix: Olevariant; SAFECALL;
+        procedure Set_Xmatrix(Value: Olevariant); SAFECALL;
+        function Get_Z: Olevariant; SAFECALL;
+        procedure Set_Z(Value: Olevariant); SAFECALL;
+        function Get_Z0: Olevariant; SAFECALL;
+        procedure Set_Z0(Value: Olevariant); SAFECALL;
+        function Get_Z1: Olevariant; SAFECALL;
+        procedure Set_Z1(Value: Olevariant); SAFECALL;
+        function Get_Z2: Olevariant; SAFECALL;
+        procedure Set_Z2(Value: Olevariant); SAFECALL;
+        function Get_AllNames: Olevariant; SAFECALL;
+        property First: Integer READ Get_First;
+        property Next: Integer READ Get_Next;
+        property Count: Integer READ Get_Count;
+        property Name: Widestring READ Get_Name WRITE Set_Name;
+        property kV: Double READ Get_kV WRITE Set_kV;
+        property kvar: Double READ Get_kvar WRITE Set_kvar;
+        property LCurve: Widestring READ Get_LCurve WRITE Set_LCurve;
+        property lmH: Double READ Get_lmH WRITE Set_lmH;
+        property Parallel: Wordbool READ Get_Parallel WRITE Set_Parallel;
+        property R: Double READ Get_R WRITE Set_R;
+        property RCurve: Widestring READ Get_RCurve WRITE Set_RCurve;
+        property Rmatrix: Olevariant READ Get_Rmatrix WRITE Set_Rmatrix;
+        property Rp: Double READ Get_Rp WRITE Set_Rp;
+        property X: Double READ Get_X WRITE Set_X;
+        property Xmatrix: Olevariant READ Get_Xmatrix WRITE Set_Xmatrix;
+        property Z: Olevariant READ Get_Z WRITE Set_Z;
+        property Z0: Olevariant READ Get_Z0 WRITE Set_Z0;
+        property Z1: Olevariant READ Get_Z1 WRITE Set_Z1;
+        property Z2: Olevariant READ Get_Z2 WRITE Set_Z2;
+        property AllNames: Olevariant READ Get_AllNames;
+    end;
+
+// *********************************************************************//
+// DispIntf:  IReactorsDisp
+// Flags:     (4416) Dual OleAutomation Dispatchable
+// GUID:      {C547269D-03FB-427F-BF45-61EC4704DCE4}
+// *********************************************************************//
+    IReactorsDisp = dispinterface
+        ['{C547269D-03FB-427F-BF45-61EC4704DCE4}']
+        property First: Integer READONLY DISPID 201;
+        property Next: Integer READONLY DISPID 202;
+        property Count: Integer READONLY DISPID 203;
+        property Name: Widestring DISPID 204;
+        property kV: Double DISPID 205;
+        property kvar: Double DISPID 207;
+        property LCurve: Widestring DISPID 208;
+        property lmH: Double DISPID 209;
+        property Parallel: Wordbool DISPID 210;
+        property R: Double DISPID 211;
+        property RCurve: Widestring DISPID 212;
+        property Rmatrix: Olevariant DISPID 213;
+        property Rp: Double DISPID 214;
+        property X: Double DISPID 215;
+        property Xmatrix: Olevariant DISPID 216;
+        property Z: Olevariant DISPID 217;
+        property Z0: Olevariant DISPID 218;
+        property Z1: Olevariant DISPID 219;
+        property Z2: Olevariant DISPID 220;
+        property AllNames: Olevariant READONLY DISPID 206;
+    end;
+
+// *********************************************************************//
 // The Class CoText provides a Create and CreateRemote method to
 // create instances of the default interface IText exposed by
 // the CoClass Text. The functions are intended to be used by
@@ -4779,6 +4881,18 @@ type
         class function CreateRemote(const MachineName: String): IWindGens;
     end;
 
+// *********************************************************************//
+// The Class CoReactors provides a Create and CreateRemote method to
+// create instances of the default interface IReactors exposed by
+// the CoClass Reactors. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
+// *********************************************************************//
+    CoReactors = class
+        class function Create: IReactors;
+        class function CreateRemote(const MachineName: String): IReactors;
+    end;
+
 implementation
 
 uses
@@ -5232,6 +5346,16 @@ end;
 class function CoWindGens.CreateRemote(const MachineName: String): IWindGens;
 begin
     Result := CreateRemoteComObject(MachineName, CLASS_WindGens) as IWindGens;
+end;
+
+class function CoReactors.Create: IReactors;
+begin
+    Result := CreateComObject(CLASS_Reactors) as IReactors;
+end;
+
+class function CoReactors.CreateRemote(const MachineName: String): IReactors;
+begin
+    Result := CreateRemoteComObject(MachineName, CLASS_Reactors) as IReactors;
 end;
 
 end.
