@@ -61,6 +61,7 @@ Uses
        ImplReduce,
        ImplStorages,
        ImplWindgens,
+       ImplReactors,
        OpenDSSengine_TLB;
 
 
@@ -111,6 +112,7 @@ Var
    FGICSources  :IGICSources;
    FStorages    :IStorages;
    FWindGens    :IWindGens;
+   FReactors    :IReactors;
    FreduceCkt   :IReduceCkt;
 
    FPropIndex   :Integer;
@@ -200,6 +202,7 @@ Begin
      FReduceCkt   := TReduceCkt.Create;
      FStorages    := TStorages.Create;
      FWindGens    := TWindGens.Create;
+     FReactors    := TReactors.Create;
 
      FPropIndex := 0;
      FPropClass := Nil;

@@ -211,7 +211,8 @@ Begin
      DSSClasses.New               := TTransf.Create;
      DSSClasses.New               := TRegControl.Create;
      DSSClasses.New               := TCapacitor.Create;
-     DSSClasses.New               := TReactor.Create;
+     ReactorClass[ActiveActor]    := TReactor.Create;
+     DSSClasses.New               := ReactorClass[ActiveActor];
      DSSClasses.New               := TCapControl.Create;
      DSSClasses.New               := TFault.Create;
      DSSClasses.New               := TGenerator.Create;
