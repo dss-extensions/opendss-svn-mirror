@@ -4216,9 +4216,12 @@ namespace Solution
                         Processing = false;
                         FMessage = "1";
                       }
-                      CoutLn("Actor " + to_string(ActorID) + ": Job done");
+                      
                       if (!NoFormsAllowed)
-                        cout << ">>";
+                      {
+                          CoutLn("Actor " + to_string(ActorID) + ": Job done");
+                          cout << ">>";
+                      }
                   }
                   catch( std::exception & E )
                   {
@@ -4289,9 +4292,12 @@ namespace Solution
                 {
                   ActorActive = false;
                   Doterminate();
-                  CoutLn("Actor " + to_string(ActorID) + " terminated");
+                  
                   if (!NoFormsAllowed)
-                    cout << ">>";
+                  {
+                      CoutLn("Actor " + to_string(ActorID) + " terminated");
+                      cout << ">>";
+                  }
                 }
                 break;
               default:                       // I don't know what the message is

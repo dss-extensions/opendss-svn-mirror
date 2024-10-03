@@ -134,7 +134,8 @@ namespace DSSClassDefs
         DSSClasses->Set_New(new TTransf());
         DSSClasses->Set_New(new TRegControl());
         DSSClasses->Set_New(new TCapacitor());
-        DSSClasses->Set_New(new TReactor());
+        ReactorClass[ActiveActor] = new TReactor();
+        DSSClasses->Set_New(ReactorClass[ActiveActor]);
         DSSClasses->Set_New(new TCapControl());
         DSSClasses->Set_New(new TFault());
         DSSClasses->Set_New(new TGenerator());
