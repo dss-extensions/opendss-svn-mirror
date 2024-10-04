@@ -334,7 +334,7 @@ type
         procedure Calc_PBase(j: Integer; ActorID: Integer);
         procedure Check_Plimits(j: Integer; P: Double; ActorID: Integer);
         procedure CalcPVWcurve_limitpu(j: Integer; ActorID: Integer);
-        procedure GetmonVoltage(ActorID: Integer; var Vpresent: Double; i: Integer; BasekV: Double);
+        procedure GetmonVoltage(ActorID: Integer; var Vpresent: Double; i: Integer; BasekV: Double; connection: Integer);
         procedure Change_deltaQ_factor(ActorID: Integer; j: Integer);
         procedure Change_deltaP_factor(ActorID: Integer; j: Integer);
 
@@ -2290,7 +2290,7 @@ begin
 end;
 
 
-procedure TInvControlObj.GetmonVoltage(ActorID: Integer; var Vpresent: Double; i: Integer; BasekV: Double);
+procedure TInvControlObj.GetmonVoltage(ActorID: Integer; var Vpresent: Double; i: Integer; BasekV: Double; connection: Integer);
 var
     j: Integer;
     rBus: TDSSBus;
@@ -2298,6 +2298,14 @@ var
     v: Complex;
     vi: Complex;
     vj: Complex;
+
+
+    function NextDeltaPhase(iphs: Integer): Integer;
+    begin
+        Result := iphs + 1;
+        if Result > CtrlVars[i].NCondsDER then
+            Result := 1;
+    end;
 
 begin
     with CtrlVars[i] do
@@ -2368,7 +2376,12 @@ begin
             numNodes := ControlledElement.NPhases;
 
             for j := 1 to numNodes do
-                cBuffer[j] := ControlledElement.Vterminal^[j];
+                case connection of
+                    1:
+                        cBuffer[j] := Csub(ControlledElement.Vterminal^[j], ControlledElement.Vterminal^[NextDeltaPhase(j)]);   // Delta
+                else
+                    cBuffer[j] := ControlledElement.Vterminal^[j];     // Wye - Default
+                end;
 
 
             case FMonBusesPhase of
@@ -2490,7 +2503,10 @@ begin
 
                 BasekV := FVBase / 1000.0; // It's a line-to-ground voltage
 
-                GetmonVoltage(ActorID, Vpresent, i, BasekV);
+                if PVSys <> nil then
+                    GetmonVoltage(ActorID, Vpresent, i, BasekV, PVSys.Connection)
+                else
+                    GetmonVoltage(ActorID, Vpresent, i, BasekV, Storage.Connection);
 
         // for reporting Vpriorpu correctly in EventLog (this update is normally perform at DoPendingAction)
                 if ActiveCircuit[ActorID].Solution.ControlIteration = 1 then
@@ -3607,6 +3623,8 @@ var
     solnvoltage: Double;
     tempVbuffer: pComplexArray;
     BasekV: Double;
+    PVSys: TPVSystemObj;
+    Storage: TStorageObj;
 
 begin
     tempVbuffer := nil;   // Initialize for Reallocmem
@@ -3625,6 +3643,11 @@ begin
 
         with CtrlVars[j] do
         begin
+            if ControlledElement.DSSClassName = 'PVSystem' then
+                PVSys := ControlledElement as TPVSystemObj
+            else
+                Storage := ControlledElement as TStorageObj;
+
             BasekV := CtrlVars[i].FVBase / 1000.0;
 
             //             FPriorvars[j]  := PVSys.Presentkvar;
@@ -3669,7 +3692,10 @@ begin
 
             solnvoltage := 0.0;
 
-            GetmonVoltage(ActorID, solnvoltage, j, BasekV);
+            if PVSys <> nil then
+                GetmonVoltage(ActorID, solnvoltage, i, BasekV, PVSys.Connection)
+            else
+                GetmonVoltage(ActorID, solnvoltage, i, BasekV, Storage.Connection);
 
             //for k := 1 to localControlledElement.Yorder do tempVbuffer[k] := localControlledElement.Vterminal^[k];
 
