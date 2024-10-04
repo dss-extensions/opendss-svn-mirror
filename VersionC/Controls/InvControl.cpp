@@ -2099,7 +2099,16 @@ void TInvControlObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 	}
 }
 
-void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double BaseKV)
+ int TInvControlObj::NextDeltaPhase(int iphs, int i)
+{
+     int Result = iphs + 1;
+    if (Result > CtrlVars[i].NCondsDER)
+        Result = 1;
+
+	return Result;
+ }
+
+void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double BaseKV, int connection)
 {
 	int j = 0;
 	TDSSBus* rBus = nullptr;
@@ -2107,6 +2116,7 @@ void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double 
 	complex V = {};
 	complex vi = {};
 	complex vj = {};
+
 
 	auto& withi = CtrlVars[i];
 	if(FUsingMonBuses)
@@ -2181,11 +2191,20 @@ void TInvControlObj::GetmonVoltage(int ActorID, double& Vpresent, int i, double 
 	else
 	{
 		int stop = 0;
-		( (TDSSCktElement*) withi.ControlledElement )->ComputeVterminal(ActorID);
-		NumNodes = ( (TDSSCktElement*) (withi.ControlledElement) )->Get_NPhases();
+		( withi.ControlledElement )->ComputeVterminal(ActorID);
+		NumNodes = (  (withi.ControlledElement) )->Get_NPhases();
 		for(stop = NumNodes, j = 1; j <= stop; j++)
 		{
-			withi.cBuffer[j - 1] = (withi.ControlledElement)->Vterminal[j - 1];
+			//withi.cBuffer[j - 1] = (withi.ControlledElement)->Vterminal[j - 1]; // change proposed by Celso Rocha, 10/04/2024
+            switch (connection)
+            {
+				case 1: 
+					withi.cBuffer[j - 1] = csub((withi.ControlledElement)->Vterminal[j - 1], (withi.ControlledElement)->Vterminal[NextDeltaPhase(j, i) - 1]);
+					break;
+				default:
+					withi.cBuffer[j - 1] = (withi.ControlledElement)->Vterminal[j - 1];
+					break;
+            }
 		}
 		switch(FMonBusesPhase)
 		{
