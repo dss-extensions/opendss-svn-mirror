@@ -2326,7 +2326,11 @@ void TInvControlObj::sample(int ActorID)
 			else
 				Storage = (TStorageObj*) withi.ControlledElement;
 			BaseKV = withi.FVBase / 1000.0; // It's a line-to-ground voltage
-			GetmonVoltage(ActorID, Vpresent, i, BaseKV);
+
+			if (ASSIGNED(PVSyst))
+				GetmonVoltage(ActorID, Vpresent, i, BaseKV,PVSyst->Connection);
+            else
+				GetmonVoltage(ActorID, Vpresent, i, BaseKV, Storage->Connection);
 
             // for reporting Vpriorpu correctly in EventLog (this update is normally perform at DoPendingAction)
 			if(ActiveCircuit[ActorID]->Solution->ControlIteration == 1)
@@ -3498,7 +3502,11 @@ void TInvControlObj::UpdateInvControl(int i, int ActorID)
 		( (TDSSCktElement*) withj.ControlledElement )->ComputeVterminal(ActorID);
           //PVSys.Set_Variable(5,FDRCRollAvgWindow[j].Get_AvgVal); // save rolling average voltage in monitor
 		solnvoltage = 0.0;
-		GetmonVoltage(ActorID, solnvoltage, j, BaseKV);
+
+		if (ASSIGNED(PVSyst))
+			GetmonVoltage(ActorID, solnvoltage, j, BaseKV, PVSyst->Connection);
+		else
+			GetmonVoltage(ActorID, solnvoltage, j, BaseKV, Storage->Connection);
 
           //for k := 1 to localControlledElement.Yorder do tempVbuffer[k] := localControlledElement.Vterminal^[k];
 
