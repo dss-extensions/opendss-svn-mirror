@@ -8,7 +8,7 @@ unit CNData;
 interface
 
 USES
-  Command, DSSClass, DSSObject, ConductorData, CableData;
+  Command, DSSClass, DSSObject, ConductorData, CableData, Utilities;
 
 TYPE
   TCNData = class(TCableData)
@@ -36,6 +36,7 @@ TYPE
       FDiaStrand: Double;
       FGmrStrand: Double;
       FRStrand: Double;
+      FSemicon: Boolean;
     public
 
       constructor Create(ParClass:TDSSClass; const CNDataName:String);
@@ -45,6 +46,7 @@ TYPE
       Property DiaStrand:Double Read FDiaStrand;
       Property GmrStrand:Double Read FGmrStrand;
       Property RStrand:Double Read FRStrand;
+      Property Semicon:Boolean Read FSemicon;
 
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
       PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
@@ -56,7 +58,7 @@ implementation
 
 USES  ParserDel,  DSSGlobals, DSSClassDefs, Sysutils, Ucomplex, Arraydef,  LineUNits;
 
-Const NumPropsThisClass = 4;
+Const NumPropsThisClass = 5;
 
 constructor TCNData.Create;  // Creates superstructure for all Line objects
 BEGIN
@@ -86,11 +88,13 @@ Begin
   PropertyName^[2] := 'DiaStrand';
   PropertyName^[3] := 'GmrStrand';
   PropertyName^[4] := 'Rstrand';
+  PropertyName^[5] := 'SemiconLayer';
 
   PropertyHelp^[1] := 'Number of concentric neutral strands; default is 2';
   PropertyHelp^[2] := 'Diameter of a concentric neutral strand; same units as core conductor radius; no default.';
   PropertyHelp^[3] := 'Geometric mean radius of a concentric neutral strand; same units as core conductor GMR; defaults to 0.7788 * CN strand radius.';
   PropertyHelp^[4] := 'AC resistance of a concentric neutral strand; same units as core conductor resistance; no default.';
+  PropertyHelp^[5] := '{Yes/True | No/False}  Default is Yes. Existence of a semicon layer between the insulation layer and the concentric neutral strands. Affects calculation of shunt self admittances.';
 
   ActiveProperty := NumPropsThisClass;
   inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -130,6 +134,7 @@ BEGIN
         2: FDiaStrand := Parser[ActorID].DblValue;
         3: FGmrStrand := Parser[ActorID].DblValue;
         4: FRStrand := Parser[ActorID].DblValue;
+        5: FSemicon := InterpretYesNo(Param);
       ELSE
         // Inherited parameters
         ClassEdit(ActiveConductorDataObj, ParamPointer - NumPropsThisClass)
@@ -138,6 +143,7 @@ BEGIN
       {Set defaults}
       CASE ParamPointer OF
         2: If FGmrStrand <=0.0 Then FGmrStrand := 0.7788 * 0.5 * FDiaStrand;
+        5: FSemicon := TRUE and FSemicon; // use semicon layer by default (if it is already false ignore)
       END;
 
       {Check for critical errors}
@@ -165,6 +171,7 @@ BEGIN
       FDiaStrand := OtherData.FDiaStrand;
       FGmrStrand := OtherData.FGmrStrand;
       FRStrand := OtherData.FRStrand;
+      FSemicon := OtherData.FSemicon;
       ClassMakeLike(OtherData);
       For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherData.PropertyValue[i];
       Result := 1;
@@ -212,6 +219,7 @@ BEGIN
   FDiaStrand := -1.0;
   FGmrStrand := -1.0;
   FRStrand   := -1.0;
+  FSemicon := TRUE;
   InitPropertyValues(0);
 END;
 
@@ -233,6 +241,7 @@ Begin
         2: Writeln(F, Format('%.6g',[FDiaStrand]));
         3: Writeln(F, Format('%.6g',[FGmrStrand]));
         4: Writeln(F, Format('%.6g',[FRStrand]));
+        5: IF FSemicon THEN Writeln(F, 'Yes') ELSE Writeln(F, 'No');
       END;
     End;
   End;
@@ -246,6 +255,7 @@ Begin
     2: Result :=  Format('%.6g',[FDiaStrand]);
     3: Result :=  Format('%.6g',[FGmrStrand]);
     4: Result :=  Format('%.6g',[FRStrand]);
+    5: IF FSemicon THEN Result := 'Yes' ELSE Result := 'No';
   ELSE
     Result := Inherited GetPropertyValue(index - NumPropsThisClass);
   END;
@@ -262,6 +272,7 @@ begin
   PropertyValue[2] := '-1';
   PropertyValue[3] := '-1';
   PropertyValue[4] := '-1';
+  PropertyValue[5] := 'Yes';
   inherited InitPropertyValues(ArrayOffset + NumPropsThisClass);
 end;
 
