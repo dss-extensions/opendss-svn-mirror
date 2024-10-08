@@ -143,7 +143,6 @@ BEGIN
       {Set defaults}
       CASE ParamPointer OF
         2: If FGmrStrand <=0.0 Then FGmrStrand := 0.7788 * 0.5 * FDiaStrand;
-        5: FSemicon := TRUE and FSemicon; // use semicon layer by default (if it is already false ignore)
       END;
 
       {Check for critical errors}
