@@ -170,8 +170,6 @@ begin
                 2:
                     if FGmrStrand <= 0.0 then
                         FGmrStrand := 0.7788 * 0.5 * FDiaStrand;
-                5:
-                    FSemicon := true and FSemicon; // use semicon layer by default (if it is already false ignore)
             end;
 
       {Check for critical errors}
