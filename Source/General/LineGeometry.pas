@@ -87,6 +87,8 @@ type
         function Get_Zmatrix(f, Lngth: Double; Units: Integer): Tcmatrix;
         function Get_RhoEarth: Double;
         procedure Set_RhoEarth(const Value: Double);
+        function Get_EpsRMedium: Double;
+        procedure Set_EpsRMedium(const Value: Double);
         function get_Nconds: Integer;
         procedure UpdateLineGeometryData(f: Double);   // call this before using the line data
 
@@ -124,6 +126,7 @@ type
         property Zmatrix[f, Lngth: Double; Units: Integer]: Tcmatrix READ Get_Zmatrix;
         property YCmatrix[f, Lngth: Double; Units: Integer]: Tcmatrix READ Get_YCmatrix;
         property RhoEarth: Double READ Get_RhoEarth WRITE Set_RhoEarth;
+        property EpsRmedium: Double READ Get_EpsRmedium WRITE Set_EpsRmedium;
 
         // CIM XML accessors
         property Xcoord[i: Integer]: Double READ Get_FX;
@@ -148,8 +151,7 @@ uses
     Utilities,
     LineUnits,
     OHLineConstants,
-    CNLineConstants,
-    TSLineConstants;
+    CNTSLineConstants;
 
 const
     NumPropsThisClass = 19;
@@ -787,6 +789,11 @@ begin
     Result := FLineData.rhoearth;
 end;
 
+function TLineGeometryObj.Get_EpsRMedium: Double;
+begin
+    Result := FLineData.epsrmedium;
+end;
+
 function TLineGeometryObj.Get_YCmatrix(f, Lngth: Double;
     Units: Integer): Tcmatrix;
 begin
@@ -928,9 +935,9 @@ begin
             Overhead:
                 newLineData := TOHLineConstants.Create(FNConds);
             ConcentricNeutral:
-                newLineData := TCNLineConstants.Create(FNConds);
+                newLineData := TCNTSLineConstants.Create(FNConds);
             TapeShield:
-                newLineData := TTSLineConstants.Create(FNConds);
+                newLineData := TCNTSLineConstants.Create(FNConds);
         end;
 
     if Assigned(newLineData) then
@@ -939,6 +946,7 @@ begin
         begin
             newLineData.Nphases := FLineData.Nphases;
             newLineData.rhoearth := FLineData.rhoearth;
+            newLineData.epsrmedium := FLineData.epsrmedium;
             FreeAndNil(FLineData);
         end;
         FLineData := newLineData;
@@ -996,6 +1004,11 @@ begin
     FLineData.RhoEarth := Value;
 end;
 
+procedure TLineGeometryObj.Set_EpsRMedium(const Value: Double);
+begin
+    FLineData.epsrmedium := Value;
+end;
+
 procedure TLineGeometryObj.UpdateLineGeometryData(f: Double);
 var
     i: Integer;
@@ -1015,9 +1028,10 @@ begin
         FLineData.Rac[i, FWireData^[i].ResUnits] := FWireData^[i].Rac;
         if (FWireData^[i] is TCNDataObj) then
         begin
-            with (FLineData as TCNLineConstants) do
+            with (FLineData as TCNTSLineConstants) do
             begin
                 cnd := (FWireData^[i] as TCNDataObj);
+                CondType[i] := 1;  //CN
                 EpsR[i] := cnd.EpsR;
                 InsLayer[i, cnd.RadiusUnits] := cnd.InsLayer;
                 DiaIns[i, cnd.RadiusUnits] := cnd.DiaIns;
@@ -1026,14 +1040,16 @@ begin
                 DiaStrand[i, cnd.RadiusUnits] := cnd.DiaStrand;
                 GmrStrand[i, cnd.GMRUnits] := cnd.GmrStrand;
                 RStrand[i, cnd.ResUnits] := cnd.RStrand;
+                Semicon[i] := cnd.Semicon;
             end;
         end
         else
         if (FWireData^[i] is TTSDataObj) then
         begin
-            with (FLineData as TTSLineConstants) do
+            with (FLineData as TCNTSLineConstants) do
             begin
                 tsd := (FWireData^[i] as TTSDataObj);
+                CondType[i] := 2;  //TS
                 EpsR[i] := tsd.EpsR;
                 InsLayer[i, tsd.RadiusUnits] := tsd.InsLayer;
                 DiaIns[i, tsd.RadiusUnits] := tsd.DiaIns;

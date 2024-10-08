@@ -23,16 +23,19 @@ type
         FDiaStrand: pDoubleArray;
         FGmrStrand: pDoubleArray;
         FRStrand: pDoubleArray;
+        FSemicon: pBooleanArray;
 
         function Get_kStrand(i: Integer): Integer;
         function Get_DiaStrand(i, units: Integer): Double;
         function Get_GmrStrand(i, units: Integer): Double;
         function Get_RStrand(i, units: Integer): Double;
+        function Get_Semicon(i: Integer): Boolean;
 
         procedure Set_kStrand(i: Integer; const Value: Integer);
         procedure Set_DiaStrand(i, units: Integer; const Value: Double);
         procedure Set_GmrStrand(i, units: Integer; const Value: Double);
         procedure Set_RStrand(i, units: Integer; const Value: Double);
+        procedure Set_Semicon(i: Integer; const Value: Boolean);
     PROTECTED
 
     PUBLIC
@@ -45,6 +48,7 @@ type
         property DiaStrand[i, units: Integer]: Double READ Get_DiaStrand WRITE Set_DiaStrand;
         property GmrStrand[i, units: Integer]: Double READ Get_GmrStrand WRITE Set_GmrStrand;
         property RStrand[i, units: Integer]: Double READ Get_RStrand WRITE Set_RStrand;
+        property Semicon[i: Integer]: Boolean READ Get_Semicon WRITE Set_Semicon;
     end;
 
 implementation
@@ -57,6 +61,11 @@ uses
 function TCNLineConstants.Get_kStrand(i: Integer): Integer;
 begin
     Result := FkStrand^[i];
+end;
+
+function TCNLineConstants.Get_Semicon(i: Integer): Boolean;
+begin
+    Result := FSemicon^[i];
 end;
 
 function TCNLineConstants.Get_DiaStrand(i, units: Integer): Double;
@@ -78,6 +87,12 @@ procedure TCNLineConstants.Set_kStrand(i: Integer; const Value: Integer);
 begin
     if (i > 0) and (i <= FNumConds) then
         FkStrand^[i] := Value;
+end;
+
+procedure TCNLineConstants.Set_Semicon(i: Integer; const Value: Boolean);
+begin
+    if (i > 0) and (i <= FNumConds) then
+        FSemicon^[i] := Value;
 end;
 
 procedure TCNLineConstants.Set_DiaStrand(i, units: Integer; const Value: Double);
@@ -109,7 +124,7 @@ var
     ReducedSize: Integer;
     N, idxi, idxj: Integer;
     Zmat, Ztemp: TCMatrix;
-    ResCN, RadCN: Double;
+    ResCN, RadCN, RadStrand: Double;
     GmrCN: Double;
     Denom, RadIn, RadOut: Double;
     {$IFDEF ANDREA}
@@ -246,7 +261,18 @@ begin
         Yfactor := twopi * e0 * FEpsR^[i] * Fw; // includes frequency so C==>Y
         RadOut := 0.5 * FDiaIns^[i];
         RadIn := RadOut - FInsLayer^[i];
-        Denom := ln(RadOut / RadIn);
+        if FSemicon^[i] then
+        begin
+      // Semicon layer (default)
+            Denom := ln(RadOut / RadIn);
+        end
+        else
+        begin
+      // No semicon layer (Synergi and Kersting/Kerestes' book)
+            RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
+            RadStrand := 0.5 * FDiaStrand^[i];
+            Denom := ln(RadCN / RadIn) - (1 / FkStrand^[i]) * ln(FkStrand^[i] * RadStrand / RadCN);
+        end;
         FYCMatrix.SetElement(i, i, cmplx(0.0, Yfactor / Denom));
     end;
 
@@ -264,6 +290,7 @@ begin
     FDiaStrand := Allocmem(Sizeof(FDiaStrand^[1]) * FNumConds);
     FGmrStrand := Allocmem(Sizeof(FGmrStrand^[1]) * FNumConds);
     FRStrand := Allocmem(Sizeof(FRStrand^[1]) * FNumConds);
+    FSemicon := Allocmem(Sizeof(FSemicon^[1]) * FNumConds);
 end;
 
 destructor TCNLineConstants.Destroy;
@@ -272,6 +299,7 @@ begin
     Reallocmem(FDiaStrand, 0);
     Reallocmem(FGmrStrand, 0);
     Reallocmem(FRStrand, 0);
+    Reallocmem(FSemicon, 0);
     inherited;
 end;
 

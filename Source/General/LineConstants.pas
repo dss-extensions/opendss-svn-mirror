@@ -64,6 +64,8 @@ type
         FrhoEarth: Double;  // ohm-m
         Fme: Complex; // factor for earth impedance
         FRhoChanged: Boolean;
+        FEpsRMedium: Double;  // unit-less
+
 
         function Get_GMR(i, units: Integer): Double;
         function Get_radius(i, units: Integer): Double;
@@ -83,6 +85,7 @@ type
         procedure Set_Y(i, units: Integer; const Value: Double);
         procedure Set_Frequency(const Value: Double);
         procedure Set_Frhoearth(const Value: Double);  // m
+        procedure Set_FEpsRMedium(const Value: Double);  // unit-less
     // This allows you to compute capacitance using a different radius -- for bundled conductors
         function Get_Capradius(i, units: Integer): Double;
         procedure Set_Capradius(i, units: Integer; const Value: Double);
@@ -109,6 +112,7 @@ type
         property Zint[i: Integer]: Complex READ Get_Zint;  // Internal impedance of i-th conductor for present frequency
         property Ze[i, j: Integer]: Complex READ Get_Ze;  // Earth return impedance at present frequency for ij element
         property rhoearth: Double READ Frhoearth WRITE Set_Frhoearth;
+        property EpsRMedium: Double READ FEpsRMedium WRITE Set_FEpsRMedium;
 
     {These two properties will auto recalc the impedance matrices if frequency is different}
     {Converts to desired units when executed; Returns Pointer to Working Verstion}
@@ -218,7 +222,7 @@ begin
 
       {Capacitance Matrix}
 
-    Pfactor := -1.0 / twopi / e0 / Fw; // include frequency
+    Pfactor := -1.0 / twopi / (e0 * FEpsRMedium) / Fw; // include frequency   // FEpsRMedium = 0.9993366876323544 to match Synergi
 
       {Construct P matrix and then invert}
 
@@ -319,7 +323,10 @@ begin
 
     FFrequency := -1.0;  // not computed
     Frhoearth := 100.0;  // default value
-    FRhoChanged := true;
+
+    FEpsRMedium := 1.0;  // default value should be 1.0
+
+    FRhoChanged := true; // using for both rho and epsilon_r
 
     FZreduced := nil;
     FYCreduced := nil;
@@ -432,7 +439,7 @@ begin
 
         SIMPLECARSON:
         begin
-            Result := cmplx(Fw * Mu0 / 8.0, (Fw * Mu0 / twopi) * ln(658.5 * sqrt(Frhoearth / FFrequency)));
+            Result := cmplx(Fw * Mu0 / 8.0, (Fw * Mu0 / twopi) * ln(658.8530451057239 * sqrt(Frhoearth / FFrequency)));
  // {****}             WriteDLLDebugFile(Format('Simple: Z(%d,%d) = %.8g +j %.8g',[i,j, Result.re, result.im]));
         end;
 
@@ -632,6 +639,13 @@ begin
     Frhoearth := Value;
     if FFrequency >= 0.0 then
         Fme := Csqrt(cmplx(0.0, Fw * Mu0 / Frhoearth));
+end;
+
+procedure TLineConstants.Set_FEpsRMedium(const Value: Double);
+begin
+    if Value <> FEpsRMedium then
+        FRhoChanged := true;  // using this for both EpsRMedium and Rho
+    FEpsRMedium := Value;
 end;
 
 procedure TLineConstants.Set_GMR(i, units: Integer; const Value: Double);

@@ -106,6 +106,7 @@ type
         LengthUnits: Integer;
 
         Rg, Xg, KXg, rho: Double;
+        epsRmedium: Double;
         GeneralPlotQuantity: Double;  // For general circuit plotting
         CondCode: String;
         GeometryCode: String;
@@ -177,7 +178,7 @@ uses
     ExceptionTrace;
 
 const
-    NumPropsThisClass = 30;
+    NumPropsThisClass = 31;
     //  MaxPhases = 20; // for fixed buffers
 
 var
@@ -250,6 +251,7 @@ begin
     PropertyName^[28] := 'Seasons';
     PropertyName^[29] := 'Ratings';
     PropertyName^[30] := 'LineType';
+    PropertyName^[31] := 'EpsRmedium';
 
      // define Property help values
 
@@ -332,10 +334,11 @@ begin
     PropertyHelp^[30] := 'Code designating the type of line. ' + CRLF +
         'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW, BUSBAR' + CRLF + CRLF +
         'OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.';
+    PropertyHelp^[31] := 'Default=1.0. Relative Permittivity of the medium. Used by lines with a geometry definition. Defaults to 1.0 for air.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
-
+     // NumPropsThisClass + 2 and + 3 are normamps amd emergamps  
     PropertyHelp^[NumPropsThisClass + 3] := 'Failure rate PER UNIT LENGTH per year. Length must be same units as LENGTH property. Default is 0.1 fault per unit length per year.';
     PropertyHelp^[NumPropsThisClass + 4] := PropertyHelp^[NumPropsThisClass + 4] + ' Default is 20.';
     PropertyHelp^[NumPropsThisClass + 5] := PropertyHelp^[NumPropsThisClass + 5] + ' Default is 3 hr.';
@@ -698,6 +701,10 @@ begin
                 end;
                 30:
                     FLineType := LineTypeList.Getcommand(Param);
+                31:
+                begin
+                    epsRmedium := Parser[ActorID].DblValue;
+                end;
             else
             // Inherited Property Edits
                 ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass)
@@ -783,8 +790,8 @@ begin
                     end;
                     YprimInvalid[ActorID] := true;
                 end;
-                28, 29, 31, 32:
-                    FRatingsSpecified := true;
+                28, 29, NumPropsThisClass + 1, NumPropsThisClass + 2:
+                    FRatingsSpecified := true; // normamps and emeramps
             else
             end;
 
@@ -908,6 +915,7 @@ begin
     Rg := 0.01805;    //ohms per 1000 ft
     Xg := 0.155081;
     rho := 100.0;
+    epsRmedium := 1.0;
     Kxg := Xg / ln(658.5 * sqrt(rho / BaseFrequency));
     FrhoSpecified := false;
     FCapSpecified := false;
@@ -1614,15 +1622,17 @@ begin
         end;
         30:
             Result := LineTypeList.Get(FLineType);
+        31:
+            Result := Format('%-g', [epsrmedium]);
 
            // Intercept FaultRate, PctPerm, and HourstoRepair
-        33:
+        NumPropsThisClass + 3:
             Result := Format('%-g', [FaultRate]);
-        34:
+        NumPropsThisClass + 4:
             Result := Format('%-g', [PctPerm]);
-        35:
+        NumPropsThisClass + 5:
             Result := Format('%-g', [HrsToRepair]);
-        36:
+        NumPropsThisClass + 6:
             Result := Format('%-g', [BaseFrequency]);
 
     else
@@ -1721,6 +1731,7 @@ begin
     PropertyValue[28] := '1';      // 1 Season
     PropertyValue[29] := '[400]';  // 1 Season
     PropertyValue[30] := 'OH'; // Overhead line default
+    PropertyValue[31] := '1.0';
 
 
     inherited InitPropertyValues(NumPropsThisClass);
@@ -2248,6 +2259,10 @@ begin
         end;
 
         ActiveEarthModel[ActiveActor] := FEarthModel;
+
+          // If needed, reset Epsilon R of the medium to recompute the matrices of the geometry for this line's EpsRmedium.
+        if FLineGeometryObj.EpsRmedium <> EpsRMedium then
+            FLineGeometryObj.EpsRmedium := EpsRmedium;
 
         Z := FLineGeometryObj.Zmatrix[f, len, LengthUnits];
         Yc := FLineGeometryObj.YCmatrix[f, len, LengthUnits];

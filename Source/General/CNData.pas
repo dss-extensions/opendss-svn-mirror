@@ -12,7 +12,8 @@ uses
     DSSClass,
     DSSObject,
     ConductorData,
-    CableData;
+    CableData,
+    Utilities;
 
 type
     TCNData = class(TCableData)
@@ -40,6 +41,7 @@ type
         FDiaStrand: Double;
         FGmrStrand: Double;
         FRStrand: Double;
+        FSemicon: Boolean;
     PUBLIC
 
         constructor Create(ParClass: TDSSClass; const CNDataName: String);
@@ -49,6 +51,7 @@ type
         property DiaStrand: Double READ FDiaStrand;
         property GmrStrand: Double READ FGmrStrand;
         property RStrand: Double READ FRStrand;
+        property Semicon: Boolean READ FSemicon;
 
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
@@ -68,7 +71,7 @@ uses
     LineUNits;
 
 const
-    NumPropsThisClass = 4;
+    NumPropsThisClass = 5;
 
 constructor TCNData.Create;  // Creates superstructure for all Line objects
 begin
@@ -98,11 +101,13 @@ begin
     PropertyName^[2] := 'DiaStrand';
     PropertyName^[3] := 'GmrStrand';
     PropertyName^[4] := 'Rstrand';
+    PropertyName^[5] := 'SemiconLayer';
 
     PropertyHelp^[1] := 'Number of concentric neutral strands; default is 2';
     PropertyHelp^[2] := 'Diameter of a concentric neutral strand; same units as core conductor radius; no default.';
     PropertyHelp^[3] := 'Geometric mean radius of a concentric neutral strand; same units as core conductor GMR; defaults to 0.7788 * CN strand radius.';
     PropertyHelp^[4] := 'AC resistance of a concentric neutral strand; same units as core conductor resistance; no default.';
+    PropertyHelp^[5] := '{Yes/True | No/False}  Default is Yes. Existence of a semicon layer between the insulation layer and the concentric neutral strands. Affects calculation of shunt self admittances.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -153,6 +158,8 @@ begin
                     FGmrStrand := Parser[ActorID].DblValue;
                 4:
                     FRStrand := Parser[ActorID].DblValue;
+                5:
+                    FSemicon := InterpretYesNo(Param);
             else
         // Inherited parameters
                 ClassEdit(ActiveConductorDataObj, ParamPointer - NumPropsThisClass)
@@ -163,6 +170,8 @@ begin
                 2:
                     if FGmrStrand <= 0.0 then
                         FGmrStrand := 0.7788 * 0.5 * FDiaStrand;
+                5:
+                    FSemicon := true and FSemicon; // use semicon layer by default (if it is already false ignore)
             end;
 
       {Check for critical errors}
@@ -197,6 +206,7 @@ begin
             FDiaStrand := OtherData.FDiaStrand;
             FGmrStrand := OtherData.FGmrStrand;
             FRStrand := OtherData.FRStrand;
+            FSemicon := OtherData.FSemicon;
             ClassMakeLike(OtherData);
             for i := 1 to ParentClass.NumProperties do
                 PropertyValue[i] := OtherData.PropertyValue[i];
@@ -248,6 +258,7 @@ begin
     FDiaStrand := -1.0;
     FGmrStrand := -1.0;
     FRStrand := -1.0;
+    FSemicon := true;
     InitPropertyValues(0);
 end;
 
@@ -275,6 +286,11 @@ begin
                     Writeln(F, Format('%.6g', [FGmrStrand]));
                 4:
                     Writeln(F, Format('%.6g', [FRStrand]));
+                5:
+                    if FSemicon then
+                        Writeln(F, 'Yes')
+                    else
+                        Writeln(F, 'No');
             end;
         end;
     end;
@@ -292,6 +308,11 @@ begin
             Result := Format('%.6g', [FGmrStrand]);
         4:
             Result := Format('%.6g', [FRStrand]);
+        5:
+            if FSemicon then
+                Result := 'Yes'
+            else
+                Result := 'No';
     else
         Result := inherited GetPropertyValue(index - NumPropsThisClass);
     end;
@@ -308,6 +329,7 @@ begin
     PropertyValue[2] := '-1';
     PropertyValue[3] := '-1';
     PropertyValue[4] := '-1';
+    PropertyValue[5] := 'Yes';
     inherited InitPropertyValues(ArrayOffset + NumPropsThisClass);
 end;
 
