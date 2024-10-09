@@ -17,7 +17,7 @@ TCNLineConstants = class(TCableConstants)
     FDiaStrand  :pDoubleArray;
     FGmrStrand  :pDoubleArray;
     FRStrand    :pDoubleArray;
-    FSemicon    :pBooleanArray;
+    FSemicon    :Array of boolean;
 
     function Get_kStrand(i: Integer): Integer;
     function Get_DiaStrand(i, units: Integer): Double;
@@ -56,7 +56,7 @@ end;
 
 function TCNLineConstants.Get_Semicon(i: Integer): Boolean;
 begin
-  Result := FSemicon^[i];
+  Result := FSemicon[i];
 end;
 
 function TCNLineConstants.Get_DiaStrand(i, units: Integer): Double;
@@ -81,7 +81,7 @@ end;
 
 procedure TCNLineConstants.Set_Semicon(i: Integer; const Value: Boolean);
 begin
-  If (i>0) and (i<=FNumConds) Then FSemicon^[i] := Value;
+  If (i>0) and (i<=FNumConds) Then FSemicon[i] := Value;
 end;
 
 procedure TCNLineConstants.Set_DiaStrand(i, units: Integer; const Value: Double);
@@ -226,7 +226,7 @@ begin
     Yfactor := twopi * e0 * FEpsR^[i] * Fw; // includes frequency so C==>Y
     RadOut := 0.5 * FDiaIns^[i];
     RadIn := RadOut - FInsLayer^[i];
-    if FSemicon^[i] then begin
+    if FSemicon[i] then begin
       // Semicon layer (default)
       Denom := ln(RadOut / RadIn);
     end else begin
@@ -251,7 +251,7 @@ begin
   FDiaStrand:= Allocmem(Sizeof(FDiaStrand^[1])*FNumConds);
   FGmrStrand:= Allocmem(Sizeof(FGmrStrand^[1])*FNumConds);
   FRStrand:= Allocmem(Sizeof(FRStrand^[1])*FNumConds);
-  FSemicon:= Allocmem(Sizeof(FSemicon^[1])*FNumConds);
+  SetLength(FSemicon, FNumConds);
 end;
 
 destructor TCNLineConstants.Destroy;
@@ -260,7 +260,7 @@ begin
   Reallocmem(FDiaStrand, 0);
   Reallocmem(FGmrStrand, 0);
   Reallocmem(FRStrand, 0);
-  Reallocmem(FSemicon, 0);
+  SetLength(FSemicon, 0);
   inherited;
 end;
 
