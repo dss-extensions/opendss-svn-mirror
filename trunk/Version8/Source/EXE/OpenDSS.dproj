@@ -250,6 +250,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>OpenDSS.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput">
@@ -1333,6 +1339,7 @@
         <DCCReference Include="..\Controls\GenController.pas"/>
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
+        <DCCReference Include="..\General\CNTSLineConstants.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
