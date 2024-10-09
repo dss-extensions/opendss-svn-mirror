@@ -28,7 +28,7 @@ type
         FDiaStrand: pDoubleArray;
         FGmrStrand: pDoubleArray;
         FRStrand: pDoubleArray;
-        FSemicon: pBooleanArray;
+        FSemicon: array of Boolean;
 
     // For TS
         FDiaShield: pDoubleArray;
@@ -120,7 +120,7 @@ end;
 
 function TCNTSLineConstants.Get_Semicon(i: Integer): Boolean;
 begin
-    Result := FSemicon^[i];
+    Result := FSemicon[i];
 end;
 
 function TCNTSLineConstants.Get_DiaStrand(i, units: Integer): Double;
@@ -147,7 +147,7 @@ end;
 procedure TCNTSLineConstants.Set_Semicon(i: Integer; const Value: Boolean);
 begin
     if (i > 0) and (i <= FNumConds) then
-        FSemicon^[i] := Value;
+        FSemicon[i] := Value;
 end;
 
 procedure TCNTSLineConstants.Set_DiaStrand(i, units: Integer; const Value: Double);
@@ -390,7 +390,7 @@ begin
         RadIn := RadOut - FInsLayer^[i];
         if FCondType^[i] = 1 then
         begin  // CN
-            if FSemicon^[i] then
+            if FSemicon[i] then
             begin
         // Semicon layer (default)
                 Denom := ln(RadOut / RadIn);
@@ -430,7 +430,7 @@ begin
     FDiaStrand := Allocmem(Sizeof(FDiaStrand^[1]) * FNumConds);
     FGmrStrand := Allocmem(Sizeof(FGmrStrand^[1]) * FNumConds);
     FRStrand := Allocmem(Sizeof(FRStrand^[1]) * FNumConds);
-    FSemicon := Allocmem(Sizeof(FSemicon^[1]) * FNumConds);
+    SetLength(FSemicon, FNumConds);
 
   // For TS
     FDiaShield := Allocmem(Sizeof(FDiaShield^[1]) * FNumConds);
@@ -448,7 +448,7 @@ begin
     Reallocmem(FDiaStrand, 0);
     Reallocmem(FGmrStrand, 0);
     Reallocmem(FRStrand, 0);
-    Reallocmem(FSemicon, 0);
+    SetLength(FSemicon, 0);
 
   // For TS
     Reallocmem(FDiaShield, 0);
