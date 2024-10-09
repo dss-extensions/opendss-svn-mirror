@@ -26,8 +26,6 @@ Type
     pPointerArray   = ^PointerArray;
     StringArray     = Array[1..100] of String;
     pStringArray    = ^StringArray;
-    BooleanArray     = Array[1..100] of Boolean;
-    pBooleanArray    = ^BooleanArray;
     DynStringArray  = Array of string;
     pDynStringArray = ^DynStringArray;
 
