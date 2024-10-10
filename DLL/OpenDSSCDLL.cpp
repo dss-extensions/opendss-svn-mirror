@@ -1982,7 +1982,7 @@ char* __stdcall DSSLoadsS(int mode, char* arg)
 		result ="";
 		pload = (TLoadObj*)ActiveCircuit[ActiveActor]->Loads.Get_Active();
 		if (pload != nullptr && pload->HasSensorObj)
-			result =Load->SensorObj->ElementName;
+			result =Load->SensorObj->Get_myLName();
 		break;
 	default:
 		result ="Error";
