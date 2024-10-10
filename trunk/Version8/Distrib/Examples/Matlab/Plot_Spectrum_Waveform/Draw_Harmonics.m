@@ -1,5 +1,6 @@
+clear all;
 % Create DSS object
-DSSObject = actxserver('OpenDSSEngine.DSS')
+DSSObject = actxserver('OpenDSSEngine.DSS');
 if ~DSSObject.Start(0),
 disp('Unable to start openDSS');
       return
