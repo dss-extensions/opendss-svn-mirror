@@ -872,7 +872,7 @@ Begin
    Begin
         pLoad := ActiveCircuit[ActiveActor].Loads.Active;
         If (pLoad <> Nil) and (pLoad.SensorObj <> Nil) Then
-          Result := pLoad.SensorObj.ElementName
+          Result := pLoad.SensorObj.Name
         Else
             Result := '';  // signify no name
    End;
