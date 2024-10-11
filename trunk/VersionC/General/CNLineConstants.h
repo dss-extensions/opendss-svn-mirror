@@ -31,7 +31,7 @@ public:
 	Arraydef::pDoubleArray FDiaStrand;
 	Arraydef::pDoubleArray FGmrStrand;
 	Arraydef::pDoubleArray FRStrand;
-	Arraydef::pBooleanArray FSemicon;
+	BooleanArray FSemicon;
 	int Get_kStrand(int i);
 	double Get_DiaStrand(int i, int Units);
 	double Get_GmrStrand(int i, int Units);
