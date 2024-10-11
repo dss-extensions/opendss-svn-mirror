@@ -247,7 +247,7 @@ TCNLineConstants::TCNLineConstants(int NumConductors)
 	FDiaStrand	= new double[FNumConds];
 	FGmrStrand	= new double[FNumConds];
 	FRStrand	= new double[FNumConds];
-	FSemicon	= new bool[FNumConds];
+	FSemicon.resize(FNumConds);
 }
 
 TCNLineConstants::~TCNLineConstants()
@@ -256,7 +256,7 @@ TCNLineConstants::~TCNLineConstants()
 	free(FDiaStrand);
 	free(FGmrStrand);
 	free(FRStrand);
-	free(FSemicon);
+	FSemicon.clear();
 	// inherited;
 }
 

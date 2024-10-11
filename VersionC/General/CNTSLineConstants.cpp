@@ -355,7 +355,7 @@ TCNTSLineConstants::TCNTSLineConstants(int NumConductors)
 	FDiaStrand	= new double[FNumConds];
 	FGmrStrand	= new double[FNumConds];
 	FRStrand	= new double[FNumConds];
-	FSemicon	= new bool[FNumConds];
+	FSemicon.resize(FNumConds);
 
         // For TS
         FDiaShield	= new double[FNumConds];
@@ -373,7 +373,7 @@ TCNTSLineConstants::~TCNTSLineConstants()
 	free(FDiaStrand);
 	free(FGmrStrand);
 	free(FRStrand);
-	free(FSemicon);
+	FSemicon.clear();
 
         // For TS
         free(FDiaShield);
