@@ -9,14 +9,15 @@
 #include "Utilities.h"
 #include "LineUnits.h"
 #include "OHLineConstants.h"
-#include "CNLineConstants.h"
-#include "TSLineConstants.h"
+#include "CNTSLineConstants.h"
+//#include "CNLineConstants.h"
+//#include "TSLineConstants.h"
 
 
 using namespace std;
 using namespace Arraydef;
 using namespace CNData;
-using namespace CNLineConstants;
+//using namespace CNLineConstants;
 using namespace Command;
 using namespace ConductorData;
 using namespace DSSClass;
@@ -30,7 +31,8 @@ using namespace OHLineConstants;
 using namespace ParserDel;
 using namespace System;
 using namespace TSData;
-using namespace TSLineConstants;
+//using namespace TSLineConstants;
+using namespace CNTSLineConstants;
 using namespace Ucmatrix;
 using namespace Ucomplex;
 using namespace Utilities;
@@ -795,6 +797,13 @@ double TLineGeometryObj::Get_RhoEarth()
 	return result;
 }
 
+double TLineGeometryObj::Get_EpsRMedium()
+{
+        double result = 0.0;
+        result = FLineData->get_FEpsRMedium();
+        return result;
+}
+
 TcMatrix* TLineGeometryObj::Get_YCmatrix(double f, double Lngth, int Units)
 {
 	TcMatrix* result = nullptr;
@@ -957,10 +966,10 @@ void TLineGeometryObj::ChangeLineConstantsType(ConductorChoice newPhaseChoice)
 			newLineData = new TOHLineConstants(Fnconds);
 			break;
 			case 	ConcentricNeutral:
-			newLineData = new TCNLineConstants(Fnconds);
+			newLineData = new TCNTSLineConstants(Fnconds);
 			break;
 			case 	TapeShield:
-			newLineData = new TTSLineConstants(Fnconds);
+			newLineData = new TCNTSLineConstants(Fnconds);
 			break;
 			default:
 			  ;
@@ -972,6 +981,7 @@ void TLineGeometryObj::ChangeLineConstantsType(ConductorChoice newPhaseChoice)
 		{
 			newLineData->Set_NPhases(FLineData->get_FNumPhases());
 			newLineData->Set_Frhoearth(FLineData->get_FrhoEarth());
+                        newLineData->Set_FEpsRMedium(FLineData->get_FEpsRMedium());
 		}
 		else
 			delete FLineData;
@@ -1062,6 +1072,11 @@ void TLineGeometryObj::Set_RhoEarth(double Value)
 	FLineData->Set_Frhoearth(Value);
 }
 
+void TLineGeometryObj::Set_EpsRMedium(double Value)
+{
+        FLineData->Set_FEpsRMedium(Value);
+}
+
 void TLineGeometryObj::UpdateLineGeometryData(double f)
 {
 	int i = 0;
@@ -1083,9 +1098,10 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 		{
 			/*# with (FLineData as TCNLineConstants) do */
 			{
-				auto with0 = ((TCNLineConstants*) FLineData);
+				auto with0 = ((TCNTSLineConstants*) FLineData);
 				cnd = (TCNDataObj*) FWireData[i - 1];
-				with0->Set_EpsR(i, cnd->get_FEpsR());
+                                with0->Set_CondType(i, 1); //CN
+                                with0->Set_EpsR(i, cnd->get_FEpsR());
 				with0->Set_InsLayer(i, cnd->get_FRadiusUnits(), cnd->get_FInsLayer());
 				with0->Set_DiaIns(i, cnd->get_FRadiusUnits(), cnd->get_FDiaIns());
 				with0->Set_DiaCable(i, cnd->get_FRadiusUnits(), cnd->get_FDiaCable());
@@ -1093,6 +1109,7 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 				with0->Set_DiaStrand(i, cnd->get_FRadiusUnits(), cnd->get_FDiaStrand());
 				with0->Set_GmrStrand(i, cnd->get_FGMRUnits(), cnd->get_FGmrStrand());
 				with0->Set_RStrand(i, cnd->get_FResistanceUnits(), cnd->get_FRStrand());
+				with0->Set_Semicon(i, cnd->get_FSemicon());
 
 			}
 		}
@@ -1102,8 +1119,9 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 			{
 				/*# with (FLineData as TTSLineConstants) do */
 				{
-					auto with1 = ((TTSLineConstants*) FLineData);
+					auto with1 = ((TCNTSLineConstants*) FLineData);
 					tsd = ((TTSDataObj*) FWireData[i - 1]);
+                                        with1->Set_CondType(i, 2); //TS
 					with1->Set_EpsR(i, tsd->get_FEpsR());
 					with1->Set_InsLayer(i, tsd->get_FRadiusUnits(), tsd->get_FInsLayer());
 					with1->Set_DiaIns(i, tsd->get_FRadiusUnits(), tsd->get_FDiaIns());

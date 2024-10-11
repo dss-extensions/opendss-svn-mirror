@@ -50,6 +50,13 @@ double TCNLineConstants::Get_RStrand(int i, int Units)
 	return result;
 }
 
+bool TCNLineConstants::Get_Semicon(int i)
+{
+	bool result = true;
+	result = FSemicon[i - 1];
+	return result;
+}
+
 void TCNLineConstants::Set_kStrand(int i, int Value)
 {
 	if((i > 0) && (i <= FNumConds))
@@ -73,8 +80,14 @@ void TCNLineConstants::Set_RStrand(int i, int Units, double Value)
 	if((i > 0) && (i <= FNumConds))
 		FRStrand[i - 1] = Value * To_per_Meter(Units);
 }
-/*Compute base Z and YC matrices in ohms/m for this frequency and earth impedance*/
 
+void TCNLineConstants::Set_Semicon(int i, bool Value)
+{
+	if((i > 0) && (i <= FNumConds))
+		FSemicon[i - 1] = Value;
+}
+
+/*Compute base Z and YC matrices in ohms/m for this frequency and earth impedance*/
 void TCNLineConstants::Calc(double f)
 {
 	complex Zi = {};
@@ -93,6 +106,7 @@ void TCNLineConstants::Calc(double f)
 	TcMatrix* Ztemp = nullptr;
 	double ResCN = 0.0;
 	double RadCN = 0.0;
+	double RadStrand = 0.0;
 	double GmrCN = 0.0;
 	double Denom = 0.0;
 	double RadIn = 0.0;
@@ -209,7 +223,14 @@ void TCNLineConstants::Calc(double f)
 		Yfactor = DSSGlobals::TwoPi * E0 * FEpsR[i - 1] * Fw; // includes frequency so C==>Y
 		RadOut = 0.5 * FDiaIns[i - 1];
 		RadIn = RadOut - FInsLayer[i - 1];
-		Denom = log(RadOut / RadIn);
+		if (FSemicon[i - 1])
+			// Semicon layer (default)
+			Denom = log(RadOut / RadIn);
+		else
+			// No semicon layer (Synergi and Kersting/Kerestes' book)
+			RadCN = 0.5 * (FDiaCable[i - 1] - FDiaStrand[i - 1]);
+			RadStrand = 0.5 * FDiaStrand[i - 1];
+			Denom = log(RadCN / RadIn) - (1.0 / FkStrand[i - 1]) * log(FkStrand[i - 1] * RadStrand / RadCN);
 		FYCmatrix->SetElement(i, i, cmplx(0.0, Yfactor / Denom));
 	}
 	if(ReducedSize > 0)
@@ -226,6 +247,7 @@ TCNLineConstants::TCNLineConstants(int NumConductors)
 	FDiaStrand	= new double[FNumConds];
 	FGmrStrand	= new double[FNumConds];
 	FRStrand	= new double[FNumConds];
+	FSemicon	= new bool[FNumConds];
 }
 
 TCNLineConstants::~TCNLineConstants()
@@ -234,6 +256,7 @@ TCNLineConstants::~TCNLineConstants()
 	free(FDiaStrand);
 	free(FGmrStrand);
 	free(FRStrand);
+	free(FSemicon);
 	// inherited;
 }
 

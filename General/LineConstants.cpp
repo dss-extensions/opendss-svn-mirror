@@ -104,7 +104,7 @@ void TLineConstants::Calc(double f)
 	}
 
       /*Capacitance Matrix*/
-	Pfactor = -1.0 / TwoPi / E0 / Fw; // include frequency
+	Pfactor = -1.0 / TwoPi / (E0 * FEpsRMedium) / Fw; // include frequency   // FEpsRMedium = 0.9993366876323544 to match Synergi
 
       /*Construct P matrix and then invert*/
 
@@ -216,6 +216,7 @@ TLineConstants::TLineConstants(int NumConductors)
 	FYCmatrix = new TcMatrix(FNumConds);
 	FFrequency = -1.0;  // not computed
 	FrhoEarth = 100.0;  // default value
+    FEpsRMedium = 1.0;  // default value should be 1.0
 	FRhoChanged = true;
 	FZreduced = nullptr;
 	FYCreduced = nullptr;
@@ -344,7 +345,7 @@ complex TLineConstants::Get_Ze(int i, int j)
 	{
 		case 	SIMPLECARSON:
 		{
-			result = cmplx(Fw * mu0 / 8.0, (Fw * mu0 / TwoPi) * log(658.5L * sqrt(FrhoEarth / FFrequency)));
+			result = cmplx(Fw * mu0 / 8.0, (Fw * mu0 / TwoPi) * log(658.8530451057239 * sqrt(FrhoEarth / FFrequency)));
  // {****}             WriteDLLDebugFile(Format('Simple: Z(%d,%d) = %.8g +j %.8g',[i,j, Result.re, result.im]));
 		}
 		break;
@@ -460,6 +461,13 @@ double TLineConstants::get_FrhoEarth()
 
 //--------------------------------------------------------------------------------------------------
 
+double TLineConstants::get_FEpsRMedium()
+{
+        return FrhoEarth;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 /*Makes a new Zmatrix and correct for lengths and units as it copies*/
 /*Uses the reduced Zmatrix by default if it exists*/
 
@@ -568,6 +576,13 @@ void TLineConstants::Set_Frhoearth(double Value)
 	FrhoEarth = Value;
 	if(FFrequency >= 0.0)
 		Fme = csqrt(cmplx(0.0, Fw * mu0 / FrhoEarth));
+}
+
+void TLineConstants::Set_FEpsRMedium(double Value)
+{
+        if(Value != FEpsRMedium)
+                FRhoChanged = true;
+        FEpsRMedium = Value;
 }
 
 void TLineConstants::Set_GMR(int i, int Units, double Value)

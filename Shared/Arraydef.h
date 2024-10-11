@@ -35,6 +35,8 @@ typedef void * PointerArray;
 typedef PointerArray* PPointerArray;
 typedef std::vector < std::string > StringArray;
 typedef std::string* pStringArray;
+typedef std::vector < bool > BooleanArray;
+typedef bool* pBooleanArray;
 typedef std::vector <std::string> DynStringArray;
 typedef std::string* pDynStringArray;
 typedef double* PDouble;

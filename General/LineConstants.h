@@ -66,7 +66,9 @@ public:
 	double FrhoEarth;  // ohm-m
 	Ucomplex::complex Fme; // factor for earth impedance
 	bool FRhoChanged;
-	double Get_GMR(int i, int Units);
+        double FEpsRMedium;  // unit-less
+
+        double Get_GMR(int i, int Units);
 	double Get_radius(int i, int Units);
 	double Get_Rdc(int i, int Units);
 	double Get_Rac(int i, int Units);
@@ -84,6 +86,7 @@ public:
 	void Set_Y(int i, int Units, double Value);
 	void Set_Frequency(double Value);
 	void Set_Frhoearth(double Value);  // m
+        void Set_FEpsRMedium(double Value);  // unit-less
     // This allows you to compute capacitance using a different radius -- for bundled conductors
 	double Get_Capradius(int i, int Units);
 	void Set_Capradius(int i, int Units, double Value);
@@ -96,6 +99,7 @@ public:
 	virtual void Kron(int Norder); // Performs a Kron reduction leaving first Norder  rows
 	void Reduce();  // Kron reduce to Numphases only
 	double get_FrhoEarth();
+        double get_FEpsRMedium();
 	int get_FNumConds();
 	int get_FNumPhases();
 

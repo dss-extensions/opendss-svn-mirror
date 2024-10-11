@@ -109,6 +109,7 @@ public:     // Moved to make values available to the COM interface
 	double Xg;
 	double KXg;
 	double rho;
+    double epsRmedium;
 	double GeneralPlotQuantity;  // For general circuit plotting
 	String CondCode;
 	String GeometryCode;
