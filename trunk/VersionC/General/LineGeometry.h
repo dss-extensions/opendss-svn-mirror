@@ -93,6 +93,8 @@ public:
 	Ucmatrix::TcMatrix* Get_Zmatrix(double f, double Lngth, int Units);
 	double Get_RhoEarth();
 	void Set_RhoEarth(double Value);
+        double Get_EpsRMedium();
+        void Set_EpsRMedium(double Value);
 	int get_Nconds();
 	void UpdateLineGeometryData(double f);   // call this before using the line data
 

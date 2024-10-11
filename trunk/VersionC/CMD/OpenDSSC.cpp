@@ -61,6 +61,7 @@
 #include "CNLineConstants.h"
 #include "CableData.h"
 #include "CableConstants.h"
+#include "CNTSLineConstants.h"
 
 #include "LineUnits.h"
 #include "Conductor.h"

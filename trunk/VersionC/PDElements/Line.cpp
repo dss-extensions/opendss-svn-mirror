@@ -45,7 +45,7 @@ TLineObj::TLineObj() {}
 
 TLineObj* ActiveLineObj = nullptr;
 TLineGeometry* LineGeometryClass = nullptr;
-const int NumPropsThisClass = 30;
+const int NumPropsThisClass = 31;
     //  MaxPhases = 20; // for fixed buffers
 complex CAP_EPSILON = {};
 const double ONE_THIRD = 1.0 / 3.0;  // Do this to get more precision in next few statements
@@ -121,6 +121,7 @@ void TLine::DefineProperties()
 	PropertyName[28 - 1] = "Seasons";
 	PropertyName[29 - 1] = "Ratings";
 	PropertyName[30 - 1] = "LineType";
+	PropertyName[31 - 1] = "EpsRmedium";
 
      // define Property help values
 	PropertyHelp[1 - 1] = String("Name of bus to which first terminal is connected.") + CRLF
@@ -213,8 +214,11 @@ void TLine::DefineProperties()
 	           + CRLF
 	           + CRLF
 	           + "OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.";
+	PropertyHelp[31 - 1] = "Default=1.0. Relative Permittivity of the medium. Used by lines with a geometry definition. Defaults to 1.0 for air.";
+
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
+	// NumPropsThisClass + 2 and + 3 are normamps amd emergamps
 	PropertyHelp[NumPropsThisClass + 3 - 1] = "Failure rate PER UNIT LENGTH per year. Length must be same units as LENGTH property. Default is 0.1 fault per unit length per year.";
 	PropertyHelp[NumPropsThisClass + 4 - 1] = PropertyHelp[NumPropsThisClass + 4 - 1] + " Default is 20.";
 	PropertyHelp[NumPropsThisClass + 5 - 1] = PropertyHelp[NumPropsThisClass + 5 - 1] + " Default is 3 hr.";
@@ -613,6 +617,9 @@ int TLine::Edit(int ActorID)
 				case 	30:
 				with0->FLineType = LineTypeList.Getcommand(Param);
 				break;
+				case 	31:
+				with0->epsRmedium = Parser[ActorID]->MakeDouble_();
+				break;
             // Inherited Property Edits
 				default:
 				ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass);
@@ -709,7 +716,7 @@ int TLine::Edit(int ActorID)
 					with0->Set_YprimInvalid(ActorID,true);
 				}
 				break;
-				case 28: case 29: case 31: case 32: with0->FRatingsSpecified = true; break;
+				case 28: case 29: case NumPropsThisClass + 1: case NumPropsThisClass + 2: with0->FRatingsSpecified = true; break; // normamps and emeramp
 				default:
 				  ;
 				break;
@@ -840,6 +847,7 @@ TLineObj::TLineObj(TDSSClass* ParClass, const String LineName)
 			Xg(0.0),
 			KXg(0.0),
 			rho(0.0),
+			epsRmedium(0.0),
 			GeneralPlotQuantity(0.0),
 			GeometrySpecified(false),
 			SpacingSpecified(false),
@@ -867,6 +875,7 @@ TLineObj::TLineObj(TDSSClass* ParClass, const String LineName)
 	Rg = 0.01805;    //ohms per 1000 ft
 	Xg = 0.155081;
 	rho = 100.0;
+	epsRmedium = 1.0;
 	KXg = Xg / log(658.5L * sqrt(rho / BaseFrequency));
 	FrhoSpecified = false;
 	FCapSpecified = false;
@@ -1596,18 +1605,21 @@ String TLineObj::GetPropertyValue(int Index)
 		case 	30:
 		result = LineTypeList.Get(FLineType);
 		break;
+		case 	31:
+		result = Format("%-g", epsRmedium);
+		break;
 
            // Intercept FaultRate, PctPerm, and HourstoRepair
-		case 	33:
+		case 	NumPropsThisClass + 3:
 		result = Format("%-g", FaultRate);
 		break;
-		case 	34:
+		case 	NumPropsThisClass + 4:
 		result = Format("%-g", PctPerm);
 		break;
-		case 	35:
+		case 	NumPropsThisClass + 5:
 		result = Format("%-g", HrsToRepair);
 		break;
-		case 	36:
+		case 	NumPropsThisClass + 6:
 		result = Format("%-g", BaseFrequency);
 		break;
 		default:
@@ -1704,6 +1716,7 @@ void TLineObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(28,"1");      // 1 Season
 	Set_PropertyValue(29,"[400]");  // 1 Season
 	Set_PropertyValue(30,"OH"); // Overhead line default
+	Set_PropertyValue(31,"1.0");
 	inherited::InitPropertyValues(NumPropsThisClass);
 
       // Override Inherited properties  just in case
@@ -2274,6 +2287,13 @@ void TLineObj::FMakeZFromGeometry(double f)
 			YC = nullptr;
 		}
 		ActiveEarthModel[ActiveActor] = FEarthModel;
+
+		// If needed, reset Epsilon R of the medium to recompute the matrices of the geometry for this line's EpsRmedium.
+		if(FLineGeometryObj->Get_EpsRMedium() != epsRmedium)
+		{
+			FLineGeometryObj->Set_EpsRMedium(epsRmedium);
+		}
+
 		Z = FLineGeometryObj->Get_Zmatrix(f,Len,LengthUnits);
 		YC = FLineGeometryObj->Get_YCmatrix(f,Len,LengthUnits);
           /*Init Zinv*/

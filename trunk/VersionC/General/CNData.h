@@ -51,12 +51,14 @@ public:
 	double FDiaStrand;
 	double FGmrStrand;
 	double FRStrand;
+    bool FSemicon;
 public:
 
 	int get_FkStrand();
 	double get_FDiaStrand();
 	double get_FGmrStrand();
 	double get_FRStrand();
+    bool get_FSemicon();
 
 	TCNDataObj(DSSClass::TDSSClass* ParClass, const String CNDataName);
 	virtual ~TCNDataObj();

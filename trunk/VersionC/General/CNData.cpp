@@ -8,6 +8,7 @@
 #include "Ucomplex.h"
 #include "Arraydef.h"
 #include "LineUnits.h"
+#include "Utilities.h"
 
 using namespace std;
 using namespace Arraydef;
@@ -31,7 +32,7 @@ TCNDataObj::TCNDataObj(String ClassName) : inherited(ClassName) {}
 TCNDataObj::TCNDataObj() {}
 
 
-const int NumPropsThisClass = 4;  // Creates superstructure for all Line objects
+const int NumPropsThisClass = 5;  // Creates superstructure for all Line objects
 
 TCNData::TCNData()
 {
@@ -61,10 +62,12 @@ void TCNData::DefineProperties()
 	(PropertyName)[2 - 1] = "DiaStrand";
 	(PropertyName)[3 - 1] = "GmrStrand";
 	(PropertyName)[4 - 1] = "Rstrand";
+    (PropertyName)[5 - 1] = "SemiconLayer";
 	(PropertyHelp)[1 - 1] = "Number of concentric neutral strands; default is 2";
 	(PropertyHelp)[2 - 1] = "Diameter of a concentric neutral strand; same units as core conductor radius; no default.";
 	(PropertyHelp)[3 - 1] = "Geometric mean radius of a concentric neutral strand; same units as core conductor GMR; defaults to 0.7788 * CN strand radius.";
 	(PropertyHelp)[4 - 1] = "AC resistance of a concentric neutral strand; same units as core conductor resistance; no default.";
+    (PropertyHelp)[5 - 1] = "{Yes/True | No/False}  Default is Yes. Existence of a semicon layer. Affects calculation of shunt admittances.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -127,6 +130,9 @@ int TCNData::Edit(int ActorID)
 				case 	4:
 				with0->FRStrand = Parser[ActorID]->MakeDouble_();
 				break;
+				case 	5:
+				with0->FSemicon = InterpretYesNo(Param);
+				break;
         // Inherited parameters
 				default:
 				ClassEdit(ActiveConductorDataObj, ParamPointer - NumPropsThisClass);
@@ -187,6 +193,7 @@ int TCNData::MakeLike(const String CNName)
 			with0->FDiaStrand = OtherData->FDiaStrand;
 			with0->FGmrStrand = OtherData->FGmrStrand;
 			with0->FRStrand = OtherData->FRStrand;
+			with0->FSemicon = OtherData->FSemicon;
 			ClassMakeLike(OtherData);
 			for(stop = with0->ParentClass->NumProperties, i = 1; i <= stop; i++)
 			{
@@ -241,7 +248,8 @@ TCNDataObj::TCNDataObj(TDSSClass* ParClass, const String CNDataName)
 			FkStrand(2),
 			FDiaStrand(-1.0),
 			FGmrStrand(-1.0),
-			FRStrand(-1.0)
+			FRStrand(-1.0),
+			FSemicon(true)
 {
 	Set_Name(LowerCase(CNDataName));
 	DSSObjType = ParClass->DSSClassType;
@@ -283,6 +291,13 @@ double TCNDataObj::get_FRStrand()
 
 //-------------------------------------------------------------------------------------------
 
+bool TCNDataObj::get_FSemicon()
+{
+        return FSemicon;
+}
+
+//-------------------------------------------------------------------------------------------
+
 
 void TCNDataObj::DumpProperties(System::TTextRec& f, bool Complete)
 {
@@ -308,6 +323,12 @@ void TCNDataObj::DumpProperties(System::TTextRec& f, bool Complete)
 				break;
 				case 	4:
 				System::WriteLn(f, Format("%.6g", FRStrand));
+				break;
+				case 	5:
+				if(FSemicon)
+					System::WriteLn(f, "Yes");
+				else
+					System::WriteLn(f, "No");
 				break;
 				default:
 				  ;
@@ -335,6 +356,12 @@ String TCNDataObj::GetPropertyValue(int Index)
 		case 	4:
 		result = Format("%.6g", FRStrand);
 		break;
+		case 	5:
+		if(FSemicon)
+			result = "Yes";
+		else
+			result = "No";
+		break;
 		default:
 		result = inherited::GetPropertyValue(Index - NumPropsThisClass);
 		break;
@@ -353,6 +380,7 @@ void TCNDataObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(2,"-1");
 	Set_PropertyValue(3,"-1");
 	Set_PropertyValue(4,"-1");
+	Set_PropertyValue(5,"Yes");
 	inherited::InitPropertyValues(ArrayOffset + NumPropsThisClass);
 }
 
