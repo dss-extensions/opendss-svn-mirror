@@ -61,6 +61,7 @@
 #include "CNLineConstants.h"
 #include "CableData.h"
 #include "CableConstants.h"
+#include "CNTSLineConstants.h"
 
 #include "LineUnits.h"
 #include "Conductor.h"
@@ -1982,7 +1983,7 @@ char* __stdcall DSSLoadsS(int mode, char* arg)
 		result ="";
 		pload = (TLoadObj*)ActiveCircuit[ActiveActor]->Loads.Get_Active();
 		if (pload != nullptr && pload->HasSensorObj)
-			result =Load->SensorObj->Get_myLName();
+			result =Load->SensorObj->ElementName;
 		break;
 	default:
 		result ="Error";

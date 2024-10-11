@@ -165,6 +165,7 @@ if(MyOutputType STREQUAL "EXE")
 		General/WireData.cpp
 		General/XfmrCode.cpp
 		General/XYcurve.cpp
+		General/CNTSLineConstants.cpp
 		PCElements/PCElement.cpp
 		MyOpenDSS/MyDSSClassDefs.cpp 
 		GenModels/gencls.cpp
@@ -319,6 +320,7 @@ else()
 		General/WireData.cpp
 		General/XfmrCode.cpp
 		General/XYcurve.cpp
+		General/CNTSLineConstants.cpp
 		PCElements/PCElement.cpp
 		MyOpenDSS/MyDSSClassDefs.cpp 
 		GenModels/gencls.cpp

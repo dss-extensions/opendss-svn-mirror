@@ -31,14 +31,17 @@ public:
 	Arraydef::pDoubleArray FDiaStrand;
 	Arraydef::pDoubleArray FGmrStrand;
 	Arraydef::pDoubleArray FRStrand;
+	Arraydef::pBooleanArray FSemicon;
 	int Get_kStrand(int i);
 	double Get_DiaStrand(int i, int Units);
 	double Get_GmrStrand(int i, int Units);
 	double Get_RStrand(int i, int Units);
+	bool Get_Semicon(int i);
 	void Set_kStrand(int i, int Value);
 	void Set_DiaStrand(int i, int Units, double Value);
 	void Set_GmrStrand(int i, int Units, double Value);
 	void Set_RStrand(int i, int Units, double Value);
+	void Set_Semicon(int i, bool Value);
 protected:
 public:
 	virtual void Calc(double f);
