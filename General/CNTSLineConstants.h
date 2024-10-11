@@ -36,7 +36,7 @@ public:
 	Arraydef::pDoubleArray FDiaStrand;
 	Arraydef::pDoubleArray FGmrStrand;
 	Arraydef::pDoubleArray FRStrand;
-	Arraydef::pBooleanArray FSemicon;
+	BooleanArray FSemicon;
 
         // For TS
         Arraydef::pDoubleArray FDiaShield;
