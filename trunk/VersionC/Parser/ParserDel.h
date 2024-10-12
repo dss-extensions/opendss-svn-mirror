@@ -48,14 +48,14 @@ public:
 	Hashlist::THashList* VarNames;
 	pStringArray VarValues;
 	std::string Get_Value();
-	void Set_Value(const std::string Value);
+	void Set_Value(const std::string& Value);
 	std::string Get_VarString(unsigned int Idx);
 public:
 	unsigned int NumVariables;
 	TParserVar(unsigned int initSize);
 	virtual ~TParserVar();
-	int Add(const String VarName, const String varValue);      // returns number of variables
-	int Lookup(const String VarName);                  // returns index or 0
+	int Add(const String& VarName, const String& varValue);      // returns number of variables
+	int Lookup(const String& VarName);                  // returns index or 0
 	TParserVar();
 };
 
@@ -79,21 +79,21 @@ public:
 	bool IsQuotedString;
 	RPN::TRPNCalc RPNCalculator;
 	String Get_Remainder();
-	void SetCmdString(const String Value);
+	void SetCmdString(const String& Value);
 	String MakeString_();
 	int MakeInteger_();
 	double MakeDouble_();
 	String GetNextParam();
-	void SkipWhitespace(const String LineBuffer, int * LinePos);
+	void SkipWhitespace(const String& LineBuffer, int * LinePos);
 	bool IsWhiteSpace(Char ch);
-	bool IsDelimiter(const String LineBuffer, int& LinePos);
+	bool IsDelimiter(const String& LineBuffer, int& LinePos);
 	bool IsDelimChar(Char ch);
-	bool IsCommentChar(const String LineBuffer, int& LinePos);
-	String GetToken(const String LineBuffer, int* LinePos);
+	bool IsCommentChar(const String& LineBuffer, int& LinePos);
+	String GetToken(const String& LineBuffer, int* LinePos);
 	double InterpretRPNString(int& Code);
 	std::string get_CmdBuffer();
 	std::string get_Token();
-	void set_Token(std::string S);
+	void set_Token(const std::string& S);
 //protected:
 public:
 	TParser();
@@ -107,13 +107,13 @@ public:
 	int get_position();
 	void set_position(int myPos);
 	std::string get_delimchars();
-	void set_delimchars(std::string S);
+	void set_delimchars(const std::string& S);
 	std::string get_WhiteSpaceChars();
-	void set_WhiteSpaceChars(std::string S);
+	void set_WhiteSpaceChars(const std::string& S);
 	std::string get_FBeginQuoteChars();
-	void set_FBeginQuoteChars(std::string S);
+	void set_FBeginQuoteChars(const std::string& S);
 	std::string get_FEndQuoteChars();
-	void set_FEndQuoteChars(std::string S);
+	void set_FEndQuoteChars(const std::string& S);
 	bool get_FAutoIncrement();
 	void set_FAutoIncrement(bool S);
 };  //Parser : TParser;
