@@ -69,24 +69,24 @@ void TcMatrix::Clear()
 }
 
 /*--------------------------------------------------------------------------*/
+// void TcMatrix::MVmult(pComplexArray B, pComplexArray X)
+// {
+// 	complex Sum = {};
+// 	int i = 0;
+// 	int j = 0;
+// 	int stop = 0;
+// 	for(stop = Norder, i = 1; i <= stop; i++)
+// 	{
+// 		int stop1 = 0;
+// 		Sum = cmplx(0.0, 0.0);
+// 		for(stop1 = Norder, j = 1; j <= stop1; j++)
+// 		{
+// 			caccum(Sum, cmul(Values[((j - 1) * Norder + i) - 1], X[j - 1]));
+// 		}
+// 		B[i - 1] = Sum;
+// 	}
+// }
 
-void TcMatrix::MVmult(pComplexArray B, pComplexArray X)
-{
-	complex Sum = {};
-	int i = 0;
-	int j = 0;
-	int stop = 0;
-	for(stop = Norder, i = 1; i <= stop; i++)
-	{
-		int stop1 = 0;
-		Sum = cmplx(0.0, 0.0);
-		for(stop1 = Norder, j = 1; j <= stop1; j++)
-		{
-			caccum(Sum, cmul(Values[((j - 1) * Norder + i) - 1], X[j - 1]));
-		}
-		B[i - 1] = Sum;
-	}
-}
  /*--------------------------------------------------------------------------*/
    // Same as MVMult except accumulates b
 
@@ -520,5 +520,27 @@ void TcMatrix::MultByConst(double X)
 }  // namespace Ucmatrix
 
 
+// We have to do this here at the end since we have
+// "using namespace std;"
+// at the beginning (of most files), causing conflicts between
+// std::complex and the custom definition from OpenDSS.
+#include <complex>
+
+void Ucmatrix::TcMatrix::MVmult(pComplexArray B, pComplexArray X)
+{
+	typedef std::complex<double> StdComplex;
+	StdComplex* CValues = (StdComplex*) &Values[0];
+	StdComplex* CX = (StdComplex*) X;
+	StdComplex* CB = (StdComplex*) B;
+	for (int i = 0; i < Norder; i++)
+	{
+		StdComplex Sum = 0;
+		for (int j = 0; j < Norder; j++)
+		{
+			Sum += CValues[j * Norder + i] * CX[j];
+		}
+		CB[i] = Sum;
+	}
+}
 
 
