@@ -3202,6 +3202,7 @@ namespace Utilities
     String GetDSSArray_Real( int n, pDoubleArray dbls )
     {
       String result;
+      result.reserve(n * 9);
       int i = 0;
       result = "[";
       for ( int stop = n, i = 1; i <= stop; i++)
@@ -3214,6 +3215,7 @@ namespace Utilities
     String GetDSSArray_Integer( int n, pIntegerArray ints )
     {
       String result;
+      result.reserve(n * 9);
       int i = 0;
       result = "[";
       for ( int stop = n, i = 1; i <= stop; i++)
