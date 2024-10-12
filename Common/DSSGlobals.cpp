@@ -11,6 +11,9 @@
 #ifndef windows
 #include <stdlib.h> // getenv
 #include <unistd.h> // access
+#include <time.h>
+#else
+#include <synchapi.h>
 #endif
 #include "dirsep.h"
 
@@ -887,8 +890,13 @@ namespace DSSGlobals
     // 
     void Wait4Actors(int WType)
     {
+#ifndef _WIN32
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 1000; // 1 ms
+#endif
         int I = 0;
-        bool Flag = false;
+        // bool Flag = false;
         // WType defines the starting point in which the actors will be evaluated,
         // modification introduced in 01-10-2019 to facilitate the coordination
         // between actors when a simulation is performed using A-Diakoptics
@@ -900,7 +908,12 @@ namespace DSSGlobals
             {
                 while (ActorStatus[I] == 0)
                 {
-                    Flag = true;
+#ifdef _WIN32
+                    Sleep(1);
+#else
+                    nanosleep(&ts, nullptr);
+#endif
+                    // Flag = true;
                     //        while Flag do
                     //          Flag  := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
                 }
