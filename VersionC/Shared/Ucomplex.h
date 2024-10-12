@@ -3,6 +3,7 @@
 
 #include "System.h"
 #include "Sysutils.h"
+#include <cmath>
 
 
 namespace Ucomplex
@@ -32,41 +33,308 @@ struct polar
 	double ang;
 };
 
-  // 4-8-2010  added inlining selected often-used functions
-complex cmplx(double A, double B);//#inline
-complex cinv(const complex& A);//#inline
-double cabs(const complex& A);//#inline
-double cabs2(const complex& A);//#inline // best when you don't need sqrt
-double cang(const complex& A);
-double cdang(const complex& A); // angle of complex number, degrees
-polar ctopolar(const complex& A);
-polar ctopolardeg(const complex& A);  // complex to polar, degrees
-complex cadd(const complex& A, const complex& B);//#inline
-void caccum(complex& A, const complex& B);//#inline /*a := a + b*/
-complex csub(const complex& A, const complex& B);//#inline
-complex cmul(const complex& A, const complex& B);//#inline
-void caccumarray(pComplexArray A, pComplexArray B, short int n);
-complex cmulreal(const complex& A, double B);//#inline /* := a*b */
-void cmulrealaccum(complex& A, double B);//#inline /* a=a*b*/
-complex cdiv(const complex& A, const complex& B);//#inline
-complex cdivreal(const complex& A, double B);//#inline /* := a /b*/
-complex conjg(const complex& A);//#inline
-complex cnegate(const complex& A);//#inline
-complex csqrt(const complex& A);
-complex CLn(const complex& A);
-polar topolar(double A, double B);//#inline  // scalar to polar
-double prel(const polar& A);  // real part of polar number   |a| cos()
-double pimg(const polar& A);  // imag part of polar number   |a| sin()
-complex ptocomplex(const polar& A);
-polar padd(const polar& A, const polar& B);
-polar psub(const polar& A, const polar& B);
-polar pmul(const polar& A, const polar& B);
-polar pdiv(const polar& A, const polar& B);
-complex pdegtocomplex(double magn, double Angle);
-complex pclx(double magn, double Angle);
 extern complex CZero;
 extern complex cONE;
 
+inline complex cmplx(double A, double B)
+{
+	complex result = {};
+	result.re = A;
+	result.im = B;
+	return result;
+}
+
+inline complex cinv(const complex& A)
+{
+	complex result = {};
+	double DNOM = 0.0;
+	DNOM = A.re * A.re + A.im * A.im;
+	result.re = A.re / DNOM;
+	result.im = (-A.im) / DNOM;
+	return result;
+}
+
+inline double cabs(const complex& A)
+{
+	double result = 0.0;
+	result = sqrt(A.re * A.re + A.im * A.im);
+	return result;
+}
+
+inline double cabs2(const complex& A)
+{
+	double result = 0.0;
+	result = A.re * A.re + A.im * A.im;
+	return result;
+}
+
+inline complex conjg(const complex& A)
+{
+	complex result = {};
+	result.re = A.re;
+	result.im = -A.im;
+	return result;
+}
+
+inline double ATAN2(double X, double IY)
+{
+	double result = 0.0;
+	const double Pi = 3.14159265359; /* 180 DEGREES */
+	if((X < 0.0) && (IY >= 0))
+		result = atan(IY / X) + Pi;
+	else
+	{
+		if((X < 0.0) && (IY < 0))
+			result = atan(IY / X) - Pi;
+		else
+		{
+			if(X > 0.0)
+				result = atan(IY / X);
+			else
+			{
+				if(IY < 0.0)
+					result = -Pi / 2;
+				else
+				{
+					if(IY > 0.0)
+						result = Pi / 2;
+					else
+						result = 0.0;
+				}
+			}
+		}
+	}
+	return result;
+} /* ATAN2 */
+
+inline double cang(const complex& A)
+{
+	double result = 0.0;
+	result = ATAN2(A.re, A.im);
+	return result;
+}
+
+inline double cdang(const complex& A)
+{
+	double result = 0.0;
+	result = ATAN2(A.re, A.im) * 57.29577951;
+	return result;
+}
+
+inline polar ctopolar(const complex& A)
+{
+	polar result = {};
+	/*# with result do */
+	{
+		auto& with0 = result;
+		with0.mag = cabs(A);
+		with0.ang = cang(A);
+	}
+	return result;
+}
+
+inline polar ctopolardeg(const complex& A)
+{
+	polar result = {};
+	/*# with result do */
+	{
+		auto& with0 = result;
+		with0.mag = cabs(A);
+		with0.ang = cdang(A);
+	}
+	return result;
+}
+
+inline complex cadd(const complex& A, const complex& B)
+{
+	complex result = {};
+	result.re = A.re + B.re;
+	result.im = A.im + B.im;
+	return result;
+}
+
+inline void caccum(complex& A, const complex& B)
+{
+	A.re = A.re + B.re;
+	A.im = A.im + B.im;
+}
+
+inline void caccumarray(pComplexArray A, pComplexArray B, short int n)
+{
+	int i = 0;
+	int stop = 0;
+	for(stop = n, i = 1; i <= stop; i++)
+	{
+		(A)[i - 1].re = (A)[i - 1].re + (B)[i - 1].re;
+		(A)[i - 1].im = (A)[i - 1].im + (B)[i - 1].im;
+	}
+}
+
+inline complex csub(const complex& A, const complex& B)
+{
+	complex result = {};
+	result.re = A.re - B.re;
+	result.im = A.im - B.im;
+	return result;
+}
+
+inline complex cmul(const complex& A, const complex& B)
+{
+	complex result = {};
+	result.re = A.re * B.re - A.im * B.im;
+	result.im = A.re * B.im + A.im * B.re;
+	return result;
+}
+
+inline complex cmulreal(const complex& A, double B)
+{
+	complex result = {};
+	result.re = A.re * B;
+	result.im = A.im * B;
+	return result;
+}  /* := a*b */
+
+inline void cmulrealaccum(complex& A, double B)
+{
+	A.re = A.re * B;
+	A.im = A.im * B;
+} /* a=a*b*/
+
+inline  complex cdiv(const complex& A, const complex& B)
+{
+	complex result = {};
+	double DNOM = 0.0;
+	DNOM = B.re * B.re + B.im * B.im;
+	result.re = (A.re * B.re + A.im * B.im) / DNOM;
+	result.im = (A.im * B.re - A.re * B.im) / DNOM;
+	return result;
+}
+
+inline complex cdivreal(const complex& A, double B)
+{
+	complex result = {};
+	result.re = A.re / B;
+	result.im = A.im / B;
+	return result;
+}  /* := a /b*/
+
+inline complex cnegate(const complex& A)
+{
+	complex result = {};
+	result.re = -A.re;
+	result.im = -A.im;
+	return result;
+}
+
+inline complex ptocomplex(const polar& A)
+{
+	complex result = {};
+	/*# with result do */
+	{
+		auto& with0 = result;
+		with0.re = A.mag * cos(A.ang);
+		with0.im = A.mag * sin(A.ang);
+	}
+	return result;
+}
+
+inline polar topolar(double A, double B)
+{
+	polar result = {};
+	/*# with result do */
+	{
+		auto& with0 = result;
+		with0.mag = A;
+		with0.ang = B;
+	}
+	return result;
+}
+
+inline complex csqrt(const complex& A)
+{
+	complex result = {};
+	polar X = {};
+      // algorithm: sqrt of magnitude/ half the angle
+	X = ctopolar(A);
+	result = ptocomplex(topolar(sqrt(X.mag), X.ang / 2.0));
+	return result;
+}
+
+inline complex CLn(const complex& A)
+{
+	complex result = {};
+	polar X = {};
+        // algorithm: ln of mag + j(angle), radians
+	X = ctopolar(A);
+	result = cmplx(log(X.mag), X.ang);
+	return result;
+}
+
+inline double prel(const polar& A)
+{
+	double result = 0.0;
+	result = A.mag * cos(A.ang);
+	return result;
+}
+
+inline double pimg(const polar& A)
+{
+	double result = 0.0;
+	result = A.mag * sin(A.ang);
+	return result;
+}
+
+inline complex pclx(double magn, double Angle)
+{
+	complex result = {};
+	result.re = magn * cos(Angle);
+	result.im = magn * sin(Angle);
+	return result;
+}
+
+inline complex pdegtocomplex(double magn, double Angle)
+{
+	complex result = {};
+	double ang = 0.0;
+	ang = Angle / 57.29577951;
+	/*# with result do */
+	{
+		auto& with0 = result;
+		with0.re = magn * cos(ang);
+		with0.im = magn * sin(ang);
+	}
+	return result;
+}
+
+inline polar padd(const polar& A, const polar& B)
+{
+	polar result = {};
+	result = ctopolar(cadd(ptocomplex(A), ptocomplex(B)));
+	return result;
+}
+
+inline polar psub(const polar& A, const polar& B)
+{
+	polar result = {};
+	result = ctopolar(csub(ptocomplex(A), ptocomplex(B)));
+	return result;
+}
+
+inline polar pmul(const polar& A, const polar& B)
+{
+	polar result = {};
+	result.mag = A.mag * B.mag;
+	result.ang = A.ang + B.ang;
+	return result;
+}
+
+inline polar pdiv(const polar& A, const polar& B)
+{
+	polar result = {};
+	result.mag = A.mag / B.mag;
+	result.ang = A.ang - B.ang;
+	return result;
+}
 
 }  // namespace Ucomplex
 
