@@ -11566,15 +11566,15 @@ int __stdcall ReactorsI(int mode, int arg)
 {
     int Result = 0;
     TReactorObj* Elem = nullptr;
-    TPointerList pList = {};
+    TPointerList *pList = nullptr;
 
 	switch (mode)
     {
 		case 0:					// Reactors.First
 			if (ReactorClass[ActiveActor]->ElementList.NumInList > 0)
 			{
-				pList = ReactorClass[ActiveActor]->ElementList;
-				Elem = (TReactorObj*)pList.Get_First();
+				pList = &ReactorClass[ActiveActor]->ElementList;
+				Elem = (TReactorObj*)pList->Get_First();
 				do
 				{
 					if (Elem->FEnabled)
@@ -11583,7 +11583,7 @@ int __stdcall ReactorsI(int mode, int arg)
 						Result = 1;
 					}
 					else
-						Elem = (TReactorObj*)pList.Get_Next();
+						Elem = (TReactorObj*)pList->Get_Next();
 				} while ((Result == 0) && (ASSIGNED(Elem)));
 			}
 			else
@@ -11593,24 +11593,27 @@ int __stdcall ReactorsI(int mode, int arg)
 			if (ASSIGNED(ActiveCircuit[ActiveActor]))
 			{
 
-			if (ReactorClass[ActiveActor]->ElementList.NumInList > 0) 
-			{
-			pList = ReactorClass[ActiveActor]->ElementList;
-			Elem = (TReactorObj*)pList.Get_First();
-            do
-            {
-                if (Elem->Get_Enabled())
-                {
-                    ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
-                    Result = pList.ActiveItem;
-                }
-                else 
-					Elem = (TReactorObj*)pList.Get_Next();
-            }
-			while( (Result == 0) && (ASSIGNED(Elem)));
-			}
-			else
-				Result = 0;  // signify no more
+				if (ReactorClass[ActiveActor]->ElementList.NumInList > 0) 
+				{
+					pList = &ReactorClass[ActiveActor]->ElementList;
+					Elem = (TReactorObj*)pList->Get_Next();
+					if (Elem != nullptr)
+					{
+						do
+						{
+							if (Elem->Get_Enabled())
+							{
+								ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+								Result = pList->ActiveItem;
+							}
+							else 
+								Elem = (TReactorObj*)pList->Get_Next();
+						}
+						while( (Result == 0) && (ASSIGNED(Elem)));
+					}
+				}
+				else
+					Result = 0;  // signify no more
 			}
 			break;
         case 2:					// Reactors.Count
@@ -11644,7 +11647,6 @@ double __stdcall ReactorsF(int mode, double arg)
 {
     double Result = 0.0;
     TReactorObj* Elem = nullptr;
-    TPointerList pList = {};
 
     switch (mode)
     {
@@ -11722,7 +11724,7 @@ char* __stdcall ReactorsS(int mode, char* arg)
 			S = "";
     bool	found = false;
     TReactorObj* Elem = nullptr;
-    TPointerList pList = {};
+    TPointerList* pList = nullptr;
     int		activesave = 0,
 			k = 0;
 
@@ -11742,9 +11744,9 @@ char* __stdcall ReactorsS(int mode, char* arg)
 				{
 					S           = arg;  // Convert to Pascal String
 					found       = false;
-					pList       = ReactorClass[ActiveActor]->ElementList;
-                    activesave = pList.get_myActiveItem();
-                    Elem = (TReactorObj*)pList.Get_First();
+					pList       = &ReactorClass[ActiveActor]->ElementList;
+                    activesave = pList->get_myActiveItem();
+                    Elem = (TReactorObj*)pList->Get_First();
                     while (ASSIGNED(Elem))
                     {
                         if (CompareText(Elem->Get_myLName(), S) == 0)
@@ -11753,13 +11755,13 @@ char* __stdcall ReactorsS(int mode, char* arg)
                             found = true;
                             break;
                         }
-                        Elem = (TReactorObj*)pList.Get_Next();
+                        Elem = (TReactorObj*)pList->Get_Next();
                         
                     }
 					if (!found)
                     {
 						DoSimpleMsg("Reactor " + S + " Not Found in Active Circuit.", 20003);
-                        Elem = (TReactorObj*)pList.Get(activesave); // Restore active Storage
+                        Elem = (TReactorObj*)pList->Get(activesave); // Restore active Storage
                         ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
 					}
 					
@@ -11805,7 +11807,7 @@ char* __stdcall ReactorsS(int mode, char* arg)
 void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
     TReactorObj* Elem = nullptr;
-    TPointerList pList = {};
+    TPointerList* pList = nullptr;
     int		idx = 0,
 			i = 0,
 			k = 0;
@@ -11820,16 +11822,16 @@ void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			{
 				if (ReactorClass[ActiveActor]->ElementList.NumInList > 0)
 				{
-					pList = ReactorClass[ActiveActor]->ElementList;
+					pList = &ReactorClass[ActiveActor]->ElementList;
 
 					k = 0;
-					Elem = (TReactorObj*)pList.Get_First();
+					Elem = (TReactorObj*)pList->Get_First();
 					while (ASSIGNED(Elem))
 					{
 						WriteStr2Array(Elem->LName);
 						WriteStr2Array(Char0());
 						k++;
-						Elem = (TReactorObj*)pList.Get_Next();
+						Elem = (TReactorObj*)pList->Get_Next();
 					}
 				}
 			}
