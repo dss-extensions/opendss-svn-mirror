@@ -320,7 +320,7 @@ namespace Circuit
         void ProcessBusDefs(int ActorID);
         void ReProcessBusDefs(int ActorID);
         void DoResetMeterZones(int ActorID);
-        int SetElementActive(const String FullObjectName);
+        int SetElementActive(const String& FullObjectName);
         void InvalidateAllPCElements();
         void DebugDump(Textfile& F);
 

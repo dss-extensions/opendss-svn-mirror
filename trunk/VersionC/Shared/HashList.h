@@ -79,10 +79,10 @@ public:
 	unsigned int InitialAllocation;
 	THashList(unsigned int Nelements);
 	virtual ~THashList();
-	int Add(const String s);
-	int Find(const String s); // This is 1-based! For buses, e.g. ActiveBusIndex, remember to subtract 1.
+	int Add(const String &s);
+	int Find(const String &s); // This is 1-based! For buses, e.g. ActiveBusIndex, remember to subtract 1.
 	int FindNext();  //  repeat find for duplicate string in same hash list
-	int FindAbbrev(const String s);
+	int FindAbbrev(const String &s);
 	String Get(unsigned int i); // This is 1-based! For buses, e.g. ActiveBusIndex, remember to sum 1.
 	void Expand(unsigned int NewSize);   /*Expands number of elements*/
 	void DumpToFile(const String FName);

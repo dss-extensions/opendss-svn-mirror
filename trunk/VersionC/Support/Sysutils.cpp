@@ -1114,15 +1114,20 @@ void AppendStr( String& Dest, const String& S )
 //---------------------------------------------------------------------------
 string UpperCase( const string& xs )
 {
-  string s;
-#if defined(linux) or not defined(_MSC_VER)
-  string::const_iterator t, tEnd;
-  for( t = xs.begin(); t != xs.end(); ++t)
-    s.append(1, toupper(*t));
-#else
-  transform(xs.begin(), xs.end(), back_inserter(s), toupper);
-#endif
-  return s;
+    string s(xs);
+    string::iterator t, tEnd;
+    for (t = s.begin(); t != s.end(); ++t)
+    {
+        if (*t >= 97 && *t <= 122)
+        {
+            *t -= 32;
+        }
+        else if (*t > 127)
+        {
+            *t = tolower(*t);
+        }
+  }
+    return s;
 }
 //---------------------------------------------------------------------------
 wstring UpperCase( const wstring& xs )
@@ -1136,14 +1141,19 @@ wstring UpperCase( const wstring& xs )
     have been converted to LowerCase  */
 string LowerCase( const string& xs )
 {
-  string s;
-#if defined(linux) or not defined(_MSC_VER)
-  string::const_iterator t, tEnd;
-  for( t = xs.begin(); t != xs.end(); ++t)
-    s.append(1, tolower(*t));
-#else
-    transform(xs.begin(), xs.end(), back_inserter(s), tolower);
-#endif
+  string s(xs);
+  string::iterator t, tEnd;
+  for (t = s.begin(); t != s.end(); ++t)
+  {
+      if (*t >= 65 && *t <= 90)
+      {
+          *t += 32;
+      }
+      else if (*t > 127)
+      {
+          *t = tolower(*t);
+      }
+  }
   return s;
 }
 //---------------------------------------------------------------------------

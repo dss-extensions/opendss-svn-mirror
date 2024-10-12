@@ -1390,7 +1390,7 @@ namespace Utilities
     //----------------------------------------------------------------------------
 
 
-    void ParseObjectClassandName( const String FullObjName, String& ClassName, String& ObjName )
+    void ParseObjectClassandName( const String& FullObjName, String& ClassName, String& ObjName )
     {
       size_t dotpos = 0;
 
