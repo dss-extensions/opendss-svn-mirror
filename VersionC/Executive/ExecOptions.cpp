@@ -1993,7 +1993,7 @@ namespace ExecOptions
 								}
                             }
                             if (ValidObj)
-                                AppendGlobalResult(Format("%-g", ((TPCElement*)with4->FActiveCktElement)->VariableName(i)));
+                                AppendGlobalResult(Format("%-g", ((TPCElement*)with4->FActiveCktElement)->Get_Variable(i)));
                             else
                                 DoSimpleMsg("State variable " + TmpStr + " not found", 7102);
                         }
