@@ -1870,9 +1870,9 @@ void TLoadShapeObj::Set_NumPoints(int Value)
 
         // Reset array property values to keep them in proper order in Save
 	if(ArrayPropertyIndex > 0)
-		Set_PropertyValue(ArrayPropertyIndex,Get_PropertyValue(ArrayPropertyIndex));
+		Set_PropertyValue(ArrayPropertyIndex, "");//Get_PropertyValue(ArrayPropertyIndex)); -- no need to do this, let's use an empty string to just mark the property as modified
 	if(!QMultipliers.empty())
-		Set_PropertyValue(11,Get_PropertyValue(11));
+		Set_PropertyValue(11, "");//Get_PropertyValue(11));
 	FNumPoints = Value;   // Now assign the value
 }
 
