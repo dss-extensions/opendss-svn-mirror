@@ -103,7 +103,7 @@ namespace Utilities
 	String FullName(TDSSCktElement* pElem);
 
 	/*Parsing Utilities*/
-	void ParseObjectClassandName(const String FullObjName, String& ClassName, String& ObjName);
+	void ParseObjectClassandName(const String& FullObjName, String& ClassName, String& ObjName);
 	void ParseIntArray(pIntegerArray iarray, int& count, const String S);
 	int InterpretSolveMode(const String S);
 	int InterpretControlMode(const String S);

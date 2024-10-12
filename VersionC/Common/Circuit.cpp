@@ -1589,7 +1589,7 @@ namespace Circuit
 
 
 
-    int TDSSCircuit::SetElementActive(const String FullObjectName)
+    int TDSSCircuit::SetElementActive(const String& FullObjectName)
 
         // Fast way to set a cktelement active
 

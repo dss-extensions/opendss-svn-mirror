@@ -177,13 +177,12 @@ unsigned int THashList::Hash(const String s)
 {
 	unsigned int result = 0;
 	unsigned int Hashvalue = 0;
-	int i = 0;
 
   /*per Stackoverflow.com*/
 	int stop = 0;
 	Hashvalue = 0;
 	//for (stop = (int)s.length(), i = 1; i <= stop; i++)
-	for (i = 1; i < static_cast<int>(s.length())-1; i++)
+	for (size_t i = 0; i < s.length(); i++)
 	{
 		Hashvalue = (unsigned int) (((Hashvalue << 5) | (Hashvalue >> 27)) ^ ((unsigned int) s[i]));
 	}
@@ -217,7 +216,7 @@ void THashList::ResizeStrPtr()
 	NewPointer.clear();
 }
 
-int THashList::Add(const String s)
+int THashList::Add(const String &s)
 {
 	int result = 0;
 	unsigned int HashNum = 0;
@@ -245,7 +244,7 @@ int THashList::Add(const String s)
 	return result;
 }
 
-int THashList::Find(const String s)
+int THashList::Find(const String& s)
 {
 	int result = 0;
 	int i = 0;
@@ -259,7 +258,7 @@ int THashList::Find(const String s)
 		int stop = 0;
 		for(stop = ListPtr[LastHash - 1].Nelem, i = 1; i <= stop; i++)
 		{
-			if(CompareStr(LastSearchString, (ListPtr[LastHash - 1].Str)[i - 1]) == 0)
+			if((LastSearchString == (ListPtr[LastHash - 1].Str)[i - 1]))
 			{
 				result = ListPtr[LastHash - 1].Idx[i - 1];    // Return the index of this element
 				LastFind = (unsigned int) i;
@@ -298,7 +297,7 @@ int THashList::FindNext()
 /*Just make a linear search and test each string until a string is found that
  matches all the characters entered in S*/
 
-int THashList::FindAbbrev(const String s)
+int THashList::FindAbbrev(const String &s)
 {
 	int result = 0;
 	String Test1;
