@@ -22,7 +22,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	int ProcessRPNCommand(const String TokenBuffer, TRPNCalc* RPN)
+	int ProcessRPNCommand(const String& TokenBuffer, TRPNCalc* RPN)
 	{
 		int result = 0;
 		String s;
@@ -105,7 +105,7 @@ namespace ParserDel
 
 		/*-------------------------------------*/
 
-		auto ReplaceToDotPos = [&](const String s) -> void
+		auto ReplaceToDotPos = [&](const String& s) -> void
 		{
 			if (dotpos != String::npos)
 				TokenBuffer = s + TokenBuffer.substr(dotpos, TokenBuffer.length() - dotpos + 1);
@@ -172,7 +172,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::SetCmdString(const String Value)
+	void TParser::SetCmdString(const String& Value)
 	{
 		CmdBuffer.clear();
 		CmdBuffer = Value + " "; // add some white space at end to get last param
@@ -213,7 +213,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	bool TParser::IsDelimiter(const String LineBuffer, int& LinePos)
+	bool TParser::IsDelimiter(const String& LineBuffer, int& LinePos)
 	{
 		bool result = false;
 		int i = 0;
@@ -291,7 +291,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::set_delimchars(std::string S)
+	void TParser::set_delimchars(const std::string &S)
 	{
 		DelimChars = S;
 	}
@@ -305,7 +305,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::set_WhiteSpaceChars(std::string S)
+	void TParser::set_WhiteSpaceChars(const std::string& S)
 	{
 		WhiteSpaceChars = S;
 	}
@@ -319,7 +319,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::set_FBeginQuoteChars(std::string S)
+	void TParser::set_FBeginQuoteChars(const std::string& S)
 	{
 		FBeginQuoteChars = S;
 	}
@@ -333,7 +333,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::set_FEndQuoteChars(std::string S)
+	void TParser::set_FEndQuoteChars(const std::string& S)
 	{
 		FEndQuoteChars = S;
 	}
@@ -354,7 +354,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	void TParser::SkipWhitespace(const String LineBuffer, int * LinePos)
+	void TParser::SkipWhitespace(const String& LineBuffer, int * LinePos)
 	{
 		while ((*LinePos < LineBuffer.length()) && IsWhiteSpace(LineBuffer[*LinePos]))
 			*LinePos = *LinePos + 1;
@@ -362,7 +362,7 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
-	String TParser::GetToken(const String LineBuffer, int* LinePos)
+	String TParser::GetToken(const String& LineBuffer, int* LinePos)
 	{
 		String result;
 		int TokenStart = 0;
@@ -776,7 +776,7 @@ namespace ParserDel
 
 	/*Checks for CommentChar and '//'*/
 
-	bool TParser::IsCommentChar(const String LineBuffer, int& LinePos)
+	bool TParser::IsCommentChar(const String& LineBuffer, int& LinePos)
 	{
 		bool result = false;
 		switch (LineBuffer[LinePos])
@@ -845,7 +845,7 @@ namespace ParserDel
 
 	/*=======================================================================*/
 
-	int TParserVar::Add(const String VarName, const String varValue)
+	int TParserVar::Add(const String& VarName, const String& varValue)
 	{
 		int result = 0;
 		unsigned int Idx = 0;
@@ -892,7 +892,7 @@ namespace ParserDel
 
 	/*=======================================================================*/
 
-	void TParser::set_Token(std::string S)
+	void TParser::set_Token(const std::string& S)
 	{
 		TokenBuffer = S;
 	}
@@ -971,7 +971,7 @@ namespace ParserDel
 		return result;
 	}
 
-	int TParserVar::Lookup(const String VarName)
+	int TParserVar::Lookup(const String& VarName)
 	{
 		int result = 0;
 		ActiveVariable = (unsigned int)VarNames->Find(VarName);
@@ -979,7 +979,7 @@ namespace ParserDel
 		return result;
 	}
 
-	void TParserVar::Set_Value(const String Value)
+	void TParserVar::Set_Value(const String& Value)
 	{
 		if ((ActiveVariable > 0) && (ActiveVariable <= NumVariables))
 			(VarValues)[ActiveVariable - 1] = Value;
