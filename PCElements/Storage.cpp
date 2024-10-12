@@ -1140,6 +1140,8 @@ TStorageObj::TStorageObj(TDSSClass* ParClass, const String SourceName)
 	OpenStorageSolutionCount = -1;
 	YPrimOpenCond = nullptr;
 	StorageVars.kVStorageBase = 12.47;
+	FkvarRequested = 0;
+	FkWRequested = 0;
 	VBase = 7200.0;
 	Vminpu = 0.90;
 	Vmaxpu = 1.10;
