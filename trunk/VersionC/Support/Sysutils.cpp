@@ -1124,7 +1124,7 @@ string UpperCase( const string& xs )
         }
         else if (*t > 127)
         {
-            *t = tolower(*t);
+            *t = toupper(*t);
         }
   }
     return s;
