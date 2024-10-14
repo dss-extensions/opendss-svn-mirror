@@ -235,7 +235,8 @@ uses
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
   DStorages in 'DStorages.pas',
   DWindGens in 'DWindGens.pas',
-  DReactors in 'DReactors.pas';
+  DReactors in 'DReactors.pas',
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
 
 //**************************end of the functions*************************************
 exports

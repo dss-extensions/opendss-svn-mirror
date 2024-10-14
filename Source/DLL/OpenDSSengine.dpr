@@ -243,7 +243,8 @@ uses
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
   ImplWindGens in 'ImplWindGens.pas' {Vsources: CoClass},
-  ImplReactors in 'ImplReactors.pas';
+  ImplReactors in 'ImplReactors.pas',
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
 
 exports
   DllGetClassObject,
