@@ -206,7 +206,8 @@ uses
   InvDynamics in '..\Shared\InvDynamics.pas',
   GenController in '..\Controls\GenController.pas',
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
-  WTG3_Model in '..\PCElements\WTG3_Model.pas';
+  WTG3_Model in '..\PCElements\WTG3_Model.pas',
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
 
 {$R *.RES}
 
