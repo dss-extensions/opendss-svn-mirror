@@ -8,6 +8,7 @@
     <Transaction>2024/05/02 10:48:48.000.468,C:\OpenDSS\Version8\Source\DLL\Unit1.pas=C:\OpenDSS\Version8\Source\DLL\ImplWindGens.pas</Transaction>
     <Transaction>2024/10/02 08:56:44.000.467,=C:\OpenDSS\Version8\Source\DLL\Unit1.pas</Transaction>
     <Transaction>2024/10/02 08:57:01.000.714,C:\OpenDSS\Version8\Source\DLL\ImplReactors.pas=C:\OpenDSS\Version8\Source\DLL\Unit1.pas</Transaction>
+    <Transaction>2024/10/14 19:26:57.878,=C:\OpenDSS\Version8\Source\General\CNTSLineConstants.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="..\..\Source"/>
@@ -130,6 +131,7 @@
     <File Path="..\General\WireData.pas"/>
     <File Path="..\General\XfmrCode.pas"/>
     <File Path="..\General\XYcurve.pas"/>
+    <File Path="..\General\CNTSLineConstants.pas"/>
     <File Path="..\GISCommands"/>
     <File Path="..\GISCommands\GISCommands.pas"/>
     <File Path="..\Meters"/>
@@ -240,6 +242,7 @@
     <File Path="ImplParser.pas"/>
     <File Path="ImplPDElements.pas"/>
     <File Path="ImplPVSystems.pas"/>
+    <File Path="ImplReactors.pas"/>
     <File Path="ImplReclosers.pas"/>
     <File Path="ImplReduce.pas"/>
     <File Path="ImplRegControls.pas"/>
@@ -257,6 +260,5 @@
     <File Path="ImplXYCurves.pas"/>
     <File Path="OpenDSSengine.ridl"/>
     <File Path="OpenDSSEngine_TLB.pas"/>
-    <File Path="ImplReactors.pas"/>
   </ProjectSortOrder>
 </BorlandProject>
