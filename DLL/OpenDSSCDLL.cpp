@@ -571,8 +571,9 @@ char* __stdcall DSSPut_Command(char* myCmd)
     {
         DSSReply = Application.Execute(myCmds[i].c_str());
         if (!(DSSReply.empty()))
-            result = result + DSSReply + char(0x0A);
+			result = result + DSSReply + char(0x0A);
     }
+    result = result.substr(0, result.size() - 1); // removes last char
 	char* presult = new char[result.size() + 1];
 	strcpy(presult, result.c_str());
 	return  presult;
