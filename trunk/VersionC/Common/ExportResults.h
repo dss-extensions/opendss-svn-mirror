@@ -67,7 +67,7 @@ namespace ExportResults
 	void ExportYNodeList(String Filenm);
 	void ExportYVoltages(String Filenm);
 	void ExportYCurrents(String Filenm);
-	void ExportSections(String Filenm, TEnergyMeterObj pMeter);
+	void ExportSections(String Filenm, TEnergyMeterObj& pMeter);
 	void ExportErrorLog(String Filenm);
 	void ExportIncMatrix(String Filenm);
 	void ExportIncMatrixRows(String Filenm);
