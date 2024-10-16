@@ -4492,7 +4492,7 @@ namespace ExportResults
     }
 
 
-    void ExportSections( String Filenm, TEnergyMeterObj& pMeter )
+    void ExportSections( String Filenm, TEnergyMeterObj* pMeter )
     {
       TEnergyMeterObj* MyMeterPtr;
       int iMeter = 0, i = 0;
@@ -4510,14 +4510,14 @@ namespace ExportResults
          // If a meter is specified, export that meter only
           /*# with pMeter do */
           {
-            auto& with0 = pMeter;
-            for ( int stop = with0.SectionCount, i = 1; i <= stop; i++)
+            auto with0 = pMeter;
+            for ( int stop = with0->SectionCount, i = 1; i <= stop; i++)
               /*# with FeederSections^[i] do */
               {
-                auto& with1 = with0.FeederSections[i];
+                auto& with1 = with0->FeederSections[i];
                 {
-                  ActiveCircuit[ActiveActor]->Set_ActiveCktElement((TDSSCktElement*) (with0.SequenceList->Get(with1.SeqIndex ) ));
-                  WriteLn( F, with0.get_Name() +
+                  ActiveCircuit[ActiveActor]->Set_ActiveCktElement((TDSSCktElement*) (with0->SequenceList->Get(with1.SeqIndex ) ));
+                  WriteLn( F, with0->get_Name() +
                       Format( ", %d, %d, %s, %d, %d, %-.6g, %d, %-.6g, %-.6g, %-.6g, %s",
                        i, 
                           with1.SeqIndex, 

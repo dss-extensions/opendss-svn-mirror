@@ -815,7 +815,7 @@ namespace ExportOptions
 			ExportStorageMeters(FileName);
 			break;
 			case 	51:
-			ExportSections(FileName, *pMeter);
+			ExportSections(FileName, pMeter);
 			break;
 			case 	52:
 			ExportErrorLog(FileName);
