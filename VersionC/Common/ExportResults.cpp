@@ -4492,7 +4492,7 @@ namespace ExportResults
     }
 
 
-    void ExportSections( String Filenm, TEnergyMeterObj pMeter )
+    void ExportSections( String Filenm, TEnergyMeterObj& pMeter )
     {
       TEnergyMeterObj* MyMeterPtr;
       int iMeter = 0, i = 0;
@@ -4510,7 +4510,7 @@ namespace ExportResults
          // If a meter is specified, export that meter only
           /*# with pMeter do */
           {
-            auto with0 = pMeter;
+            auto& with0 = pMeter;
             for ( int stop = with0.SectionCount, i = 1; i <= stop; i++)
               /*# with FeederSections^[i] do */
               {
