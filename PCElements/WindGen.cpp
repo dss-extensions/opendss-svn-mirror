@@ -1401,7 +1401,7 @@ void TWindGenObj::SetNominalGeneration(int ActorID)
 				Yeq = cinv(cmplx(0, -WindGenVars.XD));	// Gets negated in CalcYPrim
             break;
             default:
-				auto with4 = WindGenVars;
+				auto& with4 = WindGenVars;
                 Yeq = cdivreal(cmplx(with4.Pnominalperphase, -with4.Qnominalperphase), sqr(VBase)); // Vbase must be L-N for 3-phase
                 if (Vminpu != 0)
                     Yeq95 = cdivreal(Yeq, sqr(Vminpu)); // at 95% voltage
@@ -1796,7 +1796,7 @@ void TWindGenObj::DoConstantPQGen(int ActorID)
 					else
 						/*# with WindGenVars do */
 						{
-							auto with0 = WindGenVars;
+							auto& with0 = WindGenVars;
 							Curr = conjg(cdiv(cmplx(with0.Pnominalperphase, with0.Qnominalperphase), V));
 						}  // Between 95% -105%, constant PQ
 				}
@@ -3013,7 +3013,7 @@ void TWindGenObj::IntegrateStates(int ActorID)
         else
         {
             // Dynamics using an external equation
-            auto With5 = with0->DynaVars;
+            auto& With5 = with0->DynaVars;
             
 			if (With5.IterationFlag == 0)
             {

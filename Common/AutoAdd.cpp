@@ -18,13 +18,13 @@ namespace AutoAdd
 
 
 
-    double SumSelectedRegisters(TEnergyMeterObj Mtr, pIntegerArray Regs, int count)
+    double SumSelectedRegisters(TEnergyMeterObj& Mtr, pIntegerArray Regs, int count)
     {
         double result = 0.0;
         int i = 0;
         result = 0.0;
         /*# with Mtr do */
-        auto with0 = Mtr;
+        auto& with0 = Mtr;
         for (int stop = count, i = 1; i <= stop; i++)
         {
             result = result + with0.Registers[(Regs)[i - 1]] * with0.TotalsMask[(Regs)[i - 1]];
