@@ -855,14 +855,11 @@ namespace Solution
 
              // Compute new guess at voltages
             for ( int stop = with0->NumNodes, i = 1; i <= stop; i++)     // 0 node is always 0
-              /*# with NodeV^[i] do */
-              {
-                complex& with1 = NodeV[i];
-                {
-                  with1.re = with1.re - dV[i].re;
-                  with1.im = with1.im - dV[i].im;
-                }
-              }
+            /*# with NodeV^[i] do */
+            {
+                NodeV[i].re = NodeV[i].re - dV[i].re;
+                NodeV[i].im = NodeV[i].im - dV[i].im;
+            }
           }
           while ( ! ( ( Converged( ActorID ) && ( Iteration >= MinIterations ) ) || ( Iteration >= MaxIterations ) ) );
         }
