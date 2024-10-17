@@ -679,7 +679,7 @@ begin
         DoYPrimCalcs(YPrim_Shunt);
     if YPrim <> nil then
         DoYPrimCalcs(YPrim);
-
+    YPrimInvalid[ActorID] := false;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
