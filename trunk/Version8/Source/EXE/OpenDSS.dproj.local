@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm</Transaction>
-    <Transaction>2020/10/02 18:04:32.000.788,C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
+    <Transaction>2020/10/02 17:13:39.000.757,C:\OpenDSS\Version8\Source\Forms\StdMessage.dfm=C:\OpenDSS\Version8\Source\EXE\Unit2.dfm</Transaction>
+    <Transaction>2020/10/02 18:04:32.000.788,C:\OpenDSS\Version8\Source\EXE\Unit2.dfm=C:\OpenDSS\Version8\Source\Forms\myInfoMsg.dfm</Transaction>
     <Transaction>2023/10/19 13:14:18.000.943,=C:\src\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
     <Transaction>2024/03/01 10:38:49.000.178,=C:\OpenDSS\Version8\Source\PCElements\WTG3_Model.pas</Transaction>
     <Transaction>2024/10/09 10:54:55.000.481,=C:\OpenDSS\Version8\Source\General\CNTSLineConstants.pas</Transaction>

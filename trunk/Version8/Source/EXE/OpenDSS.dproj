@@ -243,11 +243,8 @@
                 <DeployFile LocalName="..\OpenDSS" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\OpenDSS" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="MyDSSClassDefs.Pas" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="MyDSSClassDefs.Pas" Configuration="Release" Class="ProjectFile"/>
