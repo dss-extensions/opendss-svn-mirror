@@ -37,7 +37,7 @@ uses
   TCP_IP;
 
 CONST
-  NumGISOptions = 41;
+  NumGISOptions = 43;
 
 FUNCTION DoGISCmd: string;
 
@@ -83,6 +83,8 @@ function GISShowLayer(myLayer: string): string;
 function GISRemoveLayer(myLayer: string): string;
 function GISShowGeoTIFF(myPath: string): string;
 function GISRemoveGeoTIFF(): string;
+function GISShowGeoTIFF_Folder(myPath: string): string;
+function GISRemoveGeoTIFF_Folder(): string;
 
 var
   {$IFNDEF FPC}
@@ -185,6 +187,8 @@ Begin
   GISOption[39] := 'HideLayer';
   GISOption[40] := 'GeoTIF';
   GISOption[41] := 'RemoveGeoTIF';
+  GISOption[42] := 'GeoTIFolder';
+  GISOption[43] := 'RemoveGeoTIFolder';
 
   GISHelp[1] :=
     'Starts OpenDSS-GIS only if it is installed in the local machine';
@@ -452,6 +456,19 @@ Begin
     '1. OpenDSS-GIS must be installed' + CRLF +
     '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
     '3. The model needs to have the correct GISCoords file';
+    GISHelp[42] :=
+    'Commands OpenDSS-GIS to display the GeoTIF layers included in the folder path given in the argument. The argument contains the path for DSS-GIS to reach out to the layers (.tif).' + CRLF +
+    'The .TIF files must contian not only the layer graphical data but also its geographic coordinates. See https://support.esri.com/en-us/knowledge-base/how-to-export-to-geotiff-with-arcgis-pro-000028392.' + CRLF + CRLF +
+    'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    '1. OpenDSS-GIS must be installed' + CRLF +
+    '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+    '3. The model needs to have the correct GISCoords file';
+    GISHelp[43] :=
+    'Commands OpenDSS-GIS to remove the active GeoTIFF layers (if any) added through the GeoTIFolder command.' + CRLF + CRLF +
+    'The following conditions need to be fulfilled:' + CRLF + CRLF +
+    '1. OpenDSS-GIS must be installed' + CRLF +
+    '2. OpenDSS-GIS must be initialized (use GIS Start command)' + CRLF +
+    '3. The model needs to have the correct GISCoords file';
 
 End;
 
@@ -650,6 +667,16 @@ Begin
         Begin
           Parser[ActiveActor].NextParam;
           Result := GISRemoveGeoTIFF();
+        End;
+      42:
+        Begin
+          Parser[ActiveActor].NextParam;
+          Result := GISShowGeoTIFF_Folder(Parser[ActiveActor].StrValue);
+        End;
+      43:
+        Begin
+          Parser[ActiveActor].NextParam;
+          Result := GISRemoveGeoTIFF_Folder();
         End
     else
     END;
@@ -1929,6 +1956,72 @@ Begin
   if IsGISON then
   Begin
     InMsg := '{"command":"removegeotif"}';
+    try
+      GISTCPClient.IOHandler.WriteLn(InMsg);
+      InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+      TCPJSON := TdJSON.Parse(InMsg);
+      Result := TCPJSON['textfromfile'].AsString;
+    except
+      on E: Exception do
+      begin
+        IsGISON := False;
+        Result := 'Error while communicating to OpenDSS-GIS';
+      end;
+    end;
+  end
+  else
+    Result := 'OpenDSS-GIS is not installed or initialized';
+
+End;
+
+
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to draw GeoTIFF layers in the active Map       *
+  ******************************************************************************* }
+
+function GISShowGeoTIFF_Folder(myPath: string): string;
+Var
+  TCPJSON: TdJSON;
+  myShpCode, activesave, i: Integer;
+  InMsg: String;
+  Found: boolean;
+  pLine: TLineObj;
+Begin
+  if IsGISON then
+  Begin
+    InMsg := '{"command":"geotifolder","path":"' + myPath + '"}';
+    try
+      GISTCPClient.IOHandler.WriteLn(InMsg);
+      InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
+      TCPJSON := TdJSON.Parse(InMsg);
+      Result := TCPJSON['textfromfile'].AsString;
+    except
+      on E: Exception do
+      begin
+        IsGISON := False;
+        Result := 'Error while communicating to OpenDSS-GIS';
+      end;
+    end;
+  end
+  else
+    Result := 'OpenDSS-GIS is not installed or initialized';
+End;
+
+{ *******************************************************************************
+  *         Commands OpenDSS-GIS to the active GeoTIFF layers (if any)          *
+  ******************************************************************************* }
+
+function GISRemoveGeoTIFF_Folder(): string;
+Var
+  TCPJSON: TdJSON;
+  myShpCode, activesave, i: Integer;
+  InMsg: String;
+  Found: boolean;
+  pLine: TLineObj;
+Begin
+  if IsGISON then
+  Begin
+    InMsg := '{"command":"removegeotifolder"}';
     try
       GISTCPClient.IOHandler.WriteLn(InMsg);
       InMsg := GISTCPClient.IOHandler.ReadLn(#10, 1000);
