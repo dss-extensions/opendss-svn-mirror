@@ -421,19 +421,19 @@ namespace Circuit
         int Current_Idx = 0    //  Stores the current level traced
             , Current_level = 0;
         /*# with Solution do */
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
-            Current_level = MaxIntValue(&with0.Inc_Mat_levels);                    //  Init level
-            Current_Idx = get_element_Idx((pIntegerArray)&with0.Inc_Mat_levels, MAXIDX(with0.Inc_Mat_levels), Current_level);  //  Init Index
+            Current_level = MaxIntValue(&with0->Inc_Mat_levels);                    //  Init level
+            Current_Idx = get_element_Idx((pIntegerArray)&with0->Inc_Mat_levels, MAXIDX(with0->Inc_Mat_levels), Current_level);  //  Init Index
             End_Flag = true;
             New_Graph.clear();
             while (End_Flag)
             {
                 //Checks the termination cirteria
-                if ((Current_level > with0.Inc_Mat_levels[Current_Idx]) || (with0.Inc_Mat_levels[Current_Idx] == 0))
+                if ((Current_level > with0->Inc_Mat_levels[Current_Idx]) || (with0->Inc_Mat_levels[Current_Idx] == 0))
                     End_Flag = false;
                 // Is the current bus part of the new backbone?
-                if (with0.Inc_Mat_levels[Current_Idx] == Current_level)
+                if (with0->Inc_Mat_levels[Current_Idx] == Current_level)
                 {
                     Current_level--;
                     New_Graph.push_back(Current_Idx);
@@ -479,22 +479,22 @@ namespace Circuit
         Curr_level = -1;                          // Initializing values
         Ref_detected = false;
         /*# with Solution do */
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
-            for (int stop = (with0.Inc_Mat_levels.size() - 1), idx = 0; idx <= stop; idx++)     // Sweeps the whole graph
+            for (int stop = (with0->Inc_Mat_levels.size() - 1), idx = 0; idx <= stop; idx++)     // Sweeps the whole graph
             {
-                if (with0.Inc_Mat_levels[idx] == 0)
+                if (with0->Inc_Mat_levels[idx] == 0)
                     Ref_detected = true;
                 else
                 {
-                    if ((Curr_level >= with0.Inc_Mat_levels[idx]) || Ref_detected)
+                    if ((Curr_level >= with0->Inc_Mat_levels[idx]) || Ref_detected)
                     {
                         Ref_detected = false;
-                        Curr_level = with0.Inc_Mat_levels[idx] - 1;
-                        with0.Inc_Mat_levels[idx] = 1;
+                        Curr_level = with0->Inc_Mat_levels[idx] - 1;
+                        with0->Inc_Mat_levels[idx] = 1;
                     }
                     else
-                        with0.Inc_Mat_levels[idx] = with0.Inc_Mat_levels[idx] - Curr_level;
+                        with0->Inc_Mat_levels[idx] = with0->Inc_Mat_levels[idx] - Curr_level;
                 }
             }
         }
@@ -518,11 +518,11 @@ namespace Circuit
         int i = 0                          // The current state of the state machine
             , State = 0;
         std::vector < int > Candidates;                // Array for 0 level buses idx
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
             SMEnd = true;
             State = 0;
-            Sys_Size = ((double)with0.Inc_Mat_Cols.size());
+            Sys_Size = ((double)with0->Inc_Mat_Cols.size());
             Buses_Covered.resize(1);
             Path_Idx.resize(1);
             Actual_Coverage = -1;
@@ -533,9 +533,9 @@ namespace Circuit
                 case 0:
                 {                                             // Processes the first path
                     Candidates.clear();
-                    for (int stop = ((with0.Inc_Mat_levels.size()) - 1), i = 0; i <= stop; i++)     //Extracts the 0 Level Buses
+                    for (int stop = ((with0->Inc_Mat_levels.size()) - 1), i = 0; i <= stop; i++) // Extracts the 0 Level Buses
                     {
-                        if (with0.Inc_Mat_levels[i] == 0)
+                        if (with0->Inc_Mat_levels[i] == 0)
                         {
                             Candidates.push_back(i);
                         }
@@ -554,7 +554,7 @@ namespace Circuit
                     Buses_Covered.push_back(New_Graph[0] - New_Graph.back());
                     // Replaces the latest path with 0 in the Bus levels array
                     for (int stop = (Longest_paths.size() - 1), i = Path_Idx[Path_Idx.back()]; i <= stop; i++)
-                        with0.Inc_Mat_levels[Longest_paths[i]] = 0;
+                        with0->Inc_Mat_levels[Longest_paths[i]] = 0;
                     Normalize_graph();
                     // remains in the same state
                 }
@@ -881,25 +881,25 @@ namespace Circuit
         std::vector < String > myPDEList, MyGraph;
         std::vector < int > MyIdx;
         /*# with Solution do */
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
             // Calculates the incidence matrix and laplacian to generate the graph file to be
             // send to MeTiS
-            with0.Calc_Inc_Matrix_Org(ActiveActor);                       //Calculates the ordered incidence matrix
+            with0->Calc_Inc_Matrix_Org(ActiveActor); // Calculates the ordered incidence matrix
             // Initializes the METIS related variables
             myPDEList.clear();
             MyGraph.clear();
-            with0.Laplacian = with0.IncMat.Transpose();                        // Transposes the Incidence Matrix
-            with0.Laplacian = with0.Laplacian.multiply(&(with0.IncMat));                // Laplacian Matrix calculated
+            with0->Laplacian = with0->IncMat.Transpose(); // Transposes the Incidence Matrix
+            with0->Laplacian = with0->Laplacian.multiply(&(with0->IncMat)); // Laplacian Matrix calculated
             // Filters the incidence matrix to remove duplicated branches (parallel)
-            for (int stop = (with0.Inc_Mat_Cols.size() - 1), i = 0; i <= stop; i++)
+            for (int stop = (with0->Inc_Mat_Cols.size() - 1), i = 0; i <= stop; i++)
             {
                 MyIdx.clear();
-                myName = with0.Inc_Mat_Cols[i];
+                myName = with0->Inc_Mat_Cols[i];
                 // first, get the name of all PDE conencted to this Bus
-                for (int stop = (with0.IncMat.NZero() - 1), jj = 0; jj <= stop; jj++)
+                for (int stop = (with0->IncMat.NZero() - 1), jj = 0; jj <= stop; jj++)
                 {
-                    if (with0.IncMat.data[jj][1] == i)
+                    if (with0->IncMat.data[jj][1] == i)
                     {
                         // Check if this is not a parallel branch
                         exists = false;
@@ -908,16 +908,17 @@ namespace Circuit
                             for (int stop = (MyIdx.size() - 2) / 2, k = 0; k <= stop; k++)
                             {
                                 // Checks for the other terminal
-                                if (jj < (with0.IncMat.data.size() - 1))
+                                if (jj < (with0->IncMat.data.size() - 1))
                                 {
-                                    if (static_cast<size_t>(jj + 1) < with0.IncMat.data.size() && static_cast<size_t>(1) < with0.IncMat.data[static_cast<size_t>(jj) + 1].size()) {
-                                        myIntVar = with0.IncMat.data[static_cast<size_t>(jj + 1)][static_cast<size_t>(1)];
+                                    if ((jj + 1) < with0->IncMat.data.size() && 1 < with0->IncMat.data[jj + 1].size())
+                                    {
+                                        myIntVar = with0->IncMat.data[jj + 1][1];
                                     }
                                     else
-                                        myIntVar = with0.IncMat.data[jj][1];
+                                        myIntVar = with0->IncMat.data[jj][1];
                                 }
                                 else
-                                    myIntVar = with0.IncMat.data[jj][1];
+                                    myIntVar = with0->IncMat.data[jj][1];
                                 if (MyIdx[static_cast<size_t>(k) * 2] == myIntVar)
                                 {
                                     exists = true;
@@ -928,19 +929,19 @@ namespace Circuit
                         if (!exists)
                         {
                             // Stores the name of the PDE
-                            myName = with0.Inc_Mat_Rows[with0.IncMat.data[jj][0]];
+                            myName = with0->Inc_Mat_Rows[with0->IncMat.data[jj][0]];
                             myPDEList.push_back(myName);
                             //myPDEList.size() = myPDEList.size() + 1;
                             // Checks for the other terminal
-                            if (jj < (with0.IncMat.data.size() - 1))
+                            if (jj < (with0->IncMat.data.size() - 1))
                             {
-                                if (with0.IncMat.data[static_cast<size_t>(jj) + 1][0] == with0.IncMat.data[jj][0])
-                                    MyIdx[MyIdx.size()] = with0.IncMat.data[static_cast<size_t>(jj) + 1][1];
+                                if (with0->IncMat.data[jj + 1][0] == with0->IncMat.data[jj][0])
+                                    MyIdx[MyIdx.size()] = with0->IncMat.data[jj + 1][1];
                                 else
-                                    MyIdx[MyIdx.size()] = with0.IncMat.data[jj][1];
+                                    MyIdx[MyIdx.size()] = with0->IncMat.data[jj][1];
                             }
                             else
-                                MyIdx.push_back(with0.IncMat.data[jj][1]);
+                                MyIdx.push_back(with0->IncMat.data[jj][1]);
                             //MyIdx.Length = MyIdx.Length + 1;
                             // Now, get the number of Phases
                             myIntVar = myName.find(".");
@@ -972,12 +973,12 @@ namespace Circuit
             *********************************************************************************/
             // Get_First(), get the number of branches in the model excluding parallel branches
             jj = 0;
-            for (int stop = (with0.Inc_Mat_Rows.size() - 1), i = 0; i <= stop; i++)
+            for (int stop = (with0->Inc_Mat_Rows.size() - 1), i = 0; i <= stop; i++)
             {
                 // check if it's on the list
                 for (int stop = (myPDEList.size() - 1), k = 0; k <= stop; k++)
                 {
-                    if (LowerCase(with0.Inc_Mat_Rows[i]) == LowerCase(myPDEList[k]))
+                    if (LowerCase(with0->Inc_Mat_Rows[i]) == LowerCase(myPDEList[k]))
                     {
                         jj++;
                         break;
@@ -988,7 +989,7 @@ namespace Circuit
             System::AssignFile(F, Filename);
             System::Rewrite(F);
             IOResultToException();
-            System::WriteLn(F, IntToStr(with0.Inc_Mat_Cols.size()) + " " + IntToStr(jj) + " 1"); // it should be the rank of the incidence matrix
+            System::WriteLn(F, IntToStr(with0->Inc_Mat_Cols.size()) + " " + IntToStr(jj) + " 1"); // it should be the rank of the incidence matrix
             for (int stop = (MyGraph.size() - 1), i = 1; i <= stop; i++)
                 System::WriteLn(F, MyGraph[i]);
             System::CloseFile(F);
@@ -1014,7 +1015,7 @@ namespace Circuit
         TFileSearchReplace* Replacer;
         Num_Pieces = Num_SubCkts;
         /*# with Solution do */
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
             /********************************************************************************************/
         //    if Num_pieces <= 8 then MeTISCmd   :=  'kmetis.exe'  // For less than 8 zones use pMeTIS
@@ -1032,13 +1033,13 @@ namespace Circuit
                 if (Flag)       // The # of edges was wrong, use the one proposed by MeTIS
                 {
                     TextCmd = GetNumEdges(TextCmd);                     // Gest the # of edges proposed by MeTIS
-                    jj = IntToStr(with0.Inc_Mat_Cols.size()).size() + 2;// Caculates the index for replacing the number in the Graph File
+                    jj = IntToStr(with0->Inc_Mat_Cols.size()).size() + 2; // Caculates the index for replacing the number in the Graph File
                     // Replaces the old data with the new at the file header
                     Replacer = new TFileSearchReplace(Filename);
                     try
                     {
                         TReplaceFlags myreplaceFlags;
-                        Replacer->Replace(IntToStr(with0.Inc_Mat_Cols.size()) + " " + IntToStr(with0.Inc_Mat_Cols.size() - 1), IntToStr(with0.Inc_Mat_Cols.size()) +
+                        Replacer->Replace(IntToStr(with0->Inc_Mat_Cols.size()) + " " + IntToStr(with0->Inc_Mat_Cols.size() - 1), IntToStr(with0->Inc_Mat_Cols.size()) +
                             " " + TextCmd, myreplaceFlags);
                         //        }
                         //        __finally
@@ -1307,17 +1308,17 @@ namespace Circuit
         else
             Num_Pieces = Num_SubCkts;
         /*# with Solution do */
-        TSolutionObj with0 = *Solution;
+        auto with0 = Solution;
         {
             if (UseUserLinks && Link_Branches.size() > 0) // usando ramas de enlace ingresadas manualmente
                 // using link branches entered manually
             {
-                with0.Calc_Inc_Matrix_Org(ActiveActor);                       //Calculates the ordered incidence matrix
+                with0->Calc_Inc_Matrix_Org(ActiveActor); // Calculates the ordered incidence matrix
                 Locations.resize(Link_Branches.size());
                 Locations[0] = 0;
                 for (int stop = (Link_Branches.size() - 1), i = 1; i <= stop; i++)
                     /*# with Solution do */
-                    Locations[i] = with0.get_PDE_Bus1_Location(Link_Branches[i]);
+                    Locations[i] = with0->get_PDE_Bus1_Location(Link_Branches[i]);
             }
             else
             {
@@ -1351,15 +1352,15 @@ namespace Circuit
                         // Gets the name of the PDE for placing the EnergyMeter
                         /*# with Solution do */
                         {
-                            PDElement = with0.Inc_Mat_Rows[with0.get_IncMatrix_Row(Locations[i])];
+                            PDElement = with0->Inc_Mat_Rows[with0->get_IncMatrix_Row(Locations[i])];
                             Link_Branches[i] = PDElement;
-                            dbg = with0.get_IncMatrix_Col(Locations[i]);      // Temporary stores the given location
+                            dbg = with0->get_IncMatrix_Col(Locations[i]); // Temporary stores the given location
                             // Checks the branch orientation across the feeder by substracting the voltages around the branch
                             // Start with Bus 1
                             Term_volts.resize(2);
                             for (int stop = 1, dbg = 0; dbg <= stop; dbg++)
                             {
-                                BusName = with0.Inc_Mat_Cols[with0.Active_Cols[dbg]];
+                                BusName = with0->Inc_Mat_Cols[with0->Active_Cols[dbg]];
                                 SetActiveBus(BusName);           // Activates the Bus
                                 TDSSBus& pBus = *Buses[static_cast<size_t>(ActiveBusIndex) - 1];
                                 jj = 1;
@@ -1401,7 +1402,7 @@ namespace Circuit
                     else
                     {
                         // The reference bus (Actor 1)
-                        BusName = with0.Inc_Mat_Cols[0];
+                        BusName = with0->Inc_Mat_Cols[0];
                         PConn_Names[i] = BusName;
                         SetActiveBus(BusName);           // Activates the Bus
                         TDSSBus& pBus3 = *(Buses[ActiveBusIndex]);

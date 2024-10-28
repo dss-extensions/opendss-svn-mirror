@@ -73,10 +73,10 @@ static inline double operator-(const struct timespec &a, const struct timespec &
 #include "CktElement.h"
 #include <string>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <functional>
 #include "klusolve.h" // klusparseset_t
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 
 
@@ -190,9 +190,9 @@ namespace Solution
 
         class TMessageQueue
         {
-            std::mutex m_mutex;
-            std::condition_variable m_condVar;
-            std::queue<int> m_queue;                     // A queue for messaging to actors, the aim is to reduce inconsistency
+            mutex m_mutex;
+            condition_variable m_condVar;
+            queue<int> m_queue;                     // A queue for messaging to actors, the aim is to reduce inconsistency
         public:
             // These lines prevent TMessageQueue objects from being copied:
             TMessageQueue(const TMessageQueue&) = delete;
@@ -235,6 +235,7 @@ namespace Solution
     };
 
 
+ 
     class TSolutionObj : public TDSSObject {
     public:
         typedef TDSSObject inherited;
@@ -394,6 +395,7 @@ namespace Solution
         std::vector < int > Active_Cols;
         std::vector < int > Active_Cols_Idx;
         //******************************************************************************
+
         //********************Diakoptics solution mode variables************************
         bool ADiakoptics_ready;
         int ADiakoptics_Actors;

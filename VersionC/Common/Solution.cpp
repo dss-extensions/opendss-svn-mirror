@@ -409,11 +409,7 @@ namespace Solution
 
           // Sends message to start the Simulation
         ActorHandle[ActorID]->Send_Message( SIMULATE );
-          // If the parallel mode is not active, Waits until the actor finishes
-        if (!Parallel_enabled)
-        {
-          Wait4Actors( ALL_ACTORS );
-        }
+
       }
       catch( std::exception & E )
       {
@@ -4224,7 +4220,8 @@ namespace Solution
                   {
                       {
                         FMessage = "1";
-                        ActorStatus[ActorID] = 1;                  // Global to indicate that the actor is ready
+                        ActorStatus[ActorID] = 1;                   // Global to indicate that the actor is ready
+                        WaitQ.push(ActorID);                        // Sends the notification to the caller
                         SolutionAbort = true;
                         if ( ! Parallel_enabled )
                           DoThreadSafeMsg( "Error Encountered in Solve: " + (std::string) E.what(), 482 );
@@ -4301,7 +4298,8 @@ namespace Solution
                 DoThreadSafeMsg( "Unknown message. ", 7010 );
               }
             }
-            ActorStatus[ActorID] = 1;                  // Global to indicate that the actor is ready
+            ActorStatus[ActorID] = 1;                   // Global to indicate that the actor is ready
+            WaitQ.push(ActorID);                        // Sends the notification to the caller
           }
         }
       }

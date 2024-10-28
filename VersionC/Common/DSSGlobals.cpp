@@ -264,6 +264,11 @@ namespace DSSGlobals
 
     //TIdThreadComponent IdThreadComponent;
 
+    TSQueue<int> WaitQ;
+
+    
+    //*******************************************************************************************************
+
 
     string GetHomeDir()
     {
@@ -895,57 +900,57 @@ namespace DSSGlobals
         ts.tv_sec = 0;
         ts.tv_nsec = 1000; // 1 ms
 #endif
-        int I = 0;
-        // bool Flag = false;
-        // WType defines the starting point in which the actors will be evaluated,
-        // modification introduced in 01-10-2019 to facilitate the coordination
-        // between actors when a simulation is performed using A-Diakoptics
+        int I = 0,
+            j = 0;
+        // uses the thread safe queue to wait for all the actors to confirm
+        // replaces previous apporach based on delays
         if (!NoFormsAllowed)
             CoutLn("Waiting...");
-        for (int stop = NumOfActors, I = (WType + 1); I <= stop; I++)
+        try
         {
-            try
+            while (I < NumOfActors)
             {
-                while (ActorStatus[I] == 0)
+                WaitQ.pop();
+                I = 0;
+                for (j = 1; j <= NumOfActors; j++)
                 {
-#ifdef _WIN32
-                    Sleep(1);
-#else
-                    nanosleep(&ts, nullptr);
-#endif
-                    // Flag = true;
-                    //        while Flag do
-                    //          Flag  := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
+                    if (ActorStatus[j] == 1)
+                        I++;
                 }
             }
-            catch (EOutOfMemory&)
-            {
-                DoSimpleMsg("Exception Waiting for the parallel thread to finish a job", 7006);
-            }
         }
+        catch (EOutOfMemory&)
+        {
+            DoSimpleMsg("Exception Waiting for the parallel thread to finish a job", 7006);
+        }
+
     }
 
     void DoClone()
     {
-		String dummy;
-        int I = 0, NumClones = 0;
-        String Ref_Ckt;
-        Ref_Ckt = LastFileCompiled;
-        dummy = Parser[ActiveActor]->GetNextParam();
-        NumClones = Parser[ActiveActor]->MakeInteger_();
+        String  dummy = "";
+        int     I = 0, 
+                NumClones = 0;
+        String Ref_Ckt = "";
+
+        Ref_Ckt     = LastFileCompiled;
+        dummy       = Parser[ActiveActor]->GetNextParam();
+        NumClones   = Parser[ActiveActor]->MakeInteger_();
         Parallel_enabled = false;
+
         if (((NumOfActors + NumClones) <= CPU_Cores) && (NumClones > 0))
         {
             for (int stop = NumClones, I = 1; I <= stop; I++)
             {
                 New_Actor_Slot();
-                DSSExecutive[ActiveActor]->Set_Command( String("compile \"") + Ref_Ckt + "\"");
+                DSSExecutive[ActiveActor]->Set_Command( "compile \"" + Ref_Ckt + "\"");
                 // sets the previous maxiterations and controliterations
                 ActiveCircuit[ActiveActor]->Solution->MaxIterations = ActiveCircuit[1]->Solution->MaxIterations;
                 ActiveCircuit[ActiveActor]->Solution->MaxControlIterations = ActiveCircuit[1]->Solution->MaxControlIterations;
                 // Solves the circuit
                 CmdResult = ExecOptions::DoSetCmd(1);
             }
+
         }
         else
         {

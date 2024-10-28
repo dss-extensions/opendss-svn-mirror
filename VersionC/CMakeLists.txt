@@ -18,7 +18,7 @@ set_target_properties(klusolve_all PROPERTIES
 if(NOT DEFINED MyOutputType)
 	# Allow defining MyOutputType in scripts/CLI.
 	# TODO: move to a cached variable later (avoid that so we don't need to update build docs yet)
-	set(MyOutputType "DLL") # Output type, DLL or EXE
+	set(MyOutputType "EXE") # Output type, DLL or EXE
 endif()
 
 if(MyOutputType STREQUAL "EXE")
