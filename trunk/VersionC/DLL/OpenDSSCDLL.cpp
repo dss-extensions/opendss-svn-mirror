@@ -13851,6 +13851,8 @@ int __stdcall SolutionI(int mode, int arg)
 		if (ASSIGNED(ActiveCircuit[ActiveActor]))
 		{
 			ActiveCircuit[ActiveActor]->Solution->Solve(ActiveActor);
+            if (!Parallel_enabled)
+                Wait4Actors(ALL_ACTORS);
 		}
 		break;
 	case 1:													// Solution.Mode - Read
@@ -14163,6 +14165,8 @@ int __stdcall SolutionI(int mode, int arg)
 			ActiveActor = i;
 			CmdResult = DoSetCmd(1);
 		}
+        if (!Parallel_enabled)
+            Wait4Actors(ALL_ACTORS);
 		break;
 	case 47:												// Solution.CalcIncMatrix
 		ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix(ActiveActor);

@@ -679,7 +679,7 @@ namespace ExecOptions
 			switch(ParamPointer)
 			{
 				case 	0:
-				DoSimpleMsg(String("Unknown parameter \"") + ParamName + "\" for Set Command ", 130);
+				DoSimpleMsg("Unknown parameter \"" + ParamName + "\" for Set Command ", 130);
 				break;
 				case 	1:
 				 case 12:

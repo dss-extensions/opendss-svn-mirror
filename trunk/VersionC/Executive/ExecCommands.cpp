@@ -871,6 +871,11 @@ namespace ExecCommands
 						ActiveActor = i;
 						CmdResult = DoSetCmd(1);
 					}
+                    // If the parallel mode is not active, Waits until the actor finishes
+                    if (!Parallel_enabled)
+                    {
+                        Wait4Actors(ALL_ACTORS);
+                    }
 				}
 				break;
 				case 	109:
@@ -984,6 +989,13 @@ namespace ExecCommands
 					if(ADiakoptics)
 						ActiveActor = 1;   // Just in case
 					CmdResult = DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+
+					// If the parallel mode is not active, Waits until the actor finishes,
+					// waiting here avoids reuse from a global caller
+                    if (!Parallel_enabled)
+                    {
+                        Wait4Actors(ALL_ACTORS);
+                    }
 				}
 				break;
 				case 	10:
