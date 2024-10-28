@@ -59,7 +59,7 @@ TExecutive::TExecutive()
     /*Write some global Variables to Registry*/
 	WriteDSS_Registry();
 	ClearAllCircuits();
-	delete OptionList;
+	//delete OptionList;
 	DisposeDSSClasses(true);
 	delete Parser[ActiveActor];
 	Parser[ActiveActor] = nullptr;
