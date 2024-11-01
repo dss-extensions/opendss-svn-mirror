@@ -473,6 +473,7 @@ namespace DSSGlobals
         private:
             // Underlying queue
             std::queue<T> m_queue;
+            std::queue<T> empty;  // Empty version of the queue for clearing it
 
             // mutex for thread synchronization
             std::mutex m_mutex;
@@ -513,6 +514,12 @@ namespace DSSGlobals
 
                 // return item
                 return item;
+            }
+
+            // Flushes (clears) the queue
+            void flush()
+            {
+                std::swap(m_queue, empty);
             }
     };
 
