@@ -910,13 +910,14 @@ namespace DSSGlobals
         {
             while (I < NumOfActors)
             {
-                WaitQ.pop();
                 I = 0;
                 for (j = 1; j <= NumOfActors; j++)
                 {
                     if (ActorStatus[j] == 1)
                         I++;
                 }
+                if (I < NumOfActors)    // This to prevent waiting when the command is called in th wrong place
+                    WaitQ.pop();
             }
         }
         catch (EOutOfMemory&)
