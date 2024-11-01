@@ -1,0 +1,2 @@
+Add the web.config file to the html files generated, do not change the content unles instructed by SQA
+
