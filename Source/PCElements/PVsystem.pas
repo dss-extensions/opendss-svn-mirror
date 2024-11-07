@@ -2842,7 +2842,7 @@ begin
         ComputePanelPower();
         with ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars do
         begin
-            IMaxPPhase := (PanelkW / BasekV) / NumPhases;
+            IMaxPPhase := (FkVArating / BasekV) / NumPhases;
             for i := 0 to (NumPhases - 1) do                                              // multiphase approach
             begin
                 with DynaVars do
