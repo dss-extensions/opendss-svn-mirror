@@ -3330,6 +3330,8 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
 
   begin
     tempVbuffer := Nil;   // Initialize for Reallocmem
+    PVSys := nil;
+    Storage := nil;
 
       for j := 1 to FDERPointerList.ListSize do
         begin
