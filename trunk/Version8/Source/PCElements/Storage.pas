@@ -1034,8 +1034,8 @@ Begin
                                   Begin
                                       GFM_mode            :=  True;               // Enables GFM mode for this IBR
                                       myDynVars.ResetIBR  :=  False;
-                                    End
-                                    else
+                                  End
+                                  else
                                       GFM_mode  :=  False;
                                     YprimInvalid[ActorID] :=  True;
                                   End;
@@ -3580,7 +3580,7 @@ Begin
       With StorageVars Do
       Begin
         ComputePresentkW();
-        IMaxPhase :=  ( kW_out / BasekV ) / NumPhases;
+        IMaxPhase :=  ( FkVArating / BasekV ) / NumPhases;
         for i := 0 to (NumPhases - 1) do
         Begin
           IF FState = STORE_DISCHARGING Then
@@ -3621,7 +3621,7 @@ Begin
                 End;
               End;
               if ( abs(VDelta[i]) > CtrlTol ) and GFMUpdate then
-              BEgin
+              Begin
                 ISPDelta[i] :=  ISPDelta[i] + ( IMaxPhase * VDelta[i] ) * kP * 100;
                 if ISPDelta[i] > IMaxPhase then ISPDelta[i] :=  IMaxPhase
                 else  if ISPDelta[i] < 0   then ISPDelta[i] :=  0.01;
