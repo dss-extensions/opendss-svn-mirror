@@ -3993,7 +3993,7 @@ begin
             with StorageVars do
             begin
                 ComputePresentkW();
-                IMaxPhase := (kW_out / BasekV) / NumPhases;
+                IMaxPhase := (FkVArating / BasekV) / NumPhases;
                 for i := 0 to (NumPhases - 1) do
                 begin
                     if FState = STORE_DISCHARGING then

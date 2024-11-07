@@ -3628,6 +3628,8 @@ var
 
 begin
     tempVbuffer := nil;   // Initialize for Reallocmem
+    PVSys := nil;
+    Storage := nil;
 
     for j := 1 to FDERPointerList.ListSize do
     begin
