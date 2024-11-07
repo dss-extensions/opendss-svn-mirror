@@ -4116,7 +4116,8 @@ void TStorageObj::IntegrateStates(int ActorID)
 		auto&	wDynV	= myDynVars;
 
 		ComputePresentkW();
-		IMaxPhase = (kW_out / wDynV.BasekV) / wSV.NumPhases;
+		//IMaxPhase = (kW_out / wDynV.BasekV) / wSV.NumPhases;
+        IMaxPhase = (wSV.FkVArating / wDynV.BasekV) / wSV.NumPhases;
 		for (i = 0; i < wSV.NumPhases; i++)
 		{
 			if (fState == STORE_DISCHARGING)

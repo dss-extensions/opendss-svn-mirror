@@ -3000,7 +3000,7 @@ void TPVsystemObj::IntegrateStates(int ActorID)
 			 break;
 		}
 		ComputePanelPower();
-		wDynV.iMaxPPhase = (wSV.PanelkW / wDynV.BasekV) / wSV.NumPhases;
+		wDynV.iMaxPPhase = (wSV.FkVArating / wDynV.BasekV) / wSV.NumPhases;
 		for (i = 0; i < wSV.NumPhases; i++)
 		{
 			auto& DynaVars = wSol->DynaVars;
