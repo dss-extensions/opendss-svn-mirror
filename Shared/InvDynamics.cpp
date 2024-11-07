@@ -237,7 +237,8 @@ namespace InvDynamics
         R1 = X1 / 4; // Uses defaults
         R2 = R1;     // default Z2 = Z1
         X2 = X1;
-        Isc1 = (mKVARating * 1000.0 / (sqrt(3) * RatedkVLL)) / Nphases;
+        //Isc1 = (mKVARating * 1000.0 / (sqrt(3) * RatedkVLL)) / Nphases;
+        Isc1 = (mKVARating / (sqrt(3) * RatedkVLL)) / Nphases;
         //  Compute R0, X0
         a = 10;
         b = (4.0 * (R1 + X1 * 3));
