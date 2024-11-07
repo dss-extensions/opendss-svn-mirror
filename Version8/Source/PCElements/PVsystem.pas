@@ -2452,7 +2452,7 @@ PROCEDURE TPVsystemObj.IntegrateStates(ActorID : Integer);
       ComputePanelPower();
       With ActiveCircuit[ActorID].Solution, PVSystemVars, myDynVars Do
       Begin
-        IMaxPPhase :=  ( PanelkW / BasekV ) / NumPhases;
+        IMaxPPhase :=  ( FkVArating / BasekV ) / NumPhases;
         for i := 0 to (NumPhases - 1) do                                              // multiphase approach
         Begin
             With DynaVars Do
