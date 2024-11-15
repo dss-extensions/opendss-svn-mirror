@@ -72,6 +72,7 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      VSource,
      Executive,
      ExecOptions,
+     System.Generics.Collections,
 //     Parallel_Lib
 //   TCP Indy libraries
 {$IFNDEF FPC}
@@ -107,6 +108,9 @@ CONST
       ALL_YPRIM = 0;
       SERIES = 1;
       SHUNT  = 2;
+
+      ALL_ACTORS         = 0; // Wait flag for all the actors
+      AD_ACTORS          = 1; // Wait flag to wait only for the A-Diakoptics actors
 
       {Control Modes}
       CONTROLSOFF = -1;
@@ -302,6 +306,8 @@ VAR
    {$ENDIF}
    ActorPctProgress   : Array of integer;
    ActorHandle        : Array of TSolver;
+
+   WaitQ              : TThreadedQueue<Integer>;
 
 //***********************A-Diakoptics suite globals*****************************
 
@@ -1098,27 +1104,24 @@ End;
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType : Integer);
 var
+  NReady,                 // Stores the number of actors done
+  QRet,                   // To store the latest value popped out
   i       : Integer;
-  Flag    : Boolean;
 
 Begin
 // WType defines the starting point in which the actors will be evaluated,
-// modification introduced in 01-10-2019 to facilitate the coordination
-// between actors when a simulation is performed using A-Diakoptics
-  for i := (WType +1) to NumOfActors do
+  NReady := 0;
+  while NReady < NumOfActors do
   Begin
-    Try
-      while ActorStatus[i] = 0 do
-      Begin
-        Flag  :=  true;
-//        while Flag do
-//          Flag  := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
-      End;
-    Except
-      On EOutOfMemory Do
-          Dosimplemsg('Exception Waiting for the parallel thread to finish a job"', 7006);
+    NReady := 0;
+    for i := 1 to NumOfActors do
+    Begin
+      if ActorStatus[i] = 1 then
+        inc(NReady);
     End;
-  End;
+    if NReady < NumOfActors then
+      QRet := WaitQ.PopItem();          // If not ready waits for someone to send something
+  end;
 end;
 
 // Clones the active Circuit as many times as requested if possible
@@ -1386,7 +1389,7 @@ Begin
     RunFlag :=  True;
     while RunFlag do
     Begin
-      sleep(100);
+      sleep(1000);
       progStr   :=  '';
       RunFlag :=  False;
       if ADiakoptics and (ActiveActor = 1) then J := 1
@@ -1398,9 +1401,10 @@ Begin
         RunFlag :=  RunFlag or (ActorStatus[I] = 0);
       End;
       IdTCPClient.IOHandler.WriteLn('prg' + progStr);
-      AbortBtn  :=  IdTCPClient.IOHandler.ReadLn;
+      AbortBtn  :=  IdTCPClient.IOHandler.ReadLn('',500);
       if AbortBtn.Substring(0,1) = 'T' then
         SolutionAbort :=  True;
+
     End;
     IdTCPClient.IOHandler.WriteLn('ext');
   End;
@@ -1562,6 +1566,7 @@ initialization
    SetLength(DSSExecutive,CPU_Cores + 1);
    SetLength(IsourceClass,CPU_Cores + 1);
    SetLength(VSourceClass,CPU_Cores + 1);
+   WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
    for ActiveActor := 1 to CPU_Cores do
    begin

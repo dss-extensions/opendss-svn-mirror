@@ -27,7 +27,9 @@ Set VoltageBases = [138.0]
 Calcv
 redirect confirm_kv_bases.dss
 
-set algorithm=NCIM !IgnoreGenQLimits=Yes
+set algorithm=NCIM 
+
+!IgnoreGenQLimits=Yes
 
 !/*
 set maxcontroliter=100 maxiterations=100

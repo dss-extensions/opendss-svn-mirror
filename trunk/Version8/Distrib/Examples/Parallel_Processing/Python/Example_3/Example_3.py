@@ -49,6 +49,7 @@ for Ckt in Ckt_List:
             
 DSSText.Command='set parallel=Yes'
 DSSText.Command='SolveAll'
+DSSText.Command='Wait'
 BoolStatus = False
 time.sleep(1);
 while BoolStatus == False:
