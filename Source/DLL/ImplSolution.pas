@@ -253,6 +253,11 @@ end;
 procedure TSolution.Solve;
 begin
   IF ActiveCircuit[ActiveActor] <> Nil THEN ActiveCircuit[ActiveActor].Solution.Solve(ActiveActor);
+  // If the parallel mode is not active, Waits until the actor finishes
+  if not Parallel_enabled then
+  Begin
+    Wait4Actors(ALL_ACTORS);
+  End;
 end;
 
 function TSolution.Get_ModeID: WideString;
@@ -717,6 +722,11 @@ begin
     ActiveActor :=  i;
     CmdResult   :=  DoSetCmd(1);
   end;
+  // If the parallel mode is not active, Waits until the actor finishes
+  if not Parallel_enabled then
+  Begin
+    Wait4Actors(ALL_ACTORS);
+  End;
 end;
 
 function TSolution.Get_IncMatrix: OleVariant;

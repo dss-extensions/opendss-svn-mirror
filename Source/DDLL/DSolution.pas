@@ -19,6 +19,11 @@ begin
   case mode of
   0: begin //Solution.solve
     IF ActiveCircuit[ActiveActor] <> Nil THEN ActiveCircuit[ActiveActor].Solution.Solve(ActiveActor);
+    // If the parallel mode is not active, Waits until the actor finishes
+    if not Parallel_enabled then
+    Begin
+      Wait4Actors(ALL_ACTORS);
+    End;
     Result:=0;
   end;
   1: begin // solution.mode - read
@@ -244,7 +249,7 @@ begin
     If ActiveCircuit[ActiveActor] <> Nil Then
       WITH ActiveCircuit[ActiveActor], ActiveCircuit[ActiveActor].Solution Do
       Begin
-                  EndOfTimeStepCleanup(ActiveActor);
+        EndOfTimeStepCleanup(ActiveActor);
       End;
   end;
   46: begin  // Solution.SolveAll
@@ -253,6 +258,11 @@ begin
       ActiveActor :=  i;
       CmdResult   :=  DoSetCmd(1);
     end;
+    // If the parallel mode is not active, Waits until the actor finishes
+    if not Parallel_enabled then
+    Begin
+      Wait4Actors(ALL_ACTORS);
+    End;
   end;
   47: begin  // Solution.CalcIncMatrix
     With ActiveCircuit[ActiveActor].Solution do

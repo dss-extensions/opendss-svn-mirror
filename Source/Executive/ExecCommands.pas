@@ -678,6 +678,11 @@ Begin
                 ActiveActor :=  i;
                 CmdResult   :=  DoSetCmd(1);
               end;
+              // If the parallel mode is not active, Waits until the actor finishes
+              if not Parallel_enabled then
+              Begin
+                Wait4Actors(ALL_ACTORS);
+              End;
             end;
        109: begin
               ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix(ActiveActor);
@@ -748,6 +753,12 @@ Begin
         9: Begin
             if ADiakoptics then ActiveActor := 1;   // Just in case
             CmdResult  := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+
+            // If the parallel mode is not active, Waits until the actor finishes
+            if not Parallel_enabled then
+            Begin
+              Wait4Actors(ALL_ACTORS);
+            End;
            End;
        10: CmdResult := DoEnableCmd;
        11: CmdResult := DoDisableCmd;
