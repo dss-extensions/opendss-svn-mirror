@@ -29,6 +29,11 @@ begin
         begin //Solution.solve
             if ActiveCircuit[ActiveActor] <> nil then
                 ActiveCircuit[ActiveActor].Solution.Solve(ActiveActor);
+    // If the parallel mode is not active, Waits until the actor finishes
+            if not Parallel_enabled then
+            begin
+                Wait4Actors(ALL_ACTORS);
+            end;
             Result := 0;
         end;
         1:
@@ -370,6 +375,11 @@ begin
             begin
                 ActiveActor := i;
                 CmdResult := DoSetCmd(1);
+            end;
+    // If the parallel mode is not active, Waits until the actor finishes
+            if not Parallel_enabled then
+            begin
+                Wait4Actors(ALL_ACTORS);
             end;
         end;
         47:

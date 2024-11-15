@@ -86,6 +86,7 @@ uses
     VSource,
     Executive,
     ExecOptions,
+    System.Generics.Collections,
 //     Parallel_Lib
 //   TCP Indy libraries
     {$IFNDEF FPC}
@@ -120,6 +121,9 @@ const
     ALL_YPRIM = 0;
     SERIES = 1;
     SHUNT = 2;
+
+    ALL_ACTORS = 0; // Wait flag for all the actors
+    AD_ACTORS = 1; // Wait flag to wait only for the A-Diakoptics actors
 
       {Control Modes}
     CONTROLSOFF = -1;
@@ -325,6 +329,8 @@ Integer
     {$ENDIF}
     ActorPctProgress: array of Integer;
     ActorHandle: array of TSolver;
+
+    WaitQ: TThreadedQueue<Integer>;
 
 //***********************A-Diakoptics suite globals*****************************
 
@@ -1171,26 +1177,23 @@ end;
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType: Integer);
 var
+    NReady,                 // Stores the number of actors done
+    QRet,                   // To store the latest value popped out
     i: Integer;
-    Flag: Boolean;
 
 begin
 // WType defines the starting point in which the actors will be evaluated,
-// modification introduced in 01-10-2019 to facilitate the coordination
-// between actors when a simulation is performed using A-Diakoptics
-    for i := (WType + 1) to NumOfActors do
+    NReady := 0;
+    while NReady < NumOfActors do
     begin
-        try
-            while ActorStatus[i] = 0 do
-            begin
-                Flag := true;
-//        while Flag do
-//          Flag  := ActorMA_Msg[i].WaitFor(1) = TWaitResult.wrTimeout;
-            end;
-        except
-            On EOutOfMemory do
-                Dosimplemsg('Exception Waiting for the parallel thread to finish a job"', 7006);
+        NReady := 0;
+        for i := 1 to NumOfActors do
+        begin
+            if ActorStatus[i] = 1 then
+                inc(NReady);
         end;
+        if NReady < NumOfActors then
+            QRet := WaitQ.PopItem();          // If not ready waits for someone to send something
     end;
 end;
 
@@ -1470,7 +1473,7 @@ begin
         RunFlag := true;
         while RunFlag do
         begin
-            sleep(100);
+            sleep(1000);
             progStr := '';
             RunFlag := false;
             if ADiakoptics and (ActiveActor = 1) then
@@ -1484,9 +1487,10 @@ begin
                 RunFlag := RunFlag or (ActorStatus[I] = 0);
             end;
             IdTCPClient.IOHandler.WriteLn('prg' + progStr);
-            AbortBtn := IdTCPClient.IOHandler.ReadLn;
+            AbortBtn := IdTCPClient.IOHandler.ReadLn('', 500);
             if AbortBtn.Substring(0, 1) = 'T' then
                 SolutionAbort := true;
+
         end;
         IdTCPClient.IOHandler.WriteLn('ext');
     end;
@@ -1656,6 +1660,7 @@ try
     SetLength(DSSExecutive, CPU_Cores + 1);
     SetLength(IsourceClass, CPU_Cores + 1);
     SetLength(VSourceClass, CPU_Cores + 1);
+    WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
     for ActiveActor := 1 to CPU_Cores do
     begin

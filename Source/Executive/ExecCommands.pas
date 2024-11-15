@@ -732,6 +732,11 @@ begin
                     ActiveActor := i;
                     CmdResult := DoSetCmd(1);
                 end;
+              // If the parallel mode is not active, Waits until the actor finishes
+                if not Parallel_enabled then
+                begin
+                    Wait4Actors(ALL_ACTORS);
+                end;
             end;
             109:
             begin
@@ -818,6 +823,12 @@ begin
                 if ADiakoptics then
                     ActiveActor := 1;   // Just in case
                 CmdResult := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+
+            // If the parallel mode is not active, Waits until the actor finishes
+                if not Parallel_enabled then
+                begin
+                    Wait4Actors(ALL_ACTORS);
+                end;
             end;
             10:
                 CmdResult := DoEnableCmd;
