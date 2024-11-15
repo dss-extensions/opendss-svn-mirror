@@ -94,9 +94,6 @@ CONST
      CHECK_FAULT        = 11; // Checks the fault status at local level
      GETCTRLMODE        = 12; // Sync the local control mode with actor 1
 
-     ALL_ACTORS         = 0; // Wait flag for all the actors
-     AD_ACTORS          = 1; // Wait flag to wait only for the A-Diakoptics actors
-
      // Constants for the NCIM solution algorithm
      PQ_Node            = 0; // For indicating if the node is PQ (NCIM solver)
      PV_Node            = 1; // For indicating if the node is PV (NCIM solver)
@@ -793,13 +790,6 @@ Try
 
       // Sends message to start the Simulation
       ActorHandle[ActorID].Send_Message(SIMULATE);
-      // If the parallel mode is not active, Waits until the actor finishes
-      if not Parallel_enabled then
-      Begin
-        Wait4Actors(ALL_ACTORS);
-      End;
-
-
 
 Except
 
@@ -4565,6 +4555,7 @@ var
               Begin
                 FMessage                  :=  '1';
                 ActorStatus[ActorID]      :=  1;                  // Global to indicate that the actor is ready
+                WaitQ.PushItem(ActorID);
                 SolutionAbort := TRUE;
                 UIEvent.SetEvent;
                 if Parallel_enabled then
@@ -4619,7 +4610,7 @@ var
 
         End;
         ActorStatus[ActorID]      :=  1;                  // Global to indicate that the actor is ready
-
+        WaitQ.PushItem(ActorID);
       end;
     end;
   end;

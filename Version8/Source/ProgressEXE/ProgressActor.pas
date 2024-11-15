@@ -119,7 +119,7 @@ begin
 
   Server              :=  TMyServer.Create;
   Server.Tag          := 0;
-  Server.ListenQueue  := 15;
+  Server.ListenQueue  := 1500;
   Server.TerminateWaitTime := 5000;
 
   if  fileexists(newPath) then
@@ -137,7 +137,6 @@ begin
 
   Server.Active       :=  True;
   TimeOut             :=  0;
-
   with Image1 do
   begin
     Canvas.Pen.Color := clWhite;
@@ -252,47 +251,64 @@ var
   msgType       : Integer;
 begin
   Result  :=  inherited;
+
   if AContext.Connection.IOHandler.InputBufferIsEmpty then
   Begin
     IndySleep(10);
     Exit;
   End;
+
   Form1.ResetTimeOut;
-  msgFromClient := AContext.Connection.IOHandler.ReadLn(#10, 200);
+  msgFromClient := AContext.Connection.IOHandler.ReadLn(#10, 500);
 
-  msgType :=  -1;
-  if msgFromClient.Substring(0,3) = 'num' then
-    msgType :=  NUMDIVISIONS;
-  if msgFromClient.Substring(0,3) = 'prg' then
-    msgType :=  UPDTPROGRESS;
-  if msgFromClient.Substring(0,3) = 'ext' then
-    msgType :=  QUITPRG;
-
-  msgToClient  :=  '';
-  // evaluates the message type
-  case msgType of
-    NUMDIVISIONS  : Form1.SetupWnd       :=  msgFromClient.Substring(3);
-    UPDTPROGRESS  : Form1.WriteProgress  :=  msgFromClient.Substring(3);
-    QUITPRG       : Begin
-                      msgToClient := 'Q'
-    End
-    else
-    Begin
-      msgToClient  :=  'E'
-    End;
-  end;
-  if msgToClient <> 'Q' then
+  if length(msgFromClient) > 0 then
   Begin
-    if msgToClient <> 'E' then
+
+    msgType :=  -1;
+    if msgFromClient.Substring(0,3) = 'num' then
+      msgType :=  NUMDIVISIONS;
+    if msgFromClient.Substring(0,3) = 'prg' then
+      msgType :=  UPDTPROGRESS;
+    if msgFromClient.Substring(0,3) = 'ext' then
+      msgType :=  QUITPRG;
+
+    if msgType > 0 then
     Begin
-      if Form1.AbortON then msgToClient  :=  'T'
-      else msgToClient  :=  'F';
+      msgToClient  :=  '';
+      // evaluates the message type
+      case msgType of
+        NUMDIVISIONS  : Form1.SetupWnd       :=  msgFromClient.Substring(3);
+        UPDTPROGRESS  : Form1.WriteProgress  :=  msgFromClient.Substring(3);
+        QUITPRG       : Begin
+                          msgToClient := 'Q'
+        End
+        else
+        Begin
+          msgToClient  :=  'E'
+        End;
+      end;
+      if msgToClient <> 'Q' then
+      Begin
+        if msgToClient <> 'E' then
+        Begin
+          if Form1.AbortON then msgToClient  :=  'T'
+          else msgToClient  :=  'F';
+        End;
+        AContext.Connection.IOHandler.WriteLn(msgToClient);
+      End
+      else
+      Begin
+        TimeOut :=  60;  // Closes the app
+      End;
+    End
+    Else
+    Begin
+     TimeOut :=  60;  // Closes the app
     End;
-    AContext.Connection.IOHandler.WriteLn(msgToClient);
   End
   else
   Begin
-    TimeOut :=  60;  // Closes the app
+     TimeOut :=  60;  // Closes the app
   End;
 
 end;

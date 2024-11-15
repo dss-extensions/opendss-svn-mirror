@@ -3,14 +3,22 @@ The Open Distribution System Simulator, OpenDSS
 Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 10.0.0.2 - Columbus
+Version 10.1.0.1 - Columbus
 
 This version is an homage to celebrate the work of the father of OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work for the electric power industry. This software is a small part of his legacy, as well as his countless publications and other contributions to the industry.
 
 Changes this version
 ====================
+- Provides better sync between actors and manin thread through queues preventing polling.
+- Includes the property SemiConLayer the declare the existence of a semicon layer for CNData/LineGeometry objects.
+- Improves the sync with the progress bar app.
+- Removes over estimation (Size) for IBR working in GFM mode for better exposing the short circuit features of the model.
+
+v 10.0.0.2
 - Solves a bug found when reporting powers for generators while using NCIM solution mode.
 - Adds interfaces in COM / DLL for directly handling Storage and WindGen objects.
+
+v 10.0.0.1
 - Adds the WindGen object for modeling wind generators in QSTS and dynamics domains.
 - Introduces the NCIM solution method for handling transmission circuits that can be difficult to solve with the other methods already available in OpenDSS.
 - Implements corrections in COM / DLL for recently noticed bugs found around.
