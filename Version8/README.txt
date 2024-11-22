@@ -9,7 +9,7 @@ This version is an homage to celebrate the work of the father of OpenDSS - Roger
 
 Changes this version
 ====================
-- Provides better sync between actors and manin thread through queues preventing polling.
+- Provides better sync between actors and main thread through queues preventing polling.
 - Includes the property SemiConLayer the declare the existence of a semicon layer for CNData/LineGeometry objects.
 - Improves the sync with the progress bar app.
 - Removes over estimation (Size) for IBR working in GFM mode for better exposing the short circuit features of the model.
