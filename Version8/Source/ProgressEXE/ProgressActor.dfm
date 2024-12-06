@@ -12,7 +12,6 @@ object Form1: TForm1
   Font.Style = []
   Position = poScreenCenter
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   TextHeight = 13
   object Image1: TImage
     Left = 8

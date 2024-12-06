@@ -81,7 +81,7 @@ uses
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
   FrmDoDSSCommand in '..\Forms\FrmDoDSSCommand.pas' {DoDSSCommandForm},
   fuse in '..\PDElements\fuse.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas',
+  pyControl in '..\Controls\pyControl.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
   HelpForm in '..\Forms\HelpForm.pas' {HelpForm1},
@@ -211,7 +211,9 @@ uses
   Vcl.Styles,
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
-  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas',
+  UPFCControl in '..\Controls\UPFCControl.pas',
+  PipeServerInstance in '..\Common\PipeServerInstance.pas';
 
 {$R *.RES}
 

@@ -86,7 +86,7 @@ uses
   Fault in '..\PDElements\Fault.pas',
   Feeder in '..\Common\Feeder.pas',
   fuse in '..\PDElements\fuse.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas',
+  pyControl in '..\Controls\pyControl.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
   IniRegSave in '..\Shared\IniRegSave.pas',
@@ -207,7 +207,8 @@ uses
   GenController in '..\Controls\GenController.pas',
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
-  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas',
+  UPFCControl in '..\Controls\UPFCControl.pas';
 
 {$R *.RES}
 
