@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 141;
+    NumExecOptions = 142;
 
 var
     ExecOption,
@@ -196,6 +196,7 @@ begin
     ExecOption[139] := 'IgnoreGenQLimits';
     ExecOption[140] := 'NCIMQGain';
     ExecOption[141] := 'StateVar';
+    ExecOption[142] := 'pyPath';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -508,6 +509,8 @@ begin
         'get StateVar myObjName myVarName' + CRLF +
         CRLF +
         'The reading structure will return the value in the results tab.';
+    OptionHelp[142] := 'Set/gets the path to the Python binary installed in the local hard drive. This is used by pyObject and pyControllers within the simulation.';
+
 
 end;
 //----------------------------------------------------------------------------
@@ -610,6 +613,13 @@ begin
             begin
                 EventLogDefault := InterpretYesNo(Param);
             end;
+            142:
+            begin
+                if SysUtils.FileExists(Param + '\python.exe') then
+                    pyPath := Param
+                else
+                    DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
+            end
         else
         begin
             DoSimpleMsg('You must create a new circuit object first: "new circuit.mycktname" to execute this Set command.', 301);
@@ -1130,6 +1140,13 @@ begin
                             DoSimpleMsg('Object ' + TmpStr + ' is not a valid element for this command. Only generators, storage and WindGen.', 7101);
                     end;
                 end;
+            end;
+            142:
+            begin
+                if SysUtils.FileExists(Param + '\python.exe') then
+                    pyPath := Param
+                else
+                    DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
             end
         else
            // Ignore excess parameters
@@ -1677,6 +1694,10 @@ begin
                                 DoSimpleMsg('Object ' + TmpStr + ' is not a valid element for this command. Only generators, storage and WindGen.', 7101);
                         end;
                     end;
+                end;
+                142:
+                begin
+                    AppendGlobalResult(pyPath);
                 end
             else
            // Ignore excess parameters
@@ -1767,6 +1788,10 @@ begin
                         AppendGlobalResult('Yes')
                     else
                         AppendGlobalResult('No');
+                142:
+                begin
+                    AppendGlobalResult(pyPath);
+                end
             else
             begin
                 DoSimpleMsg('You must create a new circuit object first: "new circuit.mycktname" to execute this Set command.', 301);

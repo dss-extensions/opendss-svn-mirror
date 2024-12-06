@@ -74,6 +74,8 @@ const
     //  STORAGE2_CONTROL  = 42 * 8;
     WINDGEN_ELEMENT = 43 * 8;
     GEN_CONTROLLER = 44 * 8;
+    PY_CONTROLLER = 45 * 8;
+    PY_OBJECT = 46 * 8;
 
 var
     NumIntrinsicClasses,
@@ -147,6 +149,7 @@ uses
     GICsource,
     AutoTrans,
     DynamicExp,
+    pyControl,
      //by Dahei
     Generic5OrderMach,
      // By Dahei
@@ -272,6 +275,10 @@ begin
    //-------------------------------------------------------------------------------
     TDynamicExpClass[ActiveActor] := TDynamicExp.Create;    //  dynamic expression obj - 04-19-2022
     DSSClasses.New := TDynamicExpClass[ActiveActor];
+
+   //-------------------------------------------------------------------------------
+    pyControlClass[ActiveActor] := TpyControl.Create;     // pyControls class - 11/26/2024
+    DSSClasses.New := pyControlClass[ActiveActor];
 
  { Create Classes for custom implementations }
     CreateMyDSSClasses;
@@ -427,7 +434,10 @@ begin
             Exit;
         end;{Error}
     else
+    begin
         LastClassReferenced[ActiveActor] := Classref;
+        ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+    end;
     end;
 
     Result := true;

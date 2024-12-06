@@ -60,7 +60,7 @@ uses
   Relay in '..\Controls\Relay.pas',
   StorageController in '..\Controls\StorageController.pas',
   SwtControl in '..\Controls\SwtControl.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas',
+  pyControl in '..\Controls\pyControl.pas',
   MyDSSClassDefs in '..\EXE\MyDSSClassDefs.Pas',
   ExecCommands in '..\Executive\ExecCommands.pas',
   ExecHelper in '..\Executive\ExecHelper.pas',
@@ -236,7 +236,9 @@ uses
   DStorages in 'DStorages.pas',
   DWindGens in 'DWindGens.pas',
   DReactors in 'DReactors.pas',
-  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas',
+  PipeServerInstance in '..\Common\PipeServerInstance.pas',
+  UPFCControl in '..\Controls\UPFCControl.pas';
 
 //**************************end of the functions*************************************
 exports

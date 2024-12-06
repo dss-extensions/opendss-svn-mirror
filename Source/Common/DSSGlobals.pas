@@ -100,6 +100,7 @@ uses
     Command,
     ISource,
     Reactor,
+    pyControl,
     WindGen;
 
 const
@@ -171,13 +172,17 @@ type
         procedure Execute; OVERRIDE;
         procedure Doterminate; OVERRIDE;
         destructor Destroy; OVERRIDE;
+        procedure SendMessage(Msg: String);
+        function ReadMessage(): String;
 
 //*******************************Private components*****************************
     PROTECTED
+        Reply,
         FMessage,
         Msg_Cmd: String;
 //*******************************Public components******************************
     PUBLIC
+        pHandle: THandle;
 
     end;
 
@@ -247,6 +252,7 @@ var
     GlobalResult: String;
     LastResultFile: String;
     VersionString: String;
+    pyPath: String;
 
     LogQueries: Boolean;
     QueryFirstTime: Boolean;
@@ -304,6 +310,7 @@ Integer
     InvControlClass: array of TInvControl;
     ExpControlClass: array of TExpControl;
     ActiveVSource: array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
+    pyControlClass: array of TpyControl;
 
     EventStrings: array of TStringList;
     SavedFileList: array of TStringList;
@@ -1177,22 +1184,34 @@ end;
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType: Integer);
 var
+    Start,
+    Limit,
     NReady,                 // Stores the number of actors done
     QRet,                   // To store the latest value popped out
     i: Integer;
 
 begin
 // WType defines the starting point in which the actors will be evaluated,
-    NReady := 0;
-    while NReady < NumOfActors do
+    if WType = 10 then
     begin
         NReady := 0;
-        for i := 1 to NumOfActors do
+        Limit := 1;
+        Start := 1;
+    end
+    else
+    begin
+        NReady := WType;
+        Limit := NumOfActors;
+        Start := WType + 1;
+    end;
+    while NReady < Limit do
+    begin
+        for i := Start to Limit do
         begin
             if ActorStatus[i] = 1 then
                 inc(NReady);
         end;
-        if NReady < NumOfActors then
+        if NReady < Limit then
             QRet := WaitQ.PopItem();          // If not ready waits for someone to send something
     end;
 end;
@@ -1423,28 +1442,108 @@ begin
     CPU_Cores := TNumCPULib.GetLogicalCPUCount();
 end;
 
+// Sends a message to the progress app using the pipe
+//-----------------------------------------------------------------------------
+procedure TProgressActor.SendMessage(Msg: String);
+var
+    SendMessage: Boolean;
+    Bytes: Cardinal;
+    pMsg: Pchar;
+    buf: array [0 .. 8040] of Char;
+begin
+  // Prepare outgoing message
+    pMsg := Pchar(Msg);
+    fillchar(buf, 8041, #0);
+    move(pMsg[0], buf[0], Length(pMsg) * Sizeof(Char));
+  // Send message
+    SendMessage := WriteFile(
+        pHandle,   // pipe handle
+        buf,       // message
+        length(Msg) * Sizeof(Char),  // message length
+        Bytes,     // bytes written
+        nil
+        );
+end;
+
+// Gets a message from the progress app using the pipe
+//-----------------------------------------------------------------------------
+function TProgressActor.ReadMessage(): String;
+var
+    MessageReceived: Boolean;
+    MyMsg: array[0..8040] of Char;
+    MsgSz: DWord;
+    MsgStr: String;
+    i: Integer;
+    idx: Integer;
+
+begin
+    MsgStr := '';
+    REsult := '';
+    FillChar(MyMsg, 8039, #0);
+    MessageReceived := ReadFile(
+        pHandle,   // pipe handle
+        MyMsg,       // buffer to receive reply
+        8040, // size of buffer
+        MsgSz,  // number of bytes read
+        nil);      // not overlapped
+    if MessageReceived then
+    begin
+        SetString(MsgStr, Pchar(@MyMsg[1]), MsgSz);
+
+    // Remove the null chars (if any)
+        idx := 1;
+        while idx <= Length(MsgStr) do
+            if MsgStr[idx] = #0 then
+                Delete(MsgStr, idx, 1)
+            else
+                Inc(idx);
+
+    end;
+
+    Result := MsgStr;
+end;
+
 constructor TProgressActor.Create();
 var
     J: Integer;
+    LPipeName: String;
+
 begin
     {$IFNDEF FPC}
+
+  // ... create Pipe (replaces old TCP/IP server)
+    LPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
+    // Check whether pipe does exist
+    if WaitNamedPipe(Pchar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+        raise Exception.Create('Pipe exists.');
+  // Create the pipe
+    pHandle := CreateNamedPipe(
+        Pchar(LPipeName),                                   // Pipe name
+        PIPE_ACCESS_DUPLEX,                                 // Read/write access
+        PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+        PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+        10000,                                              // Output buffer size
+        10000,                                              // Input buffer size
+        0,                                                  // Client time-out 50 [ms] default
+        nil                                                 // Default security attributes
+        );
+
     ShellExecute(Handle, 'open', Pwidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL);
-    sleep(200);
-  // ... create TIdTCPClient
-    idTCPClient := TIdTCPClient.Create();
-  // ... set properties
-    idTCPClient.Host := 'localhost';
-    idTCPClient.Port := DSSPrgPort;
-    idThreadComponent := TIdThreadComponent.Create();
+    sleep(100);
 
     if ADiakoptics and (ActiveActor = 1) then
         J := 1
     else
         J := NumOfActors;
     try
-        IdTCPClient.Connect;
-        IdTCPClient.IOHandler.WriteLn('num' + inttostr(J));
+
+        if not ConnectNamedPipe(pHandle, nil) and (GetLastError() = ERROR_PIPE_CONNECTED) then
+        begin
+            SendMessage('num' + inttostr(J));
+            Reply := ReadMessage();
+        end;
         IsProgressON := true;
+
     except
         on E: Exception do
         begin
@@ -1462,18 +1561,23 @@ begin
 end;
 {$ELSE}
 var
-    I, J: Integer;
+    I,
+    J: Integer;
     AbortBtn,
+    LPipeName,
     progStr: String;
     RunFlag: Boolean;
+
 begin
 
     if IsProgressON then
     begin
+
+
         RunFlag := true;
         while RunFlag do
         begin
-            sleep(1000);
+            sleep(200);
             progStr := '';
             RunFlag := false;
             if ADiakoptics and (ActiveActor = 1) then
@@ -1484,16 +1588,19 @@ begin
             for I := 1 to J do
             begin
                 progStr := progStr + Format('%.*d', [3, ActorPctProgress[I]]);
-                RunFlag := RunFlag or (ActorStatus[I] = 0);
+                RunFlag := (RunFlag or (ActorStatus[I] = 0)) and (not SolutionAbort);
             end;
-            IdTCPClient.IOHandler.WriteLn('prg' + progStr);
-            AbortBtn := IdTCPClient.IOHandler.ReadLn('', 500);
-            if AbortBtn.Substring(0, 1) = 'T' then
-                SolutionAbort := true;
 
+            SendMessage('prg' + progStr);
+            AbortBtn := ReadMessage();
+            if AbortBtn.Substring(0, 1) = 'T' then
+            begin
+                SolutionAbort := true;
+            end;
         end;
-        IdTCPClient.IOHandler.WriteLn('ext');
+        SendMessage('ext');
     end;
+    CloseHandle(pHandle);
 end;
 {$ENDIF}
 
@@ -1660,6 +1767,7 @@ try
     SetLength(DSSExecutive, CPU_Cores + 1);
     SetLength(IsourceClass, CPU_Cores + 1);
     SetLength(VSourceClass, CPU_Cores + 1);
+    SetLength(pyControlClass, CPU_Cores + 1);
     WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
     for ActiveActor := 1 to CPU_Cores do
@@ -1691,6 +1799,7 @@ try
         ActiveVSource[Activeactor] := nil;
         DSSObjs[ActiveActor] := nil;
         DSSClassList[ActiveActor] := nil;
+        pyControlClass[ActiveActor] := nil;
     end;
 
     GISThickness := '3';
@@ -1698,7 +1807,7 @@ try
     GISCoords := AllocMem(Sizeof(Double) * 4);
     UseUserLinks := false;
     IsProgressOn := false;
-
+    pyPath := '';
     Progress_Actor := nil;
     DSSClasses := nil;
     ProgressCmd := false;
