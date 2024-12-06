@@ -86,6 +86,7 @@ Uses Classes, DSSClassDefs, DSSObject, DSSClass, ParserDel, Hashlist, PointerLis
      Command,
      ISource,
      Reactor,
+     pyControl,
      WindGen;
 
 
@@ -158,13 +159,17 @@ TYPE
       procedure Execute; override;
       procedure Doterminate; override;
       destructor Destroy; override;
+      procedure SendMessage(Msg : String);
+      Function ReadMessage():String;
 
 //*******************************Private components*****************************
     protected
+      Reply,
       FMessage,
       Msg_Cmd       : string;
 //*******************************Public components******************************
     Public
+      pHandle     : THandle;
 
    end;
 
@@ -214,31 +219,32 @@ VAR
    LastFileCompiled   :String;
    LastCommandWasCompile :Boolean;
 
-   CALPHA             :Complex;  {120-degree shift constant}
-   SQRT2              :Double;
-   SQRT3              :Double;
-   InvSQRT3           :Double;
-   InvSQRT3x1000      :Double;
-   SolutionAbort      :Boolean;
-   InShowResults      :Boolean;
-   Redirect_Abort     :Boolean;
-   In_Redirect        :Boolean;
-   DIFilesAreOpen     :array of Boolean;
-   AutoShowExport     :Boolean;
+   CALPHA             : Complex;  {120-degree shift constant}
+   SQRT2              : Double;
+   SQRT3              : Double;
+   InvSQRT3           : Double;
+   InvSQRT3x1000      : Double;
+   SolutionAbort      : Boolean;
+   InShowResults      : Boolean;
+   Redirect_Abort     : Boolean;
+   In_Redirect        : Boolean;
+   DIFilesAreOpen     : array of Boolean;
+   AutoShowExport     : Boolean;
    AutoDisplayShowReport     :Boolean;
-   EventLogDefault    :Boolean;
+   EventLogDefault    : Boolean;
    SolutionWasAttempted : Array of Boolean;
 
-   GlobalHelpString   :String;
-   GlobalPropertyValue:String;
-   GlobalResult       :String;
-   LastResultFile     :String;
-   VersionString      :String;
+   GlobalHelpString   : String;
+   GlobalPropertyValue: String;
+   GlobalResult       : String;
+   LastResultFile     : String;
+   VersionString      : String;
+   pyPath             : String;
 
-   LogQueries         :Boolean;
-   QueryFirstTime     :Boolean;
-   QueryLogFileName   :String;
-   QueryLogFile       :TextFile;
+   LogQueries         : Boolean;
+   QueryFirstTime     : Boolean;
+   QueryLogFileName   : String;
+   QueryLogFile       : TextFile;
 
    DefaultEditor    :String;     // normally, Notepad
    DefaultFontSize  :Integer;
@@ -281,6 +287,7 @@ VAR
    InvControlClass    :Array of TInvControl;
    ExpControlClass    :Array of TExpControl;
    ActiveVSource      :Array of TVsource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
+   pyControlClass     :Array of TpyControl;
 
    EventStrings       :Array of TStringList;
    SavedFileList      :Array of TStringList;
@@ -1104,22 +1111,34 @@ End;
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType : Integer);
 var
+  Start,
+  Limit,
   NReady,                 // Stores the number of actors done
   QRet,                   // To store the latest value popped out
   i       : Integer;
 
 Begin
 // WType defines the starting point in which the actors will be evaluated,
-  NReady := 0;
-  while NReady < NumOfActors do
+  if WType = 10 then
   Begin
-    NReady := 0;
-    for i := 1 to NumOfActors do
+    NReady  := 0;
+    Limit   :=  1;
+    Start   := 1;
+  End
+  else
+  Begin
+    NReady  := WType;
+    Limit   := NumOfActors;
+    Start   := WType + 1;
+  End;
+  while NReady < Limit do
+  Begin
+    for i := Start to Limit do
     Begin
       if ActorStatus[i] = 1 then
         inc(NReady);
     End;
-    if NReady < NumOfActors then
+    if NReady < Limit then
       QRet := WaitQ.PopItem();          // If not ready waits for someone to send something
   end;
 end;
@@ -1342,26 +1361,106 @@ Begin
   CPU_Cores        :=  TNumCPULib.GetLogicalCPUCount();
 End;
 
+// Sends a message to the progress app using the pipe
+//-----------------------------------------------------------------------------
+procedure TProgressActor.SendMessage(Msg : String);
+var
+  SendMessage: Boolean;
+  Bytes: Cardinal;
+  pMsg: pchar;
+  buf: array [0 .. 8040] of char;
+begin
+  // Prepare outgoing message
+  pMsg := pchar(Msg);
+  fillchar(buf, 8041, #0);
+  move(pMsg[0], buf[0], Length(pMsg) * Sizeof(char));
+  // Send message
+  SendMessage := WriteFile(
+    pHandle,   // pipe handle
+    buf,       // message
+    length(Msg) * Sizeof(char),  // message length
+    Bytes,     // bytes written
+    nil
+  );
+end;
+
+// Gets a message from the progress app using the pipe
+//-----------------------------------------------------------------------------
+Function TProgressActor.ReadMessage():String;
+var
+  MessageReceived : Boolean;
+  MyMsg           : array[0..8040] of char;
+  MsgSz           : DWord;
+  MsgStr          : String;
+  i               : Integer;
+  idx             : integer;
+
+begin
+  MsgStr := '';
+  REsult := '';
+  FillChar(MyMsg, 8039, #0);
+  MessageReceived := ReadFile(
+    pHandle,   // pipe handle
+    MyMsg,       // buffer to receive reply
+    8040, // size of buffer
+    MsgSz,  // number of bytes read
+    nil);      // not overlapped
+  if MessageReceived then
+  begin
+    SetString(MsgStr, PChar(@MyMsg[1]), MsgSz);
+
+    // Remove the null chars (if any)
+    idx := 1;
+    while idx <= Length(MsgStr) do
+      if MsgStr[idx] = #0 then
+        Delete(MsgStr, idx, 1)
+      else
+        Inc(idx);
+
+  end;
+
+  Result := MsgStr;
+end;
+
 constructor TProgressActor.Create();
 var
   J           : integer;
+  LPipeName   : String;
+
 begin
 {$IFNDEF FPC}
+
+  // ... create Pipe (replaces old TCP/IP server)
+  LPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
+    // Check whether pipe does exist
+  if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+    raise Exception.Create('Pipe exists.');
+  // Create the pipe
+  pHandle := CreateNamedPipe(
+    PChar(LPipeName),                                   // Pipe name
+    PIPE_ACCESS_DUPLEX,                                 // Read/write access
+    PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+    PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+    10000,                                              // Output buffer size
+    10000,                                              // Input buffer size
+    0,                                                  // Client time-out 50 [ms] default
+    nil                                                 // Default security attributes
+  );
+
   ShellExecute(Handle, 'open',pWidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL) ;
-  sleep(200);
-  // ... create TIdTCPClient
-  idTCPClient                 := TIdTCPClient.Create();
-  // ... set properties
-  idTCPClient.Host            := 'localhost';
-  idTCPClient.Port            := DSSPrgPort;
-  idThreadComponent           := TIdThreadComponent.Create();
+  sleep(100);
 
   if ADiakoptics and (ActiveActor = 1) then J := 1
   else J := NumOfActors;
   try
-    IdTCPClient.Connect;
-    IdTCPClient.IOHandler.WriteLn('num' + inttostr(J));
+
+    if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
+    begin
+      SendMessage('num' + inttostr(J));
+      Reply := ReadMessage();
+    end;
     IsProgressON      :=  True;
+
   except
     on E: Exception do begin
       IsProgressON      :=  False;
@@ -1378,18 +1477,23 @@ begin
 end;
 {$ELSE}
 var
-  I, J    : Integer;
+  I,
+  J           : Integer;
   AbortBtn,
-  progStr : String;
-  RunFlag : Boolean;
+  LPipeName,
+  progStr     : String;
+  RunFlag     : Boolean;
+
 Begin
 
   if IsProgressON then
   Begin
+
+
     RunFlag :=  True;
     while RunFlag do
     Begin
-      sleep(1000);
+      sleep(200);
       progStr   :=  '';
       RunFlag :=  False;
       if ADiakoptics and (ActiveActor = 1) then J := 1
@@ -1398,16 +1502,19 @@ Begin
       for I := 1 to J do
       Begin
         progStr :=  progStr  +  Format('%.*d',[3,ActorPctProgress[I]]);
-        RunFlag :=  RunFlag or (ActorStatus[I] = 0);
+        RunFlag :=  (RunFlag or (ActorStatus[I] = 0)) and (not SolutionAbort);
       End;
-      IdTCPClient.IOHandler.WriteLn('prg' + progStr);
-      AbortBtn  :=  IdTCPClient.IOHandler.ReadLn('',500);
-      if AbortBtn.Substring(0,1) = 'T' then
-        SolutionAbort :=  True;
 
+      SendMessage('prg' + progStr);
+      AbortBtn  :=  ReadMessage();
+      if AbortBtn.Substring(0,1) = 'T' then
+      Begin
+        SolutionAbort :=  True;
+      End;
     End;
-    IdTCPClient.IOHandler.WriteLn('ext');
+    SendMessage('ext');
   End;
+  CloseHandle(pHandle);
 End;
 {$ENDIF}
 
@@ -1566,6 +1673,7 @@ initialization
    SetLength(DSSExecutive,CPU_Cores + 1);
    SetLength(IsourceClass,CPU_Cores + 1);
    SetLength(VSourceClass,CPU_Cores + 1);
+   SetLength(pyControlClass, CPU_Cores + 1);
    WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
    for ActiveActor := 1 to CPU_Cores do
@@ -1597,6 +1705,7 @@ initialization
     ActiveVSource[Activeactor]        :=  nil;
     DSSObjs[ActiveActor]              :=  nil;
     DSSClassList[ActiveActor]         :=  nil;
+    pyControlClass[ActiveActor]       :=  nil;
    end;
 
    GISThickness           :=  '3';
@@ -1604,7 +1713,7 @@ initialization
    GISCoords              :=  AllocMem(Sizeof(Double) * 4);
    UseUserLinks           :=  False;
    IsProgressOn           :=  False;
-
+   pyPath                 :=  '';
    Progress_Actor         :=  nil;
    DSSClasses             :=  nil;
    ProgressCmd            :=  False;

@@ -66,15 +66,17 @@ CONST
       VCCS_ELEMENT     = 33 * 8;
       ESPVL_CONTROL     = 34 * 8;
       INDMACH012_ELEMENT = 35 * 8;
-      GIC_SOURCE         = 36 * 8;
-      AUTOTRANS_ELEMENT  = 37 * 8;
-      FMON_ELEMENT = 38*8;                        {BY Dahei UCF}
+      GIC_SOURCE        = 36 * 8;
+      AUTOTRANS_ELEMENT = 37 * 8;
+      FMON_ELEMENT      = 38*8;                        {BY Dahei UCF}
       Generic5OrderMach_ELEMENT = 39 * 8;         {BY Dahei UCF}
       INV_CONTROL2      = 40 * 8;
     //  STORAGE2_ELEMENT  = 41 * 8;
     //  STORAGE2_CONTROL  = 42 * 8;
       WINDGEN_ELEMENT   = 43 * 8;
       GEN_CONTROLLER    = 44 * 8;
+      PY_CONTROLLER     = 45 * 8;
+      PY_OBJECT         = 46 * 8;
 
 VAR
    NumIntrinsicClasses,
@@ -149,6 +151,7 @@ USES
      GICsource,
      AutoTrans,
      DynamicExp,
+     pyControl,
      //by Dahei
      Generic5OrderMach,
      // By Dahei
@@ -275,6 +278,10 @@ Begin
    //-------------------------------------------------------------------------------
      TDynamicExpClass[ActiveActor]:= TDynamicExp.Create;    //  dynamic expression obj - 04-19-2022
      DSSClasses.New               := TDynamicExpClass[ActiveActor];
+
+   //-------------------------------------------------------------------------------
+     pyControlClass[ActiveActor]  :=  TpyControl.Create;     // pyControls class - 11/26/2024
+     DSSClasses.New               :=  pyControlClass[ActiveActor];
 
  { Create Classes for custom implementations }
      CreateMyDSSClasses;
@@ -414,19 +421,22 @@ VAR Classref :Integer;
 
 Begin
 
-   Classref := ClassNames[ActiveActor].Find(ObjType);
+  Classref := ClassNames[ActiveActor].Find(ObjType);
 
-   Case Classref of
-     0: Begin
-            DoSimpleMsg('Error! Object Class "' + ObjType + '" not found.'+ CRLF + parser[ActiveActor].CmdString, 903);
-            Result := FALSE;
-            Exit;
-        End;{Error}
-   ELSE
+  Case Classref of
+   0: Begin
+        DoSimpleMsg('Error! Object Class "' + ObjType + '" not found.'+ CRLF + parser[ActiveActor].CmdString, 903);
+        Result := FALSE;
+        Exit;
+      End;{Error}
+      ELSE
+      Begin
         LastClassReferenced[ActiveActor] := Classref;
-   End;
+        ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+      End;
+  End;
 
-   Result := TRUE;
+  Result := TRUE;
 
 End;
 
