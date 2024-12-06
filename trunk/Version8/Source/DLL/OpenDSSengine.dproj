@@ -1112,7 +1112,7 @@
             <Form>DoDSSCommandForm</Form>
         </DCCReference>
         <DCCReference Include="..\PDElements\fuse.pas"/>
-        <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\PCElements\generator.pas"/>
         <DCCReference Include="..\PCElements\GenUserModel.pas"/>
         <DCCReference Include="..\General\GrowthShape.pas"/>
@@ -1398,6 +1398,8 @@
         </DCCReference>
         <DCCReference Include="ImplReactors.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
+        <DCCReference Include="..\Common\PipeServerInstance.pas"/>
+        <DCCReference Include="..\Controls\UPFCControl.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

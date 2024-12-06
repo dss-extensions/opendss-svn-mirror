@@ -4,7 +4,7 @@
         <ProjectVersion>20.2</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Console</AppType>
@@ -191,7 +191,7 @@
         <DCCReference Include="..\PDElements\Fault.pas"/>
         <DCCReference Include="..\Common\Feeder.pas"/>
         <DCCReference Include="..\PDElements\fuse.pas"/>
-        <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\General\GrowthShape.pas"/>
         <DCCReference Include="..\Shared\HashList.pas"/>
         <DCCReference Include="..\Shared\IniRegSave.pas"/>
@@ -313,6 +313,7 @@
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
+        <DCCReference Include="..\Controls\UPFCControl.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

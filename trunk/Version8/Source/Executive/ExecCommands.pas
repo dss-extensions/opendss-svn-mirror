@@ -12,7 +12,7 @@ interface
 Uses Command;
 
 CONST
-     NumExecCommands = 131;
+     NumExecCommands = 136;
 
 Var
 
@@ -184,6 +184,11 @@ Begin
      ExecCommand[129] := 'GISCoords';
      ExecCommand[130] := 'HELICSPublish';
      ExecCommand[131] := 'Check4Updates';
+     ExecCommand[132] := 'FirstObj';
+     ExecCommand[133] := 'NextObj';
+     ExecCommand[134] := 'CountObj';
+     ExecCommand[135] := 'ActiveObj';
+     ExecCommand[136] := 'ClassMembers';
 
      CommandHelp[1]  := 'Create a new object within the DSS. Object becomes the '+
                          'active object' + CRLF +
@@ -565,7 +570,11 @@ Begin
                           'Note: For using only if OpenDSS-GIS is locally installed.';
      CommandHelp[130] :=  'Read HELICS publication topics from a JSON file';
      CommandHelp[131] :=  'Returns a message indicating if there is a new version of OpenDSS avaialble for download. Requires internet connection.';
-
+     CommandHelp[132] := 'Sets the First element of the active class as the active element, returns the index of the active element. If none, returns 0. See "set class".';
+     CommandHelp[133] := 'Sets the Next element of the active class as the active element, returns the index of the active element. If none, returns 0. See "set class".';
+     CommandHelp[134] := 'Returns the number of elements within the active class. See "set class".';
+     CommandHelp[135] := 'Returns the name of the active object.';
+     CommandHelp[136] := 'Returns the list of objects belonging to the active class, comma separated. See "set class".';
 
 End;
 
@@ -575,17 +584,20 @@ VAR
    ParamPointer,
    Temp_int,
    Iter,
+   ObjIdx,
    i            : Integer;
    ParamName,
    Param,
    ObjName,
+   ObjList,
    PropName     : String;
 
 Begin
 
 
   TRY
-
+     ObjIdx := 0;
+     ObjList := '[]';
      CmdResult := 0;
      ErrorNumber := 0;  // Reset Error number
      GlobalResult := '';
@@ -665,7 +677,13 @@ Begin
             end;
        106: DoClearAllCmd;
        107: begin
-              if Parallel_enabled then Wait4Actors(0);
+              if Parallel_enabled then
+              Begin
+                if ADiakoptics then
+                  Wait4Actors(10)    // To let know the wait routine that this is the caller for ADiakoptics
+                else
+                  Wait4Actors(0);
+              End;
             end;
        108: begin
               //  Added to avoid crashes when in A-Diakoptics mode but the user
@@ -898,6 +916,51 @@ Begin
       129:  CmdResult     :=  DoBusCoordsCmd(FALSE, 1);   // GIS coordinates
       130:  DoHELICSPubCmd;
       131:  GlobalResult  :=  Check_DSS_WebVersion(False);
+      132:  Begin
+              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              Begin
+                AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].First));  // sets active objects
+              End
+              else
+                AppendGlobalResult('Enable a class before using this command. See "set class"');
+            End;
+      133:  Begin
+              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              Begin
+                AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].Next));  // sets active objects
+              End
+              else
+                AppendGlobalResult('Enable a class before using this command. See "set class"');
+            End;
+      134:  Begin
+              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              Begin
+                AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].ElementCount));  // sets active objects
+              End
+              else
+                AppendGlobalResult('Enable a class before using this command. See "set class"');
+            End;
+      135:  Begin
+              if Assigned(ActiveDSSObject[ActiveActor]) then
+                AppendGlobalResult(ActiveDSSObject[ActiveActor].Name)
+              Else
+                AppendGlobalResult('None');
+            End;
+      136:  Begin
+              ObjList := '[';
+              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              Begin
+                ObjIdx := ActiveDSSClass[ActiveActor].First;
+                while ObjIdx > 0 do
+                Begin
+                  ObjList := ObjList + ActiveDSSObject[ActiveActor].Name + ',';
+                  ObjIdx := ActiveDSSClass[ActiveActor].Next;
+                End;
+              End;
+              // Closes the list (str)
+              ObjList := ObjList + ']';
+              AppendGlobalResult(ObjList);
+            End;
 
      ELSE
        // Ignore excess parameters

@@ -9,7 +9,7 @@
         <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <ProjectName Condition="'$(ProjectName)'==''">OpenDSS</ProjectName>
@@ -245,6 +245,12 @@
                 <DeployFile LocalName="..\OpenDSS" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\OpenDSS" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>OpenDSS.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
@@ -1158,7 +1164,7 @@
             <Form>DoDSSCommandForm</Form>
         </DCCReference>
         <DCCReference Include="..\PDElements\fuse.pas"/>
-        <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\General\GrowthShape.pas"/>
         <DCCReference Include="..\Shared\HashList.pas"/>
         <DCCReference Include="..\Forms\HelpForm.pas">
@@ -1308,6 +1314,8 @@
         <DCCReference Include="..\Shared\ExceptionTrace.pas"/>
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
+        <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="..\Common\PipeServerInstance.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

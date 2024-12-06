@@ -68,7 +68,7 @@ uses
   Frm_RPNcalc in '..\Parser\Frm_RPNcalc.pas' {RPNForm},
   FrmDoDSSCommand in '..\Forms\FrmDoDSSCommand.pas' {DoDSSCommandForm},
   fuse in '..\PDElements\fuse.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas',
+  pyControl in '..\Controls\pyControl.pas',
   generator in '..\PCElements\generator.pas',
   GenUserModel in '..\PCElements\GenUserModel.pas',
   GrowthShape in '..\General\GrowthShape.pas',
@@ -244,7 +244,9 @@ uses
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
   ImplWindGens in 'ImplWindGens.pas' {Vsources: CoClass},
   ImplReactors in 'ImplReactors.pas',
-  CNTSLineConstants in '..\General\CNTSLineConstants.pas';
+  CNTSLineConstants in '..\General\CNTSLineConstants.pas',
+  PipeServerInstance in '..\Common\PipeServerInstance.pas',
+  UPFCControl in '..\Controls\UPFCControl.pas';
 
 exports
   DllGetClassObject,

@@ -26,11 +26,31 @@ uses
   IdGlobal,
   IdCustomTCPServer;
 
+const
+  SHUT_DOWN_MSG = 'shutdown pipe ';
+  PIPE_FORMAT = '\\%s\pipe\%s'; // \\ServerName\pipe\PipeName
+  PIPE_TIMEOUT = 5000;
+  BUFF_SIZE = 8095;
+  SERVER_PATH = ''; // Empty for local server
+  SERVER_NAME = 'DSSProg'; // Server name
+
 type
 
-  TMyServer = class (TIdCustomTCPServer)
+  TMyClient = class(TThread)
+  private
+    fID: Byte;
+    fPipeName: String;
+    fHandle: THandle;
+    function TryConnectToServer(): Boolean;
+    procedure SendMessage(Msg: String);
+    Function ReadMessage(): String;
+
   protected
-    function DoExecute(AContext: TIdContext): Boolean; override;
+    procedure Execute(); override;
+  public
+    constructor Create(aID: Byte; aServer, aPipe: String);
+    destructor Destroy(); override;
+
   end;
 
   TForm1 = class(TForm)
@@ -39,11 +59,10 @@ type
     Memo1: TMemo;
     Timer1: TTimer;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
-    Server      : TMyServer;
+    Client1   : TMyClient;
     NumActors,
     divDelta    : Integer;
     divSize     : array of integer;
@@ -71,7 +90,7 @@ var
 implementation
 
 const
-  MaxTimeOutValue = 50;
+  MaxTimeOutValue = 500;
 var
   TimeOut : Integer;
 
@@ -103,6 +122,7 @@ var
   JSONStr,
   newPath   : String;
   RefPos    : Integer;
+
 begin
   AbortON       :=  False;
   With Memo1 do
@@ -111,31 +131,9 @@ begin
     Text          :=  '';
   End;
   newPath             :=  GetDSSExeFile();
-  newPath             :=  AnsiReverseString(newPath);   // reverses the string
-  RefPos              :=  pos('\',newPath); // detects the file name
-  newPath             :=  AnsiReverseString(newPath);      // reverse again
-  newPath             :=  newPath.Substring(0,length(newPath) - RefPos);  // Leaves only the folder name
-  newPath             :=  newPath + '\ComPorts.ini';
 
-  Server              :=  TMyServer.Create;
-  Server.Tag          := 0;
-  Server.ListenQueue  := 1500;
-  Server.TerminateWaitTime := 5000;
+  Client1             :=  TMyClient.Create(1, SERVER_PATH, SERVER_NAME);
 
-  if  fileexists(newPath) then
-  Begin
-    AssignFile(F, newPath);
-    Reset(F);
-    ReadLn(F, JSONStr);
-    CloseFile(F);
-    // parse the JSON string and extract the values
-    JSONCfg             :=  TdJSON.Parse(JSONStr);
-    Server.DefaultPort  :=  JSONCfg['dssprogress'].AsInteger;
-  End
-  else
-    Server.DefaultPort  :=  20010;
-
-  Server.Active       :=  True;
   TimeOut             :=  0;
   with Image1 do
   begin
@@ -244,78 +242,172 @@ Begin
 
 End;
 
-function TMyServer.DoExecute(AContext: TIdContext): Boolean;
+constructor TMyClient.Create(aID: Byte; aServer, aPipe: String);
+begin
+  inherited Create();
+  FreeOnTerminate := True;
+  Priority        := tpLower;
+  fID             := aID;
+  fHandle         := INVALID_HANDLE_VALUE;
+  if aServer = '' then
+    fPipeName := Format(PIPE_FORMAT, ['.', aPipe])
+  else
+    fPipeName := Format(PIPE_FORMAT, [aServer, aPipe]);
+end;
+
+destructor TMyClient.Destroy();
+begin
+  if (fHandle <> INVALID_HANDLE_VALUE) then
+    CloseHandle(fHandle);
+  inherited Destroy();
+end;
+
+function TMyClient.TryConnectToServer(): Boolean;
+begin
+  Result := False;
+  fHandle := CreateFile(
+    PChar(fPipeName),      // pipe name
+    GENERIC_READ OR GENERIC_WRITE, // read and write access
+    0,              // no sharing
+    nil,            // default security attributes
+    OPEN_EXISTING,  // opens existing pipe
+    0,              // default attributes
+    0
+  );
+  // If handle is not valid
+  if (fHandle = INVALID_HANDLE_VALUE) then
+  begin
+    // Exit if an error other than ERROR_PIPE_BUSY occurs
+    if (GetLastError() <> ERROR_PIPE_BUSY) then
+    begin
+      Exit;
+    end;
+    // All pipe instances are busy, so wait for 1 seconds
+    if not WaitNamedPipe(PChar(fPipeName), 1000) then
+    begin
+
+    end;
+  end;
+  Result := (fHandle <> INVALID_HANDLE_VALUE);
+end;
+
+
+procedure TMyClient.Execute();
 var
   msgToClient,
-  msgFromClient : string;
-  msgType       : Integer;
+  Msg         : String;
+  k,
+  msgType     : Integer;
 begin
-  Result  :=  inherited;
+  k := 0;
+  while k = 0 do
+  begin
+    try
 
-  if AContext.Connection.IOHandler.InputBufferIsEmpty then
-  Begin
-    IndySleep(10);
-    Exit;
-  End;
+      if (fHandle <> INVALID_HANDLE_VALUE) OR TryConnectToServer() then
+      begin
+        Msg := ReadMessage();
+        msgType :=  -1;
+        if Msg.Substring(0,3) = 'num' then
+          msgType :=  NUMDIVISIONS;
+        if Msg.Substring(0,3) = 'prg' then
+          msgType :=  UPDTPROGRESS;
+        if Msg.Substring(0,3) = 'ext' then
+          msgType :=  QUITPRG;
 
-  Form1.ResetTimeOut;
-  msgFromClient := AContext.Connection.IOHandler.ReadLn(#10, 500);
-
-  if length(msgFromClient) > 0 then
-  Begin
-
-    msgType :=  -1;
-    if msgFromClient.Substring(0,3) = 'num' then
-      msgType :=  NUMDIVISIONS;
-    if msgFromClient.Substring(0,3) = 'prg' then
-      msgType :=  UPDTPROGRESS;
-    if msgFromClient.Substring(0,3) = 'ext' then
-      msgType :=  QUITPRG;
-
-    if msgType > 0 then
-    Begin
-      msgToClient  :=  '';
-      // evaluates the message type
-      case msgType of
-        NUMDIVISIONS  : Form1.SetupWnd       :=  msgFromClient.Substring(3);
-        UPDTPROGRESS  : Form1.WriteProgress  :=  msgFromClient.Substring(3);
-        QUITPRG       : Begin
-                          msgToClient := 'Q'
-        End
-        else
+        // Evaluates the message type
+        if msgType > 0 then
         Begin
-          msgToClient  :=  'E'
+          msgToClient  :=  '';
+          // evaluates the message type
+          case msgType of
+            NUMDIVISIONS  : Begin
+                              Form1.SetupWnd       :=  Msg.Substring(3);
+                              //ShowMessage(Msg.Substring(3));
+                            End;
+            UPDTPROGRESS  : Form1.WriteProgress  :=  Msg.Substring(3);
+            QUITPRG       : Begin
+                              msgToClient := 'Q';
+                              k := 1;
+            End
+            else
+            Begin
+              msgToClient  :=  'E'
+            End;
+          end;
+          if msgToClient <> 'Q' then
+          Begin
+            if msgToClient <> 'E' then
+            Begin
+              if Form1.AbortON then
+              Begin
+                msgToClient  :=  'T';
+              End
+              else msgToClient  :=  'F';
+            End;
+          End;
+
+          if k = 0 then
+            SendMessage(msgToClient);
+
         End;
-      end;
-      if msgToClient <> 'Q' then
+
+      end
+      Else
+        k := 1;
+    except
+      on E: Exception do
       Begin
-        if msgToClient <> 'E' then
-        Begin
-          if Form1.AbortON then msgToClient  :=  'T'
-          else msgToClient  :=  'F';
-        End;
-        AContext.Connection.IOHandler.WriteLn(msgToClient);
-      End
-      else
-      Begin
-        TimeOut :=  60;  // Closes the app
+        k := 10;
       End;
-    End
-    Else
-    Begin
-     TimeOut :=  60;  // Closes the app
-    End;
-  End
-  else
-  Begin
-     TimeOut :=  60;  // Closes the app
-  End;
+    end;
+  end;
+  TimeOut := 1000;
+end;
+
+
+procedure TMyClient.SendMessage(Msg: String);
+var
+  SendMessage : Boolean;
+  Bytes       : Cardinal;
+  MsgDta      : pchar;
+  buf: array [0 .. 8095 - 1] of char;
+begin
+  // Prepare outgoing message
+   MsgDta := pchar(Msg);
+   fillchar(buf, 8095, #0);
+   move(MsgDta[0], buf[0], Length(MsgDta) * Sizeof(char));
+  // Send message
+  SendMessage := WriteFile(
+    fHandle,          // pipe handle
+    buf,           // message
+    length(MsgDta) * Sizeof(char),   // message length
+    Bytes,            // bytes written
+    nil
+  );
 
 end;
 
-procedure TForm1.FormDestroy(Sender: TObject);
+Function TMyClient.ReadMessage():String;
+var
+  MessageReceived : Boolean;
+  Msg             : array [0 .. 8095 - 1] of char;
+  MsgSz           : DWord;
+  MsgStr          : String;
 begin
-  Server.Free;
+  MessageReceived := ReadFile(
+    fHandle,   // pipe handle
+    Msg,       // buffer to receive reply
+    BUFF_SIZE, // size of buffer
+    MsgSz,  // number of bytes read
+    nil);      // not overlapped
+
+  Result  := '';
+  if MessageReceived then
+  begin
+    MsgStr := Copy(Msg, 0, MsgSz);
+    Result := MsgStr;
+  end;
 end;
 
 end.

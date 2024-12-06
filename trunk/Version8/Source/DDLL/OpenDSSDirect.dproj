@@ -192,7 +192,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="..\Controls\Relay.pas"/>
         <DCCReference Include="..\Controls\StorageController.pas"/>
         <DCCReference Include="..\Controls\SwtControl.pas"/>
-        <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\EXE\MyDSSClassDefs.Pas"/>
         <DCCReference Include="..\Executive\ExecCommands.pas"/>
         <DCCReference Include="..\Executive\ExecHelper.pas"/>
@@ -409,6 +409,8 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="DWindGens.pas"/>
         <DCCReference Include="DReactors.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
+        <DCCReference Include="..\Common\PipeServerInstance.pas"/>
+        <DCCReference Include="..\Controls\UPFCControl.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
@@ -479,6 +481,12 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>OpenDSSDirect.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\x86\OpenDSSDirect.dll" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win32\Debug\OpenDSSDirect.dll" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win64\Debug\OpenDSSDirect.dll" Configuration="Debug" Class="ProjectOutput"/>

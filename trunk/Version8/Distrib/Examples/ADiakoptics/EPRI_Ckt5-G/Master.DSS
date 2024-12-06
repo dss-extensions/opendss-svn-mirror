@@ -81,6 +81,8 @@ set LinkBranches=[Line.mdv201_hn_2_094_abc51012, Line.mdv201_hn_2_394_abc63658, 
 set UseMyLinkBranches=True
 set ADiakoptics=True
 
+set ActiveActor=*
+set controlmode=off
 set ActiveActor=1
 set controlmode=off mode=yearly
 set totaltime=0
@@ -107,6 +109,7 @@ set ActiveActor=1
 export monitor test
 
 // ---- Using 6 zones
+set controlmode=off
 set LinkBranches=[Line.mdv201_hn_2_094_abc51012, Line.mdv201_hn_2_394_abc63658, Line.mdv201_hn_2_293_abc63684 , Line.mdv201_hn_2_343_abc829 ,Line.mdv201_hn_2_103_abc39605]
 set UseMyLinkBranches=True
 set ADiakoptics=True
