@@ -75,7 +75,7 @@ else()
 		FetchContent_Declare(
 			klusolvex
 			GIT_REPOSITORY git@github.com:dss-extensions/klusolve.git
-			GIT_TAG 9a29aa74c8897afadd8bf905e2a99623e11c438e
+			GIT_TAG cfec146d3cd6363f25cedccb89c0a1b1a45e995e
 		)
 
 		FetchContent_MakeAvailable(klusolvex)
