@@ -2938,8 +2938,13 @@ void TStorageObj::DoPQBusNCIM(int ActorID, int i, complex V, complex Curr)
 	// Add current injection contributions to deltaF
 	GCoord--;															// Removes the additional index added by DSS
 	Iterminal[i - 1]				= Curr;
+#ifndef OPENDSSC_KLUSOLVEX
 	with0->deltaF[GCoord].re		= Curr.im + with0->deltaF[GCoord].re;			// Respecting the decoupled distribution
 	with0->deltaF[GCoord + 1].re	= Curr.re + with0->deltaF[GCoord + 1].re;		// Prioritizing reactive power over the diagonal
+#else
+	with0->deltaF[GCoord]		= Curr.im + with0->deltaF[GCoord];			// Respecting the decoupled distribution
+	with0->deltaF[GCoord + 1]	= Curr.re + with0->deltaF[GCoord + 1];		// Prioritizing reactive power over the diagonal
+#endif
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -

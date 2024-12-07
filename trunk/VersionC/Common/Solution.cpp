@@ -30,7 +30,7 @@
 #include "d2c_structures.h"
 #include "ExecHelper.h"
 #include "dirsep.h"
-
+// #include "KLUSolveX.h"
 
 TSolutionObj* ActiveSolutionObj = NULL;
 
@@ -459,7 +459,11 @@ namespace Solution
         {
             for (i = 0; i < deltaF.size(); i++)
             {
+#ifndef OPENDSSC_KLUSOLVEX
                 result = Abs(deltaF[i].re) <= ConvergenceTolerance;
+#else
+                result = Abs(deltaF[i]) <= ConvergenceTolerance;
+#endif
                 if (!result)
                     break;
             }
@@ -777,15 +781,22 @@ namespace Solution
             if (with0->LogEvents)
                 LogThisEvent("Solve Power flow DoNCIMSolution ...", ActorID);
             // Solves the Jacobian
+#ifndef OPENDSSC_KLUSOLVEX
             SolveSparseSet(Jacobian, &(deltaZ[0]), &(deltaF[0]));
-
+#else
+            SolveSparseSet(Jacobian, (complex*) &(deltaZ[0]), (complex*) &(deltaF[0]));
+#endif
             //Updates the Voltage vector
             int dVIdx = 0;
             dV = CZero;
             for (int i = 1; i <= with0->NumNodes; i++)
             {
                 dVIdx = (i - 1) * 2;
+#ifndef OPENDSSC_KLUSOLVEX
                 dV = cmplx(deltaZ[dVIdx].re, deltaZ[dVIdx + 1].re);
+#else
+                dV = cmplx(deltaZ[dVIdx], deltaZ[dVIdx + 1]);
+#endif
                 NodeV[i] = csub(NodeV[i], dV);
             }
             Solved = Converged(ActorID);
@@ -1054,16 +1065,24 @@ namespace Solution
 
         // Add current injection contributions to deltaF
         GCoord--;																		// Removes the additional index added by DSS
+#ifndef OPENDSSC_KLUSOLVEX
         with0->deltaF[GCoord].re = with0->deltaF[GCoord].re - Curr.im;			        // Respecting the decoupled distribution
         with0->deltaF[GCoord + 1].re = with0->deltaF[GCoord + 1].re - Curr.re;		    // Prioritizing reactive power over the diagonal
+#else
+        with0->deltaF[GCoord] = with0->deltaF[GCoord] - Curr.im;			        // Respecting the decoupled distribution
+        with0->deltaF[GCoord + 1] = with0->deltaF[GCoord + 1] - Curr.re;		    // Prioritizing reactive power over the diagonal
+#endif
 
         // Add delta V to deltaF in the voltage regulation subsection
         double VMag = ctopolar(V).mag;
         GCoord = (ActiveCircuit[ActorID]->NumNodes * 2) + PVBusIdx[i] - 1;
         double VError = VTarget - VMag;
 
+#ifndef OPENDSSC_KLUSOLVEX
         with0->deltaF[GCoord - 1].re = VError;
-
+#else
+        with0->deltaF[GCoord - 1] = VError;
+#endif
         // Calculate the voltage regulation coefficients (Z)
         GCoordY = (i * 2) - 1;
         for (int j = 0; j < 2; j++)
@@ -1138,8 +1157,13 @@ namespace Solution
 
         // Add current injection contributions to deltaF
         GCoord--;															        // Removes the additional index added by DSS
+#ifndef OPENDSSC_KLUSOLVEX
         with0->deltaF[GCoord].re = with0->deltaF[GCoord].re + Curr.im;			    // Respecting the decoupled distribution
         with0->deltaF[GCoord + 1].re = with0->deltaF[GCoord + 1].re + Curr.re;		// Prioritizing reactive power over the diagonal
+#else
+        with0->deltaF[GCoord] = with0->deltaF[GCoord] + Curr.im;			    // Respecting the decoupled distribution
+        with0->deltaF[GCoord + 1] = with0->deltaF[GCoord + 1] + Curr.re;		// Prioritizing reactive power over the diagonal
+#endif        
     }
 
     // ===========================================================================================
@@ -1182,8 +1206,13 @@ namespace Solution
 
         // Add current injection contributions to deltaF
         GCoord--;															        // Removes the additional index added by DSS
+#ifndef OPENDSSC_KLUSOLVEX
         with0->deltaF[GCoord].re = with0->deltaF[GCoord].re + Curr.im;			    // Respecting the decoupled distribution
         with0->deltaF[GCoord + 1].re = with0->deltaF[GCoord + 1].re + Curr.re;		// Prioritizing reactive power over the diagonal
+#else
+        with0->deltaF[GCoord] = with0->deltaF[GCoord] + Curr.im;			    // Respecting the decoupled distribution
+        with0->deltaF[GCoord + 1] = with0->deltaF[GCoord + 1] + Curr.re;		// Prioritizing reactive power over the diagonal
+#endif
     }
     // ===========================================================================================
 /*  Initializes the node vectors used for storing the total power per node during the simulation */
@@ -1416,21 +1445,33 @@ namespace Solution
 
         for (int j = 0; j < deltaF.size(); j++)
         {
+#ifndef OPENDSSC_KLUSOLVEX
             deltaF[j] = CZero;
+#else
+            deltaF[j] = 0;
+#endif
         }
-
         // Multiplies the latest solution (V) by the Y Matrix
         for (int i = 0; i < NCIMY.size(); i++)
         {
             // First the value found
             myvalue = cmul(NCIMY[i], NodeV[NCIMYCol[i] + 1]);
+#ifndef OPENDSSC_KLUSOLVEX
             deltaF[NCIMYRow[i] * 2].re += myvalue.im;
             deltaF[(NCIMYRow[i] * 2) + 1].re += myvalue.re;
+#else
+            deltaF[NCIMYRow[i] * 2] += myvalue.im;
+            deltaF[(NCIMYRow[i] * 2) + 1] += myvalue.re;
+#endif
         }
 
         // The first 6 elements are equal to 0
         for (int i = 0; i < 6; i++)
+#ifndef OPENDSSC_KLUSOLVEX
             deltaF[i] = CZero;
+#else
+            deltaF[i] = 0;
+#endif
     }
 
     /*  Gets the number of generators in the modeland their number of phases
@@ -1547,8 +1588,11 @@ namespace Solution
             QDelta.clear();
             QDelta.push_back(0);                        // leaves the first one as zero, to avoid subtractions in the below
             for (int i = GenIdx; i < deltaZ.size(); i++)
+#ifndef OPENDSSC_KLUSOLVEX
                 QDelta.push_back(-1.0 * deltaZ[i].re);         // Moves deltaZ (only delta Q section) into the backup vector
-
+#else
+                QDelta.push_back(-1.0 * deltaZ[i]);         // Moves deltaZ (only delta Q section) into the backup vector
+#endif
             qNodeRef.clear();
             qNodeRefPQ.clear();
             PQChecked.clear();
@@ -1723,6 +1767,10 @@ namespace Solution
             Jacobian = nullptr;
         }
         Jacobian = NewSparseSet(deltaF.size());
+#ifdef OPENDSSC_KLUSOLVEX
+        // Instruct KLUSolveX to use a real-valued matrix (float64 values) instead of a complex matrix
+        SetOptions(Jacobian, MatrixFormat_DoublePrecisionReal);
+#endif        
         for (int i = 0; i < NCIMY.size(); i++)
         {
             GRow = NCIMYRow[i] * 2;
