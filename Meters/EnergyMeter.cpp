@@ -1164,6 +1164,7 @@ void TEnergyMeterObj::TakeSample(int ActorID)
 	complex S_ZeroSeqLosses = CZero;
 	complex S_NegSeqLosses = CZero;
 	double puV = 0.0;
+	complex powerCache = CZero;
 
 // Compute energy in branch  to which meter is connected
 
@@ -1228,8 +1229,8 @@ void TEnergyMeterObj::TakeSample(int ActorID)
 	if(LocalOnly)
 	{
 		CktElem = (TPDElement*) MeteredElement;
-		MaxExcesskWNorm = Abs( CktElem->Get_ExcessKVANorm(MeteredTerminal,ActorID).re);
-		MaxExcesskWEmerg = Abs( CktElem->Get_ExcessKVAEmerg(MeteredTerminal, ActorID).re);
+		MaxExcesskWNorm = Abs( CktElem->Get_ExcessKVANorm(MeteredTerminal,ActorID, &powerCache).re);
+		MaxExcesskWEmerg = Abs( CktElem->Get_ExcessKVAEmerg(MeteredTerminal, ActorID, &powerCache).re);
 	}
 	else
 	{
@@ -1244,8 +1245,8 @@ void TEnergyMeterObj::TakeSample(int ActorID)
 				auto with0 = CktElem;
 				with0->Set_ActiveTerminal(BranchList->PresentBranch->FromTerminal);
          // Invoking this property sets the Overload_UE flag in the PD Element
-				EEN = Abs( with0->Get_ExcessKVANorm(with0->get_FActiveTerminal(),ActorID).re);
-				UE = Abs( with0->Get_ExcessKVAEmerg(with0->get_FActiveTerminal(),ActorID).re);
+				EEN = Abs( with0->Get_ExcessKVANorm(with0->get_FActiveTerminal(),ActorID, &powerCache).re);
+				UE = Abs( with0->Get_ExcessKVAEmerg(with0->get_FActiveTerminal(),ActorID, &powerCache).re);
 			}
 
          /*For radial circuits just keep the maximum overload; for mesh, add 'em up*/
