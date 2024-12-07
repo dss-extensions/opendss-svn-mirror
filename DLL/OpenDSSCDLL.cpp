@@ -13334,7 +13334,7 @@ void __stdcall SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		break;
 	case 1:													// Sensors.Currents read
 		*myType = 2; //double
-		myDblArray.resize(0);
+		myDblArray.resize(1);
 		myDblArray[0] = 0;
 		elem = ActiveSensor();
 		if (elem != nullptr)
