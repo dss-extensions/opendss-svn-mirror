@@ -917,7 +917,7 @@ namespace ExecCommands
 #endif
 				}
 				break;
-//#ifndef windows								//	By making these calls dependent on the OS, we should be able to compile OpenDSS-X by itself 
+//#ifndef windows								//	By making these calls dependent on the OS, we should be able to compile OpenDSS-C by itself 
 				case 130:
 				{
 					int a = 0;

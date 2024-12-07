@@ -1,4 +1,4 @@
-﻿// OpenDSSX.cpp : Defines the entry point for the application.
+﻿// OpenDSSC.cpp : Defines the entry point for the application.
 //
 
 #pragma hdrstop
@@ -144,7 +144,6 @@
 #include "Feeder.h"
 #include "IniRegSave.h"
 #include "MyDSSClassDefs.h"
-#include "Notes.h"
 #include "ShowOptions.h"
 #include "ShowResults.h"
 #include "TOPExport.h"
@@ -160,10 +159,10 @@
 #include "myCmdUtils.h"
 #include "myCmdUtils.cpp"
 
-#ifdef OPENDSSX_CPP_EXTRA_HEADER
+#ifdef OPENDSSC_CPP_EXTRA_HEADER
 // Include another file from a parent project.
 // For details, see the note about PARENT PROJECTS at the end of this file.
-#include OPENDSSX_CPP_EXTRA_HEADER
+#include OPENDSSC_CPP_EXTRA_HEADER
 #endif
 
 
@@ -401,12 +400,12 @@ int main(int argc, char* argv[])
     CoutLn("*Copyright (c) 2008-2024, Electric Power Research Institute, Inc.*");
     CoutLn("******************************************************************");
 
-#ifdef OPENDSSX_CPP_MAIN_AFTER_INIT
+#ifdef OPENDSSC_CPP_MAIN_AFTER_INIT
     // Include additional code after our initialization:
-    OPENDSSX_CPP_MAIN_AFTER_INIT
+    OPENDSSC_CPP_MAIN_AFTER_INIT
 #endif
         
-#ifndef OPENDSSX_CPP_MAIN_ALTERNATE
+#ifndef OPENDSSC_CPP_MAIN_ALTERNATE
 
     // Added - DM 12/12/2022
 //    myParam.resize(0); // for regular rebugging
@@ -418,69 +417,69 @@ int main(int argc, char* argv[])
     return ExitCode;
 #else
     // Replace the normal application event loop and return value:
-    OPENDSSX_CPP_MAIN_ALTERNATE
+    OPENDSSC_CPP_MAIN_ALTERNATE
 #endif
 }
 
 /* NOTE: PARENT PROJECTS
 A note regarding these three #define's used in this source file:
-    OPENDSSX_CPP_EXTRA_HEADER
-    OPENDSSX_CPP_MAIN_AFTER_INIT
-    OPENDSSX_CPP_MAIN_ALTERNATE
+    OPENDSSC_CPP_EXTRA_HEADER
+    OPENDSSC_CPP_MAIN_AFTER_INIT
+    OPENDSSC_CPP_MAIN_ALTERNATE
 
 These names are optional and normally undefined to produce a standard build of
-OpenDSS-X, but they permit any other project to act as a "parent" to import and
-extend OpenDSS-X, with minimal (no?) changes to OpenDSS-X's code.
+OpenDSS-C, but they permit any other project to act as a "parent" to import and
+extend OpenDSS-C, with minimal (no?) changes to OpenDSS-C's code.
 
-OPENDSSX_CPP_EXTRA_HEADER
+OPENDSSC_CPP_EXTRA_HEADER
     Specifies a header to #include at the top of this file.  This header
-    will likely define either OPENDSSX_CPP_MAIN_AFTER_INIT or
-    OPENDSSX_CPP_MAIN_ALTERNATE to modify the execution within int main().
+    will likely define either OPENDSSC_CPP_MAIN_AFTER_INIT or
+    OPENDSSC_CPP_MAIN_ALTERNATE to modify the execution within int main().
 
     Example lines to go into this header:
         // Print out additional text after the startup banner:
-        #define OPENDSSX_CPP_MAIN_AFTER_INIT std::cout << "Enhanced!\n";
+        #define OPENDSSC_CPP_MAIN_AFTER_INIT std::cout << "Enhanced!\n";
 
     Alternatively, this header is free to make more drastic modifications,
     such as using a #define to rename our main() in order to replace it
     with the parent project's main() instead.
 
-OPENDSSX_CPP_MAIN_AFTER_INIT
+OPENDSSC_CPP_MAIN_AFTER_INIT
     Specifies additional code to include within our main() just after the
     normal initialization and command line parsing, but before the main
     application loop.
 
-OPENDSSX_CPP_MAIN_ALTERNATE
+OPENDSSC_CPP_MAIN_ALTERNATE
     Specifies code to completely replace the main Application.DoRun loop.
 
 
 Example usage:
 
 For example if the parent project is also using CMake, then it may import and
-extend OpenDSS-X by adding these lines to it's (the parent's) CMakeLists.txt
-and not have to change OpenDSS-X's CMakeLists.txt file.
+extend OpenDSS-C by adding these lines to it's (the parent's) CMakeLists.txt
+and not have to change OpenDSS-C's CMakeLists.txt file.
 
 # Example commands for a parent project's CMakeLists.txt
-add_subdirectory(opendss-x)
-set_target_properties(OpenDSSX PROPERTIES
+add_subdirectory(opendss-c)
+set_target_properties(OpenDSSC PROPERTIES
     # Rename the output executable binary:
-    OUTPUT_NAME "OpenDSSX-with-extra-features"
+    OUTPUT_NAME "OpenDSSC-with-extra-features"
     # Place this target with our other executables:
     RUNTIME_OUTPUT_DIRECTORY ".."
 )
 # Add more #include search directories:
-target_include_directories(OpenDSSX PRIVATE
+target_include_directories(OpenDSSC PRIVATE
     other_include_dir
     another_include_dir
 )
-# Include a specific header in opendss-x/CMD/OpenDSSX.cpp:
-target_compile_definitions(OpenDSSX PRIVATE
-    OPENDSSX_CPP_EXTRA_HEADER="extend_opendssx_main.h"
+# Include a specific header in opendss-c/CMD/OpenDSSC.cpp:
+target_compile_definitions(OpenDSSC PRIVATE
+    OPENDSSC_CPP_EXTRA_HEADER="extend_opendssx_main.h"
     # Example text to go in this header to inject additional text after the normal startup banner:
-    # #define OPENDSSX_CPP_MAIN_AFTER_INIT std::cout << "Extensions!\n";
+    # #define OPENDSSC_CPP_MAIN_AFTER_INIT std::cout << "Extensions!\n";
 )
-# Add more sources to be compiled into the OpenDSS-X executable:
-sources(OpenDSSX PRIVATE
+# Add more sources to be compiled into the OpenDSS-C executable:
+sources(OpenDSSC PRIVATE
     src-dirA/featureA.cpp
     src-dirB/featureB.cpp
 )
