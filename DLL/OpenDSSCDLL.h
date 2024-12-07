@@ -331,6 +331,10 @@ extern "C" {
 	DSS_DLL void getIpointer(complex** IvectorPtr);
 	DSS_DLL void getVpointer(complex** VvectorPtr);
 
+	/// DSSDisposeString must be called to dispose the memory used by any string returned by the API,
+	/// except for string arrays from the `*V()` variant functions, which use a global buffer.
+	DSS_DLL void DSSDisposeString(char* value);
+
 #ifdef __cplusplus
 }
 #endif
