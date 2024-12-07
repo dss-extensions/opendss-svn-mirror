@@ -386,12 +386,12 @@ void TCOMControlProxyObj::Reset(int ActorID)
 
 //******************************************************************DLL commands and interfaces**********************************************************
 
-
+extern "C" {
 //****************************************************************************************************************
 //--------------------------------------------------------------------------------
 // Implements the DSS integer interface
 //--------------------------------------------------------------------------------
-int __stdcall DSSI(int mode, int arg)
+int DSSI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -441,7 +441,7 @@ int __stdcall DSSI(int mode, int arg)
 //--------------------------------------------------------------------------------
 // Implements the DSS String interface 
 //--------------------------------------------------------------------------------
-char* __stdcall DSSS(int mode, char* arg)
+char* DSSS(int mode, char* arg)
 {
 	string  result = "";
 	switch (mode)
@@ -477,7 +477,7 @@ char* __stdcall DSSS(int mode, char* arg)
 //--------------------------------------------------------------------------------
 // Implements the DSS pointer (former variant) interface 
 //--------------------------------------------------------------------------------
-void __stdcall DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int		i = 0;
 
@@ -559,7 +559,7 @@ vector<string> Str2StrArray(char* myStr, char Delimiter)
 //--------------------------------------------------------------------------------
 // Implements the text interface for the DLL
 //--------------------------------------------------------------------------------
-char* __stdcall DSSPut_Command(char* myCmd)
+char* DSSPut_Command(char* myCmd)
 {
     vector<string>	myCmds;
     string			result = "",
@@ -600,7 +600,7 @@ bool IsLine(TDSSCktElement* CktElem)
 //--------------------------------------------------------------------------------
 // Implements the Lines interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall LinesI(int mode, int arg)
+int LinesI(int mode, int arg)
 {
 	TLineObj* pLine = {};
 	int			result = 0;
@@ -724,7 +724,7 @@ int __stdcall LinesI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall LinesF(int mode, double arg)
+double LinesF(int mode, double arg)
 {
 	int				RatingIdx = 0;
 	TXYcurveObj* RSignal = nullptr;
@@ -1017,7 +1017,7 @@ double __stdcall LinesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall LinesS(int mode, char* arg)
+char* LinesS(int mode, char* arg)
 {
 	TDSSCktElement* pLine = nullptr;
 	int				activesave = 0;
@@ -1181,7 +1181,7 @@ char* __stdcall LinesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TLineObj* LineElem = nullptr;
 	complex		Ztemp = cmplx(0, 0);
@@ -1457,7 +1457,7 @@ void Set_Parameter(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall DSSLoads(int mode, int arg)
+int DSSLoads(int mode, int arg)
 {
 	TLoadObj* pLoad = {};
 	int			result = 0;
@@ -1614,7 +1614,7 @@ int __stdcall DSSLoads(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall DSSLoadsF(int mode, double arg)
+double DSSLoadsF(int mode, double arg)
 {
 	TLoadObj* pLoad = {};
 	double		result = 0.0;
@@ -1883,7 +1883,7 @@ double __stdcall DSSLoadsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall DSSLoadsS(int mode, char* arg)
+char* DSSLoadsS(int mode, char* arg)
 {
 	TDSSCktElement*	pload = {};
 	TLoadObj*		Load = {};
@@ -1995,7 +1995,7 @@ char* __stdcall DSSLoadsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall DSSLoadsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void DSSLoadsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 
 	TLoadObj*	pLoad = {};
@@ -2087,7 +2087,7 @@ void __stdcall DSSLoadsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the Capacitors interface for the DLL
 //--------------------------------------------------------------------------------
-TCapacitorObj* __stdcall ActiveCapacitor()
+TCapacitorObj* ActiveCapacitor()
 {
 	TCapacitorObj* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
@@ -2109,7 +2109,7 @@ void Set_Parameter_Capacitor(string parm, string val)
 }
 
 // ****************************** int type properties************************* 
-int __stdcall CapacitorsI(int mode, int arg)
+int CapacitorsI(int mode, int arg)
 {
 	TCapacitorObj* elem;
 	TPointerList* lst = nullptr;
@@ -2232,7 +2232,7 @@ int __stdcall CapacitorsI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall CapacitorsF(int mode, double arg)
+double CapacitorsF(int mode, double arg)
 {
 	TCapacitorObj* elem;
 	double result = 0.0;		// Default return value
@@ -2263,7 +2263,7 @@ double __stdcall CapacitorsF(int mode, double arg)
 	return result;
 }
 //*******************************String type properties***************************
-const char* __stdcall CapacitorsS(int mode, const char* arg)
+const char* CapacitorsS(int mode, const char* arg)
 {
 	TCapacitorObj*	elem = nullptr;
 	int				ActiveSave = 0;
@@ -2316,7 +2316,7 @@ const char* __stdcall CapacitorsS(int mode, const char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TCapacitorObj*	elem = nullptr;
 	int				ActiveSave = 0;
@@ -2416,7 +2416,7 @@ void __stdcall CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the ActiveClass interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall ActiveClassI(int mode, int arg)
+int ActiveClassI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -2454,7 +2454,7 @@ int __stdcall ActiveClassI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall ActiveClassS(int mode, char* arg)
+char* ActiveClassS(int mode, char* arg)
 {
 	TDSSObject* pelem	= nullptr;
 	string		result	= "";
@@ -2515,7 +2515,7 @@ char* __stdcall ActiveClassS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall ActiveClassV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void ActiveClassV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int idx = 0,
 		i = 0;
@@ -2583,7 +2583,7 @@ bool CheckBusReference(TDSSCktElement* CktElement, int BusReference)
 	return result;
 }
 // ******************************int type properties************************* 
-int __stdcall BUSI(int mode, int arg)
+int BUSI(int mode, int arg)
 {
 	int result = 0;
 
@@ -2659,7 +2659,7 @@ int __stdcall BUSI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall BUSF(int mode, double arg)
+double BUSF(int mode, double arg)
 {
 	double result = 0.0;
 
@@ -2857,7 +2857,7 @@ double __stdcall BUSF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall BUSS(int mode, char* arg)
+char* BUSS(int mode, char* arg)
 {
 	string result = "0";
 
@@ -2883,7 +2883,7 @@ char* __stdcall BUSS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int BusReference = 0,
 				k = 0,
@@ -3635,7 +3635,7 @@ void Set_ParameterACC(string parm, string val)
 	}
 }
 // ****************************** int  type properties************************* 
-int __stdcall CapControlsI(int mode, int arg)
+int CapControlsI(int mode, int arg)
 {
 	TCapControlObj* elem	= nullptr;
 	TPointerList *lst = nullptr;
@@ -3779,7 +3779,7 @@ int __stdcall CapControlsI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall CapControlsF(int mode, double arg)
+double CapControlsF(int mode, double arg)
 {
 	TCapControlObj* elem = nullptr;
 	double			result = 0.0;
@@ -3893,7 +3893,7 @@ double __stdcall CapControlsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall CapControlsS(int mode, char* arg)
+char* CapControlsS(int mode, char* arg)
 {
 	TCapControlObj* elem = nullptr;
 	int				ActiveSave = 0;
@@ -3968,7 +3968,7 @@ char* __stdcall CapControlsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall CapControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CapControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TCapControlObj* elem = nullptr;
 	TPointerList* lst = nullptr;
@@ -4021,7 +4021,7 @@ void __stdcall CapControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize
 //--------------------------------------------------------------------------------
 // Implements the Circuit interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall CircuitI(int mode, int arg)
+int CircuitI(int mode, int arg)
 {
 	TDSSCktElement* p	= nullptr;
 	TDSSMonitor*	Mon = nullptr;
@@ -4198,7 +4198,7 @@ int __stdcall CircuitI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall CircuitF(int mode, double arg1, double arg2)
+double CircuitF(int mode, double arg1, double arg2)
 {
 	double result = 0.0; //Default return value
 	switch (mode)                                             // Circuit.Capacity
@@ -4224,7 +4224,7 @@ double __stdcall CircuitF(int mode, double arg1, double arg2)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall CircuitS(int mode, char* arg)
+char* CircuitS(int mode, char* arg)
 {
 	int DevClassIndex = 0;
 	string result = ""; // Default return value
@@ -4301,7 +4301,7 @@ char* __stdcall CircuitS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	complex LossValue{};
 	TLineObj* pLine = nullptr;
@@ -4984,7 +4984,7 @@ bool IsPDElement()
 	return result;
 }
 // ******************************int type properties************************* 
-int __stdcall CktElementI(int mode, int arg)
+int CktElementI(int mode, int arg)
 {
 	int				iControl = 0,
 					result = 0,
@@ -5213,7 +5213,7 @@ int __stdcall CktElementI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall CktElementF(int mode, double arg)
+double CktElementF(int mode, double arg)
 {
 	TDSSCktElement* ctrl = nullptr;
 	TPCElement*		pPCElem = nullptr;
@@ -5345,7 +5345,7 @@ double __stdcall CktElementF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall CktElementS(int mode, char* arg)
+char* CktElementS(int mode, char* arg)
 {
 	TDSSCktElement* ctrl = nullptr;
 	TPCElement*		pPCElem = nullptr;
@@ -5457,7 +5457,7 @@ char* __stdcall CktElementS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TDSSCktElement* ctrl	= nullptr;
 	TPCElement*		pPCElem = nullptr;
@@ -6126,7 +6126,7 @@ void __stdcall CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the CmathLib interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************floating point type properties************************* 
-double __stdcall CmathLibF(int mode, double arg1, double arg2)
+double CmathLibF(int mode, double arg1, double arg2)
 {
 	double result = 0.0;// Default return value
 
@@ -6145,7 +6145,7 @@ double __stdcall CmathLibF(int mode, double arg1, double arg2)
 	return result;
 }
 //************************Structure type properties*******************************
-void __stdcall CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	complex*	pCmplx = nullptr;
 	polar*		pPolar  = nullptr;
@@ -6199,7 +6199,7 @@ void __stdcall CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the Generators interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall GeneratorsI(int mode, int arg)
+int GeneratorsI(int mode, int arg)
 {
 	TGeneratorObj* pGen;
 	int result = 0;					// Default return value
@@ -6353,7 +6353,7 @@ int __stdcall GeneratorsI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall GeneratorsF(int mode, double arg)
+double GeneratorsF(int mode, double arg)
 {
 	double result = 0.0;					// Default return value
 	switch (mode)
@@ -6512,7 +6512,7 @@ double __stdcall GeneratorsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall GeneratorsS(int mode, char* arg)
+char* GeneratorsS(int mode, char* arg)
 {
 	TGeneratorObj*	pGen;
 	int				ActiveSave;
@@ -6572,7 +6572,7 @@ char* __stdcall GeneratorsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall GeneratorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void GeneratorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TGeneratorObj* GenElem;
 	TGenerator*		GeneratorClass;
@@ -6655,7 +6655,7 @@ void __stdcall GeneratorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the DSSElement interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall DSSElementI(int mode, int arg)
+int DSSElementI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -6677,7 +6677,7 @@ int __stdcall DSSElementI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall DSSElementS(int mode, char* arg)
+char* DSSElementS(int mode, char* arg)
 {
 	string result = "";
 
@@ -6702,7 +6702,7 @@ char* __stdcall DSSElementS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall DSSElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void DSSElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int k = 0;
 
@@ -6747,7 +6747,7 @@ void __stdcall DSSElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	//--------------------------------------------------------------------------------
 	// Implements the DSSProgress interface for the DLL
 	//--------------------------------------------------------------------------------
-int __stdcall DSSProgressI(int mode, int arg)
+int DSSProgressI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -6777,7 +6777,7 @@ int __stdcall DSSProgressI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall DSSProgressS(int mode, char* arg)
+char* DSSProgressS(int mode, char* arg)
 {
 	string result = "0";
 	switch (mode)
@@ -6802,7 +6802,7 @@ char* __stdcall DSSProgressS(int mode, char* arg)
 //--------------------------------------------------------------------------------
 // Implements the DSSExecutive interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall DSSExecutiveI(int mode, int arg)
+int DSSExecutiveI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -6821,7 +6821,7 @@ int __stdcall DSSExecutiveI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall DSSExecutiveS(int mode, char* arg)
+char* DSSExecutiveS(int mode, char* arg)
 {
 	string result = "";
 	int i = 0;
@@ -6895,7 +6895,7 @@ void Set_ParameterFuse(string parm, string val)
 	DSSExecutive[ActiveActor]->Set_Command(myCmd);
 }
 // ******************************int point type properties************************* 
-int __stdcall FusesI(int mode, int arg)
+int FusesI(int mode, int arg)
 {
 	TFuseObj*	pElem = {};
 	TFuseObj*	elem = {};
@@ -7075,7 +7075,7 @@ int __stdcall FusesI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall FusesF(int mode, double arg)
+double FusesF(int mode, double arg)
 {
 
 	TFuseObj*	elem = nullptr;
@@ -7123,7 +7123,7 @@ double __stdcall FusesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall FusesS(int mode, char* arg)
+char* FusesS(int mode, char* arg)
 {
 	string result = ""; // Default return value
 	TFuseObj* elem = {};
@@ -7200,7 +7200,7 @@ char* __stdcall FusesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TFuseObj* elem = {};
 	TPointerList* pList = {};
@@ -7369,7 +7369,7 @@ void __stdcall FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the GICSources  interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall GICSourcesI(int mode, int arg)
+int GICSourcesI(int mode, int arg)
 {
 	TGICSourceObj*	pElem = nullptr;
 	int				result = 0;
@@ -7443,7 +7443,7 @@ int __stdcall GICSourcesI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall GICSourcesF(int mode, double arg)
+double GICSourcesF(int mode, double arg)
 {
 	TGICSourceObj*	elem = nullptr; // Default return value
 	double			result = 0.0;
@@ -7560,7 +7560,7 @@ double __stdcall GICSourcesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall GICSourcesS(int mode, char* arg)
+char* GICSourcesS(int mode, char* arg)
 {
 	string	S = "",
 			result = "0";   // Default return value;
@@ -7606,7 +7606,7 @@ char* __stdcall GICSourcesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall GICSourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void GICSourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TGICSourceObj* GICElem = {};
 	TPointerList* ElementList = {};
@@ -7652,7 +7652,7 @@ void __stdcall GICSourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the Isource interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall IsourceI(int mode, int arg)
+int IsourceI(int mode, int arg)
 {
 	TIsourceObj* pElem;
 	int result = 0;
@@ -7716,7 +7716,7 @@ int __stdcall IsourceI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall IsourceF(int mode, double arg)
+double IsourceF(int mode, double arg)
 {
 	TIsourceObj* elem;
 	double result = 0.0;
@@ -7774,7 +7774,7 @@ double __stdcall IsourceF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall IsourceS(int mode, char* arg)
+char* IsourceS(int mode, char* arg)
 {
 	TDSSCktElement* elem = nullptr;
 	string result = ""; // Default return value
@@ -7810,7 +7810,7 @@ char* __stdcall IsourceS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall IsourceV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void IsourceV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TIsourceObj* elem = nullptr;
 	TPointerList* pList = nullptr;
@@ -7856,7 +7856,7 @@ void __stdcall IsourceV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the LineCodes interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall LineCodesI(int mode, int arg)
+int LineCodesI(int mode, int arg)
 {
 	TLineCodeObj* pLineCode = nullptr;
 	int result = 0;
@@ -7940,7 +7940,7 @@ int __stdcall LineCodesI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall LineCodesF(int mode, double arg)
+double LineCodesF(int mode, double arg)
 {
 	TLineCodeObj* pLineCode = nullptr;
 	double result = 0.0;
@@ -8077,7 +8077,7 @@ double __stdcall LineCodesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall LineCodesS(int mode, char* arg)
+char* LineCodesS(int mode, char* arg)
 {
 	TLineCodeObj* pLineCode = nullptr;
 	string result = ""; // Default return value
@@ -8111,7 +8111,7 @@ char* __stdcall LineCodesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TLineCodeObj* pLineCode = nullptr;
 	int		i = 0, 
@@ -8302,7 +8302,7 @@ void __stdcall LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 TLoadShapeObj* ActiveLSObject = nullptr;
 
-int __stdcall LoadShapeI(int mode, int arg)
+int LoadShapeI(int mode, int arg)
 {
 	int iElem;
 	int result = 0;
@@ -8403,7 +8403,7 @@ int __stdcall LoadShapeI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall LoadShapeF(int mode, double arg)
+double LoadShapeF(int mode, double arg)
 {
 	double result = 0.0;
 	switch (mode)
@@ -8510,7 +8510,7 @@ double __stdcall LoadShapeF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall LoadShapeS(int mode, char* arg)
+char* LoadShapeS(int mode, char* arg)
 {
 	TLoadShapeObj* elem;
 	string result = ""; // Default return value
@@ -8547,7 +8547,7 @@ char* __stdcall LoadShapeS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TLoadShapeObj*	elem = nullptr;
 	int				i = 0, 
@@ -8793,7 +8793,7 @@ void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // Implements the Meters interface for the DLL
 //--------------------------------------------------------------------------------
-int __stdcall MetersI(int mode, int arg)
+int MetersI(int mode, int arg)
 {
 	TEnergyMeterObj* pMeter = {};
 	bool AssumeRestoration = false;
@@ -9141,7 +9141,7 @@ int __stdcall MetersI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall MetersF(int mode, double arg)
+double MetersF(int mode, double arg)
 {
 	TEnergyMeterObj* pMeterObj = nullptr;
 	double result = 0.0; // Default return value
@@ -9245,7 +9245,7 @@ double __stdcall MetersF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall MetersS(int mode, char* arg)
+char* MetersS(int mode, char* arg)
 {
 	TEnergyMeterObj*	pMeterObj = {};
 	int					ActiveSave = 0;
@@ -9324,7 +9324,7 @@ char* __stdcall MetersS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall MetersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void MetersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TEnergyMeterObj*	pMeter = nullptr;
 	TEnergyMeterObj*	pMeterObj = nullptr;
@@ -9671,7 +9671,7 @@ void ReadMonitorHeader(THeaderRec* HeaderRec, bool Opt)
 
 }
 // ******************************int type properties************************* 
-int __stdcall MonitorsI(int mode, int arg)
+int MonitorsI(int mode, int arg)
 {
 	TMonitorObj*	pMon = {};
 	THeaderRec		Header;
@@ -9870,7 +9870,7 @@ int __stdcall MonitorsI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall MonitorsS(int mode, char* arg)
+char* MonitorsS(int mode, char* arg)
 {
 	TMonitorObj*	pMon = nullptr;
 	THeaderRec		Header;
@@ -9961,7 +9961,7 @@ char* __stdcall MonitorsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TMonitorObj*	MonitorElem = nullptr;
 	TMonitorObj*	pMon = nullptr;
@@ -10199,7 +10199,7 @@ void __stdcall MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Parallel interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall ParallelI(int mode, int arg)
+int ParallelI(int mode, int arg)
 {
 	int result = 0; //Default Return Value
 	switch (mode)
@@ -10283,7 +10283,7 @@ int __stdcall ParallelI(int mode, int arg)
 	return result;
 }
 //************************Structure type properties*******************************
-void __stdcall ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int i = 0;
 
@@ -10326,7 +10326,7 @@ TParser* ComParser = new TParser;
 // Implements the Parser  interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall ParserI(int mode, int arg)
+int ParserI(int mode, int arg)
 {
 
 	int result = 0;
@@ -10359,7 +10359,7 @@ int __stdcall ParserI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall ParserF(int mode, double arg)
+double ParserF(int mode, double arg)
 {
 	double result = 0.0;
 	switch (mode)
@@ -10374,7 +10374,7 @@ double __stdcall ParserF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall ParserS(int mode, char* arg)
+char* ParserS(int mode, char* arg)
 {
 	string result = 0;
 	switch (mode)
@@ -10424,7 +10424,7 @@ char* __stdcall ParserS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall ParserV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void ParserV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int				i = 0,
 					ActualSize = 0,
@@ -10498,7 +10498,7 @@ void __stdcall ParserV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the PDElements   interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall PDElementsI(int mode, int arg)
+int PDElementsI(int mode, int arg)
 {
 	TPDElement* ActivePDElement = nullptr;
 	int			result = 0;
@@ -10633,7 +10633,7 @@ int __stdcall PDElementsI(int mode, int arg)
 	return result;
 }
 // ******************************floating point type properties************************* 
-double __stdcall PDElementsF(int mode, double arg)
+double PDElementsF(int mode, double arg)
 {
 	TPDElement* ActivePDElement = {};
 	double		result = 0.0;
@@ -10734,7 +10734,7 @@ double __stdcall PDElementsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall PDElementsS(int mode, char* arg)
+char* PDElementsS(int mode, char* arg)
 {
 	TPDElement* ActivePDElement = nullptr;
 	string		result = "", // Default return value
@@ -10787,7 +10787,7 @@ char* __stdcall PDElementsS(int mode, char* arg)
 // Implements the PVsystems    interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall PVsystemsI(int mode, int arg)
+int PVsystemsI(int mode, int arg)
 {
 	TPVsystemObj*	pPVSystem = nullptr;
 	int				result = 0;
@@ -10867,7 +10867,7 @@ int __stdcall PVsystemsI(int mode, int arg)
 	return result;
 }// ******************************floating point type properties************************* 
 //******************************Float point type properties****************************
-double __stdcall PVsystemsF(int mode, double arg)
+double PVsystemsF(int mode, double arg)
 {
 	double result = 0.0; // Default return value
 	switch (mode)
@@ -11003,7 +11003,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall PVsystemsS(int mode, char* arg)
+char* PVsystemsS(int mode, char* arg)
 {
 	TPVsystemObj*	pPVSystem = nullptr;
 	TPVsystemObj*	PVSystem = nullptr;
@@ -11073,7 +11073,7 @@ char* __stdcall PVsystemsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall PVsystemsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void PVsystemsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TPVsystemObj* PVSystemElem=nullptr;
 
@@ -11131,7 +11131,7 @@ void Set_ParameterReC(string parm, string val)
 }
 
 // ******************************int type properties************************* 
-int __stdcall ReclosersI(int mode, int arg)
+int ReclosersI(int mode, int arg)
 {
 	int result = 0;
 	TRecloserObj* pElem = nullptr;
@@ -11290,7 +11290,7 @@ int __stdcall ReclosersI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall ReclosersF(int mode, double arg)
+double ReclosersF(int mode, double arg)
 {
 	double result = 0.0; // Default return value
 	TRecloserObj* elem = nullptr;
@@ -11360,7 +11360,7 @@ double __stdcall ReclosersF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall ReclosersS(int mode, char* arg)
+char* ReclosersS(int mode, char* arg)
 {
 	TRecloserObj*	elem = nullptr;
 	string			result = "", // Default return value
@@ -11466,7 +11466,7 @@ char* __stdcall ReclosersS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TRecloserObj* elem = nullptr;
 	TPointerList* pList = nullptr;
@@ -11536,7 +11536,7 @@ void __stdcall ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
 
-int __stdcall ReactorsI(int mode, int arg)
+int ReactorsI(int mode, int arg)
 {
     int Result = 0;
     TReactorObj* Elem = nullptr;
@@ -11617,7 +11617,7 @@ int __stdcall ReactorsI(int mode, int arg)
 }
 
 //******************************Float point type properties****************************
-double __stdcall ReactorsF(int mode, double arg)
+double ReactorsF(int mode, double arg)
 {
     double Result = 0.0;
     TReactorObj* Elem = nullptr;
@@ -11692,7 +11692,7 @@ double __stdcall ReactorsF(int mode, double arg)
 }
 
 //******************************String type properties*********************************
-char* __stdcall ReactorsS(int mode, char* arg)
+char* ReactorsS(int mode, char* arg)
 {
     string	Result = "", // Default return value
 			S = "";
@@ -11778,7 +11778,7 @@ char* __stdcall ReactorsS(int mode, char* arg)
 }
 
 //************************Structure type properties*******************************
-void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
     TReactorObj* Elem = nullptr;
     TPointerList* pList = nullptr;
@@ -12074,7 +12074,7 @@ string FirstPDelement = "";
 // Implements the ReduceCkt   interface for the DLL  
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall ReduceCktI(int mode, int arg)
+int ReduceCktI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -12235,7 +12235,7 @@ int __stdcall ReduceCktI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall ReduceCktF(int mode, double arg)
+double ReduceCktF(int mode, double arg)
 {
 	double result = 0.0;
 
@@ -12260,7 +12260,7 @@ double __stdcall ReduceCktF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall ReduceCktS(int mode, char* arg)
+char* ReduceCktS(int mode, char* arg)
 {
 	string result = "";
 	switch (mode)
@@ -12300,7 +12300,7 @@ char* __stdcall ReduceCktS(int mode, char* arg)
 // Implements the RegControls  interface for the DLL  
 //--------------------------------------------------------------------------------
 // // ******************************Help Functions************************* 
-TRegControlObj* __stdcall ActiveRegControl()
+TRegControlObj* ActiveRegControl()
 {
 	TRegControlObj* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
@@ -12320,7 +12320,7 @@ void Set_ParameterRegC(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall RegControlsI(int mode, int arg)
+int RegControlsI(int mode, int arg)
 {
 	TRegControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -12457,7 +12457,7 @@ int __stdcall RegControlsI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall RegControlsF(int mode, double arg)
+double RegControlsF(int mode, double arg)
 {
 	TRegControlObj* elem = nullptr;
 	double			result = 0.0;
@@ -12611,7 +12611,7 @@ double __stdcall RegControlsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall RegControlsS(int mode, char* arg)
+char* RegControlsS(int mode, char* arg)
 {
 	TRegControlObj* elem = nullptr;
 	TPointerList* lst = nullptr;
@@ -12684,7 +12684,7 @@ char* __stdcall RegControlsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall RegControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void RegControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TRegControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -12744,7 +12744,7 @@ void Set_ParameterRelay(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall RelaysI(int mode, int arg)
+int RelaysI(int mode, int arg)
 {
 	TRelayObj*	pElem = nullptr;
 	TRelayObj*	elem = nullptr;
@@ -12872,7 +12872,7 @@ int __stdcall RelaysI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall RelaysS(int mode, char* arg)
+char* RelaysS(int mode, char* arg)
 {
 	TRelayObj*	elem = nullptr;
 	string		result = "";    // Default return value
@@ -12985,7 +12985,7 @@ char* __stdcall RelaysS(int mode, char* arg)
 	return  presult;
 }
 //******************************String type properties****************************
-void __stdcall RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TRelayObj*		elem = nullptr;
 	TPointerList*	pList = nullptr;
@@ -13032,7 +13032,7 @@ void __stdcall RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Sensors interface for the DLL  
 //--------------------------------------------------------------------------------
 //  // ******************************Help Functions************************* 
-TSensorObj* __stdcall ActiveSensor()
+TSensorObj* ActiveSensor()
 {
 	TSensorObj* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
@@ -13053,7 +13053,7 @@ void Set_ParameterSensor(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall SensorsI(int mode, int arg)
+int SensorsI(int mode, int arg)
 {
 	TSensorObj*		elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -13165,7 +13165,7 @@ int __stdcall SensorsI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall SensorsF(int mode, double arg)
+double SensorsF(int mode, double arg)
 {
 	TSensorObj* elem = nullptr;
 	double		result = 0.0;
@@ -13208,7 +13208,7 @@ double __stdcall SensorsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall SensorsS(int mode, char* arg)
+char* SensorsS(int mode, char* arg)
 {
 	TSensorObj*		elem = nullptr;
 	int				ActiveSave = 0;
@@ -13271,7 +13271,7 @@ char* __stdcall SensorsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TSensorObj* elem = nullptr;
 	int			k = 0,
@@ -13430,7 +13430,7 @@ void __stdcall SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Settings   interface for the DLL 
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall SettingsI(int mode, int arg)
+int SettingsI(int mode, int arg)
 {
 	int result = 0;
 	switch (mode)
@@ -13530,7 +13530,7 @@ int __stdcall SettingsI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall SettingsF(int mode, double arg)
+double SettingsF(int mode, double arg)
 {
 	double result = 0.0;
 	switch (mode)
@@ -13632,7 +13632,7 @@ double __stdcall SettingsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall SettingsS(int mode, char* arg)
+char* SettingsS(int mode, char* arg)
 {
 	string	result = "";  // Deafult return value
 	int		i = 0;
@@ -13683,7 +13683,7 @@ char* __stdcall SettingsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall SettingsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void SettingsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int		i = 0,
 			j = 0,
@@ -13809,7 +13809,7 @@ void __stdcall SettingsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Solution interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall SolutionI(int mode, int arg)
+int SolutionI(int mode, int arg)
 {
 	int i = 0,
 		result = 0;
@@ -14150,7 +14150,7 @@ int __stdcall SolutionI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall SolutionF(int mode, double arg)
+double SolutionF(int mode, double arg)
 {
 	double result = 0.0;
 
@@ -14337,7 +14337,7 @@ double __stdcall SolutionF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall SolutionS(int mode, char* arg)
+char* SolutionS(int mode, char* arg)
 {
 	TLoadShapeObj*	TestLoadShapeOb = nullptr;
 	string			result = "";  // Deafult return value
@@ -14425,7 +14425,7 @@ char* __stdcall SolutionS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int Counter = 0, 
 		i = 0,
@@ -14587,7 +14587,7 @@ void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Storages interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall StoragesI(int mode, int arg)
+int StoragesI(int mode, int arg)
 {
     TStorageObj* pStorageElem	 = nullptr;
     int			Result			= 0;	// Default return value
@@ -14754,7 +14754,7 @@ int __stdcall StoragesI(int mode, int arg)
 	return Result;
 }
 //******************************Float point type properties****************************
-double __stdcall StoragesF(int mode, double arg)
+double StoragesF(int mode, double arg)
 {
     TStorageObj*	pStorageElem	= nullptr;
     double			Result			= 0;		// Default return value
@@ -15249,7 +15249,7 @@ double __stdcall StoragesF(int mode, double arg)
     return Result;
 }
 //******************************String type properties****************************
-char* __stdcall StoragesS(int mode, char* arg)
+char* StoragesS(int mode, char* arg)
 {
     TStorageObj*	pStorageElem	= nullptr;
     string			S				= "",
@@ -15309,7 +15309,7 @@ char* __stdcall StoragesS(int mode, char* arg)
     return presult;
 }
 //************************Structure type properties*******************************
-void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
     TStorageObj*	pStorageElem = nullptr;
     int				k			 = 0;
@@ -15402,7 +15402,7 @@ void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 //--------------------------------------------------------------------------------
 // ******************************Help Functions************************* 
 
-TSwtControlObj* __stdcall ActiveSwtControl()
+TSwtControlObj* ActiveSwtControl()
 {
 	TSwtControlObj* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
@@ -15423,7 +15423,7 @@ void Set_ParameterSwtControl(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall SwtControlsI(int mode, int arg)
+int SwtControlsI(int mode, int arg)
 {
 	TSwtControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -15563,7 +15563,7 @@ int __stdcall SwtControlsI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall SwtControlsF(int mode, double arg)
+double SwtControlsF(int mode, double arg)
 {
 	TSwtControlObj* elem = nullptr;
 	double			result = 0.0;
@@ -15588,7 +15588,7 @@ double __stdcall SwtControlsF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall SwtControlsS(int mode, char* arg)
+char* SwtControlsS(int mode, char* arg)
 {
 	TSwtControlObj* elem = nullptr;
 	int				ActiveSave = 0;
@@ -15653,7 +15653,7 @@ char* __stdcall SwtControlsS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TSwtControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -15753,7 +15753,7 @@ int ActiveBranch()
 }
 
 // ******************************int type properties************************* 
-int __stdcall TopologyI(int mode, int arg)
+int TopologyI(int mode, int arg)
 {
 	TCktTree*		topo = nullptr;
 	TPDElement*		pdElem = nullptr;
@@ -15906,7 +15906,7 @@ int __stdcall TopologyI(int mode, int arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall TopologyS(int mode, char* arg)
+char* TopologyS(int mode, char* arg)
 {
 	TCktTreeNode*	node = nullptr;
 	TDSSCktElement* elm = nullptr;
@@ -16017,7 +16017,7 @@ char* __stdcall TopologyS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall TopologyV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void TopologyV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TCktTree*	topo = nullptr;
 	TPDElement* pdElem = nullptr;
@@ -16190,7 +16190,7 @@ void __stdcall TopologyV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the Transformers   interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************Help Functions*************************
-TTransfObj* __stdcall ActiveTransformer()
+TTransfObj* ActiveTransformer()
 {
 	TTransfObj* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
@@ -16211,7 +16211,7 @@ void Set_ParameterTransformer(string parm, string val)
 	}
 }
 // ******************************int type properties************************* 
-int __stdcall TransformersI(int mode, int arg)
+int TransformersI(int mode, int arg)
 {
 	TTransfObj*		elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -16378,7 +16378,7 @@ int __stdcall TransformersI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall TransformersF(int mode, double arg)
+double TransformersF(int mode, double arg)
 {
 	TTransfObj* elem = nullptr;
 	double result = 0.0;
@@ -16524,7 +16524,7 @@ double __stdcall TransformersF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall TransformersS(int mode, char* arg)
+char* TransformersS(int mode, char* arg)
 {
 	TTransfObj*		elem = nullptr;
 	int				ActiveSave = 0;
@@ -16599,7 +16599,7 @@ char* __stdcall TransformersS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TTransfObj*		elem = nullptr;
 	TPointerList*	lst = nullptr;
@@ -16697,7 +16697,7 @@ void __stdcall TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySiz
 // Implements the VSources    interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall VsourcesI(int mode, int arg)
+int VsourcesI(int mode, int arg)
 {
 	TVsourceObj*	pElem = nullptr;
 	TVsourceObj*	elem = nullptr;
@@ -16778,7 +16778,7 @@ int __stdcall VsourcesI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall VsourcesF(int mode, double arg)
+double VsourcesF(int mode, double arg)
 {
 	TVsourceObj*	elem = nullptr;
 	double			result = 0.0;
@@ -16852,7 +16852,7 @@ double __stdcall VsourcesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall VsourcesS(int mode, char* arg)
+char* VsourcesS(int mode, char* arg)
 {
 	TDSSCktElement* elem = nullptr;
 	string			result = "";    // Default return value
@@ -16889,7 +16889,7 @@ char* __stdcall VsourcesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TVsourceObj*	elem = nullptr;
 	TPointerList*	pList = nullptr;
@@ -16937,7 +16937,7 @@ void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the WindGens interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties*************************
-int __stdcall WindGensI(int mode, int arg)
+int WindGensI(int mode, int arg)
 {
     TWindGenObj* WindGenElem = nullptr;
     TPointerList* pList = nullptr; 
@@ -17133,7 +17133,7 @@ int __stdcall WindGensI(int mode, int arg)
 
 }
 //******************************Float point type properties****************************
-double __stdcall WindGensF(int mode, double arg)
+double WindGensF(int mode, double arg)
 {
     TWindGenObj* WindGenElem = nullptr;
     double Result = 0.0; // Default return value
@@ -17580,7 +17580,7 @@ double __stdcall WindGensF(int mode, double arg)
     return Result;
 }
 //******************************String type properties****************************
-char* __stdcall WindGensS(int mode, char* arg)
+char* WindGensS(int mode, char* arg)
 {
     TWindGenObj*	WindGenElem = nullptr;
 	int				k	=	0,
@@ -17641,7 +17641,7 @@ char* __stdcall WindGensS(int mode, char* arg)
     return presult;
 }
 //************************Structure type properties*******************************
-void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
     TWindGenObj*	WindGenElem = nullptr;
     int				k = 0;
@@ -17727,7 +17727,7 @@ void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the XYCurves    interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************int type properties************************* 
-int __stdcall XYCurvesI(int mode, int arg)
+int XYCurvesI(int mode, int arg)
 {
 	TXYcurveObj*	pXYCurve = nullptr;
 	int				result = 0;
@@ -17791,7 +17791,7 @@ int __stdcall XYCurvesI(int mode, int arg)
 	return result;
 }
 //******************************Float point type properties****************************
-double __stdcall XYCurvesF(int mode, double arg)
+double XYCurvesF(int mode, double arg)
 {
 	TXYcurveObj*	pXYCurve = nullptr;
 	double			result = 0.0;
@@ -17979,7 +17979,7 @@ double __stdcall XYCurvesF(int mode, double arg)
 	return result;
 }
 //******************************String type properties****************************
-char* __stdcall XYCurvesS(int mode, char* arg)
+char* XYCurvesS(int mode, char* arg)
 {
 	TXYcurveObj*	pXYCurve = nullptr;
 	string			result ="";
@@ -18015,7 +18015,7 @@ char* __stdcall XYCurvesS(int mode, char* arg)
 	return  presult;
 }
 //************************Structure type properties*******************************
-void __stdcall XYCurvesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void XYCurvesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TXYcurveObj* pXYCurve = nullptr;
 	int				k = 0,
@@ -18132,7 +18132,7 @@ void __stdcall XYCurvesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 //************************Structure type properties*******************************
 
-int __stdcall CtrlQueueI(int mode, int arg)
+int CtrlQueueI(int mode, int arg)
 {
 	int Result = 0;
 
@@ -18209,7 +18209,7 @@ int __stdcall CtrlQueueI(int mode, int arg)
 	return Result;
 }
 
-void __stdcall CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
+void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	double	ActionCode = 0.0,
 			Hour = 0.0,
@@ -18285,7 +18285,7 @@ void __stdcall CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	}
 }
 
-char* __stdcall DSSProperties(int mode, char* arg)
+char* DSSProperties(int mode, char* arg)
 {
 	string	Result = "";
 
@@ -18471,4 +18471,6 @@ void getVpointer(complex** VvectorPtr)
 void getIpointer(complex** IvectorPtr)
 {
 	*IvectorPtr = ActiveCircuit[ActiveActor]->Solution->Currents.data();
+}
+
 }
