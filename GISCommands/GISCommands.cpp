@@ -1598,7 +1598,7 @@ TIdThreadComponent GISThreadComponent;
       TLineObj pLine;
       if ( IsGISON )
       {
-        switch ( myShape[1] )
+        switch ( myShape[0] )
         {
           case // Parse the shape specified
           'c':

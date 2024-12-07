@@ -221,12 +221,12 @@ int TPriceShape::Edit(int ActorID)
 				with0->Interval = double(Parser[ActorID]->MakeDouble_()) / 60.0;
 				break;  // Convert minutes to hr
 				case 	12:
-				switch(LowerCase(Param)[1])
+				switch(LowerCase(Param)[0])
 				{
-					case 	L'd':
+					case 	'd':
 					with0->SaveToDblFile();
 					break;
-					case 	L's':
+					case 	's':
 					with0->SaveToSngFile();
 					break;
 					default:
