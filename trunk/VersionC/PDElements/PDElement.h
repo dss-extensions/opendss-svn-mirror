@@ -37,8 +37,8 @@ namespace PDELement
 	public:
 		typedef CktElement::TDSSCktElement inherited;	
 	//private:
-		Ucomplex::complex Get_ExcessKVANorm(int idxTerm, int ActorID);
-		Ucomplex::complex Get_ExcessKVAEmerg(int idxTerm, int ActorID);
+		Ucomplex::complex Get_ExcessKVANorm(int idxTerm, int ActorID, complex* powerOut=nullptr);
+		Ucomplex::complex Get_ExcessKVAEmerg(int idxTerm, int ActorID, complex* powerIn=nullptr);
 	public:  // annual faults per year
 		// percent of faults that are permanent in this element
 		// net failure rate for this branch
