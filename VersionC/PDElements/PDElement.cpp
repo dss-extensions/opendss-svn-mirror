@@ -256,7 +256,7 @@ void TPDElement::GetCurrents(pComplexArray Curr, int ActorID)
 
 //- - - - - - - - - - - - - - - - - - - - - -
 
-complex TPDElement::Get_ExcessKVANorm(int idxTerm, int ActorID)
+complex TPDElement::Get_ExcessKVANorm(int idxTerm, int ActorID, complex* powerOut)
 {
 	complex result	= CZero;
 	double	Factor	= 0.0;
@@ -269,6 +269,12 @@ complex TPDElement::Get_ExcessKVANorm(int idxTerm, int ActorID)
 		return result;
 	}
 	kVA		= cmulreal(Get_Power(idxTerm, ActorID), 0.001);  // Also forces computation of Current into Itemp
+	if (powerOut != nullptr)
+	{
+		// If the calling code requests, save a copy of the kVA value to reuse elsewhere
+		*powerOut = kVA;
+	}
+
 	Factor = (MaxTerminalOneIMag(ActorID) / NormAmps - 1.0);
 	if(Factor > 0.0)
 	{
@@ -286,7 +292,7 @@ complex TPDElement::Get_ExcessKVANorm(int idxTerm, int ActorID)
 
 //- - - - - - - - - - - - - - - - - - - - - -
 
-complex TPDElement::Get_ExcessKVAEmerg(int idxTerm, int ActorID)
+complex TPDElement::Get_ExcessKVAEmerg(int idxTerm, int ActorID, complex* powerIn)
 {
 	complex result = {};
 	double Factor = 0.0;
@@ -297,7 +303,16 @@ complex TPDElement::Get_ExcessKVAEmerg(int idxTerm, int ActorID)
 		result = CZero;
 		return result;
 	}
-	kVA = cmulreal(Get_Power(idxTerm, ActorID), 0.001);  // Also forces computation of Current into Itemp
+	if (powerIn != nullptr)
+	{
+		// If available, use the precomputed kVA values from powerIn
+		kVA = *powerIn;
+	}
+	else
+	{
+		kVA = cmulreal(Get_Power(idxTerm, ActorID), 0.001);  // Also forces computation of Current into Itemp
+	}
+
 	Factor = (MaxTerminalOneIMag(ActorID) / EmergAmps - 1.0);
 	if(Factor > 0.0)
 	{
