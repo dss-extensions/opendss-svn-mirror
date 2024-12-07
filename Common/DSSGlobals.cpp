@@ -664,7 +664,7 @@ namespace DSSGlobals
         //  iLastError = GetLastError;
         //  result = Format( "GetFileVersionInfo failed: (%d) %s", ARRAYOFCONST(( iLastError, SysErrorMessage( iLastError ) )) );
         //}
-        result = "10.0.0.1 @ C++";  // returns a string for now
+        result = OPENDSSC_PROJECT_VERSION " @ C++";  // returns a string for now
         return result;
     }
 

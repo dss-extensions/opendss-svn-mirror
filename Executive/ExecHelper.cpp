@@ -2,11 +2,13 @@
 
 #include "ExecHelper.h"
 #include "dirsep.h"
+
+#ifdef OPENDSSC_EXPERIMENTAL
 #include <gencls.h>
 #include <genrou.h>
 #include <ExcSexs.h>
 #include <tgov.h>
-
+#endif
 
 
 using namespace std;

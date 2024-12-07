@@ -80,14 +80,14 @@ namespace DSSClassDefs
     const int WINDGEN_ELEMENT = 43 * 8;
 
     // BHSL
+    
+#ifdef OPENDSSC_EXPERIMENTAL
     const int GENMODELS_ELEMENT = 44 * 8;
     const int GENCLS_ELEMENT = 45 * 8;
     const int GENROU_ELEMENT = 46 * 8;
-    
     const int EXCSEXS_ELEMENT = 50 * 8;
-    
     const int TGOV_ELEMENT = 51 * 8;
-
+#endif
     extern int NumIntrinsicClasses, NumUserClasses;
     void CreateDSSClasses();
     void DisposeDSSClasses(bool AllActors);
