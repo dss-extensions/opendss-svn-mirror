@@ -292,9 +292,15 @@ namespace Solution
         void Set_Total_Time(const double Value);
         //=============================================================================================================================================================
         /* NCIM algorithm rotuines and variables */
+#ifndef OPENDSSC_KLUSOLVEX
         vector <complex>        deltaZ,                                     // delta for Injection currents
-                                deltaF,                                     // delta for Voltages
-                                pNodePower,                                 // Array of complex storing the total power per node
+                                deltaF;                                     // delta for Voltages
+#else
+        vector <double>         deltaZ,                                     // delta for Injection currents
+                                deltaF;                                     // delta for Voltages
+#endif
+
+        vector <complex>        pNodePower,                                 // Array of complex storing the total power per node
                                 pGenPower,                                  // Stores the total generation power per iteration
                                 NCIMY,                                      // Stores the Non-zero values of the YBus Marix for multiplication
                                 pNodeLimits;                                // Stores the total Q limits for PV buses using all the nodes in the model
