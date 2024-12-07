@@ -29,6 +29,7 @@ global:
     CmathLibV;
     CtrlQueueI;
     CtrlQueueV;
+    DSSDisposeString;
     DSSElementI;
     DSSElementS;
     DSSElementV;
