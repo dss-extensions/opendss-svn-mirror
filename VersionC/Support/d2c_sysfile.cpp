@@ -593,13 +593,16 @@ void Do_Open( void* F, Char* P, int Flags )
     return;
   }
 /* real Open call */
-  ((TFileRec*) F )->Handle = fpopen( P, oflags, MODE_OPEN );
-  if ( ( ((TFileRec*) F )->Handle < 0 ) && ( geterrno() == ESysEROFS ) && ( ( ( oflags & O_RDWR ) ) != 0 ) )
+  intptr_t intHandle = fpopen( P, oflags, MODE_OPEN );
+  ((TFileRec*) F )->Handle = (THandle) intHandle; // cast to unsigned
+
+  if ((intHandle < 0) && ( geterrno() == ESysEROFS ) && ( ( ( oflags & O_RDWR ) ) != 0 ) )
   {
     oflags = oflags & ~ ( O_RDWR );
-    ((TFileRec*) F )->Handle = fpopen( P, oflags, MODE_OPEN );
+    intHandle = fpopen( P, oflags, MODE_OPEN );
+    ((TFileRec*) F )->Handle = (THandle) intHandle;
   }
-  if ( ((TFileRec*) F )->Handle < 0 )
+  if (intHandle < 0)
     Errno2InOutRes();
   else
     InOutRes = 0;
