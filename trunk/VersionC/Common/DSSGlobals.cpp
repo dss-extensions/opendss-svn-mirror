@@ -366,8 +366,7 @@ namespace DSSGlobals
 
     String BArray2Str(void* myPtr, int* idx)
     {
-        string  S = "",
-            result = "";
+        string S = "";
         uint8_t* PChar;
         int     i = *idx;
 
@@ -376,8 +375,8 @@ namespace DSSGlobals
         {
             S = S + char(PChar[i]);
             i++;
-            *idx = *idx + 1;
         }
+        *idx = i + 1;
         return S;
     }
 
