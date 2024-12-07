@@ -161,12 +161,14 @@ namespace Circuit
         Relays = TPointerList(10);
         Fuses = TPointerList(50);
 
+#ifdef OPENDSSC_EXPERIMENTAL
         // BHSL
         Gencls = TPointerList(50);
         Genrou = TPointerList(50);
         //JT
         ExcSexs = TPointerList(50);
         Tgov = TPointerList(50);
+#endif
 
         Buses.resize(MaxBuses);
         MapNodeToBus.resize(MaxNodes);

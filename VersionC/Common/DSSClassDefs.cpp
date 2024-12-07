@@ -64,6 +64,8 @@
 #include "Generic5OrderMach.h"
      // By Dahei
 #include "fMonitor.h"
+
+#ifdef OPENDSSC_EXPERIMENTAL
 // BHSL
 #include "gencls.h"
 #include "genrou.h"
@@ -71,6 +73,7 @@
 #include "ExcSexs.h"
 // BLS
 #include "tgov.h"
+#endif
     
 namespace DSSClassDefs
 {
@@ -189,12 +192,13 @@ namespace DSSClassDefs
         TDynamicExpClass[ActiveActor] = new TDynamicExp();
         DSSClasses->Set_New(TDynamicExpClass[ActiveActor]);
 
+#ifdef OPENDSSC_EXPERIMENTAL
         /* Add new dynamic model capability */
         DSSClasses->Set_New(new TGencls());
         DSSClasses->Set_New(new TGenrou());
         DSSClasses->Set_New(new TExcSexs());
         DSSClasses->Set_New(new TTgov());
-
+#endif
         /* Create Classes for custom implementations */
         CreateMyDSSClasses();
         NumIntrinsicClasses = DSSClassList[ActiveActor].get_myNumList();

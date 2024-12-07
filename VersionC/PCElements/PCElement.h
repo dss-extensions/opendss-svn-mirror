@@ -94,7 +94,7 @@ public:
 
 	//__declspec ( property ( get = Get_Variable, put = Set_Variable ) )  double Variable[];
 	////       Property ITerminalUpdated:Boolean read FITerminalUpdated write set_ITerminalUpdated;
-	//__declspec ( property(get = get_FITerminalUpdated, put = set_ITerminalUpdated)) bool ITerminalUpdated[]DECLSPEC_2D;
+	//__declspec ( property(get = get_FITerminalUpdated, put = set_ITerminalUpdated)) bool ITerminalUpdated[][];
 //	TPCElement(TDSSClass* ParClass);
 	TPCElement(String ClassName);
 	TPCElement();

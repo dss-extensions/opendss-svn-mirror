@@ -185,6 +185,7 @@ namespace Circuit
         TPointerList ExpControls;
         TPointerList CktElements;
 
+#ifdef OPENDSSC_EXPERIMENTAL
         // BHSL
         TPointerList Gencls;
         TPointerList Genrou;
@@ -192,6 +193,7 @@ namespace Circuit
 
         TPointerList ExcSexs;
         TPointerList Tgov;
+#endif
 
         ControlQueue::TControlQueue ControlQueue;
         TSolutionObj* Solution;
