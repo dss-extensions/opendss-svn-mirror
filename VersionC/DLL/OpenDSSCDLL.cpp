@@ -11875,17 +11875,15 @@ void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				Elem    =  (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
 				if (ASSIGNED(Elem))
 				{
-					auto with0 = Elem;
-					
-					realloc(with0->Rmatrix,sizeof(double) *  Sqr(with0->Get_NPhases()));
-                    for( i = 0; i < Sqr(with0->Get_NPhases()); i++)
+					Elem->Rmatrix = (Arraydef::pDoubleArray) realloc(Elem->Rmatrix, sizeof(double) *  Sqr(Elem->Get_NPhases()));
+                    for( i = 0; i < Sqr(Elem->Get_NPhases()); i++)
 					{
                         PDouble = *(double**)myPtr;
-						with0->Rmatrix[i] = *PDouble;
+						Elem->Rmatrix[i] = *PDouble;
 						k++;
 						PDouble++;
 					}
-					with0->Set_YprimInvalid(ActiveActor,true);
+					Elem->Set_YprimInvalid(ActiveActor,true);
 				}
 			}
 			*mySize  =  k;
@@ -11922,17 +11920,15 @@ void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
                 if (ASSIGNED(Elem))
                 {
-                    auto with0 = Elem;
-
-                    realloc(with0->XMatrix, sizeof(double) * Sqr(with0->Get_NPhases()));
-                    for (i = 0; i < Sqr(with0->Get_NPhases()); i++)
+                    Elem->XMatrix = (Arraydef::pDoubleArray) realloc(Elem->XMatrix, sizeof(double) * Sqr(Elem->Get_NPhases()));
+                    for (i = 0; i < Sqr(Elem->Get_NPhases()); i++)
                     {
                         PDouble = *(double**)myPtr;
-                        with0->XMatrix[i] = *PDouble;
+                        Elem->XMatrix[i] = *PDouble;
                         k++;
                         PDouble++;
                     }
-                    with0->Set_YprimInvalid(ActiveActor, true);
+                    Elem->Set_YprimInvalid(ActiveActor, true);
                 }
             }
             *mySize = k;
