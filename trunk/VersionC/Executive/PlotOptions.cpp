@@ -250,11 +250,9 @@ int DoPlotCmd()
 
 	double DblBuffer[51];
 
-	if(NoFormsAllowed)
-	{
-		result = 1;
-		return result;
-	}
+	// Previously, the plot command would be completely skipped if 
+	// NoFormsAllowed has true. Now, we produce the DSV files first and 
+	// check NoFormsAllowed before running the viewer executable.
 	if(!ASSIGNED(DSSPlotObj))
 		DSSPlotObj = new TDSSPlot();
 	DSSPlotObj->SetDefaults();

@@ -1468,7 +1468,7 @@ namespace DSSPlot
     /* --------------------------------------------------------- */
 
 
-    void TDSSPlot::DoDI_Plot(const String CaseName, int CaseYear, const int* iRegisters, int iRegisters_maxidx, bool PeakDay, const String MeterName)
+    void TDSSPlot::DoDI_Plot(const String CaseName, int CaseYear, std::vector<int> &iRegisters, bool PeakDay, const String MeterName)
     {
         TTextRec    F;
         TStringList Names;
@@ -1483,7 +1483,7 @@ namespace DSSPlot
         /* If PeakDay=True then we only plot the peak of a 24-hr day */
         Names.clear();
         /* Open File */
-        FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\" + MeterName + ".CSV";
+        FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR + MeterName + "_1.CSV"; // Assumes first actor, always
         if (!FileExists(FileName))
         {
             DoSimpleMsg("File \"" + FileName + "\" does not exist.", 191);
@@ -1539,7 +1539,7 @@ namespace DSSPlot
         S = "MW, MWh or MVA";
         Set_YaxisLabel(S);
         S = "Registers: ";
-        for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+        for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
             S = S + Names[iRegisters[i]] + ", ";
         Set_ChartCaption(S);
 
@@ -1586,7 +1586,7 @@ namespace DSSPlot
                         }
                     }
                     ActiveColorIdx = 0;
-                    for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                    for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                     {
                         AddNewLine(Registers1[0], Registers1[iRegisters[i]], Registers2[0], Registers2[iRegisters[i]], NextColor(), 1, 0, false, " ", false, 0, 0, 0);
                     }
@@ -1600,7 +1600,7 @@ namespace DSSPlot
             }
             Set_KeepAspectRatio(false);
             Set_AutoRange(2.0); // 2% rim
-            //****      ShowGraph; { Form Freed on close }
+            ShowGraph();
         }
         catch (...)
         {
@@ -1735,6 +1735,9 @@ namespace DSSPlot
         bool        FirstYear = false;
         TDSSGraphProperties* ActiveGraphProps = new TDSSGraphProperties;
         TColor      DatColor = 0;
+        //NOTE: if the saved files were created with other actors, in other sessions, etc., 
+        //      there is no way to know that. Currently, it is better to assume a single actor.
+        // int         ActorID = 1;
 
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -1788,16 +1791,16 @@ namespace DSSPlot
                     switch (iPass)
                     {
                     case 1:
-                        FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\Totals.CSV";
+                        FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR "Totals_1.CSV";
                         break;
                     case 2:
                         if ((CompareText(WhichFile, "Totals") == 0) || (CompareText(WhichFile, "Systemmeter") == 0))
                         {
-                            FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\" + WhichFile + ".CSV";
+                            FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR + WhichFile + "_1.CSV";
                         }
                         else
                         {
-                            FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\" + "EnergyMeterTotals.CSV";
+                            FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR "EnergyMeterTotals_1.CSV";
                             SearchForMeterName = true;
                         }
                         break;
@@ -1989,18 +1992,18 @@ namespace DSSPlot
     }
 
 
-    void WriteFoutRecord(int opt, String CaseName, int CaseYear, Textfile& Fout, double* Registers1, double* Registers2, double* XValue, const int* iRegisters, int iRegisters_maxidx, int iX)
+    void WriteFoutRecord(int opt, String CaseName, int CaseYear, Textfile& Fout, double* Registers1, double* Registers2, double* XValue, std::vector<int> &iRegisters, int iX)
     {
         int i = 0;
         Write(Fout, Format("%s, %d, %.7g", CaseName.c_str(), CaseYear, XValue[iX]));
         switch (opt)
         {
         case 1:
-            for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+            for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                 Write(Fout, Format(", %.7g  ", Registers1[iRegisters[i]]));
             break;
         case 2:
-            for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+            for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                 Write(Fout, Format(", %.7g  ", Registers2[iRegisters[i]]));
             break;
         }
@@ -2008,7 +2011,7 @@ namespace DSSPlot
     }
 
 
-    void TDSSPlot::DoYearlyCurvePlot(TStringList CaseNames, String WhichFile, const int* iRegisters, int iRegisters_maxidx)
+    void TDSSPlot::DoYearlyCurvePlot(TStringList &CaseNames, String WhichFile, std::vector<int> &iRegisters)
 
         /* Plot yearly results from specified cases and registers in Totals.CSV files
           Vs Register 1 */
@@ -2070,10 +2073,10 @@ namespace DSSPlot
             IOResultToException();
             Write(Fout, "Case, Year, TotalMW");
             if ((ActiveEnergyMeterObj != NULL))
-                for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                     Write(Fout, Format(", \"%s\"", ActiveEnergyMeterObj->RegisterNames[iRegisters[i] - 1].c_str()));
             else
-                for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                     Write(Fout, Format(", \"Reg %d\"", iRegisters[i]));
             WriteLn(Fout);
 
@@ -2083,7 +2086,7 @@ namespace DSSPlot
             for (int stop = CaseNames.size(), iCase = 0; iCase < stop; iCase++)
             {
                 CaseName = CaseNames[iCase];
-                if (DirectoryExists(CaseName))
+                if (DirectoryExists(GetOutputDirectory() + CaseName))
                     // Do This in Two Passes to set the X Values at Register 7 of Totals.CSV
                 for (int stop = 2, iPass = 1; iPass <= stop; iPass++)
                 {
@@ -2096,17 +2099,17 @@ namespace DSSPlot
                         switch (iPass)
                         {
                         case 1:
-                            FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\Totals.CSV";
+                            FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR "Totals_1.CSV";
                             break;
                         default:
                         {
                             if ((CompareText(WhichFile, "Totals") == 0) || (CompareText(WhichFile, "Systemmeter") == 0))
                             {
-                                FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\" + WhichFile + ".CSV";
+                                FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR + WhichFile + "_1.CSV";
                             }
                             else
                             {
-                                FileName = CaseName + "\\di_yr_" + Trim(IntToStr(CaseYear)) + "\\" + "EnergyMeterTotals.CSV";
+                                FileName = GetOutputDirectory() + CaseName + DIRSEP_STR "DI_yr_" + Trim(IntToStr(CaseYear)) + DIRSEP_STR "EnergyMeterTotals_1.CSV";
                                 SearchForMeterName = true;
                             }
                         }
@@ -2138,7 +2141,7 @@ namespace DSSPlot
                                             Param = AuxParser[ActiveActor]->MakeString_();
                                         }
                                         S = String("Meter: ") + WhichFile + ", Registers: ";
-                                        for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                                        for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                                             S = S + Names[iRegisters[i]] + ", ";
                                         Set_ChartCaption(S);
                                     }
@@ -2178,7 +2181,7 @@ namespace DSSPlot
                                             XValue[iX] = Registers1[7];
                                             break;
                                         default:
-                                            WriteFoutRecord(1, CaseName, CaseYear, Fout, Registers1, Registers2, XValue, iRegisters, iRegisters_maxidx, iX);
+                                            WriteFoutRecord(1, CaseName, CaseYear, Fout, Registers1, Registers2, XValue, iRegisters, iX);
                                         }
                                         FirstYear = false;
                                     }
@@ -2199,12 +2202,12 @@ namespace DSSPlot
                                             break;
                                         default:
                                             ActiveColorIdx = ActiveColorStartThisCase;
-                                            for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                                            for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                                             {
                                                 AddNewLine(XValue[iX - 1], Registers1[iRegisters[i]], XValue[iX], Registers2[iRegisters[i]], NextColor(), 2, 0, false, " ", false, 0, 0, 0);
                                                 MarkAt(XValue[iX], Registers2[iRegisters[i]], GetMarker(ActiveColorIdx), 1);
                                             }
-                                            WriteFoutRecord(2, CaseName, CaseYear, Fout, Registers1, Registers2, XValue, iRegisters, iRegisters_maxidx, iX);
+                                            WriteFoutRecord(2, CaseName, CaseYear, Fout, Registers1, Registers2, XValue, iRegisters, iX);
                                             for (int stop = NumEMRegisters, i = 0; i <= stop; i++)
                                                 Registers1[i] = Registers2[i];
                                         }
@@ -2241,7 +2244,7 @@ namespace DSSPlot
                 {
                     CaseName = CaseNames[iCase];
                     if (DirectoryExists(CaseName))
-                        for (int stop = iRegisters_maxidx /*# High(iRegisters) */, i = 0; i <= stop; i++)
+                        for (int stop = iRegisters.size() - 1, i = 0; i <= stop; i++)
                         {
                             S = CaseNames[iCase] + ", " + Names[iRegisters[i]];
                             DatColor = NextColor();
@@ -2255,8 +2258,7 @@ namespace DSSPlot
             }
             Set_KeepAspectRatio(false);
             Set_AutoRange(2.0); // 2% rim
-            //****      ShowGraph; { Form Freed on close }
-            Names.clear();
+            ShowGraph();
         }
         catch (...)
         {
@@ -3401,7 +3403,7 @@ namespace DSSPlot
     }
 
 
-    void GetS(int Ncond, int Quantity, String S1, String S2, pComplexArray cBuffer, int k, double* kVBase1)
+    void GetS(int Ncond, int Quantity, String& S1, String& S2, pComplexArray cBuffer, int k, double* kVBase1)
     {
         switch (Quantity)
         {
@@ -3460,7 +3462,7 @@ namespace DSSPlot
 
     void TDSSPlot::DoVisualizationPlot(TDSSCktElement* Element, int Quantity)
     {
-        vector <complex>cBuffer;
+        vector<complex> cBuffer;
         int             Nterm = 0, Ncond = 0;
         double          kVBase1[3/*# range 1..2*/] = {};
         double          TopY = 0.0, 
@@ -3476,7 +3478,6 @@ namespace DSSPlot
                         arrowLeft = "", 
                         arrowright = "";
         String          Fname = "";
-        bool            CBufferAllocated = false;
         complex         cResidual = CZero;
 
 
@@ -3487,7 +3488,6 @@ namespace DSSPlot
         /* ----------------------INTERNAL FUNCTIONS--------------------------- */
         Ncond = Element->Fnconds;
         Nterm = Element->Fnterms;
-        CBufferAllocated = false;
         Element->ComputeIterminal(ActiveActor);
         Element->ComputeVterminal(ActiveActor);
         Xmx = 300.0; // don't use Xmax -- already used
@@ -3525,12 +3525,11 @@ namespace DSSPlot
         case vizPOWER:
         {
             Fname = Fname + Format("%s_%s_PQ.DSV", Element->ParentClass->Class_Name.c_str(), Element->LName.c_str());
-            cBuffer.resize(Element->Yorder + 1);
-            CBufferAllocated = true;
+            cBuffer.resize(Element->Yorder);
             /*# with Element do */
             {
                 for (int stop = Element->Yorder, i = 1; i <= stop; i++)
-                    cBuffer[i] = cmulreal(cmul(Element->Vterminal[i - 1], conjg(Element->Iterminal[i - 1])), 0.001);
+                    cBuffer[i - 1] = cmulreal(cmul(Element->Vterminal[i - 1], conjg(Element->Iterminal[i - 1])), 0.001);
             }
         }
         break;
@@ -3579,43 +3578,43 @@ namespace DSSPlot
             Set_DataColor(0x00000000);
 
             /* Put the Quantities on The Box */
-            k = 0;
-            for (int stop = min<int>(2, Nterm), i = 1; i <= stop; i++)
+            k = -1;
+            for (i = 0; i < min<int>(2, Nterm); i++)
             {
                 Set_LineWidth(3);
-                for (int stop = Element->Fnphases, j = 1; j <= stop; j++)
+                for (j = 0; j < Element->Fnphases; j++)
                 {
                     k++;
                     GetS(Ncond, Quantity, S1, S2, &(cBuffer[0]), k, kVBase1);
-                    DrawArrow(TopY - j * 10.0, S1, S2, i, Xmx, arrowLeft, arrowright);
+                    DrawArrow(TopY - (j + 1) * 10.0, S1, S2, i + 1, Xmx, arrowLeft, arrowright);
                 }
                 Set_LineWidth(1);
-                for (int stop = Ncond, j = Element->Fnphases + 1; j <= stop; j++)
+                for (j = Element->Fnphases; j < Ncond; j++)
                 {
                     k++;
                     GetS(Ncond, Quantity, S1, S2, &(cBuffer[0]), k, kVBase1);
-                    DrawArrow(TopY - j * 10.0, S1, S2, i, Xmx, arrowLeft, arrowright);
+                    DrawArrow(TopY -  (j + 1) * 10.0, S1, S2, i + 1, Xmx, arrowLeft, arrowright);
                 }
 
                 /* Add Residual Current */
                 if (Quantity == vizCURRENT)
                 {
                     cResidual = CZero;
-                    for (int stop = Ncond, j = 1; j <= stop; j++)
-                        caccum(cResidual, cnegate(cBuffer[j + (i - 1) * Ncond]));
+                    for (j = 0; j < Ncond; j++)
+                        caccum(cResidual, cnegate(cBuffer[j + i * Ncond]));
                     S1 = Format("%-.6g", cabs(cResidual));
                     S2 = Format(" /_ %8.2f", cdang(cResidual));
-                    DrawArrow(-10.0, S1, S2, i, Xmx, arrowLeft, arrowright);
+                    DrawArrow(-10.0, S1, S2, i + 1, Xmx, arrowLeft, arrowright);
                 }
 
                 /* Draw Bus and Label */
                 Set_LineWidth(7);
                 switch (i)
                 {
-                case 1:
+                case 0:
                     xx = -5.0;
                     break;
-                case 2:
+                case 1:
                     xx = Xmx + 5.0;
                     break;
                 }
@@ -3623,14 +3622,14 @@ namespace DSSPlot
                 DrawTo(xx, TopY - 5.0);
                 switch (i)
                 {
-                case 1:
+                case 0:
                     xx = 25;
                     break;
-                case 2:
+                case 1:
                     xx = Xmx - 25.0;
                     break;
                 }
-                CenteredText15(xx, TopY, 10, UpperCase(Element->GetBus(i)));
+                CenteredText15(xx, TopY, 10, UpperCase(Element->GetBus(i + 1)));
             }
             switch (Quantity)
             {
@@ -3662,8 +3661,6 @@ namespace DSSPlot
               */
             ShowGraph();
         }
-        if (CBufferAllocated)
-            cBuffer.clear();
     }
 
     void TDSSPlot::Set_MaxLineThickness(const int Value)

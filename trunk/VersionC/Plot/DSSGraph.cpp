@@ -345,6 +345,7 @@ namespace DSSGraph
     {
         int         retval = 0;
         String      DSSViewFile = "";
+        bool        exists = false;
         if (IsOpen(ActiveDSSGraphFile))
         {
             CloseFile(ActiveDSSGraphFile);
@@ -352,9 +353,15 @@ namespace DSSGraph
         }
             try
             {
-                if (FileExists(ActiveFileName))
+                // If NoFormsAllowed is true, skip running the viewer, but still set the variable to allow automation
+                exists = FileExists(ActiveFileName);
+                if (exists)
                 {
-                    DSSViewFile = DSSDirectory + "OpenDSSView\\DSSCView.exe";
+                    ParserVars->Add("@LastPlotFile", ActiveFileName);
+                }
+                if (exists && !NoFormsAllowed)
+                {
+                    DSSViewFile = DSSDirectory + "DSSView.exe";
 
                     if (FileExists(DSSViewFile)) // Only if the file exists
                     {
@@ -364,8 +371,6 @@ namespace DSSGraph
 #pragma message("Needs ShellExecute equivalent in DSSGraph.cpp")
 #endif
                     }
-
-                    ParserVars->Add("@LastPlotFile", ActiveFileName);
                     /*switch (retval)
                     {
                     case 0:
