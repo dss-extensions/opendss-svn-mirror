@@ -414,7 +414,7 @@ TIdThreadComponent GISThreadComponent;
           {
             const ActiveCircuit& with0 = ActiveCircuit[ActiveActor];
             {
-              if ( ( ActiveBusIndex > 0 ) && ( ActiveBusIndex <= Numbuses ) )
+              if ( ( ActiveBusIndex >= 0 ) && ( ActiveBusIndex < Numbuses ) )
                 if ( Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex].GISCoorddefined )
                 {
                   lat = Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex].lat;
@@ -1736,12 +1736,12 @@ TIdThreadComponent GISThreadComponent;
           auto with0 = ActiveCircuit[ActiveActor];
           {
             SetActiveBus( StripExtension( myBus ) );
-            if ( ( with0->ActiveBusIndex > 0 ) && (with0->ActiveBusIndex <= with0->NumBuses ) )
+            if ( ( with0->ActiveBusIndex >= 0 ) && (with0->ActiveBusIndex < with0->NumBuses ) )
             {
-              if (with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex - 1]->CoordDefined)
+              if (with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex]->CoordDefined)
               {
-                myLong = with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex - 1]->longitude;
-                myLat = with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex - 1]->lat;
+                myLong = with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex]->longitude;
+                myLat = with0->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex]->lat;
               }
               (GISCoords)[3] = (GISCoords)[1];
               (GISCoords)[4] = (GISCoords)[2];
@@ -1805,7 +1805,7 @@ TIdThreadComponent GISThreadComponent;
           for ( int stop = 1, i = 0; i <= stop; i++)
           {
             SetActiveBus( myBuses[i] );
-            if ( ( ActiveBusIndex > 0 ) && ( ActiveBusIndex <= Numbuses ) )
+            if ( ( ActiveBusIndex >= 0 ) && ( ActiveBusIndex < Numbuses ) )
             {
               if ( Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex].GISCoorddefined )
               {
