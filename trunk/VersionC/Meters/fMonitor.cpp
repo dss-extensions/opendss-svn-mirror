@@ -344,7 +344,7 @@ int TDSSFMonitor::Edit(int ActorID)
 				case 	4:
 				{
 					Param = LowerCase(Param);
-					switch(Param[1])
+					switch(Param[0])
 					{
 						case 	L's':
 						with0->Save();

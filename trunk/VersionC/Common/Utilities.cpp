@@ -1360,7 +1360,7 @@ namespace Utilities
     int InterpretCoreType( const String str )
     {
       int result = 0;
-      switch ( str[1] )
+      switch ( str[0] )
       {
         case '1':
           result = 1;

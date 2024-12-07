@@ -782,7 +782,7 @@ void TIndMach012Obj::Set_PresentkV(double Value)
 
 void TIndMach012Obj::InterpretOption(String s)
 {
-	switch(UpperCase(s)[1])
+	switch(UpperCase(s)[0])
 	{
 		case 	L'F':
 		FixedSlip = true;

@@ -1478,7 +1478,7 @@ int DoNextCmd()
 	/*# with ActiveCircuit[ActiveActor].Solution do */
 	{
 		auto with0 = ActiveCircuit[ActiveActor]->Solution;
-		switch(UpCase(Param[1]))
+		switch(UpCase(Param[0]))
 		{
 			case 	L'Y':/*Year*/
 			with0->Set_Year(with0->get_Fyear() + 1);
@@ -2617,12 +2617,14 @@ int DoCapacityCmd()
 		if(ParamName.size() == 0)
 			++ParamPointer;
 		else
-			switch(ParamName[1])
+			switch(ParamName[0])
 			{
-				case 	L's':
+				case 	's':
+				case 	'S':
 				ParamPointer = 1;
 				break;
-				case 	L'i':
+				case 	'i':
+				case 	'I':
 				ParamPointer = 2;
 				break;
 				default:
@@ -2784,12 +2786,12 @@ int DoValVarCmd()
 		Param = Parser[ActiveActor]->MakeString_();
 		propIndex = 1;
 		if(ParamName.size() > 0)
-			switch(ParamName[1])
+			switch(ParamName[0])
 			{
-				case 	L'N':
+				case 	'N':
 				propIndex = 1;
 				break;
-				case 	L'I':
+				case 	'I':
 				propIndex = 2;
 				break;
 				default:
@@ -3131,12 +3133,12 @@ int DoTOPCmd()
 	ObjName = UpperCase(Parser[ActiveActor]->MakeString_());
 	if(ObjName.size() == 0)
 		ObjName = "ALL";
-	switch(Param[1])
+	switch(Param[0])
 	{
-		case 	L'L':
+		case 	'L':
 		LoadShapeClass[ActiveActor]->TOPExport(ObjName);
 		break;
-		case 	L'T':
+		case 	'T':
 		TShapeClass[ActiveActor]->TOPExport(ObjName);
 		break;
         /*
@@ -3441,7 +3443,7 @@ int DoDistributeCmd()
 			kW = Parser[ActiveActor]->MakeDouble_() * 1000.0;
 			break;
 			case 	7:
-			if(UpperCase(Param)[1] == L'L')
+			if(UpperCase(Param)[0] == 'L')
 				DoGenerators = false;
 			else
 				DoGenerators = true;
