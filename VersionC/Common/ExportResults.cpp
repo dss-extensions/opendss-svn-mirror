@@ -3063,7 +3063,11 @@ namespace ExportResults
             int stop        = mydeltaF.size();
             for (int i = 0; i < stop; i++)
             {
+#ifndef OPENDSSC_KLUSOLVEX
                     re = mydeltaF[i].re;
+#else
+                    re = mydeltaF[i];
+#endif
                     WriteLn(F, Format("%.10g", re));
             }
             DSSGlobals::GlobalResult = Filenm;
@@ -3093,7 +3097,11 @@ namespace ExportResults
             int stop = mydeltaZ.size();
             for (int i = 0; i < stop; i++)
             {
+#ifndef OPENDSSC_KLUSOLVEX
                 re = mydeltaZ[i].re;
+#else
+                re = mydeltaZ[i];
+#endif
                 WriteLn(F, Format("%.10g", re));
             }
             DSSGlobals::GlobalResult = Filenm;
