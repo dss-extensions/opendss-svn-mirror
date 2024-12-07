@@ -1,4 +1,4 @@
-// OpenDSSX.cpp : Defines the entry point for the application.
+// OpenDSSC.cpp : Defines the entry point for the application.
 //
 
 #pragma hdrstop
@@ -144,7 +144,6 @@
 #include "Feeder.h"
 #include "IniRegSave.h"
 #include "MyDSSClassDefs.h"
-#include "Notes.h"
 #include "ShowOptions.h"
 #include "ShowResults.h"
 #include "TOPExport.h"
@@ -160,10 +159,10 @@
 #include "myCmdUtils.h"
 #include "myCmdUtils.cpp"
 
-#ifdef OPENDSSX_CPP_EXTRA_HEADER
+#ifdef OPENDSSC_CPP_EXTRA_HEADER
 // Include another file from a parent project.
 // For details, see the note about PARENT PROJECTS at the end of this file.
-#include OPENDSSX_CPP_EXTRA_HEADER
+#include OPENDSSC_CPP_EXTRA_HEADER
 #endif
 
 
