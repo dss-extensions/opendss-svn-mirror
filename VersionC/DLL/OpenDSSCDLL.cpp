@@ -13525,6 +13525,27 @@ int SettingsI(int mode, int arg)
 			}
 		}
 		break;
+	case 8:													// Settings.SolverOptions read
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+			result = (int32_t) ActiveCircuit[ActiveActor]->Solution->SolverOptions;
+		}
+#else
+		result = 0;
+#endif
+		break;
+	case 9:													// Settings.SolverOptions Write
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+			ActiveCircuit[ActiveActor]->Solution->SolverOptions = (uint32_t) arg;
+		}
+#else
+		DoSimpleMsg("This version of OpenDSS-C does not implement SolverOptions. It requires building with KLUSolveX enabled.", 7074);
+		result = -1;
+#endif
+		break;
 	default:
 		result = -1;
 		break;
