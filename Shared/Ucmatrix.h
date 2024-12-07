@@ -4,6 +4,13 @@
 #include "System.h"
 #include "Ucomplex.h"
 
+#ifdef OPENDSSC_KLUSOLVEX
+#ifndef klusparseset_t
+typedef void* klusparseset_t;
+#endif
+#include "KLUSolveX.h" // for mvmult
+#endif
+
 namespace Ucmatrix
 {
 
@@ -44,7 +51,14 @@ public:
 	Ucomplex::complex GetElement(int i, int j);
 	int GetErrorCode();
 	Ucomplex::complex SumBlock(int row1, int row2, int col1, int col2);
+#ifdef OPENDSSC_KLUSOLVEX
+	inline void MVmult(Ucomplex::pComplexArray B, Ucomplex::pComplexArray X)  /*b = Ax*/
+	{
+		::mvmult(Norder, B, Values.data(), X);
+	}
+#else
 	void MVmult(Ucomplex::pComplexArray B, Ucomplex::pComplexArray X);  /*b = Ax*/
+#endif
 	void MVmultAccum(Ucomplex::pComplexArray B, Ucomplex::pComplexArray X);  /*b = Ax*/
 	Ucomplex::pComplexArray GetValuesArrayPtr(int& Order);
 	void ZeroRow(int iRow);
