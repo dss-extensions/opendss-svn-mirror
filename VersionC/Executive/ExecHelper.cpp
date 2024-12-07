@@ -3529,7 +3529,7 @@ int DoDI_PlotCmd()
 		ParamName = Parser[ActiveActor]->GetNextParam();
 		Param = Parser[ActiveActor]->MakeString_();
 	}
-//	DSSPlotObj->DoDI_Plot(CaseName, CaseYear, &iRegisters[0], iRegisters.High, PEAKDAY, MeterName);
+	DSSPlotObj->DoDI_Plot(CaseName, CaseYear, iRegisters, PEAKDAY, MeterName);
 	iRegisters.clear();
 	result = 0;
 	return result;
@@ -3629,7 +3629,7 @@ int DoYearlyCurvesCmd()
 	int ParamPointer = 0;
 	int i = 0;
 	bool unknown = false;
-	TStringList* CaseNames = nullptr;
+	TStringList CaseNames;
 	double dRegisters[231/*# range 1..NumEMRegisters*/]{};
 	std::vector<int> iRegisters;
 	int Nregs = 0;
@@ -3650,15 +3650,15 @@ int DoYearlyCurvesCmd()
 		if(ParamName.size() == 0)
 			++ParamPointer;
 		else
-			switch(UpperCase(ParamName)[1])
+			switch(UpperCase(ParamName)[0])
 			{
-				case 	L'C':
+				case 	'C':
 				ParamPointer = 1;
 				break;
-				case 	L'R':
+				case 	'R':
 				ParamPointer = 2;
 				break;
-				case 	L'M':
+				case 	'M':
 				ParamPointer = 3;
 				break; /*meter=*/
 				default:
@@ -3675,7 +3675,7 @@ int DoYearlyCurvesCmd()
 					Param = AuxParser[ActiveActor]->MakeString_();
 					while(Param.size() > 0)
 					{
-						CaseNames->push_back(Param);
+						CaseNames.push_back(Param);
 						dummy = AuxParser[ActiveActor]->GetNextParam();
 						Param = AuxParser[ActiveActor]->MakeString_();
 					}
@@ -3703,8 +3703,7 @@ int DoYearlyCurvesCmd()
 		ParamName = Parser[ActiveActor]->GetNextParam();
 		Param = Parser[ActiveActor]->MakeString_();
 	}
-//	DSSPlotObj->DoYearlyCurvePlot(&CaseNames, WhichFile, &iRegisters[0], iRegisters.High);
-	iRegisters.clear();
+	DSSPlotObj->DoYearlyCurvePlot(CaseNames, WhichFile, iRegisters);
 	result = 0;
 	return result;
 }
@@ -3721,7 +3720,7 @@ int DoVisualizeCmd()
 	String ElemName;
 	TDSSObject* PElem = nullptr;
 	result = 0; 
-     // Abort if no circuit or solution
+    // Abort if no circuit or solution
 	if(!ASSIGNED(ActiveCircuit[ActiveActor]))
 	{
 		DoSimpleMsg("No circuit created.", 24721);
@@ -3732,11 +3731,9 @@ int DoVisualizeCmd()
 		DoSimpleMsg("The circuit must be solved before you can do this.", 24722);
 		return result;
 	}
-//	Quantity = vizCURRENT;
-	Quantity = 1;
+	Quantity = vizCURRENT;
 	ElemName = "";
-        //Parse rest of command line
-	/*
+    //Parse rest of command line
 	ParamPointer = 0;
 	ParamName = UpperCase(Parser[ActiveActor]->GetNextParam());
 	Param = Parser[ActiveActor]->MakeString_();
@@ -3763,13 +3760,13 @@ int DoVisualizeCmd()
 				case 	1:
 				switch(LowerCase(Param)[0])
 				{
-					case 	L'c':
+					case 	'c':
 					Quantity = vizCURRENT;
 					break;
-					case 	L'v':
+					case 	'v':
 					Quantity = vizVOLTAGE;
 					break;
-					case 	L'p':
+					case 	'p':
 					Quantity = vizPOWER;
 					break;
 					default:
@@ -3793,8 +3790,8 @@ int DoVisualizeCmd()
 	DevIndex = GetCktElementIndex(ElemName); // Global function
 	if(DevIndex > 0)  //  element must already exist
 	{
-		PElem = ActiveCircuit[ActiveActor]->CktElements.Get(DevIndex);
-		if(ObjectIs(PElem, TDSSCktElement*))
+		PElem = (TDSSCktElement*) ActiveCircuit[ActiveActor]->CktElements.Get(DevIndex);
+		if (PElem != nullptr)
 		{
 			DSSPlotObj->DoVisualizationPlot(((TDSSCktElement*) PElem), Quantity);
 		}
@@ -3808,7 +3805,6 @@ int DoVisualizeCmd()
 		DoSimpleMsg(String("Requested Circuit Element: \"") + ElemName
 	           + "\" Not Found.", 282); // Did not find it ..
 	}
-	*/
 	return result;
 }
 
