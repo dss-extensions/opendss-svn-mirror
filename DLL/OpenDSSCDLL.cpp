@@ -9953,9 +9953,9 @@ char* MonitorsS(int mode, char* arg)
 				pMon->RecalcElementData(ActiveActor);
 			}
 		}
-		result = "Error, parameter not valid";
 		break;
 	default:
+		result = "Error, parameter not valid";
 		break;
 	}
 	char* presult = new char[result.size() + 1];
