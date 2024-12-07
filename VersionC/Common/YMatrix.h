@@ -20,9 +20,15 @@
 #include "Ucomplex.h"
 #include "DSSClass.h"
 #include "DSSObject.h"
+
+#ifdef OPENDSSC_KLUSOLVEX
+#ifndef klusparseset_t
+typedef void* klusparseset_t;
+#endif
+#include "KLUSolveX.h"
+#else
 #include "klusolve.h" // klusparseset_t
-
-
+#endif
 
 /*Options for building Y matrix*/
 

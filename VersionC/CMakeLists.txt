@@ -30,6 +30,8 @@ add_definitions(-DOPENDSSC_PROJECT_VERSION=\"${OPENDSSC_PROJECT_VERSION}\")
 # endif()
 set(OPENDSSC_EXPERIMENTAL OFF CACHE BOOL "Enable experimental/incomplete code.")
 
+set(OPENDSSC_KLUSOLVEX OFF CACHE BOOL "Enable using KLUSolveX (from DSS-Extensions.org). This enables related code in OpenDSS-C, including incremental sparse matrices and refactorization.")
+
 # BUILD_SHARED_LIBS is not prefixed with OPENDSSC to simplify integration with other tools and libraries
 # See https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html
 option(BUILD_SHARED_LIBS "Build using shared libraries (DLL); default is ON for OpenDSSC. Set it to OFF to generate a static library." ON)
@@ -42,12 +44,51 @@ endif ()
 
 find_package(Threads)
 
-add_subdirectory(klusolve EXCLUDE_FROM_ALL)
-set_target_properties(klusolve_all PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-)
+if (NOT OPENDSSC_KLUSOLVEX)
+	add_subdirectory(klusolve EXCLUDE_FROM_ALL)
+	set(KLUSOLVE_LIB klusolve_all)
+	set_target_properties(klusolve_all PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+	)
+else()
+	# If OPENDSSC_KLUSOLVEX is ON and we have a local copy, use it.
+	# Search order:
+	# 1. Inside the source dir.
+	# 2. In the parent of the source dir.
+	# 3. Inside the binary dir.
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/klusolvex")
+		# First check inside the current directory
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/klusolvex" "${CMAKE_CURRENT_BINARY_DIR}/klusolvex-build" EXCLUDE_FROM_ALL)
+	elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../klusolvex")
+		# Then check in the parent directory
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../klusolvex" "${CMAKE_CURRENT_BINARY_DIR}/klusolvex-build" EXCLUDE_FROM_ALL)
+	elseif (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/klusolvex")
+		# Then check in the parent directory
+		add_subdirectory("${CMAKE_CURRENT_BINARY_DIR}/klusolvex" "${CMAKE_CURRENT_BINARY_DIR}/klusolvex-build" EXCLUDE_FROM_ALL)
+	else() 
+		# Otherwise, grab it from GitHub
+		# FetchContent is used to download the project from a specific tag
+		include(FetchContent)
+
+		FetchContent_Declare(
+			klusolvex
+			GIT_REPOSITORY git@github.com:dss-extensions/klusolve.git
+			GIT_TAG 9a29aa74c8897afadd8bf905e2a99623e11c438e
+		)
+
+		FetchContent_MakeAvailable(klusolvex)
+	endif()
+	set(KLUSOLVE_LIB klusolvex)
+	set_target_properties(klusolvex PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+	)
+	add_definitions(-DOPENDSSC_KLUSOLVEX)
+
+endif()
 
 set(OPENDSSC_COMMON_FILES
 	Support/d2c_system.cpp
@@ -254,7 +295,7 @@ if((MSVC) OR (MINGW))
 	# Windows
 	set(OPENDSSC_COMMON_LIBS
 		${CMAKE_THREAD_LIBS_INIT}
-		klusolve_all
+		${KLUSOLVE_LIB}
 	)
 else()
 	# Linux
@@ -264,7 +305,7 @@ else()
 	#		is enough to wor around it.
 	set(OPENDSSC_COMMON_LIBS
 		${CMAKE_THREAD_LIBS_INIT}
-		klusolve_all
+		${KLUSOLVE_LIB}
 		stdc++fs
 		dl
 		uuid

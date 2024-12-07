@@ -7,7 +7,6 @@
 #include "Circuit.h"
 #include "CktElement.h"
 #include "Utilities.h"
-#include "klusolve.h"
 
 
 
