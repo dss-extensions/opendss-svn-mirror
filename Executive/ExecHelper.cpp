@@ -1665,12 +1665,13 @@ int DoSetkVBase()
 	{
 		
 		ActiveCircuit[ActiveActor]->ActiveBusIndex = ActiveCircuit[ActiveActor]->BusList.Find(Busname);
-		if(ActiveCircuit[ActiveActor]->ActiveBusIndex > 0)
+		const auto busIndex = ActiveCircuit[ActiveActor]->ActiveBusIndex;
+		if(busIndex >= 0 && busIndex < ActiveCircuit[ActiveActor]->NumBuses)
 		{
 			if(CompareText(ParamName, "kvln") == 0)
-				ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1]->kVBase = kVValue;
+				ActiveCircuit[ActiveActor]->Buses[busIndex]->kVBase = kVValue;
 			else
-				ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1]->kVBase = kVValue / SQRT3;
+				ActiveCircuit[ActiveActor]->Buses[busIndex]->kVBase = kVValue / SQRT3;
 			result = 0;
 			ActiveCircuit[ActiveActor]->Solution->VoltageBaseChanged = true;
            // Solution.SolutionInitialized := FALSE;  // Force reinitialization
@@ -2243,10 +2244,10 @@ int DovoltagesCmd(bool PerUnit)
 		/*# with ActiveCircuit[ActiveActor] do */
 		{
 			
-			if(ActiveCircuit[ActiveActor]->ActiveBusIndex != 0)
+			if(ActiveCircuit[ActiveActor]->ActiveBusIndex >= 0)
 			{
 				int stop = 0;
-				ActiveBus = ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1];
+				ActiveBus = ActiveCircuit[ActiveActor]->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex];
 				GlobalResult = "";
 				for(stop = ActiveBus->get_FNumNodesThisBus(), i = 1; i <= stop; i++)
 				{
@@ -2287,9 +2288,9 @@ int DoZscCmd(bool Zmatrix)
 		/*# with ActiveCircuit[ActiveActor] do */
 		{
 			
-			if(ActiveCircuit[ActiveActor]->ActiveBusIndex != 0)
+			if(ActiveCircuit[ActiveActor]->ActiveBusIndex >= 0)
 			{
-				ActiveBus = ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1];
+				ActiveBus = ActiveCircuit[ActiveActor]->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex];
 				GlobalResult = "";
 				if(ActiveBus->Zsc.Norder == 0)
 					return result;
@@ -2340,9 +2341,9 @@ int DoZsc012Cmd()
 		/*# with ActiveCircuit[ActiveActor] do */
 		{
 			
-			if(ActiveCircuit[ActiveActor]->ActiveBusIndex != 0)
+			if(ActiveCircuit[ActiveActor]->ActiveBusIndex >= 0)
 			{
-				ActiveBus = ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1];
+				ActiveBus = ActiveCircuit[ActiveActor]->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex];
 				GlobalResult = "";
 				if (ActiveBus->Zsc.Norder == 0)
 					return result;
@@ -2399,9 +2400,9 @@ int DoZsc10Cmd()
 		/*# with ActiveCircuit[ActiveActor] do */
 		{
 			
-			if(ActiveCircuit[ActiveActor]->ActiveBusIndex != 0)
+			if(ActiveCircuit[ActiveActor]->ActiveBusIndex >= 0)
 			{
-				ActiveBus = ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(ActiveCircuit[ActiveActor]->ActiveBusIndex) - 1];
+				ActiveBus = ActiveCircuit[ActiveActor]->Buses[ActiveCircuit[ActiveActor]->ActiveBusIndex];
 				GlobalResult = "";
 				if (ActiveBus->Zsc.Norder == 0)
 					return result;
