@@ -449,7 +449,7 @@ int TSensor::Init(int Handle, int ActorID)
 /*==============================================================================*/
 
 TSensorObj::TSensorObj(TDSSClass* ParClass, const String SensorName)
- : inherited(ParClass->get_myClass_name()),
+ : inherited(ParClass),
 			ValidSensor(false),
 			SensorkW(nullptr),
 			Sensorkvar(nullptr),
