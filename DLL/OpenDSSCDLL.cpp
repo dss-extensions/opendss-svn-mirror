@@ -857,7 +857,7 @@ double __stdcall LinesF(int mode, double arg)
 			if (IsLine(ActiveCircuit[ActiveActor]->FActiveCktElement))
 			{
 				auto with0 = (TLineObj*)ActiveCircuit[ActiveActor]->FActiveCktElement;
-				with0->C1 = arg * with0->FUnitsConvert * 1.0e9;
+				with0->C1 = arg * with0->FUnitsConvert * 1.0e-9;
 				with0->SymComponentsChanged = true;
 				with0->Set_YprimInvalid(ActiveActor, true);
 			}
@@ -879,7 +879,7 @@ double __stdcall LinesF(int mode, double arg)
 			if (IsLine(ActiveCircuit[ActiveActor]->FActiveCktElement))
 			{
 				auto with0 = (TLineObj*)ActiveCircuit[ActiveActor]->FActiveCktElement;
-				with0->C0 = arg * with0->FUnitsConvert * 1.0e9;
+				with0->C0 = arg * with0->FUnitsConvert * 1.0e-9;
 				with0->SymComponentsChanged = true;
 				with0->Set_YprimInvalid(ActiveActor, true);
 			}
@@ -1693,6 +1693,7 @@ double __stdcall DSSLoadsF(int mode, double arg)
 		}
 		break;
 	case 9:  												// Load.pctmean Write
+		pLoad = (TLoadObj*)ActiveCircuit[ActiveActor]->Loads.Get_Active();
 		if (ASSIGNED(pLoad))
 		{
 			Set_Parameter("%mean", FloatToStr(arg));
@@ -3263,30 +3264,24 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myCmplxArray[0] = CZero;
 		if (ActiveCircuit[ActiveActor] != nullptr && !ActiveCircuit[ActiveActor]->Solution->NodeV.empty())
 		{
-			auto with0 = ActiveCircuit[ActiveActor];
-			if ((with0->ActiveBusIndex >= 0) && (with0->ActiveBusIndex < with0->NumBuses))
+			auto* circ = ActiveCircuit[ActiveActor];
+			if (circ->ActiveBusIndex >= 0 && circ->ActiveBusIndex < circ->NumBuses)
 			{
-				pBus = with0->Buses[with0->ActiveBusIndex];
+				pBus = circ->Buses[circ->ActiveBusIndex];
 				Nvalues = pBus->FNumNodesThisBus;
-				myCmplxArray.resize(Nvalues);
-				iV = 0;
-				jj = 1;
+
 				if (Nvalues > 3)
 					Nvalues = 3;
+
 				if (Nvalues > 1)
 				{
+					// Only one L-L voltage if 2 phase
 					if (Nvalues == 2)
-						Nvalues = 1;// only one L-L voltage if 2 phase
-					myCmplxArray.resize((2 * Nvalues) - 1);
-					iV = 0;
-					auto with1 = pBus;
-					if (with1->kVBase > 0.0)
-					{
-						BaseFactor = 1000.0 * with1->kVBase;
-					}
-					else
-						BaseFactor = 1.0;
-					for (i = 1; i <= Nvalues; i++)  // for 2- or 3-phases
+						Nvalues = 1; 
+
+					myCmplxArray.resize(Nvalues);
+
+					for (i = 1; i <= Nvalues; i++) // for 2- or 3-phases
 					{
 						// this code assumes the nodes are ordered 1, 2, 3
 						//------------------------------------------------------------------------------------------------
@@ -3295,22 +3290,22 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 						jj = i;
 						do
 						{
-							NodeIdxi = with1->FindIdx(jj);// Get the index of the Node that matches i
+							NodeIdxi = pBus->FindIdx(jj);// Get the index of the Node that matches i
 							jj++;
 						}
 						while (NodeIdxi <= 0);
 						do
 						{
-							NodeIdxj = with1->FindIdx(jj); // Get the index of the Node that matches i
+							NodeIdxj = pBus->FindIdx(jj); // Get the index of the Node that matches i
 							if (jj > 3)
 								jj = 1;
 							else
 								jj++;
 						}
 						while (NodeIdxj <= 0);
-						Volts = csub(with0->Solution->NodeV[with1->GetRef(NodeIdxi)], with0->Solution->NodeV[with1->GetRef(NodeIdxj)]);
-						myCmplxArray[iV] = Volts;
-						iV++;
+
+						Volts = csub(circ->Solution->NodeV[pBus->GetRef(NodeIdxi)], circ->Solution->NodeV[pBus->GetRef(NodeIdxj)]);
+						myCmplxArray[i - 1] = Volts;
 					}
 				}
 				else  // for 1-phase buses, do not attempt to compute.
@@ -3329,25 +3324,27 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myCmplxArray[0] = CZero;
 		if (ActiveCircuit[ActiveActor] != nullptr && !ActiveCircuit[ActiveActor]->Solution->NodeV.empty())
 		{
-			auto with0 = ActiveCircuit[ActiveActor];
-			if ((with0->ActiveBusIndex >= 0) && (with0->ActiveBusIndex < with0->NumBuses))
+			auto* circ = ActiveCircuit[ActiveActor];
+			if (circ->ActiveBusIndex >= 0 && circ->ActiveBusIndex < circ->NumBuses)
 			{
-				pBus = with0->Buses[with0->ActiveBusIndex];
+				pBus = circ->Buses[circ->ActiveBusIndex];
 				Nvalues = pBus->FNumNodesThisBus;
 				if (Nvalues > 3)
 					Nvalues = 3;
+
 				if (Nvalues > 1)
 				{
-					if (Nvalues == 2) Nvalues = 1;// only one L-L voltage if 2 phase
-					myCmplxArray.resize((2 * Nvalues) - 1);
-					iV = 0;
-					auto with0 = pBus;
-					if (with0->kVBase > 0.0)
-					{
-						BaseFactor = 1000.0 * with0->kVBase * sqrt(3);
-					}
+					// Only one L-L voltage if 2 phase
+					if (Nvalues == 2)
+						Nvalues = 1;
+					
+					myCmplxArray.resize(Nvalues);
+
+					if (pBus->kVBase > 0.0)
+						BaseFactor = 1000.0 * pBus->kVBase * SQRT3;
 					else
 						BaseFactor = 1.0;
+
 					for (i = 1; i <= Nvalues; i++)  // for 2- or 3-phases
 					{
 						// this code assumes the nodes are ordered 1, 2, 3
@@ -3357,22 +3354,22 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 						jj = i;
 						do
 						{
-							NodeIdxi = with0->FindIdx(jj);// Get the index of the Node that matches i
+							NodeIdxi = pBus->FindIdx(jj);// Get the index of the Node that matches i
 							jj++;
 						}
 						while (NodeIdxi <= 0);
 						do
 						{
-							NodeIdxj = with0->FindIdx(jj); // Get the index of the Node that matches i
+							NodeIdxj = pBus->FindIdx(jj); // Get the index of the Node that matches i
 							if (jj > 3)
 								jj = 1;
 							else
 								jj++;
 						}
 						while (NodeIdxj <= 0);
-						Volts = csub(ActiveCircuit[ActiveActor]->Solution->NodeV[pBus->GetRef(NodeIdxi)], ActiveCircuit[ActiveActor]->Solution->NodeV[pBus->GetRef(NodeIdxj)]);
-						myCmplxArray[iV] = cdivreal(Volts, BaseFactor);
-						iV++;
+
+						Volts = csub(circ->Solution->NodeV[pBus->GetRef(NodeIdxi)], circ->Solution->NodeV[pBus->GetRef(NodeIdxj)]);
+						myCmplxArray[i - 1] = cdivreal(Volts, BaseFactor);
 					}
 
 				}
@@ -3456,32 +3453,19 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor];
-			BusReference = with0->ActiveBusIndex;
-			LineCount = 0;
-			pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_First();
+			auto* circ = ActiveCircuit[ActiveActor];
+			BusReference = circ->ActiveBusIndex + 1;
+
+			pElem = (TDSSCktElement*)circ->Lines.Get_First();
 			while (ASSIGNED(pElem))
 			{
 				if (CheckBusReference(pElem, BusReference))
 				{
-					LineCount++;
+					S = "LINE." + pElem->LName;
+					WriteStr2Array(S);
+					WriteStr2Array(Char0());
 				}
-				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_Next();
-			}
-			if (LineCount > 0)
-			{
-				myStrArray.resize(0);
-				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_First();
-				while (ASSIGNED(pElem))
-				{
-					if (CheckBusReference(pElem, BusReference))
-					{
-						S = "LINE." + pElem->LName;
-						WriteStr2Array(S);
-						WriteStr2Array(Char0());
-					}
-					pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Lines.Get_Next();
-				}
+				pElem = (TDSSCktElement*)circ->Lines.Get_Next();
 			}
 		}
 		if (myStrArray.size() == 0)
@@ -3497,32 +3481,19 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto with0 = ActiveCircuit[ActiveActor];
-			BusReference = with0->ActiveBusIndex;
-			LoadCount = 0;
-			pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_First();
+			auto* circ = ActiveCircuit[ActiveActor];
+			BusReference = circ->ActiveBusIndex + 1;
+
+			pElem = (TDSSCktElement*)circ->Loads.Get_First();
 			while (ASSIGNED(pElem))
 			{
 				if (CheckBusReference(pElem, BusReference))
 				{
-					LoadCount++;
+					S = "LOAD." + pElem->LName;
+					WriteStr2Array(S);
+					WriteStr2Array(Char0());
 				}
-				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_Next();
-			}
-			if (LoadCount > 0)
-			{
-				myStrArray.resize(0);
-				pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_First();
-				while (ASSIGNED(pElem))
-				{
-					if (CheckBusReference(pElem, BusReference))
-					{
-						S = "LOAD." + pElem->LName;
-						WriteStr2Array(S);
-						WriteStr2Array(Char0());
-					}
-					pElem = (TDSSCktElement*)ActiveCircuit[ActiveActor]->Loads.Get_Next();
-				}
+				pElem = (TDSSCktElement*)circ->Loads.Get_Next();
 			}
 		}
 		if (myStrArray.size() == 0)
@@ -4246,7 +4217,6 @@ double __stdcall CircuitF(int mode, double arg1, double arg2)
 			else
 				result = 0.0;
 		}
-		result = 0.0;
 		break;
 	default:
 		result = -1.0;
@@ -10911,6 +10881,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->PVSystemVars.FIrradiance;
 			}
+			else result = -1.0;
 		}
 		break;
 	case 1:													// PVsystems.Irradiance write
@@ -10981,6 +10952,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_FkVArating();
 			}
+			else result = -1.0;
 		}
 		break;
 	case 8:													// PVsystems.KVARated write
@@ -11001,6 +10973,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_FPmpp();
 			}
+			else result = -1.0;
 		}
 		break;
 	case 10:												// PVsystems.pmpp write
@@ -11021,6 +10994,7 @@ double __stdcall PVsystemsF(int mode, double arg)
 			{
 				result = ((TPVsystemObj*)with0.Get_Active())->Get_PresentIrradiance();
 			}
+			else result = -1.0;
 		}
 		break;
 	default:
@@ -13507,11 +13481,11 @@ int __stdcall SettingsI(int mode, int arg)
 		{
 			if (ActiveCircuit[ActiveActor]->PositiveSequence)
 			{
-				result = 1;
+				result = 2;
 			}
 			else
 			{	
-				result = 0;
+				result = 1;
 			}
 		}
 		break;
@@ -13542,7 +13516,7 @@ int __stdcall SettingsI(int mode, int arg)
 		{
 			switch (arg)
 			{
-			case 2:
+			case 1:
 				ActiveCircuit[ActiveActor]->TrapezoidalIntegration = true;
 				break;
 			default:
@@ -13670,7 +13644,7 @@ char* __stdcall SettingsS(int mode, char* arg)
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
 			auto& with0 = ActiveCircuit[ActiveActor]->AutoAddBusList;
-			for (i = 1; i <= with0.ListPtr.size(); i++)
+			for (i = 1; i <= with0.NumElements; i++)
 			{
 				AppendGlobalResult(with0.Get(i));
 				result = GlobalResult;				
