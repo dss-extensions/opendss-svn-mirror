@@ -343,32 +343,32 @@ void TWindGen::InterpretConnection(const String s)
 	{
 		auto with0 = ActiveWindGenObj;
 		TestS = LowerCase(s);
-		switch(TestS[1])
+		switch(TestS[0])
 		{
-			case 	L'y':
-			 case L'w':
-			with0->Connection = 0;
-			break;  /*Wye*/
-			case 	L'd':
-			with0->Connection = 1;
-			break;  /*Delta or line-Line*/
-			case 	L'l':
-			switch(TestS[2])
-			{
-				case 	L'n':
+			case 'y':
+			case 'w':
 				with0->Connection = 0;
-				break;
-				case 	L'l':
+				break;  /*Wye*/
+
+			case 	'd':
 				with0->Connection = 1;
-				break;
+				break;  /*Delta or line-Line*/
+
+			case 	'l':
+			switch(TestS[1])
+			{
+				case 	'n':
+					with0->Connection = 0;
+					break;
+				case 	'l':
+					with0->Connection = 1;
+					break;
 				default:
-				  ;
-				break;
+					break;
 			}
 			break;
 			default:
-			  ;
-			break;
+				break;
 		}
 		SetNcondsForConnection();
 

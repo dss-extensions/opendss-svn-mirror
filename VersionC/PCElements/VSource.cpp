@@ -361,15 +361,15 @@ int TVsource::Edit(int ActorID)
 				with0->X0 = Parser[ActorID]->MakeDouble_();
 				break;
 				case 	17:
-				switch(UpperCase(Param)[1])
+				switch(UpperCase(Param)[0])
 				{
-					case 	L'P':
+					case 	'P':
 					with0->ScanType = 1;
 					break;
-					case 	L'Z':
+					case 	'Z':
 					with0->ScanType = 0;
 					break;
-					case 	L'N':
+					case 	'N':
 					with0->ScanType = -1;
 					break;
 					default:
@@ -382,15 +382,15 @@ int TVsource::Edit(int ActorID)
 				}
 				break;
 				case 	18:
-				switch(UpperCase(Param)[1])
+				switch(UpperCase(Param)[0])
 				{
-					case 	L'P':
+					case 	'P':
 					with0->SequenceType = 1;
 					break;
-					case 	L'Z':
+					case 	'Z':
 					with0->SequenceType = 0;
 					break;
-					case 	L'N':
+					case 	'N':
 					with0->SequenceType = -1;
 					break;
 					default:
