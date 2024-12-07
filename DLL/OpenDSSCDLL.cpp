@@ -28,7 +28,6 @@
 #include "DSSClassDefs.h"
 #include "DSSGlobals.h"
 #include "Bus.h"
-#include "klusolve.h"
 #include "PCClass.h"
 #include "PCElement.h"
 #include "PDClass.h"
@@ -452,6 +451,9 @@ char* DSSS(int mode, char* arg)
 		break;
 	case 1:										// DSS.Version
 		result = VersionString + "; license status: Open;"
+#ifdef OPENDSSC_KLUSOLVEX
+        " (KLUSolveX)"
+#endif
 #if defined(_DEBUG) || !defined(NDEBUG)
 		" (DEBUG VERSION)"
 #endif

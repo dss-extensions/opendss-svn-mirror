@@ -37,7 +37,6 @@
 #include "LineGeometry.h"
 #include "YMatrix.h"
 #include "SwtControl.h"
-#include "klusolve.h"
 #include "System.h"
 
 

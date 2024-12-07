@@ -7,7 +7,6 @@
 #include "Utilities.h"
 #include "Solution.h"
 #include "CmdForms.h"
-#include "klusolve.h"
 #include "ExecCommands.h"
 #include "ExecOptions.h"
 

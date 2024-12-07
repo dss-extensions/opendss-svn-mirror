@@ -28,7 +28,6 @@
 #include "DSSClassDefs.h"
 #include "DSSGlobals.h"
 #include "Bus.h"
-#include "klusolve.h"
 #include "PCClass.h"
 #include "PCElement.h"
 #include "PDClass.h"
