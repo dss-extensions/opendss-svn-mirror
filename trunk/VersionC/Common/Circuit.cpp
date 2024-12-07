@@ -604,8 +604,8 @@ namespace Circuit
                 if (jj != String::npos)
                     BusName = BusName.substr(0, jj);
                 SetActiveBus(BusName);
-                Bus::TDSSBus& pBus = *Buses[ActiveBusIndex];
-                for (int stop = pBus.get_FNumNodesThisBus(), kk = 1; kk <= stop; kk++)
+                Bus::TDSSBus* pBus = Buses[ActiveBusIndex];
+                for (int stop = pBus->get_FNumNodesThisBus(), kk = 1; kk <= stop; kk++)
                 {
                     text = "New ISource." + IntToStr(BusNum) + "_" + IntToStr(kk) + " phases=1 bus1=" + BusName + "." + IntToStr(kk) + " amps=0.000001 angle=0";
                     System::WriteLn(myFile, text);
@@ -1362,15 +1362,15 @@ namespace Circuit
                             {
                                 BusName = with0->Inc_Mat_Cols[with0->Active_Cols[dbg]];
                                 SetActiveBus(BusName);           // Activates the Bus
-                                TDSSBus& pBus = *Buses[static_cast<size_t>(ActiveBusIndex) - 1];
+                                TDSSBus* pBus = Buses[ActiveBusIndex];
                                 jj = 1;
                                 // this code so nodes come out in order from smallest to larges
                                 do
                                 {
-                                    NodeIdx = pBus.FindIdx(jj);   // Get the index of the Node that matches jj
+                                    NodeIdx = pBus->FindIdx(jj);   // Get the index of the Node that matches jj
                                     jj++;
                                 } while (!(NodeIdx > 0));
-                                Volts = ctopolardeg(Solution->NodeV[pBus.GetRef(NodeIdx)]);  // referenced to pBus
+                                Volts = ctopolardeg(Solution->NodeV[pBus->GetRef(NodeIdx)]);  // referenced to pBus
                                 Term_volts[dbg] = Volts.mag;
                             }
 
@@ -1384,12 +1384,12 @@ namespace Circuit
                             Terminal = "terminal=1";
                             PConn_Names[i] = BusName;
                             SetActiveBus(BusName);           // Activates the Bus
-                            TDSSBus& pBus2 = *(Buses[ActiveBusIndex]);
+                            TDSSBus* pBus2 = Buses[ActiveBusIndex];
                             for (int stop = 3, jj = 1; jj <= stop; jj++)
                             {
                                 // this code so nodes come out in order from smallest to larges
-                                NodeIdx = pBus2.FindIdx(jj);   // Get the index of the Node that matches jj
-                                Volts = ctopolardeg(Solution->NodeV[pBus2.GetRef(NodeIdx)]);  // referenced to pBus
+                                NodeIdx = pBus2->FindIdx(jj);   // Get the index of the Node that matches jj
+                                Volts = ctopolardeg(Solution->NodeV[pBus2->GetRef(NodeIdx)]);  // referenced to pBus
                                 PConn_Voltages[j] = (double(Volts.mag) / 1000);
                                 j++;
                                 PConn_Voltages[j] = Volts.ang;
@@ -1405,13 +1405,13 @@ namespace Circuit
                         BusName = with0->Inc_Mat_Cols[0];
                         PConn_Names[i] = BusName;
                         SetActiveBus(BusName);           // Activates the Bus
-                        TDSSBus& pBus3 = *(Buses[ActiveBusIndex]);
+                        TDSSBus* pBus3 = Buses[ActiveBusIndex];
                         // Stores the voltages for the Reference bus first
                         for (int stop = 3, jj = 1; jj <= stop; jj++)
                         {
                             // this code so nodes come out in order from smallest to larges
-                            NodeIdx = pBus3.FindIdx(jj);   // Get the index of the Node that matches jj
-                            Volts = ctopolardeg(Solution->NodeV[pBus3.GetRef(NodeIdx)]);  // referenced to pBus
+                            NodeIdx = pBus3->FindIdx(jj);   // Get the index of the Node that matches jj
+                            Volts = ctopolardeg(Solution->NodeV[pBus3->GetRef(NodeIdx)]);  // referenced to pBus
                             PConn_Voltages[j] = (double(Volts.mag) / 1000);
                             j++;
                             PConn_Voltages[j] = Volts.ang;
