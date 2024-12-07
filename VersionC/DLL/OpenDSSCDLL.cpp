@@ -18496,4 +18496,12 @@ void getIpointer(complex** IvectorPtr)
 	*IvectorPtr = ActiveCircuit[ActiveActor]->Solution->Currents.data();
 }
 
+void DSSDisposeString(char* value)
+{
+	if (value != nullptr)
+	{
+		delete[] value;
+	}
+}
+
 }
