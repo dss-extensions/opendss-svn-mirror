@@ -3008,7 +3008,6 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			if ((with0->ActiveBusIndex >= 0) && (with0->ActiveBusIndex < with0->NumBuses))
 			{
 				pBus = with0->Buses[with0->ActiveBusIndex];
-				auto with0 = pBus;
 				myIntArray.resize(pBus->FNumNodesThisBus);
 				Nvalues = pBus->FNumNodesThisBus;
 				iV = 0;
@@ -3017,13 +3016,14 @@ void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				{
 					do
 					{
-						NodeIdx = with0->FindIdx(jj);
+						NodeIdx = pBus->FindIdx(jj);
 						jj++;
 					}
 					while (NodeIdx <= 0);
-						myIntArray[iV] = with0->GetNum(NodeIdx);
+					
+					myIntArray[iV] = pBus->GetNum(NodeIdx);
+					iV++;
 				}
-				iV++;
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myIntArray.data());
