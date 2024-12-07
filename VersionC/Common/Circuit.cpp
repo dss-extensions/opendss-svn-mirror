@@ -128,6 +128,9 @@ namespace Circuit
         NumNodes = 0;
         Faults = TPointerList(2);
         CktElements = TPointerList(1000);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        IncrCktElements = TPointerList(1000);
+#endif
         PDElements = TPointerList(1000);
         PCElements = TPointerList(1000);
         DSSControls = TPointerList(10);

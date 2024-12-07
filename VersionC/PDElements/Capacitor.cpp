@@ -432,7 +432,22 @@ int TCapacitor::Edit(int ActorID)
 					with0->Set_YprimInvalid(ActorID,true);
 				break;
 				case 	12: case 13:
-					with0->Set_YprimInvalid(ActorID,true);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+					// For changes in NumSteps and States, try to handle it incrementally
+					if (
+						((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+						(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+						(with0->YPrim != nullptr) &&
+						(!with0->Get_YprimInvalid(ActorID, 0))
+					)
+					{
+						ActiveCircuit[ActorID]->IncrCktElements.Add(with0);
+					}
+					else
+#endif
+					{
+						with0->Set_YprimInvalid(ActorID,true);
+					}
 				break;
 				default:
 				  ;
@@ -929,7 +944,24 @@ void TCapacitorObj::set_States(int Idx, int ActorID, int Value)
 	if(FStates[Idx - 1] != Value)
 	{
 		FStates[Idx - 1] = Value;
-		Set_YprimInvalid(ActorID,true);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+		if (
+			((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+			(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+			(YPrim != nullptr) &&
+			(!Get_YprimInvalid(ActorID, 0))
+		)
+		{
+			// Mark this to incrementally update the matrix.
+			// If the matrix is already being rebuilt, there is 
+			// no point in doing this, just rebuild it as usual.
+			ActiveCircuit[ActorID]->IncrCktElements.Add(this);
+		}
+		else
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+		{
+			Set_YprimInvalid(ActorID, true);
+		}
 	}
 }
 
@@ -1116,7 +1148,26 @@ void TCapacitorObj::set_LastStepInService(int Value)
 
      // Force rebuild of YPrims if necessary.
 	if(Value != FLastStepInService)
-		Set_YprimInvalid(ActiveActor,true);
+	{
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+		if (
+			((ActiveCircuit[ActiveActor]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+			(!ActiveCircuit[ActiveActor]->Solution->SystemYChanged) &&
+			(YPrim != nullptr) &&
+			(!Get_YprimInvalid(ActiveActor, 0))
+		)
+		{
+			// Mark this to incrementally update the matrix.
+			// If the matrix is already being rebuilt, there is 
+			// no point in doing this, just rebuild it as usual.
+			ActiveCircuit[ActiveActor]->IncrCktElements.Add(this);
+		}
+		else
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+		{
+			Set_YprimInvalid(ActiveActor, true);
+		}
+	}
 	FLastStepInService = Value;
 }
 
@@ -1373,6 +1424,56 @@ int TCapacitorObj::AvailableSteps()
 	return result;
 }
 
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+void TCapacitorObj::Set_ConductorClosed( int Index, int ActorID, bool Value )
+{
+	int i = 0;
+	if ( Index == 0 )
+	{  // Do all conductors
+		for ( int stop = Fnphases, i = 1; i <= stop; i++)
+			Terminals[(FActiveTerminal) - 1].Conductors[i- 1].Closed = Value;
+
+		ActiveCircuit[ActorID]->Solution->SystemYChanged = true;  // force Y matrix rebuild
+		if (
+			((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+			(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+			(YPrim != nullptr) &&
+			(!Get_YprimInvalid(ActorID, 0))
+		)
+		{
+			// Mark this to incrementally update the matrix.
+			// If the matrix is already being rebuilt, there is 
+			// no point in doing this, just rebuild it as usual.
+			ActiveCircuit[ActorID]->IncrCktElements.Add(this);
+		}
+		else
+		{
+			Set_YprimInvalid(ActorID, true);
+		}
+	}
+	else
+	{
+	if ( ( Index > 0 ) && ( Index <= Fnconds ) )
+	{
+		Terminals[(FActiveTerminal) - 1].Conductors[(Index) - 1].Closed = Value;
+		ActiveCircuit[ActorID]->Solution->SystemYChanged = true;
+		if (
+			((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+			(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+			(YPrim != nullptr) &&
+			(!Get_YprimInvalid(ActorID, 0))
+		)
+		{
+			ActiveCircuit[ActorID]->IncrCktElements.Add(this);
+		}
+		else
+		{
+			Set_YprimInvalid(ActorID, true);
+		}
+	}
+	}
+}
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
 
 
 

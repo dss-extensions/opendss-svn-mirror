@@ -629,10 +629,34 @@ int TTransf::Edit(int ActorID)
          //YPrim invalidation on anything that changes impedance values
 			switch(ParamPointer)
 			{
-				case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14:
-				 case 15: case 16: case 17: case 18: case 19:
+				case 5: case 6: case 7: case 9: case 10: case 11: case 12: case 13: case 14:
+				 case 15: case 17: case 18: case 19:
 					with0->Set_YprimInvalid(ActorID,true);
 				break;
+
+				case 8: // tap
+				case 16: // taps
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+					// Try to handle tap changes incrementally
+					if (
+						((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+						(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+						(with0->YPrim != nullptr) &&
+						(!with0->Get_YprimInvalid(ActorID, 0))
+					)
+					{
+						// Mark this to incrementally update the matrix.
+						// If the matrix is already being rebuilt, there is 
+						// no point in doing this, just rebuild it as usual.
+						ActiveCircuit[ActorID]->IncrCktElements.Add(with0);
+					}
+					else
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+					{
+						with0->Set_YprimInvalid(ActorID, true);
+					}
+				break;
+
 				case 26: case 27:
 					with0->Set_YprimInvalid(ActorID,true);
 				break;
@@ -1752,7 +1776,25 @@ void TTransfObj::Set_PresentTap(int i, int ActorID, double Value)
 			if(TempVal != WINDING_[i - 1].puTap)    /*Only if there's been a change*/
 			{
 				WINDING_[i - 1].puTap = TempVal;
-				Set_YprimInvalid(ActorID,true);  // this property triggers setting SystemYChanged=true
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+					if (
+						((ActiveCircuit[ActorID]->Solution->SolverOptions & 0xFFFFFFFF) != TSolverOptions::ReuseNothing) &&
+						(!ActiveCircuit[ActorID]->Solution->SystemYChanged) &&
+						(YPrim != nullptr) &&
+						(!Get_YprimInvalid(ActorID, 0))
+					)
+				{
+					// Mark this to incrementally update the matrix.
+					// If the matrix is already being rebuilt, there is 
+					// no point in doing this, just rebuild it as usual.
+					ActiveCircuit[ActorID]->IncrCktElements.Add(this);
+				}
+				else
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+				{
+					Set_YprimInvalid(ActorID, true);  // this property triggers setting SystemYChanged=true
+				}
+
 				RecalcElementData(ActorID);
 			}
 		}
