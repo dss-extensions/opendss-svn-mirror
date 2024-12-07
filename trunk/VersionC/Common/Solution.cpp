@@ -22,7 +22,6 @@
 #include <math.h>
 #include "Circuit.h"
 #include "Utilities.h"
-#include "klusolve.h"
 #include "PointerList.h"
 #include "Line.h"
 #include "Transformer.h"

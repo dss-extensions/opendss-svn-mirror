@@ -74,7 +74,16 @@ static inline double operator-(const struct timespec &a, const struct timespec &
 #include <string>
 #include <thread>
 #include <functional>
+
+#ifdef OPENDSSC_KLUSOLVEX
+#ifndef klusparseset_t
+typedef void* klusparseset_t;
+#endif
+#include "KLUSolveX.h"
+#else
 #include "klusolve.h" // klusparseset_t
+#endif
+
 #include <condition_variable>
 #include <mutex>
 #include <queue>

@@ -20,7 +20,6 @@
 #include "Spectrum.h"
 #include "VSource.h"
 #include "Isource.h"
-#include "klusolve.h"
 
 
 

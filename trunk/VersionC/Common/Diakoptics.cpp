@@ -17,7 +17,6 @@
 #include "Executive.h"
 #include "ParserDel.h"
 #include "YMatrix.h"
-#include "klusolve.h"
 #include "Ucomplex.h"
 #include "Sparse_Math.h"
 #include "Ucmatrix.h"

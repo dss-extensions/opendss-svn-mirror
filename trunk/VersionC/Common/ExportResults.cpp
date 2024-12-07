@@ -37,7 +37,6 @@
 #include "GICTransformer.h"
 #include "PVsystem.h"
 #include "Storage.h"
-#include "klusolve.h"
 #include "ExportCIMXML.h"
 #include "LineSpacing.h"
 #include "CNData.h"
