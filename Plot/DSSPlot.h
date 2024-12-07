@@ -156,9 +156,9 @@ namespace DSSPlot
         void DoLoadShapePlot(const String LoadShapeName);
         void DoTempShapePlot(const String TempShapeName);
         void DoPriceShapePlot(const String PriceShapeName);
-        void DoDI_Plot(const String CaseName, int CaseYear, const int* iRegisters, int iRegisters_maxidx, bool PeakDay, const String MeterName);
+        void DoDI_Plot(const String CaseName, int CaseYear, std::vector<int> &iRegisters, bool PeakDay, const String MeterName);
         void DoCompareCases(String CaseName1, String CaseName2, String WhichFile, int Reg);
-        void DoYearlyCurvePlot(TStringList CaseNames, String WhichFile, const int* iRegisters, int iRegisters_maxidx);
+        void DoYearlyCurvePlot(TStringList &CaseNames, String WhichFile, std::vector<int> &iRegisters);
         void DoVisualizationPlot(TDSSCktElement* Element, int Quantity);
     };
 
