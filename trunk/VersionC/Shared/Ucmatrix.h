@@ -41,6 +41,7 @@ public:
 	TcMatrix(int n);
 	virtual ~TcMatrix();
 	void Invert();
+	void Negate();
 	void Clear();  /*Zero out matrix*/
 	void AddFrom(TcMatrix* OtherMatrix);
 	void CopyFrom(TcMatrix* OtherMatrix);

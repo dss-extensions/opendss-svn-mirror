@@ -184,6 +184,9 @@ namespace Circuit
         TPointerList InvControls2;
         TPointerList ExpControls;
         TPointerList CktElements;
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        TPointerList IncrCktElements;
+#endif
 
 #ifdef OPENDSSC_EXPERIMENTAL
         // BHSL
