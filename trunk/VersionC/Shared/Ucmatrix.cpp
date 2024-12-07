@@ -520,6 +520,7 @@ void TcMatrix::MultByConst(double X)
 }  // namespace Ucmatrix
 
 
+#ifndef OPENDSSC_KLUSOLVEX
 // We have to do this here at the end since we have
 // "using namespace std;"
 // at the beginning (of most files), causing conflicts between
@@ -542,5 +543,4 @@ void Ucmatrix::TcMatrix::MVmult(pComplexArray B, pComplexArray X)
 		CB[i] = Sum;
 	}
 }
-
-
+#endif // #ifndef OPENDSSC_KLUSOLVEX
