@@ -115,6 +115,9 @@ public:
 	void ProcessHarmonicSpec(const String Param);
 	void ProcessStatesSpec(const String Param);
 	void MakeYprimWork(Ucmatrix::TcMatrix* YprimWork, int iStep, int ActorID);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+	void Set_ConductorClosed(int Index, int ActorID, bool Value) override;
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y	
 	void set_NumSteps(int Value); // 1=kvar, 2=Cuf, 3=Cmatrix
 public:
 	int Connection;   // 0 or 1 for wye (default) or delta, respectively

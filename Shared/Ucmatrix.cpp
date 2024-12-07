@@ -514,8 +514,15 @@ void TcMatrix::MultByConst(double X)
 	}
 }
 
-
-
+void TcMatrix::Negate()
+{
+	int i = 0;
+	int stop = 0;
+	for(stop = Norder * Norder, i = 1; i <= stop; i++)
+	{
+		Values[i - 1] = cnegate(Values[i - 1]);
+	}
+}
 
 }  // namespace Ucmatrix
 

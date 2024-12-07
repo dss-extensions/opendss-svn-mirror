@@ -73,7 +73,7 @@ namespace CktElement
         TcMatrix* YPrim;   // Order will be NTerms * Ncond
         double FYprimFreq;     // Frequency at which YPrim has been computed
         virtual void Set_Enabled(bool Value);
-        void Set_ConductorClosed(int Index, int ActorID, bool Value);
+        virtual void Set_ConductorClosed(int Index, int ActorID, bool Value);
         virtual void Set_NTerms(int Value);
         void Set_Handle(int Value);
     public:

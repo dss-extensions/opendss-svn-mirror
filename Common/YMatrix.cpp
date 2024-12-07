@@ -8,7 +8,9 @@
 #include "CktElement.h"
 #include "Utilities.h"
 
-
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+#include <set>
+#endif
 
 namespace YMatrix
 {
@@ -50,6 +52,17 @@ namespace YMatrix
             {
                 if (with0->LogEvents)
                     LogThisEvent("Recalc Invalid Yprims", ActorID);
+
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                pElem = (TDSSCktElement*)with0->IncrCktElements.Get_First();
+                while (pElem != NULL)
+                {
+                    /*# with pElem do */
+                    if (pElem->Get_YprimInvalid(ActorID,false))
+                        pElem->CalcYPrim(ActorID);
+                    pElem = (TDSSCktElement*)with0->IncrCktElements.Get_Next();
+                }
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
                 pElem = (TDSSCktElement*)with0->CktElements.Get_First();
                 while (pElem != NULL)
                 {
@@ -111,6 +124,172 @@ namespace YMatrix
                 
     }
     //=====================================================================================================================================
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+    bool UpdateYMatrix(TDSSCircuit* Ckt, int BuildOption, bool AllocateVI, int ActorID)
+    {
+        TcMatrix* IncrYprim = nullptr;
+        TDSSCktElement* pElem;
+        std::set<std::tuple<int32_t, int32_t>> changedElements; // elements from the matrix that have been changed
+        std::set<int32_t> changedNodes; // nodes which have affected elements
+        std::set<std::tuple<int32_t, int32_t>>::const_iterator coordIt;
+        bool abortIncremental = false;
+    
+        bool Result = false;
+        
+        // Incremental Y update, only valid for BuildOption = WHOLEMATRIX.
+        pElem = (TDSSCktElement*) Ckt->IncrCktElements.Get_First();
+        while (pElem != nullptr)
+        {
+            if ((BuildOption == PDE_ONLY) && !(
+                (((pElem->ParentClass->DSSClassType & BaseClassMask) == PD_ELEMENT) or
+                ((pElem->DSSObjType & CLASSMASK) == SOURCE))
+            ))
+            {
+                pElem = (TDSSCktElement*) Ckt->IncrCktElements.Get_Next();
+                continue;
+            }
+
+            if (pElem->Get_Enabled() && (pElem->YPrim == nullptr))
+            {
+                abortIncremental = true;
+                break;
+            }
+
+            if ((!pElem->Get_Enabled()) || (pElem->YPrim == nullptr))
+            {
+                pElem = (TDSSCktElement*) Ckt->IncrCktElements.Get_Next();
+                continue;
+            }
+
+            if (IncrYprim != nullptr)
+            {
+                delete IncrYprim;
+                IncrYprim = nullptr;
+            }
+            
+            IncrYprim = new TcMatrix(pElem->YPrim->Norder);
+            IncrYprim->CopyFrom(pElem->YPrim);
+            IncrYprim->Negate();
+            
+            pElem->CalcYPrim(ActorID);
+            
+            if ((pElem->YPrim == nullptr) || (IncrYprim->Norder != pElem->YPrim->Norder))
+            {
+                abortIncremental = true;
+                break;
+            }
+            
+            IncrYprim->AddFrom(pElem->YPrim);
+            for (int32_t i = 1; i <= pElem->YPrim->Norder; ++i)
+            {
+                int32_t inode = pElem->NodeRef[i - 1];
+                if (inode == 0) continue;
+                for (int32_t j = 1; j <= pElem->YPrim->Norder; ++j)
+                {
+                    int32_t jnode = pElem->NodeRef[j - 1];
+                    if (jnode == 0) continue;
+                    
+                    const complex &cval = IncrYprim->GetElement(i, j);
+                    if ((cval.re != 0) || (cval.im != 0))
+                    {
+                        changedNodes.insert(inode);
+                        changedNodes.insert(jnode);
+                        // Encode the coordinates as a 64-bit integer
+                        changedElements.emplace(inode, jnode);
+                    }
+                }
+            }
+
+            pElem = (TDSSCktElement*) Ckt->IncrCktElements.Get_Next();
+        }
+
+        if (IncrYprim != nullptr)
+        {
+            delete IncrYprim;
+            IncrYprim = nullptr;
+        }
+
+        if (!abortIncremental)
+        {
+            coordIt = changedElements.cbegin();
+            while (coordIt != changedElements.cend())
+            {
+                // Zeroise only the exact elements affected to make it faster
+                if (ZeroiseMatrixElement(Ckt->Solution->hYsystem, get<0>(*coordIt), get<1>(*coordIt)) == 0)
+                {
+                    // If the element doesn't exist in the current compressed matrix, abort!
+                    abortIncremental = true;
+                    break;
+                }
+                ++coordIt;
+            }
+        }
+
+        pElem = (TDSSCktElement*) Ckt->CktElements.Get_First();
+        while (pElem != nullptr)
+        {
+            if (abortIncremental) break;
+
+            if ((!pElem->Get_Enabled()) || (pElem->YPrim == nullptr))
+            {
+                pElem = (TDSSCktElement*) Ckt->CktElements.Get_Next();
+                continue;
+            }
+
+            for (int32_t i = 1; i <= pElem->YPrim->Norder; ++i)
+            {
+                int32_t inode = pElem->NodeRef[i - 1];
+                if (inode == 0) continue;
+                if (changedNodes.find(inode) == changedNodes.end())
+                {
+                    // nothing changed for node "inode", we can skip it completely
+                    continue;
+                }
+
+                for (int32_t j = 1; j < pElem->YPrim->Norder; ++j)
+                {
+                    int32_t jnode = pElem->NodeRef[j - 1];
+                    if (jnode == 0) continue;
+
+                    if (changedElements.find({inode, jnode}) == changedElements.end())
+                        continue;
+
+                    const complex &cval = pElem->YPrim->GetElement(i, j);
+                    if ((cval.re == 0) && (cval.im == 0)) continue;
+
+                    if (IncrementMatrixElement(Ckt->Solution->hYsystem, inode, jnode, cval.re, cval.im) == 0)
+                    {
+                        abortIncremental = true;
+                        break;
+                    }
+                }
+
+                if (abortIncremental) break;
+            }
+
+            if (abortIncremental) break;
+
+            pElem = (TDSSCktElement*) Ckt->CktElements.Get_Next();
+        }
+
+        if (abortIncremental)
+        {
+            Result = false;
+
+            // Retry with the full matrix
+            Ckt->Solution->SystemYChanged = true;
+            BuildYMatrix(BuildOption, AllocateVI, ActorID);
+            Ckt->IncrCktElements.Clear();
+        }
+        else
+        {
+            Ckt->IncrCktElements.Clear();
+            Result = true;
+        }
+        return Result;
+    }
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+//=====================================================================================================================================
     void BuildYMatrix(int BuildOption, bool AllocateVI, int ActorID)
 
         /*Builds designated Y matrix for system and allocates solution arrays*/
@@ -119,13 +298,17 @@ namespace YMatrix
         //   CmatArray    :pComplexArray;   Replaced with a global array for thread safe operation
 
         TDSSCktElement* pElem;
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        bool Incremental = false;
+        TPointerList &IncrCktElements = ActiveCircuit[ActorID]->IncrCktElements;
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
 
         //{****} FTrace: TextFile;
 
        //{****} AssignFile(Ftrace, 'YmatrixTrace.txt');
        //{****} Rewrite(FTrace);
        //{****} IOResultToException();
-        ActiveYPrim[ActorID] = pComplexArray();  //Replaces the previous local declaration CmatArray := Nil; for thread safe
+        ActiveYPrim[ActorID] = pComplexArray();  //Replaces the previous local declaration CmatArray := nullptr; for thread safe
         ActiveYPrim[ActorID] = NULL;
          // new function to log KLUSolve.DLL function calls
          // SetLogFile ('KLU_Log.txt', 1);
@@ -140,7 +323,9 @@ namespace YMatrix
                  // If radial but systemNodeMap not set then init for radial got skipped due to script sequence
                 if (with0->get_FBusNameRedefined())
                     with0->ReProcessBusDefs(ActorID);      // This changes the node references into the system Y matrix!!
+
                 YMatrixsize = with0->NumNodes;
+
                 if (AllocateVI)
                 {
                     if (with0->LogEvents)
@@ -154,32 +339,62 @@ namespace YMatrix
                     with0->Solution->Node_dV.resize(with0->NumNodes + 1); // Allocate the partial solution voltage
                     with0->Solution->Ic_Local.resize(with0->NumNodes + 1); // Allocate the Complementary currents
                 }
+                
                 switch (BuildOption)
                 {
                 case WHOLEMATRIX:
                 {
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                    Incremental = (with0->Solution->SolverOptions != TSolverOptions::ReuseNothing) &&
+                        (!with0->Solution->SystemYChanged) &&
+                        (IncrCktElements.get_myNumList() != 0) &&
+                        (!AllocateVI) &&
+                        (!with0->Solution->FrequencyChanged);
+
+                    if (!Incremental)
+                    {
+                        if (IncrCktElements.get_myNumList() != 0)
+                            with0->Solution->SystemYChanged = true;
+
+                        ResetSparseMatrix(&with0->Solution->hYsystem, YMatrixsize, ActorID);
+                        SetOptions(with0->Solution->hYsystem, with0->Solution->SolverOptions);
+                    }
+#else
                     ResetSparseMatrix(&with0->Solution->hYsystem, YMatrixsize, ActorID);
+#endif                    
                     with0->Solution->hY = with0->Solution->hYsystem;
                 }
                 break;
                 case SERIESONLY:
                 {
                     ResetSparseMatrix(&with0->Solution->hYseries, YMatrixsize, ActorID);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                    SetOptions(with0->Solution->hYseries, with0->Solution->SolverOptions);
+#endif
                     with0->Solution->hY = with0->Solution->hYseries;
                 }
                 break;
                 case PDE_ONLY:
                 {
                     ResetSparseMatrix(&with0->Solution->hYseries, YMatrixsize, ActorID);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                    SetOptions(with0->Solution->hYseries, with0->Solution->SolverOptions);
+#endif
                     with0->Solution->hY = with0->Solution->hYseries;
                 }
                 break;
                 }
                 // tune up the Yprims if necessary
-                if (with0->Solution->FrequencyChanged)
-                    ReCalcAllYPrims(ActorID);
-                else
-                    ReCalcInvalidYPrims(ActorID);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                if (!Incremental)
+#endif
+                {
+                    if (with0->Solution->FrequencyChanged)
+                        ReCalcAllYPrims(ActorID);
+                    else
+                        ReCalcInvalidYPrims(ActorID);
+                }
+
                 if (SolutionAbort)
                 {
                     DoSimpleMsg("Y matrix build aborted due to error in primitive Y calculations.", 11001);
@@ -190,7 +405,16 @@ namespace YMatrix
                     switch (BuildOption)
                     {
                     case WHOLEMATRIX:
-                        LogThisEvent("Building Whole Y Matrix", ActorID);
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                        if (!Incremental)
+                        {
+                            LogThisEvent("Building Whole Y Matrix -- using incremental method", ActorID);
+                        }
+                        else
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+                        {
+                            LogThisEvent("Building Whole Y Matrix", ActorID);
+                        }
                         break;
                     case SERIESONLY:
                         LogThisEvent("Building Series Y Matrix", ActorID);
@@ -199,44 +423,61 @@ namespace YMatrix
                         LogThisEvent("Building PDE only Y Matrix", ActorID);
                         break;
                     }
-                // Add in Yprims for all devices
-                pElem = (TDSSCktElement*) with0->CktElements.Get_First();
-                while (pElem != NULL)
-                {
-                    /*# with pElem do */
-                    if (pElem->Get_Enabled())
-                    {          // Add stuff only if enabled
-                        switch (BuildOption)
-                        {
-                            case PDE_ONLY:
-                            {
-                                // First check if the element is PDE or source
-                                bool ValidElm = ((pElem->ParentClass->DSSClassType & BaseClassMask) == PD_ELEMENT);
-                                // If not PDE, check if it is a VSource
-                                ValidElm = ValidElm || ((pElem->DSSObjType & CLASSMASK) == SOURCE);
 
-                                if (ValidElm)
+
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                if (!Incremental)
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
+                {
+                    // Add in Yprims for all devices
+                    pElem = (TDSSCktElement*) with0->CktElements.Get_First();
+                    while (pElem != NULL)
+                    {
+                        /*# with pElem do */
+                        if (pElem->Get_Enabled())
+                        {   
+                            // Add stuff only if enabled
+                            switch (BuildOption)
+                            {
+                                case PDE_ONLY:
+                                {
+                                    // First check if the element is PDE or source
+                                    bool ValidElm = ((pElem->ParentClass->DSSClassType & BaseClassMask) == PD_ELEMENT);
+                                    // If not PDE, check if it is a VSource
+                                    ValidElm = ValidElm || ((pElem->DSSObjType & CLASSMASK) == SOURCE);
+
+                                    if (ValidElm)
+                                        ActiveYPrim[ActorID] = pElem->GetYPrimValues(ALL_YPRIM);
+                                    else
+                                        ActiveYPrim[ActorID] = NULL;
+                                }
+                                break;
+                                case SERIESONLY:
+                                    ActiveYPrim[ActorID] = pElem->GetYPrimValues(SERIES);
+                                    break;
+                                default:   // Whole matrix
                                     ActiveYPrim[ActorID] = pElem->GetYPrimValues(ALL_YPRIM);
-                                else
-                                    ActiveYPrim[ActorID] = NULL;
+                                    break;
                             }
-                            break;
-                            case SERIESONLY:
-                                ActiveYPrim[ActorID] = pElem->GetYPrimValues(SERIES);
-                                break;
-                            default:   // Whole matrix
-                                ActiveYPrim[ActorID] = pElem->GetYPrimValues(ALL_YPRIM);
-                                break;
-                        }
-                        // new function adding primitive Y matrix to KLU system Y matrix
-                        if (ActiveYPrim[ActorID] != NULL)
-                        {
-                            if ( AddPrimitiveMatrix( with0->Solution->hY, pElem->Yorder, &( pElem->NodeRef[0] ), &( ActiveYPrim[ActorID][0] ) ) < 1)
-                                DoSimpleMsg("Node index out of range adding to System Y Matrix", 50002);
-                        }
-                    }   // If Enabled
-                    pElem = (TDSSCktElement*) with0->CktElements.Get_Next();
+                            // new function adding primitive Y matrix to KLU system Y matrix
+                            if (ActiveYPrim[ActorID] != NULL)
+                            {
+                                if ( AddPrimitiveMatrix( with0->Solution->hY, pElem->Yorder, &( pElem->NodeRef[0] ), &( ActiveYPrim[ActorID][0] ) ) < 1)
+                                    DoSimpleMsg("Node index out of range adding to System Y Matrix", 50002);
+                            }
+                        }   // If Enabled
+                        pElem = (TDSSCktElement*) with0->CktElements.Get_Next();
+                    }
+                } // if (!Incremental)
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                else // if (Incremental)
+                {
+                    if (!UpdateYMatrix(with0, BuildOption, AllocateVI, ActorID))
+                    {
+                        return;
+                    }
                 }
+#endif // DSS_EXTENSIONS_INCREMENTAL_Y
                 //{****} CloseFile(Ftrace);
                 //{****} FireOffEditor(  'YmatrixTrace.txt');
 

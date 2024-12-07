@@ -176,6 +176,9 @@ namespace Solution
       GStartTime        = { 0 };
       Gendtime          = { 0 };
       LoopEndtime       = { 0 };
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+      SolverOptions = 0;
+#endif
       Fyear = 0;
       DynaVars.intHour = 0;
       DynaVars.T = 0.0;
@@ -707,7 +710,11 @@ namespace Solution
             GetPCInjCurr( ActorID );  // Get the injection currents from all the power conversion devices and feeders
 
            // The above call could change the primitive Y matrix, so have to check
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+            if ( SystemYChanged || (with0->IncrCktElements.get_myNumList() != 0))
+#else
             if ( SystemYChanged )
+#endif
             {
               BuildYMatrix( WHOLEMATRIX, false, ActorID );  // Does not realloc V, I
             }
@@ -834,7 +841,11 @@ namespace Solution
             SumAllCurrents( ActorID );
 
                // Call to current calc could change YPrim for some devices
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+            if ( SystemYChanged || (with0->IncrCktElements.get_myNumList() != 0) )
+#else
             if ( SystemYChanged )
+#endif
             {
               BuildYMatrix( WHOLEMATRIX, false, ActorID );   // Does not realloc V, I
             }
@@ -1937,14 +1948,20 @@ namespace Solution
           else
             ControlActionsDone = true; // Stop solution process if failure to converge
         }
-        if ( SystemYChanged )
+        if ( SystemYChanged && (Algorithm == NCIMSOLVE) )
         {
-            if (Algorithm == NCIMSOLVE)
-                NCIMRdy = false;
-            else
-                BuildYMatrix( WHOLEMATRIX, false, ActorID ); // Rebuild Y matrix, but V stays same
-            
+          NCIMRdy = false;
         }
+        else
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        if ( SystemYChanged || (ActiveCircuit[ActorID]->IncrCktElements.get_myNumList() != 0) )
+#else
+        if ( SystemYChanged )
+#endif
+        {
+          BuildYMatrix( WHOLEMATRIX, false, ActorID ); // Rebuild Y matrix, but V stays same
+        }
+
         /*by Dahei*/
         if ( NodeYiiEmpty )
           Get_Yiibus();
@@ -1988,9 +2005,12 @@ namespace Solution
             LoadsNeedUpdating = true;  // Force the loads to update at least once
             GetPCInjCurr( ActorID ); // for direct solve
           }
-         // The above call could change the primitive Y matrix, so have to check
         // The above call could change the primitive Y matrix, so have to check
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        if ( SystemYChanged || (ActiveCircuit[ActorID]->IncrCktElements.get_myNumList() != 0))
+#else
         if ( SystemYChanged )
+#endif
         {
           BuildYMatrix( WHOLEMATRIX, false, ActorID );  // Does not realloc V, I
         }
@@ -4264,7 +4284,11 @@ namespace Solution
                 break;
                 case CHECKYBUS:
                 {
-                  if (with1->SystemYChanged )
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+                  if (with1->SystemYChanged || (ActiveCircuit[ActorID]->IncrCktElements.get_myNumList() != 0))
+#else
+                  if (with1->SystemYChanged)
+#endif
                   {
                     BuildYMatrix( WHOLEMATRIX, false, ActorID );  // Does not realloc V, I
                   }

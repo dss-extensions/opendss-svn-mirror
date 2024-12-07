@@ -99,6 +99,20 @@ namespace Solution
     class TSolutionObj;
     class TSolver;
 
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+    struct TSolverOptions
+    {
+        enum
+        {
+            // The values themselves are subject to change in future versions,
+            // use this enum for easier upgrades
+            ReuseNothing = 0,
+            ReuseCompressedMatrix = 1, // Reuse only the prepared CSC matrix
+            ReuseSymbolicFactorization = 2, // Reuse the symbolic factorization, implies ReuseCompressedMatrix
+            ReuseNumericFactorization = 3 // Reuse the numeric factorization, implies ReuseSymbolicFactorization
+        };
+    };
+#endif
 
     const int NORMALSOLVE   = 0;
     const int NEWTONSOLVE   = 1;
@@ -345,6 +359,9 @@ namespace Solution
                                 //  0 = none; 1 = gaussian; 2 = UNIFORM
                              // Counter incremented for each solution
         bool DynamicsInitialized;
+#ifdef DSS_EXTENSIONS_INCREMENTAL_Y
+        uint64_t SolverOptions;
+#endif
         int ActorVIdx, NumberOfTimes, RandomType, SolutionCount, MaxIterations, MinIterations, MostIterationsDone, MaxControlIterations;
         double MaxError;
         std::vector <double> NodeVbase;
