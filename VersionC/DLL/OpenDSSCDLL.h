@@ -39,93 +39,93 @@ public:
 extern "C" {
 #endif
 	// DSS interface
-	DSS_DLL int __stdcall DSSI(int mode, int arg);
-	DSS_DLL char* __stdcall DSSS(int mode, char* arg);
-	DSS_DLL void __stdcall DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int DSSI(int mode, int arg);
+	DSS_DLL char* DSSS(int mode, char* arg);
+	DSS_DLL void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall LinesI(int mode, int arg);
-	DSS_DLL double __stdcall LinesF(int mode, double arg);
-	DSS_DLL char* __stdcall LinesS(int mode, char* arg);
-	DSS_DLL void __stdcall LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int LinesI(int mode, int arg);
+	DSS_DLL double LinesF(int mode, double arg);
+	DSS_DLL char* LinesS(int mode, char* arg);
+	DSS_DLL void LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL char* __stdcall DSSPut_Command(char* myCmd);
-	DSS_DLL int __stdcall DSSLoads(int mode, int arg);
-	DSS_DLL	double __stdcall DSSLoadsF(int mode, double arg);
-	DSS_DLL char* __stdcall DSSLoadsS(int mode, char* arg);
-	DSS_DLL void __stdcall DSSLoadsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL char* DSSPut_Command(char* myCmd);
+	DSS_DLL int DSSLoads(int mode, int arg);
+	DSS_DLL	double DSSLoadsF(int mode, double arg);
+	DSS_DLL char* DSSLoadsS(int mode, char* arg);
+	DSS_DLL void DSSLoadsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall CapacitorsI(int mode, int arg);
-	DSS_DLL double __stdcall CapacitorsF(int mode, double arg);
-	DSS_DLL const char* __stdcall CapacitorsS(int mode, const char* arg);
-	DSS_DLL void __stdcall CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int CapacitorsI(int mode, int arg);
+	DSS_DLL double CapacitorsF(int mode, double arg);
+	DSS_DLL const char* CapacitorsS(int mode, const char* arg);
+	DSS_DLL void CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall ActiveClassI(int mode, int arg);
-	DSS_DLL char* __stdcall ActiveClassS(int mode, char* arg);
-	DSS_DLL void __stdcall ActiveClassV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int ActiveClassI(int mode, int arg);
+	DSS_DLL char* ActiveClassS(int mode, char* arg);
+	DSS_DLL void ActiveClassV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall BUSI(int mode, int arg);
-	DSS_DLL double __stdcall BUSF(int mode, double arg);
-	DSS_DLL char* __stdcall BUSS(int mode, char* arg);
-	DSS_DLL void __stdcall BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int BUSI(int mode, int arg);
+	DSS_DLL double BUSF(int mode, double arg);
+	DSS_DLL char* BUSS(int mode, char* arg);
+	DSS_DLL void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall CapControlsI(int mode, int arg);
-	DSS_DLL double __stdcall CapControlsF(int mode, double arg);
-	DSS_DLL char* __stdcall CapControlsS(int mode, char* arg);
-	DSS_DLL void __stdcall CapControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int CapControlsI(int mode, int arg);
+	DSS_DLL double CapControlsF(int mode, double arg);
+	DSS_DLL char* CapControlsS(int mode, char* arg);
+	DSS_DLL void CapControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall CircuitI(int mode, int arg);
-	DSS_DLL double __stdcall CircuitF(int mode, double arg1, double arg2);
-	DSS_DLL char* __stdcall CircuitS(int mode, char* arg);
-	DSS_DLL void __stdcall CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int CircuitI(int mode, int arg);
+	DSS_DLL double CircuitF(int mode, double arg1, double arg2);
+	DSS_DLL char* CircuitS(int mode, char* arg);
+	DSS_DLL void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall CktElementI(int mode, int arg);
-	DSS_DLL double __stdcall CktElementF(int mode, double arg);
-	DSS_DLL char* __stdcall CktElementS(int mode, char* arg);
-	DSS_DLL void __stdcall CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int CktElementI(int mode, int arg);
+	DSS_DLL double CktElementF(int mode, double arg);
+	DSS_DLL char* CktElementS(int mode, char* arg);
+	DSS_DLL void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL double __stdcall CmathLibF(int mode, double arg1, double arg2);
-	DSS_DLL void __stdcall CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL double CmathLibF(int mode, double arg1, double arg2);
+	DSS_DLL void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall GeneratorsI(int mode, int arg);
-	DSS_DLL double __stdcall GeneratorsF(int mode, double arg);
-	DSS_DLL char* __stdcall GeneratorsS(int mode, char* arg);
-	DSS_DLL void __stdcall GeneratorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int GeneratorsI(int mode, int arg);
+	DSS_DLL double GeneratorsF(int mode, double arg);
+	DSS_DLL char* GeneratorsS(int mode, char* arg);
+	DSS_DLL void GeneratorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall DSSElementI(int mode, int arg);
-	DSS_DLL char* __stdcall DSSElementS(int mode, char* arg);
-	DSS_DLL void __stdcall DSSElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int DSSElementI(int mode, int arg);
+	DSS_DLL char* DSSElementS(int mode, char* arg);
+	DSS_DLL void DSSElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL	int __stdcall DSSProgressI(int mode, int arg);
-	DSS_DLL char* __stdcall DSSProgressS(int mode, char* arg);
+	DSS_DLL	int DSSProgressI(int mode, int arg);
+	DSS_DLL char* DSSProgressS(int mode, char* arg);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall DSSExecutiveI(int mode, int arg);
-	DSS_DLL char* __stdcall DSSExecutiveS(int mode, char* arg);
+	DSS_DLL int DSSExecutiveI(int mode, int arg);
+	DSS_DLL char* DSSExecutiveS(int mode, char* arg);
 
 	//**************************************************************************************************
 
@@ -134,187 +134,187 @@ extern "C" {
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall FusesI(int mode, int arg);
-	DSS_DLL double __stdcall FusesF(int mode, double arg);
-	DSS_DLL char* __stdcall FusesS(int mode, char* arg);
-	DSS_DLL void __stdcall FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int FusesI(int mode, int arg);
+	DSS_DLL double FusesF(int mode, double arg);
+	DSS_DLL char* FusesS(int mode, char* arg);
+	DSS_DLL void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall GICSourcesI(int mode, int arg);
-	DSS_DLL double __stdcall GICSourcesF(int mode, double arg);
-	DSS_DLL char* __stdcall GICSourcesS(int mode, char* arg);
-	DSS_DLL void __stdcall GICSourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int GICSourcesI(int mode, int arg);
+	DSS_DLL double GICSourcesF(int mode, double arg);
+	DSS_DLL char* GICSourcesS(int mode, char* arg);
+	DSS_DLL void GICSourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall IsourceI(int mode, int arg);
-	DSS_DLL double __stdcall IsourceF(int mode, double arg);
-	DSS_DLL char* __stdcall IsourceS(int mode, char* arg);
-	DSS_DLL void __stdcall IsourceV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int IsourceI(int mode, int arg);
+	DSS_DLL double IsourceF(int mode, double arg);
+	DSS_DLL char* IsourceS(int mode, char* arg);
+	DSS_DLL void IsourceV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall LineCodesI(int mode, int arg);
-	DSS_DLL double __stdcall LineCodesF(int mode, double arg);
-	DSS_DLL char* __stdcall LineCodesS(int mode, char* arg);
-	DSS_DLL void __stdcall LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int LineCodesI(int mode, int arg);
+	DSS_DLL double LineCodesF(int mode, double arg);
+	DSS_DLL char* LineCodesS(int mode, char* arg);
+	DSS_DLL void LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall LoadShapeI(int mode, int arg);
-	DSS_DLL double __stdcall LoadShapeF(int mode, double arg);
-	DSS_DLL char* __stdcall LoadShapeS(int mode, char* arg);
-	DSS_DLL void __stdcall LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int LoadShapeI(int mode, int arg);
+	DSS_DLL double LoadShapeF(int mode, double arg);
+	DSS_DLL char* LoadShapeS(int mode, char* arg);
+	DSS_DLL void LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall MetersI(int mode, int arg);
-	DSS_DLL double __stdcall MetersF(int mode, double arg);
-	DSS_DLL char* __stdcall MetersS(int mode, char* arg);
-	DSS_DLL void __stdcall MetersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int MetersI(int mode, int arg);
+	DSS_DLL double MetersF(int mode, double arg);
+	DSS_DLL char* MetersS(int mode, char* arg);
+	DSS_DLL void MetersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall MonitorsI(int mode, int arg);
-	DSS_DLL char* __stdcall MonitorsS(int mode, char* arg);
-	DSS_DLL void __stdcall MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int MonitorsI(int mode, int arg);
+	DSS_DLL char* MonitorsS(int mode, char* arg);
+	DSS_DLL void MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall ParallelI(int mode, int arg);
-	DSS_DLL void __stdcall ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int ParallelI(int mode, int arg);
+	DSS_DLL void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall ParserI(int mode, int arg);
-	DSS_DLL double __stdcall ParserF(int mode, double arg);
-	DSS_DLL char* __stdcall ParserS(int mode, char* arg);
-	DSS_DLL void __stdcall ParserV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int ParserI(int mode, int arg);
+	DSS_DLL double ParserF(int mode, double arg);
+	DSS_DLL char* ParserS(int mode, char* arg);
+	DSS_DLL void ParserV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall PDElementsI(int mode, int arg);
-	DSS_DLL double __stdcall PDElementsF(int mode, double arg);
-	DSS_DLL char* __stdcall PDElementsS(int mode, char* arg);
+	DSS_DLL int PDElementsI(int mode, int arg);
+	DSS_DLL double PDElementsF(int mode, double arg);
+	DSS_DLL char* PDElementsS(int mode, char* arg);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall PVsystemsI(int mode, int arg);
-	DSS_DLL double __stdcall PVsystemsF(int mode, double arg);
-	DSS_DLL char* __stdcall PVsystemsS(int mode, char* arg);
-	DSS_DLL void __stdcall PVsystemsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int PVsystemsI(int mode, int arg);
+	DSS_DLL double PVsystemsF(int mode, double arg);
+	DSS_DLL char* PVsystemsS(int mode, char* arg);
+	DSS_DLL void PVsystemsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall ReactorsI(int mode, int arg);
-    DSS_DLL double __stdcall ReactorsF(int mode, double arg);
-    DSS_DLL char* __stdcall ReactorsS(int mode, char* arg);
-    DSS_DLL void __stdcall ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int ReactorsI(int mode, int arg);
+    DSS_DLL double ReactorsF(int mode, double arg);
+    DSS_DLL char* ReactorsS(int mode, char* arg);
+    DSS_DLL void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
     //**************************************************************************************************
 
-	DSS_DLL int __stdcall ReclosersI(int mode, int arg);
-	DSS_DLL double __stdcall ReclosersF(int mode, double arg);
-	DSS_DLL char* __stdcall ReclosersS(int mode, char* arg);
-	DSS_DLL void __stdcall ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int ReclosersI(int mode, int arg);
+	DSS_DLL double ReclosersF(int mode, double arg);
+	DSS_DLL char* ReclosersS(int mode, char* arg);
+	DSS_DLL void ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall ReduceCktI(int mode, int arg);
-	DSS_DLL double __stdcall ReduceCktF(int mode, double arg);
-	DSS_DLL char* __stdcall ReduceCktS(int mode, char* arg);
+	DSS_DLL int ReduceCktI(int mode, int arg);
+	DSS_DLL double ReduceCktF(int mode, double arg);
+	DSS_DLL char* ReduceCktS(int mode, char* arg);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall RegControlsI(int mode, int arg);
-	DSS_DLL double __stdcall RegControlsF(int mode, double arg);
-	DSS_DLL char* __stdcall RegControlsS(int mode, char* arg);
-	DSS_DLL void __stdcall RegControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int RegControlsI(int mode, int arg);
+	DSS_DLL double RegControlsF(int mode, double arg);
+	DSS_DLL char* RegControlsS(int mode, char* arg);
+	DSS_DLL void RegControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall RelaysI(int mode, int arg);
-	DSS_DLL char* __stdcall RelaysS(int mode, char* arg);
-	DSS_DLL void __stdcall RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int RelaysI(int mode, int arg);
+	DSS_DLL char* RelaysS(int mode, char* arg);
+	DSS_DLL void RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall SensorsI(int mode, int arg);
-	DSS_DLL double __stdcall SensorsF(int mode, double arg);
-	DSS_DLL char* __stdcall SensorsS(int mode, char* arg);
-	DSS_DLL void __stdcall SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int SensorsI(int mode, int arg);
+	DSS_DLL double SensorsF(int mode, double arg);
+	DSS_DLL char* SensorsS(int mode, char* arg);
+	DSS_DLL void SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall SettingsI(int mode, int arg);
-	DSS_DLL double __stdcall SettingsF(int mode, double arg);
-	DSS_DLL char* __stdcall SettingsS(int mode, char* arg);
-	DSS_DLL void __stdcall SettingsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int SettingsI(int mode, int arg);
+	DSS_DLL double SettingsF(int mode, double arg);
+	DSS_DLL char* SettingsS(int mode, char* arg);
+	DSS_DLL void SettingsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall SolutionI(int mode, int arg);
-	DSS_DLL double __stdcall SolutionF(int mode, double arg);
-	DSS_DLL char* __stdcall SolutionS(int mode, char* arg);
-	DSS_DLL void __stdcall SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int SolutionI(int mode, int arg);
+	DSS_DLL double SolutionF(int mode, double arg);
+	DSS_DLL char* SolutionS(int mode, char* arg);
+	DSS_DLL void SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-    DSS_DLL int __stdcall StoragesI(int mode, int arg);
-    DSS_DLL double __stdcall StoragesF(int mode, double arg);
-    DSS_DLL char* __stdcall StoragesS(int mode, char* arg);
-    DSS_DLL void __stdcall StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+    DSS_DLL int StoragesI(int mode, int arg);
+    DSS_DLL double StoragesF(int mode, double arg);
+    DSS_DLL char* StoragesS(int mode, char* arg);
+    DSS_DLL void StoragesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall SwtControlsI(int mode, int arg);
-	DSS_DLL double __stdcall SwtControlsF(int mode, double arg);
-	DSS_DLL char* __stdcall SwtControlsS(int mode, char* arg);
-	DSS_DLL void __stdcall SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int SwtControlsI(int mode, int arg);
+	DSS_DLL double SwtControlsF(int mode, double arg);
+	DSS_DLL char* SwtControlsS(int mode, char* arg);
+	DSS_DLL void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall TopologyI(int mode, int arg);
-	DSS_DLL char* __stdcall TopologyS(int mode, char* arg);
-	DSS_DLL void __stdcall TopologyV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int TopologyI(int mode, int arg);
+	DSS_DLL char* TopologyS(int mode, char* arg);
+	DSS_DLL void TopologyV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall TransformersI(int mode, int arg);
-	DSS_DLL double __stdcall TransformersF(int mode, double arg);
-	DSS_DLL char* __stdcall TransformersS(int mode, char* arg);
-	DSS_DLL void __stdcall TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int TransformersI(int mode, int arg);
+	DSS_DLL double TransformersF(int mode, double arg);
+	DSS_DLL char* TransformersS(int mode, char* arg);
+	DSS_DLL void TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall VsourcesI(int mode, int arg);
-	DSS_DLL double __stdcall VsourcesF(int mode, double arg);
-	DSS_DLL char* __stdcall VsourcesS(int mode, char* arg);
-	DSS_DLL void __stdcall VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int VsourcesI(int mode, int arg);
+	DSS_DLL double VsourcesF(int mode, double arg);
+	DSS_DLL char* VsourcesS(int mode, char* arg);
+	DSS_DLL void VsourcesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-    DSS_DLL int __stdcall WindGensI(int mode, int arg);
-    DSS_DLL double __stdcall WindGensF(int mode, double arg);
-    DSS_DLL char* __stdcall WindGensS(int mode, char* arg);
-    DSS_DLL void __stdcall WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+    DSS_DLL int WindGensI(int mode, int arg);
+    DSS_DLL double WindGensF(int mode, double arg);
+    DSS_DLL char* WindGensS(int mode, char* arg);
+    DSS_DLL void WindGensV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall XYCurvesI(int mode, int arg);
-	DSS_DLL double __stdcall XYCurvesF(int mode, double arg);
-	DSS_DLL char* __stdcall XYCurvesS(int mode, char* arg);
-	DSS_DLL void __stdcall XYCurvesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int XYCurvesI(int mode, int arg);
+	DSS_DLL double XYCurvesF(int mode, double arg);
+	DSS_DLL char* XYCurvesS(int mode, char* arg);
+	DSS_DLL void XYCurvesV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL int __stdcall CtrlQueueI(int mode, int arg);
-	DSS_DLL void __stdcall CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL int CtrlQueueI(int mode, int arg);
+	DSS_DLL void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
 
-	DSS_DLL char* __stdcall DSSProperties(int mode, char* arg);
+	DSS_DLL char* DSSProperties(int mode, char* arg);
 
 	//**************************************************************************************************
 
