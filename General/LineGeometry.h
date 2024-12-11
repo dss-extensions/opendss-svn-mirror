@@ -95,6 +95,10 @@ public:
 	void Set_RhoEarth(double Value);
         double Get_EpsRMedium();
         void Set_EpsRMedium(double Value);
+	double Get_HeightOffset();
+	void Set_HeightOffset(double Value);
+	int Get_HeightUnit();
+	void Set_HeightUnit(int Value);
 	int get_Nconds();
 	void UpdateLineGeometryData(double f);   // call this before using the line data
 
@@ -124,7 +128,7 @@ public:
 
         // called from a Line object that has its own Spacing and Wires input
         // automatically sets reduce=y if the spacing has more wires than phases
-	void LoadSpacingAndWires(LineSpacing::TLineSpacingObj* Spc, ConductorData::pConductorDataArray Wires);
+	void LoadSpacingAndWires(LineSpacing::TLineSpacingObj* Spc, const ConductorData::pConductorDataArray& Wires);
         // CIM XML accessors
 	TLineGeometryObj(DSSClass::TDSSClass* ParClass);
 	TLineGeometryObj(String ClassName);

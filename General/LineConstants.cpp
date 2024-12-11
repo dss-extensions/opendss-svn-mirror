@@ -216,7 +216,10 @@ TLineConstants::TLineConstants(int NumConductors)
 	FYCmatrix = new TcMatrix(FNumConds);
 	FFrequency = -1.0;  // not computed
 	FrhoEarth = 100.0;  // default value
-    FEpsRMedium = 1.0;  // default value should be 1.0
+        FEpsRMedium = 1.0;  // default value should be 1.0
+        FheightOffset = 0.0;  // default value should be 0.0
+        FuserHeightUnit = UNITS_M;
+
 	FRhoChanged = true;
 	FZreduced = nullptr;
 	FYCreduced = nullptr;
@@ -242,6 +245,12 @@ TLineConstants::~TLineConstants()
 	// inherited;
 }
 
+double TLineConstants::Get_FheightOffset()
+{
+    double result = 0.0;
+    result = FheightOffset * From_Meters(FuserHeightUnit);
+    return result;
+}
 
 double TLineConstants::Get_Capradius(int i, int Units)
 {
@@ -581,8 +590,29 @@ void TLineConstants::Set_Frhoearth(double Value)
 void TLineConstants::Set_FEpsRMedium(double Value)
 {
         if(Value != FEpsRMedium)
-                FRhoChanged = true;
+                FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
         FEpsRMedium = Value;
+}
+
+void TLineConstants::Set_FheightOffset(double Value)
+{
+    double NewHeightOffset_m = 0.0;
+    NewHeightOffset_m = Value * To_Meters(FuserHeightUnit);
+
+    if(NewHeightOffset_m != FheightOffset)
+        FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
+    RemoveHeightOffset();
+    FheightOffset = NewHeightOffset_m;
+    AddHeightOffset();
+}
+
+void TLineConstants::Set_FuserHeightUnit(int Value)
+{
+    if (Value != FuserHeightUnit)
+    {
+        FuserHeightUnit = Value;
+        Set_FheightOffset(FheightOffset);  // This updates the existing value to fit the new user units
+    }
 }
 
 void TLineConstants::Set_GMR(int i, int Units, double Value)
@@ -633,6 +663,29 @@ void TLineConstants::Set_Y(int i, int Units, double Value)
 	if((i > 0) && (i <= FNumConds))
 		FY[i - 1] = Value * To_Meters(Units);
 }
+
+void TLineConstants::AddHeightOffset()
+{
+    for (int i = 0; i < FNumConds; i++)
+    {
+        if ((i>0) && (i <= FNumConds))
+        {
+            FY[i - 1] = FY[i - 1] + FheightOffset;  // Offset is already in meters
+        }
+    }
+}
+
+void TLineConstants::RemoveHeightOffset()
+{
+    for (int i = 0; i < FNumConds; i++)
+    {
+        if ((i>0) && (i <= FNumConds))
+        {
+            FY[i - 1] = FY[i - 1] - FheightOffset;  // Offset is already in meters
+        }
+    }
+}
+
 
 
 void LineConstants_initialization()
