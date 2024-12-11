@@ -338,6 +338,7 @@ Integer
     ActorHandle: array of TSolver;
 
     WaitQ: TThreadedQueue<Integer>;
+    WaitAD: TThreadedQueue<Integer>;
 
 //***********************A-Diakoptics suite globals*****************************
 
@@ -468,6 +469,7 @@ function MyAllocMem(nbytes: Cardinal): Pointer;
 procedure New_Actor_Slot();
 procedure New_Actor(ActorID: Integer);
 procedure Wait4Actors(WType: Integer);
+procedure Wait4AD();
 
 procedure DoClone();
 
@@ -1180,12 +1182,37 @@ begin
 end;
 
 //******************************************************************************
+// Waits for all the other actors except 1 (used while solving the A-Diakoptics solution method)
+procedure Wait4AD();
+var
+    i: Integer;
+    Flag: Boolean;
 
+begin
+// modification introduced in 01-10-2019 to facilitate the coordination
+// between actors when a simulation is performed using A-Diakoptics
+    for i := 2 to NumOfActors do
+    begin
+        try
+            while ActorStatus[i] = 0 do
+            begin
+                Flag := true;
+            end;
+        except
+            On EOutOfMemory do
+                DoSimpleMsg('Exception Waiting for the parallel thread to finish a job"', 7006);
+        end;
+    end;
+
+end;
+
+//******************************************************************************
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType: Integer);
 var
     Start,
     Limit,
+    RDY,
     NReady,                 // Stores the number of actors done
     QRet,                   // To store the latest value popped out
     i: Integer;
@@ -1194,18 +1221,20 @@ begin
 // WType defines the starting point in which the actors will be evaluated,
     if WType = 10 then
     begin
-        NReady := 0;
+        RDY := 0;
         Limit := 1;
         Start := 1;
     end
     else
     begin
-        NReady := WType;
+        RDY := WType;
         Limit := NumOfActors;
         Start := WType + 1;
     end;
+    NReady := RDY;
     while NReady < Limit do
     begin
+        NReady := RDY;
         for i := Start to Limit do
         begin
             if ActorStatus[i] = 1 then
@@ -1769,6 +1798,7 @@ try
     SetLength(VSourceClass, CPU_Cores + 1);
     SetLength(pyControlClass, CPU_Cores + 1);
     WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
+    WaitAD := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
     for ActiveActor := 1 to CPU_Cores do
     begin

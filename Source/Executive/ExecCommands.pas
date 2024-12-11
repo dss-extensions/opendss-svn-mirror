@@ -729,7 +729,7 @@ begin
             begin
                 if Parallel_enabled then
                 begin
-                    if ADiakoptics then
+                    if ADiakoptics and (ActiveActor = 1) then
                         Wait4Actors(10)    // To let know the wait routine that this is the caller for ADiakoptics
                     else
                         Wait4Actors(0);

@@ -769,6 +769,7 @@ begin
     DSSExecutive[ActiveActor].ClearAll;
 
     Result := 0;
+    Adiakoptics := false;
 
 end;
 //----------------------------------------------------------------------------
