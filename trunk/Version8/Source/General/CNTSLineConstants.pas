@@ -280,7 +280,7 @@ begin
   // Mutual Impedances - CN/TS to other CN/TS, cores, and bare neutrals
   For i := 1 to FNumPhases Do Begin
     idxi := i + FNumConds;
-    For j := 1 to i-1 Do Begin  // CN to other CN
+    For j := 1 to i-1 Do Begin  // CN/TS to other CN/TS
       idxj := j + FNumConds;
       Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
       Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));

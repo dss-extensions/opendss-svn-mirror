@@ -81,6 +81,10 @@ TYPE
         procedure Set_RhoEarth(const Value: Double);
         function  Get_EpsRMedium:Double;
         procedure Set_EpsRMedium(const Value: Double);
+        function  Get_HeightOffset:Double;
+        procedure Set_HeightOffset(const Value: Double);
+        function  Get_HeightUnit:Integer;
+        procedure Set_HeightUnit(const Value: Integer);
         function  get_Nconds: Integer;
         Procedure UpdateLineGeometryData(f:Double);   // call this before using the line data
 
@@ -119,6 +123,8 @@ TYPE
         Property YCmatrix[f, Lngth:double; Units:Integer]:Tcmatrix read Get_YCmatrix;
         Property RhoEarth:Double    Read Get_RhoEarth Write Set_RhoEarth;
         Property EpsRmedium:Double    Read Get_EpsRmedium Write Set_EpsRmedium;
+        Property heightOffset:Double    Read Get_HeightOffset Write Set_HeightOffset;
+        Property heightUnit:Integer    Read Get_HeightUnit Write Set_HeightUnit;
 
         // CIM XML accessors
         Property Xcoord[i:Integer]: Double Read Get_FX;
@@ -675,6 +681,16 @@ begin
      Result := FLineData.epsrmedium;
 end;
 
+function TLineGeometryObj.Get_HeightOffset: Double;
+begin
+     Result := FLineData.heightOffset; // returned in user defined height units
+end;
+
+function TLineGeometryObj.Get_HeightUnit: Integer;
+begin
+     Result := FLineData.userHeightUnit;
+end;
+
 function TLineGeometryObj.Get_YCmatrix(f, Lngth: double;
   Units: Integer): Tcmatrix;
 begin
@@ -862,6 +878,16 @@ begin
   FLineData.epsrmedium := Value;
 end;
 
+procedure TLineGeometryObj.Set_HeightOffset(const Value: Double);
+begin
+  FLineData.heightOffset := Value;
+end;
+
+procedure TLineGeometryObj.Set_HeightUnit(const Value: Integer);
+begin
+  FLineData.userHeightUnit := Value;
+end;
+
 procedure TLineGeometryObj.UpdateLineGeometryData(f:Double);
 Var
   i               : Integer;
@@ -872,7 +898,7 @@ begin
 
   For i := 1 to FNconds Do Begin
     FLineData.X[i, Funits^[i]] := FX^[i];
-    FLineData.Y[i, Funits^[i]] := FY^[i];
+    FLineData.Y[i, Funits^[i]] := FY^[i] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(Funits^[i]);
     FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
     FLineData.capradius[i, FWireData^[i].RadiusUnits] := FWireData^[i].capRadius;
     FLineData.GMR[i, FWireData^[i].GMRUnits]       := FWireData^[i].GMR;
@@ -924,31 +950,62 @@ end;
 
 procedure TLineGeometryObj.LoadSpacingAndWires(Spc: TLineSpacingObj; Wires: pConductorDataArray);
 var
-  i: Integer;
+  i, j, actualNConds, actualNPhases: Integer;
   newPhaseChoice: ConductorChoice;
 begin
-  NConds := Spc.NWires;   // allocates
-  FNphases := Spc.Nphases;
+  // check the actual number of existing positions with conductors before allocating
+  actualNConds := 0;
+  actualNPhases := 0;
+  For i := 1 to Spc.NWires Do
+  begin
+      if Wires^[i] <> nil then
+      begin
+        actualNConds := actualNConds + 1;
+        if i <= Spc.Nphases then actualNPhases := actualNPhases + 1;
+      end;
+
+  end;
+  
+  NConds := actualNConds;   // allocates
+  FNphases := actualNPhases;
   FSpacingType := Spc.Name;
   if FNConds > FNPhases then FReduce := True;
 
   newPhaseChoice := Overhead;
-  for i := 1 to FNConds Do begin
+  for i := 1 to Spc.NWires Do begin
+    if Wires[i] = nil then continue;
     if Wires[i] is TCNDataObj then newPhaseChoice := ConcentricNeutral;
     if Wires[i] is TTSDataObj then newPhaseChoice := TapeShield;
   end;
   ChangeLineConstantsType (newPhaseChoice);
 
-  For i := 1 to FNConds Do FCondName^[i] := Wires^[i].Name;
-  For i := 1 to FNConds Do FWireData^[i] := Wires^[i];
-  For i := 1 to FNConds Do FX^[i] := Spc.Xcoord[i];
-  For i := 1 to FNConds Do FY^[i] := Spc.Ycoord[i];
-  For i := 1 to FNConds Do FUnits^[i] := Spc.Units;
-  DataChanged := TRUE;
-  NormAmps    := Wires^[1].NormAmps;
-  EmergAmps   := Wires^[1].EmergAmps;
+  j := 0;
+  For i := 1 to Spc.NWires Do
+  begin
+    if Wires^[i] <> nil then
+    begin
+      j := j + 1;
+      FCondName^[j] := Wires^[i].Name;
+      FWireData^[j] := Wires^[i];
+      FX^[j] := Spc.Xcoord[i];
+      FY^[j] := Spc.Ycoord[i];
+      FUnits^[j] := Spc.Units;
+      if ((Wires^[i].NormAmps < NormAmps) or (NormAmps = 0)) and (j <= FNPhases) then
+      begin
+        NormAmps    := Wires^[i].NormAmps;
+        EmergAmps   := Wires^[i].EmergAmps;
+      end;
+    end;
 
-  UpdateLineGeometryData(activecircuit[ActiveActor].solution.Frequency );
+  end;
+
+  DataChanged := TRUE;
+                                   
+  // UpdateLineGeometryData will be called when we get the impedance matrix for the line.
+  // No need to call it one here because this function has already set DataChanged and also
+  // LoadSpacingAndWires is only ever called from TLineObj.FMakeZFromSpacing which retrieves Z
+  // after calling it.
+
 end;
 
 end.
