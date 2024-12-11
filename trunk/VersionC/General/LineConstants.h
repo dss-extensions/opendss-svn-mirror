@@ -67,6 +67,8 @@ public:
 	Ucomplex::complex Fme; // factor for earth impedance
 	bool FRhoChanged;
         double FEpsRMedium;  // unit-less
+	double FheightOffset;  // m
+	int FuserHeightUnit;  // m
 
         double Get_GMR(int i, int Units);
 	double Get_radius(int i, int Units);
@@ -78,6 +80,7 @@ public:
 	Ucomplex::complex Get_Ze(int i, int j);
 	Ucomplex::complex Get_Zint(int i);
 	Ucmatrix::TcMatrix* Get_Zmatrix(double f, double Lngth, int Units);
+	double Get_FheightOffset();
 	void Set_GMR(int i, int Units, double Value);
 	void Set_radius(int i, int Units, double Value);
 	void Set_Rdc(int i, int Units, double Value);
@@ -87,9 +90,16 @@ public:
 	void Set_Frequency(double Value);
 	void Set_Frhoearth(double Value);  // m
         void Set_FEpsRMedium(double Value);  // unit-less
+        void Set_FheightOffset(double Value);  // m
+        void Set_FuserHeightUnit(int Value);  // Whatever the user defined. The height is always saved in meters here
+
     // This allows you to compute capacitance using a different radius -- for bundled conductors
 	double Get_Capradius(int i, int Units);
 	void Set_Capradius(int i, int Units, double Value);
+
+    // Auxiliary for height offset
+	void RemoveHeightOffset();
+	void AddHeightOffset();
 
    /*These can only be called privately*/
 	void Set_NPhases(int Value);

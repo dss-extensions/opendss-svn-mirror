@@ -804,6 +804,20 @@ double TLineGeometryObj::Get_EpsRMedium()
         return result;
 }
 
+double TLineGeometryObj::Get_HeightOffset()
+{
+    double result = 0.0;
+    result = FLineData->Get_FheightOffset();
+    return result;
+}
+
+int TLineGeometryObj::Get_HeightUnit()
+{
+    int result = UNITS_M;
+    result = FLineData->FuserHeightUnit;
+    return result;
+}
+
 TcMatrix* TLineGeometryObj::Get_YCmatrix(double f, double Lngth, int Units)
 {
 	TcMatrix* result = nullptr;
@@ -1077,6 +1091,16 @@ void TLineGeometryObj::Set_EpsRMedium(double Value)
         FLineData->Set_FEpsRMedium(Value);
 }
 
+void TLineGeometryObj::Set_HeightOffset(double Value)
+{
+        FLineData->Set_FheightOffset(Value);
+}
+
+void TLineGeometryObj::Set_HeightUnit(int Value)
+{
+        FLineData->Set_FuserHeightUnit(Value);
+}
+
 void TLineGeometryObj::UpdateLineGeometryData(double f)
 {
 	int i = 0;
@@ -1088,7 +1112,7 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 	for(stop = Fnconds, i = 1; i <= stop; i++)
 	{
 		FLineData->Set_X(i, FUnits[i - 1], FX[i - 1]);
-		FLineData->Set_Y(i, FUnits[i - 1], FY[i - 1]);
+		FLineData->Set_Y(i, FUnits[i - 1], FY[i - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FUnits[i - 1]));
 		FLineData->Set_radius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
 		FLineData->Set_Capradius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
 		FLineData->Set_GMR(i, FWireData[i - 1]->get_FGMRUnits(), FWireData[i - 1]->get_FGMR60());
@@ -1150,49 +1174,67 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 	}
 }
 
-void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, pConductorDataArray Wires)
+void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConductorDataArray& Wires)
 {
-	int i = 0;
+       // check the actual number of existing positions with conductors before allocating
+        int actualNConds = 0;
+        int actualNPhases = 0;
+        int i = 0;
+        for(i = 1; i <= Spc->get_Fnconds(); i++)
+        {
+            if ((Wires[i - 1]) != nullptr)
+            {
+                actualNConds++;
+                if (i <= Spc->get_Fnphases())
+                {
+                    actualNPhases++;
+                }
+            }
+        }
+
 	ConductorChoice newPhaseChoice = Overhead;
 	int stop = 0;
-	Set_Nconds(Spc->get_Fnconds());   // allocates
-	Fnphases = Spc->get_Fnphases();
+	Set_Nconds(actualNConds);   // allocates
+	Fnphases = actualNPhases;
 	FSpacingType = Spc->get_Name();
 	if(Fnconds > Fnphases)
 		FReduce = true;
 	newPhaseChoice = Overhead;
-	for(i = 1; i < Fnconds; i++)
+	for(i = 1; i <= Spc->get_Fnconds(); i++)
 	{
+	        if ((Wires[i - 1]) == nullptr) continue;
 		if(dynamic_cast<TCNDataObj*> (Wires[i - 1]) != nullptr )
 			newPhaseChoice = ConcentricNeutral;
 		if(dynamic_cast<TTSDataObj*>(Wires[i - 1]) != nullptr )
 			newPhaseChoice = TapeShield;
 	}
 	ChangeLineConstantsType(newPhaseChoice);
-	for(stop = Fnconds, i = 1; i <= stop; i++)
+        int j = 0;
+	for(stop = Spc->get_Fnconds(), i = 1; i <= stop; i++)
 	{
-		FCondName[i - 1] = Wires[i - 1]->get_Name();
+	    if ((Wires[i - 1]) != nullptr)
+	    {
+                j++;
+	        FCondName[j - 1] = Wires[i - 1]->get_Name();
+	        FWireData[j - 1] = Wires[i - 1];
+	        FX[j - 1] = Spc->Get_FX(i);
+	        FY[j - 1] = Spc->Get_FY(i);
+	        FUnits[j - 1] = Spc->get_FUnits();
+	        if (((Wires[i - 1]->NormAmps < NormAmps) || (NormAmps == 0.0)) && (j <= Fnphases))
+	        {
+	            NormAmps = (Wires)[1 - 1]->NormAmps;
+	            EmergAmps = (Wires)[1 - 1]->EmergAmps;
+	        }
+	    }
+
 	}
-	for(stop = Fnconds, i = 1; i <= stop; i++)
-	{
-		FWireData[i - 1] = Wires[i - 1];
-	}
-	for(stop = Fnconds, i = 1; i <= stop; i++)
-	{
-		FX[i - 1] = Spc->Get_FX(i);
-	}
-	for(stop = Fnconds, i = 1; i <= stop; i++)
-	{
-		FY[i - 1] = Spc->Get_FY(i);
-	}
-	for(stop = Fnconds, i = 1; i <= stop; i++)
-	{
-		FUnits[i - 1] = Spc->get_FUnits();
-	}
+
 	DataChanged = true;
-	NormAmps = (Wires)[1 - 1]->NormAmps;
-	EmergAmps = (Wires)[1 - 1]->EmergAmps;
-	UpdateLineGeometryData(ActiveCircuit[ActiveActor]->Solution->get_FFrequency());
+        // UpdateLineGeometryData will be called when we get the impedance matrix for the line.
+        // No need to call it one here because this function has already set DataChanged and also
+        // LoadSpacingAndWires is only ever called from TLineObj.FMakeZFromSpacing which retrieves Z
+        // after calling it.
+	// UpdateLineGeometryData(ActiveCircuit[ActiveActor]->Solution->get_FFrequency());
 }
 
 

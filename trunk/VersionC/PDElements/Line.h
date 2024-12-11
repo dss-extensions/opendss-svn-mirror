@@ -105,11 +105,13 @@ public:     // Moved to make values available to the COM interface
 	double C0;
 	double Len;
 	int LengthUnits;
+	int HeightUnits;
 	double Rg;
 	double Xg;
 	double KXg;
 	double rho;
     double epsRmedium;
+	double heightOffset;
 	double GeneralPlotQuantity;  // For general circuit plotting
 	String CondCode;
 	String GeometryCode;
@@ -142,6 +144,7 @@ public:     // Moved to make values available to the COM interface
 	void FetchWireList(const String Code);
 	void FetchCNCableList(const String Code);
 	void FetchTSCableList(const String Code);
+	void FetchConductorList(const String Code);
 
         // Reliability calcs
 	virtual void CalcFltRate();  // Calc failure rates for section and buses
