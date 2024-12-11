@@ -679,7 +679,7 @@ Begin
        107: begin
               if Parallel_enabled then
               Begin
-                if ADiakoptics then
+                if ADiakoptics and (ActiveActor = 1) then
                   Wait4Actors(10)    // To let know the wait routine that this is the caller for ADiakoptics
                 else
                   Wait4Actors(0);
@@ -770,7 +770,7 @@ Begin
         8: CmdResult := DoShowCmd; //'show';
         9: Begin
             if ADiakoptics then ActiveActor := 1;   // Just in case
-            CmdResult  := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+              CmdResult  := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
 
             // If the parallel mode is not active, Waits until the actor finishes
             if not Parallel_enabled then

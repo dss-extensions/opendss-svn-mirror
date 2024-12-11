@@ -707,7 +707,8 @@ Begin
            43: WITH ActiveCircuit[ActiveActor].Solution Do Begin
                     ControlMode := InterpretControlMode(Param);
                     DefaultControlMode := ControlMode;  // always revert to last one specified in a script
-                    if ADiakoptics and (ActiveActor = 1) then SendCmd2Actors(GETCTRLMODE);
+                    if ADiakoptics and (ActiveActor = 1) then
+                      SendCmd2Actors(GETCTRLMODE);
                END;
            44: ActiveCircuit[ActiveActor].ControlQueue.TraceLog := InterpretYesNo(Param);
            45: ActiveCircuit[ActiveActor].GenMultiplier := Parser[ActiveActor].DblValue ;
