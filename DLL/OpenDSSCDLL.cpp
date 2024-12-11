@@ -3265,7 +3265,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myCmplxArray[0] = CZero;
 		if (ActiveCircuit[ActiveActor] != nullptr && !ActiveCircuit[ActiveActor]->Solution->NodeV.empty())
 		{
-			auto* circ = ActiveCircuit[ActiveActor];
+			auto circ = ActiveCircuit[ActiveActor];
 			if (circ->ActiveBusIndex >= 0 && circ->ActiveBusIndex < circ->NumBuses)
 			{
 				pBus = circ->Buses[circ->ActiveBusIndex];
@@ -3325,7 +3325,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myCmplxArray[0] = CZero;
 		if (ActiveCircuit[ActiveActor] != nullptr && !ActiveCircuit[ActiveActor]->Solution->NodeV.empty())
 		{
-			auto* circ = ActiveCircuit[ActiveActor];
+			auto circ = ActiveCircuit[ActiveActor];
 			if (circ->ActiveBusIndex >= 0 && circ->ActiveBusIndex < circ->NumBuses)
 			{
 				pBus = circ->Buses[circ->ActiveBusIndex];
@@ -3454,7 +3454,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto* circ = ActiveCircuit[ActiveActor];
+			auto circ = ActiveCircuit[ActiveActor];
 			BusReference = circ->ActiveBusIndex + 1;
 
 			pElem = (TDSSCktElement*)circ->Lines.Get_First();
@@ -3482,7 +3482,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			auto* circ = ActiveCircuit[ActiveActor];
+			auto circ = ActiveCircuit[ActiveActor];
 			BusReference = circ->ActiveBusIndex + 1;
 
 			pElem = (TDSSCktElement*)circ->Loads.Get_First();
