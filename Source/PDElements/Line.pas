@@ -103,10 +103,11 @@ type
         C1: Double;
         C0: Double;
         Len: Double;
-        LengthUnits: Integer;
+        LengthUnits, HeightUnits: Integer;
 
         Rg, Xg, KXg, rho: Double;
         epsRmedium: Double;
+        heightOffset: Double;
         GeneralPlotQuantity: Double;  // For general circuit plotting
         CondCode: String;
         GeometryCode: String;
@@ -144,6 +145,7 @@ type
         procedure FetchWireList(const Code: String);
         procedure FetchCNCableList(const Code: String);
         procedure FetchTSCableList(const Code: String);
+        procedure FetchConductorList(const Code: String);
 
         // Reliability calcs
         procedure CalcFltRate; OVERRIDE;  // Calc failure rates for section and buses
@@ -178,7 +180,7 @@ uses
     ExceptionTrace;
 
 const
-    NumPropsThisClass = 31;
+    NumPropsThisClass = 34;
     //  MaxPhases = 20; // for fixed buffers
 
 var
@@ -252,6 +254,9 @@ begin
     PropertyName^[29] := 'Ratings';
     PropertyName^[30] := 'LineType';
     PropertyName^[31] := 'EpsRmedium';
+    PropertyName^[32] := 'HeightOffset';
+    PropertyName^[33] := 'HeightUnit';
+    PropertyName^[34] := 'conductors';
 
      // define Property help values
 
@@ -335,10 +340,16 @@ begin
         'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW, BUSBAR' + CRLF + CRLF +
         'OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.';
     PropertyHelp^[31] := 'Default=1.0. Relative Permittivity of the medium. Used by lines with a geometry definition. Defaults to 1.0 for air.';
-
+    PropertyHelp^[32] := 'Default=0.0. Average Height (or depth) offset to be applied on top of coordinates of geometry or spacing. Use negative value for depth in underground lines.';
+    PropertyHelp^[33] := 'Height offset Units = {mi|kft|km|m|Ft|in|cm }. If none is detected, meters is assumed.';
+    PropertyHelp^[34] := 'Array of conductor names for use in line constants calculation.' + CRLF +
+        'Must be used in conjunction with the Spacing property.' + CRLF +
+        'Specify the Spacing first, and "ncond" wires.' + CRLF +
+        'Specify the conductor type followed by the conductor name. e.g., "conductors=[cndata.cncablename, tsdata.tscablename, wiredata.wirename]"' + CRLF +
+        'If a given position in the spacing is not to be used in the line, use "none" in the entry of the conductors array.';
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
-     // NumPropsThisClass + 2 and + 3 are normamps amd emergamps  
+     // NumPropsThisClass + 2 and + 3 are normamps amd emergamps
     PropertyHelp^[NumPropsThisClass + 3] := 'Failure rate PER UNIT LENGTH per year. Length must be same units as LENGTH property. Default is 0.1 fault per unit length per year.';
     PropertyHelp^[NumPropsThisClass + 4] := PropertyHelp^[NumPropsThisClass + 4] + ' Default is 20.';
     PropertyHelp^[NumPropsThisClass + 5] := PropertyHelp^[NumPropsThisClass + 5] + ' Default is 3 hr.';
@@ -702,9 +713,17 @@ begin
                 30:
                     FLineType := LineTypeList.Getcommand(Param);
                 31:
-                begin
                     epsRmedium := Parser[ActorID].DblValue;
+                32:
+                    heightOffset := Parser[ActorID].DblValue;
+                33:
+                begin
+                    HeightUnits := GetUnitsCode(Param);
+                    if HeightUnits = UNITS_NONE then
+                        HeightUnits := UNITS_M; // Meters is assumed for None.
                 end;
+                34:
+                    FetchConductorList(Param);
             else
             // Inherited Property Edits
                 ClassEdit(ActiveLineObj, ParamPointer - NumPropsThisClass)
@@ -778,7 +797,7 @@ begin
                     SymComponentsModel := false;
                     SymComponentsChanged := false;
                 end;
-                21..22, 24..25:
+                21..22, 24..25, 34:
                 begin
                     if Assigned(FLineSpacingObj) and Assigned(FLineWireData) then
                     begin
@@ -916,6 +935,7 @@ begin
     Xg := 0.155081;
     rho := 100.0;
     epsRmedium := 1.0;
+    heightOffset := 0.0;
     Kxg := Xg / ln(658.5 * sqrt(rho / BaseFrequency));
     FrhoSpecified := false;
     FCapSpecified := false;
@@ -934,6 +954,7 @@ begin
     GeometryCode := '';
     LengthUnits := UNITS_NONE; // Assume everything matches
     FUserLengthUnits := UNITS_NONE;
+    HeightUnits := UNITS_M; // Meters by default
     FUnitsConvert := 1.0;
     FLineCodeUnits := UNITS_NONE;
     FLineCodeSpecified := false;
@@ -1624,6 +1645,10 @@ begin
             Result := LineTypeList.Get(FLineType);
         31:
             Result := Format('%-g', [epsrmedium]);
+        32:
+            Result := Format('%-g', [heightOffset]);
+        33:
+            Result := LineUnitsStr(HeightUnits);
 
            // Intercept FaultRate, PctPerm, and HourstoRepair
         NumPropsThisClass + 3:
@@ -1732,6 +1757,9 @@ begin
     PropertyValue[29] := '[400]';  // 1 Season
     PropertyValue[30] := 'OH'; // Overhead line default
     PropertyValue[31] := '1.0';
+    PropertyValue[32] := '0.0'; // height offset
+    PropertyValue[33] := 'm';  // height units
+    PropertyValue[34] := '';
 
 
     inherited InitPropertyValues(NumPropsThisClass);
@@ -2080,15 +2108,117 @@ begin
         KillGeometrySpecified;
         SpacingCode := LowerCase(Code);
 
-      // need to establish Yorder before FMakeZFromSpacing
-        NPhases := FLineSpacingObj.NPhases;
-        Nconds := FNPhases;  // Force Reallocation of terminal info
-        Yorder := Fnconds * Fnterms;
-        YprimInvalid[ActiveActor] := true;       // Force Rebuild of Y matrix
-
     end
     else
         DoSimpleMsg('Line Spacing object ' + Code + ' not found.(LINE.' + Name + ')', 181011);
+end;
+
+procedure TLineObj.FetchConductorList(const Code: String);
+var
+    RatingsInc: Boolean;
+    NewNumRat,
+    j,
+    i, istart: Integer;
+    NewRatings: TRatingsArray;
+    dotpos: Integer;
+    CondName, CondClass: String;
+begin
+    if not assigned(FLineSpacingObj) then
+        DoSimpleMsg('You must assign the LineSpacing before the Wires Property (LINE.' + name + ').', 181022);
+
+    FLineCodeSpecified := false;
+    KillGeometrySpecified;
+    FWireDataSize := FLineSpacingObj.NWires;
+    FLineWireData := Allocmem(Sizeof(FLineWireData^[1]) * FWireDataSize);
+    FPhaseChoice := Overhead;  // Update with the first conductor found
+
+    AuxParser[ActiveActor].CmdString := Code;
+
+    NewNumRat := 1;
+    RatingsInc := false;             // So far we don't know if there are seasonal ratings
+    for i := 1 to FLineSpacingObj.NWires do
+    begin
+        AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
+        if AuxParser[ActiveActor].StrValue = '' then
+            continue
+        else
+        if CompareText(AuxParser[ActiveActor].StrValue, 'None') = 0 then
+        begin
+        // No conductor in this position
+            FLineWireData^[i] := nil;
+        end
+        else
+        begin
+      // Load conductor code depending on defined type.
+            CondClass := '';
+            CondName := '';
+            dotpos := Pos('.', AuxParser[ActiveActor].StrValue);
+            case dotpos of
+                0:
+                begin
+                    DoSimpleMsg('You must define the conductor class for all the valid conductors in the "conductors array" (LINE.' + name + ').', 181023);
+                    exit;
+                end;
+            else
+            begin
+                CondClass := Copy(AuxParser[ActiveActor].StrValue, 1, dotpos - 1);
+                CondName := Copy(AuxParser[ActiveActor].StrValue, dotpos + 1, Length(AuxParser[ActiveActor].StrValue));
+            end;
+            end;
+
+            if LowerCase(CondClass) = 'wiredata' then
+            begin
+                WireDataClass[ActiveActor].code := CondName;
+                if i <= FLineSpacingObj.NPhases then
+                    FPhaseChoice := Overhead;
+            end
+            else
+            if LowerCase(CondClass) = 'cndata' then
+            begin
+                CNDataClass[ActiveActor].code := CondName;
+                if i <= FLineSpacingObj.NPhases then
+                    FPhaseChoice := ConcentricNeutral;
+            end
+            else
+            if LowerCase(CondClass) = 'tsdata' then
+            begin
+                TSDataClass[ActiveActor].code := CondName;
+                if i <= FLineSpacingObj.NPhases then
+                    FPhaseChoice := TapeShield;
+            end
+            else
+            begin
+                DoSimpleMsg('You must use valid conductor classes (wiredata, cndata, tsdata) for all the conductors in the "conductors array" (LINE.' + name + ').', 181024);
+                exit;
+            end;
+
+            if Assigned(ActiveConductorDataObj) then
+            begin
+                FLineWireData^[i] := ActiveConductorDataObj;
+                if (i <= FLineSpacingObj.NPhases) then
+        // Assign ratings to line from phase conductors only
+                begin
+                    if FLineWireData^[i].NumAmpRatings > NewNumRat then
+                    begin
+                        NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
+                        NewNumRat := High(NewRatings) + 1;
+                        RatingsInc := true;         // Yes, there are seasonal ratings
+                    end;
+                    NormAmps := FLineWireData^[i].NormAmps;
+                    EmergAmps := FLineWireData^[i].EmergAmps;
+                end;
+            end
+            else
+                DoSimpleMsg('Conductor "' + AuxParser[ActiveActor].StrValue + '" was not defined first (LINE.' + name + ').', 181025);
+        end;
+    end;
+
+    if RatingsInc then
+    begin
+        AmpRatings := Copy(NewRatings);     {**** NewRatings disappears when it goes out of scope}
+        NumAmpRatings := NewNumRat;
+    end;
+    UpdatePDProperties;
 end;
 
 procedure TLineObj.FetchWireList(const Code: String);
@@ -2123,21 +2253,33 @@ begin
     for i := istart to FLineSpacingObj.NWires do
     begin
         AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
-        WireDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
-        if Assigned(ActiveConductorDataObj) then
+        if CompareText(AuxParser[ActiveActor].StrValue, 'None') = 0 then
         begin
-            FLineWireData^[i] := ActiveConductorDataObj;
-            if FLineWireData^[i].NumAmpRatings > NewNumRat then
-            begin
-                NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
-                NewNumRat := High(NewRatings) + 1;
-                RatingsInc := true;         // Yes, there are seasonal ratings
-            end;
-            NormAmps := FLineWireData^[i].NormAmps;
-            EmergAmps := FLineWireData^[i].EmergAmps;
+        // No conductor in this position
+            FLineWireData^[i] := nil;
         end
         else
-            DoSimpleMsg('Wire "' + AuxParser[ActiveActor].StrValue + '" was not defined first (LINE.' + name + ').', 18103);
+        begin
+            WireDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
+            if Assigned(ActiveConductorDataObj) then
+            begin
+                FLineWireData^[i] := ActiveConductorDataObj;
+                if (istart = 1) and (i <= FLineSpacingObj.NPhases) then  // istart is 1 only if we are dealing with an overhead line.
+        // Assign ratings to line from phase conductors only
+                begin
+                    if FLineWireData^[i].NumAmpRatings > NewNumRat then
+                    begin
+                        NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
+                        NewNumRat := High(NewRatings) + 1;
+                        RatingsInc := true;         // Yes, there are seasonal ratings
+                    end;
+                    NormAmps := FLineWireData^[i].NormAmps;
+                    EmergAmps := FLineWireData^[i].EmergAmps;
+                end;
+            end
+            else
+                DoSimpleMsg('Wire "' + AuxParser[ActiveActor].StrValue + '" was not defined first (LINE.' + name + ').', 18103);
+        end;
     end;
 
     if RatingsInc then
@@ -2151,6 +2293,10 @@ end;
 procedure TLineObj.FetchCNCableList(const Code: String);
 var
     i: Integer;
+    RatingsInc: Boolean;
+    NewNumRat: Integer;
+    NewRatings: TRatingsArray;
+
 begin
     FLineCodeSpecified := false;
     KillGeometrySpecified;
@@ -2160,20 +2306,56 @@ begin
     FPhaseChoice := ConcentricNeutral;
     FLineWireData := Allocmem(Sizeof(FLineWireData^[1]) * FLineSpacingObj.NWires);
     AuxParser[ActiveActor].CmdString := Code;
+
+    NewNumRat := 1;
+    RatingsInc := false;
     for i := 1 to FLineSpacingObj.NPhases do
     begin // fill extra neutrals later
         AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
-        CNDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
-        if Assigned(ActiveConductorDataObj) then
-            FLineWireData^[i] := ActiveConductorDataObj
+        if CompareText(AuxParser[ActiveActor].StrValue, 'None') = 0 then
+        begin
+          // No conductor in this position
+            FLineWireData^[i] := nil;
+        end
         else
-            DoSimpleMsg('CN cable ' + AuxParser[ActiveActor].StrValue + ' was not defined first.(LINE.' + Name + ')', 18105);
+        begin
+            CNDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
+            if Assigned(ActiveConductorDataObj) then
+            begin
+                FLineWireData^[i] := ActiveConductorDataObj;
+                if (i <= FLineSpacingObj.NPhases) then
+          // Assign ratings to line from phase conductors only
+                begin
+                    if FLineWireData^[i].NumAmpRatings > NewNumRat then
+                    begin
+                        NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
+                        NewNumRat := High(NewRatings) + 1;
+                        RatingsInc := true;         // Yes, there are seasonal ratings
+                    end;
+                    NormAmps := FLineWireData^[i].NormAmps;
+                    EmergAmps := FLineWireData^[i].EmergAmps;
+                end;
+            end
+            else
+                DoSimpleMsg('CN cable ' + AuxParser[ActiveActor].StrValue + ' was not defined first.(LINE.' + Name + ')', 18105);
+        end;
     end;
+
+    if RatingsInc then
+    begin
+        AmpRatings := Copy(NewRatings);     {**** NewRatings disappears when it goes out of scope}
+        NumAmpRatings := NewNumRat;
+    end;
+    UpdatePDProperties;
 end;
 
 procedure TLineObj.FetchTSCableList(const Code: String);
 var
     i: Integer;
+    RatingsInc: Boolean;
+    NewNumRat: Integer;
+    NewRatings: TRatingsArray;
+
 begin
     FLineCodeSpecified := false;
     KillGeometrySpecified;
@@ -2186,12 +2368,41 @@ begin
     for i := 1 to FLineSpacingObj.NPhases do
     begin // fill extra neutrals later
         AuxParser[ActiveActor].NextParam; // ignore any parameter name  not expecting any
-        TSDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
-        if Assigned(ActiveConductorDataObj) then
-            FLineWireData^[i] := ActiveConductorDataObj
+        if CompareText(AuxParser[ActiveActor].StrValue, 'None') = 0 then
+        begin
+          // No conductor in this position
+            FLineWireData^[i] := nil;
+        end
         else
-            DoSimpleMsg('TS cable ' + AuxParser[ActiveActor].StrValue + ' was not defined first. (LINE.' + Name + ')', 18107);
+        begin
+            TSDataClass[ActiveActor].code := AuxParser[ActiveActor].StrValue;
+            if Assigned(ActiveConductorDataObj) then
+            begin
+                FLineWireData^[i] := ActiveConductorDataObj;
+                if (i <= FLineSpacingObj.NPhases) then  // istart is 1 only if we are dealing with an overhead line.
+          // Assign ratings to line from phase conductors only
+                begin
+                    if FLineWireData^[i].NumAmpRatings > NewNumRat then
+                    begin
+                        NewRatings := Copy(FLineWireData^[i].AmpRatings);   // Have to be same type to be assignable
+                        NewNumRat := High(NewRatings) + 1;
+                        RatingsInc := true;         // Yes, there are seasonal ratings
+                    end;
+                    NormAmps := FLineWireData^[i].NormAmps;
+                    EmergAmps := FLineWireData^[i].EmergAmps;
+                end;
+            end
+            else
+                DoSimpleMsg('TS cable ' + AuxParser[ActiveActor].StrValue + ' was not defined first.(LINE.' + Name + ')', 18107);
+        end;
     end;
+
+    if RatingsInc then
+    begin
+        AmpRatings := Copy(NewRatings);     {**** NewRatings disappears when it goes out of scope}
+        NumAmpRatings := NewNumRat;
+    end;
+    UpdatePDProperties;
 end;
 
 procedure TLineObj.FetchGeometryCode(const Code: String);
@@ -2264,6 +2475,14 @@ begin
         if FLineGeometryObj.EpsRmedium <> EpsRMedium then
             FLineGeometryObj.EpsRmedium := EpsRmedium;
 
+          // If needed, reset height offset of line to recompute the matrices of the geometry for this line's height offset.
+        if FLineGeometryObj.heightOffset <> heightOffset then
+            FLineGeometryObj.heightOffset := heightOffset;
+
+          // If needed, reset height offset of line to recompute the matrices of the geometry for this line's height units.
+        if FLineGeometryObj.heightUnit <> heightUnits then
+            FLineGeometryObj.heightUnit := heightUnits;
+
         Z := FLineGeometryObj.Zmatrix[f, len, LengthUnits];
         Yc := FLineGeometryObj.YCmatrix[f, len, LengthUnits];
           {Init Zinv}
@@ -2308,6 +2527,24 @@ begin
         LineGeometryClass := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('LineGeometry'));
     pGeo := TLineGeometryObj.Create(LineGeometryClass, Name);
     pGeo.LoadSpacingAndWires(FLineSpacingObj, FLineWireData); // this sets OH, CN, or TS
+
+    // Call out discrepancy and let the user correct it
+    if Nphases <> pGeo.Nphases then
+    begin
+        DoSimpleMsg('The number of valid phase conductors (not "None") in Line.' + name + ' is diferent than the number defined in its spacing. In this case, you must set the phases parameter of the line to the correct number (phases=' + IntToStr(pGeo.Nphases) + '). ', 181021);
+        exit;
+    end;
+
+  // need to establish Yorder before FMakeZFromSpacing
+    NPhases := pGeo.Nconds;
+    Nconds := FNPhases;  // Force Reallocation of terminal info
+    Yorder := Fnconds * Fnterms;
+    YprimInvalid[ActiveActor] := true;       // Force Rebuild of Y matrix
+
+  // Setting these before recalculating the impedances
+    pGeo.EpsRmedium := EpsRmedium;
+    pGeo.heightOffset := heightOffset;
+    pGeo.heightUnit := heightUnits;
 
     if FrhoSpecified then
         pGeo.rhoearth := rho;
