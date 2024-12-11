@@ -1,4 +1,0 @@
-New "EnergyMeter.zone_2" element=Line.mdv201_hn_2_094_abc51012 terminal=1 option=(E, R, C) action=C
-New "EnergyMeter.zone_3" element=Line.mdv201_hn_2_394_abc63658 terminal=1 option=(E, R, C) action=C
-New "EnergyMeter.zone_4" element=Line.mdv201_hn_2_293_abc63684 terminal=1 option=(E, R, C) action=C
-New "EnergyMeter.zone_5" element=Line.mdv201_hn_2_103_abc39605 terminal=1 option=(E, R, C) action=C
