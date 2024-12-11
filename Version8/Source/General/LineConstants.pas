@@ -63,7 +63,8 @@ TLineConstants = class(TObject)
     Fme            :Complex; // factor for earth impedance
     FRhoChanged    :Boolean;
     FEpsRMedium    :Double;  // unit-less
-
+    FheightOffset  :Double;  // m
+    FuserHeightUnit    :Integer;
 
     function Get_GMR(i, units: Integer): Double;
     function Get_radius(i, units: Integer): Double;
@@ -75,6 +76,7 @@ TLineConstants = class(TObject)
     function Get_Ze(i, j: Integer): Complex;
     function Get_Zint(i: Integer): Complex;
     function Get_Zmatrix(f, Lngth: double; Units: Integer): Tcmatrix;
+    function Get_FheightOffset(): Double;
     procedure Set_GMR(i, units: Integer; const Value: Double);
     procedure Set_radius(i, units: Integer; const Value: Double);
     procedure Set_Rdc(i, units: Integer; const Value: Double);
@@ -84,9 +86,16 @@ TLineConstants = class(TObject)
     procedure Set_Frequency(const Value: Double);
     procedure Set_Frhoearth(const Value: Double);  // m
     procedure Set_FEpsRMedium(const Value: Double);  // unit-less
+    procedure Set_FheightOffset(const Value: Double);  // m
+    procedure Set_FuserHeightUnit(const Value: Integer); // Whatever the user defined. The height is always saved in meters here.
+
     // This allows you to compute capacitance using a different radius -- for bundled conductors
     function Get_Capradius(i, units: Integer): Double;
     procedure Set_Capradius(i, units: Integer; const Value: Double);
+
+    // Auxiliary for height offset
+    procedure RemoveHeightOffset();
+    procedure AddHeightOffset();
 
    {These can only be called privately}
     Property Frequency:Double read FFrequency write Set_Frequency;
@@ -111,6 +120,8 @@ TLineConstants = class(TObject)
      Property Ze[i, j:Integer]:Complex        Read Get_Ze;  // Earth return impedance at present frequency for ij element
      Property rhoearth:Double                 read Frhoearth  write Set_Frhoearth;
      Property EpsRMedium:Double               read FEpsRMedium  write Set_FEpsRMedium;
+     Property heightOffset:Double             read Get_FheightOffset  write Set_FheightOffset;
+     Property userHeightUnit:Integer          read FuserHeightUnit  write Set_FuserHeightUnit;
 
     {These two properties will auto recalc the impedance matrices if frequency is different}
     {Converts to desired units when executed; Returns Pointer to Working Verstion}
@@ -289,6 +300,8 @@ begin
      Frhoearth  := 100.0;  // default value
 
      FEpsRMedium  := 1.0;  // default value should be 1.0
+     FheightOffset  := 0.0;  // default value should be 0.0
+     FuserHeightUnit := UNITS_M;
 
      FRhoChanged := TRUE; // using for both rho and epsilon_r
 
@@ -317,11 +330,15 @@ begin
 
 end;
 
+function TLineConstants.Get_FheightOffset(): Double;
+begin
+     Result := FheightOffset * From_Meters(FuserHeightUnit);
+end;
+
 function TLineConstants.Get_Capradius(i, units: Integer): Double;
 begin
      Result := Fcapradius^[i] * From_Meters(Units);
 end;
-
 
 function TLineConstants.Get_GMR(i, units: Integer): Double;
 begin
@@ -574,8 +591,30 @@ end;
 procedure TLineConstants.Set_FEpsRMedium(const Value: Double);
 begin
      If Value <> FEpsRMedium then
-     FRhoChanged := TRUE;  // using this for both EpsRMedium and Rho
+     FRhoChanged := TRUE;  // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
      FEpsRMedium := Value;
+end;
+
+procedure TLineConstants.Set_FheightOffset(const Value: Double);
+var
+  NewHeightOffset_m: Double;
+begin
+     NewHeightOffset_m := Value * To_Meters(FuserHeightUnit);
+
+     If NewHeightOffset_m <> FheightOffset then
+     FRhoChanged := TRUE;  // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
+     RemoveHeightOffset(); // Remove old value from Y positions first
+     FheightOffset := NewHeightOffset_m;  // Replace old value with new value
+     AddHeightOffset();  // Add new value to Y positions
+end;
+
+procedure TLineConstants.Set_FuserHeightUnit(const Value: Integer);
+begin
+     If Value <> FuserHeightUnit then
+     begin
+        FuserHeightUnit := Value;
+        Set_FheightOffset(FheightOffset);  // This updates the existing value to fit the new user units
+     end;
 end;
 
 procedure TLineConstants.Set_GMR(i, units: Integer; const Value: Double);
@@ -618,6 +657,25 @@ end;
 procedure TLineConstants.Set_Y(i, units: Integer; const Value: Double);
 begin
     If (i>0) and (i<=FNumConds) Then FY^[i] := Value * To_Meters(units);
+end;
+
+
+procedure TLineConstants.AddHeightOffset();
+var
+i: Integer;
+begin
+    For i := 1 to FNumConds Do Begin
+      If (i>0) and (i<=FNumConds) Then FY^[i] := FY^[i] + FheightOffset;  // Offset is already in meters
+    end;
+end;
+
+procedure TLineConstants.RemoveHeightOffset();
+var
+i: Integer;
+begin
+    For i := 1 to FNumConds Do Begin
+      If (i>0) and (i<=FNumConds) Then FY^[i] := FY^[i] - FheightOffset;  // Offset is already in meters
+    end;
 end;
 
 initialization
