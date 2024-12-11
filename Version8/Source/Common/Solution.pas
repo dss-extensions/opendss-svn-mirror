@@ -1023,7 +1023,7 @@ Begin
     ActorStatus[i] :=  0;
     ActorHandle[i].Send_Message(Msg);
   End;
-  Wait4Actors(AD_ACTORS);
+  Wait4AD();
 End;
 
 // ===========================================================================================
@@ -2558,7 +2558,7 @@ PROCEDURE TSolutionObj.CheckControls(ActorID : Integer);
 VAR
   i     : Integer;
 Begin
-  if not ADIakoptics or (ActorID <> 1)then
+  if not ADiakoptics or (ActorID <> 1)then
   Begin
     If ControlIteration < MaxControlIterations then Begin
       IF ConvergedFlag Then Begin
@@ -2583,14 +2583,27 @@ Begin
   End
   else
   Begin
-    If ControlIteration < MaxControlIterations then Begin
 
-      If ActiveCircuit[ActorID].LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration),ActorID);
-      SendCmd2Actors(DO_CTRL_ACTIONS);
-      // Checks if there are pending ctrl actions at the actors
+    If ControlIteration < MaxControlIterations then
+    Begin
+
       ControlActionsDone  :=  TRUE;
-      for i := 2 to NumOfActors do
-        ControlActionsDone  :=  ControlActionsDone and ActiveCircuit[i].Solution.ControlActionsDone ;
+
+      IF ControlMode <> CONTROLSOFF then
+      Begin
+
+        IF ConvergedFlag Then
+        Begin
+          If ActiveCircuit[ActorID].LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration),ActorID);
+          SendCmd2Actors(DO_CTRL_ACTIONS);
+
+          // Checks if there are pending ctrl actions at the actors
+          for i := 2 to NumOfActors do
+            ControlActionsDone  :=  ControlActionsDone and ActiveCircuit[i].Solution.ControlActionsDone;
+        End;
+
+      End;
+
     End;
   End;
 
@@ -2734,7 +2747,7 @@ Begin
   End
   Else
   Begin
-    ADiak_PCInj   :=  False;
+    ADiak_PCInj     :=  False;
     Solve_Diakoptics();             // A-Diakoptics
 
     ActiveCircuit[ActorID].IsSolved := TRUE;
@@ -4495,6 +4508,12 @@ procedure TSolver.Execute;
 var
   ScriptEd    : TScriptEdit;
 {$ENDIF} {$ENDIF}
+  TIdx        : Integer;
+  ADMsg       : Boolean;
+
+Const
+  ADMsgT      : Array [0..6] of Integer = (SOLVE_AD1, SOLVE_AD2, INIT_ADIAKOPTICS, GETCTRLMODE, DO_CTRL_ACTIONS, CHECK_FAULT, CHECKYBUS);
+  NumADMsg    = 6;
 
   begin
     with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
@@ -4502,10 +4521,19 @@ var
       while ActorActive do
       Begin
         ActorMsg.WaitFor(INFINITE);
+
         while MyMessages.Count > 0 do
         Begin
           ActorMsg.ResetEvent;
           MsgType :=  MyMessages.Dequeue;
+
+          // Evaluates if the message checked is one of A-Diakoptics to help coordination
+          ADMsg := False;
+          for TIdx := 0 to NumADMsg do
+          Begin
+            if ADMsgT[TIdx] = MsgType then ADMsg :=  True;
+          End;
+
           Processing                  := True;
           case MsgType of             // Evaluates the incomming message
             SIMULATE  :               // Simulates the active ciruit on this actor
@@ -4555,7 +4583,10 @@ var
               Begin
                 FMessage                  :=  '1';
                 ActorStatus[ActorID]      :=  1;                  // Global to indicate that the actor is ready
-                WaitQ.PushItem(ActorID);
+
+                if ADMsg then WaitAD.PushItem(ActorID)    // Only applies when using A-Diakoptcs
+                else          WaitQ.PushItem(ActorID);    // Default confirmation method
+
                 SolutionAbort := TRUE;
                 UIEvent.SetEvent;
                 if Parallel_enabled then
@@ -4610,7 +4641,11 @@ var
 
         End;
         ActorStatus[ActorID]      :=  1;                  // Global to indicate that the actor is ready
-        WaitQ.PushItem(ActorID);
+
+        if MsgType <> EXIT_ACTOR then
+        Begin
+          if not ADMsg then WaitQ.PushItem(ActorID);    // Default confirmation method
+        End;
       end;
     end;
   end;
