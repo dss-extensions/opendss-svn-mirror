@@ -680,9 +680,10 @@ FUNCTION DoClearAllCmd:Integer;
 
 Begin
 
-      DSSExecutive[ActiveActor].ClearAll;
+  DSSExecutive[ActiveActor].ClearAll;
 
-      Result := 0;
+  Result := 0;
+  Adiakoptics := False;
 
 End;
 //----------------------------------------------------------------------------
