@@ -233,7 +233,7 @@ Begin
                          'The Solve command is virtually synonymous with the Set command except that ' +
                          'a solution is performed after the options are processed. If accompanied by the argument "all" will start a simulation ' +
                          'job for all the circuits in memory (Solve all) -same as "SolveAll". Otherwise, ' +
-                         'it will start the simulation for the active circuit only (see "set Activecircuit").';
+                         'it will start the simulation for the active circuit only (see "set ActiveCircuit").';
      CommandHelp[10] := 'Enables a circuit element or entire class.  Example:' +CRLF+
                          'Enable load.loadxxx'+CRLF+
                          'Enable generator.*  (enables all generators)';
@@ -291,7 +291,7 @@ Begin
                          'specified, then increments time by current step size.';
      CommandHelp[25] := 'Displays main control panel window.';
      CommandHelp[26] := 'Force all monitors and meters to take a sample for the most recent solution. Keep in mind that meters will perform integration.';
-     CommandHelp[27] := 'Clears the active circuit in memory. By using the argument "all" it will clear all the all the active circuits in memory (clear all), just like the "ClearAll" command.';
+     CommandHelp[27] := 'Clears the active circuit in memory. By using the argument "all" it will clear all the all the circuits in memory (clear all), just like the "ClearAll" command.';
      CommandHelp[28] := 'Display "About Box".  (Result string set to Version string.)';
      CommandHelp[29] := 'Calculates voltagebase for buses based on voltage bases defined '+
                          'with Set voltagebases=... command.';
