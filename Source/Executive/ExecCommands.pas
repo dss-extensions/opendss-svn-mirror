@@ -243,7 +243,9 @@ begin
     CommandHelp[9] := 'Perform the solution of the present solution mode. You can set any option ' +
         'that you can set with the Set command (see Set). ' +
         'The Solve command is virtually synonymous with the Set command except that ' +
-        'a solution is performed after the options are processed.';
+        'a solution is performed after the options are processed. If accompanied by the argument "all" will start a simulation ' +
+        'job for all the circuits in memory (Solve all) -same as "SolveAll". Otherwise, ' +
+        'it will start the simulation for the active circuit only (see "set Activecircuit").';
     CommandHelp[10] := 'Enables a circuit element or entire class.  Example:' + CRLF +
         'Enable load.loadxxx' + CRLF +
         'Enable generator.*  (enables all generators)';
@@ -301,7 +303,7 @@ begin
         'specified, then increments time by current step size.';
     CommandHelp[25] := 'Displays main control panel window.';
     CommandHelp[26] := 'Force all monitors and meters to take a sample for the most recent solution. Keep in mind that meters will perform integration.';
-    CommandHelp[27] := 'Clear all circuits currently in memory.';
+    CommandHelp[27] := 'Clears the active circuit in memory. By using the argument "all" it will clear all the all the active circuits in memory (clear all), just like the "ClearAll" command.';
     CommandHelp[28] := 'Display "About Box".  (Result string set to Version string.)';
     CommandHelp[29] := 'Calculates voltagebase for buses based on voltage bases defined ' +
         'with Set voltagebases=... command.';
@@ -677,7 +679,15 @@ begin
             25:
                 ShowControlPanel; // DSSForms
             27:
-                DoClearCmd;
+            begin
+            // modifier added to make the command compatible with both, clear and clear all
+                ParamName := Parser[ActiveActor].NextParam;
+                Param := Parser[ActiveActor].StrValue;
+                if LowerCase(Param) = 'all' then
+                    DoClearAllCmd
+                else
+                    DoClearCmd;
+            end;
             28:
                 DoAboutBox;
             32:
@@ -735,52 +745,7 @@ begin
                         Wait4Actors(0);
                 end;
             end;
-            108:
-            begin
-              //  Added to avoid crashes when in A-Diakoptics mode but the user
-              //  uses the SolveAll command
-                if ADiakoptics then
-                    Iter := 1
-                else
-                    Iter := NumOfActors;
-              //  Execution area
-                for i := 1 to Iter do
-                begin
-                    ActiveActor := i;
-                    CmdResult := DoSetCmd(1);
-                end;
-              // If the parallel mode is not active, Waits until the actor finishes
-                if not Parallel_enabled then
-                begin
-                    Wait4Actors(ALL_ACTORS);
-                end;
-            end;
-            109:
-            begin
-                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix(ActiveActor);
-            end;
-            110:
-            begin
-                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix_Org(ActiveActor);
-            end;
-            111:
-            begin
-                ADiakoptics_Tearing(false);
-            end;
-            114:
-            begin
-                ActiveCircuit[ActiveActor].Get_paths_4_Coverage();
-                Temp_int := length(ActiveCircuit[ActiveActor].Path_Idx) - 1;
-                GlobalResult := inttostr(Temp_int) + ' new paths detected';
-            end;
-            117:
-            begin
-                with ActiveCircuit[ActiveActor].Solution do
-                begin
-                    Laplacian := IncMat.Transpose();          // Transposes the Incidence Matrix
-                    Laplacian := Laplacian.multiply(IncMat);  // IncMatT*IncMat
-                end;
-            end;
+
             127:
             begin
                 Show_COM_Help();
@@ -837,15 +802,36 @@ begin
                 CmdResult := DoShowCmd; //'show';
             9:
             begin
-                if ADiakoptics then
-                    ActiveActor := 1;   // Just in case
-                CmdResult := DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
-
-            // If the parallel mode is not active, Waits until the actor finishes
-                if not Parallel_enabled then
+              // modifier added to make the command compatible with both, Solve and Solve all
+                ParamName := Parser[ActiveActor].NextParam;
+                Param := Parser[ActiveActor].StrValue;
+                if LowerCase(Param) = 'all' then
                 begin
-                    Wait4Actors(ALL_ACTORS);
+                //  Added to avoid crashes when in A-Diakoptics mode but the user
+                //  uses the SolveAll command
+                    if ADiakoptics then
+                        Iter := 1
+                    else
+                        Iter := NumOfActors;
+                //  Execution area
+                    for i := 1 to Iter do
+                    begin
+                        ActiveActor := i;
+                        CmdResult := DoSetCmd(1);
+                    end
+                end
+                else
+                begin
+                    if ADiakoptics then
+                        ActiveActor := 1;   // Just in case
+                    if Param <> '' then
+                        Parser[ActiveActor].PrevParam;        // This means that there are more options
+                    CmdResult := DoSetCmd(1);              // changed from DoSolveCmd; //'solve';
                 end;
+
+              // If the parallel mode is not active, Waits until the actor finishes
+                if not Parallel_enabled then
+                    Wait4Actors(ALL_ACTORS);
             end;
             10:
                 CmdResult := DoEnableCmd;
@@ -1025,6 +1011,36 @@ begin
                 FinishTimeStep(ActiveActor);
             104:
                 CmdResult := DoNodeListCmd;
+            108:
+            begin
+            //  Added to avoid crashes when in A-Diakoptics mode but the user
+            //  uses the SolveAll command
+                if ADiakoptics then
+                    Iter := 1
+                else
+                    Iter := NumOfActors;
+            //  Execution area
+                for i := 1 to Iter do
+                begin
+                    ActiveActor := i;
+                    CmdResult := DoSetCmd(1);
+                end;
+            // If the parallel mode is not active, Waits until the actor finishes
+                if not Parallel_enabled then
+                    Wait4Actors(ALL_ACTORS);
+            end;
+            109:
+            begin
+                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix(ActiveActor);
+            end;
+            110:
+            begin
+                ActiveCircuit[ActiveActor].Solution.Calc_Inc_Matrix_Org(ActiveActor);
+            end;
+            111:
+            begin
+                ADiakoptics_Tearing(false);
+            end;
             {$IF not (defined(FPC) or defined(CONSOLE))}
             112:
                 CmdResult := DoConnectCmd; //'TCP/IP connect';
@@ -1034,10 +1050,24 @@ begin
       112: Begin DSSInfoMessageDlg('Winsock TCP/IP connection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
       113: Begin DSSInfoMessageDlg('Winsock TCP/IP disconnection is not supported in FPC version, it will be migrated to Indy (soon...)'); CmdResult := 0; end;
             {$ENDIF}
+            114:
+            begin
+                ActiveCircuit[ActiveActor].Get_paths_4_Coverage();
+                Temp_int := length(ActiveCircuit[ActiveActor].Path_Idx) - 1;
+                GlobalResult := inttostr(Temp_int) + ' new paths detected';
+            end;
             115:
                 DoRemoveCmd;
             116:
                 SolutionAbort := true;
+            117:
+            begin
+                with ActiveCircuit[ActiveActor].Solution do
+                begin
+                    Laplacian := IncMat.Transpose();          // Transposes the Incidence Matrix
+                    Laplacian := Laplacian.multiply(IncMat);  // IncMatT*IncMat
+                end;
+            end;
             118:
                 DoClone;
             119:

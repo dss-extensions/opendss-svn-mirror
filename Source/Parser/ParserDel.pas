@@ -83,6 +83,7 @@ type
         function MakeInteger: Integer;
         function MakeDouble: Double;
         function GetNextParam: String;
+        function Point2PrevParam: Integer;
         procedure SkipWhiteSpace(const LineBuffer: String; var LinePos: Integer);
         function IsWhiteSpace(ch: Char): Boolean;
         function IsDelimiter(const LineBuffer: String; var LinePos: Integer): Boolean;
@@ -101,6 +102,7 @@ type
         property Token: String READ TokenBuffer WRITE TokenBuffer;
         property Remainder: String READ Get_Remainder;
         property NextParam: String READ GetNextParam;
+        property PrevParam: Integer READ Point2PrevParam;        // Added 12/12/2024
         function ParseAsBusName(var NumNodes: Integer; NodeArray: pIntegerArray; actorID: Integer): String;
         function ParseAsVector(ExpectedSize: Integer; VectorBuffer: pDoubleArray): Integer;
         function ParseAsMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
@@ -538,6 +540,26 @@ begin
     CheckForVar(TokenBuffer);
 
     Result := ParameterBuffer;
+
+end;
+
+{=======================================================================================================================}
+{Implemented for allowing to go back if required.}
+
+function TParser.Point2PrevParam: Integer;
+
+begin
+
+    if FPosition > 0 then
+    begin
+        dec(FPosition);        // Right before the last space char
+        while (CmdBuffer[FPosition] <> ' ') and (FPosition > 0) do
+            dec(FPosition);
+
+        inc(FPosition);        // This to prevent discrepancies with NextParam
+    end;
+
+    Result := FPosition;
 
 end;
 
