@@ -1525,15 +1525,19 @@ void AttachLinePhases(TLineObj& pLine)
 {
     String s, phs;
     int i;
+    int j;
     TNamedObject* pPhase;
 
     pPhase = new TNamedObject("dummy");
     s = PhaseOrderString(pLine, 1);
     if (pLine.NumConductorData() > s.size())
         s = s + "N"; // so we can specify the neutral conductor
-    for (i = 1; i <= s.size(); ++i)
+    j = 0;
+    for (i = 1; i <= pLine.NumConductorData(); ++i)
     {
-        phs = s[i - 1];
+        if (pLine.FetchConductorData(i) == nullptr) continue; // If using Spacing an unused position will be Nil.
+        j++;  // j is the phase index in the line, i is the conductor index in the spacing.
+        phs = s[j - 1];
         if (phs == "s")
             continue;
         if (phs == "1")
