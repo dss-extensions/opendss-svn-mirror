@@ -84,6 +84,7 @@ public:
 	int MakeInteger_();
 	double MakeDouble_();
 	String GetNextParam();
+    int Point2PrevParam();
 	void SkipWhitespace(const String& LineBuffer, int * LinePos);
 	bool IsWhiteSpace(Char ch);
 	bool IsDelimiter(const String& LineBuffer, int& LinePos);

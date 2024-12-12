@@ -225,7 +225,7 @@ namespace ExecCommands
 			+ CRLF
 			+ CRLF
 			+ "Any class can be saved to a file.  If no filename specified, the classname is used.";
-		CommandHelp[8 - 1] = String("Writes selected results to a text file and brings " "up the default text editor (see Set Editor=....) with the file for you to browse.") + CRLF
+		CommandHelp[8 - 1] = "Writes selected results to a text file and brings " "up the default text editor (see Set Editor=....) with the file for you to browse." + CRLF
 			+ CRLF
 			+ "See separate help on Show command. "
 			+ CRLF
@@ -234,12 +234,14 @@ namespace ExecCommands
 		CommandHelp[9 - 1] = "Perform the solution of the present solution mode. You can set any option "
 			"that you can set with the Set command (see Set). "
 			"The Solve command is virtually synonymous with the Set command except that "
-			"a solution is performed after the options are processed.";
-		CommandHelp[10 - 1] = String("Enables a circuit element or entire class.  Example:") + CRLF
+			"a solution is performed after the options are processed.If accompanied by the argument \"all\" will start a simulation " 
+			"job for all the circuits in memory (Solve all) -same as 'SolveAll'. Otherwise, "
+            "it will start the simulation for the active circuit only (see \"set ActiveCircuit\").";
+		CommandHelp[10 - 1] = "Enables a circuit element or entire class.  Example:" + CRLF
 			+ "Enable load.loadxxx"
 			+ CRLF
 			+ "Enable generator.*  (enables all generators)";
-		CommandHelp[11 - 1] = String("Disables a circuit element or entire class.  Example:") + CRLF
+		CommandHelp[11 - 1] = "Disables a circuit element or entire class.  Example:" + CRLF
 			+ "Disable load.loadxxx"
 			+ CRLF
 			+ "Disable generator.*  (Disables all generators)"
@@ -309,11 +311,11 @@ namespace ExecCommands
 			"specified, then increments time by current step size.";
 		CommandHelp[25 - 1] = "Displays main control panel window.";
 		CommandHelp[26 - 1] = "Force all monitors and meters to take a sample for the most recent solution. Keep in mind that meters will perform integration.";
-		CommandHelp[27 - 1] = "Clear all circuits currently in memory.";
+        CommandHelp[27 - 1] = "Clears the active circuit in memory. By using the argument \"all\" it will clear all the all the circuits in memory (clear all), just like the \"ClearAll\" command.";
 		CommandHelp[28 - 1] = "Display \"About Box\".  (Result string set to Version string.)";
 		CommandHelp[29 - 1] = "Calculates voltagebase for buses based on voltage bases defined "
 			"with Set voltagebases=... command.";
-		CommandHelp[30 - 1] = String("Command to explicitly set the base voltage for a bus. " "Bus must be previously defined. Parameters in order are:") + CRLF
+		CommandHelp[30 - 1] = "Command to explicitly set the base voltage for a bus. " "Bus must be previously defined. Parameters in order are:" + CRLF
 			+ "Bus = {bus name}"
 			+ CRLF
 			+ "kVLL = (line-to-line base kV)"
@@ -337,7 +339,7 @@ namespace ExecCommands
 			"load level when using LoadModel=PowerFlow (the default) when the system is difficult to "
 			"solve when the load is far from its base value.  Works by invalidating the Y primitive "
 			"matrices for all the Power Conversion elements.";
-		CommandHelp[32 - 1] = String("Returns DSS property values set using the Set command. " "Result is returne in Result property of the Text interface. ") + CRLF
+		CommandHelp[32 - 1] = "Returns DSS property values set using the Set command. " "Result is returne in Result property of the Text interface. " + CRLF
 			+ CRLF
 			+ "VBA Example:"
 			+ CRLF
@@ -357,7 +359,7 @@ namespace ExecCommands
 			"has been a circuit change.  However, if the previous solution is bad, it may be necessary "
 			"to re-initialize.  In most cases, a re-initiallization results in a zero-load power flow "
 			"solution with only the series power delivery elements considered.";
-		CommandHelp[34 - 1] = String("Export various solution values to CSV (or XML) files for import into other programs. " "Creates a new file except for Energymeter and Generator objects, for which " "the results for each device of this class are APPENDED to the CSV File. You may export to " "a specific file by specifying the file name as the LAST parameter on the line. For example:") + CRLF
+		CommandHelp[34 - 1] = "Export various solution values to CSV (or XML) files for import into other programs. " "Creates a new file except for Energymeter and Generator objects, for which " "the results for each device of this class are APPENDED to the CSV File. You may export to " "a specific file by specifying the file name as the LAST parameter on the line. For example:" + CRLF
 			+ CRLF
 			+ "  Export Voltage Myvoltagefile.CSV"
 			+ CRLF
@@ -371,7 +373,7 @@ namespace ExecCommands
 			+ "May be abreviated Export V, Export C, etc.  Default is \"V\" for voltages."
 			+ " If Set ShowExport=Yes, the output file will be automatically displayed in the default editor. "
 			+ "Otherwise, you must open the file separately. The name appears in the Result window.";
-		CommandHelp[35 - 1] = String("Edit specified file in default text file editor (see Set Editor= option).") + CRLF
+		CommandHelp[35 - 1] = "Edit specified file in default text file editor (see Set Editor= option)." + CRLF
 			+ CRLF
 			+ "Fileedit EXP_METERS.CSV (brings up the meters export file)"
 			+ CRLF
@@ -402,7 +404,7 @@ namespace ExecCommands
 			"Loads that are not in the zone of an energymeter cannot be allocated.";
 		CommandHelp[46 - 1] = "FormEdit [class.object - 1].  Brings up form editor on active DSS object.";
 		CommandHelp[47 - 1] = "Totals all EnergyMeter objects in the circuit and reports register totals in the result string.";
-		CommandHelp[48 - 1] = String("Find the maximum load the active circuit can serve in the PRESENT YEAR. Uses the EnergyMeter objects with the registers " "set with the SET UEREGS= (..) command for the AutoAdd functions.  Syntax (defaults shown):") + CRLF
+		CommandHelp[48 - 1] = "Find the maximum load the active circuit can serve in the PRESENT YEAR. Uses the EnergyMeter objects with the registers " "set with the SET UEREGS= (..) command for the AutoAdd functions.  Syntax (defaults shown):" + CRLF
 			+ CRLF
 			+ "capacity [-1]0.9 [increment= - 1]0.005"
 			+ CRLF
@@ -419,7 +421,7 @@ namespace ExecCommands
 		CommandHelp[55 - 1] = "Just like the Voltages command, except the voltages are in per unit if the kVbase at the bus is defined.";
 		CommandHelp[56 - 1] = "Returns variable values for active element if PC element. Otherwise, returns null.";
 		CommandHelp[57 - 1] = "Returns variable names for active element if PC element. Otherwise, returns null.";
-		CommandHelp[58 - 1] = String("Define x,y coordinates for buses.  Execute after Solve or MakeBusList command is executed so that bus lists are defined." "Reads coordinates from a CSV file with records of the form: busname, x, y.") + CRLF
+		CommandHelp[58 - 1] = "Define x,y coordinates for buses.  Execute after Solve or MakeBusList command is executed so that bus lists are defined." "Reads coordinates from a CSV file with records of the form: busname, x, y." + CRLF
 			+ CRLF
 			+ "Example: BusCoords [-1]xxxx.csv";
 		CommandHelp[59 - 1] = "Updates the buslist, if needed, using the currently enabled circuit elements.  (This happens automatically for Solve command.)"
@@ -436,7 +438,7 @@ namespace ExecCommands
 		CommandHelp[65 - 1] = "Usage: Rotate [angle= - 1]nnn.  Rotate circuit plotting coordinates by specified angle (degrees). ";
 		CommandHelp[66 - 1] = "Displays the difference between the present solution and the last on saved using the SAVE VOLTAGES command.";
 		CommandHelp[67 - 1] = "Returns a power flow summary of the most recent solution in the global result string.";
-		CommandHelp[68 - 1] = String("kw=nn how={Proportional* | Uniform |Random | Skip} skip=nn PF=nn file=filename MW=nn What=[Generator*|Load - 1]") + CRLF
+		CommandHelp[68 - 1] = "kw=nn how={Proportional* | Uniform |Random | Skip} skip=nn PF=nn file=filename MW=nn What=[Generator*|Load - 1]" + CRLF
 			+ CRLF
 			+ "Creates a DSS script file to distribute Generator or Load objects on the system in the manner specified by \"how\"."
 			+ CRLF
@@ -453,7 +455,7 @@ namespace ExecCommands
 			+ "MW = alternate way to specify kW (default = 1)"
 			+ CRLF
 			+ "What = what type of device to add, Generator (default) or Load";
-		CommandHelp[69 - 1] = String("[case= - 1]casename [year= - 1]yr [registers= - 1](reg1, reg2,...)  [peak= - 1]y/n  [meter= - 1]metername") + CRLF
+		CommandHelp[69 - 1] = "[case= - 1]casename [year= - 1]yr [registers= - 1](reg1, reg2,...)  [peak= - 1]y/n  [meter= - 1]metername" + CRLF
 			+ "Plots demand interval (DI) results from yearly simulation cases.  "
 			+ "Plots selected registers from selected meter file (default = DI_Totals.CSV).  "
 			+ "Peak defaults to NO.  If YES, only daily peak of specified registers "
@@ -461,19 +463,19 @@ namespace ExecCommands
 			+ CRLF
 			+ CRLF
 			+ " DI_Plot basecase year=5 registers=(9,11) no";
-		CommandHelp[70 - 1] = String("[Case1= - 1]casename [case2= - 1]casename [register= - 1](register number) [meter= - 1]{Totals* | SystemMeter | metername}. ") + CRLF
+		CommandHelp[70 - 1] = "[Case1= - 1]casename [case2= - 1]casename [register= - 1](register number) [meter= - 1]{Totals* | SystemMeter | metername}. " + CRLF
 			+ "Compares yearly simulations of two specified cases with respect to the quantity in the designated register "
 			+ "from the designated meter file. "
 			+ "Defaults: Register=9 meter=Totals.  Example:"
 			+ CRLF
 			+ CRLF
 			+ "Comparecases base pvgens 10";
-		CommandHelp[71 - 1] = String("[cases= - 1](case1, case2, ...) [registers= - 1](reg1, reg2, ...)  [meter= - 1]{Totals* | SystemMeter | metername}" "Plots yearly curves for specified cases and registers. ") + CRLF
+		CommandHelp[71 - 1] = "[cases= - 1](case1, case2, ...) [registers= - 1](reg1, reg2, ...)  [meter= - 1]{Totals* | SystemMeter | metername}" "Plots yearly curves for specified cases and registers. " + CRLF
 			+ "Default: meter=Totals. Example: "
 			+ CRLF
 			+ CRLF
 			+ "yearlycurves cases=(basecase, pvgens) registers=9";
-		CommandHelp[72 - 1] = String("Change default directory to specified directory") + CRLF
+		CommandHelp[72 - 1] = "Change default directory to specified directory" + CRLF
 			+ CRLF
 			+ "CD dirname";
 		CommandHelp[73 - 1] = "[What= - 1] one of {Currents* | Voltages | Powers} [element= - 1]full_element_name  (class.name). "
@@ -481,7 +483,7 @@ namespace ExecCommands
 		CommandHelp[74 - 1] = "Close all DI files ... useful at end of yearly solution where DI files are left open. "
 			"(Reset and Set Year=nnn will also close the DI files)";
 #ifdef windows
-		CommandHelp[75 - 1] = String("Do a DOS command. Sends the command \"cmd ... \" to Windows. Execute the \"cmd /?\" command " "in a DOS window to see the options. To do a DOS command and automatically exit, do ") + CRLF
+		CommandHelp[75 - 1] = "Do a DOS command. Sends the command \"cmd ... \" to Windows. Execute the \"cmd /?\" command " "in a DOS window to see the options. To do a DOS command and automatically exit, do " + CRLF
 			+ CRLF
 			+ "DOScmd /c ...command string ..."
 			+ CRLF
@@ -491,7 +493,7 @@ namespace ExecCommands
 		CommandHelp[74] = String("Execute a shell command. Sends the command \"cmd ... \" to /bin/sh");
 #endif
 		CommandHelp[76 - 1] = "Execute state estimator on present circuit given present sensor values.";
-		CommandHelp[77 - 1] = String("Reconductor a line section. Must be in an EnergyMeter zone. ") + CRLF
+		CommandHelp[77 - 1] = "Reconductor a line section. Must be in an EnergyMeter zone. " + CRLF
 			+ "Syntax: Reconductor Line1=... Line2=... {LineCode= | Geometry = } EditString=\"...\" NPhases=#"
 			+ CRLF
 			+ "Line1 and Line2 may be given in any order. All lines in the path between the two are redefined "
@@ -508,7 +510,7 @@ namespace ExecCommands
 		CommandHelp[82 - 1] = "For step control of solution process: Show the present control queue contents.";
 		CommandHelp[83 - 1] = "For step control of solution process: Invoke direct solution function in DSS. Non-iterative solution of Y matrix and active sources only.";
 		CommandHelp[84 - 1] = "For step control of solution process: Invoke iterative power flow solution function of DSS directly.";
-		CommandHelp[85 - 1] = String("Add a marker to a bus in a circuit plot. Markers must be added before issuing the Plot command. Effect is persistent until circuit is cleared. " "See also ClearBusMarkers command. Example: ") + CRLF
+		CommandHelp[85 - 1] = "Add a marker to a bus in a circuit plot. Markers must be added before issuing the Plot command. Effect is persistent until circuit is cleared. " "See also ClearBusMarkers command. Example: " + CRLF
 			+ CRLF
 			+ "ClearBusMarkers    !...Clears any previous bus markers"
 			+ CRLF
@@ -518,7 +520,7 @@ namespace ExecCommands
 			+ "You can use any of the standard color names  or RGB numbers. See Help on C1 property in Plot command.";
 		CommandHelp[86 - 1] = "Read UUIDs (v4) for class names and other CIM objects. Tab or comma-delimited file with full object name (or key) and UUID. Side effect is to start a new UUID list for the Export CIM100 command; the UUID list is freed after the Export UUIDs command.";
 		CommandHelp[87 - 1] = "Set load and generator object kv to agree with the bus they are connected to using the bus voltage base and connection type.";
-		CommandHelp[88 - 1] = String("Convert all Loadshapes presently loaded into either files of single or files of double. " "Usually files of singles are adequate precision for loadshapes.  Syntax:") + CRLF
+		CommandHelp[88 - 1] = "Convert all Loadshapes presently loaded into either files of single or files of double. " "Usually files of singles are adequate precision for loadshapes.  Syntax:" + CRLF
 			+ CRLF
 			+ "cvrtloadshapes type=sng  (this is the default)"
 			+ CRLF
@@ -786,8 +788,15 @@ namespace ExecCommands
 				case 	25:
 				ShowControlPanel();
 				break; // DSSForms
-				case 	27:
-				DoClearCmd();
+				case 27:
+				{
+                    ParamName = Parser[ActiveActor]->GetNextParam();
+                    Param = Parser[ActiveActor]->MakeString_();
+                    if (LowerCase(Param) == "all")
+                        DoClearAllCmd();
+                    else
+						DoClearCmd();
+				}
 				break;
 				case 	28:
 				DoAboutBox();
@@ -854,60 +863,6 @@ namespace ExecCommands
 				{
 					if(Parallel_enabled)
 						Wait4Actors(0);
-				}
-				break;
-				  //  Added to avoid crashes when in A-Diakoptics mode but the user
-				  //  uses the SolveAll command
-				case 	108:
-				{
-					int stop = 0;
-					if(ADiakoptics)
-						Iter = 1;
-					else
-						Iter = NumOfActors;
-				  //  Execution area
-					for(stop = Iter, i = 1; i <= stop; i++)
-					{
-						ActiveActor = i;
-						CmdResult = DoSetCmd(1);
-					}
-                    // If the parallel mode is not active, Waits until the actor finishes
-                    if (!Parallel_enabled)
-                    {
-                        Wait4Actors(ALL_ACTORS);
-                    }
-				}
-				break;
-				case 	109:
-				{
-					ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix(ActiveActor);
-				}
-				break;
-				case 	110:
-				{
-					ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix_Org(ActiveActor);
-				}
-				break;
-				case 	111:
-				{
-					ADiakoptics_Tearing(false);
-				}
-				break;
-				case 	114:
-				{
-					ActiveCircuit[ActiveActor]->Get_paths_4_Coverage();
-					Temp_Int =(ActiveCircuit[ActiveActor]->Path_Idx.size()) - 1;
-					GlobalResult = IntToStr(Temp_Int) + " new paths detected";
-				}
-				break;
-				case 	117:
-				{
-					/*# with ActiveCircuit[ActiveActor]->Solution do */
-					{
-						auto with3 = ActiveCircuit[ActiveActor]->Solution;
-						with3->Laplacian = with3->IncMat.Transpose();          // Transposes the Incidence Matrix
-						with3->Laplacian = with3->Laplacian.multiply( &(with3->IncMat) );  // IncMatT*IncMat
-					}
 				}
 				break;
 				case 	127:
@@ -986,16 +941,38 @@ namespace ExecCommands
 				break; //'show';
 				case 	9:
 				{
-					if(ADiakoptics)
-						ActiveActor = 1;   // Just in case
-					CmdResult = DoSetCmd(1);  // changed from DoSolveCmd; //'solve';
+                    // modifier added to make the command compatible with both, Solve and Solve all
+                    ParamName = Parser[ActiveActor]->GetNextParam();
+                    Param = Parser[ActiveActor]->MakeString_();
+                    if (LowerCase(Param) == "all")
+                    {
+                        //  Added to avoid crashes when in A-Diakoptics mode but the user
+                        //  uses the SolveAll command
+                        int stop = 0;
+                        if (ADiakoptics)
+                            Iter = 1;
+                        else
+                            Iter = NumOfActors;
+                        //  Execution area
+                        for (stop = Iter, i = 1; i <= stop; i++)
+                        {
+                            ActiveActor = i;
+                            CmdResult = DoSetCmd(1);
+                        }						
+                    }
+					else
+                    {
+						if(ADiakoptics)
+							ActiveActor = 1;							// Just in case
+                        if (Param != "")
+                            Parser[ActiveActor]->Point2PrevParam();		// This means that there are more options
+						CmdResult = DoSetCmd(1);						// changed from DoSolveCmd; //'solve';
+					}
 
 					// If the parallel mode is not active, Waits until the actor finishes,
 					// waiting here avoids reuse from a global caller
-                    if (!Parallel_enabled)
-                    {
-                        Wait4Actors(ALL_ACTORS);
-                    }
+					if (!Parallel_enabled)
+						Wait4Actors(ALL_ACTORS);
 				}
 				break;
 				case 	10:
@@ -1249,18 +1226,71 @@ namespace ExecCommands
 				case 	104:
 				CmdResult = DoNodeListCmd();
 				break;
-				case 	112:
+                //  Added to avoid crashes when in A-Diakoptics mode but the user
+                //  uses the SolveAll command
+                case 108:
+                {
+                    int stop = 0;
+                    if (ADiakoptics)
+                        Iter = 1;
+                    else
+                        Iter = NumOfActors;
+                    //  Execution area
+                    for (stop = Iter, i = 1; i <= stop; i++)
+                    {
+                        ActiveActor = i;
+                        CmdResult = DoSetCmd(1);
+                    }
+                    // If the parallel mode is not active, Waits until the actor finishes
+                    if (!Parallel_enabled)
+                    {
+                        Wait4Actors(ALL_ACTORS);
+                    }
+                }
+                break;
+                case 109:
+                {
+                    ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix(ActiveActor);
+                }
+                break;
+                case 110:
+                {
+                    ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix_Org(ActiveActor);
+                }
+                break;
+                case 111:
+                {
+                    ADiakoptics_Tearing(false);
+                }
+                break;
+  				case 	112:
 				CmdResult = DoConnectCmd();
 				break; //'TCP/IP connect';
 				case 	113:
 				CmdResult = DoDisConnectCmd();
 				break; //'TCP/IP disconnect';';
+                case 114:
+                {
+                    ActiveCircuit[ActiveActor]->Get_paths_4_Coverage();
+                    Temp_Int = (ActiveCircuit[ActiveActor]->Path_Idx.size()) - 1;
+                    GlobalResult = IntToStr(Temp_Int) + " new paths detected";
+                }
+                break;
 				case 	115:
 				DoRemoveCmd();
 				break;
 				case 	116:
 				SolutionAbort = true;
 				break;
+                case 117:
+                {
+                    {
+                        auto with3 = ActiveCircuit[ActiveActor]->Solution;
+                        with3->Laplacian = with3->IncMat.Transpose(); // Transposes the Incidence Matrix
+                        with3->Laplacian = with3->Laplacian.multiply(&(with3->IncMat)); // IncMatT*IncMat
+                    }
+                }
+                break;
 				case 	118:
 				DoClone();
 				break;

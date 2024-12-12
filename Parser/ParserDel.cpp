@@ -478,6 +478,21 @@ namespace ParserDel
 	}
 
 	/*=======================================================================================================================*/
+    // Implemented for allowing to go back if required.
+        
+    int TParser::Point2PrevParam()
+    {
+        if (FPosition > 0)
+        {
+            FPosition = FPosition - 2; // Right before the last space char
+            while ((CmdBuffer[FPosition] != ' ') && (FPosition > 0))
+                FPosition--;
+            FPosition++;							// This to prevent discrepancies with NextParam
+        }
+        return FPosition;
+    }
+
+	/*=======================================================================================================================*/
 
 	/* Looking for "BusName.1.2.3" in the TokenBuffer
 	  Assumes NodeArray is big enough to hold the numbers*/
