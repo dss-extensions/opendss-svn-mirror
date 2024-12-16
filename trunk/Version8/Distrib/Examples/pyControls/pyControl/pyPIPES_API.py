@@ -2,14 +2,35 @@
 """
 Created on Tue Nov 26 14:39:40 2024
 
-@author: pdmo005
+@author: Davis Montenegro
+This library enables python to communicate with OpenDSS using NamedPipes. In its current
+for it works only for windows, but it is expected to be updated to work with Linux
+and MacOS
 """
 
-import win32file, pywintypes, time
+import win32file, pywintypes
 
 
 handle = None
 DSSReply = ''
+
+'''
+Here we declare the class to make it similar to the COM interface and compatible APIs
+'''
+class DSSText:
+    global handle
+    global DSSReply
+
+    @property
+    def Command(self):
+        return ''
+    @Command.setter
+    def Command(self, value):
+        CommandS(value)
+        
+    @property
+    def Result(self):
+        return DSSReply
 
 def Connect(pipe_path):
     global handle
@@ -27,7 +48,7 @@ def Connect(pipe_path):
     except pywintypes.error as e:
         print('Error: ' + e.args[2])
 
-def Command(DSSCmd):
+def CommandS(DSSCmd):
     global handle
     global DSSReply
     
@@ -39,12 +60,6 @@ def Command(DSSCmd):
 
     except pywintypes.error as e:
         print(e.args[2])
-
-        
-def Result():
-    global DSSReply
-    
-    return DSSReply
 
 def NeedsControlAction(DSSMsg):
     global handle
