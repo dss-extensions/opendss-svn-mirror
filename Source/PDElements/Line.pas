@@ -1478,7 +1478,11 @@ begin
          {Dump the rest by default}
         for i := 16 to NumProperties do
         begin
-            Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[i]);
+            if (i = 22) or (i = 24) or (i = 25) or (i = 34) then
+              // dump arrays with brackets
+                Writeln(F, '~ ', PropertyName^[i], '=[', PropertyValue[i], ']')
+            else
+                Writeln(F, '~ ', PropertyName^[i], '=', PropertyValue[i]);
         end;
     end;
 
@@ -2156,7 +2160,7 @@ begin
             case dotpos of
                 0:
                 begin
-                    DoSimpleMsg('You must define the conductor class for all the valid conductors in the "conductors array" (LINE.' + name + ').', 181023);
+                    DoSimpleMsg('You must define the conductor class for all the valid conductors in the "conductors" array (LINE.' + name + ').', 181023);
                     exit;
                 end;
             else
@@ -2188,7 +2192,7 @@ begin
             end
             else
             begin
-                DoSimpleMsg('You must use valid conductor classes (wiredata, cndata, tsdata) for all the conductors in the "conductors array" (LINE.' + name + ').', 181024);
+                DoSimpleMsg('You must use valid conductor classes (wiredata, cndata, tsdata) for all the conductors in the "conductors" array (LINE.' + name + ').', 181024);
                 exit;
             end;
 
