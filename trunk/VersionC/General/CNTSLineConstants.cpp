@@ -111,41 +111,41 @@ void TCNTSLineConstants::Set_Semicon(int i, bool Value)
 
 double TCNTSLineConstants::Get_DiaShield(int i, int Units)
 {
-        double result = 0.0;
-        result = FDiaShield[i - 1] * From_Meters(Units);
-        return result;
+	double result = 0.0;
+	result = FDiaShield[i - 1] * From_Meters(Units);
+	return result;
 }
 
 double TCNTSLineConstants::Get_TapeLayer(int i, int Units)
 {
-        double result = 0.0;
-        result = FTapeLayer[i - 1] * From_Meters(Units);
-        return result;
+	double result = 0.0;
+	result = FTapeLayer[i - 1] * From_Meters(Units);
+	return result;
 }
 
 double TCNTSLineConstants::Get_TapeLap(int i)
 {
-        double result = 0.0;
-        result = FTapeLap[i - 1];
-        return result;
+	double result = 0.0;
+	result = FTapeLap[i - 1];
+	return result;
 }
 
 void TCNTSLineConstants::Set_DiaShield(int i, int Units, double Value)
 {
-        if((i > 0) && (i <= FNumConds))
-                FDiaShield[i - 1] = Value * To_Meters(Units);
+	if((i > 0) && (i <= FNumConds))
+		FDiaShield[i - 1] = Value * To_Meters(Units);
 }
 
 void TCNTSLineConstants::Set_TapeLayer(int i, int Units, double Value)
 {
-        if((i > 0) && (i <= FNumConds))
-                FTapeLayer[i - 1] = Value * To_Meters(Units);
+	if((i > 0) && (i <= FNumConds))
+		FTapeLayer[i - 1] = Value * To_Meters(Units);
 }
 
 void TCNTSLineConstants::Set_TapeLap(int i, double Value)
 {
-        if((i > 0) && (i <= FNumConds))
-                FTapeLap[i - 1] = Value;
+	if((i > 0) && (i <= FNumConds))
+		FTapeLap[i - 1] = Value;
 }
 
 
@@ -166,19 +166,19 @@ void TCNTSLineConstants::Calc(double f)
 	int idxj = 0;
 	TcMatrix* Zmat = nullptr;
 	TcMatrix* Ztemp = nullptr;
-        double RadIn = 0.0;
-        double RadOut = 0.0;
-        double Denom = 0.0;
+    double RadIn = 0.0;
+    double RadOut = 0.0;
+    double Denom = 0.0;
 
-        // For CN
+    // For CN
 	double ResCN = 0.0;
 	double RadCN = 0.0;
 	double RadStrand = 0.0;
 	double GmrCN = 0.0;
 
-        // For TS
-        double ResTS = 0.0;
-        double GmrTS = 0.0;
+    // For TS
+    double ResTS = 0.0;
+    double GmrTS = 0.0;
 
 	int stop = 0;
 	Set_Frequency(f);  // this has side effects
@@ -272,33 +272,33 @@ void TCNTSLineConstants::Calc(double f)
 		for(stop1 = FNumConds, j = 1; j <= stop1; j++)
 		{ // CN/TS to cores and bare neutrals
 			idxj = j;
-                        if(FCondType[i - 1] == 1)
-                        {// CN
-                            RadCN = 0.5 * (FDiaCable[i - 1] - FDiaStrand[i - 1]);
-                            if(i == j) // CN to its own phase core
-                            {
-                                    Dij = RadCN;
-                            }
-                            else
-                            // CN to another phase or bare neutral
-                            {
-                                    Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
-                                    Dij = pow(pow(Dij, (double) FkStrand[i - 1]) - pow(RadCN, (double) FkStrand[i - 1]), 1.0 / FkStrand[i - 1]);
-                            }
-                        }
-                        else if (FCondType[i - 1] == 2)
-                        { // TS
-                            GmrTS = 0.5 * (FDiaShield[i - 1] - FTapeLayer[i - 1]);  // per Kersting, to center of TS
-                            if(i == j) // TS to its own phase core
-                            {
-                                    Dij = GmrTS;
-                            }
-                            else
-                            // TS to another phase or bare neutral
-                            {
-                                    Dij = sqrt(pow(FX[i - 1] - FX[j - 1], 2) + pow(FY[i - 1] - FY[j - 1], 2));
-                            }
-                        }
+            if(FCondType[i - 1] == 1)
+            {// CN
+                RadCN = 0.5 * (FDiaCable[i - 1] - FDiaStrand[i - 1]);
+                if(i == j) // CN to its own phase core
+                {
+                    Dij = RadCN;
+                }
+                else
+                // CN to another phase or bare neutral
+                {
+	                Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+	                Dij = pow(pow(Dij, (double) FkStrand[i - 1]) - pow(RadCN, (double) FkStrand[i - 1]), 1.0 / FkStrand[i - 1]);
+                }
+            }
+            else if (FCondType[i - 1] == 2)
+            { // TS
+                GmrTS = 0.5 * (FDiaShield[i - 1] - FTapeLayer[i - 1]);  // per Kersting, to center of TS
+                if(i == j) // TS to its own phase core
+                {
+					Dij = GmrTS;
+                }
+                else
+                // TS to another phase or bare neutral
+                {
+					Dij = sqrt(pow(FX[i - 1] - FX[j - 1], 2) + pow(FY[i - 1] - FY[j - 1], 2));
+                }
+            }
 			Zmat->SetElemsym(idxi, idxj, cadd(cmulreal(LFactor, log(1.0 / Dij)), Get_Ze(i, j)));
 		}
 	}  
@@ -320,22 +320,22 @@ void TCNTSLineConstants::Calc(double f)
 		Yfactor = DSSGlobals::TwoPi * E0 * FEpsR[i - 1] * Fw; // includes frequency so C==>Y
 		RadOut = 0.5 * FDiaIns[i - 1];
 		RadIn = RadOut - FInsLayer[i - 1];
-                if(FCondType[i - 1] == 1)
-                { // CN
-                        if (FSemicon[i - 1])
-                            // Semicon layer (default)
-                            Denom = log(RadOut / RadIn);
-                        else
-                            // No semicon layer (Synergi and Kersting/Kerestes' book)
-                            RadCN = 0.5 * (FDiaCable[i - 1] - FDiaStrand[i - 1]);
-                        RadStrand = 0.5 * FDiaStrand[i - 1];
-                        Denom = log(RadCN / RadIn) - (1.0 / FkStrand[i - 1]) * log(FkStrand[i - 1] * RadStrand / RadCN);
-                }
-                else if (FCondType[i - 1] == 2)
-                { // TS
-                        Denom = log(RadOut / RadIn);
-                }
-                FYCmatrix->SetElement(i, i, cmplx(0.0, Yfactor / Denom));
+        if(FCondType[i - 1] == 1)
+        { // CN
+	        if (FSemicon[i - 1])
+	            // Semicon layer (default)
+	            Denom = log(RadOut / RadIn);
+	        else
+	            // No semicon layer (Synergi and Kersting/Kerestes' book)
+	            RadCN = 0.5 * (FDiaCable[i - 1] - FDiaStrand[i - 1]);
+	        RadStrand = 0.5 * FDiaStrand[i - 1];
+	        Denom = log(RadCN / RadIn) - (1.0 / FkStrand[i - 1]) * log(FkStrand[i - 1] * RadStrand / RadCN);
+        }
+        else if (FCondType[i - 1] == 2)
+        { // TS
+			Denom = log(RadOut / RadIn);
+        }
+        FYCmatrix->SetElement(i, i, cmplx(0.0, Yfactor / Denom));
 	}
 	if(ReducedSize > 0)
 		Kron(ReducedSize);  // Was reduced so reduce again to same size
@@ -348,37 +348,37 @@ TCNTSLineConstants::TCNTSLineConstants(int NumConductors)
  : inherited(NumConductors)
 {
 	// For All
-        FCondType	= new longInt[FNumConds];
+    FCondType	= new longInt[FNumConds];
 
-        // For CN
-        FkStrand	= new longInt[FNumConds];
+    // For CN
+    FkStrand	= new longInt[FNumConds];
 	FDiaStrand	= new double[FNumConds];
 	FGmrStrand	= new double[FNumConds];
 	FRStrand	= new double[FNumConds];
 	FSemicon.resize(FNumConds);
 
-        // For TS
-        FDiaShield	= new double[FNumConds];
-        FTapeLayer	= new double[FNumConds];
-        FTapeLap	= new double[FNumConds];
+    // For TS
+    FDiaShield	= new double[FNumConds];
+    FTapeLayer	= new double[FNumConds];
+    FTapeLap	= new double[FNumConds];
 }
 
 TCNTSLineConstants::~TCNTSLineConstants()
 {
-        // For All
-        free(FCondType);
+    // For All
+    free(FCondType);
 
-        // For CN
-        free(FkStrand);
+    // For CN
+    free(FkStrand);
 	free(FDiaStrand);
 	free(FGmrStrand);
 	free(FRStrand);
 	FSemicon.clear();
 
-        // For TS
-        free(FDiaShield);
-        free(FTapeLayer);
-        free(FTapeLap);
+    // For TS
+    free(FDiaShield);
+    free(FTapeLayer);
+    free(FTapeLap);
 
 	// inherited;
 }
