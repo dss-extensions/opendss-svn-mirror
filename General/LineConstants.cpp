@@ -216,9 +216,9 @@ TLineConstants::TLineConstants(int NumConductors)
 	FYCmatrix = new TcMatrix(FNumConds);
 	FFrequency = -1.0;  // not computed
 	FrhoEarth = 100.0;  // default value
-        FEpsRMedium = 1.0;  // default value should be 1.0
-        FheightOffset = 0.0;  // default value should be 0.0
-        FuserHeightUnit = UNITS_M;
+	FEpsRMedium = 1.0;  // default value should be 1.0
+	FheightOffset = 0.0;  // default value should be 0.0
+	FuserHeightUnit = UNITS_M;
 
 	FRhoChanged = true;
 	FZreduced = nullptr;
@@ -589,9 +589,9 @@ void TLineConstants::Set_Frhoearth(double Value)
 
 void TLineConstants::Set_FEpsRMedium(double Value)
 {
-        if(Value != FEpsRMedium)
-                FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
-        FEpsRMedium = Value;
+    if(Value != FEpsRMedium)
+	FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
+    FEpsRMedium = Value;
 }
 
 void TLineConstants::Set_FheightOffset(double Value)
@@ -600,7 +600,7 @@ void TLineConstants::Set_FheightOffset(double Value)
     NewHeightOffset_m = Value * To_Meters(FuserHeightUnit);
 
     if(NewHeightOffset_m != FheightOffset)
-        FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
+	FRhoChanged = true; // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit
     RemoveHeightOffset();
     FheightOffset = NewHeightOffset_m;
     AddHeightOffset();
