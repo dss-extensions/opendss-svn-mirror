@@ -1088,17 +1088,17 @@ void TLineGeometryObj::Set_RhoEarth(double Value)
 
 void TLineGeometryObj::Set_EpsRMedium(double Value)
 {
-        FLineData->Set_FEpsRMedium(Value);
+	FLineData->Set_FEpsRMedium(Value);
 }
 
 void TLineGeometryObj::Set_HeightOffset(double Value)
 {
-        FLineData->Set_FheightOffset(Value);
+	FLineData->Set_FheightOffset(Value);
 }
 
 void TLineGeometryObj::Set_HeightUnit(int Value)
 {
-        FLineData->Set_FuserHeightUnit(Value);
+	FLineData->Set_FuserHeightUnit(Value);
 }
 
 void TLineGeometryObj::UpdateLineGeometryData(double f)
@@ -1176,21 +1176,21 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 
 void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConductorDataArray& Wires)
 {
-       // check the actual number of existing positions with conductors before allocating
-        int actualNConds = 0;
-        int actualNPhases = 0;
-        int i = 0;
-        for(i = 1; i <= Spc->get_Fnconds(); i++)
-        {
-            if ((Wires[i - 1]) != nullptr)
-            {
-                actualNConds++;
-                if (i <= Spc->get_Fnphases())
-                {
-                    actualNPhases++;
-                }
-            }
-        }
+	// check the actual number of existing positions with conductors before allocating
+	int actualNConds = 0;
+	int actualNPhases = 0;
+	int i = 0;
+	for(i = 1; i <= Spc->get_Fnconds(); i++)
+	{
+	    if ((Wires[i - 1]) != nullptr)
+	    {
+        actualNConds++;
+	        if (i <= Spc->get_Fnphases())
+	        {
+	            actualNPhases++;
+	        }
+	    }
+	}
 
 	ConductorChoice newPhaseChoice = Overhead;
 	int stop = 0;
@@ -1202,19 +1202,19 @@ void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConducto
 	newPhaseChoice = Overhead;
 	for(i = 1; i <= Spc->get_Fnconds(); i++)
 	{
-	        if ((Wires[i - 1]) == nullptr) continue;
+	    if ((Wires[i - 1]) == nullptr) continue;
 		if(dynamic_cast<TCNDataObj*> (Wires[i - 1]) != nullptr )
 			newPhaseChoice = ConcentricNeutral;
 		if(dynamic_cast<TTSDataObj*>(Wires[i - 1]) != nullptr )
 			newPhaseChoice = TapeShield;
 	}
 	ChangeLineConstantsType(newPhaseChoice);
-        int j = 0;
+    int j = 0;
 	for(stop = Spc->get_Fnconds(), i = 1; i <= stop; i++)
 	{
 	    if ((Wires[i - 1]) != nullptr)
 	    {
-                j++;
+            j++;
 	        FCondName[j - 1] = Wires[i - 1]->get_Name();
 	        FWireData[j - 1] = Wires[i - 1];
 	        FX[j - 1] = Spc->Get_FX(i);
@@ -1230,10 +1230,10 @@ void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConducto
 	}
 
 	DataChanged = true;
-        // UpdateLineGeometryData will be called when we get the impedance matrix for the line.
-        // No need to call it one here because this function has already set DataChanged and also
-        // LoadSpacingAndWires is only ever called from TLineObj.FMakeZFromSpacing which retrieves Z
-        // after calling it.
+    // UpdateLineGeometryData will be called when we get the impedance matrix for the line.
+    // No need to call it one here because this function has already set DataChanged and also
+    // LoadSpacingAndWires is only ever called from TLineObj.FMakeZFromSpacing which retrieves Z
+    // after calling it.
 	// UpdateLineGeometryData(ActiveCircuit[ActiveActor]->Solution->get_FFrequency());
 }
 
