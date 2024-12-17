@@ -253,7 +253,11 @@ void TCNTSLineConstants::Calc(double f)
 		int stop1 = 0;
 		for(stop1 = i - 1, j = 1; j <= stop1; j++)
 		{
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+			if (!FEquivalentSpacing) {Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));}
+			else{
+				if ((j <= FNumPhases) and (i > FNumPhases)) { Dij = FEqDist[2 - 1];} // EqDistPhN
+				else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+			}
 			Zmat->SetElemsym(i, j, cadd(cmulreal(LFactor, log(1.0 / Dij)), Get_Ze(i, j)));
 		}
 	}
@@ -266,7 +270,11 @@ void TCNTSLineConstants::Calc(double f)
 		for(stop1 = i - 1, j = 1; j <= stop1; j++)
 		{  // CN/TS to other CN/TS
 			idxj = j + FNumConds;
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+			if (!FEquivalentSpacing) {Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));}
+			else{
+				if ((j <= FNumPhases) and (i > FNumPhases)) { Dij = FEqDist[2 - 1];} // EqDistPhN
+				else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+			}
 			Zmat->SetElemsym(idxi, idxj, cadd(cmulreal(LFactor, log(1.0 / Dij)), Get_Ze(i, j)));
 		}
 		for(stop1 = FNumConds, j = 1; j <= stop1; j++)
@@ -282,7 +290,11 @@ void TCNTSLineConstants::Calc(double f)
                 else
                 // CN to another phase or bare neutral
                 {
-	                Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+	                if (!FEquivalentSpacing) {Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));}
+	                else{
+	                	if ((i <= FNumPhases) and (j > FNumPhases)) { Dij = FEqDist[2 - 1];} // EqDistPhN
+	                	else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+	                }
 	                Dij = pow(pow(Dij, (double) FkStrand[i - 1]) - pow(RadCN, (double) FkStrand[i - 1]), 1.0 / FkStrand[i - 1]);
                 }
             }
@@ -296,7 +308,11 @@ void TCNTSLineConstants::Calc(double f)
                 else
                 // TS to another phase or bare neutral
                 {
-					Dij = sqrt(pow(FX[i - 1] - FX[j - 1], 2) + pow(FY[i - 1] - FY[j - 1], 2));
+					if (!FEquivalentSpacing) {Dij = sqrt(pow(FX[i - 1] - FX[j - 1], 2) + pow(FY[i - 1] - FY[j - 1], 2));}
+					else{
+						if ((i <= FNumPhases) and (j > FNumPhases)) {Dij = FEqDist[2 - 1];} // EqDistPhN
+						else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+					}
                 }
             }
 			Zmat->SetElemsym(idxi, idxj, cadd(cmulreal(LFactor, log(1.0 / Dij)), Get_Ze(i, j)));

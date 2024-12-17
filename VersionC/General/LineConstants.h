@@ -51,6 +51,9 @@ public:
 	int FNumPhases;
 	std::vector <double> FX;
 	std::vector <double> FY;
+	DoubleArray FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+	bool FEquivalentSpacing;  // to tell the calcs when to use equivalent spacing info
+
 	std::vector <double> FRDC;   // ohms/m
 	std::vector <double> Frac;   // ohms/m
 	std::vector <double> FGMR;   // m
@@ -66,32 +69,36 @@ public:
 	double FrhoEarth;  // ohm-m
 	Ucomplex::complex Fme; // factor for earth impedance
 	bool FRhoChanged;
-        double FEpsRMedium;  // unit-less
+	double FEpsRMedium;  // unit-less
 	double FheightOffset;  // m
 	int FuserHeightUnit;  // m
 
-        double Get_GMR(int i, int Units);
+	double Get_GMR(int i, int Units);
 	double Get_radius(int i, int Units);
 	double Get_Rdc(int i, int Units);
 	double Get_Rac(int i, int Units);
 	double Get_X(int i, int Units);
 	double Get_Y(int i, int Units);
+	double Get_FEqDist(int i, int Units);
 	Ucmatrix::TcMatrix* Get_YCmatrix(double f, double Lngth, int Units);
 	Ucomplex::complex Get_Ze(int i, int j);
 	Ucomplex::complex Get_Zint(int i);
 	Ucmatrix::TcMatrix* Get_Zmatrix(double f, double Lngth, int Units);
 	double Get_FheightOffset();
+	bool Get_FEquivalentSpacing();
 	void Set_GMR(int i, int Units, double Value);
 	void Set_radius(int i, int Units, double Value);
 	void Set_Rdc(int i, int Units, double Value);
 	void Set_Rac(int i, int Units, double Value);
 	void Set_X(int i, int Units, double Value);
 	void Set_Y(int i, int Units, double Value);
+	void Set_FEqDist(int i, int Units, double Value);
 	void Set_Frequency(double Value);
 	void Set_Frhoearth(double Value);  // m
-        void Set_FEpsRMedium(double Value);  // unit-less
-        void Set_FheightOffset(double Value);  // m
-        void Set_FuserHeightUnit(int Value);  // Whatever the user defined. The height is always saved in meters here
+    void Set_FEpsRMedium(double Value);  // unit-less
+    void Set_FheightOffset(double Value);  // m
+    void Set_FuserHeightUnit(int Value);  // Whatever the user defined. The height is always saved in meters here
+	void Set_FEquivalentSpacing(bool Value);
 
     // This allows you to compute capacitance using a different radius -- for bundled conductors
 	double Get_Capradius(int i, int Units);
@@ -109,7 +116,7 @@ public:
 	virtual void Kron(int Norder); // Performs a Kron reduction leaving first Norder  rows
 	void Reduce();  // Kron reduce to Numphases only
 	double get_FrhoEarth();
-        double get_FEpsRMedium();
+	double get_FEpsRMedium();
 	int get_FNumConds();
 	int get_FNumPhases();
 

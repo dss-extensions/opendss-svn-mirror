@@ -54,6 +54,11 @@ public:
 	Arraydef::pDoubleArray FX;
 	Arraydef::pDoubleArray FY;
 	int FUnits;
+	double FEqDistPhPh;
+	double FEqDistPhN;
+	double FAvgHeightPh;
+	double FAvgHeightN;
+	bool FEquivalentSpacing;
 	bool DataChanged;
 	void set_Nwires(int Value);
 
@@ -70,6 +75,11 @@ public:
 	int get_Fnconds();
 	int get_Fnphases();
 	int get_FUnits();
+	double get_FEqDistPhPh();
+	double get_FEqDistPhN();
+	double get_FAvgHeightPh();
+	double get_FAvgHeightN();
+	bool get_FEquivalentSpacing();
 
         // CIM XML accessors
 	TLineSpacingObj(DSSClass::TDSSClass* ParClass);
