@@ -309,9 +309,9 @@ begin
             else
             begin
                 if ((j <= FNumPhases) and (i > FNumPhases)) then
-                    Dij := FEqDist[2] // EqDistPhN
+                    Dij := FEqDist^[2] // EqDistPhN
                 else
-                    Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+                    Dij := FEqDist^[1];  // EqDistPhPh (including N-N conductorss)
             end;
             Zmat.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0 / Dij)), Get_Ze(i, j)));
         end;
@@ -329,9 +329,9 @@ begin
             else
             begin
                 if ((j <= FNumPhases) and (i > FNumPhases)) then
-                    Dij := FEqDist[2] // EqDistPhN
+                    Dij := FEqDist^[2] // EqDistPhN
                 else
-                    Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+                    Dij := FEqDist^[1];  // EqDistPhPh (including N-N conductorss)
             end;
             Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0 / Dij)), Get_Ze(i, j)));
         end;
@@ -352,9 +352,9 @@ begin
                     else
                     begin
                         if ((i <= FNumPhases) and (j > FNumPhases)) then
-                            Dij := FEqDist[2] // EqDistPhN
+                            Dij := FEqDist^[2] // EqDistPhN
                         else
-                            Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+                            Dij := FEqDist^[1];  // EqDistPhPh (including N-N conductorss)
                     end;
                     Dij := Power(Power(Dij, FkStrand^[i]) - Power(RadCN, FkStrand^[i]),
                         1.0 / FkStrand^[i]);
@@ -375,9 +375,9 @@ begin
                     else
                     begin
                         if ((i <= FNumPhases) and (j > FNumPhases)) then
-                            Dij := FEqDist[2] // EqDistPhN
+                            Dij := FEqDist^[2] // EqDistPhN
                         else
-                            Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+                            Dij := FEqDist^[1];  // EqDistPhPh (including N-N conductorss)
                     end;
                 end;
             end;
