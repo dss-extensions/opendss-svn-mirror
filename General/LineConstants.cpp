@@ -98,7 +98,11 @@ void TLineConstants::Calc(double f)
 		int stop1 = 0;
 		for(stop1 = i - 1, j = 1; j <= stop1; j++)
 		{
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+			if (!FEquivalentSpacing) {Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));}
+			else {
+				if ((j <= FNumPhases) and (i > FNumPhases)) {Dij = FEqDist[2 - 1];} // EqDistPhN
+				else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+			}
 			FZmatrix->SetElemsym(i, j, cadd(cmulreal(LFactor, log(1.0 / Dij)), Get_Ze(i, j)));
 		}
 	}
@@ -112,15 +116,28 @@ void TLineConstants::Calc(double f)
        in case of bundled conductors can be specified different in Wiredata.*/
 	for(stop = FNumConds, i = 1; i <= stop; i++)
 	{
-		FYCmatrix->SetElement(i, i, cmplx(0.0, Pfactor * log(2.0 * FY[i - 1] / Fcapradius[i - 1])));
+		if (!FEquivalentSpacing) {FYCmatrix->SetElement(i, i, cmplx(0.0, Pfactor * log(2.0 * FY[i - 1] / Fcapradius[i - 1])));}
+		else {
+			if (i > FNumPhases) {FYCmatrix->SetElement(i, i, cmplx(0.0, Pfactor * log(2.0 * FEqDist[4 - 1] / Fcapradius[i - 1])));}
+			else {FYCmatrix->SetElement(i, i, cmplx(0.0, Pfactor * log(2.0 * FEqDist[3 - 1] / Fcapradius[i - 1])));}
+		}
 	}
 	for(stop = FNumConds, i = 1; i <= stop; i++)
 	{
 		int stop1 = 0;
 		for(stop1 = i - 1, j = 1; j <= stop1; j++)
 		{
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
-			Dijp = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] + FY[j - 1])); // distance to image j
+			if (!FEquivalentSpacing) {
+				Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+				Dijp = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] + FY[j - 1])); // distance to image j
+			} else {
+				if ((j <= FNumPhases) and (i > FNumPhases)) {Dij = FEqDist[2 - 1];} // EqDistPhN
+				else {Dij = FEqDist[1 - 1];}  // EqDistPhPh (including N-N conductorss)
+
+				if ((j <= FNumPhases) and (i > FNumPhases)) {Dijp = (FEqDist[3 - 1] + FEqDist[4 - 1]);} // AvgHeightPhase + AvgHeightNeutral
+				else if ((i <= FNumPhases) and (j <= FNumPhases)) { Dijp = (2 * FEqDist[3 - 1]);} // 2 * AvgHeightPhase
+				else {Dijp = (2 * FEqDist[4 - 1]);} // 2 * AvgHeightNeutral
+			}
 			FYCmatrix->SetElemsym(i, j, cmplx(0.0, Pfactor * log(Dijp / Dij)));
 		}
 	}
@@ -142,29 +159,56 @@ bool TLineConstants::ConductorsInSameSpace(string& ErrorMessage)
 	int stop = 0;
 	result = false;
 
-     /*Check for 0 Y coordinate*/
-	for(stop = FNumConds, i = 1; i <= stop; i++)
-	{
-		if(FY[i - 1] <= 0.0)
+	if (FEquivalentSpacing) {
+		/*Check for 0 Y coordinate*/
+		if(FEqDist[3 - 1] <= 0.0 || FEqDist[4 - 1] <= 0.0)
 		{
 			result = true;
-			ErrorMessage = Format("Conductor %d height must be  > 0. ",i);
+			ErrorMessage = "Conductor average heights (overhead equivalent spacing) must be > 0.";
 			return result;
 		}
-	}
-
-     /*Check for overlapping conductors*/
-	for(stop = FNumConds, i = 1; i <= stop; i++)
-	{
-		int stop1 = 0;
-		for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
+		/*Check for overlapping conductors*/
+		for(stop = FNumConds, i = 1; i <= stop; i++)
 		{
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
-			if(Dij < (Fradius[i - 1] + Fradius[j - 1]))
+			int stop1 = 0;
+			for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
+			{
+				if ((i <= FNumPhases) and (j > FNumPhases)) {Dij = FEqDist[2 - 1];}
+				else {Dij = FEqDist[1 - 1];}
+				if(Dij < (Fradius[i - 1] + Fradius[j - 1]))
+				{
+					result = true;
+					ErrorMessage = Format("Conductors %d and %d occupy the same space.",i, j);
+					return result;
+				}
+			}
+		}
+	}
+	else{
+		/*Check for 0 Y coordinate*/
+		for(stop = FNumConds, i = 1; i <= stop; i++)
+		{
+			if(FY[i - 1] <= 0.0)
 			{
 				result = true;
-				ErrorMessage = Format("Conductors %d and %d occupy the same space.",i, j);
+				ErrorMessage = Format("Conductor %d height must be  > 0. ",i);
 				return result;
+			}
+		}
+
+		/*Check for overlapping conductors*/
+		for(stop = FNumConds, i = 1; i <= stop; i++)
+		{
+			int stop1 = 0;
+			for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
+			{
+				Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+				if(Dij < (Fradius[i - 1] + Fradius[j - 1]))
+				{
+					result = true;
+					ErrorMessage = Format("Conductors %d and %d occupy the same space.",i, j);
+					return result;
+				}
 			}
 		}
 	}
@@ -193,6 +237,9 @@ TLineConstants::TLineConstants(int NumConductors)
 	Fcapradius.resize(FNumConds, 0);
 	FRDC.resize(FNumConds, 0);
 	Frac.resize(FNumConds, 0);
+
+	FEqDist.resize(4, 0);
+	FEquivalentSpacing = false;
 
 
      /*Initialize to  not set*/
@@ -252,6 +299,13 @@ double TLineConstants::Get_FheightOffset()
     return result;
 }
 
+bool TLineConstants::Get_FEquivalentSpacing()
+{
+	bool result = false;
+	result = FEquivalentSpacing;
+	return result;
+}
+
 double TLineConstants::Get_Capradius(int i, int Units)
 {
 	double result = 0.0;
@@ -300,6 +354,13 @@ double TLineConstants::Get_Y(int i, int Units)
 	result = FY[i - 1] * From_Meters(Units);
 	return result;
 }
+
+double TLineConstants::Get_FEqDist(int i, int Units)
+{
+	double result = 0.0;
+	result = FEqDist[i - 1] * From_Meters(Units); // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
+	return result;
+}
 /*Makes a new YCmatrix and correct for lengths and units as it copies*/
 /*Uses the reduced Zmatrix by default if it exists*/
 
@@ -343,13 +404,26 @@ complex TLineConstants::Get_Ze(int i, int j)
 	double Dij = 0.0;
 	double Fyi = 0.0;
 	double Fyj = 0.0;
+	double Fxi_Fxj = 0.0;
 	double term1 = 0.0;
 	double term2 = 0.0;
 	double term3 = 0.0;
 	double term4 = 0.0;
 	double term5 = 0.0;
-	Fyi = Abs(FY[i - 1]);
-	Fyj = Abs(FY[j - 1]);
+
+	if (! FEquivalentSpacing) {Fyi = Abs(FY[i - 1]);}
+	else if (i <= FNumPhases) {Fyi = Abs(FEqDist[3 - 1]);}
+	else {Fyi = Abs(FEqDist[4 - 1]);}
+
+	if (!FEquivalentSpacing) {Fyj = Abs(FY[j - 1]);}
+	else if (j <= FNumPhases) {Fyj = Abs(FEqDist[3 - 1]);}
+	else {Fyj = Abs(FEqDist[4 - 1]);}
+
+	// If the spacing uses equivalent distance, assume the equivalent distance is on the X axis.
+	if (!FEquivalentSpacing) {Fxi_Fxj = FX[i - 1] - FX[j - 1];}
+	else if (((i <= FNumPhases) && (j <= FNumPhases)) || ((i > FNumPhases) && (j > FNumPhases))) {Fxi_Fxj = FEqDist[1 - 1];}
+	else {Fxi_Fxj = FEqDist[2 - 1];}
+
 	switch(ActiveEarthModel[ActiveActor])
 	{
 		case 	SIMPLECARSON:
@@ -368,7 +442,7 @@ complex TLineConstants::Get_Ze(int i, int j)
 			}
 			else
 			{
-				Dij = sqrt(sqr(Fyi + Fyj) + sqr(FX[i - 1] - FX[j - 1]));
+				Dij = sqrt(sqr(Fyi + Fyj) + sqr(Fxi_Fxj));
 				thetaij = acos((Fyi + Fyj) / Dij);
 			}
 			mij = 2.8099e-3 * Dij * sqrt(FFrequency / FrhoEarth);
@@ -390,7 +464,7 @@ complex TLineConstants::Get_Ze(int i, int j)
 			if(i != j)
 			{
 				hterm = cadd(cmplx(Fyi + Fyj, 0.0), cmulreal(cinv(Fme), 2.0));
-				xterm = cmplx(FX[i - 1] - FX[j - 1], 0.0);
+				xterm = cmplx(Fxi_Fxj, 0.0);
 				logArg = csqrt(cadd(cmul(hterm, hterm), cmul(xterm, xterm)));
 				result = cmul(cmplx(0.0, Fw * mu0 / TwoPi), CLn(logArg));
 			}
@@ -615,6 +689,15 @@ void TLineConstants::Set_FuserHeightUnit(int Value)
     }
 }
 
+void TLineConstants::Set_FEquivalentSpacing(bool Value)
+{
+	if (Value != FEquivalentSpacing)
+	{
+		FEquivalentSpacing = Value;
+		FRhoChanged = true;  // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit and for this one as well
+	}
+}
+
 void TLineConstants::Set_GMR(int i, int Units, double Value)
 {
 	if((i > 0) && (i <= FNumConds))
@@ -662,6 +745,12 @@ void TLineConstants::Set_Y(int i, int Units, double Value)
 {
 	if((i > 0) && (i <= FNumConds))
 		FY[i - 1] = Value * To_Meters(Units);
+}
+
+void TLineConstants::Set_FEqDist(int i, int Units, double Value)
+{
+	if (i > 4) {return;} // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
+	FEqDist[i - 1] = Value * To_Meters(Units);
 }
 
 void TLineConstants::AddHeightOffset()
