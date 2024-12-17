@@ -32,7 +32,7 @@ TLineSpacingObj::TLineSpacingObj() {}
 
 
 TLineSpacingObj* ActiveLineSpacingObj = nullptr;
-const int NumPropsThisClass = 5;
+const int NumPropsThisClass = 10;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Creates superstructure for all Line objects
@@ -71,11 +71,21 @@ void TLineSpacing::DefineProperties()
 	(PropertyName)[3 - 1] = "x";
 	(PropertyName)[4 - 1] = "h";
 	(PropertyName)[5 - 1] = "units";
+	(PropertyName)[6 - 1] = "detailed";
+	(PropertyName)[7 - 1] = "EqDistPhPh";
+	(PropertyName)[8 - 1] = "EqDistPhN";
+	(PropertyName)[9 - 1] = "AvgPhaseHeight";
+	(PropertyName)[10 - 1] = "AvgNeutralHeight";
 	(PropertyHelp)[1 - 1] = "Number of wires in this geometry. Default is 3. Triggers memory allocations. Define first!";
 	(PropertyHelp)[2 - 1] = "Number of retained phase conductors. If less than the number of wires, list the retained phase coordinates first.";
 	(PropertyHelp)[3 - 1] = "Array of wire X coordinates.";
 	(PropertyHelp)[4 - 1] = "Array of wire Heights.";
 	(PropertyHelp)[5 - 1] = "Units for x and h: {mi|kft|km|m|Ft|in|cm } Initial default is \"ft\", but defaults to last unit defined";
+	(PropertyHelp)[6 - 1] = "{Yes/True | No/False} Default = Yes. Determines whether the spacing uses a detailed cross-section coordinates with x and h arrays (Yes/True), or uses equivalent spacing fields (No/False). The equivalent spacing fields are EqDistPhPh, EqDistPhN, AvgPhaseHeight and AvgNeutralHeight.";
+	(PropertyHelp)[7 - 1] = "Equivalent distance between phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates. ";
+	(PropertyHelp)[8 - 1] = "Equivalent distance between phase and neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
+	(PropertyHelp)[9 - 1] = "Average height of phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
+	(PropertyHelp)[10 - 1] = "Average height of neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -175,6 +185,21 @@ int TLineSpacing::Edit(int ActorID)
 				case 	5:
 				with0->FUnits = GetUnitsCode(Param);
 				break;
+				case 	6:
+				with0->FEquivalentSpacing = not InterpretYesNo(Param);
+				break;
+				case 	7:
+				with0->FEqDistPhPh = Parser[ActorID]->MakeDouble_();
+				break;
+				case 	8:
+				with0->FEqDistPhN = Parser[ActorID]->MakeDouble_();
+				break;
+				case 	9:
+				with0->FAvgHeightPh = Parser[ActorID]->MakeDouble_();
+				break;
+				case 	10:
+				with0->FAvgHeightN = Parser[ActorID]->MakeDouble_();
+				break;
            // Inherited parameters
 				default:
 				ClassEdit(ActiveLineSpacingObj, ParamPointer - NumPropsThisClass);
@@ -221,6 +246,11 @@ int TLineSpacing::MakeLike(const String LineName)
 			{
 				(with0->FY)[i - 1] = (OtherLineSpacing->FY)[i - 1];
 			}
+			with0->FEquivalentSpacing = OtherLineSpacing->FEquivalentSpacing;
+			with0->FEqDistPhPh = OtherLineSpacing->FEqDistPhPh;
+			with0->FEqDistPhN = OtherLineSpacing->FEqDistPhN;
+			with0->FAvgHeightPh = OtherLineSpacing->FAvgHeightPh;
+			with0->FAvgHeightN = OtherLineSpacing->FAvgHeightN;
 			with0->FUnits = OtherLineSpacing->FUnits;
 			with0->DataChanged = true;
 			for(stop = with0->ParentClass->NumProperties, i = 1; i <= stop; i++)
@@ -287,6 +317,11 @@ TLineSpacingObj::TLineSpacingObj(TDSSClass* ParClass, const String LineSpacingNa
 	FUnits = UNITS_FT;
 	set_Nwires(3);  // Allocates terminals
 	Fnphases = 3;
+	FEqDistPhPh  = 0.0;
+	FEqDistPhN   = 0.0;
+	FAvgHeightPh = 0.0;
+	FAvgHeightN  = 0.0;
+	FEquivalentSpacing = false;
 	InitPropertyValues(0);
 }
 
@@ -308,8 +343,10 @@ void TLineSpacingObj::DumpProperties(System::TTextRec& f, bool Complete)
 	{
 		auto with0 = ParentClass;
 		int stop = 0;
-		for(stop = 5, i = 1; i <= stop; i++)
+		for(stop = 10, i = 1; i <= stop; i++)
 		{
+			// if (!FEquivalentSpacing && i > 5) {continue;}
+			// else if (FEquivalentSpacing && (i == 3 || i == 4)) {continue;}
 			{ Write(f, "~ "); Write(f, with0->PropertyName[i - 1]); Write(f, L'='); WriteLn(f, GetPropertyValue(i)); }
 		}
 	}
@@ -399,6 +436,32 @@ int TLineSpacingObj::get_FUnits()
 
 //------------------------------------------------------------------------------------
 
+double TLineSpacingObj::get_FEqDistPhPh()
+{
+	return FEqDistPhPh;
+}
+
+double TLineSpacingObj::get_FEqDistPhN()
+{
+	return FEqDistPhN;
+}
+
+double TLineSpacingObj::get_FAvgHeightPh()
+{
+	return FAvgHeightPh;
+}
+
+double TLineSpacingObj::get_FAvgHeightN()
+{
+	return FAvgHeightN;
+}
+
+bool TLineSpacingObj::get_FEquivalentSpacing()
+{
+	return FEquivalentSpacing;
+}
+//------------------------------------------------------------------------------------
+
 void TLineSpacingObj::InitPropertyValues(int ArrayOffset)
 {
 	Set_PropertyValue(1,"3");
@@ -406,6 +469,11 @@ void TLineSpacingObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(3,"0");
 	Set_PropertyValue(4,"32");
 	Set_PropertyValue(5,"ft");
+	Set_PropertyValue(6,"Yes");
+	Set_PropertyValue(7,"0");
+	Set_PropertyValue(8,"0");
+	Set_PropertyValue(9,"0");
+	Set_PropertyValue(10,"0");
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 

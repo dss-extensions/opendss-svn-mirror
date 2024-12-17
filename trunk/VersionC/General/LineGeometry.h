@@ -78,6 +78,9 @@ public:
 	ConductorData::pConductorDataArray FWireData;
 	std::vector <double> FX;
 	std::vector <double> FY;
+	DoubleArray FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+	bool FEquivalentSpacing;  // to tell the calcs when to use equivalent spacing info
+	String FCondsUser;  // use this to preserve conductors array for dumping to avoid losing user-defined None positions.
 	std::vector <longInt> FUnits;
 	int FLastUnit;
 	bool DataChanged;
@@ -93,8 +96,8 @@ public:
 	Ucmatrix::TcMatrix* Get_Zmatrix(double f, double Lngth, int Units);
 	double Get_RhoEarth();
 	void Set_RhoEarth(double Value);
-        double Get_EpsRMedium();
-        void Set_EpsRMedium(double Value);
+    double Get_EpsRMedium();
+    void Set_EpsRMedium(double Value);
 	double Get_HeightOffset();
 	void Set_HeightOffset(double Value);
 	int Get_HeightUnit();
@@ -102,7 +105,7 @@ public:
 	int get_Nconds();
 	void UpdateLineGeometryData(double f);   // call this before using the line data
 
-        // CIM Accessors
+    // CIM Accessors
 	double Get_FX(int i);
 	double Get_FY(int i);
 	int Get_FUnits(int i);

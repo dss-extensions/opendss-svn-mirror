@@ -49,7 +49,7 @@ TLineGeometryObj::TLineGeometryObj() {}
 
 TLineGeometryObj* ActiveLineGeometryObj = nullptr;
 
-const int NumPropsThisClass = 19;
+const int NumPropsThisClass = 20;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Creates superstructure for all Line objects
@@ -102,6 +102,7 @@ void TLineGeometry::DefineProperties()
 	PropertyName[17 - 1] = "Seasons";
 	PropertyName[18 - 1] = "Ratings";
 	PropertyName[19 - 1] = "LineType";
+	PropertyName[20 - 1] = "conductors";
 	PropertyHelp[1 - 1] = "Number of conductors in this geometry. Default is 3. Triggers memory allocations. Define first!";
 	PropertyHelp[2 - 1] = "Number of phases. Default =3; All other conductors are considered neutrals and might be reduced out.";
 	PropertyHelp[3 - 1] = "Set this = number of the conductor you wish to define. Default is 1.";
@@ -151,6 +152,11 @@ void TLineGeometry::DefineProperties()
 	           + CRLF
 	           + CRLF
 	           + "OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.";
+	PropertyHelp[20 - 1] = String("Array of conductor names for use in line constants calculation.") + CRLF
+		   + "Must be used in conjunction with the Spacing property." + CRLF
+		   + "Specify the Spacing first, and 'ncond' wires." + CRLF
+		   + "Specify the conductor type followed by the conductor name. e.g., 'conductors=[cndata.cncablename, tsdata.tscablename, wiredata.wirename]'"
+		   + CRLF + + "If a given position in the spacing is not to be used in the line, use 'none' in the entry of the conductors array.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -177,9 +183,16 @@ int TLineGeometry::Edit(int ActorID)
 {
 	int result = 0;
 	int i = 0;
+	int j = 0;
 	int iStart = 0;
 	int istop = 0;
+	int stop = 0;
 	int ParamPointer = 0;
+	int actualNConds = 0;
+	int actualNPhases = 0;
+	int dotpos = 0;
+	String CondName = "";
+	String CondClass = "";
 	String ParamName;
 	String Param;
 	result = 0;
@@ -257,11 +270,19 @@ int TLineGeometry::Edit(int ActorID)
 						{
 							int stop = 0;
 							with0->FLastUnit = ActiveLineSpacingObj->get_FUnits();
-							for(stop = with0->Fnconds, i = 1; i <= stop; i++)
-							{
-								with0->FX[i - 1] = ActiveLineSpacingObj->Get_FX(i);
-								with0->FY[i - 1] = ActiveLineSpacingObj->Get_FY(i);
-								with0->FUnits[i - 1] = with0->FLastUnit;
+							with0->FEquivalentSpacing = ActiveLineSpacingObj->get_FEquivalentSpacing();
+							if (ActiveLineSpacingObj->get_FEquivalentSpacing()) {
+								with0->FEqDist[1 - 1] = ActiveLineSpacingObj->get_FEqDistPhPh();
+								with0->FEqDist[2 - 1] = ActiveLineSpacingObj->get_FEqDistPhN();
+								with0->FEqDist[3 - 1] = ActiveLineSpacingObj->get_FAvgHeightPh();
+								with0->FEqDist[4 - 1] = ActiveLineSpacingObj->get_FAvgHeightN();
+							} else {
+								for(stop = with0->Fnconds, i = 1; i <= stop; i++)
+								{
+									with0->FX[i - 1] = ActiveLineSpacingObj->Get_FX(i);
+									with0->FY[i - 1] = ActiveLineSpacingObj->Get_FY(i);
+									with0->FUnits[i - 1] = with0->FLastUnit;
+								}
 							}
 						}
 						else
@@ -382,6 +403,145 @@ int TLineGeometry::Edit(int ActorID)
 				case 	19:
 				with0->FLineType = LineTypeList.Getcommand(Param);
 				break;
+				case 	20:
+				// First we need to parse the list of conductors to find None values
+				// Then we need to redefine Nconds to reallocate
+				actualNConds = 0;
+				actualNPhases = 0;
+				// Line constants type defined by the first found valid conductor
+				AuxParser[ActorID]->SetCmdString(Parser[ActorID]->MakeString_());
+				with0->FCondsUser = Parser[ActorID]->MakeString_();
+				i = 0;
+				for(i = 1; i <= with0->Fnconds; i++)
+				{
+					String dummy = AuxParser[ActorID]->GetNextParam();
+					if (CompareText(AuxParser[ActorID]->MakeString_(), "None") == 0) {continue;}
+					if (CompareText(AuxParser[ActorID]->MakeString_(), "") == 0) {continue;}
+					actualNConds++;
+					if (i <= with0->Fnphases) {actualNPhases++;}
+				}
+
+				j = 0;
+				if (with0->Fnconds != with0->get_Nconds()) {
+					with0->Set_Nconds(actualNConds);  // allocates
+					with0->Set_NPhases(actualNPhases);
+					LineSpacingClass[ActorID]->SetActive(with0->FSpacingType);
+					ActiveLineSpacingObj = ((TLineSpacingObj*) LineSpacingClass[ActorID]->GetActiveObj());
+					with0->FLastUnit = ActiveLineSpacingObj->get_FUnits();
+					with0->FEquivalentSpacing = ActiveLineSpacingObj->get_FEquivalentSpacing();
+					AuxParser[ActorID]->SetCmdString(Parser[ActorID]->MakeString_());
+					for(i = 1; i <= ActiveLineSpacingObj->Fnconds; i++)
+					{
+						String dummy = AuxParser[ActorID]->GetNextParam();
+						if (CompareText(AuxParser[ActorID]->MakeString_(), "None") == 0) {continue;}
+						if (CompareText(AuxParser[ActorID]->MakeString_(), "") == 0) {continue;}
+						j++;
+						if (!ActiveLineSpacingObj->get_FEquivalentSpacing()) {
+							with0->FX[j - 1] = ActiveLineSpacingObj->Get_FX(i);
+							with0->FY[j - 1] = ActiveLineSpacingObj->Get_FY(i);
+							with0->FUnits[j - 1] = with0->FLastUnit;
+						}
+					}
+					if (ActiveLineSpacingObj->get_FEquivalentSpacing()) {
+						with0->FEqDist[1 - 1] = ActiveLineSpacingObj->get_FEqDistPhPh();
+						with0->FEqDist[2 - 1] = ActiveLineSpacingObj->get_FEqDistPhN();
+						with0->FEqDist[3 - 1] = ActiveLineSpacingObj->get_FAvgHeightPh();
+						with0->FEqDist[4 - 1] = ActiveLineSpacingObj->get_FAvgHeightN();
+					}
+				}
+
+				iStart = 1;
+				istop = with0->Fnconds;
+				stop = 0;
+
+				// Line constants type defined by the first found valid conductor
+				AuxParser[ActorID]->SetCmdString(Parser[ActorID]->MakeString_());
+				for(stop = istop, i = iStart; i <= stop; i++) {
+					String dummy = AuxParser[ActorID]->GetNextParam();
+					while (CompareText(AuxParser[ActorID]->MakeString_(), "None") == 0) {
+						String dummy = AuxParser[ActorID]->GetNextParam();
+					}
+					if (AuxParser[ActorID]->MakeString_() == "") {continue;}
+					CondClass = "";
+					CondName = "";
+					dotpos = Pos(".", AuxParser[ActorID]->MakeString_());
+					if(dotpos == 0)
+					{
+						DoSimpleMsg(String("") + "You must define the conductor class for all the valid conductors in the 'conductors' array (LineGeometry."+with0->get_Name()+").", 10103);
+						return result;
+					}
+					else {
+						CondClass = AuxParser[ActorID]->MakeString_().substr(0, dotpos - 1);
+						CondName = AuxParser[ActorID]->MakeString_().substr(dotpos, AuxParser[ActorID]->MakeString_().length());
+					}
+					if (LowerCase(CondClass) == "wiredata")
+					{
+						if (i <= with0->get_Fnphases()) with0->ChangeLineConstantsType(Overhead);
+						break;
+					}
+					else if (LowerCase(CondClass) == "cndata")
+					{
+						if (i <= with0->get_Fnphases()) with0->ChangeLineConstantsType(ConcentricNeutral);
+						break;
+					}
+					else if (LowerCase(CondClass) == "tsdata")
+					{
+						if (i <= with0->get_Fnphases()) with0->ChangeLineConstantsType(TapeShield);
+						break;
+					}
+					else
+					{
+						DoSimpleMsg(String("") + "You must use valid conductor classes (wiredata, cndata, tsdata) for all the conductors in the 'conductors' array (LineGeometry."+with0->get_Name()+").", 10103);
+						return result;
+					}
+
+				}
+				AuxParser[ActorID]->SetCmdString(Parser[ActorID]->MakeString_());
+				for(stop = istop, i = iStart; i <= stop; i++) {
+					String dummy = AuxParser[ActorID]->GetNextParam(); // ignore any parameter name  not expecting any
+					while (CompareText(AuxParser[ActorID]->MakeString_(), "None") == 0) {
+						String dummy = AuxParser[ActorID]->GetNextParam();
+					}
+					if (AuxParser[ActorID]->MakeString_() == "") {continue;}
+					CondClass = "";
+					CondName = "";
+					dotpos = Pos(".", AuxParser[ActorID]->MakeString_());
+					if(dotpos == 0)
+					{
+						DoSimpleMsg(String("") + "You must define the conductor class for all the valid conductors in the 'conductors' array (LineGeometry."+with0->get_Name()+").", 10103);
+						return result;
+					}
+					else {
+						CondClass = AuxParser[ActorID]->MakeString_().substr(0, dotpos - 1);
+						CondName = AuxParser[ActorID]->MakeString_().substr(dotpos, AuxParser[ActorID]->MakeString_().length());
+					}
+					if (LowerCase(CondClass) == "wiredata"){WireDataClass[ActorID]->Set_Code(CondName);}
+					else if (LowerCase(CondClass) == "cndata"){CNDataClass[ActorID]->Set_Code(CondName);}
+					else if (LowerCase(CondClass) == "tsdata"){TSDataClass[ActorID]->Set_Code(CondName);}
+					with0->FCondName[i - 1] = CondName;
+
+					if(ASSIGNED(ActiveConductorDataObj)) {
+						with0->FWireData[i - 1] = ActiveConductorDataObj;
+						if(i == 1)
+						{
+							if((ActiveConductorDataObj->NormAmps > 0.0) && (with0->NormAmps == 0.0))
+								with0->NormAmps = ActiveConductorDataObj->NormAmps;
+							if((ActiveConductorDataObj->EmergAmps > 0.0) && (with0->EmergAmps == 0.0))
+								with0->EmergAmps = ActiveConductorDataObj->EmergAmps;
+							if((ActiveConductorDataObj->NumAmpRatings > 1) && (with0->NumAmpRatings == 1))
+								with0->NumAmpRatings = ActiveConductorDataObj->NumAmpRatings;
+							if((!ActiveConductorDataObj->AmpRatings.empty()) && (!with0->AmpRatings.empty()))
+							{
+								with0->AmpRatings.resize(with0->NumAmpRatings);
+								with0->AmpRatings = ActiveConductorDataObj->AmpRatings;
+							}
+						}
+					}
+					else {
+						DoSimpleMsg(String("Conductor Object \"") + (with0->FCondName)[i] + "\" not defined. Must be previously defined.", 10103);
+					}
+				}
+				break;
            // Inherited parameters
 				default:
 				ClassEdit(ActiveLineGeometryObj, ParamPointer - NumPropsThisClass);
@@ -453,7 +613,7 @@ int TLineGeometry::Edit(int ActorID)
 			}
 			switch(ParamPointer)
 			{
-				case 	1: case 4: case 5: case 6: case 7: case 11: case 12: case 13: case 14: case 15: case 16:
+				case 	1: case 4: case 5: case 6: case 7: case 11: case 12: case 13: case 14: case 15: case 16: case 20:
 				with0->DataChanged = true;
 				break;
 				default:
@@ -485,6 +645,7 @@ int TLineGeometry::MakeLike(const String LineName)
 			with0->Set_Nconds(OtherLineGeometry->get_Fnconds());   // allocates
 			with0->Fnphases = OtherLineGeometry->Fnphases;
 			with0->FSpacingType = OtherLineGeometry->FSpacingType;
+			with0->FEquivalentSpacing = OtherLineGeometry->FEquivalentSpacing;
 			for(stop = with0->Fnconds, i = 1; i <= stop; i++)
 			{
 				with0->FPhaseChoice[i - 1] = OtherLineGeometry->FPhaseChoice[i - 1];
@@ -505,10 +666,15 @@ int TLineGeometry::MakeLike(const String LineName)
 			{
 				(with0->FY)[i - 1] = (OtherLineGeometry->FY)[i - 1];
 			}
+			for(stop = 4, i = 1; i <= stop; i++)
+			{
+				(with0->FEqDist)[i - 1] = (OtherLineGeometry->FEqDist)[i - 1];
+			}
 			for(stop = with0->Fnconds, i = 1; i <= stop; i++)
 			{
 				(with0->FUnits)[i - 1] = (OtherLineGeometry->FUnits)[i - 1];
 			}
+			with0->FLastUnit = OtherLineGeometry->FLastUnit; // Useful if template geometry uses a spacing
 			with0->FReduce = OtherLineGeometry->FReduce;
 			with0->DataChanged = true;
 			with0->NormAmps = OtherLineGeometry->NormAmps;
@@ -587,6 +753,8 @@ TLineGeometryObj::TLineGeometryObj(TDSSClass* ParClass, const String LineGeometr
 	FWireData.clear();
 	FX.clear();
 	FY.clear();
+	FEqDist.clear();
+	FEquivalentSpacing = false;
 	FUnits.clear();
 	FLineData = nullptr;
 	FSpacingType = "";
@@ -617,6 +785,7 @@ TLineGeometryObj::~TLineGeometryObj()
 	FWireData.clear();
 	FY.clear();
 	FX.clear();
+	FEqDist.clear();
 	FUnits.clear();
 	// inherited::Destroy();
 }
@@ -626,6 +795,8 @@ void TLineGeometryObj::DumpProperties(System::TTextRec& f, bool Complete)
 {
 	int i = 0;
 	int j = 0;
+	int cond_type = 0;
+	String conductor_array = "";
 	inherited::DumpProperties(f, Complete);
 	/*# with ParentClass do */
 	{
@@ -638,16 +809,45 @@ void TLineGeometryObj::DumpProperties(System::TTextRec& f, bool Complete)
 			System::Write(f, "="); 
 			System::WriteLn(f, GetPropertyValue(i)); }
 		}
-		for(stop = Fnconds, j = 1; j <= stop; j++)
-		{
-			set_ActiveCond(j);
-			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[3 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(3)); }
-			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[4 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(4)); }
-			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[5 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(5)); }
-			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[6 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(6)); }
-			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[7 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(7)); }
+		if (!FEquivalentSpacing) {
+			// Avoid spacing and wire arrays as the information has been dumped
+			// already on each of the conductor positions
+			for(stop = Fnconds, j = 1; j <= stop; j++)
+			{
+				set_ActiveCond(j);
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[3 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(3)); }
+
+				if (dynamic_cast<TCNDataObj*> (FWireData[FActiveCond - 1]) != nullptr) {cond_type = 13;} // cncable
+			    else if (dynamic_cast<TTSDataObj*> (FWireData[FActiveCond - 1]) != nullptr) {cond_type = 14;}  // tscable
+			    else {cond_type = 4;} ;  // wire
+
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[cond_type - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(cond_type)); }
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[5 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(5)); }
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[6 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(6)); }
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[7 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(7)); }
+			}
 		}
-		for(stop = with0->NumProperties, i = 8; i <= stop; i++)
+		else {
+			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[11 - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(11)); }
+			if (FCondsUser != "") { // Use the saved conductors array string as it will include None values that would get ignored otherwise.
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[20 - 1]); System::Write(f, "=["); System::Write(f, FCondsUser); System::WriteLn(f, "]");}
+			}
+			else {
+				conductor_array = "";
+				for(stop = Fnconds, j = 1; j <= stop; j++) {
+					if (dynamic_cast<TCNDataObj*> (FWireData[FActiveCond - 1]) != nullptr) {conductor_array += ("cndata." + FCondName[j - 1] + ",");} // cncable
+					else if (dynamic_cast<TTSDataObj*> (FWireData[FActiveCond - 1]) != nullptr) {conductor_array += ("tsdata." + FCondName[j - 1] + ",");}  // tscable
+					else {conductor_array += ("wiredata." + FCondName[j - 1] + ",");;} ;  // wire
+				}
+				{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[20 - 1]); System::Write(f, "=["); System::Write(f, conductor_array); System::WriteLn(f, "]");}
+			}
+
+		}
+		for(stop = 10, i = 8; i <= stop; i++)
+		{
+			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[i - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(i)); }
+		}
+		for(stop = 19, i = 17; i <= stop; i++)
 		{
 			{ System::Write(f, "~ "); System::Write(f, with0->PropertyName[i - 1]); System::Write(f, "="); System::WriteLn(f, GetPropertyValue(i)); }
 		}
@@ -662,6 +862,12 @@ String TLineGeometryObj::GetPropertyValue(int Index)
 /*Return Property Value for Active index*/
 	switch(Index)
 	{
+		case 	1:
+		result = Format("%d", Fnconds);
+		break;
+		case 	2:
+		result = Format("%d", Fnphases);
+		break;
 		case 	3:
 		result = Format("%d", FActiveCond);
 		break;
@@ -714,6 +920,17 @@ String TLineGeometryObj::GetPropertyValue(int Index)
 		break;
 		case 	19:
 		result = LineTypeList.Get(FLineType);
+		break;
+		case 20: // Similar to 12,15,16 but with conductor data class prepended
+		{
+			int stop = 0;
+			result = "[";
+			for(stop = Fnconds, i = 1; i <= stop; i++)
+			{
+				result = result + FCondName[i - 1] + " ";
+			}
+			result = result + "]";
+		}
 		break;
      // Inherited parameters
 		default:
@@ -1042,6 +1259,7 @@ void TLineGeometryObj::Set_Nconds(int Value)
 	FWireData.resize(Fnconds);
 	FX.resize(Fnconds);
 	FY.resize(Fnconds);
+	FEqDist.resize(4);
 	FUnits.resize(Fnconds);
 	FPhaseChoice = (pConductorChoiceArray) realloc(FPhaseChoice, sizeof(FPhaseChoice[0]) * Fnconds);
 	for(stop = Fnconds, i = 1; i <= stop; i++)
@@ -1071,7 +1289,14 @@ void TLineGeometryObj::Set_Nconds(int Value)
 	for(stop = Fnconds, i = 1; i <= stop; i++)
 	{
 		FUnits[i - 1] = -1;
-	}  // default to ft
+	}
+
+	for(stop = 4, i = 1; i <= stop; i++)
+	{
+		FEqDist[i - 1] = 0.0;
+	}
+
+	// default to ft
 	FLastUnit = UNITS_FT;
 }
 
@@ -1109,10 +1334,19 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 	TTSDataObj* tsd = nullptr;
 	int stop = 0;
 
+	FLineData->Set_FEquivalentSpacing(FEquivalentSpacing);
+	if (FEquivalentSpacing) {
+		FLineData->Set_FEqDist(1, FLastUnit, FEqDist[1 - 1]);
+		FLineData->Set_FEqDist(2, FLastUnit, FEqDist[2 - 1]);
+		FLineData->Set_FEqDist(3, FLastUnit, FEqDist[3 - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FLastUnit));
+		FLineData->Set_FEqDist(4, FLastUnit, FEqDist[4 - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FLastUnit));
+	}
 	for(stop = Fnconds, i = 1; i <= stop; i++)
 	{
-		FLineData->Set_X(i, FUnits[i - 1], FX[i - 1]);
-		FLineData->Set_Y(i, FUnits[i - 1], FY[i - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FUnits[i - 1]));
+		if (!FEquivalentSpacing) {
+			FLineData->Set_X(i, FUnits[i - 1], FX[i - 1]);
+			FLineData->Set_Y(i, FUnits[i - 1], FY[i - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FUnits[i - 1]));
+		}
 		FLineData->Set_radius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
 		FLineData->Set_Capradius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
 		FLineData->Set_GMR(i, FWireData[i - 1]->get_FGMRUnits(), FWireData[i - 1]->get_FGMR60());
@@ -1124,8 +1358,8 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 			{
 				auto with0 = ((TCNTSLineConstants*) FLineData);
 				cnd = (TCNDataObj*) FWireData[i - 1];
-                                with0->Set_CondType(i, 1); //CN
-                                with0->Set_EpsR(i, cnd->get_FEpsR());
+                with0->Set_CondType(i, 1); //CN
+                with0->Set_EpsR(i, cnd->get_FEpsR());
 				with0->Set_InsLayer(i, cnd->get_FRadiusUnits(), cnd->get_FInsLayer());
 				with0->Set_DiaIns(i, cnd->get_FRadiusUnits(), cnd->get_FDiaIns());
 				with0->Set_DiaCable(i, cnd->get_FRadiusUnits(), cnd->get_FDiaCable());
@@ -1217,9 +1451,11 @@ void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConducto
             j++;
 	        FCondName[j - 1] = Wires[i - 1]->get_Name();
 	        FWireData[j - 1] = Wires[i - 1];
-	        FX[j - 1] = Spc->Get_FX(i);
-	        FY[j - 1] = Spc->Get_FY(i);
-	        FUnits[j - 1] = Spc->get_FUnits();
+	    	if (!Spc->get_FEquivalentSpacing()) {
+	    		FX[j - 1] = Spc->Get_FX(i);
+	    		FY[j - 1] = Spc->Get_FY(i);
+	    		FUnits[j - 1] = Spc->get_FUnits();
+	    	}
 	        if (((Wires[i - 1]->NormAmps < NormAmps) || (NormAmps == 0.0)) && (j <= Fnphases))
 	        {
 	            NormAmps = (Wires)[1 - 1]->NormAmps;
@@ -1228,6 +1464,14 @@ void TLineGeometryObj::LoadSpacingAndWires(TLineSpacingObj* Spc, const pConducto
 	    }
 
 	}
+	if (Spc->get_FEquivalentSpacing()) {
+		FEqDist[1 - 1] = Spc->get_FEqDistPhPh();
+		FEqDist[2 - 1] = Spc->get_FEqDistPhN();
+		FEqDist[3 - 1] = Spc->get_FAvgHeightPh();
+		FEqDist[4 - 1] = Spc->get_FAvgHeightN();
+		FLastUnit = Spc->get_FUnits();
+	}
+	FEquivalentSpacing = Spc->get_FEquivalentSpacing();
 
 	DataChanged = true;
     // UpdateLineGeometryData will be called when we get the impedance matrix for the line.

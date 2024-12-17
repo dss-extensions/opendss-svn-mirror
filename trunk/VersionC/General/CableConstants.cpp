@@ -77,25 +77,52 @@ bool TCableConstants::ConductorsInSameSpace(String& ErrorMessage)
     End;
   End;
 */
-	for(stop = FNumConds, i = 1; i <= stop; i++)
-	{
-		int stop1 = 0;
-		if(i <= FNumPhases)
-			Ri = Fradius[i - 1];
-		else
-			Ri = 0.5 * FDiaCable[i - 1];
-		for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
+	if (FEquivalentSpacing) {
+		for(stop = FNumConds, i = 1; i <= stop; i++)
 		{
-			if(j <= FNumPhases)
-				Rj = Fradius[j - 1];
+			int stop1 = 0;
+			if(i <= FNumPhases)
+				Ri = Fradius[i - 1];
 			else
-				Rj = 0.5 * FDiaCable[j - 1];
-			Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
-			if(Dij < (Ri + Rj))
+				Ri = 0.5 * FDiaCable[i - 1];
+			for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
 			{
-				result = true;
-				ErrorMessage = Format("Cable conductors %d and %d occupy the same space.", i, j);
-				return result;
+				if(j <= FNumPhases)
+					Rj = Fradius[j - 1];
+				else
+					Rj = 0.5 * FDiaCable[j - 1];
+				if ((i <= FNumPhases) and (j > FNumPhases)) {Dij = FEqDist[2 - 1];}
+				else {Dij = FEqDist[1 - 1];}
+				if(Dij < (Ri + Rj))
+				{
+					result = true;
+					ErrorMessage = Format("Cable conductors %d and %d occupy the same space.", i, j);
+					return result;
+				}
+			}
+		}
+	}
+	else {
+		for(stop = FNumConds, i = 1; i <= stop; i++)
+		{
+			int stop1 = 0;
+			if(i <= FNumPhases)
+				Ri = Fradius[i - 1];
+			else
+				Ri = 0.5 * FDiaCable[i - 1];
+			for(stop1 = FNumConds, j = i + 1; j <= stop1; j++)
+			{
+				if(j <= FNumPhases)
+					Rj = Fradius[j - 1];
+				else
+					Rj = 0.5 * FDiaCable[j - 1];
+				Dij = sqrt(sqr(FX[i - 1] - FX[j - 1]) + sqr(FY[i - 1] - FY[j - 1]));
+				if(Dij < (Ri + Rj))
+				{
+					result = true;
+					ErrorMessage = Format("Cable conductors %d and %d occupy the same space.", i, j);
+					return result;
+				}
 			}
 		}
 	}

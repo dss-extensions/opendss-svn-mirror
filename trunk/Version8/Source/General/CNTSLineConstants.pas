@@ -272,7 +272,12 @@ begin
   // Mutual Impedances - between CN/TS cores and bare neutrals
   For i := 1 to FNumConds Do Begin
     For j := 1 to i-1 Do Begin
-      Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+      if not FEquivalentSpacing then Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]))
+      else
+      begin
+        if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
+        else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+      end;
       Zmat.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
     End;
   End;
@@ -282,7 +287,12 @@ begin
     idxi := i + FNumConds;
     For j := 1 to i-1 Do Begin  // CN/TS to other CN/TS
       idxj := j + FNumConds;
-      Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+      if not FEquivalentSpacing then Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]))
+      else
+      begin
+        if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
+        else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+      end;
       Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
     End;
     for j := 1 to FNumConds do begin // CN/TS to cores and bare neutrals
@@ -292,7 +302,12 @@ begin
         if i = j then begin // CN to its own phase core
           Dij := RadCN;
         end else begin // CN to another phase or bare neutral
-          Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+          if not FEquivalentSpacing then Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]))
+          else
+          begin
+            if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
+            else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+          end;
           Dij := Power (Power(Dij, FkStrand^[i]) - Power(RadCN, FkStrand^[i]),
                 1.0 / FkStrand^[i]);
         end;
@@ -302,7 +317,12 @@ begin
         if i = j then begin // TS to its own phase core
           Dij := GmrTS;
         end else begin // TS to another phase or bare neutral
-          Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]));
+          if not FEquivalentSpacing then Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]))
+          else
+          begin
+            if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
+            else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+          end;
         end;
       end;
       Zmat.SetElemSym(idxi, idxj, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
