@@ -51,7 +51,7 @@ public:
 	int FNumPhases;
 	std::vector <double> FX;
 	std::vector <double> FY;
-	DoubleArray FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+	std::vector <double> FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
 	bool FEquivalentSpacing;  // to tell the calcs when to use equivalent spacing info
 
 	std::vector <double> FRDC;   // ohms/m

@@ -78,7 +78,7 @@ public:
 	ConductorData::pConductorDataArray FWireData;
 	std::vector <double> FX;
 	std::vector <double> FY;
-	DoubleArray FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+	std::vector <double> FEqDist;  // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
 	bool FEquivalentSpacing;  // to tell the calcs when to use equivalent spacing info
 	String FCondsUser;  // use this to preserve conductors array for dumping to avoid losing user-defined None positions.
 	std::vector <longInt> FUnits;
