@@ -4504,8 +4504,8 @@ End;
 }
 
 procedure TSolver.Execute;
-{$IFNDEF FPC} {$IFNDEF CONSOLE}
 var
+{$IFNDEF FPC} {$IFNDEF CONSOLE}
   ScriptEd    : TScriptEdit;
 {$ENDIF} {$ENDIF}
   TIdx        : Integer;
