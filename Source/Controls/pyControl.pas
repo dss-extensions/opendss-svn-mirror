@@ -464,7 +464,7 @@ begin
         if ShellExecuteEx(@_SEInfo) then
         begin
 
-            Sleep(50);
+            Sleep(100);
 
          // Check if new client is connected
             if not ConnectNamedPipe(pHandle, nil) and (GetLastError() = ERROR_PIPE_CONNECTED) then
