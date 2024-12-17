@@ -89,18 +89,38 @@ begin
     End;
   End;
 *)
-  For i := 1 to FNumConds do Begin
-    if i <= FNumPhases then Ri := FRadius^[i] else Ri := 0.5 * FDiaCable^[i];
-    for j := i+1 to FNumConds do Begin
-      if j <= FNumPhases then Rj := FRadius^[j] else Rj := 0.5 * FDiaCable^[j];
-      Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
-      if (Dij < (Ri + Rj)) then Begin
-        Result := TRUE;
-        ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j ]);
-        Exit;
+  if FEquivalentSpacing then
+  begin
+    For i := 1 to FNumConds do Begin
+      if i <= FNumPhases then Ri := FRadius^[i] else Ri := 0.5 * FDiaCable^[i];
+      for j := i+1 to FNumConds do Begin
+        if j <= FNumPhases then Rj := FRadius^[j] else Rj := 0.5 * FDiaCable^[j];
+        if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2]
+        else Dij := FEqDist[1];
+
+        if (Dij < (Ri + Rj)) then Begin
+          Result := TRUE;
+          ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j ]);
+          Exit;
+        End;
       End;
     End;
-  End;
+  end
+  else
+  begin
+    For i := 1 to FNumConds do Begin
+      if i <= FNumPhases then Ri := FRadius^[i] else Ri := 0.5 * FDiaCable^[i];
+      for j := i+1 to FNumConds do Begin
+        if j <= FNumPhases then Rj := FRadius^[j] else Rj := 0.5 * FDiaCable^[j];
+        Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
+        if (Dij < (Ri + Rj)) then Begin
+          Result := TRUE;
+          ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j ]);
+          Exit;
+        End;
+      End;
+    End;
+  end;
 end;
 
 function TCableConstants.Get_EpsR(i: Integer): Double;

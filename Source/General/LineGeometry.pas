@@ -62,6 +62,9 @@ TYPE
         FWireData    :pConductorDataArray;
         FX           :pDoubleArray;
         FY           :pDoubleArray;
+        FEqDist      :array of Double; // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+        FEquivalentSpacing :Boolean;  // to tell the calcs when to use equivalent spacing info
+        FCondsUser    :String;      // use this to preserve conductors array for dumping to avoid losing user-defined None positions.
         FUnits       :pIntegerArray;
         FLastUnit    :Integer;
         DataChanged  :Boolean;
@@ -144,7 +147,7 @@ implementation
 USES  ParserDel,  DSSClassDefs,  DSSGlobals, Ucomplex, Utilities,  LineUnits,
       OHLineConstants, CNTSLineConstants;
 
-Const      NumPropsThisClass = 19;
+Const      NumPropsThisClass = 20;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLineGeometry.Create;  // Creates superstructure for all Line objects
@@ -196,6 +199,7 @@ Begin
      PropertyName^[17] := 'Seasons';
      PropertyName^[18] := 'Ratings';
      PropertyName^[19] := 'LineType';
+     PropertyName^[20] := 'conductors';
 
      PropertyHelp^[1] := 'Number of conductors in this geometry. Default is 3. Triggers memory allocations. Define first!';
      PropertyHelp^[2] := 'Number of phases. Default =3; All other conductors are considered neutrals and might be reduced out.';
@@ -236,6 +240,11 @@ Begin
      PropertyHelp^[19] := 'Code designating the type of line. ' +  CRLF +
                          'One of: OH, UG, UG_TS, UG_CN, SWT_LDBRK, SWT_FUSE, SWT_SECT, SWT_REC, SWT_DISC, SWT_BRK, SWT_ELBOW, BUSBAR' + CRLF +  CRLF +
                          'OpenDSS currently does not use this internally. For whatever purpose the user defines. Default is OH.' ;
+     PropertyHelp^[20] := 'Array of conductor names for use in line constants calculation.' + CRLF +
+                          'Must be used in conjunction with the Spacing property.' + CRLF +
+                          'Specify the Spacing first, and "ncond" wires.' + CRLF +
+                          'Specify the conductor type followed by the conductor name. e.g., "conductors=[cndata.cncablename, tsdata.tscablename, wiredata.wirename]"'+ CRLF +
+                          'If a given position in the spacing is not to be used in the line, use "none" in the entry of the conductors array.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -257,13 +266,14 @@ END;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function TLineGeometry.Edit(ActorID : Integer):Integer;
 VAR
-   i,
+   i, j,
    istart,
    istop,
    ParamPointer     :Integer;
    ParamName,
    Param            :String;
-
+   dotpos, actualNConds, actualNPhases :Integer;
+   CondName, CondClass :String;
 
 BEGIN
   Result := 0;
@@ -307,11 +317,22 @@ BEGIN
                     ActiveLineSpacingObj := LineSpacingClass[ActorID].GetActiveObj;
                     if (FNConds = ActiveLineSpacingObj.NWires) then begin
                       FLastUnit := ActiveLineSpacingObj.Units;
-                      for i:=1 to FNConds do begin
-                        FX^[i] := ActiveLineSpacingObj.Xcoord[i];
-                        FY^[i] := ActiveLineSpacingObj.Ycoord[i];
-                        FUnits^[i] := FLastUnit;
+                      FEquivalentSpacing :=ActiveLineSpacingObj.EquivalentSpacing;
+                      if ActiveLineSpacingObj.EquivalentSpacing then
+                      begin
+                        FEqDist[1] := ActiveLineSpacingObj.EqDistPhPh;
+                        FEqDist[2] := ActiveLineSpacingObj.EqDistPhN;
+                        FEqDist[3] := ActiveLineSpacingObj.AvgHeightPh;
+                        FEqDist[4] := ActiveLineSpacingObj.AvgHeightN;
                       end
+                      else
+                      begin
+                        for i:=1 to FNConds do begin
+                          FX^[i] := ActiveLineSpacingObj.Xcoord[i];
+                          FY^[i] := ActiveLineSpacingObj.Ycoord[i];
+                          FUnits^[i] := FLastUnit;
+                        end;
+                      end;
                     end else
                       DoSimpleMsg('LineSpacing object ' + FSpacingType + ' has the wrong number of wires.', 10103);
                   end else
@@ -382,6 +403,149 @@ BEGIN
                  NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, Pointer(AmpRatings));
                End;
            19: FLineType := LineTypeList.Getcommand(Param);
+           20: Begin
+
+                  // First we need to parse the list of conductors to find None values
+                  // Then we need to redefine Nconds to reallocate
+                  actualNConds := 0;
+                  actualNPhases := 0;
+                  // Line constants type defined by the first found valid conductor
+                  AuxParser[ActorID].CmdString := Parser[ActorID].StrValue;
+                  FCondsUser := Parser[ActorID].StrValue;
+                  For i := 1 to FNConds Do
+                  begin
+                      AuxParser[ActorID].NextParam;
+                      if CompareText(AuxParser[ActorID].StrValue, 'None')=0 then continue;
+                      if CompareText(AuxParser[ActorID].StrValue, '')=0 then continue;
+                      actualNConds := actualNConds + 1;
+                      if i <= FNPhases then actualNPhases := actualNPhases + 1;
+                  end;
+
+                  j := 0;
+                  if FNConds <> NConds then
+                  begin
+                    NConds := actualNConds;   // allocates
+                    Nphases := actualNPhases;
+                    LineSpacingClass[ActorID].SetActive(FSpacingType);
+                    ActiveLineSpacingObj := LineSpacingClass[ActorID].GetActiveObj;
+                    FLastUnit := ActiveLineSpacingObj.Units;
+                    FEquivalentSpacing := ActiveLineSpacingObj.EquivalentSpacing;
+                    AuxParser[ActorID].CmdString := Parser[ActorID].StrValue;
+                    for i:=1 to ActiveLineSpacingObj.NWires do begin
+                      AuxParser[ActorID].NextParam;
+                      if CompareText(AuxParser[ActorID].StrValue, 'None')=0 then continue;
+                      if CompareText(AuxParser[ActorID].StrValue, '')=0 then continue;
+                      j := j + 1;
+                      if not ActiveLineSpacingObj.EquivalentSpacing then
+                      begin
+                        FX^[j] := ActiveLineSpacingObj.Xcoord[i];
+                        FY^[j] := ActiveLineSpacingObj.Ycoord[i];
+                        FUnits^[j] := FLastUnit;
+                      end;
+                    end;
+                    if ActiveLineSpacingObj.EquivalentSpacing then
+                    begin
+                      FEqDist[1] := ActiveLineSpacingObj.EqDistPhPh;
+                      FEqDist[2] := ActiveLineSpacingObj.EqDistPhN;
+                      FEqDist[3] := ActiveLineSpacingObj.AvgHeightPh;
+                      FEqDist[4] := ActiveLineSpacingObj.AvgHeightN;
+                    end;
+
+                  end;
+
+                  istart := 1;
+                  istop := FNConds;
+
+                  // Line constants type defined by the first found valid conductor
+                  AuxParser[ActorID].CmdString := Parser[ActorID].StrValue;
+                  for i := istart to istop do begin
+                    AuxParser[ActorID].NextParam;
+                    while CompareText(AuxParser[ActorID].StrValue, 'None')=0 do
+                    begin
+                      AuxParser[ActorID].NextParam;
+                    end;
+                    if AuxParser[ActorID].StrValue = '' then continue;
+
+                    CondClass := '';
+                    CondName := '';
+                    dotpos := Pos('.', AuxParser[ActorID].StrValue);
+                    CASE dotpos OF
+                       0:begin
+                        DoSimpleMsg ('You must define the conductor class for all the valid conductors in the "conductors" array (LineGeometry.'+name+').', 10103);
+                        exit;
+                       end;
+                    ELSE Begin
+                         CondClass := Copy(AuxParser[ActorID].StrValue, 1, dotpos-1);
+                         CondName  := Copy(AuxParser[ActorID].StrValue, dotpos+1, Length(AuxParser[ActorID].StrValue));
+                         End;
+                    End;
+                    if LowerCase(CondClass) = 'wiredata' then
+                    begin
+                      if i <= NPhases then ChangeLineConstantsType(Overhead);
+                      break;
+                    end
+                    else if LowerCase(CondClass) = 'cndata' then
+                    begin
+                      if i <= NPhases then ChangeLineConstantsType(ConcentricNeutral);
+                      break;
+                    end
+                    else if LowerCase(CondClass) = 'tsdata' then
+                    begin
+                      if i <= NPhases then ChangeLineConstantsType(TapeShield);
+                      break;
+                    end
+                    else
+                    begin
+                      DoSimpleMsg ('You must use valid conductor classes (wiredata, cndata, tsdata) for all the conductors in the "conductors" array (LineGeometry.'+name+').', 10103);
+                      exit;
+                    end;
+
+                  end;
+
+
+                  AuxParser[ActorID].CmdString := Parser[ActorID].StrValue;
+                  for i := istart to istop do begin
+                    AuxParser[ActorID].NextParam; // ignore any parameter name  not expecting any
+                    while CompareText(AuxParser[ActorID].StrValue, 'None')=0 do
+                    begin
+                      AuxParser[ActorID].NextParam;
+                    end;
+                    if AuxParser[ActorID].StrValue = '' then continue;
+
+                    CondClass := '';
+                    CondName := '';
+                    dotpos := Pos('.', AuxParser[ActiveActor].StrValue);
+                    CASE dotpos OF
+                       0:begin
+                        DoSimpleMsg ('You must define the conductor class for all the valid conductors in the "conductors" array (LineGeometry.'+name+').', 10103);
+                        exit;
+                       end;
+                    ELSE Begin
+                         CondClass := Copy(AuxParser[ActiveActor].StrValue, 1, dotpos-1);
+                         CondName  := Copy(AuxParser[ActiveActor].StrValue, dotpos+1, Length(AuxParser[ActiveActor].StrValue));
+                         End;
+                    End;
+                    if LowerCase(CondClass) = 'wiredata' then WireDataClass[ActorID].Code := CondName
+                    else if LowerCase(CondClass) = 'cndata' then CNDataClass[ActorID].code := CondName
+                    else if LowerCase(CondClass) = 'tsdata' then TSDataClass[ActorID].code := CondName;
+                    FCondName[i] := CondName;
+
+                    if Assigned(ActiveConductorDataObj) then begin
+                      FWireData^[i] := ActiveConductorDataObj;
+                      if (i=1) then begin
+                        If (ActiveConductorDataObj.NormAmps > 0.0) and (Normamps = 0.0) Then Normamps  := ActiveConductorDataObj.NormAmps;
+                        If (ActiveConductorDataObj.Emergamps > 0.0) and (Emergamps = 0.0) Then Emergamps := ActiveConductorDataObj.EmergAmps;
+                        If (ActiveConductorDataObj.NumAmpRatings > 1) and (NumAmpRatings = 1) Then NumAmpRatings  := ActiveConductorDataObj.NumAmpRatings;
+                        If (length(ActiveConductorDataObj.AmpRatings) > 1) and (length(AmpRatings) = 1)
+                          Then Begin
+                            setlength(AmpRatings,NumAmpRatings);
+                            AmpRatings  := ActiveConductorDataObj.AmpRatings;
+                          End;
+                      end;
+                    end else
+                      DoSimpleMsg('Conductor Object "' + FCondName[i] + '" not defined. Must be previously defined.', 10103)
+                  end
+               End;
          ELSE
            // Inherited parameters
            ClassEdit(ActiveLineGeometryObj, Parampointer - NumPropsThisClass)
@@ -423,7 +587,7 @@ BEGIN
          END;
 
          Case ParamPointer of
-            1,4..7,11..16: DataChanged := TRUE;
+            1,4..7,11..16,20: DataChanged := TRUE;
          END;
 
          ParamName := Parser[ActorID].NextParam;
@@ -449,12 +613,15 @@ BEGIN
        NConds       := OtherLineGeometry.NWires;   // allocates
        FNphases     := OtherLineGeometry.FNphases;
        FSpacingType := OtherLineGeometry.FSpacingType;
+       FEquivalentSpacing := OtherLineGeometry.FEquivalentSpacing;
        For i := 1 to FNConds Do FPhaseChoice^[i]  := OtherLineGeometry.FPhaseChoice^[i];
        For i := 1 to FNConds Do FCondName^[i]     := OtherLineGeometry.FCondName^[i];
        For i := 1 to FNConds Do FWireData^[i]     := OtherLineGeometry.FWireData^[i];
        For i := 1 to FNConds Do FX^[i]            := OtherLineGeometry.FX^[i];
        For i := 1 to FNConds Do FY^[i]            := OtherLineGeometry.FY^[i];
+       For i := 1 to 4 Do FEqDist[i]            := OtherLineGeometry.FEqDist[i];
        For i := 1 to FNConds Do FUnits^[i]        := OtherLineGeometry.FUnits^[i];
+       FLastUnit := OtherLineGeometry.FLastUnit; // Useful if template geometry uses a spacing
        DataChanged := TRUE;
        NormAmps    := OtherLineGeometry.NormAmps;
        EmergAmps   := OtherLineGeometry.EmergAmps;
@@ -528,6 +695,8 @@ BEGIN
       FWireData           := nil;
       FX                  := nil;
       FY                  := nil;
+      FEqDist             := nil;
+      FEquivalentSpacing  := FALSE;
       Funits              := nil;
       FLineData           := Nil;
       FSpacingType        := '';
@@ -563,6 +732,7 @@ BEGIN
     Reallocmem(Fwiredata, 0);
     Reallocmem(FY, 0);
     Reallocmem(FX, 0);
+    SetLength(FEqDist, 0);
     Reallocmem(Funits, 0);
     Reallocmem(FPhaseChoice, 0);
 
@@ -575,6 +745,8 @@ PROCEDURE TLineGeometryObj.DumpProperties(var F: TextFile; Complete: Boolean);
 
 Var
    i,j :Integer;
+   cond_type :Integer;
+   conductor_array :String;
 
 Begin
     Inherited DumpProperties(F, Complete);
@@ -584,15 +756,50 @@ Begin
        For i := 1 to 2 Do  Begin
          Writeln(F,'~ ',PropertyName^[i],'=',GetPropertyValue(i));
        End;
-       For j := 1 to FNConds Do Begin
-         ActiveCond := j;
-         Writeln(F,'~ ',PropertyName^[3],'=',GetPropertyValue(3));
-         Writeln(F,'~ ',PropertyName^[4],'=',GetPropertyValue(4));
-         Writeln(F,'~ ',PropertyName^[5],'=',GetPropertyValue(5));
-         Writeln(F,'~ ',PropertyName^[6],'=',GetPropertyValue(6));
-         Writeln(F,'~ ',PropertyName^[7],'=',GetPropertyValue(7));
+       If not FEquivalentSpacing then
+       begin
+         // Avoid spacing and wire arrays as the information has been dumped
+         // already on each of the conductor positions.
+         For j := 1 to FNConds Do Begin
+           ActiveCond := j;
+           Writeln(F,'~ ',PropertyName^[3],'=',GetPropertyValue(3));
+
+           if FWireData^[FActiveCond] is TCNDataObj then cond_type := 13 // cncable
+           else if FWireData^[FActiveCond] is TTSDataObj then cond_type := 14  // tscable
+           else cond_type := 4;  // wire
+
+           Writeln(F,'~ ',PropertyName^[cond_type],'=',GetPropertyValue(cond_type));
+           Writeln(F,'~ ',PropertyName^[5],'=',GetPropertyValue(5));
+           Writeln(F,'~ ',PropertyName^[6],'=',GetPropertyValue(6));
+           Writeln(F,'~ ',PropertyName^[7],'=',GetPropertyValue(7));
+         End;
+       end
+       else
+       begin
+          Writeln(F,'~ ',PropertyName^[11],'=',GetPropertyValue(11));
+          if FCondsUser <> '' then  // Use the saved conductors array string as it will include None values that would get ignored otherwise.
+            Writeln(F,'~ ', PropertyName^[20], '=[',FCondsUser,']')
+          else
+          begin
+            conductor_array:= '';
+            For j := 1 to FNConds Do Begin
+              if FWireData^[j] is TCNDataObj then conductor_array := conductor_array + 'cndata.' + FCondName^[j] + ','  // cncable
+              else if FWireData^[j] is TTSDataObj then conductor_array := conductor_array + 'tsdata.' + FCondName^[j] + ','  // tscable
+              else conductor_array := conductor_array + 'wiredata.' + FCondName^[j] + ',';  // wire
+            end;
+            Writeln(F,'~ ', PropertyName^[20], '=[',conductor_array,']');
+          end;
+
+       end;
+
+
+
+       For i := 8 to 10 Do  Begin
+         Writeln(F,'~ ',PropertyName^[i],'=',GetPropertyValue(i));
        End;
-       For i := 8 to NumProperties Do  Begin
+
+       For i := 17 to 19 Do  Begin
+
          Writeln(F,'~ ',PropertyName^[i],'=',GetPropertyValue(i));
        End;
 
@@ -609,6 +816,8 @@ var
 begin
 
   CASE Index OF
+      1   : Result       := Format('%d',[FNConds]);
+      2   : Result       := Format('%d',[FNphases]);
       3   : Result       := Format('%d',[FActiveCond]);
       4,13,14: Result := FCondName^[FActiveCond];
       5   : Result       := Format('%-g',[FX^[FActiveCond]]);
@@ -629,6 +838,11 @@ begin
               Result   :=  Result + ']';
             End;
       19: Result := LineTypeList.Get(FLineType);
+      20: Begin  // Similar to 12,15,16 but with conductor data class prepended
+            Result := '[';
+            for i:= 1 to FNConds do Result := Result + FCondName^[i] + ' ';
+            Result := Result + ']';
+          End;
    ELSE
      // Inherited parameters
      Result     := Inherited GetPropertyValue(Index);
@@ -838,6 +1052,7 @@ begin
   Reallocmem( FWireData, Sizeof(FWireData^[1]) *FNconds);
   Reallocmem( FX,        Sizeof(FX^[1])        *FNconds);
   Reallocmem( FY,        Sizeof(FY^[1])        *FNconds);
+  SetLength(FEqDist, 4);  // always four elements
   Reallocmem( FUnits,    Sizeof(Funits^[1])    *FNconds);
   Reallocmem( FPhaseChoice,    Sizeof(FPhaseChoice^[1])    *FNconds);
 
@@ -858,6 +1073,12 @@ begin
   end;
 //  For i := 1 to FNconds Do FPhaseChoice^[i] := Unknown;   // This was defined previously (ChangeLineConstantsType)
                                                             // and overrides previous allocations
+
+  For i := 1 to 4 Do
+  Begin
+    FEqDist[i]         := 0.0;
+  end;
+
   FLastUnit := UNITS_FT;
 
 end;
@@ -896,9 +1117,22 @@ Var
   tsd             : TTSDataObj;
 begin
 
+  FLineData.EquivalentSpacing := FEquivalentSpacing;
+  if FEquivalentSpacing then
+  begin
+    // Always four elements: EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+    FLineData.EqDist[1, FLastUnit] := FEqDist[1];
+    FLineData.EqDist[2, FLastUnit] := FEqDist[2];
+    FLineData.EqDist[3, FLastUnit] := FEqDist[3] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
+    FLineData.EqDist[4, FLastUnit] := FEqDist[4] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
+  end;
   For i := 1 to FNconds Do Begin
-    FLineData.X[i, Funits^[i]] := FX^[i];
-    FLineData.Y[i, Funits^[i]] := FY^[i] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(Funits^[i]);
+    if not FEquivalentSpacing then
+    begin
+      FLineData.X[i, Funits^[i]] := FX^[i];
+      FLineData.Y[i, Funits^[i]] := FY^[i] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(Funits^[i]);
+    end;
+
     FLineData.radius[i, FWireData^[i].RadiusUnits] := FWireData^[i].Radius;
     FLineData.capradius[i, FWireData^[i].RadiusUnits] := FWireData^[i].capRadius;
     FLineData.GMR[i, FWireData^[i].GMRUnits]       := FWireData^[i].GMR;
@@ -987,9 +1221,12 @@ begin
       j := j + 1;
       FCondName^[j] := Wires^[i].Name;
       FWireData^[j] := Wires^[i];
-      FX^[j] := Spc.Xcoord[i];
-      FY^[j] := Spc.Ycoord[i];
-      FUnits^[j] := Spc.Units;
+      if not Spc.EquivalentSpacing then
+      begin
+        FX^[j] := Spc.Xcoord[i];
+        FY^[j] := Spc.Ycoord[i];
+        FUnits^[j] := Spc.Units;
+      end;
       if ((Wires^[i].NormAmps < NormAmps) or (NormAmps = 0)) and (j <= FNPhases) then
       begin
         NormAmps    := Wires^[i].NormAmps;
@@ -998,6 +1235,16 @@ begin
     end;
 
   end;
+  if Spc.EquivalentSpacing then
+  begin
+    FEqDist[1] := Spc.EqDistPhPh;
+    FEqDist[2] := Spc.EqDistPhN;
+    FEqDist[3] := Spc.AvgHeightPh;
+    FEqDist[4] := Spc.AvgHeightN;
+    FLastUnit := Spc.Units;
+  end;
+
+  FEquivalentSpacing := Spc.EquivalentSpacing;
 
   DataChanged := TRUE;
                                    

@@ -48,6 +48,11 @@ TYPE
         FX           :pDoubleArray;
         FY           :pDoubleArray;
         FUnits       :Integer;
+        FEqDistPhPh  :Double;
+        FEqDistPhN   :Double;
+        FAvgHeightPh :Double;
+        FAvgHeightN  :Double;
+        FEquivalentSpacing  :Boolean;
         DataChanged  :Boolean;
 
         procedure set_Nwires(const Value: Integer);
@@ -68,9 +73,14 @@ TYPE
         // CIM XML accessors
         Property Xcoord[i:Integer]: Double Read Get_FX;
         Property Ycoord[i:Integer]: Double Read Get_FY;
+        Property EqDistPhPh: Double Read FEqDistPhPh;
+        Property EqDistPhN: Double Read FEqDistPhN;
+        Property AvgHeightPh: Double Read FAvgHeightPh;
+        Property AvgHeightN: Double Read FAvgHeightN;
         Property NWires: Integer Read FNConds Write set_Nwires;
         Property NPhases: Integer Read FNPhases;
         Property Units: Integer Read FUnits;
+        Property EquivalentSpacing: Boolean Read FEquivalentSpacing;
    end;
 
 VAR
@@ -80,7 +90,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs,  DSSGlobals, Ucomplex, Utilities,  LineUNits;
 
-Const      NumPropsThisClass = 5;
+Const      NumPropsThisClass = 10;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TLineSpacing.Create;  // Creates superstructure for all Line objects
@@ -117,13 +127,22 @@ Begin
      PropertyName^[3]  := 'x';
      PropertyName^[4]  := 'h';
      PropertyName^[5]  := 'units';
-
+     PropertyName^[6]  := 'detailed';
+     PropertyName^[7]  := 'EqDistPhPh';
+     PropertyName^[8]  := 'EqDistPhN';
+     PropertyName^[9]  := 'AvgPhaseHeight';
+     PropertyName^[10] := 'AvgNeutralHeight';
 
      PropertyHelp^[1] := 'Number of wires in this geometry. Default is 3. Triggers memory allocations. Define first!';
      PropertyHelp^[2] := 'Number of retained phase conductors. If less than the number of wires, list the retained phase coordinates first.';
      PropertyHelp^[3] := 'Array of wire X coordinates.';
      PropertyHelp^[4] := 'Array of wire Heights.';
      PropertyHelp^[5] := 'Units for x and h: {mi|kft|km|m|Ft|in|cm } Initial default is "ft", but defaults to last unit defined';
+     PropertyHelp^[6] := '{Yes/True | No/False} Default = Yes. Determines whether the spacing uses a detailed cross-section coordinates with x and h arrays (Yes/True), or uses equivalent spacing fields (No/False). The equivalent spacing fields are EqDistPhPh, EqDistPhN, AvgPhaseHeight and AvgNeutralHeight.';
+     PropertyHelp^[7] := 'Equivalent distance between phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates. ';
+     PropertyHelp^[8] := 'Equivalent distance between phase and neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.';
+     PropertyHelp^[9] := 'Average height of phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.';
+     PropertyHelp^[10]:= 'Average height of neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.';
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -190,6 +209,11 @@ BEGIN
             3: InterpretArray (Param, X);
             4: InterpretArray (Param, H);
             5: FUnits := GetUnitsCode(Param);
+            6: FEquivalentSpacing := not InterpretYesNo(Param);
+            7: FEqDistPhPh := Parser[ActorID].DblValue;
+            8: FEqDistPhN := Parser[ActorID].DblValue;
+            9: FAvgHeightPh := Parser[ActorID].DblValue;
+            10: FAvgHeightN := Parser[ActorID].DblValue;
          ELSE
            // Inherited parameters
            ClassEdit(ActiveLineSpacingObj, Parampointer - NumPropsThisClass)
@@ -223,6 +247,11 @@ BEGIN
        FNPhases := OtherLineSpacing.NPhases;
        For i := 1 to FNConds Do FX^[i] := OtherLineSpacing.FX^[i];
        For i := 1 to FNConds Do FY^[i] := OtherLineSpacing.FY^[i];
+       FEquivalentSpacing := OtherLineSpacing.EquivalentSpacing;
+       FEqDistPhPh := OtherLineSpacing.EqDistPhPh;
+       FEqDistPhN := OtherLineSpacing.EqDistPhN;
+       FAvgHeightPh := OtherLineSpacing.AvgHeightPh;
+       FAvgHeightN := OtherLineSpacing.AvgHeightN;
        FUnits := OtherLineSpacing.FUnits;
        DataChanged := TRUE;
        For i := 1 to ParentClass.NumProperties Do PropertyValue[i] := OtherLineSpacing.PropertyValue[i];
@@ -290,6 +319,11 @@ BEGIN
      Funits      := UNITS_FT;
      NWires      := 3;  // Allocates terminals
      FNPhases     := 3;
+     FEqDistPhPh  := 0.0;
+     FEqDistPhN   := 0.0;
+     FAvgHeightPh := 0.0;
+     FAvgHeightN  := 0.0;
+     FEquivalentSpacing := FALSE;
 
      InitPropertyValues(0);
 END;
@@ -316,7 +350,9 @@ Begin
 
     WITH ParentClass Do
     Begin
-       For i := 1 to 5 Do  Begin
+       For i := 1 to 10 Do  Begin
+//         if (not FEquivalentSpacing and (i > 5)) then continue
+//         else if (FEquivalentSpacing and ((i = 3) or (i = 4))) then continue;
          Writeln(F,'~ ',PropertyName^[i],'=',GetPropertyValue(i));
        End;
     End;
@@ -369,6 +405,11 @@ begin
      PropertyValue[3] :=  '0';
      PropertyValue[4] :=  '32';
      PropertyValue[5] :=  'ft';
+     PropertyValue[6] :=  'Yes';
+     PropertyValue[7] :=  '0';
+     PropertyValue[8] :=  '0';
+     PropertyValue[9] :=  '0';
+     PropertyValue[10] :=  '0';
 
     inherited  InitPropertyValues(NumPropsThisClass);
 
