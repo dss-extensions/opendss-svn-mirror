@@ -289,6 +289,7 @@ TLineConstants::~TLineConstants()
 	Fcapradius.clear();
 	FRDC.clear();
 	Frac.clear();
+	FEqDist.clear();
 	// inherited;
 }
 

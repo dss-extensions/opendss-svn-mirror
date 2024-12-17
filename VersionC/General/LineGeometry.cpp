@@ -758,6 +758,7 @@ TLineGeometryObj::TLineGeometryObj(TDSSClass* ParClass, const String LineGeometr
 	FUnits.clear();
 	FLineData = nullptr;
 	FSpacingType = "";
+	FCondsUser = "";
 
 /* was causing unnecessary allocations (was leaving dangling memory)
       Nconds      := 3;  // Allocates terminals

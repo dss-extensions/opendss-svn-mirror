@@ -95,8 +95,8 @@ begin
       if i <= FNumPhases then Ri := FRadius^[i] else Ri := 0.5 * FDiaCable^[i];
       for j := i+1 to FNumConds do Begin
         if j <= FNumPhases then Rj := FRadius^[j] else Rj := 0.5 * FDiaCable^[j];
-        if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2]
-        else Dij := FEqDist[1];
+        if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist^[2]
+        else Dij := FEqDist^[1];
 
         if (Dij < (Ri + Rj)) then Begin
           Result := TRUE;
