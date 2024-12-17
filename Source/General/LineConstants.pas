@@ -46,6 +46,9 @@ type
         FNumPhases: Integer;
         FX: pDoubleArray;
         FY: pDoubleArray;
+        FEqDist: array of Double; // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+        FEquivalentSpacing: Boolean;  // to tell the calcs when to use equivalent spacing info
+
         FRdc: pDoubleArray;   // ohms/m
         FRac: pDoubleArray;   // ohms/m
         FGMR: pDoubleArray;   // m
@@ -74,6 +77,7 @@ type
         function Get_Rac(i, units: Integer): Double;
         function Get_X(i, units: Integer): Double;
         function Get_Y(i, units: Integer): Double;
+        function Get_FEqDist(i, units: Integer): Double;
         function Get_YCmatrix(f, Lngth: Double; Units: Integer): Tcmatrix;
         function Get_Ze(i, j: Integer): Complex;
         function Get_Zint(i: Integer): Complex;
@@ -85,11 +89,13 @@ type
         procedure Set_Rac(i, units: Integer; const Value: Double);
         procedure Set_X(i, units: Integer; const Value: Double);
         procedure Set_Y(i, units: Integer; const Value: Double);
+        procedure Set_FEqDist(i, units: Integer; const Value: Double);
         procedure Set_Frequency(const Value: Double);
         procedure Set_Frhoearth(const Value: Double);  // m
         procedure Set_FEpsRMedium(const Value: Double);  // unit-less
         procedure Set_FheightOffset(const Value: Double);  // m
         procedure Set_FuserHeightUnit(const Value: Integer); // Whatever the user defined. The height is always saved in meters here.
+        procedure Set_FEquivalentSpacing(const Value: Boolean);
 
     // This allows you to compute capacitance using a different radius -- for bundled conductors
         function Get_Capradius(i, units: Integer): Double;
@@ -113,6 +119,8 @@ type
 
         property X[i, units: Integer]: Double READ Get_X WRITE Set_X;
         property Y[i, units: Integer]: Double READ Get_Y WRITE Set_Y;
+        property EqDist[i, units: Integer]: Double READ Get_FEqDist WRITE Set_FEqDist;
+
         property Rdc[i, units: Integer]: Double READ Get_Rdc WRITE Set_Rdc;
         property Rac[i, units: Integer]: Double READ Get_Rac WRITE Set_Rac;
         property radius[i, units: Integer]: Double READ Get_radius WRITE Set_radius;
@@ -124,6 +132,7 @@ type
         property EpsRMedium: Double READ FEpsRMedium WRITE Set_FEpsRMedium;
         property heightOffset: Double READ Get_FheightOffset WRITE Set_FheightOffset;
         property userHeightUnit: Integer READ FuserHeightUnit WRITE Set_FuserHeightUnit;
+        property EquivalentSpacing: Boolean READ FEquivalentSpacing WRITE Set_FEquivalentSpacing;
 
     {These two properties will auto recalc the impedance matrices if frequency is different}
     {Converts to desired units when executed; Returns Pointer to Working Verstion}
@@ -226,7 +235,15 @@ begin
     begin
         for j := 1 to i - 1 do
         begin
-            Dij := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] - Fy^[j]));
+            if not FEquivalentSpacing then
+                Dij := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] - Fy^[j]))
+            else
+            begin
+                if ((j <= FNumPhases) and (i > FNumPhases)) then
+                    Dij := FEqDist[2] // EqDistPhN
+                else
+                    Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+            end;
             FZmatrix.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0 / Dij)), Get_Ze(i, j)));
         end;
     end;
@@ -243,15 +260,41 @@ begin
 
     for i := 1 to FnumConds do
     begin
-        FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * Fy^[i] / Fcapradius^[i])));
+        if not FEquivalentSpacing then
+            FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * Fy^[i] / Fcapradius^[i])))
+        else
+        begin
+            if (i > FNumPhases) then
+                FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * FEqDist[4] / Fcapradius^[i])))
+            else
+                FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0 * FEqDist[3] / Fcapradius^[i])));
+        end;
     end;
 
     for i := 1 to FNumConds do
     begin
         for j := 1 to i - 1 do
         begin
-            Dij := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] - Fy^[j]));
-            Dijp := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] + Fy^[j])); // distance to image j
+            if not FEquivalentSpacing then
+            begin
+                Dij := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] - Fy^[j]));
+                Dijp := sqrt(sqr(Fx^[i] - Fx^[j]) + sqr(Fy^[i] + Fy^[j])); // distance to image j
+            end
+            else
+            begin
+                if ((j <= FNumPhases) and (i > FNumPhases)) then
+                    Dij := FEqDist[2] // EqDistPhN
+                else
+                    Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+
+                if ((j <= FNumPhases) and (i > FNumPhases)) then
+                    Dijp := (FEqDist[3] + FEqDist[4]) // AvgHeightPhase + AvgHeightNeutral
+                else
+                if ((i <= FNumPhases) and (j <= FNumPhases)) then
+                    Dijp := (2 * FEqDist[3]) // 2 * AvgHeightPhase
+                else
+                    Dijp := (2 * FEqDist[4]) // 2 * AvgHeightNeutral
+            end;
             FYCMatrix.SetElemSym(i, j, cmplx(0.0, pfactor * ln(Dijp / Dij)));
         end;
     end;
@@ -275,32 +318,65 @@ begin
 {Check all conductors to make sure none occupy the same space or are defined at 0,0}
     Result := false;
 
-     {Check for 0 Y coordinate}
-    for i := 1 to FNumConds do
+    if FEquivalentSpacing then
     begin
-        if (FY^[i] <= 0.0) then
+       {Check for 0 Y coordinate}
+        if (FEqDist[3] <= 0.0) or (FEqDist[4] <= 0.0) then
         begin
             Result := true;
-            ErrorMessage := Format('Conductor %d height must be  > 0. ', [i]);
+            ErrorMessage := 'Conductor average heights (overhead equivalent spacing) must be > 0.';
             Exit
         end;
-    end;
-
-     {Check for overlapping conductors}
-    for i := 1 to FNumConds do
-    begin
-        for j := i + 1 to FNumConds do
+       {Check for overlapping conductors}
+        for i := 1 to FNumConds do
         begin
-            Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
-            if (Dij < (Fradius^[i] + Fradius^[j])) then
+            for j := i + 1 to FNumConds do
+            begin
+                if ((i <= FNumPhases) and (j > FNumPhases)) then
+                    Dij := FEqDist[2]
+                else
+                    Dij := FEqDist[1];
+
+                if (Dij < (Fradius^[i] + Fradius^[j])) then
+                begin
+                    Result := true;
+                    ErrorMessage := Format('Conductors %d and %d occupy the same space.',
+                        [i, j]);
+                    Exit;
+                end;
+            end;
+        end;
+    end
+    else
+    begin
+       {Check for 0 Y coordinate}
+        for i := 1 to FNumConds do
+        begin
+            if (FY^[i] <= 0.0) then
             begin
                 Result := true;
-                ErrorMessage := Format('Conductors %d and %d occupy the same space.',
-                    [i, j]);
-                Exit;
+                ErrorMessage := Format('Conductor %d height must be  > 0. ', [i]);
+                Exit
+            end;
+        end;
+
+       {Check for overlapping conductors}
+        for i := 1 to FNumConds do
+        begin
+            for j := i + 1 to FNumConds do
+            begin
+                Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
+                if (Dij < (Fradius^[i] + Fradius^[j])) then
+                begin
+                    Result := true;
+                    ErrorMessage := Format('Conductors %d and %d occupy the same space.',
+                        [i, j]);
+                    Exit;
+                end;
             end;
         end;
     end;
+
 end;
 
 constructor TLineConstants.Create(NumConductors: Integer);
@@ -317,6 +393,9 @@ begin
     Fcapradius := Allocmem(Sizeof(Fcapradius^[1]) * FNumConds);
     FRdc := Allocmem(Sizeof(FRdc^[1]) * FNumConds);
     FRac := Allocmem(Sizeof(FRac^[1]) * FNumConds);
+
+    SetLength(FEqDist, 4);    // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+    FEquivalentSpacing := false;
 
 
      {Initialize to  not set}
@@ -410,6 +489,11 @@ begin
     Result := FY^[i] * From_Meters(Units);
 end;
 
+function TLineConstants.Get_FEqDist(i, units: Integer): Double;
+begin
+    Result := FEqDist[i] * From_Meters(Units); // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
+end;
+
 function TLineConstants.Get_YCmatrix(f, Lngth: Double;
     Units: Integer): Tcmatrix;
 {Makes a new YCmatrix and correct for lengths and units as it copies}
@@ -445,12 +529,34 @@ end;
 function TLineConstants.Get_Ze(i, j: Integer): Complex;
 var
     LnArg, hterm, xterm: Complex;
-    mij, thetaij, Dij, Fyi, Fyj: Double;
+    mij, thetaij, Dij, Fyi, Fyj, Fxi_Fxj: Double;
     term1, term2, term3, term4, term5: Double;
 begin
 
-    Fyi := Abs(Fy^[i]);
-    Fyj := Abs(Fy^[j]);
+    if not FEquivalentSpacing then
+        Fyi := Abs(Fy^[i])
+    else
+    if i <= FNumPhases then
+        Fyi := Abs(FEqDist[3])
+    else
+        Fyi := Abs(FEqDist[4]);
+
+    if not FEquivalentSpacing then
+        Fyj := Abs(Fy^[j])
+    else
+    if j <= FNumPhases then
+        Fyj := Abs(FEqDist[3])
+    else
+        Fyj := Abs(FEqDist[4]);
+
+    // If the spacing uses equivalent distance, assume the equivalent distance is on the X axis.
+    if not FEquivalentSpacing then
+        Fxi_Fxj := Fx^[i] - Fx^[j]
+    else
+    if ((i <= FNumPhases) and (j <= FNumPhases)) or ((i > FNumPhases) and (j > FNumPhases)) then
+        Fxi_Fxj := FEqDist[1]
+    else
+        Fxi_Fxj := FEqDist[2];
 
     case ActiveEarthModel[ActiveActor] of
 
@@ -470,7 +576,7 @@ begin
             end
             else
             begin
-                Dij := sqrt(sqr(Fyi + Fyj) + sqr(Fx^[i] - Fx^[j]));
+                Dij := sqrt(sqr(Fyi + Fyj) + sqr(Fxi_Fxj));
                 thetaij := ArcCos((Fyi + Fyj) / Dij);
             end;
             mij := 2.8099e-3 * Dij * sqrt(FFrequency / Frhoearth);
@@ -496,7 +602,7 @@ begin
             if i <> j then
             begin
                 hterm := Cadd(cmplx(Fyi + Fyj, 0.0), CmulReal(Cinv(Fme), 2.0));
-                xterm := cmplx(Fx^[i] - Fx^[j], 0.0);
+                xterm := cmplx(Fxi_Fxj, 0.0);
                 LnArg := Csqrt(Cadd(Cmul(hterm, hterm), cmul(xterm, xterm)));
                 Result := Cmul(Cmplx(0.0, Fw * Mu0 / twopi), Cln(lnArg));
             end
@@ -687,6 +793,15 @@ begin
     end;
 end;
 
+procedure TLineConstants.Set_FEquivalentSpacing(const Value: Boolean);
+begin
+    if Value <> FEquivalentSpacing then
+    begin
+        FEquivalentSpacing := Value;
+        FRhoChanged := true;  // using this for both EpsRMedium, Rho, heightOffset and FuserHeightUnit and for this one as well.
+    end;
+end;
+
 procedure TLineConstants.Set_GMR(i, units: Integer; const Value: Double);
 begin
     if (i > 0) and (i <= FNumConds) then
@@ -737,6 +852,12 @@ begin
         FY^[i] := Value * To_Meters(units);
 end;
 
+procedure TLineConstants.Set_FEqDist(i, units: Integer; const Value: Double);
+begin
+    if (i > 4) then
+        exit; // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
+    FEqDist[i] := Value * To_Meters(units);
+end;
 
 procedure TLineConstants.AddHeightOffset();
 var

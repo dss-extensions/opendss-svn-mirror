@@ -100,24 +100,55 @@ begin
     End;
   End;
 *)
-    for i := 1 to FNumConds do
+    if FEquivalentSpacing then
     begin
-        if i <= FNumPhases then
-            Ri := FRadius^[i]
-        else
-            Ri := 0.5 * FDiaCable^[i];
-        for j := i + 1 to FNumConds do
+        for i := 1 to FNumConds do
         begin
-            if j <= FNumPhases then
-                Rj := FRadius^[j]
+            if i <= FNumPhases then
+                Ri := FRadius^[i]
             else
-                Rj := 0.5 * FDiaCable^[j];
-            Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
-            if (Dij < (Ri + Rj)) then
+                Ri := 0.5 * FDiaCable^[i];
+            for j := i + 1 to FNumConds do
             begin
-                Result := true;
-                ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j]);
-                Exit;
+                if j <= FNumPhases then
+                    Rj := FRadius^[j]
+                else
+                    Rj := 0.5 * FDiaCable^[j];
+                if ((i <= FNumPhases) and (j > FNumPhases)) then
+                    Dij := FEqDist[2]
+                else
+                    Dij := FEqDist[1];
+
+                if (Dij < (Ri + Rj)) then
+                begin
+                    Result := true;
+                    ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j]);
+                    Exit;
+                end;
+            end;
+        end;
+    end
+    else
+    begin
+        for i := 1 to FNumConds do
+        begin
+            if i <= FNumPhases then
+                Ri := FRadius^[i]
+            else
+                Ri := 0.5 * FDiaCable^[i];
+            for j := i + 1 to FNumConds do
+            begin
+                if j <= FNumPhases then
+                    Rj := FRadius^[j]
+                else
+                    Rj := 0.5 * FDiaCable^[j];
+                Dij := Sqrt(SQR(FX^[i] - FX^[j]) + SQR(FY^[i] - FY^[j]));
+                if (Dij < (Ri + Rj)) then
+                begin
+                    Result := true;
+                    ErrorMessage := Format('Cable conductors %d and %d occupy the same space.', [i, j]);
+                    Exit;
+                end;
             end;
         end;
     end;
