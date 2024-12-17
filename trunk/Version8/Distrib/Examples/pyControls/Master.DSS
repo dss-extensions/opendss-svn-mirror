@@ -1,4 +1,6 @@
 Clear
+set defaultBaseFrequency=60
+
 New Circuit.ieee123
 
 
@@ -26,9 +28,10 @@ set pyPath=C:\ProgramData\anaconda3
 ! Here we create our pyController
 New pyControl.myControl pyScript=C:\Temp\Regulator_Sgl_Phase.py
 
-set maxcontroliter=20
+set maxcontroliter=200
 
 solve 
+
 
 
 

@@ -18,7 +18,7 @@ import sys, time
 # Some globals
 puV     = 0.0                                                 # Stores the actual Vpu at the bus observed
 Target  = 1.0                                                 # This is the target
-Band    = 0.02                                                # This is the error band for control
+Band    = 0.01                                                # This is the error band for control
 myXfmr = 'reg4c'
 DSSQry = '? Transformer.'                                     # To prevent unnecessary copies
 
