@@ -44,6 +44,8 @@ TLineConstants = class(TObject)
     FNumPhases     :Integer;
     FX             :pDoubleArray;
     FY             :pDoubleArray;
+
+    // Attention!: zero based index for this type of array
     FEqDist        :array of double; // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
     FEquivalentSpacing :Boolean;  // to tell the calcs when to use equivalent spacing info
 
@@ -216,8 +218,8 @@ begin
           if not FEquivalentSpacing then Dij := sqrt(sqr(Fx^[i]-Fx^[j]) + sqr(Fy^[i]-Fy^[j]))
           else
           begin
-            if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
-            else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+            if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2 - 1] // EqDistPhN
+            else Dij := FEqDist[1 - 1];  // EqDistPhPh (including N-N conductorss)
           end;
           FZmatrix.SetElemSym(i, j, Cadd(Cmulreal(Lfactor, ln(1.0/Dij)), Get_Ze(i,j)));
         End;
@@ -237,8 +239,8 @@ begin
           if not FEquivalentSpacing then FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*Fy^[i]/Fcapradius^[i])))
           else
           begin
-            if (i > FNumPhases) then FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*FEqDist[4]/Fcapradius^[i])))
-            else FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*FEqDist[3]/Fcapradius^[i])));
+            if (i > FNumPhases) then FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*FEqDist[4 - 1]/Fcapradius^[i])))
+            else FYCMatrix.SetElement(i, i, cmplx(0.0, pfactor * ln(2.0*FEqDist[3 - 1]/Fcapradius^[i])));
           end;
       End;
 
@@ -251,12 +253,12 @@ begin
             end
             else
             begin
-              if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
-              else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
+              if ((j <= FNumPhases) and (i > FNumPhases)) then Dij := FEqDist[2 - 1] // EqDistPhN
+              else Dij := FEqDist[1 - 1];  // EqDistPhPh (including N-N conductorss)
 
-              if ((j <= FNumPhases) and (i > FNumPhases)) then Dijp := (FEqDist[3] + FEqDist[4]) // AvgHeightPhase + AvgHeightNeutral
-              else if ((i <= FNumPhases) and (j <= FNumPhases)) then Dijp := (2 * FEqDist[3]) // 2 * AvgHeightPhase
-              else Dijp := (2 * FEqDist[4]) // 2 * AvgHeightNeutral
+              if ((j <= FNumPhases) and (i > FNumPhases)) then Dijp := (FEqDist[3 - 1] + FEqDist[4 - 1]) // AvgHeightPhase + AvgHeightNeutral
+              else if ((i <= FNumPhases) and (j <= FNumPhases)) then Dijp := (2 * FEqDist[3 - 1]) // 2 * AvgHeightPhase
+              else Dijp := (2 * FEqDist[4 - 1]) // 2 * AvgHeightNeutral
             end;
             FYCMatrix.SetElemSym(i, j, cmplx(0.0, pfactor * ln(Dijp/Dij)));
         End;
@@ -283,7 +285,7 @@ begin
      if FEquivalentSpacing then
      begin
        {Check for 0 Y coordinate}
-       if (FEqDist[3] <= 0.0) or (FEqDist[4] <= 0.0) then Begin
+       if (FEqDist[3 - 1] <= 0.0) or (FEqDist[4 - 1] <= 0.0) then Begin
            Result := TRUE;
            ErrorMessage := 'Conductor average heights (overhead equivalent spacing) must be > 0.';
            Exit
@@ -291,8 +293,8 @@ begin
        {Check for overlapping conductors}
        For i := 1 to FNumConds do Begin
          for j := i+1 to FNumConds do Begin
-           if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2]
-           else Dij := FEqDist[1];
+           if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2 - 1]
+           else Dij := FEqDist[1 - 1];
 
            if (Dij < (Fradius^[i]+Fradius^[j])) then Begin
                Result := TRUE;
@@ -343,7 +345,7 @@ begin
      FRdc       := Allocmem(Sizeof(FRdc^[1])* (FNumConds));
      FRac       := Allocmem(Sizeof(FRac^[1])* (FNumConds));
 
-     SetLength(FEqDist, 5);    // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+     SetLength(FEqDist, 4);    // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
      FEquivalentSpacing := FALSE;
 
 
@@ -433,7 +435,7 @@ end;
 
 function TLineConstants.Get_FEqDist(i, units: Integer): Double;
 begin
-    Result := FEqDist[i] * From_Meters(Units); // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
+    Result := FEqDist[i - 1] * From_Meters(Units); // This array has only four elements PhPh, PhN, AvgHeightPh, AvgHeightN
 end;
 
 function TLineConstants.Get_YCmatrix(f, Lngth: double;
@@ -472,17 +474,17 @@ Var
 begin
 
     if not FEquivalentSpacing then Fyi := Abs(Fy^[i])
-    else if i <= FNumPhases then Fyi := Abs(FEqDist[3])
-    else Fyi := Abs(FEqDist[4]);
+    else if i <= FNumPhases then Fyi := Abs(FEqDist[3 - 1])
+    else Fyi := Abs(FEqDist[4 - 1]);
 
     if not FEquivalentSpacing then Fyj := Abs(Fy^[j])
-    else if j <= FNumPhases then Fyj := Abs(FEqDist[3])
-    else Fyj := Abs(FEqDist[4]);
+    else if j <= FNumPhases then Fyj := Abs(FEqDist[3 - 1])
+    else Fyj := Abs(FEqDist[4 - 1]);
 
     // If the spacing uses equivalent distance, assume the equivalent distance is on the X axis.
     if not FEquivalentSpacing then Fxi_Fxj := Fx^[i] - Fx^[j]
-    else if ((i <= FNumPhases) and (j <= FNumPhases)) or ((i > FNumPhases) and (j > FNumPhases)) then Fxi_Fxj := FEqDist[1]
-    else Fxi_Fxj := FEqDist[2];
+    else if ((i <= FNumPhases) and (j <= FNumPhases)) or ((i > FNumPhases) and (j > FNumPhases)) then Fxi_Fxj := FEqDist[1 - 1]
+    else Fxi_Fxj := FEqDist[2 - 1];
 
     CASE ActiveEarthModel[ActiveActor] of
 
@@ -746,7 +748,7 @@ end;
 
 procedure TLineConstants.Set_FEqDist(i, units: Integer; const Value: Double);
 begin
-    FEqDist[i] := Value * To_Meters(units);
+    FEqDist[i - 1] := Value * To_Meters(units);
 end;
 
 procedure TLineConstants.AddHeightOffset();
