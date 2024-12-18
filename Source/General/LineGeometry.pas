@@ -70,8 +70,11 @@ type
         FWireData: pConductorDataArray;
         FX: pDoubleArray;
         FY: pDoubleArray;
+
+        // Attention!: zero based index for this type of array
         FEqDist: array of Double; // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
         FEquivalentSpacing: Boolean;  // to tell the calcs when to use equivalent spacing info
+
         FCondsUser: String;      // use this to preserve conductors array for dumping to avoid losing user-defined None positions.
         FUnits: pIntegerArray;
         FLastUnit: Integer;
@@ -354,10 +357,10 @@ begin
                             FEquivalentSpacing := ActiveLineSpacingObj.EquivalentSpacing;
                             if ActiveLineSpacingObj.EquivalentSpacing then
                             begin
-                                FEqDist[1] := ActiveLineSpacingObj.EqDistPhPh;
-                                FEqDist[2] := ActiveLineSpacingObj.EqDistPhN;
-                                FEqDist[3] := ActiveLineSpacingObj.AvgHeightPh;
-                                FEqDist[4] := ActiveLineSpacingObj.AvgHeightN;
+                                FEqDist[1 - 1] := ActiveLineSpacingObj.EqDistPhPh;
+                                FEqDist[2 - 1] := ActiveLineSpacingObj.EqDistPhN;
+                                FEqDist[3 - 1] := ActiveLineSpacingObj.AvgHeightPh;
+                                FEqDist[4 - 1] := ActiveLineSpacingObj.AvgHeightN;
                             end
                             else
                             begin
@@ -515,10 +518,10 @@ begin
                         end;
                         if ActiveLineSpacingObj.EquivalentSpacing then
                         begin
-                            FEqDist[1] := ActiveLineSpacingObj.EqDistPhPh;
-                            FEqDist[2] := ActiveLineSpacingObj.EqDistPhN;
-                            FEqDist[3] := ActiveLineSpacingObj.AvgHeightPh;
-                            FEqDist[4] := ActiveLineSpacingObj.AvgHeightN;
+                            FEqDist[1 - 1] := ActiveLineSpacingObj.EqDistPhPh;
+                            FEqDist[2 - 1] := ActiveLineSpacingObj.EqDistPhN;
+                            FEqDist[3 - 1] := ActiveLineSpacingObj.AvgHeightPh;
+                            FEqDist[4 - 1] := ActiveLineSpacingObj.AvgHeightN;
                         end;
 
                     end;
@@ -734,7 +737,7 @@ begin
             for i := 1 to FNConds do
                 FY^[i] := OtherLineGeometry.FY^[i];
             for i := 1 to 4 do
-                FEqDist[i] := OtherLineGeometry.FEqDist[i];
+                FEqDist[i - 1] := OtherLineGeometry.FEqDist[i - 1];
             for i := 1 to FNConds do
                 FUnits^[i] := OtherLineGeometry.FUnits^[i];
             FLastUnit := OtherLineGeometry.FLastUnit; // Useful if template geometry uses a spacing
@@ -1246,7 +1249,7 @@ begin
     Reallocmem(FWireData, Sizeof(FWireData^[1]) * FNconds);
     Reallocmem(FX, Sizeof(FX^[1]) * FNconds);
     Reallocmem(FY, Sizeof(FY^[1]) * FNconds);
-    SetLength(FEqDist, 5);
+    SetLength(FEqDist, 4);
     Reallocmem(FUnits, Sizeof(Funits^[1]) * FNconds);
     Reallocmem(FPhaseChoice, Sizeof(FPhaseChoice^[1]) * FNconds);
 
@@ -1270,7 +1273,7 @@ begin
 
     for i := 1 to 4 do
     begin
-        FEqDist[i] := 0.0;
+        FEqDist[i - 1] := 0.0;
     end;
 
     FLastUnit := UNITS_FT;
@@ -1315,10 +1318,10 @@ begin
     if FEquivalentSpacing then
     begin
     // Always four elements: EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
-        FLineData.EqDist[1, FLastUnit] := FEqDist[1];
-        FLineData.EqDist[2, FLastUnit] := FEqDist[2];
-        FLineData.EqDist[3, FLastUnit] := FEqDist[3] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
-        FLineData.EqDist[4, FLastUnit] := FEqDist[4] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
+        FLineData.EqDist[1, FLastUnit] := FEqDist[1 - 1];
+        FLineData.EqDist[2, FLastUnit] := FEqDist[2 - 1];
+        FLineData.EqDist[3, FLastUnit] := FEqDist[3 - 1] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
+        FLineData.EqDist[4, FLastUnit] := FEqDist[4 - 1] + FLineData.heightOffset * To_Meters(FLineData.userHeightUnit) * From_Meters(FLastUnit);
     end;
     for i := 1 to FNconds do
     begin
@@ -1446,10 +1449,10 @@ begin
     end;
     if Spc.EquivalentSpacing then
     begin
-        FEqDist[1] := Spc.EqDistPhPh;
-        FEqDist[2] := Spc.EqDistPhN;
-        FEqDist[3] := Spc.AvgHeightPh;
-        FEqDist[4] := Spc.AvgHeightN;
+        FEqDist[1 - 1] := Spc.EqDistPhPh;
+        FEqDist[2 - 1] := Spc.EqDistPhN;
+        FEqDist[3 - 1] := Spc.AvgHeightPh;
+        FEqDist[4 - 1] := Spc.AvgHeightN;
         FLastUnit := Spc.Units;
     end;
 

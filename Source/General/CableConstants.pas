@@ -115,9 +115,9 @@ begin
                 else
                     Rj := 0.5 * FDiaCable^[j];
                 if ((i <= FNumPhases) and (j > FNumPhases)) then
-                    Dij := FEqDist[2]
+                    Dij := FEqDist[2 - 1]
                 else
-                    Dij := FEqDist[1];
+                    Dij := FEqDist[1 - 1];
 
                 if (Dij < (Ri + Rj)) then
                 begin
