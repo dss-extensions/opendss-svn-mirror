@@ -335,15 +335,15 @@ begin
 
      FNumConds  := NumConductors;
      NPhases    := FNumConds;
-     FX         := Allocmem(Sizeof(FX^[1])*FNumConds);
-     FY         := Allocmem(Sizeof(Fy^[1])*FNumConds);
-     FGMR       := Allocmem(Sizeof(FGMR^[1])*FNumConds);
-     Fradius    := Allocmem(Sizeof(Fradius^[1])*FNumConds);
-     Fcapradius := Allocmem(Sizeof(Fcapradius^[1])*FNumConds);
-     FRdc       := Allocmem(Sizeof(FRdc^[1])*FNumConds);
-     FRac       := Allocmem(Sizeof(FRac^[1])*FNumConds);
+     FX         := Allocmem(Sizeof(FX^[1])* (FNumConds));
+     FY         := Allocmem(Sizeof(Fy^[1])* (FNumConds));
+     FGMR       := Allocmem(Sizeof(FGMR^[1])*(FNumConds));
+     Fradius    := Allocmem(Sizeof(Fradius^[1])* (FNumConds));
+     Fcapradius := Allocmem(Sizeof(Fcapradius^[1])* (FNumConds));
+     FRdc       := Allocmem(Sizeof(FRdc^[1])* (FNumConds));
+     FRac       := Allocmem(Sizeof(FRac^[1])* (FNumConds));
 
-     SetLength(FEqDist, 4);    // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
+     SetLength(FEqDist, 5);    // This array always has four elements EqDistPhPh, EqDistPhN, AvgHeightPh, AvgHeightN
      FEquivalentSpacing := FALSE;
 
 

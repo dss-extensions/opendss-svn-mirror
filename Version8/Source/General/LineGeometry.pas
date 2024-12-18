@@ -695,7 +695,7 @@ BEGIN
       FWireData           := nil;
       FX                  := nil;
       FY                  := nil;
-      FEqDist             := nil;
+      //FEqDist             := nil;
       FEquivalentSpacing  := FALSE;
       Funits              := nil;
       FLineData           := Nil;
@@ -728,14 +728,15 @@ END;
 destructor TLineGeometryObj.Destroy;
 BEGIN
 
-    FLineData.Free;
+    if Assigned(FLineData) then
+      FreeAndNil(FLineData);
     FreeStringArray(FCondName, FnConds);
     Reallocmem(Fwiredata, 0);
     Reallocmem(FY, 0);
     Reallocmem(FX, 0);
-    SetLength(FEqDist, 0);
     Reallocmem(Funits, 0);
     Reallocmem(FPhaseChoice, 0);
+    SetLength(FEqDist, 0);
 
     Inherited destroy;
 END;
@@ -1053,7 +1054,7 @@ begin
   Reallocmem( FWireData, Sizeof(FWireData^[1]) *FNconds);
   Reallocmem( FX,        Sizeof(FX^[1])        *FNconds);
   Reallocmem( FY,        Sizeof(FY^[1])        *FNconds);
-  SetLength( FEqDist, 4 );
+  SetLength( FEqDist, 5 );
   Reallocmem( FUnits,    Sizeof(Funits^[1])    *FNconds);
   Reallocmem( FPhaseChoice,    Sizeof(FPhaseChoice^[1])    *FNconds);
 
