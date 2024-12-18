@@ -15,19 +15,19 @@ TCNTSLineConstants = class(TCableConstants)
   private
 
     // For All
-    FCondType    :pIntegerArray; // Use as 1: CN, 2: TS, 3: Bare wire
+    FCondType   : array of integer; // Use as 1: CN, 2: TS, 3: Bare wire
 
     // For CN
-    FkStrand    :pIntegerArray;
-    FDiaStrand  :pDoubleArray;
-    FGmrStrand  :pDoubleArray;
-    FRStrand    :pDoubleArray;
-    FSemicon    :Array of boolean;
+    FkStrand    : array of integer;
+    FDiaStrand  : array of double;
+    FGmrStrand  : array of double;
+    FRStrand    : array of double;
+    FSemicon    : Array of boolean;
 
     // For TS
-    FDiaShield: pDoubleArray;
-    FTapeLayer: pDoubleArray;
-    FTapeLap:   pDoubleArray;
+    FDiaShield  : array of double;
+    FTapeLayer  : array of double;
+    FTapeLap    : array of double;
 
     // For All
     function Get_CondType(i: Integer): Integer;
@@ -95,18 +95,18 @@ Const
 // For All
 function TCNTSLineConstants.Get_CondType(i: Integer): Integer;
 begin
-  Result := FCondType^[i];
+  Result := FCondType[i];
 end;
 
 procedure TCNTSLineConstants.Set_CondType(i: Integer; const Value: Integer);
 begin
-  If (i>0) and (i<=FNumConds) Then FCondType^[i] := Value;
+  If (i>0) and (i<=FNumConds) Then FCondType[i] := Value;
 end;
 
 // For CN
 function TCNTSLineConstants.Get_kStrand(i: Integer): Integer;
 begin
-  Result := FkStrand^[i];
+  Result := FkStrand[i];
 end;
 
 function TCNTSLineConstants.Get_Semicon(i: Integer): Boolean;
@@ -116,22 +116,22 @@ end;
 
 function TCNTSLineConstants.Get_DiaStrand(i, units: Integer): Double;
 begin
-  Result := FDiaStrand^[i] * From_Meters(Units);
+  Result := FDiaStrand[i] * From_Meters(Units);
 end;
 
 function TCNTSLineConstants.Get_GmrStrand(i, units: Integer): Double;
 begin
-  Result := FGmrStrand^[i] * From_Meters(Units);
+  Result := FGmrStrand[i] * From_Meters(Units);
 end;
 
 function TCNTSLineConstants.Get_RStrand(i, units: Integer): Double;
 begin
-  Result := FRStrand^[i] * From_Per_Meter(Units);
+  Result := FRStrand[i] * From_Per_Meter(Units);
 end;
 
 procedure TCNTSLineConstants.Set_kStrand(i: Integer; const Value: Integer);
 begin
-  If (i>0) and (i<=FNumConds) Then FkStrand^[i] := Value;
+  If (i>0) and (i<=FNumConds) Then FkStrand[i] := Value;
 end;
 
 procedure TCNTSLineConstants.Set_Semicon(i: Integer; const Value: Boolean);
@@ -141,49 +141,49 @@ end;
 
 procedure TCNTSLineConstants.Set_DiaStrand(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FDiaStrand^[i] := Value * To_Meters(units);
+  If (i>0) and (i<=FNumConds) Then FDiaStrand[i] := Value * To_Meters(units);
 end;
 
 procedure TCNTSLineConstants.Set_GmrStrand(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FGmrStrand^[i] := Value * To_Meters(units);
+  If (i>0) and (i<=FNumConds) Then FGmrStrand[i] := Value * To_Meters(units);
 end;
 
 procedure TCNTSLineConstants.Set_RStrand(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FRStrand^[i] := Value * To_Per_Meter(units);
+  If (i>0) and (i<=FNumConds) Then FRStrand[i] := Value * To_Per_Meter(units);
 end;
 
 
 // For TS
 function TCNTSLineConstants.Get_DiaShield(i, units: Integer): Double;
 begin
-  Result := FDiaShield^[i] * From_Meters(Units);
+  Result := FDiaShield[i] * From_Meters(Units);
 end;
 
 function TCNTSLineConstants.Get_TapeLayer(i, units: Integer): Double;
 begin
-  Result := FTapeLayer^[i] * From_Meters(Units);
+  Result := FTapeLayer[i] * From_Meters(Units);
 end;
 
 function TCNTSLineConstants.Get_TapeLap(i: Integer): Double;
 begin
-  Result := FTapeLap^[i];
+  Result := FTapeLap[i];
 end;
 
 procedure TCNTSLineConstants.Set_DiaShield(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FDiaShield^[i] := Value * To_Meters(units);
+  If (i>0) and (i<=FNumConds) Then FDiaShield[i] := Value * To_Meters(units);
 end;
 
 procedure TCNTSLineConstants.Set_TapeLayer(i, units: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FTapeLayer^[i] := Value * To_Meters(units);
+  If (i>0) and (i<=FNumConds) Then FTapeLayer[i] := Value * To_Meters(units);
 end;
 
 procedure TCNTSLineConstants.Set_TapeLap(i: Integer; const Value: Double);
 begin
-  If (i>0) and (i<=FNumConds) Then FTapeLap^[i] := Value;
+  If (i>0) and (i<=FNumConds) Then FTapeLap[i] := Value;
 end;
 
 
@@ -249,19 +249,19 @@ begin
 
   // CN/TS self impedances
   for i := 1 to FNumPhases do begin
-    if FCondType^[i] = 1 then begin  // CN
-      ResCN := FRstrand^[i] / FkStrand^[i];
-      RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
-      GmrCN := Power (FGmrStrand^[i] * FkStrand^[i] * Power(RadCN, FkStrand^[i] - 1.0),
-                      1.0 / FkStrand^[i]);
+    if FCondType[i] = 1 then begin  // CN
+      ResCN := FRstrand[i] / FkStrand[i];
+      RadCN := 0.5 * (FDiaCable[i] - FDiaStrand[i]);
+      GmrCN := Power (FGmrStrand[i] * FkStrand[i] * Power(RadCN, FkStrand[i] - 1.0),
+                      1.0 / FkStrand[i]);
       Zspacing := CMulReal (Lfactor, ln(1.0/GmrCN));
       Zi := cmplx (ResCN, 0.0);
       idxi := i + FNumConds;
       Zmat.SetElement(idxi, idxi, Cadd(Zi, Cadd (Zspacing, Get_Ze (i, i))));
     end
-    else if FCondType^[i] = 2 then begin  // TS
-      ResTS := 0.3183 * RhoTS / (FDiaShield^[i]*FTapeLayer^[i]*sqrt(50.0/(100.0-FTapeLap^[i])));
-      GmrTS := 0.5 * (FDiaShield^[i] - FTapeLayer^[i]);  // per Kersting, to center of TS
+    else if FCondType[i] = 2 then begin  // TS
+      ResTS := 0.3183 * RhoTS / (FDiaShield[i]*FTapeLayer[i]*sqrt(50.0/(100.0-FTapeLap[i])));
+      GmrTS := 0.5 * (FDiaShield[i] - FTapeLayer[i]);  // per Kersting, to center of TS
       Zspacing := CMulReal (Lfactor, ln(1.0/GmrTS));
       Zi := cmplx (ResTS, 0.0);
       idxi := i + FNumConds;
@@ -297,8 +297,8 @@ begin
     End;
     for j := 1 to FNumConds do begin // CN/TS to cores and bare neutrals
       idxj := j;
-      if FCondType^[i] = 1 then begin  // CN
-        RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
+      if FCondType[i] = 1 then begin  // CN
+        RadCN := 0.5 * (FDiaCable[i] - FDiaStrand[i]);
         if i = j then begin // CN to its own phase core
           Dij := RadCN;
         end else begin // CN to another phase or bare neutral
@@ -308,12 +308,12 @@ begin
             if ((i <= FNumPhases) and (j > FNumPhases)) then Dij := FEqDist[2] // EqDistPhN
             else Dij := FEqDist[1];  // EqDistPhPh (including N-N conductorss)
           end;
-          Dij := Power (Power(Dij, FkStrand^[i]) - Power(RadCN, FkStrand^[i]),
-                1.0 / FkStrand^[i]);
+          Dij := Power (Power(Dij, FkStrand[i]) - Power(RadCN, FkStrand[i]),
+                1.0 / FkStrand[i]);
         end;
       end
-      else if FCondType^[i] = 2 then begin  // TS
-        GmrTS := 0.5 * (FDiaShield^[i] - FTapeLayer^[i]);  // per Kersting, to center of TS
+      else if FCondType[i] = 2 then begin  // TS
+        GmrTS := 0.5 * (FDiaShield[i] - FTapeLayer[i]);  // per Kersting, to center of TS
         if i = j then begin // TS to its own phase core
           Dij := GmrTS;
         end else begin // TS to another phase or bare neutral
@@ -362,18 +362,18 @@ begin
     Yfactor := twopi * e0 * FEpsR^[i] * Fw; // includes frequency so C==>Y
     RadOut := 0.5 * FDiaIns^[i];
     RadIn := RadOut - FInsLayer^[i];
-    if FCondType^[i] = 1 then begin  // CN
+    if FCondType[i] = 1 then begin  // CN
       if FSemicon[i] then begin
         // Semicon layer (default)
         Denom := ln(RadOut / RadIn);
       end else begin
         // No semicon layer (Synergi and Kersting/Kerestes' book)
-        RadCN := 0.5 * (FDiaCable^[i] - FDiaStrand^[i]);
-        RadStrand := 0.5 * FDiaStrand^[i];
-        Denom := ln(RadCN / RadIn) - (1 / FkStrand^[i]) * ln(FkStrand^[i] * RadStrand / RadCN);
+        RadCN := 0.5 * (FDiaCable[i] - FDiaStrand[i]);
+        RadStrand := 0.5 * FDiaStrand[i];
+        Denom := ln(RadCN / RadIn) - (1 / FkStrand[i]) * ln(FkStrand[i] * RadStrand / RadCN);
       end;
     end
-    else if FCondType^[i] = 2 then begin  // TS
+    else if FCondType[i] = 2 then begin  // TS
       Denom := ln (RadOut / RadIn);
     end;
     FYCMatrix.SetElement(i, i, cmplx(0.0, Yfactor / Denom));
@@ -390,37 +390,37 @@ constructor TCNTSLineConstants.Create( NumConductors: Integer);
 begin
   inherited Create (NumConductors);
   // For All
-  FCondType:= Allocmem(Sizeof(FCondType^[1])*FNumConds);
+  SetLength(FCondType,(FNumConds+ 1));
 
   // For CN
-  FkStrand:= Allocmem(Sizeof(FkStrand^[1])*FNumConds);
-  FDiaStrand:= Allocmem(Sizeof(FDiaStrand^[1])*FNumConds);
-  FGmrStrand:= Allocmem(Sizeof(FGmrStrand^[1])*FNumConds);
-  FRStrand:= Allocmem(Sizeof(FRStrand^[1])*FNumConds);
-  SetLength(FSemicon, FNumConds);
+  SetLength(FkStrand, (FNumConds + 1));
+  SetLength(FDiaStrand, (FNumConds + 1));
+  SetLength(FGmrStrand, (FNumConds + 1));
+  SetLength(FRStrand, (FNumConds + 1));
+  SetLength(FSemicon, (FNumConds + 1));
 
   // For TS
-  FDiaShield:= Allocmem(Sizeof(FDiaShield^[1])*FNumConds);
-  FTapeLayer:= Allocmem(Sizeof(FTapeLayer^[1])*FNumConds);
-  FTapeLap:= Allocmem(Sizeof(FTapeLap^[1])*FNumConds);
+  SetLength(FDiaShield, (FNumConds + 1));
+  SetLength(FTapeLayer, (FNumConds + 1));
+  SetLength(FTapeLap, (FNumConds + 1));
 end;
 
 destructor TCNTSLineConstants.Destroy;
 begin
   // For All
-  Reallocmem(FCondType, 0);
+  SetLength(FCondType, 0);
 
   // For CN
-  Reallocmem(FkStrand, 0);
-  Reallocmem(FDiaStrand, 0);
-  Reallocmem(FGmrStrand, 0);
-  Reallocmem(FRStrand, 0);
+  SetLength(FkStrand, 0);
+  SetLength(FDiaStrand, 0);
+  SetLength(FGmrStrand, 0);
+  SetLength(FRStrand, 0);
   SetLength(FSemicon, 0);
 
   // For TS
-  Reallocmem(FDiaShield, 0);
-  Reallocmem(FTapeLayer, 0);
-  Reallocmem(FTapeLap, 0);
+  SetLength(FDiaShield, 0);
+  SetLength(FTapeLayer, 0);
+  SetLength(FTapeLap, 0);
 
   inherited;
 end;
