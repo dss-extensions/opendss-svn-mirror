@@ -1071,8 +1071,8 @@ begin
     PropertyValue[3] := '';
     PropertyValue[4] := '1'; //'terminal';
     PropertyValue[5] := IntToStr(NumFast);
-    PropertyValue[6] := '';
-    PropertyValue[7] := '';
+    PropertyValue[6] := 'a';
+    PropertyValue[7] := 'd';
     PropertyValue[8] := '';
     PropertyValue[9] := '';
     PropertyValue[10] := '1.0';
