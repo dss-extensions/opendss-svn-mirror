@@ -135,6 +135,7 @@ TYPE
         myFileSizeQ,                              // File size of the file opened (P)
         myFileSize          : Cardinal;           // File size of the file opened (P)
         myFileCmdQ,
+        mode,                                     // LoadShape mode, added by the critical power team
         myFileCmd           : String;             // The file definition added by the user (for moving the data window)
         myViewQ,                                  // Current view of the file mapped (Bytes - Q)
         myView              : pByte;              // Current view of the file mapped (Bytes - P)
@@ -185,7 +186,7 @@ implementation
 
 USES  ParserDel,  DSSClassDefs, DSSGlobals, Sysutils,  MathUtil, Utilities, Classes, TOPExport, Math, PointerList;
 
-Const NumPropsThisClass = 22;
+Const NumPropsThisClass = 23;
       AVG_IP            = 1;
       EDGE_IP           = 2;
 
@@ -242,7 +243,8 @@ Begin
      PropertyName^[19] := 'Pmult';         // synonym for Mult
      PropertyName^[20] := 'PQCSVFile';     // Redirect to a file with p, q pairs
      PropertyName^[21] := 'MemoryMapping'; // Enable/disable using Memory mapping for this shape
-     PropertyName^[22] := 'Interpolation'; // Changes the interpolation method for sparse load shapes
+     PropertyName^[22] := 'Mode'; // Changes the interpolation method for sparse load shapes
+     PropertyName^[23] := 'Interpolation'; // Changes the interpolation method for sparse load shapes
 
      // define Property help values
 
@@ -308,7 +310,9 @@ Begin
                          'If the interval=0, there should be 3 items on each line: (hour, Pmult, Qmult)';
      PropertyHelp^[21] := '{Yes | No* | True | False*} Enables the memory mapping functionality for dealing with large amounts of load shapes. '+CRLF+
                          'By defaul is False. Use it to accelerate the model loading when the containing a large number of load shapes.';
-     PropertyHelp^[22] := '{AVG* | EDGE} Defines the interpolation method used for connecting distant dots within the load shape. '+CRLF+ CRLF+
+     PropertyHelp^[22] := '{carryover | default} carryover will initialize generator dispatch from latest Pgen/Qgen in memory.  default will use kWbase ' + CRLF+
+	                        'and kvarbase to initialize generator dispatch (not in use yet).';
+     PropertyHelp^[23] := '{AVG* | EDGE} Defines the interpolation method used for connecting distant dots within the load shape. '+CRLF+ CRLF+
                          'By defaul is AVG (average), which will return a multiplier for missing intervals based on the closest multiplier in time.' + CRLF+
                          'EDGE interpolation keeps the last known value for missing intervals until the next defined multiplier arrives';
 
@@ -616,7 +620,8 @@ BEGIN
                 END;
            20:  Do2ColCSVFile(Param);
            21:  UseMMF := InterpretYesNo(Param);
-           22:  Interpolation  :=  Get_Interpolation_Idx(Parser[ActorID].StrValue);
+           22:  mode  :=  Parser[ActorID].StrValue;
+           23:  Interpolation  :=  Get_Interpolation_Idx(Parser[ActorID].StrValue);
 
          ELSE
            // Inherited parameters
@@ -1024,6 +1029,7 @@ BEGIN
 
      ArrayPropertyIndex :=  0;
      Interpolation      :=  AVG_IP;
+     mode               := 'deafult';
 
      InitPropertyValues(0);
 
