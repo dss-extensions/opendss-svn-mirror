@@ -396,7 +396,7 @@ TRecloserObj::TRecloserObj(TDSSClass* ParClass, const String RecloserName)
  : inherited(ParClass),
 			PhaseDelayed(GetTccCurve("d")),
 			GroundDelayed(nullptr),
-			PhaseFast(nullptr),
+			PhaseFast(GetTccCurve("a")),
 			GroundFast(nullptr),
 			ResetTime(0.0),
 			DelayTime(0.0),
@@ -435,6 +435,7 @@ TRecloserObj::TRecloserObj(TDSSClass* ParClass, const String RecloserName)
 	MonitoredElementTerminal = 1;
 	Set_MonitoredElement(nullptr);
 	PhaseFast = GetTccCurve("a");
+	PhaseDelayed = GetTccCurve("d");
 	GroundFast = nullptr;
 	PhaseTrip = 1.0;
 	GroundTrip = 1.0;
@@ -1021,8 +1022,8 @@ void TRecloserObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(3,"");
 	Set_PropertyValue(4,"1"); //'terminal';
 	Set_PropertyValue(5,IntToStr(NumFast));
-	Set_PropertyValue(6,"");
-	Set_PropertyValue(7,"");
+	Set_PropertyValue(6,"a");
+	Set_PropertyValue(7,"d");
 	Set_PropertyValue(8,"");
 	Set_PropertyValue(9,"");
 	Set_PropertyValue(10,"1.0");
