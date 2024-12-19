@@ -175,8 +175,8 @@ void TLoadShape::DefineProperties()
 	PropertyHelp[20 - 1] = String("Switch input to a CSV text file containing (active, reactive) power (P, Q) multiplier pairs, one per row. ") + CRLF
 	           + "If the interval=0, there should be 3 items on each line: (hour, Pmult, Qmult)";
 	PropertyHelp[21 - 1] = String("{Yes | No* | True | False*} Enables the memory mapping functionality for dealing with large amounts of load shapes. ") + CRLF
-	           + "By defaul is False. Use it to accelerate the model loading when the containing a large number of load shapes.";
-	PropertyHelp[22 - 1] = String("{carryover | default} carryover will initialize generator dispatch from latest Pgen/Qgen in memory.  default will use kWbase ") + CRLF
+	           + "By defaul is False. Use it to accelerate the model loading when the containing a large number of load shapes (not in use yet).";
+	PropertyHelp[22 - 1] = "{carryover | default*} carryover will initialize generator dispatch from latest Pgen/Qgen in memory.  default will use kWbase " + CRLF
 	           + "and kvarbase to initialize generator dispatch.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
@@ -1087,6 +1087,7 @@ TLoadShapeObj::TLoadShapeObj(TDSSClass* ParClass, const String LoadShapeName)
 	FStdDevCalculated = false;  // calculate on demand
 	Enabled = true;
 	MyViewLen = 1000;   // 1kB by default, it may change for not missing a row
+    mode = "deafult";
 	InitPropertyValues(0);
 }
 
