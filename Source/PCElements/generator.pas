@@ -1851,6 +1851,7 @@ var
     i: Integer;
     DQ: Double;
     Curr: Complex;
+   //logFile: TextFile;           //For debugging
 
 begin
 

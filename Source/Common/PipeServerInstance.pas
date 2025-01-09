@@ -5,7 +5,6 @@ interface
 uses
     Classes,
     Windows,
-    DSSGlobals,
     System.Generics.Collections;
 
 const
@@ -49,7 +48,8 @@ implementation
 
 uses
     SysUtils,
-    Utilities;
+    Utilities,
+    DSSGlobals;
 
 
 { TPipeServerInstance }
