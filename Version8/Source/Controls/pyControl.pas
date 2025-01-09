@@ -44,6 +44,8 @@ TYPE
       pyScript              : String;
 
     public
+
+      LastCMD      : String;
       constructor Create(ParClass:TDSSClass; const pyControlName:String);
       destructor Destroy; override;
 
@@ -57,6 +59,7 @@ TYPE
       PROCEDURE GetInjCurrents(Curr: pComplexArray; ActorID : Integer); Override;   // Returns Injextion currents
       PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
       PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
+      FUNCTION HandlePIPE(ActorID : Integer): Integer;
 
   end;
 
@@ -69,14 +72,14 @@ IMPLEMENTATION
 
 USES
 
-    ParserDel, DSSClassDefs, DSSGlobals, Circuit, uCmatrix, MathUtil, Math, PipeServerInstance, Winapi.ShellAPI;
+    ParserDel, DSSClassDefs, DSSGlobals, Circuit, uCmatrix, MathUtil, Math;
 
 CONST
 
     NumPropsThisClass = 1;
     PIPE_FORMAT = '\\%s\pipe\%s'; // \\ServerName\pipe\PipeName
     PIPE_TIMEOUT = 5000;
-    BUFSIZE = 10000;
+    BUFF_SIZE = 10000;
 
 
 {--------------------------------------------------------------------------}
@@ -323,151 +326,97 @@ Begin
 
 End;
 
-{--------------------------------------------------------------------------}
-PROCEDURE TpyControlObj.DoPendingAction;
-VAR
-  LPipeName   : String;
-  pyargs,
-  pyExec      : String;
-  ServerH     : TPipeServerInstance;
-  pHandle     : THandle;
-  Wait4py     : TThreadedQueue<Integer>;
-  i           : integer;
-  _SEInfo     : TShellExecuteInfo;
 
-begin
+{--------------------------------------------------------------------------
+ Handles the PIPE until the process is done
+---------------------------------------------------------------------------}
+FUNCTION TpyControlObj.HandlePIPE(ActorID : Integer): Integer;
+var
+  POnline       : Boolean;
+  Written       : Cardinal;
+  ClientCmd     : String;
 
-    // Queue to wait for the py code to finish
-    Wait4py := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
-    // Now launch the py program if exists
-    pyExec := pyPath + '\python.exe';
+Begin
+  POnline := True;
+  Result  := 0;
+  while (pyServer[ActorID] <> INVALID_HANDLE_VALUE) and (POnline) do
+  begin
 
-    if SysUtils.FileExists(pyExec) then
+    ClientCmd := Read_From_PyServer(ActorID);
+
+    if ClientCmd = 'closepipe' then
     Begin
-      LPipeName := Format(PIPE_FORMAT, ['.', 'DSSPipeD_' + IntToStr(ActorID)]);
-        // Check whether pipe does exist
-      if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
-        raise Exception.Create('Pipe exists.');
-      // Create the pipe
-      pHandle := CreateNamedPipe(
-        PChar(LPipeName),                                   // Pipe name
-        PIPE_ACCESS_DUPLEX,                                 // Read/write access
-        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
-        PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-        BUFSIZE,                                            // Output buffer size
-        BUFSIZE,                                            // Input buffer size
-        0,                                                  // Client time-out 50 [ms] default
-        nil                                                 // Default security attributes
-      );
+    // This means that the pyscript is done and we need to close the handler
+      if LowerCase(LastCMD) = 'yes' then
+      Begin
+        Result := 1;
+      End;
+      POnline := False;
+    End
+    Else
+    Begin
+      // The py script is sending commands or something different
+      LastCMD := ClientCmd;
+      if (LowerCase(LastCMD) <> 'yes') and (LowerCase(LastCMD) <> 'no') then
+      Begin
+        DSSExecutive[ActiveActor].Command :=  ClientCmd;
+        //Log('Sending message');
+        if GlobalResult = '' then
+          GlobalResult := 'OK';
 
-      pyargs := pyScript + ' d_' + LPipeName;
+        Write_2_pyServer(GlobalResult, ActorID);
+      End
+      Else
+        Write_2_pyServer('OK', ActorID);
 
-      // Setup the shell info for executing the py script
-      FillChar(_SEInfo, SizeOf(_SEInfo), 0);
-      _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
-      _SEInfo.lpFile := PChar(pyExec);
-      _SEInfo.lpParameters := PChar(pyargs);
-      _SEInfo.nShow := SW_HIDE;
-
-      if ShellExecuteEx(@_SEInfo) then
-      begin
-
-        Sleep(50);
-
-         // Check if new client is connected
-        if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
-        begin
-          ServerH := TPipeServerInstance.Create(1, pHandle,LPipeName, Wait4py);
-          i := Wait4py.PopItem();
-        end;
-
-      end;
     End;
-    CloseHandle(pHandle);
-    Wait4py.Destroy();
+  end;
 
 End;
 
 {--------------------------------------------------------------------------}
+PROCEDURE TpyControlObj.DoPendingAction(Const Code, ProxyHdl:Integer; ActorID : Integer);
+begin
+
+  // Do nothing, this is just for coordination with DSS
+
+End;
+
+{--------------------------------------------------------------------------
+ Takes a sampe to determine if the control need to perform a control action
+---------------------------------------------------------------------------}
 PROCEDURE TpyControlObj.Sample(ActorID : Integer);
 VAR
   Update      : Boolean;
   LPipeName   : String;
-  pyargs,
-  pyExec      : String;
-  ServerH     : TPipeServerInstance;
-  pHandle      : THandle;
-  Wait4py     : TThreadedQueue<Integer>;
-  _SEInfo     : TShellExecuteInfo;
+  pHandle     : THandle;
 
 begin
-    Update := False; // Default value
-    // Queue to wait for the py code to finish
-    Wait4py := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
-    // Now launch the py program if exists
-    pyExec := pyPath + '\python.exe';
 
-    if SysUtils.FileExists(pyExec) then
-    Begin
-      LPipeName := Format(PIPE_FORMAT, ['.', 'DSSPipe_' + IntToStr(ActorID)]);
-        // Check whether pipe does exist
-      if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
-        raise Exception.Create('Pipe exists.');
-      // Create the pipe
-      pHandle := CreateNamedPipe(
-        PChar(LPipeName),                                   // Pipe name
-        PIPE_ACCESS_DUPLEX,                                 // Read/write access
-        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
-        PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-        BUFSIZE,                                            // Output buffer size
-        BUFSIZE,                                            // Input buffer size
-        0,                                                  // Client time-out 50 [ms] default
-        nil                                                 // Default security attributes
-      );
+  Update := False; // Default value
+ // First, check if the instance's pyServer is running, otherwise do nothing
+  if pyServer[ActorID] <> 0 then
+  Begin
 
-      pyargs := pyScript + ' s_' + LPipeName;
+    Write_2_pyServer(pyScript, ActorID);
+    Update := (HandlePIPE(ActorID) = 1);
 
-      // Setup the shell info for executing the py script
-      FillChar(_SEInfo, SizeOf(_SEInfo), 0);
-      _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
-      _SEInfo.lpFile := PChar(pyExec);
-      _SEInfo.lpParameters := PChar(pyargs);
-      _SEInfo.nShow := SW_HIDE;
-
-      if ShellExecuteEx(@_SEInfo) then
-      begin
-
-        Sleep(100);
-
-         // Check if new client is connected
-        if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
-        begin
-          ServerH := TPipeServerInstance.Create(1, pHandle, LPipeName, Wait4py);
-          Update := (Wait4py.PopItem() > 0);
-        end;
-
-      end;
-
-    End;
-    CloseHandle(pHandle);
-    //Update := False; //---------------------------------------------------------
-   {Checks if the controller commands to implement control actions}
+    {Checks if the controller commands to implement control actions}
     if Update then
     Begin
+      // This action is just to sync DSS with the external control action
       With ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution Do
         ControlQueue.Push(DynaVars.intHour, DynaVars.t, 0, 0, Self, ActorID);
 
     End;
     GlobalResult := '';
-    Wait4py.Destroy();
+  End;
 End;
 
 procedure TpyControlObj.InitPropertyValues(ArrayOffset: Integer);
 begin
 
-     PropertyValue[1]  := '""';   //'pyScript';
-
-
+  PropertyValue[1]  := '""';   //'pyScript';
   inherited  InitPropertyValues(NumPropsThisClass);
 
 end;

@@ -371,7 +371,9 @@ TYPE
       PROCEDURE DistGenClusters(ActorID : Integer);                           // Distributes the reactive power among clustered generators
       PROCEDURE ReversePQ2PV(ActorID : Integer);                              // Reverses the generators converted from PV 2 PQ for the next solution
       FUNCTION FindInArray(myArr : pIntegerArray; mySize, myElm : Integer):Integer;   // Returns the index of an element in the array if found
+
 //=============================================================================================================================================================
+
        constructor Create(ParClass:TDSSClass; const solutionname:String);
        destructor  Destroy; override;
 
@@ -686,6 +688,15 @@ Begin
       End;
       ActorMA_Msg[ActiveActor].Free;
       ActorMA_Msg[ActiveActor]  :=  nil;
+
+      if pyServer[ActiveActor] <> 0 then
+      Begin
+        Write_2_PyServer('quit', ActiveActor);
+        DisconnectNamedPipe(pyServer[ActiveActor]);
+        // Close pipe on server
+        CloseHandle(pyServer[ActiveActor]);
+        pyServer[ActiveActor] := 0;
+      End;
 
       Inherited Destroy;
 End;

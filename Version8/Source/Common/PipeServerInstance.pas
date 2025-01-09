@@ -2,7 +2,7 @@ unit PipeServerInstance;
 
 interface
 uses
-  Classes, Windows, DSSGlobals, System.Generics.Collections;
+  Classes, Windows, System.Generics.Collections;
 
 const
   SHUT_DOWN_MSG = 'shutdown pipe ';
@@ -44,7 +44,7 @@ type
 implementation
 
 uses
-  SysUtils, Utilities;
+  SysUtils, Utilities, DSSGlobals;
 
 
 { TPipeServerInstance }
@@ -129,10 +129,10 @@ end;
 
 procedure TPipeServerInstance.SendMessage(Msg : String);
 var
-  SendMessage: Boolean;
-  Bytes: Cardinal;
-  pMsg: pchar;
-  buf: array [0 .. BUFF_SIZE - 1] of char;
+  SendMessage   : Boolean;
+  Bytes         : Cardinal;
+  pMsg          : pchar;
+  buf           : array [0 .. BUFF_SIZE - 1] of char;
 begin
   // Prepare outgoing message
   pMsg := pchar(Msg);

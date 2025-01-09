@@ -496,7 +496,15 @@ Begin
                         'get StateVar myObjName myVarName' + CRLF +
                         CRLF +
                         'The reading structure will return the value in the results tab.';
-     OptionHelp[142] := 'Set/gets the path to the Python binary installed in the local hard drive. This is used by pyObject and pyControllers within the simulation.';
+     OptionHelp[142] := 'Set/gets the path to the Python binary installed in the local hard drive. This is used by pyObject and pyControllers within the simulation.' + CRLF +
+                        'This action will launch the pyOpenDSS server for handling pyControls and pyObjects. If after the path the user adds the property "Debug=Yes", the pyOpenDSS server ' +
+                        'will become visible for helping users debugging their algorithms.' + CRLF +
+                        CRLF +
+                        'Example:' +CRLF +
+                        CRLF +
+                        '     Set pyPath=mypath' + CRLF +
+                        CRLF +
+                        '     Set pyPath=mypath Debug=Yes';
 
 
 End;
@@ -507,9 +515,10 @@ FUNCTION DoSetCmd_NoCircuit:Boolean;  // Set Commands that do not require a circ
 // This is for setting global options that do not require an active circuit
 
 VAR
-   ParamPointer:Integer;
-   ParamName:String;
-   Param:String;
+   ParamPointer : Integer;
+   ParamName    : String;
+   Param        : String;
+   DBugServer   : Boolean;
 
 Begin
 
@@ -582,7 +591,15 @@ Begin
                 end;
           142:  Begin
                   If SysUtils.FileExists(Param + '\python.exe') then
-                    pyPath := Param
+                  Begin
+                    pyPath := Param;
+                    DBugServer  := False;
+                    ParamName := Parser[ActiveActor].NextParam;
+                    Param := Parser[ActiveActor].StrValue;
+                    if ParamName = 'debug' then
+                      DBugServer := InterpretYesNo(Param);
+                    Launch_PyServer(DBugServer);
+                  End
                   Else
                     DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
                 End
@@ -616,6 +633,7 @@ VAR
    TestLoadShapeObj : TLoadShapeObj;
    myList           : TStringList;
    LineObj          : TLineObj;
+   DBugServer,
    ValidObj         : Boolean;
 
    const
@@ -957,7 +975,15 @@ Begin
                 end;
           142:  Begin
                   If SysUtils.FileExists(Param + '\python.exe') then
-                    pyPath := Param
+                  Begin
+                    pyPath := Param;
+                    DBugServer  := False;
+                    ParamName := Parser[ActiveActor].NextParam;
+                    Param := Parser[ActiveActor].StrValue;
+                    if LowerCase(ParamName) = 'debug' then
+                      DBugServer := InterpretYesNo(Param);
+                    Launch_PyServer(DBugServer);
+                  End
                   Else
                     DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
                 End
