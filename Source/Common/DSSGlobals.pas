@@ -152,6 +152,8 @@ CONST
       PROFILELL    = 9994;
       PROFILEPUKM = 9993;  // not mutually exclusive to the other choices 9999..9994
       PROFILE120KFT = 9992;  // not mutually exclusive to the other choices 9999..9994
+      // for the pyPipeSever
+      BUFF_SIZE = 10000;
 
 TYPE
   TProgressActor   =   class(TThread)     // Global actor for progress form
@@ -306,6 +308,11 @@ VAR
    ActorCPU           : Array of integer;
    ActorStatus        : Array of integer;
    ActorProgressCount : Array of integer;
+
+//=============================================================================================================================================================
+//    Variable for hosing the pipe to communicate with the Python server (Console)
+   pyServer           : Array of THandle;
+
    {$IFNDEF FPC}
    {$IFNDEF CONSOLE}
    ActorProgress      : Array of TProgress;
@@ -448,6 +455,10 @@ procedure New_Actor_Slot();
 procedure New_Actor(ActorID:  Integer);
 procedure Wait4Actors(WType : Integer);
 procedure Wait4AD();
+
+procedure Launch_PyServer(DBugServer : Boolean);
+Procedure Write_2_PyServer(Msg : String; ActorID : integer);
+Function Read_From_PyServer(ActorID : integer): String;
 
 procedure DoClone();
 
@@ -1133,6 +1144,134 @@ Begin
 
 end;
 
+Function Read_From_PyServer(ActorID : integer): String;
+var
+  MessageReceived : Boolean;
+  MyMsg           : array[0..BUFF_SIZE - 1] of char;
+  MsgSz           : DWord;
+  MsgStr          : String;
+  i               : Integer;
+  idx             : integer;
+
+begin
+  MsgStr := '';
+  Result := '';
+  FillChar(MyMsg, BUFF_SIZE, #0);
+  MessageReceived := ReadFile(
+    pyServer[ActorID],    // pipe handle
+    MyMsg,                    // buffer to receive reply
+    BUFF_SIZE,                // size of buffer
+    MsgSz,                    // number of bytes read
+    nil);                     // not overlapped
+  if MessageReceived then
+  begin
+    SetString(MsgStr, PChar(@MyMsg[1]), MsgSz);
+
+    // Remove the null chars (if any)
+    idx := 1;
+    while idx <= Length(MsgStr) do
+      if MsgStr[idx] = #0 then
+        Delete(MsgStr, idx, 1)
+      else
+        Inc(idx);
+  end;
+
+  Result := MsgStr;
+
+End;
+
+Procedure Write_2_PyServer(Msg : String; ActorID : Integer);
+var
+  SendMessage   : Boolean;
+  Bytes         : Cardinal;
+  pMsg          : pchar;
+  buf           : array [0 .. BUFF_SIZE - 1] of char;
+begin
+  // Prepare outgoing message
+  pMsg := pchar(Msg);
+  fillchar(buf, BUFF_SIZE, #0);
+  move(pMsg[0], buf[0], Length(pMsg) * Sizeof(char));
+  // Send message
+  SendMessage := WriteFile(
+    pyServer[ActorID],        // pipe handle
+    buf,                          // message
+    length(Msg) * Sizeof(char),   // message length
+    Bytes,                        // bytes written
+    nil
+  );
+
+End;
+
+procedure Launch_PyServer(DBugServer : Boolean);
+var
+  pyExec,
+  pyargs,
+  pyScript,
+  LPipeName   : String;
+  _SEInfo     : TShellExecuteInfo;
+  DBugMode    : Integer;
+
+Begin
+
+  pyScript := DSSDirectory + 'Server.py';
+
+  if SysUtils.FileExists(pyScript) then
+  Begin
+
+    LPipeName := Format('\\%s\pipe\%s', ['.', 'pyServer_' + IntToStr(ActiveActor)]);
+      // Check whether pipe does exist
+    if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+      raise Exception.Create('Pipe exists.');
+    // Create the pipe
+    pyServer[ActiveActor] := CreateNamedPipe(
+      PChar(LPipeName),                                   // Pipe name
+      PIPE_ACCESS_DUPLEX,                                 // Read/write access
+      PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+      PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+      10000,                                              // Output buffer size
+      10000,                                              // Input buffer size
+      0,                                                  // Client time-out 50 [ms] default
+      nil                                                 // Default security attributes
+    );
+
+    pyExec := pyPath + '\python.exe';
+    pyargs := pyScript + ' ' + LPipeName;
+
+    // This to make visible/invisible the server interface (this will help users debugging their code)
+    if DBugServer then
+      DBugMode := SW_NORMAL
+    Else
+      DBugMode := SW_HIDE;
+
+    // Setup the shell info for executing the py script
+    FillChar(_SEInfo, SizeOf(_SEInfo), 0);
+    _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
+    _SEInfo.lpFile := PChar(pyExec);
+    _SEInfo.lpParameters := PChar(pyargs);
+    _SEInfo.nShow := DBugMode;
+
+    if ShellExecuteEx(@_SEInfo) then
+    begin
+
+      Sleep(200);
+
+       // Check if new client is connected
+      if not ConnectNamedPipe(pyServer[ActiveActor], nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
+      Begin
+        GlobalResult  := Read_From_PyServer(ActiveActor);
+      End
+      Else
+        GlobalResult  := 'There was an error connecting to the DSSpyServer';
+    end;
+
+  End
+  Else
+  Begin
+    GlobalResult  := 'The pyServer does not exists in this version of OpenDSS';
+    pyServer[ActiveActor] := 0;
+  End;
+End;
+
 //******************************************************************************
 // Waits for all the actors running tasks
 procedure Wait4Actors(WType : Integer);
@@ -1703,6 +1842,7 @@ initialization
    SetLength(IsourceClass,CPU_Cores + 1);
    SetLength(VSourceClass,CPU_Cores + 1);
    SetLength(pyControlClass, CPU_Cores + 1);
+   SetLength(pyServer, CPU_Cores + 1);
    WaitQ  := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
    WaitAD := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
@@ -1736,6 +1876,7 @@ initialization
     DSSObjs[ActiveActor]              :=  nil;
     DSSClassList[ActiveActor]         :=  nil;
     pyControlClass[ActiveActor]       :=  nil;
+    pyServer[ActiveActor]             :=  0;
    end;
 
    GISThickness           :=  '3';
