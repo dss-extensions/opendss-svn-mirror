@@ -28,7 +28,7 @@ set pyPath=C:\ProgramData\anaconda3
 ! Here we create our pyController
 New pyControl.myControl pyScript=C:\Temp\Regulator_Sgl_Phase.py
 
-set maxcontroliter=200
+set maxcontroliter=50
 
 solve 
 
