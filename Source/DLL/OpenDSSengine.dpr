@@ -245,7 +245,6 @@ uses
   ImplWindGens in 'ImplWindGens.pas' {Vsources: CoClass},
   ImplReactors in 'ImplReactors.pas',
   CNTSLineConstants in '..\General\CNTSLineConstants.pas',
-  PipeServerInstance in '..\Common\PipeServerInstance.pas',
   UPFCControl in '..\Controls\UPFCControl.pas';
 
 exports
