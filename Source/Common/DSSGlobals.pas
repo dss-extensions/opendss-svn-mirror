@@ -401,7 +401,8 @@ VAR
   GISColor                : String;
   GISCoords               : pDoubleArray;
 
-
+//************************ DSSpyServer vars************************************
+  LPipeName               : String;
 
 //************************ Line related Global defs***************************
   LineTypeList            : TCommandList;
@@ -1206,8 +1207,7 @@ procedure Launch_PyServer(DBugServer : Boolean);
 var
   pyExec,
   pyargs,
-  pyScript,
-  LPipeName   : String;
+  pyScript    : String;
   _SEInfo     : TShellExecuteInfo;
   DBugMode    : Integer;
 
@@ -1879,6 +1879,7 @@ initialization
     pyServer[ActiveActor]             :=  0;
    end;
 
+   LPipeName              :=  '';
    GISThickness           :=  '3';
    GISColor               :=  'FF0000';
    GISCoords              :=  AllocMem(Sizeof(Double) * 4);
