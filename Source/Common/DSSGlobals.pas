@@ -154,6 +154,9 @@ CONST
       PROFILE120KFT = 9992;  // not mutually exclusive to the other choices 9999..9994
       // for the pyPipeSever
       BUFF_SIZE = 10000;
+      OPENDSS_VIEWER = 1;
+      OPENDSS_GIS = 2;
+      DSSPYSERVER = 3;
 
 TYPE
   TProgressActor   =   class(TThread)     // Global actor for progress form
@@ -188,8 +191,8 @@ VAR
    DSS_Viz_enable: Boolean=False;
 
    // Global variables for OpenDSS-GIS
-   DSS_GIS_installed   :Boolean=False; // OpenDSS-GIS (flag to mark a local installation)
-   DSS_GIS_path: String;
+   DSS_GIS_installed    :Boolean=False; // OpenDSS-GIS (flag to mark a local installation)
+   DSS_GIS_path         : String;
 
    IsDLL,
    NoFormsAllowed  :Boolean;
@@ -402,6 +405,7 @@ VAR
   GISCoords               : pDoubleArray;
 
 //************************ DSSpyServer vars************************************
+  DSSpyServerPath,
   LPipeName               : String;
 
 //************************ Line related Global defs***************************
@@ -1203,74 +1207,6 @@ begin
 
 End;
 
-procedure Launch_PyServer(DBugServer : Boolean);
-var
-  pyExec,
-  pyargs,
-  pyScript    : String;
-  _SEInfo     : TShellExecuteInfo;
-  DBugMode    : Integer;
-
-Begin
-
-  pyScript := DSSDirectory + 'Server.py';
-
-  if SysUtils.FileExists(pyScript) then
-  Begin
-
-    LPipeName := Format('\\%s\pipe\%s', ['.', 'pyServer_' + IntToStr(ActiveActor)]);
-      // Check whether pipe does exist
-    if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
-      raise Exception.Create('Pipe exists.');
-    // Create the pipe
-    pyServer[ActiveActor] := CreateNamedPipe(
-      PChar(LPipeName),                                   // Pipe name
-      PIPE_ACCESS_DUPLEX,                                 // Read/write access
-      PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
-      PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-      10000,                                              // Output buffer size
-      10000,                                              // Input buffer size
-      0,                                                  // Client time-out 50 [ms] default
-      nil                                                 // Default security attributes
-    );
-
-    pyExec := pyPath + '\python.exe';
-    pyargs := pyScript + ' ' + LPipeName;
-
-    // This to make visible/invisible the server interface (this will help users debugging their code)
-    if DBugServer then
-      DBugMode := SW_NORMAL
-    Else
-      DBugMode := SW_HIDE;
-
-    // Setup the shell info for executing the py script
-    FillChar(_SEInfo, SizeOf(_SEInfo), 0);
-    _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
-    _SEInfo.lpFile := PChar(pyExec);
-    _SEInfo.lpParameters := PChar(pyargs);
-    _SEInfo.nShow := DBugMode;
-
-    if ShellExecuteEx(@_SEInfo) then
-    begin
-
-      Sleep(200);
-
-       // Check if new client is connected
-      if not ConnectNamedPipe(pyServer[ActiveActor], nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
-      Begin
-        GlobalResult  := Read_From_PyServer(ActiveActor);
-      End
-      Else
-        GlobalResult  := 'There was an error connecting to the DSSpyServer';
-    end;
-
-  End
-  Else
-  Begin
-    GlobalResult  := 'The pyServer does not exists in this version of OpenDSS';
-    pyServer[ActiveActor] := 0;
-  End;
-End;
 
 //******************************************************************************
 // Waits for all the actors running tasks
@@ -1395,29 +1331,115 @@ End;
 
 {$IFNDEF FPC}
 // Validates the installation and path of the OpenDSS Viewer
-function CheckOpenDSSViewer(App_Folder :  string): Boolean;
-var FileName: string;
-begin
-  // to make it compatible with the function
-  App_Folder    :=  LowerCase(App_Folder);
+function CheckOpenDSSAddOn(App_Folder :  Integer): Boolean;
+var
+  FileName: string;
 
-  // Stores the
-  if App_Folder = 'opendss_viewer' then
-  Begin
-    DSS_Viz_path:=GetIni('Application','path','', TPath.GetHomePath+'\' + App_Folder + '\settings.ini');
-    FileName  :=  stringreplace(DSS_Viz_path, '\\' ,'\',[rfReplaceAll, rfIgnoreCase])
-  End
-  else
-  Begin
-    DSS_GIS_path:=GetIni('Application','path','', TPath.GetHomePath+'\' + App_Folder + '\settings.ini');
-    FileName  :=  stringreplace(DSS_GIS_path, '\\' ,'\',[rfReplaceAll, rfIgnoreCase]);
+begin
+  FileName := '';
+
+  Case App_Folder of
+    1 : Begin
+            DSS_Viz_path:=GetIni('Application','path','', TPath.GetHomePath+'\opendss_viewer\settings.ini');
+            FileName  :=  stringreplace(DSS_Viz_path, '\\' ,'\',[rfReplaceAll, rfIgnoreCase])
+        End;
+    2 : Begin
+            DSS_GIS_path:=GetIni('Application','path','', TPath.GetHomePath+'\opendss_gis\settings.ini');
+            FileName  :=  stringreplace(DSS_GIS_path, '\\' ,'\',[rfReplaceAll, rfIgnoreCase]);
+        End
+        Else
+        Begin
+          DSSpyServerPath:=GetIni('Application','path','', TPath.GetHomePath+'\dsspyserver\settings.ini');
+          FileName  :=  stringreplace(DSSpyServerPath, '\\' ,'\',[rfReplaceAll, rfIgnoreCase]);
+        End
   End;
 
   FileName  :=  stringreplace(FileName, '"' ,'',[rfReplaceAll, rfIgnoreCase]);
+
   // returns true only if the executable exists
   Result:=fileexists(FileName);
+
 end;
 {$ENDIF}
+
+
+procedure Launch_PyServer(DBugServer : Boolean);
+var
+  myPath,
+  pyExec,
+  pyargs,
+  pyScript    : String;
+  _SEInfo     : TShellExecuteInfo;
+  DBugMode    : Integer;
+
+Begin
+
+  if (CheckOpenDSSAddOn(DSSPYSERVER)) then
+  Begin
+
+    myPath := StringReplace(DSSpyServerPath, '\\', '\',[rfReplaceAll, rfIgnoreCase]);
+    myPath := StringReplace(myPath, '"', '', [rfReplaceAll, rfIgnoreCase]);
+
+    pyScript := myPath;
+
+    if SysUtils.FileExists(pyScript) then
+    Begin
+
+      LPipeName := Format('\\%s\pipe\%s', ['.', 'pyServer_' + IntToStr(ActiveActor)]);
+        // Check whether pipe does exist
+      if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+        raise Exception.Create('Pipe exists.');
+      // Create the pipe
+      pyServer[ActiveActor] := CreateNamedPipe(
+        PChar(LPipeName),                                   // Pipe name
+        PIPE_ACCESS_DUPLEX,                                 // Read/write access
+        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+        PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+        10000,                                              // Output buffer size
+        10000,                                              // Input buffer size
+        0,                                                  // Client time-out 50 [ms] default
+        nil                                                 // Default security attributes
+      );
+
+      pyExec := pyPath + '\python.exe';
+      pyargs := pyScript + ' ' + LPipeName;
+
+      // This to make visible/invisible the server interface (this will help users debugging their code)
+      if DBugServer then
+        DBugMode := SW_NORMAL
+      Else
+        DBugMode := SW_HIDE;
+
+      // Setup the shell info for executing the py script
+      FillChar(_SEInfo, SizeOf(_SEInfo), 0);
+      _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
+      _SEInfo.lpFile := PChar(pyExec);
+      _SEInfo.lpParameters := PChar(pyargs);
+      _SEInfo.nShow := DBugMode;
+
+      if ShellExecuteEx(@_SEInfo) then
+      begin
+
+        Sleep(200);
+
+         // Check if new client is connected
+        if not ConnectNamedPipe(pyServer[ActiveActor], nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
+        Begin
+          GlobalResult  := Read_From_PyServer(ActiveActor);
+        End
+        Else
+          GlobalResult  := 'There was an error connecting to the DSSpyServer';
+      end;
+
+    End
+    Else
+    Begin
+      GlobalResult  := 'The pyServer does not exists in this version of OpenDSS';
+      pyServer[ActiveActor] := 0;
+    End;
+
+  End;
+End;
 
 //{$IFDEF MSWINDOWS}
 procedure Delay(TickTime : Integer);
@@ -1593,19 +1615,19 @@ end;
 constructor TProgressActor.Create();
 var
   J           : integer;
-  LPipeName   : String;
+  LAPipeName   : String;
 
 begin
 {$IFNDEF FPC}
 
   // ... create Pipe (replaces old TCP/IP server)
-  LPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
+  LAPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
     // Check whether pipe does exist
-  if WaitNamedPipe(PChar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+  if WaitNamedPipe(PChar(LAPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
     raise Exception.Create('Pipe exists.');
   // Create the pipe
   pHandle := CreateNamedPipe(
-    PChar(LPipeName),                                   // Pipe name
+    PChar(LAPipeName),                                   // Pipe name
     PIPE_ACCESS_DUPLEX,                                 // Read/write access
     PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
     PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
@@ -1648,7 +1670,7 @@ var
   I,
   J           : Integer;
   AbortBtn,
-  LPipeName,
+  LAPipeName,
   progStr     : String;
   RunFlag     : Boolean;
 
@@ -1880,6 +1902,7 @@ initialization
    end;
 
    LPipeName              :=  '';
+   DSSpyServerPath        :=  '';
    GISThickness           :=  '3';
    GISColor               :=  'FF0000';
    GISCoords              :=  AllocMem(Sizeof(Double) * 4);
@@ -2029,8 +2052,8 @@ initialization
    LineTypeList.Abbrev := TRUE;  // Allow abbreviations for line type code
 
 {$IFNDEF FPC}
-  DSS_Viz_installed := CheckOpenDSSViewer('OpenDSS_Viewer');  // OpenDSS Viewer (flag for detected installation)
-  DSS_GIS_installed := CheckOpenDSSViewer('OpenDSS_GIS');     // OpenDSS GIS (flag for detected installation)
+  DSS_Viz_installed := CheckOpenDSSAddOn(OPENDSS_VIEWER);  // OpenDSS Viewer (flag for detected installation)
+  DSS_GIS_installed := CheckOpenDSSAddOn(OPENDSS_GIS);     // OpenDSS GIS (flag for detected installation)
   if Not IsDLL then
   Begin
     Check_DSS_WebVersion(True);
