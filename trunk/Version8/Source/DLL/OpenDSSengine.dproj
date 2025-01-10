@@ -1398,7 +1398,6 @@
         </DCCReference>
         <DCCReference Include="ImplReactors.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
-        <DCCReference Include="..\Common\PipeServerInstance.pas"/>
         <DCCReference Include="..\Controls\UPFCControl.pas"/>
         <RidlCompile Include="OpenDSSengine.ridl"/>
         <BuildConfiguration Include="Base">

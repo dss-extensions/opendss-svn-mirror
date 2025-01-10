@@ -208,8 +208,7 @@ uses
   ExceptionTrace in '..\Shared\ExceptionTrace.pas',
   WTG3_Model in '..\PCElements\WTG3_Model.pas',
   CNTSLineConstants in '..\General\CNTSLineConstants.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas',
-  PipeServerInstance in '..\Common\PipeServerInstance.pas';
+  UPFCControl in '..\Controls\UPFCControl.pas';
 
 {$R *.RES}
 

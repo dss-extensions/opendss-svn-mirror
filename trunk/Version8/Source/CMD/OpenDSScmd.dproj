@@ -314,7 +314,6 @@
         <DCCReference Include="..\PCElements\WTG3_Model.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
         <DCCReference Include="..\Controls\UPFCControl.pas"/>
-        <DCCReference Include="..\Common\PipeServerInstance.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

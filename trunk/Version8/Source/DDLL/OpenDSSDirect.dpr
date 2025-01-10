@@ -237,7 +237,6 @@ uses
   DWindGens in 'DWindGens.pas',
   DReactors in 'DReactors.pas',
   CNTSLineConstants in '..\General\CNTSLineConstants.pas',
-  PipeServerInstance in '..\Common\PipeServerInstance.pas',
   UPFCControl in '..\Controls\UPFCControl.pas';
 
 //**************************end of the functions*************************************
