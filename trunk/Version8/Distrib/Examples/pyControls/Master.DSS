@@ -23,15 +23,24 @@ Redirect BusVoltageBases.dss  ! set voltage bases
 Buscoords buscoords.dss
 
 ! Here we tell DSS where our local Python is installed
-set pyPath=C:\ProgramData\anaconda3 
+set pyPath=C:\ProgramData\anaconda3
 
 ! Here we create our pyController
 New pyControl.myControl pyScript=C:\Temp\Regulator_Sgl_Phase.py
 
-set maxcontroliter=50
+set maxcontroliter=500
 
-solve 
+set TotalTime=0
+solve
+Get TotalTime
+
+set mode=yearly 
 
 
+
+Var @myVpu
+Var @anothervar=(1 2 3)
+
+Var @anothervar
 
 

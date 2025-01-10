@@ -12,7 +12,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 142;
+        NumExecOptions = 144;
 
 VAR
          ExecOption,
@@ -184,6 +184,8 @@ Begin
      ExecOption[140] := 'NCIMQGain';
      ExecOption[141] := 'StateVar';
      ExecOption[142] := 'pyPath';
+     ExecOption[143] := 'IterNumber';
+     ExecOption[144] := 'CtrlIterNumber';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -505,6 +507,9 @@ Begin
                         '     Set pyPath=mypath' + CRLF +
                         CRLF +
                         '     Set pyPath=mypath Debug=Yes';
+     OptionHelp[143] := 'Returns the actual iteration number within the simulation loop.';
+     OptionHelp[144] := 'Returns the actual control iteration number within the simulation loop.';
+
 
 
 End;
@@ -1268,7 +1273,13 @@ Begin
                End;
           142: Begin
                 AppendGlobalResult(pyPath);
-               End
+               End;
+          143:  Begin
+                  AppendGlobalResult(inttostr(ActiveCircuit[ActiveActor].Solution.Iteration));
+                End;
+          144:  Begin
+                  AppendGlobalResult(inttostr(ActiveCircuit[ActiveActor].Solution.ControlIteration));
+                End
          ELSE
            // Ignore excess parameters
          End;
