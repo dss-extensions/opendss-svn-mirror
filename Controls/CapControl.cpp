@@ -641,7 +641,7 @@ void TCapControlObj::RecalcElementData(int ActorID)
 
 /*Check for existence of monitored element - if needed*/
 	bool ElmReq = true;
-	ElmReq		= ( ElmReq && (ControlType != FOLLOWCONTROL);
+	ElmReq		= ( ElmReq && (ControlType != FOLLOWCONTROL));
 	if (ElmReq)
 	{
 		DevIndex = GetCktElementIndex(ElementName); // Global function
