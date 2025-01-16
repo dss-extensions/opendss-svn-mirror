@@ -692,7 +692,7 @@ begin
 
   {Check for existence of monitored element- if needed}
     ElmReq := true;
-    ElmReq := ElmReq and (ControlType <> TIMECONTROL) and (ControlType <> FOLLOWCONTROL);
+    ElmReq := ElmReq and (ControlType <> FOLLOWCONTROL);
     if ElmReq then
     begin
         Devindex := GetCktElementIndex(ElementName); // Global function
