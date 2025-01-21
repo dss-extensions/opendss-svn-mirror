@@ -692,7 +692,7 @@ namespace ParserDel
 		if (RowBuf != NULL)
 			delete[] RowBuf; //# FreeMemory accepts one parameter only;
 
-		if (OrderFound != ExpectedOrder)
+		if (OrderFound < ExpectedOrder)
         {
 			DSSMessageDlg("The matrix entered does not match with the expected order, review the entered parameters and try again.", true);
             OrderFound = 0;
