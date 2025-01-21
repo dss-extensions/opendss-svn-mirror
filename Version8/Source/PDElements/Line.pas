@@ -24,9 +24,9 @@ TYPE
 
    TLine = class(TPDClass)
      private
-       PROCEDURE DoRmatrix(ActorID : Integer);
-       PROCEDURE DoXmatrix(ActorID : Integer);
-       PROCEDURE DoCmatrix(ActorID : Integer);
+       FUNCTION DoRmatrix(ActorID : Integer): Integer;
+       FUNCTION DoXmatrix(ActorID : Integer): Integer;
+       FUNCTION DoCmatrix(ActorID : Integer): Integer;
 
      Protected
         PROCEDURE DefineProperties;  // Add Properties of this class to propName
@@ -459,60 +459,65 @@ End;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TLine.DoRmatrix(ActorID : Integer);
+FUNCTION TLine.DoRmatrix(ActorID : Integer): Integer;
 VAR
     OrderFound, Norder, j : Integer;
     MatBuffer : pDoubleArray;
     Zvalues   : pComplexArray;
 
 Begin
-   WITH ActiveLineObj DO
-     Begin
-       {Added 3-17-15 in case Z and Yc do not get allocated to the proper value}
-       If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
+  Result := 0;
+  WITH ActiveLineObj DO
+  Begin
+    {Added 3-17-15 in case Z and Yc do not get allocated to the proper value}
+    If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
 
-       MatBuffer  := Allocmem(Sizeof(double) * Fnphases * Fnphases);
-       OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
+    MatBuffer  := Allocmem(Sizeof(double) * Fnphases * Fnphases);
+    OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
 
-       If OrderFound > 0 THEN    // Parse was successful
-         Begin    {R}
-                ZValues := Z.GetValuesArrayPtr(Norder);
-                IF Norder = Fnphases THEN
-                FOR j := 1 to Fnphases * Fnphases DO ZValues^[j].Re := MatBuffer^[j];
-         End;
+    If OrderFound > 0 THEN    // Parse was successful
+    Begin    {R}
+      ZValues := Z.GetValuesArrayPtr(Norder);
+      IF Norder = Fnphases THEN
+      FOR j := 1 to Fnphases * Fnphases DO ZValues^[j].Re := MatBuffer^[j];
+    End;
 
-       Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
-     End;
+    Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
+  End;
+  Result := OrderFound;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TLine.DoXmatrix(ActorID : Integer);
+FUNCTION TLine.DoXmatrix(ActorID : Integer): Integer;
 VAR
     OrderFound, Norder,j : Integer;
     MatBuffer : pDoubleArray;
     Zvalues   : pComplexArray;
 
 Begin
-   WITH ActiveLineObj DO
-     Begin
-       If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
+  Result  := 0;
+  WITH ActiveLineObj DO
+  Begin
+    If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
 
-       MatBuffer := Allocmem(Sizeof(double) * Fnphases * Fnphases);
-       OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
+    MatBuffer := Allocmem(Sizeof(double) * Fnphases * Fnphases);
+    OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
 
-       If OrderFound > 0 THEN    // Parse was successful
-         Begin    {X}
-            ZValues := Z.GetValuesArrayPtr(Norder);
-            IF Norder = Fnphases THEN
-            FOR j := 1 to Fnphases * Fnphases DO ZValues^[j].im := MatBuffer^[j];
-         End;
+    If OrderFound > 0 THEN    // Parse was successful
+    Begin    {X}
+      ZValues := Z.GetValuesArrayPtr(Norder);
+      IF Norder = Fnphases THEN
+      FOR j := 1 to Fnphases * Fnphases DO ZValues^[j].im := MatBuffer^[j];
+    End;
 
-       Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
-     End;
+    Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
+  End;
+
+  Result := OrderFound;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROCEDURE TLine.DoCmatrix(ActorID : Integer);
+FUNCTION TLine.DoCmatrix(ActorID : Integer): Integer;
 VAR
     OrderFound,
     Norder,
@@ -522,23 +527,26 @@ VAR
     Factor     : Double;
 
 Begin
-   WITH ActiveLineObj DO
-     Begin
-       If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
+  Result  := 0;
+  WITH ActiveLineObj DO
+  Begin
+    If Z.Order <> Fnphases  Then ReallocZandYcMatrices;
 
-       MatBuffer  := Allocmem(Sizeof(double) * Fnphases * Fnphases);
-       OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
+    MatBuffer  := Allocmem(Sizeof(double) * Fnphases * Fnphases);
+    OrderFound := Parser[ActorID].ParseAsSymMatrix(Fnphases, MatBuffer);
 
-       If OrderFound > 0 THEN    // Parse was successful
-         Begin    {X}
-            Factor  := TwoPi * BaseFrequency  * 1.0e-9;
-            YValues := YC.GetValuesArrayPtr(Norder);
-            IF Norder = Fnphases THEN
-            FOR j := 1 to Fnphases * Fnphases DO YValues^[j].im := Factor * MatBuffer^[j];
-         End;
+    If OrderFound > 0 THEN    // Parse was successful
+    Begin    {X}
+      Factor  := TwoPi * BaseFrequency  * 1.0e-9;
+      YValues := YC.GetValuesArrayPtr(Norder);
+      IF Norder = Fnphases THEN
+      FOR j := 1 to Fnphases * Fnphases DO YValues^[j].im := Factor * MatBuffer^[j];
+    End;
 
-       Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
-     End;
+    Freemem(MatBuffer, Sizeof(double) * Fnphases * Fnphases);
+  End;
+
+  Result  := OrderFound;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -593,16 +601,19 @@ Begin
             2: Setbus(2, param);
             3: FetchLineCode(Param);  // Define line by conductor code
             4: Len := Parser[ActorID].DblValue;
-            5: {Nphases: See below};
+            5: Begin End;
             6: r1 := Parser[ActorID].Dblvalue;
             7: x1 := Parser[ActorID].Dblvalue;
             8: r0 := Parser[ActorID].Dblvalue;
             9: x0 := Parser[ActorID].Dblvalue;
            10: Begin c1 := Parser[ActorID].Dblvalue * 1.0e-9;  FCapSpecified := TRUE; End; // Convert from nano to farads
            11: Begin c0 := Parser[ActorID].Dblvalue * 1.0e-9;  FCapSpecified := TRUE; End;
-           12: DoRmatrix(ActorID);
-           13: DoXmatrix(ActorID);
-           14: Begin DoCMatrix(ActorID);  FCapSpecified := TRUE; End;
+           12: if DoRmatrix(ActorID) = 0 then DoSimpleMsg('The RMatrix entered does not match with the number of phases. '+ Name, 18201);
+           13: if DoXmatrix(ActorID) = 0 then DoSimpleMsg('The XMatrix entered does not match with the number of phases. '+ Name, 18202);
+           14: Begin
+                if DoCMatrix(ActorID) = 0 then DoSimpleMsg('The CMatrix entered does not match with the number of phases. '+ Name, 18203)
+                Else FCapSpecified := TRUE;
+               End;
            15: IsSwitch := InterpretYesNo(Param);
            16: Rg := Parser[ActorID].DblValue;
            17: Xg := Parser[ActorID].DblValue;
@@ -652,9 +663,11 @@ Begin
               GeometrySpecified := False;
              End;
           4,20:     // for Reliability calcs -- see PDElement.Pas
-             MilesThisLine := len * ConvertLineUnits(LengthUnits, UNITS_MILES);
-
-          5: {Change the number of phases ... only valid if SymComponentsModel=TRUE}
+             Begin
+              MilesThisLine := len * ConvertLineUnits(LengthUnits, UNITS_MILES);
+             End;
+          5: {Change the number of phases ... only valid if SymComponentsModel=TRUE
+              moved here on 01/21/2025 due to inconsistencies when assigning R, X and C matrices}
              IF Fnphases <> Parser[ActorID].IntValue THEN
               If (Not GeometrySpecified) and SymComponentsModel Then Begin  // ignore change of nphases if geometry used
                  Nphases      := Parser[ActorID].IntValue ;

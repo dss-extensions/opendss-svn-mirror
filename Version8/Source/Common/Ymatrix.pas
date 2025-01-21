@@ -22,6 +22,7 @@ uses
 {$ENDIF}
   DSSClass,
   DSSClassDefs,
+  PCElement,
   DSSObject;
 
 
@@ -51,18 +52,25 @@ Uses DSSGlobals, Circuit, CktElement, Utilities, KLUSolve;
 PROCEDURE ReCalcAllYPrims(ActorID : Integer);
 
 VAR
-   pElem:TDSSCktElement;
+   pElem      : TDSSCktElement;
+   ValidElm   : Boolean;
 
 Begin
 
   WITH ActiveCircuit[ActorID] Do
   Begin
-     If LogEvents Then LogThisEvent('Recalc All Yprims',ActorID);
-     pElem := CktElements.First;
-     WHILE pElem<>nil Do Begin
-       pElem.CalcYPrim(ActorID);
-       pElem := CktElements.Next;
-     End;
+    If LogEvents Then LogThisEvent('Recalc All Yprims',ActorID);
+    pElem := CktElements.First;
+    WHILE pElem<>nil Do
+    Begin
+      ValidElm  :=  True;
+      if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+        ValidElm := not TPCElement(pElem).ForceY;
+
+      if ValidElm then
+        pElem.CalcYPrim(ActorID);
+      pElem := CktElements.Next;
+    End;
   End;
 
 End;
@@ -72,20 +80,25 @@ PROCEDURE ReCalcInvalidYPrims(ActorID : Integer);
 {Recalc YPrims only for those circuit elements that have had changes since last
  solution}
 VAR
-   pElem:TDSSCktElement;
+   pElem      :TDSSCktElement;
+   ValidElm   : Boolean;
 
 Begin
 
   WITH ActiveCircuit[ActorID] Do
   Begin
-     If LogEvents Then LogThisEvent('Recalc Invalid Yprims',ActorID);
-     pElem := CktElements.First;
-     WHILE pElem<>nil Do
-     Begin
-       WITH pElem Do
-       IF YprimInvalid[ActorID] THEN CalcYPrim(ActorID);
-       pElem := CktElements.Next;
-     End;
+    If LogEvents Then LogThisEvent('Recalc Invalid Yprims',ActorID);
+    pElem := CktElements.First;
+    WHILE pElem<>nil Do
+    Begin
+      ValidElm  :=  True;
+      if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+        ValidElm := not TPCElement(pElem).ForceY;
+
+      IF (pElem.YprimInvalid[ActorID] and ValidElm) THEN pElem.CalcYPrim(ActorID);
+
+      pElem := CktElements.Next;
+    End;
   End;
 
 End;

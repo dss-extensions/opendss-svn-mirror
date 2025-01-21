@@ -12,7 +12,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 144;
+        NumExecOptions = 146;
 
 VAR
          ExecOption,
@@ -28,14 +28,14 @@ FUNCTION DoGetCmd_NoCircuit:Boolean;  // Get Commands that do not require a circ
 implementation
 
 Uses DSSClassDefs, DSSGlobals, ParserDel, Math,     Executive,  ExecHelper,
-     LoadShape,    Utilities,  Sysutils, Line, PCElement,
+     LoadShape,    Utilities,  Sysutils, Line, PCElement, ArrayDef,
      {$IFNDEF FPC}
      {$IFNDEF CONSOLE}
      ScriptEdit,
      {$ENDIF}
      {$ENDIF}
      Solution, Energymeter,
-     Diakoptics, Classes, ExceptionTrace;
+     Diakoptics, Classes, ExceptionTrace, UComplex, CktElement;
 
 
 PROCEDURE DefineOptions;
@@ -186,6 +186,8 @@ Begin
      ExecOption[142] := 'pyPath';
      ExecOption[143] := 'IterNumber';
      ExecOption[144] := 'CtrlIterNumber';
+     ExecOption[145] := 'InjCurrent';
+     ExecOption[146] := 'Yprim';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -509,6 +511,14 @@ Begin
                         '     Set pyPath=mypath Debug=Yes';
      OptionHelp[143] := 'Returns the actual iteration number within the simulation loop.';
      OptionHelp[144] := 'Returns the actual control iteration number within the simulation loop.';
+     OptionHelp[145] := 'Use this command to set/get the current injection vector of the active PC Element. If the active element is not a PCE, the ' +
+                        'program will return an error message aborting the command (see "select").' + CRLF +
+                         CRLF +
+                        'The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html)';;
+     OptionHelp[146] := 'Use this command to set/get the Y primitive of the active PC Element. If the active element is not a PCE, the ' +
+                        'program will return an error message aborting the command (see "select").' + CRLF +
+                        CRLF +
+                        'The Y primitive must be entered using OpenDSS notation (lower triangular matrix - see https://opendss.epri.com/MatrixProperties.html)';
 
 
 
@@ -631,6 +641,10 @@ FUNCTION DoSetCmd(SolveOption:Integer):Integer;
 
 VAR
    i,
+   j,
+   k,
+   krow,
+   kcol,
    ParamPointer     : Integer;
    ParamName        : String;
    Param            : String;
@@ -640,6 +654,7 @@ VAR
    LineObj          : TLineObj;
    DBugServer,
    ValidObj         : Boolean;
+   myStrArray       : DynStringArray;
 
    const
    VarPCE           : array[0..2] of string =  ('generator', 'windgen', 'storage');
@@ -991,6 +1006,68 @@ Begin
                   End
                   Else
                     DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
+                End;
+          145:  Begin
+
+                  WITH ActiveCircuit[ActiveActor] Do
+                  Begin
+                    if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    Begin
+                      SetLength(myStrArray, ActiveCktElement.NPhases + 1);
+                      j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray);
+                      for i := 1 to ActiveCktElement.NPhases do
+                      Begin
+                        if myStrArray[i] = '' then
+                          TPCElement(ActiveCktElement).InjCurrent[j] := CZERO
+                        Else
+                          TPCElement(ActiveCktElement).InjCurrent[i] := Str2Cmplx(myStrArray[i]);
+                        ActiveCktElement.Iterminal[i] := TPCElement(ActiveCktElement).InjCurrent[i];
+                        TPCElement(ActiveCktElement).set_ITerminalUpdated(TRUE, ActiveActor);
+                      End;
+                      TPCElement(ActiveCktElement).ForceInjCurr := True;  // This will force the algorithm to use the currents uploaded
+                    End
+                    Else
+                      DoSimpleMsg('The active element is not PCE.', 3002);
+                  End
+
+                End;
+          146:  Begin
+
+                  WITH ActiveCircuit[ActiveActor] Do
+                  Begin
+
+                    if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    Begin
+                      k := ActiveCktElement.NConds;
+                      SetLength(myStrArray, (k * k) + 1);
+                      j     := Parser[ActiveActor].ParseAsStrSymMatrix(k, @myStrArray);
+                      for i := 1 to High(myStrArray) do
+                        if myStrArray[i] = '' then j := 0;
+                      if j = k then   // The size makes sense
+                      Begin
+                        krow  :=  1;
+                        kcol  :=  1;
+                        for j := 1 to (k * k) do
+                        Begin
+                          ActiveCktElement.YPrim.SetElement(krow, kcol, Str2Cmplx(myStrArray[j]));
+                          inc(kcol);
+                          if kcol > k then
+                          Begin
+                            kcol  := 1;
+                            inc(krow);
+                          End;
+                        End;
+                        ActiveCktElement.YprimInvalid[ActiveActor]  := False;
+                        TPCElement(ActiveCktElement).ForceY := True;  // This will force the algorithm to use the YPrim uploaded
+                        Solution.SystemYChanged := True;
+                      End
+                      Else
+                        DoSimpleMsg('The size of the matrix provided does not match with the number of conductors of the active PCE.', 3004);
+                    End
+                    Else
+                      DoSimpleMsg('The active element is not PCE.', 3003);
+                  End;
+
                 End
          ELSE
            // Ignore excess parameters
@@ -1020,7 +1097,6 @@ Begin
 
 End;
 
-
 //----------------------------------------------------------------------------
 FUNCTION DoGetCmd:Integer;
 
@@ -1028,15 +1104,19 @@ FUNCTION DoGetCmd:Integer;
 // may be retrieved by Result property of the DSSText interface
 
 VAR
-   ParamPointer, i:Integer;
+   j,
+   k,
+   ParamPointer,
+   i                : Integer;
    TempString,
    TmpStr,
-   ParamName:String;
-   Param:String;
+   ParamName        : String;
+   Param            : String;
    {$IFNDEF FPC} {$IFNDEF CONSOLE}
-   ScriptEd : TScriptEdit;
+   ScriptEd         : TScriptEdit;
    {$ENDIF} {$ENDIF}
    ValidObj         : Boolean;
+   TmpCmplx         : complex;
 
    const
    VarPCE           : array[0..2] of string =  ('generator', 'windgen', 'storage');
@@ -1279,6 +1359,56 @@ Begin
                 End;
           144:  Begin
                   AppendGlobalResult(inttostr(ActiveCircuit[ActiveActor].Solution.ControlIteration));
+                End;
+          145:  Begin
+
+                  TmpStr  := '';
+                  WITH ActiveCircuit[ActiveActor] Do
+                  Begin
+                    if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    Begin
+                      TmpStr  := '[';
+                      for j := 1 to ActiveCktElement.NPhases do
+                      Begin
+                        TmpCmplx := TPCElement(ActiveCktElement).InjCurrent[j];
+                        TmpStr := TmpStr + Cmplx2Str(TmpCmplx);
+                        if j < ActiveCktElement.NPhases then TmpStr := TmpStr + ', ';
+                      End;
+                      TmpStr := TmpStr + ']'
+                    End
+                    Else
+                      TmpStr := 'Error, the active element is not PCE';
+                  End;
+                  AppendGlobalResult(TmpStr);
+
+                End;
+          146:  Begin
+
+                  TmpStr  := '';
+                  WITH ActiveCircuit[ActiveActor] Do
+                  Begin
+                    if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    Begin
+                       TmpStr  := '[';
+                      i       :=  1;
+                      for j := 1 to ActiveCktElement.NPhases do
+                      Begin
+                        for k := 1 to i do
+                        Begin
+                          TmpCmplx := TPCElement(ActiveCktElement).YPrim.GetElement(j, k);
+                          TmpStr := TmpStr + Cmplx2Str(TmpCmplx);
+                          if k < i then TmpStr := TmpStr + ', ';
+                        End;
+                        inc(i);
+                        if i <= ActiveCktElement.NPhases then TmpStr := TmpStr + '|'
+                      End;
+                      TmpStr := TmpStr + ']'
+                    End
+                    Else
+                      TmpStr := 'Error, the active element is not PCE';
+                  End;
+                  AppendGlobalResult(TmpStr);
+
                 End
          ELSE
            // Ignore excess parameters
