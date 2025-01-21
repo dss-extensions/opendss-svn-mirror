@@ -166,7 +166,7 @@ TYPE
 
       public
 
-        Connection         :Integer;  {     0 = line-neutral; 1=Delta}
+        Connection         :Integer;        {0 = line-neutral; 1=Delta}
         DailyShape         :String;         // Daily (24 HR) load shape
         DailyShapeObj      :TLoadShapeObj;  // Daily load Shape FOR this load
         DutyShape          :String;         // Duty cycle load shape FOR changes typically less than one hour
@@ -183,16 +183,16 @@ TYPE
         kVLoadBase         :Double;
         LoadClass          :Integer;
         NumCustomers       :Integer;
-        LoadSpecType       :Integer;  // 0=kW, PF;  1= kw, kvar;  2=kva, PF
+        LoadSpecType       :Integer;        // 0=kW, PF;  1= kw, kvar;  2=kva, PF
         PFNominal          :Double;
         Rneut              :Double;
-        UE_Factor          :Double;  // These are set to > 0 IF a line in the critical path
-        Xneut              :Double;  // Neutral impedance
-        YearlyShape        :String;  // ='fixed' means no variation  exempt from variation
+        UE_Factor          :Double;         // These are set to > 0 IF a line in the critical path
+        Xneut              :Double;         // Neutral impedance
+        YearlyShape        :String;         // ='fixed' means no variation  exempt from variation
         YearlyShapeObj     :TLoadShapeObj;  // Shape for this load
         CVRshape           :String;
         CVRShapeObj        :TLoadShapeObj;
-        ZIPV               :pDoubleArray;  // Made public 5-20-2013
+        ZIPV               :pDoubleArray;   // Made public 5-20-2013
         puSeriesRL         :Double;
         RelWeighting       :Double;
 
@@ -1909,7 +1909,8 @@ Begin
 
    WITH ActiveCircuit[ActorID].Solution  DO
      Begin
-        If IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount Then Begin     // recalc the contribution
+        If (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and not ForceInjCurr Then
+        Begin     // recalc the contribution
             CalcLoadModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
         End;
         Inherited GetTerminalCurrents(Curr, ActorID);
@@ -1928,8 +1929,10 @@ Begin
    IF Enabled THEN
      WITH ActiveCircuit[ActorID].Solution DO Begin
          If LoadsNeedUpdating then SetNominalLoad(ActorID); // Set the nominal kW, etc. for the type of solution being done
-         CalcInjCurrentArray(ActorID);
-         Result := Inherited Injcurrents(ActorID);  // Add into Global Currents Array
+         if not ForceInjCurr then
+          CalcInjCurrentArray(ActorID);
+
+         Result := Inherited Injcurrents(ActorID);          // Add into Global Currents Array
        End;
 
 End;

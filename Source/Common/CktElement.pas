@@ -66,8 +66,7 @@ TYPE
       IterminalSolutionCount : Array of Integer;
 
       BusIndex       :Integer;
-      YPrim_Series,
-      YPrim_Shunt    :TCMatrix;
+
 
       FYprimFreq     :double;     // Frequency at which YPrim has been computed
 
@@ -76,6 +75,9 @@ TYPE
       PROCEDURE Set_NTerms(Value:Integer); Virtual;
       PROCEDURE Set_Handle(Value:Integer);
     public
+
+      YPrim_Series,
+      YPrim_Shunt    :TCMatrix;
 
       {Total Noderef array for element}
       NodeRef : pIntegerArray;  // Need fast access to this
