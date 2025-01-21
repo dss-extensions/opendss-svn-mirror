@@ -1420,7 +1420,7 @@ Begin
       if ShellExecuteEx(@_SEInfo) then
       begin
 
-        Sleep(200);
+        Sleep(500);
 
          // Check if new client is connected
         if not ConnectNamedPipe(pyServer[ActiveActor], nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then

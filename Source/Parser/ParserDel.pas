@@ -716,7 +716,7 @@ BEGIN
 
    if Assigned (RowBuf) then FreeMem(RowBuf, (Sizeof(Double)*ExpectedOrder));
 
-   if OrderFound <> ExpectedOrder then
+   if OrderFound < ExpectedOrder then
    Begin
     DSSMessageDlg('The matrix entered does not match with the expected order, review the entered parameters and try again.', TRUE);
     Result := 0
