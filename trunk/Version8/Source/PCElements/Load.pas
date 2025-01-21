@@ -1909,7 +1909,7 @@ Begin
 
    WITH ActiveCircuit[ActorID].Solution  DO
      Begin
-        If (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and not ForceInjCurr Then
+        If (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and (not ForceInjCurr) Then
         Begin     // recalc the contribution
             CalcLoadModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
         End;
