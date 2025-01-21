@@ -5,8 +5,7 @@ Created on Thu Dec  5 10:23:05 2024
 @author: Davis Montenegro
 
 Implements a regualtor using the pyControl object strcuture to be used within an
-OpenDSS simulation. Controllers in OpenDSS rquire a "Sample" and "Do..." sections as 
-implemented in this example. Use this structure as base for implementing your own
+OpenDSS simulation. Use this structure as base for implementing your own
 controls.
  
 """
@@ -35,11 +34,6 @@ def Str2StrArray(myString):
 '''
 This routine is for checking if a control action is required and notify OpenDSS about it
 '''  
-#    print('Entering sample')
-#    print(master)
-
-#    print('connected sample')
-
 Result = 'no'                                                         # Indicates if the control action was needed
 DSSText.Command = 'set class=transformer'
 DSSText.Command = 'ClassMembers'                                      # Gets the list of Xfmrs (not needed, just as example)

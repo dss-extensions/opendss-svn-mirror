@@ -4,7 +4,7 @@ Created on Thu Jan  20 10:23:05 2025
 
 @author: Davis Montenegro
 
-Implements a constant PQ load using the pyControl object strcuture within an
+Implements a constant PQ load using the pyControl object structure within an
 OpenDSS simulation. Use this structure as base for implementing your own
 controls.
  
@@ -107,7 +107,7 @@ def Str2CmplxMat(myStr):
 #%%
 '''
 Here we check if the script is executed for he first time, if so, initilizes 
-DSS and the local variables that require. Otherwise, brings back the values
+DSS and the local variables required. Otherwise, brings back the values
 from DSS memory to keep iterating
 '''
 if isFirstTime(DSSText, thismodelname):

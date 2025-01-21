@@ -14,7 +14,7 @@ Set voltagebases=[13.8]
 Calcvoltagebases
 
 ! Here we tell DSS where our local Python is installed
-set pyPath=C:\ProgramData\anaconda3 debug=yes
+set pyPath=C:\ProgramData\anaconda3 !debug=yes
 
 ! Here we create our pyController
 New pyControl.myControl pyScript=Constant_PQ_Load.py
