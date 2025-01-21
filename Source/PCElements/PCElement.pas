@@ -55,6 +55,8 @@ type
         DynOut,                                    // Memory space for referencing the output values
         DynamicEqPair: array of Integer;         // Memory space for assigning calculated values to vars
 
+        ForceY,                                    // Indicates DSS to use the Y prim proposed by the user
+        ForceInjCurr: Boolean;                  // Indicates DSS to use the Current Injection values proposed by the user
 
         constructor Create(ParClass: TDSSClass);
         destructor Destroy; OVERRIDE;
@@ -136,6 +138,8 @@ begin
     setlength(DynOut, 0);
     FIterminalUpdated := false;
     NumStateVars := 0;
+    ForceY := false;
+    ForceInjCurr := false;
 
     DSSObjType := PC_ELEMENT;
 end;
@@ -299,13 +303,11 @@ begin
 
            // Take a short cut and get Currents from YPrim only
            // For case where model is entirely in Y matrix
-
                     CalcYPrimContribution(Curr, ActorID);
 
                 end
                 else
                 begin
-
                     GetTerminalCurrents(Curr, ActorID);
                 end; {IF}
 

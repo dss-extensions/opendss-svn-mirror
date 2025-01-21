@@ -175,7 +175,7 @@ type
 
     PUBLIC
 
-        Connection: Integer;  {     0 = line-neutral; 1=Delta}
+        Connection: Integer;        {0 = line-neutral; 1=Delta}
         DailyShape: String;         // Daily (24 HR) load shape
         DailyShapeObj: TLoadShapeObj;  // Daily load Shape FOR this load
         DutyShape: String;         // Duty cycle load shape FOR changes typically less than one hour
@@ -192,16 +192,16 @@ type
         kVLoadBase: Double;
         LoadClass: Integer;
         NumCustomers: Integer;
-        LoadSpecType: Integer;  // 0=kW, PF;  1= kw, kvar;  2=kva, PF
+        LoadSpecType: Integer;        // 0=kW, PF;  1= kw, kvar;  2=kva, PF
         PFNominal: Double;
         Rneut: Double;
-        UE_Factor: Double;  // These are set to > 0 IF a line in the critical path
-        Xneut: Double;  // Neutral impedance
-        YearlyShape: String;  // ='fixed' means no variation  exempt from variation
+        UE_Factor: Double;         // These are set to > 0 IF a line in the critical path
+        Xneut: Double;         // Neutral impedance
+        YearlyShape: String;         // ='fixed' means no variation  exempt from variation
         YearlyShapeObj: TLoadShapeObj;  // Shape for this load
         CVRshape: String;
         CVRShapeObj: TLoadShapeObj;
-        ZIPV: pDoubleArray;  // Made public 5-20-2013
+        ZIPV: pDoubleArray;   // Made public 5-20-2013
         puSeriesRL: Double;
         RelWeighting: Double;
 
@@ -2194,7 +2194,7 @@ begin
 
     with ActiveCircuit[ActorID].Solution do
     begin
-        if IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount then
+        if (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and not ForceInjCurr then
         begin     // recalc the contribution
             CalcLoadModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
         end;
@@ -2216,8 +2216,10 @@ begin
         begin
             if LoadsNeedUpdating then
                 SetNominalLoad(ActorID); // Set the nominal kW, etc. for the type of solution being done
-            CalcInjCurrentArray(ActorID);
-            Result := inherited Injcurrents(ActorID);  // Add into Global Currents Array
+            if not ForceInjCurr then
+                CalcInjCurrentArray(ActorID);
+
+            Result := inherited Injcurrents(ActorID);          // Add into Global Currents Array
         end;
 
 end;

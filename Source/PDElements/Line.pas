@@ -33,9 +33,9 @@ type
 
     TLine = class(TPDClass)
     PRIVATE
-        procedure DoRmatrix(ActorID: Integer);
-        procedure DoXmatrix(ActorID: Integer);
-        procedure DoCmatrix(ActorID: Integer);
+        function DoRmatrix(ActorID: Integer): Integer;
+        function DoXmatrix(ActorID: Integer): Integer;
+        function DoCmatrix(ActorID: Integer): Integer;
 
     PROTECTED
         procedure DefineProperties;  // Add Properties of this class to propName
@@ -479,16 +479,17 @@ end;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TLine.DoRmatrix(ActorID: Integer);
+function TLine.DoRmatrix(ActorID: Integer): Integer;
 var
     OrderFound, Norder, j: Integer;
     MatBuffer: pDoubleArray;
     Zvalues: pComplexArray;
 
 begin
+    Result := 0;
     with ActiveLineObj do
     begin
-       {Added 3-17-15 in case Z and Yc do not get allocated to the proper value}
+    {Added 3-17-15 in case Z and Yc do not get allocated to the proper value}
         if Z.Order <> Fnphases then
             ReallocZandYcMatrices;
 
@@ -505,16 +506,18 @@ begin
 
         Freemem(MatBuffer, Sizeof(Double) * Fnphases * Fnphases);
     end;
+    Result := OrderFound;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TLine.DoXmatrix(ActorID: Integer);
+function TLine.DoXmatrix(ActorID: Integer): Integer;
 var
     OrderFound, Norder, j: Integer;
     MatBuffer: pDoubleArray;
     Zvalues: pComplexArray;
 
 begin
+    Result := 0;
     with ActiveLineObj do
     begin
         if Z.Order <> Fnphases then
@@ -533,10 +536,12 @@ begin
 
         Freemem(MatBuffer, Sizeof(Double) * Fnphases * Fnphases);
     end;
+
+    Result := OrderFound;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TLine.DoCmatrix(ActorID: Integer);
+function TLine.DoCmatrix(ActorID: Integer): Integer;
 var
     OrderFound,
     Norder,
@@ -546,6 +551,7 @@ var
     Factor: Double;
 
 begin
+    Result := 0;
     with ActiveLineObj do
     begin
         if Z.Order <> Fnphases then
@@ -565,6 +571,8 @@ begin
 
         Freemem(MatBuffer, Sizeof(Double) * Fnphases * Fnphases);
     end;
+
+    Result := OrderFound;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -628,7 +636,8 @@ begin
                 4:
                     Len := Parser[ActorID].DblValue;
                 5:
-{Nphases: See below};
+                begin
+                end;
                 6:
                     r1 := Parser[ActorID].Dblvalue;
                 7:
@@ -648,13 +657,17 @@ begin
                     FCapSpecified := true;
                 end;
                 12:
-                    DoRmatrix(ActorID);
+                    if DoRmatrix(ActorID) = 0 then
+                        DoSimpleMsg('The RMatrix entered does not match with the number of phases. ' + Name, 18201);
                 13:
-                    DoXmatrix(ActorID);
+                    if DoXmatrix(ActorID) = 0 then
+                        DoSimpleMsg('The XMatrix entered does not match with the number of phases. ' + Name, 18202);
                 14:
                 begin
-                    DoCMatrix(ActorID);
-                    FCapSpecified := true;
+                    if DoCMatrix(ActorID) = 0 then
+                        DoSimpleMsg('The CMatrix entered does not match with the number of phases. ' + Name, 18203)
+                    else
+                        FCapSpecified := true;
                 end;
                 15:
                     IsSwitch := InterpretYesNo(Param);
@@ -739,9 +752,11 @@ begin
                     GeometrySpecified := false;
                 end;
                 4, 20:     // for Reliability calcs -- see PDElement.Pas
+                begin
                     MilesThisLine := len * ConvertLineUnits(LengthUnits, UNITS_MILES);
-
-                5: {Change the number of phases ... only valid if SymComponentsModel=TRUE}
+                end;
+                5: {Change the number of phases ... only valid if SymComponentsModel=TRUE
+              moved here on 01/21/2025 due to inconsistencies when assigning R, X and C matrices}
                     if Fnphases <> Parser[ActorID].IntValue then
                         if (not GeometrySpecified) and SymComponentsModel then
                         begin  // ignore change of nphases if geometry used

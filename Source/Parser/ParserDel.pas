@@ -105,8 +105,10 @@ type
         property PrevParam: Integer READ Point2PrevParam;        // Added 12/12/2024
         function ParseAsBusName(var NumNodes: Integer; NodeArray: pIntegerArray; actorID: Integer): String;
         function ParseAsVector(ExpectedSize: Integer; VectorBuffer: pDoubleArray): Integer;
+        function ParseAsStrVector(ExpectedSize: Integer; VectorBuffer: pDynStringArray): Integer;
         function ParseAsMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
         function ParseAsSymMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
+        function ParseAsStrSymMatrix(ExpectedOrder: Integer; MatrixBuffer: pDynStringArray): Integer;
         procedure ResetDelims;   // resets delimiters to default
         procedure CheckforVar(var TokenBuffer: String);
     PUBLISHED
@@ -669,6 +671,61 @@ end;
 
 {=======================================================================================================================}
 
+function TParser.ParseAsStrVector(ExpectedSize: Integer; VectorBuffer: pDynStringArray): Integer;
+var
+    ParseBufferPos,
+    NumElements,
+    i: Integer;
+    ParseBuffer,
+    DelimSave: String;
+
+begin
+
+    if FAutoIncrement then
+        GetNextParam;
+
+    NumElements := 0;
+    Result := 0;  // return 0 if none found or error occurred
+    try
+        for i := 1 to ExpectedSize do
+            VectorBuffer^[i] := '';
+
+     {now Get Vector values}
+        ParseBuffer := TokenBuffer + ' ';
+
+        ParseBufferPos := 1;
+        DelimSave := DelimChars;
+        DelimChars := DelimChars + MatrixRowTerminator;
+
+        SkipWhiteSpace(ParseBuffer, ParseBufferPos);
+        TokenBuffer := GetToken(ParseBuffer, ParseBufferPos);
+        CheckForVar(TokenBuffer);
+        while Length(TokenBuffer) > 0 do
+        begin
+            inc(NumElements);
+            if NumElements <= ExpectedSize then
+                VectorBuffer^[NumElements] := MakeString;
+            if LastDelimiter = MatrixRowTerminator then
+                BREAK;
+            TokenBuffer := GetToken(ParseBuffer, ParseBufferPos);
+            CheckForVar(TokenBuffer);
+        end;
+
+        Result := NumElements;
+
+    except
+        On E: Exception do
+            DSSMessageDlg('Vector Buffer in ParseAsVector Probably Too Small: ' + E.Message, true);
+    end;
+
+
+    DelimChars := DelimSave;   //restore to original delimiters
+    TokenBuffer := copy(ParseBuffer, ParseBufferPos, Length(ParseBuffer));  // prepare for next trip
+
+end;
+
+{=======================================================================================================================}
+
 function TParser.ParseAsMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
 
 var
@@ -719,6 +776,7 @@ function TParser.ParseAsSymMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleA
 
 var
     i, j,
+    OrderFound,
     ElementsFound: Integer;
     RowBuf: pDoubleArray;
 
@@ -738,7 +796,7 @@ begin
 
     try
         RowBuf := Allocmem(Sizeof(Double) * ExpectedOrder);
-
+        OrderFound := 0;
         for i := 1 to (ExpectedOrder * ExpectedOrder) do
             MatrixBuffer^[i] := 0.0;
 
@@ -746,6 +804,8 @@ begin
         begin
 
             ElementsFound := ParseAsVector(ExpectedOrder, RowBuf);
+            if ElementsFound > 0 then
+                inc(OrderFound);
 
          { Returns matrix in Column Order (Fortran order) }
             for j := 1 to ElementsFound do
@@ -764,6 +824,64 @@ begin
 
     if Assigned(RowBuf) then
         FreeMem(RowBuf, (Sizeof(Double) * ExpectedOrder));
+
+    if OrderFound <> ExpectedOrder then
+    begin
+        DSSMessageDlg('The matrix entered does not match with the expected order, review the entered parameters and try again.', true);
+        Result := 0
+    end
+    else
+        Result := OrderFound;
+
+end;
+
+{=======================================================================================================================}
+
+function TParser.ParseAsStrSymMatrix(ExpectedOrder: Integer; MatrixBuffer: pDynStringArray): Integer;
+var
+    i, j,
+    ElementsFound: Integer;
+    RowBuf: DynStringArray;
+
+   {---------------- Local Function -----------------------}
+    function ElementIndex(ii, jj: Integer): Integer;
+    begin
+        Result := (jj - 1) * ExpectedOrder + ii;
+    end;
+
+begin
+
+
+    if FAutoIncrement then
+        GetNextParam;
+
+    try
+        SetLength(RowBuf, ExpectedOrder + 1);
+
+        for i := 1 to (ExpectedOrder * ExpectedOrder) do
+            MatrixBuffer^[i] := '';
+
+        for i := 1 to ExpectedOrder do
+        begin
+
+            ElementsFound := ParseAsStrVector(ExpectedOrder, @RowBuf);
+
+         { Returns matrix in Column Order (Fortran order) }
+            for j := 1 to ElementsFound do
+            begin
+                MatrixBuffer^[ElementIndex(i, j)] := RowBuf[j];
+                if i <> j then
+                    MatrixBuffer^[ElementIndex(j, i)] := RowBuf[j];
+            end;
+
+        end;
+
+    except
+        On E: Exception do
+            DSSMessageDlg('Matrix Buffer in ParseAsStrSymMatrix Probably Too Small: ' + E.Message, true);
+    end;
+
+    SetLength(RowBuf, 0);
     Result := ExpectedOrder;
 
 end;

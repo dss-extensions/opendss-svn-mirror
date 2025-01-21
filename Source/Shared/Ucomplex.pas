@@ -53,6 +53,8 @@ function pmul(const a, b: polar): polar;
 function pdiv(const a, b: polar): polar;
 function pdegtocomplex(const magn, angle: Double): complex;
 function pclx(const magn, angle: Double): complex;
+function Cmplx2Str(myCNumber: Complex): String;  // Translates a complex number into its equivalent as string
+function Str2Cmplx(myString: String): complex;   // Translates a string into its complex number equivalent
 
 var
     CZERO, CONE, CDOUBLEONE, CAP_EPSILON, C1_J1, ALPHA1, ALPHA2: Complex;
@@ -298,6 +300,100 @@ function PDIV(const a, b: polar): polar;
 begin
     Result.MAG := A.MAG / B.MAG;
     Result.ANG := A.ANG - B.ANG
+end;
+
+function Cmplx2Str(myCNumber: Complex): String;
+begin
+    Result := FloatToStr(myCNumber.re);
+    if myCNumber.im >= 0 then
+        Result := Result + '+';
+    Result := Result + FloatToStr(myCNumber.im) + 'i';
+end;
+
+function Str2Cmplx(myString: String): complex;
+var
+    SBuffer: String;      // Stores the substring extracted from the source
+    RealNum: Boolean;     // Indicates if the string processed corresponds to the real or imaginary part
+    TokenF,                // Indicates if a Token (+, - , i, j) was found by index
+    i,
+    k,
+    idx: Integer;
+
+const
+    Tokens: array[0..3] of String = ('+', '-', 'i', 'j');
+
+begin
+    RealNum := true;        // To indicate that we will start by getting the real part
+    Result := CZERO;
+    SBuffer := '';
+    idx := 0;
+    for i := 1 to High(myString) do
+    begin
+        TokenF := -1;
+        for k := 0 to 3 do
+            if (myString[i] = Tokens[k]) then
+            begin
+                TokenF := k;
+                break;
+            end;
+
+        if TokenF < 0 then
+            SBuffer := SBuffer + myString[i]
+        else
+        begin
+            case TokenF of
+                0, 1:
+                begin
+                  // Ideally, this is the end of the real part
+                    if Length(SBuffer) > 0 then
+                    begin
+                        if RealNum then  // If this is not the real part then something is wrong with the expression
+                        begin
+                            Result.re := StrToFloat(Trim(SBuffer));
+                            RealNum := false;
+                            if TokenF = 1 then
+                                SBuffer := '-'   // Adding the (-) char for negative numbers
+                            else
+                                SBuffer := '';
+                        end
+                    end
+                    else
+                    begin
+                        if TokenF = 1 then
+                            SBuffer := '-'              // Adding the (-) char for negative numbers
+                    end;
+                end;
+                2, 3:
+                begin
+                  // Here we've found the imaginary part
+                    if Length(SBuffer) > 0 then
+                    begin
+                        if RealNum then
+                        begin
+                            Result.re := 0.0;
+                            RealNum := false;
+                        end;
+                        Result.im := StrToFloat(Trim(SBuffer));
+                        SBuffer := '';
+                    end;
+                end
+            else
+            begin
+            // Nothing really
+            end;
+            end;
+        end;
+    end;
+
+    // This section tries to capture at least a number in case the syntax is not right
+    if Length(SBuffer) > 1 then
+    begin
+        if RealNum then
+            Result.re := StrToFloat(Trim(SBuffer))
+        else
+            Result.im := StrToFloat(Trim(SBuffer));
+    end;
+
 end;
 
 

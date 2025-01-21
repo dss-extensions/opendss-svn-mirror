@@ -22,6 +22,7 @@ uses
     {$ENDIF}
     DSSClass,
     DSSClassDefs,
+    PCElement,
     DSSObject;
 
 
@@ -56,6 +57,7 @@ procedure ReCalcAllYPrims(ActorID: Integer);
 
 var
     pElem: TDSSCktElement;
+    ValidElm: Boolean;
 
 begin
 
@@ -66,7 +68,12 @@ begin
         pElem := CktElements.First;
         while pElem <> nil do
         begin
-            pElem.CalcYPrim(ActorID);
+            ValidElm := true;
+            if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                ValidElm := not TPCElement(pElem).ForceY;
+
+            if ValidElm then
+                pElem.CalcYPrim(ActorID);
             pElem := CktElements.Next;
         end;
     end;
@@ -79,6 +86,7 @@ procedure ReCalcInvalidYPrims(ActorID: Integer);
  solution}
 var
     pElem: TDSSCktElement;
+    ValidElm: Boolean;
 
 begin
 
@@ -89,9 +97,13 @@ begin
         pElem := CktElements.First;
         while pElem <> nil do
         begin
-            with pElem do
-                if YprimInvalid[ActorID] then
-                    CalcYPrim(ActorID);
+            ValidElm := true;
+            if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                ValidElm := not TPCElement(pElem).ForceY;
+
+            if (pElem.YprimInvalid[ActorID] and ValidElm) then
+                pElem.CalcYPrim(ActorID);
+
             pElem := CktElements.Next;
         end;
     end;
