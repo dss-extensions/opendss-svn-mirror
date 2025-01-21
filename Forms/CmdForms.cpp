@@ -87,18 +87,21 @@ String GetDSSExeFile( )
 
 int DSSMessageDlg( const String Msg, bool err )
 {
-  int result = 0;
-  result = 0;
-  if ( err )
-    CoutLn( "** Error: " );
-  CoutLn( Msg );
-  return result;
+    int result = 0;
+    if (!NoFormsAllowed)
+    {
+        if (err)
+            CoutLn("** Error: ");
+        CoutLn(Msg);
+    }
+    return result;
 }
 
 
 void DSSInfoMessageDlg( const String Msg )
 {
-  CoutLn( Msg );
+    if (!NoFormsAllowed)
+        CoutLn( Msg );
 }
 
 

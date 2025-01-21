@@ -44,9 +44,9 @@ class TLine : public PDClass::TPDClass
 public:
 	typedef PDClass::TPDClass inherited;	
 private:
-	void DoRmatrix(int ActorID);
-	void DoXmatrix(int ActorID);
-	void DoCmatrix(int ActorID);
+	int DoRmatrix(int ActorID);
+	int DoXmatrix(int ActorID);
+	int DoCmatrix(int ActorID);
 protected:
 	void DefineProperties();  // Add Properties of this class to propName
 	virtual int MakeLike(const String LineName);
