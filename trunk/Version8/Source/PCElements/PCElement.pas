@@ -48,7 +48,8 @@ TYPE
        DynOut,                                    // Memory space for referencing the output values
        DynamicEqPair  : array of Integer;         // Memory space for assigning calculated values to vars
 
-
+       ForceY,                                    // Indicates DSS to use the Y prim proposed by the user
+       ForceInjCurr   : Boolean;                  // Indicates DSS to use the Current Injection values proposed by the user
 
        constructor Create(ParClass:TDSSClass);
        destructor Destroy; override;
@@ -115,20 +116,22 @@ USES
 Constructor TPCElement.Create(ParClass:TDSSClass);
 Begin
     Inherited Create(ParClass);
-    Spectrum    := 'default';
-    SpectrumObj :=  NIL;  // have to allocate later because not guaranteed there will be one now.
-    SensorObj   :=  NIL;
-    MeterObj    :=  NIL;
-    InjCurrent  :=  NIL;
-    DynamicEq   :=  '';
-    DynamicEqObj:=  NIL;
+    Spectrum          := 'default';
+    SpectrumObj       :=  NIL;  // have to allocate later because not guaranteed there will be one now.
+    SensorObj         :=  NIL;
+    MeterObj          :=  NIL;
+    InjCurrent        :=  NIL;
+    DynamicEq         :=  '';
+    DynamicEqObj      :=  NIL;
     setlength(DynamicEqVals,0);
     setlength(DynamicEqPair,0);
     setlength(DynOut,0);
     FIterminalUpdated := FALSE;
-    NumStateVars := 0;
+    NumStateVars      := 0;
+    ForceY            :=  FALSE;
+    ForceInjCurr      :=  FALSE;
     
-    DSSObjType := PC_ELEMENT;
+    DSSObjType  := PC_ELEMENT;
 End;
 
 destructor TPCElement.Destroy;
@@ -283,13 +286,12 @@ Begin
        
            // Take a short cut and get Currents from YPrim only
            // For case where model is entirely in Y matrix
-
-           CalcYPrimContribution(Curr, ActorID);
+            CalcYPrimContribution(Curr, ActorID);
 
        End
-       ELSE Begin
-
-           GetTerminalCurrents(Curr, ActorID);
+       ELSE
+       Begin
+          GetTerminalCurrents(Curr, ActorID);
        End; {IF}
 
      End
