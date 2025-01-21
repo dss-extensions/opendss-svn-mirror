@@ -348,11 +348,11 @@ void TLineObj::FetchLineCode(const String Code)
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void TLine::DoRmatrix(int ActorID)
+int TLine::DoRmatrix(int ActorID)
 {
-	int OrderFound = 0;
-	int Norder = 0;
-	int j = 0;
+	int OrderFound	= 0;
+	int Norder		= 0;
+	int j			= 0;
 	pDoubleArray MatBuffer;
 	pComplexArray Zvalues;
 	/*# with ActiveLineObj do */
@@ -378,11 +378,13 @@ void TLine::DoRmatrix(int ActorID)
 			}
 		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
+
+	return OrderFound;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void TLine::DoXmatrix(int ActorID)
+int TLine::DoXmatrix(int ActorID)
 {
 	int OrderFound = 0;
 	int Norder = 0;
@@ -411,11 +413,13 @@ void TLine::DoXmatrix(int ActorID)
 			}
 		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
+
+	return OrderFound;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void TLine::DoCmatrix(int ActorID)
+int TLine::DoCmatrix(int ActorID)
 {
 	int OrderFound = 0;
 	int Norder = 0;
@@ -446,6 +450,8 @@ void TLine::DoCmatrix(int ActorID)
 			}
 		delete[] MatBuffer; //# FreeMemory accepts one parameter only;
 	}
+
+	return OrderFound;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -543,16 +549,24 @@ int TLine::Edit(int ActorID)
 					with0->FCapSpecified = true;
 				}
 				break;
-				case 	12:
-				DoRmatrix(ActorID);
+				case 12:
+				{
+					if (DoRmatrix(ActorID) == 0)
+						DoSimpleMsg("The RMatrix entered does not match with the number of phases. " + with0->get_Name(), 18201);
+				}
 				break;
-				case 	13:
-				DoXmatrix(ActorID);
+                case 13:
+                {
+                    if (DoXmatrix(ActorID) == 0)
+                        DoSimpleMsg("The XMatrix entered does not match with the number of phases. " + with0->get_Name(), 18202);
+                }
 				break;
 				case 	14:
 				{
-					DoCmatrix(ActorID);
-					with0->FCapSpecified = true;
+					if (DoCmatrix(ActorID) == 0)
+						DoSimpleMsg("The CMatrix entered does not match with the number of phases. " + with0->get_Name(), 18203);
+                    else
+						with0->FCapSpecified = true;
 				}
 				break;
 				case 	15:
@@ -675,7 +689,7 @@ int TLine::Edit(int ActorID)
 					}
 					else
 					{
-						DoSimpleMsg(String("Illegal change of number of phases for Line.") + with0->get_Name(), 18101);
+						DoSimpleMsg("Illegal change of number of phases for Line." + with0->get_Name(), 18101);
 					}
 				}
 				break;

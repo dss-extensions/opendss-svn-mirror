@@ -642,10 +642,11 @@ namespace ParserDel
 
 	int TParser::ParseAsSymMatrix(int ExpectedOrder, pDoubleArray MatrixBuffer)
 	{
-		int result = 0;
-		int i = 0;
-		int j = 0;
-		int ElementsFound = 0;
+		int result			= 0,
+			i				= 0,
+			j				= 0,
+			OrderFound		= 0,
+			ElementsFound	= 0;
 		pDoubleArray RowBuf;
 
 		/*---------------- Local Function -----------------------*/
@@ -672,10 +673,13 @@ namespace ParserDel
 				int stop1 = 0;
 				ElementsFound = ParseAsVector(ExpectedOrder, RowBuf);
 
+				if (ElementsFound > 0)
+					OrderFound++;
+
 				/* Returns matrix in Column Order (Fortran order) */
 				for (stop1 = ElementsFound, j = 1; j <= stop1; j++)
 				{
-					(MatrixBuffer)[ElementIndex(i, j) - 1] = (RowBuf)[j - 1];
+					MatrixBuffer[ElementIndex(i, j) - 1] = RowBuf[j - 1];
 					if (i != j)
 						(MatrixBuffer)[ElementIndex(j, i) - 1] = (RowBuf)[j - 1];
 				}
@@ -683,11 +687,17 @@ namespace ParserDel
 		}
 		catch (std::exception e)
 		{
-			//DSSMessageDlg("Matrix Buffer in ParseAsSymMatrix Probably Too Small: " + (string) e.what(), true);
+			DSSMessageDlg("Matrix Buffer in ParseAsSymMatrix Probably Too Small: " + (string) e.what(), true);
 		}
 		if (RowBuf != NULL)
 			delete[] RowBuf; //# FreeMemory accepts one parameter only;
-		result = ExpectedOrder;
+
+		if (OrderFound != ExpectedOrder)
+        {
+			DSSMessageDlg("The matrix entered does not match with the expected order, review the entered parameters and try again.", true);
+            OrderFound = 0;
+		}
+        result = OrderFound;
 		return result;
 	}
 
