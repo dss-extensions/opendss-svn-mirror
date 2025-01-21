@@ -155,7 +155,8 @@ end;
 function TpyControl.Edit(ActorID: Integer): Integer;
 var
     ParamPointer: Integer;
-    ParamName: String;
+    ReDirFile,
+    ParamName,
     Param: String;
 
 begin
@@ -187,9 +188,10 @@ begin
                     DoSimpleMsg('Unknown parameter "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '"', 364);
                 1:
                 begin
-                    if SysUtils.FileExists(Param) then
+                    ReDirFile := ExpandFileName(Param);
+                    if SysUtils.FileExists(ReDirFile) then
                     begin
-                        pyScript := Param;
+                        pyScript := ReDirFile;
                     end
                     else
                         DoSimpleMsg('The given path "' + ParamName + '" for Object "' + Class_Name + '.' + Name + '" does not exist', 36400);

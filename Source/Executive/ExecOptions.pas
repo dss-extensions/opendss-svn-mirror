@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 146;
+    NumExecOptions = 147;
 
 var
     ExecOption,
@@ -203,7 +203,8 @@ begin
     ExecOption[143] := 'IterNumber';
     ExecOption[144] := 'CtrlIterNumber';
     ExecOption[145] := 'InjCurrent';
-    ExecOption[146] := 'Yprim';
+    ExecOption[146] := 'ITerminal';
+    ExecOption[147] := 'Yprim';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -530,12 +531,20 @@ begin
     OptionHelp[145] := 'Use this command to set/get the current injection vector of the active PC Element. If the active element is not a PCE, the ' +
         'program will return an error message aborting the command (see "select").' + CRLF +
         CRLF +
-        'The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html)';
-    ;
-    OptionHelp[146] := 'Use this command to set/get the Y primitive of the active PC Element. If the active element is not a PCE, the ' +
+        'The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html). The elements of the vector must be complex ' +
+        'numbers (e.g. 1+2j).';
+    OptionHelp[146] := 'Use this command to set/get the current injection vector at the terminals of the active PC Element. If the active element is not a PCE, the ' +
         'program will return an error message aborting the command (see "select").' + CRLF +
         CRLF +
-        'The Y primitive must be entered using OpenDSS notation (lower triangular matrix - see https://opendss.epri.com/MatrixProperties.html)';
+        ' These currents are the equivalent of the nonlinear contribution of the model. For example, for a constant PQ load it will be conj(((P + Qj)/Nph)/Volt), where P + Qj is the power rating,' +
+        'Nph is the number of phases, and Volt is the voltage (complex) at the terminal of the PCE. ' +
+        'The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html). The elements of the vector must be complex ' +
+        'numbers (e.g. 1+2j).';
+    OptionHelp[147] := 'Use this command to set/get the Y primitive of the active PC Element. If the active element is not a PCE, the ' +
+        'program will return an error message aborting the command (see "select").' + CRLF +
+        CRLF +
+        'The Y primitive must be entered using OpenDSS notation (lower triangular matrix - see https://opendss.epri.com/MatrixProperties.html)The elements of the matrix must be complex ' +
+        'numbers (e.g. 1+2j).';
 
 
 end;
@@ -1212,8 +1221,6 @@ begin
                                 TPCElement(ActiveCktElement).InjCurrent[j] := CZERO
                             else
                                 TPCElement(ActiveCktElement).InjCurrent[i] := Str2Cmplx(myStrArray[i]);
-                            ActiveCktElement.Iterminal[i] := TPCElement(ActiveCktElement).InjCurrent[i];
-                            TPCElement(ActiveCktElement).set_ITerminalUpdated(true, ActiveActor);
                         end;
                         TPCElement(ActiveCktElement).ForceInjCurr := true;  // This will force the algorithm to use the currents uploaded
                     end
@@ -1223,6 +1230,30 @@ begin
 
             end;
             146:
+            begin
+
+                with ActiveCircuit[ActiveActor] do
+                begin
+                    if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                    begin
+                        SetLength(myStrArray, ActiveCktElement.NPhases + 1);
+                        j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray);
+                        for i := 1 to ActiveCktElement.NPhases do
+                        begin
+                            if myStrArray[i] = '' then
+                                ActiveCktElement.Iterminal[i] := CZERO
+                            else
+                                ActiveCktElement.Iterminal[i] := Str2Cmplx(myStrArray[i]);
+                            TPCElement(ActiveCktElement).set_ITerminalUpdated(true, ActiveActor);
+                        end;
+                        TPCElement(ActiveCktElement).ForceInjCurr := true;  // This will force the algorithm to use the currents uploaded
+                    end
+                    else
+                        DoSimpleMsg('The active element is not PCE.', 3002);
+                end
+
+            end;
+            147:
             begin
 
                 with ActiveCircuit[ActiveActor] do
@@ -1849,6 +1880,30 @@ begin
 
                 end;
                 146:
+                begin
+
+                    TmpStr := '';
+                    with ActiveCircuit[ActiveActor] do
+                    begin
+                        if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
+                        begin
+                            TmpStr := '[';
+                            for j := 1 to ActiveCktElement.NPhases do
+                            begin
+                                TmpCmplx := ActiveCktElement.ITerminal[j];
+                                TmpStr := TmpStr + Cmplx2Str(TmpCmplx);
+                                if j < ActiveCktElement.NPhases then
+                                    TmpStr := TmpStr + ', ';
+                            end;
+                            TmpStr := TmpStr + ']'
+                        end
+                        else
+                            TmpStr := 'Error, the active element is not PCE';
+                    end;
+                    AppendGlobalResult(TmpStr);
+
+                end;
+                147:
                 begin
 
                     TmpStr := '';
