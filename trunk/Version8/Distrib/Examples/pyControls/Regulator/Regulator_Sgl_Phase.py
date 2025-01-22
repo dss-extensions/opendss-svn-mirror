@@ -20,8 +20,6 @@ Band    = 0.01                                                # This is the erro
 myXfmr = 'reg4c'
 DSSQry = '? Transformer.'                                     # To prevent unnecessary copies
 
-DSSText = DSSPipe.DSSText()
-
 '''
 Routine for parsing a DSS String into array of strings
 '''  
@@ -83,10 +81,11 @@ if myXfmr in Xfmrs:
             # Reduce the current tap 1 step and keeps going with the simulation
             DSSText.Command = DSSQry.replace('? ','') + myXfmr + '.' + props[3] + '=' + str(XfmrVals[3] + TapStep)            
     # This part is mandatory        
-    except:
+    except Exception as e:
+        pass
+        error_type = type(e).__name__
+        traceback.print_exc()
         DSSPipe.NeedsControlAction(Result)                     # Something happened, cancel the ctrl action, tell DSS
 
     finally:
         DSSPipe.NeedsControlAction(Result)                     # Indicates if the control action took place 2 DSS
-
-DSSPipe.CloseConn()                                            # This MUST be done to let DSS know that we are done here

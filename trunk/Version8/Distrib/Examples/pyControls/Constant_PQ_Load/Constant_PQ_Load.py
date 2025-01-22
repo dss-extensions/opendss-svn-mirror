@@ -16,7 +16,6 @@ import numpy as np
 import traceback
 
 # Connects to DSS through the PIPE
-DSSText = DSSPipe.DSSText()
 thismodelname = 'loads48_py'
 
 #%%
@@ -169,9 +168,9 @@ else:
 '''
 The Load model starts here
 '''  
-
-Result = 'no'                                                   # Indicates if the control action was needed
+DSSSolve = 'no'
 try:
+    
     idx = 0 
     Converged = False     
 
@@ -223,19 +222,21 @@ try:
         DSSText.Command = 'set ITerminal=' + ITerm 
 
         # 4. Tell DSS to run another iteration to check if this works
-        Result = 'yes'
+        DSSSolve = 'yes'
     
     # Saves the parameters for the next iteration
     modparstr = json.dumps(pars)
     DSSText.Command = 'Var @iflag_{}=( {} )'.format(thismodelname, modparstr)
-        
+       
 except Exception as e:
     pass
     error_type = type(e).__name__
     traceback.print_exc()
-    DSSPipe.NeedsControlAction(Result)                     # Something happened, cancel the ctrl action, tell DSS
+    DSSPipe.NeedsControlAction(DSSSolve)                # Indicates if the control action took place 2 DSS
 
 finally:
-    DSSPipe.NeedsControlAction(Result)                     # Indicates if the control action took place 2 DSS
+    DSSPipe.NeedsControlAction(DSSSolve)                # Indicates if the control action took place 2 DSS
 
-DSSPipe.CloseConn()                                            # This MUST be done to let DSS know that we are done here
+
+
+    
