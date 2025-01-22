@@ -2252,7 +2252,7 @@ Procedure TGeneratorObj.GetTerminalCurrents(Curr:pComplexArray; ActorID : Intege
 Begin
    WITH ActiveCircuit[ActorID].Solution  DO
      Begin
-        If IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount Then Begin     // recalc the contribution
+        If (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and (not ForceInjCurr) Then Begin     // recalc the contribution
           IF Not GenSwitchOpen Then CalcGenModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
         End;
         Inherited GetTerminalCurrents(Curr,ActorID);
