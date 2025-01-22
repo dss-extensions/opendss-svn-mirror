@@ -1555,7 +1555,7 @@ begin
 
     with ActiveCircuit[ActorID].Solution do
     begin
-        if IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount then
+        if (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and (not ForceInjCurr) then
         begin     // recalc the contribution
           // You will likely want some logic like this
             if not IndMach012SwitchOpen then

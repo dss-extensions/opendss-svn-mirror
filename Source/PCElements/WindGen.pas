@@ -2398,7 +2398,7 @@ var
 begin
     with ActiveCircuit[ActorID].Solution do
     begin
-        if IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount then
+        if (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and (not ForceInjCurr) then
         begin     // recalc the contribution
             if not GenSwitchOpen then
                 CalcGenModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
