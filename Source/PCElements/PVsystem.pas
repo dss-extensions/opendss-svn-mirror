@@ -2161,7 +2161,7 @@ PROCEDURE TPVsystemObj.GetTerminalCurrents(Curr:pComplexArray; ActorID : Integer
   Begin
     WITH ActiveCircuit[ActorID].Solution  DO
       Begin
-        If IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount Then
+        If (IterminalSolutionCount[ActorID] <> ActiveCircuit[ActorID].Solution.SolutionCount) and (not ForceInjCurr) Then
           Begin     // recalc the contribution
             IF Not PVSystemObjSwitchOpen Then CalcPVSystemModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
           End;
