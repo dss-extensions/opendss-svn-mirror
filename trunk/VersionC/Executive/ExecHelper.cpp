@@ -1667,11 +1667,11 @@ int DoSetkVBase()
 	{
 		
 		ActiveCircuit[ActiveActor]->ActiveBusIndex = ActiveCircuit[ActiveActor]->BusList.Find(Busname);
-		const auto busIndex = ActiveCircuit[ActiveActor]->ActiveBusIndex;
+		auto busIndex = ActiveCircuit[ActiveActor]->ActiveBusIndex - 1;
 		if(busIndex >= 0 && busIndex < ActiveCircuit[ActiveActor]->NumBuses)
 		{
-			if(CompareText(ParamName, "kvln") == 0)
-				ActiveCircuit[ActiveActor]->Buses[busIndex]->kVBase = kVValue;
+            if (CompareText(ParamName, "kvln") == 0)
+                ActiveCircuit[ActiveActor]->Buses[busIndex]->kVBase = kVValue;
 			else
 				ActiveCircuit[ActiveActor]->Buses[busIndex]->kVBase = kVValue / SQRT3;
 			result = 0;
