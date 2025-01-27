@@ -948,6 +948,7 @@ begin
         end;
         RecalcElementData(ActorID);
         YprimInvalid[ActorID] := true;
+        YprimInvalid[ActorID] := true;
     end;
 end;
 
@@ -1351,7 +1352,7 @@ begin
             propDynEq:
                 Result := DynamicEq;
             propDynOut:
-                GetDynOutputStr();
+                Result := GetDynOutputStr();
             propGFM:
                 if GFM_Mode then
                     Result := 'GFM'

@@ -3650,7 +3650,7 @@ begin
             else
                 Storage := ControlledElement as TStorageObj;
 
-            BasekV := FVBase / 1000.0;
+            BasekV := CtrlVars[i].FVBase / 1000.0;
 
             //             FPriorvars[j]  := PVSys.Presentkvar;
             //             FPriorWatts[j]  := PVSys.PresentkW;
