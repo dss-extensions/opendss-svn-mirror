@@ -625,7 +625,7 @@ Begin
      If YPrim_Series <> Nil Then DoYPrimCalcs(Yprim_Series);
      If YPrim_Shunt <> Nil  Then DoYPrimCalcs(YPrim_Shunt);
      If YPrim <> Nil        Then DoYPrimCalcs(YPrim);
-     YPrimInvalid[ActorID] := false;
+     //YPrimInvalid[ActorID] := false;
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

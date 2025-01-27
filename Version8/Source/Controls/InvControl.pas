@@ -3348,7 +3348,7 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
             if ControlledElement.DSSClassName = 'PVSystem' then PVSys := ControlledElement as TPVSystemObj
             else Storage := ControlledElement as TStorageObj;
 
-            BasekV := FVBase / 1000.0;
+            BasekV :=    CtrlVars[i].FVBase / 1000.0;
 
             //             FPriorvars[j]  := PVSys.Presentkvar;
             //             FPriorWatts[j]  := PVSys.PresentkW;
