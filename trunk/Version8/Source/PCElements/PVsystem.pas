@@ -830,6 +830,7 @@ FUNCTION TPVsystem.Edit(ActorID : Integer):Integer;
         End;
       RecalcElementData(ActorID);
       YprimInvalid[ActorID] := True;
+      YprimInvalid[ActorID] := True;
     End;
 End;
 FUNCTION TPVsystem.MakeLike(Const OtherPVSystemObjName:String):Integer;
@@ -1168,7 +1169,7 @@ FUNCTION TPVsystemObj.GetPropertyValue(Index: Integer): String;
         propSMT           : Result := Format('%.6g', [SMThreshold]);
         propSM            : if SafeMode then Result :=  'Yes' else Result := 'No';
         propDynEq         : Result := DynamicEq;
-        propDynOut        : GetDynOutputStr();
+        propDynOut        : Result := GetDynOutputStr();
         propGFM           : if GFM_Mode then Result :=  'GFM' else Result :=  'GFL';
         {propDEBUGTRACE = 33;}
         ELSE  // take the generic handler
