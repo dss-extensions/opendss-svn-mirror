@@ -646,7 +646,7 @@ namespace CktElement
       if ( YPrim != NULL )
         DoYprimCalcs( YPrim );
 
-      Set_YprimInvalid(ActorID, false);
+      //Set_YprimInvalid(ActorID, false);
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
