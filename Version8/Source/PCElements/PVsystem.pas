@@ -830,7 +830,6 @@ FUNCTION TPVsystem.Edit(ActorID : Integer):Integer;
         End;
       RecalcElementData(ActorID);
       YprimInvalid[ActorID] := True;
-      YprimInvalid[ActorID] := True;
     End;
 End;
 FUNCTION TPVsystem.MakeLike(Const OtherPVSystemObjName:String):Integer;
