@@ -948,7 +948,6 @@ begin
         end;
         RecalcElementData(ActorID);
         YprimInvalid[ActorID] := true;
-        YprimInvalid[ActorID] := true;
     end;
 end;
 
