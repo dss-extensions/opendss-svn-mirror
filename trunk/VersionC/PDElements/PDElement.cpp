@@ -86,6 +86,7 @@ void TPDElement::CalcNum_Int(int& SectionCount, bool AssumeRestoration)
 {
 	TDSSBus* FromBus = nullptr;
 	TDSSBus* ToBus = nullptr;
+
 	/*# with ActiveCircuit[ActiveActor] do */
 	{
 		auto with0 = ActiveCircuit[ActiveActor];
@@ -98,7 +99,7 @@ void TPDElement::CalcNum_Int(int& SectionCount, bool AssumeRestoration)
 
         // If no interrupting device then the downline bus will have the same num of interruptions
 		ToBus->Bus_Num_Interrupt = FromBus->Bus_Num_Interrupt;
-
+		
         /* If Interrupting device (on FROM side)then downline bus will have
           additional interruptions  ---- including for fused lateral
          If assuming restoration and the device is an automatic device, the To bus will be
