@@ -604,7 +604,7 @@ double TTShapeObj::GetTemperature(double hr)
 					LastValueAccessed = 1;  // Start over from Beginning
 				for(stop = FNumPoints, i = LastValueAccessed + 1; i <= stop; i++)
 				{
-					if(Abs((int) (Hours[i] - hr)) < 0.00001)  // If close to an actual point, just use it.
+					if(Abs((Hours[i] - hr)) < 0.00001)  // If close to an actual point, just use it.
 					{
 						result = TValues[i - 1];
 						LastValueAccessed = i;

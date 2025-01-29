@@ -2705,13 +2705,13 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG1 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di1 - (pNodeFMs)[NodeNuminClstr].vl_V1 * (pNodeFMs)[NodeNuminClstr].vl_V1 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = ((pNodeFMs)[NodeNuminClstr].vl_V1 - cabs(vtemp) * cos(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_1c)));
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = (pNodeFMs)[NodeNuminClstr].vl_V1 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg / (Den);
 				Den = (pNodeFMs)[NodeNuminClstr].vl_p_DG1 - (pNodeFMs)[NodeNuminClstr].vl_P_Di1 - (pNodeFMs)[NodeNuminClstr].vl_V1 * (pNodeFMs)[NodeNuminClstr].vl_V1 * Gii;
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V1 * cabs(vtemp) * sin(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_1c));
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					Tmp = 0;
 				else
 					Tmp = Tmp / Den;
@@ -2755,13 +2755,13 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG2 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di2 - (pNodeFMs)[NodeNuminClstr].vl_V2 * (pNodeFMs)[NodeNuminClstr].vl_V2 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = ((pNodeFMs)[NodeNuminClstr].vl_V2 - cabs(vtemp) * cos(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_2c)));
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = (pNodeFMs)[NodeNuminClstr].vl_V2 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg / (Den);
 				Den = (pNodeFMs)[NodeNuminClstr].vl_p_DG2 - (pNodeFMs)[NodeNuminClstr].vl_P_Di2 - (pNodeFMs)[NodeNuminClstr].vl_V2 * (pNodeFMs)[NodeNuminClstr].vl_V2 * Gii;
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V2 * cabs(vtemp) * sin(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_2c));
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					Tmp = 0;
 				else
 					Tmp = Tmp / Den;
@@ -2800,13 +2800,13 @@ double TFMonitorObj::Calc_Grdt_for_Alpha(int NodeNuminClstr, int phase_num, int 
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG3 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di3 - (pNodeFMs)[NodeNuminClstr].vl_V3 * (pNodeFMs)[NodeNuminClstr].vl_V3 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = ((pNodeFMs)[NodeNuminClstr].vl_V3 - cabs(vtemp) * cos(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_3c)));
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = (pNodeFMs)[NodeNuminClstr].vl_V3 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg / (Den);
 				Den = (pNodeFMs)[NodeNuminClstr].vl_p_DG3 - (pNodeFMs)[NodeNuminClstr].vl_P_Di3 - (pNodeFMs)[NodeNuminClstr].vl_V3 * (pNodeFMs)[NodeNuminClstr].vl_V3 * Gii;
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V3 * cabs(vtemp) * sin(cang(vtemp) - cang((pNodeFMs)[NodeNuminClstr].vl_V_3c));
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					Tmp = 0;
 				else
 					Tmp = Tmp / Den;
@@ -2931,7 +2931,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG1 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di1 - (pNodeFMs)[NodeNuminClstr].vl_V1 * (pNodeFMs)[NodeNuminClstr].vl_V1 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V1 - cabs(vtemp);
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = (pNodeFMs)[NodeNuminClstr].vl_V1 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient1_dg / (Den);
@@ -2950,7 +2950,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG2 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di2 - (pNodeFMs)[NodeNuminClstr].vl_V2 * (pNodeFMs)[NodeNuminClstr].vl_V2 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V2 - cabs(vtemp);
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = (pNodeFMs)[NodeNuminClstr].vl_V2 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient2_dg / (Den);
@@ -2964,7 +2964,7 @@ double TFMonitorObj::Calc_Grdt_for_Alpha_vivj(int NodeNuminClstr, int phase_num,
 				Den = (pNodeFMs)[NodeNuminClstr].vl_q_DG3 - (pNodeFMs)[NodeNuminClstr].vl_Q_Di3 - (pNodeFMs)[NodeNuminClstr].vl_V3 * (pNodeFMs)[NodeNuminClstr].vl_V3 * Bii;   // pos ctrl: Bii use the first one
 				Tmp = (pNodeFMs)[NodeNuminClstr].vl_V3 - cabs(vtemp);
 				(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = (pNodeFMs)[NodeNuminClstr].vl_V3 * Tmp;
-				if(Abs((int) Den) < EPSILON)
+				if(Abs(Den) < EPSILON)
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = 0.0;
 				else
 					(pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg = (pNodeFMs)[NodeNuminClstr].vl_Gradient3_dg / (Den);
@@ -3250,12 +3250,12 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                     //Bii := ActiveCircuit.Solution.NodeYii^[dbNodeRef].im;
                     //Load.ActiveLoadObj.kvarBase;
 					Den = (pNodeFMs)[NodeNumofDG].vl_q_DG - (pNodeFMs)[NodeNumofDG].vl_Q_Di - (pNodeFMs)[NodeNumofDG].vl_V * (pNodeFMs)[NodeNumofDG].vl_V * Bii;   // pos ctrl: Bii use the first one
-					if(Abs((int) Den) < EPSILON)
+					if(Abs(Den) < EPSILON)
 						Den = EPSILON;
 					(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = ((pNodeFMs)[NodeNumofDG].vl_V_ref_dg - (pNodeFMs)[NodeNumofDG].vl_V) * (pNodeFMs)[NodeNumofDG].vl_V / (Den) / ((pNodeFMs)[NodeNumofDG].vl_V_ref_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg);  //*vl_Qmax, 0311-by dahei
 					j = ActiveCircuit[ActorID]->Solution->Iteration;
-					(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient_dg;
-					if(Abs((int) ((pNodeFMs)[NodeNumofDG].vl_V_ref_dg - (pNodeFMs)[NodeNumofDG].vl_V)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg)
+					(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient_dg;
+					if(Abs(((pNodeFMs)[NodeNumofDG].vl_V_ref_dg - (pNodeFMs)[NodeNumofDG].vl_V)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref_dg)
 						(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = 0.0;
 
                     //calculate final alpha----------------
@@ -3299,7 +3299,7 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                     //2.calculate gradient----------------
                     //Bii := ActiveCircuit.Solution.NodeYii^[dbNodeRef].im;
 					Den = (pNodeFMs)[NodeNumofDG].vl_q_DG1 - (pNodeFMs)[NodeNumofDG].vl_Q_Di1 - (pNodeFMs)[NodeNumofDG].vl_V1 * (pNodeFMs)[NodeNumofDG].vl_V1 * Bii;   // pos ctrl: Bii use the first one
-					if(Abs((int) Den) < EPSILON)
+					if(Abs(Den) < EPSILON)
 						Den = EPSILON;
 					tmp1 = (pNodeFMs)[NodeNumofDG].vl_q_DG1;
 					tmp2 = (pNodeFMs)[NodeNumofDG].vl_Q_Di1;
@@ -3308,9 +3308,9 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
 					tmp5 = (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg;
 					j = ActiveCircuit[ActorID]->Solution->Iteration;
 					(pNodeFMs)[NodeNumofDG].vl_Gradient1_dg = ((pNodeFMs)[NodeNumofDG].vl_V_ref1_dg - (pNodeFMs)[NodeNumofDG].vl_V1) * (pNodeFMs)[NodeNumofDG].vl_V1 / (Den) / ((pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg);   //*vl_Qmax, 0311-by dahei
-					(pNodeFMs)[NodeNumofDG].vl_Gradient1_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient1_dg;
+					(pNodeFMs)[NodeNumofDG].vl_Gradient1_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient1_dg;
                     //vl_gradient1 := (beta)*vl_gradient1;
-					if(Abs((int) ((pNodeFMs)[NodeNumofDG].vl_V_ref1_dg - (pNodeFMs)[NodeNumofDG].vl_V1)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg)
+					if(Abs(((pNodeFMs)[NodeNumofDG].vl_V_ref1_dg - (pNodeFMs)[NodeNumofDG].vl_V1)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg)
 						(pNodeFMs)[NodeNumofDG].vl_Gradient1_dg = 0.0;
                     //calculate final alpha----------------
 				}
@@ -3354,13 +3354,13 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                       //2.calculate gradient----------------
                       //Bii := ActiveCircuit.Solution.NodeYii^[dbNodeRef].im;
 					Den = (pNodeFMs)[NodeNumofDG].vl_q_DG2 - (pNodeFMs)[NodeNumofDG].vl_Q_Di2 - (pNodeFMs)[NodeNumofDG].vl_V2 * (pNodeFMs)[NodeNumofDG].vl_V2 * Bii;   // pos ctrl: Bii use the first one
-					if(Abs((int) Den) < EPSILON)
+					if(Abs(Den) < EPSILON)
 						Den = EPSILON;
 					j = ActiveCircuit[ActorID]->Solution->Iteration;
 					(pNodeFMs)[NodeNumofDG].vl_Gradient2_dg = ((pNodeFMs)[NodeNumofDG].vl_V_ref2_dg - (pNodeFMs)[NodeNumofDG].vl_V2) * (pNodeFMs)[NodeNumofDG].vl_V2 / (Den) / ((pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg);        //*vl_Qmax
-					(pNodeFMs)[NodeNumofDG].vl_Gradient2_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient2_dg;
+					(pNodeFMs)[NodeNumofDG].vl_Gradient2_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient2_dg;
                       //vl_gradient2 := (beta)*vl_gradient2;
-					if(Abs((int) ((pNodeFMs)[NodeNumofDG].vl_V_ref2_dg - (pNodeFMs)[NodeNumofDG].vl_V2)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg)
+					if(Abs(((pNodeFMs)[NodeNumofDG].vl_V_ref2_dg - (pNodeFMs)[NodeNumofDG].vl_V2)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg)
 						(pNodeFMs)[NodeNumofDG].vl_Gradient2_dg = 0.0;
                       //calculate final alpha----------------
 				}
@@ -3402,13 +3402,13 @@ double TFMonitorObj::Calc_Alpha_M2(int NodeNumofDG, int phase_num, int dbNodeRef
                       //2.calculate gradient----------------
                       //Bii := ActiveCircuit.Solution.NodeYii^[dbNodeRef].im;
 					Den = (pNodeFMs)[NodeNumofDG].vl_q_DG3 - (pNodeFMs)[NodeNumofDG].vl_Q_Di3 - (pNodeFMs)[NodeNumofDG].vl_V3 * (pNodeFMs)[NodeNumofDG].vl_V3 * Bii;   // pos ctrl: Bii use the first one
-					if(Abs((int) Den) < EPSILON)
+					if(Abs(Den) < EPSILON)
 						Den = EPSILON;
 					j = ActiveCircuit[ActorID]->Solution->Iteration;
 					(pNodeFMs)[NodeNumofDG].vl_Gradient3_dg = ((pNodeFMs)[NodeNumofDG].vl_V_ref3_dg - (pNodeFMs)[NodeNumofDG].vl_V3) * (pNodeFMs)[NodeNumofDG].vl_V3 / (Den) / ((pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg);        //*vl_Qmax
-					(pNodeFMs)[NodeNumofDG].vl_Gradient3_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient3_dg;
+					(pNodeFMs)[NodeNumofDG].vl_Gradient3_dg = (beta * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_Gradient3_dg;
                       //vl_gradient3 := (beta)*vl_gradient3;
-					if(Abs((int) ((pNodeFMs)[NodeNumofDG].vl_V_ref3_dg - (pNodeFMs)[NodeNumofDG].vl_V3)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg)
+					if(Abs(((pNodeFMs)[NodeNumofDG].vl_V_ref3_dg - (pNodeFMs)[NodeNumofDG].vl_V3)) <= Volt_Trhd * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg)
 						(pNodeFMs)[NodeNumofDG].vl_Gradient3_dg = 0.0;
                       //calculate final alpha----------------
 				}
@@ -3504,7 +3504,7 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
 				
 				Tmp = Calc_Grdt_for_Alpha_vivj(NodeNumofDG, phase_num, ActorID);//  vl_gradient1_dg updated inside
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg;
+					dynBeta = (beta * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg;
 				(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient1_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha1_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = 1;
@@ -3550,7 +3550,7 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
 				
 				Tmp = Calc_Grdt_for_Alpha_vivj(NodeNumofDG, phase_num, ActorID);
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg; //
+					dynBeta = (beta * Abs(Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg; //
 				(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient2_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha2_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = 1;
@@ -3596,7 +3596,7 @@ double TFMonitorObj::Calc_Alpha_L_vivj(int NodeNumofDG, int phase_num, int dbNod
 				
 				Tmp = Calc_Grdt_for_Alpha_vivj(NodeNumofDG, phase_num, ActorID);
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg; //
+					dynBeta = (beta * Abs(Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg; //
 				(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient3_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha3_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = 1;
@@ -3671,7 +3671,7 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
 				
 				Tmp = Calc_Grdt_for_Alpha(NodeNumofDG, phase_num, ActorID);//  vl_gradient1_dg updated inside
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg;
+					dynBeta = (beta * Abs(Bii) * 100 / j) * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref1_dg / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg;
 				(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient1_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha1_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha1_dg = 1;
@@ -3717,7 +3717,7 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
 				
 				Tmp = Calc_Grdt_for_Alpha(NodeNumofDG, phase_num, ActorID);
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg; //
+					dynBeta = (beta * Abs(Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref2_dg; //
 				(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient2_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha2_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha2_dg = 1;
@@ -3763,7 +3763,7 @@ double TFMonitorObj::Calc_Alpha_L(int NodeNumofDG, int phase_num, int dbNodeRef,
 				
 				Tmp = Calc_Grdt_for_Alpha(NodeNumofDG, phase_num, ActorID);
 				if((pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg != 0)
-					dynBeta = (beta * Abs((int) Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg; //
+					dynBeta = (beta * Abs(Bii) * 100 / j) / (pNodeFMs)[NodeNumofDG].vl_Qmax_phase_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg * (pNodeFMs)[NodeNumofDG].vl_V_ref3_dg; //
 				(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = TempAlpha + dynBeta * (pNodeFMs)[NodeNumofDG].vl_Gradient3_dg;
 				if((pNodeFMs)[NodeNumofDG].vl_Alpha3_dg > 1)
 					(pNodeFMs)[NodeNumofDG].vl_Alpha3_dg = 1;
@@ -4088,7 +4088,7 @@ double TFMonitorObj::Calc_fm_ul_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 				Tmp = Tmp + beta_dfs * dfs_hide;
 			}
             //Tolerance of alpha_i alpha_j
-			if(Abs((int) Tmp) <= Volt_Trhd * 0.01)
+			if(Abs(Tmp) <= Volt_Trhd * 0.01)
                  //Result := 0.0
 				;
 			else
@@ -4129,16 +4129,16 @@ double TFMonitorObj::Calc_fm_us_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 	{
 		case 	0: //pos seq
 		{
-			Den = Abs((int) ((pNodeFMs)[NodeNumofDG].vl_q_DG - (pNodeFMs)[NodeNumofDG].vl_Q_Di - V * V * Bii));   // pos ctrl: Bii use the first one
-			if(Abs((int) Den) < EPSILON)
+			Den = Abs(((pNodeFMs)[NodeNumofDG].vl_q_DG - (pNodeFMs)[NodeNumofDG].vl_Q_Di - V * V * Bii));   // pos ctrl: Bii use the first one
+			if(Abs(Den) < EPSILON)
 				Den = EPSILON;
 			(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = (VRef - V) * V / (Den) / (VRef * VRef);//*vl_Qmax_dg;//
-			(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = (beta * VRef * VRef) * Abs((int) Bii) * 100 * (pNodeFMs)[NodeNumofDG].vl_Gradient_dg;
+			(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = (beta * VRef * VRef) * Abs(Bii) * 100 * (pNodeFMs)[NodeNumofDG].vl_Gradient_dg;
 
                   //(beta* abs(Bii)*100/j)/vl_Qmax_phase_dg*
-			if(Abs((int) (VRef - V)) <= Volt_Trhd * VRef)
+			if(Abs((VRef - V)) <= Volt_Trhd * VRef)
 				(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = 0.0;
-			Tmp = Abs((int) (VRef - V));
+			Tmp = Abs((VRef - V));
 			if((pNodeFMs)[NodeNumofDG].vl_Gradient_dg > 1)
 				(pNodeFMs)[NodeNumofDG].vl_Gradient_dg = 1;
 			if((pNodeFMs)[NodeNumofDG].vl_Gradient_dg <  - 1)
@@ -4195,7 +4195,7 @@ double TFMonitorObj::Calc_fm_us_0(int NodeNumofDG, int phase_num, int dbNodeRef,
 									}
 									tempUl = (tempUl - (pNodeFMs)[j].vl_Alpha_dgn);
                                           // calculate phi
-									pHi = Coef_Phi(Abs((int) tempUl));
+									pHi = Coef_Phi(Abs(tempUl));
 								}
 							}
                                     //
@@ -4270,8 +4270,8 @@ double TFMonitorObj::Getgradient(int j, int phase_num, double Bii, double Volt_T
 	{
 		case 	0: //pos seq
 		{
-			Den = Abs((int) ((pNodeFMs)[j].vl_q_DG - (pNodeFMs)[j].vl_Q_Di - V * V * Bii));   // pos ctrl: Bii use the first one
-			if(Abs((int) Den) < EPSILON)
+			Den = Abs(((pNodeFMs)[j].vl_q_DG - (pNodeFMs)[j].vl_Q_Di - V * V * Bii));   // pos ctrl: Bii use the first one
+			if(Abs(Den) < EPSILON)
 				Den = EPSILON;
 			Tmp = (VRef - V) * V / (Den) / (VRef * VRef);//*vl_Qmax_dg;//
 
@@ -4510,7 +4510,7 @@ double TFMonitorObj::Calc_ul_P(int NodeNuminClstr, int phase_num)
 			}
               //Tolerance of alphap_i alphap_j
 			TempAlphaP = TempAlphaP - (pNodeFMs)[NodeNuminClstr].vl_AlphaP_dg; //uL for cooperative control of active power
-			if(Abs((int) TempAlphaP) < 0.002)
+			if(Abs(TempAlphaP) < 0.002)
 				result = 0.0;
 			else
 				result = TempAlphaP;

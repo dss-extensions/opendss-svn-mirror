@@ -1898,7 +1898,7 @@ void TWindGenObj::DoPVTypeGen(int ActorID)
    // 12-9-99 added empirical 0.7 factor to improve iteration
    // 12-17-99 changed to 0.1 because first guess was consistently too high
 	DQ = PVFactor * DQDV * (WindGenVars.VTarget - V_Avg);   // Vtarget is L-N
-	if(Abs((int) DQ) > DeltaQMax)
+	if(Abs(DQ) > DeltaQMax)
 	{
 		if(DQ < 0.0)
 			DQ = -DeltaQMax;
@@ -2567,7 +2567,7 @@ void TWindGenObj::TakeSample(int ActorID)
 				}
 				Integrate(Reg_kWh, s.re, with0->IntervalHrs, ActorID);   // Accumulate the power
 				Integrate(Reg_kvarh, s.im, with0->IntervalHrs, ActorID);
-				SetDragHandRegister(Reg_MaxkW, Abs((int) s.re));
+				SetDragHandRegister(Reg_MaxkW, Abs(s.re));
 				SetDragHandRegister(Reg_MaxkVA, Smag);
 				Integrate(Reg_Hours, HourValue, with0->IntervalHrs, ActorID);  // Accumulate Hours in operation
 				Integrate(Reg_Price, s.re * ActiveCircuit[ActorID]->PriceSignal * 0.001, with0->IntervalHrs, ActorID);  // Accumulate Hours in operation

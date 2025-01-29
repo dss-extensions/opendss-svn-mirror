@@ -405,10 +405,10 @@ int TCapacitor::Edit(int ActorID)
 					int stop = 0;
 					for(stop = with0->FNumSteps, i = 1; i <= stop; i++)
 					{
-						if((with0->FXL)[i - 1] != 0.0)
+						if(with0->FXL[i - 1] != 0.0)
 						{
-							if((with0->FR)[i - 1] == 0.0)
-								(with0->FR)[i - 1] = double(Abs((int) (with0->FXL)[i - 1])) / 1000.0;
+							if(with0->FR[i - 1] == 0.0)
+								with0->FR[i - 1] = Abs(with0->FXL[i - 1]) / 1000.0;
 						}
 					}  // put in something so it doesn't fail
 					with0->DoHarmonicRecalc = false;  // XL is specified
@@ -1200,7 +1200,7 @@ void TCapacitorObj::MakeYprimWork(TcMatrix* YprimWork, int iStep, int ActorID)
 		FYprimFreq = ActiveCircuit[ActorID]->Solution->get_FFrequency();
 		FreqMultiple = FYprimFreq / BaseFrequency;
 		W = TwoPi * FYprimFreq;
-		if((FR[iStep - 1] + Abs((int) FXL[iStep - 1])) > 0.0)
+		if((FR[iStep - 1] + Abs(FXL[iStep - 1])) > 0.0)
 			HasZL = true;
 		else
 			HasZL = false;
