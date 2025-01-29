@@ -87,11 +87,14 @@ int Pos(char Substr, const std::string& S);
 int Pos( const std::wstring& Substr, const std::wstring& Source );
 int Pos( wchar_t C, const std::wstring& S );
 
+
+#ifdef OPENDSSC_UNUSED_STR_FUNCS // NOTE: added this guard to remove some functions that are unused in OpenDSS-C but require linking to (lib)iconv symbols
 std::string WideCharToString( wchar_t* S );
 wchar_t* StringToWideChar( const std::string& Src, wchar_t* Dest, int DestSize );
 std::string WideCharLenToString( wchar_t* S, int Len );
 void WideCharLenToStrVar( wchar_t* Src, int Len, std::string& Dest );
 void WideCharToStrVar( wchar_t* S, std::string& Dest );
+#endif // #ifdef OPENDSSC_UNUSED_STR_FUNCS
 int UnicodeToUtf8( Char* Dest, const wchar_t* Source, unsigned int MaxBytes );
 unsigned int UnicodeToUtf8( Char* Dest, unsigned int MaxDestByte, const wchar_t* Source, unsigned int SourceChars );
 int Utf8ToUnicode( wchar_t* Dest, const Char* Source, unsigned int MaxChars );
