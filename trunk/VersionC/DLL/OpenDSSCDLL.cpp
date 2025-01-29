@@ -7284,7 +7284,7 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				}
 				else
 				{
-					switch (LowerCase(S)[0])
+                    switch (LowerCase(S)[0])
 					{
 					case 'o':
 						elem->set_States(i, CTRL_OPEN);
@@ -7343,7 +7343,7 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				}
 				else
 				{
-					switch (LowerCase(S)[0])
+                    switch (LowerCase(S)[0])
 					{
 					case 'o':
 						elem->set_States(i, CTRL_OPEN);

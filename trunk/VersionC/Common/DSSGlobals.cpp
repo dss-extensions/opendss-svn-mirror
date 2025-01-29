@@ -370,7 +370,7 @@ namespace DSSGlobals
         uint8_t* PChar;
         int     i = *idx;
 
-        PChar = (uint8_t*)myPtr;
+        PChar = *(uint8_t**)myPtr;
         while (PChar[i] != 0)
         {
             S = S + char(PChar[i]);
