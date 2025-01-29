@@ -1886,7 +1886,7 @@ void TIndMach012Obj::IntegrateStates(int ActorID)
 
       // Compute shaft dynamics
 		TracePower = TerminalPowerIn(&(Vterminal[0]), &(Iterminal[0]), Fnphases); // in watts
-		with1.dSpeed = (TracePower.re - with1.Pshaft - Abs((int) (with1.D * with1.Speed))) / with1.Mmass;
+		with1.dSpeed = (TracePower.re - with1.Pshaft - Abs((with1.D * with1.Speed))) / with1.Mmass;
 		with1.dTheta = with1.Speed;
 
      // Trapezoidal method
@@ -2319,7 +2319,7 @@ void TIndMach012Obj::set_Localslip(double Value)
 	S1 = Value;
 	if(!InDynamics)
 	{
-		if(Abs((int) S1) > MaxSlip)
+		if(Abs(S1) > MaxSlip)
 			S1 = Sign(S1) * MaxSlip;   // Put limits on the slip  unless dynamics
 	}
 	S2 = 2.0 - S1;

@@ -1255,7 +1255,7 @@ void TVsourceObj::GetVterminalForSource(int ActorID)
   // non-harmonic modes
 			{
 				int stop = 0;
-				if(Abs((int) (with0->get_FFrequency() - SrcFrequency)) > EPSILON2)
+				if(Abs((with0->get_FFrequency() - SrcFrequency)) > EPSILON2)
 					Vmag = 0.0;  // Solution Frequency and Source Frequency don't match!
 					         /*NOTE: RE-uses VTerminal space*/
 				for(stop = Fnphases, i = 1; i <= stop; i++)
