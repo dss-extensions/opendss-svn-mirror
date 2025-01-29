@@ -160,7 +160,9 @@ var
     FromBus: TDSSBus;
     ToBus: TDSSBus;
 
+
 begin
+
 
     with ActiveCircuit[ActiveActor] do
     begin

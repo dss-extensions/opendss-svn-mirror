@@ -692,7 +692,7 @@ begin
     if ActiveCircuit[ActiveActor] <> nil then
         with ActiveCircuit[ActiveActor] do
             if ActiveBusIndex > 0 then
-                Result := Buses^[ActiveBusIndex].BusCustDurations;
+                Result := Buses^[ActiveBusIndex].BusCustInterrupts;
 end;
 
 function TBus.Get_N_Customers: Integer;

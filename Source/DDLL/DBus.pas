@@ -191,7 +191,7 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
                 with ActiveCircuit[ActiveActor] do
                     if ActiveBusIndex > 0 then
-                        Result := Buses^[ActiveBusIndex].BusCustDurations;
+                        Result := Buses^[ActiveBusIndex].BusCustInterrupts;
         end;
         10:
         begin                                          // Bus.Cust_duration
