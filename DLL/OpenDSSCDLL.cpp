@@ -18287,19 +18287,6 @@ void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					ActionCode = *pDbl;
 					pDbl++;
 					DeviceHandle = *pDbl;
-                    TTextRec F = {};
-                    String Filenm = "C:\\Temp\\CtrlValues.csv";
-					AssignFile(F, Filenm);
-                    if (FileExists(Filenm))
-                    {
-                        Append(F);
-                        IOResultToException();
-                    }
-                    else
-		                Rewrite(F);
-
-					WriteLn(F, Format("%8.3f, %8.3f, %8.3f, %8.3f", Hour, Seconds, ActionCode, DeviceHandle));
-                    CloseFile(F);
 					Qsize = ActiveCircuit[ActiveActor]->ControlQueue.Push(int(trunc(Hour)), Seconds, int(trunc(ActionCode)), int(trunc(DeviceHandle)), COMControlProxyObj, ActiveActor);
 				}
 				catch (...)
