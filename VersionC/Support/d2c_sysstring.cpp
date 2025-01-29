@@ -76,8 +76,10 @@
 #include <algorithm>
 
 #ifdef linux
+#ifdef OPENDSSC_UNUSED_STR_FUNCS
 #include<iconv.h>
 #include <langinfo.h>
+#endif // #ifdef OPENDSSC_UNUSED_STR_FUNCS
 #endif
 
 #undef max
@@ -148,6 +150,7 @@ int Pos(wchar_t Substr, const wstring& S)
 
 
 #ifdef windows
+#ifdef OPENDSSC_UNUSED_STR_FUNCS
 /*****************************************************************************
                       OS dependend WideStrings
 *****************************************************************************/
@@ -218,7 +221,7 @@ void WideCharToStrVar( wchar_t* S, std::string& Dest )
 {
   Dest = WideCharToString( S );
 }
-
+#endif // #ifdef OPENDSSC_UNUSED_STR_FUNCS
 
 
 
@@ -350,7 +353,7 @@ void fpsetCerrno( cint err )
   errno = err;
 }
 
-
+#ifdef OPENDSSC_UNUSED_STR_FUNCS 
 __thread iconv_t iconv_ansi2wide = NULL, iconv_wide2ansi = NULL;
 /*
 void DefaultWide2AnsiMove( wchar_t* Source, std::string& Dest, int Len )
@@ -496,7 +499,7 @@ void Ansi2WideMove( const char* Source, std::wstring& Dest, int Len )
 {
   Ansi2WideMove( (char*) Source, Dest, Len );
 }
-
+#endif // #ifdef OPENDSSC_UNUSED_STR_FUNCS
 /* converts an UTF-16 Code Point or surrogate pair to UTF-32 */
 UCS4Char utf16toutf32( const std::wstring& S, const int Index, int& Len )
 {
@@ -637,6 +640,7 @@ UCS4String WideStringToUCS4StringNoNulls( const std::wstring& S )
 #error unknown platform
 #endif
 
+#ifdef OPENDSSC_UNUSED_STR_FUNCS 
 wchar_t* StringToWideChar( const std::string& Src, wchar_t* Dest, int DestSize )
 {
   std::wstring Temp;
@@ -655,11 +659,11 @@ std::string WideCharLenToString( wchar_t* S, int Len )
   Wide2AnsiMove( S, result, Len );
   return result;
 }
-
 std::string WideCharToString( wchar_t* S )
 {
   return WideCharLenToString( S, wcslen(S));
 }
+#endif
 
 unsigned int indexword( const char* Buf, int Len, WORD B )
 {
@@ -957,17 +961,21 @@ wchar_t char2wchar(char xc)
 
 void InitThread( )
 { // unicode_encoding4, because under linux sizeof(wchar_t) == 4
+#ifdef OPENDSSC_UNUSED_STR_FUNCS 
   iconv_wide2ansi = iconv_open( nl_langinfo( CODESET ), unicode_encoding4 );
   iconv_ansi2wide = iconv_open( unicode_encoding4, nl_langinfo( CODESET ) );
+#endif
 }
 
 
 void FiniThread( )
 {
+#ifdef OPENDSSC_UNUSED_STR_FUNCS   
   if ( iconv_wide2ansi != ((iconv_t) - 1 ) )
     iconv_close( iconv_wide2ansi );
   if ( iconv_ansi2wide != ((iconv_t) - 1 ) )
     iconv_close( iconv_ansi2wide );
+#endif    
 }
 
 void SysString_initialization()

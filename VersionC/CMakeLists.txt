@@ -302,7 +302,7 @@ else()
 	# NOTE: iconv seems to be required on some recent compilers.
 	#       From the GCC bugtracker and tickets from other projects, 
 	#       it could be a bug in the compiler setup, but linking iconv
-	#		is enough to wor around it.
+	#		is enough to work around it.
 	set(OPENDSSC_COMMON_LIBS
 		${CMAKE_THREAD_LIBS_INIT}
 		${KLUSOLVE_LIB}
