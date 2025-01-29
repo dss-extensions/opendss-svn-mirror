@@ -362,10 +362,8 @@ if(OPENDSSC_BUILD_EXE)
 endif()
 
 if(OPENDSSC_BUILD_LIB)
-	if(BUILD_SHARED_LIBS)
-		if(NOT MSVC)
-			add_definitions(-fPIC)
-		endif()
+	if(NOT MSVC)
+		add_definitions(-fPIC)
 	endif()
 
 	add_library(OpenDSSC_LIB
