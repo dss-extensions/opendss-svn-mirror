@@ -144,7 +144,10 @@ Var
    FromBus : TDSSBus;
    ToBus   : TDSSBus;
 
+
 begin
+
+
 
     With ActiveCircuit[ActiveActor] Do
     Begin
