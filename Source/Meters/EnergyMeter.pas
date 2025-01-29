@@ -2492,9 +2492,10 @@ begin
        // init for defining sections
        SectionCount := 0;
        pBus.BusSectionID := SectionCount; // section before 1st OCP device is zero
-
        For idx := 1 to SequenceList.ListSize Do
+       Begin
            TPDElement(SequenceList.Get(idx)).CalcNum_Int(SectionCount, AssumeRestoration);
+       End;
 
        If SectionCount=0 Then
        Begin   // Error - no OCP devices
