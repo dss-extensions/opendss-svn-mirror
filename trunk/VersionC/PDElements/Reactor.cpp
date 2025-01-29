@@ -181,7 +181,7 @@ int TReactor::NewObject(const String ObjName)
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void TReactor::DoMatrix(pDoubleArray Matrix, int ActorID)
+void TReactor::DoMatrix(pDoubleArray& Matrix, int ActorID)
 {
 	int OrderFound = 0;
 	int j = 0;

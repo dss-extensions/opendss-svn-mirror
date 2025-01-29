@@ -85,7 +85,7 @@ class TReactor : public PDClass::TPDClass
 public:
 	typedef PDClass::TPDClass inherited;	
 private:
-	void DoMatrix(Arraydef::pDoubleArray Matrix, int ActorID);
+	void DoMatrix(Arraydef::pDoubleArray& Matrix, int ActorID);
 	void InterpretConnection(const String s);
 	void ReactorSetbus1(const String s);
 protected:
