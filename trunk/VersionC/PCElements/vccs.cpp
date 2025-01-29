@@ -854,8 +854,8 @@ void TVCCSObj::IntegrateStates(int ActorID)
 		}
 		Y = Fbp2->GetYValue_((Z)[iu - 1]);
     // updating outputs
-		if((corrector == 1) && (Abs((int) Y) > S4))
-			S4 = Abs((int) Y); // catching the fastest peaks
+		if((corrector == 1) && (Abs(Y) > S4))
+			S4 = Abs(Y); // catching the fastest peaks
     // update the RMS
 		IY = OffsetIdx(IY, 1, Fwinlen);
 		(Y2)[IY - 1] = Y * Y;  // brute-force RMS update

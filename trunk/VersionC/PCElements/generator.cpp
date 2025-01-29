@@ -2738,7 +2738,7 @@ void TGeneratorObj::TakeSample(int ActorID)
 				}
 				Integrate(Reg_kWh, s.re, with0->IntervalHrs, ActorID);   // Accumulate the power
 				Integrate(Reg_kvarh, s.im, with0->IntervalHrs, ActorID);
-				SetDragHandRegister(Reg_MaxkW, Abs((int) s.re));
+				SetDragHandRegister(Reg_MaxkW, Abs(s.re));
 				SetDragHandRegister(Reg_MaxkVA, Smag);
 				Integrate(Reg_Hours, HourValue, with0->IntervalHrs, ActorID);  // Accumulate Hours in operation
 				Integrate(Reg_Price, s.re * ActiveCircuit[ActorID]->PriceSignal * 0.001, with0->IntervalHrs, ActorID);  // Accumulate Hours in operation

@@ -569,7 +569,7 @@ complex TIsourceObj::GetBaseCurr(int ActorID)
 				NAmps = Amps;
 				if((with0->Get_SolMode() == DAILYMODE) || (with0->Get_SolMode() == YEARLYMODE) || (with0->Get_SolMode() == DUTYCYCLE) || (with0->Get_SolMode() == DYNAMICMODE))     /*If a loadshape mode simulation*/
 					NAmps = Amps * ShapeFactor.re;
-				if(Abs((int) (with0->get_FFrequency() - SrcFrequency)) < EPSILON2)
+				if(Abs((with0->get_FFrequency() - SrcFrequency)) < EPSILON2)
 					result = pdegtocomplex(NAmps, Angle);
 				else
 					result = CZero;

@@ -2561,7 +2561,7 @@ void TGeneric5Obj::CalcPFlowVIabc(pComplexArray Vabc, pComplexArray Iabc, int Ac
                       ///////////integral droop
 				{
 					dIqdt = kcq * (V_ref1 - V_DG1) / ActiveCircuit[ActorID]->Solution->Iteration;
-					if(Abs((int) (V_ref1 - V_DG1)) <= Volt_Trhd * V_ref1)
+					if(Abs((V_ref1 - V_DG1)) <= Volt_Trhd * V_ref1)
 						dIqdt = 0.0;
 
                                         //if abs(dIqdt)> flmt*Iqmax_phase then dIqdt := sign(dIqdt)*flmt*Iqmax_phase;
@@ -2598,7 +2598,7 @@ void TGeneric5Obj::CalcPFlowVIabc(pComplexArray Vabc, pComplexArray Iabc, int Ac
                       ///////////integral droop
 				{
 					dIqdt = kcq * (V_ref2 - V_DG2) / ActiveCircuit[ActorID]->Solution->Iteration;  // ref control
-					if(Abs((int) (V_ref2 - V_DG2)) <= Volt_Trhd * V_ref2)
+					if(Abs((V_ref2 - V_DG2)) <= Volt_Trhd * V_ref2)
 						dIqdt = 0.0;
 					Iq2 = Iq2 + dIqdt;     //In power flow, Iq starts from 0;
 					Q_dg2 = V_DG2 * Iq2;
@@ -2630,7 +2630,7 @@ void TGeneric5Obj::CalcPFlowVIabc(pComplexArray Vabc, pComplexArray Iabc, int Ac
                   ///////////integral droop
 				{
 					dIqdt = kcq * (V_ref3 - V_DG3) / ActiveCircuit[ActorID]->Solution->Iteration;
-					if(Abs((int) (V_ref3 - V_DG3)) <= Volt_Trhd * V_ref3)
+					if(Abs((V_ref3 - V_DG3)) <= Volt_Trhd * V_ref3)
 						dIqdt = 0.0;
 					Iq3 = Iq3 + dIqdt;     //In power flow, Iq starts from 0;
 					Q_dg3 = V_DG3 * Iq3;
@@ -2763,7 +2763,7 @@ void TGeneric5Obj::CalcPFlowVIabc(pComplexArray Vabc, pComplexArray Iabc, int Ac
                     ///////////integral droop
 					{
 						dIqdt = kcq * (temp_vref - V_DG1) / ActiveCircuit[ActorID]->Solution->Iteration;
-						if(Abs((int) (V_ref1 - V_DG1)) <= Volt_Trhd * V_ref1)
+						if(Abs((V_ref1 - V_DG1)) <= Volt_Trhd * V_ref1)
 							dIqdt = 0.0;
 						Iq1 = Iq1 + dIqdt;     //In power flow, Iq starts from 0;
 						temp_qref = V_DG1 * Iq1;

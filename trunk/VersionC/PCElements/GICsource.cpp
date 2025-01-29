@@ -494,7 +494,7 @@ void TGICSourceObj::GetVterminalForSource(int ActorID)
 		{
 			auto with0 = ActiveCircuit[ActorID]->Solution;
 			int stop = 0;
-			if(Abs((int) (with0->get_FFrequency() - SrcFrequency)) < EPSILON2)
+			if(Abs((with0->get_FFrequency() - SrcFrequency)) < EPSILON2)
 				Vmag = Volts;
 			else
 				Vmag = 0.0;
