@@ -4061,6 +4061,7 @@ int CircuitI(int mode, int arg)
 					if (p->FEnabled)
 					{
 						result = 1;
+                        ActiveCircuit[ActiveActor]->Set_ActiveCktElement(p);
 					}
 					else
 						ActiveCircuit[ActiveActor]->PCElements.Get_Next();
@@ -4098,7 +4099,7 @@ int CircuitI(int mode, int arg)
 			if (p != nullptr)
 			{
 				do
-				{
+				{	
 					if (p->FEnabled)
 					{
 						ActiveCircuit[ActiveActor]->Set_ActiveCktElement(p);
@@ -5196,7 +5197,7 @@ int CktElementI(int mode, int arg)
 			if (with0->FActiveCktElement != nullptr)
 			{
 				auto with1 = with0->FActiveCktElement;
-				if (with1->DSSObjType == PC_ELEMENT) // BASECLASSMASK Not added
+                if ((with1->DSSObjType & BaseClassMask) == PC_ELEMENT) // BASECLASSMASK Not added
 				{
 					pPCElem = (TPCElement*)with0->FActiveCktElement;
 					if ((arg > 0) && (arg <= pPCElem->NumVariables()))
@@ -5490,7 +5491,7 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 	switch (mode)
 	{
-	case 0:                                        // CktElement.NormalAmps - read
+	case 0:                                        // CktElement.BusNames - read
 		*myType = 4; //String
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
@@ -6158,7 +6159,7 @@ void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	switch (mode)
 	{
 	case 0:											// CmathLib.cmplx
-		pDbl = (double*)myPtr;
+        pDbl = *(double**)myPtr;
 		*myType = 3; //complex
 		myCmplxArray.resize(1);
 		a = *pDbl;
@@ -7167,7 +7168,7 @@ char* FusesS(int mode, char* arg)
 		elem = (TFuseObj*)FuseClass->ElementList.Get_Active();
 		if (elem != nullptr)
 		{
-			result = elem->MonitoredElementName;
+			result = elem->ElementName;
 		}
 		break;
 	case 5:														// Fuses.SwitchedObj write
@@ -18273,7 +18274,7 @@ void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		{
 			*myType = 2;	// Double
 			myStrArray.clear();
-			pDbl = (double*)myPtr;
+            pDbl = *(double**)myPtr;
 			Qsize = 0;
 			if (ASSIGNED(ActiveCircuit[ActiveActor]))
 			{
@@ -18286,7 +18287,20 @@ void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					ActionCode = *pDbl;
 					pDbl++;
 					DeviceHandle = *pDbl;
-					Qsize = ActiveCircuit[ActiveActor]->ControlQueue.Push(trunc(Hour), Seconds, trunc(ActionCode), trunc(DeviceHandle), COMControlProxyObj, ActiveActor);
+                    TTextRec F = {};
+                    String Filenm = "C:\\Temp\\CtrlValues.csv";
+					AssignFile(F, Filenm);
+                    if (FileExists(Filenm))
+                    {
+                        Append(F);
+                        IOResultToException();
+                    }
+                    else
+		                Rewrite(F);
+
+					WriteLn(F, Format("%8.3f, %8.3f, %8.3f, %8.3f", Hour, Seconds, ActionCode, DeviceHandle));
+                    CloseFile(F);
+					Qsize = ActiveCircuit[ActiveActor]->ControlQueue.Push(int(trunc(Hour)), Seconds, int(trunc(ActionCode)), int(trunc(DeviceHandle)), COMControlProxyObj, ActiveActor);
 				}
 				catch (...)
 				{

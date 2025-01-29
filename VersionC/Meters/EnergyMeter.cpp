@@ -2508,7 +2508,7 @@ void TEnergyMeterObj::CalcBusCoordinates(TCktTreeNode* StartBranch, int FirstCoo
 void TEnergyMeterObj::CalcReliabilityIndices(bool AssumeRestoration_in, int ActorID)
 {
 	TPDElement*		PD_Elem = nullptr;
-	TFeederSection	pSection = {};
+    TFeederSection	pSection = {};
 	int				Idx = 0,
 					stop = 0;
 	TDSSBus*		pBus = nullptr;
@@ -2552,10 +2552,13 @@ void TEnergyMeterObj::CalcReliabilityIndices(bool AssumeRestoration_in, int Acto
        // init for defining sections
 	SectionCount = 0;
 	pBus->BusSectionID = SectionCount; // section before 1st OCP device is zero
+
 	for(stop = SequenceList->get_myNumList(), Idx = 1; Idx <= stop; Idx++)
 	{
 		((TPDElement*) SequenceList->Get(Idx))->CalcNum_Int(SectionCount, AssumeRestoration_in);
+
 	}
+
 	if(SectionCount == 0)   // Error - no OCP devices
 	{
 		DoSimpleMsg("Error: No Overcurrent Protection device (Relay, Recloser, or Fuse) defined. Aborting Reliability calc.", 52902);
@@ -2648,7 +2651,7 @@ void TEnergyMeterObj::CalcReliabilityIndices(bool AssumeRestoration_in, int Acto
       // Compute CustInterrupts based on interrupts at each load
 			/*# with TLoadObj(LoadList.Get(Idx)) do */
 			{
-				auto with5 = ((TLoadObj*) LoadList->Get(Idx));
+				auto with5 = (TLoadObj*) LoadList->Get(Idx);
 				pBus = ActiveCircuit[ActorID]->Buses[ with5->Terminals[1 - 1].BusRef - 1]; // pointer to Load's bus
 				CustInterrupts = CustInterrupts + with5->NumCustomers * with5->RelWeighting * pBus->Bus_Num_Interrupt;
 				SAIFIkW = SAIFIkW + with5->kWBase * with5->RelWeighting * pBus->Bus_Num_Interrupt;
@@ -2657,8 +2660,10 @@ void TEnergyMeterObj::CalcReliabilityIndices(bool AssumeRestoration_in, int Acto
 				DblInc(dblkW, with5->kWBase * with5->RelWeighting); // total up weighted kW
               // Set BusCustDurations for Branch reliability export
 				pBus->BusCustDurations = (pBus->BusTotalNumCustomers + with5->NumCustomers) * with5->RelWeighting * pBus->Bus_Int_Duration * pBus->Bus_Num_Interrupt;
+
 			}
 		}
+
 	}
 
         // Compute SAIDI from Sections list
