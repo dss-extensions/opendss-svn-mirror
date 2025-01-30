@@ -43,9 +43,9 @@ Begin
           End;
     End;
     1 : Begin           // Reactors.Next
+          Result := 0;  // signify no more
           If ActiveCircuit[ActiveActor] <> Nil Then
           Begin
-
             If ReactorClass[ActiveActor].ElementList.ListSize > 0 Then
             Begin
               pList := ReactorClass[ActiveActor].ElementList;
@@ -59,9 +59,8 @@ Begin
                 End
                 Else Elem := pList.Next;
               Until (Result > 0) or (Elem = nil);
-            End
-            Else
-              Result := 0;  // signify no more
+            End;
+
            End;
     End;
     2: Begin            // Reactors.Count

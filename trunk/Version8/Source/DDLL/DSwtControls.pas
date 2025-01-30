@@ -98,7 +98,7 @@ begin
       Result := 0;
       elem := ActiveSwtControl;
       if elem <> nil then begin
-          if elem.IsIsolated then Result := 1;
+          if elem.IsLocked then Result := 1;
       end;
   end;
   5: begin  // SwtControls.IsLocked write
