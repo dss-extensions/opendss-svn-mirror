@@ -5055,6 +5055,8 @@ int CktElementI(int mode, int arg)
 		{
 			auto with0 = ActiveCircuit[ActiveActor];
 			auto with1 = with0->FActiveCktElement;
+            if (arg == 0)
+                arg = 1;  // Sets a default in case the user forgets to enter the terminal number
 			with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
 			result = 0;
 			for (i = 1; i <= with1->Get_NConds(); i++)
