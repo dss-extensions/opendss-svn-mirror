@@ -13420,7 +13420,7 @@ void SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				myDblArray[k] = elem->PhsAllocationFactor[k];
 			}
 		}
-		*mySize = sizeof(myDblArray) * myDblArray.size();
+        *mySize = sizeof(myDblArray[0]) * myDblArray.size();
 		*myPtr = (uintptr_t)(void*)&(myDblArray[0]);
 		break;
 	default:
