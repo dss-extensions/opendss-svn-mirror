@@ -1984,9 +1984,9 @@ char* DSSLoadsS(int mode, char* arg)
 		break;
 	case 14:												// Load.sensor Read
 		result ="";
-		pload = (TLoadObj*)ActiveCircuit[ActiveActor]->Loads.Get_Active();
-		if (pload != nullptr && pload->HasSensorObj)
-			result =Load->SensorObj->Get_myLName();
+        Load = (TLoadObj*)ActiveCircuit[ActiveActor]->Loads.Get_Active();
+        if ((Load != nullptr) && Load->HasSensorObj)
+            result = Load->SensorObj->get_Name();
 		break;
 	default:
 		result ="Error";
@@ -8832,18 +8832,19 @@ int MetersI(int mode, int arg)
 		{
 			auto with0 = ActiveCircuit[ActiveActor];
 			pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_Next();
+			
 			if (pMeter != nullptr)
 			{
-				do
+                while ((result == 0) && (pMeter != nullptr))
 				{
 					if (pMeter->FEnabled)
 					{
 						with0->Set_ActiveCktElement(pMeter);
-						result = 1;
+                        result = with0->EnergyMeters.ActiveItem;
 					}
 					else
 						pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_Next();
-				} while (!(result > 0 || pMeter == nullptr));
+				} 
 			}
 			else
 				result = 0; // signify no more
@@ -10558,7 +10559,7 @@ int PDElementsI(int mode, int arg)
 		if (ASSIGNED(ActiveCircuit[ActiveActor]))
 		{
 			auto with0 = ActiveCircuit[ActiveActor];
-			if (dynamic_cast<TPDElement*>(with0->FActiveCktElement) != nullptr)
+			if (with0->FActiveCktElement != nullptr)
 			{
 				ActivePDElement = (TPDElement*)with0->FActiveCktElement;
 				if (ActivePDElement->IsShunt)
@@ -10765,16 +10766,17 @@ char* PDElementsS(int mode, char* arg)
 			TestString = arg;
 			// Search through list of PD Elements until we find this one
 			ActivePDElement = (TPDElement*)with0->PDElements.Get_First();
-			while (ASSIGNED(ActivePDElement))
+			while (ActivePDElement != nullptr)
 			{
 				auto with1 = ActivePDElement;
-				if (CompareText(TestString, Format("%s.%s", with1->ParentClass->Class_Name.c_str(), with1->LName.c_str())))
+                if (CompareText(TestString,Format("%s.%s", with1->ParentClass->Class_Name.c_str(), with1->LName.c_str())) == 0)
 				{
 					with0->Set_ActiveCktElement(ActivePDElement);
-					break;
+                    break;
 				}
 				ActivePDElement = (TPDElement*)with0->PDElements.Get_Next();
 			}
+           
 		}
 		break;
 	default:
