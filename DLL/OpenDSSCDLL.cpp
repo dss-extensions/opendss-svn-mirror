@@ -2220,7 +2220,7 @@ int CapacitorsI(int mode, int arg)
 			elem = ActiveCapacitor();
 			if (elem != nullptr)
 			{
-				elem->ActiveTerminal = &(elem->Terminals[0]);		// make sure terminal 1 is closed
+				elem->Set_ActiveTerminal(1); // make sure terminal 1 is closed
 				elem->Set_ConductorClosed(0, ActiveActor, true);	// closes all phases
 				for (i = 1; i <= elem->Get_FNumSteps(); i++)
 					elem->set_States(i, ActiveActor, 1);
@@ -5033,7 +5033,7 @@ int CktElementI(int mode, int arg)
 			if (with0->FActiveCktElement != nullptr)
 			{
 				auto with1 = with0->FActiveCktElement;
-				with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
+				with1->Set_ActiveTerminal(arg);
 				with1->Set_ConductorClosed(3, ActiveActor, false);
 			}
 		}
@@ -5045,7 +5045,7 @@ int CktElementI(int mode, int arg)
 			if (with0->FActiveCktElement != nullptr)
 			{
 				auto with1 = with0->FActiveCktElement;
-				with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
+				with1->Set_ActiveTerminal(arg);
 				with1->Set_ConductorClosed(3, ActiveActor, true);
 			}
 		}
@@ -5057,7 +5057,7 @@ int CktElementI(int mode, int arg)
 			auto with1 = with0->FActiveCktElement;
             if (arg == 0)
                 arg = 1;  // Sets a default in case the user forgets to enter the terminal number
-			with1->ActiveTerminal = &(with1->Terminals[arg - 1]);
+			with1->Set_ActiveTerminal(arg);
 			result = 0;
 			for (i = 1; i <= with1->Get_NConds(); i++)
 			{
