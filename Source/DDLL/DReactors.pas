@@ -54,9 +54,9 @@ begin
         end;
         1:
         begin           // Reactors.Next
+            Result := 0;  // signify no more
             if ActiveCircuit[ActiveActor] <> nil then
             begin
-
                 if ReactorClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
                     pList := ReactorClass[ActiveActor].ElementList;
@@ -70,9 +70,8 @@ begin
                         else
                             Elem := pList.Next;
                     until (Result > 0) or (Elem = nil);
-                end
-                else
-                    Result := 0;  // signify no more
+                end;
+
             end;
         end;
         2:

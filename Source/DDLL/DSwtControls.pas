@@ -130,7 +130,7 @@ begin
             elem := ActiveSwtControl;
             if elem <> nil then
             begin
-                if elem.IsIsolated then
+                if elem.IsLocked then
                     Result := 1;
             end;
         end;
