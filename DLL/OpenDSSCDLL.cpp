@@ -11315,7 +11315,7 @@ double ReclosersF(int mode, double arg)
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("PhaseTrip", Format("%.g", arg));
+			Set_ParameterReC("PhaseTrip", Format("%f", arg));
 		}
 		break;
 	case 2:													// Reclosers.PhaseInst read
@@ -11329,7 +11329,7 @@ double ReclosersF(int mode, double arg)
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("Phaseinst", Format("%.g", arg));
+			Set_ParameterReC("Phaseinst", Format("%f", arg));
 		}
 		break;
 	case 4:													// Reclosers.GroundTrip read
@@ -11343,7 +11343,7 @@ double ReclosersF(int mode, double arg)
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("GroundTrip", Format("%.g", arg));
+			Set_ParameterReC("GroundTrip", Format("%f", arg));
 		}
 		break;
 	case 6:													// Reclosers.GroundInst read
@@ -11357,7 +11357,7 @@ double ReclosersF(int mode, double arg)
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("GroundInst", Format("%.g", arg));
+			Set_ParameterReC("GroundInst", Format("%f", arg));
 		}
 		break;
 	default:
@@ -11654,12 +11654,12 @@ double ReactorsF(int mode, double arg)
         case 4:						// Reactor.lmH Read
             Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
             if (ASSIGNED(Elem))
-                Result = Elem->l;
+                Result = Elem->l * 1e3;
             break;
         case 5:						// Reactor.lmH Write
             Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
             if (ASSIGNED(Elem))
-                Elem->l = arg;
+                Elem->l = arg / 1e3;
             break;
         case 6:						// Reactor.R Read
             Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
@@ -11756,12 +11756,15 @@ char* ReactorsS(int mode, char* arg)
 			  Result = Elem->LCurve;
 			}
             break;
-        case 3:							// Reactor.LCurve Write
-            Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
-            if (ASSIGNED(Elem))
-            {
-                Elem->LCurve = arg;
-            }
+        case 3: // Reactor.LCurve Write
+			{
+				Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
+				if (ASSIGNED(Elem))
+				{
+					S = arg;
+					Elem->LCurve = S;
+				}
+			}
             break;
         case 4:							// Reactor.RCurve Read
             Elem = (TReactorObj*)ReactorClass[ActiveActor]->GetActiveObj();
@@ -11859,9 +11862,8 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                     for( i = 0; i < Sqr(Elem->Get_NPhases()); i++)
 					{
                         PDouble = *(double**)myPtr;
-						Elem->Rmatrix[i] = *PDouble;
+						Elem->Rmatrix[i] = PDouble[i];
 						k++;
-						PDouble++;
 					}
 					Elem->Set_YprimInvalid(ActiveActor,true);
 				}
@@ -11879,7 +11881,7 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 {
                     auto with0 = Elem;
 
-                    if (with0->Rmatrix != nullptr)
+                    if (with0->XMatrix != nullptr)
                     {
                         myDblArray.resize(Sqr(with0->Get_NPhases()));
                         for (i = 0; i < Sqr(with0->Get_NPhases()); i++)
@@ -11904,9 +11906,8 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                     for (i = 0; i < Sqr(Elem->Get_NPhases()); i++)
                     {
                         PDouble = *(double**)myPtr;
-                        Elem->XMatrix[i] = *PDouble;
+                        Elem->XMatrix[i] = PDouble[i];
                         k++;
-                        PDouble++;
                     }
                     Elem->Set_YprimInvalid(ActiveActor, true);
                 }
@@ -11941,10 +11942,10 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 {
                     auto with0 = Elem;
                     PDouble = *(double**)myPtr;
-                    with0->Z.re = *PDouble;
-                    PDouble++;
-                    with0->Z.im = *PDouble;
-                    k = 2;
+                    with0->Z.re = PDouble[k];
+                    k++;
+                    with0->Z.im = PDouble[k];
+					k++;
                     with0->Set_YprimInvalid(ActiveActor, true);
                 }
             }
@@ -11978,10 +11979,10 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 {
                     auto with0 = Elem;
                     PDouble = *(double**)myPtr;
-                    with0->Z0.re = *PDouble;
-                    PDouble++;
-                    with0->Z0.im = *PDouble;
-                    k = 2;
+                    with0->Z0.re = PDouble[k];
+                    k++;
+                    with0->Z0.im = PDouble[k];
+                    k++;
                     with0->Set_YprimInvalid(ActiveActor, true);
                 }
             }
@@ -12015,10 +12016,10 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 {
                     auto with0 = Elem;
                     PDouble = *(double**)myPtr;
-                    with0->Z1.re = *PDouble;
-                    PDouble++;
-                    with0->Z1.im = *PDouble;
-                    k = 2;
+                    with0->Z1.re = PDouble[k];
+                    k++;
+                    with0->Z1.im = PDouble[k];
+                    k++;
                     with0->Set_YprimInvalid(ActiveActor, true);
                 }
             }
@@ -12052,10 +12053,10 @@ void ReactorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                 {
                     auto with0 = Elem;
                     PDouble = *(double**)myPtr;
-                    with0->Z2.re = *PDouble;
-                    PDouble++;
-                    with0->Z2.im = *PDouble;
-                    k = 2;
+                    with0->Z2.re = PDouble[k];
+                    k++;
+                    with0->Z2.im = PDouble[k];
+                    k++;
                     with0->Set_YprimInvalid(ActiveActor, true);
                 }
             }
