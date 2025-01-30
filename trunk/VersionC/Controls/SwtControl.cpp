@@ -141,7 +141,7 @@ int TSwtControl::Edit(int ActorID)
 				with0->ElementName = LowerCase(Param);
 				break;
 				case 	2:
-				with0->ElementTerminal = Parser[ActorID]->MakeInteger_();
+                with0->ElementTerminal = Parser[ActorID]->MakeInteger_();
 				break;
 				case 	3:
 				with0->InterpretSwitchAction(Param);
@@ -305,10 +305,18 @@ void TSwtControlObj::RecalcElementData(int ActorID)
 	DevIndex = GetCktElementIndex(ElementName);
 	if(DevIndex > 0)
 	{
+        int myElmTerminal = 0;  // This to prevent exceptions for bad indexing 
+        if (ElementTerminal > 0)
+            myElmTerminal = ElementTerminal;
+        else
+            myElmTerminal = 1;
+
 		Set_ControlledElement(((TDSSCktElement*) ActiveCircuit[ActorID]->CktElements.Get(DevIndex)));
 		Set_NPhases(get_FControlledElement()->Get_NPhases());
 		Set_Nconds(Fnphases);
-		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);
+
+		get_FControlledElement()->Set_ActiveTerminal(myElmTerminal);
+
 		get_FControlledElement()->HasSwtControl = true;  // For Reliability calcs
 /*
     if not Locked then
@@ -319,7 +327,7 @@ void TSwtControlObj::RecalcElementData(int ActorID)
 
 */
     // attach controller bus to the switch bus - no space allocated for monitored variables
-		SetBus(1, get_FControlledElement()->GetBus(ElementTerminal));
+        SetBus(1, get_FControlledElement()->GetBus(myElmTerminal));
 	}
 	else
 	{

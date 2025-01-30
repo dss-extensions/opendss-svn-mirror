@@ -14515,12 +14515,15 @@ void SolutionV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
 
-			ArrSize = with1->Inc_Mat_levels.size() - 1;
-			myIntArray.resize(ArrSize);
-			for (IMIdx = 0; IMIdx < ArrSize; IMIdx++)
-			{
-				myIntArray[IMIdx] = with1->Inc_Mat_levels[IMIdx];
-			}
+			ArrSize = with1->Inc_Mat_levels.size();
+            if (ArrSize > 0)
+            {
+                myIntArray.resize(ArrSize);
+                for (IMIdx = 0; IMIdx < ArrSize; IMIdx++)
+                {
+                    myIntArray[IMIdx] = with1->Inc_Mat_levels[IMIdx];
+                }
+            }
 		}
 		*mySize = sizeof(myIntArray[0]) * myIntArray.size();
 		*myPtr = (uintptr_t)(void*)&(myIntArray[0]);
@@ -14770,7 +14773,10 @@ int StoragesI(int mode, int arg)
                 pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
                 if (ASSIGNED(pStorageElem))
                 {
-                    pStorageElem->FVarFollowInverter = (arg != 1);
+                    if (arg == 1)
+						pStorageElem->FVarFollowInverter = true;
+                    else
+                        pStorageElem->FVarFollowInverter = false;
                 }
             }
         }
@@ -15085,7 +15091,7 @@ double StoragesF(int mode, double arg)
                 pStorageElem = (TStorageObj*)ActiveCircuit[ActiveActor]->StorageElements.Get_Active();
                 if (ASSIGNED(pStorageElem))
                 {
-                    Result = pStorageElem->Get_PresentkW();
+                    Result = pStorageElem->Get_kW();
                 }
             }
         }
@@ -15577,7 +15583,7 @@ int SwtControlsI(int mode, int arg)
 		}
 		break;
 	case 7:												// SwtControls.
-		Set_ParameterSwtControl("SwitchedTerm", IntToStr(arg));
+            Set_ParameterSwtControl("SwitchedTerm", Format("%d", arg));
 		break;
 	case 8:												// SwtControls.
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
