@@ -858,7 +858,7 @@ namespace XYCurve
 		if(FNumPoints > 0)
 		{
 			if(FNumPoints == 1)
-				result = XValues[1];
+				result = XValues[0];
 			else
 			{
 				int stop = 0;
