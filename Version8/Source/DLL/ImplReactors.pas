@@ -95,7 +95,7 @@ Begin
     If ReactorClass[ActiveActor].ElementList.ListSize > 0 Then
     Begin
       pList := ReactorClass[ActiveActor].ElementList;
-      Elem := pList.First;
+      Elem := pList.Next;
       Repeat
         If Elem.Enabled
         Then
