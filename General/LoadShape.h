@@ -123,6 +123,7 @@ public:
 	double BaseQ;
 	bool Enabled;
 	bool UseActual;
+	int Interpolation;
 
 	/************************************************************************
 	*                    Memory mapping variables                          *
@@ -178,6 +179,7 @@ public:
 	virtual string GetPropertyValue(int Index);
 	virtual void InitPropertyValues(int ArrayOffset);
 	virtual void DumpProperties(System::TTextRec& f, bool Complete);
+	int Get_Interpolation_Idx(const String &StrValue);
 	int get_FNumPoints();
 
         /*Property FirstMult :Double Read Get_FirstMult;*/

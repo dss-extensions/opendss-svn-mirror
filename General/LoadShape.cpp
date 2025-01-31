@@ -43,7 +43,9 @@ TLoadShapeObj::TLoadShapeObj() {}
 
 
 TLoadShapeObj* ActiveLoadShapeObj = nullptr;
-const int NumPropsThisClass = 22;
+const int NumPropsThisClass = 23;
+const int AVG_IP            = 1;
+const int EDGE_IP           = 2;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Creates superstructure for all Line objects
@@ -101,7 +103,9 @@ void TLoadShape::DefineProperties()
 	PropertyName[19 - 1] = "Pmult";         // synonym for Mult
 	PropertyName[20 - 1] = "PQCSVFile";     // Redirect to a file with p, q pairs
 	PropertyName[21 - 1] = "MemoryMapping"; // Enable/disable using Memory mapping for this shape
-	PropertyName[22 - 1] = "mode";
+	PropertyName[22 - 1] = "Mode";
+	PropertyName[23 - 1] = "Interpolation"; // Changes the interpolation method for sparse load shapes
+
      // define Property help values
 	PropertyHelp[1 - 1] = "Max number of points to expect in load shape vectors. This gets reset to the number of multiplier values found (in files only) if less than specified.";     // Number of points to expect
 	PropertyHelp[2 - 1] = String("Time interval for fixed interval data, hrs. Default = 1. " "If Interval = 0 then time data (in hours) may be at either regular or  irregular intervals and time value must be specified using either the Hour property or input files. " "Then values are interpolated when Interval=0, but not for fixed interval data.  ") + CRLF
@@ -178,6 +182,9 @@ void TLoadShape::DefineProperties()
 	           + "By defaul is False. Use it to accelerate the model loading when the containing a large number of load shapes (not in use yet).";
 	PropertyHelp[22 - 1] = "{carryover | default*} carryover will initialize generator dispatch from latest Pgen/Qgen in memory.  default will use kWbase " + CRLF
 	           + "and kvarbase to initialize generator dispatch.";
+	PropertyHelp[23 - 1] = "{AVG* | EDGE} Defines the interpolation method used for connecting distant dots within the load shape. " + CRLF + CRLF +
+                "By defaul is AVG (average), which will return a multiplier for missing intervals based on the closest multiplier in time." + CRLF +
+                "EDGE interpolation keeps the last known value for missing intervals until the next defined multiplier arrives";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -573,6 +580,9 @@ int TLoadShape::Edit(int ActorID)
 				break;
 				case 22:
 				with0->mode = Parser[ActorID]->MakeString_();
+				break;
+				case 23:
+				with0->Interpolation = with0->Get_Interpolation_Idx(Parser[ActorID]->MakeString_());
 				break;
 
 
@@ -1088,6 +1098,7 @@ TLoadShapeObj::TLoadShapeObj(TDSSClass* ParClass, const String LoadShapeName)
 	Enabled = true;
 	MyViewLen = 1000;   // 1kB by default, it may change for not missing a row
     mode = "deafult";
+	Interpolation = AVG_IP;
 	InitPropertyValues(0);
 }
 
@@ -1177,7 +1188,16 @@ complex TLoadShapeObj::GetMult(double hr)
 		{
 			if(Interval > 0.0)                                      // Using Interval
 			{
-				Index = Round(hr / Interval);
+				switch(Interpolation)
+				{
+				case EDGE_IP:
+					Index = floor(hr / Interval);
+					break;
+				default:
+					Index = Round(hr / Interval);
+					break;
+				}
+
 				if(UseMMF)
 				{
 					if(Index > myDataSize)
@@ -1242,22 +1262,46 @@ complex TLoadShapeObj::GetMult(double hr)
 					{
 						if((Hours)[i - 1] > hr)      // Interpolate for multiplier
 						{
-							LastValueAccessed = i - 1;
-							if(UseMMF)
+							if (Interpolation == EDGE_IP)
 							{
-								result.re = InterpretDblArrayMMF(myView, myFileType, myColumn, LastValueAccessed, myLineLen) + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (InterpretDblArrayMMF(myView, myFileType, myColumn, i, myLineLen) - InterpretDblArrayMMF(myView, myFileType, myColumn, LastValueAccessed, myLineLen));
-								if(!QMultipliers.empty())
-									result.im = InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, LastValueAccessed, myLineLenQ) + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, i, myLineLenQ) - InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, LastValueAccessed, myLineLenQ));
-								else
-									result.im = Set_Result_im(result.re);
+								// Use the edge values
+								result = CZero;
+								for (int k = 0; k < FNumPoints; ++k)
+								{
+									if (Hours[k] <= hr)
+									{
+										result.re = PMultipliers[k];
+										if (!QMultipliers.empty())
+										{
+											result.im = QMultipliers[k];
+										}
+									}
+									else
+									{
+										return result;
+									}
+								}
 							}
 							else
 							{
-								result.re = PMultipliers[LastValueAccessed - 1] + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (PMultipliers[i - 1] - PMultipliers[LastValueAccessed - 1]);
-								if(!QMultipliers.empty())
-									result.im = QMultipliers[LastValueAccessed - 1] + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (QMultipliers[i - 1] - QMultipliers[LastValueAccessed - 1]);
+								// Interpolate for multiplier
+								LastValueAccessed = i - 1;
+								if(UseMMF)
+								{
+									result.re = InterpretDblArrayMMF(myView, myFileType, myColumn, LastValueAccessed, myLineLen) + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (InterpretDblArrayMMF(myView, myFileType, myColumn, i, myLineLen) - InterpretDblArrayMMF(myView, myFileType, myColumn, LastValueAccessed, myLineLen));
+									if(!QMultipliers.empty())
+										result.im = InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, LastValueAccessed, myLineLenQ) + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, i, myLineLenQ) - InterpretDblArrayMMF(myViewQ, myFileTypeQ, myColumnQ, LastValueAccessed, myLineLenQ));
+									else
+										result.im = Set_Result_im(result.re);
+								}
 								else
-									result.im = Set_Result_im(result.re);
+								{
+									result.re = PMultipliers[LastValueAccessed - 1] + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (PMultipliers[i - 1] - PMultipliers[LastValueAccessed - 1]);
+									if(!QMultipliers.empty())
+										result.im = QMultipliers[LastValueAccessed - 1] + (hr - (Hours)[LastValueAccessed - 1]) / ((Hours)[i - 1] - (Hours)[LastValueAccessed - 1]) * (QMultipliers[i - 1] - QMultipliers[LastValueAccessed - 1]);
+									else
+										result.im = Set_Result_im(result.re);
+								}
 							}
 							return result;
 						}
@@ -1458,6 +1502,15 @@ void TLoadShapeObj::DumpProperties(System::TTextRec& f, bool Complete)
 				System::WriteLn(f, Get_PropertyValue(i)); }
 		}
 	}
+}
+
+int TLoadShapeObj::Get_Interpolation_Idx(const String& StrValue)
+{
+	int Result = AVG_IP;
+	if (LowerCase(StrValue) == "edge")
+		Result = EDGE_IP;
+
+	return Result;
 }
 
 String TLoadShapeObj::GetPropertyValue(int Index)
