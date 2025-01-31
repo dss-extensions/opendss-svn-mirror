@@ -197,7 +197,7 @@ int VarIdx	= 0; // Left this one here instead of DSSGlobals to avoid confusion i
 //--------------------------------------------------------------------------------
 void TMyApplication::DoRun()
 {
-	NoFormsAllowed = true;
+//	NoFormsAllowed = true; # Redundant isn't
 	ActiveActor = 1;
 	IsDLL = true;
 	DSSExecutive[ActiveActor] = new TExecutive();  // Make a DSS object
@@ -425,9 +425,9 @@ int DSSI(int mode, int arg)
 		break;
 	case    8:                                  // DSS.Allowforms write
 		if (arg == 0)
-			NoFormsAllowed = 1;
+			NoFormsAllowed = true;
 		else
-			NoFormsAllowed = 0;
+			NoFormsAllowed = false;
 		break;
 	case 9:
 		result = 1;
