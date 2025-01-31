@@ -72,9 +72,9 @@ begin
         7:
         begin  // DSS.Allowforms read
             if NoFormsAllowed then
-                Result := 1
+                Result := 0
             else
-                Result := 0;
+                Result := 1;
         end;
         8:
         begin  // DSS.Allowforms write
