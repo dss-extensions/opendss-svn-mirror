@@ -419,9 +419,9 @@ int DSSI(int mode, int arg)
 		break;
 	case    7:                                  // DSS.Allowforms read
 		if (NoFormsAllowed)
-			result = 1;
-		else
 			result = 0;
+		else
+			result = 1;
 		break;
 	case    8:                                  // DSS.Allowforms write
 		if (arg == 0)
