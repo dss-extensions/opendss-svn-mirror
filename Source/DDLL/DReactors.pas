@@ -29,14 +29,17 @@ Begin
             Begin
               pList := ReactorClass[ActiveActor].ElementList;
               Elem := pList.First;
-              Repeat
-                If Elem.Enabled
-                Then Begin
-                  ActiveCircuit[ActiveActor].ActiveCktElement := Elem;
-                  Result := 1;
-                End
-                Else Elem := pList.Next;
-              Until (Result = 1) or (Elem = nil);
+              if Elem <> Nil then
+              Begin
+                Repeat
+                  If Elem.Enabled
+                  Then Begin
+                    ActiveCircuit[ActiveActor].ActiveCktElement := Elem;
+                    Result := 1;
+                  End
+                  Else Elem := pList.Next;
+                Until (Result = 1) or (Elem = nil);
+              End;
             End
             Else
                 Result := 0;  // signify no more
