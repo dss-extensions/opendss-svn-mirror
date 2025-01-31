@@ -106,15 +106,18 @@ begin
         begin
             pList := ReactorClass[ActiveActor].ElementList;
             Elem := pList.Next;
-            repeat
-                if Elem.Enabled then
-                begin
-                    ActiveCircuit[ActiveActor].ActiveCktElement := Elem;
-                    Result := pList.ActiveIndex;
-                end
-                else
-                    Elem := pList.Next;
-            until (Result > 0) or (Elem = nil);
+            if Elem <> nil then
+            begin
+                repeat
+                    if Elem.Enabled then
+                    begin
+                        ActiveCircuit[ActiveActor].ActiveCktElement := Elem;
+                        Result := pList.ActiveIndex;
+                    end
+                    else
+                        Elem := pList.Next;
+                until (Result > 0) or (Elem = nil);
+            end;
         end
         else
             Result := 0;  // signify no more
