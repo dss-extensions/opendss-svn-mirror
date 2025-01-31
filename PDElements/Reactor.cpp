@@ -674,6 +674,11 @@ TReactorObj::TReactorObj(TDSSClass* ParClass, const String ReactorName)
 	LCurveObj			= nullptr;
 	RecalcElementData(ActiveActor);
 	InitPropertyValues(0);
+    Z = CZero;
+	Z1 = CZero;
+	Z2 = CZero;
+	Z0 = CZero;
+
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
