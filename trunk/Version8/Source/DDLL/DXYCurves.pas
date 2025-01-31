@@ -103,7 +103,7 @@ begin
        Begin
           pXYCurve := XYCurveClass[ActiveActor].GetActiveObj;
           If pXYCurve <> Nil Then Begin
-              Result := pXYCurve.FYscale;
+              Result := pXYCurve.Y;
           End Else Begin
              DoSimpleMsg('No active XYCurve Object found.',51011);
           End;
