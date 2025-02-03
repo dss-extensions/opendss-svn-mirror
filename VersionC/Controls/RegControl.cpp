@@ -46,7 +46,7 @@ const int MAXPHASE = -2;
 const int MINPHASE = -3;
 const int ACTION_TAPCHANGE = 0;
 const int ACTION_REVERSE = 1;
-const int NumPropsThisClass = 32;
+const int NumPropsThisClass = 35;
 std::vector<int> LastChange;
     
 /*--------------------------------------------------------------------------*/  // Creates superstructure for all RegControl objects
@@ -119,6 +119,9 @@ void TRegControl::DefineProperties()
 	PropertyName[30 - 1] = "LDC_Z";
 	PropertyName[31 - 1] = "rev_Z";
 	PropertyName[32 - 1] = "Cogen";
+	PropertyName[33 - 1] = "idle";
+	PropertyName[34 - 1] = "idleReverse";
+	PropertyName[35 - 1] = "idleForward";
 	PropertyHelp[1 - 1] = String("Name of Transformer or AutoTrans element to which the RegControl is connected. " "Do not specify the full object name; \"Transformer\" or \"AutoTrans\" is assumed for " "the object class.  Example:") + CRLF
 	           + CRLF
 	           + "Transformer=Xfmr1";
@@ -146,8 +149,14 @@ void TRegControl::DefineProperties()
 	PropertyHelp[10 - 1] = "Time delay, in seconds, from when the voltage goes out of band to when the tap changing begins. "
 	           "This is used to determine which regulator control will act first. Default is 15.  You may specify any "
 	           "floating point number to achieve a model of whatever condition is necessary.";
-	PropertyHelp[11 - 1] = "{Yes |No*} Indicates whether or not the regulator can be switched to regulate in the reverse direction. Default is No."
-	           "Typically applies only to line regulators and not to LTC on a substation transformer.";
+	PropertyHelp[11 - 1] = "{Yes |No*} Indicates whether the regulator has a reverse operation mode (associated settings must be defined). Default is No, which means the regulator forward settings apply for both forward and reverse power flow. "
+			   "Typically applies only to line regulators and not to LTC on a substation transformer." + CRLF + CRLF +
+			   "Use the 'revNeutral', 'idle', 'idleReverse' and 'idleForward' properties to define the desired operating mode:" + CRLF +
+			   "- Bi-directional: reversible=yes idle=yes/no (idling in the 'no-load region' depends on the controller and is a functionality typically described in its datasheet)" + CRLF +
+			   "- Locked Forward: reversible=yes idleReverse=yes" + CRLF +
+			   "- Reverse Idle: reversible=yes idle=yes idleReverse=yes " + CRLF +
+			   "- Locked Reverse: reversible=yes idleForward=yes " + CRLF +
+			   "- Neutral Idle: reversible=yes revNeutral=yes idle=yes/no (idling in the 'no-load region' depends on the controller and is a functionality typically described in its datasheet)";
 	PropertyHelp[12 - 1] = "Voltage setting in volts for operation in the reverse direction.";
 	PropertyHelp[13 - 1] = "Bandwidth for operating in the reverse direction.";
 	PropertyHelp[14 - 1] = "R line drop compensator setting for reverse direction.";
@@ -180,7 +189,15 @@ void TRegControl::DefineProperties()
 	PropertyHelp[30 - 1] = "Z value for Beckwith LDC_Z control option. Volts adjustment at rated control current.";
 	PropertyHelp[31 - 1] = "Reverse Z value for Beckwith LDC_Z control option.";
 	PropertyHelp[32 - 1] = "{Yes|No*} Default is No. The Cogen feature is activated. Continues looking forward if power "
-	           "reverses, but switches to reverse-mode LDC, vreg and band values.";
+	           "reverses, but switches to reverse-mode LDC, vreg and band values." + CRLF +
+	           	"Optionally, use the 'idle' property to specify if the regulator should idle in the 'no-load region' (functionality typically described in the controller datasheet).";
+	PropertyHelp[33 - 1] = "{Yes|No*} Default is No. Enabling this property only has an effect when reversible or cogen properties are set to yes/true. For the 'no-load region' where active power flow lies between -revThreshold and +revThreshold, "
+			   "the regulator will lock taps in the position they had before entering that region. Voltage override (Vlimit) takes priority. ";
+	PropertyHelp[34 - 1] = "{Yes|No*} Default is No. Similar to the 'idle' property but applicable only when reversible=Yes (not for cogen mode) AND revNeutral=No. The regulator will lock taps in the position they had before "
+						  "entering the reverse flow zone. Voltage override (Vlimit) takes priority.";
+	PropertyHelp[35 - 1] = "{Yes|No*} Default is No. Similar to the 'idle' property but applicable only when reversible=Yes (not for cogen mode). The regulator will lock taps in the position they had before "
+						  "entering the forward flow zone. Voltage override (Vlimit) takes priority.";
+
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -361,6 +378,15 @@ int TRegControl::Edit(int ActorID)
 				case 	32:
 				with0->CogenEnabled = InterpretYesNo(Param);
 				break;
+				case 	33:
+				with0->IdleEnabled = InterpretYesNo(Param);
+				break;
+				case 	34:
+				with0->IdleReverseEnabled = InterpretYesNo(Param);
+				break;
+				case 	35:
+				with0->IdleForwardEnabled = InterpretYesNo(Param);
+				break;
            // Inherited parameters
 				default:
 				ClassEdit(ActiveRegControlObj, ParamPointer - NumPropsThisClass);
@@ -451,6 +477,9 @@ int TRegControl::MakeLike(const String RegControlName)
 			with0->FPTPhase = OtherRegControl->FPTPhase;
 			with0->Set_TapNum(OtherRegControl->Get_TapNum());
 			with0->CogenEnabled = OtherRegControl->CogenEnabled;
+			with0->IdleEnabled = OtherRegControl->IdleEnabled;
+			with0->IdleReverseEnabled = OtherRegControl->IdleReverseEnabled;
+			with0->IdleForwardEnabled = OtherRegControl->IdleForwardEnabled;
 			with0->LDC_Z = OtherRegControl->LDC_Z;
 			with0->revLDC_Z = OtherRegControl->revLDC_Z;
 			for(stop = with0->ParentClass->NumProperties, i = 1; i <= stop; i++)
@@ -498,6 +527,9 @@ TRegControlObj::TRegControlObj(TDSSClass* ParClass, const String RegControlName)
 			ReversePending(false),
 			ReverseNeutral(false),
 			CogenEnabled(false),
+			IdleEnabled(false),
+			IdleReverseEnabled(false),
+			IdleForwardEnabled(false),
 			InCogenMode(false),
 			RevHandle(0),
 			RevBackHandle(0),
@@ -543,6 +575,9 @@ TRegControlObj::TRegControlObj(TDSSClass* ParClass, const String RegControlName)
 	ReverseNeutral = false;
 	InCogenMode = false;
 	CogenEnabled = false;
+	IdleEnabled = false;
+	IdleReverseEnabled = false;
+	IdleForwardEnabled = false;
 	RevHandle = 0;
 	RevBackHandle = 0;
 	ElementName = "";
@@ -1223,6 +1258,32 @@ void TRegControlObj::sample(int ActorID)
 			TapChangeIsNeeded = true;
 		else
 			TapChangeIsNeeded = false;
+
+		if (TapChangeIsNeeded && IdleEnabled && (CogenEnabled || IsReversible)) {
+			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
+			if (Abs(FwdPower) <= RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in no-load zone
+			if (!TapChangeIsNeeded && DebugTrace) {
+				RegWriteDebugRecord(Format("Idling in No Load zone, FwdPower=%.8g", FwdPower));
+			}
+		}
+
+		if (TapChangeIsNeeded && IdleReverseEnabled && IsReversible && !ReverseNeutral) {
+			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
+			if (FwdPower < -RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in reverse zone
+			if (!TapChangeIsNeeded && DebugTrace) {
+				RegWriteDebugRecord(Format("Idling in reverse flow zone, FwdPower=%.8g", FwdPower));
+			}
+		}
+
+		if (TapChangeIsNeeded && IdleForwardEnabled && IsReversible) {
+			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
+			if (FwdPower > RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in forward zone
+			if (!TapChangeIsNeeded && DebugTrace) {
+				RegWriteDebugRecord(Format("Idling in forward flow zone, FwdPower=%.8g", FwdPower));
+			}
+		}
+
+
 		if(VLimitActive)
 		{
 			if(VlocalBus > Vlimit)
