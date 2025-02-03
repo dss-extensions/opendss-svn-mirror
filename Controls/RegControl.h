@@ -96,6 +96,9 @@ public:
 	bool ReversePending;
 	bool ReverseNeutral;
 	bool CogenEnabled;
+	bool IdleEnabled;
+	bool IdleReverseEnabled;
+	bool IdleForwardEnabled;
 	bool InCogenMode;
 	int RevHandle;
 	int RevBackHandle;
