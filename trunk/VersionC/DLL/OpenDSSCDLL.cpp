@@ -11556,16 +11556,19 @@ int ReactorsI(int mode, int arg)
 			{
 				pList = &ReactorClass[ActiveActor]->ElementList;
 				Elem = (TReactorObj*)pList->Get_First();
-				do
+				if (Elem != nullptr)
 				{
-					if (Elem->FEnabled)
+					do
 					{
-						ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
-						Result = 1;
-					}
-					else
-						Elem = (TReactorObj*)pList->Get_Next();
-				} while ((Result == 0) && (ASSIGNED(Elem)));
+						if (Elem->FEnabled)
+						{
+							ActiveCircuit[ActiveActor]->Set_ActiveCktElement(Elem);
+							Result = 1;
+						}
+						else
+							Elem = (TReactorObj*)pList->Get_Next();
+					} while ((Result == 0) && (ASSIGNED(Elem)));
+				}
 			}
 			else
 				Result = 0; // signify no more
