@@ -227,10 +227,10 @@ begin
           for USIdx := 1 to APointer do
           Begin
             ActiveActor :=  USIdx;
+            Lines.BeginUpdate;
             if ActiveCircuit[ActiveActor] <> nil then
             Begin
-              Lines.BeginUpdate;
-              If ActiveCircuit[ActiveActor] <> nil Then With Lines Do Begin
+              With Lines Do Begin
                 Add('Results for Actor ID # ' + inttostr(ActiveActor));
                 Add('CPU selected : ' + inttostr( ActorCPU[ActiveActor]));
                 IF ActiveCircuit[ActiveActor].Issolved Then Add('Status = SOLVED')
@@ -280,12 +280,16 @@ begin
                   End;
                 If Not IsDLL Then
                   ControlPanel.Caption := 'DSS Main Control Panel: Active Circuit = ' + ActiveCircuit[ActiveActor].Name;
-              End Else With Lines Do Begin
+              End
+            End
+            Else
+            Begin
+              With Lines Do
+              Begin
                 Add('No Circuits Have been Defined for this Actor');
               End;
-
-              Lines.EndUpdate;
             End;
+            Lines.EndUpdate;
           End;
         End
         else

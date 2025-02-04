@@ -1705,6 +1705,8 @@ Begin
 
   // solves the circuit
   solution.Solve(ActiveActor) ;
+  if not Parallel_enabled then
+    Wait4Actors(ALL_ACTORS);
 
   // Creates the folder for storign the results
   Fileroot              :=  GetCurrentDir;
@@ -2568,6 +2570,8 @@ begin
      Repeat
           EnergyMeterClass[ActorID].ResetAll(ActorID);
           Solution.Solve(ActorID);
+          if not Parallel_enabled then
+            Wait4Actors(ALL_ACTORS);
           EnergyMeterClass[ActorID].SampleAll(ActorID);
           TotalizeMeters;
 
