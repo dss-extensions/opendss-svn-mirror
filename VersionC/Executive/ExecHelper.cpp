@@ -2451,6 +2451,8 @@ int DoAllocateLoadsCmd(int ActorID)
 			if(with1->Get_SolMode() != SNAPSHOT)
 				with1->Set_Mode(SNAPSHOT);   // Resets meters, etc. if not in snapshot mode
 			with1->Solve(ActorID);  /*Make guess based on present allocationfactors*/
+            if (!Parallel_enabled)
+                Wait4Actors(ALL_ACTORS);
 		}
 
          /*Allocation loop -- make MaxAllocationIterations iterations*/
@@ -2481,6 +2483,8 @@ int DoAllocateLoadsCmd(int ActorID)
 				pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_Next();
 			}
 			with0->Solution->Solve(ActorID);  /*Update the solution*/
+            if (!Parallel_enabled)
+                Wait4Actors(ALL_ACTORS);
 		}
 	}
 	return result;
