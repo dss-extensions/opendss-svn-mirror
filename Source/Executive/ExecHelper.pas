@@ -2522,13 +2522,15 @@ begin
             if Mode <> SNAPSHOT then
                 Mode := SNAPSHOT;   // Resets meters, etc. if not in snapshot mode
             Solve(ActorID);  {Make guess based on present allocationfactors}
+            if not Parallel_enabled then
+                Wait4Actors(ALL_ACTORS);
         end;
 
-         {Allocation loop -- make MaxAllocationIterations iterations}
+    {Allocation loop -- make MaxAllocationIterations iterations}
         for iterCount := 1 to MaxAllocationIterations do
         begin
 
-           {Do EnergyMeters}
+     {Do EnergyMeters}
             pMeter := EnergyMeters.First;
             while pMeter <> nil do
             begin
@@ -2536,7 +2538,7 @@ begin
                 pMeter := EnergyMeters.Next;
             end;
 
-           {Now do other Sensors}
+     {Now do other Sensors}
             pSensor := Sensors.First;
             while pSensor <> nil do
             begin
@@ -2544,7 +2546,7 @@ begin
                 pSensor := Sensors.Next;
             end;
 
-           {Now let the EnergyMeters run down the circuit setting the loads}
+     {Now let the EnergyMeters run down the circuit setting the loads}
             pMeter := EnergyMeters.First;
             while pMeter <> nil do
             begin
@@ -2552,6 +2554,8 @@ begin
                 pMeter := EnergyMeters.Next;
             end;
             Solution.Solve(ActorID);  {Update the solution}
+            if not Parallel_enabled then
+                Wait4Actors(ALL_ACTORS);
 
         end;
     end;

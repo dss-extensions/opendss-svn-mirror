@@ -4829,6 +4829,7 @@ begin
                             Total_Time_Elapsed := Total_Time_Elapsed + Total_Solve_Time_Elapsed;
                             Processing := false;
                             FMessage := '1';
+                            ActorStatus[ActorID] := 1;
                 // Sends a message to Actor Object (UI) to notify that the actor has finised
                             UIEvent.SetEvent;
                             if Parallel_enabled then
