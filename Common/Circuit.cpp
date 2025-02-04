@@ -2071,6 +2071,8 @@ namespace Circuit
         {
             EnergyMeterClass[ActorID]->ResetAll(ActorID);
             Solution->Solve(ActorID);
+            if (!Parallel_enabled)
+                Wait4Actors(ALL_ACTORS);
             EnergyMeterClass[ActorID]->SampleAll(ActorID);
             TotalizeMeters();
 
