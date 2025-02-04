@@ -1135,6 +1135,8 @@ begin
   //// Solve
   IF ActiveCircuit[ActiveActor] <> Nil THEN
     ActiveCircuit[ActiveActor].Solution.Solve(ActiveActor);
+    if not Parallel_enabled then
+      Wait4Actors(ALL_ACTORS);
   //// Read load monitors
   // Get Loads kVBase
   IF ActiveCircuit[ActiveActor] <> Nil THEN

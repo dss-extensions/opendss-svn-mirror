@@ -2313,43 +2313,47 @@ VAR
    iterCount :Integer;
 
 begin
-    Result := 0;
-    WITH ActiveCircuit[ActorID] Do
+  Result := 0;
+  WITH ActiveCircuit[ActorID] Do
+  Begin
+    LoadMultiplier := 1.0;   // Property .. has side effects
+    With Solution Do
     Begin
-         LoadMultiplier := 1.0;   // Property .. has side effects
-         With Solution Do
-         Begin
-             If Mode <> SNAPSHOT Then Mode := SNAPSHOT;   // Resets meters, etc. if not in snapshot mode
-             Solve(ActorID);  {Make guess based on present allocationfactors}
-         End;
-
-         {Allocation loop -- make MaxAllocationIterations iterations}
-         FOR iterCount := 1 to MaxAllocationIterations Do Begin
-
-           {Do EnergyMeters}
-           pMeter := EnergyMeters.First;
-           WHILE pMeter <> NIL Do Begin
-              pMeter.CalcAllocationFactors(ActorID);
-              pMeter := EnergyMeters.Next;
-           End;
-
-           {Now do other Sensors}
-           pSensor := Sensors.First;
-           WHILE pSensor <> NIL Do Begin
-              pSensor.CalcAllocationFactors(ActorID);
-              pSensor := Sensors.Next;
-           End;
-
-           {Now let the EnergyMeters run down the circuit setting the loads}
-            pMeter := EnergyMeters.First;
-            WHILE pMeter <> NIL Do Begin
-                pMeter.AllocateLoad(ActorID);
-                pMeter := EnergyMeters.Next;
-            End;
-            Solution.Solve(ActorID);  {Update the solution}
-
-         End;
+      If Mode <> SNAPSHOT Then Mode := SNAPSHOT;   // Resets meters, etc. if not in snapshot mode
+      Solve(ActorID);  {Make guess based on present allocationfactors}
+      if not Parallel_enabled then
+        Wait4Actors(ALL_ACTORS);
     End;
+
+    {Allocation loop -- make MaxAllocationIterations iterations}
+    FOR iterCount := 1 to MaxAllocationIterations Do Begin
+
+     {Do EnergyMeters}
+     pMeter := EnergyMeters.First;
+     WHILE pMeter <> NIL Do Begin
+        pMeter.CalcAllocationFactors(ActorID);
+        pMeter := EnergyMeters.Next;
+     End;
+
+     {Now do other Sensors}
+     pSensor := Sensors.First;
+     WHILE pSensor <> NIL Do Begin
+        pSensor.CalcAllocationFactors(ActorID);
+        pSensor := Sensors.Next;
+     End;
+
+     {Now let the EnergyMeters run down the circuit setting the loads}
+      pMeter := EnergyMeters.First;
+      WHILE pMeter <> NIL Do Begin
+          pMeter.AllocateLoad(ActorID);
+          pMeter := EnergyMeters.Next;
+      End;
+      Solution.Solve(ActorID);  {Update the solution}
+      if not Parallel_enabled then
+        Wait4Actors(ALL_ACTORS);
+
+    End;
+  End;
 end;
 
 //----------------------------------------------------------------------------
