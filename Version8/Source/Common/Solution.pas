@@ -2572,7 +2572,8 @@ Begin
   if not ADiakoptics or (ActorID <> 1)then
   Begin
     If ControlIteration < MaxControlIterations then Begin
-      IF ConvergedFlag Then Begin
+      IF ConvergedFlag Then
+      Begin
         If ActiveCircuit[ActorID].LogEvents Then LogThisEvent('Control Iteration ' + IntToStr(ControlIteration),ActorID);
         Sample_DoControlActions(ActorID);
         Check_Fault_Status(ActorID);
