@@ -1395,8 +1395,8 @@ Begin
         PIPE_ACCESS_DUPLEX,                                 // Read/write access
         PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
         PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-        10000,                                              // Output buffer size
-        10000,                                              // Input buffer size
+        20000,                                              // Output buffer size
+        20000,                                              // Input buffer size
         0,                                                  // Client time-out 50 [ms] default
         nil                                                 // Default security attributes
       );
@@ -1924,6 +1924,7 @@ initialization
    ADiakoptics            :=  False;  // Disabled by default
    ADiak_Init             :=  False;
    EventLogDefault        :=  False;  // Disabled by default
+
 
    GetDefaultPorts();                 // Gets the default ports to get connected to other add-ons
    {$IFNDEF CONSOLE}
