@@ -7,6 +7,26 @@ Created on Thu Jan  20 10:23:05 2025
 Implements a constant PQ load using the pyControl object structure within an
 OpenDSS simulation. Use this structure as base for implementing your own
 controls.
+
+Each time step in the dynamics mode solution executes the following steps:
+    
+Increment_time;
+
+{Predictor}
+IterationFlag := 0;
+IntegratePCStates;
+SolveSnap;
+
+{Corrector}
+IterationFlag := 1;
+IntegratePCStates;
+SolveSnap;
+
+The algorithm is currently a simple predictor-corrector method with one step of correction. 
+The IterationFlag (IntegrationFlag) variable indicates to the integration routines whether 
+the solution is in the predictor step or the corrector step.
+Only PC elements have states that are integrated. Power Delivery (PD) elements are constant 
+impedance elements simply defined by a primitive Y matrix
  
 """
 
@@ -168,8 +188,8 @@ if isFirstTime(DSSText, thismodelname):
     pars['XThev'] = 0.5 * pars['BaseZt']    # 50% R
     pars['RS'] = 0.5 * pars['BaseZt']       # 50% X
     pars['ImaxPhase'] = (kVA/pars['BasekV'])/pars['NumPhases']
-    pars['Zthev'] = str(complex(pars['RS'], pars['XThev'])).replace('(','').replace(')','')
-    pars['YEQ'] = str(1 / complex(pars['Zthev'])).replace('(','').replace(')','')
+    pars['Zthev'] = Cmplx2Str(complex(pars['RS'], pars['XThev']))
+    pars['YEQ'] = Cmplx2Str(1 / complex(pars['Zthev']))
     pars['LS'] = pars['XThev'] / (2 * math.pi * pars['BaseFreq']) 
 
    
@@ -291,6 +311,7 @@ try:
                 iError = ISP - pars['it'][i]
                 iErrorPct = iError/ISP
                 if abs(iErrorPct) > pars['CtrlTol']:
+                    # The PI controller is in the form: Y(Z) = kNum * U(Z-1) + kDen * Y(Z-1) ; U(Z) = kp * Error
                     pars['PINum'][0] = pars['PINum'][1]  # Memory shift
                     pars['PINum'][1] = iError * pars['kp']
                     pars['PIDen'][0] = pars['PIDen'][1]  # Memory shift
