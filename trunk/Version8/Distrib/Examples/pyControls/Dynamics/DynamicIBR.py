@@ -344,12 +344,12 @@ try:
         Inlin += ']'
         ITerm += ']'
         
-        # 3. Sends the Inj and terminal Currents and to DSS
+        # 5. Sends the Inj and terminal Currents and to DSS
         DSSText.Command = 'select PVSystem.' + pars['PV_Name']
         DSSText.Command = 'set InjCurrent=' + Inlin 
         DSSText.Command = 'set ITerminal=' + ITerm 
         
-        # 4. Tell DSS to run another iteration to check if this works
+        # 6. Tell DSS to run another iteration to check if this works
         DSSSolve = 'yes'
     
     # Saves the parameters for the next iteration
