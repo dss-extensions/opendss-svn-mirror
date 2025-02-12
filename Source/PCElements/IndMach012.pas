@@ -1582,7 +1582,8 @@ begin
             SetNominalPower(ActorID); // Set the nominal kW, etc for the type of solution being done
 
        // call the main function for doing calculation
-        CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if not ForceInjCurr then
+            CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 
       // If (DebugTrace) Then WriteTraceRecord;
 

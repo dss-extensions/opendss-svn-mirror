@@ -2425,8 +2425,8 @@ begin
     begin
         if LoadsNeedUpdating then
             SetNominalGeneration(ActorID); // Set the nominal kW, etc for the type of solution being done
-
-        CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if not ForceInjCurr then
+            CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 
         if (DebugTrace) then
             WriteTraceRecord('Injection', ActorID);
