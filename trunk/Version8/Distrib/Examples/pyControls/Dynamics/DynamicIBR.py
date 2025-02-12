@@ -217,7 +217,7 @@ if isFirstTime(DSSText, thismodelname):
     DSSText.Command = 'get StepSize'   # Gets the simulation step size
     pars['StepSize'] = float(DSSText.Result)
 
-    # This is a wye connected load, then Yeq is:
+    # This is delta connected, then Yeq is:
     Yeq = complex(pars['YEQ']) / 3 # Delta impedance
 
     # The device is delta connected
