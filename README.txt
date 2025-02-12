@@ -1,14 +1,22 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2025, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 10.1.0.1 - Columbus
+Version 10.2.0.1 - Columbus
 
 This version is an homage to celebrate the work of the father of OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work for the electric power industry. This software is a small part of his legacy, as well as his countless publications and other contributions to the industry.
 
 Changes this version
 ====================
+- Solves an issue found when using load allocation routines due to lack of sync with the solution actor (it's been there probably for a while).
+- RegControl: added flags (idle, idleReverse, idleForward) for idling in present tap position under certain flow conditions. This behavior is typical in regulator controls around the no-load zone (-revThreshold < kW < +revThreshold) or in the forward (kW> +revThreshold) or reverse (kW<-revThreshold) flow zones for certain reverse operation modes (Bi-directional, Locked Forward, Locked Reverse, Reverse Idle). The existing operation of the RegControl doesn't change if flags are left on their defaults. Also updated the description of the "reversible" property to fit this update.
+- Fixes issue at DLL (Delphi) when retrieving the Y value based on X.
+- Adds verifications when getting the pointer for the next reactor. Applies for COM and DLL.
+- Fixes issue with AllowForms assignment (DLL/COM) in both platforms (C and Delphi).
+- Fixes issus introduced in v 10.1.0.1 preventing A-Diakoptics to work properly.
+
+v 10.1.0.1
 - Provides better sync between actors and main thread through queues preventing polling.
 - Includes the property SemiConLayer the declare the existence of a semicon layer for CNData/LineGeometry objects.
 - Improves the sync with the progress bar app.

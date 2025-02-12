@@ -13,7 +13,7 @@ uses
     Command;
 
 const
-    NumExecOptions = 147;
+    NumExecOptions = 148;
 
 var
     ExecOption,
@@ -205,6 +205,7 @@ begin
     ExecOption[145] := 'InjCurrent';
     ExecOption[146] := 'ITerminal';
     ExecOption[147] := 'Yprim';
+    ExecOption[148] := 'IntegrationFlag';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -545,6 +546,9 @@ begin
         CRLF +
         'The Y primitive must be entered using OpenDSS notation (lower triangular matrix - see https://opendss.epri.com/MatrixProperties.html)The elements of the matrix must be complex ' +
         'numbers (e.g. 1+2j).';
+    OptionHelp[148] := 'Returns the value of the integration flag during a dynamics simulation. This flag is useful when developing models such as ' +
+        'pyControls designed for dynamics simulations. If the user attemps to read this flag using other simulation methods (COM, DLL, ' +
+        ', EXE), this flag will always return the same value (not variable).';
 
 
 end;
@@ -1933,6 +1937,10 @@ begin
                     end;
                     AppendGlobalResult(TmpStr);
 
+                end;
+                148:
+                begin
+                    AppendGlobalResult(Format('%d', [ActiveCircuit[ActiveActor].Solution.DynaVars.IterationFlag]));
                 end
             else
            // Ignore excess parameters
