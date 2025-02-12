@@ -2271,8 +2271,8 @@ Begin
    With ActiveCircuit[ActorID].Solution Do
     Begin
        If LoadsNeedUpdating Then SetNominalGeneration(ActorID); // Set the nominal kW, etc for the type of solution being done
-
-       CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+       if not ForceInjCurr then
+        CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 
        If (DebugTrace) Then WriteTraceRecord('Injection',ActorID);
 
