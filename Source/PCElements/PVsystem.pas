@@ -2175,7 +2175,8 @@ FUNCTION TPVsystemObj.InjCurrents(ActorID : Integer):Integer;
     With ActiveCircuit[ActorID].Solution Do
       Begin
         If LoadsNeedUpdating Then SetNominalPVSystemOuput(ActorID); // Set the nominal kW, etc for the type of solution being Done
-        CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if not ForceInjCurr then
+          CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
         If (DebugTrace) Then WriteTraceRecord('Injection');
         // Add into System Injection Current Array
         Result := Inherited InjCurrents(ActorID);
