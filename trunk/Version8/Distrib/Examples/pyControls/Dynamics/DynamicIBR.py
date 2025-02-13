@@ -160,8 +160,8 @@ if isFirstTime(DSSText, thismodelname):
         'RatedVDC'  : 700,                          # DC rating for the IBR at the DC side
         'BaseFreq'  : 60,                           # 60 Hz by default
         'CtrlTol'   : 1e-3,                         # Tolerance of the PI control
-        'PINum'     : [0, 0],                       # PI control numerator
-        'PIDen'     : [0, 0],                       # PI control denominator
+        'PINum'     : [0, 0, 0, 0, 0, 0],           # PI control numerator (2 reg per phase)
+        'PIDen'     : [0, 0, 0, 0, 0, 0],           # PI control denominator (2 reg per phase)
         'StepSize'  : 0                             # Simulation step size
         
         }
@@ -312,12 +312,13 @@ try:
                 iErrorPct = iError/ISP
                 if abs(iErrorPct) > pars['CtrlTol']:
                     # The PI controller is in the form: Y(Z) = kNum * U(Z-1) + kDen * Y(Z-1) ; U(Z) = kp * Error
-                    pars['PINum'][0] = pars['PINum'][1]  # Memory shift
-                    pars['PINum'][1] = iError * pars['kp']
-                    pars['PIDen'][0] = pars['PIDen'][1]  # Memory shift
-                    pars['PIDen'][1] = (pars['PINum'][0] * pars['kNum']) + (pars['PIDen'][0] * pars['kDen'])
-                    iDelta = pars['PIDen'][1]
-                    myDCycle = pars['mi'][i] + iDelta
+                    PIPhase = 2 * i   # This allows to differentiate per phase
+                    pars['PINum'][PIPhase]      = pars['PINum'][PIPhase + 1]  # Memory shift
+                    pars['PINum'][PIPhase + 1]  = iError * pars['kp']
+                    pars['PIDen'][PIPhase]      = pars['PIDen'][PIPhase + 1]  # Memory shift
+                    pars['PIDen'][PIPhase + 1]  = (pars['PINum'][PIPhase] * pars['kNum']) + (pars['PIDen'][PIPhase] * pars['kDen'])
+                    iDelta                      = pars['PIDen'][PIPhase + 1]
+                    myDCycle                    = pars['mi'][i] + iDelta
                     if (myDCycle <= 1) and (myDCycle > 0):
                         pars['mi'][i] = myDCycle
             # 3.2. Calculate differential for next iteration
