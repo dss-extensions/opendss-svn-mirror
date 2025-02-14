@@ -244,30 +244,9 @@ End;
 {--------------------------------------------------------------------------}
 PROCEDURE TpyControlObj.RecalcElementData(ActorID : Integer);
 
-VAR
-   DevIndex :Integer;
-
 Begin
-{Check for existence of monitored element}
+{Do nothing}
 
-  Devindex := GetCktElementIndex(ElementName); // Global function
-  IF   DevIndex>0  THEN
-  Begin
-    MonitoredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
-    IF ElementTerminal > MonitoredElement.Nterms THEN
-    Begin
-      DoErrorMsg('pyControl: "' + Name + '"',
-                     'Terminal no. "' +'" does not exist.',
-                     'Re-specify terminal no.', 371);
-    End
-    ELSE
-    Begin
-     // Sets name of i-th terminal's connected bus in pyControl's buslist
-      Setbus(1, MonitoredElement.GetBus(ElementTerminal));
-    End;
-  End
-  ELSE
-    DoSimpleMsg('Monitored Element in pyControl.'+Name+ ' does not exist:"'+ElementName+'"', 372);
 End;
 
 {--------------------------------------------------------------------------}
@@ -361,7 +340,7 @@ Begin
       LastCMD := ClientCmd;
       if (LowerCase(LastCMD) <> 'yes') and (LowerCase(LastCMD) <> 'no') then
       Begin
-        DSSExecutive[ActiveActor].Command :=  ClientCmd;
+        DSSExecutive[ActorID].Command :=  ClientCmd;
         //Log('Sending message');
         if GlobalResult = '' then
           GlobalResult := 'OK';
