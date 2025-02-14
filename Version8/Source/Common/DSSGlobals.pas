@@ -1132,8 +1132,6 @@ var
   Flag    : Boolean;
 
 Begin
-// modification introduced in 01-10-2019 to facilitate the coordination
-// between actors when a simulation is performed using A-Diakoptics
   for i := 2 to NumOfActors do
   Begin
     Try
@@ -1362,7 +1360,10 @@ begin
 end;
 {$ENDIF}
 
-
+//***********************************************************************************
+// Launches the DSSpyServer for allowing users to insert Python developed models
+// into the simulation loop.
+// For this purpose opens a named pipe to facilitate the interprocess communication.
 procedure Launch_PyServer(DBugServer : Boolean);
 var
   myPath,

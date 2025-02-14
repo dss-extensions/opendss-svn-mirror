@@ -668,7 +668,7 @@ VAR
    LineObj          : TLineObj;
    DBugServer,
    ValidObj         : Boolean;
-   myStrArray       : DynStringArray;
+   myStrArray_      : DynStringArray;
 
    const
    VarPCE           : array[0..2] of string =  ('generator', 'windgen', 'storage');
@@ -1027,14 +1027,14 @@ Begin
                   Begin
                     if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
                     Begin
-                      SetLength(myStrArray, ActiveCktElement.NPhases + 1);
-                      j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray);
+                      SetLength(myStrArray_, ActiveCktElement.NPhases + 1);
+                      j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray_);
                       for i := 1 to ActiveCktElement.NPhases do
                       Begin
-                        if myStrArray[i] = '' then
-                          TPCElement(ActiveCktElement).InjCurrent[j] := CZERO
+                        if myStrArray_[i] = '' then
+                          TPCElement(ActiveCktElement).InjCurrent[i] := CZERO
                         Else
-                          TPCElement(ActiveCktElement).InjCurrent[i] := Str2Cmplx(myStrArray[i]);
+                          TPCElement(ActiveCktElement).InjCurrent[i] := Str2Cmplx(myStrArray_[i]);
                       End;
                       TPCElement(ActiveCktElement).ForceInjCurr := True;  // This will force the algorithm to use the currents uploaded
                     End
@@ -1049,16 +1049,16 @@ Begin
                   Begin
                     if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
                     Begin
-                      SetLength(myStrArray, ActiveCktElement.NPhases + 1);
-                      j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray);
+                      SetLength(myStrArray_, ActiveCktElement.NPhases + 1);
+                      j := Parser[ActiveActor].ParseAsStrVector(ActiveCktElement.NPhases, @myStrArray_);
                       for i := 1 to ActiveCktElement.NPhases do
                       Begin
-                        if myStrArray[i] = '' then
+                        if myStrArray_[i] = '' then
                           ActiveCktElement.Iterminal[i] := CZERO
                         Else
-                          ActiveCktElement.Iterminal[i] := Str2Cmplx(myStrArray[i]);
-                        TPCElement(ActiveCktElement).set_ITerminalUpdated(TRUE, ActiveActor);
+                          ActiveCktElement.Iterminal[i] := Str2Cmplx(myStrArray_[i]);
                       End;
+                      TPCElement(ActiveCktElement).set_ITerminalUpdated(TRUE, ActiveActor);
                       TPCElement(ActiveCktElement).ForceInjCurr := True;  // This will force the algorithm to use the currents uploaded
                     End
                     Else
@@ -1074,17 +1074,17 @@ Begin
                     if (ActiveCktElement.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
                     Begin
                       k := ActiveCktElement.NConds;
-                      SetLength(myStrArray, (k * k) + 1);
-                      j     := Parser[ActiveActor].ParseAsStrSymMatrix(k, @myStrArray);
-                      for i := 1 to High(myStrArray) do
-                        if myStrArray[i] = '' then j := 0;
+                      SetLength(myStrArray_, (k * k) + 1);
+                      j     := Parser[ActiveActor].ParseAsStrSymMatrix(k, @myStrArray_);
+                      for i := 1 to High(myStrArray_) do
+                        if myStrArray_[i] = '' then j := 0;
                       if j = k then   // The size makes sense
                       Begin
                         krow  :=  1;
                         kcol  :=  1;
                         for j := 1 to (k * k) do
                         Begin
-                          ActiveCktElement.YPrim.SetElement(krow, kcol, Str2Cmplx(myStrArray[j]));
+                          ActiveCktElement.YPrim.SetElement(krow, kcol, Str2Cmplx(myStrArray_[j]));
                           inc(kcol);
                           if kcol > k then
                           Begin
