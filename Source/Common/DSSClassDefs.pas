@@ -75,7 +75,6 @@ const
     WINDGEN_ELEMENT = 43 * 8;
     GEN_CONTROLLER = 44 * 8;
     PY_CONTROLLER = 45 * 8;
-    PY_OBJECT = 46 * 8;
 
 var
     NumIntrinsicClasses,
