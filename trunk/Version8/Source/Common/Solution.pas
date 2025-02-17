@@ -2021,7 +2021,6 @@ Var
   IdxTmp    : Array of Integer;
   PQChecked : Array of Integer;
 
-
 Begin
   With ActiveCircuit[ActorID] do
   Begin
