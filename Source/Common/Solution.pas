@@ -2110,7 +2110,6 @@ var
     IdxTmp: array of Integer;
     PQChecked: array of Integer;
 
-
 begin
     with ActiveCircuit[ActorID] do
     begin

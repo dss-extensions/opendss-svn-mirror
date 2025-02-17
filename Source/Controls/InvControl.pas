@@ -3621,7 +3621,7 @@ procedure TInvControlObj.UpdateInvControl(i: Integer; ActorID: Integer);
 var
     j, k: Integer;
     solnvoltage: Double;
-    tempVbuffer: pComplexArray;
+    tempVbuffer: array of complex;
     BasekV: Double;
     PVSys: TPVSystemObj;
     Storage: TStorageObj;
@@ -3645,12 +3645,12 @@ begin
 
         with CtrlVars[j] do
         begin
-            if ControlledElement.DSSClassName = 'PVSystem' then
+            if ((ControlledElement.DSSObjType and CLASSMASK) = PVSYSTEM_ELEMENT) then
                 PVSys := ControlledElement as TPVSystemObj
             else
                 Storage := ControlledElement as TStorageObj;
 
-            BasekV := CtrlVars[i].FVBase / 1000.0;
+            BasekV := FVBase / 1000.0;
 
             //             FPriorvars[j]  := PVSys.Presentkvar;
             //             FPriorWatts[j]  := PVSys.PresentkW;
@@ -3681,7 +3681,7 @@ begin
             FdeltaPFactor := DELTAPDEFAULT;
 
             // allocated enough memory to buffer to hold voltages and initialize to cZERO
-            Reallocmem(tempVbuffer, Sizeof(tempVbuffer^[1]) * ControlledElement.NConds);
+            SetLength(tempVbuffer, ControlledElement.NConds + 1);
             for k := 1 to ControlledElement.NConds do
                 tempVbuffer[k] := cZERO;
 
@@ -3695,9 +3695,9 @@ begin
             solnvoltage := 0.0;
 
             if PVSys <> nil then
-                GetmonVoltage(ActorID, solnvoltage, i, BasekV, PVSys.Connection)
+                GetmonVoltage(ActorID, solnvoltage, j, BasekV, PVSys.Connection)
             else
-                GetmonVoltage(ActorID, solnvoltage, i, BasekV, Storage.Connection);
+                GetmonVoltage(ActorID, solnvoltage, j, BasekV, Storage.Connection);
 
             //for k := 1 to localControlledElement.Yorder do tempVbuffer[k] := localControlledElement.Vterminal^[k];
 
@@ -3711,7 +3711,7 @@ begin
 
             FVpuSolution[FVpuSolutionIdx] := solnvoltage / ((ActiveCircuit[ActorID].Buses^[ControlledElement.terminals^[1].busRef].kVBase) * 1000.0);
 
-            Reallocmem(tempVbuffer, 0);   // Clean up memory
+            SetLength(tempVbuffer, 0);   // Clean up memory
         end;
     end;
 
