@@ -47,9 +47,11 @@ Routine for converting a complex to str
 ''' 
 def Cmplx2Str(myCNum):
     Token   = ''
+    imagn = myCNum.imag
     if myCNum.imag >= 0:
         Token = '+'
-    Result = "{:.5f}{}{:.5f}j".format(myCNum.real, Token, myCNum.imag)
+        imagn = abs(myCNum.imag)
+    Result = "{:.5f}{}{:.5f}j".format(myCNum.real, Token, imagn)
     
     return Result
 
@@ -60,9 +62,11 @@ def CmplxArr2Str(myArray):
     Result  = []
     for mycell in myArray:
         Token   = ''
+        imagn = mycell.imag
         if mycell.imag >= 0:
             Token = '+'
-        Cval = "{:.5f}{}{:.5f}j".format(mycell.real, Token, mycell.imag)
+            imagn = abs(mycell.imag)
+        Cval = "{:.5f}{}{:.5f}j".format(mycell.real, Token, imagn)
         Result.append(Cval)
     
     return Result
