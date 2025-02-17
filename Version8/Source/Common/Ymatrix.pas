@@ -64,6 +64,8 @@ Begin
     WHILE pElem<>nil Do
     Begin
       ValidElm  :=  True;
+      // This eval is used for the case in which the user forces the Y primitive using
+      // mechanisms such as pyControl
       if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
         ValidElm := not TPCElement(pElem).ForceY;
 
@@ -92,6 +94,8 @@ Begin
     WHILE pElem<>nil Do
     Begin
       ValidElm  :=  True;
+      // This eval is used for the case in which the user forces the Y primitive using
+      // mechanisms such as pyControl
       if (pElem.DSSObjType and BASECLASSMASK) = PC_ELEMENT then
         ValidElm := not TPCElement(pElem).ForceY;
 
