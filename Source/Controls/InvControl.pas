@@ -3323,7 +3323,7 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
   Var
     j,k                    : Integer;
     solnvoltage            : Double;
-    tempVbuffer            : pComplexArray;
+    tempVbuffer            : array of complex;
     BasekV                 : Double;
     PVSys                  : TPVSystemObj;
     Storage                : TStorageObj;
@@ -3345,10 +3345,12 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
 
           With CtrlVars[j] do
           Begin
-            if ControlledElement.DSSClassName = 'PVSystem' then PVSys := ControlledElement as TPVSystemObj
-            else Storage := ControlledElement as TStorageObj;
+            if ((ControlledElement.DSSObjType and CLASSMASK) = PVSYSTEM_ELEMENT) then
+              PVSys := ControlledElement as TPVSystemObj
+            else
+              Storage := ControlledElement as TStorageObj;
 
-            BasekV :=    CtrlVars[i].FVBase / 1000.0;
+            BasekV :=    FVBase / 1000.0;
 
             //             FPriorvars[j]  := PVSys.Presentkvar;
             //             FPriorWatts[j]  := PVSys.PresentkW;
@@ -3379,7 +3381,7 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
             FdeltaPFactor := DELTAPDEFAULT;
 
             // allocated enough memory to buffer to hold voltages and initialize to cZERO
-            Reallocmem(tempVbuffer, Sizeof(tempVbuffer^[1]) * ControlledElement.NConds);
+            SetLength(tempVbuffer, ControlledElement.NConds + 1);
             for k := 1 to ControlledElement.NConds do tempVbuffer[k] := cZERO;
 
             priorRollAvgWindow := FRollAvgWindow.Get_AvgVal;
@@ -3391,8 +3393,8 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
 
             solnvoltage := 0.0;
 
-            if PVSys <> nil then GetmonVoltage(ActorID, solnvoltage, i, BasekV, PVSys.Connection)
-            else GetmonVoltage(ActorID, solnvoltage, i, BasekV, Storage.Connection);
+            if PVSys <> nil then GetmonVoltage(ActorID, solnvoltage, j, BasekV, PVSys.Connection)
+            else GetmonVoltage(ActorID, solnvoltage, j, BasekV, Storage.Connection);
 
             //for k := 1 to localControlledElement.Yorder do tempVbuffer[k] := localControlledElement.Vterminal^[k];
 
@@ -3406,7 +3408,7 @@ procedure TInvControlObj.UpdateInvControl(i:integer; ActorID : Integer);
 
             FVpuSolution[FVpuSolutionIdx] := solnvoltage/((ActiveCircuit[ActorID].Buses^[ControlledElement.terminals^[1].busRef].kVBase)*1000.0);
 
-            Reallocmem(tempVbuffer, 0);   // Clean up memory
+            SetLength(tempVbuffer, 0);   // Clean up memory
           end;
         end;
 
