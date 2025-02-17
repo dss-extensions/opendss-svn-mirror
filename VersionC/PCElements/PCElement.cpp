@@ -45,6 +45,8 @@ TPCElement::TPCElement(TDSSClass* ParClass)
 	DynamicEqPair.resize(0);
 	DynamicEqVals.resize(0);
 	DynOut.resize(0);
+    ForceY = false;
+    ForceInjCurrent = false;
 }
 
 TPCElement::~TPCElement()

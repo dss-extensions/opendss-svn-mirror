@@ -20,7 +20,8 @@ namespace YMatrix
 
     void ReCalcAllYPrims(int ActorID)
     {
-        TDSSCktElement* pElem;
+        TDSSCktElement* pElem = NULL;
+        bool ValidElm = true;
         /*# with ActiveCircuit[ActorID] do */
         {
             TDSSCircuit* with0 = ActiveCircuit[ActorID];
@@ -30,7 +31,13 @@ namespace YMatrix
                 pElem = (TDSSCktElement*) with0->CktElements.Get_First();
                 while (pElem != NULL)
                 {
-                    pElem->CalcYPrim(ActorID);
+                    // This eval is used for the case in which the user forces the Y primitive using
+                    // mechanisms such as pyControl
+                    if ((pElem->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                        ValidElm = !((TPCElement*)pElem)->ForceY;
+
+                    if (ValidElm)
+                        pElem->CalcYPrim(ActorID);
                     pElem = (TDSSCktElement*)with0->CktElements.Get_Next();
                 }
             }
@@ -45,7 +52,8 @@ namespace YMatrix
         /*Recalc YPrims only for those circuit elements that have had changes since last
          solution*/
     {
-        TDSSCktElement* pElem;
+        TDSSCktElement* pElem = nullptr;
+        bool ValidElm = true;
         /*# with ActiveCircuit[ActorID] do */
         {
             TDSSCircuit* with0 = ActiveCircuit[ActorID];
@@ -58,7 +66,12 @@ namespace YMatrix
                 while (pElem != NULL)
                 {
                     /*# with pElem do */
-                    if (pElem->Get_YprimInvalid(ActorID,false))
+                    // This eval is used for the case in which the user forces the Y primitive using
+                    // mechanisms such as pyControl
+                    if ((pElem->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                        ValidElm = !((TPCElement*)pElem)->ForceY;
+
+                    if (pElem->Get_YprimInvalid(ActorID,false) && ValidElm)
                         pElem->CalcYPrim(ActorID);
                     pElem = (TDSSCktElement*)with0->IncrCktElements.Get_Next();
                 }
@@ -67,7 +80,13 @@ namespace YMatrix
                 while (pElem != NULL)
                 {
                     /*# with pElem do */
-                    if (pElem->Get_YprimInvalid(ActorID,false))
+                    // This eval is used for the case in which the user forces the Y primitive using 
+                    // mechanisms such as pyControl
+                    ValidElm = true;
+                    if ((pElem->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                        ValidElm = !((TPCElement*)pElem)->ForceY;
+
+                    if (pElem->Get_YprimInvalid(ActorID,false) && ValidElm)
                         pElem->CalcYPrim(ActorID);
                     pElem = (TDSSCktElement*)with0->CktElements.Get_Next();
                 }

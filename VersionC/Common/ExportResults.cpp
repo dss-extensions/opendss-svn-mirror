@@ -2945,7 +2945,6 @@ namespace ExportResults
 
 
     void ExportYprim( String Filenm )
-
     /*Exports  YPrim matrices for all  Circuit Elements*/
     {
       TTextRec F;
@@ -2960,24 +2959,29 @@ namespace ExportResults
         IOResultToException();
         /*# with ActiveCircuit[ActiveActor] do */
         {
+          int EIdx = 0;
           auto with0 = ActiveCircuit[ActiveActor];
           {
             for ( int stop = with0->NumDevices, k = 1; k <= stop; k++)
             {
               with0->Set_ActiveCktElement((TDSSCktElement*) with0->CktElements.Get( k ));
-              if (with0->get_FActiveCktElement()->Get_Enabled() )
+              auto ActiveElm = with0->get_FActiveCktElement();
+              if (ActiveElm->Get_Enabled())
               {
-                if ( ( dynamic_cast< TPDElement* >(with0->get_FActiveCktElement() ) ) || ( dynamic_cast< TPCElement* >(with0->get_FActiveCktElement() ) ) )
+                  auto MyElmClass = ActiveElm->ParentClass->DSSClassType & BaseClassMask;
+                  if ( (MyElmClass == PD_ELEMENT) || (MyElmClass == PC_ELEMENT) )
                   /*# with ActiveCktElement do */
                   {
-                    auto with1 = with0->get_FActiveCktElement();
-                    Write( F, with1->ParentClass->get_myClass_name() ); Write( F, '.' ); WriteLn( F, UpperCase( with1->get_Name() ) );
-                    cValues = with1->GetYPrimValues( ALL_YPRIM );
-                    for ( int stop = with1->Yorder, i = 1; i <= stop; i++)
+                    Write( F, ActiveElm->ParentClass->get_myClass_name() ); 
+                    Write(F, '.');
+                    WriteLn(F, UpperCase(ActiveElm->get_Name()));
+                    cValues = ActiveElm->GetYPrimValues(ALL_YPRIM);
+                    for (i = 1; i <= ActiveElm->Yorder; i++)
                     {
-                        for (int stop = with1->Yorder, j = 1; j <= stop; j++)
+                        for (j = 1; j <= ActiveElm->Yorder; j++)
                         {
-                            Write(F, Format(" % -13.10g, % -13.10g, ", cValues[(i + (j - 1) * with1->Yorder) - 1].re, cValues[(i + (j - 1) * with1->Yorder) - 1].im));
+                            int EIdx = (i + ((j - 1) * ActiveElm->Yorder)) - 1;
+                            Write(F, Format(" % -13.10g, % -13.10g, ", cValues[EIdx].re, cValues[EIdx].im));
                         }
                       WriteLn( F );
                     }

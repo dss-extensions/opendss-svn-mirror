@@ -167,6 +167,7 @@ set(OPENDSSC_COMMON_FILES
 	Controls/ExpControl.cpp
 	Controls/GenDispatcher.cpp
 	Controls/InvControl.cpp
+	Controls/pyControl.cpp
 	Controls/Recloser.cpp
 	Controls/RegControl.cpp
 	Controls/Relay.cpp

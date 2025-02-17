@@ -311,6 +311,17 @@ namespace Solution
       NCIMY.clear();
       NCIMYRow.clear();
       NCIMYCol.clear();
+
+      if (ASSIGNED(pyServer[ActiveActor]))
+      {
+        Write_2_PyServer(LPipeName.c_str(), ActiveActor);
+        #ifdef windows
+        DisconnectNamedPipe(pyServer[ActiveActor]);
+        // Close pipe on server
+        CloseHandle(pyServer[ActiveActor]);
+        #endif
+        pyServer[ActiveActor] = NULL;
+      }
     }
 
 

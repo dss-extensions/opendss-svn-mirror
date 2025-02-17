@@ -78,6 +78,8 @@ namespace DSSClassDefs
     //  STORAGE2_CONTROL  = 42 * 8;
 
     const int WINDGEN_ELEMENT = 43 * 8;
+    const int GEN_CONTROLLER = 44 * 8;
+    const int PY_CONTROLLER = 45 * 8;
 
     // BHSL
     

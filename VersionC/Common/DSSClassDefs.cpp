@@ -60,6 +60,7 @@
 #include "GICsource.h"
 #include "AutoTrans.h"
 #include "DynamicExp.h"
+#include "pyControl.h"
      //by Dahei
 #include "Generic5OrderMach.h"
      // By Dahei
@@ -191,6 +192,10 @@ namespace DSSClassDefs
 
         TDynamicExpClass[ActiveActor] = new TDynamicExp();
         DSSClasses->Set_New(TDynamicExpClass[ActiveActor]);
+
+        //-------------------------------------------------------------------------------
+        pyControlClass[ActiveActor] = new TpyControl(); // pyControls class - 11/26/2024
+        DSSClasses->Set_New(pyControlClass[ActiveActor]);
 
 #ifdef OPENDSSC_EXPERIMENTAL
         /* Add new dynamic model capability */

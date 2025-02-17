@@ -55,6 +55,7 @@
 #include "Isource.h"
 #include "InvControl.h"
 #include "ExpControl.h"
+#include "pyControl.h"
 #ifndef linux
 #include <shellapi.h>
 #define NOMINMAX
@@ -155,6 +156,9 @@ namespace DSSGlobals
      const int SIMPLECARSON = 1;
      const int FULLCARSON = 2;
      const int DERI = 3;
+     const int OPENDSS_VIEWER = 1;
+     const int OPENDSS_GIS = 2;
+     const int DSSPYSERVER = 3;
 
     /*Profile Plot Constants*/
      const int PROFILE3PH = 9999; // some big number > likely no. of phases
@@ -247,6 +251,7 @@ namespace DSSGlobals
     extern String GlobalResult;
     extern String LastResultFile;
     extern String VersionString;
+    extern String pyPath;
     extern bool LogQueries;
     extern bool QueryFirstTime;
     extern String QueryLogFileName;
@@ -301,6 +306,7 @@ namespace DSSGlobals
     extern std::vector < TInvControl* > InvControlClass;
     extern std::vector < TExpControl* > ExpControlClass;
     extern std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
+    extern std::vector < TpyControl* > pyControlClass;
 
     extern std::vector < TStringList > EventStrings;
     extern std::vector < TStringList > SavedFileList;
@@ -325,6 +331,10 @@ namespace DSSGlobals
     extern std::vector < int > ActorCPU;
     extern std::vector < std::atomic<int> > ActorStatus;
     extern std::vector < int > ActorProgressCount;
+
+    //=============================================================================================================================================================
+    //    Variable for hosing the pipe to communicate with the Python server (Console)
+    extern std::vector <HANDLE> pyServer;
     //extern TProgress* ActorProgress;
     extern std::vector < int > ActorPctProgress;
     extern std::vector < TSolver* > ActorHandle;
@@ -402,6 +412,10 @@ namespace DSSGlobals
     extern String GISThickness, GISColor;
     extern pDoubleArray GISCoords;
 
+    //************************ DSSpyServer vars************************************
+    extern String DSSpyServerPath;
+    extern String LPipeName;
+
     //************************ Line related Global defs***************************
 
     extern TCommandList LineTypeList;
@@ -451,9 +465,19 @@ namespace DSSGlobals
     void New_Actor_Slot();
     void New_Actor(int ActorID);
     void Wait4Actors(int WType);
+    void Wait4AD();                 // To differentiate the wait from general calls
+
+    void Launch_pyServer(bool DbugServer);
+    void Write_2_PyServer(String Msg, int ActorID);
+    String Read_From_PyServer(int ActorID);
+
+
     void DoClone();
     void Delay(int TickTime);
     void GetDefaultPorts();
+    bool CheckOpenDSSAddOn(int App_folder);
+    String GetIni(wstring IniPath, String Prop, String key);
+
 #ifdef windows
     void Show_COM_Help();
 #endif

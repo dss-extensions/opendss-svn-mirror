@@ -56,6 +56,8 @@ public:
 	TDynamicExpObj* DynamicEqObj;
 	std::vector <DynSlot> DynamicEqVals;
 	std::vector <int> DynOut, DynamicEqPair;
+    bool	ForceY,
+            ForceInjCurrent;
 
 	TPCElement(TDSSClass* ParClass);
 	virtual ~TPCElement();

@@ -101,8 +101,10 @@ public:
 	virtual ~TParser();
 	String ParseAsBusName(int& NumNodes, Arraydef::pIntegerArray NodeArray, int ActorID);
 	int ParseAsVector(int ExpectedSize, Arraydef::pDoubleArray VectorBuffer);
+    int ParseAsStrVector(int ExpectedSize, pDynStringArray VectorBuffer);
 	int ParseAsMatrix(int ExpectedOrder, Arraydef::pDoubleArray MatrixBuffer);
 	int ParseAsSymMatrix(int ExpectedOrder, Arraydef::pDoubleArray MatrixBuffer);
+    int ParseAsStrSymMatrix(int ExpectedOrder, Arraydef::pDynStringArray MatrixBuffer);
 	void ResetDelims();   // resets delimiters to default
 	void CheckforVar(String& TokenBuffer);
 	int get_position();
