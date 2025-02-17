@@ -1112,7 +1112,7 @@ begin
                 GlobalResult := Check_DSS_WebVersion(false);
             132:
             begin
-                if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then
+                if Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSClass[ActiveActor]) then
                 begin
                     AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].First));  // sets active objects
                 end
@@ -1121,7 +1121,7 @@ begin
             end;
             133:
             begin
-                if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then
+                if Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSClass[ActiveActor]) then
                 begin
                     AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].Next));  // sets active objects
                 end
@@ -1139,7 +1139,7 @@ begin
             end;
             135:
             begin
-                if Assigned(ActiveDSSObject[ActiveActor]) then
+                if Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSObject[ActiveActor]) then
                     AppendGlobalResult(ActiveDSSObject[ActiveActor].Name)
                 else
                     AppendGlobalResult('None');
