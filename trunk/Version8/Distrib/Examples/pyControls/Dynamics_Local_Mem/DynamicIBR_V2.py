@@ -57,15 +57,6 @@ Routine for parsing a DSS String into array of strings
 def Str2StrArray(myString):
     myResult = myString.replace('[','').replace(']','').split(',')
     return myResult
-'''
-Routine for evaluating if this is the first time the script is executed
-''' 
-def isFirstTime(DSSText, modname):
-    initvarname = 'iflag_{}'.format(modname)
-    DSSText.Command = 'Var @{}'.format(initvarname)
-    funcOutput = DSSText.Result == '@{}'.format(initvarname)
-
-    return funcOutput
 
 '''
 Routine for converting a complex to str
