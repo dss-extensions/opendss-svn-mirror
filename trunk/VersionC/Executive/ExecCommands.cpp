@@ -153,11 +153,17 @@ namespace ExecCommands
 		ExecCommand[124 - 1] = "AllPCEatBus";
 		ExecCommand[125 - 1] = "AllPDEatBus";
 		ExecCommand[126 - 1] = "TotalPowers";
-		ExecCommand[127 - 1] = "COMHelp";
+		ExecCommand[127 - 1] = "UserManual";
 		ExecCommand[128 - 1] = "GIS";
 		ExecCommand[129 - 1] = "GISCoords";
 		//	Start list of INDUCES commands
-		ExecCommand[130 - 1] = "ReadEfieldHDF";
+        ExecCommand[130 - 1] = "ReadEfieldHDF";
+		ExecCommand[131 - 1] = "Check4Updates";
+        ExecCommand[132 - 1] = "FirstObj";
+        ExecCommand[133 - 1] = "NextObj";
+        ExecCommand[134 - 1] = "CountObj";
+        ExecCommand[135 - 1] = "ActiveObj";
+        ExecCommand[136 - 1] = "ClassMembers";
 
 		//	Ends list of INDUCES commands
 		
@@ -673,13 +679,8 @@ namespace ExecCommands
 		CommandHelp[126 - 1] = "Returns the total powers (complex) at ALL terminals of the active circuit element in the Result string. "
 			"(See Select command.)"
 			"Returned as comma-separated kW and kvar.";
-#ifdef windows
-		CommandHelp[127 - 1] = "Shows the documentation file for the COM interface."
-#else
-		CommandHelp[126] = "This command is not supported on this platform, but on MS Windows, this command would show the documentation file for the COM interface."
-#endif
-			"This file provides guidance on the properties and methods included in the COM interface as well as examples and tips. Use this file to learn more about the COM interface and its different interfaces or just as a reference guide.";
-		CommandHelp[128 - 1] = "Executes GIS options working with OpenDSS-GIS. See GIS command help.";
+		CommandHelp[127 - 1] = "Shows the OpenDSS user manual. This file provides guidance on the program usage at all levels, including interfaces such as COM and DLL.";
+     	CommandHelp[128 - 1] = "Executes GIS options working with OpenDSS-GIS. See GIS command help.";
 		CommandHelp[129 - 1] = String("Define x,y coordinates for buses using real GIS Latitude and Longitude values (decimal numbers).  Similar to BusCoords command. " "Execute after Solve command or MakeBusList command is executed so that bus lists are defined." "Reads coordinates from a CSV file with records of the form: busname, Latitude, Longitude.") + CRLF
 			+ CRLF
 			+ "Example: GISCoords [-1]xxxx.csv"
@@ -689,6 +690,12 @@ namespace ExecCommands
 		//	Start list of INDUCES commands
 		CommandHelp[130 - 1] = "Reads an HDF file with non uniform, time varying geoelectric fields used in EMP simulations";
 		//	Ends list of INDUCES commands
+        CommandHelp[131 - 1] = "Returns a message indicating if there is a new version of OpenDSS avaialble for download. Requires internet connection.";
+        CommandHelp[132 - 1] = "Sets the First element of the active class as the active element, returns the index of the active element. If none, returns 0. See ' set class '.";
+        CommandHelp[133 - 1] = "Sets the Next element of the active class as the active element, returns the index of the active element. If none, returns 0. See ' set class '.";
+        CommandHelp[134 - 1] = "Returns the number of elements within the active class. See ' set class '.";
+        CommandHelp[135 - 1] = "Returns the name of the active object.";
+        CommandHelp[136 - 1] = "Returns the list of objects belonging to the active class, comma separated. See ' set class '.";
 	}
 
 	//----------------------------------------------------------------------------
@@ -881,7 +888,8 @@ namespace ExecCommands
 						cout << CmdLine;
 				}									
 				break;
-//#endif	
+//#endif
+	
 				default:
 				if(ActiveCircuit[ActiveActor] == nullptr)
 				{
@@ -1340,7 +1348,59 @@ namespace ExecCommands
 				case 	129:
 				CmdResult = DoBusCoordsCmd(false, 1);
 				break;   // GIS coordinates
-
+				case	131:
+				{
+                    //GlobalResult = Check_DSS_WebVersion(False);
+				}
+				break;
+				case	132:
+				{
+					if (ASSIGNED(ActiveCircuit[ActiveActor]) && ASSIGNED(ActiveDSSClass[ActiveActor]))
+						AppendGlobalResult(to_string(ActiveDSSClass[ActiveActor]->Get_First())); // sets active objects
+                    else
+                        AppendGlobalResult("Enable a class before using this command. See 'set class'");
+				}
+				break;
+				case	133:
+				{
+					if (ASSIGNED(ActiveCircuit[ActiveActor]) && ASSIGNED(ActiveDSSClass[ActiveActor]))
+						AppendGlobalResult(to_string(ActiveDSSClass[ActiveActor]->Get_Next())); // sets the next active objects
+                    else
+                        AppendGlobalResult("Enable a class before using this command. See 'set class'");
+				}
+				break;
+				case	134:
+				{
+					if (ASSIGNED(ActiveCircuit[ActiveActor]) && ASSIGNED(ActiveDSSClass[ActiveActor]))
+						AppendGlobalResult(to_string(ActiveDSSClass[ActiveActor]->Get_ElementCount())); // gets the number of elements declared within the class
+                    else
+                        AppendGlobalResult("Enable a class before using this command. See 'set class'");
+				}
+				break;
+				case	135:
+				{
+                    if (ASSIGNED(ActiveCircuit[ActiveActor]) && ASSIGNED(ActiveDSSObject[ActiveActor]))
+                        AppendGlobalResult(((TDSSObject*)ActiveDSSObject[ActiveActor])->get_Name()); // returns the name of the active element
+                    else
+                        AppendGlobalResult("None");
+				}
+				break;
+				case	136:
+				{
+					string ObjList = "[";
+					if (ASSIGNED(ActiveCircuit[ActiveActor]) && ASSIGNED(ActiveDSSClass[ActiveActor]))
+                    {
+						int ObjIdx = ActiveDSSClass[ActiveActor]->Get_First();
+                        while (ObjIdx > 0)
+                        {
+                            ObjList = ObjList + ((TDSSObject*)ActiveDSSObject[ActiveActor])->get_Name() + ",";
+                            ObjIdx = ActiveDSSClass[ActiveActor]->Get_Next();
+                        }
+					}
+                    ObjList = ObjList + "]";
+					AppendGlobalResult(ObjList);
+				}
+				break;
 		   // Ignore excess parameters
 				default:
 				  ;

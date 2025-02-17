@@ -586,12 +586,63 @@ namespace ParserDel
 		}
 		catch (std::exception e)
 		{
-			//DSSMessageDlg("Vector Buffer in ParseAsVector Probably Too Small: " + (string) e.what(), true);
+			DSSMessageDlg("Vector Buffer in ParseAsVector Probably Too Small: " + string(e.what()), true);
 		}
 		DelimChars = DelimSave;   //restore to original delimiters
 		TokenBuffer = ParseBuffer.substr(ParseBufferPos, ParseBuffer.length());  // prepare for next trip
 		return result;
 	}
+
+    /*=======================================================================================================================*/
+
+	int TParser::ParseAsStrVector(int ExpectedSize, pDynStringArray VectorBuffer)
+    {
+		int		ParseBufferPos	= 0,
+				NumElements		= 0,
+				Result			= 0,
+				i				= 0;
+		String	ParseBuffer		= "",	
+				DelimSave		= "";
+
+		if (FAutoIncrement)
+			GetNextParam();
+
+		try
+		{
+			for (i = 0;i < ExpectedSize; i++)
+				VectorBuffer[i] = "";
+			// Now get vector values
+			ParseBuffer = TokenBuffer + " ";
+
+			ParseBufferPos = 0;
+            DelimSave = DelimChars;
+            DelimChars = DelimChars + MatrixRowTerminator;
+
+			SkipWhitespace(ParseBuffer, &ParseBufferPos);
+            TokenBuffer = GetToken(ParseBuffer, &ParseBufferPos);
+			CheckforVar(TokenBuffer);
+            while (TokenBuffer.size() > 0)
+            {
+                NumElements++;
+                if (NumElements <= ExpectedSize)
+                    VectorBuffer[NumElements - 1] = MakeString_();
+                if (LastDelimiter == MatrixRowTerminator)
+                    break;
+                TokenBuffer = GetToken(ParseBuffer, &ParseBufferPos);
+                CheckforVar(TokenBuffer);
+            }
+            Result = NumElements;
+		}
+        catch (std::exception& E)
+        {
+            DSSMessageDlg("Vector Buffer in ParseAsVector Probably Too Small: " + string(E.what()), true);
+
+        }
+        DelimChars = DelimSave; // restore to original delimiters
+        TokenBuffer = ParseBuffer.substr(ParseBufferPos, ParseBuffer.length()); // prepare for next trip
+        return Result;
+		
+    }
 
 	/*=======================================================================================================================*/
 
@@ -633,8 +684,10 @@ namespace ParserDel
 			//DSSMessageDlg("Matrix Buffer in ParseAsMatrix Probably Too Small: " + (string) e.what(), true);
 		}
 		if (RowBuf != NULL)
-			free(RowBuf); //# FreeMemory accepts one parameter only;
+			delete [] RowBuf; //# FreeMemory accepts one parameter only;
+		
 		result = ExpectedOrder;
+		
 		return result;
 	}
 
@@ -701,7 +754,69 @@ namespace ParserDel
 		return result;
 	}
 
+	/*=======================================================================================================================*/
 
+        int TParser::ParseAsStrSymMatrix(int ExpectedOrder, pDynStringArray MatrixBuffer)
+        {
+            int result			= 0,
+                i				= 0,
+                j				= 0,
+                OrderFound		= 0,
+                ElementsFound	= 0;
+            pDynStringArray RowBuf = {};
+
+            /*---------------- Local Function -----------------------*/
+
+            auto ElementIndex = [&](int II, int jj) -> int
+            {
+                int result = 0;
+                result = (jj - 1) * ExpectedOrder + II;
+                return result;
+            };
+
+            if (FAutoIncrement)
+                GetNextParam();
+            RowBuf = NULL;
+            try
+            {
+                int stop = 0;
+                RowBuf = new String[ExpectedOrder + 1];
+                for (stop = (ExpectedOrder * ExpectedOrder), i = 1; i <= stop; i++)
+                {
+                    (MatrixBuffer)[i - 1] = 0.0;
+                }
+                for (stop = ExpectedOrder, i = 1; i <= stop; i++)
+                {
+                    int stop1 = 0;
+                    ElementsFound = ParseAsStrVector(ExpectedOrder, RowBuf);
+
+                    if (ElementsFound > 0)
+                        OrderFound++;
+
+                    /* Returns matrix in Column Order (Fortran order) */
+                    for (stop1 = ElementsFound, j = 1; j <= stop1; j++)
+                    {
+                        MatrixBuffer[ElementIndex(i, j) - 1] = RowBuf[j - 1];
+                        if (i != j)
+                            MatrixBuffer[ElementIndex(j, i) - 1] = RowBuf[j - 1];
+                    }
+                }
+            }
+            catch (std::exception e)
+            {
+                DSSMessageDlg("Matrix Buffer in ParseAsSymMatrix Probably Too Small: " + (string)e.what(), true);
+            }
+            if (RowBuf != NULL)
+                delete[] RowBuf; // # FreeMemory accepts one parameter only;
+
+            if (OrderFound < ExpectedOrder)
+            {
+                DSSMessageDlg("The matrix entered does not match with the expected order, review the entered parameters and try again.", true);
+                OrderFound = 0;
+            }
+            result = OrderFound;
+            return result;
+        }
 
 	/*=======================================================================================================================*/
 

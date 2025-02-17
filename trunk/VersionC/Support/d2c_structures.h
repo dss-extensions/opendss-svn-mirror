@@ -124,6 +124,8 @@ int IntPower(int Base, int exponent);
 
 int IntPower(double Base, int exponent);
 
+string trim(const std::string& s);
+
 //--------------------------------------------------------------------------------------
 
 class TMemoryStream

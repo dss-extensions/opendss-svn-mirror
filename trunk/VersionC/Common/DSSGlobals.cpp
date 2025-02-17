@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <iostream>
 #include <string>
+#include "Sysutils.h"
 #ifndef windows
 #include <stdlib.h> // getenv
 #include <unistd.h> // access
@@ -16,6 +17,16 @@
 #include <synchapi.h>
 #endif
 #include "dirsep.h"
+#include "d2c_structures.h"
+#include <string>
+#include <locale>
+#include <codecvt>
+#include <strsafe.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <conio.h>
+
+#define BUFSIZE 10000;
 
 namespace DSSGlobals
 {
@@ -79,6 +90,7 @@ namespace DSSGlobals
      String GlobalResult;
      String LastResultFile;
      String VersionString;
+     String pyPath;
      bool LogQueries;
      bool QueryFirstTime;
      String QueryLogFileName;
@@ -133,6 +145,7 @@ namespace DSSGlobals
      std::vector < TInvControl* > InvControlClass;
      std::vector < TExpControl* > ExpControlClass;
      std::vector < TVsource* > ActiveVSource;   // created on 01/14/2019 to facilitate actors to modify VSources while simulating
+     std::vector < TpyControl* > pyControlClass;
 
      std::vector < TStringList > EventStrings;
      std::vector < TStringList > SavedFileList;
@@ -158,6 +171,8 @@ namespace DSSGlobals
      std::vector < int > ActorCPU;
      std::vector < std::atomic<int> > ActorStatus(max_CPU_Cores+1);
      std::vector < int > ActorProgressCount;
+     std::vector<HANDLE> pyServer;
+
     // TProgress* ActorProgress;
      std::vector < int > ActorPctProgress;
      std::vector < TSolver* > ActorHandle;
@@ -235,6 +250,9 @@ namespace DSSGlobals
      bool IsGISON;
      String GISThickness, GISColor;
      pDoubleArray GISCoords;
+
+     String DSSpyServerPath;
+     String LPipeName;
 
      TCommandList LineTypeList;
 
@@ -856,38 +874,6 @@ namespace DSSGlobals
         ReallocMem(p, newsize);
     }
 
-    // Function to validate the installation and path of the OpenDSS Viewer
-
-
-
-    String GetIni(String S, String k, String d, String f = "") /*# overload */
-    {
-        String result;
-        /*TMemIniFile ini;
-        result = d;
-        if ( f.IsEmpty())
-        {
-          ini = TMemIniFile.Create( lowercase( ChangeFileExt( ParamStr( 0 ), ".ini" ) ) );
-        }
-        else
-        {
-          if ( ! FileExists( f ) )
-            return result;
-          ini = TMemIniFile.Create( f );
-        }
-        if ( ini.ReadString( S, k, "" ) == "" )
-        {
-          ini.WriteString( S, k, d );
-          ini.UpdateFile;
-        }
-        result = ini.ReadString( S, k, d );
-        delete ini;
-        ini = NULL;*/
-        result = d; // constant for now
-        return result;
-    }
-
-
     //******************************************************************************
     // 
     // Waits for all the actors running tasks
@@ -924,6 +910,99 @@ namespace DSSGlobals
             DoSimpleMsg("Exception Waiting for the parallel thread to finish a job", 7006);
         }
 
+    }
+
+    //******************************************************************************
+    // Waits for all the other actors except 1 (used while solving the A-Diakoptics solution method)
+    void Wait4AD() // To differentiate the wait from general calls
+    {
+        bool Flag = false;
+        for (int i = 2; i <= NumOfActors; i++)
+        {
+            try 
+            {
+                while (ActorStatus[i] == 0)
+                    Flag = true;
+            }
+            catch (...)
+            {
+                DoSimpleMsg("Exception Waiting for the parallel thread to finish a job", 7006);
+            }
+        }
+    }
+
+    std::vector<char> encode_utf16le(const std::string& utf8_string)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+        std::u16string utf16_string = converter.from_bytes(utf8_string);
+
+        std::vector<char> utf16le_bytes((utf8_string.size() + 1) * 2);
+
+        int idx = 0;
+        for (char16_t c : utf16_string)
+        {
+            utf16le_bytes[idx] = (c & 0xFF); // Low byte
+            idx++;
+            utf16le_bytes[idx] = ((c >> 8) & 0xFF); // High byte
+            idx++;
+        }
+        return utf16le_bytes;
+    }
+ 
+
+    void Write_2_PyServer(String Msg, int ActorID)
+    {
+        bool SMessage = false;
+        DWORD Bytes = 0,
+              cbReplyBytes = 0;
+
+        vector <char> lpvMessage = encode_utf16le(Msg);
+        cbReplyBytes = Msg.size() * (sizeof(lpvMessage[0]) * 2);
+
+        SMessage = WriteFile(
+            pyServer[ActorID],
+            &lpvMessage[0],
+            cbReplyBytes, // = length of string + terminating '\0' !!!
+            &Bytes,
+            NULL);
+    }
+
+    String Read_From_PyServer(int ActorID)
+    {
+        char MyMsg[10000];
+        String MsgStr = "";
+        String Result = "";
+        DWORD MsgSz = 0;
+        
+        for (int i = 0; i < 10000; i++)
+            MyMsg[i] = 0;
+        bool MessageReceived = ReadFile(
+            pyServer[ActorID],  // pipe handle
+            MyMsg,              // buffer to receive reply
+            10000,              // size of buffer
+            &MsgSz,             // number of bytes read
+            NULL);              // not overlapped
+        
+        if (MessageReceived)
+        {
+            bool eofFlg = false;
+            for (int i = 0; i < 10000; i++)
+            {
+                if (MyMsg[i] > 0)
+                {
+                    Result = Result + MyMsg[i];
+                    eofFlg = false;
+                }
+                else
+                {
+                    if (eofFlg && (MyMsg[i] == 0))
+                        break;
+                    eofFlg = true;
+                }
+            }
+        }
+        
+        return Result;
     }
 
     void DoClone()
@@ -991,6 +1070,200 @@ namespace DSSGlobals
         ActorStatus[ActorID] = 1;
     }
 
+    String WString2Str(wstring wstr)
+    {
+        size_t len = wcstombs(nullptr, wstr.c_str(), 0) + 1;
+        // Creating a buffer to hold the multibyte string
+        char* buffer = new char[len];
+        // Converting wstring to string
+        wcstombs(buffer, wstr.c_str(), len);
+        // Creating std::string from char buffer
+        string str(buffer);
+        // Cleaning up the buffer
+        delete[] buffer;
+
+        return str;
+    }
+
+    // Reads the given .ini file and returns the value for the given
+    // "Prop" (Property) at the given "key". 
+    String GetIni(wstring IniPath, String Prop, String key)
+    {
+        String Result = "";
+        TTextRec F;
+        String InputLine = "";
+        bool keyFound = false;
+        AssignFile(F, WString2Str(IniPath));
+        Reset(F);
+        IOResultToException();
+        while (!Eof(F))
+        {
+            ReadLn(F, InputLine);
+            if (InputLine.size() > 0)
+            {
+                int Spos = InputLine.find("[" + key + "]");
+                if (Spos == 0)
+                {
+                    keyFound = true;
+                }
+                else
+                {
+                    Spos = InputLine.find("[");
+                    if (Spos == 0)
+                        keyFound = false;  // means we are in a different key
+                    else
+                    {
+                        //it is probably content, check if the property is here, if so and the key was previously found, then we are done
+                        Spos = InputLine.find(Prop);
+                        if ((Spos == 0) && keyFound)
+                        {
+                            // Here it is, take the value and break the cycle
+                            Spos = InputLine.find("=");
+                            Result = InputLine.substr(Spos + 1, InputLine.size() - 1);
+                            break;
+                        }
+                    }
+                }
+
+            }
+        }
+        CloseFile(F);
+
+        return Result;
+    }
+
+    // Validates if the given DSS Add-on is locally installed
+    bool CheckOpenDSSAddOn(int App_folder)
+    {
+        String FileName = "",
+               iniFile  = "";
+        bool Result = false;
+        // First, get the path to the Home folder
+        // In Windows = AppData
+        // In Linux = TBC
+#ifdef windows
+        PWSTR appdata = NULL;
+        if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_CREATE, NULL, &appdata) == S_OK)
+        {
+            // This means the folder exists, go for it
+            char dest[MAX_PATH];
+            wcstombs(dest, appdata, MAX_PATH);
+            wstringstream myFile = {};
+            switch (App_folder)
+            {
+                case 1:
+                {
+                    myFile << appdata << L"\\opendss_viewer\\settings.ini";
+                    FileName = WString2Str(myFile.str());
+                }
+                break;
+                case 2:
+                {
+                    myFile << appdata << L"\\opendss_gis\\settings.ini";
+                    FileName = WString2Str(myFile.str());
+                }
+                break;
+                default:
+                {
+                    myFile << appdata << L"\\dsspyserver\\settings.ini";
+                    FileName = WString2Str(myFile.str());
+                }
+            }
+            if (FileExists(FileName))
+            {
+                iniFile = GetIni(myFile.str(), "path", "Application");
+                if (!iniFile.empty())
+                {
+                    TReplaceFlags yFlg;
+                    yFlg.Include(rfReplaceAll);
+                    iniFile = StringReplace(iniFile, "\\\\", "\\", yFlg);
+                    iniFile = StringReplace(iniFile, "\"", "", yFlg);
+                    iniFile = trim(iniFile);
+
+                    Result = FileExists(iniFile);
+                    if (Result)
+                    {
+                        switch (App_folder)
+                        {
+                            case 1:
+                                DSS_Viz_path = iniFile;
+                                break;
+                            case 2:
+                                DSS_GIS_path = iniFile;
+                                break;
+                            default:
+                                DSSpyServerPath = iniFile;
+                        }
+                    }
+                }
+            }
+        }
+        // if not found, something went wrong
+#endif
+        return Result;
+    }
+
+    //***********************************************************************************
+    // Launches the DSSpyServer for allowing users to insert Python developed models
+    // into the simulation loop.
+    // For this purpose opens a named pipe to facilitate the interprocess communication.
+    void Launch_pyServer(bool DbugServer)
+    {
+        if (CheckOpenDSSAddOn(DSSPYSERVER))
+        {
+            int DBugMode = 0;
+            string pyScript = DSSpyServerPath;
+#ifdef windows
+            // Windows Named pipes
+            
+            LPipeName = "\\\\.\\pipe\\pyServer_" + to_string(ActiveActor);
+            pyServer[ActiveActor] = CreateNamedPipe(
+                LPipeName.c_str(),                                  // Pipe name
+                PIPE_ACCESS_DUPLEX,                                 // Read/write access
+                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,    // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+                PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+                20000,                                              // Output buffer size
+                20000,                                              // Input buffer size
+                0,                                                  // Client time-out 50 [ms] default
+                NULL);                                              // Default security attributes
+
+            String pyExec = pyPath + "\\python.exe";
+            String pyargs = pyScript + " " + LPipeName;
+            // This to make visible/invisible the server interface (this will help users debugging their code)
+            if (DbugServer)
+                DBugMode = SW_NORMAL;
+            else
+                DBugMode = SW_HIDE;
+
+            SHELLEXECUTEINFO sei = { sizeof(sei) };
+            sei.lpVerb = "open";
+            sei.lpFile = pyExec.c_str();
+            sei.lpParameters = pyargs.c_str();
+            sei.nShow = DBugMode;
+
+            if (ShellExecuteEx(&sei))
+            {
+                Sleep(500);
+
+                // Check if new client is connected
+                if (!ConnectNamedPipe(pyServer[ActiveActor], NULL) && (GetLastError() == ERROR_PIPE_CONNECTED))
+                {
+                    GlobalResult = Read_From_PyServer(ActiveActor);
+                }
+            }
+            else
+            {
+                GlobalResult = "There was an error connecting to the DSSpyServer.";
+            }
+#endif
+        }
+        else
+        {
+            GlobalResult            = "The pyServer does not exists in this version of OpenDSS";
+            pyServer[ActiveActor]   = NULL;
+        }
+    }
+
 
     static string remove_duplicate_directory_separators(const string& in)
     { // This function is static, because it is not called from any other compilation unit.
@@ -1004,36 +1277,6 @@ namespace DSSGlobals
         return out;
     }
 
-
-    // Validates the installation and path of the OpenDSS Viewer
-
-
-    bool CheckOpenDSSViewer(String App_Folder)
-    {
-        bool result = false;
-        String FileName;
-        // to make it compatible with the function
-        App_Folder = LowerCase(App_Folder);
-
-        string home_dir = GetHomeDir();
-
-        // Stores the
-        if (App_Folder == "opendss_viewer")
-        {
-            DSS_Viz_path = GetIni("Application", "path", "", home_dir + (string)DIRSEP_STR + App_Folder + DIRSEP_STR "settings.ini");
-            FileName = remove_duplicate_directory_separators(DSS_Viz_path);
-        }
-        else
-        {
-            DSS_GIS_path = GetIni("Application", "path", "", home_dir + (string)DIRSEP_STR + App_Folder + DIRSEP_STR "settings.ini");
-            FileName = remove_duplicate_directory_separators(DSS_GIS_path);
-        }
-        FileName = regex_replace(FileName, regex("\""), "");
-
-        // returns true only if the executable exists
-        result = FileExists(FileName);
-        return result;
-    }
 
     void Delay(int TickTime)
     {
@@ -1112,12 +1355,17 @@ namespace DSSGlobals
     //**********************Launches the COM Help file******************************
 
 
-#ifdef windows
+
     void Show_COM_Help()
     {
-        ShellExecute(0, "open", AnsiString(DSSDirectory + DIRSEP_STR "OpenDSS_COM.chm").c_str(), NULL, NULL, SW_SHOWNORMAL);
+        string url = "https://opendss.epri.com/";
+        #ifdef windows
+            ShellExecuteA(0, "open", url.c_str(), 0, 0, SW_SHOWNORMAL);
+        #elif __linux__
+            std::string command = "xdg-open " + url;
+            system(command.c_str());
+        #endif
     }
-#endif
 
     //*********************Gets the processor information***************************
 
@@ -1263,6 +1511,7 @@ namespace DSSGlobals
       ActiveCircuit.resize(CPU_Cores + 1);
       ActorCPU.resize(CPU_Cores + 1);
       ActorProgressCount.resize(CPU_Cores + 1);
+      pyServer.resize(CPU_Cores + 1);
       ActiveDSSClass.resize(CPU_Cores + 1);
       DataDirectory.resize(CPU_Cores + 1);
       OutputDirectory.resize(CPU_Cores + 1);
@@ -1338,6 +1587,7 @@ namespace DSSGlobals
       DSSExecutive.resize(CPU_Cores + 1);
       IsourceClass.resize(CPU_Cores + 1);
       VSourceClass.resize(CPU_Cores + 1);
+      pyControlClass.resize(CPU_Cores + 1);
       for ( int stop = CPU_Cores, ActiveActor = 1; ActiveActor <= stop; ActiveActor++)
       {
         ActiveCircuit[ActiveActor] = nullptr;
@@ -1357,6 +1607,8 @@ namespace DSSGlobals
         FM_MHandle[ActiveActor] = NULL;
         DIFilesAreOpen[ActiveActor] = false;
         ActiveVSource[ActiveActor] = NULL;
+        pyServer[ActiveActor] = NULL;
+        pyControlClass[ActiveActor] = NULL;
         // DSSObjs[ActiveActor] = NULL;
         // DSSClassList[ActiveActor] = NULL;
       }
@@ -1384,6 +1636,10 @@ namespace DSSGlobals
       GetDefaultPorts( );                 // Gets the default ports to get connected to other add-ons
       SeasonalRating = false;
       SeasonSignal = "";
+
+      DSSpyServerPath = "";
+      DSS_Viz_path = "";
+      DSS_GIS_path = "";
 
        /*Various Constants and Switches*/
       CALPHA = cmplx( - 0.5, - 0.866025 ); // -120 degrees phase shift
@@ -1422,6 +1678,7 @@ namespace DSSGlobals
        // want to know if this was built for 64-bit, not whether running on 64 bits
        // (i.e. we could have a 32-bit build running on 64 bits; not interested in that
       VersionString = "Version " + GetDSSVersion() + " (" + std::to_string(sizeof(void*)*8u) + "-bit build)";
+      pyPath = "";
 
       StartupDirectory = GetCurrentDir() + DIRSEP_STR;
       SetDataPath( GetDefaultDataDirectory() + DIRSEP_STR + ProgramName + DIRSEP_STR );
@@ -1462,8 +1719,8 @@ namespace DSSGlobals
 
 
       //IsMultithread = true;
-      DSS_Viz_installed = CheckOpenDSSViewer( "OpenDSS_Viewer" );  // OpenDSS Viewer (flag for detected installation)
-      DSS_GIS_installed = CheckOpenDSSViewer( "OpenDSS_GIS" );     // OpenDSS GIS (flag for detected installation)
+      DSS_Viz_installed = CheckOpenDSSAddOn(OPENDSS_VIEWER);    // OpenDSS Viewer (flag for detected installation)
+      DSS_GIS_installed = CheckOpenDSSAddOn(OPENDSS_GIS);       // OpenDSS GIS (flag for detected installation)
 #ifdef windows
       if ( ! IsDLL )
       {

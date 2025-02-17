@@ -945,7 +945,7 @@ Begin
       130:  DoHELICSPubCmd;
       131:  GlobalResult  :=  Check_DSS_WebVersion(False);
       132:  Begin
-              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              If Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSClass[ActiveActor]) Then
               Begin
                 AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].First));  // sets active objects
               End
@@ -953,7 +953,7 @@ Begin
                 AppendGlobalResult('Enable a class before using this command. See "set class"');
             End;
       133:  Begin
-              If (ActiveCircuit[ActiveActor] <> Nil) and Assigned(ActiveDSSClass[ActiveActor]) Then
+              If Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSClass[ActiveActor]) Then
               Begin
                 AppendGlobalResult(IntToStr(ActiveDSSClass[ActiveActor].Next));  // sets active objects
               End
@@ -969,7 +969,7 @@ Begin
                 AppendGlobalResult('Enable a class before using this command. See "set class"');
             End;
       135:  Begin
-              if Assigned(ActiveDSSObject[ActiveActor]) then
+              if Assigned(ActiveCircuit[ActiveActor]) and Assigned(ActiveDSSObject[ActiveActor]) then
                 AppendGlobalResult(ActiveDSSObject[ActiveActor].Name)
               Else
                 AppendGlobalResult('None');

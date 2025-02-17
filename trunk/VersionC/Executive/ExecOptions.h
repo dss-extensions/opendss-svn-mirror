@@ -28,7 +28,7 @@ namespace ExecOptions
 	  All rights reserved.
 	  ----------------------------------------------------------
 	*/
-	const int NumExecOptions = 141;
+	const int NumExecOptions = 148;
 	extern std::string* ExecOption;
 	extern std::string* OptionHelp;
 	extern Command::TCommandList* OptionList;

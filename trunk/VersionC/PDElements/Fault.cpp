@@ -200,7 +200,7 @@ int TFault::Edit(int ActorID)
 	String ParamName;
 	String Param;
 	int PhasesTemp = 0;
-	result = 0;
+
   // continue parsing with contents of Parser
 	ActiveFaultObj = (TFaultObj*) ElementList.Get_Active();
 	ActiveCircuit[ActorID]->Set_ActiveCktElement(ActiveFaultObj);  // use property to set this value

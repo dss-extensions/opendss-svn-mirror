@@ -144,9 +144,9 @@ int TUPFCControl::Edit(int ActorID)
 				ClassEdit(ActiveUPFCControlObj, ParamPointer - NumPropsThisClass);
 				break;
 			}
+            ParamName = Parser[ActorID]->GetNextParam();
+            Param = Parser[ActorID]->MakeString_();
 		}
-		ParamName = Parser[ActorID]->GetNextParam();
-		Param = Parser[ActorID]->MakeString_();
 	}
 
   //RecalcElementData(ActorID);

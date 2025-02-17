@@ -1443,7 +1443,7 @@ void TLoadObj::RecalcElementData(int ActorID)
 	}
 	varBase = 1000.0 * kvarBase / Fnphases;
 	YQFixed = -varBase / Sqr(VBase);
-	InjCurrent = static_cast<complex*>(realloc(InjCurrent, sizeof(complex) * Yorder));
+	InjCurrent = (pComplexArray) realloc(InjCurrent, sizeof(complex) * Yorder);
 	FPhaseCurr.resize( Fnphases + 1);
 	PFChanged = false;
 }
@@ -2330,7 +2330,7 @@ void TLoadObj::GetTerminalCurrents(pComplexArray Curr, int ActorID)
 	/*# with ActiveCircuit[ActorID].Solution do */
 	{
 		auto with0 = ActiveCircuit[ActorID]->Solution;
-		if(IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount)     // recalc the contribution
+		if((IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount) && !ForceInjCurrent)     // recalc the contribution
 		{
 			CalcLoadModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
 		}
@@ -2353,7 +2353,8 @@ int TLoadObj::InjCurrents(int ActorID)
 			auto with0 = ActiveCircuit[ActorID]->Solution;
 			if (with0->LoadsNeedUpdating)
 				SetNominalLoad(ActorID);					// Set the nominal kW, etc. for the type of solution being done
-			CalcInjCurrentArray(ActorID);
+            if (!ForceInjCurrent)
+				CalcInjCurrentArray(ActorID);
 			result = inherited::InjCurrents(ActorID);		// Add into Global Currents Array
 
 		}

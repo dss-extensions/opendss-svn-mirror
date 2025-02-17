@@ -3354,7 +3354,7 @@ void TStorageObj::GetTerminalCurrents(pComplexArray Curr, int ActorID)
 	/*# with ActiveCircuit[ActorID].Solution do */
 	{
 		auto with0 = ActiveCircuit[ActorID]->Solution;
-		if(IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount)     // recalc the contribution
+		if((IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount) && !ForceInjCurrent)     // recalc the contribution
 		{
 			if(!StorageObjSwitchOpen)
 				CalcStorageModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
@@ -3375,7 +3375,8 @@ int TStorageObj::InjCurrents(int ActorID)
 		auto with0 = ActiveCircuit[ActorID]->Solution;
 		if(with0->LoadsNeedUpdating)
 			SetNominalStorageOutput(ActorID); // Set the nominal kW, etc for the type of solution being Done
-		CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if (!ForceInjCurrent)
+			CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 		if(DebugTrace)
 			WriteTraceRecord("Injection", ActorID);
 

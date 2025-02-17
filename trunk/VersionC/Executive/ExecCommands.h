@@ -38,7 +38,7 @@ namespace ExecCommands
   All rights reserved.
   ----------------------------------------------------------
 */
-	const int NumExecCommands = 130;		// This number has to change if we add more commands to OpenDSS...this will need to change for induces
+	const int NumExecCommands = 136;		// This number has to change if we add more commands to OpenDSS...this will need to change for induces
 	extern string* ExecCommand;
 	extern string* CommandHelp;
 	extern TCommandList CommandList;
