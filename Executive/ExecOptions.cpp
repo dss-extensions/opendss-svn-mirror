@@ -173,11 +173,15 @@ namespace ExecOptions
 		ExecOption[139 - 1] = "IgnoreGenQLimits";
 		ExecOption[140 - 1] = "NCIMQGain";
         ExecOption[141 - 1] = "StateVar";
+        ExecOption[142 - 1] = "pyPath";
+        ExecOption[143 - 1] = "IterNumber";
+        ExecOption[144 - 1] = "CtrlIterNumber";
+        ExecOption[145 - 1] = "InjCurrent";
+        ExecOption[146 - 1] = "ITerminal";
+        ExecOption[147 - 1] = "Yprim";
+        ExecOption[148 - 1] = "IntegrationFlag";
 
-		 /*Deprecated
-		  ExecOption[130 - 1] := 'MarkPVSystems2';
-		  ExecOption[132 - 1] := 'MarkStorage2';
-		 */
+
 		OptionHelp[1 - 1] = "Sets the active DSS class type.  Same as Class=...";
 		OptionHelp[2 - 1] = "Sets the active DSS element by name. You can use "
 			"the complete object spec (class.name) or just the "
@@ -538,8 +542,38 @@ namespace ExecOptions
 							CRLF + " For reading the state variable use the following syntax : " + CRLF + 
 							CRLF + " get StateVar myObjName myVarName " + CRLF + 
 							CRLF + " The reading structure will return the value in the results tab.";
-
-
+        OptionHelp[142 - 1] = "Set/gets the path to the Python binary installed in the local hard drive. This is used by pyObject and pyControllers within the simulation." +  
+							CRLF + "This action will launch the pyOpenDSS server for handling pyControls and pyObjects. If after the path the user adds the property ' Debug = Yes ', the pyOpenDSS server " + 
+							"will become visible for helping users debugging their algorithms." + 
+							CRLF + 
+							CRLF + 
+							"Example:" +
+							CRLF +
+							CRLF + 
+							"     Set pyPath=mypath" + 
+							CRLF + 
+							CRLF + 
+							"     Set pyPath=mypath Debug=Yes";
+        OptionHelp[143 - 1] = "Returns the actual iteration number within the simulation loop.";
+        OptionHelp[144 - 1] = "Returns the actual control iteration number within the simulation loop.";
+        OptionHelp[145 - 1] = "Use this command to set/get the current injection vector of the active PC Element. If the active element is not a PCE, the program will return an error message aborting the command (see  ' select ' )." + 
+							CRLF +
+							CRLF + 
+							"The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html). The elements of the vector must be complex " + 
+							"numbers (e.g. 1+2j).";
+        OptionHelp[146 - 1] = "Use this command to set/get the current injection vector at the terminals of the active PC Element. If the active element is not a PCE, the program will return an error message aborting the command (see ' select ')." + 
+							CRLF + 
+							CRLF +
+							" These currents are the equivalent of the nonlinear contribution of the model. For example, for a constant PQ load it will be conj(((P + Qj)/Nph)/Volt), where P + Qj is the power rating," +
+							"Nph is the number of phases, and Volt is the voltage (complex) at the terminal of the PCE. " +
+							"The vector must be entered using OpenDSS notation (Vector/Array properties - see https://opendss.epri.com/ArrayProperties.html). The elements of the vector must be complex " +
+							"numbers (e.g. 1+2j).";
+        OptionHelp[147 - 1] = "Use this command to set/get the Y primitive of the active PC Element. If the active element is not a PCE, the program will return an error message aborting the command (see ' select ')." + 
+							CRLF + 
+							CRLF +				
+							"The Y primitive must be entered using OpenDSS notation (lower triangular matrix - see https://opendss.epri.com/MatrixProperties.html)The elements of the matrix must be complex " +
+							"numbers (e.g. 1+2j).";
+        OptionHelp[148 - 1] = "Returns the value of the integration flag during a dynamics simulation. This flag is useful when developing models such as pyControls designed for dynamics simulations. If the user attemps to read this flag using other simulation methods (COM, DLL, EXE), this flag will always return the same value (not variable)."; 
 	}
 	//----------------------------------------------------------------------------
 
@@ -638,6 +672,19 @@ namespace ExecOptions
 					EventLogDefault = InterpretYesNo(Param);
 				}
 				break;
+                case 142:
+                {
+                    pyPath = Param;
+                    bool DBugServer = false;
+                    ParamName = Parser[ActiveActor]->GetNextParam();
+                    Param = Parser[ActiveActor]->MakeString_();
+                    if (ParamName == "debug")
+                    {
+                        DBugServer = InterpretYesNo(Param);
+                    }
+                    Launch_pyServer(DBugServer);
+                }
+                break;
 				default:
 				DoSimpleMsg("You must create a new circuit object first: \"new circuit.mycktname\" to execute this Set command.", 301);
 				result = false;  // Indicate that we could not process all set command
@@ -665,6 +712,7 @@ namespace ExecOptions
 		String Param;
 		TLoadShapeObj* TestLoadShapeObj = nullptr;
 		TStringList* myList;
+        vector < String > myStrArray_;
 		result = 0;
 		 // Continue parsing command line
 		ParamPointer = 0;
@@ -1289,10 +1337,104 @@ namespace ExecOptions
                     }
 				}
                 break;
-			   // Ignore excess parameters
-				default:
-				  ;
+                case 142:
+                {
+                    pyPath = Param;
+                    bool DBugServer = false;
+                    ParamName = Parser[ActiveActor]->GetNextParam();
+                    Param = Parser[ActiveActor]->MakeString_();
+                    if (ParamName == "debug")
+                    {
+                        DBugServer = InterpretYesNo(Param);
+                    }
+                    Launch_pyServer(DBugServer);
+                }
+                break;
+				case 145:
+				{
+                    auto with0 = ActiveCircuit[ActiveActor]; 
+                    if ((with0->FActiveCktElement->DSSObjType & BaseClassMask) == PC_ELEMENT)
+					{
+                        myStrArray_.resize(with0->FActiveCktElement->Get_NPhases() + 1);
+						int j = Parser[ActiveActor]->ParseAsStrVector(with0->FActiveCktElement->Get_NPhases(), &(myStrArray_[0]));
+                        auto ActiveElm = ((TPCElement*)with0->FActiveCktElement);
+                        for (int i = 0; i < with0->FActiveCktElement->Get_NPhases(); i++)
+                        {
+                            if (myStrArray_[i] == "")
+                                ActiveElm->InjCurrent[i] = CZero;
+                            else
+                                ActiveElm->InjCurrent[i] = Str2Cmplx(myStrArray_[i]);
+                        }
+                        ActiveElm->ForceInjCurrent = true;
+					}
+					else
+                        DoSimpleMsg("The active element is not PCE.", 3002);
+				}
 				break;
+				case 146:
+				{
+                    auto with0 = ActiveCircuit[ActiveActor]; 
+                    if ((with0->FActiveCktElement->DSSObjType & BaseClassMask) == PC_ELEMENT)
+					{
+                        myStrArray_.resize(with0->FActiveCktElement->Get_NPhases() + 1);
+						int j = Parser[ActiveActor]->ParseAsStrVector(with0->FActiveCktElement->Get_NPhases(), &(myStrArray_[0]));
+                        auto ActiveElm = ((TPCElement*)with0->FActiveCktElement);
+                        for (int i = 0; i < with0->FActiveCktElement->Get_NPhases(); i++)
+                        {
+                            if (myStrArray_[i] == "")
+                                ActiveElm->Iterminal[i] = CZero;
+                            else
+                                ActiveElm->Iterminal[i] = Str2Cmplx(myStrArray_[i]);
+                        }
+                        ActiveElm->ForceInjCurrent = true;
+                        ActiveElm->set_ITerminalUpdated(true, ActiveActor);
+					}
+					else
+                        DoSimpleMsg("The active element is not PCE.", 3002);
+				}
+				break;
+				case 147:
+				{
+					auto with0 = ActiveCircuit[ActiveActor];
+					auto with1 = with0->FActiveCktElement;
+                    if ((with1->DSSObjType & BaseClassMask) == PC_ELEMENT)
+					{
+                        int k = with1->Get_NConds();
+						myStrArray_.resize(k * k);
+                        int j = Parser[ActiveActor]->ParseAsStrSymMatrix(k, &(myStrArray_[0]));
+						for (int i = 0; i < myStrArray_.size(); i++)
+						{
+							if (myStrArray_[i].empty())
+								j = 0;
+						}
+						if ( j == k ) // The size makes sense
+						{
+							int krow = 1;
+							int kcol = 1;
+							for (j = 1; j <= (k * k); j++)
+							{
+                                with1->YPrim->SetElement(krow,kcol,Str2Cmplx(myStrArray_[j - 1]));
+								kcol++;
+                                if (kcol > k)
+                                {
+                                    kcol = 1;
+                                    krow++;
+                                }
+							}
+							with1->Set_YprimInvalid(ActiveActor, false);
+							((TPCElement*)with1)->ForceY = true;			// This will force the algorithm to use the YPrim uploaded
+							with0->Solution->SystemYChanged = true;
+						}
+                        else
+                            DoSimpleMsg("The size of the matrix provided does not match with the number of conductors of the active PCE.", 3004);
+					}
+					else
+                        DoSimpleMsg("The active element is not PCE.", 3002);
+				}
+				break;
+                // Ignore excess parameters
+                default:;
+                    break;
 			}
 			switch(ParamPointer)
 			{
@@ -1340,9 +1482,9 @@ namespace ExecOptions
 		int result = 0;
 		int ParamPointer = 0;
 		int i = 0;
-		String TempString;
-		String ParamName;
-		String Param;
+		String TempString = "";
+		String ParamName = "";
+		String Param = "";
 		//	TScriptEdit* ScriptEd = nullptr;
 		result = 0;
 		try
@@ -2001,7 +2143,106 @@ namespace ExecOptions
                             DoSimpleMsg("Object " + TmpStr + " is not a valid element for this command. Only generators, storage and WindGen.", 7101);
 					}
 					break;
-					// Ignore excess parameters
+                case 142:
+					{
+						AppendGlobalResult(pyPath);
+					}
+                    break;
+                case 143:
+                {
+                    AppendGlobalResult(to_string(ActiveCircuit[ActiveActor]->Solution->Iteration));
+                }
+                break;
+                case 144:
+                {
+                    AppendGlobalResult(to_string(ActiveCircuit[ActiveActor]->Solution->ControlIteration));
+                }
+                break;
+                case 145:
+                {
+                    String TmpStr = "";
+                    complex TmpCmplx = CZero;
+                    auto w1450 = ActiveCircuit[ActiveActor];
+                    auto w1451 = w1450->FActiveCktElement;
+                    if ((w1451->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                    {
+                        TmpStr = "["; 
+                        for (int j = 1; j <= w1451->Get_NPhases(); j++)
+                        {
+                            TmpCmplx = ((TPCElement*)w1451)->InjCurrent[j - 1];
+                            TmpStr = TmpStr + Cmplx2Str(TmpCmplx);
+                            if (j < w1451->Get_NPhases())
+                                TmpStr = TmpStr + ", ";
+                        }
+                        TmpStr = TmpStr + "]";
+                    }
+                    else
+                        TmpStr = "Error, the active element is not PCE.";
+
+                    AppendGlobalResult(TmpStr);
+                }
+                break;
+                case 146:
+                {
+                    String TmpStr = "";
+                    complex TmpCmplx = CZero;
+                    auto w1460 = ActiveCircuit[ActiveActor];
+                    auto w1461 = w1460->FActiveCktElement;
+                    if ((w1461->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                    { 
+                        TmpStr = "[";
+                        for (int j = 1; j <= w1461->Get_NPhases(); j++)
+                        {
+                            TmpCmplx = ((TPCElement*)w1461)->Iterminal[j - 1];
+                            TmpStr = TmpStr + Cmplx2Str(TmpCmplx);
+                            if (j < w1461->Get_NPhases())
+                                TmpStr = TmpStr + ", ";
+                        }
+                        TmpStr = TmpStr + "]";
+                    }
+                    else
+                        TmpStr = "Error, the active element is not PCE.";
+
+                    AppendGlobalResult(TmpStr);
+                }
+                break;
+                case 147:
+                {
+                    String TmpStr = "";
+                    complex TmpCmplx = CZero;
+                    auto w1470 = ActiveCircuit[ActiveActor];
+                    auto w1471 = w1470->FActiveCktElement;
+                    if ((w1471->DSSObjType & BaseClassMask) == PC_ELEMENT)
+                    { 
+                        i = 1;
+                        TmpStr = "[";
+                        for (int j = 1; j <= w1471->Get_NPhases(); j++)
+                        {
+                            for (int k = 1; k <= i; k++)
+                            {
+                                TmpCmplx = ((TPCElement*)w1471)->YPrim->GetElement(j, k);
+                                TmpStr = TmpStr + Cmplx2Str(TmpCmplx);
+                                if (k < i)
+                                    TmpStr = TmpStr + ", ";
+                            }
+                            i++;
+                            if (i < w1471->Get_NPhases())
+                                TmpStr = TmpStr + "|";
+                        }
+                        TmpStr = TmpStr + "]";
+                    }
+                    else
+                        TmpStr = "Error, the active element is not PCE.";
+
+                    AppendGlobalResult(TmpStr);
+                }
+                break;
+                case 148:
+                {
+                    AppendGlobalResult(Format("%d", ActiveCircuit[ActiveActor]->Solution->DynaVars.IterationFlag));
+                }
+                break;
+				// Ignore excess parameters
 				default:
 					;
 					break;

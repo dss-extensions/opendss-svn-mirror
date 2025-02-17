@@ -2436,7 +2436,7 @@ void TWindGenObj::GetTerminalCurrents(pComplexArray Curr, int ActorID)
 	/*# with ActiveCircuit[ActorID].Solution do */
 	{
 		auto with0 = ActiveCircuit[ActorID]->Solution;
-		if(IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount)     // recalc the contribution
+		if((IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount) && !ForceInjCurrent)     // recalc the contribution
 		{
 			if(!GenSwitchOpen)
 				CalcGenModelContribution(ActorID);  // Adds totals in Iterminal as a side effect
@@ -2457,7 +2457,8 @@ int TWindGenObj::InjCurrents(int ActorID)
 		auto with0 = ActiveCircuit[ActorID]->Solution;
 		if(with0->LoadsNeedUpdating)
 			SetNominalGeneration(ActorID); // Set the nominal kW, etc for the type of solution being done
-		CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if (!ForceInjCurrent)
+			CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 		if(DebugTrace)
 			WriteTraceRecord("Injection", ActorID);
 

@@ -3508,7 +3508,7 @@ void TGeneric5Obj::GetTerminalCurrents(pComplexArray Curr, int ActorID)
 	/*# with ActiveCircuit[ActorID].Solution do */
 	{
 		auto with0 = ActiveCircuit[ActorID]->Solution;
-		if(IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount)     // recalc the contribution
+		if((IterminalSolutionCount[ActorID] != ActiveCircuit[ActorID]->Solution->SolutionCount) && !ForceInjCurrent)     // recalc the contribution
           // You will likely want some logic like this
 		{
 			if(!Generic5SwitchOpen)
@@ -3536,7 +3536,8 @@ int TGeneric5Obj::InjCurrents(int ActorID)
 			SetNominalPower(ActorID); // Set the nominal kW, etc for the type of solution being done
 
        // call the main function for doing calculation
-		CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
+        if (!ForceInjCurrent)
+			CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
 
       // If (DebugTrace) Then WriteTraceRecord;
 
