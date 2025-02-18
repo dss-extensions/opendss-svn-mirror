@@ -1962,6 +1962,8 @@ try
     SetLength(VSourceClass, CPU_Cores + 1);
     SetLength(pyControlClass, CPU_Cores + 1);
     SetLength(pyServer, CPU_Cores + 1);
+    SetLength(LPipeName, CPU_Cores + 1);
+
     WaitQ := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
     WaitAD := TThreadedQueue<Integer>.Create(20, 1000, INFINITE);
 
