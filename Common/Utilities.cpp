@@ -287,39 +287,58 @@ namespace Utilities
         DoErrorMsg( "FireOffEditor.", E.what(), "Default Editor correctly specified???", 704 );
       }
 #else
-      const char* argv[] = { DefaultEditor.c_str(), Filenm.c_str(), NULL };
-      int wstatus = 0;
-      std::string error_message;
-      int the_errno = fork_execvp(argv[0], argv, &wstatus, &error_message);
-      if (the_errno) {
-        // fork_execvp() returned an error.
-        char *errno_message = strerror_l(the_errno, uselocale(locale_t(0)));
-        std::stringstream error_string;
-        error_string << "FireOffEditor Error: " << error_message << " returned with errno=" << the_errno << ": " << errno_message;
-        DoSimpleMsg( error_string.str().c_str(), 704 );
-      } else {
-        if (WIFEXITED(wstatus)) {
-          // the child terminated normally.
-          int exit_status = WEXITSTATUS(wstatus);
-          if (exit_status) {
-            // The command finished with a nonzero status, which indicates an error.
+    int LinEdit = system("gedit --version");
+    if (LinEdit != 0)
+    {
+        // The editor was not found
+        const char* argv[] = { DefaultEditor.c_str(), Filenm.c_str(), NULL };
+        int wstatus = 0;
+        std::string error_message;
+        int the_errno = fork_execvp(argv[0], argv, &wstatus, &error_message);
+        if (the_errno) 
+        {
+            // fork_execvp() returned an error.
+            char *errno_message = strerror_l(the_errno, uselocale(locale_t(0)));
             std::stringstream error_string;
-            error_string << "FireOffEditor Error: command exited with nonzero status " << exit_status << ".  The original command was: " << argv[0] << ' ' << argv[1];
+            error_string << "FireOffEditor Error: " << error_message << " returned with errno=" << the_errno << ": " << errno_message;
             DoSimpleMsg( error_string.str().c_str(), 704 );
-          }
-        }
+        } 
+        else 
+        {
+            if (WIFEXITED(wstatus)) 
+            {
+                // the child terminated normally.
+                int exit_status = WEXITSTATUS(wstatus);
+                if (exit_status) 
+                {
+                    // The command finished with a nonzero status, which indicates an error.
+                    std::stringstream error_string;
+                    error_string << "FireOffEditor Error: command exited with nonzero status " << exit_status << ".  The original command was: " << argv[0] << ' ' << argv[1];
+                    DoSimpleMsg( error_string.str().c_str(), 704 );
+                }
+            }
 
-        if (WIFSIGNALED(wstatus)) {
-          // the child process was terminated by a signal.
-          int exit_signal = WTERMSIG(wstatus);
-          std::stringstream error_string;
-          const char *exit_signal_name = strsignal(exit_signal);
-          if (!exit_signal_name)
-            exit_signal_name = "invalid signal number";
-          error_string << "FireOffEditor Error: command terminated due to signal " << exit_signal << ", \"" << exit_signal_name << "\".  The original command was: " << argv[0] << ' ' << argv[1];
-          DoSimpleMsg( error_string.str().c_str(), 704 );
+            if (WIFSIGNALED(wstatus)) 
+            {
+                // the child process was terminated by a signal.
+                int exit_signal = WTERMSIG(wstatus);
+                std::stringstream error_string;
+                const char *exit_signal_name = strsignal(exit_signal);
+                if (!exit_signal_name)
+                exit_signal_name = "invalid signal number";
+                error_string << "FireOffEditor Error: command terminated due to signal " << exit_signal << ", \"" << exit_signal_name << "\".  The original command was: " << argv[0] << ' ' << argv[1];
+                DoSimpleMsg( error_string.str().c_str(), 704 );
+            }
         }
-      }
+    }
+    else
+    {
+        string TCmd = "gedit " + Filenm;
+        int LinEdit = system(TCmd.c_str());
+        if (LinEdit != 0)
+            cout << "Something went wrong";
+    }
+
 #endif
     }
 
