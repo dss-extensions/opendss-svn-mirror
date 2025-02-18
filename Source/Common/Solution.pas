@@ -719,7 +719,7 @@ begin
 
     if pyServer[ActiveActor] <> 0 then
     begin
-        Write_2_PyServer(LPipeName, ActiveActor);
+        Write_2_PyServer(LPipeName[ActiveActor], ActiveActor);
         DisconnectNamedPipe(pyServer[ActiveActor]);
         // Close pipe on server
         CloseHandle(pyServer[ActiveActor]);

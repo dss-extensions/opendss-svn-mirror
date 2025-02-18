@@ -428,8 +428,8 @@ Integer
     GISCoords: pDoubleArray;
 
 //************************ DSSpyServer vars************************************
-    DSSpyServerPath,
-    LPipeName: String;
+    DSSpyServerPath: String;
+    LPipeName: array of String;
 
 //************************ Line related Global defs***************************
     LineTypeList: TCommandList;
@@ -1469,9 +1469,9 @@ begin
         if SysUtils.FileExists(pyScript) then
         begin
 
-            LPipeName := Format('\\%s\pipe\%s', ['.', 'pyServer_' + IntToStr(ActiveActor)]);
+            LPipeName[ActiveActor] := Format('\\%s\pipe\%s', ['.', 'pyServer_' + IntToStr(ActiveActor)]);
         // Check whether pipe does exist
-            if WaitNamedPipe(Pchar(LPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+            if WaitNamedPipe(Pchar(LPipeName[ActiveActor]), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
                 raise Exception.Create('Pipe exists.');
       // Create the pipe
             pyServer[ActiveActor] := CreateNamedPipe(
@@ -1486,7 +1486,7 @@ begin
                 );
 
             pyExec := pyPath + '\python.exe';
-            pyargs := pyScript + ' ' + LPipeName;
+            pyargs := pyScript + ' ' + LPipeName[ActiveActor];
 
       // This to make visible/invisible the server interface (this will help users debugging their code)
             if DBugServer then
@@ -1996,9 +1996,9 @@ try
         DSSClassList[ActiveActor] := nil;
         pyControlClass[ActiveActor] := nil;
         pyServer[ActiveActor] := 0;
+        LPipeName[ActiveActor] := '';
     end;
 
-    LPipeName := '';
     DSSpyServerPath := '';
     GISThickness := '3';
     GISColor := 'FF0000';
