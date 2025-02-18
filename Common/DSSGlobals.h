@@ -334,7 +334,11 @@ namespace DSSGlobals
 
     //=============================================================================================================================================================
     //    Variable for hosing the pipe to communicate with the Python server (Console)
+    #ifdef windows
     extern std::vector <HANDLE> pyServer;
+    #elif __linux__
+    extern std::vector<String> pyServer;
+    #endif
     //extern TProgress* ActorProgress;
     extern std::vector < int > ActorPctProgress;
     extern std::vector < TSolver* > ActorHandle;
@@ -414,7 +418,7 @@ namespace DSSGlobals
 
     //************************ DSSpyServer vars************************************
     extern String DSSpyServerPath;
-    extern String LPipeName;
+    extern vector <String> LPipeName;
 
     //************************ Line related Global defs***************************
 
