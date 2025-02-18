@@ -13,18 +13,22 @@
 #include <stdlib.h> // getenv
 #include <unistd.h> // access
 #include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #else
 #include <synchapi.h>
+#include <strsafe.h>
+#include <tchar.h>
+#include <conio.h>
 #endif
 #include "dirsep.h"
 #include "d2c_structures.h"
 #include <string>
 #include <locale>
 #include <codecvt>
-#include <strsafe.h>
-#include <tchar.h>
 #include <stdio.h>
-#include <conio.h>
+
 
 #define BUFSIZE 10000;
 
@@ -171,7 +175,11 @@ namespace DSSGlobals
      std::vector < int > ActorCPU;
      std::vector < std::atomic<int> > ActorStatus(max_CPU_Cores+1);
      std::vector < int > ActorProgressCount;
+#ifdef windows
      std::vector<HANDLE> pyServer;
+#elif __linux__
+     std::vector<string> pyServer;
+#endif
 
     // TProgress* ActorProgress;
      std::vector < int > ActorPctProgress;
@@ -252,7 +260,7 @@ namespace DSSGlobals
      pDoubleArray GISCoords;
 
      String DSSpyServerPath;
-     String LPipeName;
+     vector <String> LPipeName;
 
      TCommandList LineTypeList;
 
@@ -958,13 +966,18 @@ namespace DSSGlobals
 
         vector <char> lpvMessage = encode_utf16le(Msg);
         cbReplyBytes = Msg.size() * (sizeof(lpvMessage[0]) * 2);
-
+#ifdef windows
         SMessage = WriteFile(
             pyServer[ActorID],
             &lpvMessage[0],
             cbReplyBytes, // = length of string + terminating '\0' !!!
             &Bytes,
             NULL);
+#elif __linux__
+        int fd = open(pyServer[ActorID].c_str(), O_WRONLY);
+        write(fd, &lpvMessage[0], cbReplyBytes);
+        close(fd);
+#endif
     }
 
     String Read_From_PyServer(int ActorID)
@@ -976,12 +989,19 @@ namespace DSSGlobals
         
         for (int i = 0; i < 10000; i++)
             MyMsg[i] = 0;
-        bool MessageReceived = ReadFile(
+        bool MessageReceived = true;
+#ifdef windows
+       MessageReceived = ReadFile(
             pyServer[ActorID],  // pipe handle
             MyMsg,              // buffer to receive reply
             10000,              // size of buffer
             &MsgSz,             // number of bytes read
             NULL);              // not overlapped
+#elif __linux__
+        int fd = open(pyServer[ActorID].c_str(), O_RDONLY);
+        read(fd, MyMsg, sizeof(MyMsg));
+        close(fd);
+#endif
         
         if (MessageReceived)
         {
@@ -1216,9 +1236,9 @@ namespace DSSGlobals
 #ifdef windows
             // Windows Named pipes
             
-            LPipeName = "\\\\.\\pipe\\pyServer_" + to_string(ActiveActor);
+            LPipeName[ActiveActor] = "\\\\.\\pipe\\pyServer_" + to_string(ActiveActor);
             pyServer[ActiveActor] = CreateNamedPipe(
-                LPipeName.c_str(),                                  // Pipe name
+                LPipeName[ActiveActor].c_str(), // Pipe name
                 PIPE_ACCESS_DUPLEX,                                 // Read/write access
                 PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,    // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
                 PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
@@ -1228,7 +1248,7 @@ namespace DSSGlobals
                 NULL);                                              // Default security attributes
 
             String pyExec = pyPath + "\\python.exe";
-            String pyargs = pyScript + " " + LPipeName;
+            String pyargs = pyScript + " " + LPipeName[ActiveActor];
             // This to make visible/invisible the server interface (this will help users debugging their code)
             if (DbugServer)
                 DBugMode = SW_NORMAL;
@@ -1255,12 +1275,25 @@ namespace DSSGlobals
             {
                 GlobalResult = "There was an error connecting to the DSSpyServer.";
             }
+#elif __linux__
+            pyServer[ActiveActor] = "/pipe/pyServer_" + to_string(ActiveActor);
+            if (mkfifo(pyServer[ActiveActor].c_str(), 0666) == -1)
+            {
+                if (errno != EEXIST)
+                {
+                    perror("mkfifo");
+                }
+            }
 #endif
         }
         else
         {
             GlobalResult            = "The pyServer does not exists in this version of OpenDSS";
-            pyServer[ActiveActor]   = NULL;
+#ifdef windows
+            pyServer[ActiveActor] = NULL;
+#elif __linux__
+            pyServer[ActiveActor] = "";
+#endif
         }
     }
 
@@ -1363,7 +1396,7 @@ namespace DSSGlobals
             ShellExecuteA(0, "open", url.c_str(), 0, 0, SW_SHOWNORMAL);
         #elif __linux__
             std::string command = "xdg-open " + url;
-            system(command.c_str());
+            int hnd = system(command.c_str());
         #endif
     }
 
@@ -1553,6 +1586,7 @@ namespace DSSGlobals
       ActiveYPrim.resize(CPU_Cores + 1);
       SolutionWasAttempted.resize(CPU_Cores + 1);
       TDynamicExpClass.resize(CPU_Cores + 1);
+      LPipeName.resize(CPU_Cores + 1);
 
       // ActorStatus was changed from vector<int> to vector<atomic<int>> for
       // memory-ordering guarantees when threads are signaling between each
@@ -1607,10 +1641,15 @@ namespace DSSGlobals
         FM_MHandle[ActiveActor] = NULL;
         DIFilesAreOpen[ActiveActor] = false;
         ActiveVSource[ActiveActor] = NULL;
+#ifdef windows
         pyServer[ActiveActor] = NULL;
+#elif __linux__
+        pyServer[ActiveActor] = "";
+#endif
         pyControlClass[ActiveActor] = NULL;
         // DSSObjs[ActiveActor] = NULL;
         // DSSClassList[ActiveActor] = NULL;
+        LPipeName[ActiveActor] = "";
       }
 
       AutoDisplayShowReport = true;
