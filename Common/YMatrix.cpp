@@ -31,6 +31,7 @@ namespace YMatrix
                 pElem = (TDSSCktElement*) with0->CktElements.Get_First();
                 while (pElem != NULL)
                 {
+                    ValidElm = true;
                     // This eval is used for the case in which the user forces the Y primitive using
                     // mechanisms such as pyControl
                     if ((pElem->DSSObjType & BaseClassMask) == PC_ELEMENT)
@@ -68,6 +69,7 @@ namespace YMatrix
                     /*# with pElem do */
                     // This eval is used for the case in which the user forces the Y primitive using
                     // mechanisms such as pyControl
+                    ValidElm = true;
                     if ((pElem->DSSObjType & BaseClassMask) == PC_ELEMENT)
                         ValidElm = !((TPCElement*)pElem)->ForceY;
 
