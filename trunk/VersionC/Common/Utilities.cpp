@@ -287,7 +287,7 @@ namespace Utilities
         DoErrorMsg( "FireOffEditor.", E.what(), "Default Editor correctly specified???", 704 );
       }
 #else
-    int LinEdit = system("gedit --version");
+    int LinEdit = system("gedit --version 2>&1 >/dev/null");
     if (LinEdit != 0)
     {
         // The editor was not found
@@ -333,10 +333,12 @@ namespace Utilities
     }
     else
     {
-        string TCmd = "gedit " + Filenm;
-        int LinEdit = system(TCmd.c_str());
-        if (LinEdit != 0)
-            cout << "Something went wrong";
+        int p;
+        p = fork();
+        if (p == 0)
+        {
+            execl("/usr/bin/gedit", "gedit", Filenm.c_str(), NULL);
+        }
     }
 
 #endif

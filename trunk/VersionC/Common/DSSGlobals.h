@@ -480,11 +480,14 @@ namespace DSSGlobals
     void Delay(int TickTime);
     void GetDefaultPorts();
     bool CheckOpenDSSAddOn(int App_folder);
-    String GetIni(wstring IniPath, String Prop, String key);
-
 #ifdef windows
-    void Show_COM_Help();
+    String GetIni(wstring IniPath, String Prop, String key);
+#else
+    String GetIni(string IniPath, String Prop, String key);
 #endif
+
+
+    void Show_COM_Help();
     string GetLineTypes();
     void DSSGlobals_initialization();
     void DSSGlobals_finalization();
