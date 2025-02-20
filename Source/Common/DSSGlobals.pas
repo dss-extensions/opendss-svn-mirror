@@ -1392,7 +1392,7 @@ Begin
         raise Exception.Create('Pipe exists.');
       // Create the pipe
       pyServer[ActiveActor] := CreateNamedPipe(
-        PChar(LPipeName),                                   // Pipe name
+        PChar(LPipeName[ActiveActor]),                                   // Pipe name
         PIPE_ACCESS_DUPLEX,                                 // Read/write access
         PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
         PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
