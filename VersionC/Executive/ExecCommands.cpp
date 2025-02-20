@@ -874,9 +874,7 @@ namespace ExecCommands
 				break;
 				case 	127:
 				{
-#ifdef windows
 					Show_COM_Help();
-#endif
 				}
 				break;
 //#ifndef windows								//	By making these calls dependent on the OS, we should be able to compile OpenDSS-C by itself 
