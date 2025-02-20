@@ -16,6 +16,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <errno.h>
 #else
 #include <synchapi.h>
 #include <strsafe.h>
@@ -974,8 +977,8 @@ namespace DSSGlobals
             &Bytes,
             NULL);
 #elif __linux__
-        int fd = open(pyServer[ActorID].c_str(), O_WRONLY);
-        write(fd, &lpvMessage[0], cbReplyBytes);
+        int fd = open(pyServer[ActorID].c_str(), O_WRONLY); 
+        int wr = write(fd, &lpvMessage[0], cbReplyBytes);
         close(fd);
 #endif
     }
@@ -986,21 +989,38 @@ namespace DSSGlobals
         String MsgStr = "";
         String Result = "";
         DWORD MsgSz = 0;
-        
+
         for (int i = 0; i < 10000; i++)
             MyMsg[i] = 0;
-        bool MessageReceived = true;
+        bool MessageReceived = false;
 #ifdef windows
-       MessageReceived = ReadFile(
-            pyServer[ActorID],  // pipe handle
-            MyMsg,              // buffer to receive reply
-            10000,              // size of buffer
-            &MsgSz,             // number of bytes read
-            NULL);              // not overlapped
+        MessageReceived = ReadFile(
+            pyServer[ActorID], // pipe handle
+            MyMsg, // buffer to receive reply
+            10000, // size of buffer
+            &MsgSz, // number of bytes read
+            NULL); // not overlapped
 #elif __linux__
-        int fd = open(pyServer[ActorID].c_str(), O_RDONLY);
-        read(fd, MyMsg, sizeof(MyMsg));
-        close(fd);
+
+        std::string received_data;
+        ssize_t bytes_read;
+        try
+        {
+            int fd = open(pyServer[ActorID].c_str(), O_RDONLY);
+            // Read from the FIFO. This will block until data is available.
+            while ((bytes_read = read(fd, MyMsg, sizeof(MyMsg) - 1)) > 0)
+            {
+                MyMsg[bytes_read] = '\0'; // Null-terminate the buffer.
+                received_data += MyMsg;
+            }
+            close(fd);
+            MessageReceived = true;
+
+        }
+        catch (...)
+        {
+            DoSimpleMsg("Exception reading data from DSSpyServer", 7010);
+        }
 #endif
         
         if (MessageReceived)
@@ -1107,6 +1127,7 @@ namespace DSSGlobals
 
     // Reads the given .ini file and returns the value for the given
     // "Prop" (Property) at the given "key". 
+#ifdef windows
     String GetIni(wstring IniPath, String Prop, String key)
     {
         String Result = "";
@@ -1151,6 +1172,51 @@ namespace DSSGlobals
 
         return Result;
     }
+#else
+    String GetIni(string IniPath, String Prop, String key)
+    {
+        String Result = "";
+        TTextRec F;
+        String InputLine = "";
+        bool keyFound = false;
+        AssignFile(F, IniPath);
+        Reset(F);
+        IOResultToException();
+        while (!Eof(F))
+        {
+            ReadLn(F, InputLine);
+            if (InputLine.size() > 0)
+            {
+                int Spos = InputLine.find("[" + key + "]");
+                if (Spos == 0)
+                {
+                    keyFound = true;
+                }
+                else
+                {
+                    Spos = InputLine.find("[");
+                    if (Spos == 0)
+                        keyFound = false; // means we are in a different key
+                    else
+                    {
+                        // it is probably content, check if the property is here, if so and the key was previously found, then we are done
+                        Spos = InputLine.find(Prop);
+                        if ((Spos == 0) && keyFound)
+                        {
+                            // Here it is, take the value and break the cycle
+                            Spos = InputLine.find("=");
+                            Result = InputLine.substr(Spos + 1, InputLine.size() - 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        CloseFile(F);
+
+        return Result;
+    }
+#endif
 
     // Validates if the given DSS Add-on is locally installed
     bool CheckOpenDSSAddOn(int App_folder)
@@ -1219,6 +1285,59 @@ namespace DSSGlobals
             }
         }
         // if not found, something went wrong
+#elif __linux__
+        struct passwd* pw = getpwuid(getuid());
+        const char* homedir = pw->pw_dir;
+        string myFile = "";
+        
+        switch (App_folder)
+        {
+            case 1:
+            { 
+                FileName = homedir;
+                FileName = FileName  + "/opendss_viewer/settings.ini";
+            }
+            break;
+            case 2:
+            {
+                FileName = homedir;
+                FileName = FileName + "/opendss_gis/settings.ini";
+            }
+            break;
+            default:
+            {
+                FileName = homedir;
+                FileName = FileName + "/dsspyserver/settings.ini";
+            }
+        }
+            
+        if (FileExists(FileName))
+        {
+            iniFile = GetIni(FileName, "path", "Application");
+            if (!iniFile.empty())
+            {
+                TReplaceFlags yFlg;
+                yFlg.Include(rfReplaceAll);
+                iniFile = StringReplace(iniFile, "//", "/", yFlg);
+                iniFile = StringReplace(iniFile, "\"", "", yFlg);
+                iniFile = trim(iniFile);
+                Result = FileExists(iniFile);
+                if (Result)
+                {
+                    switch (App_folder)
+                    {
+                        case 1:
+                            DSS_Viz_path = iniFile;
+                            break;
+                        case 2:
+                            DSS_GIS_path = iniFile;
+                            break;
+                        default:
+                            DSSpyServerPath = iniFile;
+                    }
+                }
+            }
+        }
 #endif
         return Result;
     }
@@ -1235,17 +1354,17 @@ namespace DSSGlobals
             string pyScript = DSSpyServerPath;
 #ifdef windows
             // Windows Named pipes
-            
+
             LPipeName[ActiveActor] = "\\\\.\\pipe\\pyServer_" + to_string(ActiveActor);
             pyServer[ActiveActor] = CreateNamedPipe(
                 LPipeName[ActiveActor].c_str(), // Pipe name
-                PIPE_ACCESS_DUPLEX,                                 // Read/write access
-                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,    // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
-                PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-                20000,                                              // Output buffer size
-                20000,                                              // Input buffer size
-                0,                                                  // Client time-out 50 [ms] default
-                NULL);                                              // Default security attributes
+                PIPE_ACCESS_DUPLEX, // Read/write access
+                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+                PIPE_UNLIMITED_INSTANCES, // Unlimited instances
+                20000, // Output buffer size
+                20000, // Input buffer size
+                0, // Client time-out 50 [ms] default
+                NULL); // Default security attributes
 
             String pyExec = pyPath + "\\python.exe";
             String pyargs = pyScript + " " + LPipeName[ActiveActor];
@@ -1276,14 +1395,49 @@ namespace DSSGlobals
                 GlobalResult = "There was an error connecting to the DSSpyServer.";
             }
 #elif __linux__
-            pyServer[ActiveActor] = "/pipe/pyServer_" + to_string(ActiveActor);
-            if (mkfifo(pyServer[ActiveActor].c_str(), 0666) == -1)
+            // Linux pipes
+
+            pyServer[ActiveActor] = "pyServer_" + to_string(ActiveActor);
+            /* if (mkdir("/tmp/pipe", 0777) == -1 && errno != EEXIST)
             {
-                if (errno != EEXIST)
-                {
-                    perror("mkfifo");
-                }
+                std::cerr << "Error creating directory: " << strerror(errno) << std::endl;
             }
+            else
+            {*/
+                bool PipRdy = true;
+                int FFo = mkfifo(pyServer[ActiveActor].c_str(), 0666);
+                if (FFo == -1)
+                {
+                    if (errno != EEXIST)
+                    {
+                        perror("mkfifo");
+                    }
+                }
+                
+                if (PipRdy)
+                {
+                    pid_t p = fork();
+                    if (p == 0)
+                    {
+                        if (DbugServer)
+                        {
+                            string args = "xterm -e python3 " + pyScript + " " + pyServer[ActiveActor];
+                            int Result = system(args.c_str());
+                            if (Result != 0)
+                            {
+                                DoSimpleMsg("There was an error while launching the DSSpyServer", 7017);
+                            }
+                        }
+                        else
+                        {
+                            int Result = execl("/usr/bin/python3", "python3", pyScript.c_str(), pyServer[ActiveActor].c_str(), NULL);
+                        }
+                    }
+                    GlobalResult = Read_From_PyServer(ActiveActor);
+                    if (!NoFormsAllowed)
+                        cout << GlobalResult + "\n";
+                }
+ //           }
 #endif
         }
         else
@@ -1391,11 +1545,11 @@ namespace DSSGlobals
 
     void Show_COM_Help()
     {
-        string url = "https://opendss.epri.com/";
+        string url = "https://opendss.epri.com";
         #ifdef windows
             ShellExecuteA(0, "open", url.c_str(), 0, 0, SW_SHOWNORMAL);
         #elif __linux__
-            std::string command = "xdg-open " + url;
+        std::string command = "xdg-open " + url + " > /dev/null 2>&1";
             int hnd = system(command.c_str());
         #endif
     }
@@ -1814,6 +1968,14 @@ namespace DSSGlobals
                 delete Parser[ActiveActor];
                 Parser[ActiveActor] = NULL;
             }
+#ifdef __linux__
+            if (!pyServer[ActiveActor].empty())
+            {
+                unlink(pyServer[ActiveActor].c_str());
+                pyServer[ActiveActor] = "";
+            }
+
+#endif
         }
     }
 

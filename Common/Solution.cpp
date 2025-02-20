@@ -313,22 +313,20 @@ namespace Solution
       NCIMYCol.clear();
 #ifdef windows
       if (ASSIGNED(pyServer[ActiveActor]))
+      {
+          Write_2_PyServer(LPipeName[ActiveActor], ActiveActor);
+          DisconnectNamedPipe(pyServer[ActiveActor]);
+          // Close pipe on server
+          CloseHandle(pyServer[ActiveActor]);
+          pyServer[ActiveActor] = NULL;
+      }
 #elif __linux__
       if (!pyServer[ActiveActor].empty())
-#endif
       {
-#ifdef windows
-        Write_2_PyServer(LPipeName[ActiveActor].c_str(), ActiveActor);
-        DisconnectNamedPipe(pyServer[ActiveActor]);
-        // Close pipe on server
-        CloseHandle(pyServer[ActiveActor]);
-        pyServer[ActiveActor] = NULL;
-#elif __Linux__
-        Write_2_PyServer(pyServer[ActiveActor].c_str(), ActiveActor);
+        Write_2_PyServer(pyServer[ActiveActor], ActiveActor);
         pyServer[ActiveActor] = "";
-#endif
-
       }
+#endif
     }
 
 
