@@ -7,9 +7,13 @@ This library enables python to communicate with OpenDSS using NamedPipes.
 Updated on 02/18/2025 enabling Linux compatibility
 """
 
-import win32file, pywintypes
-import sys, os
+import sys, os, time
 
+try:
+    import win32file  # for Windows OS
+except ImportError:
+    pass
+    
 
 handle = None
 DSSReply = ''
@@ -38,8 +42,8 @@ def Connect(pipe_path):
     global PipeNm
     
     try:
-        if sys.platform == 'win32':
-            # Windows OS
+       if sys.platform == 'win32':
+           # Windows OS
             handle = win32file.CreateFile(
                 pipe_path,
                 win32file.GENERIC_READ | win32file.GENERIC_WRITE,
@@ -49,12 +53,13 @@ def Connect(pipe_path):
                 0,
                 None
             )
-        else:
+       else:
             # Linux OS
-            PipeNm = pipe_path
-            os.mkfifo(PipeNm)
-    except pywintypes.error as e:
-        print('Error: ' + e.args[2])
+           PipeNm = pipe_path
+    except Exception as e:
+        pass
+        error_type = type(e).__name__
+        print("Error found in pyPIPES - Connect: " + error_type + "-> ", e)
 
 def CommandS(DSSCmd):
     global handle
@@ -64,8 +69,10 @@ def CommandS(DSSCmd):
         Write2PIPE(DSSCmd)
         DSSReply = ReadFromPIPE()
 
-    except pywintypes.error as e:
-        print(e.args[2])
+    except Exception as e:
+        pass
+        error_type = type(e).__name__
+        print("Error found in pyPIPES - CommandS: " + error_type + "-> ", e)
 
 def NeedsControlAction(DSSMsg):
     global handle
@@ -75,8 +82,10 @@ def NeedsControlAction(DSSMsg):
         Write2PIPE(DSSMsg)
         DSSReply = ReadFromPIPE()
 
-    except pywintypes.error as e:
-        print(e.args[2])
+    except Exception as e:
+        pass
+        error_type = type(e).__name__
+        print("Error found in pyPIPES - NeedsControlAction: " + error_type + "-> ", e)
         
 def Write2PIPE(Command):
     global handle
@@ -84,15 +93,19 @@ def Write2PIPE(Command):
     global PipeNm
     
     try:
-        some_data = Command.encode(encoding="utf-16")
         if sys.platform == 'win32':
+            some_data = Command.encode(encoding="utf-16")
             win32file.WriteFile(handle, some_data)
         else:
-            with open(PipeNm, "w") as pipe_fd:
-                pipe_fd.write(some_data)
+            pipe_fd = os.open(PipeNm, os.O_WRONLY)
+            os.write(pipe_fd, Command.encode(encoding="utf-16"))
+            os.close(pipe_fd)
 
-    except pywintypes.error as e:
-        print(e.args[2])
+
+    except Exception as e:
+        pass
+        error_type = type(e).__name__
+        print("Error found in pyPIPES-Write2PIPE: " + error_type + "-> ", e)
         
 def ReadFromPIPE():
     global handle
@@ -102,25 +115,31 @@ def ReadFromPIPE():
     try:
         if sys.platform == 'win32':
             resp = win32file.ReadFile(handle, 64*2048)
+            return (resp[1].decode(encoding="utf-16"))
         else:
-            with open(PipeNm, "r") as pipe_fd:
-                resp = pipe_fd.readline()
-        return (resp[1].decode(encoding="utf-16"))
+            pipe_rd = os.open(PipeNm, os.O_RDONLY)
+            resp = os.read(pipe_rd, 64*2048)
+            os.close(pipe_rd)
+            return resp.decode(encoding="utf-16")
 
-    except pywintypes.error as e:
+
+    except Exception as e:
         pass
-        print(e.args[2]) 
-        return ''
+        error_type = type(e).__name__
+        print("Error found in pyPIPES-ReadFromPIPE: " + error_type + "-> ", e)
         
 def CloseConn():
         global PipeNm
     
         DSSMsg = 'closepipe'
-        some_data = DSSMsg.encode(encoding="utf-16")
+
         if sys.platform == 'win32':
+            some_data = DSSMsg.encode(encoding="utf-16")
             win32file.WriteFile(handle, some_data)
         else:
-            with open(PipeNm, "w") as pipe_fd:
-                pipe_fd.write(some_data)
+            pipe_fd = os.open(PipeNm, os.O_WRONLY)
+            os.write(pipe_fd, DSSMsg.encode(encoding="utf-16"))
+            os.close(pipe_fd)
+
 
    

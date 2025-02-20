@@ -394,7 +394,6 @@ end;
 procedure TpyControlObj.Sample(ActorID: Integer);
 var
     Update: Boolean;
-    LPipeName: String;
     pHandle: THandle;
 
 begin
