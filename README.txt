@@ -15,6 +15,14 @@ Changes this version
 - Adds verifications when getting the pointer for the next reactor. Applies for COM and DLL.
 - Fixes issue with AllowForms assignment (DLL/COM) in both platforms (C and Delphi).
 - Fixes issus introduced in v 10.1.0.1 preventing A-Diakoptics to work properly.
+- DSSpyServer updated for working under Linux and Windows environments.
+- Introduces the pyControl object for allowing users modeling elements in native Python. The object is integrated into the simulation as a python script. 
+
+C++:
+- "UserManual" command triggers the online user manual in both, Windows and Linux.
+- The program is compatible with gedit for displaying reports. If want to use it, install gedit in Linux using "sudo apt-get install gedit".
+- The program supports pyControl objects in Linux and Windows. For enabling debugging in Linux, install xterm (sudo apt-get install xterm).
+
 
 v 10.1.0.1
 - Provides better sync between actors and main thread through queues preventing polling.
