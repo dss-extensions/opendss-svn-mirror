@@ -1398,46 +1398,46 @@ namespace DSSGlobals
             // Linux pipes
 
             pyServer[ActiveActor] = "pyServer_" + to_string(ActiveActor);
-            /* if (mkdir("/tmp/pipe", 0777) == -1 && errno != EEXIST)
+
+            bool PipRdy = true;
+            int FFo = mkfifo(pyServer[ActiveActor].c_str(), 0666);
+            if (FFo == -1)
             {
-                std::cerr << "Error creating directory: " << strerror(errno) << std::endl;
+                if (errno != EEXIST)
+                {
+                    perror("mkfifo");
+                }
             }
-            else
-            {*/
-                bool PipRdy = true;
-                int FFo = mkfifo(pyServer[ActiveActor].c_str(), 0666);
-                if (FFo == -1)
-                {
-                    if (errno != EEXIST)
-                    {
-                        perror("mkfifo");
-                    }
-                }
                 
-                if (PipRdy)
+            if (PipRdy)
+            {
+                bool XtermRdy = false;
+                int QryCmd = system("xterm -v 2>&1 >/dev/null");
+                if (QryCmd == 0)
+                    XtermRdy = true;
+
+                pid_t p = fork();
+                if (p == 0)
                 {
-                    pid_t p = fork();
-                    if (p == 0)
+                    if (DbugServer && XtermRdy)
                     {
-                        if (DbugServer)
+                        string args = "xterm -e python3 " + pyScript + " " + pyServer[ActiveActor];
+                        int Result = system(args.c_str());
+                        if (Result != 0)
                         {
-                            string args = "xterm -e python3 " + pyScript + " " + pyServer[ActiveActor];
-                            int Result = system(args.c_str());
-                            if (Result != 0)
-                            {
-                                DoSimpleMsg("There was an error while launching the DSSpyServer", 7017);
-                            }
-                        }
-                        else
-                        {
-                            int Result = execl("/usr/bin/python3", "python3", pyScript.c_str(), pyServer[ActiveActor].c_str(), NULL);
+                            DoSimpleMsg("There was an error while launching the DSSpyServer", 7017);
                         }
                     }
-                    GlobalResult = Read_From_PyServer(ActiveActor);
-                    if (!NoFormsAllowed)
-                        cout << GlobalResult + "\n";
+                    else
+                    {
+                        int Result = execl("/usr/bin/python3", "python3", pyScript.c_str(), pyServer[ActiveActor].c_str(), NULL);
+                    }
                 }
- //           }
+                GlobalResult = Read_From_PyServer(ActiveActor);
+                if (!NoFormsAllowed)
+                    cout << GlobalResult + "\n";
+            }
+
 #endif
         }
         else
