@@ -139,7 +139,7 @@ begin
       Mtr := DSSClassList[ActiveActor].Get(ClassNames[ActiveActor].Find('energymeter'));
       Mtr.SaveAll(ActiveActor);
   end;
-  9: begin                                             // Circuit.SetActiveBusi
+  9: begin                                             // Circuit.SetActiveBusi write
       Result := -1;   // Signifies Error
       If Assigned(ActiveCircuit[ActiveActor]) Then
       With ActiveCircuit[ActiveActor] Do Begin

@@ -21,7 +21,7 @@ begin
        if ActiveCircuit[ActiveActor].DuplicatesAllowed then Result:=1
       ELSE Result := 0;
   end;
-  1: begin  // Setting.Allowduplicates read
+  1: begin  // Setting.Allowduplicates write
       IF ActiveCircuit[ActiveActor] <> NIL THEN begin
         if arg=1 then ActiveCircuit[ActiveActor].DuplicatesAllowed := TRUE
         else ActiveCircuit[ActiveActor].DuplicatesAllowed := FALSE

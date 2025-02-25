@@ -1068,8 +1068,7 @@ begin
     myPointer :=  @(myPolarArray[0]);
     mySize    :=  SizeOf(myPolarArray[0]) * Length(myPolarArray);
   end;
-  19: begin
-// Return voltages for all terminals
+  19: begin              // Return voltages for all terminals
     myType  :=  3;        // Complex
     setlength(myPolarArray, 1);
     myPolarArray[0] := ctopolar(CZero);
@@ -1096,8 +1095,7 @@ begin
     myPointer :=  @(myPolarArray[0]);
     mySize    :=  SizeOf(myPolarArray[0]) * Length(myPolarArray);
   end;
-  20: begin
-// Return total powers for the active element at all terminals
+  20: begin      // Return total powers for the active element at all terminals
     myType  :=  3;        // Complex
     setlength(myCmplxArray, 1);
     myCmplxArray[0] := CZero;
