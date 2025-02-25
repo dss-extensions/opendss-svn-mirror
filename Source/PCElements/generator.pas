@@ -682,7 +682,7 @@ begin
                     3:
                         PresentkV := Parser[ActorID].DblValue;
                     4:
-                        kWBase := Parser[ActorID].DblValue;
+                        kWBase := Parser[ActorID].DblValueNZ;
                     5:
                         PFNominal := Parser[ActorID].DblValue;
                     6:
@@ -729,7 +729,7 @@ begin
                     25:
                         FForcedON := InterpretYesNo(Param);
                     26:
-                        GenVars.kVArating := Parser[ActorID].DblValue;
+                        GenVars.kVArating := Parser[ActorID].DblValueNZ;
                     27:
                         GenVars.kVArating := Parser[ActorID].DblValue * 1000.0;  // 'MVA';
                     28:

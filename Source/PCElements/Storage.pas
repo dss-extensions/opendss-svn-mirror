@@ -999,7 +999,7 @@ begin
                     propKV:
                         PresentkV := Parser[ActorID].DblValue;
                     propKW:
-                        kW := Parser[ActorID].DblValue;
+                        kW := Parser[ActorID].DblValueNZ;
                     propPF:
                     begin
                         varMode := VARMODEPF;
@@ -1056,7 +1056,7 @@ begin
                     propKVA:
                         with StorageVars do
                         begin
-                            FkVArating := Parser[ActorID].DblValue;
+                            FkVArating := Parser[ActorID].DblValueNZ;
                             kVASet := true;
                             if not kvarLimitSet then
                                 StorageVars.Fkvarlimit := FkVArating;

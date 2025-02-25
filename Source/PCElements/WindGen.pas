@@ -661,7 +661,7 @@ begin
                     3:
                         PresentkV := Parser[ActorID].DblValue;
                     4:
-                        kWBase := Parser[ActorID].DblValue;
+                        kWBase := Parser[ActorID].DblValueNZ;
                     5:
                         PFNominal := Parser[ActorID].DblValue;
                     6:
@@ -685,11 +685,11 @@ begin
                     16:
                     begin
                         WindModelDyn.EditProp(13, Param);
-                        WindGenVars.kVArating := Parser[ActorID].DblValue;
+                        WindGenVars.kVArating := Parser[ActorID].DblValueNZ;
                     end;
                     17:
                     begin
-                        WindGenVars.kVArating := Parser[ActorID].DblValue * 1000.0;  // 'MVA';
+                        WindGenVars.kVArating := Parser[ActorID].DblValueNZ * 1000.0;  // 'MVA';
                         WindModelDyn.EditProp(13, FloatToStr(WindGenVars.kVArating));
                     end;
                     18:

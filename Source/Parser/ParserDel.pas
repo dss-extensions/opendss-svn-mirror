@@ -82,6 +82,7 @@ type
         function MakeString: String;
         function MakeInteger: Integer;
         function MakeDouble: Double;
+        function MakeDoubleNZ: Double;
         function GetNextParam: String;
         function Point2PrevParam: Integer;
         procedure SkipWhiteSpace(const LineBuffer: String; var LinePos: Integer);
@@ -97,6 +98,7 @@ type
         constructor Create;
         destructor Destroy; OVERRIDE;
         property DblValue: Double READ MakeDouble;
+        property DblValueNZ: Double READ MakeDoubleNZ;
         property IntValue: Integer READ MakeInteger;
         property StrValue: String READ MakeString;
         property Token: String READ TokenBuffer WRITE TokenBuffer;
@@ -963,6 +965,43 @@ begin
             ConvertError := true;
             raise EParserProblem.Create('Floating point number conversion error for string: "' + TokenBuffer + '"');
         end;
+    end;
+
+end;
+
+{=======================================================================================================================
+ | This routine returns the last parsed value as a Double ignoring zero values. If the value is zero (0) it returns a  |
+ | non zero value. In this case the value returned will be a very small value (1e-8)                                   |
+ =======================================================================================================================}
+
+function TParser.MakeDoubleNZ: Double;
+var
+    Code: Integer;
+begin
+
+    if FAutoIncrement then
+        GetNextParam;
+    ConvertError := false;
+    if Length(TokenBuffer) = 0 then
+        Result := 1e-8
+    else
+    begin
+
+        if IsQuotedString then
+            Result := InterpretRPNString(Code)
+        else
+            Val(TokenBuffer, Result, Code);
+
+        if Result < 1e-8 then
+            Result := 1e-8;
+
+        if Code <> 0 then
+        begin
+     // not needed with Raise ...  Result := 0.0;
+            ConvertError := true;
+            raise EParserProblem.Create('Floating point number conversion error for string: "' + TokenBuffer + '"');
+        end;
+
     end;
 
 end;

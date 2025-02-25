@@ -823,7 +823,7 @@ begin
                     propKVA:
                         with PVSystemVars do
                         begin
-                            FkVArating := Parser[ActorID].DblValue;
+                            FkVArating := Parser[ActorID].DblValueNZ;
                             if not kvarLimitSet then
                                 PVSystemVars.Fkvarlimit := FkVArating;
                             if not kvarLimitSet and not kvarLimitNegSet then
