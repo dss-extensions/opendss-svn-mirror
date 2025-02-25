@@ -126,9 +126,9 @@ begin
             begin
                 Result := 0;
             end;
-        end;    // Meters.MeteredTerminal Write
+        end;
         7:
-        begin
+        begin  // Meters.MeteredTerminal Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pMeter := TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
@@ -364,9 +364,9 @@ begin
                                 Result := FeederSections^[ActiveSection].NBranches;
                         end;
                 end;
-        end;     // Meters.SectSeqidx
+        end;
         26:
-        begin
+        begin // Meters.SectSeqidx
             Result := 0;
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do

@@ -28,7 +28,7 @@ begin
                     Result := 0;
         end;
         1:
-        begin  // Setting.Allowduplicates read
+        begin  // Setting.Allowduplicates write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 if arg = 1 then

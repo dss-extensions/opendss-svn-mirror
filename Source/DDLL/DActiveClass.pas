@@ -130,7 +130,7 @@ var
 begin
     case mode of
         0:
-        begin
+        begin        // ActiveClass.AllNames
             setlength(myStrArray, 0);
             mySize := 0;
             if (ActiveCircuit[ActiveActor] <> nil) and Assigned(ActiveDSSClass[ActiveActor]) then

@@ -229,7 +229,7 @@ begin
                     end;
         end;
         14:
-        begin                                          // Bus.latitude read
+        begin                                          // Bus.longitude read
             Result := 0.0;
             if (ActiveCircuit[ActiveActor] <> nil) then
                 with ActiveCircuit[ActiveActor] do
@@ -238,7 +238,7 @@ begin
                             Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
         end;
         15:
-        begin                                          // Bus.Latitude write
+        begin                                          // Bus.longitude write
             if (ActiveCircuit[ActiveActor] <> nil) then
                 with ActiveCircuit[ActiveActor] do
                     if (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) then

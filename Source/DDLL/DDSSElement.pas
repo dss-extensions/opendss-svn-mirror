@@ -40,7 +40,7 @@ begin
     Result := Pansichar(Ansistring(''));// Default return value
     case mode of
         0:
-        begin
+        begin            // Full name of active element
             if ActiveCircuit[ActiveActor] <> nil then
                 if ActiveDSSObject[ActiveActor] <> nil then
                     with ActiveDSSObject[ActiveActor] do

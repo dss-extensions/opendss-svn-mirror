@@ -655,7 +655,7 @@ var
 begin
     case mode of
         0:
-        begin  // Lines/AllNames
+        begin  // Lines.AllNames
             myType := 4;        // String
             setlength(myStrArray, 0);
             mySize := 0;

@@ -167,7 +167,7 @@ begin
             Mtr.SaveAll(ActiveActor);
         end;
         9:
-        begin                                             // Circuit.SetActiveBusi
+        begin                                             // Circuit.SetActiveBusi write
             Result := -1;   // Signifies Error
             if Assigned(ActiveCircuit[ActiveActor]) then
                 with ActiveCircuit[ActiveActor] do

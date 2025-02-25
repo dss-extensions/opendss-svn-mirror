@@ -277,7 +277,7 @@ begin
             end
         end;
         15:
-        begin  // LineCodes.NormAmps Write
+        begin  // LineCodes.EmergAmps Write
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 pLineCode := LineCodeClass.GetActiveObj;

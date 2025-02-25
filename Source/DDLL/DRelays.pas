@@ -102,7 +102,7 @@ begin
                 Result := elem.ElementTerminal;
         end;
         6:
-        begin  // Relays.SwitchedTerm read
+        begin  // Relays.SwitchedTerm write
             elem := RelayClass.GetActiveObj;
             if elem <> nil then
                 Set_parameter('SwitchedTerm', IntToStr(arg));

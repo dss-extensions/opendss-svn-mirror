@@ -21,7 +21,7 @@ begin
             Result := cabs(cmplx(arg1, arg2));
         end;
         1:
-        begin
+        begin    // CmathLib.Cdang
             Result := cdang(cmplx(arg1, arg2));
         end
     else

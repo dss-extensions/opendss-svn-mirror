@@ -149,7 +149,7 @@ begin
                 Result := elem.ElementTerminal;
         end;
         7:
-        begin
+        begin   // SwtControls.SwitchedTerm write
             Set_Parameter('SwitchedTerm', IntToStr(arg));
         end;
         8:
