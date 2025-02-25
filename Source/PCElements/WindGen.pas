@@ -619,7 +619,7 @@ Begin
           1: NPhases              :=  Parser[ActorID].Intvalue; // num phases
           2: SetBus(1, param);
           3: PresentkV            :=  Parser[ActorID].DblValue;
-          4: kWBase               :=  Parser[ActorID].DblValue;
+          4: kWBase               :=  Parser[ActorID].DblValueNZ;
           5: PFNominal            :=  Parser[ActorID].DblValue;
           6: GenModel             :=  Parser[ActorID].IntValue;
           7: YearlyShape          :=  Param;
@@ -632,10 +632,10 @@ Begin
          15: VMaxPu               :=  Parser[ActorID].DblValue;
          16: Begin
               WindModelDyn.EditProp(13,Param);
-              WindGenVars.kVArating    :=  Parser[ActorID].DblValue;
+              WindGenVars.kVArating    :=  Parser[ActorID].DblValueNZ;
              End;
          17: Begin
-              WindGenVars.kVArating    :=  Parser[ActorID].DblValue * 1000.0;  // 'MVA';
+              WindGenVars.kVArating    :=  Parser[ActorID].DblValueNZ * 1000.0;  // 'MVA';
               WindModelDyn.EditProp(13,FloatToStr(WindGenVars.kVArating));
              End;
          18: UserModel.Name       :=  Parser[ActorID].StrValue;  // Connect to user written models
