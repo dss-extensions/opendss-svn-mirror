@@ -31,6 +31,7 @@
 #include <locale>
 #include <codecvt>
 #include <stdio.h>
+#include <chrono>
 
 
 #define BUFSIZE 10000;
@@ -719,7 +720,8 @@ namespace DSSGlobals
         bool result = false;
 
         using namespace std::chrono;
-        milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+
+        milliseconds ms = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
         std::string myTS = to_string(ms.count());
         
         std::string myPath = Dir + myTS;
