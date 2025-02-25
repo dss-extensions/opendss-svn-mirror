@@ -903,6 +903,41 @@ namespace ParserDel
 		return result;
 	}
 
+	/*======================================================================================================================
+	 | This routine returns the last parsed value as a Double ignoring zero values. If the value is zero (0) it returns a  |
+	 | non zero value. In this case the value returned will be a very small value (1e-8)                                   |
+	 ======================================================================================================================*/
+
+        double TParser::MakeDoubleNZ_()
+        {
+            double result = 1e-8;
+            int Code = 0;
+            if (FAutoIncrement)
+                GetNextParam();
+            ConvertError = false;
+            if (TokenBuffer.length() == 0)
+                result = 0.0;
+            else
+            {
+                if (IsQuotedString)
+                    result = InterpretRPNString(Code);
+                else
+                    val(TokenBuffer, &result, &Code);
+
+				if (result < 1e-8)
+                    result = 1e-8;
+
+                if (Code != 0)
+                // not needed with Raise ...  Result := 0.0;
+                {
+                    ConvertError = true;
+                    // throw EParserProblem("Floating point number conversion error for string: \"" + TokenBuffer
+                    //	+ "\"");
+                }
+            }
+            return result;
+        }
+
 	/*=======================================================================================================================*/
 
 	String TParser::Get_Remainder()

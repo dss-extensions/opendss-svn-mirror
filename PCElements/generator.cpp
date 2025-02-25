@@ -438,7 +438,7 @@ int TGenerator::Edit(int ActorID)
 						with0->Set_PresentkV(Parser[ActorID]->MakeDouble_()			);
 					break;
 					case 	4:
-						with0->kWBase = Parser[ActorID]->MakeDouble_();
+						with0->kWBase = Parser[ActorID]->MakeDoubleNZ_();
 					break;
 					case 	5:
 						with0->PFNominal = Parser[ActorID]->MakeDouble_();
@@ -507,10 +507,10 @@ int TGenerator::Edit(int ActorID)
 						with0->FForcedON = InterpretYesNo(Param);
 					break;
 					case 	26:
-						with0->GenVars.kVArating = Parser[ActorID]->MakeDouble_();
+						with0->GenVars.kVArating = Parser[ActorID]->MakeDoubleNZ_();
 					break;
 					case 	27:
-						with0->GenVars.kVArating = Parser[ActorID]->MakeDouble_() * 1000.0;
+						with0->GenVars.kVArating = Parser[ActorID]->MakeDoubleNZ_() * 1000.0;
 					break;  // 'MVA';
 					case 	28:
 						with0->GenVars.puXd = Parser[ActorID]->MakeDouble_();

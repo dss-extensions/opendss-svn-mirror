@@ -544,7 +544,7 @@ int TLoad::Edit(int ActorID)
 				with0->kVLoadBase = Parser[ActorID]->MakeDouble_();
 				break;
 				case 	4:
-				with0->kWBase = Parser[ActorID]->MakeDouble_();
+				with0->kWBase = Parser[ActorID]->MakeDoubleNZ_();
 				break;
 				case 	5:
 				with0->PFNominal = Parser[ActorID]->MakeDouble_();
@@ -619,7 +619,7 @@ int TLoad::Edit(int ActorID)
 				with0->Set_kVAAllocationFactor(Parser[ActorID]->MakeDouble_());
 				break;
 				case 	23:
-				with0->kVABase = Parser[ActorID]->MakeDouble_();
+				with0->kVABase = Parser[ActorID]->MakeDoubleNZ_();
 				break;
 				case 	24:
 				with0->FpuMean = Parser[ActorID]->MakeDouble_() / 100.0;
