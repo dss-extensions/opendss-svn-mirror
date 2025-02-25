@@ -81,6 +81,7 @@ Type
        Function MakeString:String;
        Function MakeInteger:Integer;
        Function MakeDouble:Double;
+       Function MakeDoubleNZ:Double;
        Function GetNextParam:String;
        Function Point2PrevParam:Integer;
        Procedure SkipWhiteSpace(Const LineBuffer:String; Var LinePos:Integer);
@@ -96,6 +97,7 @@ Type
        constructor Create;
        destructor Destroy; override;
        Property DblValue:Double   read MakeDouble;
+       Property DblValueNZ:Double   read MakeDoubleNZ;
        Property IntValue:Integer  read MakeInteger;
        Property StrValue:String   read MakeString;
        Property Token:String      read TokenBuffer   write TokenBuffer;
@@ -833,6 +835,37 @@ Begin
            Raise EParserProblem.Create('Floating point number conversion error for string: "'+TokenBuffer+'"');
          End;
      End;
+
+End;
+
+{=======================================================================================================================
+ | This routine returns the last parsed value as a Double ignoring zero values. If the value is zero (0) it returns a  |
+ | non zero value. In this case the value returned will be a very small value (1e-8)                                   |
+ =======================================================================================================================}
+
+Function TParser.MakeDoubleNZ:Double;
+Var Code:Integer;
+Begin
+
+  IF FAutoIncrement THEN GetNextParam;
+  ConvertError := FALSE;
+  If Length(TokenBuffer)=0 Then Result :=1e-8
+  Else
+  Begin
+
+    If IsQuotedString Then  Result := InterpretRPNString(Code)
+    Else  Val(TokenBuffer, Result, Code);
+
+    if Result < 1e-8 then Result := 1e-8;
+
+    If Code<>0 Then
+    Begin
+     // not needed with Raise ...  Result := 0.0;
+     ConvertError := TRUE;
+     Raise EParserProblem.Create('Floating point number conversion error for string: "'+TokenBuffer+'"');
+    End;
+
+  End;
 
 End;
 

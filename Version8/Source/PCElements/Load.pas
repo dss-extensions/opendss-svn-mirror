@@ -574,7 +574,7 @@ Begin
             1: Nphases      := Parser[ActorID].Intvalue; // num phases
             2: SetBus(1, param);
             3: kVLoadBase   := Parser[ActorID].DblValue;
-            4: kWBase       := Parser[ActorID].DblValue;
+            4: kWBase       := Parser[ActorID].DblValueNZ;
             5: PFNominal    := Parser[ActorID].DblValue;
             6: FLoadModel   := Parser[ActorID].IntValue;
             7: YearlyShape  := Param;
@@ -598,7 +598,7 @@ Begin
            20: VminEmerg     := Parser[ActorID].DblValue;
            21: ConnectedkVA  := Parser[ActorID].DblValue;
            22: kVAAllocationFactor := Parser[ActorID].DblValue;
-           23: kVABase       := Parser[ActorID].DblValue;
+           23: kVABase       := Parser[ActorID].DblValueNZ;
            24: FpuMean       := Parser[ActorID].DblValue/100.0;
            25: FpuStdDev     := Parser[ActorID].DblValue/100.0;
            26: FCVRwattFactor:= Parser[ActorID].DblValue;

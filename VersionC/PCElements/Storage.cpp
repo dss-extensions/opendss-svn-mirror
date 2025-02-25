@@ -580,7 +580,7 @@ int TStorage::Edit(int ActorID)
 						with0->Set_PresentkV(Parser[ActorID]->MakeDouble_());
 					break;
 					case 	propKW:
-						with0->Set_kW( Parser[ActorID]->MakeDouble_());
+						with0->Set_kW( Parser[ActorID]->MakeDoubleNZ_());
 					break;
 					case 	propPF:
 					{
@@ -664,7 +664,7 @@ int TStorage::Edit(int ActorID)
 					/*# with StorageVars do */
 					{
 						auto& with1 = with0->StorageVars;
-						with1.FkVArating = Parser[ActorID]->MakeDouble_();
+						with1.FkVArating = Parser[ActorID]->MakeDoubleNZ_();
 						with0->kVASet = true;
 						if(!with0->kvarLimitSet)
 							with0->StorageVars.Fkvarlimit = with1.FkVArating;
@@ -673,7 +673,7 @@ int TStorage::Edit(int ActorID)
 					}
 					break;
 					case 	propKWRATED:
-						with0->StorageVars.kWrating = Parser[ActorID]->MakeDouble_();
+						with0->StorageVars.kWrating = Parser[ActorID]->MakeDoubleNZ_();
 					break;
 					case 	propKWHRATED:
 						with0->StorageVars.kWhRating = Parser[ActorID]->MakeDouble_();

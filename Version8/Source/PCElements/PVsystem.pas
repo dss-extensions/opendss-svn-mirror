@@ -745,7 +745,7 @@ FUNCTION TPVsystem.Edit(ActorID : Integer):Integer;
                 propVMAXPU        : VMaxPu       := Parser[ActorID].DblValue;
                 propKVA           : With PVSystemVars Do
                                       Begin
-                                        FkVArating    := Parser[ActorID].DblValue;
+                                        FkVArating    := Parser[ActorID].DblValueNZ;
                                         if not kvarLimitSet                       then PVSystemVars.Fkvarlimit    := FkVArating;
                                         if not kvarLimitSet and not kvarLimitNegSet then PVSystemVars.Fkvarlimitneg := FkVArating;
                                       End;
