@@ -533,7 +533,7 @@ int TPVSystem::Edit(int ActorID)
 					/*# with PVSystemVars do */
 					{
 						auto& with1 = with0->PVSystemVars;
-						with1.FkVArating = Parser[ActorID]->MakeDouble_();
+						with1.FkVArating = Parser[ActorID]->MakeDoubleNZ_();
 						if(!with0->kvarLimitSet)
 							with0->PVSystemVars.Fkvarlimit = with1.FkVArating;
 						if(!(with0->kvarLimitSet) && !(with0->kvarLimitNegSet))

@@ -638,7 +638,7 @@ Begin
             1: NPhases              :=  Parser[ActorID].Intvalue; // num phases
             2: SetBus(1, param);
             3: PresentkV            :=  Parser[ActorID].DblValue;
-            4: kWBase               :=  Parser[ActorID].DblValue;
+            4: kWBase               :=  Parser[ActorID].DblValueNZ;
             5: PFNominal            :=  Parser[ActorID].DblValue;
             6: GenModel             :=  Parser[ActorID].IntValue;
             7: YearlyShape          :=  Param;
@@ -660,7 +660,7 @@ Begin
            23: VMinPu               :=  Parser[ActorID].DblValue;
            24: VMaxPu               :=  Parser[ActorID].DblValue;
            25: FForcedON            :=  InterpretYesNo(Param);
-           26: GenVars.kVArating    :=  Parser[ActorID].DblValue;
+           26: GenVars.kVArating    :=  Parser[ActorID].DblValueNZ;
            27: GenVars.kVArating    :=  Parser[ActorID].DblValue * 1000.0;  // 'MVA';
            28: GenVars.puXd         :=  Parser[ActorID].DblValue;
            29: GenVars.puXdp        :=  Parser[ActorID].DblValue;

@@ -953,7 +953,7 @@ Begin
                 1               : NPhases            := Parser[ActorID].Intvalue;
                 2               : SetBus(1, param);
                propKV           : PresentkV          := Parser[ActorID].DblValue;
-               propKW           : kW                 := Parser[ActorID].DblValue;
+               propKW           : kW                 := Parser[ActorID].DblValueNZ;
                propPF           : Begin
                                     varMode          := VARMODEPF;
                                     PFnominal        := Parser[ActorID].DblValue;
@@ -985,7 +985,7 @@ Begin
                propVMAXPU       : VMaxPu             := Parser[ActorID].DblValue;
                propSTATE        : FState             := InterpretState(Param); //****
                propKVA          : With StorageVars Do Begin
-                                      FkVArating     := Parser[ActorID].DblValue;
+                                      FkVArating     := Parser[ActorID].DblValueNZ;
                                       kVASet         := TRUE;
                                       if not kvarLimitSet                         then StorageVars.Fkvarlimit    := FkVArating;
                                       if not kvarLimitSet and not kvarLimitNegSet then StorageVars.Fkvarlimitneg := FkVArating;

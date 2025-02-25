@@ -83,6 +83,7 @@ public:
 	String MakeString_();
 	int MakeInteger_();
 	double MakeDouble_();
+    double MakeDoubleNZ_();
 	String GetNextParam();
     int Point2PrevParam();
 	void SkipWhitespace(const String& LineBuffer, int * LinePos);

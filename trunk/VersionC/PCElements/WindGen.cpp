@@ -459,7 +459,7 @@ int TWindGen::Edit(int ActorID)
 						with0->Set_PresentkV(Parser[ActorID]->MakeDouble_());
 					break;
 					case 	4:
-						with0->kWBase = Parser[ActorID]->MakeDouble_();
+						with0->kWBase = Parser[ActorID]->MakeDoubleNZ_();
 					break;
 					case 	5:
 						with0->PFNominal = Parser[ActorID]->MakeDouble_();
@@ -494,12 +494,12 @@ int TWindGen::Edit(int ActorID)
                     case	16:
                     {
                         with0->WindModelDyn->EditProp(13, Param);
-                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_();
+                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDoubleNZ_();
                     }
 					break;
                     case	17:
                     {
-                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDouble_() * 1e3;  // 'MVA'
+                        with0->WindGenVars.kVArating = Parser[ActorID]->MakeDoubleNZ_() * 1e3;  // 'MVA'
                         with0->WindModelDyn->EditProp(13, to_string(with0->WindGenVars.kVArating));
                     }
 					break;
