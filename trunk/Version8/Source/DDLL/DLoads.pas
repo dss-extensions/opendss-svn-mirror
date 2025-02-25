@@ -195,10 +195,10 @@ begin
         if pload <> nil then
           Result := pload.kVLoadBase;
        end;
-    3: begin
+    3: begin                                     // Loads.kV  Write
         pload := ActiveLoad;
         if pload <> nil then
-          Begin                                // Loads.kV  Write
+          Begin
             pload.kVLoadBase := arg;
             pload.UpdateVoltageBases;  // side effects
           end;
@@ -244,137 +244,137 @@ begin
         if pload <> nil then
           Result := pload.puStdDev * 100.0;
        end;
-   11: begin
+   11: begin               // Loads.PctStdDev  write
           Set_Parameter ('%stddev', FloatToStr (arg));
        end;
-   12: begin
+   12: begin               // Loads.AllocationFactor  read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.AllocationFactor;
        end;
-   13: begin
+   13: begin                        // Loads.AllocationFactor  write
           Set_Parameter ('AllocationFactor', FloatToStr (arg));
        end;
-   14: begin
+   14: begin                    // Loads.CFactor  read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.CFactor;
        end;
-   15: begin
+   15: begin                     // Loads.CFactor  write
           Set_Parameter ('Cfactor', FloatToStr (arg));
        end;
-   16: begin
+   16: begin                     // Loads.CVRwatts  read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.CVRwatts;
        end;
-   17: begin
+   17: begin                      // Loads.CVRwatts  write
           Set_Parameter ('CVRwatts', FloatToStr (arg));
        end;
-   18: begin
+   18: begin                      // Loads.CVRvars  read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.CVRvars;
        end;
-   19: begin
+   19: begin                       // Loads.CVRvars  write
           Set_Parameter ('CVRvars', FloatToStr (arg));
        end;
-   20: begin
+   20: begin                      // Loads.kVA read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.kVABase;
        end;
-   21: begin
+   21: begin                      // Loads.kVA write
           Set_Parameter ('kva', FloatToStr (arg));
        end;
-   22: begin
+   22: begin                 // Loads.kWh read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.kWh;
        end;
-   23: begin
+   23: begin                // Loads.kWh write
           Set_Parameter ('kwh', FloatToStr (arg));
        end;
-   24: begin
+   24: begin                   // Loads.kWhDays read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.kWhDays;
        end;
-   25: begin
+   25: begin                  // Loads.kWhDays write
           Set_Parameter ('kwhdays', FloatToStr (arg));
        end;
-   26: begin
+   26: begin                  // Loads.Rneut read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.Rneut;
        end;
-   27: begin
+   27: begin                  // Loads.Rneut write
           Set_Parameter ('Rneut', FloatToStr (arg));
        end;
-   28: begin
+   28: begin                   // Loads.VmaxPu read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.MaxPU;
        end;
-   29: begin
+   29: begin                   // Loads.VmaxPu write
           Set_Parameter ('VmaxPu', FloatToStr (arg));
        end;
-   30: begin
+   30: begin                            // Loads.VminEmerg read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.MinEmerg;
        end;
-   31: begin
+   31: begin                        // Loads.VminEmerg write
           Set_Parameter ('VminEmerg', FloatToStr (arg));
        end;
-   32: begin
+   32: begin                          // Loads.VminNorm read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.MinNormal;
        end;
-   33: begin
+   33: begin                          // Loads.VminNorm write
           Set_Parameter ('VminNorm', FloatToStr (arg));
        end;
-   34: begin
+   34: begin                          // Loads.VminPu read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.MinPU;
        end;
-   35: begin
+   35: begin                          // Loads.VminPu write
           Set_Parameter ('VminPu', FloatToStr (arg));
        end;
-   36: begin
+   36: begin                          // Loads.XfmrkVA read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.ConnectedkVA;
        end;
-   37: begin
+   37: begin                         // Loads.XfmrkVA write
           Set_Parameter ('XfKVA', FloatToStr (arg));
        end;
-   38: begin
+   38: begin                         // Loads.Xneut read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.Xneut;
        end;
-   39: begin
+   39: begin                         // Loads.Xneut write
           Set_Parameter ('Xneut', FloatToStr (arg));
        end;
-   40: begin
+   40: begin                          // Loads.puSeriesRL read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.puSeriesRL * 100.0;
        end;
-   41: begin
+   41: begin                          // Loads.puSeriesRL write
         pload := ActiveLoad;
         if pload <> nil then
            pload.puSeriesRL  := arg / 100.0;
        end;
-   42: begin
+   42: begin                          // Loads.RelWeighting read
         pload := ActiveLoad;
         if pload <> nil then
           Result := pload.RelWeighting;
        end;
-   43: begin
+   43: begin                          // Loads.RelWeighting write
         pload := ActiveLoad;
         if pload <> nil then
           pload.RelWeighting := arg;

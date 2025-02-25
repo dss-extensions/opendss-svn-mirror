@@ -183,14 +183,14 @@ begin
            Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].lat := arg;
         End;
   end;
-  14: begin                                          // Bus.latitude read
+  14: begin                                          // Bus.longitude read
       Result := 0.0;
        If (ActiveCircuit[ActiveActor] <> Nil) Then With ActiveCircuit[ActiveActor] Do
         IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
          IF (Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].Coorddefined) Then
            Result := Buses^[ActiveCircuit[ActiveActor].ActiveBusIndex].long;
   end;
-  15: begin                                          // Bus.Latitude write
+  15: begin                                          // Bus.longitude write
       If (ActiveCircuit[ActiveActor] <> Nil) Then With ActiveCircuit[ActiveActor] Do
         IF (ActiveBusIndex > 0) and (ActiveBusIndex <= Numbuses) Then
         Begin

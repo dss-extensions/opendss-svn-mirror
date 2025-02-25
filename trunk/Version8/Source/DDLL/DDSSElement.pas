@@ -37,7 +37,7 @@ function DSSElementS(mode:longint; arg: pAnsiChar):pAnsiChar;cdecl;
 begin
   Result:=pAnsiChar(AnsiString(''));// Default return value
   case mode of
-  0: begin
+  0: begin            // Full name of active element
      If ActiveCircuit[ActiveActor] <> Nil Then
        if ActiveDSSObject[ActiveActor] <> Nil then
         WITH ActiveDSSObject[ActiveActor] DO

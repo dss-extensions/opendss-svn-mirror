@@ -112,7 +112,7 @@ begin
       elem := ActiveSwtControl;
       if elem <> nil then Result := elem.ElementTerminal;
   end;
-  7: begin
+  7: begin   // SwtControls.SwitchedTerm write
       Set_Parameter ('SwitchedTerm', IntToStr (arg));
   end;
   8: begin  // SwtControls.Count
