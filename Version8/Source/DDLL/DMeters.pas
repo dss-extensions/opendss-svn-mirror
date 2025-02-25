@@ -111,8 +111,8 @@ begin
      ELSE Begin
           Result := 0;
      End;
-  end;    // Meters.MeteredTerminal Write
-  7: begin
+  end;
+  7: begin  // Meters.MeteredTerminal Write
      IF ActiveCircuit[ActiveActor] <> Nil THEN
      Begin
           pMeter :=  TEnergyMeterObj(ActiveCircuit[ActiveActor].EnergyMeters.Active);
@@ -291,8 +291,8 @@ begin
              If ActiveSection>0 then Result := FeederSections^[ActiveSection].NBranches  ;
          End;
      End;
-  end;     // Meters.SectSeqidx
-  26: begin
+  end;
+  26: begin // Meters.SectSeqidx
      Result := 0;
      If Assigned(ActiveCircuit[ActiveActor]) Then With ActiveCircuit[ActiveActor] Do
      Begin

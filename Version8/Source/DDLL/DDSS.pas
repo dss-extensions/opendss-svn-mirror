@@ -35,7 +35,7 @@ begin
   1: begin  // DSS.ClearAll
       DoClearAllCmd;
   end;
-  2: begin
+  2: begin  // DSS Script form
     {$IFDEF FPC_DLL}
     Result:=0; // edit form not supported in FPC, but don't throw an error for trying...
     {$ELSE}

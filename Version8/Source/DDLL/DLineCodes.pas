@@ -229,7 +229,7 @@ begin
              Result := pLineCode.EmergAmps   ;
         End
       end;
-  15: begin  // LineCodes.NormAmps Write
+  15: begin  // LineCodes.EmergAmps Write
         IF ActiveCircuit[ActiveActor] <> NIL
         THEN Begin
              pLineCode := LineCodeClass.GetActiveObj ;
