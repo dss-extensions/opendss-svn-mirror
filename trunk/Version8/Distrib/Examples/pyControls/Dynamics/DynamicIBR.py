@@ -277,7 +277,7 @@ try:
         # First, get the voltage at this bus
         DSSText.Command = 'set Bus=' + pars['bus']
         DSSText.Command = 'voltages'
-        VperPhase = DSSText.Result.replace(' ','').split(',')
+youtu        VperPhase = DSSText.Result.replace(' ','').split(',')
         j = 0
         cVolts = []
         for i in range(pars['NumPhases']):
