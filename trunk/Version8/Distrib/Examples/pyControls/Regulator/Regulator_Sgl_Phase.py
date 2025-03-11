@@ -4,7 +4,7 @@ Created on Thu Dec  5 10:23:05 2024
 
 @author: Davis Montenegro
 
-Implements a regualtor using the pyControl object strcuture to be used within an
+Implements a regulator using the pyControl object structure to be used within an
 OpenDSS simulation. Use this structure as base for implementing your own
 controls.
  

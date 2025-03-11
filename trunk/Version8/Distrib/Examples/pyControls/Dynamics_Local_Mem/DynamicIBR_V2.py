@@ -4,9 +4,9 @@ Created on Thu Jan  20 10:23:05 2025
 
 @author: Davis Montenegro
 
-Implements a constant PQ load using the pyControl object structure within an
-OpenDSS simulation. Use this structure as base for implementing your own
-controls.
+Implements an IBR model for dynamics simulation. The IBR includes an PI controller
+for controlling the averaged duty cycle when inverting the DC signal.
+This model stores the local variables using python's local environment.
 
 Each time step in the dynamics mode solution executes the following steps:
     
