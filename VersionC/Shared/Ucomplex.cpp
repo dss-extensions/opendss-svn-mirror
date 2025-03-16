@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "Ucomplex.h"
-#include "d2c_Structures.h"
+#include "d2c_structures.h"
 
 using namespace std;
 
