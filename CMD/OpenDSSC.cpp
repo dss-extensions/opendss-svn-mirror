@@ -340,7 +340,7 @@ void TMyApplication::WriteHelp()
 
 void TMyApplication::WriteLicensing()
 {
-    CoutLn("Copyright (c) 2008-2024, Electric Power Research Institute, Inc." 
+    CoutLn("Copyright (c) 2008-2025, Electric Power Research Institute, Inc." 
         + CRLF + "All rights reserved." 
         + CRLF + "" 
         + CRLF + "Redistribution and use in source and binary forms, with or without" 
@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
 
     CoutLn("**********************EPRI OpenDSS simulator**********************");
     CoutLn("* OpenDSS console " + VersionString + "          *");
-    CoutLn("*Copyright (c) 2008-2024, Electric Power Research Institute, Inc.*");
+    CoutLn("*Copyright (c) 2008-2025, Electric Power Research Institute, Inc.*");
     CoutLn("******************************************************************");
 
 #ifdef OPENDSSC_CPP_MAIN_AFTER_INIT
