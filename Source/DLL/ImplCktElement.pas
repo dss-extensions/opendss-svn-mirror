@@ -769,7 +769,7 @@ begin
             if ActiveCktElement <> nil then
                 with ActiveCktElement do
                 begin
-                    ActiveTerminal := Terminals^[Term];
+                    ActiveTerminalIdx := Term;
                     Closed[Phs, ActiveActor] := true;
                 end;
         end;
@@ -786,7 +786,7 @@ begin
             if ActiveCktElement <> nil then
                 with ActiveCktElement do
                 begin
-                    ActiveTerminal := Terminals^[Term];
+                    ActiveTerminalIdx := Term;
                     Closed[Phs, ActiveActor] := false;
                 end;
         end;
@@ -841,7 +841,7 @@ begin
         with ActiveCircuit[ActiveActor] do
         begin
             with ActiveCktElement do
-                ActiveTerminal := Terminals^[Term];
+                ActiveTerminalIdx := Term;
             if Phs = 0 then // At least one must be open
             begin
                 Result := false;
