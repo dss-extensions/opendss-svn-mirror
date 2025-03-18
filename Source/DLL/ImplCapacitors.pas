@@ -338,7 +338,7 @@ Begin
       If elem <> nil THEN
       WITH elem DO
       Begin
-        ActiveTerminal := Terminals^[1];  // make sure terminal 1 is closed
+        ActiveTerminalIdx := 1;  // make sure terminal 1 is closed
         Closed[0,ActiveActor] := TRUE;    // closes all phases
         for i := 1 to NumSteps  do  States[i,ActiveActor] := 1;
       End;

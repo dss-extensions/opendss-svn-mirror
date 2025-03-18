@@ -158,8 +158,8 @@ begin
               If ActiveCktElement<>nil THEN
               WITH ActiveCktElement DO
               Begin
-               ActiveTerminal := Terminals^[arg];
-              Closed[3,ActiveActor] := FALSE;
+                ActiveTerminalIdx := arg;
+                Closed[3,ActiveActor] := FALSE;
               End;
            End;
            Result:=0;
@@ -171,8 +171,8 @@ begin
               If ActiveCktElement<>nil THEN
               WITH ActiveCktElement DO
               Begin
-               ActiveTerminal := Terminals^[arg];
-              Closed[3,ActiveActor] := TRUE;
+               ActiveTerminalIdx := arg;
+               Closed[3,ActiveActor] := TRUE;
               End;
            End;
            Result:=0;
@@ -181,14 +181,14 @@ begin
             If ActiveCircuit[ActiveActor] <> Nil Then
            With ActiveCircuit[ActiveActor] Do
            Begin
-               With ActiveCktElement Do ActiveTerminal := Terminals^[arg];
+               With ActiveCktElement Do ActiveTerminalIdx := arg;
                Result := 0;
                For iControl := 1 to ActiveCktElement.NConds Do
                   If not ActiveCktElement.Closed[iControl,ActiveActor] Then
-                    Begin
-                       Result :=  1;
-                       Exit;
-                    End;
+                  Begin
+                     Result :=  1;
+                     Exit;
+                  End;
            End;
         end;
         6: begin                                    // CktElement.NumProperties
