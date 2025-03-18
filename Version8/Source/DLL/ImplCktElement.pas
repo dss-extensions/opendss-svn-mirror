@@ -702,7 +702,7 @@ Begin
       If ActiveCktElement<>nil THEN
       WITH ActiveCktElement DO
       Begin
-        ActiveTerminal := Terminals^[Term];
+        ActiveTerminalIdx := Term;
         Closed[Phs,ActiveActor] := TRUE;
       End;
    End;
@@ -719,7 +719,7 @@ Begin
       If ActiveCktElement<>nil THEN
       WITH ActiveCktElement DO
       Begin
-        ActiveTerminal := Terminals^[Term];
+        ActiveTerminalIdx := Term;
         Closed[Phs,ActiveActor] := FALSE;
       End;
    End;
@@ -770,7 +770,7 @@ begin
      If ActiveCircuit[ActiveActor] <> Nil Then
      With ActiveCircuit[ActiveActor] Do
      Begin
-         With ActiveCktElement Do ActiveTerminal := Terminals^[Term];
+         With ActiveCktElement Do ActiveTerminalIdx := Term;
          If Phs=0 Then // At least one must be open
          Begin
              Result := False;
