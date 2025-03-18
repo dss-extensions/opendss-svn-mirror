@@ -57,15 +57,18 @@ begin
                 if WindGenClass[ActiveActor].ElementList.ListSize > 0 then
                 begin
                     pList := WindGenClass[ActiveActor].ElementList;
-                    WindGenElem := pList.First;
+                    WindGenElem := pList.Next;
                     repeat
-                        if WindGenElem.Enabled then
+                        if WindGenElem <> nil then
                         begin
-                            ActiveCircuit[ActiveActor].ActiveCktElement := WindGenElem;
-                            Result := pList.ActiveIndex;
+                            if WindGenElem.Enabled then
+                            begin
+                                ActiveCircuit[ActiveActor].ActiveCktElement := WindGenElem;
+                                Result := pList.ActiveIndex;
+                            end
+                            else
+                                WindGenElem := pList.Next;
                         end
-                        else
-                            WindGenElem := pList.Next;
                     until (Result > 0) or (WindGenElem = nil);
                 end
                 else
