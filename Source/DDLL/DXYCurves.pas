@@ -152,7 +152,7 @@ begin
                 pXYCurve := XYCurveClass[ActiveActor].GetActiveObj;
                 if pXYCurve <> nil then
                 begin
-                    pXYCurve.FYScale := arg;
+                    pXYCurve.Y := arg;
                 end
                 else
                 begin
