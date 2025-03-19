@@ -2661,12 +2661,6 @@ int DoCapacityCmd()
 		if(ActiveCircuit[ActiveActor]->ComputeCapacity(ActiveActor))   // Totalizes EnergyMeters at End
 		{
 			GlobalResult = Format("%-.6g", (ActiveCircuit[ActiveActor]->RegisterTotals[3 - 1] + ActiveCircuit[ActiveActor]->RegisterTotals[19 - 1]));  // Peak KW in Meters
-            vector<double> TmpV;
-			TmpV.resize(22);
-            for (int i=0; i < 20; i++)
-			{
-                TmpV[i] = ActiveCircuit[ActiveActor]->RegisterTotals[i];
-			}
 			AppendGlobalResult(Format("%-.6g", ActiveCircuit[ActiveActor]->get_FLoadMultiplier()));
 		}
 	}
