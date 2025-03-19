@@ -720,11 +720,13 @@ namespace CktElement
             n = ActiveTerminal->TermNodeRef[i - 1]; // don't bother for grounded node
             double re = with0->Solution->NodeV[n].re;
             double im = with0->Solution->NodeV[n].im;
-            if ( (!ADiakoptics) || (ActorID == 1))
+            if ((!ADiakoptics) || (ActorID == 1))
             {
-              if ( n > 0 )
-                  caccum(cPower, cmul(with0->Solution->NodeV[n], conjg(Iterminal[(k) + i - 1])));
-              else
+                if (n > 0)
+                    caccum(cPower, cmul(with0->Solution->NodeV[n], conjg(Iterminal[(k) + i - 1])));
+            }
+            else
+            {
                 if ( n > 0 )
                   caccum( cPower, cmul(with0->Solution->VoltInActor1( n ), conjg( Iterminal[(k) + i - 1] ) ) );
             }
