@@ -17,6 +17,7 @@ Changes this version
 - Fixes issus introduced in v 10.1.0.1 preventing A-Diakoptics to work properly.
 - DSSpyServer updated for working under Linux and Windows environments.
 - Introduces the pyControl object for allowing users modeling elements in native Python. The object is integrated into the simulation as a python script. 
+- Fixes issues in COM and DLL affecting XYCurves [r4007] and Allocation factor [r4008]. 
 
 C++:
 - "UserManual" command triggers the online user manual in both, Windows and Linux.
