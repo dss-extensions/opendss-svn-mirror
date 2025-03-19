@@ -9517,7 +9517,7 @@ void MetersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			if (pMeterObj != nullptr)
 			{
 				myDblArray.resize(pMeterObj->Fnphases);
-				for (i = 0; i < pMeterObj->Fnphases; i++)
+				for (k = 0; k < pMeterObj->Fnphases; k++)
 				{
 					myDblArray[k] = pMeterObj->PhsAllocationFactor[k];
 				}
