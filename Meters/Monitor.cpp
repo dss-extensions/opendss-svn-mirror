@@ -1069,8 +1069,8 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 						{
 							Add2Header(",|IN| (amps)");
 						}
-						RecordSize += 1;
-						Add2Header(", Freq (Hz)"); // BLS
+						//RecordSize += 1;
+						//Add2Header(", Freq (Hz)"); // BLS 
 					}
 					else
   // Power
@@ -1093,11 +1093,11 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 					RecordSize = 2;
 					if(!IsPower)
 					{
-						RecordSize = RecordSize + 3;
-						if(VIpolar)
-							Add2Header("V1, V1ang, I1, I1ang, Freq (Hz)"); // BLS
+						RecordSize = RecordSize + 2; // 3;
+                        if (VIpolar)
+                            Add2Header("V1, V1ang, I1, I1ang"); //, Freq (Hz)"); // BLS
 						else
-							Add2Header("V1.re, V1.im, I1.re, I1.im, Freq (Hz)"); // BLS
+							Add2Header("V1.re, V1.im, I1.re, I1.im"); //, Freq (Hz)"); // BLS
 					}
 					else
 					{
@@ -1113,8 +1113,8 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 					RecordSize = 1;
 					if(!IsPower)
 					{
-						RecordSize = RecordSize + 2;
-						Add2Header("V, I, Freq (Hz) "); //BLS
+						RecordSize = RecordSize + 1; //2
+						Add2Header("V, I"); //, Freq (Hz) "); //BLS
 					}
 					else
   // Power
@@ -1176,8 +1176,8 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 						else
 							Add2Header(", IN.re, IN.im");
 					}
-					RecordSize = RecordSize + 1;
-					Add2Header(", Freq (Hz)"); // BLS
+					RecordSize = RecordSize; // + 1;
+					//Add2Header(", Freq (Hz)"); // BLS // 03/19/2025 Commented out since this was required by critical Pow. Can be brought back if needed
 				}
 				else
 				{
@@ -1759,7 +1759,7 @@ void TMonitorObj::TakeSample(int ActorID)
 				}
 				if(IncludeResidual)
 					AddDblToBuffer(ResidualCurr.re);
-				AddDblToBuffer(this->Freq); // BLS
+				//AddDblToBuffer(this->Freq); // BLS
 			}
 		}
 		break; // Save Pos Seq or Avg of all Phases or Total power (Complex)
@@ -1801,7 +1801,7 @@ void TMonitorObj::TakeSample(int ActorID)
 					}   // Corrected 3-11-13
 					Sum.re = Sum.re / Fnphases;
 					AddDblsToBuffer((pDoubleArray)&Sum.re, 2);
-					AddDblToBuffer(this->Freq); // BLS
+					//AddDblToBuffer(this->Freq); // BLS
 				}
 			}
 			
@@ -1836,7 +1836,7 @@ void TMonitorObj::TakeSample(int ActorID)
 					} //Cabs(CurrentBuffer^[Offset+i]);
 					dSum = dSum / Fnphases;
 					AddDblToBuffer(dSum);
-					AddDblToBuffer(this->Freq); // BLS
+					//AddDblToBuffer(this->Freq); // BLS
 				}
 			}
 		}
@@ -1859,7 +1859,7 @@ void TMonitorObj::TakeSample(int ActorID)
 				AddDblsToBuffer((pDoubleArray)&(CurrentBuffer)[Offset + 1 - 1].re, NumVI * 2);
 				if(IncludeResidual)
 					AddDblsToBuffer((pDoubleArray) &ResidualCurr, 2);
-				AddDblToBuffer(this->Freq); // BLS
+				//AddDblToBuffer(this->Freq); // BLS
 			}	
 			break;
 		}
