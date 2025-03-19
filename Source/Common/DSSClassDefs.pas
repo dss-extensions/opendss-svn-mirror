@@ -221,7 +221,7 @@ Begin
      WindGenClass[ActiveActor]    := TwindGen.Create;
      DSSClasses.New               := WindGenClass[ActiveActor];
      DSSClasses.New               := TGenDispatcher.Create;
-     DSSClasses.New               := TGenController.Create;
+ //    DSSClasses.New               := TGenController.Create;     //03\19\2025, commented out since up to date it does nothing.
      StorageClass[ActiveActor]    := TStorage.Create;
      DSSClasses.New               := StorageClass[ActiveActor];
 //     Storage2Class[ActiveActor]   := TStorage2.Create;
