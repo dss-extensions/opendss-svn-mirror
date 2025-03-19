@@ -4214,7 +4214,7 @@ double CircuitF(int mode, double arg1, double arg2)
 			with0->CapacityIncrement = arg2;
 			if (with0->ComputeCapacity(ActiveActor))
 			{
-				result = with0->RegisterTotals[3 - 1] + with0->RegisterTotals[19 - 1];
+				result = with0->RegisterTotals[3-1] + with0->RegisterTotals[19-1];
 			}
 			else
 				result = 0.0;

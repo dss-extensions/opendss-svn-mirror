@@ -2043,7 +2043,7 @@ namespace Circuit
         result = 0.0;
         for (int stop = count, i = 1; i <= stop; i++)
         {
-            result = result + mtrRegisters[(Regs)[i - 1]];
+            result = result + mtrRegisters[Regs[i - 1] - 1];
         }
         return result;
     }
