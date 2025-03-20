@@ -1147,9 +1147,9 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 					for(stop = IMax, i = IMin; i <= stop; i++)
 					{
 						if(VIpolar)
-							Add2Header((AnsiString(String("V") + IntToStr(i) + ", VAngle" + IntToStr(i))));
+							Add2Header("V" + IntToStr(i) + ", VAngle" + IntToStr(i));
 						else
-							Add2Header((AnsiString(String("V") + IntToStr(i) + ".re, V" + IntToStr(i) + ".im")));
+							Add2Header("V" + IntToStr(i) + ".re, V" + IntToStr(i) + ".im");
 						Add2Header(", ");
 					}
 					if(IncludeResidual)
@@ -1163,9 +1163,9 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 					for(stop = IMax, i = IMin; i <= stop; i++)
 					{
 						if(VIpolar)
-							Add2Header((AnsiString(String("I") + IntToStr(i) + ", IAngle" + IntToStr(i))));
+							Add2Header("I" + IntToStr(i) + ", IAngle" + IntToStr(i));
 						else
-							Add2Header((AnsiString(String("I") + IntToStr(i) + ".re, I" + IntToStr(i) + ".im")));
+							Add2Header("I" + IntToStr(i) + ".re, I" + IntToStr(i) + ".im");
 						if(i < NumVI)
 							Add2Header(", ");
 					}
@@ -1195,9 +1195,9 @@ void TMonitorObj::ClearMonitorStream(int ActorID)
 					for(stop = IMax, i = IMin; i <= stop; i++)
 					{
 						if(Ppolar)
-							Add2Header((AnsiString(String("S") + IntToStr(i) + " (kVA), Ang" + IntToStr(i))));
+							Add2Header("S" + IntToStr(i) + " (kVA), Ang" + IntToStr(i));
 						else
-							Add2Header((AnsiString(String("P") + IntToStr(i) + " (kW), Q" + IntToStr(i) + " (kvar)")));
+							Add2Header("P" + IntToStr(i) + " (kW), Q" + IntToStr(i) + " (kvar)");
 						if(i < NumVI)
 							Add2Header(", ");
 					}
