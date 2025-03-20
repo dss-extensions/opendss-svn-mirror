@@ -10057,7 +10057,7 @@ void MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				k = 0;
 				while (k < ListSize)
 				{
-					WriteStr2Array(AuxParser[ActiveActor]->MakeString_());
+					WriteStr2Array(AuxParser[ActiveActor]->MakeString_(), true);
 					WriteStr2Array(Char0());
 					k++;
 				}

@@ -385,12 +385,20 @@ namespace DSSGlobals
 
 //***********************DirectDLL interfacing globals**************************
 
-    void WriteStr2Array(String myStr)
+    void WriteStr2Array(String myStr, bool DelLastSpace)
     {
         int i = 0;
-        for (i = 0; i < myStr.size(); i++)
+        int SSize = myStr.size();
+        bool valid = true;
+        for (i = 0; i < SSize; i++)
         {
-            myStrArray.push_back(uint8_t(myStr[i]));
+             if (DelLastSpace)
+            {
+                if (i == (SSize - 1) && myStr[i] == ' ')
+                    valid = false;
+            }
+            if (valid)
+                myStrArray.push_back(uint8_t(myStr[i]));
         }
     }
 
