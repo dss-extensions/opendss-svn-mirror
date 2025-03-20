@@ -488,7 +488,7 @@ void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	case 0:											// DSS.Classes
 		*myType = 4;								// String
 		myStrArray.resize(0);
-		for (i = 1; i < NumIntrinsicClasses; i++)
+		for (i = 1; i <= NumIntrinsicClasses; i++)
 		{
 			WriteStr2Array(((TDSSClass*)DSSClassList[ActiveActor].Get(i))->Class_Name);
 			WriteStr2Array(Char0());
