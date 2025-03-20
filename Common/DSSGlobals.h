@@ -441,7 +441,7 @@ namespace DSSGlobals
     extern complex* YValues;
 
 
-    void WriteStr2Array(String myStr);
+    void WriteStr2Array(String myStr, bool DelLastSpace = false);
     String BArray2Str(void* myPtr, int* idx);
     String Char0();
 
