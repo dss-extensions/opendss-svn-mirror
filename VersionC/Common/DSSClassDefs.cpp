@@ -206,7 +206,7 @@ namespace DSSClassDefs
 #endif
         /* Create Classes for custom implementations */
         CreateMyDSSClasses();
-        NumIntrinsicClasses = DSSClassList[ActiveActor].get_myNumList() + 1; // this has to be done since the size is in sync with the index
+        NumIntrinsicClasses = DSSClassList[ActiveActor].get_myNumList();
         NumUserClasses = 0;
 
 
