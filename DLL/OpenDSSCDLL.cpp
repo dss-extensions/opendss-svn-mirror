@@ -10162,7 +10162,7 @@ void MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			if (pMon->SampleCount > 0)
 			{
 				PInt = *(int**)myPtr;
-				index = *PInt;
+				index = *PInt - 1;
 				myDblArray.resize(pMon->SampleCount);
 				ReadMonitorHeader(&Header, false);// leave at beginning of data
 				AuxParser[ActiveActor]->SetCmdString(pMon->StrBuffer.data());
