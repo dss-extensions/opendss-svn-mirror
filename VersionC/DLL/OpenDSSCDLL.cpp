@@ -10015,7 +10015,7 @@ void MonitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		break;
 	case 1:													// Monitors.ByteStream
-		*myType = 4; //string
+		*myType = 5; //string
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
