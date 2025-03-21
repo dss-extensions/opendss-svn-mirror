@@ -3261,11 +3261,8 @@ Var
    pctError       :String;
    dTemp          :Double;
 
-   c_Buffer :pComplexArray;
-
 Begin
      MaxNodeCurrent := Nil;
-     Getmem(c_buffer, sizeof(c_Buffer^[1])* GetMaxCktElementSize);
      Try
         Assignfile(F,FileNm);
         ReWrite(F);
