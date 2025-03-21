@@ -1832,8 +1832,7 @@ begin
      //Treat this just like the Load model
 
     CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
-    for i := 1 to FnConds do
-        InjCurrent^[i] := CZero;
+    //FOR i := 1 to FnConds Do InjCurrent^[i] := CZero;
     ZeroITerminal;
 
     CalcVTerminalPhase(ActorID); // get actual voltage across each phase of the load
