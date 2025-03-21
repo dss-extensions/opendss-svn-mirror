@@ -908,6 +908,7 @@ Begin
        IF (PCElem.Enabled) THEN Begin
         NCond := PCElem.NConds;
         Nterm := PCElem.Nterms;
+
         PCElem.GetCurrents(c_Buffer, ActiveActor);
 
         FOR j := 1 to NTerm Do Begin
@@ -3260,8 +3261,11 @@ Var
    pctError       :String;
    dTemp          :Double;
 
+   c_Buffer :pComplexArray;
+
 Begin
      MaxNodeCurrent := Nil;
+     Getmem(c_buffer, sizeof(c_Buffer^[1])* GetMaxCktElementSize);
      Try
         Assignfile(F,FileNm);
         ReWrite(F);
@@ -3280,7 +3284,9 @@ Begin
               IF   pCktElement.Enabled  THEN
               With pCktElement Do
               Begin
+
                  ComputeIterminal(ActiveActor);
+
                  IF (CLASSMASK AND pCktElement.DSSObjType) =  AUTOTRANS_ELEMENT   Then Begin
                        k:=0;              {Special for Autotransformer}
                        FOR i:= 1 to Nterms do  Begin
