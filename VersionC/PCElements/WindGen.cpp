@@ -1772,8 +1772,8 @@ void TWindGenObj::DoConstantPQGen(int ActorID)
      //Treat this just like the Load model
 	int stop = 0;
 	CalcYPrimContribution(InjCurrent, ActorID);  // Init InjCurrent Array
-    for (i = 0; i < Fnconds; i++)
-        InjCurrent[i] = CZero;
+//    for (i = 0; i < Fnconds; i++)
+//        InjCurrent[i] = CZero;
 
 	ZeroITerminal();
 
