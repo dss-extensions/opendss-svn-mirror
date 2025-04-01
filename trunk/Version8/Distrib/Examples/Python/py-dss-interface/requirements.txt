@@ -1,0 +1,4 @@
+numpy
+py-dss-interface
+pandas
+
