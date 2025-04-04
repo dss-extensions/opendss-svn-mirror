@@ -52,6 +52,8 @@ def Cmplx2Str(myCNum):
         Token = '+'
         imagn = abs(myCNum.imag)
     Result = "{:.5f}{}{:.5f}j".format(myCNum.real, Token, imagn)
+    if Result.find("+-") >= 0:
+        Result = Result.replace("+-","-")
     
     return Result
 
@@ -67,6 +69,8 @@ def CmplxArr2Str(myArray):
             Token = '+'
             imagn = abs(mycell.imag)
         Cval = "{:.5f}{}{:.5f}j".format(mycell.real, Token, imagn)
+        if Cval.find("+-") >= 0:
+            Cval = Result.replace("+-","-")
         Result.append(Cval)
     
     return Result
