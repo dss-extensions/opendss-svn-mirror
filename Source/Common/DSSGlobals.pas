@@ -1503,8 +1503,10 @@ begin
 
             if ShellExecuteEx(@_SEInfo) then
             begin
-
-                Sleep(500);
+                if DBugMode = SW_NORMAL then
+                    Sleep(4000)            // In some installations of Windows 11 it takes forever to launch the terminal window
+                else
+                    Sleep(500);            // If not in debug mode it goes smoothly
 
          // Check if new client is connected
                 if not ConnectNamedPipe(pyServer[ActiveActor], nil) and (GetLastError() = ERROR_PIPE_CONNECTED) then
