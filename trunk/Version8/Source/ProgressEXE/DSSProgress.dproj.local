@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2019/09/23 19:39:32.000.805,C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\OpenDSS\Version8\Source\ProgressEXE\ProgressActor.dfm</Transaction>
-    <Transaction>2019/09/23 19:39:36.000.993,C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\OpenDSS\Version8\Source\ProgressEXE\Project1.dproj</Transaction>
-    <Transaction>2019/09/23 19:48:15.000.761,C:\OpenDSS\Version8\Source\ProgressEXE\Project1.dproj=C:\OpenDSS\Version8\Source\ProgressEXE\DSSProgress.dproj</Transaction>
+    <Transaction>2019/09/23 19:39:32.000.805,C:\OpenDSS\Version8\Source\ProgressEXE\ProgressActor.dfm=C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2019/09/23 19:39:36.000.993,C:\OpenDSS\Version8\Source\ProgressEXE\Project1.dproj=C:\Users\pdmo005\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2019/09/23 19:48:15.000.761,C:\OpenDSS\Version8\Source\ProgressEXE\DSSProgress.dproj=C:\OpenDSS\Version8\Source\ProgressEXE\Project1.dproj</Transaction>
     <Transaction>2024/05/03 10:18:59.000.636,=C:\OpenDSS\Version8\Source\Shared\ExceptionTrace.pas</Transaction>
   </Transactions>
 </BorlandProject>
