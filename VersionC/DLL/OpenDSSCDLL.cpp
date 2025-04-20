@@ -10297,8 +10297,13 @@ void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	{
 	case 0:													// Parallel.ActorProgress
 		*myType = 1; //integer
-		myIntArray.resize(NumOfActors);
-		for (i = 1; i <= NumOfActors; i++)
+
+		int NumInst = NumOfActors;
+		if (ADiakoptics)
+			NumInst = 1;
+
+		myIntArray.resize(NumInst);
+		for (i = 1; i <= NumInst; i++)
 		{
 			myIntArray[i - 1] = ActorPctProgress[i];
 		}
@@ -10307,8 +10312,13 @@ void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		break;
 	case 1:													// Parallel.ActorStatus
 		*myType = 1; //integer
-		myIntArray.resize(NumOfActors);
-		for (i = 1; i <= NumOfActors; i++)
+
+		int NumInst = NumOfActors;
+        if (ADiakoptics)
+            NumInst = 1;
+
+		myIntArray.resize(NumInst);
+        for (i = 1; i <= NumInst; i++)
 		{
 			myIntArray[i - 1] = ActorStatus[i];
 		}
