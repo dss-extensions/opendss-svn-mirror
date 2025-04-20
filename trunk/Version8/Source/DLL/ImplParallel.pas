@@ -93,9 +93,17 @@ begin
 end;
 
 function TParallel.Get_ActorProgress: OleVariant;
-var 
-  idx : Integer;
+var
+  NumInst,
+  idx     : Integer;
+
 begin
+
+    if ADiakoptics then
+      NumInst := 1
+    else
+      NumInst := NumOfActors;
+
     Result := VarArrayCreate([1, NumOfActors], varInteger);
     for idx := 1 to NumOfActors do
     Begin
@@ -104,11 +112,19 @@ begin
 end;
 
 function TParallel.Get_ActorStatus: OleVariant;
-var 
-  idx : Integer;
+var
+  NumInst,
+  idx     : Integer;
+
 begin
-    Result := VarArrayCreate([1, NumOfActors], varInteger);
-    for idx := 1 to NumOfActors do
+
+    if ADiakoptics then
+      NumInst := 1
+    else
+      NumInst := NumOfActors;
+
+    Result := VarArrayCreate([1, NumInst], varInteger);
+    for idx := 1 to NumInst do
     Begin
      REsult[idx] := ActorStatus[idx];
     End;
