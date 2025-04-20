@@ -73,22 +73,35 @@ end;
 
 procedure ParallelV(mode:longint; var myPointer: Pointer; var myType, mySize: longint);cdecl;
 var
-  i : Integer;
+  NumInst,
+  i       : Integer;
 
 Begin
   case mode of
   0:begin  // Parallel.ActorProgress Read
       myType  :=  1;        // Integer
-      setlength(myIntArray, NumOfActors);
-      for i := 1 to NumOfActors do
+
+      if ADiakoptics then
+        NumInst := 1
+      else
+        NumInst := NumOfActors;
+
+      setlength(myIntArray, NumInst);
+      for i := 1 to NumInst do
         myIntArray[i - 1] :=  ActorPctProgress[i];
       myPointer :=  @(myIntArray[0]);
       mySize    :=  SizeOf(myIntArray[0]) * Length(myIntArray);
     end;
   1:begin  // Parallel.ActorState Read
       myType  :=  1;        // Integer
-      setlength(myIntArray, NumOfActors);
-      for i := 1 to NumOfActors do
+
+      if ADiakoptics then
+        NumInst := 1
+      else
+        NumInst := NumOfActors;
+
+      setlength(myIntArray, NumInst);
+      for i := 1 to NumInst do
         myIntArray[i - 1] := ActorStatus[i];
       myPointer :=  @(myIntArray[0]);
       mySize    :=  SizeOf(myIntArray[0]) * Length(myIntArray);
