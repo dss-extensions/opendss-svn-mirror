@@ -992,7 +992,7 @@ begin
         else
             Val(TokenBuffer, Result, Code);
 
-        if Result < 1e-8 then
+        if ((Result < 1e-8) and (Result > -1e-8)) then
             Result := 1e-8;
 
         if Code <> 0 then
