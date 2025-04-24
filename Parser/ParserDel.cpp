@@ -924,7 +924,7 @@ namespace ParserDel
                 else
                     val(TokenBuffer, &result, &Code);
 
-				if (result < 1e-8)
+				if ( (result < 1e-8) && (result > -1e-8) )
                     result = 1e-8;
 
                 if (Code != 0)
