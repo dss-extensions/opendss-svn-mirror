@@ -2556,7 +2556,7 @@ var
     PDElem: TPDElement;
     Iph, I012: array[1..3] of Complex;
     I0, I1, I2,
-    Cmag, Cmax: Double;
+    Cmag, Cmax, iNormal, iEmerg: Double;
 
 begin
 
@@ -2618,21 +2618,23 @@ begin
                             Cmax := I1;
                         end;
 
-                        if (PdElem.Normamps > 0.0) or (PdElem.Emergamps > 0.0) then
-                            if (CMax > PDElem.NormAmps) or (Cmax > pdelem.EmergAmps) then
+                        PDElem.GetRatings(iNormal, iEmerg);
+
+                        if (iNormal > 0.0) or (iEmerg > 0.0) then
+                            if (CMax > iNormal) or (Cmax > iEmerg) then
                             begin
                                 Write(F, Pad(FullName(PDelem), MaxDeviceNameLength + 2), j: 3);
                                 Write(F, I1: 8: 1);
-                                if PDElem.Normamps > 0.0 then
-                                    Write(F, (Cmax - PDElem.Normamps): 8: 2)
+                                if iNormal > 0.0 then
+                                    Write(F, (Cmax - iNormal): 8: 2)
                                 else
                                     Write(F, '     0.0');
-                                if PDElem.Normamps > 0.0 then
-                                    Write(F, Cmax / PDElem.Normamps * 100.0: 8: 1)
+                                if iNormal > 0.0 then
+                                    Write(F, Cmax / iNormal * 100.0: 8: 1)
                                 else
                                     Write(F, '     0.0');
-                                if PDElem.Emergamps > 0.0 then
-                                    Write(F, Cmax / PDElem.Emergamps * 100.0: 8: 1)
+                                if iEmerg > 0.0 then
+                                    Write(F, Cmax / iEmerg * 100.0: 8: 1)
                                 else
                                     Write(F, '     0.0');
                                 Write(F, I2: 8: 1);

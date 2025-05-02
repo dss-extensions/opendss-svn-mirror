@@ -22,7 +22,8 @@ uses
     ucmatrix,
     DSSClass,
     MeterElement,
-    Arraydef;
+    Arraydef,
+    XYCurve;
 
 type
 
@@ -77,6 +78,7 @@ type
         procedure CalcNum_Int(var SectionCount: Integer; AssumeRestoration: Boolean);  // Calc Number of Interruptions in forward sweep
         procedure CalcCustInterrupts;
         procedure ZeroReliabilityAccums; // Zero out reliability accumulators
+        procedure GetRatings(var Normamps, Emergamps: Double);
 
         property ExcesskVANorm[idxTerm: Integer;ActorID: Integer]: Complex READ Get_ExcesskVANorm;
         property ExcesskVAEmerg[idxTerm: Integer;ActorID: Integer]: Complex READ Get_ExcesskVAEmerg;
@@ -352,6 +354,41 @@ begin
         BusCustDurations := 0.0;
         Bus_Num_Interrupt := 0.0;
         BusSectionID := -1; // signify not set
+    end;
+
+end;
+
+procedure TPDElement.GetRatings(var Normamps, Emergamps: Double);
+var
+    cTempIterminal: pComplexArray;
+    i, RatingIdx: Integer;
+    RSignal: TXYCurveObj;
+begin
+
+    // Initializes NomrAmps and EmergAmps with the default values for the PDElement
+    NormAmps := NormAmps;
+    EmergAmps := EmergAmps;
+
+    if SeasonalRating then
+    begin
+        if SeasonSignal <> '' then
+        begin
+            RSignal := XYCurveClass[ActiveActor].Find(SeasonSignal);
+            if RSignal <> nil then
+            begin
+                RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActiveActor].Solution.DynaVars.intHour));
+          // Brings the seasonal ratings for the PDElement
+                if (RatingIdx <= NumAmpRatings) and (NumAmpRatings > 1) then
+                begin
+                    NormAmps := AmpRatings[RatingIdx];
+                    EmergAmps := AmpRatings[RatingIdx];
+                end;
+            end
+            else
+                SeasonalRating := false;   // The XYCurve defined doesn't exist
+        end
+        else
+            SeasonalRating := false;    // The user didn't define the seasonal signal
     end;
 
 end;

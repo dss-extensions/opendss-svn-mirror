@@ -14,8 +14,7 @@ unit ExportResults;
 interface
 
 uses
-    EnergyMeter,
-    XYCurve;
+    EnergyMeter;
 
 procedure ExportVoltages(FileNm: String);
 procedure ExportSeqVoltages(FileNm: String);
@@ -568,41 +567,16 @@ end;
 
 procedure CalcAndWriteMaxCurrents(var F: TextFile; pElem: TPDElement; Cbuffer: pComplexArray);
 var
-    RatingIdx,
     i: Integer;
-    EmergAmps,
-    NormAmps,
+    iEmerg,
+    iNormal,
     Currmag,
     MaxCurrent: Double;
     LocalPower: Complex;
-    RSignal: TXYCurveObj;
 
 begin
-    // Initializes NomrAmps and EmergAmps with the default values for the PDElement
-    NormAmps := pElem.NormAmps;
-    EmergAmps := pElem.EmergAmps;
 
-    if SeasonalRating then
-    begin
-        if SeasonSignal <> '' then
-        begin
-            RSignal := XYCurveClass[ActiveActor].Find(SeasonSignal);
-            if RSignal <> nil then
-            begin
-                RatingIdx := trunc(RSignal.GetYValue(ActiveCircuit[ActiveActor].Solution.DynaVars.intHour));
-          // Brings the seasonal ratings for the PDElement
-                if (RatingIdx <= PElem.NumAmpRatings) and (PElem.NumAmpRatings > 1) then
-                begin
-                    NormAmps := pElem.AmpRatings[RatingIdx];
-                    EmergAmps := pElem.AmpRatings[RatingIdx];
-                end;
-            end
-            else
-                SeasonalRating := false;   // The XYCurve defined doesn't exist
-        end
-        else
-            SeasonalRating := false;    // The user didn't define the seasonal signal
-    end;
+    pElem.GetRatings(iNormal, iEmerg);
 
     Write(F, Format('%s.%s', [pelem.DSSClassName, UpperCase(pElem.Name)]));
     MaxCurrent := 0.0;
@@ -614,10 +588,10 @@ begin
     end;
     //----pElem.ActiveTerminalIdx := 1;
     LocalPower := CmulReal(pElem.Power[1, ActiveActor], 0.001);
-    if (pElem.NormAmps = 0.0) or (pElem.EmergAmps = 0.0) then
+    if (iNormal = 0.0) or (iEmerg = 0.0) then
         Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, 0.0, 0.0]))
     else
-        Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, MaxCurrent / NormAmps * 100.0, MaxCurrent / Emergamps * 100.0]));
+        Write(F, Format(', %10.6g, %8.2f, %8.2f', [MaxCurrent, MaxCurrent / iNormal * 100.0, MaxCurrent / iEmerg * 100.0]));
 
     Write(F, Format(', %10.6g, %10.6g, %d, %d, %d', [Localpower.re, Localpower.im, pElem.BranchNumCustomers, pElem.BranchTotalCustomers, pElem.NPhases]));
     with ActiveCircuit[ActiveActor] do
@@ -3024,8 +2998,10 @@ begin
                             Cmax := I1;
                         end;
 
-                        if (PdElem.Normamps > 0.0) or (PdElem.Emergamps > 0.0) then
-                            if (CMax > PDElem.NormAmps) or (Cmax > pdelem.EmergAmps) then
+                        PdElem.GetRatings(iNormal, iEmerg);
+
+                        if (iNormal > 0.0) or (iEmerg > 0.0) then
+                            if (CMax > iNormal) or (Cmax > iEmerg) then
                             begin
                // Get terminal 1 power
                                 Spower := Cabs(PDElem.Power[1, ActiveActor]) * 0.001;   // kW
@@ -3034,7 +3010,6 @@ begin
                                 Write(F, Format('%8.2f, ', [I1]));
                                 if j = 1 then
                                 begin // Only for 1st Terminal
-                                    iNormal := PDelem.NormAmps;
                                     if iNormal > 0.0 then
                                     begin
                                         Write(F, Format('%8.2f, %10.2f', [(Cmax - iNormal), Spower * (Cmax - iNormal) / iNormal]));
@@ -3042,7 +3017,6 @@ begin
                                     end
                                     else
                                         Write(F, Separator, '     0.0');
-                                    iEmerg := PDelem.EmergAmps;
                                     if iEmerg > 0.0 then
                                         Write(F, Separator, Cmax / iEmerg * 100.0: 8: 1)
                                     else
