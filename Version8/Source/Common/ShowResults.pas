@@ -2222,7 +2222,7 @@ Var
     PDElem:TPDElement;
     Iph, I012 : Array[1..3] of Complex;
     I0,I1,I2,
-    Cmag, Cmax   :Double;
+    Cmag, Cmax, iNormal, iEmerg :Double;
 
 Begin
 
@@ -2281,15 +2281,17 @@ Begin
              Cmax := I1;
           End;
 
-          IF (PdElem.Normamps > 0.0) OR (PdElem.Emergamps>0.0)
+          PDElem.GetRatings(iNormal, iEmerg);
+
+          IF (iNormal > 0.0) OR (iEmerg>0.0)
           THEN
-           IF (CMax > PDElem.NormAmps) OR (Cmax > pdelem.EmergAmps)
+           IF (CMax > iNormal) OR (Cmax > iEmerg)
            THEN Begin
                Write(F, Pad(FullName(PDelem), MaxDeviceNameLength+2), j:3);
                Write(F, I1:8:1);
-               IF PDElem.Normamps > 0.0 Then  Write(F, (Cmax-PDElem.Normamps):8:2) Else Write(F,'     0.0');
-               IF PDElem.Normamps > 0.0  Then Write(F, Cmax/PDElem.Normamps*100.0:8:1)  Else Write(F,'     0.0');
-               IF PDElem.Emergamps > 0.0 Then Write(F, Cmax/PDElem.Emergamps*100.0:8:1) Else Write(F,'     0.0');
+               IF iNormal > 0.0 Then  Write(F, (Cmax-iNormal):8:2) Else Write(F,'     0.0');
+               IF iNormal > 0.0  Then Write(F, Cmax/iNormal*100.0:8:1)  Else Write(F,'     0.0');
+               IF iEmerg > 0.0 Then Write(F, Cmax/iEmerg*100.0:8:1) Else Write(F,'     0.0');
                Write(F, I2:8:1);
                IF I1>0.0 Then Write(F, 100.0*I2/I1:8:1) Else Write(F,'     0.0');
                Write(F, I0:8:1);
