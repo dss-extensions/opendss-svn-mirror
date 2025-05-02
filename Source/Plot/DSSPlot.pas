@@ -2767,6 +2767,12 @@ begin
     begin
 
         ActiveEnergyMeter := EnergyMeterClass[ActiveActor].GetActiveObj;
+        if not ActiveEnergyMeter.Enabled then
+        begin
+            iEnergyMeter := EnergyMeterClass[ActiveActor].Next;
+            continue;
+        end;
+
       { Go down each branch list and draw a line }
         PresentCktElement := ActiveEnergyMeter.BranchList.First;
         while PresentCktElement <> nil do
