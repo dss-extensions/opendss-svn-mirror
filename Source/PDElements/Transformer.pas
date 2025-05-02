@@ -441,10 +441,14 @@ begin
         'Defaults to 85% of %R property';
     PropertyHelp^[48] := 'Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the "Ratings" property.';
     PropertyHelp^[49] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
-        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. Is given in kVA';
+        CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. It is given in kVA.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
+
+     // Override description from inherited normamps and emergamps
+    PropertyHelp^[NumPropsThisClass + 1] := '(Read only) Normal rated current. Use normhkVA to specify transformer normal rating.';
+    PropertyHelp^[NumPropsThisClass + 2] := '(Read only) Maximum or emerg current. Use emerghkVA to specify transformer emergency rating.';
 
 end;
 
@@ -1248,7 +1252,7 @@ begin
 
     setlength(AmpRatings, NumAmpRatings);
     for i := 0 to High(AmpRatings) do
-        AmpRatings[i] := 1.1 * kVARatings[i] / Fnphases / Vfactor;
+        AmpRatings[i] := kVARatings[i] / Fnphases / Vfactor;
 
     CalcY_Terminal(1.0);   // Calc Y_Terminal at base frequency
 end;
