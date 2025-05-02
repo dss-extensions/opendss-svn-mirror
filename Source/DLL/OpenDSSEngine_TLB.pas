@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 10/2/2024 2:22:44 PM from Type Library described below.
+// File generated on 05/01/25 4:27:33 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -547,6 +547,7 @@ type
         procedure Set_VariableValue(Value: Double); SAFECALL;
         function Get_VariableIdx: Integer; SAFECALL;
         procedure Set_VariableIdx(Value: Integer); SAFECALL;
+        function Get_AllLosses: Olevariant; SAFECALL;
         property Name: Widestring READ Get_Name;
         property NumTerminals: Integer READ Get_NumTerminals;
         property NumConductors: Integer READ Get_NumConductors;
@@ -594,6 +595,7 @@ type
         property VariableName: Widestring READ Get_VariableName WRITE Set_VariableName;
         property VariableValue: Double READ Get_VariableValue WRITE Set_VariableValue;
         property VariableIdx: Integer READ Get_VariableIdx WRITE Set_VariableIdx;
+        property AllLosses: Olevariant READ Get_AllLosses;
     end;
 
 // *********************************************************************//
@@ -653,6 +655,7 @@ type
         property VariableName: Widestring DISPID 224;
         property VariableValue: Double DISPID 225;
         property VariableIdx: Integer DISPID 226;
+        property AllLosses: Olevariant READONLY DISPID 227;
     end;
 
 // *********************************************************************//

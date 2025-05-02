@@ -85,6 +85,7 @@ type
         procedure Set_VariableValue(Value: Double); SAFECALL;
         function Get_VariableIdx: Integer; SAFECALL;
         procedure Set_VariableIdx(Value: Integer); SAFECALL;
+        function Get_AllLosses: Olevariant; SAFECALL;
 
     end;
 
@@ -1816,6 +1817,50 @@ begin
                 end;
         end
 end;
+
+{ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -}
+function TCktElement.Get_AllLosses: Olevariant;
+
+// Returns Total Losses, Load Losses and No-Load Losses in kW, kVar
+
+var
+    S_TotalLosses, S_LoadLosses, S_NoLoadLosses: complex;
+    NValues, i, iV: Integer;
+
+begin
+
+
+    if ActiveCircuit[ActiveActor] <> nil then
+
+        with ActiveCircuit[ActiveActor].ActiveCktElement do
+        begin
+            NValues := 3;
+            Result := VarArrayCreate([0, 2 * NValues - 1], varDouble);
+            GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses, ActiveActor);
+
+            iV := 0;
+            Result[iV] := S_TotalLosses.re;
+            Inc(iV);
+            Result[iV] := S_TotalLosses.im;
+            Inc(iV);
+
+            Result[iV] := S_LoadLosses.re;
+            Inc(iV);
+            Result[iV] := S_LoadLosses.im;
+            Inc(iV);
+
+            Result[iV] := S_NoLoadLosses.re;
+            Inc(iV);
+            Result[iV] := S_NoLoadLosses.im;
+            Inc(iV);
+
+        end
+    else
+        Result := VarArrayCreate([0, 0], varDouble);
+
+
+end;
+
 
 initialization
     TAutoObjectFactory.Create(ComServer, TCktElement, Class_CktElement, ciInternal, tmApartment);
