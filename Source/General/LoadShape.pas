@@ -449,7 +449,7 @@ begin
     end
     else
     begin
-        myViewQ := Pbyte(MapViewOfFile(MMF, FILE_MAP_READ, 0, 0, myViewlen));
+        myViewQ := Pbyte(MapViewOfFile(MMF, FILE_MAP_READ, 0, 0, MyViewLenQ));
         if CompareText(Parmname, 'file') = 0 then // starndard csv file
         begin
             myLastCh := myViewQ[FirstPos];
@@ -524,7 +524,7 @@ begin
                     myQMMF := CreateFileMapping(myQFile, nil, PAGE_READONLY, 0, 0, nil);
                     myLocalMMF := myQMMF; // Assignment for working locally
                     myFileCmdQ := S;
-                    myFileSizeQ := GetFileSize(myFile, nil);
+                    myFileSizeQ := GetFileSize(myQFile, nil);
                     myViewLenQ := myFileSizeQ;
                 end;
 
