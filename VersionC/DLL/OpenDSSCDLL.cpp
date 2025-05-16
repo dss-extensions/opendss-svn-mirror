@@ -532,30 +532,30 @@ void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 }
 
-vector<string> Str2StrArray(char* myStr, char Delimiter)
-{
-    vector<string>	Result;
-    char EvalChar	= 0x01;
-    int charidx		= 0;
-    string StElm	= "";
-
-	Result.clear();
-    
-	while (!(EvalChar == 0))
-    {
-        EvalChar = myStr[charidx];
-        if (!(EvalChar == 0x0A))
-            StElm = StElm + EvalChar;
-        else
-        {
-            Result.push_back(StElm);
-            StElm = "";   // reset accumulator
-        }
-        charidx++;
-    }
-    Result.push_back(StElm);
-    return Result;
-}
+//vector<string> Str2StrArray(char* myStr, char Delimiter)
+//{
+//    vector<string>	Result;
+//    char EvalChar	= 0x01;
+//    int charidx		= 0;
+//    string StElm	= "";
+//
+//	Result.clear();
+//    
+//	while (!(EvalChar == 0))
+//    {
+//        EvalChar = myStr[charidx];
+//        if (!(EvalChar == 0x0A))
+//            StElm = StElm + EvalChar;
+//        else
+//        {
+//            Result.push_back(StElm);
+//            StElm = "";   // reset accumulator
+//        }
+//        charidx++;
+//    }
+//    Result.push_back(StElm);
+//    return Result;
+//}
 
 //****************************************************************************************************************
 //--------------------------------------------------------------------------------
@@ -567,7 +567,26 @@ char* DSSPut_Command(char* myCmd)
     string			result = "",
 					DSSReply = "";
 
-    myCmds = Str2StrArray(myCmd, 0x0A);
+    char EvalChar	= 0x01;
+    int charidx		= 0;
+    string StElm	= "";
+    
+    myCmds.clear();
+    
+    while (!(EvalChar == 0))
+    {
+        EvalChar = myCmd[charidx];
+        if (!(EvalChar == 0x0A))
+            StElm = StElm + EvalChar;
+        else
+        {
+            myCmds.push_back(StElm);
+            StElm = "";   // reset accumulator
+        }
+        charidx++;
+    }
+    myCmds.push_back(StElm);
+
     for (int i = 0; i < myCmds.size(); i++)
     {
         DSSReply = Application.Execute(myCmds[i].c_str());
@@ -10292,13 +10311,14 @@ int ParallelI(int mode, int arg)
 void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	int i = 0;
+    int NumInst = 0;
 
 	switch (mode)
 	{
 	case 0:													// Parallel.ActorProgress
 		*myType = 1; //integer
 
-		int NumInst = NumOfActors;
+		NumInst = NumOfActors;
 		if (ADiakoptics)
 			NumInst = 1;
 
@@ -10313,7 +10333,7 @@ void ParallelV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	case 1:													// Parallel.ActorStatus
 		*myType = 1; //integer
 
-		int NumInst = NumOfActors;
+		NumInst = NumOfActors;
         if (ADiakoptics)
             NumInst = 1;
 
