@@ -471,7 +471,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
                     <VersionInfoKeys Name="CFBundleExecutable"/>
                 </VersionInfoKeys>
             </Delphi.Personality>
-            <Deployment Version="5">
+            <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule"/>
                 <DeployFile LocalName="..\x64\OpenDSSDirect.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
@@ -499,6 +499,16 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
                     </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidClasses">
+                    <Platform Name="Android">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="AndroidFileProvider">

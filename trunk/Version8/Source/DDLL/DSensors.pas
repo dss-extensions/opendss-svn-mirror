@@ -340,7 +340,37 @@ begin
       End;
       myPointer :=  @(myDBLArray[0]);
       mySize    :=  SizeOf(myDBLArray[0]) * Length(myDBLArray);
-    end
+    end;
+  8:begin // Sensors.kVs read
+      myType  :=  2;        // Double
+      setlength(myDBLArray, 1);
+      myDBLArray[0] := 0;
+      elem := ActiveSensor;
+      if elem <> Nil then
+      begin
+        setlength(myDBLArray, elem.NPhases );
+        for k := 0 to elem.NPhases-1 do
+          myDBLArray[k] := elem.SensorVoltage^[k+1];
+      end;
+      myPointer :=  @(myDBLArray[0]);
+      mySize    :=  SizeOf(myDBLArray[0]) * Length(myDBLArray);
+    end;
+  9:begin // Sensors.kVs write
+      myType:=  2;            // Double
+      elem  := ActiveSensor;
+      k     :=  1;
+      if elem <> nil then
+      begin
+        for i := 1 to elem.NPhases do
+        begin
+          PDouble                 :=  myPointer;
+          elem.SensorVoltage^[i]  :=  PDouble^;
+          inc(PByte(myPointer),8);
+          inc(k);
+        end;
+      end;
+      mySize  :=  k - 1;
+    end;
   else
     Begin
       myType  :=  4;        // String
