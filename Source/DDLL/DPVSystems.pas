@@ -348,12 +348,13 @@ end;
 procedure PVsystemsV(mode: Longint; var myPointer: Pointer; var myType, mySize: Longint); CDECL;
 
 var
+    k: Integer;
     PVSystemElem: TPVSystemObj;
 
 begin
     case mode of
         0:
-        begin  // PVSystems.AllNames
+        begin                   // PVSystems.AllNames
             myType := 4;        // String
             setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
@@ -374,6 +375,40 @@ begin
                 WriteStr2Array('None');
             myPointer := @(myStrArray[0]);
             mySize := Length(myStrArray);
+        end;
+        1:
+        begin                // PVSystems.RegisterNames
+            myType := 4;        // String
+            setlength(myStrArray, 0);
+            for k := 0 to NumPVSystemRegisters - 1 do
+            begin
+                WriteStr2Array(PVSystemClass[ActiveActor].RegisterNames[k + 1]);
+                WriteStr2Array(Char(0));
+            end;
+            if (length(myStrArray) = 0) then
+                WriteStr2Array('None');
+            myPointer := @(myStrArray[0]);
+            mySize := Length(myStrArray);
+        end;
+        2:
+        begin                // PVSystems.RegisterValues
+            myType := 2;        // Double
+            setlength(myDBLArray, 1);
+            myDBLArray[0] := 0;
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                PVSystemElem := TPVSystemObj(ActiveCircuit[ActiveActor].PVSystems.Active);
+                if PVSystemElem <> nil then
+                begin
+                    setlength(myDBLArray, numPVSystemRegisters);
+                    for k := 0 to (numPVSystemRegisters - 1) do
+                    begin
+                        myDBLArray[k] := PVSystemElem.Registers[k + 1];
+                    end;
+                end
+            end;
+            myPointer := @(myDBLArray[0]);
+            mySize := SizeOf(myDBLArray[0]) * Length(myDBLArray);
         end
     else
     begin

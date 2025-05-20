@@ -156,6 +156,65 @@ begin
         begin  // SwtControls.Count
             if Assigned(ActiveCircuit[ActiveActor]) then
                 Result := ActiveCircuit[ActiveActor].SwtControls.ListSize;
+        end;
+        9:
+        begin  // SwtControls.NormalState Read
+            elem := ActiveSwtControl;
+            if elem <> nil then
+            begin
+                case elem.NormalState of
+                    CTRL_OPEN:
+                        Result := 0;
+                else
+                    Result := 1;
+                end;
+            end;
+        end;
+        10:
+        begin  // SwtControls.NormalState Write
+            elem := ActiveSwtControl;
+            if elem <> nil then
+            begin
+                case arg of
+                    0:
+                        elem.NormalState := CTRL_OPEN;
+                else
+                    elem.NormalState := CTRL_CLOSE;
+                end;
+            end;
+        end;
+        11:
+        begin  // SwtControls.Reset
+            elem := ActiveSwtControl;
+            if elem <> nil then
+            begin
+                elem.Locked := false;
+                elem.Reset(ActiveActor);
+            end;
+        end;
+        12:
+        begin  // SwtControls.State Read
+            elem := ActiveSwtControl;
+            if elem <> nil then
+            begin
+                case elem.PresentState of
+                    CTRL_OPEN:
+                        Result := 0;
+                    CTRL_CLOSE:
+                        Result := 1;
+                end;
+            end;
+        end;
+        13:
+        begin  // SwtControls.State Write
+            elem := ActiveSwtControl;
+            if elem <> nil then
+            begin
+                if arg <> 0 then
+                    elem.PresentState := CTRL_CLOSE
+                else
+                    elem.PresentState := CTRL_OPEN
+            end;
         end
     else
         Result := -1;

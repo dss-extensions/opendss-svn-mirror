@@ -391,6 +391,31 @@ begin
         begin  // Solution.CalcIncMatrix_O
             with ActiveCircuit[ActiveActor].Solution do
                 Calc_Inc_Matrix_Org(ActiveActor);
+        end;
+        49:
+        begin //Solution.solveSnap
+            if ActiveCircuit[ActiveActor] <> nil then
+                ActiveCircuit[ActiveActor].Solution.SolveSnap(ActiveActor);
+    // If the parallel mode is not active, Waits until the actor finishes
+            if not Parallel_enabled then
+            begin
+                Wait4Actors(ALL_ACTORS);
+            end;
+            Result := 0;
+        end;
+        50:
+        begin // Solution.MinIterations Read
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                Result := ActiveCircuit[ActiveActor].Solution.MinIterations;
+            end;
+        end;
+        51:
+        begin // Solution.MinIterations Write
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                ActiveCircuit[ActiveActor].Solution.MinIterations := arg;
+            end;
         end
     else
         Result := -1;
@@ -604,6 +629,20 @@ begin
             if ActiveCircuit[ActiveActor] <> nil then
             begin
                 Result := ActiveCircuit[ActiveActor].Solution.Time_Step;
+            end;
+        end;
+        28:
+        begin // Solution.IntervalHrs Read
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                Result := ActiveCircuit[ActiveActor].Solution.IntervalHrs;
+            end;
+        end;
+        29:
+        begin // Solution.IntervalHrs Write
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                ActiveCircuit[ActiveActor].Solution.IntervalHrs := arg;
             end;
         end
     else

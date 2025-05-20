@@ -15,7 +15,8 @@ uses
     PointerList,
     Variants,
     ExecHelper,
-    ucomplex;
+    ucomplex,
+    SysUtils;
 
 var
     ActiveLSObject: TLoadshapeObj;
@@ -182,6 +183,7 @@ end;
 function LoadShapeS(mode: Longint; arg: Pansichar): Pansichar; CDECL;
 
 var
+    i: Integer;
     elem: TLoadshapeObj;
 
 begin
@@ -207,6 +209,15 @@ begin
                 begin
                     DoSimpleMsg('LoadShape "' + arg + '" Not Found in Active Circuit.', 77003);
                 end;
+            end;
+        end;
+        2:
+        begin  // LoadShapes.New
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                i := AddObject('loadshape', String(arg));    // Returns handle to object
+                ActiveLSObject := ActiveDSSObject[ActiveActor] as TLoadShapeObj;
+                Result := Pansichar(Ansistring(IntToStr(i)));
             end;
         end
     else

@@ -99,6 +99,35 @@ begin
                 else
                     ActiveCircuit[ActiveActor].TrapezoidalIntegration := false;
             end;
+        end;
+        8:
+        begin  // Settings.SolverOptions read
+      // It only applies to C++ for now
+            Result := 0;
+        end;
+        9:
+        begin  // Settings.SolverOptions write
+      // It only applies to C++ for now, does nothing
+            Result := 0;
+        end;
+        10:
+        begin  // Settings.ControlTrace read
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                Result := 0;
+                if ActiveCircuit[ActiveActor].ControlQueue.TraceLog then
+                    Result := 1;
+            end;
+        end;
+        11:
+        begin  // Settings.ControlTrace Write
+            if ActiveCircuit[ActiveActor] <> nil then
+            begin
+                if arg <> 1 then
+                    ActiveCircuit[ActiveActor].ControlQueue.TraceLog := true
+                else
+                    ActiveCircuit[ActiveActor].ControlQueue.TraceLog := false;
+            end;
         end
     else
         Result := -1;

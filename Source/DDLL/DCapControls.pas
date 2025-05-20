@@ -159,6 +159,17 @@ begin
         begin  // CapControls.Count
             if Assigned(ActiveCircuit[ActiveActor]) then
                 Result := ActiveCircuit[ActiveActor].CapControls.ListSize;
+        end;
+        9:
+        begin  // CapControls.Reset
+            if Assigned(ActiveCircuit[ActiveActor]) then
+            begin
+                elem := ActiveCapControl;
+                if elem <> nil then
+                begin
+                    elem.Reset(ActiveActor);
+                end;
+            end;
         end
     else
         Result := -1;
