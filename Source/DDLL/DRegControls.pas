@@ -127,6 +127,12 @@ begin
   end;
   14: begin  // RegControls.TapNumber write
       Set_Parameter ('TapNum', IntToStr (arg));
+  end;
+  15: begin  // RegControls.Reset
+        elem   := ActiveRegControl;
+        if elem <> nil then begin
+          elem.Reset(ActiveActor);
+        end;
   end
   else
       Result:=-1;

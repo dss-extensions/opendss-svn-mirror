@@ -9,7 +9,7 @@ procedure LoadShapeV(mode:longint; var myPointer: Pointer; var myType, mySize: l
 
 implementation
 
-uses Loadshape, DSSGlobals, PointerList, Variants, ExecHelper, ucomplex;
+uses Loadshape, DSSGlobals, PointerList, Variants, ExecHelper, ucomplex, SysUtils;
 
 Var
     ActiveLSObject: TLoadshapeObj;
@@ -156,6 +156,7 @@ end;
 function LoadShapeS(mode:longint; arg:pAnsiChar):pAnsiChar;cdecl;
 
 Var
+  i   : Integer;
   elem: TLoadshapeObj;
 
 begin
@@ -177,6 +178,14 @@ begin
           Else Begin
               DoSimpleMsg('LoadShape "'+ arg +'" Not Found in Active Circuit.', 77003);
           End;
+     End;
+  end;
+  2: begin  // LoadShapes.New
+     If ActiveCircuit[ActiveActor] <> Nil Then
+     Begin
+        i := AddObject('loadshape', string(arg));    // Returns handle to object
+        ActiveLSObject := ActiveDSSObject[ActiveActor] as TLoadShapeObj;
+        Result := pAnsiChar(AnsiString(IntToStr(i)));
      End;
   end
   else

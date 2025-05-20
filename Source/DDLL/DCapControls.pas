@@ -115,8 +115,17 @@ begin
         Set_Parameter ('VoltOverride', 'No');
   end;
   8: begin  // CapControls.Count
-     If Assigned(ActiveCircuit[ActiveActor]) Then
-              Result := ActiveCircuit[ActiveActor].CapControls.ListSize ;
+    If Assigned(ActiveCircuit[ActiveActor]) Then
+      Result := ActiveCircuit[ActiveActor].CapControls.ListSize ;
+  end;
+  9: begin  // CapControls.Reset
+    If Assigned(ActiveCircuit[ActiveActor]) Then
+    Begin
+      elem   := ActiveCapControl;
+      if elem <> nil then begin
+        elem.Reset(ActiveActor);
+      end;
+    End;
   end
   else
       Result:=-1;
