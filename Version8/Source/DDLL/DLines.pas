@@ -138,6 +138,14 @@ begin
                 DoSimpleMsg('Invalid line units integer sent via COM interface.  Please enter a value within range.',183);
            END;
       End;
+  end;
+  9: begin  // Lines.TotalCust
+    Result := 0;
+    IF ActiveCircuit[ActiveActor] <> NIL THEN
+      If IsLine(ActiveCircuit[ActiveActor].ActiveCktElement) THEN
+      Begin
+         Result := TLineObj(ActiveCircuit[ActiveActor].ActiveCktElement).BranchTotalCustomers;
+      End
   end
   else
       Result:=-1;
@@ -408,10 +416,11 @@ end;
 function LinesS(mode: longint; arg: pAnsiChar): pAnsiChar; cdecl;
 
 Var
-   pLine:TDSSCktElement;
-   activesave :integer;
-   S: String;
-   Found :Boolean;
+   pLine      : TDSSCktElement;
+   i,
+   activesave : integer;
+   S          : String;
+   Found      : Boolean;
 
 begin
   Result:=pAnsiChar(AnsiString(''));
@@ -544,7 +553,15 @@ begin
              YprimInvalid[ActiveActor] := True;
            END;
       End;
-  end
+  end;
+  12: begin  // Lines.New
+      IF ActiveCircuit[ActiveActor] <> NIL THEN
+      Begin
+        i := AddObject('line', string(arg));
+        Result := pAnsiChar(AnsiString(inttoStr(i)));
+      End;
+
+  end;
   else
       Result:=pAnsiChar(AnsiString('Error, parameter not recognized'));
   end;
