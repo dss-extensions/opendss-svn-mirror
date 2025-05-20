@@ -737,6 +737,16 @@ int LinesI(int mode, int arg)
 			}
 		}
 		break;
+    case 9:												// Lines.TotalCust
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            if (IsLine(ActiveCircuit[ActiveActor]->FActiveCktElement))
+            {
+                auto with0 = (TLineObj*)ActiveCircuit[ActiveActor]->FActiveCktElement;
+                result = with0->BranchTotalCustomers;
+            }
+        }
+        break;
 	default:
 		result = -1;
 		break;
@@ -1191,6 +1201,13 @@ char* LinesS(int mode, char* arg)
 				with0->Edit(ActiveActor);
 				with0->Set_YprimInvalid(ActiveActor, true);
 			}
+		}
+		break;
+	case 12:											// Lines.New
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+            int i = AddObject("line", arg);
+            result = Format("%d", i);
 		}
 		break;
 	default:
@@ -3792,7 +3809,16 @@ int CapControlsI(int mode, int arg)
 		if (ASSIGNED(ActiveCircuit[ActiveActor])) 
 			result = ActiveCircuit[ActiveActor]->CapControls.get_myNumList();
 		break;
-
+    case 9:												//  CapControls.Reset
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveCapControl();
+            if (elem != nullptr)
+            {
+                elem->Reset(ActiveActor);
+            }
+        }
+        break;
 	default:
 		result = -1;
 		break;
@@ -5053,7 +5079,7 @@ int CktElementI(int mode, int arg)
 			{
 				auto with1 = with0->FActiveCktElement;
 				with1->Set_ActiveTerminal(arg);
-				with1->Set_ConductorClosed(3, ActiveActor, false);
+				with1->Set_ConductorClosed(0, ActiveActor, false);
 			}
 		}
 		break;
@@ -5065,7 +5091,7 @@ int CktElementI(int mode, int arg)
 			{
 				auto with1 = with0->FActiveCktElement;
 				with1->Set_ActiveTerminal(arg);
-				with1->Set_ConductorClosed(3, ActiveActor, true);
+				with1->Set_ConductorClosed(0, ActiveActor, true);
 			}
 		}
 		break;
@@ -5229,6 +5255,14 @@ int CktElementI(int mode, int arg)
 				}
 			}
 		}
+		break;
+	case 15:	// CktElement.HasOCPDevice
+		result = 0;		// By default it is 0
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            if (ActiveCircuit[ActiveActor]->FActiveCktElement->HasAutoOCPDevice)
+                result = 1;
+        }
 		break;
 	default:
 		result = -1;
@@ -5508,7 +5542,8 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					I012[4] = { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) },
 					V012[4] = { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) };
 	polar			CMagAng = {};
-	string			S = "";
+	string			S		= "";
+    int* PInteger			= nullptr;
 
 	switch (mode)
 	{
@@ -6135,6 +6170,92 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*mySize = sizeof(polar) * myCmplxArray.size();
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
 		break;
+    case 21:			// CktElement.Open
+        *myType = 1;	// Integer
+        k = 0;
+        myIntArray.resize(1);
+        myIntArray[0] = 0;	
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            auto with0 = ActiveCircuit[ActiveActor];	
+            if (with0->FActiveCktElement != nullptr)
+            {
+                PInteger = *(int**)myPtr;
+                auto with1 = with0->FActiveCktElement;
+                with1->Set_ActiveTerminal(*PInteger);
+                PInteger++;
+                with1->Set_ConductorClosed(*PInteger, ActiveActor, false);
+                if (with1->Get_ConductorClosed(*PInteger, ActiveActor))
+                {
+                    myIntArray[0] = 1;
+                }
+            }
+        }
+        *myPtr = (uintptr_t)(void*)&(myIntArray[0]);
+        *mySize = sizeof(myIntArray[0]) * myIntArray.size();
+        break;
+    case 22: // CktElement.Close
+        *myType = 1; // Integer
+        k = 0;
+        myIntArray.resize(1);
+        myIntArray[0] = 0;
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            auto with0 = ActiveCircuit[ActiveActor];
+            if (with0->FActiveCktElement != nullptr)
+            {
+                PInteger = *(int**)myPtr;
+                auto with1 = with0->FActiveCktElement;
+                with1->Set_ActiveTerminal(*PInteger);
+                PInteger++;
+                with1->Set_ConductorClosed(*PInteger, ActiveActor, true);
+                if (with1->Get_ConductorClosed(*PInteger, ActiveActor))
+                {
+                    myIntArray[0] = 1;
+                }
+            }
+        }
+        *myPtr = (uintptr_t)(void*)&(myIntArray[0]);
+        *mySize = sizeof(myIntArray[0]) * myIntArray.size();
+        break;
+    case 23: // CktElement.IsOpen
+        *myType = 1; // Integer
+        k = 0;
+        myIntArray.resize(1);
+        myIntArray[0] = 0;
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            auto with0 = ActiveCircuit[ActiveActor];
+            if (with0->FActiveCktElement != nullptr)
+            {
+                PInteger = *(int**)myPtr;
+                auto with1 = with0->FActiveCktElement;
+                with1->Set_ActiveTerminal(*PInteger);
+                PInteger++;
+                i = *PInteger;
+                if (i == 0)
+                {
+                    for (int pidx = 1; pidx <= with1->Get_NConds(); pidx++)
+                    {
+                        if (!with1->Get_ConductorClosed(pidx, ActiveActor))
+                        {
+							myIntArray[0] = 1;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (!with1->Get_ConductorClosed(i, ActiveActor))
+                    {
+                        myIntArray[0] = 1;
+                    }
+                }
+            }
+        }
+        *myPtr = (uintptr_t)(void*)&(myIntArray[0]);
+        *mySize = sizeof(myIntArray[0]) * myIntArray.size();
+        break;
 	default:
 		myStrArray.resize(0);
 		WriteStr2Array("Parameter not identified");
@@ -8560,6 +8681,14 @@ char* LoadShapeS(int mode, char* arg)
 			{
 				DoSimpleMsg("Relay '" + std::string(arg) + "' Not Found in Active Circuit.", 77003);
 			}
+		}
+		break;
+	case	2:					// LoadShapes.New
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+            int i = AddObject("LoadShape", arg);
+            ActiveLSObject = (TLoadShapeObj*)ActiveDSSObject[ActiveActor];
+            result = Format("%d", i);	
 		}
 		break;
 	default:
@@ -11140,7 +11269,43 @@ void PVsystemsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		*mySize = myStrArray.size();
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
-	break;
+		break;
+    case 1: // PVSystems.RegisterNames
+        *myType = 4; // String
+        myStrArray.resize(0);
+
+        for (int k = 0; k < PVSystem::NumPVSystemRegisters; k++)
+        {
+            WriteStr2Array(PVSystemClass[ActiveActor]->RegisterNames[k]);
+            WriteStr2Array(Char0());
+        }
+        if (myStrArray.size() == 0)
+        {
+            WriteStr2Array("None");
+            WriteStr2Array(Char0());
+        }
+        *myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+        *mySize = myStrArray.size();
+        break;
+    case 2: // PVSystems.RegisterValues
+        *myType = 2; // Double
+        myDblArray.resize(1);
+        myDblArray[0] = 0;
+        if (ActiveCircuit[ActiveActor] != nullptr)
+        {
+            PVSystemElem = (TPVsystemObj*)(ActiveCircuit[ActiveActor]->PVSystems.Get_Active());
+            if (PVSystemElem != nullptr)
+            {
+                myDblArray.resize(PVSystem::NumPVSystemRegisters);
+                for (int k = 0; k < PVSystem::NumPVSystemRegisters; k++)
+                {
+                    myDblArray[k] = PVSystemElem->Registers[k];
+                }
+            }
+        }
+        *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+        *mySize = sizeof(myDblArray[0]) * myDblArray.size();
+        break;
 	default:
 		*myType = 4;        // String
 		myStrArray.resize(0);
@@ -12491,6 +12656,13 @@ int RegControlsI(int mode, int arg)
 	case 14:												// RegControls.TapNumber write
 		Set_ParameterRegC("TapNum", IntToStr(arg));
 		break;
+    case 15:												// RegControls.TapNumber write
+		elem = ActiveRegControl();
+		if (elem != nullptr)
+		{
+			elem->Reset(ActiveActor);
+		}
+        break;
 	default:
 		result = -1.0;
 		break;
@@ -13456,6 +13628,39 @@ void SensorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
         *mySize = sizeof(myDblArray[0]) * myDblArray.size();
 		*myPtr = (uintptr_t)(void*)&(myDblArray[0]);
 		break;
+    case 8:													// Sensors.kVs read
+        *myType = 2; // Double
+        myDblArray.resize(1);
+        myDblArray[0] = 0.0;
+        elem = ActiveSensor();
+        k = 1;
+		if (elem != nullptr)
+		{
+			myDblArray.resize(elem->Fnphases);
+			for (k = 0; k < elem->Fnphases; k++)
+			{
+				myDblArray[k] = elem->SensorVoltage[k];
+			}
+        }
+        *myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+        *mySize = sizeof(myDblArray[0]) * myDblArray.size();
+        break;
+    case 9:													// Sensors.kVs write
+        *myType = 2;  // Double
+        k = 1;
+        elem = ActiveSensor();
+        if (elem != nullptr)
+        {
+            PDouble = *(double**)myPtr;
+			for (i = 0; i < elem->Fnphases; i++)
+            {
+                elem->SensorVoltage[k] = *PDouble;
+                PDouble++;
+                k++;
+            }
+        }
+        *mySize = k - 1;
+        break;
 	default:
 		*myType = 4; //string
 		myStrArray.resize(0);
@@ -13585,6 +13790,20 @@ int SettingsI(int mode, int arg)
 		result = -1;
 #endif
 		break;
+    case 10:												// Settings.ControlTrace read
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            if (ActiveCircuit[ActiveActor]->ControlQueue.get_DebugTrace())
+                result = 1;
+        }
+		break;
+    case 11:												// Settings.ControlTrace Write
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            bool bTrace = (arg != 0);
+            ActiveCircuit[ActiveActor]->ControlQueue.Set_Trace(bTrace);
+        }
+        break;
 	default:
 		result = -1;
 		break;
@@ -14205,6 +14424,26 @@ int SolutionI(int mode, int arg)
 	case 48:												// Solution.CalcIncMatrix_O
 		ActiveCircuit[ActiveActor]->Solution->Calc_Inc_Matrix_Org(ActiveActor);
 		break;
+    case 49:												// Solution.SolveSnap
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+			ActiveCircuit[ActiveActor]->Solution->SolveSnap(ActiveActor);
+			if (!Parallel_enabled)
+				Wait4Actors(ALL_ACTORS);
+        }
+        break;
+    case 50:												// Solution.MinIterations Read
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            result = ActiveCircuit[ActiveActor]->Solution->MinIterations;
+        }
+        break;
+    case 51:												// Solution.MinIterations Write
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            ActiveCircuit[ActiveActor]->Solution->MinIterations = arg;
+        }
+        break;
 	default:
 		result = -1;
 		break;
@@ -14392,6 +14631,18 @@ double SolutionF(int mode, double arg)
 			result = ActiveCircuit[ActiveActor]->Solution->Step_Time_Elapsed;
 		}
 		break;
+    case 28:												// Solution.IntervalHrs Read
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            result = ActiveCircuit[ActiveActor]->Solution->IntervalHrs;
+        }
+        break;
+    case 29:												// Solution.IntervalHrs Write
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            ActiveCircuit[ActiveActor]->Solution->IntervalHrs = arg;
+        }
+        break;
 	default:
 		result = -1.0;
 		break;
@@ -15624,6 +15875,69 @@ int SwtControlsI(int mode, int arg)
 			result = ActiveCircuit[ActiveActor]->SwtControls.get_myNumList();
 		}
 		break;
+    case 9:												// SwtControls.NormalState Read
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveSwtControl();
+            if (elem != nullptr)
+            {
+                if (elem->get_FNormalState() == CTRL_OPEN)
+                    result = 0;
+                else
+                    result = 1;
+            }
+        }
+        break;
+    case 10:											// SwtControls.NormalState Write
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveSwtControl();
+            if (elem != nullptr)
+            {
+				if (arg != 0)
+                    elem->set_NormalState(CTRL_CLOSE);
+                else
+                    elem->set_NormalState(CTRL_OPEN);
+            }
+        }
+        break;
+    case 11:											// SwtControls.Reset
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveSwtControl();
+            if (elem != nullptr)
+            {
+                elem->set_Flocked(false);
+	            elem->Reset(ActiveActor);
+            }
+        }
+        break;
+    case 12: // SwtControls.NormalState Read
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveSwtControl();
+            if (elem != nullptr)
+            {
+                if (elem->get_FPresentState() == CTRL_OPEN)
+                    result = 0;
+                else
+                    result = 1;
+            }
+        }
+        break;
+    case 13: // SwtControls.NormalState Write
+        if (ASSIGNED(ActiveCircuit[ActiveActor]))
+        {
+            elem = ActiveSwtControl();
+            if (elem != nullptr)
+            {
+                if (arg != 0)
+                    elem->Set_PresentState(CTRL_CLOSE);
+                else
+                    elem->Set_PresentState(CTRL_OPEN);
+            }
+        }
+        break;
 	default:
 		result = -1;
 		break;
