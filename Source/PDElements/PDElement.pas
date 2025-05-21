@@ -78,7 +78,7 @@ type
         procedure CalcNum_Int(var SectionCount: Integer; AssumeRestoration: Boolean);  // Calc Number of Interruptions in forward sweep
         procedure CalcCustInterrupts;
         procedure ZeroReliabilityAccums; // Zero out reliability accumulators
-        procedure GetRatings(var Normamps, Emergamps: Double);
+        procedure GetRatings(var Normamps_, Emergamps_: Double);
 
         property ExcesskVANorm[idxTerm: Integer;ActorID: Integer]: Complex READ Get_ExcesskVANorm;
         property ExcesskVAEmerg[idxTerm: Integer;ActorID: Integer]: Complex READ Get_ExcesskVAEmerg;
@@ -358,16 +358,16 @@ begin
 
 end;
 
-procedure TPDElement.GetRatings(var Normamps, Emergamps: Double);
+procedure TPDElement.GetRatings(var Normamps_, Emergamps_: Double);
 var
     cTempIterminal: pComplexArray;
     i, RatingIdx: Integer;
     RSignal: TXYCurveObj;
 begin
 
-    // Initializes NomrAmps and EmergAmps with the default values for the PDElement
-    NormAmps := NormAmps;
-    EmergAmps := EmergAmps;
+    // Initializes NormAmps_ and EmergAmps_ with the default values for the PDElement
+    Normamps_ := NormAmps;
+    Emergamps_ := EmergAmps;
 
     if SeasonalRating then
     begin
@@ -380,8 +380,8 @@ begin
           // Brings the seasonal ratings for the PDElement
                 if (RatingIdx <= NumAmpRatings) and (NumAmpRatings > 1) then
                 begin
-                    NormAmps := AmpRatings[RatingIdx];
-                    EmergAmps := AmpRatings[RatingIdx];
+                    Normamps_ := AmpRatings[RatingIdx];
+                    Emergamps_ := AmpRatings[RatingIdx];
                 end;
             end
             else
