@@ -531,36 +531,12 @@ namespace ExportResults
 
     void CalcAndWriteMaxCurrents( Textfile& F, TPDElement* pElem, pComplexArray cBuffer )
     {
-      int RatingIdx = 0, i = 0;
-      double EmergAmps = 0.0, NormAmps = 0.0, CurrMag = 0.0, MaxCurrent = 0.0;
+      int i = 0;
+      double iEmerg = 0.0, iNormal = 0.0, CurrMag = 0.0, MaxCurrent = 0.0;
       complex LocalPower;
-      TXYcurveObj* RSignal;
-      
-        // Initializes NomrAmps and EmergAmps with the default values for the PDElement
-      NormAmps = pElem->NormAmps;
-      EmergAmps = pElem->EmergAmps;
-      if ( SeasonalRating )
-      {
-        if ( SeasonSignal != "" )
-        {
-          RSignal = (TXYcurveObj*) XYCurveClass[ActiveActor]->Find( SeasonSignal );
-          if ( RSignal != NULL )
-          {
-            RatingIdx = trunc( RSignal->GetYValue_( ActiveCircuit[ActiveActor]->Solution->DynaVars.intHour ) );
-              // Brings the seasonal ratings for the PDElement
-            if ( ( RatingIdx <= pElem->NumAmpRatings ) && ( pElem->NumAmpRatings > 1 ) )
-            {
-              NormAmps = pElem->AmpRatings[RatingIdx];
-              EmergAmps = pElem->AmpRatings[RatingIdx];
-            }
-          }
-          else
-            SeasonalRating = false;   // The XYCurve defined doesn't exist
-        }
-        else
-          SeasonalRating = false;    // The user didn't define the seasonal signal
-      }
-       Write( F, pElem->Get_myPName() + "."  + UpperCase(pElem->get_Name()));
+
+      pElem->GetRatings(iNormal, iEmerg);
+      Write( F, pElem->Get_myPName() + "."  + UpperCase(pElem->get_Name()));
       MaxCurrent = 0.0;
       for ( int stop = pElem->Get_NPhases(), i = 1; i <= stop; i++)
       {
@@ -570,13 +546,13 @@ namespace ExportResults
       }
         //----pElem.ActiveTerminalIdx := 1;
       LocalPower = cmulreal( pElem->Get_Power(1, ActiveActor), 0.001 );
-      if ( ( pElem->NormAmps == 0.0 ) || ( pElem->EmergAmps == 0.0 ) )
+      if ( ( iNormal == 0.0 ) || ( iEmerg == 0.0 ) )
       {
           Write( F, Format(", %10.6g, %8.2f, %8.2f", MaxCurrent, 0.0, 0.0));
       }
       else
       {
-         Write( F, Format(", %10.6g, %8.2f, %8.2f", MaxCurrent, MaxCurrent / NormAmps * 100.0, MaxCurrent / EmergAmps * 100.0));
+         Write( F, Format(", %10.6g, %8.2f, %8.2f", MaxCurrent, MaxCurrent / iNormal * 100.0, MaxCurrent / iEmerg * 100.0));
       }
       
       Write( F, Format(", %10.6g, %10.6g, %d, %d, %d", LocalPower.re, LocalPower.im, pElem->BranchNumCustomers, pElem->BranchTotalCustomers, pElem->Get_NPhases()));
@@ -2821,8 +2797,11 @@ namespace ExportResults
                   I2 = 0.0;
                   Cmax = I1;
                 }
-                if ( ( PDElem->NormAmps > 0.0 ) || ( PDElem->EmergAmps > 0.0 ) )
-                  if ( ( Cmax > PDElem->NormAmps ) || ( Cmax > PDElem->EmergAmps ) )
+
+                PDElem->GetRatings(iNormal, iEmerg);
+
+                if ( ( iNormal > 0.0 ) || ( iEmerg > 0.0 ) )
+                  if ( ( Cmax > iNormal ) || ( Cmax > iEmerg ) )
                   {
                    // Get terminal 1 power
                     Spower = cabs( PDElem->Get_Power(1, ActiveActor) ) * 0.001;   // kW
@@ -2831,7 +2810,6 @@ namespace ExportResults
                     Write( F, Format("%8.2f, ", I1));
                     if ( j == 1 )
                     { // Only for 1st Terminal
-                      iNormal = PDElem->NormAmps;
                       if ( iNormal > 0.0 )
                       {
                         Write( F, Format("%8.2f, %10.2f", (Cmax - iNormal), (Spower * (Cmax - iNormal) / iNormal)));
@@ -2841,7 +2819,6 @@ namespace ExportResults
                       {
                         Write( F, Separator ); Write( F, "     0.0" );
                       }
-                      iEmerg = PDElem->EmergAmps;
                       if ( iEmerg > 0.0 )
                       {
                         Write( F, Separator ); Write( F, Format("%8.1f",Cmax / iEmerg * 100.0));
