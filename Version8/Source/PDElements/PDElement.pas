@@ -71,7 +71,7 @@ TYPE
        PROCEDURE CalcNum_Int(Var SectionCount:Integer; AssumeRestoration:Boolean);  // Calc Number of Interruptions in forward sweep
        PROCEDURE CalcCustInterrupts;
        PROCEDURE ZeroReliabilityAccums; // Zero out reliability accumulators
-       PROCEDURE GetRatings(Var Normamps, Emergamps: Double);
+       PROCEDURE GetRatings(Var Normamps_, Emergamps_: Double);
 
        Property ExcesskVANorm[idxTerm:Integer;ActorID:Integer] :Complex Read Get_ExcesskVANorm;
        Property ExcesskVAEmerg[idxTerm:Integer;ActorID:integer]:Complex Read Get_ExcesskVAEmerg;
@@ -328,16 +328,16 @@ begin
 
 end;
 
-procedure TPDElement.GetRatings(Var Normamps, Emergamps: Double);
+procedure TPDElement.GetRatings(Var Normamps_, Emergamps_: Double);
 VAR
    cTempIterminal  :pComplexArray;
    i, RatingIdx    :Integer;
    RSignal     : TXYCurveObj;
 begin
 
-    // Initializes NomrAmps and EmergAmps with the default values for the PDElement
-    NormAmps   :=  NormAmps;
-    EmergAmps  :=  EmergAmps;
+    // Initializes NormAmps_ and EmergAmps_ with the default values for the PDElement
+    Normamps_   :=  NormAmps;
+    Emergamps_  :=  EmergAmps;
 
     if SeasonalRating then
     Begin
@@ -350,8 +350,8 @@ begin
           // Brings the seasonal ratings for the PDElement
           if (RatingIdx <= NumAmpRatings) and (NumAmpRatings > 1) then
           Begin
-            NormAmps    :=  AmpRatings[RatingIdx];
-            EmergAmps   :=  AmpRatings[RatingIdx];
+            Normamps_    :=  AmpRatings[RatingIdx];
+            Emergamps_   :=  AmpRatings[RatingIdx];
           End;
         End
         else
