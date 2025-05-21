@@ -2608,6 +2608,12 @@ namespace DSSPlot
         while (iEnergyMeter > 0)
         {
             ActiveEnergyMeter = (TEnergyMeterObj*) EnergyMeterClass[ActiveActor]->GetActiveObj();
+            if (!ActiveEnergyMeter->Get_Enabled())
+            {
+                iEnergyMeter = EnergyMeterClass[ActiveActor]->Get_Next();
+                continue;
+            }
+      
             /* Go down each branch list and draw a line */
             PresentCktElement = (TDSSCktElement*) ActiveEnergyMeter->BranchList->Get_First();
             while (PresentCktElement != nullptr)
