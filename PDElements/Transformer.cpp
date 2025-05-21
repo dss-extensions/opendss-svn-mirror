@@ -221,9 +221,13 @@ void TTransf::DefineProperties()
 	           "Defaults to 85% of %R property";
 	(PropertyHelp)[48 - 1] = "Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the \"Ratings\" property.";
 	(PropertyHelp)[49 - 1] = String("An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert") + CRLF
-	           + "multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. Is given in kVA";
+	           + "multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. It is given in kVA.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
+
+     // Override description from inherited normamps and emergamps
+    PropertyHelp[NumPropsThisClass + 1 - 1] = "(Read only) Normal rated current. Use normhkVA to specify transformer normal rating.";
+    PropertyHelp[NumPropsThisClass + 2 - 1] = "(Read only) Maximum or emerg current. Use emerghkVA to specify transformer emergency rating.";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1354,7 +1358,7 @@ void TTransfObj::RecalcElementData(int ActorID)
 	AmpRatings.resize( NumAmpRatings );
 	for(stop = ( NumAmpRatings - 1), i = 0; i <= stop; i++)
 	{
-		AmpRatings[i] = 1.1 * kVARatings[i] / Fnphases / VFactor;
+		AmpRatings[i] = kVARatings[i] / Fnphases / VFactor;
 	}
 	CalcY_Terminal(1.0);   // Calc Y_Terminal at base frequency
 }
