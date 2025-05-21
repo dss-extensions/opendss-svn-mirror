@@ -373,7 +373,7 @@ int TLoadShape::CreateMMF(const String s, int Destination)
 					with0->myQFile = CreateFile(Param.c_str(), GENERIC_READ, (DWORD) FILE_SHARE_READ, nullptr, (DWORD) OPEN_EXISTING, (DWORD) FILE_ATTRIBUTE_NORMAL, 0);
           // Creates the memory map for the file
 					with0->myQMMF = CreateFileMapping(with0->myQFile, nullptr, (DWORD) PAGE_READONLY, 0, 0, nullptr);
-					with0->myFileSizeQ = GetFileSize(with0->myFile, nullptr);
+					with0->myFileSizeQ = GetFileSize(with0->myQFile, nullptr);
 					with0->MyViewLenQ = (int) with0->myFileSizeQ;
 					with0->myViewQ = ((PByte) MapViewOfFile(with0->myQMMF, (DWORD) FILE_MAP_READ, 0, 0, (SIZE_T) with0->MyViewLenQ));
 #else
