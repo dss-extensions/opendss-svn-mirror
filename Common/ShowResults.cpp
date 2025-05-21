@@ -2612,7 +2612,9 @@ namespace ShowResults
                         I1 = 0.0, 
                         I2 = 0.0, 
                         cmag = 0.0, 
-                        Cmax = 0.0;
+                        Cmax = 0.0,
+                        iNormal = 0.0,
+                        iEmerg = 0.0;
 
       SetMaxDeviceNameLength();
       try
@@ -2670,21 +2672,22 @@ namespace ShowResults
                   I2 = 0.0;
                   Cmax = I1;
                 }
-                if ( ( PDElem->NormAmps > 0.0 ) || ( PDElem->EmergAmps > 0.0 ) )
-                  if ( ( Cmax > PDElem->NormAmps ) || ( Cmax > PDElem->EmergAmps ) )
+                PDElem->GetRatings(iNormal, iEmerg);
+                if ( ( iNormal > 0.0 ) || ( iEmerg > 0.0 ) )
+                  if ( ( Cmax > iNormal ) || ( Cmax > iEmerg ) )
                   {
                     System::Write( F, Pad( FullName( PDElem ), MaxDeviceNameLength + 2 ) ); System::Write( F, j, 3 );
                     System::Write( F, Format("%8.1f", I1));
-                    if ( PDElem->NormAmps > 0.0 )
-                      System::Write( F, Format("%8.2f", Cmax - PDElem->NormAmps ));
+                    if ( iNormal > 0.0 )
+                      System::Write( F, Format("%8.2f", Cmax - iNormal ));
                     else
                       System::Write( F, "     0.0" );
-                    if ( PDElem->NormAmps > 0.0 )
-                      System::Write( F, Format("%8.1f", Cmax / PDElem->NormAmps * 100.0));
+                    if ( iNormal > 0.0 )
+                      System::Write( F, Format("%8.1f", Cmax / iNormal * 100.0));
                     else
                       System::Write( F, "     0.0" );
-                    if ( PDElem->EmergAmps > 0.0 )
-                      System::Write( F, Format("%8.1f", Cmax / PDElem->EmergAmps * 100.0));
+                    if ( iEmerg > 0.0 )
+                      System::Write( F, Format("%8.1f", Cmax / iEmerg * 100.0));
                     else
                       System::Write( F, "     0.0" );
                     System::Write( F, Format("%8.1f", I2));

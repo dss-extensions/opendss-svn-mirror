@@ -3,6 +3,7 @@
 
 #include "PDElement.h"
 #include "DSSGlobals.h"
+#include "XYcurve.h"
 
 using namespace std;
 using namespace Arraydef;
@@ -15,6 +16,7 @@ using namespace DSSObject;
 using namespace MeterElement;
 using namespace System;
 using namespace Ucomplex;
+using namespace XYCurve;
 
 namespace PDELement
 {
@@ -356,7 +358,37 @@ void TPDElement::ZeroReliabilityAccums()
 	}
 }
 
+void TPDElement::GetRatings(double& normAmps, double& emergAmps)
+{
+	int RatingIdx = 0, i = 0;
+	TXYcurveObj* RSignal;
+	
+	// Initializes NomrAmps and EmergAmps with the default values for the PDElement
+	normAmps = this->NormAmps;
+	emergAmps = this->EmergAmps;
 
+	if ( SeasonalRating )
+	{
+	  if ( SeasonSignal != "" )
+	  {
+		RSignal = (TXYcurveObj*) XYCurveClass[ActiveActor]->Find( SeasonSignal );
+		if ( RSignal != NULL )
+		{
+		  RatingIdx = trunc( RSignal->GetYValue_( ActiveCircuit[ActiveActor]->Solution->DynaVars.intHour ) );
+			// Brings the seasonal ratings for the PDElement
+		  if ( ( RatingIdx <= NumAmpRatings ) && ( NumAmpRatings > 1 ) )
+		  {
+			normAmps = AmpRatings[RatingIdx];
+			emergAmps = AmpRatings[RatingIdx];
+		  }
+		}
+		else
+		  SeasonalRating = false;   // The XYCurve defined doesn't exist
+	  }
+	  else
+		SeasonalRating = false;    // The user didn't define the seasonal signal
+	}
+}
 
 
 }  // namespace PDELement

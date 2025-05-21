@@ -77,6 +77,7 @@ namespace PDELement
 		void CalcNum_Int(int& SectionCount, bool AssumeRestoration);  // Calc Number of Interruptions in forward sweep
 		void CalcCustInterrupts();
 		void ZeroReliabilityAccums(); // Zero out reliability accumulators
+		void GetRatings(double& normAmps, double& emergAmps);
 		void CalcNumCustomers(int ActorID, TPDElement* pElems);
 		TPDElement(String ClassName);
 		TPDElement();
