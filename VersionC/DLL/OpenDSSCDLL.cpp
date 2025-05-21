@@ -6170,6 +6170,23 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*mySize = sizeof(polar) * myCmplxArray.size();
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
 		break;
+	// case 21:                                        // CktElement.AllLosses
+	// 	// Mode 21: CktElement.AllLosses (read): Returns a pointer to an array of complex with all power losses in the active circuit element in the following order: Total losses, load losses and no-load losses. Each element is a complex structure including real and imaginary parts (double, 16 Bytes per element).
+	// 	*myType = 3;
+	// 	myCmplxArray.resize(1);
+	// 	myCmplxArray[0] = CZero;
+	// 	if (ActiveCircuit[ActiveActor] != nullptr)
+	// 	{
+	// 		complex S_TotalLosses, S_LoadLosses, S_NoLoadLosses;
+	// 		myCmplxArray.resize(3);
+	// 		ActiveCircuit[ActiveActor]->FActiveCktElement->GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses, ActiveActor);
+	// 		myCmplxArray[0] = S_TotalLosses;
+	// 		myCmplxArray[1] = S_LoadLosses;
+	// 		myCmplxArray[2] = S_NoLoadLosses;
+	// 	}
+	// 	*mySize = sizeof(polar) * myCmplxArray.size();
+	// 	*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
+	// 	break;
     case 21:			// CktElement.Open
         *myType = 1;	// Integer
         k = 0;
