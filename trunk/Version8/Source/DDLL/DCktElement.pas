@@ -1137,7 +1137,6 @@ begin
     End;
     myPointer :=  @(myCmplxArray[0]);
     mySize    :=  SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
-<<<<<<< .mine
   end;
   21: begin            // CktElement.Open
     myType  :=  1;     // Integer
@@ -1217,20 +1216,7 @@ begin
     myPointer :=  @(myIntArray[0]);
     mySize    :=  SizeOf(myIntArray[0]) * Length(myIntArray);
   End;
-  24: begin            // CktElement.Handle
-    myType  :=  1;     // Integer
-    mySize  :=  1;
-    If ActiveCircuit[ActiveActor] <> Nil Then
-      myPointer := Pointer(ActiveCircuit[ActiveActor].ActiveCktElement.Handle)
-    Else
-      myPointer := 0;
-  End
-||||||| .r4032
-  end
-=======
-  end;
-  21: begin
-    // Mode 21: CktElement.AllLosses (read): Returns a pointer to an array of complex with all power losses in the active circuit element in the following order: Total losses, load losses and no-load losses. Each element is a complex structure including real and imaginary parts (double, 16 Bytes per element).
+  24: begin
     var S_TotalLosses, S_LoadLosses, S_NoLoadLosses: complex;
     myType  :=  3;        // Complex
     setlength(myCmplxArray, 1);
@@ -1245,9 +1231,17 @@ begin
     End;
     myPointer :=  @(myCmplxArray[0]);
     mySize    :=  SizeOf(myCmplxArray[0]) * Length(myCmplxArray);
-  
-end
->>>>>>> .r4041
+
+  end;
+  25: begin            // CktElement.Handle
+    myType  :=  1;     // Integer
+    mySize  :=  1;
+    If ActiveCircuit[ActiveActor] <> Nil Then
+      myPointer := Pointer(ActiveCircuit[ActiveActor].ActiveCktElement.Handle)
+    Else
+      myPointer := 0;
+  End;
+
   else
     myType  :=  4;        // String
     setlength(myStrArray, 0);
