@@ -1216,7 +1216,7 @@ begin
     myPointer :=  @(myIntArray[0]);
     mySize    :=  SizeOf(myIntArray[0]) * Length(myIntArray);
   End;
-  24: begin
+  24: begin            // CktElement.AllLosses
     var S_TotalLosses, S_LoadLosses, S_NoLoadLosses: complex;
     myType  :=  3;        // Complex
     setlength(myCmplxArray, 1);
