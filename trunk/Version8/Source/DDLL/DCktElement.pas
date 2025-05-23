@@ -1236,10 +1236,12 @@ begin
   25: begin            // CktElement.Handle
     myType  :=  1;     // Integer
     mySize  :=  1;
+    setlength(myIntArray, 1);
+    myIntArray[0] := 0;
     If ActiveCircuit[ActiveActor] <> Nil Then
-      myPointer := Pointer(ActiveCircuit[ActiveActor].ActiveCktElement.Handle)
-    Else
-      myPointer := 0;
+      myIntArray[0] := ActiveCircuit[ActiveActor].ActiveCktElement.Handle;
+    myPointer :=  @(myIntArray[0]);
+    mySize    :=  SizeOf(myIntArray[0]) * Length(myIntArray);
   End;
 
   else
