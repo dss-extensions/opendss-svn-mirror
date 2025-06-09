@@ -4567,6 +4567,7 @@ var
     currentkvarlimitnegpu: Double;
     FOperation: Double;
     error: Double;
+    Qavailable_sqr: Double;
 
 begin
     with CtrlVars[j] do
@@ -4623,10 +4624,15 @@ begin
     // Qdesiredpu should be less than the Q avaliable under watt priority  (works just for varmax)
         if FPPriority and ((FReacPower_ref = 'VARMAX') or (ControlMode = WATTPF)) then
         begin
+
+            Qavailable_sqr := SQR(FkVARating) - SQR(FpresentkW);
+            if abs(Qavailable_sqr) < EPSILON then
+                Qavailable_sqr := 0;
+
             if Q >= 0.0 then
-                Q_Ppriority := Sqrt(SQR(FkVARating) - SQR(FpresentkW)) / QHeadRoom
+                Q_Ppriority := Sqrt(Qavailable_sqr) / QHeadRoom
             else
-                Q_Ppriority := Sqrt(SQR(FkVARating) - SQR(FpresentkW)) / QHeadRoomNeg;
+                Q_Ppriority := Sqrt(Qavailable_sqr) / QHeadRoomNeg;
 
             if (abs(Q_Ppriority) < abs(QDesireLimitedpu)) and (abs(Q_Ppriority) < abs(Q)) then
             begin
