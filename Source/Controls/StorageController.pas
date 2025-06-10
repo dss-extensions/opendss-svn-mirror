@@ -653,7 +653,7 @@ Begin
                                   Casemult      :=  1.0;
 
                                 HalfkWBandLow := FkWBandLow / 2.0 * Casemult;
-                                FpctkWBand    := FkWBandLow / FkWTarget * 100.0; // sync FpctkWBandLow
+                                FpctkWBandLow    := FkWBandLow / FkWTargetLow * 100.0; // sync FpctkWBandLow
                               End;
 //            propPFBAND: HalfPFBand := FPFBand / 2.0;
             propMODEDISCHARGE: If DischargeMode = MODEFOLLOW Then  DischargeTriggerTime := 12.0; // Noon
