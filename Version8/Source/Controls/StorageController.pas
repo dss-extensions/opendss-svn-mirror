@@ -1672,7 +1672,7 @@ Begin
                  If Not (FleetState=STORE_DISCHARGING) Then
                   Begin
                     SetFleetToDischarge;
-//                    StorekWChanged:= TRUE;  // if not already discharging, force new power flow.
+                    StorekWChanged:= TRUE;  // if not already discharging, force new power flow.
                   End;
                  If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g kWh reserve.', [kWNeeded, RemainingkWh, ReservekWh]),ActorID);
                  For i := 1 to FleetSize Do
@@ -1933,7 +1933,7 @@ Begin
                Begin // Attempt to change storage kW charge
                    If Not (FleetState=STORE_CHARGING) Then Begin
                       SetFleetToCharge;
-//                      StorekWChanged:= TRUE;  // if not already charging, force new power flow.
+                      StorekWChanged:= TRUE;  // if not already charging, force new power flow.
                    End;
   //                       If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [kWNeeded, (TotalRatingkWh-ActualkWh), TotalRatingkWh]), ActorID);
                    If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [kWNeeded, (TotalRatingkWh-ActualkWh), TotalRatingkWh]), ActorID);
