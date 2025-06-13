@@ -583,7 +583,7 @@ int TStorageController::Edit(int ActorID)
 					else
 						casemult = 1.0;
 					with0->HalfkWBandLow = with0->FkWBandLow / 2.0 * casemult;
-					with0->FpctkWBand = with0->FkWBandLow / with0->FkWTarget * 100.0; // sync FpctkWBandLow
+					with0->FpctkWBandLow = with0->FkWBandLow / with0->FkWTargetLow * 100.0; // sync FpctkWBandLow
 				}
 				break;
 //            propPFBAND: HalfPFBand := FPFBand / 2.0;
@@ -1816,7 +1816,7 @@ void TStorageControllerObj::DoLoadFollowMode(int ActorID)
 					if(!(FleetState == STORE_DISCHARGING))
 					{
 						SetFleetToDisCharge();
-//                    StorekWChanged:= TRUE;  // if not already discharging, force new power flow.
+						StorekWChanged = true;  // if not already discharging, force new power flow.
 					}
 					if(ShowEventLog)
 						AppendToEventLog(String("StorageController.") + this->get_Name(), Format("Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g kWh reserve.", kWNeeded, RemainingkWh, ReservekWh), ActorID);
@@ -2082,7 +2082,7 @@ void TStorageControllerObj::DoPeakShaveModeLow(int ActorID)
 					if(!(FleetState == STORE_CHARGING))
 					{
 						SetFleetToCharge();
-//                      StorekWChanged:= TRUE;  // if not already charging, force new power flow.
+						StorekWChanged = true;  // if not already charging, force new power flow.
 					}
   //                       If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [kWNeeded, (TotalRatingkWh-ActualkWh), TotalRatingkWh]), ActorID);
 					if(ShowEventLog)
