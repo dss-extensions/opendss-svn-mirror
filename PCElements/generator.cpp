@@ -80,9 +80,8 @@ TGenerator::TGenerator()
 	RegisterNames[5 - 1] = "Hours";
 	RegisterNames[6 - 1] = "$";
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	GeneratorClass = this;
 }
@@ -1478,15 +1477,9 @@ void TGeneratorObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Shunt != nullptr)
-			delete YPrim_Shunt;
-		YPrim_Shunt = new TcMatrix(Yorder);
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -1498,13 +1491,13 @@ void TGeneratorObj::CalcYPrim(int ActorID)
         // 12-7-99 we'll start with Yeq in system matrix
 	{
 		SetNominalGeneration(ActorID);
-		CalcYPrimMatrix(YPrim_Shunt, ActorID);
+		CalcYPrimMatrix(YPrim_Shunt.get(), ActorID);
 	}
 	else
          // ADMITTANCE model wanted
 	{
 		SetNominalGeneration(ActorID);
-		CalcYPrimMatrix(YPrim_Shunt, ActorID);
+		CalcYPrimMatrix(YPrim_Shunt.get(), ActorID);
 	}
 
      // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages doesn't fail
@@ -1512,7 +1505,7 @@ void TGeneratorObj::CalcYPrim(int ActorID)
 	{
 		YPrim_Series->SetElement(i, i, cmulreal(YPrim_Shunt->GetElement(i, i), 1.0e-10));
 	}
-	YPrim->CopyFrom(YPrim_Shunt);
+	YPrim->CopyFrom(YPrim_Shunt.get());
 
      // Account for Open Conductors
 	inherited::CalcYPrim(ActorID);

@@ -48,13 +48,11 @@ const int CHANGEVARLEVEL = 1;
 
 TExpControl::TExpControl()
 {
-	;
 	Class_Name = "ExpControl";
 	DSSClassType = DSSClassType + EXP_CONTROL;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

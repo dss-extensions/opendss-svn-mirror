@@ -531,7 +531,9 @@ void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 
 }
-
+void free_memory_char_p(char* const ptr) {
+	delete[] ptr;
+}
 //vector<string> Str2StrArray(char* myStr, char Delimiter)
 //{
 //    vector<string>	Result;

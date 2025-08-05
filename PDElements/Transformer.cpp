@@ -42,9 +42,8 @@ TTransf::TTransf()
 	DefineProperties();
 
      /*Make space for transformer property list*/
-	std::string* slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);     /*Allow property list abbreviations*/
 }
 
@@ -1482,15 +1481,9 @@ void TTransfObj::CalcYPrim(int ActorID)
 	if(Get_YprimInvalid(ActorID,0))
          // Reallocate YPrim if something has invalidated old allocation
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		if(YPrim_Shunt != nullptr)
-			delete YPrim_Shunt;
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim_Series = new TcMatrix(Yorder);
-		YPrim_Shunt = new TcMatrix(Yorder);
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
   /*Same size as last time; just zero out to start over*/
@@ -1506,13 +1499,13 @@ void TTransfObj::CalcYPrim(int ActorID)
     // Check for rebuilding Y_Terminal; Only rebuild if freq is different than last time
 	if(FreqMultiplier != Y_Terminal_Freqmult)
 		CalcY_Terminal(FreqMultiplier);
-	BuildYPrimComponent(YPrim_Series, Y_Term);
-	BuildYPrimComponent(YPrim_Shunt, Y_Term_NL);
+	BuildYPrimComponent(YPrim_Series.get(), Y_Term);
+	BuildYPrimComponent(YPrim_Shunt.get(), Y_Term_NL);
 	AddNeutralToY(FreqMultiplier);
 
     /*Combine the two Yprim components into Yprim*/
-	YPrim->CopyFrom(YPrim_Series);
-	YPrim->AddFrom(YPrim_Shunt);
+	YPrim->CopyFrom(YPrim_Series.get());
+	YPrim->AddFrom(YPrim_Shunt.get());
 
     /*Now Account for Open Conductors*/
     /*For any conductor that is open, zero out row and column*/

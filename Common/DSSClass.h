@@ -73,10 +73,10 @@ namespace DSSClass
       int ClassEdit( const void* ActiveObj, const int ParamPointer );
       public:
       int NumProperties;
-      std::string *PropertyName;
-      std::string *PropertyHelp;
-      int *PropertyIdxMap;
-      int *RevPropertyIdxMap;    // maps property to internal command number
+      std::vector<std::string> PropertyName;
+      std::vector<std::string> PropertyHelp;
+      std::vector<int> PropertyIdxMap;
+      std::vector<int> RevPropertyIdxMap;    // maps property to internal command number
       int DSSClassType;
       TPointerList ElementList;
       bool ElementNamesOutOfSynch;     // When device gets renamed

@@ -106,7 +106,7 @@ namespace ExcSexs
 		Class_Name = "ExcSexs";
 		DSSClassType = DSSClassType + EXCSEXS_ELEMENT;
 		DefineProperties();
-		CommandList = TCommandList(Slice((PropertyName), NumProperties), NumProperties);
+		CommandList = TCommandList(Slice(PropertyName, NumProperties).data(), NumProperties);
 		CommandList.set_AbbrevAllowed(true);
 
 	}

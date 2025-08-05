@@ -640,11 +640,11 @@ namespace CktElement
     void TDSSCktElement::CalcYPrim( int ActorID )
     {
       if ( YPrim_Series != NULL )
-        DoYprimCalcs( YPrim_Series );
+        DoYprimCalcs( YPrim_Series.get() );
       if ( YPrim_Shunt != NULL )
-        DoYprimCalcs( YPrim_Shunt );
+        DoYprimCalcs( YPrim_Shunt.get() );
       if ( YPrim != NULL )
-        DoYprimCalcs( YPrim );
+        DoYprimCalcs( YPrim.get() );
 
       //Set_YprimInvalid(ActorID, false);
     }

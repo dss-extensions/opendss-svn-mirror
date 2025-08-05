@@ -62,10 +62,10 @@ namespace DSSClass
         Saved = false;
 
         // inherited::Create();
-        PropertyName = NULL;
-        PropertyHelp = NULL;
-        PropertyIdxMap = NULL;
-        RevPropertyIdxMap = NULL;
+        PropertyName.clear();
+        PropertyHelp.clear();
+        PropertyIdxMap.clear();
+        RevPropertyIdxMap.clear();
         ActiveElement = 0;
         ActiveProperty = 0;
 
@@ -354,10 +354,10 @@ namespace DSSClass
     void TDSSClass::AllocatePropertyArrays()
     {
         int i = 0;
-        PropertyName = new string[NumProperties + 1];
-        PropertyHelp = new string[NumProperties + 1];
-        PropertyIdxMap = new int[NumProperties + 1];
-        RevPropertyIdxMap = new int[NumProperties + 1];
+        PropertyName.resize(NumProperties + 1);
+        PropertyHelp.resize(NumProperties + 1);
+        PropertyIdxMap.resize(NumProperties + 1);
+        RevPropertyIdxMap.resize(NumProperties + 1);
         ActiveProperty = 0;    // initialize for AddPropert
            /*initialize PropertyIdxMap to take care of legacy items*/
         for (int stop = NumProperties, i = 1; i <= stop; i++)

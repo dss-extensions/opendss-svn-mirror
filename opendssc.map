@@ -46,6 +46,7 @@ global:
     DSSPut_Command;
     DSSS;
     DSSV;
+    free_memory_char_p;
     ErrorCode;
     ErrorDesc;
     FusesF;

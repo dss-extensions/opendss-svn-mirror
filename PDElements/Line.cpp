@@ -64,9 +64,8 @@ TLine::TLine()
 	LineCodeClass = nullptr;
 	LineGeometryClass = nullptr;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
@@ -1278,7 +1277,7 @@ void TLineObj::CalcYPrim(int ActorID)
 			}
 		}
 	}   /*With Yprim_series*/
-	YPrim->CopyFrom(YPrim_Series);      // Initialize YPrim for series impedances
+	YPrim->CopyFrom(YPrim_Series.get());      // Initialize YPrim for series impedances
 
      // 10/3/2006 moved this to after the copy to Yprim so it doesn't affect normal line model capacitance
         // 3-30-04  ----- Rev 2-4-09 to include both sides of line
@@ -1352,7 +1351,7 @@ void TLineObj::CalcYPrim(int ActorID)
          /*Now Account for Open Conductors*/
          /*For any conductor that is open, zero out row and column*/
 		} /*With YPRIM*/
-	YPrim->AddFrom(YPrim_Shunt);
+	YPrim->AddFrom(YPrim_Shunt.get());
 	inherited::CalcYPrim(ActorID);
 	Set_YprimInvalid(ActorID,false);
 }
@@ -2638,15 +2637,9 @@ void TLineObj::ClearYPrim()
  // Line Object needs both Series and Shunt YPrims built
 	if(Get_YprimInvalid(ActiveActor,0)) // Reallocate YPrim if something has invalidated old allocation
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		if(YPrim_Shunt != nullptr)
-			delete YPrim_Shunt;
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim_Series = new TcMatrix(Yorder);
-		YPrim_Shunt = new TcMatrix(Yorder);
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{

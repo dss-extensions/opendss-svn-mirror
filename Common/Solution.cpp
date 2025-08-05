@@ -57,9 +57,8 @@ namespace Solution
       DSSClassType = DSS_OBJECT + HIDDEN_ELEMENT;
       ActiveElement = 0;
       DefineProperties();
-      std::string* slc = Slice( PropertyName, NumProperties );
-      CommandList = TCommandList(slc , NumProperties);
-      delete[] slc;
+      auto&& slc = Slice(PropertyName, NumProperties);
+      CommandList = TCommandList(slc.data() , NumProperties);
       CommandList.set_AbbrevAllowed(true);
     }
 
@@ -952,7 +951,7 @@ namespace Solution
                                 LdVolt = with0->Solution->NodeV[NodeIdx];
 
                                 if (((TLoadObj*)pElem)->FLoadModel == 2)
-                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, ((TLoadObj*)pElem)->YPrim);
+                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, ((TLoadObj*)pElem)->YPrim.get());
                                 else
                                 {
                                     if (pNodeType[NodeIdx] == PV_Node)
@@ -1006,7 +1005,7 @@ namespace Solution
                                 default:     // Constant impedance
                                 {
                                     LdVolt = with0->Solution->NodeV[NodeIdx];
-                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim);
+                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim.get());
                                 }
                                 break;
                                 }
@@ -1016,7 +1015,7 @@ namespace Solution
                             {
                                 auto  with2 = (TFaultObj*)pElem;
                                 LdVolt = with0->Solution->NodeV[NodeIdx];
-                                DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim);
+                                DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim.get());
                             }
                             break;
                             default:

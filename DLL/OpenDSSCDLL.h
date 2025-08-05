@@ -42,6 +42,7 @@ extern "C" {
 	DSS_DLL int DSSI(int mode, int arg);
 	DSS_DLL char* DSSS(int mode, char* arg);
 	DSS_DLL void DSSV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
+	DSS_DLL void free_memory_char_p(char* ptr);
 
 	//**************************************************************************************************
 

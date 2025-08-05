@@ -46,9 +46,8 @@ TReactor::TReactor()
 	DSSClassType = DSSClassType + REACTOR_ELEMENT;
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 
 	ReactorClass[ActiveActor] = this;
@@ -816,15 +815,9 @@ void TReactorObj::CalcYPrim(int ActorID)
 // Bus1 <> Bus 2
 	if(Get_YprimInvalid(ActorID,0))    // Reallocate YPrim if something has invalidated old allocation
 	{
-		if(YPrim_Shunt != nullptr)
-			delete YPrim_Shunt;
-		YPrim_Shunt = new TcMatrix(Yorder);
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -833,9 +826,9 @@ void TReactorObj::CalcYPrim(int ActorID)
 		YPrim->Clear();
 	}
 	if(IsShunt)
-		YPrimTemp = YPrim_Shunt;
+		YPrimTemp = YPrim_Shunt.get();
 	else
-		YPrimTemp = YPrim_Series;
+		YPrimTemp = YPrim_Series.get();
 	/*# with YPrimTemp do */
 	{
 		auto with0 = YPrimTemp;

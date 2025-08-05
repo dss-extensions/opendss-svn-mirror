@@ -33,9 +33,8 @@ TLoad::TLoad()
 	DSSClassType = DSSClassType + LOAD_ELEMENT;
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
@@ -1562,15 +1561,9 @@ void TLoadObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Shunt != nullptr)
-			delete YPrim_Shunt; // YPrim_Shunt->~TcMatrix();
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series; // YPrim_Series->~TcMatrix();
-		if(YPrim != nullptr)
-			delete YPrim; // YPrim->~TcMatrix();
-		YPrim_Series = new TcMatrix(Yorder);
-		YPrim_Shunt = new TcMatrix(Yorder);
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -1581,13 +1574,13 @@ void TLoadObj::CalcYPrim(int ActorID)
 	if(ActiveCircuit[ActorID]->Solution->LoadModel == POWERFLOW)
 	{
 		SetNominalLoad(ActorID);         // same as admittance model
-		CalcYPrimMatrix(YPrim_Shunt, ActorID);
+		CalcYPrimMatrix(YPrim_Shunt.get(), ActorID);
 	}
 	else
    // ADMITTANCE model wanted
 	{
 		SetNominalLoad(ActorID);
-		CalcYPrimMatrix(YPrim_Shunt, ActorID);
+		CalcYPrimMatrix(YPrim_Shunt.get(), ActorID);
 	}
 
      // Set YPrim_Series based on diagonals of YPrim_shunt  so that CalcVoltages doesn't fail
@@ -1595,7 +1588,7 @@ void TLoadObj::CalcYPrim(int ActorID)
 	{
 		YPrim_Series->SetElement(i, i, cmulreal(YPrim_Shunt->GetElement(i, i), 1.0e-10));
 	}
-	YPrim->CopyFrom(YPrim_Shunt);
+	YPrim->CopyFrom(YPrim_Shunt.get());
 
      // Account for Open Conductors
 	inherited::CalcYPrim(ActorID);
