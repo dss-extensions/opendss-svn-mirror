@@ -61,9 +61,8 @@ TLineGeometry::TLineGeometry()
 	DSSClassType = DSS_OBJECT;
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
@@ -746,17 +745,16 @@ TLineGeometryObj::TLineGeometryObj(TDSSClass* ParClass, const String LineGeometr
 {
 	Set_Name(LowerCase(LineGeometryName));
 
-	FPhaseChoice = nullptr;
+	FPhaseChoice.clear();
 	DSSObjType = ParClass->DSSClassType;
 	DataChanged = true;
-	FCondName = nullptr;
+	FCondName.clear();
 	FWireData.clear();
 	FX.clear();
 	FY.clear();
 	FEqDist.clear();
 	FEquivalentSpacing = false;
 	FUnits.clear();
-	FLineData = nullptr;
 	FSpacingType = "";
 	FCondsUser = "";
 
@@ -781,8 +779,6 @@ TLineGeometryObj::TLineGeometryObj(TDSSClass* ParClass, const String LineGeometr
 
 TLineGeometryObj::~TLineGeometryObj()
 {
-	FLineData = nullptr;
-	FreeStringArray(FCondName, Fnconds);
 	FWireData.clear();
 	FY.clear();
 	FX.clear();
@@ -1178,13 +1174,12 @@ void TLineGeometryObj::set_ActiveCond(int Value)
 
 void TLineGeometryObj::ChangeLineConstantsType(ConductorChoice newPhaseChoice)
 {
-	TLineConstants* newLineData = nullptr;
+	std::unique_ptr<TLineConstants> newLineData;
 	bool needNew = false;
-	newLineData = nullptr;
 	needNew = false;
 	if(newPhaseChoice != FPhaseChoice[get_FActiveCond() - 1])
 		needNew = true;
-	if(!ASSIGNED(FLineData))
+	if(!FLineData)
 		needNew = true;
 	else
 	{
@@ -1195,29 +1190,27 @@ void TLineGeometryObj::ChangeLineConstantsType(ConductorChoice newPhaseChoice)
 		switch(newPhaseChoice)
 		{
 			case 	Overhead:
-			newLineData = new TOHLineConstants(Fnconds);
+			newLineData = std::unique_ptr<TOHLineConstants>(new TOHLineConstants{Fnconds});
 			break;
 			case 	ConcentricNeutral:
-			newLineData = new TCNTSLineConstants(Fnconds);
+			newLineData = std::unique_ptr<TCNTSLineConstants>(new TCNTSLineConstants{Fnconds});
 			break;
 			case 	TapeShield:
-			newLineData = new TCNTSLineConstants(Fnconds);
+			newLineData = std::unique_ptr<TCNTSLineConstants>(new TCNTSLineConstants{Fnconds});
 			break;
 			default:
 			  ;
 			break;
 		}
-	if(ASSIGNED(newLineData))
+	if(newLineData)
 	{
-		if (ASSIGNED(FLineData))
+		if (FLineData)
 		{
 			newLineData->Set_NPhases(FLineData->get_FNumPhases());
 			newLineData->Set_Frhoearth(FLineData->get_FrhoEarth());
-                        newLineData->Set_FEpsRMedium(FLineData->get_FEpsRMedium());
+			newLineData->Set_FEpsRMedium(FLineData->get_FEpsRMedium());
 		}
-		else
-			delete FLineData;
-		FLineData = newLineData;
+		FLineData.swap(newLineData);
 	}
 	FPhaseChoice[get_FActiveCond() - 1] = newPhaseChoice;
 }
@@ -1249,11 +1242,7 @@ void TLineGeometryObj::Set_Nconds(int Value)
 {
 	int i = 0;
 	int stop = 0;
-	if(ASSIGNED(FCondName))
-		FreeStringArray(FCondName, Fnconds);  // dispose of old allocation
 	Fnconds = Value;
-	if(ASSIGNED(FLineData))
-		free( FLineData );
 
 
   /*Allocations*/
@@ -1262,7 +1251,7 @@ void TLineGeometryObj::Set_Nconds(int Value)
 	FY.resize(Fnconds);
 	FEqDist.resize(4);
 	FUnits.resize(Fnconds);
-	FPhaseChoice = (pConductorChoiceArray) realloc(FPhaseChoice, sizeof(FPhaseChoice[0]) * Fnconds);
+	FPhaseChoice = std::vector<ConductorData::ConductorChoice>(Fnconds);
 	for(stop = Fnconds, i = 1; i <= stop; i++)
 	{
 		FPhaseChoice[i - 1] = unknown;
@@ -1272,7 +1261,7 @@ void TLineGeometryObj::Set_Nconds(int Value)
 		set_ActiveCond(i);
 		ChangeLineConstantsType(Overhead);    // works on activecond
 	}
-	FCondName = new string[Fnconds];
+	FCondName = std::vector<std::string>(Fnconds);
 
 /*Initialize Allocations*/
 	for(stop = Fnconds, i = 1; i <= stop; i++)
@@ -1357,7 +1346,7 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 		{
 			/*# with (FLineData as TCNLineConstants) do */
 			{
-				auto with0 = ((TCNTSLineConstants*) FLineData);
+				auto with0 = (TCNTSLineConstants*)(FLineData.get());
 				cnd = (TCNDataObj*) FWireData[i - 1];
                 with0->Set_CondType(i, 1); //CN
                 with0->Set_EpsR(i, cnd->get_FEpsR());
@@ -1378,7 +1367,7 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 			{
 				/*# with (FLineData as TTSLineConstants) do */
 				{
-					auto with1 = ((TCNTSLineConstants*) FLineData);
+					auto with1 = (TCNTSLineConstants*)(FLineData.get());
 					tsd = ((TTSDataObj*) FWireData[i - 1]);
                                         with1->Set_CondType(i, 2); //TS
 					with1->Set_EpsR(i, tsd->get_FEpsR());

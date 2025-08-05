@@ -28,6 +28,8 @@
 #include "DSSClass.h"
 #include "PointerList.h"
 
+#include <memory>
+
 using namespace std;
 
 namespace CktElement
@@ -68,9 +70,9 @@ namespace CktElement
         std::vector <complex> ComplexBuffer;
         int* IterminalSolutionCount;
         int BusIndex;
-        TcMatrix* YPrim_Series;
-        TcMatrix* YPrim_Shunt;
-        TcMatrix* YPrim;   // Order will be NTerms * Ncond
+        std::shared_ptr<TcMatrix> YPrim_Series;  // shared to be able for the object to be copy/assignable
+        std::shared_ptr<TcMatrix> YPrim_Shunt;
+        std::shared_ptr<TcMatrix> YPrim;   // Order will be NTerms * Ncond
         double FYprimFreq;     // Frequency at which YPrim has been computed
         virtual void Set_Enabled(bool Value);
         virtual void Set_ConductorClosed(int Index, int ActorID, bool Value);

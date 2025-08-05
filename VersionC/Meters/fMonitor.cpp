@@ -79,9 +79,8 @@ TDSSFMonitor::TDSSFMonitor()
 	Class_Name = "FMonitor";
 	DSSClassType = DSSClassType + FMON_ELEMENT;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

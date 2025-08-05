@@ -59,9 +59,8 @@ TUPFC::TUPFC()
 	DSSClassType = PC_ELEMENT + UPFC_ELEMENT;  // UPFC  is PC Element
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	UPFC_class = this;
 }
@@ -521,12 +520,8 @@ void TUPFCObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -573,7 +568,7 @@ void TUPFCObj::CalcYPrim(int ActorID)
 			YPrim_Series->SetElement(i + Fnphases, j, cnegate(Value));
 		}
 	}
-	YPrim->CopyFrom(YPrim_Series);
+	YPrim->CopyFrom(YPrim_Series.get());
      
      /*Now Account for Open Conductors*/
      /*For any conductor that is open, zero out row and column*/

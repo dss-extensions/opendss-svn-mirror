@@ -110,7 +110,7 @@ namespace Tgov
 		Class_Name = "Tgov";
 		DSSClassType = DSSClassType + TGOV_ELEMENT; //Linked to DSSClassDefs.h (using 47)
 		DefineProperties();
-		CommandList = TCommandList(Slice((PropertyName), NumProperties), NumProperties);
+		CommandList = TCommandList(Slice(PropertyName, NumProperties).data(), NumProperties);
 		CommandList.set_AbbrevAllowed(true);
 	}
 

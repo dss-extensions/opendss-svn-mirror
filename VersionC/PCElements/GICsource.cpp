@@ -54,9 +54,8 @@ TGICsource::TGICsource()
 	DSSClassType = SOURCE + NON_PCPD_ELEM;  // Don't want this in PC Element List
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	GICsourceClass = this;
 }
@@ -418,12 +417,8 @@ void TGICSourceObj::CalcYPrim(int ActorID)
  // Build only YPrim Series
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -448,7 +443,7 @@ void TGICSourceObj::CalcYPrim(int ActorID)
 			with0->SetElemsym(i, i + Fnphases, NegValue);
 		}
 	}
-	YPrim->CopyFrom(YPrim_Series);      // Initialize YPrim for series impedances
+	YPrim->CopyFrom(YPrim_Series.get());      // Initialize YPrim for series impedances
 /* ****************************************************************************
     {
        Compute R0 of associated line

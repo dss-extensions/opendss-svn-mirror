@@ -49,9 +49,8 @@ TEquivalent::TEquivalent()
 	DSSClassType = SOURCE + NON_PCPD_ELEM;  // Don't want this in PC Element List
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
@@ -446,12 +445,8 @@ void TEquivalentObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{
@@ -487,7 +482,7 @@ void TEquivalentObj::CalcYPrim(int ActorID)
 		}
 	}
 	YPrim_Series->CopyFrom(Zinv);
-	YPrim->CopyFrom(YPrim_Series);
+	YPrim->CopyFrom(YPrim_Series.get());
 
      /*Now Account for Open Conductors*/
      /*For any conductor that is open, zero out row and column*/

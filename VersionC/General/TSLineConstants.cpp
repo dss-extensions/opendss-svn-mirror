@@ -208,9 +208,9 @@ TTSLineConstants::TTSLineConstants(int NumConductors)
 
 TTSLineConstants::~TTSLineConstants()
 {
-	free(FDiaShield);
-	free(FTapeLayer);
-	free(FTapeLap);
+	delete[] FDiaShield;
+	delete[] FTapeLayer;
+	delete[] FTapeLap;
 	// inherited;
 }
 

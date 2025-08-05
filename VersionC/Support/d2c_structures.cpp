@@ -243,16 +243,10 @@ int Find(std::vector<int>* myarray, int myvalue)
 }
 
 
-std::string* Slice(std::string* myArray, int mySlice)
+std::vector<std::string> Slice(const std::vector<std::string>& myArray, int mySlice)
 {
-	std::string* myCopy = new std::string[mySlice];
-	if (myCopy != NULL) 
-	{
-		for(int j = 0; j < mySlice ; j++)
-			myCopy[j] = myArray[j];
-	}
-
-	return myCopy;
+	mySlice = std::min(myArray.size(), static_cast<std::size_t>(mySlice)); // Ensure there is enough data to slice
+	return std::vector<std::string>(myArray.cbegin(), std::next(myArray.cbegin(), mySlice));
 }
 
 wchar_t* Str2WChar(std::string s)

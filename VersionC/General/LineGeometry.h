@@ -71,10 +71,10 @@ class TLineGeometryObj : public DSSObject::TDSSObject
 public:
 	typedef DSSObject::TDSSObject inherited;	
 //private:
-	ConductorData::pConductorChoiceArray FPhaseChoice;
+	std::vector<ConductorData::ConductorChoice> FPhaseChoice;
 	int Fnconds;
 	int Fnphases;
-	Arraydef::pStringArray FCondName;
+	std::vector<std::string> FCondName;
 	ConductorData::pConductorDataArray FWireData;
 	std::vector <double> FX;
 	std::vector <double> FY;
@@ -87,7 +87,7 @@ public:
 	bool FReduce;
 	int FActiveCond;
 	String FSpacingType;
-	LineConstants::TLineConstants* FLineData;
+	std::unique_ptr<LineConstants::TLineConstants> FLineData;
 	void ChangeLineConstantsType(ConductorData::ConductorChoice newPhaseChoice);
 	void Set_Nconds(int Value);
 	void Set_NPhases(int Value);
