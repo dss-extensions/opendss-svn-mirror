@@ -60,7 +60,7 @@ TVVControl::TVVControl()
 	Class_Name = "VVControl";
 	DSSClassType = DSSClassType + VV_CONTROL;
 	DefineProperties();
-	CommandList = new TCommandList(SLICE((*PropertyName), NumProperties));
+	CommandList = new TCommandList(SLICE((PropertyName), NumProperties));
 	CommandList->set_AbbrevAllowed(true);
 }
 

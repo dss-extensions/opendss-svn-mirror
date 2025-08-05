@@ -382,19 +382,19 @@ TCNTSLineConstants::TCNTSLineConstants(int NumConductors)
 TCNTSLineConstants::~TCNTSLineConstants()
 {
     // For All
-    free(FCondType);
+    delete[] FCondType;
 
     // For CN
-    free(FkStrand);
-	free(FDiaStrand);
-	free(FGmrStrand);
-	free(FRStrand);
+    delete[] FkStrand;
+	delete[] FDiaStrand;
+	delete[] FGmrStrand;
+	delete[] FRStrand;
 	FSemicon.clear();
 
     // For TS
-    free(FDiaShield);
-    free(FTapeLayer);
-    free(FTapeLap);
+    delete[] FDiaShield;
+    delete[] FTapeLayer;
+    delete[] FTapeLap;
 
 	// inherited;
 }

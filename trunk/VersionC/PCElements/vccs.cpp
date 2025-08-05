@@ -71,9 +71,8 @@ TVCCS::TVCCS()
 	DSSClassType = VCCS_ELEMENT + PC_ELEMENT; // participates in dynamics
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice((PropertyName), NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	VCCSClass = this;
 }
@@ -419,12 +418,8 @@ void TVCCSObj::CalcYPrim(int ActorID)
   // Build only YPrim Series
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		if(YPrim_Series != nullptr)
-			delete YPrim_Series;
-		YPrim_Series = new TcMatrix(Yorder);
-		if(YPrim != nullptr)
-			delete YPrim;
-		YPrim = new TcMatrix(Yorder);
+		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
+		YPrim = std::make_shared<TcMatrix>(Yorder);
 	}
 	else
 	{

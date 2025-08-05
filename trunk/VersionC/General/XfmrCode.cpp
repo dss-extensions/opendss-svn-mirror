@@ -28,9 +28,8 @@ TXfmrCode::TXfmrCode()
 	DSSClassType = DSS_OBJECT;
 	ActiveElement = 0;
 	DefineProperties();
-	std::string* slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc, NumProperties);
-	delete[] slc;
+	auto&& slc = Slice(PropertyName, NumProperties);
+	CommandList = TCommandList(slc.data(), NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
@@ -834,7 +833,7 @@ void TXfmrCodeObj::DumpProperties(System::TTextRec& f, bool Complete)
 	{ System::Write(f, "~ "); System::Write(f, "%noloadloss="); System::WriteLn(f, pctNoLoadLoss, 0, 0); }
 	for(stop = NumPropsThisClass, i = 28; i <= stop; i++)
 	{
-		{ System::Write(f, "~ "); System::Write(f, (*ParentClass->PropertyName)[i]); System::Write(f, L'='); System::WriteLn(f, Get_PropertyValue(i)); }
+		{ System::Write(f, "~ "); System::Write(f, ParentClass->PropertyName[i]); System::Write(f, L'='); System::WriteLn(f, Get_PropertyValue(i)); }
 	}
 	/*# with ParentClass do */
 	{
@@ -842,7 +841,7 @@ void TXfmrCodeObj::DumpProperties(System::TTextRec& f, bool Complete)
 		int stop = 0;
 		for(stop = with1->NumProperties, i = NumPropsThisClass + 1; i <= stop; i++)
 		{
-			{ System::Write(f, "~ "); System::Write(f, (*with1->PropertyName)[i]); System::Write(f, L'='); System::WriteLn(f, Get_PropertyValue(i)); }
+			{ System::Write(f, "~ "); System::Write(f, with1->PropertyName[i]); System::Write(f, L'='); System::WriteLn(f, Get_PropertyValue(i)); }
 		}
 	}
 }

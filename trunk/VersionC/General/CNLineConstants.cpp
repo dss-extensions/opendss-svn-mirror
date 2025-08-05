@@ -252,10 +252,10 @@ TCNLineConstants::TCNLineConstants(int NumConductors)
 
 TCNLineConstants::~TCNLineConstants()
 {
-	free(FkStrand);
-	free(FDiaStrand);
-	free(FGmrStrand);
-	free(FRStrand);
+	delete[] FkStrand;
+	delete[] FDiaStrand;
+	delete[] FGmrStrand;
+	delete[] FRStrand;
 	FSemicon.clear();
 	// inherited;
 }
