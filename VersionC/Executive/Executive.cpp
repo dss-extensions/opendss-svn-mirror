@@ -149,7 +149,7 @@ void TExecutive::Set_Command(String Value)
 
 void TExecutive::Clear()
 {
-	int i = 0;
+	//int i = 0;
 	if(ActiveCircuit[ActiveActor] != nullptr)
           /*First get rid of all existing stuff*/
 	{

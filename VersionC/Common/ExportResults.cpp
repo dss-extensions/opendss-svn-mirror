@@ -2946,7 +2946,7 @@ namespace ExportResults
               if (ActiveElm->Get_Enabled())
               {
                   auto MyElmClass = ActiveElm->ParentClass->DSSClassType & BaseClassMask;
-                  if ( (MyElmClass == PD_ELEMENT) || (MyElmClass == PC_ELEMENT) )
+                  if ((MyElmClass == PD_ELEMENT) || (MyElmClass == PC_ELEMENT) || ((ActiveElm->ParentClass->DSSClassType & CLASSMASK) == SOURCE))
                   /*# with ActiveCktElement do */
                   {
                     Write( F, ActiveElm->ParentClass->get_myClass_name() ); 
