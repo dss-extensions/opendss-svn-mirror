@@ -209,6 +209,7 @@ Var
   USIdx,
   APointer        : Integer;
   TStr            : String;
+  Temp_dbl        : Double;
 begin
     ProgressCmd :=  False;
     CallerID    :=  ActiveActor;
@@ -264,7 +265,10 @@ begin
                       Add(Format('Total Reactive Power: %-.6g Mvar',[cpower.im]));
                       cLosses := CmulReal(ActiveCircuit[ActiveActor].Losses[ActiveActor], 0.000001);
                       If cPower.re <> 0.0 Then
-                        Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,(Closses.re/cPower.re*100.0)]))
+                      Begin
+                        Temp_dbl := abs(Closses.re/cPower.re*100.0);
+                        Add(Format('Total Active Losses:   %-.6g MW, (%-.4g %%)',[cLosses.re,Temp_dbl]))
+                      End
                       Else Begin
                         Add('Total Active Losses:   ****** MW, (**** %%)');
                       End;
