@@ -101,6 +101,7 @@ uses
     ISource,
     Reactor,
     pyControl,
+    System.Net.HttpClient,
     WindGen;
 
 const
@@ -1540,18 +1541,29 @@ end;
 //{$ENDIF}
 
 //*********Downloads a file from the internet into the folder specified*********
-function DownLoadInternetFile(Source, Dest: String): Boolean;
+function DownLoadInternetFile(Source: String): String;
+var
+    HTTPClient: THTTPClient;
+    Response: IHTTPResponse;
+    FileContent: String; // Or TBytes for binary data
 begin
-    {$IFNDEF FPC}
+    HTTPClient := THTTPClient.Create;
+
     try
-        Result := URLDownloadToFile(nil, Pchar(Source), Pchar(Dest), 0, nil) = 0
-    except
-        Result := false;
+    // Set the URL of the file you want to read
+        Response := HTTPClient.Get(Source);
+        if Response.StatusCode = 200 then
+        begin
+            FileContent := Response.ContentAsString();
+        end
+        else
+            FileContent := 'error';
+
+    finally
+        Result := FileContent;
     end;
-    {$ELSE}
-  Result := False;
-    {$ENDIF}
 end;
+
 
 //******Verifies the OpenDSS version using the reference at Sourceforge*********
 function Check_DSS_WebVersion(myDialog: Boolean): String;
@@ -1570,45 +1582,44 @@ var
 
 begin
     myIdx := 0;
-    myPath := TPath.GetTempPath + '\myDSSVersion.txt';
+    myPath := '';
     myWebSrc := 'https://sourceforge.net/p/electricdss/code/HEAD/tree/trunk/Version8/Source/Current_ver.txt';
-  // Download the file into the Windows temporary folder
-    if DownLoadInternetFile(myWebSrc, myPath) then
+  // Get the file content from sourceforge
+    myText := DownLoadInternetFile(myWebSrc);
+    if myText <> 'error' then
     begin
-        AssignFile(myFile, myPath);
-        Reset(myFile);
-        while not Eof(myFile) do
+    // Extract the DSS version from the web content
+        myIdx := pos('mydssversion=', lowercase(myText));
+        myText := myText.Substring(myIdx + 12);
+        myIdx := pos(#$A, lowercase(myText));
+        myText := myText.Substring(0, myIdx - 1);
+
+    // Cleanup the version string
+        myVersion := VersionString.Substring(8);
+        myIdx := pos(' ', myVersion);
+        myVersion := myVersion.Substring(0, myIdx - 1);
+
+        if myText <> myVersion then
         begin
-            ReadLn(myFile, myText);
-            myIdx := pos('mydssversion=', lowercase(myText));
-            if myIdx > 0 then
-                break;
-        end;
-        CloseFile(myFile);
-    end;
-    myText := myText.Substring(myIdx + 12);
-    myVersion := VersionString.Substring(8);
-    myIdx := pos(' ', myVersion);
-    myVersion := myVersion.Substring(0, myIdx - 1);
+            myPath := 'There is a new version of OpenDSS available for download' + CRLF +
+                'The new version can be located at:' + CRLF + CRLF +
+                'https://sourceforge.net/projects/electricdss/';
 
-    if myText <> myVersion then
-    begin
-        myPath := 'There is a new version of OpenDSS available for download' + CRLF +
-            'The new version can be located at:' + CRLF + CRLF +
-            'https://sourceforge.net/projects/electricdss/';
+            if myDialog then
+            begin
+                {$IFNDEF CONSOLE}
+                ShowMessage(myPath);
+                {$ELSE}
+          DSSMessageDlg(myPath, TRUE);
+                {$ENDIF}
+            end;
 
-        if myDialog then
-        begin
-            {$IFNDEF CONSOLE}
-            ShowMessage(myPath);
-            {$ELSE}
-        DSSMessageDlg(myPath, TRUE);
-            {$ENDIF}
-        end;
-
+        end
+        else
+            myPath := 'OpenDSS is up-to-date';
     end
     else
-        myPath := 'OpenDSS is up-to-date';
+        myPath := 'It is not possible to check the DSS version at this point.';
 
     Result := myPath;
 
