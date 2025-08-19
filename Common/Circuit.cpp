@@ -2295,6 +2295,8 @@ namespace Circuit
                 WriteLn(F, "Set Cktmodel=Positive");
             if (DuplicatesAllowed)
                 WriteLn(F, "set allowdup=yes");
+            if (LongLineCorrection) 
+                WriteLn(F, "Set LongLineCorrection = True");
             WriteLn(F);
 
             // Write Redirect for all populated DSS Classes  Except Solution Class
