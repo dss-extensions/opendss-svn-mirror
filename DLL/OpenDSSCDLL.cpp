@@ -18698,13 +18698,24 @@ void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 char* DSSProperties(int mode, char* arg)
 {
-	string	Result = "";
+	string	Result;
+    int TempPropIndex;
+    string prop_name = "";
+    
 
 	switch (mode)
 	{
 		case 0:				// DSSproperties.Name
 		{
-			FPropIndex = StrToInt(arg) - 1;
+            if (!TryStrToIntAux(string(arg), TempPropIndex))
+            {
+                TempPropIndex = -1; //  If this is the case, we are not getting an argument or it is not numeric. Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025)
+            }
+            if (TempPropIndex > 0) // Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025).
+            {
+				FPropIndex = TempPropIndex - 1;
+            }
+            
 			if (ASSIGNED(ActiveCircuit[ActiveActor]) && (FPropIndex >= 0))
 			{
 				auto with0 = ((TDSSObject*)ActiveDSSObject[ActiveActor])->ParentClass;
@@ -18715,7 +18726,15 @@ char* DSSProperties(int mode, char* arg)
 		break;
 		case 1:				// DSSproperties.Description
 		{
-			FPropIndex = StrToInt(arg) - 1;
+            if (!TryStrToIntAux(string(arg), TempPropIndex))
+            {
+                TempPropIndex = -1; //  If this is the case, we are not getting an argument or it is not numeric. Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025)
+            }
+            if (TempPropIndex > 0) // Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025).
+            {
+				FPropIndex = TempPropIndex - 1;
+            }
+            
 			if (ASSIGNED(ActiveCircuit[ActiveActor]) && (FPropIndex >= 0))
 			{
 				auto with0 = ((TDSSObject*)ActiveDSSObject[ActiveActor])->ParentClass;
@@ -18724,9 +18743,17 @@ char* DSSProperties(int mode, char* arg)
 			}
 		}
 		break;
-		case 2:				// DSSproperties.Value - read
+		case 2:				// DSSproperties.Val - read
 		{
-			FPropIndex = StrToInt(arg) - 1;
+            if (!TryStrToIntAux(string(arg), TempPropIndex))
+            {
+                TempPropIndex = -1; //  If this is the case, we are not getting an argument or it is not numeric. Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025)
+            }
+            if (TempPropIndex > 0) // Leaving this here temporarily for backwards compatibility. This must be decrecated soon (06/17/2025).
+            {
+				FPropIndex = TempPropIndex - 1;
+            }
+            
 			if (ASSIGNED(ActiveCircuit[ActiveActor]) && (FPropIndex >= 0))
 			{
 				auto with0 = (TDSSObject*)ActiveDSSObject[ActiveActor];
@@ -18737,7 +18764,7 @@ char* DSSProperties(int mode, char* arg)
 			}
 		}
 		break;
-		case 3:				// DSSproperties.Value - write
+		case 3:				// DSSproperties.Val - write
 		{
 			if (ASSIGNED(ActiveCircuit[ActiveActor]) && (FPropIndex >= 0))
 			{
@@ -18752,6 +18779,45 @@ char* DSSProperties(int mode, char* arg)
 				}
 			}
 		}
+        case 4:				// DSSproperties.ActiveProperty - read
+        {
+            TempPropIndex = FPropIndex + 1;
+			Result = IntToStr(TempPropIndex);
+        }
+        case 5:				// DSSproperties.ActiveProperty - write
+        {
+            if (!TryStrToIntAux(string(arg), TempPropIndex))
+            {
+                TempPropIndex = -1;
+            } 
+
+			if (ASSIGNED(ActiveCircuit[ActiveActor])) 
+			{
+                auto with0 = (TDSSObject*)ActiveDSSObject[ActiveActor];
+                auto with1 = with0->ParentClass;
+
+				if (TempPropIndex > -1) 
+				{
+					if ((TempPropIndex <= with1->NumProperties) && (TempPropIndex > 0))
+                    {
+                        FPropIndex = TempPropIndex - 1;
+                    }
+				}
+                else 
+				{
+					TempPropIndex = 0;
+					prop_name = string(arg);
+                    for (TempPropIndex = 1; TempPropIndex <= with1->NumProperties; TempPropIndex++)
+                    {
+                    	if (CompareText(prop_name, with1->PropertyName[TempPropIndex - 1]) == 0) 
+						{
+					        FPropIndex = TempPropIndex - 1;
+                            break;
+						}
+					}
+				}
+			}
+        }
 		break;
 		default:
 			Result = "";

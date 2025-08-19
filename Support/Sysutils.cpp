@@ -2592,6 +2592,25 @@ bool TryStrToInt( const String& S, int& i )
   return result;
 }
 
+bool TryStrToIntAux(const string& s, int& value)
+{
+    try
+    {
+        size_t idx;
+        int temp = stoi(s, &idx);
+        if (idx == s.size())
+        {
+            value = temp;
+            return true;
+        }
+    }
+    catch (...)
+    {
+        // ignore errors
+    }
+    return false;
+}
+
 /*   StrToInt converts the String S to an Integer Value,
     if S does not represent A valid Integer Value EConvertError is raised  */
 
