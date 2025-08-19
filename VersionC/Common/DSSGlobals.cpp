@@ -1911,7 +1911,7 @@ namespace DSSGlobals
       myCmplxArray.resize(0);
       myPolarArray.resize(0);
       myIntArray.resize(0);
-      FPropIndex = 0;
+      FPropIndex = -1;
 
       Yhandle = nullptr;
       NumNZ = 0;
