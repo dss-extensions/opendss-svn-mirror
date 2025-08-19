@@ -1449,6 +1449,7 @@ namespace ExecOptions
 					{
 						if (LineObj->FEnabled && LineObj->SymComponentsModel)
 							LineObj->Set_YprimInvalid(ActiveActor, true);
+                        LineObj = (TLineObj*)ActiveCircuit[ActiveActor]->Lines.Get_Next();
 					}
 				}
 				break;
