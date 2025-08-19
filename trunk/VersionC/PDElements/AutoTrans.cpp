@@ -38,7 +38,7 @@ TAutoTransObj::TAutoTransObj() {}
 TAutoTransObj* ActiveAutoTransObj = nullptr;
 TAutoTrans* AutoTransClass = nullptr; /*AUTOTRANDEBUG*/
 TXfmrCode* XfmrCodeClass = nullptr;
-const int NumPropsThisClass = 42;
+const int NumPropsThisClass = 45;
 const int WYE = 0;
 const int delta = 1;
 const int SERIES = 2;
@@ -133,6 +133,9 @@ void TAutoTrans::DefineProperties()
 	PropertyName[40 - 1] = "XRConst";
 	PropertyName[41 - 1] = "LeadLag";
 	PropertyName[42 - 1] = "WdgCurrents";
+	PropertyName[43 - 1] = "BHpoints";
+	PropertyName[44 - 1] = "BHcurrent";
+	PropertyName[45 - 1] = "BHflux";
 
 
      // define Property help values
@@ -227,6 +230,9 @@ void TAutoTrans::DefineProperties()
 	           "To get typical European Dy11 connection, specify either \"lead\" or \"Euro\"";
 	PropertyHelp[42 - 1] = "(Read only) Makes winding currents available via return on query (? AutoTrans.TX.WdgCurrents). "
 	           "Order: Phase 1, Wdg 1, Wdg 2, ..., Phase 2 ...";
+	(PropertyHelp)[43 - 1] = "Number of points in BH curve expected from \"BHcurrent\" and \"BHflux\" arrays. Informational only, used for GIC analysis.";
+	(PropertyHelp)[44 - 1] = "Array of current values in per-unit. The array is expected to have the number of entries defined by \"BHpoints\". Together with \"BHflux\", they form the BH curve of the transformer. Informational only, used for GIC analysis.";
+	(PropertyHelp)[45 - 1] = "Array of flux values in per-unit. The array is expected to have the number of entries defined by \"BHpoints\". Together with \"BHcurrent\", they form the BH curve of the transformer. Informational only, used for GIC analysis.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -412,8 +418,19 @@ int TAutoTrans::Edit(int ActorID)
 				with0->HVLeadsLV = InterpretLeadLag(Param);
 				break;
 				case 	42:
-				( (TDSSCktElement*) with0 )->Set_PropertyValue(45,"");
+				( (TDSSCktElement*) with0 )->Set_PropertyValue(42,"");
 				break;  // placeholder, do nothing just throw value away if someone tries to set it.
+				case 	43:
+				with0->NumPointsBH = Parser[ActorID]->MakeInteger_();
+				with0->BHamps.resize(with0->NumPointsBH);
+				with0->BHflux.resize(with0->NumPointsBH);
+				break;
+				case 	44:
+				Parser[ActorID]->ParseAsVector(with0->NumPointsBH, (pDoubleArray) (with0->BHamps.data()));
+				break;
+				case 	45:
+				Parser[ActorID]->ParseAsVector(with0->NumPointsBH, (pDoubleArray) (with0->BHflux.data()));
+				break;
 
            // Inherited properties
 				default:
@@ -853,6 +870,15 @@ int TAutoTrans::MakeLike(const String AutoTransfName)
 			with0->XRConst = OtherTransf->XRConst;
 			with0->XfmrBank = OtherTransf->XfmrBank;
 			with0->XfmrCode = OtherTransf->XfmrCode;
+			with0->NumPointsBH = OtherTransf->NumPointsBH;
+			with0->BHamps.resize(with0->NumPointsBH);
+			with0->BHflux.resize(with0->NumPointsBH);
+            for (int stop = with0->NumPointsBH, i = 1; i <= stop; i++)
+            {
+                (with0->BHamps)[i - 1] = (OtherTransf->BHamps)[i - 1];
+                (with0->BHflux)[i - 1] = (OtherTransf->BHflux)[i - 1];
+            }
+
 			ClassMakeLike(OtherTransf);
 			for(int stop = ((TDSSCktElement*)with0)->ParentClass->NumProperties, i = 1; i <= stop; i++)
 			{
@@ -957,6 +983,11 @@ TAutoTransObj::TAutoTransObj(TDSSClass* ParClass, const String TransfName)
 	Y_Terminal_Freqmult = 0.0;
 	Yorder = Fnterms * Fnconds;
 	InitPropertyValues(0);
+
+	NumPointsBH = 0;
+	BHamps.resize(0);
+	BHflux.resize(0);
+
 	RecalcElementData(ActiveActor);
 }
 // Added Jan 3, 2019
@@ -1099,6 +1130,8 @@ TAutoTransObj::~TAutoTransObj()
 	if (Y_1Volt_NL != nullptr)	delete Y_1Volt_NL; // Y_1Volt_NL->~TcMatrix();
 	if (Y_Term != nullptr)		delete Y_Term; // Y_Term->~TcMatrix();
 	if (Y_Term_NL != nullptr)	delete Y_Term_NL; // Y_Term_NL->~TcMatrix();
+	BHamps.resize(0);
+	BHamps.resize(0);
 	// inherited::Destroy();
 }
 
@@ -2300,6 +2333,25 @@ String TAutoTransObj::GetPropertyValue(int Index)
 		case 	42:
 		result = GeTAutoWindingCurrentsResult(ActiveActor);
 		break;
+		case 	43:
+		result = IntToStr(NumPointsBH);
+		break;
+		case 	44:
+		result = "[";
+		for(int stop = NumPointsBH, i = 1; i <= stop; i++)
+		{
+			result = result + Format("%-g, ", BHamps[i - 1]);
+		}
+		result = result + "]";
+		break;
+		case 	45:
+		result = "[";
+		for(int stop = NumPointsBH, i = 1; i <= stop; i++)
+		{
+			result = result + Format("%-g, ", BHflux[i - 1]);
+		}
+		result = result + "]";
+		break;
 		default:
 		result = inherited::GetPropertyValue(Index);
 		break;
@@ -2379,6 +2431,11 @@ void TAutoTransObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(40,"NO");
 	Set_PropertyValue(41,"Lag");
 	Set_PropertyValue(42,"0");
+
+    // BH Curve properties
+	Set_PropertyValue(43,"0");
+	Set_PropertyValue(44,"[]");
+	Set_PropertyValue(45,"[]");
 	inherited::InitPropertyValues(NumPropsThisClass);
 
       // Override some Inherited properties

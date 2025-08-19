@@ -21,7 +21,7 @@ TTransfObj::TTransfObj() {}
 
 TTransfObj* ActiveTransfObj = nullptr;  /*TRANSDEBUG*/
 TXfmrCode* XfmrCodeClass = nullptr;
-const int NumPropsThisClass = 49;
+const int NumPropsThisClass = 52;
 
 
 int XSCSize(int NumWindings)
@@ -119,6 +119,9 @@ void TTransf::DefineProperties()
 	(PropertyName)[47 - 1] = "RdcOhms";
 	(PropertyName)[48 - 1] = "Seasons";
 	(PropertyName)[49 - 1] = "Ratings";
+	(PropertyName)[50 - 1] = "BHpoints";
+	(PropertyName)[51 - 1] = "BHcurrent";
+	(PropertyName)[52 - 1] = "BHflux";
 
 
      // define Property help values
@@ -221,6 +224,10 @@ void TTransf::DefineProperties()
 	(PropertyHelp)[48 - 1] = "Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the \"Ratings\" property.";
 	(PropertyHelp)[49 - 1] = String("An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert") + CRLF
 	           + "multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. It is given in kVA.";
+    (PropertyHelp)[50 - 1] = "Number of points in BH curve expected from \"BHcurrent\" and \"BHflux\" arrays. Informational only, used for GIC analysis.";
+	(PropertyHelp)[51 - 1] = "Array of current values in per-unit. The array is expected to have the number of entries defined by \"BHpoints\". Together with \"BHflux\", they form the BH curve of the transformer. Informational only, used for GIC analysis.";
+	(PropertyHelp)[52 - 1] = "Array of flux values in per-unit. The array is expected to have the number of entries defined by \"BHpoints\". Together with \"BHcurrent\", they form the BH curve of the transformer. Informational only, used for GIC analysis.";
+
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 
@@ -553,6 +560,17 @@ int TTransf::Edit(int ActorID)
 					Param = Parser[ActiveActor]->MakeString_();
 					with0->NumAmpRatings = InterpretDblArray(Param, with0->NumAmpRatings, &(with0->kVARatings[0]));
 				}
+				break;
+				case 	50:
+				with0->NumPointsBH = Parser[ActorID]->MakeInteger_();
+				with0->BHamps.resize(with0->NumPointsBH);
+				with0->BHflux.resize(with0->NumPointsBH);
+				break;
+				case 	51:
+				Parser[ActorID]->ParseAsVector(with0->NumPointsBH, (pDoubleArray) (with0->BHamps.data()));
+				break;
+				case 	52:
+				Parser[ActorID]->ParseAsVector(with0->NumPointsBH, (pDoubleArray) (with0->BHflux.data()));
 				break;
            // Inherited properties
 				default:
@@ -1018,6 +1036,16 @@ int TTransf::MakeLike(const String TransfName)
 			{
 				with0->kVARatings[i] = OtherTransf->kVARatings[i];
 			}
+
+			with0->NumPointsBH = OtherTransf->NumPointsBH;
+			with0->BHamps.resize(with0->NumPointsBH);
+			with0->BHflux.resize(with0->NumPointsBH);
+            for (int stop = with0->NumPointsBH, i = 1; i <= stop; i++)
+            {
+                (with0->BHamps)[i - 1] = (OtherTransf->BHamps)[i - 1];
+                (with0->BHflux)[i - 1] = (OtherTransf->BHflux)[i - 1];
+            }
+
 			result = 1;
 		}
 	else
@@ -1121,6 +1149,11 @@ TTransfObj::TTransfObj(TDSSClass* ParClass, const String TransfName)
 	NumAmpRatings = 1;
 	kVARatings.resize( NumAmpRatings );
 	kVARatings[0] = NormMaxHkVA;
+
+	NumPointsBH = 0;
+	BHamps.resize(0);
+	BHflux.resize(0);
+
 	RecalcElementData(ActiveActor);
 }
 
@@ -1187,6 +1220,8 @@ TTransfObj::~TTransfObj()
 	if (Y_1Volt_NL != nullptr)	delete Y_1Volt_NL; // Y_1Volt_NL->~TcMatrix();
 	if (Y_Term != nullptr)		delete Y_Term; // Y_Term->~TcMatrix();
 	if (Y_Term_NL != nullptr)	delete Y_Term_NL; // Y_Term_NL->~TcMatrix();
+	BHamps.resize(0);
+	BHamps.resize(0);
 	// inherited::Destroy();
 }
 
@@ -2375,6 +2410,27 @@ String TTransfObj::GetPropertyValue(int Index)
 			result = TempStr;
 		}
 		break;
+		case 	50:
+		result = IntToStr(NumPointsBH);
+		break;
+		case 	51:
+		TempStr = "[";
+		for(int stop = NumPointsBH, i = 1; i <= stop; i++)
+		{
+			TempStr = TempStr + Format("%-g, ", BHamps[i - 1]);
+		}
+		TempStr = TempStr + "]";
+		result = TempStr;
+		break;
+		case 	52:
+		TempStr = "[";
+		for(int stop = NumPointsBH, i = 1; i <= stop; i++)
+		{
+			TempStr = TempStr + Format("%-g, ", BHflux[i - 1]);
+		}
+		TempStr = TempStr + "]";
+		result = TempStr;
+		break;
 		default:
 		result = inherited::GetPropertyValue(Index);
 		break;
@@ -2459,6 +2515,12 @@ void TTransfObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(45,"0");
 	Set_PropertyValue(46,"shell");
 	Set_PropertyValue(47,"26.4");  // ohms
+
+	// BH Curve properties
+	Set_PropertyValue(50,"0");
+	Set_PropertyValue(51,"[]");
+	Set_PropertyValue(52,"[]");
+
 	inherited::InitPropertyValues(NumPropsThisClass);
 
       // Override some Inherited properties
