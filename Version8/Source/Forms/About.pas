@@ -48,7 +48,7 @@ begin
      LicenseText.Lines.Add('for the electric power industry. This software is a small part of his legacy,');
      LicenseText.Lines.Add('as well as his countless publications and other contributions to the industry.');
      LicenseText.Lines.Add('');
-     LicenseText.Lines.Add('Copyright (c) 2008-2024, Electric Power Research Institute, Inc.');
+     LicenseText.Lines.Add('Copyright (c) 2008-2025, Electric Power Research Institute, Inc.');
      LicenseText.Lines.Add('All rights reserved.');
      LicenseText.Lines.Add('');
      LicenseText.Lines.Add('Redistribution and use in source and binary forms, with or without');
