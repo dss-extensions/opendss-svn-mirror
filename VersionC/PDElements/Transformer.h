@@ -169,6 +169,9 @@ public:
 	String XfmrCode;
 	int CoreType; /*0=Shell; 1=1ph; 3-3leg; 5=5-leg*/
 	String strCoreType;
+    int NumPointsBH;
+    std::vector<double> BHamps;
+    std::vector<double> BHflux;
 	TTransfObj(DSSClass::TDSSClass* ParClass, const String TransfName);
 	virtual ~TTransfObj();
 	void SetNumWindings(int n);
