@@ -18698,8 +18698,8 @@ void CtrlQueueV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 char* DSSProperties(int mode, char* arg)
 {
-	string	Result;
-    int TempPropIndex;
+    string Result = "";
+    int TempPropIndex = -1;
     string prop_name = "";
     
 
@@ -18779,11 +18779,13 @@ char* DSSProperties(int mode, char* arg)
 				}
 			}
 		}
+        break;
         case 4:				// DSSproperties.ActiveProperty - read
         {
             TempPropIndex = FPropIndex + 1;
-			Result = IntToStr(TempPropIndex);
+            Result = IntToStr(TempPropIndex);
         }
+        break;
         case 5:				// DSSproperties.ActiveProperty - write
         {
             if (!TryStrToIntAux(string(arg), TempPropIndex))
@@ -18805,6 +18807,7 @@ char* DSSProperties(int mode, char* arg)
 				}
                 else 
 				{
+                    FPropIndex = -1;
 					TempPropIndex = 0;
 					prop_name = string(arg);
                     for (TempPropIndex = 1; TempPropIndex <= with1->NumProperties; TempPropIndex++)
@@ -18814,7 +18817,7 @@ char* DSSProperties(int mode, char* arg)
 					        FPropIndex = TempPropIndex - 1;
                             break;
 						}
-					}
+                    }
 				}
 			}
         }
