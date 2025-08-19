@@ -551,20 +551,85 @@ end;
 {Implemented for allowing to go back if required.}
 
 function TParser.Point2PrevParam: Integer;
-
+var
+    before_pos, after_pos: Integer;
+    has_word_before, has_equals, has_word_after: Boolean;
 begin
-
     if FPosition > 0 then
     begin
         dec(FPosition);        // Right before the last space char
-        while (CmdBuffer[FPosition] <> ' ') and (FPosition > 0) do
+
+     // Additional processing to avoid issues with spaces sourounding equals signs between param names and values
+        while (FPosition > 0) and (CmdBuffer[FPosition] = ' ') do
             dec(FPosition);
+
+        while (FPosition > 0) do
+        begin
+            dec(FPosition);
+
+            if (FPosition >= 0) and (CmdBuffer[FPosition] = ' ') then
+            begin
+                has_word_before := false;
+                has_equals := false;
+                has_word_after := false;
+
+                before_pos := FPosition - 1;
+                while (before_pos >= 0) and (CmdBuffer[before_pos] = ' ') do
+                    dec(before_pos);
+
+                if (before_pos >= 0) and (CmdBuffer[before_pos] <> ' ') and (CmdBuffer[before_pos] <> '=') then
+                    has_word_before := true;
+
+                after_pos := FPosition + 1;
+                while (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] = ' ') do
+                    inc(after_pos);
+
+                if (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] = '=') then
+                begin
+                    has_equals := true;
+                    inc(after_pos);
+
+                    while (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] = ' ') do          // Skip spaces after equals
+                        inc(after_pos);
+
+                    if (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] <> ' ') then          // Check for word after equals
+                        has_word_after := true;
+                end;
+
+                if not has_equals then
+                begin
+                    before_pos := FPosition - 1;
+                    while (before_pos >= 0) and (CmdBuffer[before_pos] = ' ') do
+                        dec(before_pos);
+
+                    if (before_pos >= 0) and (CmdBuffer[before_pos] = '=') then
+                    begin
+                        has_equals := true;
+
+                        dec(before_pos);
+                        while (before_pos >= 0) and (CmdBuffer[before_pos] = ' ') do
+                            dec(before_pos);
+
+                        if (before_pos >= 0) and (CmdBuffer[before_pos] <> ' ') and (CmdBuffer[before_pos] <> '=') then
+                            has_word_before := true;
+
+                        after_pos := FPosition + 1;
+                        while (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] = ' ') do
+                            inc(after_pos);
+
+                        if (after_pos < Length(CmdBuffer)) and (CmdBuffer[after_pos] <> ' ') then
+                            has_word_after := true;
+                    end;
+                end;
+
+                if not (has_word_before and has_equals and has_word_after) then
+                    break;
+            end;
+        end;
 
         inc(FPosition);        // This to prevent discrepancies with NextParam
     end;
-
     Result := FPosition;
-
 end;
 
 {=======================================================================================================================}
