@@ -170,6 +170,9 @@ TYPE
         XfmrCode           :String;
         CoreType           :Integer; {0=Shell; 1=1ph; 3-3leg; 4=4-Leg; 5=5-leg; 9=Core-1-phase}
         strCoreType        :String;
+        NumPointsBH        :Integer;
+        BHamps             :pDoubleArray;
+        BHflux             :pDoubleArray;
 
         constructor Create(ParClass:TDSSClass; const TransfName:String);
         destructor  Destroy; override;
@@ -244,7 +247,7 @@ USES    DSSClassDefs, DSSGlobals, Sysutils, Utilities, XfmrCode;
 var
    XfmrCodeClass:TXfmrCode;
 
-Const NumPropsThisClass = 49;
+Const NumPropsThisClass = 52;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TTransf.Create;  // Creates superstructure for all Transformer objects
@@ -336,6 +339,9 @@ Begin
      PropertyName^[47] := 'RdcOhms';
      PropertyName^[48] := 'Seasons';
      PropertyName^[49] := 'Ratings';
+     PropertyName^[50] := 'BHpoints';
+     PropertyName^[51] := 'BHcurrent';
+     PropertyName^[52] := 'BHflux';
 
 
      // define Property help values
@@ -429,6 +435,10 @@ Begin
      PropertyHelp^[48] := 'Defines the number of ratings to be defined for the transfomer, to be used only when defining seasonal ratings using the "Ratings" property.';
      PropertyHelp^[49] := 'An array of ratings to be used when the seasonal ratings flag is True. It can be used to insert' +
                          CRLF + 'multiple ratings to change during a QSTS simulation to evaluate different ratings in transformers. It is given in kVA.';
+     PropertyHelp^[50] := 'Number of points in BH curve expected from "BHcurrent" and "BHflux" arrays. Informational only, used for GIC analysis.';
+     PropertyHelp^[51] := 'Array of current values in per-unit. The array is expected to have the number of entries defined by "BHpoints". Together with "BHflux", they form the BH curve of the transformer. Informational only, used for GIC analysis.';
+     PropertyHelp^[52] := 'Array of flux values in per-unit. The array is expected to have the number of entries defined by "BHpoints". Together with "BHcurrent", they form the BH curve of the transformer. Informational only, used for GIC analysis.';
+
 
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -541,7 +551,14 @@ Begin
                  setlength(kVARatings,NumAmpRatings);
                  Param := Parser[ActiveActor].StrValue;
                  NumAmpRatings := InterpretDblArray(Param, NumAmpRatings, Pointer(kVARatings));
-               End
+               End;
+           50: Begin
+                 NumPointsBH         :=  Parser[ActorID].IntValue;
+                 BHamps     := AllocMem(SizeOf(BHamps^[1])*NumPointsBH);
+                 BHflux     := AllocMem(SizeOf(BHflux^[1])*NumPointsBH);
+               End;
+           51: Parser[ActorID].ParseAsVector(NumPointsBH, BHamps);
+           52: Parser[ActorID].ParseAsVector(NumPointsBH, BHflux);
          ELSE
            // Inherited properties
               ClassEdit(ActiveTransfObj, ParamPointer - NumPropsThisClass)
@@ -866,6 +883,12 @@ Begin
        for i := 0 to High(kVARatings) do
         kVARatings[i] :=  OtherTransf.kVARatings[i];
 
+       NumPointsBH := OtherTransf.NumPointsBH;
+       BHamps     := AllocMem(SizeOf(BHamps^[1])*NumPointsBH);
+       BHflux     := AllocMem(SizeOf(BHflux^[1])*NumPointsBH);
+       FOR i := 1 to NumPointsBH DO BHamps^[i] := OtherTransf.BHamps^[i];
+       FOR i := 1 to NumPointsBH DO BHflux^[i] := OtherTransf.BHflux^[i];
+
        Result := 1;
    End
    ELSE  DoSimpleMsg('Error in Transf MakeLike: "' + TransfName + '" Not Found.', 113);
@@ -948,6 +971,10 @@ Begin
   setlength(kVARatings,NumAmpRatings);
   kVARatings[0]       :=  NormMaxHkVA;
 
+  NumPointsBH := 0;
+  BHamps     := AllocMem(SizeOf(BHamps^[1])*NumPointsBH);
+  BHflux     := AllocMem(SizeOf(BHamps^[1])*NumPointsBH);
+
   RecalcElementData(ActiveActor);
 
 
@@ -1008,6 +1035,8 @@ Begin
     Y_1Volt_NL.Free;
     Y_Term.Free;
     Y_Term_NL.Free;
+    Reallocmem(BHamps, 0);
+    Reallocmem(BHflux, 0);
     Inherited Destroy;
 End;
 
@@ -1788,6 +1817,21 @@ begin
                    TempStr   :=  TempStr + ']';
                    Result  :=  TempStr;
                  End;
+           50  : Result := inttostr(NumPointsBH);
+           51  : Begin
+                   TempStr   :=  '[';
+                   for  k:= 1 to NumPointsBH do
+                    TempStr :=  TempStr + Format('%-g, ',[BHamps^[k]]);
+                   TempStr   :=  TempStr + ']';
+                   Result  :=  TempStr;
+                 End;
+           52  : Begin
+                   TempStr   :=  '[';
+                   for  k:= 1 to NumPointsBH do
+                    TempStr :=  TempStr + Format('%-g, ',[BHflux^[k]]);
+                   TempStr   :=  TempStr + ']';
+                   Result  :=  TempStr;
+                 End;
 
         ELSE
           Result := Inherited GetPropertyValue(index);
@@ -1860,6 +1904,10 @@ begin
      PropertyValue[46] := 'shell';
      PropertyValue[47] := '26.4';  // ohms
 
+     // BH Curve properties
+     PropertyValue[50] := '0';
+     PropertyValue[51] := '[]';
+     PropertyValue[52] := '[]';
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
