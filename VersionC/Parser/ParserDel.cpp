@@ -479,15 +479,74 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
     // Implemented for allowing to go back if required.
-        
+
     int TParser::Point2PrevParam()
     {
+        int before_pos, after_pos;
+        bool has_word_before, has_equals, has_word_after;
+
         if (FPosition > 0)
         {
             FPosition = FPosition - 2; // Right before the last space char
-            while ((CmdBuffer[FPosition] != ' ') && (FPosition > 0))
+
+            // Additional processing to avoid issues with spaces sourounding equals signs between param names and values
+            while ((FPosition > 0) && (CmdBuffer[FPosition] == ' '))
                 FPosition--;
-            FPosition++;							// This to prevent discrepancies with NextParam
+
+            while (FPosition > 0)
+            {
+                FPosition--;
+
+                if ((FPosition >= 0) && (CmdBuffer[FPosition] == ' '))
+                {
+                    has_word_before = false;
+                    has_equals = false;
+                    has_word_after = false;
+                    before_pos = FPosition - 1;
+                    while ((before_pos >= 0) && (CmdBuffer[before_pos] == ' '))
+                        before_pos--;
+                    if ((before_pos >= 0) && (CmdBuffer[before_pos] != ' ') && (CmdBuffer[before_pos] != '='))
+                        has_word_before = true;
+                    after_pos = FPosition + 1;
+                    while ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] == ' '))
+                        after_pos++;
+
+                    if ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] == '='))
+                    {
+                        has_equals = true;
+                        after_pos++;
+                        while ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] == ' '))
+                            after_pos++;
+                        if ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] != ' '))
+                            has_word_after = true;
+                    }
+
+                    if (!has_equals)
+                    {
+                        before_pos = FPosition - 1;
+                        while ((before_pos >= 0) && (CmdBuffer[before_pos] == ' '))
+                            before_pos--;
+
+                        if ((before_pos >= 0) && (CmdBuffer[before_pos] == '='))
+                        {
+                            has_equals = true;
+                            before_pos--;
+                            while ((before_pos >= 0) && (CmdBuffer[before_pos] == ' '))
+                                before_pos--;
+                            if ((before_pos >= 0) && (CmdBuffer[before_pos] != ' ') && (CmdBuffer[before_pos] != '='))
+                                has_word_before = true;
+                            after_pos = FPosition + 1;
+                            while ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] == ' '))
+                                after_pos++;
+                            if ((after_pos < CmdBuffer.length()) && (CmdBuffer[after_pos] != ' '))
+                                has_word_after = true;
+                        }
+                    }
+                    if (!(has_word_before && has_equals && has_word_after))
+                        break;
+                }
+            }
+            FPosition++; // This to prevent discrepancies with NextParam
         }
         return FPosition;
     }
