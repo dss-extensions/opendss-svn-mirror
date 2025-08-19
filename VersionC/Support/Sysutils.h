@@ -305,6 +305,7 @@ String IntToHex( int64_t Value, int Digits );
 String IntToHex( QWord Value, int Digits );
 int StrToInt( const String& S );
 bool TryStrToInt( const String& S, int& i );
+bool TryStrToIntAux(const String& S, int& value);
 int64_t StrToInt64( const String& S );
 bool TryStrToInt64( const String& S, int64_t& i );
 QWord StrToQWord( const String& S );
