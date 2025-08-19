@@ -172,6 +172,9 @@ type
         XfmrCode: String;
         CoreType: Integer; {0=Shell; 1=1ph; 3-3leg; 5=5-leg;4=4-Leg;9=Core-1-phase}
         strCoreType: String;
+        NumPointsBH: Integer;
+        BHamps: pDoubleArray;
+        BHflux: pDoubleArray;
 
         constructor Create(ParClass: TDSSClass; const TransfName: String);
         destructor Destroy; OVERRIDE;
@@ -252,7 +255,7 @@ var
     XfmrCodeClass: TXfmrCode;
 
 const
-    NumPropsThisClass = 42;
+    NumPropsThisClass = 45;
     WYE = 0;
     DELTA = 1;
     SERIES = 2;
@@ -341,6 +344,9 @@ begin
     PropertyName^[40] := 'XRConst';
     PropertyName^[41] := 'LeadLag';
     PropertyName^[42] := 'WdgCurrents';
+    PropertyName^[43] := 'BHpoints';
+    PropertyName^[44] := 'BHcurrent';
+    PropertyName^[45] := 'BHflux';
 
 
      // define Property help values
@@ -427,6 +433,9 @@ begin
         'To get typical European Dy11 connection, specify either "lead" or "Euro"';
     PropertyHelp^[42] := '(Read only) Makes winding currents available via return on query (? AutoTrans.TX.WdgCurrents). ' +
         'Order: Phase 1, Wdg 1, Wdg 2, ..., Phase 2 ...';
+    PropertyHelp^[43] := 'Number of points in BH curve expected from "BHcurrent" and "BHflux" arrays. Informational only, used for GIC analysis.';
+    PropertyHelp^[44] := 'Array of current values in per-unit. The array is expected to have the number of entries defined by "BHpoints". Together with "BHflux", they form the BH curve of the transformer. Informational only, used for GIC analysis.';
+    PropertyHelp^[45] := 'Array of flux values in per-unit. The array is expected to have the number of entries defined by "BHpoints". Together with "BHcurrent", they form the BH curve of the transformer. Informational only, used for GIC analysis.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -569,7 +578,17 @@ begin
                 41:
                     HVLeadsLV := InterpretLeadLag(Param);
                 42:
-                    PropertyValue[45] := '';  // placeholder, do nothing just throw value away if someone tries to set it.
+                    PropertyValue[42] := '';  // placeholder, do nothing just throw value away if someone tries to set it.
+                43:
+                begin
+                    NumPointsBH := Parser[ActorID].IntValue;
+                    BHamps := AllocMem(SizeOf(BHamps^[1]) * NumPointsBH);
+                    BHflux := AllocMem(SizeOf(BHflux^[1]) * NumPointsBH);
+                end;
+                44:
+                    Parser[ActorID].ParseAsVector(NumPointsBH, BHamps);
+                45:
+                    Parser[ActorID].ParseAsVector(NumPointsBH, BHflux);
             else
            // Inherited properties
                 ClassEdit(ActiveAutoTransObj, ParamPointer - NumPropsThisClass)
@@ -933,6 +952,14 @@ begin
             XfmrBank := OtherTransf.XfmrBank;
             XfmrCode := OtherTransf.XfmrCode;
 
+            NumPointsBH := OtherTransf.NumPointsBH;
+            BHamps := AllocMem(SizeOf(BHamps^[1]) * NumPointsBH);
+            BHflux := AllocMem(SizeOf(BHflux^[1]) * NumPointsBH);
+            for i := 1 to NumPointsBH do
+                BHamps^[i] := OtherTransf.BHamps^[i];
+            for i := 1 to NumPointsBH do
+                BHflux^[i] := OtherTransf.BHflux^[i];
+
             ClassMakeLike(OtherTransf);
 
             for i := 1 to ParentClass.NumProperties do
@@ -1014,6 +1041,11 @@ begin
 
     Yorder := fNTerms * fNconds;
     InitPropertyValues(0);
+
+    NumPointsBH := 0;
+    BHamps := AllocMem(SizeOf(BHamps^[1]) * NumPointsBH);
+    BHflux := AllocMem(SizeOf(BHamps^[1]) * NumPointsBH);
+
     RecalcElementData(ActiveActor);
 end;
 
@@ -1150,6 +1182,8 @@ begin
     Y_1Volt_NL.Free;
     Y_Term.Free;
     Y_Term_NL.Free;
+    Reallocmem(BHamps, 0);
+    Reallocmem(BHflux, 0);
     inherited Destroy;
 end;
 
@@ -2119,6 +2153,24 @@ begin
 
         42:
             Result := GeTAutoWindingCurrentsResult(ActiveActor);
+        43:
+            Result := inttostr(NumPointsBH);
+        44:
+        begin
+            Result := '[';
+            for  i := 1 to NumPointsBH do
+                Result := Result + Format('%-g, ', [BHamps^[i]]);
+            Result := Result + ']';
+            Result := Result;
+        end;
+        45:
+        begin
+            Result := '[';
+            for  i := 1 to NumPointsBH do
+                Result := Result + Format('%-g, ', [BHflux^[i]]);
+            Result := Result + ']';
+            Result := Result;
+        end;
 
     else
         Result := inherited GetPropertyValue(index);
@@ -2188,6 +2240,11 @@ begin
     PropertyValue[40] := 'NO';
     PropertyValue[41] := 'Lag';
     PropertyValue[42] := '0';
+
+     // BH Curve properties
+    PropertyValue[43] := '0';
+    PropertyValue[44] := '[]';
+    PropertyValue[45] := '[]';
 
 
     inherited  InitPropertyValues(NumPropsThisClass);
