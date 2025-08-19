@@ -5594,7 +5594,7 @@ object SplashScreen: TSplashScreen
   object Version: TLabel
     Left = 328
     Top = 122
-    Width = 329
+    Width = 123
     Height = 19
     Caption = 'Version 1.0.2.3.4'
     Font.Charset = DEFAULT_CHARSET
