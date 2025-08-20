@@ -1465,9 +1465,7 @@ var
   FileContent: string; // Or TBytes for binary data
 begin
   HTTPClient := THTTPClient.Create;
-
   try
-    // Set the URL of the file you want to read
     Response := HTTPClient.Get(Source);
     if Response.StatusCode = 200 then
     begin
@@ -1475,10 +1473,11 @@ begin
     end
     else
       FileContent := 'error';
-
-  finally
-    Result := FileContent;
+  except
+    FileContent := 'error';
   end;
+  HTTPClient.Free;
+  Result := FileContent;
 end;
 
 
