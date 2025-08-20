@@ -18793,6 +18793,7 @@ char* DSSProperties(int mode, char* arg)
                 TempPropIndex = -1;
             } 
 
+			FPropIndex = -1;
 			if (ASSIGNED(ActiveCircuit[ActiveActor])) 
 			{
                 auto with0 = (TDSSObject*)ActiveDSSObject[ActiveActor];
@@ -18807,8 +18808,7 @@ char* DSSProperties(int mode, char* arg)
 				}
                 else 
 				{
-                    FPropIndex = -1;
-					TempPropIndex = 0;
+                    TempPropIndex = 0;
 					prop_name = string(arg);
                     for (TempPropIndex = 1; TempPropIndex <= with1->NumProperties; TempPropIndex++)
                     {
