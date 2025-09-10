@@ -471,24 +471,24 @@ String PhaseString(TDSSCktElement &pElem, int bus, bool bAllowSec = true) // if 
 }
 
 // returns s1, s12, s2, or an ordered combination of ABC
-String PhaseOrderString(TDSSCktElement& pElem, int bus, bool bAllowSec = true) // for transposition
+String PhaseOrderString(TDSSCktElement* pElem, int bus, bool bAllowSec = true) // for transposition
 {
     String phs, Result;
     int dot;
     bool bSec;
 
-    phs = pElem.Get_FirstBus();
+    phs = pElem->Get_FirstBus();
     for (dot = 2; dot <= bus; ++dot)
-        phs = pElem.Get_NextBus();
+        phs = pElem->Get_NextBus();
 
     bSec = false;
     if (bAllowSec)
     {
-        if (pElem.Fnphases == 2)
-            if (ActiveCircuit[ActiveActor]->Buses[pElem.Terminals[bus - 1].BusRef - 1]->kVBase < 0.25)
+        if (pElem->Fnphases == 2)
+            if (ActiveCircuit[ActiveActor]->Buses[pElem->Terminals[bus - 1].BusRef - 1]->kVBase < 0.25)
                 bSec = true;
-        if (pElem.Fnphases == 1)
-            if (ActiveCircuit[ActiveActor]->Buses[pElem.Terminals[bus - 1].BusRef - 1]->kVBase < 0.13)
+        if (pElem->Fnphases == 1)
+            if (ActiveCircuit[ActiveActor]->Buses[pElem->Terminals[bus - 1].BusRef - 1]->kVBase < 0.13)
                 bSec = true;
     }
 
@@ -1439,37 +1439,37 @@ void EndInstance(ProfileChoice prf, const String& Root)
     FD->EndInstance(prf, Root);
 }
 
-void XfmrTankPhasesAndGround(ProfileChoice fprf, ProfileChoice eprf, TTransfObj& pXf, int bus)
+void XfmrTankPhasesAndGround(ProfileChoice fprf, ProfileChoice eprf, TTransfObj* pXf, int bus)
 {
     String ordered_phs;
     int j1, j2;
     bool reverse_ground, wye_ground, wye_unground;
 
-    j1 = (bus - 1) * pXf.Fnconds + 1;
-    j2 = j1 + pXf.Fnphases;
+    j1 = (bus - 1) * pXf->Fnconds + 1;
+    j2 = j1 + pXf->Fnphases;
     reverse_ground = false;
     wye_ground = false;
     wye_unground = false;
     //  WriteLn(Format("  Testing %d and %d", [j1, j2]));
-    if ((pXf.WINDING_[bus - 1].Connection == 1))
+    if ((pXf->WINDING_[bus - 1].Connection == 1))
     { // delta
         BooleanNode(fprf, "TransformerEnd.grounded", false);
     }
-    else if ((pXf.NodeRef[j2 - 1] == 0))
+    else if ((pXf->NodeRef[j2 - 1] == 0))
     { // last conductor is grounded solidly
         BooleanNode(FunPrf, "TransformerEnd.grounded", true);
         DoubleNode(EpPrf, "TransformerEnd.rground", 0.0);
         DoubleNode(EpPrf, "TransformerEnd.xground", 0.0);
         wye_ground = true;
     }
-    else if ((pXf.NodeRef[j1 - 1] == 0))
+    else if ((pXf->NodeRef[j1 - 1] == 0))
     { // first conductor is grounded solidly, but should be reversed
         BooleanNode(FunPrf, "TransformerEnd.grounded", true);
         DoubleNode(EpPrf, "TransformerEnd.rground", 0.0);
         DoubleNode(EpPrf, "TransformerEnd.xground", 0.0);
         reverse_ground = true;
     }
-    else if ((pXf.WINDING_[bus - 1].Rneut < 0.0))
+    else if ((pXf->WINDING_[bus - 1].Rneut < 0.0))
     { // probably wye ungrounded
         BooleanNode(FunPrf, "TransformerEnd.grounded", false);
         wye_unground = true;
@@ -1477,8 +1477,8 @@ void XfmrTankPhasesAndGround(ProfileChoice fprf, ProfileChoice eprf, TTransfObj&
     else
     { // not delta, not wye solidly grounded or ungrounded
         BooleanNode(FunPrf, "TransformerEnd.grounded", true);
-        DoubleNode(EpPrf, "TransformerEnd.rground", pXf.WINDING_[bus - 1].Rneut);
-        DoubleNode(EpPrf, "TransformerEnd.xground", pXf.WINDING_[bus - 1].Xneut);
+        DoubleNode(EpPrf, "TransformerEnd.rground", pXf->WINDING_[bus - 1].Rneut);
+        DoubleNode(EpPrf, "TransformerEnd.xground", pXf->WINDING_[bus - 1].Xneut);
     }
     ordered_phs = PhaseOrderString(pXf, bus);
     if ((ordered_phs == "s1"))
@@ -1521,21 +1521,32 @@ void WindingConnectionKindNode(ProfileChoice prf, const String& val) // D, Y, Z,
 }
 
 // we specify phases except for balanced three-phase
-void AttachLinePhases(TLineObj& pLine)
+void AttachLinePhases(TLineObj* pLine)
 {
-    String s, phs;
-    int i;
-    int j;
-    TNamedObject* pPhase;
+    String  s = "", 
+            phs = "";
+    int     i = 0,
+            j = 0,
+            k = 0;
+    bool    skip_cond_check = false;
+    TNamedObject* pPhase = nullptr;
 
     pPhase = new TNamedObject("dummy");
     s = PhaseOrderString(pLine, 1);
-    if (pLine.NumConductorData() > s.size())
+    k = pLine->NumConductorData();
+    if (k == 0)
+    {
+        k = pLine->Get_NPhases();
+        skip_cond_check = true;
+    }
+
+    if (k > s.size())
         s = s + "N"; // so we can specify the neutral conductor
     j = 0;
-    for (i = 1; i <= pLine.NumConductorData(); ++i)
+    for (i = 1; i <= pLine->NumConductorData(); ++i)
     {
-        if (pLine.FetchConductorData(i) == nullptr) continue; // If using Spacing an unused position will be Nil.
+        if (!skip_cond_check)
+            if (pLine->FetchConductorData(i) == nullptr) continue; // If using Spacing an unused position will be Nil.
         j++;  // j is the phase index in the line, i is the conductor index in the spacing.
         phs = s[j - 1];
         if (phs == "s")
@@ -1544,22 +1555,22 @@ void AttachLinePhases(TLineObj& pLine)
             phs = "s1";
         if (phs == "2")
             phs = "s2";
-        pPhase->LName = pLine.get_Name() + "_" + phs;
+        pPhase->LName = pLine->get_Name() + "_" + phs;
         pPhase->Set_UUID(GetDevUuid(LinePhase, pPhase->LName, 1));
         StartInstance(FunPrf, "ACLineSegmentPhase", *pPhase);
         PhaseKindNode(FunPrf, "ACLineSegmentPhase", phs);
         IntegerNode(FunPrf, "ACLineSegmentPhase.sequenceNumber", i);
-        if (i <= pLine.NumConductorData())
-            PhaseWireRefNode(CatPrf, *pLine.FetchConductorData(i));
+        if (i <= pLine->NumConductorData())
+            PhaseWireRefNode(CatPrf, *pLine->FetchConductorData(i));
         RefNode(FunPrf, "ACLineSegmentPhase.ACLineSegment", pLine);
         UuidNode(GeoPrf, "PowerSystemResource.Location",
-            GetDevUuid(LineLoc, pLine.get_Name(), 1));
+            GetDevUuid(LineLoc, pLine->get_Name(), 1));
         EndInstance(FunPrf, "ACLineSegmentPhase");
     }
     delete pPhase;
 }
 
-void AttachSwitchPhases(TLineObj& pLine)
+void AttachSwitchPhases(TLineObj* pLine)
 {
     String s1, s2, phs1, phs2;
     int i;
@@ -1568,7 +1579,7 @@ void AttachSwitchPhases(TLineObj& pLine)
   // also write the switch phases if needed to support transpositions
     s1 = PhaseOrderString(pLine, 1);
     s2 = PhaseOrderString(pLine, 2);
-    if ((pLine.Fnphases == 3) && (s1.size() == 3) && (s1 == s2))
+    if ((pLine->Fnphases == 3) && (s1.size() == 3) && (s1 == s2))
         return;
     pPhase = new TNamedObject("dummy");
     for (i = 0; i < s1.size(); ++i)
@@ -1587,15 +1598,15 @@ void AttachSwitchPhases(TLineObj& pLine)
             phs2 = "s1";
         if (phs2 == "2")
             phs2 = "s2";
-        pPhase->LName = pLine.get_Name() + "_" + phs1;
+        pPhase->LName = pLine->get_Name() + "_" + phs1;
         pPhase->Set_UUID(GetDevUuid(LinePhase, pPhase->LName, 1));
         StartInstance(FunPrf, "SwitchPhase", pPhase);
-        BooleanNode(SshPrf, "SwitchPhase.closed", pLine.Get_ConductorClosed(0, ActiveActor));
-        BooleanNode(FunPrf, "SwitchPhase.normalOpen", !pLine.Get_ConductorClosed(0, ActiveActor));
+        BooleanNode(SshPrf, "SwitchPhase.closed", pLine->Get_ConductorClosed(0, ActiveActor));
+        BooleanNode(FunPrf, "SwitchPhase.normalOpen", !pLine->Get_ConductorClosed(0, ActiveActor));
         PhaseSideNode(FunPrf, "SwitchPhase", 1, phs1);
         PhaseSideNode(FunPrf, "SwitchPhase", 2, phs2);
         RefNode(FunPrf, "SwitchPhase.Switch", pLine);
-        UuidNode(GeoPrf, "PowerSystemResource.Location", GetDevUuid(LineLoc, pLine.get_Name(), 1));
+        UuidNode(GeoPrf, "PowerSystemResource.Location", GetDevUuid(LineLoc, pLine->get_Name(), 1));
         EndInstance(FunPrf, "SwitchPhase");
     }
     delete pPhase;
@@ -3962,7 +3973,7 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
                     if (bTanks)
                     {
                         StartInstance(FunPrf, "TransformerTankEnd", WdgList[i - 1]);
-                        XfmrTankPhasesAndGround(FunPrf, EpPrf, *pXf, i);
+                        XfmrTankPhasesAndGround(FunPrf, EpPrf, pXf, i);
                         RefNode(FunPrf, "TransformerTankEnd.TransformerTank", pXf);
                     }
                     else
@@ -4207,7 +4218,7 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
                     BooleanNode(FunPrf, "Switch.retained", true);
                     UuidNode(GeoPrf, "PowerSystemResource.Location", geoUUID);
                     EndInstance(FunPrf, swtCls);
-                    AttachSwitchPhases(*pLine);
+                    AttachSwitchPhases(pLine);
                 }
                 else
                 {
@@ -4259,7 +4270,7 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
                     UuidNode(GeoPrf, "PowerSystemResource.Location", geoUUID);
                     EndInstance(FunPrf, "ACLineSegment");
                     if (!(pLine->SymComponentsModel && (pLine->Fnphases == 3)))
-                        AttachLinePhases(*pLine);
+                        AttachLinePhases(pLine);
                     if (bval)
                     {  // writing PuZ on the fly
                         StartInstance(EpPrf, "PerLengthPhaseImpedance", pName1);
