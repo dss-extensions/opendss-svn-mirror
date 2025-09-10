@@ -1543,7 +1543,7 @@ void AttachLinePhases(TLineObj* pLine)
     if (k > s.size())
         s = s + "N"; // so we can specify the neutral conductor
     j = 0;
-    for (i = 1; i <= pLine->NumConductorData(); ++i)
+    for (i = 1; i <= k; ++i)
     {
         if (!skip_cond_check)
             if (pLine->FetchConductorData(i) == nullptr) continue; // If using Spacing an unused position will be Nil.
