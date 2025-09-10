@@ -1306,16 +1306,26 @@ end;
 // we specify phases except for balanced three-phase
 procedure AttachLinePhases (pLine:TLineObj);
 var
-  s, phs: String;
-  i, j: Integer;
-  pPhase: TNamedObject;
+  s, phs          : String;
+  i, j, k         : Integer;
+  skip_cond_check : boolean;         // Indicates if the conductor pointer check must be avoided (LineCode)
+  pPhase          : TNamedObject;
 begin
-  pPhase := TNamedObject.Create('dummy');
-  s := PhaseOrderString(pLine, 1);
+  skip_cond_check := False;
+  pPhase          := TNamedObject.Create('dummy');
+  s               := PhaseOrderString(pLine, 1);
 	if pLine.NumConductorsAvailable > length(s) then s := s + 'N'; // so we can specify the neutral conductor
-  j := 0;
-  for i := 1 to pLine.NumConductorsAvailable do begin
-    if pLine.ConductorData[i] = nil then continue; // If using Spacing an unused position will be Nil.
+  j               := 0;
+  k               := pLine.NumConductorsAvailable;
+  if (k = 0) then
+  Begin
+    k               := pLine.NPhases;
+    skip_cond_check := True;
+  End;
+
+  for i := 1 to k do
+  begin
+    if (pLine.ConductorData[i] = nil) and not skip_cond_check then continue; // If using Spacing an unused position will be Nil.
     j := j + 1;  // j is the phase index in the line, i is the conductor index in the spacing.
     phs := s[j];
 		if phs = 's' then continue;
