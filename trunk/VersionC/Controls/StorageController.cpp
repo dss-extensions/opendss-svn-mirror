@@ -1815,7 +1815,8 @@ void TStorageControllerObj::DoLoadFollowMode(int ActorID)
 					if(!(FleetState == STORE_DISCHARGING))
 					{
 						SetFleetToDisCharge();
-						StorekWChanged = true;  // if not already discharging, force new power flow.
+						if (ActiveCircuit[ActorID]->Solution->ControlIteration == 1) 
+							StorekWChanged = true;  // if not already discharging, force new power flow.
 					}
 					if(ShowEventLog)
 						AppendToEventLog(String("StorageController.") + this->get_Name(), Format("Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g kWh reserve.", kWNeeded, RemainingkWh, ReservekWh), ActorID);
@@ -2081,7 +2082,8 @@ void TStorageControllerObj::DoPeakShaveModeLow(int ActorID)
 					if(!(FleetState == STORE_CHARGING))
 					{
 						SetFleetToCharge();
-						StorekWChanged = true;  // if not already charging, force new power flow.
+						if (ActiveCircuit[ActorID]->Solution->ControlIteration == 1) 
+							StorekWChanged = true;  // if not already charging, force new power flow.
 					}
   //                       If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [kWNeeded, (TotalRatingkWh-ActualkWh), TotalRatingkWh]), ActorID);
 					if(ShowEventLog)
