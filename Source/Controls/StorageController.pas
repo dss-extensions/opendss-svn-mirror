@@ -1847,7 +1847,8 @@ begin
                     if not (FleetState = STORE_DISCHARGING) then
                     begin
                         SetFleetToDischarge;
-                        StorekWChanged := true;  // if not already discharging, force new power flow.
+                        if ActiveCircuit[ActorID].Solution.ControlIteration = 1 then
+                            StorekWChanged := true; // if not already discharging, force new power flow.
                     end;
                     if ShowEventLog then
                         AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to dispatch %-.6g kW with %-.6g kWh remaining and %-.6g kWh reserve.', [kWNeeded, RemainingkWh, ReservekWh]), ActorID);
@@ -2119,7 +2120,8 @@ begin
                     if not (FleetState = STORE_CHARGING) then
                     begin
                         SetFleetToCharge;
-                        StorekWChanged := true;  // if not already charging, force new power flow.
+                        if ActiveCircuit[ActorID].Solution.ControlIteration = 1 then
+                            StorekWChanged := true; // if not already charging, force new power flow.
                     end;
   //                       If ShowEventLog Then  AppendToEventLog('StorageController.' + Self.Name, Format('Attempting to charge %-.6g kW with %-.6g kWh remaining and %-.6g rating.', [kWNeeded, (TotalRatingkWh-ActualkWh), TotalRatingkWh]), ActorID);
                     if ShowEventLog then
