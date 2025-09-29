@@ -32,6 +32,7 @@ function SwtControlsI(mode: longint; arg: longint): longint; cdecl;
 Var
   elem: TSwtControlObj;
   lst: TPointerList;
+  i: Integer;
 
 begin
   Result := 0;      // Default return value
@@ -68,102 +69,50 @@ begin
         End
       End;
   end;
-  2: begin  // SwtControls.Action read
-      Result := 0;
-      elem := ActiveSwtControl;
-      if elem <> nil then begin
-        Case elem.CurrentAction of
-          CTRL_CLOSE: Result := 2;
-          CTRL_OPEN: Result := 1;
-        End;
-      end;
-  end;
-  3: begin  // SwtControls.Action write
-      elem := ActiveSwtControl;
-      if elem <> nil then begin
-        Case arg of
-          1: Set_Parameter('Action', 'o');
-          2: Set_Parameter('Action', 'c');
-          3: begin  // Reset means the shelf state
-            Set_Parameter('Lock', 'n');
-            Set_Parameter('Action', 'c');
-          end;
-          4: Set_Parameter('Lock', 'y');
-          5: Set_Parameter('Lock', 'n');
-          else // TapUp, TapDown, None have no effect
-        End;
-      end
-  end;
-  4: begin  // SwtControls.IsLocked read
+  2: begin  // SwtControls.IsLocked read
       Result := 0;
       elem := ActiveSwtControl;
       if elem <> nil then begin
           if elem.IsLocked then Result := 1;
       end;
   end;
-  5: begin  // SwtControls.IsLocked write
+  3: begin  // SwtControls.IsLocked write
       If arg = 1 then
         Set_Parameter ('Lock', 'y')
       else
         Set_Parameter ('Lock', 'n');
   end;
-  6: begin  // SwtControls.SwitchedTerm read
+  4: begin  // SwtControls.SwitchedTerm read
       Result := 0;
       elem := ActiveSwtControl;
       if elem <> nil then Result := elem.ElementTerminal;
   end;
-  7: begin   // SwtControls.SwitchedTerm write
+  5: begin   // SwtControls.SwitchedTerm write
       Set_Parameter ('SwitchedTerm', IntToStr (arg));
   end;
-  8: begin  // SwtControls.Count
+  6: begin  // SwtControls.Count
      If Assigned(ActiveCircuit[ActiveActor]) Then
              Result := ActiveCircuit[ActiveActor].SwtControls.ListSize;
   end;
-  9: begin  // SwtControls.NormalState Read
-      elem := ActiveSwtControl;
-      if elem <> nil then begin
-          case elem.NormalState  of
-            CTRL_OPEN: Result := 0;
-          else
-            Result := 1;
-          end;
-      end;
+  7: begin  // SwtControls.Open
+    elem := ActiveSwtControl;
+    if elem <> nil then begin
+      for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_OPEN // Open all phases
+    end;
   end;
-  10: begin  // SwtControls.NormalState Write
-      elem := ActiveSwtControl;
-      if elem <> nil then begin
-         case arg of
-             0:  elem.NormalState := CTRL_OPEN;
-         else
-             elem.NormalState := CTRL_CLOSE;
-         end;
-      end;
+  8: begin  // SwtControls.Close
+    elem := ActiveSwtControl;
+    if elem <> nil then begin
+      for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_CLOSE // Close all phases
+    end;
   end;
-  11: begin  // SwtControls.Reset
+  9: begin  // SwtControls.Reset
       elem   := ActiveSwtControl;
       if elem <> nil then begin
           elem.Locked := FALSE;
           elem.Reset(ActiveActor);
       end;
   end;
-  12: begin  // SwtControls.State Read
-      elem   := ActiveSwtControl;
-      if elem <> nil then begin
-        Case elem.PresentState   of
-          CTRL_OPEN:  Result := 0;
-          CTRL_CLOSE: Result := 1;
-        End;
-      end;
-  end;
-  13: begin  // SwtControls.State Write
-      elem   := ActiveSwtControl;
-      if elem <> nil then begin
-        if arg <> 0 then
-          elem.PresentState := CTRL_CLOSE
-        else
-          elem.PresentState := CTRL_OPEN
-      end;
-  end
   else
       Result:=-1;
   end;
@@ -250,6 +199,9 @@ procedure SwtControlsV(mode:longint; var myPointer: Pointer; var myType, mySize:
 var
   elem: TSwtControlObj;
   lst: TPointerList;
+  k,
+  i           : Integer;
+  S           : String;
 
 begin
   case mode of
@@ -276,7 +228,97 @@ begin
         WriteStr2Array('None');
       myPointer :=  @(myStrArray[0]);
       mySize    :=  Length(myStrArray);
-    end
+    end;
+  1: begin  // SwtControls.States read
+    myType  :=  4;        // String
+    setlength(myStrArray, 0);
+    IF ActiveCircuit[ActiveActor] <> Nil THEN
+    Begin
+      Elem := ActiveSwtControl;
+      If Elem <> nil Then
+      Begin
+        for i:= 1 to elem.ControlledElement.Nphases DO
+        Begin
+          if elem.States[i] = CTRL_CLOSE then
+            WriteStr2Array('closed')
+          else
+            WriteStr2Array('open');
+          WriteStr2Array(Char(0));
+        End;
+      End;
+    End;
+    if (length(myStrArray) = 0) then
+      WriteStr2Array('None');
+    myPointer :=  @(myStrArray[0]);
+    mySize    :=  Length(myStrArray);
+  end;
+  2: begin  // SwtControls.States write
+    myType  :=  4;          // String
+    k := 0;
+    elem := ActiveSwtControl;
+    If elem <> nil Then
+    Begin
+
+      for i := 1 to elem.ControlledElement.NPhases do
+      Begin
+        S := BArray2Str(myPointer, k);
+        if S = '' then
+          break
+        else
+        Begin
+           case LowerCase(S)[1] of
+            'o': elem.States[i] := CTRL_OPEN;
+            'c': elem.States[i] := CTRL_CLOSE;
+          end;
+        End;
+      End;
+    End;
+    mySize  :=  k;
+  end;
+  3: begin  // SwtControls.NormalStates read
+    myType  :=  4;        // String
+    setlength(myStrArray, 0);
+    IF ActiveCircuit[ActiveActor] <> Nil THEN
+    Begin
+      Elem := ActiveSwtControl;
+      If Elem <> nil Then
+      Begin
+        for i:= 1 to elem.ControlledElement.Nphases DO Begin
+          if elem.NormalStates[i] = CTRL_CLOSE then
+            WriteStr2Array('closed')
+          else
+            WriteStr2Array('open');
+          WriteStr2Array(Char(0));
+        End;
+      End;
+    End;
+    if (length(myStrArray) = 0) then
+      WriteStr2Array('None');
+    myPointer :=  @(myStrArray[0]);
+    mySize    :=  Length(myStrArray);
+  end;
+  4: begin  // SwtControls.NormalStates write
+    elem := ActiveSwtControl;
+    k := 0;
+    If elem <> nil Then
+    Begin
+      // allocate space based on number of phases of controlled device
+      for i := 1 to elem.ControlledElement.NPhases do
+      Begin
+        S := BArray2Str(myPointer, k);
+        if S = '' then
+          break
+        else
+        Begin
+          case LowerCase(S)[1] of
+          'o': elem.NormalStates[i] := CTRL_OPEN;
+          'c': elem.NormalStates[i] := CTRL_CLOSE;
+          end;
+        End;
+      End;
+    End;
+    mySize  :=  k;
+  end
   else
     Begin
       myType  :=  4;        // String
