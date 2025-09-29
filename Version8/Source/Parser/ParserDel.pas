@@ -104,6 +104,7 @@ Type
        Property Remainder:String  Read Get_Remainder;
        Property NextParam:String  read GetNextParam;
        Property PrevParam:Integer read Point2PrevParam;        // Added 12/12/2024
+       property WasQuoted: Boolean read IsQuotedString;
        Function ParseAsBusName(Var NumNodes:Integer; NodeArray:pIntegerArray; actorID:integer):String;
        Function ParseAsVector(ExpectedSize:Integer; VectorBuffer:pDoubleArray):Integer;
        Function ParseAsStrVector(ExpectedSize:Integer; VectorBuffer: pDynStringArray):Integer;

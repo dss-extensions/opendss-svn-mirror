@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 05/01/25 4:27:44 PM (- $Rev: 12980 $, 158532593).
+// File generated on 09/29/25 10:18:11 AM (- $Rev: 12980 $, 20571218).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -311,6 +311,11 @@ library OpenDSSengine
     [helpstring("Maximum number of line units constants.")]
     dssLineUnitsMaxnum = 9
   };
+
+  [
+    custom(8B342977-45CB-4A01-A8F2-E47B61F3539E, 0)
+  ]
+  typedef double* PDouble1;
 
   [
     uuid(0513A8DC-2C0D-4648-8BD7-2130B82C05FA),
@@ -1947,38 +1952,38 @@ library OpenDSSengine
     HRESULT _stdcall First([out, retval] long* Value);
     [propget, id(0x000000CC), helpstring("Sets the next SwtControl active. Returns 0 if no more.\0\0e active circuit.\0\0r 3-winding transformers only.\0mers.\0ngs.\0 Tap, kV, kVA, etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall Next([out, retval] long* Value);
-    [propget, id(0x000000CD), helpstring("Open or Close the switch. No effect if switch is locked.  However, Reset removes any lock and then closes the switch (shelf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
-    HRESULT _stdcall Action([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000CD), helpstring("Open or Close the switch. No effect if switch is locked.  However, Reset removes any lock and then closes the switch (shelf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
-    HRESULT _stdcall Action([in] enum ActionCodes Value);
     [propget, id(0x000000CE), helpstring("The lock prevents both manual and automatic switch operation.\0ver, Reset removes any lock and then closes the switch (shelf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall IsLocked([out, retval] VARIANT_BOOL* Value);
     [propput, id(0x000000CE), helpstring("The lock prevents both manual and automatic switch operation.\0ver, Reset removes any lock and then closes the switch (shelf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall IsLocked([in] VARIANT_BOOL Value);
-    [propget, id(0x000000CF), helpstring("Time delay [s] betwen arming and opening or closing the switch.  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
-    HRESULT _stdcall Delay([out, retval] double* Value);
-    [propput, id(0x000000CF), helpstring("Time delay [s] betwen arming and opening or closing the switch.  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
-    HRESULT _stdcall Delay([in] double Value);
     [propget, id(0x000000D0), helpstring("Full name of the switched element.\0ening or closing the switch.  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall SwitchedObj([out, retval] BSTR* Value);
     [propput, id(0x000000D0), helpstring("Full name of the switched element.\0ening or closing the switch.  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall SwitchedObj([in] BSTR Value);
-    [propget, id(0x000000D1), helpstring("Terminal number where the switch is located on the SwitchedObj\0  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
+    [propget, id(0x000000D1), helpstring("Terminal number where the switch is located on the SwitchedObj.")]
     HRESULT _stdcall SwitchedTerm([out, retval] long* Value);
-    [propput, id(0x000000D1), helpstring("Terminal number where the switch is located on the SwitchedObj\0  Control may reset before actually operating the switch.\0lf state).\0etc.)\0eturns 0 if no more.\0llElementNames.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
+    [propput, id(0x000000D1), helpstring("Terminal number where the switch is located on the SwitchedObj.")]
     HRESULT _stdcall SwitchedTerm([in] long Value);
     [propget, id(0x000000D2)]
     HRESULT _stdcall Count([out, retval] long* Value);
-    [propget, id(0x000000D3), helpstring("Get Normal state of switch")]
-    HRESULT _stdcall NormalState([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000D3), helpstring("set Normal state of switch  (see actioncodes) dssActionOpen or dssActionClose")]
-    HRESULT _stdcall NormalState([in] enum ActionCodes Value);
-    [propget, id(0x000000D4), helpstring("Force switch to specified state")]
-    HRESULT _stdcall State([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000D4), helpstring("Get Present state of switch")]
-    HRESULT _stdcall State([in] enum ActionCodes Value);
     [id(0x000000D5), helpstring("Force a reset of this switch to NormalState, unlocked. Unlocks switch and calls Reset function.")]
     HRESULT _stdcall Reset(void);
+    [id(0x000000CD), helpstring("Manual opening of all phases of the switch.")]
+    HRESULT _stdcall Open(void);
+    [id(0x000000CF), helpstring("Close all phases of the switch.")]
+    HRESULT _stdcall Close(void);
+    [propget, id(0x000000D3), helpstring("Variant array of strings indicating the state of each phase of the switch. 0-based array.")]
+    HRESULT _stdcall State([out, retval] VARIANT* Value);
+    [propput, id(0x000000D3), helpstring("Variant array of strings. Set state of each phase of the switch.")]
+    HRESULT _stdcall State([in] VARIANT Value);
+    [propget, id(0x000000D4), helpstring("Variant array of strings indicating the normal state of each phase of the switch. 0-based array.")]
+    HRESULT _stdcall NormalState([out, retval] VARIANT* Value);
+    [propput, id(0x000000D4), helpstring("Variant array of strings. Set normal state of each phase of the switch.")]
+    HRESULT _stdcall NormalState([in] VARIANT Value);
+    [propget, id(0x000000D6), helpstring("This property is deprecated and does not impact the simulation. States are set immediately through state property or Open/Close functions.")]
+    HRESULT _stdcall Delay([out, retval] double* Value);
+    [propput, id(0x000000D6), helpstring("This property is deprecated and does not impact the simulation. States are set immediately through state property or Open/Close functions.")]
+    HRESULT _stdcall Delay([in] double Value);
   };
 
   [
