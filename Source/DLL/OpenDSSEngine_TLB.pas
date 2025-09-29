@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 05/01/25 4:27:33 PM from Type Library described below.
+// File generated on 09/29/25 10:19:54 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -2455,34 +2455,33 @@ type
         procedure Set_Name(const Value: Widestring); SAFECALL;
         function Get_First: Integer; SAFECALL;
         function Get_Next: Integer; SAFECALL;
-        function Get_Action: ActionCodes; SAFECALL;
-        procedure Set_Action(Value: ActionCodes); SAFECALL;
         function Get_IsLocked: Wordbool; SAFECALL;
         procedure Set_IsLocked(Value: Wordbool); SAFECALL;
-        function Get_Delay: Double; SAFECALL;
-        procedure Set_Delay(Value: Double); SAFECALL;
         function Get_SwitchedObj: Widestring; SAFECALL;
         procedure Set_SwitchedObj(const Value: Widestring); SAFECALL;
         function Get_SwitchedTerm: Integer; SAFECALL;
         procedure Set_SwitchedTerm(Value: Integer); SAFECALL;
         function Get_Count: Integer; SAFECALL;
-        function Get_NormalState: ActionCodes; SAFECALL;
-        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
-        function Get_State: ActionCodes; SAFECALL;
-        procedure Set_State(Value: ActionCodes); SAFECALL;
         procedure Reset; SAFECALL;
+        procedure Open; SAFECALL;
+        procedure Close; SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
+        function Get_Delay: Double; SAFECALL;
+        procedure Set_Delay(Value: Double); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property First: Integer READ Get_First;
         property Next: Integer READ Get_Next;
-        property Action: ActionCodes READ Get_Action WRITE Set_Action;
         property IsLocked: Wordbool READ Get_IsLocked WRITE Set_IsLocked;
-        property Delay: Double READ Get_Delay WRITE Set_Delay;
         property SwitchedObj: Widestring READ Get_SwitchedObj WRITE Set_SwitchedObj;
         property SwitchedTerm: Integer READ Get_SwitchedTerm WRITE Set_SwitchedTerm;
         property Count: Integer READ Get_Count;
-        property NormalState: ActionCodes READ Get_NormalState WRITE Set_NormalState;
-        property State: ActionCodes READ Get_State WRITE Set_State;
+        property State: Olevariant READ Get_State WRITE Set_State;
+        property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
+        property Delay: Double READ Get_Delay WRITE Set_Delay;
     end;
 
 // *********************************************************************//
@@ -2496,15 +2495,16 @@ type
         property Name: Widestring DISPID 202;
         property First: Integer READONLY DISPID 203;
         property Next: Integer READONLY DISPID 204;
-        property Action: ActionCodes DISPID 205;
         property IsLocked: Wordbool DISPID 206;
-        property Delay: Double DISPID 207;
         property SwitchedObj: Widestring DISPID 208;
         property SwitchedTerm: Integer DISPID 209;
         property Count: Integer READONLY DISPID 210;
-        property NormalState: ActionCodes DISPID 211;
-        property State: ActionCodes DISPID 212;
         procedure Reset; DISPID 213;
+        procedure Open; DISPID 205;
+        procedure Close; DISPID 207;
+        property State: Olevariant DISPID 211;
+        property NormalState: Olevariant DISPID 212;
+        property Delay: Double DISPID 214;
     end;
 
 // *********************************************************************//

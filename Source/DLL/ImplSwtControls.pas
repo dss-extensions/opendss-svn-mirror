@@ -18,7 +18,6 @@ uses
 type
     TSwtControls = class(TAutoObject, ISwtControls)
     PROTECTED
-        function Get_Action: ActionCodes; SAFECALL;
         function Get_AllNames: Olevariant; SAFECALL;
         function Get_Delay: Double; SAFECALL;
         function Get_First: Integer; SAFECALL;
@@ -27,17 +26,18 @@ type
         function Get_Next: Integer; SAFECALL;
         function Get_SwitchedObj: Widestring; SAFECALL;
         function Get_SwitchedTerm: Integer; SAFECALL;
-        procedure Set_Action(Value: ActionCodes); SAFECALL;
         procedure Set_Delay(Value: Double); SAFECALL;
         procedure Set_IsLocked(Value: Wordbool); SAFECALL;
         procedure Set_Name(const Value: Widestring); SAFECALL;
         procedure Set_SwitchedObj(const Value: Widestring); SAFECALL;
         procedure Set_SwitchedTerm(Value: Integer); SAFECALL;
         function Get_Count: Integer; SAFECALL;
-        function Get_NormalState: ActionCodes; SAFECALL;
-        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
-        function Get_State: ActionCodes; SAFECALL;
-        procedure Set_State(Value: ActionCodes); SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
+        procedure Open; SAFECALL;
+        procedure Close; SAFECALL;
         procedure Reset; SAFECALL;
 
     end;
@@ -72,22 +72,6 @@ begin
     DSSExecutive[ActiveActor].Command := cmd;
 end;
 
-function TSwtControls.Get_Action: ActionCodes;
-var
-    elem: TSwtControlObj;
-begin
-    Result := dssActionNone;
-    elem := ActiveSwtControl;
-    if elem <> nil then
-    begin
-        case elem.CurrentAction of
-            CTRL_OPEN:
-                Result := dssActionOpen;
-            CTRL_CLOSE:
-                Result := dssActionClose;
-        end;
-    end;
-end;
 
 function TSwtControls.Get_AllNames: Olevariant;
 var
@@ -156,7 +140,7 @@ begin
     Result := false;
     elem := ActiveSwtControl;
     if elem <> nil then
-        Result := elem.IsLocked;   // Fixed bug here
+        Result := elem.IsLocked;
 end;
 
 function TSwtControls.Get_Name: Widestring;
@@ -212,37 +196,6 @@ begin
     elem := ActiveSwtControl;
     if elem <> nil then
         Result := elem.ElementTerminal;
-end;
-
-procedure TSwtControls.Set_Action(Value: ActionCodes);
-var
-    elem: TSwtControlObj;
-begin
-    elem := ActiveSwtControl;
-    if elem <> nil then
-    begin
-        case Value of
-            dssActionOpen:
-                elem.CurrentAction := CTRL_OPEN;
-            dssActionClose:
-                elem.CurrentAction := CTRL_CLOSE;
-            dssActionReset:
-                elem.Reset(ActiveActor);
-            dssActionLock:
-                elem.Locked := true;
-            dssActionUnlock:
-                elem.Locked := false;
-        else // TapUp, TapDown, None have no effect
-        end;
-    // Make sure the NormalState has an initial value  before taking action
-        if elem.NormalState = CTRL_NONE then
-            case value of
-                dssActionOpen:
-                    elem.NormalState := CTRL_OPEN;
-                dssActionClose:
-                    elem.NormalState := CTRL_CLOSE;
-            end;
-    end;
 end;
 
 procedure TSwtControls.Set_Delay(Value: Double);
@@ -318,72 +271,117 @@ begin
         Result := ActiveCircuit[ActiveActor].SwtControls.ListSize;
 end;
 
-function TSwtControls.Get_NormalState: ActionCodes;
+function TSwtControls.Get_NormalState: Olevariant;
 var
+    i: Integer;
     elem: TSwtControlObj;
 begin
-    elem := ActiveSwtControl;
-    if elem <> nil then
+    if ActiveCircuit[ActiveActor] <> nil then
     begin
-        case elem.NormalState of
-            CTRL_OPEN:
-                Result := dssActionOpen;
-        else
-            Result := dssActionClose;
+        elem := ActiveSwtControl;
+        if elem <> nil then
+        begin
+            Result := VarArrayCreate([0, elem.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to elem.ControlledElement.NPhases do
+            begin
+                if elem.NormalStates[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
+            end;
         end;
-    end;
-
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
-procedure TSwtControls.Set_NormalState(Value: ActionCodes);
+
+procedure TSwtControls.Set_NormalState(Value: Olevariant);
 var
+    i: Integer;
+    Count, Low: Integer;
     elem: TSwtControlObj;
 begin
-    elem := ActiveSwtControl;
-    if elem <> nil then
+
+    if ActiveCircuit[ActiveActor] <> nil then
     begin
-        case Value of
-            dssActionOpen:
-                elem.NormalState := CTRL_OPEN;
-        else
-            elem.NormalState := CTRL_CLOSE;
+        elem := ActiveSwtControl;
+        if elem <> nil then
+        begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            if Count > elem.ControlledElement.NPhases then
+                Count := elem.ControlledElement.NPhases;
+            for i := 1 to Count do
+            begin
+                case LowerCase(Value[i - 1 + Low])[1] of
+                    'o':
+                        elem.NormalStates[i] := CTRL_OPEN;
+                    'c':
+                        elem.NormalStates[i] := CTRL_CLOSE;
+                end;
+            end;
         end;
+
     end;
 end;
 
-function TSwtControls.Get_State: ActionCodes;
+
+function TSwtControls.Get_State: Olevariant;
 var
+    i: Integer;
     elem: TSwtControlObj;
 begin
-    Result := dssActionNone;
-    elem := ActiveSwtControl;
-    if elem <> nil then
+    if ActiveCircuit[ActiveActor] <> nil then
     begin
-        case elem.PresentState of
-            CTRL_OPEN:
-                Result := dssActionOpen;
-            CTRL_CLOSE:
-                Result := dssActionClose;
+        elem := ActiveSwtControl;
+        if elem <> nil then
+        begin
+            Result := VarArrayCreate([0, elem.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to elem.ControlledElement.NPhases do
+            begin
+                if elem.States[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
+            end;
         end;
-    end;
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
-procedure TSwtControls.Set_State(Value: ActionCodes);
+
+procedure TSwtControls.Set_State(Value: Olevariant);
 var
+    i: Integer;
+    Count, Low: Integer;
     elem: TSwtControlObj;
 begin
-    elem := ActiveSwtControl;
-    if elem <> nil then
-    begin
-        case value of
-            dssActionOpen:
-                elem.PresentState := CTRL_OPEN;
-            dssActionClose:
-                elem.PresentState := CTRL_CLOSE;
-        end;
-    end;
 
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        elem := ActiveSwtControl;
+        if elem <> nil then
+        begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            if Count > elem.ControlledElement.NPhases then
+                Count := elem.ControlledElement.NPhases;
+            for i := 1 to Count do
+            begin
+                case LowerCase(Value[i - 1 + Low])[1] of
+                    'o':
+                        elem.States[i] := CTRL_OPEN;
+                    'c':
+                        elem.States[i] := CTRL_CLOSE;
+                end;
+            end;
+        end;
+
+    end;
 end;
+
 
 procedure TSwtControls.Reset;
 var
@@ -394,6 +392,32 @@ begin
     begin
         elem.Locked := false;
         elem.Reset(ActiveActor);
+    end;
+end;
+
+procedure TSwtControls.Open;
+var
+    elem: TSwtControlObj;
+    i: Integer;
+begin
+    elem := ActiveSwtControl;
+    if elem <> nil then
+    begin
+        for i := 1 to elem.ControlledElement.NPhases do
+            elem.States[i] := CTRL_OPEN // Open all phases
+    end;
+end;
+
+procedure TSwtControls.Close;
+var
+    elem: TSwtControlObj;
+    i: Integer;
+begin
+    elem := ActiveSwtControl;
+    if elem <> nil then
+    begin
+        for i := 1 to elem.ControlledElement.NPhases do
+            elem.States[i] := CTRL_CLOSE // Close all phases
     end;
 end;
 
