@@ -66,8 +66,6 @@ def run_simulation_dynamics():
     wfrm_setup['frequency']     = DSSSolution.Frequency
     wfrm_setup['sample freq']   = DSSSolution.Frequency * 100 # for a good resolution 
 
-    DSSText.Command = 'export monitor stovi'
-
     # Get the monitor data
     DSSMon.Name     = 'stovi'
     plt.figure(1)
