@@ -4227,7 +4227,7 @@ begin
                     BooleanNode(EpPrf, 'TapChangerControl.reversible', true);
                     BooleanNode(EpPrf, 'TapChangerControl.reverseToNeutral', ReverseToNeutral);
                     DoubleNode(EpPrf, 'TapChangerControl.reversingDelay', ReversingDelay);
-                    DoubleNode(EpPrf, 'TapChangerControl.reversingPowerThreshold', -ReversingThreshold);
+                    DoubleNode(EpPrf, 'TapChangerControl.reversingPowerThreshold', ReversingThreshold);
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropR', RevLineDropR);
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', RevLineDropX);
                     DoubleNode(EpPrf, 'RegulatingControl.reverseTargetValue', RevTargetVoltage);
