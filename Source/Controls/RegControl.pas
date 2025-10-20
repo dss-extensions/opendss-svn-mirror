@@ -75,7 +75,9 @@ type
         revVreg,
         revBandwidth,
         RevPowerThreshold,   // W
+        FwdPowerThreshold,   // W
         kWRevPowerThreshold,
+        kWFwdPowerThreshold,
         revDelay,
         revR,
         revX,
@@ -176,6 +178,7 @@ type
 
         property ReversingDelay: Double READ revDelay;
         property ReversingThreshold: Double READ revPowerThreshold; // Watts
+        property ForwardingThreshold: Double READ fwdPowerThreshold; // Watts
         property ReverseToNeutral: Boolean READ ReverseNeutral;
         property RevLineDropR: Double READ revR;
         property RevLineDropX: Double READ revX;
@@ -224,7 +227,7 @@ const
     ACTION_TAPCHANGE = 0;
     ACTION_REVERSE = 1;
 
-    NumPropsThisClass = 35;
+    NumPropsThisClass = 36;
 
 var
     LastChange: array of Integer;
@@ -302,6 +305,7 @@ begin
     PropertyName^[33] := 'idle';
     PropertyName^[34] := 'idleReverse';
     PropertyName^[35] := 'idleForward';
+    PropertyName^[36] := 'fwdThreshold';
 
     PropertyHelp^[1] := 'Name of Transformer or AutoTrans element to which the RegControl is connected. ' +
         'Do not specify the full object name; "Transformer" or "AutoTrans" is assumed for ' +
@@ -356,7 +360,7 @@ begin
         'Set to a value greater then zero to activate this function.';
     PropertyHelp^[22] := 'For multi-phase transformers, the number of the phase being monitored or one of { MAX | MIN} for all phases. Default=1. ' +
         'Must be less than or equal to the number of phases. Ignored for regulated bus.';
-    PropertyHelp^[23] := 'kW reverse power threshold for reversing the direction of the regulator. Default is 100.0 kw.';
+    PropertyHelp^[23] := 'kW reverse power threshold for reversing the direction of the regulator. Default is 100.0 kw.' + CRLF + 'Defines a no-load band between -revThreshold and +revThreshold.' + CRLF + CRLF + 'IMPORTANT: If an uneven band is desired, set "revThreshold" to the desired lower bound (negative values allowed) and reset the upper bound using "fwdThreshold" right after.';
     PropertyHelp^[24] := 'Time Delay in seconds (s) for executing the reversing action once the threshold for reversing has been exceeded. Default is 60 s.';
     PropertyHelp^[25] := '{Yes | No*} Default is no. Set this to Yes if you want the regulator to go to neutral in the reverse direction or in cogen operation.';
     PropertyHelp^[26] := '{Yes/True* | No/False} Default is YES for regulator control. Log control actions to Eventlog.';
@@ -376,6 +380,7 @@ begin
         'entering the reverse flow zone. Voltage override (Vlimit) takes priority.';
     PropertyHelp^[35] := '{Yes|No*} Default is No. Similar to the "idle" property but applicable only when reversible=Yes (not for cogen mode). The regulator will lock taps in the position they had before ' +
         'entering the forward flow zone. Voltage override (Vlimit) takes priority.';
+    PropertyHelp^[36] := 'kW forward power threshold to use in tandem with "revTheshold". Defaults to 100.0 kw or the value defined for revThreshold for an even no-load band.' + CRLF + CRLF + 'Set this value if you require an uneven no-load zone band.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -399,6 +404,8 @@ var
     ParamPointer: Integer;
     ParamName: String;
     Param: String;
+    setRevThr: Boolean;
+    setFwdThr: Boolean;
 
     function Max(a, b: Integer): Integer;
     begin
@@ -415,6 +422,8 @@ begin
     ActiveCircuit[ActorID].ActiveCktElement := ActiveRegControlObj;
 
     Result := 0;
+    setRevThr := false;
+    setFwdThr := false;
 
     with ActiveRegControlObj do
     begin
@@ -492,7 +501,10 @@ begin
                     else
                         FPTPhase := max(1, Parser[ActorID].IntValue);
                 23:
+                begin
                     kWRevPowerThreshold := Parser[ActorID].DblValue;
+                    setRevThr := true;
+                end;
                 24:
                     RevDelay := Parser[ActorID].DblValue;
                 25:
@@ -521,6 +533,11 @@ begin
                     IdleReverseEnabled := InterpretYesNo(Param);
                 35:
                     IdleForwardEnabled := InterpretYesNo(Param);
+                36:
+                begin
+                    kWFwdPowerThreshold := Parser[ActorID].DblValue;
+                    setFwdThr := true;
+                end;
             else
            // Inherited parameters
                 ClassEdit(ActiveRegControlObj, ParamPointer - NumPropsthisClass)
@@ -544,10 +561,21 @@ begin
                     end;
                 23:
                     RevPowerThreshold := kWRevPowerThreshold * 1000.0;
+                36:
+                    FwdPowerThreshold := kWFwdPowerThreshold * 1000.0;
             end;
 
             ParamName := Parser[ActorID].NextParam;
             Param := Parser[ActorID].StrValue;
+        end;
+
+        if (setRevThr and not setFwdThr) then
+        begin
+        // This is to fall back to the default pre-existing behavior where revTheshold defined the band around 0.0 kW.
+            kWFwdPowerThreshold := kWRevPowerThreshold;
+            kWRevPowerThreshold := -kWRevPowerThreshold;
+            RevPowerThreshold := kWRevPowerThreshold * 1000.0;
+            FwdPowerThreshold := kWFwdPowerThreshold * 1000.0;
         end;
 
         RecalcElementData(ActorID);
@@ -595,6 +623,8 @@ begin
             TapLimitPerChange := OtherRegControl.TapLimitPerChange;
             kWRevPowerThreshold := OtherRegControl.kWRevPowerThreshold;
             RevPowerThreshold := OtherRegControl.RevPowerThreshold;
+            kWFwdPowerThreshold := OtherRegControl.kWFwdPowerThreshold;
+            FwdPowerThreshold := OtherRegControl.FwdPowerThreshold;
             RevDelay := OtherRegControl.RevDelay;
             ReverseNeutral := OtherRegControl.ReverseNeutral;
             ShowEventLog := OtherRegControl.ShowEventLog;
@@ -664,8 +694,10 @@ begin
     revX := 0.0;
     revLDC_Z := 0.0;
     revDelay := 60.0; // Power must be reversed this long before it will reverse
-    RevPowerThreshold := 100000.0; // 100 kW
-    kWRevPowerThreshold := 100.0;
+    RevPowerThreshold := -100000.0; // 100 kW
+    kWRevPowerThreshold := -100.0;
+    FwdPowerThreshold := 100000.0; // 100 kW
+    kWFwdPowerThreshold := 100.0;
     IsReversible := false;
     ReversePending := false;
     InReverseMode := false;
@@ -1137,7 +1169,7 @@ begin
                 FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
                 if (not ReversePending) then  // If reverse is already pending, don't send any more messages
                 begin
-                    if (FwdPower < -RevPowerThreshold) then
+                    if (FwdPower < RevPowerThreshold) then
                     begin
                         ReversePending := true;
                         with ActiveCircuit[ActorID] do
@@ -1147,7 +1179,7 @@ begin
                                 RegWriteDebugRecord(Format('%-.6g, 1- Pushed Reverse Action, Handle=%d, FwdPower=%.8g', [Solution.DynaVars.dblHour, RevHandle, FwdPower]));
                     end
                 end;
-                if ReversePending and (FwdPower >= -RevPowerThreshold) then // Reset  reverse pending
+                if ReversePending and (FwdPower >= RevPowerThreshold) then // Reset  reverse pending
                 begin
                     ReversePending := false; // Reset it if power goes back
                     if RevHandle > 0 then
@@ -1170,7 +1202,7 @@ begin
                 FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
                 if not ReversePending then
                 begin
-                    if (FwdPower > RevPowerThreshold) then
+                    if (FwdPower > FwdPowerThreshold) then
                     begin
                         ReversePending := true;
                         with ActiveCircuit[ActorID] do
@@ -1180,7 +1212,7 @@ begin
                                 RegWriteDebugRecord(Format('%-.6g, 4-Pushed ReverseBack Action to switch back, Handle=%d, FwdPower=%.8g', [Solution.DynaVars.dblHour, RevBackHandle, FwdPower]));
                     end
                 end;
-                if ReversePending and (FwdPower <= RevPowerThreshold) then // Reset  reverse pending                            Else
+                if ReversePending and (FwdPower <= FwdPowerThreshold) then // Reset  reverse pending                            Else
                 begin
                     ReversePending := false; // Reset it if power goes back
                     if RevBackHandle > 0 then
@@ -1319,7 +1351,7 @@ begin
         if TapChangeIsNeeded and IdleEnabled and (CogenEnabled or IsReversible) then
         begin
             FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
-            if Abs(FwdPower) <= RevPowerThreshold then
+            if (FwdPower <= FwdPowerThreshold) and (FwdPower >= RevPowerThreshold) then
                 TapChangeIsNeeded := false; // idle in no-load zone
             if not TapChangeIsNeeded and (DebugTrace) then
                 RegWriteDebugRecord(Format('Idling in No Load zone, FwdPower=%.8g', [FwdPower]));
@@ -1329,7 +1361,7 @@ begin
         if TapChangeIsNeeded and IdleReverseEnabled and IsReversible and not ReverseNeutral then
         begin
             FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
-            if FwdPower < -RevPowerThreshold then
+            if FwdPower < RevPowerThreshold then
                 TapChangeIsNeeded := false; // idle in reverse zone
             if not TapChangeIsNeeded and (DebugTrace) then
                 RegWriteDebugRecord(Format('Idling in reverse flow zone, FwdPower=%.8g', [FwdPower]));
@@ -1338,7 +1370,7 @@ begin
         if TapChangeIsNeeded and IdleForwardEnabled and IsReversible then
         begin
             FwdPower := -ControlledTransformer.Power[ElementTerminal, ActorID].re;  // watts
-            if FwdPower > RevPowerThreshold then
+            if FwdPower > FwdPowerThreshold then
                 TapChangeIsNeeded := false; // idle in forward zone
             if not TapChangeIsNeeded and (DebugTrace) then
                 RegWriteDebugRecord(Format('Idling in forward flow zone, FwdPower=%.8g', [FwdPower]));
