@@ -86,6 +86,7 @@ public:
 	double revVreg;
 	double revBandwidth;
 	double RevPowerThreshold;
+    double RevPowerThreshold;
 	double kWRevPowerThreshold;
 	double revDelay;
 	double revR;
