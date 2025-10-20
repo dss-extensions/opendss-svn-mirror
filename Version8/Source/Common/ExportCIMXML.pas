@@ -1328,7 +1328,8 @@ begin
     if (pLine.ConductorData[i] = nil) and not skip_cond_check then continue; // If using Spacing an unused position will be Nil.
     j := j + 1;  // j is the phase index in the line, i is the conductor index in the spacing.
     phs := s[j];
-		if phs = 's' then continue;
+		if phs = 's' then j := j + 1;
+		if phs = 's' then phs := s[j];
 		if phs = '1' then phs := 's1';
 		if phs = '2' then phs := 's2';
     pPhase.LocalName := pLine.Name + '_' + phs;
@@ -3632,7 +3633,7 @@ Begin
           BooleanNode (EpPrf, 'TapChangerControl.reversible', True);
           BooleanNode (EpPrf, 'TapChangerControl.reverseToNeutral', ReverseToNeutral);
           DoubleNode (EpPrf, 'TapChangerControl.reversingDelay', ReversingDelay);
-          DoubleNode (EpPrf, 'TapChangerControl.reversingPowerThreshold', ReversingThreshold);
+          DoubleNode (EpPrf, 'TapChangerControl.reversingPowerThreshold', -ReversingThreshold);
           DoubleNode (EpPrf, 'TapChangerControl.reverseLineDropR', RevLineDropR);
           DoubleNode (EpPrf, 'TapChangerControl.reverseLineDropX', RevLineDropX);
           DoubleNode (EpPrf, 'RegulatingControl.reverseTargetValue', RevTargetVoltage);
