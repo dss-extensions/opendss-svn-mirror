@@ -3522,8 +3522,8 @@ begin
                 RefNode(FunPrf, 'PowerElectronicsConnection.PowerElectronicsUnit', pName1);
                 DoubleNode(EpPrf, 'PowerElectronicsConnection.maxIFault', 1.0 / pPV.MinModelVoltagePU);
 //        if FD.Separate then StartFreeInstance (SshPrf, 'PowerElectronicsConnection', pPV.UUID);
-                DoubleNode(SshPrf, 'PowerElectronicsConnection.p', pPV.Presentkw * 1000.0);
-                DoubleNode(SshPrf, 'PowerElectronicsConnection.q', pPV.Presentkvar * 1000.0);
+                DoubleNode(SshPrf, 'PowerElectronicsConnection.p', -pPV.Presentkw * 1000.0);
+                DoubleNode(SshPrf, 'PowerElectronicsConnection.q', -pPV.Presentkvar * 1000.0);
                 ConverterControlEnum(SshPrf, pPV.VarMode, pPV.UsingCIMDynamics);
 //        if FD.Separate then EndInstance (SshPrf, 'PowerElectronicsConnection');
                 DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedS', pPV.PVSystemVars.fkvarating * 1000.0);
@@ -3567,8 +3567,8 @@ begin
                 CircuitNode(FunPrf, ActiveCircuit[ActiveActor]);
                 RefNode(FunPrf, 'PowerElectronicsConnection.PowerElectronicsUnit', pName1);
                 DoubleNode(EpPrf, 'PowerElectronicsConnection.maxIFault', 1.0 / pBat.MinModelVoltagePU);
-                DoubleNode(SshPrf, 'PowerElectronicsConnection.p', pBat.Presentkw * 1000.0);
-                DoubleNode(SshPrf, 'PowerElectronicsConnection.q', pBat.Presentkvar * 1000.0);
+                DoubleNode(SshPrf, 'PowerElectronicsConnection.p', -pBat.Presentkw * 1000.0);
+                DoubleNode(SshPrf, 'PowerElectronicsConnection.q', -pBat.Presentkvar * 1000.0);
                 ConverterControlEnum(SshPrf, pBat.VarMode, pBat.UsingCIMDynamics);
                 DoubleNode(EpPrf, 'PowerElectronicsConnection.ratedS', pBat.kvaRating * 1000.0);
                 if pBat.nphases = 1 then
