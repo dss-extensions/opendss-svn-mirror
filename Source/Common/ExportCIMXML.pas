@@ -1599,7 +1599,9 @@ begin
         j := j + 1;  // j is the phase index in the line, i is the conductor index in the spacing.
         phs := s[j];
         if phs = 's' then
-            continue;
+            j := j + 1;
+        if phs = 's' then
+            phs := s[j];
         if phs = '1' then
             phs := 's1';
         if phs = '2' then
@@ -4225,7 +4227,7 @@ begin
                     BooleanNode(EpPrf, 'TapChangerControl.reversible', true);
                     BooleanNode(EpPrf, 'TapChangerControl.reverseToNeutral', ReverseToNeutral);
                     DoubleNode(EpPrf, 'TapChangerControl.reversingDelay', ReversingDelay);
-                    DoubleNode(EpPrf, 'TapChangerControl.reversingPowerThreshold', ReversingThreshold);
+                    DoubleNode(EpPrf, 'TapChangerControl.reversingPowerThreshold', -ReversingThreshold);
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropR', RevLineDropR);
                     DoubleNode(EpPrf, 'TapChangerControl.reverseLineDropX', RevLineDropX);
                     DoubleNode(EpPrf, 'RegulatingControl.reverseTargetValue', RevTargetVoltage);
