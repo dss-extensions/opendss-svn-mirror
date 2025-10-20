@@ -197,7 +197,7 @@ void TRegControl::DefineProperties()
 						  "entering the reverse flow zone. Voltage override (Vlimit) takes priority.";
 	PropertyHelp[35 - 1] = "{Yes|No*} Default is No. Similar to the 'idle' property but applicable only when reversible=Yes (not for cogen mode). The regulator will lock taps in the position they had before "
 						  "entering the forward flow zone. Voltage override (Vlimit) takes priority.";
-	PropertyHelp[36 - 1] : = "kW forward power threshold to use in tandem with \"revTheshold\". Defaults to 100.0 kw or the value defined for revThreshold for an even no-load band." + CRLF + CRLF + "Set this value if you require an uneven no - load zone band.";
+	PropertyHelp[36 - 1] = "kW forward power threshold to use in tandem with \"revTheshold\". Defaults to 100.0 kw or the value defined for revThreshold for an even no-load band." + CRLF + CRLF + "Set this value if you require an uneven no - load zone band.";
 
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list

@@ -1550,7 +1550,9 @@ void AttachLinePhases(TLineObj* pLine)
         j++;  // j is the phase index in the line, i is the conductor index in the spacing.
         phs = s[j - 1];
         if (phs == "s")
-            continue;
+            j++;
+        if (phs == "s")
+            phs = s[j - 1];
         if (phs == "1")
             phs = "s1";
         if (phs == "2")
@@ -3408,8 +3410,8 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
                 RefNode(FunPrf, "PowerElectronicsConnection.PowerElectronicsUnit", pName1);
                 DoubleNode(EpPrf, "PowerElectronicsConnection.maxIFault", 1.0 / pPV->Vminpu);
                 // if (FD->Separate) StartFreeInstance (SshPrf, "PowerElectronicsConnection", pPV->Get_UUID());
-                DoubleNode(SshPrf, "PowerElectronicsConnection.p", pPV->Get_PresentkW() * 1000.0);
-                DoubleNode(SshPrf, "PowerElectronicsConnection.q", pPV->Get_Presentkvar() * 1000.0);
+                DoubleNode(SshPrf, "PowerElectronicsConnection.p", - pPV->Get_PresentkW() * 1000.0);
+                DoubleNode(SshPrf, "PowerElectronicsConnection.q", - pPV->Get_Presentkvar() * 1000.0);
                 ConverterControlEnum(SshPrf, pPV->FvarMode, pPV->Get_CIMDynamicMode());
                 // if (FD->Separate) EndInstance (SshPrf, "PowerElectronicsConnection");
                 DoubleNode(EpPrf, "PowerElectronicsConnection.ratedS", pPV->PVSystemVars.FkVArating * 1000.0);
@@ -3453,8 +3455,8 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
                 CircuitNode(FunPrf, ActiveCircuit[ActiveActor]);
                 RefNode(FunPrf, "PowerElectronicsConnection.PowerElectronicsUnit", pName1);
                 DoubleNode(EpPrf, "PowerElectronicsConnection.maxIFault", 1.0 / pBat->Vminpu);
-                DoubleNode(SshPrf, "PowerElectronicsConnection.p", pBat->Get_PresentkW() * 1000.0);
-                DoubleNode(SshPrf, "PowerElectronicsConnection.q", pBat->Get_Presentkvar() * 1000.0);
+                DoubleNode(SshPrf, "PowerElectronicsConnection.p", - pBat->Get_PresentkW() * 1000.0);
+                DoubleNode(SshPrf, "PowerElectronicsConnection.q", - pBat->Get_Presentkvar() * 1000.0);
                 ConverterControlEnum(SshPrf, pBat->FvarMode, pBat->Get_CIMDynamicMode());
                 DoubleNode(EpPrf, "PowerElectronicsConnection.ratedS", pBat->Get_FkVARating() * 1000.0);
                 if (pBat->Fnphases == 1)
