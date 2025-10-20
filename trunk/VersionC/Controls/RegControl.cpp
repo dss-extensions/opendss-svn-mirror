@@ -46,7 +46,7 @@ const int MAXPHASE = -2;
 const int MINPHASE = -3;
 const int ACTION_TAPCHANGE = 0;
 const int ACTION_REVERSE = 1;
-const int NumPropsThisClass = 35;
+const int NumPropsThisClass = 36;
 std::vector<int> LastChange;
     
 /*--------------------------------------------------------------------------*/  // Creates superstructure for all RegControl objects
@@ -121,6 +121,7 @@ void TRegControl::DefineProperties()
 	PropertyName[33 - 1] = "idle";
 	PropertyName[34 - 1] = "idleReverse";
 	PropertyName[35 - 1] = "idleForward";
+	PropertyName[36 - 1] = "fwdThreshold";
 	PropertyHelp[1 - 1] = String("Name of Transformer or AutoTrans element to which the RegControl is connected. " "Do not specify the full object name; \"Transformer\" or \"AutoTrans\" is assumed for " "the object class.  Example:") + CRLF
 	           + CRLF
 	           + "Transformer=Xfmr1";
@@ -176,7 +177,7 @@ void TRegControl::DefineProperties()
 	           "Set to a value greater then zero to activate this function.";
 	PropertyHelp[22 - 1] = "For multi-phase transformers, the number of the phase being monitored or one of { MAX | MIN} for all phases. Default=1. "
 	           "Must be less than or equal to the number of phases. Ignored for regulated bus.";
-	PropertyHelp[23 - 1] = "kW reverse power threshold for reversing the direction of the regulator. Default is 100.0 kw.";
+	PropertyHelp[23 - 1] = "kW reverse power threshold for reversing the direction of the regulator. Default is 100.0 kw." + CRLF + "Defines a no-load band between -revThreshold and +revThreshold." + CRLF + CRLF + "IMPORTANT: If an uneven band is desired, set \"revThreshold\" to the desired lower bound (negative values allowed) and reset the upper bound using \"fwdThreshold right after.";
 	PropertyHelp[24 - 1] = "Time Delay in seconds (s) for executing the reversing action once the threshold for reversing has been exceeded. Default is 60 s.";
 	PropertyHelp[25 - 1] = "{Yes | No*} Default is no. Set this to Yes if you want the regulator to go to neutral in the reverse direction or in cogen operation.";
 	PropertyHelp[26 - 1] = "{Yes/True* | No/False} Default is YES for regulator control. Log control actions to Eventlog.";
@@ -196,6 +197,7 @@ void TRegControl::DefineProperties()
 						  "entering the reverse flow zone. Voltage override (Vlimit) takes priority.";
 	PropertyHelp[35 - 1] = "{Yes|No*} Default is No. Similar to the 'idle' property but applicable only when reversible=Yes (not for cogen mode). The regulator will lock taps in the position they had before "
 						  "entering the forward flow zone. Voltage override (Vlimit) takes priority.";
+	PropertyHelp[36 - 1] : = "kW forward power threshold to use in tandem with \"revTheshold\". Defaults to 100.0 kw or the value defined for revThreshold for an even no-load band." + CRLF + CRLF + "Set this value if you require an uneven no - load zone band.";
 
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
@@ -224,6 +226,8 @@ int TRegControl::Edit(int ActorID)
 	int ParamPointer = 0;
 	String ParamName;
 	String Param;
+	bool setRevThr = false;
+	bool setFwdThr = false;
 
 	auto Max = [&](int A, int B) -> int 
 	{
@@ -344,7 +348,10 @@ int TRegControl::Edit(int ActorID)
 				}
 				break;
 				case 	23:
-				with0->kWRevPowerThreshold = Parser[ActorID]->MakeDouble_();
+				{
+					with0->kWRevPowerThreshold = Parser[ActorID]->MakeDouble_();
+					setRevThr = true;
+				}
 				break;
 				case 	24:
 				with0->revDelay = Parser[ActorID]->MakeDouble_();
@@ -386,6 +393,12 @@ int TRegControl::Edit(int ActorID)
 				case 	35:
 				with0->IdleForwardEnabled = InterpretYesNo(Param);
 				break;
+				case 	36:
+				{
+					with0->kWFwdPowerThreshold = Parser[ActorID]->MakeDouble_();
+					setFwdThr = true;
+				}
+				break;
            // Inherited parameters
 				default:
 				ClassEdit(ActiveRegControlObj, ParamPointer - NumPropsThisClass);
@@ -415,12 +428,22 @@ int TRegControl::Edit(int ActorID)
 				case 	23:
 				with0->RevPowerThreshold = with0->kWRevPowerThreshold * 1000.0;
 				break;
+				case 	36:
+				with0->FwdPowerThreshold = with0->kWFwdPowerThreshold * 1000.0;
+				break;
 				default:
 				  ;
 				break;
 			}
 			ParamName = Parser[ActorID]->GetNextParam();
 			Param = Parser[ActorID]->MakeString_();
+		}
+		if (setRevThr and not setFwdThr){
+			// This is to fall back to the default pre-existing behavior where revTheshold defined the band around 0.0 kW.
+			with0->kWFwdPowerThreshold = with0->kWRevPowerThreshold;
+			with0->kWRevPowerThreshold = -with0->kWRevPowerThreshold;
+			with0->RevPowerThreshold = with0->kWRevPowerThreshold * 1000.0;
+			with0->FwdPowerThreshold = with0->kWFwdPowerThreshold * 1000.0;		
 		}
 		with0->RecalcElementData(ActorID);
 	}  /*With*/
@@ -469,6 +492,8 @@ int TRegControl::MakeLike(const String RegControlName)
 			with0->TapLimitPerChange = OtherRegControl->TapLimitPerChange;
 			with0->kWRevPowerThreshold = OtherRegControl->kWRevPowerThreshold;
 			with0->RevPowerThreshold = OtherRegControl->RevPowerThreshold;
+			with0->kWFwdPowerThreshold = OtherRegControl->kWFwdPowerThreshold;
+			with0->FwdPowerThreshold = OtherRegControl->FwdPowerThreshold;
 			with0->revDelay = OtherRegControl->revDelay;
 			with0->ReverseNeutral = OtherRegControl->ReverseNeutral;
 			with0->ShowEventLog = OtherRegControl->ShowEventLog;
@@ -515,8 +540,10 @@ TRegControlObj::TRegControlObj(TDSSClass* ParClass, const String RegControlName)
 			LDC_Z(0.0),
 			revVreg(120.0),
 			revBandwidth(3.0),
-			RevPowerThreshold(100000.0),
-			kWRevPowerThreshold(100.0),
+			RevPowerThreshold(-100000.0),
+			kWRevPowerThreshold(-100.0),
+			FwdPowerThreshold(100000.0),
+			kWFwdPowerThreshold(100.0),
 			revDelay(0.0),
 			revR(0.0),
 			revX(0.0),
@@ -1052,7 +1079,7 @@ void TRegControlObj::sample(int ActorID)
 				FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
 				if(!ReversePending)  // If reverse is already pending, don't send any more messages
 				{
-					if(FwdPower <  - RevPowerThreshold)
+					if(FwdPower < RevPowerThreshold)
 					{
 						ReversePending = true;
 						/*# with ActiveCircuit[ActorID] do */
@@ -1069,7 +1096,7 @@ void TRegControlObj::sample(int ActorID)
 							}
 					}
 				}
-				if(ReversePending && (FwdPower >=  - RevPowerThreshold)) // Reset  reverse pending
+				if(ReversePending && (FwdPower >= RevPowerThreshold)) // Reset  reverse pending
 				{
 					ReversePending = false; // Reset it if power goes back
 					if(RevHandle > 0)
@@ -1095,7 +1122,7 @@ void TRegControlObj::sample(int ActorID)
 				FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
 				if(!ReversePending)
 				{
-					if(FwdPower > RevPowerThreshold)
+					if(FwdPower > FwdPowerThreshold)
 					{
 						ReversePending = true;
 						/*# with ActiveCircuit[ActorID] do */
@@ -1112,7 +1139,7 @@ void TRegControlObj::sample(int ActorID)
 							}
 					}
 				}
-				if(ReversePending && (FwdPower <= RevPowerThreshold)) // Reset  reverse pending                            Else
+				if(ReversePending && (FwdPower <= FwdPowerThreshold)) // Reset  reverse pending                            Else
 				{
 					ReversePending = false; // Reset it if power goes back
 					if(RevBackHandle > 0)
@@ -1260,7 +1287,7 @@ void TRegControlObj::sample(int ActorID)
 
 		if (TapChangeIsNeeded && IdleEnabled && (CogenEnabled || IsReversible)) {
 			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
-			if (Abs(FwdPower) <= RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in no-load zone
+			if (FwdPower <= FwdPowerThreshold and FwdPower >= RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in no-load zone
 			if (!TapChangeIsNeeded && DebugTrace) {
 				RegWriteDebugRecord(Format("Idling in No Load zone, FwdPower=%.8g", FwdPower));
 			}
@@ -1268,7 +1295,7 @@ void TRegControlObj::sample(int ActorID)
 
 		if (TapChangeIsNeeded && IdleReverseEnabled && IsReversible && !ReverseNeutral) {
 			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
-			if (FwdPower < -RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in reverse zone
+			if (FwdPower < RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in reverse zone
 			if (!TapChangeIsNeeded && DebugTrace) {
 				RegWriteDebugRecord(Format("Idling in reverse flow zone, FwdPower=%.8g", FwdPower));
 			}
@@ -1276,7 +1303,7 @@ void TRegControlObj::sample(int ActorID)
 
 		if (TapChangeIsNeeded && IdleForwardEnabled && IsReversible) {
 			FwdPower = -ControlledTransformer->Get_Power(ElementTerminal, ActorID).re;  // watts
-			if (FwdPower > RevPowerThreshold) {TapChangeIsNeeded = false;} // idle in forward zone
+			if (FwdPower > FwdPowerThreshold) {TapChangeIsNeeded = false;} // idle in forward zone
 			if (!TapChangeIsNeeded && DebugTrace) {
 				RegWriteDebugRecord(Format("Idling in forward flow zone, FwdPower=%.8g", FwdPower));
 			}
