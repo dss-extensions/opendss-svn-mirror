@@ -12,7 +12,7 @@ interface
 Uses Command;
 
 CONST
-        NumExecOptions = 148;
+        NumExecOptions = 150;
 
 VAR
          ExecOption,
@@ -190,6 +190,8 @@ Begin
      ExecOption[146] := 'ITerminal';
      ExecOption[147] := 'Yprim';
      ExecOption[148] := 'IntegrationFlag';
+     ExecOption[149] := 'AllowForms';
+     ExecOption[150] := 'AllowProgressBar';
 
      {Deprecated
       ExecOption[130] := 'MarkPVSystems2';
@@ -533,6 +535,8 @@ Begin
      OptionHelp[148] := 'Returns the value of the integration flag during a dynamics simulation. This flag is useful when developing models such as ' +
                         'pyControls designed for dynamics simulations. If the user attemps to read this flag using other simulation methods (COM, DLL, ' +
                         ', EXE), this flag will always return the same value (not variable).';
+     OptionHelp[149] := '{YES/TRUE* | NO/FALSE} Use this to prevent any dialog window from showing (dialogs with execution information including progress bar dialog). See "AllowProgressBar" for a similar option involving the progress bar dialog exclusively.';
+     OptionHelp[150] := '{YES/TRUE* | NO/FALSE} Use this to prevent the progress bar dialog (exclusively) from showing. See "AllowForms" for a similar option encompassing all dialog windows.';
 
 
 
@@ -631,6 +635,12 @@ Begin
                   End
                   Else
                     DoSimpleMsg('The path provided for the Python binary does not exist.', 3001);
+                End;
+          149:  Begin
+                    NoFormsAllowed  :=  not InterpretYesNo(Param);
+                End;
+          150:  Begin
+                    NoProgressBarFormAllowed  :=  not InterpretYesNo(Param);
                 End
          ELSE
             Begin
@@ -1103,6 +1113,12 @@ Begin
                       DoSimpleMsg('The active element is not PCE.', 3003);
                   End;
 
+                End;
+          149:  Begin
+                    NoFormsAllowed  :=  not InterpretYesNo(Param);
+                End;
+          150:  Begin
+                    NoProgressBarFormAllowed  :=  not InterpretYesNo(Param);
                 End
          ELSE
            // Ignore excess parameters
@@ -1469,6 +1485,12 @@ Begin
                 End;
           148:  Begin
                   AppendGlobalResult(Format('%d',[ActiveCircuit[ActiveActor].Solution.DynaVars.IterationFlag]));
+                End;
+          149:  Begin
+                   if not NoFormsAllowed then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+                End;
+          150:  Begin
+                   if not NoProgressBarFormAllowed then AppendGlobalResult('Yes') else AppendGlobalResult('No');
                 End
          ELSE
            // Ignore excess parameters
@@ -1534,6 +1556,12 @@ Begin
           136: if EventLogDefault then AppendGlobalResult('Yes') else AppendGlobalResult('No');
           142: Begin
                 AppendGlobalResult(pyPath);
+               End;
+          149: Begin
+                   if not NoFormsAllowed then AppendGlobalResult('Yes') else AppendGlobalResult('No');
+               End;
+          150: Begin
+                   if not NoProgressBarFormAllowed then AppendGlobalResult('Yes') else AppendGlobalResult('No');
                End
          ELSE
             Begin
