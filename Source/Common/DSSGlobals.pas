@@ -209,7 +209,8 @@ var
     DSS_GIS_path: String;
 
     IsDLL,
-    NoFormsAllowed: Boolean;
+    NoFormsAllowed,
+    NoProgressBarFormAllowed: Boolean;
 
     ActiveCircuit: array of TDSSCircuit;
     ActiveDSSClass: array of TDSSClass;

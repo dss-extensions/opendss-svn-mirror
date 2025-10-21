@@ -812,7 +812,7 @@ begin
       GStartTime := GetTickCount64;
         {$ENDIF}
 
-        if not NoFormsAllowed then
+        if (not NoFormsAllowed) and (not NoProgressBarFormAllowed) then
         begin
             if not IsProgressON and DSSProgressFrm then
             begin
