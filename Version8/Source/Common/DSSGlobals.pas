@@ -196,7 +196,8 @@ VAR
    DSS_GIS_path         : String;
 
    IsDLL,
-   NoFormsAllowed  :Boolean;
+   NoFormsAllowed,
+   NoProgressBarFormAllowed  :Boolean;
 
    ActiveCircuit   :Array of TDSSCircuit;
    ActiveDSSClass  :Array of TDSSClass;

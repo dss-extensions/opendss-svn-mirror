@@ -160,7 +160,7 @@ begin
 
   If Not IsDLL Then
   Begin
-    if ActorHandle[1] <> nil then
+    if ActorHandle[1] <> nil then  // TODO: this is blocking the results of DoGetCmd_NoCircuit from being displayed.
     Begin
       UpdateResultForm;
       if not ProgressCmd then
