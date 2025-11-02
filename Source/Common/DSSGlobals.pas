@@ -1688,7 +1688,7 @@ begin
 {$IFNDEF FPC}
 
   fHandle         := INVALID_HANDLE_VALUE;
-  ShellExecute(Handle, 'open',pWidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL) ;
+  ShellExecute(Handle, 'open',pWidechar(DSSProgressPath), nil, nil, SW_HIDE) ;
   sleep(100);
   if ADiakoptics and (ActiveActor = 1) then J := 1
   else J := NumOfActors;
@@ -1998,7 +1998,15 @@ initialization
    SeasonSignal           :=  '';
 
    {Various Constants and Switches}
-   {$IFDEF FPC}NoFormsAllowed  := TRUE;{$ENDIF}
+   {$IFDEF FPC}
+   NoFormsAllowed         := TRUE;
+   NoProgressBarFormAllowed := TRUE;
+   {$ENDIF}
+
+   {$IFNDEF FPC}
+   NoFormsAllowed         := FALSE;
+   NoProgressBarFormAllowed := FALSE;
+   {$ENDIF}
 
    CALPHA                := Cmplx(-0.5, -0.866025); // -120 degrees phase shift
    SQRT2                 := Sqrt(2.0);
@@ -2096,7 +2104,7 @@ initialization
       DefaultFontName := 'MS Sans Serif';
    {$ENDIF}
 
-   {$IFNDEF FPC}NoFormsAllowed   := FALSE;{$ENDIF}
+
 
    LogQueries       := FALSE;
    QueryLogFileName := '';
