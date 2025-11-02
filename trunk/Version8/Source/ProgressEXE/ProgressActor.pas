@@ -40,14 +40,16 @@ type
   private
     fID: Byte;
     fPipeName: String;
-    fHandle: THandle;
-    function TryConnectToServer(): Boolean;
+//    fHandle: THandle;
+//    function TryConnectToServer(): Boolean;
+    function CreateServer():Boolean;
     procedure SendMessage(Msg: String);
     Function ReadMessage(): String;
 
   protected
     procedure Execute(); override;
   public
+    pHandle     : THandle;
     constructor Create(aID: Byte; aServer, aPipe: String);
     destructor Destroy(); override;
 
@@ -61,6 +63,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Remove_from_top();
+
   private
     Client1   : TMyClient;
     NumActors,
@@ -83,6 +87,8 @@ CONST
   NUMDIVISIONS  = 1;
   UPDTPROGRESS  = 2;
   QUITPRG       = 3;
+  HIDE_FORM     = 4;
+  RESET         = 5;
 
 var
   Form1: TForm1;
@@ -133,6 +139,10 @@ begin
   newPath             :=  GetDSSExeFile();
 
   Client1             :=  TMyClient.Create(1, SERVER_PATH, SERVER_NAME);
+  if not Client1.CreateServer then
+    Caption := 'Error creating server'
+  else
+    Caption :=  'Simulation progress';
 
   TimeOut             :=  0;
   with Image1 do
@@ -142,8 +152,13 @@ begin
     Canvas.Rectangle(0, 0, Width, Height);
   end;
 
-  Caption :=  'Simulation progress'
+  SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
 
+end;
+
+procedure TForm1.Remove_from_top();
+begin
+  SetWindowPos(Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
 end;
 
 procedure TForm1.ResetTimeOut;
@@ -220,11 +235,15 @@ End;
 
 procedure TForm1.Timer1Timer(Sender: TObject); // Waits for 5 secs, if there is no
 begin                                          // interactions with the caller, the
-  Inc(TimeOut);                                // app will close
-  if TimeOut >= MaxTimeOutValue then begin
+//  Inc(TimeOut);                                // app will close
+  if TimeOut = MaxTimeOutValue then
+  begin
     Timer1.Enabled := False;
-    Close;
+    TimeOut        :=  0;
+//    Close;
   end;
+  if TimeOut >= 1000 then
+    Close;
 end;
 
 procedure TForm1.Setup_Wnd(cmd : string);
@@ -248,7 +267,6 @@ begin
   FreeOnTerminate := True;
   Priority        := tpLower;
   fID             := aID;
-  fHandle         := INVALID_HANDLE_VALUE;
   if aServer = '' then
     fPipeName := Format(PIPE_FORMAT, ['.', aPipe])
   else
@@ -257,41 +275,38 @@ end;
 
 destructor TMyClient.Destroy();
 begin
-  if (fHandle <> INVALID_HANDLE_VALUE) then
-    CloseHandle(fHandle);
+  if (pHandle <> INVALID_HANDLE_VALUE) then
+    CloseHandle(pHandle);
   inherited Destroy();
 end;
 
-function TMyClient.TryConnectToServer(): Boolean;
+function TMyClient.CreateServer():Boolean;
+var
+  LAPipeName   : String;
 begin
-  Result := False;
-  fHandle := CreateFile(
-    PChar(fPipeName),      // pipe name
-    GENERIC_READ OR GENERIC_WRITE, // read and write access
-    0,              // no sharing
-    nil,            // default security attributes
-    OPEN_EXISTING,  // opens existing pipe
-    0,              // default attributes
-    0
+    // ... create Pipe (replaces old TCP/IP server)
+  LAPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
+    // Check whether pipe does exist
+  if WaitNamedPipe(PChar(LAPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
+    raise Exception.Create('Pipe exists.');
+  // Create the pipe
+  pHandle := CreateNamedPipe(
+    PChar(LAPipeName),                                   // Pipe name
+    PIPE_ACCESS_DUPLEX,                                 // Read/write access
+    PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
+    PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
+    10000,                                              // Output buffer size
+    10000,                                              // Input buffer size
+    0,                                            // Client time-out 50 [ms] default
+    nil                                                 // Default security attributes
   );
-  // If handle is not valid
-  if (fHandle = INVALID_HANDLE_VALUE) then
-  begin
-    // Exit if an error other than ERROR_PIPE_BUSY occurs
-    if (GetLastError() <> ERROR_PIPE_BUSY) then
-    begin
-      Exit;
-    end;
-    // All pipe instances are busy, so wait for 1 seconds
-    if not WaitNamedPipe(PChar(fPipeName), 1000) then
-    begin
-
-    end;
-  end;
-  Result := (fHandle <> INVALID_HANDLE_VALUE);
+  result  := False;
+  if pHandle <> INVALID_HANDLE_VALUE then
+      result  := True;
 end;
 
-
+// Executes the Client routine, waits for an remote message to execute
+//-------------------------------------------------------------------------------
 procedure TMyClient.Execute();
 var
   msgToClient,
@@ -303,8 +318,7 @@ begin
   while k = 0 do
   begin
     try
-
-      if (fHandle <> INVALID_HANDLE_VALUE) OR TryConnectToServer() then
+      if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
       begin
         Msg := ReadMessage();
         msgType :=  -1;
@@ -314,6 +328,10 @@ begin
           msgType :=  UPDTPROGRESS;
         if Msg.Substring(0,3) = 'ext' then
           msgType :=  QUITPRG;
+        if Msg.Substring(0,3) = 'hid' then
+          msgType :=  HIDE_FORM;
+        if Msg.Substring(0,3) = 'rst' then
+          msgType :=  RESET;
 
         // Evaluates the message type
         if msgType > 0 then
@@ -323,28 +341,39 @@ begin
           case msgType of
             NUMDIVISIONS  : Begin
                               Form1.SetupWnd       :=  Msg.Substring(3);
-                              //ShowMessage(Msg.Substring(3));
+                              Form1.Hide;
+//                              ShowMessage(Msg.Substring(3));
                             End;
-            UPDTPROGRESS  : Form1.WriteProgress  :=  Msg.Substring(3);
+            UPDTPROGRESS  : Begin
+                              Form1.Show;
+                              Form1.BringToFront;
+                              Form1.WriteProgress  :=  Msg.Substring(3);
+                            End;
+            HIDE_FORM     : Begin
+                              Form1.Hide;
+//                              Form1.Remove_from_top();
+                            End;
+            RESET         : Begin
+                              Form1.AbortON := False;
+                            End;
             QUITPRG       : Begin
                               msgToClient := 'Q';
                               k := 1;
-            End
+                            End
             else
             Begin
               msgToClient  :=  'E'
             End;
           end;
-          if msgToClient <> 'Q' then
+
+
+          if msgToClient = '' then
           Begin
-            if msgToClient <> 'E' then
+            if Form1.AbortON then
             Begin
-              if Form1.AbortON then
-              Begin
-                msgToClient  :=  'T';
-              End
-              else msgToClient  :=  'F';
-            End;
+              msgToClient  :=  'T';
+            End
+            else msgToClient  :=  'F';
           End;
 
           if k = 0 then
@@ -354,7 +383,7 @@ begin
 
       end
       Else
-        k := 1;
+        sleep(10);
     except
       on E: Exception do
       Begin
@@ -362,7 +391,10 @@ begin
       End;
     end;
   end;
-  TimeOut := 1000;
+
+  TimeOut := 1001;
+  DisconnectNamedPipe(pHandle);
+  CloseHandle(pHandle);
 end;
 
 
@@ -379,7 +411,7 @@ begin
    move(MsgDta[0], buf[0], Length(MsgDta) * Sizeof(char));
   // Send message
   SendMessage := WriteFile(
-    fHandle,          // pipe handle
+    pHandle,          // pipe handle
     buf,           // message
     length(MsgDta) * Sizeof(char),   // message length
     Bytes,            // bytes written
@@ -396,7 +428,7 @@ var
   MsgStr          : String;
 begin
   MessageReceived := ReadFile(
-    fHandle,   // pipe handle
+    pHandle,   // pipe handle
     Msg,       // buffer to receive reply
     BUFF_SIZE, // size of buffer
     MsgSz,  // number of bytes read
