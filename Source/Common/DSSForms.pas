@@ -180,6 +180,7 @@ begin
     begin
         Result := true;            // The progress app is installed
         DSSProgressPath := newPath + '\DSSProgress.exe';
+        Progress_Actor := TProgressActor.Create();
     end
     else
     begin

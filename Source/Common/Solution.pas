@@ -814,18 +814,13 @@ begin
 
         if (not NoFormsAllowed) and (not NoProgressBarFormAllowed) then
         begin
-            if not IsProgressON and DSSProgressFrm then
+            if IsProgressON and not Progress_Actor.RunFlag then
             begin
                 case Dynavars.SolutionMode of
                     YEARLYMODE, DUTYCYCLE, LOADDURATION1,
                     LOADDURATION2, HARMONICMODE, HARMONICMODET, DAILYMODE:
                     begin
-                        if Progress_Actor <> nil then
-                        begin
-                            Progress_Actor.Terminate;
-                            Progress_Actor := nil;
-                        end;
-                        Progress_Actor := TProgressActor.Create();
+                        Progress_Actor.Show_Form();
                     end
                 else
                 begin
@@ -2109,10 +2104,20 @@ var
     qNodeRefPQ,
     IdxTmp: array of Integer;
     PQChecked: array of Integer;
+    F: TextFile;
+    FileNm: String;
 
 begin
     with ActiveCircuit[ActorID] do
     begin
+//    For debugging
+//    FileNm  := 'C:\Temp\data.csv';
+//    Assignfile(F,FileNm);
+//    if FileExists(FileNm) then
+//      Append(F)
+//    else
+//      ReWrite(F);
+
         NumGens := Generators.ListSize;
         if NumGens > 0 then
         begin
@@ -2190,7 +2195,7 @@ begin
                                 QDelta[Shift] := 0.0;
                                 pGen.GenVars.deltaQNom[j] := GenQ;
                                 pGen.Iterminal[j + 1] := cnegate(conjg(cdiv(cmplx(pGen.GenVars.Pnominalperphase, pGen.GenVars.deltaQNom[j]), Volt)));
-
+//                WriteLn(F, Format('%-13.10g, %s',[GenQ, pGen.Name]));
                             end;
 
                         end
@@ -2399,6 +2404,7 @@ begin
             end;
 
         end;
+//    CloseFile(F);
 
     end;
 
