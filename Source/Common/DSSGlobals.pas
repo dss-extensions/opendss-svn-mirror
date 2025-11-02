@@ -1771,7 +1771,7 @@ begin
     {$IFNDEF FPC}
 
     fHandle := INVALID_HANDLE_VALUE;
-    ShellExecute(Handle, 'open', Pwidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL);
+    ShellExecute(Handle, 'open', Pwidechar(DSSProgressPath), nil, nil, SW_HIDE);
     sleep(100);
     if ADiakoptics and (ActiveActor = 1) then
         J := 1
@@ -2095,7 +2095,13 @@ try
 
    {Various Constants and Switches}
     {$IFDEF FPC}
-NoFormsAllowed  := TRUE;
+   NoFormsAllowed         := TRUE;
+   NoProgressBarFormAllowed := TRUE;
+    {$ENDIF}
+
+    {$IFNDEF FPC}
+    NoFormsAllowed := false;
+    NoProgressBarFormAllowed := false;
     {$ENDIF}
 
     CALPHA := Cmplx(-0.5, -0.866025); // -120 degrees phase shift
@@ -2194,9 +2200,6 @@ NoFormsAllowed  := TRUE;
     DefaultFontName := 'MS Sans Serif';
     {$ENDIF}
 
-    {$IFNDEF FPC}
-    NoFormsAllowed := false;
-    {$ENDIF}
 
     LogQueries := false;
     QueryLogFileName := '';
