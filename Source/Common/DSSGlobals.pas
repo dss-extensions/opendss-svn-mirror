@@ -161,21 +161,28 @@ CONST
 
 TYPE
   TProgressActor   =   class(TThread)     // Global actor for progress form
+      function TryConnectToServer(): Boolean;
       Constructor Create();overload;
       procedure Execute; override;
       procedure Doterminate; override;
       destructor Destroy; override;
       procedure SendMessage(Msg : String);
       Function ReadMessage():String;
+      procedure Show_Form();
+      procedure Close_Form();
 
 //*******************************Private components*****************************
     protected
+      ActorMsg      : TEvent;
+      fHandle: THandle;
+      fPipeName,
       Reply,
       FMessage,
       Msg_Cmd       : string;
 //*******************************Public components******************************
     Public
       pHandle     : THandle;
+      RunFlag    : Boolean;
 
    end;
 
@@ -1580,13 +1587,29 @@ begin
   move(pMsg[0], buf[0], Length(pMsg) * Sizeof(char));
   // Send message
   SendMessage := WriteFile(
-    pHandle,   // pipe handle
+    fHandle,   // pipe handle
     buf,       // message
     length(Msg) * Sizeof(char),  // message length
     Bytes,     // bytes written
     nil
   );
 end;
+
+// Shows the form and starts displaying the progress by triggering the event
+//-----------------------------------------------------------------------------
+procedure TProgressActor.Show_Form();
+begin
+  ActorMsg.SetEvent;
+end;
+
+// Sends a message to the actor to terminate the application and close the form
+//-----------------------------------------------------------------------------
+procedure TProgressActor.Close_Form();
+begin
+  IsProgressON  := False;
+  ActorMsg.SetEvent;
+end;
+
 
 // Gets a message from the progress app using the pipe
 //-----------------------------------------------------------------------------
@@ -1604,14 +1627,14 @@ begin
   REsult := '';
   FillChar(MyMsg, 8039, #0);
   MessageReceived := ReadFile(
-    pHandle,   // pipe handle
+    fHandle,   // pipe handle
     MyMsg,       // buffer to receive reply
     8040, // size of buffer
     MsgSz,  // number of bytes read
     nil);      // not overlapped
   if MessageReceived then
   begin
-    SetString(MsgStr, PChar(@MyMsg[1]), MsgSz);
+    SetString(MsgStr, PChar(@MyMsg[0]), MsgSz);
 
     // Remove the null chars (if any)
     idx := 1;
@@ -1626,6 +1649,36 @@ begin
   Result := MsgStr;
 end;
 
+function TProgressActor.TryConnectToServer(): Boolean;
+begin
+  fPipeName   := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
+  Result      := False;
+  fHandle     := CreateFile(
+    PChar(fPipeName),      // pipe name
+    GENERIC_READ OR GENERIC_WRITE, // read and write access
+    0,              // no sharing
+    nil,            // default security attributes
+    OPEN_EXISTING,  // opens existing pipe
+    0,              // default attributes
+    0
+  );
+  // If handle is not valid
+  if (fHandle = INVALID_HANDLE_VALUE) then
+  begin
+    // Exit if an error other than ERROR_PIPE_BUSY occurs
+    if (GetLastError() <> ERROR_PIPE_BUSY) then
+    begin
+      Exit;
+    end;
+    // All pipe instances are busy, so wait for 1 seconds
+    if not WaitNamedPipe(PChar(fPipeName), 1000) then
+    begin
+
+    end;
+  end;
+  Result := (fHandle <> INVALID_HANDLE_VALUE);
+end;
+
 constructor TProgressActor.Create();
 var
   J           : integer;
@@ -1634,36 +1687,20 @@ var
 begin
 {$IFNDEF FPC}
 
-  // ... create Pipe (replaces old TCP/IP server)
-  LAPipeName := Format('\\%s\pipe\%s', ['.', 'DSSProg']);
-    // Check whether pipe does exist
-  if WaitNamedPipe(PChar(LAPipeName), NMPWAIT_WAIT_FOREVER) then // 100 [ms]
-    raise Exception.Create('Pipe exists.');
-  // Create the pipe
-  pHandle := CreateNamedPipe(
-    PChar(LAPipeName),                                   // Pipe name
-    PIPE_ACCESS_DUPLEX,                                 // Read/write access
-    PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE OR PIPE_WAIT,  // Message-type pipe; message read mode OR blocking mode //PIPE_NOWAIT
-    PIPE_UNLIMITED_INSTANCES,                           // Unlimited instances
-    10000,                                              // Output buffer size
-    10000,                                              // Input buffer size
-    0,                                                  // Client time-out 50 [ms] default
-    nil                                                 // Default security attributes
-  );
-
+  fHandle         := INVALID_HANDLE_VALUE;
   ShellExecute(Handle, 'open',pWidechar(DSSProgressPath), nil, nil, SW_SHOWNORMAL) ;
   sleep(100);
-
   if ADiakoptics and (ActiveActor = 1) then J := 1
   else J := NumOfActors;
   try
-
-    if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
+//    if not ConnectNamedPipe(pHandle, nil) AND (GetLastError() = ERROR_PIPE_CONNECTED) then
+    if (fHandle <> INVALID_HANDLE_VALUE) OR TryConnectToServer() then
     begin
       SendMessage('num' + inttostr(J));
       Reply := ReadMessage();
     end;
     IsProgressON      :=  True;
+    ActorMsg          :=  TEvent.Create(nil, True, False, '');
 
   except
     on E: Exception do begin
@@ -1686,45 +1723,55 @@ var
   AbortBtn,
   LAPipeName,
   progStr     : String;
-  RunFlag     : Boolean;
 
 Begin
 
-  if IsProgressON then
+  while IsProgressON do
   Begin
-
-
-    RunFlag :=  True;
-    while RunFlag do
+    ActorMsg.WaitFor(INFINITE);
+    if IsProgressON then
     Begin
-      sleep(200);
-      progStr   :=  '';
-      RunFlag :=  False;
+      ActorMsg.ResetEvent;
+      RunFlag :=  True;
+
       if ADiakoptics and (ActiveActor = 1) then J := 1
       else J := NumOfActors;
 
-      for I := 1 to J do
-      Begin
-        progStr :=  progStr  +  Format('%.*d',[3,ActorPctProgress[I]]);
-        RunFlag :=  (RunFlag or (ActorStatus[I] = 0)) and (not SolutionAbort);
-      End;
+      SendMessage('num' + inttostr(J));
+      Reply := ReadMessage();
 
-      SendMessage('prg' + progStr);
-      AbortBtn  :=  ReadMessage();
-      if AbortBtn.Substring(0,1) = 'T' then
+      while RunFlag do
       Begin
-        SolutionAbort :=  True;
+        sleep(10);
+        progStr   :=  '';
+        RunFlag :=  False;
+
+        for I := 1 to J do
+        Begin
+          progStr :=  progStr  +  Format('%.*d',[3,ActorPctProgress[I]]);
+          RunFlag :=  (RunFlag or (ActorStatus[I] = 0)) and (not SolutionAbort);
+        End;
+
+        SendMessage('prg' + progStr);
+        AbortBtn  :=  ReadMessage();
+        if AbortBtn.Substring(0,1) = 'T' then
+        Begin
+          SolutionAbort :=  True;
+          SendMessage('rst');
+          Reply         := ReadMessage();
+        End;
       End;
-    End;
-    SendMessage('ext');
+      SendMessage('hid');
+    End
+    else
+      SendMessage('ext');
   End;
-  CloseHandle(pHandle);
 End;
 {$ENDIF}
 
 procedure TProgressActor.DoTerminate;        // Is the end of the thread
 begin
-  IsProgressON      :=  False;
+  ActorMsg.Free;
   inherited;
 End;
 
@@ -2089,6 +2136,12 @@ Finalization
 //  ClearAllCircuits; // this is also done later, when Executive destroyed from LocalFinalization
   LocalFinalization;
   LineTypeList.Destroy;
+  if IsProgressON then
+  Begin
+    Progress_Actor.Close_Form();
+    IsProgressON  :=  False;
+  End;
+
 End.
 
 
