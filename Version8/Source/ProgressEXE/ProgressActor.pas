@@ -40,8 +40,7 @@ type
   private
     fID: Byte;
     fPipeName: String;
-//    fHandle: THandle;
-//    function TryConnectToServer(): Boolean;
+    First_run: Boolean;
     function CreateServer():Boolean;
     procedure SendMessage(Msg: String);
     Function ReadMessage(): String;
@@ -267,6 +266,7 @@ begin
   FreeOnTerminate := True;
   Priority        := tpLower;
   fID             := aID;
+  First_run       := True;
   if aServer = '' then
     fPipeName := Format(PIPE_FORMAT, ['.', aPipe])
   else
@@ -383,7 +383,16 @@ begin
 
       end
       Else
+      begin
         sleep(10);
+        // This sectione evaluates if the connection with OpenDSS is broken, the first
+        // time is due to the application launch. If it occurs again, means that OpenDSS
+        // was probably terminated abruptly, leading to terminate the service.
+        if First_run then
+          First_run := False
+        else
+          k := 11;
+      end;
     except
       on E: Exception do
       Begin
