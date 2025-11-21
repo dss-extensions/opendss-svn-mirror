@@ -27,6 +27,7 @@ Var
    pElem : TRecloserObj;
    elem: TRecloserObj;
    pRecloser:TRecloserObj;
+   i : Integer;
 
 begin
   Result:=0; // Default return value
@@ -101,13 +102,17 @@ begin
       elem := RecloserClass.ElementList.Active  ;
       if elem <> nil then Set_parameter('shots', IntToStr(arg));
   end;
-  11: begin  // Recloser.Open                                     // TODO
+  11: begin  // Recloser.Open
       elem := RecloserClass.ElementList.Active  ;
-      if elem <> nil then elem.PresentState := CTRL_OPEN;
+      if elem <> nil then begin
+        for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_OPEN // Open all phases
+      end;
   end;
-  12: begin  // Reclosers.Close                                  // TODO
+  12: begin  // Reclosers.Close
       elem := RecloserClass.ElementList.Active  ;
-      if elem <> nil then elem.PresentState := CTRL_CLOSE;
+      if elem <> nil then begin
+        for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_CLOSE // Close all phases
+      end;
   end;
   13: begin // Reclosers.Idx read
       if ActiveCircuit[ActiveActor] <> Nil then
@@ -223,37 +228,6 @@ begin
       elem := RecloserClass.GetActiveObj ;
       if elem <> nil then Set_parameter('SwitchedObj', string(arg));
   end;
-  6: begin  // Reclosers.State read                                          // TODO
-      Result := pAnsiChar(AnsiString(''));
-      elem := RecloserClass.GetActiveObj ;
-      if elem <> nil then Begin
-        if elem.PresentState = CTRL_CLOSE then Result := pAnsiChar(AnsiString('closed'))
-        else  Result := pAnsiChar(AnsiString('open'));
-      End;
-
-  end;
-  7: begin  // Reclosers.State write                                         // TODO
-      elem := RecloserClass.GetActiveObj ;
-      if elem <> nil then Begin
-        if LowerCase(string(arg))[1] = 'c' then elem.PresentState := CTRL_CLOSE
-        else elem.PresentState := CTRL_OPEN;
-      End;
-  end;
-  8: begin  // Reclosers.Normal read                                         // TODO
-      Result := pAnsiChar(AnsiString(''));
-      elem := RecloserClass.GetActiveObj ;
-      if elem <> nil then Begin
-        if elem.NormalState = CTRL_CLOSE then Result := pAnsiChar(AnsiString('closed'))
-        else  Result := pAnsiChar(AnsiString('open'));
-      End;
-  end;
-  9: begin  // Reclosers.Normal write                                        // TODO
-      elem := RecloserClass.GetActiveObj ;
-      if elem <> nil then Begin
-        if LowerCase(string(arg))[1] = 'c' then elem.NormalState := CTRL_CLOSE
-        else elem.NormalState := CTRL_OPEN;
-      End;
-  end;
   else
       Result:=pAnsiChar(AnsiString('Error, parameter not valid'));
   end;
@@ -266,6 +240,7 @@ Var
   elem: TRecloserObj;
   pList: TPointerList;
   k, i: Integer;
+  S  : String;
 
 begin
   case mode of
@@ -310,7 +285,97 @@ begin
       End;
       myPointer :=  @(myDBLArray[0]);
       mySize    :=  SizeOf(myDBLArray[0]) * Length(myDBLArray);
-    end
+    end;
+  2: begin  // Reclosers.State read
+    myType  :=  4;        // String
+    setlength(myStrArray, 0);
+    IF ActiveCircuit[ActiveActor] <> Nil THEN
+    Begin
+      Elem := RecloserClass.GetActiveObj;
+      If Elem <> nil Then
+      Begin
+        for i:= 1 to elem.ControlledElement.Nphases DO
+        Begin
+          if elem.States[i] = CTRL_CLOSE then
+            WriteStr2Array('closed')
+          else
+            WriteStr2Array('open');
+          WriteStr2Array(Char(0));
+        End;
+      End;
+    End;
+    if (length(myStrArray) = 0) then
+      WriteStr2Array('None');
+    myPointer :=  @(myStrArray[0]);
+    mySize    :=  Length(myStrArray);
+  end;
+  3: begin  // Reclosers.State write
+    myType  :=  4;          // String
+    k := 0;
+    elem := RecloserClass.GetActiveObj;
+    If elem <> nil Then
+    Begin
+
+      for i := 1 to elem.ControlledElement.NPhases do
+      Begin
+        S := BArray2Str(myPointer, k);
+        if S = '' then
+          break
+        else
+        Begin
+           case LowerCase(S)[1] of
+            'o': elem.States[i] := CTRL_OPEN;
+            'c': elem.States[i] := CTRL_CLOSE;
+          end;
+        End;
+      End;
+    End;
+    mySize  :=  k;
+  end;
+  4: begin  // Reclosers.NormalState read
+    myType  :=  4;        // String
+    setlength(myStrArray, 0);
+    IF ActiveCircuit[ActiveActor] <> Nil THEN
+    Begin
+      Elem := RecloserClass.GetActiveObj;
+      If Elem <> nil Then
+      Begin
+        for i:= 1 to elem.ControlledElement.Nphases DO Begin
+          if elem.NormalStates[i] = CTRL_CLOSE then
+            WriteStr2Array('closed')
+          else
+            WriteStr2Array('open');
+          WriteStr2Array(Char(0));
+        End;
+      End;
+    End;
+    if (length(myStrArray) = 0) then
+      WriteStr2Array('None');
+    myPointer :=  @(myStrArray[0]);
+    mySize    :=  Length(myStrArray);
+  end;
+  5: begin  // Reclosers.NormalState write
+    elem := RecloserClass.GetActiveObj;
+    k := 0;
+    If elem <> nil Then
+    Begin
+      // allocate space based on number of phases of controlled device
+      for i := 1 to elem.ControlledElement.NPhases do
+      Begin
+        S := BArray2Str(myPointer, k);
+        if S = '' then
+          break
+        else
+        Begin
+          case LowerCase(S)[1] of
+          'o': elem.NormalStates[i] := CTRL_OPEN;
+          'c': elem.NormalStates[i] := CTRL_CLOSE;
+          end;
+        End;
+      End;
+    End;
+    mySize  :=  k;
+  end
   else
     Begin
       myType  :=  4;        // String
