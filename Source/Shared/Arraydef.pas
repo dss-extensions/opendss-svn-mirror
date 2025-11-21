@@ -28,7 +28,8 @@ type
     pStringArray = ^StringArray;
     DynStringArray = array of String;
     pDynStringArray = ^DynStringArray;
-
+    BooleanArray = array[1..100] of Boolean;
+    pBooleanArray = ^BooleanArray;
 
     pDouble = ^Double;
     pSingle = ^Single;

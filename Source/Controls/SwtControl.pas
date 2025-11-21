@@ -143,15 +143,15 @@ begin
     PropertyHelp^[2] := 'Terminal number of the controlled element switch. ' +
         '1 or 2, typically.  Default is 1.';
     PropertyHelp^[3] := 'DEPRECATED. See "State" property.';
-    PropertyHelp^[4] := '{Yes | No} Controlled switch is locked in its present open / close state or unlocked. ' +
-        'When locked, the switch will not respond to either a manual state change issued by the user or a state change issues internally by OpenDSS when Reseting the control.';
+    PropertyHelp^[4] := '{Yes | No} Controlled switch is locked in its present open / closed state or unlocked. ' +
+        'When locked, the switch will not respond to either a manual state change issued by the user or a state change issued internally by OpenDSS when reseting the control.';
     PropertyHelp^[5] := 'DEPRECATED.';
     PropertyHelp^[6] := 'ARRAY of strings {Open | Closed} representing the Normal state of the switch in each phase of the controlled element. ' +
         'The switch reverts to this state for reset, change of mode, etc. ' +
-        'Defaults to "State" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases.';
+        'Defaults to "State" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).';
     PropertyHelp^[7] := 'ARRAY of strings {Open | Closed} representing the Actual state of the switch in each phase of the controlled element. ' +
-        'Upon setting, immediately forces state of switch(es). Simulates manual control on Switch. Defaults to Closed for all phases. Setting this property to {Open | Closed} ' +
-        'sets the actual state to the specified value for all phases.';
+        'Upon setting, immediately forces the state of the switch(es). Simulates manual control on Switch. Defaults to Closed for all phases. Setting this property to {Open | Closed} ' +
+        'sets the actual state to the specified value for all phases (ganged operation).';
     PropertyHelp^[8] := '{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal ' +
         'reset command for mode change, etc.';
 
@@ -237,14 +237,12 @@ begin
          {Supplemental Actions}
             case ParamPointer of
 
-//             4: if Locked then LockCommand :=  CTRL_LOCK else LockCommand := CTRL_UNLOCK;
-
-                7:
+                3, 7:
                 begin
                     for i := 1 to FNPhases do
                         if not NormalStateSet then
                             FNormalState^[i] := FPresentState^[i];
-                    NormalStateSet := true;   // normal state will default to state only the 1st state is specified.
+                    NormalStateSet := true;   // normal state will default to state only the 1st time state is specified.
                 end;
 
             end;
@@ -330,7 +328,6 @@ begin
 
     NormalStateSet := false;
 
-//  Lockcommand   := CTRL_NONE;
     Locked := false;
     TimeDelay := 120.0; // 2 minutes
 
@@ -368,7 +365,7 @@ begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;
         ControlledElement.HasSwtControl := true;  // For Reliability calcs
 
-    // Open/Close State of controlled element based on state assigned to the control
+    // Open/Closed State of controlled element based on state assigned to the control
         for i := 1 to Min(SWTCONTROLMAXDIM, ControlledElement.Nphases) do
             if FPresentState^[i] = CTRL_OPEN then
             begin
@@ -449,16 +446,16 @@ begin
     if Locked and ((LowerCase(property_name[1]) = 'a') or (LowerCase(property_name[1]) = 's')) then
         Exit;
 
-    if (LowerCase(property_name[1]) = 'a') then // Interpret ganged specification to state and normal when using action
+    if (LowerCase(property_name[1]) = 'a') then // Interpret ganged specification to state when using action
     begin // action (deprecated) will be removed
         for i := 1 to SWTCONTROLMAXDIM do
         begin
 
             case LowerCase(param)[1] of
                 'o':
-                    NormalStates[i] := CTRL_OPEN;
+                    States[i] := CTRL_OPEN;
                 'c':
-                    NormalStates[i] := CTRL_CLOSE;
+                    States[i] := CTRL_CLOSE;
             end;
 
         end;
@@ -725,8 +722,8 @@ begin
     PropertyValue[4] := 'n';
     PropertyValue[5] := '120.0';
     PropertyValue[5] := '';
-    PropertyValue[6] := '[close, close, close]';  // normal;
-    PropertyValue[7] := '[close, close, close]';  // state;
+    PropertyValue[6] := '[closed, closed, closed]';  // normal;
+    PropertyValue[7] := '[closed, closed, closed]';  // state;
     PropertyValue[8] := 'n';
     inherited  InitPropertyValues(NumPropsThisClass);
 end;

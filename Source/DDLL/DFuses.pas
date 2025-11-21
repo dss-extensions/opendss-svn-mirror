@@ -282,7 +282,10 @@ begin
         begin  // Fuses.TCCcurve read
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
-                Result := Pansichar(Ansistring(elem.FuseCurve.Name))
+                if elem.FuseCurve <> nil then
+                    Result := Pansichar(Ansistring(elem.FuseCurve.Name))
+                else
+                    Result := Pansichar('none')
             else
                 Result := Pansichar(Ansistring('No Fuse Active!'));
         end;
@@ -333,7 +336,7 @@ begin
             mySize := Length(myStrArray);
         end;
         1:
-        begin  // Fuses.States read
+        begin  // Fuses.State read
             myType := 4;        // String
             setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
@@ -357,7 +360,7 @@ begin
             mySize := Length(myStrArray);
         end;
         2:
-        begin  // Fuses.States write
+        begin  // Fuses.State write
             myType := 4;          // String
             k := 0;
             elem := FuseClass.GetActiveObj;
@@ -383,7 +386,7 @@ begin
             mySize := k;
         end;
         3:
-        begin  // Fuses.NormalStates read
+        begin  // Fuses.NormalState read
             myType := 4;        // String
             setlength(myStrArray, 0);
             if ActiveCircuit[ActiveActor] <> nil then
@@ -407,7 +410,7 @@ begin
             mySize := Length(myStrArray);
         end;
         4:
-        begin  // Fuses.NormalStates write
+        begin  // Fuses.NormalState write
             elem := FuseClass.GetActiveObj;
             k := 0;
             if elem <> nil then

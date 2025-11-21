@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 09/29/25 10:19:54 AM from Type Library described below.
+// File generated on 11/21/25 1:40:57 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -3123,10 +3123,10 @@ type
         function Get_idx: Integer; SAFECALL;
         procedure Set_idx(Value: Integer); SAFECALL;
         procedure Reset; SAFECALL;
-        function Get_NormalState: ActionCodes; SAFECALL;
-        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
-        function Get_State: ActionCodes; SAFECALL;
-        procedure Set_State(Value: ActionCodes); SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3144,8 +3144,8 @@ type
         property GroundTrip: Double READ Get_GroundTrip WRITE Set_GroundTrip;
         property GroundInst: Double READ Get_GroundInst WRITE Set_GroundInst;
         property idx: Integer READ Get_idx WRITE Set_idx;
-        property NormalState: ActionCodes READ Get_NormalState WRITE Set_NormalState;
-        property State: ActionCodes READ Get_State WRITE Set_State;
+        property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
+        property State: Olevariant READ Get_State WRITE Set_State;
     end;
 
 // *********************************************************************//
@@ -3175,8 +3175,8 @@ type
         procedure Close; DISPID 218;
         property idx: Integer DISPID 219;
         procedure Reset; DISPID 220;
-        property NormalState: ActionCodes DISPID 221;
-        property State: ActionCodes DISPID 222;
+        property NormalState: Olevariant DISPID 221;
+        property State: Olevariant DISPID 222;
     end;
 
 // *********************************************************************//

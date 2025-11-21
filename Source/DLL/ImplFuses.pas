@@ -261,7 +261,10 @@ var
 begin
     elem := FuseClass.GetActiveObj;
     if elem <> nil then
-        Result := elem.FuseCurve.Name
+        if elem.FuseCurve <> nil then
+            Result := elem.FuseCurve.Name
+        else
+            Result := 'none'
     else
         Result := 'No Fuse Active!';
 end;

@@ -37,9 +37,16 @@ uses
     ucomplex,
     utilities,
     TCC_Curve,
-    Math;
+    Math,
+    StrUtils;
+
+const
+    RECLOSERCONTROLMAXDIM = 6;
 
 type
+
+    pStateArray = ^StateArray;
+    StateArray = array[1..RECLOSERCONTROLMAXDIM] of EControlAction;  // 0 = open 1 = close
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     TRecloser = class(TControlClass)
@@ -66,7 +73,6 @@ type
         PhaseFast,
         GroundFast: TTCC_CurveObj;
 
-
         ResetTime,
         DelayTime,
         TDGrDelayed,
@@ -75,23 +81,35 @@ type
         TDPhFast: Double;
 
         FPresentState,
-        FNormalState: EControlAction;
+        FNormalState: pStateArray;
 
-        OperationCount: Integer;
+        OperationCount: pIntegerArray;
 
         LockedOut,
-        ArmedForClose, ArmedForOpen, GroundTarget, PhaseTarget,
-        NormalStateSet: Boolean;
+        ArmedForClose, ArmedForOpen,
+        PhaseTarget: pBooleanArray;
+        GroundTarget: Boolean;
+        IdxMultiPh: Integer; // Index used for accessing arrays for multi-phase, ganged operation
+
+        RecloserTarget: pStringArray;
+
+        NormalStateSet,
+        SinglePhTrip,
+        SinglePhLockout,
+        FLocked: Boolean;
 
         CondOffset: Integer; // Offset for monitored terminal
 
         cBuffer: pComplexArray;    // Complexarray buffer
+        DebugTrace: Boolean;
 
-        procedure InterpretRecloserState(ActorID: Integer; const Action: String; const property_name: String);
-        function get_State: EControlAction;
-        procedure set_State(const Value: EControlAction);
-        function get_NormalState: EControlAction;
-        procedure set_NormalState(const Value: EControlAction);
+        procedure InterpretRecloserState(ActorID: Integer; const param: String; const property_name: String);
+        function get_States(Idx: Integer): EControlAction;
+        procedure set_States(Idx: Integer; const Value: EControlAction);
+        function get_NormalStates(Idx: Integer): EControlAction;
+        procedure set_NormalStates(Idx: Integer; const Value: EControlAction);
+
+        procedure set_Flocked(const Value: Boolean);
 
     PUBLIC
 
@@ -125,9 +143,10 @@ type
         procedure InitPropertyValues(ArrayOffset: Integer); OVERRIDE;
         procedure DumpProperties(var F: TextFile; Complete: Boolean); OVERRIDE;
 
-        property PresentState: EControlAction READ get_State WRITE set_State;
-        property NormalState: EControlAction READ get_NormalState WRITE set_NormalState;
+        property States[Idx: Integer]: EControlAction READ get_States WRITE set_States;
+        property NormalStates[Idx: Integer]: EControlAction READ get_NormalStates WRITE set_NormalStates;
 
+        property Locked: Boolean READ Flocked WRITE set_Flocked;
 
     end;
 
@@ -151,7 +170,7 @@ uses
 
 const
 
-    NumPropsThisClass = 24;
+    NumPropsThisClass = 30;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -166,8 +185,10 @@ function GetTccCurve(const CurveName: String): TTCC_CurveObj;
 
 begin
 
-    Result := TCC_CurveClass.Find(CurveName);
+    if lowercase(CurveName) = 'none' then
+        Exit;
 
+    Result := TCC_CurveClass.Find(CurveName);
     if Result = nil then
         DoSimpleMsg('TCC Curve object: "' + CurveName + '" not found.', 388);
 
@@ -222,7 +243,7 @@ begin
     PropertyName^[11] := 'GroundTrip';
     PropertyName^[12] := 'PhaseInst';
     PropertyName^[13] := 'GroundInst';
-    PropertyName^[14] := 'Reset';
+    PropertyName^[14] := 'ResetTime';
     PropertyName^[15] := 'Shots';
     PropertyName^[16] := 'RecloseIntervals';
     PropertyName^[17] := 'Delay';
@@ -233,6 +254,13 @@ begin
     PropertyName^[22] := 'TDGrDelayed';
     PropertyName^[23] := 'Normal';
     PropertyName^[24] := 'State';
+    PropertyName^[25] := 'SinglePhTrip';
+    PropertyName^[26] := 'SinglePhLockout';
+    PropertyName^[27] := 'Lock';
+    PropertyName^[28] := 'Reset';
+    PropertyName^[29] := 'EventLog';
+    PropertyName^[30] := 'DebugTrace';
+
 
     PropertyHelp^[1] := 'Full object name of the circuit element, typically a line, transformer, load, or generator, ' +
         'to which the Recloser''s PT and/or CT are connected.' +
@@ -247,23 +275,23 @@ begin
     PropertyHelp^[4] := 'Number of the terminal of the controlled element in which the switch is controlled by the Recloser. ' +
         '1 or 2, typically.  Default is 1.';
     PropertyHelp^[5] := 'Number of Fast (fuse saving) operations.  Default is 1. (See "Shots")';
-    PropertyHelp^[6] := 'Name of the TCC Curve object that determines the Phase Fast trip.  Must have been previously defined as a TCC_Curve object.' +
-        ' Default is "A". ' +
+    PropertyHelp^[6] := 'Name of the TCC Curve object that determines the Phase Fast trip. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Default is "none". ' +
         'Multiplying the current values in the curve by the "phasetrip" value gives the actual current.';
-    PropertyHelp^[7] := 'Name of the TCC Curve object that determines the Phase Delayed trip.  Must have been previously defined as a TCC_Curve object.' +
-        ' Default is "D".' +
+    PropertyHelp^[7] := 'Name of the TCC Curve object that determines the Phase Delayed trip. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Default is "none". ' +
         'Multiplying the current values in the curve by the "phasetrip" value gives the actual current.';
-    PropertyHelp^[8] := 'Name of the TCC Curve object that determines the Ground Fast trip.  Must have been previously defined as a TCC_Curve object.' +
-        ' Default is none (ignored). ' +
+    PropertyHelp^[8] := 'Name of the TCC Curve object that determines the Ground Fast trip.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Default is "none". ' +
         'Multiplying the current values in the curve by the "groundtrip" value gives the actual current.';
-    PropertyHelp^[9] := 'Name of the TCC Curve object that determines the Ground Delayed trip.  Must have been previously defined as a TCC_Curve object.' +
-        ' Default is none (ignored).' +
+    PropertyHelp^[9] := 'Name of the TCC Curve object that determines the Ground Delayed trip.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Default is "none". ' +
         'Multiplying the current values in the curve by the "groundtrip" value gives the actual current.';
-    PropertyHelp^[10] := 'Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.';
-    PropertyHelp^[11] := 'Multiplier or actual ground amps (3I0) for the ground TCC curve.  Defaults to 1.0.';
-    PropertyHelp^[12] := 'Actual amps for instantaneous phase trip which is assumed to happen in 0.01 sec + Delay Time. Default is 0.0, which signifies no inst trip. ';
+    PropertyHelp^[10] := 'Multiplier or actual phase amps for the phase TCC curve. Defaults to 1.0.';
+    PropertyHelp^[11] := 'Multiplier or actual ground amps (3I0) for the ground TCC curve. Defaults to 1.0.';
+    PropertyHelp^[12] := 'Actual amps for instantaneous phase trip which is assumed to happen in 0.01 sec + Delay Time. Default is 0.0, which signifies no inst trip.';
     PropertyHelp^[13] := 'Actual amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Delay Time.Default is 0.0, which signifies no inst trip.';
-    PropertyHelp^[14] := 'Reset time in sec for Recloser.  Default is 15. ';
+    PropertyHelp^[14] := 'Reset time in sec for Recloser. Default is 15.';
     PropertyHelp^[15] := 'Total Number of fast and delayed shots to lockout.  Default is 4. This is one more than the number of reclose intervals.';
     PropertyHelp^[16] := 'Array of reclose intervals.  Default for Recloser is (0.5, 2.0, 2.0) seconds. ' +
         'A locked out Recloser must be closed manually (action=close).';
@@ -273,11 +301,23 @@ begin
     PropertyHelp^[20] := 'Time dial for Ground Fast trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp^[21] := 'Time dial for Phase Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp^[22] := 'Time dial for Ground Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
-    PropertyHelp^[23] := '{Open | Closed} Normal state of the recloser. The recloser reverts to this state for reset, change of mode, etc. ' +
-        'Defaults to "State" if not specificallt declared.';
-    PropertyHelp^[24] := '{Open | Closed} Actual state of the recloser. Upon setting, immediately forces state of the recloser, overriding the Recloser control. ' +
-        'Simulates manual control on recloser. Defaults to Closed. "Open" causes the controlled element to open and lock out. "Closed" causes the ' +
-        'controlled element to close and the recloser to reset to its first operation.';
+    PropertyHelp^[23] := 'ARRAY of strings {Open | Closed} representing the Normal state of the recloser in each phase of the controlled element. ' +
+        'The recloser reverts to this state for reset, change of mode, etc. ' +
+        'Defaults to "State" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).';
+    PropertyHelp^[24] := 'ARRAY of strings {Open | Closed} representing the Actual state of the recloser in each phase of the controlled element. ' +
+        'Upon setting, immediately forces the state of the recloser. Simulates manual control on Recloser. Defaults to Closed for all phases. Setting this property to {Open | Closed} ' +
+        'sets the actual state to the specified value for all phases (ganged operation). "Open" causes the controlled element or respective phase to open and lock out. "Closed" causes the ' +
+        'controlled element or respective phase to close and the recloser to reset to its first operation.';
+    PropertyHelp^[25] := '{Yes | No*} Enables single-phase tripping and reclosing for multi-phase controlled elements. Previously locked out phases do not operate/reclose even considering multi-phase tripping.';
+    PropertyHelp^[26] := '{Yes | No*} Enables single-phase lockout for multi-phase controlled elements with single-phase tripping. Does not have impact if single-phase trip is not enabled.';
+    PropertyHelp^[27] := '{Yes | No*} Controlled switch is locked in its present open / closed state or unlocked. ' +
+        'When locked, the recloser will not respond to either a manual state change issued by the user or a state change issued internally by OpenDSS when reseting the control. ' +
+        'Note this locking mechanism is different from the recloser automatic lockout after specifed number of shots.';
+    PropertyHelp^[28] := '{Yes | No} If Yes, forces Reset of recloser to Normal state and removes Lock independently of any internal ' +
+        'reset command for mode change, etc.';
+    PropertyHelp^[29] := '{Yes/True* | No/False} Default is Yes for Recloser. Write trips, reclose and reset events to EventLog.';
+    PropertyHelp^[30] := '{Yes/True* | No/False} Default is No for Recloser. Write extra details to Eventlog.';
+
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -300,7 +340,7 @@ end;
 {--------------------------------------------------------------------------}
 function TRecloser.Edit(ActorID: Integer): Integer;
 var
-    ParamPointer: Integer;
+    ParamPointer, i: Integer;
     ParamName: String;
     Param: String;
 
@@ -358,7 +398,7 @@ begin
                 13:
                     GroundInst := Parser[ActorID].Dblvalue;
                 14:
-                    Resettime := Parser[ActorID].Dblvalue;
+                    ResetTime := Parser[ActorID].Dblvalue;
                 15:
                     NumReclose := Parser[ActorID].Intvalue - 1;   // one less than number of shots
                 16:
@@ -381,6 +421,23 @@ begin
                 end;
                 18, 24:
                     InterpretRecloserState(ActorID, Param, ParamName);    // set state
+                25:
+                    SinglePhTrip := InterpretYesNo(Param);
+                26:
+                    SinglePhLockout := InterpretYesNo(Param);
+                27:
+                    Locked := InterpretYesNo(Param);
+                28:
+                    if InterpretYesNo(Param) then
+                    begin  // force a reset
+                        Locked := false;
+                        Reset(ActorID);
+                        PropertyValue[28] := 'n';
+                    end;
+                29:
+                    ShowEventLog := InterpretYesNo(param);
+                30:
+                    DebugTrace := InterpretYesNo(Param);
 
             else
            // Inherited parameters
@@ -394,11 +451,12 @@ begin
                 2:
                     ElementTerminal := MonitoredElementTerminal;
                 18, 24:
-                    if not NormalStateSet then
-                    begin
-                        NormalStateSet := true;  // normal state will default to state only the 1st state is specified.
-                        NormalState := FPresentState;
-                    end;
+                begin
+                    for i := 1 to FNPhases do
+                        if not NormalStateSet then
+                            FNormalState^[i] := FPresentState^[i];
+                    NormalStateSet := true;   // normal state will default to state only the 1st time state is specified.
+                end;
 
             end;
 
@@ -410,7 +468,6 @@ begin
     end;
 
 end;
-
 
 {--------------------------------------------------------------------------}
 function TRecloser.MakeLike(const RecloserName: String): Integer;
@@ -427,6 +484,7 @@ begin
 
             NPhases := OtherRecloser.Fnphases;
             NConds := OtherRecloser.Fnconds; // Force Reallocation of terminal stuff
+            ShowEventLog := OtherRecloser.ShowEventLog; // but leave DebugTrace off
 
             ElementName := OtherRecloser.ElementName;
             ElementTerminal := OtherRecloser.ElementTerminal;
@@ -444,18 +502,24 @@ begin
             GroundTrip := OtherRecloser.GroundTrip;
             PhaseInst := OtherRecloser.PhaseInst;
             GroundInst := OtherRecloser.GroundInst;
-            Resettime := OtherRecloser.Resettime;
+            ResetTime := OtherRecloser.ResetTime;
             NumReclose := OtherRecloser.NumReclose;
             NumFast := OtherRecloser.NumFast;
+            SinglePhTrip := OtherRecloser.SinglePhTrip;
+            SinglePhLockout := OtherRecloser.SinglePhLockout;
 
             Reallocmem(RecloseIntervals, SizeOf(RecloseIntervals^[1]) * 4);      // Always make a max of 4
             for i := 1 to NumReclose do
                 RecloseIntervals^[i] := OtherRecloser.RecloseIntervals^[i];
 
-            LockedOut := OtherRecloser.LockedOut;
+            Locked := OtherRecloser.Locked;
 
-            FPresentState := OtherRecloser.FPresentState;
-            NormalState := OtherRecloser.NormalState;
+            for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do
+            begin
+                FPresentState^[i] := OtherRecloser.FPresentState^[i];
+                FNormalState^[i] := OtherRecloser.FNormalState^[i];
+            end;
+
             CondOffset := OtherRecloser.CondOffset;
 
 
@@ -476,7 +540,8 @@ end;
 
 {--------------------------------------------------------------------------}
 constructor TRecloserObj.Create(ParClass: TDSSClass; const RecloserName: String);
-
+var
+    i: Integer;
 begin
     inherited Create(ParClass);
     Name := LowerCase(RecloserName);
@@ -496,8 +561,8 @@ begin
     MonitoredElementTerminal := 1;
     MonitoredElement := nil;
 
-    PhaseFast := GetTccCurve('a');
-    PhaseDelayed := GetTccCurve('d');
+    PhaseFast := nil;
+    PhaseDelayed := nil;
     GroundFast := nil;
     GroundDelayed := nil;
 
@@ -511,7 +576,7 @@ begin
     TDGrFast := 1.0;
     TDPhFast := 1.0;
 
-    Resettime := 15.0;
+    ResetTime := 15.0;
     NumReclose := 3;
     NumFast := 1;
 
@@ -521,24 +586,54 @@ begin
     RecloseIntervals^[2] := 2.0;
     RecloseIntervals^[3] := 2.0;
 
-    FPresentState := CTRL_CLOSE;
-    FNormalState := CTRL_CLOSE;
-    NormalStateSet := false;
-
-    Operationcount := 1;
-    LockedOut := false;
-    ArmedForOpen := false;
-    ArmedForClose := false;
+    FPresentState := nil;
+    FNormalState := nil;
+    LockedOut := nil;
+    ArmedForOpen := nil;
+    ArmedForClose := nil;
     GroundTarget := false;
-    PhaseTarget := false;
+    PhaseTarget := nil;
+    Operationcount := nil;
+    RecloserTarget := nil;
+    SinglePhTrip := false;
+    SinglePhLockout := false;
+    IdxMultiPh := FNPhases + 1;
 
+     // Reallocate arrays  (Must be initialized to nil for first call)
+    Reallocmem(FPresentState, Sizeof(FPresentState^[1]) * FNPhases);
+    Reallocmem(FNormalState, Sizeof(FNormalState^[1]) * FNPhases);
+    Reallocmem(LockedOut, Sizeof(LockedOut^[1]) * IdxMultiPh);
+    Reallocmem(ArmedForOpen, Sizeof(ArmedForOpen^[1]) * IdxMultiPh);
+    Reallocmem(ArmedForClose, Sizeof(ArmedForClose^[1]) * IdxMultiPh);
+    Reallocmem(PhaseTarget, Sizeof(PhaseTarget^[1]) * IdxMultiPh);
+    Reallocmem(Operationcount, Sizeof(Operationcount^[1]) * IdxMultiPh);
+    RecloserTarget := AllocStringArray(IdxMultiPh);
+
+    for i := 1 to Min(RECLOSERCONTROLMAXDIM, IdxMultiPh) do
+    begin
+
+        if i <= FNPhases then
+        begin
+            FPresentState^[i] := CTRL_CLOSE;
+            FNormalState^[i] := CTRL_CLOSE;  // default to present state;
+        end;
+
+        LockedOut^[i] := false;
+        ArmedForOpen^[i] := false;
+        ArmedForClose^[i] := false;
+        PhaseTarget^[i] := false;
+        Operationcount^[i] := 1;
+        RecloserTarget^[i] := '';
+    end;
+
+    NormalStateSet := false;
+    Locked := false;
 
     cBuffer := nil; // Complex buffer
 
-    DSSObjType := ParClass.DSSClassType; //cap_CONTROL;
+    DSSObjType := ParClass.DSSClassType;
 
     InitPropertyValues(0);
-
 
    //  RecalcElementData;
 
@@ -549,6 +644,15 @@ begin
     MonitoredElementName := '';
     ReallocMem(RecloseIntervals, 0);
     ReallocMem(cBuffer, 0);
+    ReallocMem(FPresentState, 0);
+    ReallocMem(FNormalState, 0);
+    ReallocMem(LockedOut, 0);
+    ReallocMem(ArmedForOpen, 0);
+    ReallocMem(ArmedForClose, 0);
+    ReallocMem(PhaseTarget, 0);
+    ReallocMem(Operationcount, 0);
+    FreeStringArray(RecloserTarget, IdxMultiPh);
+
     inherited Destroy;
 end;
 
@@ -556,7 +660,7 @@ end;
 procedure TRecloserObj.RecalcElementData(ActorID: Integer);
 
 var
-    DevIndex: Integer;
+    DevIndex, i: Integer;
 
 begin
 
@@ -566,6 +670,8 @@ begin
 
         MonitoredElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
         Nphases := MonitoredElement.NPhases;       // Force number of phases to be same
+        if FNphases > RECLOSERCONTROLMAXDIM then
+            DosimpleMsg('Warning: Recloser ' + Self.Name + ': Number of phases > Max Recloser dimension.', 392);
         if MonitoredElementTerminal > MonitoredElement.Nterms then
         begin
             DoErrorMsg('Recloser: "' + Name + '"',
@@ -574,9 +680,9 @@ begin
         end
         else
         begin
-               // Sets name of i-th terminal's connected bus in Recloser's buslist
+         // Sets name of i-th terminal's connected bus in Recloser's buslist
             Setbus(1, MonitoredElement.GetBus(MonitoredElementTerminal));
-               // Allocate a buffer bigenough to hold everything from the monitored element
+         // Allocate a buffer bigenough to hold everything from the monitored element
             ReAllocMem(cBuffer, SizeOF(cbuffer^[1]) * MonitoredElement.Yorder);
             CondOffset := (MonitoredElementTerminal - 1) * MonitoredElement.NConds; // for speedy sampling
         end;
@@ -584,7 +690,7 @@ begin
 
 {Check for existence of Controlled Element}
 
-         // If previously assigned, reset HasOCPDevice flag in case this is a move
+   // If previously assigned, reset HasOCPDevice flag in case this is a move
     if Assigned(ControlledElement) then
     begin
         ControlledElement.HasOCPDevice := false;
@@ -598,28 +704,31 @@ begin
         ControlledElement := ActiveCircuit[ActorID].CktElements.Get(DevIndex);
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Make the 1 st terminal active
 
-             // If the recloser becomes disabled, leave at False
+       // If the recloser becomes disabled, leave at False
         if Enabled then
         begin
             ControlledElement.HasOCPDevice := true;  // For Reliability calcs
             ControlledElement.HasAutoOCPDevice := true;  // For Reliability calcs
         end;
 
-        if FPresentState = CTRL_CLOSE      // Open/Close State of controlled element based on state assigned to the control
-        then
-        begin
-            ControlledElement.Closed[0, ActorID] := true;
-            LockedOut := false;
-            OperationCount := 1;
-            ArmedForOpen := false;
-        end
-        else
-        begin
-            ControlledElement.Closed[0, ActorID] := false;
-            LockedOut := true;
-            OperationCount := NumReclose + 1;
-            ArmedForClose := false;
-        end;
+       // Open/Closed State of controlled element based on state assigned to the control
+        for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do  // TODO --- evaluate if we need to do anything here....
+            if FPresentState^[i] = CTRL_CLOSE then
+            begin
+                ControlledElement.Closed[i, ActorID] := true;
+                LockedOut^[i] := false;
+                OperationCount^[i] := 1;
+                ArmedForOpen^[i] := false;
+            end
+            else
+            begin
+                ControlledElement.Closed[i, ActorID] := false;
+                LockedOut^[i] := true;
+                OperationCount^[i] := NumReclose + 1;
+                ArmedForClose^[i] := false;
+            end;
+
+
     end
     else
     begin
@@ -673,91 +782,272 @@ end;
 
 {--------------------------------------------------------------------------}
 procedure TRecloserObj.DoPendingAction(const Code, ProxyHdl: Integer; ActorID: Integer);
-
-
+var
+    i, PhIdx: Integer;
 begin
+
+    if SinglePhTrip then
+        PhIdx := ProxyHdl
+    else
+        PhIdx := IdxMultiPh; // Proxy holds phase information for single-phase trip
+
     with ControlledElement do
     begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal of CktElement to terminal 1
+
         case Code of
             Integer(CTRL_OPEN):
-                case FPresentState of
-                    CTRL_CLOSE:
-                        if ArmedForOpen then
-                        begin   // ignore if we became disarmed in meantime
-                            ControlledElement.Closed[0, ActorID] := false;   // Open all phases of active terminal
-                            if OperationCount > NumReclose then
-                            begin
-                                LockedOut := true;
-                                AppendtoEventLog('Recloser.' + Self.Name, 'Opened, Locked Out', ActorID);
-                            end
-                            else
-                            begin
-                                if OperationCount > NumFast then
-                                    AppendtoEventLog('Recloser.' + Self.Name, 'Opened, Delayed', ActorID)
-                                else
-                                    AppendtoEventLog('Recloser.' + Self.Name, 'Opened, Fast', ActorID);
-                            end;
-                            if PhaseTarget then
-                                AppendtoEventLog(' ', 'Phase Target', ActorID);
-                            if GroundTarget then
-                                AppendtoEventLog(' ', 'Ground Target', ActorID);
-                            ArmedForOpen := false;
-                        end;
-                else {nada}
-                end;
-            Integer(CTRL_CLOSE):
-                case FPresentState of
-                    CTRL_OPEN:
-                        if ArmedForClose and not LockedOut then
-                        begin
-                            ControlledElement.Closed[0, ActorID] := true;    // Close all phases of active terminal
-                            Inc(OperationCount);
-                            AppendtoEventLog('Recloser.' + Self.Name, 'Closed', ActorID);
-                            ArmedForClose := false;
-                        end;
-                else {Nada}
-                end;
-            Integer(CTRL_RESET):
-                case FPresentState of
-                    CTRL_CLOSE:
-                        if not ArmedForOpen then
-                            OperationCount := 1;       // Don't reset if we just rearmed
-                else  {Nada}
-                end;
-        else
-            {Do Nothing }
-        end;
+                if SinglePhTrip then
+                begin
+                    case FPresentState^[PhIdx] of
+                        CTRL_CLOSE:
+                            if ArmedForOpen^[PhIdx] then
+                            begin   // ignore if we became disarmed in meantime
 
+                                ControlledElement.Closed[PhIdx, ActorID] := false;   // Open phase of active terminal
+                                FPresentState^[PhIdx] := CTRL_OPEN;
+
+                                if OperationCount^[PhIdx] > NumReclose then
+                                begin
+                                    LockedOut^[PhIdx] := true;
+                                    if SinglePhLockout and ShowEventLog then
+                                        AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RecloserTarget^[PhIdx]]), ActorID)
+                                    else
+                                    begin
+                                        if ShowEventLog then
+                                            AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (3ph lockout)', [PhIdx, RecloserTarget^[PhIdx]]), ActorID); // 3-Phase Lockout
+
+                                              // Lockout other phases
+                                        for i := 1 to ControlledElement.Nphases do
+                                        begin
+
+                                            if (i <> PhIdx) and (not LockedOut^[i]) then  // Check LockedOut^[i] to skip individual phase that were previously locked out
+                                            begin
+                                                ControlledElement.Closed[i, ActorID] := false;
+                                                FPresentState^[i] := CTRL_OPEN;
+                                                LockedOut^[i] := true;
+                                                if ArmedForOpen^[PhIdx] then
+                                                    ArmedForOpen^[PhIdx] := false;
+                                                if ShowEventLog then
+                                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on 3ph lockout (1ph trip) & locked out (3ph lockout)', [i]), ActorID);
+
+                                            end;
+
+                                        end;
+
+                                    end;
+
+                                end
+                                else
+                                if ShowEventLog then
+                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (1ph trip)', [PhIdx, RecloserTarget^[PhIdx]]), ActorID);
+
+                                ArmedForOpen^[PhIdx] := false;
+                            end;
+                    end;
+
+                end
+                else
+                begin // 3-Ph Trip
+
+                                // Analyze each phase separately as states may not be the same.
+                    for i := 1 to ControlledElement.Nphases do
+                    begin
+                        case FPresentState^[i] of
+                            CTRL_CLOSE:
+                                if ArmedForOpen^[PhIdx] then
+                                begin   // ignore if we became disarmed in meantime
+
+                                    ControlledElement.Closed[i, ActorID] := false;   // Open phases of active terminal
+                                    FPresentState^[i] := CTRL_OPEN;
+
+                                    if OperationCount^[PhIdx] > NumReclose then
+                                    begin
+                                        LockedOut^[PhIdx] := true;
+                                        if ShowEventLog then
+                                            AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (3ph trip) & locked out (3ph lockout)', [i, RecloserTarget^[PhIdx]]), ActorID);
+                                    end
+                                    else
+                                    if ShowEventLog then
+                                        AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (3ph trip)', [i, RecloserTarget^[PhIdx]]), ActorID);
+
+                                end;
+                        end;
+
+                    end;
+
+                    ArmedForOpen^[PhIdx] := false;
+
+                end;
+
+            Integer(CTRL_CLOSE):
+                if SinglePhTrip then
+                begin
+
+                    case FPresentState^[PhIdx] of
+                        CTRL_OPEN:
+                            if ArmedForClose^[PhIdx] and not LockedOut^[PhIdx] then
+                            begin
+                                ControlledElement.Closed[PhIdx, ActorID] := true;    // Close phase of active terminal
+                                FPresentState^[PhIdx] := CTRL_CLOSE;
+
+                                if ShowEventLog then
+                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d closed (1h reclosing)', [PhIdx]), ActorID);
+
+                                          // Count reclosing operations for each phase on single ph trip
+                                Inc(OperationCount^[PhIdx]);
+                                ArmedForClose^[PhIdx] := false;
+                            end;
+                    end;
+
+                end
+                else
+                begin
+
+                    for i := 1 to ControlledElement.Nphases do
+                    begin
+
+                        case FPresentState^[i] of
+                                        // Check LockedOut^[i] to skip individual phases that were previously locked out
+                            CTRL_OPEN:
+                                if ArmedForClose^[PhIdx] and not LockedOut^[i] and not LockedOut^[PhIdx] then
+                                begin
+
+                                    ControlledElement.Closed[i, ActorID] := true;    // Close phases of active terminal
+                                    FPresentState^[i] := CTRL_CLOSE;
+                                    if ShowEventLog then
+                                        AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d closed (3ph reclosing)', [i]), ActorID);
+                                end;
+
+                        end;
+                    end;
+
+                    ArmedForClose^[PhIdx] := false;
+                    Inc(OperationCount^[PhIdx]);
+
+                end;
+
+            Integer(CTRL_RESET):
+                if SinglePhTrip then
+                begin
+                    case FPresentState^[PhIdx] of
+                        CTRL_CLOSE:
+                            if not ArmedForOpen^[PhIdx] then
+                                OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
+                    end;
+                end
+                else
+                begin
+                    for i := 1 to ControlledElement.Nphases do
+                    begin
+                        case FPresentState^[i] of
+                            CTRL_CLOSE:
+                            begin
+                                if not ArmedForOpen^[PhIdx] then
+                                    OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
+                                if not SinglePhTrip then
+                                    Break; // no need to loop at all phases
+                            end;
+
+                        else
+                        end;
+                    end;
+                end
+        else
+        {Do Nothing }
+        end;
     end;
 end;
+
 
 {--------------------------------------------------------------------------}
 
 
-procedure TRecloserObj.InterpretRecloserState(ActorID: Integer; const Action: String; const property_name: String);
+procedure TRecloserObj.InterpretRecloserState(ActorID: Integer; const param: String; const property_name: String);
+var
+    i: Integer;
+    DataStr1, DataStr2: String;
 begin
 
-    if (LowerCase(property_name[1]) = 's') or (LowerCase(property_name[1]) = 'a') then
-    begin  // state or action (deprecated)
+    // Only allowed to change normal state if locked.
+    if Locked and ((LowerCase(property_name[1]) = 'a') or (LowerCase(property_name[1]) = 's')) then
+        Exit;
 
-        case LowerCase(Action)[1] of
-            'o', 't':
-                FPresentState := CTRL_OPEN;
-            'c':
-                FPresentState := CTRL_CLOSE;
+    if (LowerCase(property_name[1]) = 'a') then // Interpret ganged specification to state when using action
+    begin // action (deprecated) will be removed
+        for i := 1 to RECLOSERCONTROLMAXDIM do
+        begin
+            case LowerCase(param)[1] of
+                'o':
+                    States[i] := CTRL_OPEN;
+                'c':
+                    States[i] := CTRL_CLOSE;
+            end;
+
         end;
     end
-    else // Normal
+    else
     begin
+        if not Parser[ActorID].WasQuoted then // Interpret ganged specification to state and normal when not quoted
+        begin
+            for i := 1 to RECLOSERCONTROLMAXDIM do
+            begin
 
-        case LowerCase(Action)[1] of
-            'o', 't':
-                FNormalState := CTRL_OPEN;
-            'c':
-                FNormalState := CTRL_CLOSE;
+                if (LowerCase(property_name[1]) = 's') then
+                begin  // state
+                    case LowerCase(param)[1] of
+                        'o':
+                            States[i] := CTRL_OPEN;
+                        'c':
+                            States[i] := CTRL_CLOSE;
+                    end;
+
+                end // 'normal
+                else
+                begin
+                    case LowerCase(param)[1] of
+                        'o':
+                            NormalStates[i] := CTRL_OPEN;
+                        'c':
+                            NormalStates[i] := CTRL_CLOSE;
+                    end;
+                end;
+            end;
+        end
+        else // process phase by phase
+
+            AuxParser[ActorID].CmdString := param;  // Load up Parser
+
+        DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+        DataStr2 := AuxParser[ActorID].StrValue;
+
+        i := 1;
+        while (Length(DataStr2) > 0) and (i < RECLOSERCONTROLMAXDIM) do
+        begin
+
+            if (LowerCase(property_name[1]) = 's') then
+            begin  // state
+                case LowerCase(DataStr2)[1] of
+                    'o':
+                        States[i] := CTRL_OPEN;
+                    'c':
+                        States[i] := CTRL_CLOSE;
+                end;
+            end
+            else // 'normal'
+            begin
+                case LowerCase(DataStr2)[1] of
+                    'o':
+                        NormalStates[i] := CTRL_OPEN;
+                    'c':
+                        NormalStates[i] := CTRL_CLOSE;
+                end;
+            end;
+
+            DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+            DataStr2 := AuxParser[ActorID].StrValue;
+            inc(i);
         end;
-
     end;
 
 end;
@@ -769,136 +1059,340 @@ var
     i: Integer;
     cmag: Double;
     Csum: Complex;
+    MaxOperatingCount: Integer;
 
     GroundCurve, PhaseCurve: TTCC_CurveObj;
     Groundtime, PhaseTime, TripTime, TimeTest: Double;
     TDPhase, TDGround: Double;
+    PhaseCurveType, GroundCurveType: String;
 
 begin
 
-
     ControlledElement.ActiveTerminalIdx := ElementTerminal;
+    MonitoredElement.GetCurrents(cBuffer, ActorID);
 
-    if ControlledElement.Closed[0, ActorID]      // Check state of phases of active terminal
-    then
-        FPresentState := CTRL_CLOSE
-    else
-        FPresentState := CTRL_OPEN;
-
-
-    with MonitoredElement do
+    // Check state of phases of active terminal as they could have changed through other mechanisms
+    for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do
     begin
+        if ControlledElement.Closed[i, ActorID] then
+            FPresentState^[i] := CTRL_CLOSE
+        else
+            FPresentState^[i] := CTRL_OPEN;
+    end;
 
-        if OperationCount > NumFast then
+    if DebugTrace then
+        AppendtoEventLog('Debug Sample: Recloser.' + Self.Name, Format('FPresentState: %s ', [self.GetPropertyValue(24)]), ActorID);
+
+    for i := Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) downto 1 do
+    begin
+        if FPresentState^[i] = CTRL_CLOSE then
+            Break; // Continue sampling if at least one phase is closed.
+        if i = 1 then
+            Exit;  // Exit sampling if none of the phases is closed.
+    end;
+
+     // Identify number of operations to pick appropriate curve.
+     // Pending to identify phase to trip when considering single-phase tripping as in modern microprocessed relays.
+    if SinglePhTrip then
+    begin
+        for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do
         begin
-            GroundCurve := GroundDelayed;
-            PhaseCurve := PhaseDelayed;
-            TDGround := TDGrDelayed;
-            TDPhase := TDPhDelayed;
+
+            if LockedOut^[i] then
+                continue; // Skip locked out phases (includes phases that have been manually opened).
+
+            if i = 1 then
+                MaxOperatingCount := OperationCount^[i]             // TODO: check if we need to use IdxMultiPh for OperationCount here
+            else
+                MaxOperatingCount := Max(MaxOperatingCount, OperationCount^[i]);
+        end;
+
+    end
+    else
+        MaxOperatingCount := OperationCount^[IdxMultiPh];
+
+    if MaxOperatingCount > NumFast then
+    begin
+        GroundCurve := GroundDelayed;
+        TDGround := TDGrDelayed;
+        GroundCurveType := 'Delayed';
+    end
+    else
+    begin
+        GroundCurve := GroundFast;
+        TDGround := TDGrFast;
+        GroundCurveType := 'Fast';
+    end;
+
+    GroundTime := -1.0;
+
+     {Check Ground Trip, if any}
+    if GroundCurve <> nil then
+    begin
+        Csum := CZERO;
+        for i := (1 + CondOffset) to (Fnphases + CondOffset) do
+            caccum(Csum, cBuffer^[i]);
+        Cmag := Cabs(Csum);
+        if (GroundInst > 0.0) and (Cmag >= GroundInst) and (MaxOperatingCount = 1) then
+        begin
+            GroundTime := 0.01 + DelayTime;      // Inst trip on first operation
+
+            if DebugTrace then
+                AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ground Instantaneous Trip: Mag=%.3g, Time=%.3g',
+                    [Cmag, GroundTime]), ActorID);
         end
         else
         begin
-            GroundCurve := GroundFast;
-            PhaseCurve := PhaseFast;
-            TDGround := TDGrFast;
-            TDPhase := TDPhFast;
+            GroundTime := TDGround * GroundCurve.GetTCCTime(Cmag / GroundTrip);
+
+            if DebugTrace then
+                AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ground %s Curve Trip: Mag=%.3g, Time=%.3g',
+                    [GroundCurveType, Cmag / GroundTrip, GroundTime]), ActorID);
         end;
 
-        if FPresentState = CTRL_CLOSE then
+
+    end;
+
+    if Groundtime > 0.0 then
+        GroundTarget := true;
+     // If GroundTime > 0 then we have a ground trip
+
+    if SinglePhTrip then
+    begin
+        for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do
         begin
-            TripTime := -1.0;
-            GroundTime := -1.0;
-            PhaseTime := -1.0;  {No trip}
 
-               // Check largest Current of all phases of monitored element
-            MonitoredElement.GetCurrents(cBuffer, ActorID);
-
-               {Check Ground Trip, if any}
-            if GroundCurve <> nil then
-            begin
-                Csum := CZERO;
-                for i := (1 + CondOffset) to (Fnphases + CondOffset) do
-                    caccum(Csum, cBuffer^[i]);
-                Cmag := Cabs(Csum);
-                if (GroundInst > 0.0) and (Cmag >= GroundInst) and (OperationCount = 1) then
-                    GroundTime := 0.01 + DelayTime      // Inst trip on first operation
-                else
-                    GroundTime := TDGround * GroundCurve.GetTCCTime(Cmag / GroundTrip);
-            end;
-
+            if FPresentState^[i] <> CTRL_CLOSE then
+                continue;
             if Groundtime > 0.0 then
+                TripTime := GroundTime
+            else
+                TripTime := -1.0;  // initialize trip time for this phase.
+
+            if OperationCount^[i] > NumFast then
             begin
-                TripTime := GroundTime;
-                GroundTarget := true;
+                PhaseCurve := PhaseDelayed;
+                TDPhase := TDPhDelayed;
+                PhaseCurveType := 'Delayed';
+            end
+            else
+            begin
+                PhaseCurve := PhaseFast;
+                TDPhase := TDPhFast;
+                PhaseCurveType := 'Fast';
             end;
 
-               // If GroundTime > 0 then we have a ground trip
-
-               {Check Phase Trip, if any}
-
-            if PhaseCurve <> nil then
+            if FPresentState^[i] = CTRL_CLOSE then
             begin
-                for i := (1 + CondOffset) to (Fnphases + CondOffset) do
+
+                PhaseTime := -1.0;  {No trip}
+
+                   {Check Phase Trip, if any} // Check current at i phase of monitored element
+                if PhaseCurve <> nil then
                 begin
-                    Cmag := Cabs(cBuffer^[i]);
 
+                    Cmag := Cabs(cBuffer^[i + CondOffset]);
 
-                    if (PhaseInst > 0.0) and (Cmag >= PhaseInst) and (OperationCount = 1) then
+                    if (PhaseInst > 0.0) and (Cmag >= PhaseInst) and (OperationCount^[i] = 1) then
                     begin
                         PhaseTime := 0.01 + DelayTime;  // Inst trip on first operation
-                        Break;  {FOR - if Inst, no sense checking other phases}
+                        if DebugTrace then
+                            AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph Instantaneous (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                [i, Cmag, PhaseTime]), ActorID);
+
                     end
                     else
                     begin
                         TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseTrip);
-                        if (TimeTest > 0.0) then
+                        if TimeTest > 0.0 then
                         begin
-                            if Phasetime < 0.0 then
-                                PhaseTime := TimeTest
-                            else
-                                PhaseTime := Min(PhaseTime, TimeTest);
+                            PhaseTime := TimeTest;
+
+                            if DebugTrace then
+                                AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                    [PhaseCurveType, i, Cmag / PhaseTrip, PhaseTime]), ActorID);
                         end;
+
                     end;
 
                 end;
-            end;
-               // If PhaseTime > 0 then we have a phase trip
 
-            if PhaseTime > 0.0 then
-            begin
-                PhaseTarget := true;
+                   // If PhaseTime > 0 then we have a phase trip
+                if PhaseTime > 0.0 then
+                begin
+
+                    PhaseTarget^[i] := true;
+                    if TripTime > 0.0 then
+                        TripTime := Min(TripTime, Phasetime)
+                    else
+                        TripTime := PhaseTime;
+                end;
+
                 if TripTime > 0.0 then
-                    TripTime := Min(TripTime, Phasetime)
+                begin
+                    if not ArmedForOpen^[i] then
+                        with ActiveCircuit[ActorID] do   // Then arm for an open operation
+                        begin
+
+                            RecloserTarget^[i] := '';
+                            if TripTime = Groundtime then
+                            begin
+                                if Groundtime = 0.01 + DelayTime then
+                                    RecloserTarget^[i] := 'Gnd Instantaneous'
+                                else
+                                    RecloserTarget^[i] := Format('Ground %s', [GroundCurveType]);
+                            end;
+                            if TripTime = Phasetime then
+                            begin
+                                if RecloserTarget^[i] <> '' then
+                                    RecloserTarget^[i] := RecloserTarget^[i] + ' + ';
+
+                                if PhaseTime = 0.01 + DelayTime then
+                                    RecloserTarget^[i] := 'Ph Instantaneous'
+                                else
+                                    RecloserTarget^[i] := Format('Ph %s', [PhaseCurveType]);
+                            end;
+
+                            ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Delaytime, CTRL_OPEN, i, Self, ActorID);
+                            if OperationCount^[i] <= NumReclose then
+                                ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + DelayTime + RecloseIntervals^[OperationCount^[i]], CTRL_CLOSE, i, Self, ActorID);
+                            ArmedForOpen^[i] := true;
+                            ArmedForClose^[i] := true;
+                        end;
+                end
                 else
-                    TripTime := PhaseTime;
+                begin
+                    if ArmedForOpen^[i] then
+                        with ActiveCircuit[ActorID] do    // If current dropped below pickup, disarm trip and set for reset
+                        begin
+                            ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, i, Self, ActorID);
+                            ArmedForOpen^[i] := false;
+                            ArmedForClose^[i] := false;
+                            GroundTarget := false;
+                            PhaseTarget^[i] := false;
+                        end;
+                end;
+            end;  {IF PresentState=CLOSE}
+        end;
+
+    end
+    else // 3-Phase Trip
+    begin
+
+        if MaxOperatingCount > NumFast then
+        begin
+            PhaseCurve := PhaseDelayed;
+            TDPhase := TDPhDelayed;
+            PhaseCurveType := 'Delayed';
+        end
+        else
+        begin
+            PhaseCurve := PhaseFast;
+            TDPhase := TDPhFast;
+            PhaseCurveType := 'Fast';
+        end;
+
+        if Groundtime > 0.0 then
+            TripTime := GroundTime
+        else
+            TripTime := -1.0;  // initialize trip time
+        PhaseTime := -1.0;
+
+        {Check Phase Trip, if any}
+        if PhaseCurve <> nil then
+        begin
+            for i := (1 + CondOffset) to (Fnphases + CondOffset) do
+            begin
+
+                Cmag := Cabs(cBuffer^[i]);
+
+                if (PhaseInst > 0.0) and (Cmag >= PhaseInst) and (OperationCount^[IdxMultiPh] = 1) then
+                begin
+                    PhaseTime := 0.01 + DelayTime;  // Inst trip on first operation
+
+                    if DebugTrace then
+                        AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph Instantaneous (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                            [i, Cmag, PhaseTime]), ActorID);
+
+                    Break;  {FOR - if Inst, no sense checking other phases}
+                end
+                else
+                begin
+                    TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseTrip);
+                    if (TimeTest > 0.0) then
+                    begin
+
+                        if DebugTrace then
+                            AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                [IfThen(PhaseCurve = PhaseFast, 'Fast', 'Delayed'), i, Cmag / PhaseTrip, TimeTest]), ActorID);
+
+                        if Phasetime < 0.0 then
+                            PhaseTime := TimeTest
+                        else
+                            PhaseTime := Min(PhaseTime, TimeTest);
+                    end;
+                end;
+
             end;
 
+        end;
+
+        // If PhaseTime > 0 then we have a phase trip
+        if PhaseTime > 0.0 then
+        begin
+            PhaseTarget^[IdxMultiPh] := true;
             if TripTime > 0.0 then
-            begin
-                if not ArmedForOpen then
-                    with ActiveCircuit[ActorID] do   // Then arm for an open operation
-                    begin
-                        ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Delaytime, CTRL_OPEN, 0, Self, ActorID);
-                        if OperationCount <= NumReclose then
-                            ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + DelayTime + RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-                        ArmedForOpen := true;
-                        ArmedForClose := true;
-                    end;
-            end
+                TripTime := Min(TripTime, Phasetime)
             else
-            begin
-                if ArmedForOpen then
-                    with ActiveCircuit[ActorID] do    // If current dropped below pickup, disarm trip and set for reset
+                TripTime := PhaseTime;
+        end;
+
+        if TripTime > 0.0 then
+        begin
+            if not ArmedForOpen^[IdxMultiPh] then
+                with ActiveCircuit[ActorID] do   // Then arm for an open operation
+                begin
+
+                    RecloserTarget^[IdxMultiPh] := '';
+                    if TripTime = Groundtime then
                     begin
-                        ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                        ArmedForOpen := false;
-                        ArmedForClose := false;
-                        GroundTarget := false;
-                        PhaseTarget := false;
+                        if Groundtime = 0.01 + DelayTime then
+                            RecloserTarget^[IdxMultiPh] := 'Gnd Instantaneous'
+                        else
+                            RecloserTarget^[IdxMultiPh] := Format('Ground %s', [GroundCurveType]);
                     end;
-            end;
-        end;  {IF PresentState=CLOSE}
-    end; {With}
+                    if TripTime = Phasetime then
+                    begin
+                        if RecloserTarget^[IdxMultiPh] <> '' then
+                            RecloserTarget^[IdxMultiPh] := RecloserTarget^[IdxMultiPh] + ' + ';
+                        if PhaseTime = 0.01 + DelayTime then
+                            RecloserTarget^[IdxMultiPh] := 'Ph Instantaneous'
+                        else
+                            RecloserTarget^[IdxMultiPh] := Format('Ph %s', [PhaseCurveType]);
+                    end;
+
+                    ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Delaytime, CTRL_OPEN, 0, Self, ActorID);
+                    if MaxOperatingCount <= NumReclose then
+                        ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + DelayTime + RecloseIntervals^[MaxOperatingCount], CTRL_CLOSE, 0, Self, ActorID);
+                    ArmedForOpen^[IdxMultiPh] := true;
+                    ArmedForClose^[IdxMultiPh] := true;
+                end;
+        end
+        else
+        begin
+            if ArmedForOpen^[IdxMultiPh] then
+                with ActiveCircuit[ActorID] do    // If current dropped below pickup, disarm trip and set for reset
+                begin
+                    ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+                    ArmedForOpen^[IdxMultiPh] := false;
+                    ArmedForClose^[IdxMultiPh] := false;
+                    GroundTarget := false;
+                    PhaseTarget^[IdxMultiPh] := false;
+                end;
+        end;
+
+    end;
+
 end;
 
 
@@ -928,7 +1422,14 @@ function TRecloserObj.GetPropertyValue(Index: Integer): String;
 var
     i: Integer;
 begin
-    Result := '';
+
+    case Index of
+        23..24:
+            Result := '[';
+    else
+        Result := '';
+    end;
+
     case Index of
         15:
             Result := Format('%d', [NumReclose + 1]);
@@ -940,125 +1441,157 @@ begin
             Result := Result + ')';
         end;
         23:
-        begin
-            case FNormalState of
-                CTRL_OPEN:
-                    Result := 'open';
-            else
-                  {CTRL_CLOSE:} Result := 'closed';
-            end
-        end;
-        18, 24:
-        begin
-            case FPresentState of
-                CTRL_OPEN:
-                    Result := 'open';
-            else
-                  {CTRL_CLOSE:} Result := 'closed';
+            if ControlledElement <> nil then
+            begin
+                for i := 1 to ControlledElement.NPhases do
+                begin
+                    case FNormalState^[i] of
+                        CTRL_OPEN:
+                            Result := Result + 'open' + ', ';
+                    else
+                  {CTRL_CLOSE:} Result := Result + 'closed' + ', ';
+                    end;
+                end;
             end;
-        end
+        24:
+            if ControlledElement <> nil then
+            begin
+                for i := 1 to ControlledElement.NPhases do
+                begin
+                    case FPresentState^[i] of
+                        CTRL_OPEN:
+                            Result := Result + 'open' + ', ';
+                    else
+                 {CTRL_CLOSE:} Result := Result + 'closed' + ', ';
+                    end;
+                end;
+            end;
+        27:
+            if Locked then
+                Result := 'Yes'
+            else
+                Result := 'No';
     else
         Result := inherited GetPropertyValue(index);
     end;
+
+    case Index of
+        23..24:
+            Result := Result + ']';
+    else
+    end;
+
 end;
 
 
 procedure TRecloserObj.Reset;
+var
+    i: Integer;
 begin
 
-    FPresentState := FNormalState;
-    ArmedForOpen := false;
-    ArmedForClose := false;
-    GroundTarget := false;
-    PhaseTarget := false;
-
-
-    if ControlledElement <> nil then
+    if not Locked and (ControlledElement <> nil) then
     begin
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
 
-        case FNormalState of
-            CTRL_OPEN:
+        for i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) do
+        begin
+            FPresentState^[i] := FNormalState^[i];  // reset to normal state
+            ArmedForOpen^[i] := false;
+            ArmedForClose^[i] := false;
+            GroundTarget := false;
+            PhaseTarget^[i] := false;
+
+            case FNormalState[i] of
+                CTRL_OPEN:
+                begin
+                    ControlledElement.Closed[i, ActiveActor] := false;
+                    LockedOut^[i] := true;
+                    OperationCount^[i] := NumReclose + 1;
+                end;
+
+            else
+           {CTRL_CLOSE:}
             begin
-                ControlledElement.Closed[0, ActiveActor] := false; // Open all phases of active terminal
-                LockedOut := true;
-                OperationCount := NumReclose + 1;
-            end
+                ControlledElement.Closed[i, ActiveActor] := true;
+                LockedOut^[i] := false;
+                OperationCount^[i] := 1;
+            end;
+            end;
+        end;
 
-        else
-          {CTRL_CLOSE:} begin
-            ControlledElement.Closed[0, ActiveActor] := true; // Close all phases of active terminal
-            LockedOut := false;
-            Operationcount := 1;
-        end;
-        end;
     end;
-
 
 end;
 
-function TRecloserObj.get_State: EControlAction;
+procedure TRecloserObj.set_Flocked(const Value: Boolean);
+begin
+    Flocked := Value;
+end;
+
+function TRecloserObj.get_States(Idx: Integer): EControlAction;
 begin
 
     if ControlledElement <> nil then
     begin
 
         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
-        case ControlledElement.Closed[0, ActiveActor] of
+        case ControlledElement.Closed[Idx, ActiveActor] of
             false:
-                FPresentState := CTRL_OPEN;
+                FPresentState^[Idx] := CTRL_OPEN;
         else
-            {TRUE:} FPresentState := CTRL_CLOSE;
+        {TRUE:} FPresentState^[Idx] := CTRL_CLOSE;
         end;
 
     end;
 
-    Result := FPresentState;
+    Result := FPresentState^[Idx];
 end;
 
-procedure TRecloserObj.set_State(const Value: EControlAction);
+procedure TRecloserObj.set_States(Idx: Integer; const Value: EControlAction);
 begin
 
-    if PresentState <> Value then
+    if States[Idx] <> Value then
     begin
 
         if ControlledElement <> nil then
         begin
             ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
+
             case Value of
                 CTRL_OPEN:
                 begin
-                    ControlledElement.Closed[0, ActiveActor] := false;
-                    LockedOut := true;
-                    OperationCount := NumReclose + 1;
-                    ArmedForClose := false;
+                    ControlledElement.Closed[Idx, ActiveActor] := false;
+                    LockedOut^[Idx] := true;
+                    OperationCount^[Idx] := NumReclose + 1;
+                    ArmedForClose^[Idx] := false;
                 end
 
             else
-                {CTRL_CLOSE:} begin
-                ControlledElement.Closed[0, ActiveActor] := true;
-                LockedOut := false;
-                OperationCount := 1;
-                ArmedForOpen := false;
+          {CTRL_CLOSE:} begin
+                ControlledElement.Closed[Idx, ActiveActor] := true;
+                LockedOut^[Idx] := false;
+                OperationCount^[Idx] := 1;
+                ArmedForOpen^[Idx] := false;
             end
 
             end;
         end;
 
-        FPresentState := Value;
+        FPresentState^[Idx] := Value;
     end;
+
 end;
 
-function TRecloserObj.get_NormalState: EControlAction;
+function TRecloserObj.get_NormalStates(Idx: Integer): EControlAction;
 begin
-    Result := FNormalState;
+    Result := FNormalState^[Idx];
 end;
 
-procedure TRecloserObj.set_NormalState(const Value: EControlAction);
+procedure TRecloserObj.set_NormalStates(Idx: Integer; const Value: EControlAction);
 begin
-    if FNormalState <> Value then
+    if FNormalState^[Idx] <> Value then
     begin
-        FNormalState := Value;
+        FNormalState^[Idx] := Value;
     end;
 end;
 
@@ -1071,10 +1604,10 @@ begin
     PropertyValue[3] := '';
     PropertyValue[4] := '1'; //'terminal';
     PropertyValue[5] := IntToStr(NumFast);
-    PropertyValue[6] := 'a';
-    PropertyValue[7] := 'd';
-    PropertyValue[8] := '';
-    PropertyValue[9] := '';
+    PropertyValue[6] := 'none';
+    PropertyValue[7] := 'none';
+    PropertyValue[8] := 'none';
+    PropertyValue[9] := 'none';
     PropertyValue[10] := '1.0';
     PropertyValue[11] := '1.0';
     PropertyValue[12] := '0';
@@ -1083,13 +1616,17 @@ begin
     PropertyValue[15] := '4';
     PropertyValue[16] := '(0.5, 2.0, 2.0)';
     PropertyValue[17] := '0.0';
-    PropertyValue[18] := 'closed';
+    PropertyValue[18] := ''; // action
     PropertyValue[19] := '1.0';
     PropertyValue[20] := '1.0';
     PropertyValue[21] := '1.0';
     PropertyValue[22] := '1.0';
-    PropertyValue[23] := 'closed';
-    PropertyValue[24] := 'closed';
+    PropertyValue[23] := '[closed, closed, closed]';  // normal
+    PropertyValue[24] := '[closed, closed, closed]';  // state
+    PropertyValue[25] := 'No';  // SinglePhTripping
+    PropertyValue[26] := 'No';  // SinglePhLockout
+    PropertyValue[27] := 'No';  // Lock
+    PropertyValue[28] := 'n';  // Reset
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

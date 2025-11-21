@@ -144,8 +144,10 @@ function GetTccCurve(const CurveName: String): TTCC_CurveObj;
 
 begin
 
-    Result := TCC_CurveClass.Find(CurveName);
+    if lowercase(CurveName) = 'none' then
+        Exit;
 
+    Result := TCC_CurveClass.Find(CurveName);
     if Result = nil then
         DoSimpleMsg('TCC Curve object: "' + CurveName + '" not found.', 401);
 
@@ -210,8 +212,8 @@ begin
         'This is the "controlled" element.';
     PropertyHelp^[4] := 'Number of the terminal of the controlled element in which the switch is controlled by the Fuse. ' +
         '1 or 2, typically.  Default is 1.  Assumes all phases of the element have a fuse of this type.';
-    PropertyHelp^[5] := 'Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object.' +
-        ' Default is "Tlink". ' +
+    PropertyHelp^[5] := 'Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'If "none", fuse sampling will be skipped and device will not blow for any current level. Default is "none". ' +
         'Multiplying the current values in the curve by the "RatedCurrent" value gives the actual current.';
     PropertyHelp^[6] := 'Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.';
     PropertyHelp^[7] := 'Fixed delay time (sec) added to Fuse blowing time determined from the TCC curve. Default is 0.0. Used to represent fuse clearing time or any other delay.';
@@ -406,7 +408,7 @@ begin
     MonitoredElementTerminal := 1;
     MonitoredElement := nil;
 
-    FuseCurve := GetTccCurve('tlink');
+    FuseCurve := nil;
 
     RatedCurrent := 1.0;
 
@@ -850,7 +852,7 @@ begin
     PropertyValue[2] := '1'; //'terminal';
     PropertyValue[3] := '';
     PropertyValue[4] := '1'; //'terminal';
-    PropertyValue[5] := 'Tlink';
+    PropertyValue[5] := 'none';
     PropertyValue[6] := '1.0';
     PropertyValue[7] := '0';
     PropertyValue[8] := '';  // action
