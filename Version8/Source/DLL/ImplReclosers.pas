@@ -46,11 +46,11 @@ type
     procedure Open; safecall;
     function Get_idx: Integer; safecall;
     procedure Set_idx(Value: Integer); safecall;
-    function Get_NormalState: ActionCodes; safecall;
-    function Get_State: ActionCodes; safecall;
+    function Get_NormalState: OleVariant; safecall;
+    function Get_State: OleVariant; safecall;
+    procedure Set_NormalState(Value: OleVariant); safecall;
     procedure Reset; safecall;
-    procedure Set_NormalState(Value: ActionCodes); safecall;
-    procedure Set_State(Value: ActionCodes); safecall;
+    procedure Set_State(Value: OleVariant); safecall;
 
   end;
 
@@ -360,17 +360,19 @@ end;
 procedure TReclosers.Close;
 var
   elem: TRecloserObj;
+  i: Integer;
 begin
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then elem.PresentState := CTRL_CLOSE;
+  for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_CLOSE // Close all phases
 end;
 
 procedure TReclosers.Open;
 var
   elem: TRecloserObj;
+  i: Integer;
 begin
   elem := RecloserClass.ElementList.Active  ;
-  if elem <> nil then elem.PresentState := CTRL_OPEN;
+  for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_OPEN // Open all phases
 end;
 
 function TReclosers.Get_idx: Integer;
@@ -390,38 +392,45 @@ begin
     End;
 end;
 
-function TReclosers.Get_NormalState: ActionCodes;
+function TReclosers.Get_NormalState: OleVariant;
 Var
+    i :Integer;
     pRecloser:TRecloserObj;
 begin
-    Result := dssActionNone;
-    if ActiveCircuit[ActiveActor] <> Nil then   Begin
-        pRecloser := RecloserClass.ElementList.Active;
-        If pRecloser <> Nil Then
-        Begin
-          Case pRecloser.NormalState   of
-              CTRL_OPEN:  Result := dssActionOpen;
-              CTRL_CLOSE: Result := dssActionClose;
+    If ActiveCircuit[ActiveActor] <> Nil Then
+     Begin
+       pRecloser := RecloserClass.GetActiveObj;
+       If pRecloser <> Nil Then
+       Begin
+          Result := VarArrayCreate([0, pRecloser.ControlledElement.NPhases-1], varOleStr);
+          For i := 1 to pRecloser.ControlledElement.NPhases Do Begin
+             if pRecloser.NormalStates[i] = CTRL_CLOSE then Result[i-1] := 'closed' else Result[i-1] := 'open';
           End;
-        End
-    End;
+       End;
+     End
+     Else
+         Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
-function TReclosers.Get_State: ActionCodes;
+function TReclosers.Get_State: OleVariant;
 Var
+    i :Integer;
     pRecloser:TRecloserObj;
 begin
-    Result := dssActionNone;
-    if ActiveCircuit[ActiveActor] <> Nil then   Begin
-        pRecloser := RecloserClass.ElementList.Active;
-        If pRecloser <> Nil Then
-        Begin
-          Case pRecloser.PresentState   of
-              CTRL_OPEN:  Result := dssActionOpen;
-              CTRL_CLOSE: Result := dssActionClose;
+
+    If ActiveCircuit[ActiveActor] <> Nil Then
+     Begin
+       pRecloser := RecloserClass.GetActiveObj;
+       If pRecloser <> Nil Then
+       Begin
+          Result := VarArrayCreate([0, pRecloser.ControlledElement.NPhases-1], varOleStr);
+          For i := 1 to pRecloser.ControlledElement.NPhases Do Begin
+             if pRecloser.States[i] = CTRL_CLOSE then Result[i-1] := 'closed' else Result[i-1] := 'open';
           End;
-        End
-    End;
+       End;
+     End
+     Else
+         Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
 procedure TReclosers.Reset;
@@ -434,36 +443,54 @@ begin
     End;
 end;
 
-procedure TReclosers.Set_NormalState(Value: ActionCodes);
+procedure TReclosers.Set_NormalState(Value: OleVariant);
 Var
+    i :Integer;
+    Count, Low :Integer;
     pRecloser:TRecloserObj;
 begin
-      if ActiveCircuit[ActiveActor] <> Nil then   Begin
-        pRecloser := RecloserClass.ElementList.Active;
-        If pRecloser <> Nil Then Begin
-          Case value   of
-            dssActionOpen:  pRecloser.NormalState := CTRL_OPEN;
-            dssActionClose: pRecloser.NormalState := CTRL_CLOSE;
-          End;
+    If ActiveCircuit[ActiveActor] <> Nil Then
+     Begin
+         pRecloser := RecloserClass.GetActiveObj;
+         If pRecloser <> Nil Then
+         Begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            If Count >  pRecloser.ControlledElement.NPhases Then Count := pRecloser.ControlledElement.NPhases;
+            For i := 1 to Count Do Begin
+                case LowerCase(Value[i-1 + Low])[1] of
+                  'o': pRecloser.NormalStates[i] := CTRL_OPEN;
+                  'c': pRecloser.NormalStates[i] := CTRL_CLOSE;
+                end;
+            End;
+         End;
 
-        End
-    End;
+     End;
 end;
 
-procedure TReclosers.Set_State(Value: ActionCodes);
+procedure TReclosers.Set_State(Value: OleVariant);
 Var
+    i :Integer;
+    Count, Low :Integer;
     pRecloser:TRecloserObj;
 begin
-      if ActiveCircuit[ActiveActor] <> Nil then   Begin
-        pRecloser := RecloserClass.ElementList.Active;
-        If pRecloser <> Nil Then Begin
-          Case value   of
-            dssActionOpen:  pRecloser.PresentState := CTRL_OPEN;
-            dssActionClose: pRecloser.PresentState := CTRL_CLOSE;
-          End;
+    If ActiveCircuit[ActiveActor] <> Nil Then
+     Begin
+         pRecloser := RecloserClass.GetActiveObj;
+         If pRecloser <> Nil Then
+         Begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            If Count >  pRecloser.ControlledElement.NPhases Then Count := pRecloser.ControlledElement.NPhases;
+            For i := 1 to Count Do Begin
+                case LowerCase(Value[i-1 + Low])[1] of
+                  'o': pRecloser.States[i] := CTRL_OPEN;
+                  'c': pRecloser.States[i] := CTRL_CLOSE;
+                end;
+            End;
+         End;
 
-        End
-    End;
+     End;
 end;
 
 initialization

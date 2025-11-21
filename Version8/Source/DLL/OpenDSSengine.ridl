@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 09/29/25 10:18:11 AM (- $Rev: 12980 $, 20571218).
+// File generated on 11/21/25 1:40:59 PM (- $Rev: 12980 $, 27241234).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -311,11 +311,6 @@ library OpenDSSengine
     [helpstring("Maximum number of line units constants.")]
     dssLineUnitsMaxnum = 9
   };
-
-  [
-    custom(8B342977-45CB-4A01-A8F2-E47B61F3539E, 0)
-  ]
-  typedef double* PDouble1;
 
   [
     uuid(0513A8DC-2C0D-4648-8BD7-2130B82C05FA),
@@ -2502,9 +2497,9 @@ library OpenDSSengine
     HRESULT _stdcall GroundInst([out, retval] double* Value);
     [propput, id(0x000000D8), helpstring("Ground (3I0) trip instantaneous multiplier or actual amps")]
     HRESULT _stdcall GroundInst([in] double Value);
-    [id(0x000000D9), helpstring("Open recloser's controlled element and lock out the recloser.")]
+    [id(0x000000D9), helpstring("Open all phases of the recloser's controlled element and lock out the recloser.")]
     HRESULT _stdcall Open(void);
-    [id(0x000000DA), helpstring("Close the switched object controlled by the recloser. Resets recloser to first operation.")]
+    [id(0x000000DA), helpstring("Close all phases of the switched object controlled by the recloser. Resets recloser to first operation.")]
     HRESULT _stdcall Close(void);
     [propget, id(0x000000DB), helpstring("Get/Set the active Recloser by index into the recloser list.  1..Count")]
     HRESULT _stdcall idx([out, retval] long* Value);
@@ -2512,14 +2507,14 @@ library OpenDSSengine
     HRESULT _stdcall idx([in] long Value);
     [id(0x000000DC), helpstring("Reset recloser to normal state. If open, lock out the recloser. If closed, resets recloser to first operation.  ")]
     HRESULT _stdcall Reset(void);
-    [propget, id(0x000000DD), helpstring("Get normal state of recloser.")]
-    HRESULT _stdcall NormalState([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000DD), helpstring("Set normal state of recloser.")]
-    HRESULT _stdcall NormalState([in] enum ActionCodes Value);
-    [propget, id(0x000000DE), helpstring("Get/Set present state of recloser. If set to open, open recloser's controlled element and lock out the recloser. If set to close, close recloser's controlled element and resets recloser to first operation.")]
-    HRESULT _stdcall State([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000DE), helpstring("Set present state of recloser.")]
-    HRESULT _stdcall State([in] enum ActionCodes Value);
+    [propget, id(0x000000DD), helpstring("Variant array of strings indicating the normal state of each phase of the recloser. 0-based array.")]
+    HRESULT _stdcall NormalState([out, retval] VARIANT* Value);
+    [propput, id(0x000000DD), helpstring("Variant array of strings. Set normal state of each phase of the recloser.")]
+    HRESULT _stdcall NormalState([in] VARIANT Value);
+    [propget, id(0x000000DE), helpstring("Variant array of strings indicating the state of each phase of the recloser. 0-based array.")]
+    HRESULT _stdcall State([out, retval] VARIANT* Value);
+    [propput, id(0x000000DE), helpstring("Variant array of strings. Set state of each phase of the recloser.")]
+    HRESULT _stdcall State([in] VARIANT Value);
   };
 
   [
