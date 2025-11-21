@@ -229,7 +229,7 @@ begin
       myPointer :=  @(myStrArray[0]);
       mySize    :=  Length(myStrArray);
     end;
-  1: begin  // SwtControls.States read
+  1: begin  // SwtControls.State read
     myType  :=  4;        // String
     setlength(myStrArray, 0);
     IF ActiveCircuit[ActiveActor] <> Nil THEN
@@ -252,7 +252,7 @@ begin
     myPointer :=  @(myStrArray[0]);
     mySize    :=  Length(myStrArray);
   end;
-  2: begin  // SwtControls.States write
+  2: begin  // SwtControls.State write
     myType  :=  4;          // String
     k := 0;
     elem := ActiveSwtControl;
@@ -275,7 +275,7 @@ begin
     End;
     mySize  :=  k;
   end;
-  3: begin  // SwtControls.NormalStates read
+  3: begin  // SwtControls.NormalState read
     myType  :=  4;        // String
     setlength(myStrArray, 0);
     IF ActiveCircuit[ActiveActor] <> Nil THEN
@@ -297,7 +297,7 @@ begin
     myPointer :=  @(myStrArray[0]);
     mySize    :=  Length(myStrArray);
   end;
-  4: begin  // SwtControls.NormalStates write
+  4: begin  // SwtControls.NormalState write
     elem := ActiveSwtControl;
     k := 0;
     If elem <> nil Then
