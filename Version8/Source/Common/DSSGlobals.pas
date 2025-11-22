@@ -484,6 +484,7 @@ procedure Show_COM_Help();
 Function Check_DSS_WebVersion(myDialog: boolean):String;
 
 Function GetLineTypes(): String;
+FUNCTION GetDSSProgressPath(SourcePath : String): String;
 
 
 
@@ -1827,6 +1828,20 @@ begin
 
 End;
 
+FUNCTION GetDSSProgressPath(SourcePath : String): String;
+var
+  RefPos  : Integer;
+  newPath : String;
+begin
+  newPath :=  AnsiReverseString(SourcePath);   // reverses the string
+  RefPos  :=  pos('\',AnsiLowerCase(newPath)); // detects the file name
+  newPath :=  AnsiReverseString(newPath);      // reverse again
+  newPath :=  newPath.Substring(0,length(newPath) - RefPos) + '\DSSProgress.exe';  // Leaves only the folder name
+  Result  := '';
+  if fileexists(newPath) then
+    Result := newPath
+end;
+
 procedure LocalFinalization;
 var
   Actor: Integer;
@@ -1988,11 +2003,16 @@ initialization
    ADiak_Init             :=  False;
    EventLogDefault        :=  False;  // Disabled by default
 
-
    GetDefaultPorts();                 // Gets the default ports to get connected to other add-ons
+   DSSProgressPath        := '';
+   DSSProgressFrm         := False;
    {$IFNDEF CONSOLE}
-   DSSProgressFrm         :=  GetDSSProgress(DSSFileName);
-   {$ENDIF}
+   if not (IsDLL) then
+   Begin
+     DSSProgressPath        :=  GetDSSProgressPath(DSSFileName);
+     DSSProgressFrm         :=  GetDSSProgress(DSSProgressPath);
+   End;
+  {$ENDIF}
 
    SeasonalRating         :=  False;
    SeasonSignal           :=  '';
