@@ -13,6 +13,7 @@
 #include "Arraydef.h"
 #include "Ucomplex.h"
 #include "d2c_structures.h"
+#include <math.h>
 
 namespace SwtControl
 {
@@ -23,6 +24,9 @@ namespace SwtControl
   Copyright (c) 2008-2022, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------*/
+const int SWTCONTROLMAXDIM = 6;
+typedef EControlAction StateArray[6 /*# range 1..SWTCONTROLMAXDIM*/];
+typedef StateArray* pStateArray; // 0 = open 1 = close
 
 class TSwtControl : public ControlClass::TControlClass
 {
@@ -45,17 +49,21 @@ class TSwtControlObj : public ControlElem::TControlElem
 public:
 	typedef ControlElem::TControlElem inherited;	
 //private:
-	EControlAction FPresentState;
-	EControlAction FNormalState;
-	EControlAction ActionCommand;
-	EControlAction LockCommand;
+	pStateArray FPresentState;
+	pStateArray FNormalState;
+	//EControlAction LockCommand;
 	bool FLocked;
-	bool Armed;
-	void InterpretSwitchAction(const String Action);
-	void set_NormalState(const EControlAction Value);
+
+	bool NormalStateSet;
+
+	void InterpretSwitchState(int ActorID, const String Param, const String property_name);
+	EControlAction get_States(int Idx);
+	void set_States(int Idx, const EControlAction Value);
+	EControlAction get_NormalStates(int Idx);
+	void set_NormalStates(int Idx, const EControlAction Value);
+
 	void set_Flocked(bool Value);
-	void Set_LastAction(const EControlAction Value);
-	void Set_PresentState(const EControlAction Value);
+
 public:
 	TSwtControlObj(DSSClass::TDSSClass* ParClass, const String SwtControlName);
 	virtual ~TSwtControlObj();
@@ -71,10 +79,10 @@ public:
 	virtual void InitPropertyValues(int ArrayOffset);
 	virtual void DumpProperties(System::TTextRec& f, bool Complete);
 
-	EControlAction get_FNormalState();
-	EControlAction get_FPresentState();
+	//EControlAction get_FNormalState();
+	//EControlAction get_FPresentState();
 	bool get_FLocked();
-	EControlAction get_ActionCommand();
+	//EControlAction get_ActionCommand();
 
 	TSwtControlObj(DSSClass::TDSSClass* ParClass);
 	TSwtControlObj(String ClassName);
