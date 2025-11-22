@@ -47,6 +47,12 @@ TDSSClass* TCC_CurveClass = nullptr;
 TTCC_CurveObj* GetTccCurve(const String CurveName)
 {
 	TTCC_CurveObj* result = nullptr;
+
+	if (LowerCase(CurveName) == "none")
+	{
+		return result;
+	}
+
 	result = ((TTCC_CurveObj*) TCC_CurveClass->Find(CurveName));
 	if(result == nullptr)
 		DoSimpleMsg(String("TCC Curve object: \"") + CurveName + "\" not found.", 401);
@@ -109,8 +115,8 @@ void TFuse::DefineProperties()
 	           "This is the \"controlled\" element.";
 	PropertyHelp[4 - 1] = "Number of the terminal of the controlled element in which the switch is controlled by the Fuse. "
 	           "1 or 2, typically.  Default is 1.  Assumes all phases of the element have a fuse of this type.";
-	PropertyHelp[5 - 1] = "Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object."
-	           " Default is \"Tlink\". "
+	PropertyHelp[5 - 1] = "Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored)."
+	           " If \"none\", fuse sampling will be skipped and device will not blow for any current level. Default is \"none\". "
 	           "Multiplying the current values in the curve by the \"RatedCurrent\" value gives the actual current.";
 	PropertyHelp[6 - 1] = "Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.";
 	PropertyHelp[7 - 1] = "Fixed delay time (sec) added to Fuse blowing time determined from the TCC curve. Default is 0.0. Used to represent fuse clearing time or any other delay.";
@@ -333,7 +339,7 @@ TFuseObj::TFuseObj(TDSSClass* ParClass, const String FuseName)
 	ElementTerminal = 1;
 	MonitoredElementName = "";
 	MonitoredElementTerminal = 1;
-	FuseCurve = GetTccCurve("tlink");
+	FuseCurve = nullptr;
 	RatedCurrent = 1.0;
 	FPresentState = nullptr;
 	FNormalState = nullptr;
@@ -800,7 +806,7 @@ void TFuseObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(2,"1"); //'terminal';
 	Set_PropertyValue(3,"");
 	Set_PropertyValue(4,"1"); //'terminal';
-	Set_PropertyValue(5,"Tlink");
+	Set_PropertyValue(5,"none");
 	Set_PropertyValue(6,"1.0");
 	Set_PropertyValue(7,"0");
 	Set_PropertyValue(8,"");  // action

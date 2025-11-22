@@ -9,6 +9,7 @@
 #include "Circuit.h"
 #include "Utilities.h"
 #include "Solution.h"
+#include "mathutil.h"
 
 using namespace std;
 using namespace Circuit;
@@ -25,6 +26,7 @@ using namespace Solution;
 using namespace System;
 using namespace Ucomplex;
 using namespace Utilities;
+using namespace mathutil;
 
 namespace SwtControl
 {
@@ -69,17 +71,20 @@ void TSwtControl::DefineProperties()
 	PropertyName[6 - 1] = "Normal";
 	PropertyName[7 - 1] = "State";
 	PropertyName[8 - 1] = "Reset";
+
 	PropertyHelp[1 - 1] = "Name of circuit element switch that the SwtControl operates. "
 	           "Specify the full object class and name.";
 	PropertyHelp[2 - 1] = "Terminal number of the controlled element switch. " "1 or 2, typically.  Default is 1.";
-	PropertyHelp[3 - 1] = "{Open | Close}  After specified delay time, and if not locked, causes the controlled switch to open or close. ";
-	PropertyHelp[4 - 1] = "{Yes | No} Delayed action. Sends CTRL_LOCK or CTRL_UNLOCK message to control queue. "
-	           "After delay time, controlled switch is locked in its present open / close state or unlocked. "
-	           "Switch will not respond to either manual (Action) or automatic (COM interface) control or internal OpenDSS Reset when locked.";
-	PropertyHelp[5 - 1] = "Operating time delay (sec) of the switch. Defaults to 120.";
-	PropertyHelp[6 - 1] = "{Open | Closed] Normal state of the switch. If not Locked, the switch reverts to this state for reset, change of mode, etc."
-	           " Defaults to first Action or State specified if not specifically declared.";
-	PropertyHelp[7 - 1] = "{Open | Closed] Present state of the switch. Upon setting, immediately forces state of switch.";
+	PropertyHelp[3 - 1] = "DEPRECATED. See \"State\" property. ";
+	PropertyHelp[4 - 1] = "{Yes | No} Controlled switch is locked in its present open / closed state or unlocked. "
+	           "When locked, the switch will not respond to either a manual state change issued by the user or a state change issued internally by OpenDSS when reseting the control.";
+	PropertyHelp[5 - 1] = "DEPRECATED.";
+	PropertyHelp[6 - 1] = "ARRAY of strings {Open | Closed} representing the Normal state of the switch in each phase of the controlled element. "
+	           "The switch reverts to this state for reset, change of mode, etc. "
+			   "Defaults to \"State\" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).";
+	PropertyHelp[7 - 1] = "ARRAY of strings {Open | Closed} representing the Actual state of the switch in each phase of the controlled element. "
+			   "Upon setting, immediately forces the state of the switch(es). Simulates manual control on Switch. Defaults to Closed for all phases. Setting this property to {Open | Closed} "
+			   "sets the actual state to the specified value for all phases (ganged operation).";
 	PropertyHelp[8 - 1] = "{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal "
 	           "reset command for mode change, etc.";
 	ActiveProperty = NumPropsThisClass - 1;
@@ -106,6 +111,7 @@ int TSwtControl::Edit(int ActorID)
 	String ParamName;
 	String Param;
 	int DevIndex = 0;
+	int i = 0;
 
   // continue parsing WITH contents of Parser
 	ActiveSwtControlObj = (TSwtControlObj*) ElementList.Get_Active();
@@ -142,25 +148,19 @@ int TSwtControl::Edit(int ActorID)
 				case 	2:
                 with0->ElementTerminal = Parser[ActorID]->MakeInteger_();
 				break;
-				case 	3:
-				with0->InterpretSwitchAction(Param);
-				break;
 				case 	4:
 				with0->set_Flocked(InterpretYesNo(Param));
-				break;
-				case 	5:
-				with0->TimeDelay = Parser[ActorID]->MakeDouble_();
 				break;    // set the normal state
-				case 	6:
+				case 	6: 
 				{
-					with0->InterpretSwitchAction(Param);
-					with0->set_NormalState(with0->ActionCommand);
+					with0->InterpretSwitchState(ActorID, Param, ParamName);
+					if(!with0->NormalStateSet)
+						with0->NormalStateSet = true;
 				}
 				break;    // set the present state
-				case 	7:
+				case 	3: case 7:
 				{
-					with0->InterpretSwitchAction(Param);
-					with0->Set_PresentState(with0->ActionCommand);
+					with0->InterpretSwitchState(ActorID, Param, ParamName);
 				}
 				break;
 				case 	8:
@@ -180,43 +180,15 @@ int TSwtControl::Edit(int ActorID)
          /*supplemental actions*/
 			switch(ParamPointer)
 			{
-				case 	3:
-				if(with0->get_FNormalState() == CTRL_NONE)
-
-             // Default to first action specified for legacy scripts
-					with0->set_NormalState(with0->ActionCommand);
-				break;
-				case 	4:
-				if(with0->get_FLocked())
-					with0->LockCommand = CTRL_LOCK;
-				else
-					with0->LockCommand = CTRL_UNLOCK;
-				break;
-				case 	7:
+				case 	3:case 	7:
 				{
-					if(with0->get_FNormalState() == CTRL_NONE)
-						with0->set_NormalState(with0->get_FPresentState());
-					DevIndex = GetCktElementIndex(with0->ElementName);   // Set Controlled element
-					if(DevIndex > 0)
+					int stop = 0;
+					for(stop = ( (TDSSCktElement*) with0 )->Fnphases, i = 1; i <= stop; i++)
 					{
-						with0->Set_ControlledElement(((TDSSCktElement*) ActiveCircuit[ActorID]->CktElements.Get(DevIndex)));
-						if(with0->get_FControlledElement() != nullptr)
-						{
-							with0->get_FControlledElement()->Set_ActiveTerminal(with0->ElementTerminal);
-							switch(with0->get_FPresentState())
-							{
-								case 	CTRL_OPEN:     // Force state
-								with0->get_FControlledElement()->Set_ConductorClosed(0, ActorID, false);
-								break;
-								case 	CTRL_CLOSE:
-								with0->get_FControlledElement()->Set_ConductorClosed(0, ActorID, true);
-								break;
-								default:
-								  ;
-								break;
-							}
-						}
+						if(!with0->NormalStateSet)
+							(*with0->FNormalState)[i - 1] = (*with0->FPresentState)[i - 1];
 					}
+					with0->NormalStateSet = true;   // normal state will default to state only the 1st state is specified.
 				}
 				break;
 				default:
@@ -251,9 +223,13 @@ int TSwtControl::MakeLike(const String SwtControlName)
 			with0->Set_ControlledElement(OtherSwtControl->get_FControlledElement());  // Pointer to target circuit element
 			with0->TimeDelay = OtherSwtControl->TimeDelay;
 			with0->set_Flocked(OtherSwtControl->get_FLocked());
-			with0->Set_PresentState(OtherSwtControl->get_FPresentState());
-			with0->set_NormalState(OtherSwtControl->get_FNormalState());
-			with0->ActionCommand = OtherSwtControl->ActionCommand;
+
+			for(stop = min(SWTCONTROLMAXDIM, with0->get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+			{
+				(*with0->FPresentState)[i - 1] = (*OtherSwtControl->FPresentState)[i - 1];
+				(*with0->FNormalState)[i - 1] = (*OtherSwtControl->FNormalState)[i - 1];
+			}
+
 			for(stop = with0->ParentClass->NumProperties, i = 1; i <= stop; i++)
 			{
 				with0->Set_PropertyValue(i,OtherSwtControl->Get_PropertyValue(i));
@@ -271,9 +247,10 @@ int TSwtControl::MakeLike(const String SwtControlName)
 
 TSwtControlObj::TSwtControlObj(TDSSClass* ParClass, const String SwtControlName)
  : inherited(ParClass),
-			FLocked(false),
-			Armed(false)
+			FLocked(false)
 {
+    int i = 0;
+    int stop = 0;
 	Set_Name(LowerCase(SwtControlName));
 	DSSObjType = ParClass->DSSClassType;
 	Set_NPhases(3);  // Directly set conds and phases
@@ -282,18 +259,29 @@ TSwtControlObj::TSwtControlObj(TDSSClass* ParClass, const String SwtControlName)
 	ElementName = "";
 	Set_ControlledElement(nullptr);
 	ElementTerminal = 1;
-	Set_PresentState(CTRL_CLOSE);  // default to closed
-	set_NormalState(CTRL_NONE);   // default to unspecified; set on first setting action or anything
-	ActionCommand = get_FPresentState();
-	LockCommand = CTRL_NONE;
+	
+	FPresentState = nullptr;
+	FNormalState = nullptr;
+
+     // Reallocate arrays  (Must be initialized to nil for first call)
+	FPresentState = (pStateArray) realloc(FPresentState, sizeof((*FPresentState)[1 - 1]) * Fnphases);
+	FNormalState = (pStateArray) realloc(FNormalState, sizeof((*FNormalState)[1 - 1]) * Fnphases);
+	for(stop = min(SWTCONTROLMAXDIM, Fnphases), i = 1; i <= stop; i++)
+	{
+		(*FPresentState)[i - 1] = CTRL_CLOSE;
+		(*FNormalState)[i - 1] = CTRL_CLOSE;  // default to present state;
+	}
+	NormalStateSet = false;
+
 	set_Flocked(false);
-	Armed = false;
 	TimeDelay = 120.0; // 2 minutes
 	InitPropertyValues(0);
 }
 
 TSwtControlObj::~TSwtControlObj()
 {
+    FPresentState = (pStateArray)realloc(FPresentState, 0);
+    FNormalState = (pStateArray)realloc(FNormalState, 0);
 	// inherited::Destroy();
 }
 
@@ -301,6 +289,7 @@ TSwtControlObj::~TSwtControlObj()
 void TSwtControlObj::RecalcElementData(int ActorID)
 {
 	int DevIndex = 0;
+    int i = 0;
 	DevIndex = GetCktElementIndex(ElementName);
 	if(DevIndex > 0)
 	{
@@ -310,21 +299,35 @@ void TSwtControlObj::RecalcElementData(int ActorID)
         else
             myElmTerminal = 1;
 
-		Set_ControlledElement(((TDSSCktElement*) ActiveCircuit[ActorID]->CktElements.Get(DevIndex)));
+		Set_ControlledElement(((TDSSCktElement*) ActiveCircuit[ActorID]->CktElements.Get(DevIndex)));		
 		Set_NPhases(get_FControlledElement()->Get_NPhases());
+		if(Fnphases > SWTCONTROLMAXDIM)
+			DoSimpleMsg(String("Warning: SwitchControl ") + this->get_Name()
+	           + ": Number of phases > Max SwtControl dimension.", 384);
+		if(ElementTerminal > get_FControlledElement()->Get_NTerms())
+		{
+			DoErrorMsg(String("SwtControl: \"") + get_Name() + "\"", "Terminal no. \"" "\" does not exist.", "Re-specify terminal no.", 384);
+		}
 		Set_Nconds(Fnphases);
 
 		get_FControlledElement()->Set_ActiveTerminal(myElmTerminal);
 
 		get_FControlledElement()->HasSwtControl = true;  // For Reliability calcs
-/*
-    if not Locked then
-      Case PresentState of
-        CTRL_OPEN: ControlledElement.Closed[0] := FALSE;
-        CTRL_CLOSE: ControlledElement.Closed[0] := TRUE;
-      End;
 
-*/
+		int stop = 0;
+		// Open/Closed State of controlled element based on state assigned to the control
+		for(stop = min(SWTCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+		{
+			if((*FPresentState)[i - 1] == CTRL_OPEN)
+			{
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);
+			}
+			else
+			{
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, true);
+			}
+		}
+
     // attach controller bus to the switch bus - no space allocated for monitored variables
         SetBus(1, get_FControlledElement()->GetBus(myElmTerminal));
 	}
@@ -376,6 +379,7 @@ void TSwtControlObj::GetInjCurrents(pComplexArray Curr, int ActorID)
 
 void TSwtControlObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 {
+    /*
 	EControlAction ctrl_code;
 	ctrl_code = EControlAction(Code);  // change type
 	get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);
@@ -406,49 +410,123 @@ void TSwtControlObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 		}
 		break;
 	}
+	*/
 }
 
-void TSwtControlObj::InterpretSwitchAction(const String Action)
+/*--------------------------------------------------------------------------*/
+
+void TSwtControlObj::InterpretSwitchState(int ActorID, const String Param, const String property_name)
 {
-	if(!get_FLocked())
-	{
-		switch(LowerCase(Action)[0])
-		{
-			case 	L'o':
-			ActionCommand = CTRL_OPEN;
-			break;    // default is closed
-			default:
-			ActionCommand = CTRL_CLOSE;
-			break;
+    int i = 0;
+    String DataStr1;
+    String DataStr2;
+    // Only allowed to change normal state if locked.
+    if (get_FLocked() and (LowerCase(property_name)[0] == 'a' or LowerCase(property_name)[0] == 's'))
+    {
+		return;
+    }
+
+	if (LowerCase(property_name)[0] == 'a') // Interpret ganged specification to state and normal when using action
+    {   // action (deprecated) will be removed
+        int stop = 0;
+        for (stop = SWTCONTROLMAXDIM, i = 1; i <= stop; i++)
+        {
+            switch (LowerCase(Param)[0])
+            {
+            case L'o':
+                set_States(i, CTRL_OPEN);
+                break;
+            case L'c':
+                set_States(i, CTRL_CLOSE);
+                break;
+            default:;
+                break;
+            }
+        }
+    }
+    else
+    {	
+		if (!AuxParser[ActorID]->IsQuotedString)  // Interpret ganged specification to state and normal when not quoted
+        {
+			int stop = 0;
+			for (stop = SWTCONTROLMAXDIM, i = 1; i <= stop; i++)
+			{
+				if (LowerCase(property_name)[0] == 's')  // state
+				{
+					switch (LowerCase(Param)[0])
+					{
+					case L'o':
+						set_States(i, CTRL_OPEN);
+						break;
+					case L'c':
+						set_States(i, CTRL_CLOSE);
+						break;
+					default:;
+						break;
+					}
+				}
+				else  // 'normal
+				{
+					switch (LowerCase(Param)[0])
+					{
+					case L'o':
+						set_NormalStates(i, CTRL_OPEN);
+						break;
+					case L'c':
+						set_NormalStates(i, CTRL_CLOSE);
+						break;
+					default:;
+						break;
+					}
+				}
+			}
+        }
+        else
+        {
+			AuxParser[ActorID]->SetCmdString(Param); // Load up Parser
+			DataStr1 = AuxParser[ActorID]->GetNextParam(); // ignore
+			DataStr2 = AuxParser[ActorID]->MakeString_();
+			i = 1;
+			while ((DataStr2.size() > 0) && (i < SWTCONTROLMAXDIM))
+			{
+				if (LowerCase(property_name)[0] == 's') // state
+				{
+					switch (LowerCase(DataStr2)[0])
+					{
+					case L'o':
+						set_States(i, CTRL_OPEN);
+						break;
+					case L'c':
+						set_States(i, CTRL_CLOSE);
+						break;
+					default:;
+						break;
+					}
+				}
+				else
+				// 'normal'
+				{
+					switch (LowerCase(DataStr2)[0])
+					{
+					case L'o':
+						set_NormalStates(i, CTRL_OPEN);
+						break;
+					case L'c':
+						set_NormalStates(i, CTRL_CLOSE);
+						break;
+					default:;
+						break;
+					}
+				}
+				DataStr1 = AuxParser[ActorID]->GetNextParam(); // ignore
+				DataStr2 = AuxParser[ActorID]->MakeString_();
+				++i;
+			}
 		}
-
-    /*   Changed to delayed action
-    if ControlledElement <> nil then begin
-      ControlledElement.ActiveTerminalIdx := ElementTerminal;
-      Case PresentState of
-        CTRL_OPEN: ControlledElement.Closed[0] := FALSE;
-        CTRL_CLOSE: ControlledElement.Closed[0] := TRUE;
-      End;
-    End;
-    */
-	}
+    }
 }
 
-//-------------------------------------------------------------------------------------
-
-EControlAction TSwtControlObj::get_FNormalState()
-{
-	return FNormalState;
-}
-
-//-------------------------------------------------------------------------------------
-
-EControlAction TSwtControlObj::get_FPresentState()
-{
-	return FPresentState;
-}
-
-//-------------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------*/
 
 bool TSwtControlObj::get_FLocked()
 {
@@ -457,20 +535,13 @@ bool TSwtControlObj::get_FLocked()
 
 //-------------------------------------------------------------------------------------
 
-EControlAction TSwtControlObj::get_ActionCommand()
-{
-	return ActionCommand;
-}
-
-//-------------------------------------------------------------------------------------
-
 void TSwtControlObj::sample(int ActorID)
 {
 
-
-// push on the Lock command if any at the present time delay
+	/*
+	// push on the Lock command if any at the present time delay
 	if(LockCommand != CTRL_NONE)
-		/*# with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do */
+		// with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
 		{
 			
 			auto with1 = ActiveCircuit[ActorID]->Solution;
@@ -478,13 +549,14 @@ void TSwtControlObj::sample(int ActorID)
 			LockCommand = CTRL_NONE;  // reset the lock command for next time
 		}
 	if((ActionCommand != get_FPresentState()) && !Armed)
-		/*# with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do */
+		// with ActiveCircuit[ActorID], ActiveCircuit[ActorID].Solution do
 		{
 			
 			auto with3 = ActiveCircuit[ActorID]->Solution;   // we need to operate this switch
 			ActiveCircuit[ActorID]->ControlQueue.Push(with3->DynaVars.intHour, with3->DynaVars.T + TimeDelay, ActionCommand, 0, this, ActorID);
 			Armed = true;
 		}
+	*/
   /*ControlledElement.ActiveTerminalIdx := ElementTerminal;
   IF  ControlledElement.Closed [0]      // Check state of phases of active terminal
   THEN PresentState := CTRL_CLOSE
@@ -496,19 +568,62 @@ void TSwtControlObj::set_Flocked(bool Value)
 	FLocked = Value;
 }
 
-void TSwtControlObj::Set_LastAction(const EControlAction Value)
+EControlAction TSwtControlObj::get_States(int Idx)
 {
-	ActionCommand = Value;
+    EControlAction result;
+    if (get_FControlledElement() != nullptr)
+    {
+        get_FControlledElement()->Set_ActiveTerminal(ElementTerminal); // Set active terminal
+        if (get_FControlledElement()->Get_ConductorClosed(Idx, ActiveActor))
+        {
+            /*TRUE:*/
+            (*FPresentState)[Idx - 1] = CTRL_CLOSE;
+        }
+        else
+        {
+            /* FALSE */
+            (*FPresentState)[Idx - 1] = CTRL_OPEN;
+        }
+    }
+    result = (*FPresentState)[Idx - 1];
+    return result;
 }
 
-void TSwtControlObj::set_NormalState(const EControlAction Value)
+void TSwtControlObj::set_States(int Idx, const EControlAction Value)
 {
-	FNormalState = Value;
+    if (get_States(Idx) != Value)
+    {
+        if (get_FControlledElement() != nullptr)
+        {
+            get_FControlledElement()->Set_ActiveTerminal(ElementTerminal); // Set active terminal
+            switch (Value)
+            {
+            case CTRL_OPEN:
+                get_FControlledElement()->Set_ConductorClosed(Idx, ActiveActor, false);
+                break;
+                /*CTRL_CLOSE:*/
+            default:
+                get_FControlledElement()->Set_ConductorClosed(Idx, ActiveActor, true);
+                break;
+            }
+        }
+        (*FPresentState)[Idx - 1] = Value;
+    }
 }
 
-void TSwtControlObj::Set_PresentState(const EControlAction Value)
+EControlAction TSwtControlObj::get_NormalStates(int Idx)
 {
-	FPresentState = Value;
+    EControlAction result;
+    result = (*FNormalState)[Idx - 1];
+    return result;
+}
+
+void TSwtControlObj::set_NormalStates(int Idx, const EControlAction Value)
+{
+    if ((*FNormalState)[Idx - 1] != Value)
+    {
+        (*FNormalState)[Idx - 1] = Value;
+    }
 }
 
 void TSwtControlObj::DumpProperties(TTextRec& f, bool Complete)
@@ -532,6 +647,16 @@ String TSwtControlObj::GetPropertyValue(int Index)
 {
 	String result;
 	result = "";
+	int i = 0;
+	switch(Index)
+	{
+		case 	6: case 	7:
+		result = "[";
+		break;
+		default:
+		result = "";
+		break;
+	}
 	switch(Index)
 	{
 		case 	1:
@@ -539,18 +664,6 @@ String TSwtControlObj::GetPropertyValue(int Index)
 		break;
 		case 	2:
 		result = Format("%d", ElementTerminal);
-		break;
-		case 	3:
-		switch(ActionCommand)
-		{
-			case 	CTRL_OPEN:
-			result = "open";
-			break;
-          /*CTRL_CLOSE:*/
-			default:
-			result = "close";
-			break;
-		}
 		break;
 		case 	4:
 		if(get_FLocked())
@@ -562,24 +675,41 @@ String TSwtControlObj::GetPropertyValue(int Index)
 		result = Format("%-.7g", TimeDelay);
 		break;
 		case 	6:
-		switch(FNormalState)
+		if(get_FControlledElement() != nullptr)  // Special cases
 		{
-			case 	CTRL_OPEN:
-			result = "open";
-			break;
-          /*CTRL_CLOSE:*/
-			default:
-			result = "closed";
-			break;
+			int stop = 0;
+			for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+			{
+				switch((*FNormalState)[i - 1])
+				{
+					case 	CTRL_OPEN:
+					result = result + "open" + ", ";
+					break;
+                      /*CTRL_CLOSE:*/
+					default:
+					result = result + "closed" + ", ";
+					break;
+				}
+			}
 		}
 		break;
 		case 	7:
+		if(get_FControlledElement() != nullptr)
 		{
-			get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);
-			if(get_FControlledElement()->Get_ConductorClosed(0, ActiveActor))
-				result = "Closed";
-			else
-				result = "open";
+			int stop = 0;
+			for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+			{
+				switch((*FPresentState)[i - 1])
+				{
+					case 	CTRL_OPEN:
+					result = result + "open" + ", ";
+					break;
+                      /*CTRL_CLOSE:*/
+					default:
+					result = result + "closed" + ", ";
+					break;
+				}
+			}
 		}
 		break;
 		case 	8:
@@ -589,27 +719,35 @@ String TSwtControlObj::GetPropertyValue(int Index)
 		result = inherited::GetPropertyValue(Index);
 		break;
 	}
+    switch (Index)
+    {
+    case 6: case 7:
+        result = result + "]";
+        break;
+    default:
+        break;
+    }
 	return result;
 }
 
 void TSwtControlObj::Reset(int ActorID)
-{
+{	
+	int i = 0;
 	if(!get_FLocked())
 	{
-		Set_PresentState(get_FNormalState());
-		ActionCommand = get_FPresentState();
-		Armed = false;
-		if(get_FControlledElement() != nullptr)
+		int stop = 0;
+		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
+		for(stop = min(SWTCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
 		{
-			get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
-			switch(FNormalState)
+			(*FPresentState)[i - 1] = (*FNormalState)[i - 1];  // reset to normal state
+			switch((*FNormalState)[i - 1])
 			{
 				case 	CTRL_OPEN:
-				get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, false);
+				get_FControlledElement()->Set_ConductorClosed(i, ActiveActor, false);
 				break;
             /*CTRL_CLOSE:*/
 				default:
-				get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, true);  // Close all phases of active terminal
+				get_FControlledElement()->Set_ConductorClosed(i, ActiveActor, true);
 				break;
 			}
 		}
@@ -620,12 +758,12 @@ void TSwtControlObj::InitPropertyValues(int ArrayOffset)
 {
 	Set_PropertyValue(1,""); //'element';
 	Set_PropertyValue(2,"1"); //'terminal';
-	Set_PropertyValue(3,"c");
+	Set_PropertyValue(3,"");  //'action';
 	Set_PropertyValue(4,"n");
 	Set_PropertyValue(5,"120.0");
-	Set_PropertyValue(6,"c");
-	Set_PropertyValue(7,"c");
-	Set_PropertyValue(8,"n");
+	Set_PropertyValue(6,"");
+	Set_PropertyValue(7,"[closed, closed, closed]");
+	Set_PropertyValue(8,"[closed, closed, closed]");
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
