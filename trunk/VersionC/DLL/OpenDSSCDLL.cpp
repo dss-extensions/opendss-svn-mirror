@@ -7352,8 +7352,15 @@ char* FusesS(int mode, char* arg)
 	case 6:														// Fuses.TCCcurve read
 		elem = (TFuseObj*)FuseClass->GetActiveObj();
 		if (elem != nullptr)
-		{
-			result = elem->FuseCurve->LName;
+		{	
+			if (elem->FuseCurve != nullptr)
+			{
+				result = elem->FuseCurve->LName;
+			}
+			else
+			{
+				result= "none";
+			}			
 		}
 		else
 			result = "No Fuse Active!";
@@ -7410,7 +7417,7 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*mySize = myStrArray.size();
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		break;
-	case 1:														// Fuses.States - read
+	case 1:														// Fuses.State - read
 		*myType = 4; //String
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
@@ -7440,7 +7447,7 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		*mySize = myStrArray.size();
 		break;
-	case 2:														// Fuses.States - write
+	case 2:														// Fuses.State - write
 		*myType = 4;//string
 		k = 0;
 		elem = (TFuseObj*)FuseClass->GetActiveObj();
@@ -15780,7 +15787,7 @@ int SwtControlsI(int mode, int arg)
 
 	switch (mode)
 	{
-	case 0:												// SwtControls.
+	case 0:												// SwtControls.First
 		result = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
@@ -15803,7 +15810,7 @@ int SwtControlsI(int mode, int arg)
 			}
 		}
 		break;
-	case 1:												// SwtControls.
+	case 1:												// SwtControls.Next
 		result = 0;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
@@ -16008,7 +16015,7 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 	switch (mode)
 	{
-	case 0:												// SwtControls.
+	case 0:												// SwtControls.AllNames
 		*myType = 4;			//String
 		myStrArray.resize(0);
 		if (ActiveCircuit[ActiveActor] != nullptr)
@@ -16034,7 +16041,7 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		*mySize = myStrArray.size();
 		break;
-	case 1:														// SwtControls.States - read
+	case 1:														// SwtControls.State - read
 		*myType = 4; //String
 		myStrArray.resize(0);
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
@@ -16064,7 +16071,7 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		*mySize = myStrArray.size();
 		break;
-	case 2:														// SwtControls.States - write
+	case 2:														// SwtControls.State - write
 		*myType = 4;//string
 		k = 0;
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
@@ -16093,7 +16100,7 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		*mySize = k;
 		break;
-	case 3:														// SwtControls.NormalStates - read
+	case 3:														// SwtControls.NormalState - read
 		*myType = 4; //String
 		myStrArray.resize(0);
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
@@ -16123,7 +16130,7 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		*mySize = myStrArray.size();
 		break;
-	case 4:														// SwtControls.NormalStates - write
+	case 4:														// SwtControls.NormalState - write
 		*myType = 4;//string
 		k = 0;
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
