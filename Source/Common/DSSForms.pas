@@ -39,7 +39,7 @@ VAR
    PROCEDURE CloseDownForms;
    Procedure ShowTreeView(Const Fname:String);
    FUNCTION  MakeChannelSelection(NumFieldsToSkip:Integer; const Filename:String):Boolean;
-   FUNCTION  GetDSSProgress(SourcePath : String): Boolean;
+   FUNCTION  GetDSSProgress(DSSprogPath : String): Boolean;
 
 {$ENDIF}
 implementation
@@ -141,21 +141,13 @@ Begin
     If IsLibrary then IsDLL := TRUE;
 End;
 
-FUNCTION  GetDSSProgress(SourcePath : String): Boolean;
-var
-  RefPos  : Integer;
-  newPath : String;
+
+FUNCTION  GetDSSProgress(DSSprogPath : String): Boolean;
 Begin
 
-  newPath :=  AnsiReverseString(SourcePath);   // reverses the string
-  RefPos  :=  pos('\',AnsiLowerCase(newPath)); // detects the file name
-  newPath :=  AnsiReverseString(newPath);      // reverse again
-  newPath :=  newPath.Substring(0,length(newPath) - RefPos);  // Leaves only the folder name
-
-  if fileexists(newPath + '\DSSProgress.exe') then
+  if fileexists(DSSprogPath) then
   Begin
     Result          :=  True;            // The progress app is installed
-    DSSProgressPath :=  newPath + '\DSSProgress.exe';
     Progress_Actor  :=  TProgressActor.Create();
   End
   else
