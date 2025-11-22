@@ -7479,7 +7479,7 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			{
 				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
 				{
-					if (elem->get_States(i) == CTRL_CLOSE)
+					if (elem->get_NormalStates(i) == CTRL_CLOSE)
 					{
 						WriteStr2Array("closed");
 					}
@@ -7517,10 +7517,10 @@ void FusesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
                     switch (LowerCase(S)[0])
 					{
 					case 'o':
-						elem->set_States(i, CTRL_OPEN);
+						elem->set_NormalStates(i, CTRL_OPEN);
 						break;
 					case 'c':
-						elem->set_States(i, CTRL_CLOSE);
+						elem->set_NormalStates(i, CTRL_CLOSE);
 						break;
 					}
 				}
@@ -15776,6 +15776,7 @@ int SwtControlsI(int mode, int arg)
 	TSwtControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
 	int				result = 0;
+	int				i = 0;
 
 	switch (mode)
 	{
@@ -15825,48 +15826,7 @@ int SwtControlsI(int mode, int arg)
 			}
 		}
 		break;
-	case 2:												// SwtControls.
-		result = 0;
-		elem = ActiveSwtControl();
-		if (elem != nullptr)
-		{
-			switch (elem->get_ActionCommand()) 
-			{
-			case CTRL_CLOSE:
-				result = 2;
-				break;
-			case CTRL_OPEN:
-				result = 1;
-				break;
-			}
-		}
-		break;
-	case 3:												// SwtControls.
-		elem = ActiveSwtControl();
-		if (elem != nullptr)
-		{
-			switch (arg)
-			{
-			case	1:
-				Set_ParameterSwtControl("Action", "0");
-				break;
-			case	2:
-				Set_ParameterSwtControl("Action", "c");
-					break;
-			case	3:
-				Set_ParameterSwtControl("Lock", "n");
-				Set_ParameterSwtControl("Action", "c");
-					break;
-			case	4:
-				Set_ParameterSwtControl("Lock", "y");
-				break;
-			case	5:
-				Set_ParameterSwtControl("Lock", "n");
-				break;
-			}
-		}
-		break;
-	case 4:												// SwtControls.
+	case 2:												// SwtControls.IsLocked read
 		result = 0;
 		elem = ActiveSwtControl();
 		if (elem != nullptr)
@@ -15877,7 +15837,7 @@ int SwtControlsI(int mode, int arg)
 			}
 		}
 		break;
-	case 5:												// SwtControls.
+	case 3:												// SwtControls.IsLocked write
 		if (arg == 1)
 		{
 			Set_ParameterSwtControl("Lock", "y");
@@ -15887,7 +15847,7 @@ int SwtControlsI(int mode, int arg)
 			Set_ParameterSwtControl("Lock", "n");
 		}
 		break;
-	case 6:												// SwtControls.
+	case 4:												// SwtControls.SwitchedTerm read
 		result = 0;
 		elem = ActiveSwtControl();
 		if (elem != nullptr)
@@ -15895,42 +15855,42 @@ int SwtControlsI(int mode, int arg)
 			result = elem->ElementTerminal;
 		}
 		break;
-	case 7:												// SwtControls.
+	case 5:												// SwtControls.SwitchedTerm write
             Set_ParameterSwtControl("SwitchedTerm", Format("%d", arg));
 		break;
-	case 8:												// SwtControls.
+	case 6:												// SwtControls.Count
 		if(ASSIGNED(ActiveCircuit[ActiveActor]))
 		{
 			result = ActiveCircuit[ActiveActor]->SwtControls.get_myNumList();
 		}
 		break;
-    case 9:												// SwtControls.NormalState Read
+	case 7:														// Fuses.Open
         if (ASSIGNED(ActiveCircuit[ActiveActor]))
-        {
+		{
             elem = ActiveSwtControl();
-            if (elem != nullptr)
-            {
-                if (elem->get_FNormalState() == CTRL_OPEN)
-                    result = 0;
-                else
-                    result = 1;
-            }
-        }
-        break;
-    case 10:											// SwtControls.NormalState Write
-        if (ASSIGNED(ActiveCircuit[ActiveActor]))
-        {
-            elem = ActiveSwtControl();
-            if (elem != nullptr)
-            {
-				if (arg != 0)
-                    elem->set_NormalState(CTRL_CLOSE);
-                else
-                    elem->set_NormalState(CTRL_OPEN);
-            }
-        }
-        break;
-    case 11:											// SwtControls.Reset
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					elem->set_States(i, CTRL_OPEN); // Open all phases
+				}
+			}
+		}
+		break;
+	case 8:														// Fuses.Close
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = ActiveSwtControl();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					elem->set_States(i, CTRL_CLOSE); // Open all phases
+				}
+			}
+		}
+		break;
+    case 9:											// SwtControls.Reset
         if (ASSIGNED(ActiveCircuit[ActiveActor]))
         {
             elem = ActiveSwtControl();
@@ -15938,32 +15898,6 @@ int SwtControlsI(int mode, int arg)
             {
                 elem->set_Flocked(false);
 	            elem->Reset(ActiveActor);
-            }
-        }
-        break;
-    case 12: // SwtControls.NormalState Read
-        if (ASSIGNED(ActiveCircuit[ActiveActor]))
-        {
-            elem = ActiveSwtControl();
-            if (elem != nullptr)
-            {
-                if (elem->get_FPresentState() == CTRL_OPEN)
-                    result = 0;
-                else
-                    result = 1;
-            }
-        }
-        break;
-    case 13: // SwtControls.NormalState Write
-        if (ASSIGNED(ActiveCircuit[ActiveActor]))
-        {
-            elem = ActiveSwtControl();
-            if (elem != nullptr)
-            {
-                if (arg != 0)
-                    elem->Set_PresentState(CTRL_CLOSE);
-                else
-                    elem->Set_PresentState(CTRL_OPEN);
             }
         }
         break;
@@ -16069,6 +16003,8 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	TSwtControlObj* elem = nullptr;
 	TPointerList*	lst = nullptr;
 	int				k = 0;
+	int				i = 0;
+	string			S = "";
 
 	switch (mode)
 	{
@@ -16097,6 +16033,124 @@ void SwtControlsV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
 		*mySize = myStrArray.size();
+		break;
+	case 1:														// SwtControls.States - read
+		*myType = 4; //String
+		myStrArray.resize(0);
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = ActiveSwtControl();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_States(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				}
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 2:														// SwtControls.States - write
+		*myType = 4;//string
+		k = 0;
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = ActiveSwtControl();
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+                    switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_States(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_States(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
+		break;
+	case 3:														// SwtControls.NormalStates - read
+		*myType = 4; //String
+		myStrArray.resize(0);
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = ActiveSwtControl();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_NormalStates(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				} 
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 4:														// SwtControls.NormalStates - write
+		*myType = 4;//string
+		k = 0;
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = ActiveSwtControl();
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+                    switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_NormalStates(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_NormalStates(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
 		break;
 	default:
 		*myType = 4;			//String
