@@ -144,6 +144,7 @@ function GetTccCurve(const CurveName: String): TTCC_CurveObj;
 
 begin
 
+    Result := nil;
     if lowercase(CurveName) = 'none' then
         Exit;
 
@@ -856,8 +857,8 @@ begin
     PropertyValue[6] := '1.0';
     PropertyValue[7] := '0';
     PropertyValue[8] := '';  // action
-    PropertyValue[9] := '[close, close, close]';  // normal
-    PropertyValue[10] := '[close,close,close]';  // state
+    PropertyValue[9] := '[closed, closed, closed]';  // normal
+    PropertyValue[10] := '[closed, closed, closed]';  // state
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

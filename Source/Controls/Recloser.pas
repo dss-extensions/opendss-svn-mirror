@@ -185,6 +185,7 @@ function GetTccCurve(const CurveName: String): TTCC_CurveObj;
 
 begin
 
+    Result := nil;
     if lowercase(CurveName) = 'none' then
         Exit;
 
