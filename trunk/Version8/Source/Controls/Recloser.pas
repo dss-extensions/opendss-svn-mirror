@@ -171,6 +171,7 @@ Function GetTccCurve(Const CurveName:String):TTCC_CurveObj;
 
 Begin
 
+     Result := NIL;
      if lowercase(CurveName) = 'none' then Exit;
 
      Result := TCC_CurveClass.Find(CurveName);
