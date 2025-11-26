@@ -48,6 +48,10 @@ namespace Recloser
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+const int RECLOSERCONTROLMAXDIM = 6;
+typedef EControlAction StateArray[6 /*# range 1..RECLOSERCONTROLMAXDIM*/];
+typedef StateArray* pStateArray; // 0 = open 1 = close
+
 class TRecloser : public ControlClass::TControlClass
 {
 	friend class TRecloserObj;
@@ -82,22 +86,38 @@ public:
 	double TDPhDelayed;
 	double TDGrFast;
 	double TDPhFast;
-	EControlAction FPresentState;
-	EControlAction FNormalState;
-	int OperationCount;
-	bool LockedOut;
-	bool ArmedForClose;
-	bool ArmedForOpen;
+
+	pStateArray FPresentState;
+	pStateArray FNormalState;
+	pIntegerArray OperationCount;
+
+	BooleanArray LockedOut;
+	BooleanArray ArmedForClose;
+	BooleanArray ArmedForOpen;
+	BooleanArray PhaseTarget;
 	bool GroundTarget;
-	bool PhaseTarget;
+    int IdxMultiPh; // Index used for accessing arrays for multi-phase, ganged operation
+
+	pStringArray RecloserTarget;
+
 	bool NormalStateSet;
+    bool SinglePhTrip;
+    bool SinglePhLockout;
+    bool FLocked;
+
 	int CondOffset; // Offset for monitored terminal
 	Ucomplex::pComplexArray cBuffer;    // Complexarray buffer
-	void InterpretRecloserState(int ActorID, const String Action, const String property_name);
-	EControlAction get_State();
-	void set_State(const EControlAction Value);
-	EControlAction get_NormalState();
-	void set_NormalState(const EControlAction Value);
+
+	bool DebugTrace;
+
+	void InterpretRecloserState(int ActorID, const String param, const String property_name);
+	EControlAction get_States(int Idx);
+	void set_States(int Idx, const EControlAction Value);
+	EControlAction get_NormalStates(int Idx);
+	void set_NormalStates(int Idx, const EControlAction Value);
+
+	void set_Flocked(bool Value);
+
 public:
 	Arraydef::pDoubleArray RecloseIntervals;
 	int NumFast;
@@ -121,6 +141,9 @@ public:
 	virtual String GetPropertyValue(int Index);
 	virtual void InitPropertyValues(int ArrayOffset);
 	virtual void DumpProperties(System::TTextRec& f, bool Complete);
+
+	bool get_FLocked();
+
 	TRecloserObj(DSSClass::TDSSClass* ParClass);
 	TRecloserObj(String ClassName);
 	TRecloserObj();
