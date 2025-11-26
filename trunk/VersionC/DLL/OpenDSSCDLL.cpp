@@ -11372,6 +11372,7 @@ void Set_ParameterReC(string parm, string val)
 int ReclosersI(int mode, int arg)
 {
 	int result = 0;
+	int i = 0;
 	TRecloserObj* pElem = nullptr;
 	TRecloserObj* elem = nullptr;
 	TRecloserObj* pRecloser = nullptr;
@@ -11479,18 +11480,24 @@ int ReclosersI(int mode, int arg)
 			Set_ParameterReC("shots", IntToStr(arg));
 		}
 		break;
-	case 11:													// Reclosers.Open -CHECK
+	case 11:													// Reclosers.Open
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			elem->set_State(CTRL_OPEN);
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				elem->set_States(i, CTRL_OPEN); // Open all phases
+			}
 		}
 		break;
 	case 12:													// Reclosers.Close
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			elem->set_State(CTRL_CLOSE);
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				elem->set_States(i, CTRL_CLOSE); // Close all phases
+			}
 		}
 		break;
 	case 13:													// Reclosers.Idx read
@@ -11653,48 +11660,6 @@ char* ReclosersS(int mode, char* arg)
 			Set_ParameterReC("SwitchedObj", arg);
 		}
 		break;
-	case 6:													// Reclosers.State readTBD
-		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			if (elem->get_State() == CTRL_CLOSE)
-				result = "closed";
-			else
-				result = "open";
-		}
-		break;
-	case 7:													// Reclosers.State write TBD
-		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			S = arg;
-			if (LowerCase(S)[0] == 'c')
-				elem->set_State(CTRL_CLOSE);
-			else
-				elem->set_State(CTRL_OPEN);
-		}
-		break;
-	case 8:													// Reclosers.NormalState read  TBD
-		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			if (elem->FNormalState == CTRL_CLOSE)
-				result = "closed";
-			else
-				result = "open";
-		}
-		break;
-	case 9:													// Reclosers.NormalState write TBD
-		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			S = arg;
-			if (LowerCase(S)[0] == 'c')
-				elem->set_NormalState(CTRL_CLOSE);
-			else
-				elem->set_NormalState(CTRL_OPEN);
-		}
-		break;
 	default:
 		result = "Error, parameter not valid";
 		break;
@@ -11708,8 +11673,9 @@ void ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TRecloserObj* elem = nullptr;
 	TPointerList* pList = nullptr;
-	int k = 0,
-		i = 0;
+	int k = 0;
+	int i = 0;
+	string S = "";
 	switch (mode)
 	{
 	case 0:													// Reclosers.AllNames
@@ -11757,6 +11723,124 @@ void ReclosersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		*mySize = myDblArray.size() * sizeof(myDblArray[0]);
 		*myPtr = (uintptr_t)(void*)&(myDblArray[0]);
+		break;
+	case 2:														// Reclosers.State read
+		*myType = 4; //String
+		myStrArray.resize(0);
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = (TRecloserObj*)RecloserClass->ElementList.Get_Active();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_States(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				}
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 3:														// Reclosers.State write
+		*myType = 4;//string
+		k = 0;
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = (TRecloserObj*)RecloserClass->ElementList.Get_Active();
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+                    switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_States(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_States(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
+		break;
+	case 4:														// Reclosers.NormalState read
+		*myType = 4; //String
+		myStrArray.resize(0);
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = (TRecloserObj*)RecloserClass->ElementList.Get_Active();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_NormalStates(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				} 
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 5:														// Reclosers.NormalState write
+		*myType = 4;//string
+		k = 0;
+		if(ASSIGNED(ActiveCircuit[ActiveActor]))
+		{
+			elem = (TRecloserObj*)RecloserClass->ElementList.Get_Active();
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+                    switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_NormalStates(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_NormalStates(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
 		break;
 	default:
 		*myType = 4; //string
