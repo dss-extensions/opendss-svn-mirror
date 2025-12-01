@@ -827,8 +827,8 @@ begin
                                                 ControlledElement.Closed[i, ActorID] := false;
                                                 FPresentState^[i] := CTRL_OPEN;
                                                 LockedOut^[i] := true;
-                                                if ArmedForOpen^[PhIdx] then
-                                                    ArmedForOpen^[PhIdx] := false;
+                                                if ArmedForOpen^[i] then
+                                                    ArmedForOpen^[i] := false;
                                                 if ShowEventLog then
                                                     AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on 3ph lockout (1ph trip) & locked out (3ph lockout)', [i]), ActorID);
 
@@ -893,7 +893,7 @@ begin
                                 FPresentState^[PhIdx] := CTRL_CLOSE;
 
                                 if ShowEventLog then
-                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d closed (1h reclosing)', [PhIdx]), ActorID);
+                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d closed (1ph reclosing)', [PhIdx]), ActorID);
 
                                           // Count reclosing operations for each phase on single ph trip
                                 Inc(OperationCount^[PhIdx]);
@@ -946,8 +946,7 @@ begin
                             begin
                                 if not ArmedForOpen^[PhIdx] then
                                     OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
-                                if not SinglePhTrip then
-                                    Break; // no need to loop at all phases
+                                Break; // no need to loop at all closed phases
                             end;
 
                         else
