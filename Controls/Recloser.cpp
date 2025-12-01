@@ -759,7 +759,7 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 										get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);
                                         (*FPresentState)[i - 1] = CTRL_OPEN;
                                         LockedOut[i - 1] = true;
-                                        if (ArmedForOpen[PhIdx - 1]) ArmedForOpen[PhIdx - 1] = false;  // TODO: confirm if we should be setting ArmedForOpen[i - 1] = false instead of ArmedForOpen[PhIdx - 1] = false
+                                        if (ArmedForOpen[i - 1]) ArmedForOpen[i - 1] = false;
                                         if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on 3ph lockout (1ph trip) & locked out (3ph lockout)", i), ActorID);
 									}
 								}
@@ -886,8 +886,7 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 							{
 								OperationCount[PhIdx - 1] = 1;       // Don't reset if we just rearmed
 							}
-							if (!SinglePhTrip) break;  // no need to loop at all phases
-							break; /*nada*/
+							break;  // no need to loop at all closed phases
 							default:
 							  ;
 							break;
