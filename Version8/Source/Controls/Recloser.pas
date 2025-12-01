@@ -752,7 +752,7 @@ begin
                                                   ControlledElement.Closed[i,ActorID] := FALSE;
                                                   FPresentState^[i] := CTRL_OPEN;
                                                   LockedOut^[i] := TRUE;
-                                                  IF ArmedForOpen^[PhIdx] then ArmedForOpen^[PhIdx] := FALSE;
+                                                  IF ArmedForOpen^[i] then ArmedForOpen^[i] := FALSE;
                                                   if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d opened on 3ph lockout (1ph trip) & locked out (3ph lockout)', [i]), ActorID);
 
                                                 End;
@@ -806,7 +806,7 @@ begin
                                           ControlledElement.Closed[PhIdx,ActorID] := TRUE;    // Close phase of active terminal
                                           FPresentState^[PhIdx] := CTRL_CLOSE;
 
-                                          if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d closed (1h reclosing)', [PhIdx]),ActorID);
+                                          if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d closed (1ph reclosing)', [PhIdx]),ActorID);
 
                                           // Count reclosing operations for each phase on single ph trip
                                           Inc(OperationCount^[PhIdx]);
@@ -853,7 +853,7 @@ begin
                                   CTRL_CLOSE:
                                   Begin
                                     IF Not ArmedForOpen^[PhIdx] THEN OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
-                                    if not SinglePhTrip then Break; // no need to loop at all phases
+                                    Break; // no need to loop at all closed phases
                                   End;
 
                                 ELSE
