@@ -85,7 +85,7 @@ uses
   ExportResults in '..\Common\ExportResults.pas',
   Fault in '..\PDElements\Fault.pas',
   Feeder in '..\Common\Feeder.pas',
-  fuse in '..\PDElements\fuse.pas',
+  fuse in '..\Controls\fuse.pas',
   pyControl in '..\Controls\pyControl.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
