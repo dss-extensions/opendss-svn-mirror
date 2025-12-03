@@ -67,7 +67,7 @@ uses
   Feeder in '..\Common\Feeder.pas',
   Frm_RPNcalc in '..\Parser\Frm_RPNcalc.pas' {RPNForm},
   FrmDoDSSCommand in '..\Forms\FrmDoDSSCommand.pas' {DoDSSCommandForm},
-  fuse in '..\PDElements\fuse.pas',
+  fuse in '..\Controls\fuse.pas',
   pyControl in '..\Controls\pyControl.pas',
   generator in '..\PCElements\generator.pas',
   GenUserModel in '..\PCElements\GenUserModel.pas',

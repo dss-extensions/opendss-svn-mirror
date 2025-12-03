@@ -1121,7 +1121,7 @@
         <DCCReference Include="..\Forms\FrmDoDSSCommand.pas">
             <Form>DoDSSCommandForm</Form>
         </DCCReference>
-        <DCCReference Include="..\PDElements\fuse.pas"/>
+        <DCCReference Include="..\Controls\fuse.pas"/>
         <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\PCElements\generator.pas"/>
         <DCCReference Include="..\PCElements\GenUserModel.pas"/>

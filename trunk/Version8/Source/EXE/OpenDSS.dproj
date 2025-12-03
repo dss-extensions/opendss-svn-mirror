@@ -250,7 +250,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\x64\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="..\x86\OpenDSS.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployFile LocalName="MyDSSClassDefs.Pas" Configuration="Debug" Class="ProjectFile"/>
@@ -282,6 +281,12 @@
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>res\xml</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidGDBServer">
+                    <Platform Name="Android">
+                        <RemoteDir>library\lib\armeabi-v7a</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -844,9 +849,6 @@
                     <Platform Name="Win64">
                         <Operation>1</Operation>
                     </Platform>
-                    <Platform Name="Win64x">
-                        <Operation>1</Operation>
-                    </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectiOSDeviceDebug">
                     <Platform Name="iOSDevice32">
@@ -1172,7 +1174,7 @@
         <DCCReference Include="..\Forms\FrmDoDSSCommand.pas">
             <Form>DoDSSCommandForm</Form>
         </DCCReference>
-        <DCCReference Include="..\PDElements\fuse.pas"/>
+        <DCCReference Include="..\Controls\fuse.pas"/>
         <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\General\GrowthShape.pas"/>
         <DCCReference Include="..\Shared\HashList.pas"/>
