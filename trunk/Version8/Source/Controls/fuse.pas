@@ -78,9 +78,11 @@ TYPE
 
      public
 
-            FuseCurve     : TTCC_CurveObj;
-            RatedCurrent  : Double;
-            DelayTime     : Double;
+            FuseCurve           : TTCC_CurveObj;
+            RatedCurrent,
+            DelayTime,
+            CurveMultiplier,
+            InterruptingRating : Double;
 
             MonitoredElementName     :String;
             MonitoredElementTerminal :Integer;
@@ -120,7 +122,7 @@ USES
 
 CONST
 
-    NumPropsThisClass = 10;
+    NumPropsThisClass = 12;
 
 VAR
    TCC_CurveClass:TDSSClass;
@@ -186,6 +188,8 @@ Begin
      PropertyName^[8]  := 'Action';
      PropertyName^[9]  := 'Normal';
      PropertyName^[10] := 'State';
+     PropertyName^[11] := 'CurveMultiplier';
+     PropertyName^[12] := 'InterruptingRating';
 
      PropertyHelp^[1] :=  'Full object name of the circuit element, typically a line, transformer, load, or generator, '+
                          'to which the Fuse is connected.' +
@@ -201,8 +205,8 @@ Begin
                          '1 or 2, typically.  Default is 1.  Assumes all phases of the element have a fuse of this type.';
      PropertyHelp^[5] :=  'Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
                          'If "none", fuse sampling will be skipped and device will not blow for any current level. Default is "none". '+
-                         'Multiplying the current values in the curve by the "RatedCurrent" value gives the actual current.';
-     PropertyHelp^[6] :=  'Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.';
+                         'Multiplying the current values in the curve by the "CurveMultiplier" value gives the actual current.';
+     PropertyHelp^[6] :=  'Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
      PropertyHelp^[7] :=  'Fixed delay time (sec) added to Fuse blowing time determined from the TCC curve. Default is 0.0. Used to represent fuse clearing time or any other delay.' ;
      PropertyHelp^[8] :=  'DEPRECATED. See "State" property.';
      PropertyHelp^[9] :=  'ARRAY of strings {Open | Closed} representing the Normal state of the fuse in each phase of the controlled element. ' +
@@ -210,6 +214,8 @@ Begin
                          'Defaults to "State" if not specifically declared.';
      PropertyHelp^[10] := 'ARRAY of strings {Open | Closed} representing the Actual state of the fuse in each phase of the controlled element. ' +
                          'Upon setting, immediately forces state of fuse(s). Simulates manual control on Fuse. Defaults to Closed for all phases.';
+     PropertyHelp^[11] := 'Multiplier for the phase TCC curve. Defaults to 1.0.';
+     PropertyHelp^[12] := 'Fuse rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -273,7 +279,8 @@ Begin
                  if not NormalStateSet then NormalStateSet := TRUE;
                End;
          8,10: InterpretFuseState(ActorID, Param, ParamName);  // set the present state
-
+           11: CurveMultiplier := Parser[ActorID].Dblvalue;
+           12: InterruptingRating := Parser[ActorID].Dblvalue;
          ELSE
            // Inherited parameters
            ClassEdit( ActiveFuseObj, ParamPointer - NumPropsthisClass)
@@ -326,8 +333,10 @@ Begin
         MonitoredElementName      := OtherFuse.MonitoredElementName;  // Pointer to target circuit element
         MonitoredElementTerminal  := OtherFuse.MonitoredElementTerminal;  // Pointer to target circuit element
 
-        FuseCurve        := OtherFuse.FuseCurve;
-        RatedCurrent     := OtherFuse.RatedCurrent;
+        FuseCurve           := OtherFuse.FuseCurve;
+        RatedCurrent        := OtherFuse.RatedCurrent;
+        CurveMultiplier     := OtherFuse.CurveMultiplier;
+        InterruptingRating  := OtherFuse.InterruptingRating;
 
         // can't copy action handles
         For i := 1 to Min(FUSEMAXDIM, ControlledElement.Nphases) Do Begin
@@ -381,7 +390,9 @@ Begin
 
      FuseCurve   := NIL;
 
-     RatedCurrent      := 1.0;
+     RatedCurrent        := 0.0;
+     CurveMultiplier     := 1.0;
+     InterruptingRating  := 0.0;
 
 
      FPresentState := Nil;
@@ -619,7 +630,7 @@ begin
                IF FuseCurve <> NIL  Then
                  Begin
                    Cmag      := Cabs( cBuffer^[i]);
-                   TripTime := FuseCurve.GetTCCTime(Cmag/RatedCurrent);
+                   TripTime := FuseCurve.GetTCCTime(Cmag/CurveMultiplier);
                  End;
 
                IF   TripTime > 0.0  THEN
@@ -673,6 +684,9 @@ begin
         Result := '';
     End;
     CASE Index of  // Special cases
+       5: if FuseCurve <> nil then Result := FuseCurve.Name else Result := 'none';
+       6: Result := Format('%-.6g',[RatedCurrent]);
+
        10:  If ControlledElement <> Nil Then
                Begin
                   For i := 1 to ControlledElement.NPhases Do
@@ -695,6 +709,7 @@ begin
                     end;
                   End;
                End;
+       12: Result := Format('%-.6g',[InterruptingRating]);
     ELSE
        Result := Inherited GetPropertyValue(index);
     END;
@@ -788,11 +803,13 @@ begin
      PropertyValue[3]  := '';
      PropertyValue[4]  := '1'; //'terminal';
      PropertyValue[5]  := 'none';
-     PropertyValue[6]  := '1.0';
+     PropertyValue[6]  := '0'; // ratedcurrent
      PropertyValue[7]  := '0';
      PropertyValue[8]  := '';  // action
      PropertyValue[9]  := '[closed, closed, closed]';  // normal
      PropertyValue[10] := '[closed, closed, closed]';  // state
+     PropertyValue[11] := '1.0';
+     PropertyValue[12] := '0';  // InterruptingRating
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
