@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 11/21/25 1:40:59 PM (- $Rev: 12980 $, 27241234).
+// File generated on 12/03/25 8:16:28 AM (- $Rev: 12980 $, 83554296).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -1979,6 +1979,10 @@ library OpenDSSengine
     HRESULT _stdcall Delay([out, retval] double* Value);
     [propput, id(0x000000D6), helpstring("This property is deprecated and does not impact the simulation. States are set immediately through state property or Open/Close functions.")]
     HRESULT _stdcall Delay([in] double Value);
+    [propget, id(0x000000D7)]
+    HRESULT _stdcall RatedCurrent([out, retval] double* Value);
+    [propput, id(0x000000D7), helpstring("Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    HRESULT _stdcall RatedCurrent([in] double Value);
   };
 
   [
@@ -2481,18 +2485,18 @@ library OpenDSSengine
     HRESULT _stdcall Shots([in] long Value);
     [propget, id(0x000000D4), helpstring("Variant Array of Doubles: reclose intervals, s, between shots.")]
     HRESULT _stdcall RecloseIntervals([out, retval] VARIANT* Value);
-    [propget, id(0x000000D5), helpstring("Phase trip curve multiplier or actual amps")]
-    HRESULT _stdcall PhaseTrip([out, retval] double* Value);
-    [propput, id(0x000000D5), helpstring("Phase Trip multiplier or actual amps")]
-    HRESULT _stdcall PhaseTrip([in] double Value);
+    [propget, id(0x000000D5), helpstring("Multiplier for the phase fast TCC curve.")]
+    HRESULT _stdcall PhFastPickup([out, retval] double* Value);
+    [propput, id(0x000000D5), helpstring("Multiplier for the phase fast TCC curve.")]
+    HRESULT _stdcall PhFastPickup([in] double Value);
     [propget, id(0x000000D6), helpstring("Phase instantaneous curve multipler or actual amps")]
     HRESULT _stdcall PhaseInst([out, retval] double* Value);
     [propput, id(0x000000D6)]
     HRESULT _stdcall PhaseInst([in] double Value);
-    [propget, id(0x000000D7), helpstring("Ground (3I0) trip multiplier or actual amps")]
-    HRESULT _stdcall GroundTrip([out, retval] double* Value);
-    [propput, id(0x000000D7)]
-    HRESULT _stdcall GroundTrip([in] double Value);
+    [propget, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
+    HRESULT _stdcall GrFastPickup([out, retval] double* Value);
+    [propput, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
+    HRESULT _stdcall GrFastPickup([in] double Value);
     [propget, id(0x000000D8), helpstring("Ground (3I0) instantaneous trip setting - curve multipler or actual amps.")]
     HRESULT _stdcall GroundInst([out, retval] double* Value);
     [propput, id(0x000000D8), helpstring("Ground (3I0) trip instantaneous multiplier or actual amps")]
@@ -2515,6 +2519,22 @@ library OpenDSSengine
     HRESULT _stdcall State([out, retval] VARIANT* Value);
     [propput, id(0x000000DE), helpstring("Variant array of strings. Set state of each phase of the recloser.")]
     HRESULT _stdcall State([in] VARIANT Value);
+    [propget, id(0x000000DF), helpstring("Multiplier for the phase slow TCC curve.")]
+    HRESULT _stdcall PhSlowPickup([out, retval] double* Value);
+    [propput, id(0x000000DF), helpstring("Multiplier for the phase slow TCC curve.")]
+    HRESULT _stdcall PhSlowPickup([in] double Value);
+    [propget, id(0x000000E0), helpstring("Multiplier for the ground slow TCC curve.")]
+    HRESULT _stdcall GrSlowPickup([out, retval] double* Value);
+    [propput, id(0x000000E0), helpstring("Multiplier for the ground slow TCC curve.")]
+    HRESULT _stdcall GrSlowPickup([in] double Value);
+    [propget, id(0x000000E1)]
+    HRESULT _stdcall RatedCurrent([out, retval] double* Value);
+    [propput, id(0x000000E1), helpstring("Recloser continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    HRESULT _stdcall RatedCurrent([in] double Value);
+    [propget, id(0x000000E2)]
+    HRESULT _stdcall InterruptingRating([out, retval] double* Value);
+    [propput, id(0x000000E2), helpstring("Recloser rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    HRESULT _stdcall InterruptingRating([in] double Value);
   };
 
   [
@@ -2753,9 +2773,9 @@ library OpenDSSengine
     HRESULT _stdcall TCCcurve([out, retval] BSTR* Value);
     [propput, id(0x000000D2), helpstring("Name of the TCCcurve object that determines fuse blowing.")]
     HRESULT _stdcall TCCcurve([in] BSTR Value);
-    [propget, id(0x000000D3), helpstring("Multiplier or actual amps for the TCCcurve object. Defaults to 1.0.  Multipliy current values of TCC curve by this to get actual amps.")]
+    [propget, id(0x000000D3), helpstring("Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([out, retval] double* Value);
-    [propput, id(0x000000D3), helpstring("Multiplier or actual fuse amps for the TCC curve. Defaults to 1.0. Has to correspond to the Current axis of TCCcurve object.")]
+    [propput, id(0x000000D3), helpstring("Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([in] double Value);
     [propget, id(0x000000D4), helpstring("A fixed delay time in seconds added to the fuse blowing time determined by the TCC curve. Default is 0.")]
     HRESULT _stdcall Delay([out, retval] double* Value);
@@ -2783,6 +2803,14 @@ library OpenDSSengine
     HRESULT _stdcall NormalState([out, retval] VARIANT* Value);
     [propput, id(0x000000DC), helpstring("Variant array of strings. Set normal state of each phase of the fuse.\0\0\0\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\a\0\x01\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
     HRESULT _stdcall NormalState([in] VARIANT Value);
+    [propget, id(0x000000DD), helpstring("Multiplier for the phase TCC curve. Defaults to 1.0.")]
+    HRESULT _stdcall CurveMultiplier([out, retval] double* Value);
+    [propput, id(0x000000DD), helpstring("Multiplier for the phase TCC curve. Defaults to 1.0.")]
+    HRESULT _stdcall CurveMultiplier([in] double Value);
+    [propget, id(0x000000DE), helpstring("Fuse rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    HRESULT _stdcall InterruptingRating([out, retval] double* Value);
+    [propput, id(0x000000DE), helpstring("Fuse rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    HRESULT _stdcall InterruptingRating([in] double Value);
   };
 
   [

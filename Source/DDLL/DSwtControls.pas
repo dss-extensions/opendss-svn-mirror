@@ -134,6 +134,15 @@ begin
   end;
   1: begin  // SwtControls.Delay write
       Set_Parameter ('Delay', FloatToStr (arg));
+  end;
+  2: begin  // SwtControls.RatedCurrent read
+    elem := ActiveSwtControl;
+    if elem <> nil then Result := elem.RatedCurrent
+    else Result := -1.0;
+  end;
+  3: begin  // SwtControls.RatedCurrent write
+    elem := ActiveSwtControl;
+    if elem <> nil then Set_parameter('RatedCurrent', Format('%.8g ',[arg]));
   end
   else
       Result:=-1.0;
