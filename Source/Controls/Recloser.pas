@@ -75,8 +75,8 @@ type
 
         ResetTime,
         DelayTime,
-        TDGrDelayed,
-        TDPhDelayed,
+        TDGrSlow,
+        TDPhSlow,
         TDGrFast,
         TDPhFast: Double;
 
@@ -118,10 +118,14 @@ type
         NumReclose: Integer;
         MonitoredElementName: String;
         MonitoredElementTerminal: Integer;
-        PhaseTrip,
-        GroundTrip,
+        PhFastPickup,
+        GrFastPickup,
+        PhSlowPickup,
+        GrSlowPickup,
         PhaseInst,
-        GroundInst: Double;
+        GroundInst,
+        RatedCurrent,
+        InterruptingRating: Double;
 
 
         constructor Create(ParClass: TDSSClass; const RecloserName: String);
@@ -170,7 +174,7 @@ uses
 
 const
 
-    NumPropsThisClass = 30;
+    NumPropsThisClass = 38;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -236,12 +240,12 @@ begin
     PropertyName^[3] := 'SwitchedObj';
     PropertyName^[4] := 'SwitchedTerm';
     PropertyName^[5] := 'NumFast';
-    PropertyName^[6] := 'PhaseFast';
-    PropertyName^[7] := 'PhaseDelayed';
-    PropertyName^[8] := 'GroundFast';
-    PropertyName^[9] := 'GroundDelayed';
-    PropertyName^[10] := 'PhaseTrip';
-    PropertyName^[11] := 'GroundTrip';
+    PropertyName^[6] := 'PhFastCurve';
+    PropertyName^[7] := 'PhSlowCurve';
+    PropertyName^[8] := 'GrFastCurve';
+    PropertyName^[9] := 'GrSlowCurve';
+    PropertyName^[10] := 'PhFastPickup';
+    PropertyName^[11] := 'GrFastPickup';
     PropertyName^[12] := 'PhaseInst';
     PropertyName^[13] := 'GroundInst';
     PropertyName^[14] := 'ResetTime';
@@ -251,8 +255,8 @@ begin
     PropertyName^[18] := 'Action';
     PropertyName^[19] := 'TDPhFast';
     PropertyName^[20] := 'TDGrFast';
-    PropertyName^[21] := 'TDPhDelayed';
-    PropertyName^[22] := 'TDGrDelayed';
+    PropertyName^[21] := 'TDPhSlow';
+    PropertyName^[22] := 'TDGrSlow';
     PropertyName^[23] := 'Normal';
     PropertyName^[24] := 'State';
     PropertyName^[25] := 'SinglePhTrip';
@@ -261,6 +265,18 @@ begin
     PropertyName^[28] := 'Reset';
     PropertyName^[29] := 'EventLog';
     PropertyName^[30] := 'DebugTrace';
+    PropertyName^[31] := 'RatedCurrent';
+    PropertyName^[32] := 'InterruptingRating';
+    PropertyName^[33] := 'PhaseFast';
+    PropertyName^[34] := 'PhaseDelayed';
+    PropertyName^[35] := 'GroundFast';
+    PropertyName^[36] := 'GroundDelayed';
+    PropertyName^[37] := 'PhaseTrip';
+    PropertyName^[38] := 'GroundTrip';
+    PropertyName^[39] := 'PhSlowPickup';
+    PropertyName^[40] := 'GrSlowPickup';
+    PropertyName^[41] := 'TDPhDelayed';
+    PropertyName^[42] := 'TDGrDelayed';
 
 
     PropertyHelp^[1] := 'Full object name of the circuit element, typically a line, transformer, load, or generator, ' +
@@ -278,18 +294,18 @@ begin
     PropertyHelp^[5] := 'Number of Fast (fuse saving) operations.  Default is 1. (See "Shots")';
     PropertyHelp^[6] := 'Name of the TCC Curve object that determines the Phase Fast trip. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
         'Default is "none". ' +
-        'Multiplying the current values in the curve by the "phasetrip" value gives the actual current.';
-    PropertyHelp^[7] := 'Name of the TCC Curve object that determines the Phase Delayed trip. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Multiplying the current values in the curve by the "PhPickup" value gives the actual current.';
+    PropertyHelp^[7] := 'Name of the TCC Curve object that determines the Phase Slow trip. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
         'Default is "none". ' +
-        'Multiplying the current values in the curve by the "phasetrip" value gives the actual current.';
+        'Multiplying the current values in the curve by the "PhPickup" value gives the actual current.';
     PropertyHelp^[8] := 'Name of the TCC Curve object that determines the Ground Fast trip.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
         'Default is "none". ' +
-        'Multiplying the current values in the curve by the "groundtrip" value gives the actual current.';
-    PropertyHelp^[9] := 'Name of the TCC Curve object that determines the Ground Delayed trip.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
+        'Multiplying the current values in the curve by the "GrPickup" value gives the actual current.';
+    PropertyHelp^[9] := 'Name of the TCC Curve object that determines the Ground Slow trip.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
         'Default is "none". ' +
-        'Multiplying the current values in the curve by the "groundtrip" value gives the actual current.';
-    PropertyHelp^[10] := 'Multiplier or actual phase amps for the phase TCC curve. Defaults to 1.0.';
-    PropertyHelp^[11] := 'Multiplier or actual ground amps (3I0) for the ground TCC curve. Defaults to 1.0.';
+        'Multiplying the current values in the curve by the "GrPickup" value gives the actual current.';
+    PropertyHelp^[10] := 'Multiplier for the phase fast TCC curve. Defaults to 1.0.';
+    PropertyHelp^[11] := 'Multiplier for the ground fast TCC curve. Defaults to 1.0.';
     PropertyHelp^[12] := 'Actual amps for instantaneous phase trip which is assumed to happen in 0.01 sec + Delay Time. Default is 0.0, which signifies no inst trip.';
     PropertyHelp^[13] := 'Actual amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Delay Time.Default is 0.0, which signifies no inst trip.';
     PropertyHelp^[14] := 'Reset time in sec for Recloser. Default is 15.';
@@ -300,8 +316,8 @@ begin
     PropertyHelp^[18] := 'DEPRECATED. See "State" property';
     PropertyHelp^[19] := 'Time dial for Phase Fast trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp^[20] := 'Time dial for Ground Fast trip curve. Multiplier on time axis of specified curve. Default=1.0.';
-    PropertyHelp^[21] := 'Time dial for Phase Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
-    PropertyHelp^[22] := 'Time dial for Ground Delayed trip curve. Multiplier on time axis of specified curve. Default=1.0.';
+    PropertyHelp^[21] := 'Time dial for Phase Slow trip curve. Multiplier on time axis of specified curve. Default=1.0.';
+    PropertyHelp^[22] := 'Time dial for Ground Slow trip curve. Multiplier on time axis of specified curve. Default=1.0.';
     PropertyHelp^[23] := 'ARRAY of strings {Open | Closed} representing the Normal state of the recloser in each phase of the controlled element. ' +
         'The recloser reverts to this state for reset, change of mode, etc. ' +
         'Defaults to "State" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).';
@@ -318,7 +334,18 @@ begin
         'reset command for mode change, etc.';
     PropertyHelp^[29] := '{Yes/True* | No/False} Default is Yes for Recloser. Write trips, reclose and reset events to EventLog.';
     PropertyHelp^[30] := '{Yes/True* | No/False} Default is No for Recloser. Write extra details to Eventlog.';
-
+    PropertyHelp^[31] := 'Recloser continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+    PropertyHelp^[32] := 'Recloser rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+    PropertyHelp^[33] := 'DEPRECATED. See "PhFastCurve" property.';
+    PropertyHelp^[34] := 'DEPRECATED. See "PhSlowCurve" property.';
+    PropertyHelp^[35] := 'DEPRECATED. See "GrFastCurve" property.';
+    PropertyHelp^[36] := 'DEPRECATED. See "GrSlowCurve" property.';
+    PropertyHelp^[37] := 'DEPRECATED. Assigned value is specified to "PhPickupFast" and "PhPickupSlow" properties for backwards compatibility. See "PhPickupFast" and "PhPickupSlow" properties.';
+    PropertyHelp^[38] := 'DEPRECATED. Assigned value is specified to "GrPickupFast" and "GrPickupSlow" properties for backwards compatibility. See "GrPickupFast" and "GrPickupSlow" properties.';
+    PropertyHelp^[39] := 'Multiplier for the phase slow TCC curve. Defaults to 1.0.';
+    PropertyHelp^[40] := 'Multiplier for the ground slow TCC curve. Defaults to 1.0.';
+    PropertyHelp^[41] := 'DEPRECATED. Assigned value is specified to "TDPhSlow" property for backwards compatibility. See "TDPhSlow" property.';
+    PropertyHelp^[42] := 'DEPRECATED. Assigned value is specified to "TDGrSlow" property for backwards compatibility. See "TDGrSlow" property.';
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -382,18 +409,18 @@ begin
                     ElementTerminal := Parser[ActorID].IntValue;
                 5:
                     NumFast := Parser[ActorID].Intvalue;
-                6:
+                6, 33:
                     PhaseFast := GetTccCurve(Param);
-                7:
+                7, 34:
                     PhaseDelayed := GetTCCCurve(Param);
-                8:
+                8, 35:
                     GroundFast := GetTccCurve(Param);
-                9:
+                9, 36:
                     GroundDelayed := GetTCCCurve(Param);
                 10:
-                    PhaseTrip := Parser[ActorID].Dblvalue;
+                    PhFastPickup := Parser[ActorID].Dblvalue;
                 11:
-                    GroundTrip := Parser[ActorID].Dblvalue;
+                    GrFastPickup := Parser[ActorID].Dblvalue;
                 12:
                     PhaseInst := Parser[ActorID].Dblvalue;
                 13:
@@ -410,10 +437,10 @@ begin
                     TDPhFast := Parser[ActorID].DblValue;
                 20:
                     TDGrFast := Parser[ActorID].DblValue;
-                21:
-                    TDPhDelayed := Parser[ActorID].DblValue;
-                22:
-                    TDGrDelayed := Parser[ActorID].DblValue;
+                21, 41:
+                    TDPhSlow := Parser[ActorID].DblValue;
+                22, 42:
+                    TDGrSlow := Parser[ActorID].DblValue;
                 23:
                 begin
                     InterpretRecloserState(ActorID, Param, ParamName);   // set normal state
@@ -439,6 +466,24 @@ begin
                     ShowEventLog := InterpretYesNo(param);
                 30:
                     DebugTrace := InterpretYesNo(Param);
+                31:
+                    RatedCurrent := Parser[ActorID].Dblvalue;
+                32:
+                    InterruptingRating := Parser[ActorID].Dblvalue;
+                37:
+                begin
+                    PhFastPickup := Parser[ActorID].Dblvalue;
+                    PhSlowPickup := PhFastPickup;
+                end;
+                38:
+                begin
+                    GrFastPickup := Parser[ActorID].Dblvalue;
+                    GrSlowPickup := Parser[ActorID].DblValue;
+                end;
+                39:
+                    PhSlowPickup := Parser[ActorID].DblValue;
+                40:
+                    GrSlowPickup := Parser[ActorID].DblValue;
 
             else
            // Inherited parameters
@@ -499,8 +544,10 @@ begin
             GroundDelayed := OtherRecloser.GroundDelayed;
             PhaseFast := OtherRecloser.PhaseFast;
             GroundFast := OtherRecloser.GroundFast;
-            PhaseTrip := OtherRecloser.PhaseTrip;
-            GroundTrip := OtherRecloser.GroundTrip;
+            PhFastPickup := OtherRecloser.PhFastPickup;
+            GrFastPickup := OtherRecloser.GrFastPickup;
+            PhSlowPickup := OtherRecloser.PhSlowPickup;
+            GrSlowPickup := OtherRecloser.GrSlowPickup;
             PhaseInst := OtherRecloser.PhaseInst;
             GroundInst := OtherRecloser.GroundInst;
             ResetTime := OtherRecloser.ResetTime;
@@ -508,6 +555,8 @@ begin
             NumFast := OtherRecloser.NumFast;
             SinglePhTrip := OtherRecloser.SinglePhTrip;
             SinglePhLockout := OtherRecloser.SinglePhLockout;
+            RatedCurrent := OtherRecloser.RatedCurrent;
+            InterruptingRating := OtherRecloser.InterruptingRating;
 
             Reallocmem(RecloseIntervals, SizeOf(RecloseIntervals^[1]) * 4);      // Always make a max of 4
             for i := 1 to NumReclose do
@@ -567,13 +616,18 @@ begin
     GroundFast := nil;
     GroundDelayed := nil;
 
-    PhaseTrip := 1.0;
-    GroundTrip := 1.0;
+    PhFastPickup := 1.0;
+    GrFastPickup := 1.0;
+    PhSlowPickup := 1.0;
+    GrSlowPickup := 1.0;
     PhaseInst := 0.0;
     GroundInst := 0.0;
 
-    TDGrDelayed := 1.0;
-    TDPhDelayed := 1.0;
+    RatedCurrent := 0.0;
+    InterruptingRating := 0.0;
+
+    TDGrSlow := 1.0;
+    TDPhSlow := 1.0;
     TDGrFast := 1.0;
     TDPhFast := 1.0;
 
@@ -1065,6 +1119,7 @@ var
     Groundtime, PhaseTime, TripTime, TimeTest: Double;
     TDPhase, TDGround: Double;
     PhaseCurveType, GroundCurveType: String;
+    PhaseCurveMultiplier, GroundCurveMultiplier: Double;
 
 begin
 
@@ -1114,14 +1169,16 @@ begin
     if MaxOperatingCount > NumFast then
     begin
         GroundCurve := GroundDelayed;
-        TDGround := TDGrDelayed;
+        TDGround := TDGrSlow;
         GroundCurveType := 'Delayed';
+        GroundCurveMultiplier := GrSlowPickup;
     end
     else
     begin
         GroundCurve := GroundFast;
         TDGround := TDGrFast;
         GroundCurveType := 'Fast';
+        GroundCurveMultiplier := GrFastPickup;
     end;
 
     GroundTime := -1.0;
@@ -1143,11 +1200,11 @@ begin
         end
         else
         begin
-            GroundTime := TDGround * GroundCurve.GetTCCTime(Cmag / GroundTrip);
+            GroundTime := TDGround * GroundCurve.GetTCCTime(Cmag / GroundCurveMultiplier);
 
             if DebugTrace then
                 AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ground %s Curve Trip: Mag=%.3g, Time=%.3g',
-                    [GroundCurveType, Cmag / GroundTrip, GroundTime]), ActorID);
+                    [GroundCurveType, Cmag / GroundCurveMultiplier, GroundTime]), ActorID);
         end;
 
 
@@ -1172,14 +1229,16 @@ begin
             if OperationCount^[i] > NumFast then
             begin
                 PhaseCurve := PhaseDelayed;
-                TDPhase := TDPhDelayed;
+                TDPhase := TDPhSlow;
                 PhaseCurveType := 'Delayed';
+                PhaseCurveMultiplier := PhSlowPickup;
             end
             else
             begin
                 PhaseCurve := PhaseFast;
                 TDPhase := TDPhFast;
                 PhaseCurveType := 'Fast';
+                PhaseCurveMultiplier := PhFastPickup;
             end;
 
             if FPresentState^[i] = CTRL_CLOSE then
@@ -1203,14 +1262,14 @@ begin
                     end
                     else
                     begin
-                        TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseTrip);
+                        TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseCurveMultiplier);
                         if TimeTest > 0.0 then
                         begin
                             PhaseTime := TimeTest;
 
                             if DebugTrace then
                                 AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                                    [PhaseCurveType, i, Cmag / PhaseTrip, PhaseTime]), ActorID);
+                                    [PhaseCurveType, i, Cmag / PhaseCurveMultiplier, PhaseTime]), ActorID);
                         end;
 
                     end;
@@ -1282,14 +1341,16 @@ begin
         if MaxOperatingCount > NumFast then
         begin
             PhaseCurve := PhaseDelayed;
-            TDPhase := TDPhDelayed;
+            TDPhase := TDPhSlow;
             PhaseCurveType := 'Delayed';
+            PhaseCurveMultiplier := PhSlowPickup;
         end
         else
         begin
             PhaseCurve := PhaseFast;
             TDPhase := TDPhFast;
             PhaseCurveType := 'Fast';
+            PhaseCurveMultiplier := PhFastPickup;
         end;
 
         if Groundtime > 0.0 then
@@ -1318,13 +1379,13 @@ begin
                 end
                 else
                 begin
-                    TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseTrip);
+                    TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag / PhaseCurveMultiplier);
                     if (TimeTest > 0.0) then
                     begin
 
                         if DebugTrace then
                             AppendToEventLog('Debug Sample: Recloser.' + Self.Name, Format('Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                                [IfThen(PhaseCurve = PhaseFast, 'Fast', 'Delayed'), i, Cmag / PhaseTrip, TimeTest]), ActorID);
+                                [IfThen(PhaseCurve = PhaseFast, 'Fast', 'Delayed'), i, Cmag / PhaseCurveMultiplier, TimeTest]), ActorID);
 
                         if Phasetime < 0.0 then
                             PhaseTime := TimeTest
@@ -1431,6 +1492,31 @@ begin
     end;
 
     case Index of
+
+        6, 33:
+            if PhaseFast <> nil then
+                Result := PhaseFast.Name
+            else
+                Result := 'none';
+        7, 34:
+            if PhaseDelayed <> nil then
+                Result := PhaseDelayed.Name
+            else
+                Result := 'none';
+        8, 35:
+            if GroundFast <> nil then
+                Result := GroundFast.Name
+            else
+                Result := 'none';
+        9, 36:
+            if GroundDelayed <> nil then
+                Result := GroundDelayed.Name
+            else
+                Result := 'none';
+        10, 37:
+            Result := Format('%.3f', [PhFastPickup]);
+        11, 38:
+            Result := Format('%.3f', [GrFastPickup]);
         15:
             Result := Format('%d', [NumReclose + 1]);
         16:
@@ -1440,6 +1526,10 @@ begin
                 Result := Result + Format('%-g, ', [RecloseIntervals^[i]]);
             Result := Result + ')';
         end;
+        21, 41:
+            Result := Format('%.3f', [TDPhSlow]);
+        22, 42:
+            Result := Format('%.3f', [TDGrSlow]);
         23:
             if ControlledElement <> nil then
             begin
@@ -1471,6 +1561,15 @@ begin
                 Result := 'Yes'
             else
                 Result := 'No';
+        31:
+            Result := Format('%-.6g', [RatedCurrent]);
+        32:
+            Result := Format('%-.6g', [InterruptingRating]);
+        39:
+            Result := Format('%.3f', [PhSlowPickup]);
+        40:
+            Result := Format('%.3f', [GrSlowPickup]);
+
     else
         Result := inherited GetPropertyValue(index);
     end;
@@ -1608,8 +1707,8 @@ begin
     PropertyValue[7] := 'none';
     PropertyValue[8] := 'none';
     PropertyValue[9] := 'none';
-    PropertyValue[10] := '1.0';
-    PropertyValue[11] := '1.0';
+    PropertyValue[10] := '1.0';  // PhFastPickup
+    PropertyValue[11] := '1.0';  // GrFastPickup
     PropertyValue[12] := '0';
     PropertyValue[13] := '0';
     PropertyValue[14] := '15';
@@ -1617,16 +1716,28 @@ begin
     PropertyValue[16] := '(0.5, 2.0, 2.0)';
     PropertyValue[17] := '0.0';
     PropertyValue[18] := ''; // action
-    PropertyValue[19] := '1.0';
-    PropertyValue[20] := '1.0';
-    PropertyValue[21] := '1.0';
-    PropertyValue[22] := '1.0';
+    PropertyValue[19] := '1.0'; // TDPhFast
+    PropertyValue[20] := '1.0'; // TDGrFast
+    PropertyValue[21] := '1.0'; // TDPhSlow
+    PropertyValue[22] := '1.0'; // TDGrSlow
     PropertyValue[23] := '[closed, closed, closed]';  // normal
     PropertyValue[24] := '[closed, closed, closed]';  // state
     PropertyValue[25] := 'No';  // SinglePhTripping
     PropertyValue[26] := 'No';  // SinglePhLockout
     PropertyValue[27] := 'No';  // Lock
     PropertyValue[28] := 'n';  // Reset
+    PropertyValue[31] := '0';  // ratedcurrent
+    PropertyValue[32] := '0';  // interruptingRating
+    PropertyValue[33] := 'none'; // Deprecated - PhaseFast -> PhFastCurve
+    PropertyValue[34] := 'none'; // Deprecated - PhaseDelayed -> PhSlowCurve
+    PropertyValue[35] := 'none'; // Deprecated - GroundFast -> GrFastCurve
+    PropertyValue[36] := 'none'; // Deprecated - GroundDelayed -> GrSlowCurve
+    PropertyValue[37] := '1.0';  // Deprecated - PhaseTrip -> PhFastPickup
+    PropertyValue[38] := '1.0';  // Deprecated - GroundTrip -> GrFastPickup
+    PropertyValue[39] := '1.0';  // PhSlowPickup
+    PropertyValue[40] := '1.0';  // GrSlowPickup
+    PropertyValue[41] := '1.0';  // Deprecated - TDPhDelayed -> TDPhSlow
+    PropertyValue[42] := '1.0';  // Deprecated - TDGrDelayed -> TDGrSlow
 
     inherited  InitPropertyValues(NumPropsThisClass);
 

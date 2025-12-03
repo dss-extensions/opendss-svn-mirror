@@ -50,6 +50,10 @@ type
         function Get_State: Olevariant; SAFECALL;
         procedure Set_NormalState(Value: Olevariant); SAFECALL;
         procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_CurveMultiplier: Double; SAFECALL;
+        procedure Set_CurveMultiplier(Value: Double); SAFECALL;
+        function Get_InterruptingRating: Double; SAFECALL;
+        procedure Set_InterruptingRating(Value: Double); SAFECALL;
 
     end;
 
@@ -513,6 +517,44 @@ begin
         end;
 
     end;
+end;
+
+function TFuses.Get_CurveMultiplier: Double;
+var
+    pFuse: TFuseObj;
+begin
+    Result := 0;
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+        Result := pFuse.CurveMultiplier;
+end;
+
+procedure TFuses.Set_CurveMultiplier(Value: Double);
+var
+    pFuse: TFuseObj;
+begin
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+        Set_parameter('CurveMultiplier', Format('%.g', [Value]));
+end;
+
+function TFuses.Get_InterruptingRating: Double;
+var
+    pFuse: TFuseObj;
+begin
+    Result := 0;
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+        Result := pFuse.InterruptingRating;
+end;
+
+procedure TFuses.Set_InterruptingRating(Value: Double);
+var
+    pFuse: TFuseObj;
+begin
+    pFuse := FuseClass.GetActiveObj;
+    if pFuse <> nil then
+        Set_parameter('InterruptingRating', Format('%.g', [Value]));
 end;
 
 initialization

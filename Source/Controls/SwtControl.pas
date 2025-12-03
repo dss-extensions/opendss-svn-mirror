@@ -57,6 +57,9 @@ type
         procedure set_Flocked(const Value: Boolean);
 
     PUBLIC
+
+        RatedCurrent: Double;
+
         constructor Create(ParClass: TDSSClass; const SwtControlName: String);
         destructor Destroy; OVERRIDE;
 
@@ -100,7 +103,7 @@ uses
 
 const
 
-    NumPropsThisClass = 8;
+    NumPropsThisClass = 9;
 
 constructor TSwtControl.Create;  // Creates superstructure for all SwtControl objects
 begin
@@ -137,6 +140,7 @@ begin
     PropertyName^[6] := 'Normal';
     PropertyName^[7] := 'State';
     PropertyName^[8] := 'Reset';
+    PropertyName^[9] := 'RatedCurrent';
 
     PropertyHelp^[1] := 'Name of circuit element switch that the SwtControl operates. ' +
         'Specify the full object class and name.';
@@ -154,6 +158,8 @@ begin
         'sets the actual state to the specified value for all phases (ganged operation).';
     PropertyHelp^[8] := '{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal ' +
         'reset command for mode change, etc.';
+    PropertyHelp^[9] := 'Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -228,6 +234,8 @@ begin
                         Reset(ActorID);
                         PropertyValue[8] := 'n';
                     end;
+                9:
+                    RatedCurrent := Parser[ActorID].Dblvalue;
 
             else
            // Inherited parameters
@@ -284,6 +292,8 @@ begin
                 FNormalState^[i] := OtherSwtControl.FNormalState^[i];
             end;
 
+            RatedCurrent := OtherSwtControl.RatedCurrent;
+
             for i := 1 to ParentClass.NumProperties do
                 PropertyValue[i] := OtherSwtControl.PropertyValue[i];
 
@@ -330,6 +340,8 @@ begin
 
     Locked := false;
     TimeDelay := 120.0; // 2 minutes
+
+    RatedCurrent := 0.0;
 
     InitPropertyValues(0);
 end;
@@ -674,6 +686,8 @@ begin
             end;
         8:
             Result := 'n';  // Always no; yes is executed immediately
+        9:
+            Result := Format('%-.6g', [RatedCurrent]);
     else
         Result := inherited GetPropertyValue(Index);
     end;
@@ -725,6 +739,7 @@ begin
     PropertyValue[6] := '[closed, closed, closed]';  // normal;
     PropertyValue[7] := '[closed, closed, closed]';  // state;
     PropertyValue[8] := 'n';
+    PropertyValue[9] := '0'; // ratedcurrent
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
 

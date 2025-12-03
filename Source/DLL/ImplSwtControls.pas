@@ -39,6 +39,8 @@ type
         procedure Open; SAFECALL;
         procedure Close; SAFECALL;
         procedure Reset; SAFECALL;
+        function Get_RatedCurrent: Double; SAFECALL;
+        procedure Set_RatedCurrent(Value: Double); SAFECALL;
 
     end;
 
@@ -419,6 +421,26 @@ begin
         for i := 1 to elem.ControlledElement.NPhases do
             elem.States[i] := CTRL_CLOSE // Close all phases
     end;
+end;
+
+function TSwtControls.Get_RatedCurrent: Double;
+var
+    elem: TSwtControlObj;
+begin
+    elem := ActiveSwtControl;
+    if elem <> nil then
+        Result := elem.RatedCurrent
+    else
+        Result := -1.0;
+end;
+
+procedure TSwtControls.Set_RatedCurrent(Value: Double);
+var
+    elem: TSwtControlObj;
+begin
+    elem := ActiveSwtControl;
+    if elem <> nil then
+        Set_parameter('RatedCurrent', Format('%.8g ', [Value]));
 end;
 
 initialization

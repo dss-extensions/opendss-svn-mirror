@@ -37,13 +37,9 @@ type
         function Get_Shots: Integer; SAFECALL;
         procedure Set_NumFast(Value: Integer); SAFECALL;
         procedure Set_Shots(Value: Integer); SAFECALL;
-        function Get_PhaseTrip: Double; SAFECALL;
-        procedure Set_PhaseTrip(Value: Double); SAFECALL;
         function Get_GroundInst: Double; SAFECALL;
-        function Get_GroundTrip: Double; SAFECALL;
         function Get_PhaseInst: Double; SAFECALL;
         procedure Set_GroundInst(Value: Double); SAFECALL;
-        procedure Set_GroundTrip(Value: Double); SAFECALL;
         procedure Set_PhaseInst(Value: Double); SAFECALL;
         procedure Close; SAFECALL;
         procedure Open; SAFECALL;
@@ -54,6 +50,18 @@ type
         procedure Set_NormalState(Value: Olevariant); SAFECALL;
         procedure Reset; SAFECALL;
         procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_GrFastPickup: Double; SAFECALL;
+        function Get_GrSlowPickup: Double; SAFECALL;
+        function Get_PhFastPickup: Double; SAFECALL;
+        function Get_PhSlowPickup: Double; SAFECALL;
+        procedure Set_GrFastPickup(Value: Double); SAFECALL;
+        procedure Set_GrSlowPickup(Value: Double); SAFECALL;
+        procedure Set_PhFastPickup(Value: Double); SAFECALL;
+        procedure Set_PhSlowPickup(Value: Double); SAFECALL;
+        function Get_InterruptingRating: Double; SAFECALL;
+        function Get_RatedCurrent: Double; SAFECALL;
+        procedure Set_InterruptingRating(Value: Double); SAFECALL;
+        procedure Set_RatedCurrent(Value: Double); SAFECALL;
 
     end;
 
@@ -265,7 +273,6 @@ var
 begin
     Result := 0;
     elem := RecloserClass.ElementList.Active;
-    ;
     if elem <> nil then
         Result := elem.NumFast;
 end;
@@ -300,7 +307,6 @@ var
 begin
     Result := 0;
     elem := RecloserClass.ElementList.Active;
-    ;
     if elem <> nil then
         Result := elem.NumReclose + 1;
 end;
@@ -323,25 +329,6 @@ begin
         Set_parameter('shots', IntToStr(Value));
 end;
 
-function TReclosers.Get_PhaseTrip: Double;
-var
-    elem: TRecloserObj;
-begin
-    Result := 0;
-    elem := RecloserClass.ElementList.Active;
-    if elem <> nil then
-        Result := elem.PhaseTrip;
-end;
-
-procedure TReclosers.Set_PhaseTrip(Value: Double);
-var
-    elem: TRecloserObj;
-begin
-    elem := RecloserClass.ElementList.Active;
-    if elem <> nil then
-        Set_parameter('PhaseTrip', Format('%.g', [Value]));
-end;
-
 function TReclosers.Get_GroundInst: Double;
 var
     elem: TRecloserObj;
@@ -350,16 +337,6 @@ begin
     elem := RecloserClass.ElementList.Active;
     if elem <> nil then
         Result := elem.GroundInst;
-end;
-
-function TReclosers.Get_GroundTrip: Double;
-var
-    elem: TRecloserObj;
-begin
-    Result := 0;
-    elem := RecloserClass.ElementList.Active;
-    if elem <> nil then
-        Result := elem.GroundTrip;
 end;
 
 function TReclosers.Get_PhaseInst: Double;
@@ -379,15 +356,6 @@ begin
     elem := RecloserClass.ElementList.Active;
     if elem <> nil then
         Set_parameter('GroundInst', Format('%.g', [Value]));
-end;
-
-procedure TReclosers.Set_GroundTrip(Value: Double);
-var
-    elem: TRecloserObj;
-begin
-    elem := RecloserClass.ElementList.Active;
-    if elem <> nil then
-        Set_parameter('GroundTrip', Format('%.g', [Value]));
 end;
 
 procedure TReclosers.Set_PhaseInst(Value: Double);
@@ -556,6 +524,121 @@ begin
         end;
 
     end;
+end;
+
+function TReclosers.Get_GrFastPickup: Double;
+var
+    elem: TRecloserObj;
+begin
+    Result := 0;
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.GrFastPickup;
+end;
+
+function TReclosers.Get_GrSlowPickup: Double;
+var
+    elem: TRecloserObj;
+begin
+    Result := 0;
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.GrSlowPickup;
+end;
+
+function TReclosers.Get_PhFastPickup: Double;
+var
+    elem: TRecloserObj;
+begin
+    Result := 0;
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.PhFastPickup;
+end;
+
+function TReclosers.Get_PhSlowPickup: Double;
+var
+    elem: TRecloserObj;
+begin
+    Result := 0;
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.PhSlowPickup;
+end;
+
+procedure TReclosers.Set_GrFastPickup(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('GrFastPickup', Format('%.g', [Value]));
+end;
+
+procedure TReclosers.Set_GrSlowPickup(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('GrSlowPickup', Format('%.g', [Value]));
+end;
+
+procedure TReclosers.Set_PhFastPickup(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('PhFastPickup', Format('%.g', [Value]));
+end;
+
+procedure TReclosers.Set_PhSlowPickup(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('PhSlowPickup', Format('%.g', [Value]));
+end;
+
+function TReclosers.Get_InterruptingRating: Double;
+var
+    elem: TRecloserObj;
+begin
+    Result := 0;
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.InterruptingRating;
+end;
+
+function TReclosers.Get_RatedCurrent: Double;
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Result := elem.RatedCurrent
+    else
+        Result := -1.0;
+end;
+
+procedure TReclosers.Set_InterruptingRating(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('InterruptingRating', Format('%.g', [Value]));
+end;
+
+procedure TReclosers.Set_RatedCurrent(Value: Double);
+var
+    elem: TRecloserObj;
+begin
+    elem := RecloserClass.ElementList.Active;
+    if elem <> nil then
+        Set_parameter('RatedCurrent', Format('%.8g ', [Value]));
 end;
 
 initialization

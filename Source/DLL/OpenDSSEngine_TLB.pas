@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 11/21/25 1:40:57 PM from Type Library described below.
+// File generated on 12/03/25 7:47:26 AM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -2471,6 +2471,8 @@ type
         procedure Set_NormalState(Value: Olevariant); SAFECALL;
         function Get_Delay: Double; SAFECALL;
         procedure Set_Delay(Value: Double); SAFECALL;
+        function Get_RatedCurrent: Double; SAFECALL;
+        procedure Set_RatedCurrent(Value: Double); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Name: Widestring READ Get_Name WRITE Set_Name;
         property First: Integer READ Get_First;
@@ -2482,6 +2484,7 @@ type
         property State: Olevariant READ Get_State WRITE Set_State;
         property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
         property Delay: Double READ Get_Delay WRITE Set_Delay;
+        property RatedCurrent: Double READ Get_RatedCurrent WRITE Set_RatedCurrent;
     end;
 
 // *********************************************************************//
@@ -2505,6 +2508,7 @@ type
         property State: Olevariant DISPID 211;
         property NormalState: Olevariant DISPID 212;
         property Delay: Double DISPID 214;
+        property RatedCurrent: Double DISPID 215;
     end;
 
 // *********************************************************************//
@@ -3110,12 +3114,12 @@ type
         function Get_Shots: Integer; SAFECALL;
         procedure Set_Shots(Value: Integer); SAFECALL;
         function Get_RecloseIntervals: Olevariant; SAFECALL;
-        function Get_PhaseTrip: Double; SAFECALL;
-        procedure Set_PhaseTrip(Value: Double); SAFECALL;
+        function Get_PhFastPickup: Double; SAFECALL;
+        procedure Set_PhFastPickup(Value: Double); SAFECALL;
         function Get_PhaseInst: Double; SAFECALL;
         procedure Set_PhaseInst(Value: Double); SAFECALL;
-        function Get_GroundTrip: Double; SAFECALL;
-        procedure Set_GroundTrip(Value: Double); SAFECALL;
+        function Get_GrFastPickup: Double; SAFECALL;
+        procedure Set_GrFastPickup(Value: Double); SAFECALL;
         function Get_GroundInst: Double; SAFECALL;
         procedure Set_GroundInst(Value: Double); SAFECALL;
         procedure Open; SAFECALL;
@@ -3127,6 +3131,14 @@ type
         procedure Set_NormalState(Value: Olevariant); SAFECALL;
         function Get_State: Olevariant; SAFECALL;
         procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_PhSlowPickup: Double; SAFECALL;
+        procedure Set_PhSlowPickup(Value: Double); SAFECALL;
+        function Get_GrSlowPickup: Double; SAFECALL;
+        procedure Set_GrSlowPickup(Value: Double); SAFECALL;
+        function Get_RatedCurrent: Double; SAFECALL;
+        procedure Set_RatedCurrent(Value: Double); SAFECALL;
+        function Get_InterruptingRating: Double; SAFECALL;
+        procedure Set_InterruptingRating(Value: Double); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3139,13 +3151,17 @@ type
         property NumFast: Integer READ Get_NumFast WRITE Set_NumFast;
         property Shots: Integer READ Get_Shots WRITE Set_Shots;
         property RecloseIntervals: Olevariant READ Get_RecloseIntervals;
-        property PhaseTrip: Double READ Get_PhaseTrip WRITE Set_PhaseTrip;
+        property PhFastPickup: Double READ Get_PhFastPickup WRITE Set_PhFastPickup;
         property PhaseInst: Double READ Get_PhaseInst WRITE Set_PhaseInst;
-        property GroundTrip: Double READ Get_GroundTrip WRITE Set_GroundTrip;
+        property GrFastPickup: Double READ Get_GrFastPickup WRITE Set_GrFastPickup;
         property GroundInst: Double READ Get_GroundInst WRITE Set_GroundInst;
         property idx: Integer READ Get_idx WRITE Set_idx;
         property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
         property State: Olevariant READ Get_State WRITE Set_State;
+        property PhSlowPickup: Double READ Get_PhSlowPickup WRITE Set_PhSlowPickup;
+        property GrSlowPickup: Double READ Get_GrSlowPickup WRITE Set_GrSlowPickup;
+        property RatedCurrent: Double READ Get_RatedCurrent WRITE Set_RatedCurrent;
+        property InterruptingRating: Double READ Get_InterruptingRating WRITE Set_InterruptingRating;
     end;
 
 // *********************************************************************//
@@ -3167,9 +3183,9 @@ type
         property NumFast: Integer DISPID 210;
         property Shots: Integer DISPID 211;
         property RecloseIntervals: Olevariant READONLY DISPID 212;
-        property PhaseTrip: Double DISPID 213;
+        property PhFastPickup: Double DISPID 213;
         property PhaseInst: Double DISPID 214;
-        property GroundTrip: Double DISPID 215;
+        property GrFastPickup: Double DISPID 215;
         property GroundInst: Double DISPID 216;
         procedure Open; DISPID 217;
         procedure Close; DISPID 218;
@@ -3177,6 +3193,10 @@ type
         procedure Reset; DISPID 220;
         property NormalState: Olevariant DISPID 221;
         property State: Olevariant DISPID 222;
+        property PhSlowPickup: Double DISPID 223;
+        property GrSlowPickup: Double DISPID 224;
+        property RatedCurrent: Double DISPID 225;
+        property InterruptingRating: Double DISPID 226;
     end;
 
 // *********************************************************************//
@@ -3467,6 +3487,10 @@ type
         procedure Set_State(Value: Olevariant); SAFECALL;
         function Get_NormalState: Olevariant; SAFECALL;
         procedure Set_NormalState(Value: Olevariant); SAFECALL;
+        function Get_CurveMultiplier: Double; SAFECALL;
+        procedure Set_CurveMultiplier(Value: Double); SAFECALL;
+        function Get_InterruptingRating: Double; SAFECALL;
+        procedure Set_InterruptingRating(Value: Double); SAFECALL;
         property AllNames: Olevariant READ Get_AllNames;
         property Count: Integer READ Get_Count;
         property First: Integer READ Get_First;
@@ -3483,6 +3507,8 @@ type
         property NumPhases: Integer READ Get_NumPhases;
         property State: Olevariant READ Get_State WRITE Set_State;
         property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
+        property CurveMultiplier: Double READ Get_CurveMultiplier WRITE Set_CurveMultiplier;
+        property InterruptingRating: Double READ Get_InterruptingRating WRITE Set_InterruptingRating;
     end;
 
 // *********************************************************************//
@@ -3512,6 +3538,8 @@ type
         procedure Reset; DISPID 218;
         property State: Olevariant DISPID 219;
         property NormalState: Olevariant DISPID 220;
+        property CurveMultiplier: Double DISPID 221;
+        property InterruptingRating: Double DISPID 222;
     end;
 
 // *********************************************************************//

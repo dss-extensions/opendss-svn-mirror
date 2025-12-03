@@ -191,17 +191,17 @@ begin
     Result := 0.0; // Default return value
     case mode of
         0:
-        begin  // Reclosers.PhaseTrip read
+        begin  // Reclosers.PhFastPickup read
             Result := 0;
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Result := elem.PhaseTrip;
+                Result := elem.PhFastPickup;
         end;
         1:
-        begin  // Reclosers.PhaseTrip write
+        begin  // Reclosers.PhFastPickup write
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Set_parameter('PhaseTrip', Format('%.g', [arg]));
+                Set_parameter('PhFastPickup', Format('%.g', [arg]));
         end;
         2:
         begin  // Reclosers.PhaseInst read
@@ -217,17 +217,17 @@ begin
                 Set_parameter('Phaseinst', Format('%.g', [arg]));
         end;
         4:
-        begin  // Reclosers.GroundTrip read
+        begin  // Reclosers.GrFastPickup read
             Result := 0;
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Result := elem.GroundTrip;
+                Result := elem.GrFastPickup;
         end;
         5:
         begin  // Reclosers.GroundTrip write
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
-                Set_parameter('GroundTrip', Format('%.g', [arg]));
+                Set_parameter('GrFastPickup', Format('%.g', [arg]));
         end;
         6:
         begin  // Reclosers.GroundInst read
@@ -241,6 +241,60 @@ begin
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
                 Set_parameter('GroundInst', Format('%.g', [arg]));
+        end;
+        8:
+        begin  // Reclosers.PhSlowPickup read
+            Result := 0;
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Result := elem.PhSlowPickup;
+        end;
+        9:
+        begin  // Reclosers.PhSlowPickup write
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Set_parameter('PhSlowPickup', Format('%.g', [arg]));
+        end;
+        10:
+        begin  // Reclosers.GrSlowPickup read
+            Result := 0;
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Result := elem.GrSlowPickup;
+        end;
+        11:
+        begin  // Reclosers.GrSlowPickup write
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Set_parameter('GrSlowPickup', Format('%.g', [arg]));
+        end;
+        12:
+        begin  // Reclosers.RatedCurrent read
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Result := elem.RatedCurrent
+            else
+                Result := -1.0;
+        end;
+        13:
+        begin  // Reclosers.RatedCurrent write
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Set_parameter('RatedCurrent', Format('%.8g ', [arg]));
+        end;
+        14:
+        begin  // Reclosers.InterruptingRating read
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Result := elem.InterruptingRating
+            else
+                Result := -1.0;
+        end;
+        15:
+        begin  // Reclosers.InterruptingRating write
+            elem := RecloserClass.ElementList.Active;
+            if elem <> nil then
+                Set_parameter('InterruptingRating', Format('%.8g ', [arg]));
         end
     else
         Result := -1.0;

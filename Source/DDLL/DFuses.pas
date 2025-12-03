@@ -216,6 +216,34 @@ begin
             elem := FuseClass.GetActiveObj;
             if elem <> nil then
                 Set_parameter('Delay', Format('%.8g ', [arg]));
+        end;
+        4:
+        begin  // Fuses.CurveMultiplier read
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Result := elem.CurveMultiplier
+            else
+                Result := -1.0;
+        end;
+        5:
+        begin  // Fuses.CurveMultiplier write
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Set_parameter('CurveMultiplier', Format('%.8g ', [arg]));
+        end;
+        6:
+        begin  // Fuses.InterruptingRating read
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Result := elem.InterruptingRating
+            else
+                Result := -1.0;
+        end;
+        7:
+        begin  // Fuses.InterruptingRating write
+            elem := FuseClass.GetActiveObj;
+            if elem <> nil then
+                Set_parameter('InterruptingRating', Format('%.8g ', [arg]));
         end
     else
         Result := -1.0;
