@@ -190,7 +190,7 @@
         <DCCReference Include="..\Common\ExportResults.pas"/>
         <DCCReference Include="..\PDElements\Fault.pas"/>
         <DCCReference Include="..\Common\Feeder.pas"/>
-        <DCCReference Include="..\PDElements\fuse.pas"/>
+        <DCCReference Include="..\Controls\fuse.pas"/>
         <DCCReference Include="..\Controls\pyControl.pas"/>
         <DCCReference Include="..\General\GrowthShape.pas"/>
         <DCCReference Include="..\Shared\HashList.pas"/>
