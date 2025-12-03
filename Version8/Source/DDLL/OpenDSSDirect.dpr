@@ -134,7 +134,7 @@ uses
   VSource in '..\PCElements\VSource.pas',
   Capacitor in '..\PDElements\Capacitor.pas',
   Fault in '..\PDElements\Fault.pas',
-  fuse in '..\PDElements\fuse.pas',
+  fuse in '..\Controls\fuse.pas',
   GICTransformer in '..\PDElements\GICTransformer.pas',
   Line in '..\PDElements\Line.pas',
   PDClass in '..\PDElements\PDClass.pas',

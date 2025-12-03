@@ -46,6 +46,10 @@ type
     function Get_State: OleVariant; safecall;
     procedure Set_NormalState(Value: OleVariant); safecall;
     procedure Set_State(Value: OleVariant); safecall;
+    function Get_CurveMultiplier: Double; safecall;
+    procedure Set_CurveMultiplier(Value: Double); safecall;
+    function Get_InterruptingRating: Double; safecall;
+    procedure Set_InterruptingRating(Value: Double); safecall;
 
   end;
 
@@ -83,7 +87,7 @@ Begin
           WHILE elem<>Nil DO Begin
               Result[k] := elem.Name;
               Inc(k);
-              elem := pList.next        ;
+              elem := pList.next;
           End;
         End;
     End;
@@ -165,7 +169,7 @@ var
   elem: TFuseObj;
 begin
   Result := '';
-  elem := FuseClass.GetActiveObj  ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Result := elem.MonitoredElementName;
 end;
 
@@ -174,8 +178,8 @@ var
   elem: TFuseObj;
 begin
   Result := 0;
-  elem := FuseClass.GetActiveObj  ;
-  if elem <> nil then Result := elem.MonitoredElementTerminal ;
+  elem := FuseClass.GetActiveObj;
+  if elem <> nil then Result := elem.MonitoredElementTerminal;
 end;
 
 function TFuses.Get_SwitchedObj: WideString;
@@ -183,15 +187,15 @@ var
   elem: TFuseObj;
 begin
   Result := '';
-  elem := FuseClass.ElementList.Active ;
-  if elem <> nil then Result := elem.ElementName  ;
+  elem := FuseClass.ElementList.Active;
+  if elem <> nil then Result := elem.ElementName;
 end;
 
 procedure TFuses.Set_MonitoredObj(const Value: WideString);
 var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('monitoredObj', Value);
 end;
 
@@ -199,7 +203,7 @@ procedure TFuses.Set_MonitoredTerm(Value: Integer);
 var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('monitoredterm', IntToStr(Value));
 end;
 
@@ -207,7 +211,7 @@ procedure TFuses.Set_SwitchedObj(const Value: WideString);
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('SwitchedObj', Value);
 end;
 
@@ -216,15 +220,15 @@ var
   elem: TFuseObj;
 begin
   Result := 0;
-  elem := FuseClass.GetActiveObj  ;
-  if elem <> nil then Result := elem.ElementTerminal  ;
+  elem := FuseClass.GetActiveObj;
+  if elem <> nil then Result := elem.ElementTerminal;
 end;
 
 procedure TFuses.Set_SwitchedTerm(Value: Integer);
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('SwitchedTerm', IntToStr(Value));
 end;
 
@@ -232,7 +236,7 @@ function TFuses.Get_TCCcurve: WideString;
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then
   if elem.FuseCurve <> nil then Result := elem.FuseCurve.Name else Result := 'none'
   else Result := 'No Fuse Active!';
@@ -242,7 +246,7 @@ procedure TFuses.Set_TCCcurve(const Value: WideString);
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('FuseCurve', Value);
 end;
 
@@ -250,7 +254,7 @@ function TFuses.Get_RatedCurrent: Double;
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Result := elem.RatedCurrent
   else Result := -1.0;
 end;
@@ -259,7 +263,7 @@ procedure TFuses.Set_RatedCurrent(Value: Double);
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('RatedCurrent', Format('%.8g ',[Value]));
 end;
 
@@ -267,7 +271,7 @@ function TFuses.Get_Delay: Double;
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Result := elem.DelayTime
   else Result := -1.0;
 end;
@@ -277,7 +281,7 @@ Var
   pFuse: TFuseObj;
   i: Integer;
 begin
-  pFuse := FuseClass.GetActiveObj ;
+  pFuse := FuseClass.GetActiveObj;
   if pFuse <> nil then begin
     for i := 1 to pFuse.ControlledElement.NPhases do pFuse.States[i] := CTRL_OPEN // Open all phases
   end;
@@ -288,7 +292,7 @@ Var
   pFuse: TFuseObj;
   i: Integer;
 begin
-  pFuse := FuseClass.GetActiveObj ;
+  pFuse := FuseClass.GetActiveObj;
   if pFuse <> nil then begin
     for i := 1 to pFuse.ControlledElement.NPhases do pFuse.States[i] := CTRL_CLOSE // Close all phases
   end;
@@ -298,7 +302,7 @@ procedure TFuses.Reset;
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then elem.Reset(ActiveActor);
 end;
 
@@ -306,7 +310,7 @@ procedure TFuses.Set_Delay(Value: Double);
 Var
   elem: TFuseObj;
 begin
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Set_parameter('Delay', Format('%.8g ',[Value]));
 end;
 
@@ -318,7 +322,7 @@ Var
   i : Integer;
 begin
   Result :=FALSE;
-  elem := FuseClass.GetActiveObj ;
+  elem := FuseClass.GetActiveObj;
   if elem <> nil then Begin
       for i := 1 to elem.nphases do
           If not elem.ControlledElement.Closed[i,ActiveActor] Then Result := TRUE;
@@ -348,8 +352,8 @@ Var
 begin
     Result := 0;
     if ActiveCircuit[ActiveActor] <> Nil then   Begin
-        pFuse := FuseClass.GetActiveObj ;
-        If pFuse <> Nil Then Result := pFuse.NPhases ;
+        pFuse := FuseClass.GetActiveObj;
+        If pFuse <> Nil Then Result := pFuse.NPhases;
     End;
 end;
 
@@ -447,6 +451,40 @@ begin
          End;
 
      End;
+end;
+
+function TFuses.Get_CurveMultiplier: Double;
+var
+  pFuse:TFuseObj;
+begin
+  Result := 0;
+  pFuse := FuseClass.GetActiveObj;
+  if pFuse <> nil then Result := pFuse.CurveMultiplier;
+end;
+
+procedure TFuses.Set_CurveMultiplier(Value: Double);
+var
+  pFuse:TFuseObj;
+begin
+  pFuse := FuseClass.GetActiveObj;
+  if pFuse <> nil then Set_parameter('CurveMultiplier', Format('%.g',[Value]));
+end;
+
+function TFuses.Get_InterruptingRating: Double;
+var
+  pFuse:TFuseObj;
+begin
+  Result := 0;
+  pFuse := FuseClass.GetActiveObj;
+  if pFuse <> nil then Result := pFuse.InterruptingRating;
+end;
+
+procedure TFuses.Set_InterruptingRating(Value: Double);
+var
+  pFuse:TFuseObj;
+begin
+  pFuse := FuseClass.GetActiveObj;
+  if pFuse <> nil then Set_parameter('InterruptingRating', Format('%.g',[Value]));
 end;
 
 initialization

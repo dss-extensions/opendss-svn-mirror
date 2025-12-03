@@ -34,13 +34,9 @@ type
     function Get_Shots: Integer; safecall;
     procedure Set_NumFast(Value: Integer); safecall;
     procedure Set_Shots(Value: Integer); safecall;
-    function Get_PhaseTrip: Double; safecall;
-    procedure Set_PhaseTrip(Value: Double); safecall;
     function Get_GroundInst: Double; safecall;
-    function Get_GroundTrip: Double; safecall;
     function Get_PhaseInst: Double; safecall;
     procedure Set_GroundInst(Value: Double); safecall;
-    procedure Set_GroundTrip(Value: Double); safecall;
     procedure Set_PhaseInst(Value: Double); safecall;
     procedure Close; safecall;
     procedure Open; safecall;
@@ -51,6 +47,18 @@ type
     procedure Set_NormalState(Value: OleVariant); safecall;
     procedure Reset; safecall;
     procedure Set_State(Value: OleVariant); safecall;
+    function Get_GrFastPickup: Double; safecall;
+    function Get_GrSlowPickup: Double; safecall;
+    function Get_PhFastPickup: Double; safecall;
+    function Get_PhSlowPickup: Double; safecall;
+    procedure Set_GrFastPickup(Value: Double); safecall;
+    procedure Set_GrSlowPickup(Value: Double); safecall;
+    procedure Set_PhFastPickup(Value: Double); safecall;
+    procedure Set_PhSlowPickup(Value: Double); safecall;
+    function Get_InterruptingRating: Double; safecall;
+    function Get_RatedCurrent: Double; safecall;
+    procedure Set_InterruptingRating(Value: Double); safecall;
+    procedure Set_RatedCurrent(Value: Double); safecall;
 
   end;
 
@@ -87,7 +95,7 @@ Begin
           WHILE elem<>Nil DO Begin
               Result[k] := elem.Name;
               Inc(k);
-              elem := pList.next        ;
+              elem := pList.next;
           End;
         End;
     End;
@@ -155,7 +163,7 @@ begin
      Begin
           If RecloserClass.SetActive(Value) Then
           Begin
-               ActiveCircuit[ActiveActor].ActiveCktElement := RecloserClass.ElementList.Active ;
+               ActiveCircuit[ActiveActor].ActiveCktElement := RecloserClass.ElementList.Active;
           End
           Else Begin
               DoSimpleMsg('Recloser "'+ Value +'" Not Found in Active Circuit.', 77003);
@@ -168,7 +176,7 @@ var
   elem: TRecloserObj;
 begin
   Result := '';
-  elem := RecloserClass.GetActiveObj  ;
+  elem := RecloserClass.GetActiveObj;
   if elem <> nil then Result := elem.MonitoredElementName;
 end;
 
@@ -176,7 +184,7 @@ procedure TReclosers.Set_MonitoredObj(const Value: WideString);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.GetActiveObj ;
+  elem := RecloserClass.GetActiveObj;
   if elem <> nil then Set_parameter('monitoredObj', Value);
 end;
 
@@ -185,15 +193,15 @@ var
   elem: TRecloserObj;
 begin
   Result := 0;
-  elem := RecloserClass.GetActiveObj  ;
-  if elem <> nil then Result := elem.MonitoredElementTerminal ;
+  elem := RecloserClass.GetActiveObj;
+  if elem <> nil then Result := elem.MonitoredElementTerminal;
 end;
 
 procedure TReclosers.Set_MonitoredTerm(Value: Integer);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.GetActiveObj ;
+  elem := RecloserClass.GetActiveObj;
   if elem <> nil then Set_parameter('monitoredterm', IntToStr(Value));
 end;
 
@@ -202,15 +210,15 @@ var
   elem: TRecloserObj;
 begin
   Result := '';
-  elem := RecloserClass.ElementList.Active ;
-  if elem <> nil then Result := elem.ElementName  ;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.ElementName;
 end;
 
 procedure TReclosers.Set_SwitchedObj(const Value: WideString);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.GetActiveObj ;
+  elem := RecloserClass.GetActiveObj;
   if elem <> nil then Set_parameter('SwitchedObj', Value);
 end;
 
@@ -219,15 +227,15 @@ var
   elem: TRecloserObj;
 begin
   Result := 0;
-  elem := RecloserClass.GetActiveObj  ;
-  if elem <> nil then Result := elem.ElementTerminal  ;
+  elem := RecloserClass.GetActiveObj;
+  if elem <> nil then Result := elem.ElementTerminal;
 end;
 
 procedure TReclosers.Set_SwitchedTerm(Value: Integer);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.GetActiveObj ;
+  elem := RecloserClass.GetActiveObj;
   if elem <> nil then Set_parameter('SwitchedTerm', IntToStr(Value));
 end;
 
@@ -236,8 +244,8 @@ var
   elem: TRecloserObj;
 begin
   Result := 0;
-  elem := RecloserClass.ElementList.Active;  ;
-  if elem <> nil then Result := elem.NumFast ;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.NumFast;
 end;
 
 function TReclosers.Get_RecloseIntervals: OleVariant;
@@ -269,7 +277,7 @@ var
   elem: TRecloserObj;
 begin
   Result := 0;
-  elem := RecloserClass.ElementList.Active;  ;
+  elem := RecloserClass.ElementList.Active;
   if elem <> nil then Result := elem.NumReclose + 1;
 end;
 
@@ -277,7 +285,7 @@ procedure TReclosers.Set_NumFast(Value: Integer);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.ElementList.Active  ;
+  elem := RecloserClass.ElementList.Active;
   if elem <> nil then Set_parameter('numfast', IntToStr(Value));
 end;
 
@@ -285,25 +293,8 @@ procedure TReclosers.Set_Shots(Value: Integer);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.ElementList.Active  ;
-  if elem <> nil then Set_parameter('shots', IntToStr(Value));
-end;
-
-function TReclosers.Get_PhaseTrip: Double;
-var
-  elem: TRecloserObj;
-begin
-  Result := 0;
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.PhaseTrip;
-end;
-
-procedure TReclosers.Set_PhaseTrip(Value: Double);
-var
-  elem: TRecloserObj;
-begin
-  elem := RecloserClass.ElementList.Active  ;
-  if elem <> nil then Set_parameter('PhaseTrip', Format('%.g',[Value]));
+  if elem <> nil then Set_parameter('shots', IntToStr(Value));
 end;
 
 function TReclosers.Get_GroundInst: Double;
@@ -313,15 +304,6 @@ begin
   Result := 0;
   elem := RecloserClass.ElementList.Active;
   if elem <> nil then Result := elem.GroundInst;
-end;
-
-function TReclosers.Get_GroundTrip: Double;
-var
-  elem: TRecloserObj;
-begin
-  Result := 0;
-  elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.GroundTrip;
 end;
 
 function TReclosers.Get_PhaseInst: Double;
@@ -337,23 +319,15 @@ procedure TReclosers.Set_GroundInst(Value: Double);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.ElementList.Active  ;
+  elem := RecloserClass.ElementList.Active;
   if elem <> nil then Set_parameter('GroundInst', Format('%.g',[Value]));
-end;
-
-procedure TReclosers.Set_GroundTrip(Value: Double);
-var
-  elem: TRecloserObj;
-begin
-  elem := RecloserClass.ElementList.Active  ;
-  if elem <> nil then Set_parameter('GroundTrip', Format('%.g',[Value]));
 end;
 
 procedure TReclosers.Set_PhaseInst(Value: Double);
 var
   elem: TRecloserObj;
 begin
-  elem := RecloserClass.ElementList.Active  ;
+  elem := RecloserClass.ElementList.Active;
   if elem <> nil then Set_parameter('Phaseinst', Format('%.g',[Value]));
 end;
 
@@ -371,7 +345,7 @@ var
   elem: TRecloserObj;
   i: Integer;
 begin
-  elem := RecloserClass.ElementList.Active  ;
+  elem := RecloserClass.ElementList.Active;
   for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_OPEN // Open all phases
 end;
 
@@ -491,6 +465,108 @@ begin
          End;
 
      End;
+end;
+
+function TReclosers.Get_GrFastPickup: Double;
+var
+  elem: TRecloserObj;
+begin
+  Result := 0;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.GrFastPickup;
+end;
+
+function TReclosers.Get_GrSlowPickup: Double;
+var
+  elem: TRecloserObj;
+begin
+  Result := 0;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.GrSlowPickup;
+end;
+
+function TReclosers.Get_PhFastPickup: Double;
+var
+  elem: TRecloserObj;
+begin
+  Result := 0;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.PhFastPickup;
+end;
+
+function TReclosers.Get_PhSlowPickup: Double;
+var
+  elem: TRecloserObj;
+begin
+  Result := 0;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.PhSlowPickup;
+end;
+
+procedure TReclosers.Set_GrFastPickup(Value: Double);
+var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('GrFastPickup', Format('%.g',[Value]));
+end;
+
+procedure TReclosers.Set_GrSlowPickup(Value: Double);
+var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('GrSlowPickup', Format('%.g',[Value]));
+end;
+
+procedure TReclosers.Set_PhFastPickup(Value: Double);
+var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('PhFastPickup', Format('%.g',[Value]));
+end;
+
+procedure TReclosers.Set_PhSlowPickup(Value: Double);
+var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('PhSlowPickup', Format('%.g',[Value]));
+end;
+
+function TReclosers.Get_InterruptingRating: Double;
+var
+  elem: TRecloserObj;
+begin
+  Result := 0;
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.InterruptingRating;
+end;
+
+function TReclosers.Get_RatedCurrent: Double;
+Var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Result := elem.RatedCurrent
+  else Result := -1.0;
+end;
+
+procedure TReclosers.Set_InterruptingRating(Value: Double);
+var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('InterruptingRating', Format('%.g',[Value]));
+end;
+
+procedure TReclosers.Set_RatedCurrent(Value: Double);
+Var
+  elem: TRecloserObj;
+begin
+  elem := RecloserClass.ElementList.Active;
+  if elem <> nil then Set_parameter('RatedCurrent', Format('%.8g ',[Value]));
 end;
 
 initialization

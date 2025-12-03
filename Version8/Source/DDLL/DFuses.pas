@@ -69,37 +69,37 @@ begin
   end;
   3: begin  // Fuse.MonitoredTerm read
       Result := 0;
-      elem := FuseClass.GetActiveObj  ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Result := elem.MonitoredElementTerminal ;
   end;
   4: begin  // Fuse.MonitoredTerm write
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Set_parameter('monitoredterm', IntToStr(arg));
   end;
   5: begin  // Fuse.SwitchedTerm read
       Result := 0;
-      elem := FuseClass.GetActiveObj  ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Result := elem.ElementTerminal;
   end;
   6: begin  // Fuse.SwitchedTerm write
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Set_parameter('switchedterm', IntToStr(arg));
   end;
   7: begin  // Fuse.Open
-    pFuse := FuseClass.GetActiveObj ;
+    pFuse := FuseClass.GetActiveObj;
     if pFuse <> nil then begin
       for i := 1 to pFuse.ControlledElement.NPhases do pFuse.States[i] := CTRL_OPEN // Open all phases
     end;
   end;
   8: begin  // Fuse.Close
-    pFuse := FuseClass.GetActiveObj ;
+    pFuse := FuseClass.GetActiveObj;
     if pFuse <> nil then begin
       for i := 1 to pFuse.ControlledElement.NPhases do pFuse.States[i] := CTRL_CLOSE // Close all phases
     end;
   end;
   9: begin  // Fuse.IsBlown
       Result :=0;
-      elem := FuseClass.GetActiveObj ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Begin
           for i := 1 to elem.nphases do
               If not elem.ControlledElement.Closed[i,ActiveActor] Then Result := 1;
@@ -145,22 +145,40 @@ begin
   Result:=0.0; // Default return value
   case mode of
   0: begin  // Fuses.RatedCurrent read
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Result := elem.RatedCurrent
     else Result := -1.0;
   end;
   1: begin  // Fuses.RatedCurrent write
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Set_parameter('RatedCurrent', Format('%.8g ',[arg]));
-  end ;
+  end;
   2: begin  // Fuses.Delay read
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Result := elem.DelayTime
     else Result := -1.0;
   end;
   3: begin  // Fuses.Delay write
-    elem := FuseClass.GetActiveObj ;
+    elem := FuseClass.GetActiveObj;
     if elem <> nil then Set_parameter('Delay', Format('%.8g ',[arg]));
+  end;
+  4: begin  // Fuses.CurveMultiplier read
+    elem := FuseClass.GetActiveObj;
+    if elem <> nil then Result := elem.CurveMultiplier
+    else Result := -1.0;
+  end;
+  5: begin  // Fuses.CurveMultiplier write
+    elem := FuseClass.GetActiveObj;
+    if elem <> nil then Set_parameter('CurveMultiplier', Format('%.8g ',[arg]));
+  end;
+  6: begin  // Fuses.InterruptingRating read
+    elem := FuseClass.GetActiveObj;
+    if elem <> nil then Result := elem.InterruptingRating
+    else Result := -1.0;
+  end;
+  7: begin  // Fuses.InterruptingRating write
+    elem := FuseClass.GetActiveObj;
+    if elem <> nil then Set_parameter('InterruptingRating', Format('%.8g ',[arg]));
   end
   else
       Result:=-1.0;
@@ -195,11 +213,11 @@ begin
   end;
   2: begin  // Fuses. MonitoredObj read
       Result := pAnsiChar(AnsiString(''));
-      elem := FuseClass.GetActiveObj  ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Result := pAnsiChar(AnsiString(elem.MonitoredElementName));
   end;
   3: begin  // Fuses. MonitoredObj write
-      elem := FuseClass.GetActiveObj ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Set_parameter('monitoredObj', string(arg));
   end;
   4: begin  // Fuses.SwitchedObj read
@@ -208,17 +226,17 @@ begin
       if elem <> nil then Result := pAnsiChar(AnsiString(elem.ElementName));
   end;
   5: begin  // Fuses.SwitchedObj write
-      elem := FuseClass.GetActiveObj ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Set_parameter('SwitchedObj', string(arg));
   end;
   6: begin  // Fuses.TCCcurve read
-      elem := FuseClass.GetActiveObj ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then
       if elem.FuseCurve <> nil then Result := pAnsiChar(AnsiString(elem.FuseCurve.Name)) else Result := pAnsiChar('none')
       else Result := pAnsiChar(AnsiString('No Fuse Active!'));
   end;
   7: begin  // Fuses.TCCcurve write
-      elem := FuseClass.GetActiveObj ;
+      elem := FuseClass.GetActiveObj;
       if elem <> nil then Set_parameter('FuseCurve', string(arg));
   end
   else

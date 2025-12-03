@@ -80,7 +80,7 @@ uses
   Frm_RPNcalc in '..\Parser\Frm_RPNcalc.pas' {RPNForm},
   FrmCSVchannelSelect in '..\Forms\FrmCSVchannelSelect.pas' {ChannelSelectForm},
   FrmDoDSSCommand in '..\Forms\FrmDoDSSCommand.pas' {DoDSSCommandForm},
-  fuse in '..\PDElements\fuse.pas',
+  fuse in '..\Controls\fuse.pas',
   pyControl in '..\Controls\pyControl.pas',
   GrowthShape in '..\General\GrowthShape.pas',
   HashList in '..\Shared\HashList.pas',
