@@ -160,7 +160,7 @@ USES
 
 CONST
 
-    NumPropsThisClass = 38;
+    NumPropsThisClass = 42;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
