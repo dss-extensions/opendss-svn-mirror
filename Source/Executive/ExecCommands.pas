@@ -994,7 +994,7 @@ begin
             94:
                 CmdResult := DoBusCoordsCmd(true, 0);   // swaps X and Y
             95:
-                CmdResult := DoBatchEditCmd;
+                GlobalResult := Format('Elements edited: %d', [DoBatchEditCmd]);
             96:
                 CmdResult := DoPstCalc;
             97:

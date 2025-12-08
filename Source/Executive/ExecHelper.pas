@@ -27,6 +27,9 @@ interface
 function DoNewCmd: Integer;
 function DoEditCmd: Integer;
 function DoBatchEditCmd: Integer;
+function DoCheckConditionals: Integer;
+function DoEvalConditionals: Integer;
+function DoLocalizeOp_Index(operation: String): Integer;
 function DoSelectCmd: Integer;
 function DoMoreCmd: Integer;
 function DoRedirect(IsCompile: Boolean): Integer;
@@ -212,6 +215,11 @@ var
     SetBusXYCommands, PstCalcCommands, RemoveCommands,
     FNCSPubCommands, HELICSPubCommands: TCommandList;
 
+   //--------- Variables for processing conditionals
+    cond_arguments: array of String;
+    cond_operators: array of String;
+    cond_logic_ops: array of Integer;
+
 //----------------------------------------------------------------------------
 procedure GetObjClassAndName(var ObjClass, ObjName: String);
 var
@@ -320,15 +328,285 @@ begin
 
 end;
 
+function DoLocalizeOp_Index(operation: String): Integer;
+// Returns an integer signaling the given opeartion, this number can be used 
+// to determine the comparisson to be performed by the caller between 2 magnitudes.
+// If the operation is not identified, it will return -1.
+var
+    i: Integer;
+const
+    operators: array[0..5] of String = ('>', '<', '>=', '<=', '=', '!=');
+
+begin
+    Result := -1;
+    for i := Low(operators) to High(operators) do
+        if operation = operators[i] then
+        begin
+            Result := i;
+            break;
+        end;
+
+end;
+
+//----------------------------------------------------------------------------
+function DoEvalConditionals: Integer;
+// Evaluates the existing conditionals in memory, if all the conditionals comply, 
+// this routine will return the number 1. If it does not comply, it will return 0.
+// Othwerwise, if there is an error due to bad declaration or type mismatch it will
+// return -1.
+var
+    prop_idx,
+    j,
+    i: Integer;
+    prop_val: String;
+    float_vals: array[0..1] of Double;
+    local_test,
+    logic_probe: Boolean;
+    eval_results: array of Boolean;
+
+begin
+    Result := 0;
+    SetLength(eval_results, length(cond_operators));
+    try
+        begin
+            for i := 0 to High(cond_operators) do
+            begin
+                eval_results[i] := false;
+                j := i * 2;
+                prop_idx := ActiveDSSClass[ActiveActor].PropertyIndex(cond_arguments[j]);
+                prop_val := ActiveDSSObject[ActiveActor].GetPropertyValue(prop_idx);
+                case DoLocalizeOp_Index(cond_operators[i]) of
+                    0:
+                    begin     // > case
+                        AuxParser[ActiveActor].CmdString := cond_arguments[j + 1];
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[0] := AuxParser[ActiveActor].DblValue;
+                        AuxParser[ActiveActor].CmdString := prop_val;
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[1] := AuxParser[ActiveActor].DblValue;
+                        if float_vals[1] > float_vals[0] then
+                            eval_results[i] := true;
+
+                    end;
+                    1:
+                    begin     // < case
+                        AuxParser[ActiveActor].CmdString := cond_arguments[j + 1];
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[0] := AuxParser[ActiveActor].DblValue;
+                        AuxParser[ActiveActor].CmdString := prop_val;
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[1] := AuxParser[ActiveActor].DblValue;
+                        if float_vals[1] < float_vals[0] then
+                            eval_results[i] := true;
+
+                    end;
+                    2:
+                    begin    // >= case
+                        AuxParser[ActiveActor].CmdString := cond_arguments[j + 1];
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[0] := AuxParser[ActiveActor].DblValue;
+                        AuxParser[ActiveActor].CmdString := prop_val;
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[1] := AuxParser[ActiveActor].DblValue;
+                        if float_vals[1] >= float_vals[0] then
+                            eval_results[i] := true;
+
+                    end;
+                    3:
+                    begin    // <= case
+                        AuxParser[ActiveActor].CmdString := cond_arguments[j + 1];
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[0] := AuxParser[ActiveActor].DblValue;
+                        AuxParser[ActiveActor].CmdString := prop_val;
+                        AuxParser[ActiveActor].NextParam;
+                        float_vals[1] := AuxParser[ActiveActor].DblValue;
+                        if float_vals[1] <= float_vals[0] then
+                            eval_results[i] := true;
+
+                    end;
+                    4:
+                    begin    // = case
+                        if cond_arguments[j + 1] = prop_val then
+                            eval_results[i] := true;
+
+                    end;
+                    5:
+                    begin    // != case
+                        if cond_arguments[j + 1] <> prop_val then
+                            eval_results[i] := true;
+
+                    end
+                else
+                begin
+                    DoSimpleMsg('Operator not identified/supported: "' + cond_operators[i] + '".', 100241);
+                    break;
+                end;
+
+                end;
+            end;
+
+      // evaluates the results of each individual operation by adding the logic test
+            logic_probe := eval_results[0];
+            for i := 0 to High(cond_logic_ops) do
+            begin
+                local_test := eval_results[i + 1];
+                case cond_logic_ops[i] of
+                    0:
+                        logic_probe := logic_probe and local_test;
+                    1:
+                        logic_probe := logic_probe or local_test;
+                    2:
+                        logic_probe := logic_probe xor local_test
+                else
+                    DoSimpleMsg('The logic test is not identified/supported."', 100242)
+                end;
+
+            end;
+            if logic_probe then
+                Result := 1;
+
+        end;
+    except
+        begin
+            DoSimpleMsg('One or more conditionals provided are incorrect. Either the data type is incorrect or the property does not exist."', 100242);
+            Result := -1;
+
+        end;
+
+    end;
+
+end;
+
+//----------------------------------------------------------------------------
+function DoCheckConditionals: Integer;
+// Checks if there are conditionals starting with the string 'where' in the parser
+var
+    elem_var: array[0..1] of String;
+    elem_cond,
+    next_char,
+    cmd_line,
+    R_String: String;
+    i,
+    act_length,
+    op_found,
+    last_logic_pos,
+    cond_pos: Integer;
+    cond_err: Boolean;
+
+const
+    local_operators: array[0..4] of String = ('>', '<', '!', '=', ' ');
+    local_logic: array[0..2] of String = ('and', 'or', 'xor');
+begin
+    Result := 0;
+    R_String := SysUtils.LowerCase(Parser[ActiveActor].Remainder);
+    cond_pos := Pos('where', R_String);
+    last_logic_pos := 0;
+    if (cond_pos > 0) then
+    begin
+    // Initialize containers
+        setlength(cond_arguments, 0);
+        setlength(cond_operators, 0);
+        setlength(cond_logic_ops, 0);
+        R_String := Trim(R_String.Substring(cond_pos + 5));
+
+        while length(R_String) > 0 do
+        begin
+      // Search for a logic operator
+            cmd_line := R_String;
+            op_found := 0;
+            last_logic_pos := 0;
+            for i := Low(local_logic) to High(local_logic) do
+            begin
+                op_found := Pos(local_logic[i], R_String);
+                if op_found > 0 then
+                begin
+          // Extract the command line if any logic operators
+                    setlength(cond_logic_ops, length(cond_logic_ops) + 1);
+          // Store the logic op index in the global structure
+                    cond_logic_ops[High(cond_logic_ops)] := i;
+                    cmd_line := Trim(R_String).Substring(0, op_found - 2);
+                    last_logic_pos := op_found;
+                    break;
+                end;
+            end;
+      // Search for the first argument (variable)
+            op_found := 0;
+            for i := 0 to High(local_operators) do
+            begin
+                op_found := Pos(local_operators[i], cmd_line);
+                if op_found > 0 then
+                    break;
+            end;
+      // Moves back to extract the variable
+            op_found := op_found - 1;
+            elem_var[0] := Trim(cmd_line.Substring(0, op_found));
+      // Extracts the operand
+            elem_cond := cmd_line.Substring(op_found, 1);
+            next_char := cmd_line.Substring(op_found + 1, 1);
+            if next_char = local_operators[3] then
+            begin
+                elem_cond := elem_cond + next_char;
+                op_found := op_found + 1;
+            end;
+      // Search for the second argument (value)
+            elem_var[1] := Trim(cmd_line.Substring(op_found + 1));
+            cond_err := false;
+            for i := 0 to 1 do
+                if elem_var[i] = '' then
+                    cond_err := true;
+            if cond_err then
+            begin
+        // Something went wrong, one or more conditionals are incorrect
+                setlength(cond_arguments, 0);
+                setlength(cond_operators, 0);
+                setlength(cond_logic_ops, 0);
+                R_String := '';
+                Result := -1;
+                DoSimpleMsg('Conditional wrongly declared: "' + elem_var[0] + '".', 100240)
+            end
+            else
+            begin
+        // Stores the conditional in the global instance for later use
+                setlength(cond_arguments, length(cond_arguments) + 2);
+                setlength(cond_operators, length(cond_operators) + 1);
+                act_length := length(cond_arguments) - 2;
+                for i := 0 to 1 do
+                    cond_arguments[act_length + i] := elem_var[i];
+
+                cond_operators[High(cond_operators)] := elem_cond;
+                if last_logic_pos = 0 then
+                begin
+          // We got to the end of the conditionals
+                    R_String := ''
+                end
+                else
+                begin
+          // advances the text to the next section for analysis
+                    R_String := Trim(R_String.Substring(last_logic_pos));
+                    op_found := Pos(' ', R_String);
+                    R_String := Trim(R_String.Substring(op_found));
+                end;
+                Result := 1;
+
+            end;
+
+        end;
+
+    end;
+
+end;
+
 //----------------------------------------------------------------------------
 function DoBatchEditCmd: Integer;
 // batchedit type=xxxx name=pattern  editstring
     {$IFDEF FPC}
 VAR
-   ObjType, Pattern:String;
-   RegEx1: TRegExpr;
-   pObj: TDSSObject;
-   Params: Integer;
+   ObjType,
+   Pattern          :String;
+   RegEx1           : TRegExpr;
+   pObj             : TDSSObject;
+   Params           : Integer;
+
 Begin
   Result := 0;
   GetObjClassAndName(ObjType, Pattern);
@@ -363,13 +641,21 @@ Begin
 End;
     {$ELSE}
 var
-    ObjType, Pattern: String;
+    str_temp,
+    ObjType,
+    Pattern: String;
     RegEx1: TPerlRegEx;
     pObj: TDSSObject;
-    Params: Integer;
+    num_elm_edited,
+    cond_pos,
+    Params,
     iElement: Integer;
+    apply_edit,
+    has_conditionals: Boolean;
+
 begin
     Result := 0;
+    has_conditionals := false;
     GetObjClassAndName(ObjType, Pattern);
     if CompareText(ObjType, 'circuit') = 0 then
     begin
@@ -388,29 +674,69 @@ begin
             end;{Error}
         else
             Params := Parser[ActiveActor].Position;
-            ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
-            RegEx1 := TPerlRegEx.Create;
-            RegEx1.Options := [preCaseLess];
-            RegEx1.RegEx := Pattern; // AnsiString(Pattern);
-            if ActiveDSSClass[ActiveActor].First > 0 then
-                pObj := ActiveDSSObject[ActiveActor]
-            else
-                pObj := nil;
-            while pObj <> nil do
+      // Evaluates if the declaration includes conditionals
+            cond_pos := DoCheckConditionals();
+            if cond_pos >= 0 then
             begin
-                RegEx1.Subject := pObj.Name; //(pObj.Name);
-                if RegEx1.Match then
-                begin
-                    Parser[ActiveActor].Position := Params;
-                    ActiveDSSClass[ActiveActor].Edit(ActiveActor);
-                end;
-                if ActiveDSSClass[ActiveActor].Next > 0 then
+                if cond_pos = 1 then
+                    has_conditionals := true;
+
+                ActiveDSSClass[ActiveActor] := DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+                RegEx1 := TPerlRegEx.Create;
+                RegEx1.Options := [preCaseLess];
+                RegEx1.RegEx := Pattern; // AnsiString(Pattern);
+                if ActiveDSSClass[ActiveActor].First > 0 then
                     pObj := ActiveDSSObject[ActiveActor]
                 else
                     pObj := nil;
+        // if there are conditionals, remove them from the command string to allow editing,
+        // At this point, the conditionals have already been uploaded into memory
+                if has_conditionals then
+                begin
+                    cond_pos := Pos('where', SysUtils.LowerCase(Parser[ActiveActor].Remainder));
+                    str_temp := Parser[ActiveActor].Remainder.Substring(0, cond_pos - 1);
+                    Parser[ActiveActor].CmdString := 'batchedit ' + ObjType + '..* ' + Trim(str_temp);
+                end;
+
+                num_elm_edited := 0;
+                while pObj <> nil do
+                begin
+                    apply_edit := true;
+                    if has_conditionals then
+                    begin
+                        cond_pos := DoEvalConditionals;
+                        if cond_pos = 0 then
+                            apply_edit := false
+                        else
+                        if cond_pos = -1 then
+                        begin
+                            DoSimpleMsg('One of more conditionals are incorrect.', 100243);
+                            break;
+                        end;
+
+                    end;
+                    if apply_edit then
+                    begin
+                        RegEx1.Subject := pObj.Name; //(pObj.Name);
+                        if RegEx1.Match then
+                        begin
+                            Parser[ActiveActor].Position := Params;
+                            ActiveDSSClass[ActiveActor].Edit(ActiveActor);
+                            inc(num_elm_edited);
+                        end;
+                    end;
+                    if ActiveDSSClass[ActiveActor].Next > 0 then
+                        pObj := ActiveDSSObject[ActiveActor]
+                    else
+                        pObj := nil;
+                end;
+
             end;
+
         end;
     end;
+  // Returns the number of elements edited
+    Result := num_elm_edited;
 end;
 {$ENDIF}
 
