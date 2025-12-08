@@ -861,7 +861,7 @@ Begin
        92: CmdResult := DoUpDateStorageCmd;
        93: Obfuscate;
        94: CmdResult := DoBusCoordsCmd(TRUE, 0);   // swaps X and Y
-       95: CmdResult := DoBatchEditCmd;
+       95: GlobalResult := Format('Elements edited: %d',[DoBatchEditCmd]);
        96: CmdResult := DoPstCalc;
        97: CmdResult := DoValVarCmd;
        98: ActiveCircuit[ActiveActor].ReprocessBusDefs(ActiveActor);
