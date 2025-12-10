@@ -64,6 +64,11 @@ TCommandList* PstCalcCommands = nullptr;
 TCommandList* RemoveCommands = nullptr;
 TCommandList* FNCSPubCommands = nullptr;
 
+//--------- Variables for processing conditionals
+
+vector<string>	cond_arguments;
+vector<string>	cond_operators;
+vector<int>		cond_logic_ops;
 
 //----------------------------------------------------------------------------
 
@@ -166,19 +171,283 @@ int DoEditCmd()
 
 // edit type=xxxx name=xxxx  editstring
 
+//----------------------------------------------------------------------------
+int DoLocalizeOp_index(string operation)
+{
+    // Returns an integer signaling the given opeartion, this number can be used
+    // to determine the comparisson to be performed by the caller between 2 magnitudes.
+    // If the operation is not identified, it will return -1.
+
+	int i = 0,
+		result = 0;
+    vector<string> operators = { ">", "<", ">=", "<=", "=", "!=" };
+
+	result = -1;
+    for (i = 0; i < operators.size(); i++)
+    {
+        if (operation == operators[i])
+        {
+            result = i;
+            break;
+        }
+    }
+    return result;
+}
+
+//----------------------------------------------------------------------------
+int DoEvalConditionals()
+{
+    // Evaluates the existing conditionals in memory, if all the conditionals comply,
+    // this routine will return the number 1. If it does not comply, it will return 0.
+    // Othwerwise, if there is an error due to bad declaration or type mismatch it will
+    // return -1.
+
+	int		result = 0,
+			prop_idx = 0,
+			j = 0,
+			i = 0;
+    string			prop_val = "";
+    vector<double>	float_vals = { 0.0, 0.0};
+	bool	local_test = false,
+			logic_probe = false;
+    vector<bool>	eval_results;
+
+	eval_results.resize(cond_operators.size());
+    try
+    {
+        for (i = 0; i < cond_operators.size(); i++)
+        {
+            eval_results[i] = false;
+			j				= i * 2;
+            prop_idx = ActiveDSSClass[ActiveActor]->PropertyIndex(cond_arguments[j]);
+			prop_val = ((TDSSObject*)ActiveDSSObject[ActiveActor])->GetPropertyValue(prop_idx);
+            switch (DoLocalizeOp_index(cond_operators[i]))
+            {
+				case 0:		// > case
+				{
+					AuxParser[ActiveActor]->SetCmdString(cond_arguments[j + 1]);
+					AuxParser[ActiveActor]->GetNextParam();
+					float_vals[0]	= AuxParser[ActiveActor]->MakeDouble_();
+                    AuxParser[ActiveActor]->SetCmdString(prop_val);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[1] = AuxParser[ActiveActor]->MakeDouble_();
+                    if (float_vals[1] > float_vals[0])
+                        eval_results[i] = true; 
+				}
+				break;
+                case 1: // < case
+                {
+                    AuxParser[ActiveActor]->SetCmdString(cond_arguments[j + 1]);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[0] = AuxParser[ActiveActor]->MakeDouble_();
+                    AuxParser[ActiveActor]->SetCmdString(prop_val);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[1] = AuxParser[ActiveActor]->MakeDouble_();
+                    if (float_vals[1] < float_vals[0])
+                        eval_results[i] = true;
+                }
+                break;
+                case 2: // >= case
+                {
+                    AuxParser[ActiveActor]->SetCmdString(cond_arguments[j + 1]);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[0] = AuxParser[ActiveActor]->MakeDouble_();
+                    AuxParser[ActiveActor]->SetCmdString(prop_val);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[1] = AuxParser[ActiveActor]->MakeDouble_();
+                    if (float_vals[1] >= float_vals[0])
+                        eval_results[i] = true;
+                }
+                break;
+                case 3: // <= case
+                {
+                    AuxParser[ActiveActor]->SetCmdString(cond_arguments[j + 1]);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[0] = AuxParser[ActiveActor]->MakeDouble_();
+                    AuxParser[ActiveActor]->SetCmdString(prop_val);
+                    AuxParser[ActiveActor]->GetNextParam();
+                    float_vals[1] = AuxParser[ActiveActor]->MakeDouble_();
+                    if (float_vals[1] <= float_vals[0])
+                        eval_results[i] = true;
+                }
+                break;
+                case 4: // = case
+                {
+                    if (cond_arguments[j + 1] == prop_val)
+                        eval_results[i] = true;
+                }
+                break;
+                case 5: // != case
+                {
+                    if (cond_arguments[j + 1] != prop_val)
+                        eval_results[i] = true;
+                }
+                break;
+                default:
+                {
+                    DoErrorMsg("Operator not identified/supported: '" + cond_operators[i] + "'.", "Unknown operator", "Declaration not supported", 100241);
+                    break;
+                }
+            }
+        }
+
+		// evaluates the results of each individual operation by adding the logic test
+        logic_probe = eval_results[0];
+        for (i = 0; i < cond_logic_ops.size(); i++)
+        {
+            local_test = eval_results[i + 1];
+            switch (cond_logic_ops[i])
+            {
+            case 0:
+                logic_probe = logic_probe && local_test;
+                break;
+            case 1:
+                logic_probe = logic_probe || local_test;
+                break;
+            case 2:
+                logic_probe = logic_probe ^ local_test;
+                break;
+            default:
+                DoSimpleMsg("The logic test is not identified/supported.", 100243);
+            }
+        }
+        if (logic_probe)
+            result = 1;
+    }
+    catch (std::exception& e)
+    {
+        DoErrorMsg("One or more conditionals provided are incorrect.Either the data type is incorrect or the property does not exist.", (std::string)e.what(), "Error in command string or circuit data.", 100242);
+        result = -1;
+    }
+
+	return result;
+}
+//----------------------------------------------------------------------------
+int DocheckConditionals()
+{
+    // Checks if there are conditionals starting with the string 'where' in the parser
+    string	elem_var[2];
+    string	elem_cond = "",
+			next_char = "",
+			cmd_line = "",
+			R_String = "";
+    int		i = 0,
+			act_length = 0,
+			op_found = 0,
+			last_logic_pos = 0,
+			Result = 0,
+			cond_pos = 0;
+    bool	cond_err = false;
+
+	vector<string> local_operators = { ">", "<", "!", "=", " " };
+    vector<string> local_logic = { "and", "or", "xor" };
+
+	R_String = LowerCase(Parser[ActiveActor]->Get_Remainder());
+    cond_pos = Pos("where", R_String);
+    if (cond_pos > 0)
+    {
+		// Initialize containers
+        cond_arguments.clear();
+		cond_operators.clear();
+        cond_logic_ops.clear();
+        R_String = Trim(R_String.substr(cond_pos + 5)); 
+		while (R_String.length() > 0)
+        {
+			cmd_line = R_String;
+            op_found = 0;
+			last_logic_pos = 0;
+            for (i = 0; i < local_logic.size(); i++)
+            {
+                op_found = Pos(local_logic[i], R_String);
+                if (op_found > 0)
+                {
+                    // Extract the command line if any logic operators
+                    // Store the logic op index in the global structure
+					cond_logic_ops.push_back(i);
+					cmd_line = Trim(R_String.substr(0, op_found - 2));
+					last_logic_pos = op_found;
+					break;
+                }
+            }
+            // Search for the first argument (variable)
+            op_found = 0;
+            for (i = 0; i < local_operators.size(); i++)
+            {
+                op_found = Pos(local_operators[i], cmd_line);
+                if (op_found > 0)
+                    break;
+            }
+            // Moves back to extract the variable
+            op_found--;
+            elem_var[0] = Trim(cmd_line.substr(0, op_found));
+            // Extracts the operand
+			elem_cond = cmd_line.substr(op_found, 1);
+            next_char = cmd_line.substr(op_found + 1, 1);
+			if (next_char == local_operators[3])
+			{
+				elem_cond = elem_cond + next_char;
+				op_found++;
+			}
+			// Search for the second argument (value)
+			elem_var[1] = Trim(cmd_line.substr(op_found + 1));
+            cond_err = false;
+			for(i = 0; i <= 1; i++)
+			{
+				if (elem_var[i] == "")
+					cond_err = true;
+			}
+			if(cond_err)
+			{
+                // Something went wrong, one or more conditionals are incorrect
+                cond_arguments.clear();
+                cond_operators.clear();
+                cond_logic_ops.clear();
+				R_String = "";
+                Result = -1;
+                DoSimpleMsg("Conditional wrongly declared: '" + elem_var[0] + "'.", 100240);
+			}
+			else
+			{
+				// Stores the conditional in the global instance for later use
+				for (i = 0; i <= 1; i++)
+					cond_arguments.push_back(elem_var[i]);
+				cond_operators.push_back(elem_cond);
+				if (last_logic_pos == 0)
+				{
+					// We got to the end of the conditionals
+                    R_String = "";
+				}
+				else
+				{
+					// advances the text to the next section for analysis
+					R_String = Trim(R_String.substr(last_logic_pos));
+					op_found = Pos(" ", R_String);
+					R_String = Trim(R_String.substr(op_found));
+ 				}
+				Result = 1;
+			}
+        }
+    }
+    return Result;
+}
 
 //----------------------------------------------------------------------------
 
 int DoBatchEditCmd()
 {
-	int result = 0;
-	String ObjType;
-	String Pattern;
+	String		ObjType,
+				Pattern,
+				str_temp;
 	TPerlRegEx* RegEx1 = nullptr;
 	TDSSObject* pObj = nullptr;
-	int Params = 0;
-	int iElement = 0;
-	result = 0;
+    int			num_elm_edited,
+				cond_pos = 0,
+				Params = 0, 
+				result = 0,
+				iElement = 0;
+	bool 		apply_edit = false,
+				has_conditionals = false;
+	
 	GetObjClassAndName(ObjType, Pattern);
 	if(CompareText(ObjType, "circuit") == 0)
 		;
@@ -197,32 +466,75 @@ int DoBatchEditCmd()
 	           + Parser[ActiveActor]->get_CmdBuffer(), 267);
 				return result;
 			}/*Error*/
-			default:
-			Params = Parser[ActiveActor]->get_position();
-			ActiveDSSClass[ActiveActor] = (TDSSClass*) DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
-			RegEx1 = new TPerlRegEx();
-//			RegEx1->Options = ExecHelper__0;
-			RegEx1->set_FRegEx(Pattern); // AnsiString(Pattern);
-			if(ActiveDSSClass[ActiveActor]->Get_First() > 0)
-				pObj = (TDSSObject*) ActiveDSSObject[ActiveActor];
-			else
-				pObj = nullptr;
-			while(pObj != nullptr)
-			{
-				RegEx1->set_mySubject(pObj->get_Name()); //(pObj.Name);
-				if(RegEx1->Match())
-				{
-					Parser[ActiveActor]->set_position(Params);
-					ActiveDSSClass[ActiveActor]->Edit(ActiveActor);
-				}
-				if(ActiveDSSClass[ActiveActor]->Get_Next() > 0)
-					pObj = (TDSSObject*) ActiveDSSObject[ActiveActor];
-				else
-					pObj = nullptr;
-			}
 			break;
+			default:
+            {
+				Params = Parser[ActiveActor]->get_position();
+				// Evaluates if the declaration includes conditionals
+				cond_pos = DocheckConditionals();
+				if (cond_pos >= 0)
+				{
+					if (cond_pos == 1)
+                        has_conditionals = true;
+
+					ActiveDSSClass[ActiveActor] = (TDSSClass*) DSSClassList[ActiveActor].Get(LastClassReferenced[ActiveActor]);
+					RegEx1 = new TPerlRegEx();
+		//			RegEx1->Options = ExecHelper__0;
+					RegEx1->set_FRegEx(Pattern); // AnsiString(Pattern);
+					if(ActiveDSSClass[ActiveActor]->Get_First() > 0)
+						pObj = (TDSSObject*) ActiveDSSObject[ActiveActor];
+					else
+						pObj = nullptr;
+                    // if there are conditionals, remove them from the command string to allow editing,
+                    // At this point, the conditionals have already been uploaded into memory
+					if (has_conditionals)
+					{
+						cond_pos = Pos("where", LowerCase(Parser[ActiveActor]->Get_Remainder()));
+                        str_temp = Trim(Parser[ActiveActor]->Get_Remainder().substr(0, cond_pos - 1));
+						Parser[ActiveActor]->SetCmdString("batchedit " + ObjType + "..* " + Trim(str_temp));
+					}
+
+					num_elm_edited = 0;
+					while(pObj != nullptr)
+					{
+						apply_edit = true;
+						if (has_conditionals)
+						{
+							cond_pos = DoEvalConditionals();
+							if (cond_pos == 0)
+								apply_edit = false;
+							else
+                            {
+								if (cond_pos == -1)
+                                {
+									DoSimpleMsg("One of more conditionals are incorrect.",100243);
+									break;
+                                }
+                            }
+						}
+						if (apply_edit)
+						{
+							RegEx1->set_mySubject(pObj->get_Name()); //(pObj.Name);
+							if(RegEx1->Match())
+							{
+								Parser[ActiveActor]->set_position(Params);
+								ActiveDSSClass[ActiveActor]->Edit(ActiveActor);
+							}
+							num_elm_edited++;
+						}
+						if(ActiveDSSClass[ActiveActor]->Get_Next() > 0)
+							pObj = (TDSSObject*) ActiveDSSObject[ActiveActor];
+						else
+							pObj = nullptr;
+					}
+                    result = num_elm_edited;
+				}
+			}
+            break;
 		}
 	}
+	
+    // Returns the number of elements edited
 	return result;
 }
 // batchedit type=xxxx name=pattern  editstring

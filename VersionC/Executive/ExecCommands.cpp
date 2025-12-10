@@ -1206,7 +1206,7 @@ namespace ExecCommands
 				CmdResult = DoBusCoordsCmd(true, 0);
 				break;   // swaps X and Y
 				case 	95:
-				CmdResult = DoBatchEditCmd();
+				GlobalResult = Format("Elements edited: %d",DoBatchEditCmd());
 				break;
 				case 	96:
 				CmdResult = DoPstCalc();
