@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 12/03/25 7:47:26 AM from Type Library described below.
+// File generated on 12/18/25 1:07:14 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -24,8 +24,6 @@ unit OpenDSSengine_TLB;
 //   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
 //   (2) v1.0 stdole, (stdole32.tlb)
 // SYS_KIND: SYS_WIN32
-// Errors:
-//   Hint: Member 'Class' of 'ILoads' changed to 'Class_'
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
@@ -3116,12 +3114,12 @@ type
         function Get_RecloseIntervals: Olevariant; SAFECALL;
         function Get_PhFastPickup: Double; SAFECALL;
         procedure Set_PhFastPickup(Value: Double); SAFECALL;
-        function Get_PhaseInst: Double; SAFECALL;
-        procedure Set_PhaseInst(Value: Double); SAFECALL;
-        function Get_GrFastPickup: Double; SAFECALL;
-        procedure Set_GrFastPickup(Value: Double); SAFECALL;
-        function Get_GroundInst: Double; SAFECALL;
-        procedure Set_GroundInst(Value: Double); SAFECALL;
+        function Get_PhInst: Double; SAFECALL;
+        procedure Set_PhInst(Value: Double); SAFECALL;
+        function Get_GndFastPickup: Double; SAFECALL;
+        procedure Set_GndFastPickup(Value: Double); SAFECALL;
+        function Get_GndInst: Double; SAFECALL;
+        procedure Set_GndInst(Value: Double); SAFECALL;
         procedure Open; SAFECALL;
         procedure Close; SAFECALL;
         function Get_idx: Integer; SAFECALL;
@@ -3133,8 +3131,8 @@ type
         procedure Set_State(Value: Olevariant); SAFECALL;
         function Get_PhSlowPickup: Double; SAFECALL;
         procedure Set_PhSlowPickup(Value: Double); SAFECALL;
-        function Get_GrSlowPickup: Double; SAFECALL;
-        procedure Set_GrSlowPickup(Value: Double); SAFECALL;
+        function Get_GndSlowPickup: Double; SAFECALL;
+        procedure Set_GndSlowPickup(Value: Double); SAFECALL;
         function Get_RatedCurrent: Double; SAFECALL;
         procedure Set_RatedCurrent(Value: Double); SAFECALL;
         function Get_InterruptingRating: Double; SAFECALL;
@@ -3152,14 +3150,14 @@ type
         property Shots: Integer READ Get_Shots WRITE Set_Shots;
         property RecloseIntervals: Olevariant READ Get_RecloseIntervals;
         property PhFastPickup: Double READ Get_PhFastPickup WRITE Set_PhFastPickup;
-        property PhaseInst: Double READ Get_PhaseInst WRITE Set_PhaseInst;
-        property GrFastPickup: Double READ Get_GrFastPickup WRITE Set_GrFastPickup;
-        property GroundInst: Double READ Get_GroundInst WRITE Set_GroundInst;
+        property PhInst: Double READ Get_PhInst WRITE Set_PhInst;
+        property GndFastPickup: Double READ Get_GndFastPickup WRITE Set_GndFastPickup;
+        property GndInst: Double READ Get_GndInst WRITE Set_GndInst;
         property idx: Integer READ Get_idx WRITE Set_idx;
         property NormalState: Olevariant READ Get_NormalState WRITE Set_NormalState;
         property State: Olevariant READ Get_State WRITE Set_State;
         property PhSlowPickup: Double READ Get_PhSlowPickup WRITE Set_PhSlowPickup;
-        property GrSlowPickup: Double READ Get_GrSlowPickup WRITE Set_GrSlowPickup;
+        property GndSlowPickup: Double READ Get_GndSlowPickup WRITE Set_GndSlowPickup;
         property RatedCurrent: Double READ Get_RatedCurrent WRITE Set_RatedCurrent;
         property InterruptingRating: Double READ Get_InterruptingRating WRITE Set_InterruptingRating;
     end;
@@ -3184,9 +3182,9 @@ type
         property Shots: Integer DISPID 211;
         property RecloseIntervals: Olevariant READONLY DISPID 212;
         property PhFastPickup: Double DISPID 213;
-        property PhaseInst: Double DISPID 214;
-        property GrFastPickup: Double DISPID 215;
-        property GroundInst: Double DISPID 216;
+        property PhInst: Double DISPID 214;
+        property GndFastPickup: Double DISPID 215;
+        property GndInst: Double DISPID 216;
         procedure Open; DISPID 217;
         procedure Close; DISPID 218;
         property idx: Integer DISPID 219;
@@ -3194,7 +3192,7 @@ type
         property NormalState: Olevariant DISPID 221;
         property State: Olevariant DISPID 222;
         property PhSlowPickup: Double DISPID 223;
-        property GrSlowPickup: Double DISPID 224;
+        property GndSlowPickup: Double DISPID 224;
         property RatedCurrent: Double DISPID 225;
         property InterruptingRating: Double DISPID 226;
     end;
