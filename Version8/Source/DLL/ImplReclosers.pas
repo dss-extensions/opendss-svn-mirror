@@ -34,10 +34,10 @@ type
     function Get_Shots: Integer; safecall;
     procedure Set_NumFast(Value: Integer); safecall;
     procedure Set_Shots(Value: Integer); safecall;
-    function Get_GroundInst: Double; safecall;
-    function Get_PhaseInst: Double; safecall;
-    procedure Set_GroundInst(Value: Double); safecall;
-    procedure Set_PhaseInst(Value: Double); safecall;
+    function Get_GndInst: Double; safecall;
+    function Get_PhInst: Double; safecall;
+    procedure Set_GndInst(Value: Double); safecall;
+    procedure Set_PhInst(Value: Double); safecall;
     procedure Close; safecall;
     procedure Open; safecall;
     function Get_idx: Integer; safecall;
@@ -47,12 +47,12 @@ type
     procedure Set_NormalState(Value: OleVariant); safecall;
     procedure Reset; safecall;
     procedure Set_State(Value: OleVariant); safecall;
-    function Get_GrFastPickup: Double; safecall;
-    function Get_GrSlowPickup: Double; safecall;
+    function Get_GndFastPickup: Double; safecall;
+    function Get_GndSlowPickup: Double; safecall;
     function Get_PhFastPickup: Double; safecall;
     function Get_PhSlowPickup: Double; safecall;
-    procedure Set_GrFastPickup(Value: Double); safecall;
-    procedure Set_GrSlowPickup(Value: Double); safecall;
+    procedure Set_GndFastPickup(Value: Double); safecall;
+    procedure Set_GndSlowPickup(Value: Double); safecall;
     procedure Set_PhFastPickup(Value: Double); safecall;
     procedure Set_PhSlowPickup(Value: Double); safecall;
     function Get_InterruptingRating: Double; safecall;
@@ -297,25 +297,25 @@ begin
   if elem <> nil then Set_parameter('shots', IntToStr(Value));
 end;
 
-function TReclosers.Get_GroundInst: Double;
+function TReclosers.Get_GndInst: Double;
 var
   elem: TRecloserObj;
 begin
   Result := 0;
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.GroundInst;
+  if elem <> nil then Result := elem.GndInst;
 end;
 
-function TReclosers.Get_PhaseInst: Double;
+function TReclosers.Get_PhInst: Double;
 var
   elem: TRecloserObj;
 begin
   Result := 0;
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.PhaseInst;
+  if elem <> nil then Result := elem.PhInst;
 end;
 
-procedure TReclosers.Set_GroundInst(Value: Double);
+procedure TReclosers.Set_GndInst(Value: Double);
 var
   elem: TRecloserObj;
 begin
@@ -323,7 +323,7 @@ begin
   if elem <> nil then Set_parameter('GroundInst', Format('%.g',[Value]));
 end;
 
-procedure TReclosers.Set_PhaseInst(Value: Double);
+procedure TReclosers.Set_PhInst(Value: Double);
 var
   elem: TRecloserObj;
 begin
@@ -467,22 +467,22 @@ begin
      End;
 end;
 
-function TReclosers.Get_GrFastPickup: Double;
+function TReclosers.Get_GndFastPickup: Double;
 var
   elem: TRecloserObj;
 begin
   Result := 0;
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.GrFastPickup;
+  if elem <> nil then Result := elem.GndFastPickup;
 end;
 
-function TReclosers.Get_GrSlowPickup: Double;
+function TReclosers.Get_GndSlowPickup: Double;
 var
   elem: TRecloserObj;
 begin
   Result := 0;
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Result := elem.GrSlowPickup;
+  if elem <> nil then Result := elem.GndSlowPickup;
 end;
 
 function TReclosers.Get_PhFastPickup: Double;
@@ -503,7 +503,7 @@ begin
   if elem <> nil then Result := elem.PhSlowPickup;
 end;
 
-procedure TReclosers.Set_GrFastPickup(Value: Double);
+procedure TReclosers.Set_GndFastPickup(Value: Double);
 var
   elem: TRecloserObj;
 begin
@@ -511,7 +511,7 @@ begin
   if elem <> nil then Set_parameter('GrFastPickup', Format('%.g',[Value]));
 end;
 
-procedure TReclosers.Set_GrSlowPickup(Value: Double);
+procedure TReclosers.Set_GndSlowPickup(Value: Double);
 var
   elem: TRecloserObj;
 begin
