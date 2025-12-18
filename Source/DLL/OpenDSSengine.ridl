@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 12/03/25 8:16:28 AM (- $Rev: 12980 $, 83554296).
+// File generated on 12/18/25 1:07:14 PM (- $Rev: 12980 $, 14296265).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -2490,17 +2490,17 @@ library OpenDSSengine
     [propput, id(0x000000D5), helpstring("Multiplier for the phase fast TCC curve.")]
     HRESULT _stdcall PhFastPickup([in] double Value);
     [propget, id(0x000000D6), helpstring("Phase instantaneous curve multipler or actual amps")]
-    HRESULT _stdcall PhaseInst([out, retval] double* Value);
+    HRESULT _stdcall PhInst([out, retval] double* Value);
     [propput, id(0x000000D6)]
-    HRESULT _stdcall PhaseInst([in] double Value);
+    HRESULT _stdcall PhInst([in] double Value);
     [propget, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
-    HRESULT _stdcall GrFastPickup([out, retval] double* Value);
+    HRESULT _stdcall GndFastPickup([out, retval] double* Value);
     [propput, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
-    HRESULT _stdcall GrFastPickup([in] double Value);
+    HRESULT _stdcall GndFastPickup([in] double Value);
     [propget, id(0x000000D8), helpstring("Ground (3I0) instantaneous trip setting - curve multipler or actual amps.")]
-    HRESULT _stdcall GroundInst([out, retval] double* Value);
+    HRESULT _stdcall GndInst([out, retval] double* Value);
     [propput, id(0x000000D8), helpstring("Ground (3I0) trip instantaneous multiplier or actual amps")]
-    HRESULT _stdcall GroundInst([in] double Value);
+    HRESULT _stdcall GndInst([in] double Value);
     [id(0x000000D9), helpstring("Open all phases of the recloser's controlled element and lock out the recloser.")]
     HRESULT _stdcall Open(void);
     [id(0x000000DA), helpstring("Close all phases of the switched object controlled by the recloser. Resets recloser to first operation.")]
@@ -2524,9 +2524,9 @@ library OpenDSSengine
     [propput, id(0x000000DF), helpstring("Multiplier for the phase slow TCC curve.")]
     HRESULT _stdcall PhSlowPickup([in] double Value);
     [propget, id(0x000000E0), helpstring("Multiplier for the ground slow TCC curve.")]
-    HRESULT _stdcall GrSlowPickup([out, retval] double* Value);
+    HRESULT _stdcall GndSlowPickup([out, retval] double* Value);
     [propput, id(0x000000E0), helpstring("Multiplier for the ground slow TCC curve.")]
-    HRESULT _stdcall GrSlowPickup([in] double Value);
+    HRESULT _stdcall GndSlowPickup([in] double Value);
     [propget, id(0x000000E1)]
     HRESULT _stdcall RatedCurrent([out, retval] double* Value);
     [propput, id(0x000000E1), helpstring("Recloser continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
