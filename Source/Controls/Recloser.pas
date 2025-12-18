@@ -1157,7 +1157,7 @@ begin
                 continue; // Skip locked out phases (includes phases that have been manually opened).
 
             if i = 1 then
-                MaxOperatingCount := OperationCount^[i]             // TODO: check if we need to use IdxMultiPh for OperationCount here
+                MaxOperatingCount := OperationCount^[i]
             else
                 MaxOperatingCount := Max(MaxOperatingCount, OperationCount^[i]);
         end;
