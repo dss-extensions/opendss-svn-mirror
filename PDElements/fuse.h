@@ -89,6 +89,8 @@ public:
 	TCC_Curve::TTCC_CurveObj* FuseCurve;
 	double RatedCurrent;
 	double DelayTime;
+	double CurveMultiplier;
+    double InterruptingRating;
 	String MonitoredElementName;
 	int MonitoredElementTerminal;
 	TFuseObj(DSSClass::TDSSClass* ParClass, const String FuseName);
