@@ -7289,6 +7289,38 @@ double FusesF(int mode, double arg)
 			Set_ParameterFuse("Delay", Format("%.8g ", arg));
 		}
 		break;
+	case 4:														// Fuses.CurveMultiplier read
+		elem = (TFuseObj*)FuseClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->CurveMultiplier;
+		}
+		else
+			result = -1.0;
+		break;
+	case 5:														// Fuses.CurveMultiplier write
+		elem = (TFuseObj*)FuseClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterFuse("CurveMultiplier", Format("%.8g ", arg));
+		}
+		break;
+	case 6:														// Fuses.InterruptingRating read
+		elem = (TFuseObj*)FuseClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->InterruptingRating;
+		}
+		else
+			result = -1.0;
+		break;
+	case 7:														// Fuses.InterruptingRating write
+		elem = (TFuseObj*)FuseClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterFuse("InterruptingRating", Format("%.8g ", arg));
+		}
+		break;
 	default:
 		result = -1.0;
 		break;
@@ -11542,60 +11574,116 @@ double ReclosersF(int mode, double arg)
 
 	switch (mode)
 	{
-	case 0:													// Reclosers.PhaseTrip read
+	case 0:													// Reclosers.PhFastPickup read
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			result = elem->PhaseTrip;
+			result = elem->PhFastPickup;
 		}
 		break;
-	case 1:													// Reclosers.PhaseTrip write
+	case 1:													// Reclosers.PhFastPickup write
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("PhaseTrip", Format("%f", arg));
+			Set_ParameterReC("PhFastPickup", Format("%f", arg));
 		}
 		break;
-	case 2:													// Reclosers.PhaseInst read
+	case 2:													// Reclosers.PhInst read
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			result = elem->PhaseInst;
+			result = elem->PhInst;
 		}
 		break;
-	case 3:													// Reclosers.PhaseInst write
+	case 3:													// Reclosers.PhInst write
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("Phaseinst", Format("%f", arg));
+			Set_ParameterReC("PhInst", Format("%f", arg));
 		}
 		break;
-	case 4:													// Reclosers.GroundTrip read
+	case 4:													// Reclosers.GndFastPickup read
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			result = elem->GroundTrip;
+			result = elem->GndFastPickup;
 		}
 		break;
-	case 5:													// Reclosers.GroundTrip write
+	case 5:													// Reclosers.GndFastPickup write
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("GroundTrip", Format("%f", arg));
+			Set_ParameterReC("GndFastPickup", Format("%f", arg));
 		}
 		break;
-	case 6:													// Reclosers.GroundInst read
+	case 6:													// Reclosers.GndInst read
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			result = elem->GroundInst;
+			result = elem->GndInst;
 		}
 		break;
-	case 7:													// Reclosers.GroundInst write
+	case 7:													// Reclosers.GndInst write
 		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			Set_ParameterReC("GroundInst", Format("%f", arg));
+			Set_ParameterReC("GndInst", Format("%f", arg));
+		}
+		break;
+	case 8:													// Reclosers.PhSlowPickup read
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->PhSlowPickup;
+		}
+		break;
+	case 9:													// Reclosers.PhSlowPickup write
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterReC("PhSlowPickup", Format("%f", arg));
+		}
+		break;
+	case 10:													// Reclosers.GndSlowPickup read
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->GndSlowPickup;
+		}
+		break;
+	case 11:													// Reclosers.GndSlowPickup write
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterReC("GndSlowPickup", Format("%f", arg));
+		}
+		break;
+	case 12:													// Reclosers.RatedCurrent read
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->RatedCurrent;
+		}
+		break;
+	case 13:													// Reclosers.RatedCurrent write
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterReC("RatedCurrent", Format("%f", arg));
+		}
+		break;
+	case 14:													// Reclosers.InterruptingRating read
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			result = elem->InterruptingRating;
+		}
+		break;
+	case 15:													// Reclosers.InterruptingRating write
+		elem = (TRecloserObj*)RecloserClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			Set_ParameterReC("InterruptingRating", Format("%f", arg));
 		}
 		break;
 	default:
@@ -16006,7 +16094,7 @@ double SwtControlsF(int mode, double arg)
 
 	switch (mode)
 	{
-	case 0:												// SwtControls.
+	case 0:												// SwtControls.Delay read
 		result = 0.0;
 		elem = ActiveSwtControl();
 		if (elem != nullptr)
@@ -16014,8 +16102,24 @@ double SwtControlsF(int mode, double arg)
 			result = elem->TimeDelay;
 		}
 		break;
-	case 1:												// SwtControls.
+	case 1:												// SwtControls.Delay write
 		Set_ParameterSwtControl("Delay", std::to_string(arg));
+		break;
+	case 2:														// SwtControls.RatedCurrent read
+        elem = ActiveSwtControl();
+		if (elem != nullptr)
+		{
+			result = elem->RatedCurrent;
+		}
+		else
+			result = -1;
+		break;
+	case 3:														// SwtControls.RatedCurrent write
+		elem = ActiveSwtControl();
+		if (elem != nullptr)
+		{
+			Set_ParameterFuse("RatedCurrent", Format("%.8g ", arg));
+		}
 		break;
 	default:
 		result = -1.0;
