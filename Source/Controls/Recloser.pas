@@ -424,7 +424,7 @@ Begin
                End;
            38: Begin
                  GndFastPickup  := Parser[ActorID].Dblvalue;
-                 GndSlowPickup  := Parser[ActorID].DblValue;
+                 GndSlowPickup  := GndFastPickup;
                End;
            39: PhSlowPickup  := Parser[ActorID].DblValue;
            40: GndSlowPickup := Parser[ActorID].DblValue;
@@ -1073,7 +1073,7 @@ begin
             GroundTime := 0.01;      // Inst trip on first operation
 
             if DebugTrace then
-            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ground Instantaneous Trip: Mag=%.3g, Time=%.3g',
+            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Gnd Instantaneous Trip: Mag=%.3g, Time=%.3g',
                              [Cmag, GroundTime]),ActorID);
          End
          ELSE
@@ -1081,7 +1081,7 @@ begin
             GroundTime :=  TDGround * GroundCurve.GetTCCTime(Cmag/ GroundCurveMultiplier);
 
             if (GroundTime > 0.0) and DebugTrace then
-            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ground %s Curve Trip: Mag=%.3g, Time=%.3g',
+            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Gnd %s Curve Trip: Mag=%.3g, Time=%.3g',
                              [GroundCurveType, Cmag/ GroundCurveMultiplier, GroundTime]),ActorID);
          End;
 
@@ -1160,15 +1160,15 @@ begin
                     RecloserTarget^[i] := '';
                     If TripTime = Groundtime Then
                     Begin
-                      if Groundtime = 0.01 then RecloserTarget^[i] := 'Gnd Instantaneous'
+                      if Abs(Groundtime - 0.01) < EPSILON then RecloserTarget^[i] := 'Gnd Instantaneous'
                       else RecloserTarget^[i] := Format('Ground %s', [GroundCurveType]);
                     end;
                     If TripTime = Phasetime Then
                     Begin
                       if RecloserTarget^[i] <> '' then RecloserTarget^[i] := RecloserTarget^[i] + ' + ';
 
-                      if PhaseTime = 0.01 then RecloserTarget^[i] := 'Ph Instantaneous'
-                      else RecloserTarget^[i] := Format('Ph %s', [PhaseCurveType]);
+                      if Abs(PhaseTime - 0.01) < EPSILON then RecloserTarget^[i] := RecloserTarget^[i] + 'Ph Instantaneous'
+                      else RecloserTarget^[i] := RecloserTarget^[i] + Format('Ph %s', [PhaseCurveType]);
                     end;
 
                     ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, i, Self, ActorID);
@@ -1266,14 +1266,14 @@ begin
                    RecloserTarget^[IdxMultiPh] := '';
                    If TripTime = Groundtime Then
                    Begin
-                     if Groundtime = 0.01 then RecloserTarget^[IdxMultiPh] := 'Gnd Instantaneous'
+                     if Abs(Groundtime - 0.01) < EPSILON then RecloserTarget^[IdxMultiPh] := 'Gnd Instantaneous'
                      else RecloserTarget^[IdxMultiPh] := Format('Ground %s', [GroundCurveType]);
                    end;
                    If TripTime = Phasetime Then
                    Begin
                      if RecloserTarget^[IdxMultiPh] <> '' then RecloserTarget^[IdxMultiPh] := RecloserTarget^[IdxMultiPh] + ' + ';
-                     if PhaseTime = 0.01 then RecloserTarget^[IdxMultiPh] := 'Ph Instantaneous'
-                     else RecloserTarget^[IdxMultiPh] := Format('Ph %s', [PhaseCurveType]);
+                     if Abs(PhaseTime - 0.01) < EPSILON then RecloserTarget^[IdxMultiPh] := RecloserTarget^[IdxMultiPh] + 'Ph Instantaneous'
+                     else RecloserTarget^[IdxMultiPh] := RecloserTarget^[IdxMultiPh] + Format('Ph %s', [PhaseCurveType]);
                    end;
 
                    ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
@@ -1534,7 +1534,7 @@ begin
      PropertyValue[37] := '1.0';  // Deprecated - PhaseTrip -> PhFastPickup
      PropertyValue[38] := '1.0';  // Deprecated - GroundTrip -> GndFastPickup
      PropertyValue[39] := '1.0';  // PhSlowPickup
-     PropertyValue[40] := '1.0';  // GmdSlowPickup
+     PropertyValue[40] := '1.0';  // GndSlowPickup
      PropertyValue[41] := '1.0';  // Deprecated - TDPhDelayed -> TDPhSlow
      PropertyValue[42] := '1.0';  // Deprecated - TDGrDelayed -> TDGndSlow
 
