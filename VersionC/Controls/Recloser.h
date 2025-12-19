@@ -76,15 +76,15 @@ class TRecloserObj : public ControlElem::TControlElem
 public:
 	typedef ControlElem::TControlElem inherited;	
 //private:
-	TCC_Curve::TTCC_CurveObj* PhaseDelayed;
-	TCC_Curve::TTCC_CurveObj* GroundDelayed;
-	TCC_Curve::TTCC_CurveObj* PhaseFast;
-	TCC_Curve::TTCC_CurveObj* GroundFast;
+	TCC_Curve::TTCC_CurveObj* PhSlowCurve;
+	TCC_Curve::TTCC_CurveObj* GndSlowCurve;
+	TCC_Curve::TTCC_CurveObj* PhFastCurve;
+	TCC_Curve::TTCC_CurveObj* GndFastCurve;
 	double ResetTime;
-	double DelayTime;
-	double TDGrDelayed;
-	double TDPhDelayed;
-	double TDGrFast;
+	double MechanicalDelay;
+	double TDGndSlow;
+	double TDPhSlow;
+	double TDGndFast;
 	double TDPhFast;
 
 	pStateArray FPresentState;
@@ -124,10 +124,14 @@ public:
 	int NumReclose;
 	String MonitoredElementName;
 	int MonitoredElementTerminal;
-	double PhaseTrip;
-	double GroundTrip;
-	double PhaseInst;
-	double GroundInst;
+	double PhFastPickup;
+	double GndFastPickup;
+	double PhSlowPickup;
+	double GndSlowPickup;
+	double PhInst;
+	double GndInst;
+	double RatedCurrent;
+	double InterruptingRating;
 	TRecloserObj(DSSClass::TDSSClass* ParClass, const String RecloserName);
 	virtual ~TRecloserObj();
 	virtual void MakePosSequence(int ActorID);  // Make a positive Sequence Model

@@ -39,7 +39,7 @@ TFuseObj::TFuseObj() {}
 
 TFuseObj* ActiveFuseObj = nullptr;
 TFuse* FuseClass = nullptr;
-const int NumPropsThisClass = 10;
+const int NumPropsThisClass = 12;
 TDSSClass* TCC_CurveClass = nullptr;
 
 /*General Module Function*/
@@ -103,6 +103,8 @@ void TFuse::DefineProperties()
 	PropertyName[8 - 1] = "Action";
 	PropertyName[9 - 1] = "Normal";
 	PropertyName[10 - 1] = "State";
+    PropertyName[11 - 1] = "CurveMultiplier";
+    PropertyName[12 - 1] = "InterruptingRating";
 	PropertyHelp[1 - 1] = "Full object name of the circuit element, typically a line, transformer, load, or generator, "
 	           "to which the Fuse is connected."
 	           " This is the \"monitored\" element. "
@@ -117,8 +119,8 @@ void TFuse::DefineProperties()
 	           "1 or 2, typically.  Default is 1.  Assumes all phases of the element have a fuse of this type.";
 	PropertyHelp[5 - 1] = "Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored)."
 	           " If \"none\", fuse sampling will be skipped and device will not blow for any current level. Default is \"none\". "
-	           "Multiplying the current values in the curve by the \"RatedCurrent\" value gives the actual current.";
-	PropertyHelp[6 - 1] = "Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.";
+	           "Multiplying the current values in the curve by the \"CurveMultiplier\" value gives the actual current.";
+	PropertyHelp[6 - 1] = "Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.";
 	PropertyHelp[7 - 1] = "Fixed delay time (sec) added to Fuse blowing time determined from the TCC curve. Default is 0.0. Used to represent fuse clearing time or any other delay.";
 	PropertyHelp[8 - 1] = "DEPRECATED. See \"State\" property.";
 	PropertyHelp[9 - 1] = "ARRAY of strings {Open | Closed} representing the Normal state of the fuse in each phase of the controlled element. "
@@ -126,6 +128,8 @@ void TFuse::DefineProperties()
 	           "Defaults to \"State\" if not specifically declared.";
 	PropertyHelp[10 - 1] = "ARRAY of strings {Open | Closed} representing the Actual state of the fuse in each phase of the controlled element. "
 	           "Upon setting, immediately forces state of fuse(s). Simulates manual control on Fuse. Defaults to Closed for all phases.";
+    PropertyHelp[11 - 1] = "Current multiplier for the TCC curve. Defaults to 1.0.";
+    PropertyHelp[12 - 1] = "Fuse rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -217,6 +221,12 @@ int TFuse::Edit(int ActorID)
 				case 	8: case 10:
 				with0->InterpretFuseState(ActorID, Param, ParamName);
 				break;  // set the present state
+				case 	11:
+				with0->CurveMultiplier = Parser[ActorID]->MakeDouble_();
+				break;
+				case 	12:
+				with0->InterruptingRating = Parser[ActorID]->MakeDouble_();
+				break;
 
            // Inherited parameters
 				default:
@@ -284,6 +294,8 @@ int TFuse::MakeLike(const String FuseName)
 			(with0)->MonitoredElementTerminal = OtherFuse->MonitoredElementTerminal;  // Pointer to target circuit element
 			(with0)->FuseCurve = OtherFuse->FuseCurve;
 			(with0)->RatedCurrent = OtherFuse->RatedCurrent;
+			(with0)->CurveMultiplier = OtherFuse->CurveMultiplier;
+			(with0)->InterruptingRating = OtherFuse->InterruptingRating;
 
         // can't copy action handles
 			for(stop = min(FUSEMAXDIM, with0->get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
@@ -323,6 +335,8 @@ TFuseObj::TFuseObj(TDSSClass* ParClass, const String FuseName)
 			NormalStateSet(false),
 			FuseCurve(nullptr),
 			RatedCurrent(0.0),
+			CurveMultiplier(0.0),
+			InterruptingRating(0.0),
 			DelayTime(0.0),
 			MonitoredElementTerminal(0)
 {
@@ -340,7 +354,9 @@ TFuseObj::TFuseObj(TDSSClass* ParClass, const String FuseName)
 	MonitoredElementName = "";
 	MonitoredElementTerminal = 1;
 	FuseCurve = nullptr;
-	RatedCurrent = 1.0;
+	RatedCurrent = 0.0;
+	CurveMultiplier = 1.0;
+	InterruptingRating = 0.0;
 	FPresentState = nullptr;
 	FNormalState = nullptr;
 
@@ -605,7 +621,7 @@ void TFuseObj::sample(int ActorID)
 				if(FuseCurve != nullptr)
 				{
 					cmag = cabs((cBuffer)[i - 1]);
-					TripTime = FuseCurve->GetTCCTime(cmag / RatedCurrent);
+					TripTime = FuseCurve->GetTCCTime(cmag / CurveMultiplier);
 				}
 				if(TripTime > 0.0)
 				{
@@ -664,6 +680,19 @@ String TFuseObj::GetPropertyValue(int Index)
 	}
 	switch(Index)
 	{
+        case 5:
+            if (FuseCurve != nullptr)
+            {
+                result = FuseCurve->get_Name();
+            }
+            else
+            {
+                result = 'none';
+            }
+            break;
+        case 6:
+            result = Format("%-.6g", RatedCurrent);
+            break;
 		case 	10:
 		if(get_FControlledElement() != nullptr)  // Special cases
 		{
@@ -702,6 +731,9 @@ String TFuseObj::GetPropertyValue(int Index)
 			}
 		}
 		break;
+		case 12:
+            result = Format("%-.6g", InterruptingRating);
+            break;
 		default:
 		result = TDSSCktElement::GetPropertyValue(Index);
 		break;
@@ -807,11 +839,13 @@ void TFuseObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(3,"");
 	Set_PropertyValue(4,"1"); //'terminal';
 	Set_PropertyValue(5,"none");
-	Set_PropertyValue(6,"1.0");
+	Set_PropertyValue(6,"1.0"); // ratedcurrent
 	Set_PropertyValue(7,"0");
 	Set_PropertyValue(8,"");  // action
 	Set_PropertyValue(9,"[close, close, close]");  // normal
 	Set_PropertyValue(10,"[close,close,close]");  // state
+	Set_PropertyValue(11,"1.0");
+	Set_PropertyValue(12,"0.0"); // InterruptingRating
 	TDSSCktElement::InitPropertyValues(NumPropsThisClass);
 }
 

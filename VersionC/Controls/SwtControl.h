@@ -65,6 +65,8 @@ public:
 	void set_Flocked(bool Value);
 
 public:
+
+	double RatedCurrent;
 	TSwtControlObj(DSSClass::TDSSClass* ParClass, const String SwtControlName);
 	virtual ~TSwtControlObj();
 	virtual void MakePosSequence(int ActorID);  // Make a positive Sequence Model

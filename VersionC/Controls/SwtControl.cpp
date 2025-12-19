@@ -37,7 +37,7 @@ TSwtControlObj::TSwtControlObj() {}
 
 
 TSwtControlObj* ActiveSwtControlObj = nullptr;
-const int NumPropsThisClass = 8;  // Creates superstructure for all SwtControl objects
+const int NumPropsThisClass = 9;  // Creates superstructure for all SwtControl objects
 
 TSwtControl::TSwtControl()
 {
@@ -71,6 +71,7 @@ void TSwtControl::DefineProperties()
 	PropertyName[6 - 1] = "Normal";
 	PropertyName[7 - 1] = "State";
 	PropertyName[8 - 1] = "Reset";
+	PropertyName[9 - 1] = "RatedCurrent";
 
 	PropertyHelp[1 - 1] = "Name of circuit element switch that the SwtControl operates. "
 	           "Specify the full object class and name.";
@@ -87,6 +88,7 @@ void TSwtControl::DefineProperties()
 			   "sets the actual state to the specified value for all phases (ganged operation).";
 	PropertyHelp[8 - 1] = "{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal "
 	           "reset command for mode change, etc.";
+	PropertyHelp[9 - 1] = "Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
@@ -171,6 +173,9 @@ int TSwtControl::Edit(int ActorID)
 					with0->Set_PropertyValue(8,"n");
 				}
 				break;
+				case 	9:
+				with0->RatedCurrent = Parser[ActorID]->MakeDouble_();
+				break;
            // Inherited parameters
 				default:
 				ClassEdit(ActiveSwtControlObj, ParamPointer - NumPropsThisClass);
@@ -230,6 +235,8 @@ int TSwtControl::MakeLike(const String SwtControlName)
 				(*with0->FNormalState)[i - 1] = (*OtherSwtControl->FNormalState)[i - 1];
 			}
 
+			with0->RatedCurrent = OtherSwtControl->RatedCurrent;
+
 			for(stop = with0->ParentClass->NumProperties, i = 1; i <= stop; i++)
 			{
 				with0->Set_PropertyValue(i,OtherSwtControl->Get_PropertyValue(i));
@@ -247,7 +254,8 @@ int TSwtControl::MakeLike(const String SwtControlName)
 
 TSwtControlObj::TSwtControlObj(TDSSClass* ParClass, const String SwtControlName)
  : inherited(ParClass),
-			FLocked(false)
+			FLocked(false),
+			RatedCurrent(0.0)
 {
     int i = 0;
     int stop = 0;
@@ -275,6 +283,9 @@ TSwtControlObj::TSwtControlObj(TDSSClass* ParClass, const String SwtControlName)
 
 	set_Flocked(false);
 	TimeDelay = 120.0; // 2 minutes
+
+	RatedCurrent = 0.0;
+
 	InitPropertyValues(0);
 }
 
@@ -715,6 +726,9 @@ String TSwtControlObj::GetPropertyValue(int Index)
 		case 	8:
 		result = "n";
 		break;  // Always no; yes is executed immediately
+		case 	9:
+		result = Format("%-.6g", RatedCurrent);
+		break;
 		default:
 		result = inherited::GetPropertyValue(Index);
 		break;
@@ -764,6 +778,7 @@ void TSwtControlObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(6,"");
 	Set_PropertyValue(7,"[closed, closed, closed]");
 	Set_PropertyValue(8,"[closed, closed, closed]");
+	Set_PropertyValue(9,"0"); // ratedcurrent
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
