@@ -228,7 +228,7 @@ begin
         'Defaults to "State" if not specifically declared.';
     PropertyHelp^[10] := 'ARRAY of strings {Open | Closed} representing the Actual state of the fuse in each phase of the controlled element. ' +
         'Upon setting, immediately forces state of fuse(s). Simulates manual control on Fuse. Defaults to Closed for all phases.';
-    PropertyHelp^[11] := 'Multiplier for the phase TCC curve. Defaults to 1.0.';
+    PropertyHelp^[11] := 'Current multiplier for the TCC curve. Defaults to 1.0.';
     PropertyHelp^[12] := 'Fuse rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
 
     ActiveProperty := NumPropsThisClass;
