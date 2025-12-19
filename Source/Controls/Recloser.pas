@@ -1028,7 +1028,7 @@ begin
      End;
 
      // Identify number of operations to pick appropriate curve.
-     // Pending to identify phase to trip when considering single-phase tripping as in modern microprocessed relays.
+     // Pending to identify phase to trip for ground element when considering single-phase tripping as in modern microprocessed relays.
      if SinglePhTrip then
      begin
       for i:=1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) Do
@@ -1070,7 +1070,7 @@ begin
          IF (GndInst>0.0) AND (Cmag>=GndInst) AND (MaxOperatingCount=1)
          THEN
          Begin
-            GroundTime := 0.01 + MechanicalDelay;      // Inst trip on first operation
+            GroundTime := 0.01;      // Inst trip on first operation
 
             if DebugTrace then
             AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ground Instantaneous Trip: Mag=%.3g, Time=%.3g',
@@ -1080,7 +1080,7 @@ begin
          Begin
             GroundTime :=  TDGround * GroundCurve.GetTCCTime(Cmag/ GroundCurveMultiplier);
 
-            if DebugTrace then
+            if (GroundTime > 0.0) and DebugTrace then
             AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ground %s Curve Trip: Mag=%.3g, Time=%.3g',
                              [GroundCurveType, Cmag/ GroundCurveMultiplier, GroundTime]),ActorID);
          End;
@@ -1111,88 +1111,83 @@ begin
                  PhaseCurveMultiplier := PhFastPickup;
              End;
 
-             IF FPresentState^[i] = CTRL_CLOSE
+             PhaseTime := -1.0;  {No trip}
+
+             {Check Phase Trip, if any} // Check current at i phase of monitored element
+             IF PhaseCurve <> NIL
+             Then Begin
+
+               Cmag :=  Cabs(cBuffer^[i+CondOffset]);
+
+               IF (PhInst > 0.0) AND (Cmag>=PhInst) AND (OperationCount^[i]=1)
+               THEN
+               Begin
+                  PhaseTime := 0.01;  // Inst trip on first operation
+                  if DebugTrace then
+                      AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph Instantaneous (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                      [i, Cmag, PhaseTime]),ActorID);
+
+               End
+               ELSE Begin
+                   TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseCurveMultiplier);
+                   IF TimeTest > 0.0 then Begin
+                      PhaseTime := TimeTest;
+
+                      if DebugTrace then
+                      AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                      [PhaseCurveType, i, Cmag/PhaseCurveMultiplier, PhaseTime]),ActorID);
+                   End;
+
+               End;
+
+             End;
+
+             // If PhaseTime > 0 then we have a phase trip
+             IF PhaseTime > 0.0
              THEN Begin
+                  PhaseTarget^[i] := TRUE;
+                  IF   TripTime > 0.0
+                  THEN TripTime := Min(TripTime, Phasetime)
+                  ELSE TripTime := PhaseTime;
+             End;
 
-                   PhaseTime := -1.0;  {No trip}
+             IF   TripTime > 0.0
+             THEN Begin
+                IF Not ArmedForOpen^[i]
+                THEN WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
+                Begin
 
-                   {Check Phase Trip, if any} // Check current at i phase of monitored element
-                   IF PhaseCurve <> NIL
-                   Then Begin
+                    RecloserTarget^[i] := '';
+                    If TripTime = Groundtime Then
+                    Begin
+                      if Groundtime = 0.01 then RecloserTarget^[i] := 'Gnd Instantaneous'
+                      else RecloserTarget^[i] := Format('Ground %s', [GroundCurveType]);
+                    end;
+                    If TripTime = Phasetime Then
+                    Begin
+                      if RecloserTarget^[i] <> '' then RecloserTarget^[i] := RecloserTarget^[i] + ' + ';
 
-                     Cmag :=  Cabs(cBuffer^[i+CondOffset]);
+                      if PhaseTime = 0.01 then RecloserTarget^[i] := 'Ph Instantaneous'
+                      else RecloserTarget^[i] := Format('Ph %s', [PhaseCurveType]);
+                    end;
 
-                     IF (PhInst > 0.0) AND (Cmag>=PhInst) AND (OperationCount^[i]=1)
-                     THEN
-                     Begin
-                        PhaseTime := 0.01 + MechanicalDelay;  // Inst trip on first operation
-                        if DebugTrace then
-                            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph Instantaneous (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                            [i, Cmag, PhaseTime]),ActorID);
-
-                     End
-                     ELSE Begin
-                         TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseCurveMultiplier);
-                         IF TimeTest > 0.0 then Begin
-                            PhaseTime := TimeTest;
-
-                            if DebugTrace then
-                            AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                            [PhaseCurveType, i, Cmag/PhaseCurveMultiplier, PhaseTime]),ActorID);
-                         End;
-
-                     End;
-
-                   End;
-
-                   // If PhaseTime > 0 then we have a phase trip
-                   IF PhaseTime > 0.0
-                   THEN Begin
-
-                        PhaseTarget^[i] := TRUE;
-                        IF   TripTime > 0.0
-                        THEN TripTime := Min(TripTime, Phasetime)
-                        ELSE TripTime := PhaseTime;
-                   End;
-
-                   IF   TripTime > 0.0
-                   THEN Begin
-                      IF Not ArmedForOpen^[i]
-                      THEN WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
-                      Begin
-
-                          RecloserTarget^[i] := '';
-                          If TripTime = Groundtime Then
-                          Begin
-                            if Groundtime = 0.01 + MechanicalDelay then RecloserTarget^[i] := 'Gnd Instantaneous'
-                            else RecloserTarget^[i] := Format('Ground %s', [GroundCurveType]);
-                          end;
-                          If TripTime = Phasetime Then
-                          Begin
-                            if RecloserTarget^[i] <> '' then RecloserTarget^[i] := RecloserTarget^[i] + ' + ';
-
-                            if PhaseTime = 0.01 + MechanicalDelay then RecloserTarget^[i] := 'Ph Instantaneous'
-                            else RecloserTarget^[i] := Format('Ph %s', [PhaseCurveType]);
-                          end;
-
-                          ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, i, Self, ActorID);
-                          IF OperationCount^[i] <= NumReclose THEN ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay + RecloseIntervals^[OperationCount^[i]], CTRL_CLOSE, i, Self, ActorID);
-                          ArmedForOpen^[i] := TRUE;
-                          ArmedForClose^[i] := TRUE;
-                      End;
-                   End
-                   ELSE Begin
-                      IF ArmedForOpen^[i]
-                      THEN WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
-                      Begin
-                          ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, i, Self, ActorID);
-                          ArmedForOpen^[i] := FALSE;
-                          ArmedForClose^[i] := FALSE;
-                          GroundTarget := FALSE;
-                          PhaseTarget^[i] := FALSE;
-                      End;
-                   End;
-             End;  {IF PresentState=CLOSE}
+                    ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, i, Self, ActorID);
+                    IF OperationCount^[i] <= NumReclose THEN ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay + RecloseIntervals^[OperationCount^[i]], CTRL_CLOSE, i, Self, ActorID);
+                    ArmedForOpen^[i] := TRUE;
+                    ArmedForClose^[i] := TRUE;
+                End;
+             End
+             ELSE Begin
+                IF ArmedForOpen^[i]
+                THEN WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
+                Begin
+                    ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, i, Self, ActorID);
+                    ArmedForOpen^[i] := FALSE;
+                    ArmedForClose^[i] := FALSE;
+                    GroundTarget := FALSE;
+                    PhaseTarget^[i] := FALSE;
+                End;
+             End;
          End;
 
      end
@@ -1227,11 +1222,11 @@ begin
 
              IF (PhInst>0.0) AND (Cmag>=PhInst) AND (OperationCount^[IdxMultiPh]=1)
              THEN Begin
-                PhaseTime := 0.01 + MechanicalDelay;  // Inst trip on first operation
+                PhaseTime := 0.01;  // Inst trip on first operation
 
                 if DebugTrace then
                                 AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph Instantaneous (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                                [i, Cmag, PhaseTime]),ActorID);
+                                [i-CondOffset, Cmag, PhaseTime]),ActorID);
 
                 Break;  {FOR - if Inst, no sense checking other phases}
              End
@@ -1242,7 +1237,7 @@ begin
 
                   if DebugTrace then
                                 AppendToEventLog ('Debug Sample: Recloser.'+Self.Name, Format ('Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
-                                [IfThen(PhaseCurve = PhFastCurve, 'Fast', 'Slow'), i, Cmag/PhaseCurveMultiplier, TimeTest]),ActorID);
+                                [IfThen(PhaseCurve = PhFastCurve, 'Fast', 'Slow'), i-CondOffset, Cmag/PhaseCurveMultiplier, TimeTest]),ActorID);
 
                   IF Phasetime<0.0 THEN PhaseTime := TimeTest
                   ELSE PhaseTime := Min(PhaseTime, TimeTest);
@@ -1271,13 +1266,13 @@ begin
                    RecloserTarget^[IdxMultiPh] := '';
                    If TripTime = Groundtime Then
                    Begin
-                     if Groundtime = 0.01 + MechanicalDelay then RecloserTarget^[IdxMultiPh] := 'Gnd Instantaneous'
+                     if Groundtime = 0.01 then RecloserTarget^[IdxMultiPh] := 'Gnd Instantaneous'
                      else RecloserTarget^[IdxMultiPh] := Format('Ground %s', [GroundCurveType]);
                    end;
                    If TripTime = Phasetime Then
                    Begin
                      if RecloserTarget^[IdxMultiPh] <> '' then RecloserTarget^[IdxMultiPh] := RecloserTarget^[IdxMultiPh] + ' + ';
-                     if PhaseTime = 0.01 + MechanicalDelay then RecloserTarget^[IdxMultiPh] := 'Ph Instantaneous'
+                     if PhaseTime = 0.01 then RecloserTarget^[IdxMultiPh] := 'Ph Instantaneous'
                      else RecloserTarget^[IdxMultiPh] := Format('Ph %s', [PhaseCurveType]);
                    end;
 
