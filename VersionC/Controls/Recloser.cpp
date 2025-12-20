@@ -1180,13 +1180,13 @@ void TRecloserObj::sample(int ActorID)
         {
             Groundtime = 0.01;      // Inst trip on first operation
 			if (DebugTrace)
-				AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ground Instantaneous Trip: Mag=%.3g, Time=%.3g", cmag, Groundtime), ActorID);
+				AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Gnd Instantaneous Trip: Mag=%.3g, Time=%.3g", cmag, Groundtime), ActorID);
         }
 		else
 		{
             Groundtime = TDGround * GroundCurve->GetTCCTime(cmag / GroundCurveMultiplier);
 			if (Groundtime > 0.0 and DebugTrace)
-                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ground %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType, cmag / GroundCurveMultiplier, Groundtime), ActorID);
+                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Grnd %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType, cmag / GroundCurveMultiplier, Groundtime), ActorID);
 		}
     }
     if (Groundtime > 0.0) GroundTarget = true;
@@ -1259,7 +1259,7 @@ void TRecloserObj::sample(int ActorID)
 						RecloserTarget[i - 1] = "";
 						if (TripTime == Groundtime)
 						{
-							if (Groundtime == 0.01) 
+							if (abs(Groundtime - 0.01) < EPSILON) 
 								RecloserTarget[i - 1] = "Gnd Instantaneous";
 							else 
 								RecloserTarget[i - 1] = Format("Ground %s", GroundCurveType);
@@ -1268,10 +1268,10 @@ void TRecloserObj::sample(int ActorID)
 						{
 							if (RecloserTarget[i - 1] != "")
 								RecloserTarget[i - 1] = RecloserTarget[i - 1] + " + ";
-							if (PhaseTime == 0.01) 
-								RecloserTarget[i - 1] = "Ph Instantaneous";
+							if (abs(PhaseTime - 0.01) < EPSILON) 
+								RecloserTarget[i - 1] = RecloserTarget[i - 1] + "Ph Instantaneous";
 							else 
-								RecloserTarget[i - 1] = Format("Ph %s", PhaseCurveType);
+								RecloserTarget[i - 1] = RecloserTarget[i - 1] + Format("Ph %s", PhaseCurveType);
 						}
 
 						ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, i, this, ActorID);
@@ -1369,7 +1369,7 @@ void TRecloserObj::sample(int ActorID)
 					RecloserTarget[IdxMultiPh - 1] = "";
 					if (TripTime == Groundtime)
 					{
-						if (Groundtime == 0.01) 
+						if (abs(Groundtime - 0.01) < EPSILON) 
 							RecloserTarget[IdxMultiPh - 1] = "Gnd Instantaneous";
 						else 
 							RecloserTarget[IdxMultiPh - 1] = Format("Ground %s", GroundCurveType);
@@ -1378,10 +1378,10 @@ void TRecloserObj::sample(int ActorID)
 					{
 						if (RecloserTarget[IdxMultiPh - 1] != "")
 							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + " + ";
-						if (PhaseTime == 0.01) 
-							RecloserTarget[IdxMultiPh - 1] = "Ph Instantaneous";
+						if (abs(PhaseTime - 0.01) < EPSILON) 
+							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + "Ph Instantaneous";
 						else 
-							RecloserTarget[IdxMultiPh - 1] = Format("Ph %s", PhaseCurveType);
+							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + Format("Ph %s", PhaseCurveType);
 					}
 
 					ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
