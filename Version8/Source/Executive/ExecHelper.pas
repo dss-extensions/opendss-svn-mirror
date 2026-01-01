@@ -2648,23 +2648,29 @@ begin
 
      {Do EnergyMeters}
      pMeter := EnergyMeters.First;
-     WHILE pMeter <> NIL Do Begin
+     WHILE pMeter <> NIL Do
+     Begin
+      if pMeter.Enabled then
         pMeter.CalcAllocationFactors(ActorID);
-        pMeter := EnergyMeters.Next;
+      pMeter := EnergyMeters.Next;
      End;
 
      {Now do other Sensors}
      pSensor := Sensors.First;
-     WHILE pSensor <> NIL Do Begin
+     WHILE pSensor <> NIL Do
+     Begin
+      if pSensor.Enabled then
         pSensor.CalcAllocationFactors(ActorID);
-        pSensor := Sensors.Next;
+      pSensor := Sensors.Next;
      End;
 
      {Now let the EnergyMeters run down the circuit setting the loads}
       pMeter := EnergyMeters.First;
-      WHILE pMeter <> NIL Do Begin
+      WHILE pMeter <> NIL Do
+      Begin
+        if pMeter.Enabled then
           pMeter.AllocateLoad(ActorID);
-          pMeter := EnergyMeters.Next;
+        pMeter := EnergyMeters.Next;
       End;
       Solution.Solve(ActorID);  {Update the solution}
       if not Parallel_enabled then
