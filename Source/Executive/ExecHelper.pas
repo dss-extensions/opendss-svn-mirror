@@ -2860,7 +2860,8 @@ begin
             pMeter := EnergyMeters.First;
             while pMeter <> nil do
             begin
-                pMeter.CalcAllocationFactors(ActorID);
+                if pMeter.Enabled then
+                    pMeter.CalcAllocationFactors(ActorID);
                 pMeter := EnergyMeters.Next;
             end;
 
@@ -2868,7 +2869,8 @@ begin
             pSensor := Sensors.First;
             while pSensor <> nil do
             begin
-                pSensor.CalcAllocationFactors(ActorID);
+                if pSensor.Enabled then
+                    pSensor.CalcAllocationFactors(ActorID);
                 pSensor := Sensors.Next;
             end;
 
@@ -2876,7 +2878,8 @@ begin
             pMeter := EnergyMeters.First;
             while pMeter <> nil do
             begin
-                pMeter.AllocateLoad(ActorID);
+                if pMeter.Enabled then
+                    pMeter.AllocateLoad(ActorID);
                 pMeter := EnergyMeters.Next;
             end;
             Solution.Solve(ActorID);  {Update the solution}
