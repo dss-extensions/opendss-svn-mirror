@@ -2775,7 +2775,8 @@ int DoAllocateLoadsCmd(int ActorID)
 			pMeter = (TEnergyMeterObj*) with0->EnergyMeters.Get_First();
 			while(pMeter != nullptr)
 			{
-				pMeter->CalcAllocationFactors(ActorID);
+                if (pMeter->Get_Enabled())
+					pMeter->CalcAllocationFactors(ActorID);
 				pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_Next();
 			}
 
@@ -2783,7 +2784,8 @@ int DoAllocateLoadsCmd(int ActorID)
 			pSensor = (TSensorObj*)with0->Sensors.Get_First();
 			while(pSensor != nullptr)
 			{
-				pSensor->CalcAllocationFactors(ActorID);
+				if (pSensor->Get_Enabled())
+					pSensor->CalcAllocationFactors(ActorID);
 				pSensor = (TSensorObj*)with0->Sensors.Get_Next();
 			}
 
@@ -2791,7 +2793,8 @@ int DoAllocateLoadsCmd(int ActorID)
 			pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_First();
 			while(pMeter != nullptr)
 			{
-				pMeter->AllocateLoad(ActorID);
+				if (pMeter->Get_Enabled())
+					pMeter->AllocateLoad(ActorID);
 				pMeter = (TEnergyMeterObj*)with0->EnergyMeters.Get_Next();
 			}
 			with0->Solution->Solve(ActorID);  /*Update the solution*/
