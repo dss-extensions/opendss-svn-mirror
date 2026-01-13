@@ -25,6 +25,7 @@ function RelaysI(mode:longint;arg:longint):longint;cdecl;
 Var
    pElem : TRelayObj;
    elem: TRelayObj;
+   i : Integer;
    pRelay:TRelayObj;
 
 begin
@@ -96,11 +97,15 @@ begin
   end;
   9: begin  // Relays.Open
       elem := Relayclass.ElementList.Active;
-      if elem <> nil then elem.PresentState := CTRL_OPEN;
+      if elem <> nil then begin
+        for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_OPEN // Open all phases
+      end;
   end;
   10: begin  // Relays.Close
       elem := Relayclass.ElementList.Active;
-      if elem <> nil then elem.PresentState := CTRL_CLOSE;
+      if elem <> nil then begin
+        for i := 1 to elem.ControlledElement.NPhases do elem.States[i] := CTRL_CLOSE // Close all phases
+      end;
   end;
   11: begin  // Relays.Reset
       elem := Relayclass.ElementList.Active;
@@ -155,37 +160,6 @@ begin
       elem := RelayClass.GetActiveObj ;
       if elem <> nil then Set_parameter('SwitchedObj', string(arg));
   end;
-  6: begin  // Relays.State read
-      Result := pAnsiChar(AnsiString(''));
-      elem := RelayClass.GetActiveObj;
-      if elem <> nil then Begin
-        if elem.PresentState = CTRL_CLOSE then Result := pAnsiChar(AnsiString('closed'))
-        else  Result := pAnsiChar(AnsiString('open'));
-      End;
-
-  end;
-  7: begin  // Relays.State write
-      elem := RelayClass.GetActiveObj;
-      if elem <> nil then Begin
-        if LowerCase(string(arg))[1] = 'c' then elem.PresentState := CTRL_CLOSE
-        else elem.PresentState := CTRL_OPEN;
-      End;
-  end;
-  8: begin  // Relays.Normal read
-      Result := pAnsiChar(AnsiString(''));
-      elem := RelayClass.GetActiveObj;
-      if elem <> nil then Begin
-        if elem.NormalState = CTRL_CLOSE then Result := pAnsiChar(AnsiString('closed'))
-        else  Result := pAnsiChar(AnsiString('open'));
-      End;
-  end;
-  9: begin  // Relays.Normal write
-      elem := RelayClass.GetActiveObj;
-      if elem <> nil then Begin
-        if LowerCase(string(arg))[1] = 'c' then elem.NormalState := CTRL_CLOSE
-        else elem.NormalState := CTRL_OPEN;
-      End;
-  end;
   else
       Result:=pAnsiChar(AnsiString('Error, parameter not valid'));
   end;
@@ -197,6 +171,9 @@ procedure RelaysV(mode:longint; var myPointer: Pointer; var myType, mySize: long
 Var
   elem    : TRelayObj;
   pList   : TPointerList;
+  k,
+  i       : Integer;
+  S       : String;
 
 begin
   case mode of
@@ -221,7 +198,96 @@ begin
         WriteStr2Array('None');
       myPointer :=  @(myStrArray[0]);
       mySize    :=  Length(myStrArray);
-    end
+    end;
+  1:begin  // Relays.State read
+      myType  :=  4;        // String
+      setlength(myStrArray, 0);
+      IF ActiveCircuit[ActiveActor] <> Nil THEN
+      Begin
+        Elem := RelayClass.GetActiveObj;
+        If Elem <> nil Then
+        Begin
+          for i:= 1 to elem.ControlledElement.Nphases DO
+          Begin
+            if elem.States[i] = CTRL_CLOSE then
+              WriteStr2Array('closed')
+            else
+              WriteStr2Array('open');
+            WriteStr2Array(Char(0));
+          End;
+        End;
+      End;
+      if (length(myStrArray) = 0) then
+        WriteStr2Array('None');
+      myPointer :=  @(myStrArray[0]);
+      mySize    :=  Length(myStrArray)
+    end;
+  2: begin  // Relays.State write
+      myType  :=  4;          // String
+      k := 0;
+      elem := RelayClass.GetActiveObj;
+      If elem <> nil Then
+      Begin
+        for i := 1 to elem.ControlledElement.NPhases do
+        Begin
+          S := BArray2Str(myPointer, k);
+          if S = '' then
+            break
+          else
+          Begin
+             case LowerCase(S)[1] of
+              'o': elem.States[i] := CTRL_OPEN;
+              'c': elem.States[i] := CTRL_CLOSE;
+            end;
+          End;
+        End;
+      End;
+      mySize  :=  k;
+  end;
+  3: begin  // Relays.NormalState read
+      myType  :=  4;        // String
+      setlength(myStrArray, 0);
+      IF ActiveCircuit[ActiveActor] <> Nil THEN
+      Begin
+        Elem := RelayClass.GetActiveObj;
+        If Elem <> nil Then
+        Begin
+          for i:= 1 to elem.ControlledElement.Nphases DO Begin
+            if elem.NormalStates[i] = CTRL_CLOSE then
+              WriteStr2Array('closed')
+            else
+              WriteStr2Array('open');
+            WriteStr2Array(Char(0));
+          End;
+        End;
+      End;
+      if (length(myStrArray) = 0) then
+        WriteStr2Array('None');
+      myPointer :=  @(myStrArray[0]);
+      mySize    :=  Length(myStrArray);
+  end;
+  4: begin  // Relays.NormalState write
+      elem := RelayClass.GetActiveObj;
+      k := 0;
+      If elem <> nil Then
+      Begin
+        // allocate space based on number of phases of controlled device
+        for i := 1 to elem.ControlledElement.NPhases do
+        Begin
+          S := BArray2Str(myPointer, k);
+          if S = '' then
+            break
+          else
+          Begin
+            case LowerCase(S)[1] of
+            'o': elem.NormalStates[i] := CTRL_OPEN;
+            'c': elem.NormalStates[i] := CTRL_CLOSE;
+            end;
+          End;
+        End;
+      End;
+      mySize  :=  k;
+  end;
   else
     Begin
       myType  :=  4;        // String

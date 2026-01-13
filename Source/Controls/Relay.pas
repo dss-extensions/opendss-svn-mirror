@@ -53,6 +53,14 @@ USES
      Command, ControlClass, ControlElem, CktElement, DSSClass, Arraydef, ucomplex,
       utilities, TCC_Curve, Math;
 
+CONST
+  RELAYCONTROLMAXDIM = 6;
+
+TYPE
+
+  pStateArray = ^StateArray;
+  StateArray = Array[1..RELAYCONTROLMAXDIM] of EControlAction;  // 0 = open 1 = close
+
 TYPE
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -78,24 +86,25 @@ TYPE
 
 
             {OverCurrent Relay}
-            PhaseCurve,
-            GroundCurve :TTCC_CurveObj;
+            PhCurve,
+            GndCurve :TTCC_CurveObj;
 
 
-            PhaseTrip,
-            GroundTrip,
-            PhaseInst,
-            GroundInst : Double;
+            PhPickup,
+            GndPickup,
+            PhInst,
+            GndInst : Double;
 
             RecloseIntervals :pdoubleArray;
             NumReclose       :Integer;
 
             ResetTime,
-            Delay_Time,
-            Breaker_time,
-            TDPhase, TDGround  :double;
+            DefiniteTimeDelay,
+            MechanicalDelay,
+            TDPh, TDGnd  :double;
 
-            RelayTarget:String;
+            RelayTarget: pStringArray;
+            IdxMultiPh: Integer; // Index used for accessing arrays for multi-phase, ganged operation
 
 
             {over/Under Voltage Relay}
@@ -156,16 +165,21 @@ TYPE
             UnderTrip:Double;
 
             FPresentState,
-            FNormalState  :EControlAction;
+            FNormalState    :pStateArray;
 
-            OperationCount :Integer;
+            OperationCount  :pIntegerArray;
 
             LockedOut,
             ArmedForClose,
             ArmedForOpen,
             ArmedForReset,
-            PhaseTarget, GroundTarget,
-            NormalStateSet    :Boolean;
+            PhaseTarget: pBooleanArray;
+
+            GroundTarget,
+            NormalStateSet,
+            SinglePhTrip,
+            SinglePhLockout,
+            FLocked   :Boolean;
 
             NextTriptime    : Double;
             LastEventHandle : Integer;
@@ -176,11 +190,13 @@ TYPE
             cvBuffer        :pComplexArray; // for distance and td21 voltages, using cBuffer for hte currents
 
             DebugTrace   :Boolean;
-            PROCEDURE InterpretRelayState(ActorID : Integer;const Action:String; const property_name: String);
-            FUNCTION get_State: EControlAction;
-            PROCEDURE set_State(const Value: EControlAction);
-            FUNCTION get_NormalState: EControlAction;
-            PROCEDURE set_NormalState(const Value: EControlAction);
+            PROCEDURE InterpretRelayState(ActorID : Integer;const param:String; const property_name: String);
+            FUNCTION  get_States(Idx: Integer): EControlAction;
+            PROCEDURE set_States(Idx: Integer; const Value: EControlAction);
+            FUNCTION  get_NormalStates(Idx: Integer): EControlAction;
+            PROCEDURE set_NormalStates(Idx: Integer; const Value: EControlAction);
+
+            procedure set_Flocked(const Value: Boolean);
 
             PROCEDURE InterpretRelayType(const S:String);
 
@@ -199,6 +215,8 @@ TYPE
 
        MonitoredElementName     :String;
        MonitoredElementTerminal :Integer;
+       RatedCurrent,
+       InterruptingRating : Double;
 
        constructor Create(ParClass:TDSSClass; const RelayName:String);
        destructor Destroy; override;
@@ -219,8 +237,10 @@ TYPE
        PROCEDURE InitPropertyValues(ArrayOffset:Integer);Override;
        PROCEDURE DumpProperties(Var F:TextFile; Complete:Boolean);Override;
 
-       Property PresentState:EControlAction Read get_State  write set_State;
-       Property NormalState:EControlAction Read get_NormalState write set_NormalState;
+       Property States[Idx: Integer]:EControlAction Read get_States write set_States;
+       Property NormalStates[Idx: Integer]:EControlAction Read get_NormalStates write set_NormalStates;
+
+       Property Locked: Boolean   Read Flocked write set_Flocked;
 
    end;
 
@@ -238,7 +258,7 @@ USES
 
 CONST
 
-    NumPropsThisClass = 50;
+    NumPropsThisClass = 71;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -297,15 +317,15 @@ Begin
      AddProperty('MonitoredTerm',  2 ,
                  'Number of the terminal of the circuit element to which the Relay is connected. '+
                  '1 or 2, typically.  Default is 1.');
-     AddProperty( 'SwitchedObj',3,
-                  'Name of circuit element switch that the Relay controls. '+
-                  'Specify the full object name.' +
-                  'Defaults to the same as the Monitored element. '+
-                  'This is the "controlled" element.');
-     AddProperty( 'SwitchedTerm',4,
-                  'Number of the terminal of the controlled element in which the switch is controlled by the Relay. '+
-                  '1 or 2, typically.  Default is 1.');
-     AddProperty( 'type',5, 'One of a legal relay type:' +CRLF+
+     AddProperty('SwitchedObj',3,
+                 'Name of circuit element switch that the Relay controls. '+
+                 'Specify the full object name.' +
+                 'Defaults to the same as the Monitored element. '+
+                 'This is the "controlled" element.');
+     AddProperty('SwitchedTerm',4,
+                 'Number of the terminal of the controlled element in which the switch is controlled by the Relay. '+
+                 '1 or 2, typically.  Default is 1.');
+     AddProperty('type',5, 'One of a legal relay type:' +CRLF+
                         '  Current'+CRLF+
                         '  Voltage'+CRLF+
                         '  Reversepower'+CRLF+
@@ -318,34 +338,38 @@ Begin
                         'Default is overcurrent relay (Current). ' +
                         'Specify the curve and pickup settings appropriate for each type. '+
                         'Generic relays monitor PC Element Control variables and trip on out of over/under range in definite time.');
-     AddProperty( 'Phasecurve',6, 'Name of the TCC Curve object that determines the phase trip.  '+
-                        'Must have been previously defined as a TCC_Curve object.'+
-                        ' Default is none (ignored). '+
-                        'For overcurrent relay, multiplying the current values in the curve by the "phasetrip" value gives the actual current.');
-     AddProperty( 'Groundcurve',7, 'Name of the TCC Curve object that determines the ground trip.  Must have been previously defined as a TCC_Curve object.'+
-                        ' Default is none (ignored).'+
-                        'For overcurrent relay, multiplying the current values in the curve by the "groundtrip" valuw gives the actual current.');
-     AddProperty( 'PhaseTrip', 8, 'Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.');
-     AddProperty( 'GroundTrip',9, 'Multiplier or actual ground amps (3I0) for the ground TCC curve.  Defaults to 1.0.');
-     AddProperty( 'TDPhase', 28, 'Time dial for Phase trip curve. Multiplier on time axis of specified curve. Default=1.0.');
-     AddProperty( 'TDGround', 29, 'Time dial for Ground trip curve. Multiplier on time axis of specified curve. Default=1.0.');
-     AddProperty( 'PhaseInst',10, 'Actual  amps (Current relay) or kW (reverse power relay) for instantaneous phase trip which is assumed to happen in 0.01 sec + Delay Time. Default is 0.0, which signifies no inst trip. '+
+     AddProperty('PhCurve',6, 'Name of the TCC Curve object that determines the phase trip.  '+
+                        'Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
+                        'Default is "none". ' +
+                        'For overcurrent relay, multiplying the current values in the curve by the "PhPickup" value gives the actual current.');
+     AddProperty('OC_GndCurve',7, 'Name of the TCC Curve object that determines the ground trip for overcurrent relay.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
+                        'Default is "none". ' +
+                        'For overcurrent relay, multiplying the current values in the curve by the "GndPickup" value gives the actual current.');
+     AddProperty('PhPickup', 8, 'Multiplier for the phase TCC curve for overcurrent relay OR actual phase amps when operating with definite time (see "DefiniteTimeDelay" property). Defaults to 1.0.');
+     AddProperty('OC_GndPickup',9, 'Multiplier for the ground TCC curve for overcurrent relay OR actual ground amps (3I0) when operating with definite time (see "DefiniteTimeDelay" property). Defaults to 1.0.');
+     AddProperty('TDPh', 28, 'Time dial for Phase trip curve. Multiplier on time axis of specified curve. Default=1.0.');
+     AddProperty('OC_TDGnd', 29, 'Time dial for Ground trip curve for overcurrent relay. Multiplier on time axis of specified curve. Default=1.0.');
+     AddProperty('PhInst',10, 'Actual  amps (Current relay) or kW (reverse power relay) for instantaneous phase trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip. '+
                          'Use this value for specifying the Reverse Power threshold (kW) for reverse power relays.');
-     AddProperty( 'GroundInst',11, 'Actual  amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Delay Time.Default is 0.0, which signifies no inst trip.');
-     AddProperty( 'Reset',12, 'Reset time in sec for relay.  Default is 15. If this much time passes between the last pickup event, and the relay has not locked out, the operation counter resets.');
-     AddProperty( 'Shots',13, 'Number of shots to lockout.  Default is 4. This is one more than the number of reclose intervals.');
-     AddProperty( 'RecloseIntervals',14, 'Array of reclose intervals. If none, specify "NONE". Default for overcurrent relay is (0.5, 2.0, 2.0) seconds. ' +
-                         'Default for a voltage relay is (5.0). In a voltage relay, this is  seconds after restoration of ' +
+     AddProperty('OC_GndInst',11, 'Actual amps for instantaneous ground trip for overcurrent relay which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.');
+     AddProperty('ResetTime',12, 'Reset time in sec for relay.  Default is 15. If this much time passes between the last pickup event, and the relay has not locked out, the operation counter resets.');
+     AddProperty('Shots',13, 'Number of shots to lockout. Default is 4. This is one more than the number of reclose intervals.');
+     AddProperty('RecloseIntervals',14, 'Array of reclose intervals. If none, specify "NONE". Default for overcurrent relay is (0.5, 2.0, 2.0) seconds. ' +
+                         'Default for a voltage relay is (5.0). In a voltage relay, this is seconds after restoration of ' +
                          'voltage that the reclose occurs. ' +
                          'Reverse power relay is one shot to lockout, '+
                          'so this is ignored.  A locked out relay must be closed manually (set action=close).');
-     AddProperty( 'Delay', 24, 'Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current, voltage and DOC relays. If >0 then this value is used instead of curves. '+
-                                       ' Used by Generic, RevPower, 46 and 47 relays. Defaults to 0.1 s for these relays.');
-     AddProperty( 'Overvoltcurve', 15, 'TCC Curve object to use for overvoltage relay.  Curve is assumed to be defined with per unit voltage values. '+
+     AddProperty('DefiniteTimeDelay', 24, 'Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current and DOC relays. ' +
+                                       'For overcurrent relays, if>0 and specified pickups (ground and/or phase) are excedeed, definite time operation is used instead of curves. '+
+                                       'For DOC relay, if>0 definite time operation is used instead of curves. ' +
+                                       'Used by Generic, RevPower, 46 and 47 relays. Defaults to 0.1 s for these relays.');
+     AddProperty('Voltage_OVCurve', 15, 'TCC Curve object to use for overvoltage relay. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
+                        'Default is "none". ' + 'Curve is assumed to be defined with per unit voltage values. '+
                          'Voltage base should be defined for the relay. Default is none (ignored).');
-     AddProperty( 'Undervoltcurve', 16, 'TCC Curve object to use for undervoltage relay.  Curve is assumed to be defined with per unit voltage values. '+
+     AddProperty('Voltage_UVCurve', 16, 'TCC Curve object to use for undervoltage relay. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
+                        'Default is "none". ' + 'Curve is assumed to be defined with per unit voltage values. '+
                          'Voltage base should be defined for the relay. Default is none (ignored).');
-     AddProperty( 'kvbase', 17, 'Voltage base (kV) for the relay. Specify line-line for 3 phase devices); line-neutral for 1-phase devices.  Relay assumes ' +
+     AddProperty('kvbase', 17, 'Voltage base (kV) for the relay. Specify line-line for 3 phase devices); line-neutral for 1-phase devices.  Relay assumes ' +
                          'the number of phases of the monitored element.  Default is 0.0, which results in assuming the voltage ' +
                          'values in the "TCC" curve are specified in actual line-to-neutral volts.');
      AddProperty('47%Pickup', 25, 'Percent voltage pickup for 47 relay (Neg seq voltage). Default is 2. Specify also base voltage (kvbase) and delay time value.   ');
@@ -355,13 +379,13 @@ Begin
                                    '  When current exceeds this value * BaseAmps, I-squared-t calc starts.' );
      AddProperty('46isqt',22, 'Negative Sequence I-squared-t trip value for 46 relay (neg seq current).' +
                                '  Default is 1 (trips in 1 sec for 1 per unit neg seq current).  Should be 1 to 99.');
-     AddProperty('Variable',  20, 'Name of variable in PC Elements being monitored.  Only applies to Generic relay.');
-     AddProperty('overtrip', 26, 'Trip setting (high value) for Generic relay variable.  Relay trips in definite time if value of variable exceeds this value.');
-     AddProperty('undertrip',27,'Trip setting (low value) for Generic relay variable.  Relay trips in definite time if value of variable is less than this value.');
-     AddProperty('Breakertime',18, 'Fixed delay time (sec) added to relay time. Default is 0.0. Designed to represent breaker time or some other delay after a trip decision is made.' +
+     AddProperty('Generic_Variable',  20, 'Name of variable in PC Elements being monitored. Only applies to Generic relay.');
+     AddProperty('Generic_OverTrip', 26, 'Trip setting (high value) for Generic relay variable. Relay trips in definite time if value of variable exceeds this value.');
+     AddProperty('Generic_UnderTrip',27,'Trip setting (low value) for Generic relay variable. Relay trips in definite time if value of variable is less than this value.');
+     AddProperty('MechanicalDelay',18, 'Fixed delay time (sec) added to relay time. Default is 0.0. Designed to represent breaker time or some other delay after a trip decision is made.' +
                          'Use Delay property for setting a fixed trip time delay.' +
                          'Added to trip time of current and voltage relays. Could use in combination with inst trip value to obtain a definite time overcurrent relay.');
-     AddProperty( 'action', 19, 'DEPRECATED. See "State" property');
+     AddProperty('Action', 19, 'DEPRECATED. See "State" property');
      AddProperty('Z1mag', 30, 'Positive sequence reach impedance in primary ohms for Distance and TD21 functions. Default=0.7');
      AddProperty('Z1ang', 31, 'Positive sequence reach impedance angle in degrees for Distance and TD21 functions. Default=64.0');
      AddProperty('Z0mag', 32, 'Zero sequence reach impedance in primary ohms for Distance and TD21 functions. Default=2.1');
@@ -371,11 +395,13 @@ Begin
      AddProperty('EventLog', 36, '{Yes/True* | No/False} Default is Yes for Relay. Write trips, reclose and reset events to EventLog.');
      AddProperty('DebugTrace', 37, '{Yes/True* | No/False} Default is No for Relay. Write extra details to Eventlog.');
      AddProperty('DistReverse', 38, '{Yes/True* | No/False} Default is No; reverse direction for distance and td21 types.');
-     AddProperty('Normal', 39, '{Open | Closed} Normal state of the relay. The relay reverts to this state for reset, change of mode, etc. '  +
-                               'Defaults to "State" if not specifically declared.');
-     AddProperty('State', 40, '{Open | Closed} Actual state of the relay. Upon setting, immediately forces state of the relay, overriding the Relay control. ' +
-                              'Simulates manual control on relay. Defaults to Closed. "Open" causes the controlled element to open and lock out. "Closed" causes the ' +
-                              'controlled element to close and the relay to reset to its first operation.');
+     AddProperty('Normal', 39, 'ARRAY of strings {Open | Closed} representing the Normal state of the relay in each phase of the controlled element. ' +
+                         'The relay reverts to this state for reset, change of mode, etc. ' +
+                         'Defaults to "State" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).');
+     AddProperty('State', 40, 'ARRAY of strings {Open | Closed} representing the Actual state of the relay in each phase of the controlled element. ' +
+                         'Upon setting, immediately forces the state of the relay. Simulates manual control on the controlled relay. Defaults to Closed for all phases. Setting this property to {Open | Closed} ' +
+                         'sets the actual state to the specified value for all phases (ganged operation). "Open" causes the controlled element or respective phase to open and lock out. "Closed" causes the ' +
+                         'controlled element or respective phase to close and the relay to reset to its first operation.');
      AddProperty('DOC_TiltAngleLow',41, 'Tilt angle for low-current trip line. Default is 90.');
      AddProperty('DOC_TiltAngleHigh',42, 'Tilt angle for high-current trip line. Default is 90.');
      AddProperty('DOC_TripSettingLow',43, 'Resistive trip setting for low-current line.  Default is 0.');
@@ -384,13 +410,39 @@ Begin
      AddProperty('DOC_DelayInner',46, 'Trip time delay (sec) for operation in inner region for DOC relay, defined when "DOC_TripSettingMag" or "DOC_TripSettingHigh" are activate. Default is -1.0 (deactivated), meaning that ' +
                                       'the relay characteristic is insensitive in the inner region (no trip). Set to 0 for instantaneous trip and >0 for a definite time delay. '+
                                        'If "DOC_PhaseCurveInner" is specified, time delay from curve is utilized instead.');
-     AddProperty('DOC_PhaseCurveInner',47, 'Name of the TCC Curve object that determines the phase trip for operation in inner region for DOC relay. Must have been previously defined as a TCC_Curve object. ' +
-                                           'Default is none (ignored). Multiplying the current values in the curve by the "DOC_PhaseTripInner" value gives the actual current.');
+     AddProperty('DOC_PhaseCurveInner',47, 'Name of the TCC Curve object that determines the phase trip for operation in inner region for DOC relay. Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). '+
+                                           'Default is "none". ' + 'Multiplying the current values in the curve by the "DOC_PhaseTripInner" value gives the actual current.');
      AddProperty('DOC_PhaseTripInner',48, 'Multiplier for the "DOC_PhaseCurveInner" TCC curve.  Defaults to 1.0.');
      AddProperty('DOC_TDPhaseInner',49, 'Time dial for "DOC_PhaseCurveInner" TCC curve. Multiplier on time axis of specified curve. Default=1.0.');
      AddProperty('DOC_P1Blocking',50, '{Yes/True* | No/False} Blocking element that impedes relay from tripping if balanced net three-phase active power is in the forward direction (i.e., flowing into the monitored terminal). '
                   + 'For a delayed trip, if at any given time the reverse power flow condition stops, the tripping is reset. Default=True.');
+     AddProperty('SinglePhTrip',51, '{Yes/True | No*/False} Enables single-phase tripping and reclosing for multi-phase controlled elements. Previously locked out phases do not operate/reclose even considering multi-phase tripping. ' +
+                  'Applies to overcurrent relays only (type=current). Ignored for other types.');
+     AddProperty('SinglePhLockout',52, '{Yes/True | No*/False} Enables single-phase lockout for multi-phase controlled elements with single-phase tripping. Does not have impact if single-phase trip is not enabled.');
+     AddProperty('Lock',53, '{Yes/True | No*/False} Controlled switch is locked in its present open / closed state or unlocked. ' +
+                          'When locked, the relay will not respond to either a manual state change issued by the user or a state change issued internally by OpenDSS when Reseting the control. ' +
+                          'Note this locking mechanism is different from the relay automatic lockout after specifed Shots.');
+     AddProperty('Reset',54, '{Yes/True | No*/False} If Yes, forces Reset of relay to Normal state and removes Lock independently of any internal '+
+                          'reset command for mode change, etc.');
+     AddProperty('RatedCurrent',55, 'Controlled conducting element''s continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.');
+     AddProperty('InterruptingRating',56, 'Controlled conducting element''s rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.');
 
+     // Deprecated properties
+     AddProperty('Breakertime',57, 'DEPRECATED. See "MechanicalDelay" property.');
+     AddProperty('Delay',58, 'DEPRECATED. See "DefiniteTimeDelay" property.');
+     AddProperty('GroundCurve',59, 'DEPRECATED. See "OC_GndCurve" property.');
+     AddProperty('GroundTrip',60, 'DEPRECATED. See "OC_GndPickup" property.');
+     AddProperty('GroundInst',61, 'DEPRECATED. See "OC_GndInst" property.');
+     AddProperty('TDGround',62, 'DEPRECATED. See "OC_TDGnd" property.');
+     AddProperty('Phasecurve',63, 'DEPRECATED. See "PhCurve" property.');
+     AddProperty('PhaseTrip',64, 'DEPRECATED. See "PhPickup" property.');
+     AddProperty('PhaseInst',65, 'DEPRECATED. See "PhInst" property.');
+     AddProperty('TDPhase',66, 'DEPRECATED. See "TDPh" property.');
+     AddProperty('overtrip',67, 'DEPRECATED. See "Generic_OverTrip" property.');
+     AddProperty('undertrip',68, 'DEPRECATED. See "Generic_UnderTrip" property.');
+     AddProperty('Variable',69, 'DEPRECATED. See "Generic_Variable" property.');
+     AddProperty('Overvoltcurve',70, 'DEPRECATED. See "Voltage_OVCurve" property.');
+     AddProperty('Undervoltcurve',71, 'DEPRECATED. See "Voltage_UVCurve" property.');
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -413,6 +465,9 @@ Function TRelay.GetTccCurve(Const CurveName:String):TTCC_CurveObj;
 
 Begin
 
+     Result := NIL;
+     if lowercase(CurveName) = 'none' then Exit;
+
      Result := TCC_CurveClass.Find(CurveName);
 
      IF Result = NIL
@@ -423,7 +478,7 @@ End;
 {--------------------------------------------------------------------------}
 FUNCTION TRelay.Edit(ActorID : Integer):Integer;
 VAR
-   ParamPointer:Integer;
+   ParamPointer, i:Integer;
    ParamName:String;
    Param:String;
 
@@ -458,29 +513,29 @@ Begin
             3: ElementName     := lowercase(param);
             4: ElementTerminal := Parser[ActorID].IntValue;
             5: InterpretRelayType(Param);
-            6: PhaseCurve  := GetTccCurve(Param);
-            7: GroundCurve := GetTCCCurve(Param);
-            8: PhaseTrip   := Parser[ActorID].Dblvalue;
-            9: GroundTrip  := Parser[ActorID].Dblvalue;
-           10: PhaseInst   := Parser[ActorID].Dblvalue;
-           11: GroundInst  := Parser[ActorID].Dblvalue;
+            6, 63: PhCurve     := GetTccCurve(Param);
+            7, 59: GndCurve    := GetTCCCurve(Param);
+            8, 64: PhPickup    := Parser[ActorID].Dblvalue;
+            9, 60: GndPickup   := Parser[ActorID].Dblvalue;
+           10, 65: PhInst      := Parser[ActorID].Dblvalue;
+           11, 61: GndInst     := Parser[ActorID].Dblvalue;
            12: ResetTime   := Parser[ActorID].Dblvalue;
            13: NumReclose  := Parser[ActorID].Intvalue -1 ;   // one less than number of shots
            14: If Comparetext(Param, 'NONE')=0 Then NumReclose := 0 Else NumReclose  := Parser[ActorID].ParseAsVector(4, RecloseIntervals);   // max of 4 allowed
-           15: OVCurve     := GetTCCCurve(Param);
-           16: UVCurve     := GetTCCCurve(Param);
+           15, 70: OVCurve     := GetTCCCurve(Param);
+           16, 71: UVCurve     := GetTCCCurve(Param);
            17: kVBase      := Parser[ActorID].DblValue;
-           18: Breaker_time   := Parser[ActorID].DblValue;
-           20: MonitorVariable := lowercase(param);  // for pc elements
+           18, 57: MechanicalDelay   := Parser[ActorID].DblValue;
+           20, 69: MonitorVariable := lowercase(param);  // for pc elements
            21: PctPickup46 := Parser[ActorID].DblValue;
            22: Isqt46   :=  Parser[ActorID].DblValue;
            23: BaseAmps46 := Parser[ActorID].DblValue;
-           24: Delay_Time := Parser[ActorID].DblValue;
+           24, 58: DefiniteTimeDelay := Parser[ActorID].DblValue;
            25: PctPickup47 := Parser[ActorID].DblValue;
-           26: Overtrip  := Parser[ActorID].DblValue;
-           27: Undertrip := Parser[ActorID].DblValue;
-           28: TDPhase :=  Parser[ActorID].DblValue;
-           29: TDGround :=  Parser[ActorID].DblValue;
+           26, 67: Overtrip  := Parser[ActorID].DblValue;
+           27, 68: Undertrip := Parser[ActorID].DblValue;
+           28, 66: TDPh :=  Parser[ActorID].DblValue;
+           29, 62: TDGnd :=  Parser[ActorID].DblValue;
            30: Z1mag := Parser[ActorID].DblValue;
            31: Z1ang := Parser[ActorID].DblValue;
            32: Z0mag := Parser[ActorID].DblValue;
@@ -505,6 +560,16 @@ Begin
            48: DOC_PhaseTripInner     := Parser[ActorID].DblValue;
            49: DOC_TDPhaseInner       := Parser[ActorID].DblValue;
            50: DOC_P1Blocking := InterpretYesNo(Param);
+           51: SinglePhTrip := InterpretYesNo (Param);
+           52: SinglePhLockout := InterpretYesNo (Param);
+           53: Locked := InterpretYesNo (Param);
+           54: If InterpretYesNo (Param) Then Begin  // force a reset
+                  Locked := FALSE;
+                  Reset(ActorID);
+                  PropertyValue[54]  := 'n';
+               End;
+           55: RatedCurrent := Parser[ActorID].Dblvalue;
+           56: InterruptingRating := Parser[ActorID].Dblvalue;
 
          ELSE
            // Inherited parameters
@@ -535,11 +600,23 @@ Begin
                       NumReclose := AuxParser[ActorID].ParseAsVector(4, RecloseIntervals);
                     End;
 
+
+                    // Side-effect: disable single-phase tripping and lockout.
+                    CASE lowercase(param)[1] of
+                      '4', 'g', 't', 'd', 'v', 'r':
+                      Begin
+                        SinglePhTrip := FALSE;
+                        SinglePhLockout := FALSE;
+                        PropertyValue[51] := 'No';
+                        PropertyValue[52] := 'No';
+                      End;
+                    END;
+
                  End;
               19, 40: if not NormalStateSet then
                        Begin
-                          NormalStateSet := TRUE;  // 'normal state' defaults to 'state' only when the latter is specified for the first time
-                          NormalState := FPresentState;
+                          For i := 1 to FNPhases Do If not NormalStateSet then FNormalState^[i] := FPresentState^[i];
+                          NormalStateSet := TRUE;   // normal state will default to state only the 1st time state is specified.
                        End;
          END;
          ParamName := Parser[ActorID].NextParam;
@@ -578,30 +655,37 @@ Begin
         MonitoredElementName  := OtherRelay.MonitoredElementName;  // Pointer to target circuit element
         MonitoredElementTerminal  := OtherRelay.MonitoredElementTerminal;  // Pointer to target circuit element
 
-        PhaseCurve     := OtherRelay.PhaseCurve;
-        GroundCurve    := OtherRelay.GroundCurve;
-        OVCurve        := OtherRelay.OVCurve;
-        UVcurve        := OtherRelay.UVcurve;
-        PhaseTrip      := OtherRelay.PhaseTrip;
-        GroundTrip     := OtherRelay.GroundTrip;
-        TDPhase        := OtherRelay.TDPhase;
-        TDGround       := OtherRelay.TDGround;
-        PhaseInst      := OtherRelay.PhaseInst;
-        GroundInst     := OtherRelay.GroundInst;
-        ResetTime      := OtherRelay.Resettime;
-        NumReclose     := OtherRelay.NumReclose;
-        Delay_Time     := OtherRelay.Delay_Time;
-        Breaker_time   := OtherRelay.Breaker_time;
+        PhCurve            := OtherRelay.PhCurve ;
+        GndCurve           := OtherRelay.GndCurve;
+        OVCurve            := OtherRelay.OVCurve;
+        UVcurve            := OtherRelay.UVcurve;
+        PhPickup           := OtherRelay.PhPickup;
+        GndPickup          := OtherRelay.GndPickup;
+        TDPh               := OtherRelay.TDPh;
+        TDGnd              := OtherRelay.TDGnd;
+        PhInst             := OtherRelay.PhInst;
+        GndInst            := OtherRelay.GndInst;
+        ResetTime          := OtherRelay.ResetTime;
+        NumReclose         := OtherRelay.NumReclose;
+        DefiniteTimeDelay  := OtherRelay.DefiniteTimeDelay;
+        MechanicalDelay    := OtherRelay.MechanicalDelay;
+        SinglePhTrip       := OtherRelay.SinglePhTrip;
+        SinglePhLockout    := OtherRelay.SinglePhLockout;
+        RatedCurrent       := OtherRelay.RatedCurrent;
+        InterruptingRating := OtherRelay.InterruptingRating;
 
         Reallocmem(RecloseIntervals, SizeOf(RecloseIntervals^[1])*4);      // Always make a max of 4
         FOR i := 1 to NumReclose DO RecloseIntervals^[i] :=  OtherRelay.RecloseIntervals^[i];
        // deleted... if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('MakeLike NumReclose=%d',[NumReclose]), ActorID);
 
-        kVBase         := OtherRelay.kVBase;
-        LockedOut      := OtherRelay.LockedOut;
+        Locked         := OtherRelay.Locked;
 
-        FPresentState  := OtherRelay.FPresentState;
-        NormalState    := OtherRelay.NormalState;
+        For i := 1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do Begin
+          FPresentState^[i]  := OtherRelay.FPresentState^[i];
+          FNormalState^[i]   := OtherRelay.FNormalState^[i];
+        End;
+
+        kVBase         := OtherRelay.kVBase;
 
         ControlType    := OtherRelay.ControlType;
         CondOffset     := OtherRelay.CondOffset;
@@ -648,7 +732,8 @@ End;
 
 {--------------------------------------------------------------------------}
 constructor TRelayObj.Create(ParClass:TDSSClass; const RelayName:String);
-
+var
+  i: Integer;
 Begin
      Inherited Create(ParClass);
      Name := LowerCase(RelayName);
@@ -666,30 +751,27 @@ Begin
      MonitoredElementTerminal := 1;
      MonitoredElement := NIL;
 
-     RelayTarget := '';
-
-     PhaseCurve       := NIL;
-     GroundCurve       := NIL;
+     PhCurve        := NIL;
+     GndCurve       := NIL;
      OVCurve        := NIL;
      UVcurve        := NIL;
-     PhaseTrip      := 1.0;
-     GroundTrip     := 1.0;
-     TDPhase        := 1.0;
-     TDGround       := 1.0;
-     PhaseInst      := 0.0;
-     GroundInst     := 0.0;
+     PhPickup       := 1.0;
+     GndPickup      := 1.0;
+     TDPh        := 1.0;
+     TDGnd       := 1.0;
+     PhInst         := 0.0;
+     GndInst        := 0.0;
      ResetTime      := 15.0;
+
+     RatedCurrent        := 0.0;
+     InterruptingRating  := 0.0;
+
      NumReclose     := 3;
      RecloseIntervals := NIL;
-
      Reallocmem(RecloseIntervals, SizeOf(RecloseIntervals^[1])*4); // fixed allocation of 4
      RecloseIntervals^[1] := 0.5;
      RecloseIntervals^[2] := 2.0;
      RecloseIntervals^[3] := 2.0;
-
-     FPresentState := CTRL_CLOSE;
-     FNormalState  := CTRL_CLOSE;
-     NormalStateSet := FALSE;
 
      Isqt46 := 1.0;
      BaseAmps46 := 100.0;
@@ -729,24 +811,58 @@ Begin
      DOC_TDPhaseInner := 1.0;
      DOC_P1Blocking := True;
 
-     Operationcount   := 1;
-     LockedOut        := FALSE;
-     ArmedForOpen     := FALSE;
-     ArmedForClose    := FALSE;
-     ArmedForReset    := FALSE;
-     PhaseTarget      := FALSE;
-     GroundTarget     := FALSE;
+     FPresentState   := Nil;
+     FNormalState    := Nil;
+     LockedOut       := Nil;
+     ArmedForOpen    := Nil;
+     ArmedForClose   := Nil;
+     ArmedForReset   := Nil;
+     GroundTarget    := FALSE;
+     PhaseTarget     := Nil;
+     Operationcount  := Nil;
+     RelayTarget     := Nil;
+     SinglePhTrip    := FALSE;
+     SinglePhLockout := FALSE;
+     IdxMultiPh      := FNPhases + 1;
+
+     // Reallocate arrays  (Must be initialized to nil for first call)
+     Reallocmem(FPresentState, Sizeof(FPresentState^[1]) * FNPhases);
+     Reallocmem(FNormalState,  Sizeof(FNormalState^[1])  * FNPhases);
+     Reallocmem(LockedOut, Sizeof(LockedOut^[1]) * IdxMultiPh);
+     Reallocmem(ArmedForOpen,  Sizeof(ArmedForOpen^[1])  * IdxMultiPh);
+     Reallocmem(ArmedForClose, Sizeof(ArmedForClose^[1]) * IdxMultiPh);
+     Reallocmem(ArmedForReset, Sizeof(ArmedForReset^[1]) * IdxMultiPh);
+     Reallocmem(PhaseTarget, Sizeof(PhaseTarget^[1]) * IdxMultiPh);
+     Reallocmem(Operationcount,  Sizeof(Operationcount^[1])  * IdxMultiPh);
+     RelayTarget := AllocStringArray(IdxMultiPh);
+
+     For i := 1 to Min(RELAYCONTROLMAXDIM, IdxMultiPh) Do Begin
+
+       if i <= FNPhases then Begin
+        FPresentState^[i]  := CTRL_CLOSE;
+        FNormalState^[i]   := CTRL_CLOSE;  // default to present state;
+       End;
+
+       LockedOut^[i]      := FALSE;
+       ArmedForOpen^[i]   := FALSE;
+       ArmedForClose^[i]  := FALSE;
+       ArmedForReset^[i]  := FALSE;
+       PhaseTarget^[i]    := FALSE;
+       Operationcount^[i] := 1;
+       RelayTarget^[i]    := '';
+     End;
+
+     NormalStateSet := FALSE;
+     Locked         := FALSE;
 
      NextTripTime     := -1.0;  // not set to trip
 
      cBuffer := Nil; // Complex buffer
      cvBuffer := Nil;
 
-     DSSObjType := ParClass.DSSClassType; //cap_CONTROL;
+     DSSObjType := ParClass.DSSClassType;
 
      InitPropertyValues(0);
-
-
 
    //  RecalcElementData;
 
@@ -762,6 +878,17 @@ Begin
      if Assigned (td21_dV) then ReallocMem (td21_dV, 0);
      if Assigned (td21_Uref) then ReallocMem (td21_Uref, 0);
      if Assigned (td21_dI) then ReallocMem (td21_dI, 0);
+
+     ReallocMem(FPresentState,0);
+     ReallocMem(FNormalState,0);
+     ReallocMem(LockedOut,0);
+     ReallocMem(ArmedForOpen,0);
+     ReallocMem(ArmedForClose,0);
+     ReallocMem(ArmedForReset,0);
+     ReallocMem(PhaseTarget,0);
+     ReallocMem(Operationcount,0);
+     FreeStringArray(RelayTarget, IdxMultiPh);
+
      Inherited Destroy;
 End;
 
@@ -769,12 +896,9 @@ End;
 PROCEDURE TRelayObj.RecalcElementData(ActorID : Integer);
 
 VAR
-   DevIndex: Integer;
+   DevIndex, i: Integer;
 
 Begin
-         if DebugTrace then begin
-            AppendToEventLog ('Relay.'+self.Name, Format ('RecalcElementData NumReclose=%d',[NumReclose]), ActorID);
-         end;
          Devindex := GetCktElementIndex(MonitoredElementName); // Global function
          IF   DevIndex>0 THEN
            Begin
@@ -837,20 +961,23 @@ Begin
                ControlledElement.HasAutoOCPDevice := TRUE;  // For Reliability calcs
              End;
 
-             IF  FPresentState = CTRL_CLOSE  THEN    // Open/Close State of controlled element based on state assigned to the control
-               Begin
-                ControlledElement.Closed[0,ActorID] := TRUE;
-                LockedOut := FALSE;
-                OperationCount := 1;
-                ArmedForOpen := FALSE;
-               End
-             ELSE
-               Begin
-                ControlledElement.Closed[0,ActorID] := FALSE;
-                LockedOut := TRUE;
-                OperationCount := NumReclose + 1;
-                ArmedForClose := FALSE;
-               End;
+             // Open/Closed State of controlled element based on state assigned to the control
+             For i := 1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do
+             If FPresentState^[i] = CTRL_CLOSE Then
+             Begin
+                ControlledElement.Closed[i,ActorID] := TRUE;
+                LockedOut^[i]                       := FALSE;
+                OperationCount^[i]                  := 1;
+                ArmedForOpen^[i]                    := FALSE;
+             End
+             Else
+             Begin
+                ControlledElement.Closed[i,ActorID] := FALSE;
+                LockedOut^[i]                       := TRUE;
+                OperationCount^[i]                  := NumReclose + 1;
+                ArmedForClose^[i]                   := FALSE;
+             End;
+
            End
          ELSE
            Begin
@@ -926,52 +1053,177 @@ End;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TRelayObj.DoPendingAction(Const Code, ProxyHdl:Integer;ActorID : Integer);
-
-
+var i, PhIdx: Integer;
+    ph_debug: String;
 begin
+
+    if SinglePhTrip then PhIdx := ProxyHdl else PhIdx := IdxMultiPh; // Proxy holds phase information for single-phase trip
+
     if DebugTrace then begin
+
+      if SinglePhTrip then ph_debug := IntToStr(PhIdx) else ph_debug := 'ALL';
+
       AppendToEventLog ('Relay.'+self.Name,
-        Format('DoPendingAction Code=%d State=%d ArmedOpen=%s Close=%s Reset=%s Count=%d NumReclose=%d',
-          [Integer (Code), Integer (FPresentState), BoolToStr (ArmedForOpen), BoolToStr (ArmedForClose), BoolToStr (ArmedForReset),
-          OperationCount, NumReclose]), ActorID);
+        Format('Debug DoPendingAction Code=%d Phase=%s State=%s ArmedOpen=%s ArmedForClose=%s ArmedForReset=%s Count=%d NumReclose=%d',
+          [Integer (Code), ph_debug, self.GetPropertyValue(40), BoolToStr (ArmedForOpen^[PhIdx], TRUE), BoolToStr (ArmedForClose^[PhIdx], TRUE), BoolToStr (ArmedForReset^[PhIdx], TRUE),
+          OperationCount^[PhIdx], NumReclose]), ActorID);
     end;
     WITH   ControlledElement Do
       Begin
          ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal of CktElement to terminal 1
          CASE Code of
-            Integer(CTRL_OPEN):   CASE FPresentState of
-                         CTRL_CLOSE:IF ArmedForOpen THEN
-                                 Begin   // ignore if we became disarmed in meantime
-                                    ControlledElement.Closed[0,ActorID] := FALSE;   // Open all phases of active terminal
-                                    IF OperationCount > NumReclose THEN
+            Integer(CTRL_OPEN):
+                    if SinglePhTrip then
+                    Begin
+                        CASE FPresentState^[PhIdx] of
+                            CTRL_CLOSE:IF ArmedForOpen^[PhIdx] THEN Begin   // ignore if we became disarmed in meantime
+
+                              ControlledElement.Closed[PhIdx,ActorID] := FALSE;   // Open phase of active terminal
+                              FPresentState^[PhIdx] := CTRL_OPEN;
+
+                              IF OperationCount^[PhIdx] > NumReclose THEN
+                              Begin
+                                  LockedOut^[PhIdx] := TRUE;
+                                  if SinglePhLockout and ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RelayTarget^[PhIdx]]),ActorID)
+                                  Else
+                                  Begin
+                                    if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (3ph lockout)', [PhIdx, RelayTarget^[PhIdx]]), ActorID); // 3-Phase Lockout
+
+                                    // Lockout other phases
+                                    for i := 1 to ControlledElement.Nphases Do
+                                    Begin
+
+                                      if (i <> PhIdx) and (Not LockedOut^[i]) then  // Check LockedOut^[i] to skip individual phase that were previously locked out
                                       Begin
-                                          LockedOut := TRUE;
-                                          if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, 'Opened on '+RelayTarget+' & Locked Out ', ActorID);
-                                       End
-                                    ELSE if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, 'Opened on ' + RelayTarget, ActorID);
-                                    If PhaseTarget Then if ShowEventLog then AppendtoEventLog(' ', 'Phase Target', ActorID);
-                                    If GroundTarget Then if ShowEventLog then AppendtoEventLog(' ', 'Ground Target', ActorID);
-                                    ArmedForOpen := FALSE;
-                                    if ControlType = td21 then td21_quiet := td21_pt + 1;
-                                 END;
-                    ELSE {nada}
-                    END;
-            Integer(CTRL_CLOSE):  CASE FPresentState of
-                         CTRL_OPEN:IF ArmedForClose and Not LockedOut THEN
+                                        ControlledElement.Closed[i,ActorID] := FALSE;
+                                        FPresentState^[i] := CTRL_OPEN;
+                                        LockedOut^[i] := TRUE;
+                                        IF ArmedForOpen^[i] then ArmedForOpen^[i] := FALSE;
+                                        if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened (1ph trip) & locked out (3ph lockout)', [i]), ActorID);
+
+                                      End;
+
+                                    End;
+
+                                  End;
+
+                              End
+                              ELSE if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip)', [PhIdx, RelayTarget^[PhIdx]]),ActorID);
+
+                              ArmedForOpen^[PhIdx] := FALSE;
+
+                            END;
+                        END;
+                    End
+                    Else  // 3-Ph Trip
+                    Begin
+
+                        // Analyze each phase separately even if using 3-phase trip as states may not be the same.
+                        For i := 1 to ControlledElement.Nphases Do
+                        Begin
+                           CASE FPresentState^[i] of
+                              CTRL_CLOSE:IF ArmedForOpen^[PhIdx] THEN Begin   // ignore if we became disarmed in meantime
+
+                                ControlledElement.Closed[i,ActorID] := FALSE;   // Open phases of active terminal
+                                FPresentState^[i] := CTRL_OPEN;
+
+                                IF OperationCount^[PhIdx] > NumReclose THEN
                                 Begin
-                                  ControlledElement.Closed[0, ActorID] := TRUE;    // Close all phases of active terminal
-                                  Inc(OperationCount);
-                                  if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, 'Closed', ActorID);
-                                  ArmedForClose     := FALSE;
-                                  if ControlType = td21 then td21_quiet := td21_pt div 2;
-                                End;
-                    ELSE {Nada}
-                    END;
-            Integer(CTRL_RESET): If ArmedForReset and Not LockedOut then begin
-                                  if ShowEventLog then AppendToEventLog('Relay.'+Self.Name, 'Reset', ActorID);
-                                  Reset(ActorID);
-                                  if ControlType = td21 then td21_quiet := td21_pt div 2
+                                    LockedOut^[PhIdx] := TRUE;
+                                    if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (3ph trip) & locked out (3ph lockout)', [i, RelayTarget^[PhIdx]]), ActorID);
                                 End
+                                ELSE if ShowEventLog THEN AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (3ph trip)', [i, RelayTarget^[PhIdx]]),ActorID);
+
+                              END;
+                           END;
+
+                        End;
+
+                        ArmedForOpen^[PhIdx] := FALSE; // Report target only once for 3ph trip.
+                        if ControlType = td21 then td21_quiet := td21_pt + 1;
+
+                    End;
+
+            Integer(CTRL_CLOSE):
+
+                    if SinglePhTrip Then
+                    Begin
+                        CASE FPresentState^[PhIdx] of
+                            CTRL_OPEN: IF ArmedForClose^[PhIdx] and Not LockedOut^[PhIdx] THEN Begin
+                              ControlledElement.Closed[PhIdx,ActorID] := TRUE;    // Close phase of active terminal
+                              FPresentState^[PhIdx] := CTRL_CLOSE;
+
+                              if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d closed (1ph reclosing)', [PhIdx]),ActorID);
+
+                              // Count reclosing operations for each phase on single ph trip
+                              Inc(OperationCount^[PhIdx]);
+                              ArmedForClose^[PhIdx]     := FALSE;
+                            End;
+                        End;
+                    End
+                    Else  // 3-Ph Trip
+                    Begin
+
+                        For i := 1 to ControlledElement.Nphases Do
+                        Begin
+
+                            CASE FPresentState^[i] of
+                              // Check LockedOut^[i] to skip individual phases that were previously locked out
+                              CTRL_OPEN: IF ArmedForClose^[PhIdx] and Not LockedOut^[i] and Not LockedOut^[PhIdx] THEN Begin
+
+                                ControlledElement.Closed[i,ActorID] := TRUE;    // Close phases of active terminal
+                                FPresentState^[i] := CTRL_CLOSE;
+                                if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d closed (3ph reclosing)', [i]),ActorID);
+                              End;
+
+                            End;
+                        End;
+
+                        ArmedForClose^[PhIdx]     := FALSE;
+                        Inc(OperationCount^[PhIdx]);
+                        if ControlType = td21 then td21_quiet := td21_pt div 2;
+                    End;
+
+            Integer(CTRL_RESET):
+                            if SinglePhTrip then
+                            Begin
+                              CASE FPresentState^[PhIdx] of
+                                  CTRL_CLOSE:
+                                  Begin
+                                    IF Not ArmedForOpen^[PhIdx] THEN // Don't reset if we just rearmed
+                                    Begin
+                                      OperationCount^[PhIdx] := 1;
+                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]),ActorID);
+                                    End;
+                                  End;
+                              END;
+
+                            End
+                            Else  // 3-Phase Trip
+                            Begin
+                              For i := 1 to ControlledElement.Nphases Do
+                              Begin
+                                CASE FPresentState^[i] of
+                                  CTRL_CLOSE:
+                                  Begin
+                                    IF Not ArmedForOpen^[PhIdx] THEN
+                                    Begin
+                                      OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
+                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
+                                    End;
+                                    Break; // no need to loop at all closed phases
+                                  End;
+
+                                ELSE
+                                END;
+                              End;
+
+                              If ArmedForReset^[PhIdx] and Not LockedOut^[PhIdx] then begin
+                                if ControlType = td21 then td21_quiet := td21_pt div 2
+                              end;
+
+                            End
+
          ELSE
             {Do Nothing }
          END;
@@ -982,48 +1234,107 @@ end;
 {--------------------------------------------------------------------------}
 
 
-PROCEDURE TRelayObj.InterpretRelayState(ActorID: Integer; const Action:String; const property_name: String);
+PROCEDURE TRelayObj.InterpretRelayState(ActorID: Integer; const param:String; const property_name: String);
+var
+  i: Integer;
+  DataStr1, DataStr2: String;
 Begin
 
-   if (LowerCase(property_name[1]) = 's') or (LowerCase(property_name[1]) = 'a')  then begin  // state or action (deprecated)
-       Case LowerCase(Action)[1] of
-            'o','t': FPresentState := CTRL_OPEN;
-            'c': FPresentState := CTRL_CLOSE;
-       END;
-   end
-   Else // Normal
-   Begin
+    // Only allowed to change normal state if locked.
+    if Locked and ((LowerCase(property_name[1]) = 'a') or (LowerCase(property_name[1]) = 's')) Then Exit;
 
-          Case LowerCase(Action)[1] of
-          'o','t': FNormalState := CTRL_OPEN;
-          'c': FNormalState := CTRL_CLOSE;
-          END;
+    if (LowerCase(property_name[1]) = 'a') then // Interpret ganged specification to state when using action
+    begin // action (deprecated) will be removed
+      for i:= 1 to RELAYCONTROLMAXDIM do Begin
+        case LowerCase(param)[1] of
+          'o': States[i] := CTRL_OPEN;
+          'c': States[i] := CTRL_CLOSE;
+        End;
 
-   End;
+      End;
+    End
+    Else
+    Begin
+      if not Parser[ActorID].WasQuoted Then // Interpret ganged specification to state and normal when not quoted
+      Begin
+        for i:= 1 to RELAYCONTROLMAXDIM do Begin
+
+          if (LowerCase(property_name[1]) = 's') then begin  // state
+            case LowerCase(param)[1] of
+              'o': States[i] := CTRL_OPEN;
+              'c': States[i] := CTRL_CLOSE;
+            end;
+
+          end // 'normal
+          else
+          begin
+            case LowerCase(param)[1] of
+              'o': NormalStates[i] := CTRL_OPEN;
+              'c': NormalStates[i] := CTRL_CLOSE;
+            end;
+          End;
+        End;
+      End
+      Else // process phase by phase
+
+        AuxParser[ActorID].CmdString := param;  // Load up Parser
+
+        DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+        DataStr2 := AuxParser[ActorID].StrValue;
+
+        i := 1;
+        While (Length(DataStr2)>0) and (i<RELAYCONTROLMAXDIM) Do Begin
+
+            if (LowerCase(property_name[1]) = 's') then begin  // state
+                case LowerCase(DataStr2)[1] of
+                 'o': States[i] := CTRL_OPEN;
+                 'c': States[i] := CTRL_CLOSE;
+                end;
+            end
+           else // 'normal'
+           begin
+               case LowerCase(DataStr2)[1] of
+                'o': NormalStates[i] := CTRL_OPEN;
+                'c': NormalStates[i] := CTRL_CLOSE;
+               end;
+           end;
+
+          DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+          DataStr2 := AuxParser[ActorID].StrValue;
+          inc(i);
+        end;
+    End;
 
 End;
 
 {--------------------------------------------------------------------------}
 PROCEDURE TRelayObj.Sample(ActorID : Integer);
-
+VAR
+  i: Integer;
 begin
 
      ControlledElement.ActiveTerminalIdx := ElementTerminal;
-     IF  ControlledElement.Closed [0,ActorID]      // Check state of phases of active terminal
-     THEN FPresentState := CTRL_CLOSE
-     ELSE FPresentState := CTRL_OPEN;
+     // Check state of phases of active terminal as they could have changed through other mechanisms
+     for i:=1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do
+     Begin
+       IF  ControlledElement.Closed[i,ActorID]
+       THEN FPresentState^[i] := CTRL_CLOSE
+       ELSE FPresentState^[i] := CTRL_OPEN;
+     End;
 
-         CASE ControlType of
-              CURRENT:     OverCurrentLogic(ActorID); {Current}
-              VOLTAGE:     VoltageLogic(ActorID); {Reclosing Voltage Relay - definite time}
-              REVPOWER:    RevPowerLogic(ActorID);    // one shot to lockout
-              NEGCURRENT:  NegSeq46Logic(ActorID); // one shot to lockout
-              NEGVOLTAGE:  NegSeq47Logic(ActorID); // one shot to lockout
-              GENERIC:     GenericLogic(ActorID);// one shot to lockout
-              DISTANCE:    DistanceLogic(ActorID);
-              TD21:        TD21Logic(ActorID);
-              DOC:         DirectionalOvercurrentLogic(ActorID);
-         End;
+     AppendtoEventLog('Debug Sample: Relay.'+Self.Name, Format('FPresentState: %s ', [self.GetPropertyValue(40)]), ActorID);
+
+     CASE ControlType of
+          CURRENT:     OverCurrentLogic(ActorID); {Current}
+          VOLTAGE:     VoltageLogic(ActorID);     {Reclosing Voltage Relay - definite time}
+          REVPOWER:    RevPowerLogic(ActorID);    // one shot to lockout
+          NEGCURRENT:  NegSeq46Logic(ActorID);    // one shot to lockout
+          NEGVOLTAGE:  NegSeq47Logic(ActorID);    // one shot to lockout
+          GENERIC:     GenericLogic(ActorID);     // one shot to lockout
+          DISTANCE:    DistanceLogic(ActorID);
+          TD21:        TD21Logic(ActorID);
+          DOC:         DirectionalOvercurrentLogic(ActorID);
+     End;
 end;
 
 
@@ -1056,139 +1367,190 @@ FUNCTION TRelayObj.GetPropertyValue(Index: Integer): String;
 VAR
    i: Integer;
 begin
-        Result := '';
-        With ParentClass Do
-          CASE Index of
-            13: Begin
-                  Result := Format('%d', [NumReclose + 1]);
-                End;
-            14: Begin
-                  If NumReclose=0 Then Result := Result + 'NONE' Else
-                  Begin
-                     Result := '(';
-                     FOR i := 1 to NumReclose Do Result := Result + Format('%-g, ' , [RecloseIntervals^[i]]);
-                     Result := Result + ')';
-                  End;
 
-                End;
-            39: Begin
-                  case FNormalState of
-                    CTRL_OPEN: Result := 'open';
-                    else
-                    {CTRL_CLOSE:} Result := 'closed';
+    Case Index of
+      39..40: Result := '[';
+    Else
+      Result := '';
+    End;
+
+    With ParentClass Do
+      CASE Index of
+        6, 63: if PhCurve <> nil then Result := PhCurve.Name else Result := 'none';
+        7, 59: if PhCurve <> nil then Result := PhCurve.Name else Result := 'none';
+        8, 64: Result   := Format('%.3f',[PhPickup]);
+        9, 60: Result   := Format('%.3f',[GndPickup]);
+        10, 65: Result  := Format('%.3f',[PhInst]);
+        11, 61: Result  := Format('%.3f',[GndInst]);
+        15, 70: if OVCurve <> nil then Result  := OVCurve.Name else Result := 'none';
+        16, 71: if UVCurve <> nil then Result  := UVCurve.Name else Result := 'none';
+        18, 57: Result  := Format('%.3f',[MechanicalDelay]);
+        20, 69: Result := MonitorVariable;
+        24, 58: Result   := Format('%.3f',[DefiniteTimeDelay]);
+        26, 67: Result   := Format('%.3f',[Overtrip]);
+        27, 68: Result   := Format('%.3f',[Undertrip]);
+        28, 66: Result   := Format('%.3f',[TDPh]);
+        29, 62: Result   := Format('%.3f',[TDGnd]);
+
+        13: Begin
+              Result := Format('%d', [NumReclose + 1]);
+            End;
+        14: Begin
+              If NumReclose=0 Then Result := Result + 'NONE' Else
+              Begin
+                 Result := '(';
+                 FOR i := 1 to NumReclose Do Result := Result + Format('%-g, ' , [RecloseIntervals^[i]]);
+                 Result := Result + ')';
+              End;
+
+            End;
+        39: If ControlledElement <> Nil Then
+            Begin
+              For i := 1 to ControlledElement.NPhases Do
+                Begin
+                  case FNormalState^[i] of
+                    CTRL_OPEN: Result := Result + 'open' + ', ';
+                  else
+                    {CTRL_CLOSE:} Result := Result + 'closed' + ', ';
                   end;
                 End;
-         19,40: Begin
-                  case FPresentState of
-                    CTRL_OPEN: Result := 'open';
-                    else
-                    {CTRL_CLOSE:} Result := 'closed';
-                  end;
-                End
-          ELSE
-             Result := Inherited GetPropertyValue(Index);
-          END;
+            End;
+        40: If ControlledElement <> Nil Then
+            Begin
+              For i := 1 to ControlledElement.NPhases Do
+               Begin
+                 case FPresentState^[i] of
+                   CTRL_OPEN: Result := Result + 'open' + ', ';
+                 else
+                   {CTRL_CLOSE:} Result := Result + 'closed' + ', ';
+                 end;
+               End;
+            End;
+        53: If Locked then Result := 'Yes' else Result := 'No';
+        55: Result := Format('%-.6g',[RatedCurrent]);
+        56: Result := Format('%-.6g',[InterruptingRating]);
+      ELSE
+         Result := Inherited GetPropertyValue(Index);
+      END;
+
+      Case Index of
+        39..40: Result := Result + ']';
+      Else
+      End;
 end;
 
 
 Procedure TRelayObj.Reset(ActorID : Integer);
+VAR i: Integer;
 Begin
-     if ShowEventLog then AppendToEventLog ('Relay.' + self.Name, 'Resetting', ActorID);
 
-     FPresentState   := FNormalState;
-
-     ArmedForOpen   := FALSE;
-     ArmedForClose  := FALSE;
-     ArmedForReset  := FALSE;
-     PhaseTarget      := FALSE;
-     GroundTarget     := FALSE;
-
-     NextTripTime   := -1.0;  // not set to trip
-
-    IF ControlledElement <> NIL  THEN
+      If not Locked and (ControlledElement <> NIL) THEN
       Begin
-         ControlledElement.ActiveTerminalIdx := ElementTerminal;  // Set active terminal
 
-         case FNormalState of
-           CTRL_OPEN: Begin
-             ControlledElement.Closed[0, Activeactor] := FALSE; // Open all phases of active terminal
-             LockedOut := TRUE;
-             OperationCount := NumReclose + 1;
-           End
+          if ShowEventLog then AppendToEventLog ('Relay.' + self.Name, 'Resetting', ActorID);
 
-           else
-           {CTRL_CLOSE} Begin
-                          ControlledElement.Closed[0,ActiveActor] := TRUE;    // Close all phases of active terminal
-                          LockedOut := FALSE;
-                          OperationCount := 1;
+          NextTripTime   := -1.0;  // not set to trip
+
+          For i := 1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do Begin
+
+            FPresentState^[i]  := FNormalState^[i];  // reset to normal state
+            ArmedForOpen^[i]   := FALSE;
+            ArmedForClose^[i]  := FALSE;
+            ArmedForReset^[i]  := FALSE;
+            GroundTarget   := FALSE;
+            PhaseTarget^[i]    := FALSE;
+
+            case FNormalState[i] of
+              CTRL_OPEN:
+                        Begin
+                          ControlledElement.Closed[i,ActiveActor] := FALSE;
+                          LockedOut^[i] := TRUE;
+                          OperationCount^[i] := NumReclose + 1;
                         End;
-         end;
+
+            else
+             {CTRL_CLOSE:}
+                        Begin
+                          ControlledElement.Closed[i,ActiveActor] := TRUE;
+                          LockedOut^[i] := FALSE;
+                          OperationCount^[i] := 1;
+                        End;
+            end;
+          End;
+
+
 
       End;
-
 end;
 
-Function TRelayObj.get_State: EControlAction;
+procedure TRelayObj.set_Flocked(const Value: Boolean);
+begin
+     Flocked := Value;
+end;
+
+Function TRelayObj.get_States(Idx: Integer): EControlAction;
 Begin
+
+  IF ControlledElement <> NIL  THEN
+  Begin
+
+     ControlledElement.ActiveTerminalIdx  := ElementTerminal;  // Set active terminal
+      case ControlledElement.Closed[Idx,ActiveActor] of
+        FALSE:  FPresentState^[Idx]:= CTRL_OPEN;
+      else
+        {TRUE:} FPresentState^[Idx]:= CTRL_CLOSE;
+      end;
+
+  End;
+
+  Result := FPresentState^[Idx];
+End;
+
+Procedure TRelayObj.set_States(Idx: Integer; const Value: EControlAction);
+Begin
+
+    If States[Idx] <> Value Then Begin
 
       IF ControlledElement <> NIL  THEN
       Begin
+        ControlledElement.ActiveTerminalIdx  := ElementTerminal;  // Set active terminal
 
-         ControlledElement.ActiveTerminalIdx  := ElementTerminal;  // Set active terminal
-          case ControlledElement.Closed[0,ActiveActor] of
-            FALSE:  FPresentState:= CTRL_OPEN;
-          else
-            {TRUE:} FPresentState:= CTRL_CLOSE;
-          end;
+        case Value of
+           CTRL_OPEN:   Begin
+                          ControlledElement.Closed[Idx,ActiveActor] := FALSE;
+                          LockedOut^[Idx] := TRUE;
+                          OperationCount^[Idx] := NumReclose+1;
+                          ArmedForClose^[Idx] := FALSE;
+                          ArmedForReset^[Idx] := FALSE;
+                        End
 
+        else
+          {CTRL_CLOSE:} Begin
+                          ControlledElement.Closed[Idx,ActiveActor] := TRUE;
+                          LockedOut^[Idx] := FALSE;
+                          OperationCount^[Idx] := 1;
+                          ArmedForOpen^[Idx] := FALSE;
+                          ArmedForReset^[Idx] := FALSE;
+                        end
+
+        end;
       End;
 
-      Result := FPresentState;
+      FPresentState^[Idx] := Value;
+  End;
+
 End;
 
-Procedure TRelayObj.set_State(const Value: EControlAction);
+Function TRelayObj.get_NormalStates(Idx: Integer): EControlAction;
 Begin
-
-        If PresentState <> Value Then Begin
-
-            IF ControlledElement <> NIL  THEN
-            Begin
-              ControlledElement.ActiveTerminalIdx  := ElementTerminal;  // Set active terminal
-              case Value of
-                 CTRL_OPEN:   Begin
-                                ControlledElement.Closed[0,ActiveActor] := FALSE;
-                                LockedOut := TRUE;
-                                OperationCount := NumReclose+1;
-                                ArmedForClose := FALSE;
-                                ArmedForReset := FALSE;
-                              End
-
-              else
-                {CTRL_CLOSE:} Begin
-                                ControlledElement.Closed[0,ActiveActor] := TRUE;
-                                LockedOut := FALSE;
-                                OperationCount := 1;
-                                ArmedForOpen := FALSE;
-                                ArmedForReset := FALSE;
-                              end
-
-              end;
-            End;
-
-            FPresentState := Value;
-        End;
+  Result := FNormalState^[Idx];
 End;
 
-Function TRelayObj.get_NormalState: EControlAction;
+Procedure TRelayObj.set_NormalStates(Idx: Integer; const Value: EControlAction);
 Begin
-        Result := FNormalState;
-End;
-
-Procedure TRelayObj.set_NormalState(const Value: EControlAction);
-Begin
-      If FNormalState <> Value Then Begin
-          FNormalState := Value;
-      End;
+  If FNormalState^[Idx] <> Value Then Begin
+      FNormalState^[Idx] := Value;
+  End;
 End;
 
 procedure TRelayObj.InitPropertyValues(ArrayOffset: Integer);
@@ -1199,8 +1561,8 @@ begin
      PropertyValue[3]  := '';
      PropertyValue[4]  := '1'; //'terminal';
      PropertyValue[5]  := 'current';
-     PropertyValue[6] := '';
-     PropertyValue[7] := '';
+     PropertyValue[6] := 'none';
+     PropertyValue[7] := 'none';
      PropertyValue[8] := '1.0';
      PropertyValue[9] := '1.0';
      PropertyValue[10] := '0.0';
@@ -1208,8 +1570,8 @@ begin
      PropertyValue[12] := '15';
      PropertyValue[13] := '4';
      PropertyValue[14] := '(0.5, 2.0, 2.0)';
-     PropertyValue[15] := '';
-     PropertyValue[16] := '';
+     PropertyValue[15] := 'none';
+     PropertyValue[16] := 'none';
      PropertyValue[17] := '0.0';
      PropertyValue[18] := '0.0';
      PropertyValue[19] := 'closed';
@@ -1231,17 +1593,42 @@ begin
      PropertyValue[35] := '0.7';
      if ShowEventLog then PropertyValue[36] :='YES' else PropertyValue[36] := 'NO';
      PropertyValue[37] := 'No';
-     PropertyValue[39] := 'closed';
-     PropertyValue[40] := 'closed';
+     PropertyValue[39] := '[closed, closed, closed]';  // normal
+     PropertyValue[40] := '[closed, closed, closed]';  // state
      PropertyValue[41] := '90.0';
      PropertyValue[42] := '90.0';
      PropertyValue[43] := '0.0';
      PropertyValue[44] := '-1.0';
      PropertyValue[45] := '-1.0';
      PropertyValue[46] := '-1.0';
-     PropertyValue[47] := '';
+     PropertyValue[47] := 'none';
      PropertyValue[48] := '1.0';
      PropertyValue[49] := '1.0';
+     PropertyValue[50] := 'True'; // DOC_P1Blocking
+     PropertyValue[51] := 'No';   // SinglePhTripping
+     PropertyValue[52] := 'No';   // SinglePhLockout
+     PropertyValue[53] := 'No';   // Lock
+     PropertyValue[54] := 'n';    // Reset
+     PropertyValue[55] := '0';    // RatedCurrent
+     PropertyValue[56] := '0';    // InterruptingRating
+
+     // Deprecated Properties
+     PropertyValue[57] := '0';    // Breakertime -> MechanicalDelay
+     PropertyValue[58] := '0';    // Delay -> DefiniteTimeDelay
+     PropertyValue[59] := '0';    // GroundCurve -> OC_GndCurve
+     PropertyValue[60] := '0';    // GroundTrip -> OC_GndPickup
+     PropertyValue[61] := '0';    // GroundInst -> OC_GndInst
+     PropertyValue[62] := '0';    // TDGround -> OC_TDGnd
+     PropertyValue[63] := '0';    // Phasecurve -> PhCurve
+     PropertyValue[64] := '0';    // PhaseTrip -> PhPickup
+     PropertyValue[65] := '0';    // PhaseInst -> PhInst
+     PropertyValue[66] := '0';    // TDPhase -> TDPh
+     PropertyValue[67] := '0';    // overtrip -> Generic_OverTrip
+     PropertyValue[68] := '0';    // undertrip -> Generic_UnderTrip
+     PropertyValue[69] := '0';    // Variable -> Generic_Variable
+     PropertyValue[70] := '0';    // Overvoltcurve -> Voltage_OVCurve
+     PropertyValue[71] := '0';    // Undervoltcurve -> Voltage_UVCurve
+
 
   inherited  InitPropertyValues(NumPropsThisClass);
 
@@ -1270,21 +1657,21 @@ begin
 
               {Set Definite Time Defaults}
               CASE lowercase(S)[1] of
-                    'c': Delay_Time := 0.0;
-                    'v': Delay_Time := 0.0;
-                    'r': Delay_Time := 0.1;
-                    '4': Delay_Time := 0.1;
-                    'g': Delay_Time := 0.1;
+                    'c': DefiniteTimeDelay := 0.0;
+                    'v': DefiniteTimeDelay := 0.0;
+                    'r': DefiniteTimeDelay := 0.1;
+                    '4': DefiniteTimeDelay := 0.1;
+                    'g': DefiniteTimeDelay := 0.1;
                     'd': Case lowercase(S)[2] of
-                          'i': Delay_Time := 0.1;
-                          'o': Delay_Time := 0.0;
+                          'i': DefiniteTimeDelay := 0.1;
+                          'o': DefiniteTimeDelay := 0.0;
                          End;
-                    't': Delay_Time := 0.1;
+                    't': DefiniteTimeDelay := 0.1;
                ELSE
-                     Delay_Time := 0.0;
+                     DefiniteTimeDelay := 0.0;
                End;
 
-               PropertyValue[24] := Format('%-.g',[Delay_Time]);
+               PropertyValue[24] := Format('%-.g',[DefiniteTimeDelay]);
 end;
 
 procedure TRelayObj.GenericLogic(ActorID : Integer);
@@ -1296,6 +1683,7 @@ Var
 
 begin
 
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
  WITH   MonitoredElement Do
    Begin
       VarValue := TPCElement(MonitoredElement).Variable[MonitorVarIndex];
@@ -1303,22 +1691,22 @@ begin
       {Check for Trip}
       IF (VarValue >  OverTrip) or (VarValue < UnderTrip) THEN
         Begin
-              IF Not ArmedForOpen THEN  // push the trip operation and arm to trip
+              IF Not ArmedForOpen^[IdxMultiPh] THEN  // push the trip operation and arm to trip
                WITH ActiveCircuit[ActorID]  Do
                 Begin
-                 RelayTarget := TPCElement(MonitoredElement).VariableName(MonitorVarIndex);
-                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + Delay_Time + Breaker_time, CTRL_OPEN, 0, Self, ActorID);
-                 OperationCount := NumReclose + 1;  // force a lockout
-                 ArmedForOpen := TRUE;
+                 RelayTarget^[IdxMultiPh] := TPCElement(MonitoredElement).VariableName(MonitorVarIndex);
+                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + DefiniteTimeDelay + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+                 OperationCount^[IdxMultiPh] := NumReclose + 1;  // force a lockout
+                 ArmedForOpen^[IdxMultiPh] := TRUE;
                 End
         End
       ELSE   {Within bounds}
         Begin  {Less Than pickup value: reset if armed}
-              IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
+              IF ArmedForOpen^[IdxMultiPh]  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit[ActorID] Do
                 Begin
                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                 ArmedForOpen := FALSE;
+                 ArmedForOpen^[IdxMultiPh] := FALSE;
                 End;
         End;
 
@@ -1341,6 +1729,7 @@ VAR
 
 begin
 
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
  WITH   MonitoredElement Do
    Begin
       MonitoredElement.ActiveTerminalIdx := MonitoredElementTerminal;
@@ -1350,25 +1739,25 @@ begin
       NegSeqCurrentMag :=  Cabs(I012[3]);
       IF NegSeqCurrentMag >= PickupAmps46  THEN
         Begin
-          IF Not ArmedForOpen THEN  // push the trip operation and arm to trip
+          IF Not ArmedForOpen^[IdxMultiPh] THEN  // push the trip operation and arm to trip
            WITH ActiveCircuit[ActorID]  Do
             Begin
-             RelayTarget := '-Seq Curr';
+             RelayTarget^[IdxMultiPh] := '-Seq Curr';
               {simple estimate of trip time assuming current will be constant}
-             If Delay_Time > 0.0 Then Triptime := Delay_Time
+             If DefiniteTimeDelay > 0.0 Then Triptime := DefiniteTimeDelay
              Else Triptime := Isqt46 / sqr(NegSeqCurrentMag/BaseAmps46); // Sec
-             LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Breaker_time, CTRL_OPEN, 0, Self, ActorID);
-             OperationCount := NumReclose + 1;  // force a lockout
-             ArmedForOpen := TRUE;
+             LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+             OperationCount^[IdxMultiPh] := NumReclose + 1;  // force a lockout
+             ArmedForOpen^[IdxMultiPh] := TRUE;
             End
         End
       ELSE
         Begin  {Less Than pickup value: reset if armed}
-              IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
+              IF ArmedForOpen^[IdxMultiPh]  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit[ActorID] Do
                 Begin
                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                 ArmedForOpen := FALSE;
+                 ArmedForOpen^[IdxMultiPh] := FALSE;
                 End;
         End;
    End;  {With MonitoredElement}
@@ -1379,9 +1768,10 @@ end;
 procedure TRelayObj.OvercurrentLogic(ActorID : Integer);
 
 VAR
-   i     :Integer;
-   Cmag  :Double;
-   CSum  :Complex ;
+   i                 :Integer;
+   Cmag              :Double;
+   CSum              :Complex;
+   MaxOperatingCount :Integer;
 
    GroundTime,
    PhaseTime,
@@ -1390,115 +1780,297 @@ VAR
 
 begin
 
- WITH   MonitoredElement Do
-   Begin
-     IF FPresentState = CTRL_CLOSE
+     // Check largest Current of all phases of monitored element
+     ControlledElement.ActiveTerminalIdx := ElementTerminal;
+     MonitoredElement.GetCurrents(cBuffer, ActorID);
+
+     for i:=Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) downto 1 do
+     Begin
+        IF FPresentState^[i] = CTRL_CLOSE Then Break; // Continue sampling if at least one phase is closed.
+        if i=1 then Exit;  // Exit sampling if none of the phases is closed.
+     End;
+
+     // Identify number of operations.
+     // Pending to identify phase to trip for ground element when considering single-phase tripping as in modern microprocessed relays.
+     if SinglePhTrip then
+     begin
+      for i:=1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do
+       Begin
+
+          if LockedOut^[i] Then continue; // Skip locked out phases (includes phases that have been manually opened).
+
+          if i = 1 then MaxOperatingCount := OperationCount^[i]
+          else MaxOperatingCount := Max(MaxOperatingCount, OperationCount^[i]);
+       End;
+
+     end
+     else MaxOperatingCount := OperationCount^[IdxMultiPh];
+
+     GroundTime := -1.0;
+     {Check Ground Trip, if any}
+     IF ((GndCurve <> NIL) or (DefiniteTimeDelay > 0.0)) and (GndPickup > 0.0)
      THEN Begin
-           TripTime := -1.0;
-           GroundTime := -1.0;
-           PhaseTime := -1.0;  {No trip}
+         Csum := CZERO;
+         FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+            caccum(Csum, cBuffer^[i]);
+         Cmag  :=  Cabs(Csum);
+         IF (GndInst>0.0) AND (Cmag>=GndInst) AND (MaxOperatingCount=1)
+         THEN
+         Begin
+            GroundTime := 0.01;      // Inst trip on first operation
 
-           // Check largest Current of all phases of monitored element
-           MonitoredElement.GetCurrents(cBuffer, ActorID);
+            If DebugTrace Then AppendToEventLog('Debug Sample: Relay.'+Self.Name, Format('Gnd Instantaneous Trip: Mag=%.3g, Time=%.3g',
+                                               [Cmag, GroundTime]),ActorID);
 
-           {Check Ground Trip, if any}
-           IF ((GroundCurve <> NIL) or (Delay_Time > 0.0)) and (GroundTrip > 0.0)
-           THEN Begin
-               Csum := CZERO;
-               FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
-               Begin
-                   caccum(Csum, cBuffer^[i] );
-               End;
-               Cmag  :=  Cabs(Csum);
-               IF (GroundInst>0.0) AND (Cmag>=GroundInst) AND (OperationCount=1)
-               THEN GroundTime := 0.01 + Breaker_time      // Inst trip on first operation
-               ELSE
-                 If Delay_Time > 0.0 Then  Begin // Definite Time Ground Relay
-                    If  (Cmag >= GroundTrip) Then GroundTime := Delay_Time
-                    Else GroundTime := -1.0;
-                 End
-                 Else GroundTime := TDGround *  GroundCurve.GetTCCTime(Cmag/ GroundTrip);
-              if DebugTrace then
-                AppendToEventLog ('Relay.'+Self.Name, Format ('Ground Trip: Mag=%.3g, Mult=%.3g, Time=%.3g',
-                  [Cmag, Cmag / GroundTrip, GroundTime]),ActorID);
+         End
+         ELSE
+         Begin
+
+           If (DefiniteTimeDelay > 0.0) Then Begin  // Definite Time Ground Relay
+              if (Cmag >= GndPickup) then
+              Begin
+                  GroundTime := DefiniteTimeDelay;
+
+                  if DebugTrace then
+                  AppendToEventLog('Debug Sample: Relay.'+Self.Name, Format('Gnd Definite Time Trip: Mag=%.3g, Time=%.3g',
+                                                           [Cmag, GroundTime]),ActorID);
+
+              End;
+           End
+           Else
+           Begin
+
+              GroundTime := TDGnd *  GndCurve.GetTCCTime(Cmag/ GndPickup);
+
+              if (GroundTime > 0.0) and DebugTrace then AppendToEventLog('Debug Sample: Relay.'+Self.Name, Format('Gnd Curve Trip: Mag=%.3g, Time=%.3g',
+                                                                            [Cmag / GndPickup, GroundTime]),ActorID);
+
            End;
+         End;
 
-           IF Groundtime > 0.0 THEN Begin
-             TripTime := GroundTime;
-             GroundTarget := TRUE;
-           End;
+     End;
 
-           // If GroundTime > 0 then we have a ground trip
+     IF Groundtime > 0.0 THEN GroundTarget := TRUE;
+     // If GroundTime > 0 then we have a ground trip
 
-           {Check Phase Trip, if any}
+     if SinglePhTrip then begin
+         For i := 1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do
+         Begin
+            IF FPresentState^[i] <> CTRL_CLOSE Then continue;
+            IF Groundtime > 0.0 THEN TripTime := GroundTime else TripTime := -1.0;  // initialize trip time for this phase.
 
-           IF ((PhaseCurve <> NIL) or (Delay_Time>0.0)) and (PhaseTrip > 0.0) Then
-             Begin
-               FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
-                 Begin
-                   Cmag :=  Cabs( cBuffer^[i]);
-                   IF (PhaseInst>0.0) AND (Cmag>=PhaseInst) AND (OperationCount=1)  THEN
+            PhaseTime := -1.0;  {No trip}
+
+            {Check Phase Trip, if any} // Check current at i phase of monitored element
+            IF ((PhCurve <> NIL) or (DefiniteTimeDelay>0.0)) and (PhPickup > 0.0)
+            Then Begin
+
+              Cmag :=  Cabs(cBuffer^[i+CondOffset]);
+
+              IF (PhInst > 0.0) AND (Cmag>=PhInst) AND (OperationCount^[i]=1)
+              THEN
+              Begin
+                  PhaseTime := 0.01;  // Inst trip on first operation
+
+                  if DebugTrace then
+                      AppendToEventLog ('Debug Sample: Relay.'+Self.Name, Format ('Ph Instantaneous (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                      [i, Cmag, PhaseTime]),ActorID);
+
+              End
+              ELSE
+              Begin
+
+                 if DefiniteTimeDelay > 0.0 then Begin  // Definite Time Phase Relay
+                     If  (Cmag>=PhPickup) Then
                      Begin
-                       PhaseTime := 0.01 + Breaker_time;  // Inst trip on first operation
-                       Break;  {FOR - if Inst, no sense checking other phases}
+                        TimeTest := DefiniteTimeDelay;
+
+                        if DebugTrace then
+                        AppendToEventLog('Debug Sample: Relay.'+Self.Name, Format('Ph Definite Time (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                                                   [i, Cmag, TimeTest]),ActorID);
+
                      End
-                   ELSE
-                     Begin
-                       If Delay_Time>0.0 Then  Begin // Definite Time Phase Relay
-                          If  (Cmag>=PhaseTrip) Then TimeTest := Delay_Time
-                          Else TimeTest := -1.0;
-                       End
-                       Else TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip);
-                       IF (TimeTest > 0.0) THEN
-                         Begin
-                           IF Phasetime<0.0 THEN PhaseTime := TimeTest
-                           ELSE PhaseTime := Min(PhaseTime, TimeTest);
-                         End;
-                     End;
-                    if DebugTrace then
-                      AppendToEventLog ('Relay.'+Self.Name, Format ('Phase %d Trip: Mag=%.3g, Mult=%.3g, Time=%.3g',
-                        [i-CondOffset, Cmag, Cmag / PhaseTrip, PhaseTime]),ActorID);
+                     Else TimeTest := -1.0;
+                 End
+                 Else
+                 Begin
+
+                    TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup);
+
+                    if (TimeTest  > 0.0) and DebugTrace then
+                      AppendToEventLog ('Debug Sample: Relay.'+Self.Name, Format ('Ph Curve (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                      [i, Cmag/PhPickup, TimeTest]),ActorID);
+
                  End;
-             End;
-           // If PhaseTime > 0 then we have a phase trip
 
-           IF   PhaseTime > 0.0 THEN
-             Begin
-                PhaseTarget := TRUE;
-                IF   TripTime > 0.0
-                THEN TripTime := Min(TripTime, Phasetime)
-                ELSE TripTime := PhaseTime;
+                 IF (TimeTest > 0.0) then PhaseTime := TimeTest;
+
+              End;
+
+            End;
+
+             // If PhaseTime > 0 then we have a phase trip
+             IF PhaseTime > 0.0
+             THEN Begin
+                  PhaseTarget^[i] := TRUE;
+                  IF   TripTime > 0.0
+                  THEN TripTime := Min(TripTime, Phasetime)
+                  ELSE TripTime := PhaseTime;
              End;
 
-           IF   TripTime > 0.0 THEN
-             Begin
-              IF Not ArmedForOpen THEN
-               WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
+             IF   TripTime > 0.0
+             THEN Begin
+                IF Not ArmedForOpen^[i]
+                THEN WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
                 Begin
-                   RelayTarget := '';
-                   If Phasetime>0.0 Then   RelayTarget := RelayTarget + 'Ph';
-                   If Groundtime>0.0 Then RelayTarget := RelayTarget + ' Gnd';
-                   LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Breaker_time, CTRL_OPEN, 0,Self, ActorID);
-                   IF OperationCount <= NumReclose THEN LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Breaker_time + RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-                   ArmedForOpen := TRUE;
-                   ArmedForClose := TRUE;
+
+                  RelayTarget^[i] := '';
+
+                  If TripTime = GroundTime Then
+                  Begin
+                    if Abs(Groundtime - 0.01) < EPSILON then RelayTarget^[i] := 'Gnd Instantaneous'
+                    else if Groundtime = DefiniteTimeDelay then RelayTarget^[i] := 'Gnd Definite Time'
+                    else RelayTarget^[i] := 'Gnd Curve';
+                  End;
+                  If TripTime = PhaseTime Then
+                  Begin
+                    if RelayTarget^[i] <> '' then RelayTarget^[i] := RelayTarget^[i] + ' + ';
+
+                    if Abs(PhaseTime - 0.01) < EPSILON then RelayTarget^[i] := RelayTarget^[i] + 'Ph Instantaneous'
+                    else if PhaseTime = DefiniteTimeDelay then RelayTarget^[i] := RelayTarget^[i] + 'Ph Definite Time'
+                    else RelayTarget^[i] := RelayTarget^[i] + 'Ph Curve';
+
+                  End;
+
+                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, i, Self, ActorID);
+                  IF OperationCount^[i] <= NumReclose THEN ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay + RecloseIntervals^[OperationCount^[i]], CTRL_CLOSE, i, Self, ActorID);
+                  ArmedForOpen^[i] := TRUE;
+                  ArmedForClose^[i] := TRUE;
                 End;
              End
-           ELSE
-             Begin
-               IF ArmedForOpen  THEN
-                 WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
-                   Begin
-                    LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                    ArmedForOpen := FALSE;
-                    ArmedForClose := FALSE;
-                    PhaseTarget      := FALSE;
-                    GroundTarget     := FALSE;
-                   End;
-            End;
-     End;  {IF PresentState=CLOSE}
+             ELSE Begin
+                IF ArmedForOpen^[i]
+                THEN WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
+                Begin
+                    LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, i, Self, ActorID);
+                    ArmedForOpen^[i] := FALSE;
+                    ArmedForClose^[i] := FALSE;
+                    GroundTarget := FALSE;
+                    PhaseTarget^[i] := FALSE;
+                End;
+             End;
 
-   End;  {With MonitoredElement}
+         End;
+     end
+     Else // 3-Phase Trip
+     Begin
+
+        IF Groundtime > 0.0 THEN TripTime := GroundTime else TripTime := -1.0;  // initialize trip time
+        PhaseTime := -1.0;
+
+        {Check Phase Trip, if any}
+        IF ((PhCurve <> NIL) or (DefiniteTimeDelay>0.0)) and (PhPickup > 0.0) Then
+        Begin
+          FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+          Begin
+
+             Cmag :=  Cabs(cBuffer^[i]);
+
+             IF (PhInst>0.0) AND (Cmag>=PhInst) AND (OperationCount^[IdxMultiPh]=1)
+             THEN Begin
+                 PhaseTime := 0.01;  // Inst trip on first operation
+
+                 if DebugTrace then
+                                AppendToEventLog ('Debug Sample: Relay.'+Self.Name, Format ('Ph Instantaneous (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                [i-CondOffset, Cmag, PhaseTime]),ActorID);
+
+                 Break;  {FOR - if Inst, no sense checking other phases}
+             End
+             ELSE Begin
+
+              If DefiniteTimeDelay>0.0 Then Begin // Definite Time Phase Relay
+                  If  (Cmag>=PhPickup) Then
+                  Begin
+                      PhaseTime := DefiniteTimeDelay;
+
+                      if DebugTrace then
+                        AppendToEventLog('Debug Sample: Relay.'+Self.Name, Format('Ph Definite Time (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                                                                   [i-CondOffset, Cmag, PhaseTime]),ActorID);
+
+                      Break;  {FOR - if Definite Time, no sense checking other phases}
+                  End;
+              End
+              Else Begin
+                  TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup);
+
+                  if (TimeTest > 0.0) and DebugTrace then
+                      AppendToEventLog ('Debug Sample: Relay.'+Self.Name, Format ('Ph Curve (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g',
+                      [i-CondOffset, Cmag/PhPickup, TimeTest]),ActorID);
+
+                  IF (TimeTest > 0.0)
+                  THEN Begin
+                     IF Phasetime<0.0 THEN PhaseTime := TimeTest
+                     ELSE PhaseTime := Min(PhaseTime, TimeTest);
+                  End;
+
+              End;
+
+             End;
+
+          End;
+
+        End;
+
+        // If PhaseTime > 0 then we have a phase trip
+        IF   PhaseTime > 0.0
+        THEN Begin
+          PhaseTarget^[IdxMultiPh] := TRUE;
+          IF   TripTime > 0.0
+          THEN TripTime := Min(TripTime, Phasetime)
+          ELSE TripTime := PhaseTime;
+        End;
+
+        IF   TripTime > 0.0
+         THEN Begin
+            IF Not ArmedForOpen^[IdxMultiPh]
+            THEN WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
+            Begin
+
+                RelayTarget^[IdxMultiPh] := '';
+                If TripTime = Groundtime Then
+                Begin
+                  if Abs(Groundtime - 0.01) < EPSILON then RelayTarget^[IdxMultiPh] := 'Gnd Instantaneous'
+                  else if Groundtime = DefiniteTimeDelay then RelayTarget^[IdxMultiPh] := 'Gnd Definite Time'
+                  else RelayTarget^[IdxMultiPh] := 'Gnd Curve';
+                end;
+                If TripTime = Phasetime Then
+                Begin
+                  if RelayTarget^[IdxMultiPh] <> '' then RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + ' + ';
+
+                  if Abs(PhaseTime - 0.01) < EPSILON then RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + 'Ph Instantaneous'
+                  else if PhaseTime = DefiniteTimeDelay then RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + 'Ph Definite Time'
+                  else RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + 'Ph Curve';
+                end;
+
+                LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+                IF MaxOperatingCount <= NumReclose THEN ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay + RecloseIntervals^[MaxOperatingCount], CTRL_CLOSE, 0, Self, ActorID);
+                ArmedForOpen^[IdxMultiPh]  := TRUE;
+                ArmedForClose^[IdxMultiPh] := TRUE;
+            End;
+         End
+         ELSE Begin
+             IF ArmedForOpen^[IdxMultiPh]
+             THEN  WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
+             Begin
+                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+                  ArmedForOpen^[IdxMultiPh]  := FALSE;
+                  ArmedForClose^[IdxMultiPh] := FALSE;
+                  GroundTarget      := FALSE;
+                  PhaseTarget^[IdxMultiPh]   := FALSE;
+             End;
+         End;
+
+     End;
 
 end;
 
@@ -1511,7 +2083,9 @@ var
   PickedUp: Boolean;
 begin
   Targets:=nil;
-  If Not LockedOut Then with MonitoredElement Do Begin
+
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
+  If Not LockedOut^[IdxMultiPh] Then with MonitoredElement Do Begin
     PickedUp := False;
     min_distance := 1.0e30;
     MonitoredElement.GetCurrents(cBuffer, ActorID);
@@ -1560,32 +2134,32 @@ begin
       if DebugTrace then begin
         AppendToEventLog ('Relay.'+Self.Name, 'Picked up',ActorID);
       end;
-      if ArmedForReset then begin
+      if ArmedForReset^[IdxMultiPh] then begin
         ActiveCircuit[ActorID].ControlQueue.Delete (LastEventHandle,ActorID);
-        ArmedForReset := FALSE;
+        ArmedForReset^[IdxMultiPh] := FALSE;
       end;
-      if not ArmedForOpen then with ActiveCircuit[ActorID] do begin
-        RelayTarget := Format ('21 %.3f pu dist', [min_distance]);
-        t_event := Solution.DynaVars.t + Delay_Time + Breaker_time;
+      if not ArmedForOpen^[IdxMultiPh] then with ActiveCircuit[ActorID] do begin
+        RelayTarget^[IdxMultiPh] := Format ('21 %.3f pu dist', [min_distance]);
+        t_event := Solution.DynaVars.t + DefiniteTimeDelay + MechanicalDelay;
         for i := 0 to pred(Targets.Count) do
-          RelayTarget := RelayTarget + ' ' + Targets[i];
+          RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + ' ' + Targets[i];
         LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event, CTRL_OPEN, 0, Self, ActorID);
-        ArmedForOpen := TRUE;
-        if OperationCount <= NumReclose then begin
-          LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event + RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-          ArmedForClose := TRUE;
+        ArmedForOpen^[IdxMultiPh] := TRUE;
+        if OperationCount^[IdxMultiPh] <= NumReclose then begin
+          LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event + RecloseIntervals^[OperationCount^[IdxMultiPh]], CTRL_CLOSE, 0, Self, ActorID);
+          ArmedForClose^[IdxMultiPh] := TRUE;
         end;
       End;
       Targets.Free();
     end else begin  // not picked up; reset if necessary
-      if (OperationCount > 1) and (ArmedForReset = FALSE) then begin // this implements the reset, whether picked up or not
-        ArmedForReset := TRUE;
+      if (OperationCount^[IdxMultiPh] > 1) and (ArmedForReset^[IdxMultiPh] = FALSE) then begin // this implements the reset, whether picked up or not
+        ArmedForReset^[IdxMultiPh] := TRUE;
         with ActiveCircuit[ActorID] do
           LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
       end;
-      if ArmedForOpen then begin // this implements the drop-out, if picked up
-        ArmedForOpen := FALSE;
-        ArmedForClose := FALSE;
+      if ArmedForOpen^[IdxMultiPh] then begin // this implements the drop-out, if picked up
+        ArmedForOpen^[IdxMultiPh] := FALSE;
+        ArmedForClose^[IdxMultiPh] := FALSE;
       End;
     end;
   End;  {With MonitoredElement}
@@ -1600,6 +2174,7 @@ var
   PickedUp, FaultDetected: Boolean;
   ib, iv, ii: Integer;
 begin
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
   dt := ActiveCircuit[ActorID].Solution.DynaVars.h;
   if dt > 0.0 then begin
     if dt > 1.0 / ActiveCircuit[ActorID].Solution.Frequency then
@@ -1621,14 +2196,14 @@ begin
           [NPhases, dt, td21_pt, td21_stride * td21_pt]), ActorID);
     end;
   end;
-  If Not LockedOut Then with MonitoredElement Do Begin
-    FaultDetected := False;    
+  If Not LockedOut^[IdxMultiPh] Then with MonitoredElement Do Begin
+    FaultDetected := False;
     MonitoredElement.GetCurrents(cBuffer, ActorID);
 
     if Dist_Reverse then
       for I := 1 to MonitoredElement.NPhases do
         cBuffer^[i+CondOffset] := cnegate (cBuffer^[i+CondOffset]);
-    i2fault := PhaseTrip * PhaseTrip;
+    i2fault := PhPickup * PhPickup;
     for I := 1 to Nphases do begin
       i2 := cabs2 (cBuffer^[i+CondOffset]);
       if i2 > i2fault then FaultDetected := True;
@@ -1736,38 +2311,38 @@ begin
         if DebugTrace then begin
           AppendToEventLog ('Relay.'+Self.Name, 'Picked up', ActorID);
         end;
-        if ArmedForReset then begin
+        if ArmedForReset^[IdxMultiPh] then begin
           ActiveCircuit[ ActorID].ControlQueue.Delete (LastEventHandle, ActorID);
-          ArmedForReset := FALSE;
+          ArmedForReset^[IdxMultiPh] := FALSE;
           if DebugTrace then AppendToEventLog ('Relay.'+self.Name, 'Dropping last event.', ActorID);
         end;
-        if not ArmedForOpen then with ActiveCircuit[ ActorID] do begin
-          RelayTarget := Format ('TD21 %.3f pu dist', [min_distance]);
-          t_event := Solution.DynaVars.t + Delay_Time + Breaker_time;
+        if not ArmedForOpen^[IdxMultiPh] then with ActiveCircuit[ ActorID] do begin
+          RelayTarget^[IdxMultiPh] := Format ('TD21 %.3f pu dist', [min_distance]);
+          t_event := Solution.DynaVars.t + DefiniteTimeDelay + MechanicalDelay;
           for i := 0 to pred(Targets.Count) do
-            RelayTarget := RelayTarget + ' ' + Targets[i];
+            RelayTarget^[IdxMultiPh] := RelayTarget^[IdxMultiPh] + ' ' + Targets[i];
           LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event, CTRL_OPEN, 0, Self, ActorID);
           if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('Pushing trip event for %.3f', [t_event]), ActorID);
-          ArmedForOpen := TRUE;
-          if OperationCount <= NumReclose then begin
-            LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event + RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-            if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('Pushing reclose event for %.3f', [t_event + RecloseIntervals^[OperationCount]]), ActorID);
-            ArmedForClose := TRUE;
+          ArmedForOpen^[IdxMultiPh] := TRUE;
+          if OperationCount^[IdxMultiPh] <= NumReclose then begin
+            LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, t_event + RecloseIntervals^[OperationCount^[IdxMultiPh]], CTRL_CLOSE, 0, Self, ActorID);
+            if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('Pushing reclose event for %.3f', [t_event + RecloseIntervals^[OperationCount^[IdxMultiPh]]]), ActorID);
+            ArmedForClose^[IdxMultiPh] := TRUE;
           end;
         End;
         Targets.Free();
       end;
       if not FaultDetected then begin  // not picked up; reset if necessary
-        if (OperationCount > 1) and (ArmedForReset = FALSE) then begin // this implements the reset, whether picked up or not
-          ArmedForReset := TRUE;
+        if (OperationCount^[IdxMultiPh] > 1) and (ArmedForReset^[IdxMultiPh] = FALSE) then begin // this implements the reset, whether picked up or not
+          ArmedForReset^[IdxMultiPh] := TRUE;
           with ActiveCircuit[ ActorID] do
             LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
             if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('Pushing reset event for %.3f', [ActiveCircuit[ActorID].Solution.DynaVars.t + ResetTime]), ActorID);
         end;
-        if ArmedForOpen then begin
+        if ArmedForOpen^[IdxMultiPh] then begin
           td21_quiet := td21_pt + 1;
-          ArmedForOpen := FALSE;
-          ArmedForClose := FALSE;
+          ArmedForOpen^[IdxMultiPh] := FALSE;
+          ArmedForClose^[IdxMultiPh] := FALSE;
           if DebugTrace then
             AppendToEventLog ('Relay.'+self.Name, Format ('Dropping out at %.3f', [ActiveCircuit[ActorID].Solution.DynaVars.t]),ActorID);
         End;
@@ -1826,388 +2401,387 @@ begin
  WITH   MonitoredElement Do
    Begin
 
-      IF FPresentState = CTRL_CLOSE
-      THEN Begin
+      for i:=Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) downto 1 do
+      Begin
+        IF FPresentState^[i] = CTRL_CLOSE Then Break; // Continue sampling if at least one phase is closed.
+        if i=1 then Exit;  // Exit sampling if none of the phases is closed.
+      End;
 
-        // Identify net balanced power flow.
-        if DOC_P1Blocking Then
+
+      // Identify net balanced power flow.
+      if DOC_P1Blocking Then
+      Begin
+
+        GetControlPower(ControlPower, ActorID);
+
+        IF ControlPower.re >= 0.0 Then  // Forward Power
         Begin
 
-          GetControlPower(ControlPower, ActorID);
+          IF ArmedForOpen^[IdxMultiPh]  Then
+          WITH ActiveCircuit[ActorID] Do    // If net balanced active power is forward, disarm trip and set for reset
+          Begin
+            LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+            ArmedForOpen^[IdxMultiPh] := FALSE;
+            ArmedForClose^[IdxMultiPh] := FALSE;
 
-          IF ControlPower.re >= 0.0 Then  // Forward Power
+            IF DebugTrace Then
+            AppendToEventLog('Relay.'+ Self.Name, Format ('DOC - Reset on Forward Net Balanced Active Power: %.2f kW', [ControlPower.re]),ActorID);
+
+          End
+          Else
           Begin
 
-            IF ArmedForOpen  Then
-            WITH ActiveCircuit[ActorID] Do    // If net balanced active power is forward, disarm trip and set for reset
-            Begin
-              LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-              ArmedForOpen := FALSE;
-              ArmedForClose := FALSE;
-
-              IF DebugTrace Then
-              AppendToEventLog('Relay.'+ Self.Name, Format ('DOC - Reset on Forward Net Balanced Active Power: %.2f kW', [ControlPower.re]),ActorID);
-
-            End
-            Else
-            Begin
-
-              IF DebugTrace Then
-              AppendToEventLog('Relay.'+ Self.Name, Format ('DOC - Forward Net Balanced Active Power: %.2f kW. DOC Element blocked.', [ControlPower.re]),ActorID);
-
-            End;
-
-            Exit;  // Do not evaluate trip if power is forward.
+            IF DebugTrace Then
+            AppendToEventLog('Relay.'+ Self.Name, Format ('DOC - Forward Net Balanced Active Power: %.2f kW. DOC Element blocked.', [ControlPower.re]),ActorID);
 
           End;
+
+          Exit;  // Do not evaluate trip if power is forward.
+
         End;
+      End;
 
 
-        TripTime := -1.0;
+      TripTime := -1.0;
 
+      MonitoredElement.GetCurrents(cBuffer,ActorID);
+      MonitoredElement.GetTermVoltages(MonitoredElementTerminal, cvBuffer, ActorID);
 
-        MonitoredElement.GetCurrents(cBuffer,ActorID);
-        MonitoredElement.GetTermVoltages(MonitoredElementTerminal, cvBuffer, ActorID);
+      // Shift angle to cBuffer to be relative to cvBuffer
+      FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+        cBuffer^[i] := PDEGtoCompLeX(Cabs(cBuffer^[i]), CDANG(cBuffer^[i]) - CDANG(cvBuffer^[i - CondOffset]));
 
-        // Shift angle to cBuffer to be relative to cvBuffer
-        FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
-          cBuffer^[i] := PDEGtoCompLeX(Cabs(cBuffer^[i]), CDANG(cBuffer^[i]) - CDANG(cvBuffer^[i - CondOffset]));
+      FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
+      Begin
 
-        FOR i := (1 + CondOffset) to (Fnphases + CondOffset) Do
-        Begin
+          TimeTest := -1.0;
+          Cmag := Cabs(cBuffer^[i]);
+          Cangle := Cdang(cBuffer^[i]);
 
-            TimeTest := -1.0;
-            Cmag := Cabs(cBuffer^[i]);
-            Cangle := Cdang(cBuffer^[i]);
+          IF (DOC_TiltAngleLow = 90.0) or (DOC_TiltAngleLow = 270.0) Then
+          Begin
 
-            IF (DOC_TiltAngleLow = 90.0) or (DOC_TiltAngleLow = 270.0) Then
-            Begin
+            IF cBuffer^[i].re <= -1 * DOC_TripSetLow Then Begin
 
-              IF cBuffer^[i].re <= -1 * DOC_TripSetLow Then Begin
+              IF (DOC_TripSetMag > 0.0) Then Begin // Circle Specified.
 
-                IF (DOC_TripSetMag > 0.0) Then Begin // Circle Specified.
+                IF Cmag <= DOC_TripSetMag Then Begin // Within the Circle
 
-                  IF Cmag <= DOC_TripSetMag Then Begin // Within the Circle
+                  IF DOC_TripSetHigh > 0.0 Then // High Straight-Line Specified.
+                  Begin
 
-                    IF DOC_TripSetHigh > 0.0 Then // High Straight-Line Specified.
+                    IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
                     Begin
 
-                      IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
-                      Begin
+                      IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
 
-                        IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
-
-                           IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                           Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                           Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                        End
-                        Else Begin  // Right-Side of High Straight-Line
-
-                           IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                           Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                           Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                        End;
+                         IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                         Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                         Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
 
                       End
-                      Else
-                      Begin
+                      Else Begin  // Right-Side of High Straight-Line
 
-                         IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
-
-                            IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                            Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                            Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                         End
-                         Else Begin // Right-Side of High Straight-Line
-
-                            IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                            Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                            Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                         End;
+                         IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                         Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                         Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
 
                       End;
 
                     End
-                    Else Begin // High Straight-Line Not Specified.
+                    Else
+                    Begin
 
-                       IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                       Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                       Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
+                       IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
+
+                          IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                          Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                          Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End
+                       Else Begin // Right-Side of High Straight-Line
+
+                          IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                          Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                          Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End;
 
                     End;
 
                   End
-                  Else Begin // Out of the Circle
+                  Else Begin // High Straight-Line Not Specified.
 
-                    IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                    Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                    Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                  End;
-
-                End
-                Else Begin // Circle not Specified
-
-                    IF DOC_TripSetHigh > 0.0 Then Begin // High Straight-Line Specified.
-
-                      IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
-                      Begin
-
-                        IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
-
-                            IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                            Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                            Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                        End
-                        Else Begin  // Right-Side of High Straight-Line
-
-                            IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                            Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                            Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                        End;
-
-                      End
-                      Else
-                      Begin
-
-                         IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
-
-                            IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                            Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                            Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                         End
-                         Else Begin // Right-Side of High Straight-Line
-
-                            IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                            Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                            Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                         End;
-
-                      End;
-
-                    End
-                    Else Begin  // High Straight-Line Not Specified.
-
-                        IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                        Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                        Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                    End;
-
-                End;
-
-              End;
-
-            End
-            Else Begin {90, 270}
-
-              IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleLow)) * (cBuffer^[i].re + DOC_TripSetLow) Then
-              Begin
-
-                  IF DOC_TripSetMag > 0.0 Then Begin // Circle Specified.
-
-                  IF Cmag <= DOC_TripSetMag Then Begin // Within the Circle
-
-                    IF DOC_TripSetHigh > 0.0 Then // High Straight-Line Specified.
-                    Begin
-
-                      IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
-                      Begin
-
-                        IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
-
-                           IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                           Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                           Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                        End
-                        Else Begin  // Right-Side of High Straight-Line
-
-                           IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                           Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                           Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                        End;
-
-                      End
-                      Else
-                      Begin
-
-                         IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
-
-                           IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                           Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                           Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                         End
-                         Else Begin // Right-Side of High Straight-Line
-
-                           IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                           Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                           Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                         End;
-
-                      End;
-
-                    End
-                    Else Begin // High Straight-Line Not Specified.
-
-                      IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                      Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                      Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                    End;
-
-                  End
-                  Else Begin // Out of the Circle
-
-                    IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                    Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                    Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
+                     IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                     Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                     Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
 
                   End;
 
                 End
-                Else Begin // Circle not Specified
+                Else Begin // Out of the Circle
 
-                    IF DOC_TripSetHigh > 0.0 Then Begin // High Straight-Line Specified.
-
-                      IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
-                      Begin
-
-                        IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
-
-                           IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                           Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                           Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                        End
-                        Else Begin  // Right-Side of High Straight-Line
-
-                           IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                           Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                           Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                        End;
-
-                      End
-                      Else
-                      Begin
-
-                         IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
-
-                            IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                            Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                            Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                         End
-                         Else Begin // Right-Side of High Straight-Line
-
-                            IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
-                            Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
-                            Else if DOC_DelayInner = 0.0 then TimeTest := Delay_Time;
-
-                         End;
-
-                      End;
-
-                    End
-                    Else Begin  // High Straight-Line Not Specified.
-
-                       IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                       Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                       Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                    End;
+                  IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                  Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                  Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
 
                 End;
 
               End
-              Else Begin
-                // There might be an intersection between Straight Line Low and High depending on their angles.
-                // Straight Line High takes precedence.
-                IF DOC_TripSetHigh > 0.0 Then Begin
+              Else Begin // Circle not Specified
 
-                  IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
-                  Begin
+                  IF DOC_TripSetHigh > 0.0 Then Begin // High Straight-Line Specified.
+
+                    IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
+                    Begin
+
                       IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
 
-                         IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                         Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                         Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
+                          IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                          Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                          Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
 
                       End
+                      Else Begin  // Right-Side of High Straight-Line
+
+                          IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                          Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                          Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                      End;
+
+                    End
+                    Else
+                    Begin
+
+                       IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
+
+                          IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                          Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                          Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End
+                       Else Begin // Right-Side of High Straight-Line
+
+                          IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                          Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                          Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End;
+
+                    End;
+
                   End
-                  Else
-                  Begin
+                  Else Begin  // High Straight-Line Not Specified.
 
-                     IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
-
-                        IF Delay_Time > 0.0 Then TimeTest := Delay_Time
-                        Else If PhaseCurve <> NIL Then TimeTest := TDPhase * PhaseCurve.GetTCCTime(Cmag/PhaseTrip)
-                        Else if Delay_Time = 0.0 then TimeTest := Delay_Time;
-
-                     End
+                      IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                      Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                      Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
 
                   End;
 
+              End;
+
+            End;
+
+          End
+          Else Begin {90, 270}
+
+            IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleLow)) * (cBuffer^[i].re + DOC_TripSetLow) Then
+            Begin
+
+                IF DOC_TripSetMag > 0.0 Then Begin // Circle Specified.
+
+                IF Cmag <= DOC_TripSetMag Then Begin // Within the Circle
+
+                  IF DOC_TripSetHigh > 0.0 Then // High Straight-Line Specified.
+                  Begin
+
+                    IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
+                    Begin
+
+                      IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
+
+                         IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                         Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                         Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                      End
+                      Else Begin  // Right-Side of High Straight-Line
+
+                         IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                         Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                         Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                      End;
+
+                    End
+                    Else
+                    Begin
+
+                       IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
+
+                         IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                         Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                         Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End
+                       Else Begin // Right-Side of High Straight-Line
+
+                         IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                         Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                         Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End;
+
+                    End;
+
+                  End
+                  Else Begin // High Straight-Line Not Specified.
+
+                    IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                    Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                    Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                  End;
+
+                End
+                Else Begin // Out of the Circle
+
+                  IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                  Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                  Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
                 End;
 
+              End
+              Else Begin // Circle not Specified
+
+                  IF DOC_TripSetHigh > 0.0 Then Begin // High Straight-Line Specified.
+
+                    IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
+                    Begin
+
+                      IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
+
+                         IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                         Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                         Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                      End
+                      Else Begin  // Right-Side of High Straight-Line
+
+                         IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                         Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                         Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                      End;
+
+                    End
+                    Else
+                    Begin
+
+                       IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
+
+                          IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                          Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                          Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End
+                       Else Begin // Right-Side of High Straight-Line
+
+                          IF DOC_DelayInner > 0.0 Then TimeTest := DOC_DelayInner
+                          Else If DOC_PhaseCurveInner <> NIL Then TimeTest := DOC_TDPhaseInner * DOC_PhaseCurveInner.GetTCCTime(Cmag/DOC_PhaseTripInner)
+                          Else if DOC_DelayInner = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                       End;
+
+                    End;
+
+                  End
+                  Else Begin  // High Straight-Line Not Specified.
+
+                     IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                     Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                     Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                  End;
+
+              End;
+
+            End
+            Else Begin
+              // There might be an intersection between Straight Line Low and High depending on their angles.
+              // Straight Line High takes precedence.
+              IF DOC_TripSetHigh > 0.0 Then Begin
+
+                IF (DOC_TiltAngleHigh = 90.0) or (DOC_TiltAngleHigh = 270.0) Then
+                Begin
+                    IF cBuffer^[i].re < -1 * DOC_TripSetHigh Then Begin // Left-side of High Straight-Line
+
+                       IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                       Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                       Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                    End
+                End
+                Else
+                Begin
+
+                   IF cBuffer^[i].im < Tan(DegToRad(DOC_TiltAngleHigh)) * (cBuffer^[i].re + DOC_TripSetHigh) Then Begin // Left-side of High Straight-Line
+
+                      IF DefiniteTimeDelay > 0.0 Then TimeTest := DefiniteTimeDelay
+                      Else If PhCurve <> NIL Then TimeTest := TDPh * PhCurve.GetTCCTime(Cmag/PhPickup)
+                      Else if DefiniteTimeDelay = 0.0 then TimeTest := DefiniteTimeDelay;
+
+                   End
+
+                End;
 
               End;
 
 
             End;
 
-            IF (TimeTest >= 0.0) THEN
-            Begin
 
-               IF DebugTrace Then
-               AppendToEventLog('Relay.'+ Self.Name, Format ('Directional Overcurrent - Phase %d Trip: Mag=%.5g, Ang=%.5g, Time=%.5g', [i-CondOffset, Cmag, Cangle, TimeTest]),ActorID);
+          End;
 
-               IF TripTime<0.0 THEN TripTime := TimeTest
-               ELSE TripTime := Min(TripTime, TimeTest);
+          IF (TimeTest >= 0.0) THEN
+          Begin
 
-            End;
+             IF DebugTrace Then
+             AppendToEventLog('Relay.'+ Self.Name, Format ('Directional Overcurrent - Phase %d Trip: Mag=%.5g, Ang=%.5g, Time=%.5g', [i-CondOffset, Cmag, Cangle, TimeTest]),ActorID);
 
-        End;
+             IF TripTime<0.0 THEN TripTime := TimeTest
+             ELSE TripTime := Min(TripTime, TimeTest);
 
+          End;
 
-        IF TripTime >= 0.0 Then
-        Begin
-          IF Not ArmedForOpen Then
-           WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
-            Begin
-               RelayTarget := 'DOC';
-               LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Breaker_time, CTRL_OPEN, 0, Self, ActorID);
-               IF OperationCount <= NumReclose THEN LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + Breaker_time + RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-               ArmedForOpen := TRUE;
-               ArmedForClose := TRUE;
-            End;
-        End
-        ELSE
-        Begin
-          IF ArmedForOpen  Then
-            WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
-            Begin
-              LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-              ArmedForOpen := FALSE;
-              ArmedForClose := FALSE;
-            End;
-        End;
+      End;
 
 
-
-      End; {IF PresentState=CLOSE}
+      IF TripTime >= 0.0 Then
+      Begin
+        IF Not ArmedForOpen^[IdxMultiPh] Then
+         WITH ActiveCircuit[ActorID] Do   // Then arm for an open operation
+          Begin
+             RelayTarget^[IdxMultiPh] := 'DOC';
+             LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+             IF OperationCount^[IdxMultiPh] <= NumReclose THEN LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + TripTime + MechanicalDelay + RecloseIntervals^[OperationCount^[IdxMultiPh]], CTRL_CLOSE, 0, Self, ActorID);
+             ArmedForOpen^[IdxMultiPh] := TRUE;
+             ArmedForClose^[IdxMultiPh] := TRUE;
+          End;
+      End
+      ELSE
+      Begin
+        IF ArmedForOpen^[IdxMultiPh]  Then
+          WITH ActiveCircuit[ActorID] Do    // If current dropped below pickup, disarm trip and set for reset
+          Begin
+            LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+            ArmedForOpen^[IdxMultiPh] := FALSE;
+            ArmedForClose^[IdxMultiPh] := FALSE;
+          End;
+      End;
 
    End;  {With MonitoredElement}
 end;
@@ -2220,29 +2794,30 @@ VAR
 
 begin
 
+ // Per-phase trip and lockout don't apply. 3-Phase trip only.
  WITH   MonitoredElement Do
    Begin
       //----MonitoredElement.ActiveTerminalIdx := MonitoredElementTerminal;
       S := MonitoredElement.Power[MonitoredElementTerminal,ActorID];
       IF S.re < 0.0  THEN
         Begin
-          IF Abs(S.Re) > PhaseInst * 1000.0 THEN
+          IF Abs(S.Re) > PhInst * 1000.0 THEN
             Begin
-              IF Not ArmedForOpen THEN  // push the trip operation and arm to trip
+              IF Not ArmedForOpen^[IdxMultiPh] THEN  // push the trip operation and arm to trip
                WITH ActiveCircuit[ActorID]  Do
                 Begin
-                 RelayTarget := 'Rev P';
-                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t +Delay_Time +  Breaker_time, CTRL_OPEN, 0, Self, ActorID);
-                 OperationCount := NumReclose + 1;  // force a lockout
-                 ArmedForOpen := TRUE;
+                 RelayTarget^[IdxMultiPh] := 'Rev P';
+                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + DefiniteTimeDelay +  MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+                 OperationCount^[IdxMultiPh] := NumReclose + 1;  // force a lockout
+                 ArmedForOpen^[IdxMultiPh] := TRUE;
                 End
             End
           ELSE
-              IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
+              IF ArmedForOpen^[IdxMultiPh]  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit[ActorID] Do
                 Begin
                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                 ArmedForOpen := FALSE;
+                 ArmedForOpen^[IdxMultiPh] := FALSE;
                 End;
         End;
    End;  {With MonitoredElement}
@@ -2252,127 +2827,146 @@ procedure TRelayObj.VoltageLogic(ActorID : Integer);
 
 VAR
    i           :Integer;
-   VMax,
-   Vmin,
+   VMax, Vmax_closed,
+   Vmin, Vmin_closed,
    Vmag,
    OVTime,
    UVTime,
-   TripTime :Double;
+   TripTime,
+   VoltageTest :Double;
 
 begin
 
- If Not LockedOut Then
- WITH   MonitoredElement Do
-   Begin
-   {**** Fix so that fastest trip time applies ****}
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
+  If not LockedOut^[IdxMultiPh] Then
+  Begin
+
+     {**** Fix so that fastest trip time applies ****}
      MonitoredElement.GetTermVoltages(MonitoredElementTerminal, cBuffer, ActorID);
 
      Vmin := 1.0E50;
      Vmax := 0.0;
-     FOR i := 1 to MonitoredElement.NPhases Do
-       Begin
-          Vmag := Cabs(cBuffer^[i]);
-          If Vmag > Vmax Then Vmax := Vmag;
-          If Vmag < Vmin then Vmin := Vmag;
-       End;
+     Vmin_closed := 1.0E50;
+     Vmax_closed := 0.0;
+     Vmag := -1.0;
+     FOR i := 1 to Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) Do
+     Begin
+
+        Vmag := Cabs(cBuffer^[i]);
+
+        IF FPresentState^[i] = CTRL_CLOSE Then
+        Begin
+          If Vmag > Vmax_closed Then Vmax_closed := Vmag;
+          If Vmag < Vmin_closed then Vmin_closed := Vmag;
+        End;
+
+        If Vmag > Vmax Then Vmax := Vmag;
+        If Vmag < Vmin then Vmin := Vmag;
+
+     End;
 
      {Convert to Per Unit}
      Vmax := Vmax / Vbase;
      Vmin := Vmin / Vbase;
+     Vmax_closed := Vmax_closed / Vbase;
+     Vmin_closed := Vmin_closed / Vbase;
 
-     IF FPresentState = CTRL_CLOSE THEN
-       Begin
-           TripTime := -1.0;
-           OVTime := -1.0;
-           UVTime := -1.0;
+     TripTime := -1.0;
+     OVTime := -1.0;
+     UVTime := -1.0;
 
+     {Check OverVoltage Trip, if any}
+     IF (OVCurve <> NIL) and (Vmag > 0.0) THEN OVTime := OVCurve.GetOVtime(Vmax_closed);
 
+     // If OVTime > 0 then we have a OV trip
+     IF OVTime > 0.0 THEN Begin
+       TripTime := OVTime;
 
-           {Check OverVoltage Trip, if any}
-           IF OVCurve <> NIL THEN OVTime := OVCurve.GetOVtime(Vmax);
+       if DebugTrace then
+       AppendToEventLog ('Relay.'+Self.Name, Format ('OV (3-Phase) Trip: Mag=%.3g, Time=%.3g',
+                        [Vmax_closed, OVTime]),ActorID);
 
-           IF OVTime > 0.0 THEN Begin
-             TripTime := OVTime;
-           End;
+     End;
 
-           // If OVTime > 0 then we have a OV trip
+     {Check UV Trip, if any}
+     IF   (UVCurve <> NIL) and (Vmag > 0.0) THEN UVTime := UVCurve.GetUVtime(Vmin_closed);
+     // If UVTime > 0 then we have a UV trip
 
-           {Check UV Trip, if any}
-           IF   UVCurve <> NIL  THEN
-             Begin
-                UVTime := UVCurve.GetUVtime(Vmin);
-             End;
+     IF   UVTime > 0.0  THEN
+     Begin
+        IF   TripTime > 0.0
+        THEN Begin
+          TripTime := Min(TripTime, UVTime)   // Min of UV or OV time
+        End
+        ELSE
+         Begin
+           TripTime := UVTime;
+        End;
 
-         // If UVTime > 0 then we have a UV trip
+        if DebugTrace then
+       AppendToEventLog ('Relay.'+Self.Name, Format ('UV (3-Phase) Trip: Mag=%.3g, Time=%.3g',
+                        [Vmin_closed, UVTime]),ActorID);
 
-           IF   UVTime > 0.0  THEN
-             Begin
-                IF   TripTime > 0.0
-                THEN Begin
-                  TripTime := Min(TripTime, UVTime)   // Min of UV or OV time
-                 End
-                ELSE
-                 Begin
-                   TripTime := UVTime;
-                 End;
-             End;
+     End;
 
-           IF   TripTime > 0.0 THEN
-             WITH ActiveCircuit[ActorID] Do
-             Begin
+     IF   TripTime > 0.0 THEN
+     WITH ActiveCircuit[ActorID] Do
+     Begin
 
-              If  ArmedForOpen and ((Solution.DynaVars.t + TripTime + Breaker_time) < NextTripTime) Then
-                Begin
-                  ControlQueue.Delete (LastEventHandle, ActorID);  // Delete last event from Queue
-                  ArmedForOpen := False;  // force it to go through next IF
-                End;
+         If  ArmedForOpen^[IdxMultiPh] and ((Solution.DynaVars.t + TripTime + MechanicalDelay) < NextTripTime) Then
+         Begin
+             ControlQueue.Delete (LastEventHandle, ActorID);  // Delete last event from Queue
+             ArmedForOpen^[IdxMultiPh] := False;  // force it to go through next IF
+         End;
 
-              IF   Not ArmedForOpen THEN
-                Begin  // Then arm for an open operation
-                     If TripTime = UVTime Then Begin
-                        If TripTime = OVTime Then RelayTarget := 'UV + OV'
-                        Else  RelayTarget := 'UV' ;
-                      End
-                     Else Relaytarget := 'OV';
-                     
-                     NextTripTime :=  Solution.DynaVars.t + TripTime + Breaker_time;
-                     LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, NextTripTime, CTRL_OPEN, 0, Self, ActorID);
-                     ArmedforOpen := TRUE;
-                End;
+         IF Not ArmedForOpen^[IdxMultiPh] THEN
+         Begin  // Then arm for an open operation
+             If TripTime = UVTime Then Begin
+                 If TripTime = OVTime Then RelayTarget^[IdxMultiPh] := 'UV + OV'
+                 Else  RelayTarget^[IdxMultiPh] := 'UV';
              End
-           ELSE
-             Begin
-               IF ArmedForOpen THEN
-               WITH ActiveCircuit[ActorID] Do    // If voltage dropped below pickup, disarm trip and set for reset
-                 Begin
-                    ControlQueue.Delete (LastEventHandle, ActorID);  // Delete last event from Queue
-                    NextTripTime := -1.0;
-                    LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                    ArmedForOpen := FALSE;
-                 End;
-             End;
-     End  {IF PresentState=CLOSE}
-   ELSE
+             Else Relaytarget^[IdxMultiPh] := 'OV';
+
+             NextTripTime     :=  Solution.DynaVars.t + TripTime + MechanicalDelay;
+             LastEventHandle  := ControlQueue.Push(Solution.DynaVars.intHour, NextTripTime, CTRL_OPEN, 0, Self, ActorID);
+             ArmedforOpen^[IdxMultiPh] := TRUE;
+         End;
+     End
+     ELSE if (TripTime < 0.0) and (ArmedForOpen^[IdxMultiPh]) then  // if voltage dropped below pickup, disarm and set for reset
+     Begin
+       WITH ActiveCircuit[ActorID] Do
+       Begin
+        ControlQueue.Delete (LastEventHandle, ActorID);  // Delete last event from Queue
+        NextTripTime := -1.0;
+        LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
+        ArmedForOpen^[IdxMultiPh] := FALSE;
+       End;
+     End;
+
+     // Check for reclosing - all phases must be opened.
+     for i:=Min(RELAYCONTROLMAXDIM, ControlledElement.Nphases) downto 1 do
+     Begin
+        IF FPresentState^[i] = CTRL_CLOSE Then Exit;
+     End;
+
      Begin     {Present state is Open, Check for Voltage and then set reclose Interval}
-        IF (OperationCount <= NumReclose) Then
-          IF Not ArmedForClose THEN
+        IF (OperationCount^[IdxMultiPh] <= NumReclose) Then
+          IF Not ArmedForClose^[IdxMultiPh] THEN
             Begin
               IF (Vmax > 0.9) THEN
               WITH ActiveCircuit[ActorID] Do  // OK if voltage > 90%
                 Begin
-                     LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t +  RecloseIntervals^[OperationCount], CTRL_CLOSE, 0, Self, ActorID);
-                     ArmedForClose := TRUE;
+                     LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t +  RecloseIntervals^[OperationCount^[IdxMultiPh]], CTRL_CLOSE, 0, Self, ActorID);
+                     ArmedForClose^[IdxMultiPh] := TRUE;
                 End;
             End
           ELSE   {Armed, but check to see if voltage dropped before it reclosed and cancel action}
-             IF Vmax <0.9 THEN ArmedForClose := False;
+             IF Vmax <0.9 THEN ArmedForClose^[IdxMultiPh] := False;
+     End;
+  End;
 
-      End;
+End;
 
-
-   End;  {With MonitoredElement}
-
-end;
 
 procedure TRelayObj.NegSeq47Logic(ActorID : Integer);
 
@@ -2384,6 +2978,7 @@ VAR
 
 begin
 
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
  WITH   MonitoredElement Do
    Begin
       MonitoredElement.GetTermVoltages (MonitoredElementTerminal, cBuffer, ActorID);
@@ -2391,22 +2986,22 @@ begin
       NegSeqVoltageMag :=  Cabs(V012[3]);
       IF NegSeqVoltageMag >=  PickupVolts47 THEN
         Begin
-              IF Not ArmedForOpen THEN  // push the trip operation and arm to trip
+              IF Not ArmedForOpen^[IdxMultiPh] THEN  // push the trip operation and arm to trip
                WITH ActiveCircuit[ActorID]  Do
                 Begin
-                 RelayTarget := '-Seq V';
-                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + Delay_Time + Breaker_time, CTRL_OPEN, 0, Self, ActorID);
-                 OperationCount := NumReclose + 1;  // force a lockout
-                 ArmedForOpen := TRUE;
+                 RelayTarget^[IdxMultiPh] := '-Seq V';
+                 LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + DefiniteTimeDelay + MechanicalDelay, CTRL_OPEN, 0, Self, ActorID);
+                 OperationCount^[IdxMultiPh] := NumReclose + 1;  // force a lockout
+                 ArmedForOpen^[IdxMultiPh] := TRUE;
                 End
         End
       ELSE
         Begin  {Less Than pickup value: reset if armed}
-              IF ArmedForOpen  THEN    // We became unarmed, so reset and disarm
+              IF ArmedForOpen^[IdxMultiPh]  THEN    // We became unarmed, so reset and disarm
                WITH ActiveCircuit[ActorID] Do
                 Begin
                  LastEventHandle := ControlQueue.Push(Solution.DynaVars.intHour, Solution.DynaVars.t + ResetTime, CTRL_RESET, 0, Self, ActorID);
-                 ArmedForOpen := FALSE;
+                 ArmedForOpen^[IdxMultiPh] := FALSE;
                 End;
         End;
    End;  {With MonitoredElement}

@@ -320,7 +320,7 @@ var
   elem: TRecloserObj;
 begin
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Set_parameter('GroundInst', Format('%.g',[Value]));
+  if elem <> nil then Set_parameter('GndInst', Format('%.g',[Value]));
 end;
 
 procedure TReclosers.Set_PhInst(Value: Double);
@@ -328,7 +328,7 @@ var
   elem: TRecloserObj;
 begin
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Set_parameter('Phaseinst', Format('%.g',[Value]));
+  if elem <> nil then Set_parameter('PhInst', Format('%.g',[Value]));
 end;
 
 procedure TReclosers.Close;
@@ -508,7 +508,7 @@ var
   elem: TRecloserObj;
 begin
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Set_parameter('GrFastPickup', Format('%.g',[Value]));
+  if elem <> nil then Set_parameter('GndFastPickup', Format('%.g',[Value]));
 end;
 
 procedure TReclosers.Set_GndSlowPickup(Value: Double);
@@ -516,7 +516,7 @@ var
   elem: TRecloserObj;
 begin
   elem := RecloserClass.ElementList.Active;
-  if elem <> nil then Set_parameter('GrSlowPickup', Format('%.g',[Value]));
+  if elem <> nil then Set_parameter('GndSlowPickup', Format('%.g',[Value]));
 end;
 
 procedure TReclosers.Set_PhFastPickup(Value: Double);
