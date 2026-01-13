@@ -323,7 +323,7 @@ Begin
                           'reset command for mode change, etc.';
      PropertyHelp^[29] := '{Yes/True* | No/False} Default is Yes for Recloser. Write trips, reclose and reset events to EventLog.';
      PropertyHelp^[30] := '{Yes/True* | No/False} Default is No for Recloser. Write extra details to Eventlog.';
-     PropertyHelp^[31] := 'Recloser continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+     PropertyHelp^[31] := 'Recloser continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
      PropertyHelp^[32] := 'Recloser rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
      PropertyHelp^[33] := 'DEPRECATED. See "PhFastCurve" property.';
      PropertyHelp^[34] := 'DEPRECATED. See "PhSlowCurve" property.';
