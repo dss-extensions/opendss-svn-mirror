@@ -220,7 +220,7 @@ begin
     PropertyHelp^[5] := 'Name of the TCC Curve object that determines the fuse blowing.  Must have been previously defined as a TCC_Curve object or specified as "none" (ignored). ' +
         'If "none", fuse sampling will be skipped and device will not blow for any current level. Default is "none". ' +
         'Multiplying the current values in the curve by the "CurveMultiplier" value gives the actual current.';
-    PropertyHelp^[6] := 'Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+    PropertyHelp^[6] := 'Fuse continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
     PropertyHelp^[7] := 'Fixed delay time (sec) added to Fuse blowing time determined from the TCC curve. Default is 0.0. Used to represent fuse clearing time or any other delay.';
     PropertyHelp^[8] := 'DEPRECATED. See "State" property.';
     PropertyHelp^[9] := 'ARRAY of strings {Open | Closed} representing the Normal state of the fuse in each phase of the controlled element. ' +

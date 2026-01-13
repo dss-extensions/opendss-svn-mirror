@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 12/18/25 1:07:14 PM (- $Rev: 12980 $, 14296265).
+// File generated on 01/13/26 5:38:34 PM (- $Rev: 12980 $, 121215750).
 
 [
   uuid(8BFDE413-245A-4514-B151-B16DCC243796),
@@ -1959,7 +1959,7 @@ library OpenDSSengine
     HRESULT _stdcall SwitchedTerm([out, retval] long* Value);
     [propput, id(0x000000D1), helpstring("Terminal number where the switch is located on the SwitchedObj.")]
     HRESULT _stdcall SwitchedTerm([in] long Value);
-    [propget, id(0x000000D2)]
+    [propget, id(0x000000D2), helpstring("Number of SwtControls in active circuit.")]
     HRESULT _stdcall Count([out, retval] long* Value);
     [id(0x000000D5), helpstring("Force a reset of this switch to NormalState, unlocked. Unlocks switch and calls Reset function.")]
     HRESULT _stdcall Reset(void);
@@ -1979,7 +1979,7 @@ library OpenDSSengine
     HRESULT _stdcall Delay([out, retval] double* Value);
     [propput, id(0x000000D6), helpstring("This property is deprecated and does not impact the simulation. States are set immediately through state property or Open/Close functions.")]
     HRESULT _stdcall Delay([in] double Value);
-    [propget, id(0x000000D7)]
+    [propget, id(0x000000D7), helpstring("Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([out, retval] double* Value);
     [propput, id(0x000000D7), helpstring("Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([in] double Value);
@@ -2447,7 +2447,7 @@ library OpenDSSengine
   ]
   interface IReclosers: IDispatch
   {
-    [propget, id(0x000000C9), helpstring("Variant array of strings with names of all Reclosers in Active Circuit")]
+    [propget, id(0x000000C9), helpstring("Variant array of strings with all Recloser names in the active circuit.")]
     HRESULT _stdcall AllNames([out, retval] VARIANT* Value);
     [propget, id(0x000000CA), helpstring("Number of Reclosers in active circuit.")]
     HRESULT _stdcall Count([out, retval] long* Value);
@@ -2489,17 +2489,17 @@ library OpenDSSengine
     HRESULT _stdcall PhFastPickup([out, retval] double* Value);
     [propput, id(0x000000D5), helpstring("Multiplier for the phase fast TCC curve.")]
     HRESULT _stdcall PhFastPickup([in] double Value);
-    [propget, id(0x000000D6), helpstring("Phase instantaneous curve multipler or actual amps")]
+    [propget, id(0x000000D6), helpstring("Actual amps for instantaneous phase trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.")]
     HRESULT _stdcall PhInst([out, retval] double* Value);
-    [propput, id(0x000000D6)]
+    [propput, id(0x000000D6), helpstring("Actual amps for instantaneous phase trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.")]
     HRESULT _stdcall PhInst([in] double Value);
     [propget, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
     HRESULT _stdcall GndFastPickup([out, retval] double* Value);
     [propput, id(0x000000D7), helpstring("Multiplier for the ground fast TCC curve.")]
     HRESULT _stdcall GndFastPickup([in] double Value);
-    [propget, id(0x000000D8), helpstring("Ground (3I0) instantaneous trip setting - curve multipler or actual amps.")]
+    [propget, id(0x000000D8), helpstring("Actual amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.")]
     HRESULT _stdcall GndInst([out, retval] double* Value);
-    [propput, id(0x000000D8), helpstring("Ground (3I0) trip instantaneous multiplier or actual amps")]
+    [propput, id(0x000000D8), helpstring("Actual amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.")]
     HRESULT _stdcall GndInst([in] double Value);
     [id(0x000000D9), helpstring("Open all phases of the recloser's controlled element and lock out the recloser.")]
     HRESULT _stdcall Open(void);
@@ -2545,9 +2545,9 @@ library OpenDSSengine
   ]
   interface IRelays: IDispatch
   {
-    [propget, id(0x000000C9), helpstring("Variant array of strings containing names of all Relay elements")]
+    [propget, id(0x000000C9), helpstring("Variant array of strings with all Relay names in the active circuit.")]
     HRESULT _stdcall AllNames([out, retval] VARIANT* Value);
-    [propget, id(0x000000CA), helpstring("Number of Relays in circuit")]
+    [propget, id(0x000000CA), helpstring("Number of Relays in circuit.")]
     HRESULT _stdcall Count([out, retval] long* Value);
     [propget, id(0x000000CB), helpstring("Set First Relay active. If none, returns 0.")]
     HRESULT _stdcall First([out, retval] long* Value);
@@ -2555,7 +2555,7 @@ library OpenDSSengine
     HRESULT _stdcall Next([out, retval] long* Value);
     [propget, id(0x000000CD), helpstring("Get name of active relay.")]
     HRESULT _stdcall Name([out, retval] BSTR* Value);
-    [propput, id(0x000000CD), helpstring("Set Relay active by name")]
+    [propput, id(0x000000CD), helpstring("Set Relay active by name.")]
     HRESULT _stdcall Name([in] BSTR Value);
     [propget, id(0x000000CE), helpstring("Full name of object this Relay is monitoring.")]
     HRESULT _stdcall MonitoredObj([out, retval] BSTR* Value);
@@ -2569,7 +2569,7 @@ library OpenDSSengine
     HRESULT _stdcall SwitchedObj([out, retval] BSTR* Value);
     [propput, id(0x000000D0)]
     HRESULT _stdcall SwitchedObj([in] BSTR Value);
-    [propget, id(0x000000D1)]
+    [propget, id(0x000000D1), helpstring("Terminal number of the controlled device being switched by the Relay.")]
     HRESULT _stdcall SwitchedTerm([out, retval] long* Value);
     [propput, id(0x000000D1), helpstring("Terminal number of the switched object that will be opened when the relay trips.")]
     HRESULT _stdcall SwitchedTerm([in] long Value);
@@ -2577,20 +2577,20 @@ library OpenDSSengine
     HRESULT _stdcall idx([out, retval] long* Value);
     [propput, id(0x000000D2), helpstring("Get/Set Relay active by index into relay list. 1..Count")]
     HRESULT _stdcall idx([in] long Value);
-    [id(0x000000D3), helpstring("Open relay's controlled element and lock out the relay.")]
+    [id(0x000000D3), helpstring("Open all phases of the relays's controlled element and lock out the relay.")]
     HRESULT _stdcall Open(void);
-    [id(0x000000D4), helpstring("Close the switched object controlled by the relay. Resets relay to first operation.")]
+    [id(0x000000D4), helpstring("Close all phases of the switched object controlled by the relay. Resets relay to first operation.")]
     HRESULT _stdcall Close(void);
-    [id(0x000000D5), helpstring("Reset relay to normal state. If open, lock out the relay. If closed, resets relay to first operation.  ")]
+    [id(0x000000D5), helpstring("Reset relay to normal state. If open, lock out the relay. If closed, resets relay to first operation.")]
     HRESULT _stdcall Reset(void);
-    [propget, id(0x000000D6), helpstring("Get/Set present state of relay. If set to open, open relay's controlled element and lock out the relay. If set to close, close relay's controlled element and resets relay to first operation.")]
-    HRESULT _stdcall State([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000D6), helpstring("Set present state of relay.")]
-    HRESULT _stdcall State([in] enum ActionCodes Value);
-    [propget, id(0x000000D7), helpstring("Get normal state of relay.")]
-    HRESULT _stdcall NormalState([out, retval] enum ActionCodes* Value);
-    [propput, id(0x000000D7), helpstring("Set normal state of relay.")]
-    HRESULT _stdcall NormalState([in] enum ActionCodes Value);
+    [propget, id(0x000000D6), helpstring("Variant array of strings indicating the state of each phase of the element controlled by the relay. 0-based array.")]
+    HRESULT _stdcall State([out, retval] VARIANT* Value);
+    [propput, id(0x000000D6), helpstring("Variant array of strings. Set state of each phase of the relay's controlled element.")]
+    HRESULT _stdcall State([in] VARIANT Value);
+    [propget, id(0x000000D7), helpstring("Variant array of strings indicating the normal state of each phase of the relay. 0-based array.")]
+    HRESULT _stdcall NormalState([out, retval] VARIANT* Value);
+    [propput, id(0x000000D7), helpstring("Variant array of strings. Set normal state of each phase of the relay.")]
+    HRESULT _stdcall NormalState([in] VARIANT Value);
   };
 
   [
@@ -2773,9 +2773,9 @@ library OpenDSSengine
     HRESULT _stdcall TCCcurve([out, retval] BSTR* Value);
     [propput, id(0x000000D2), helpstring("Name of the TCCcurve object that determines fuse blowing.")]
     HRESULT _stdcall TCCcurve([in] BSTR Value);
-    [propget, id(0x000000D3), helpstring("Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    [propget, id(0x000000D3), helpstring("Fuse continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([out, retval] double* Value);
-    [propput, id(0x000000D3), helpstring("Fuse continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
+    [propput, id(0x000000D3), helpstring("Fuse continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.")]
     HRESULT _stdcall RatedCurrent([in] double Value);
     [propget, id(0x000000D4), helpstring("A fixed delay time in seconds added to the fuse blowing time determined by the TCC curve. Default is 0.")]
     HRESULT _stdcall Delay([out, retval] double* Value);
