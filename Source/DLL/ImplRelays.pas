@@ -37,10 +37,10 @@ type
         procedure Close; SAFECALL;
         procedure Open; SAFECALL;
         procedure Reset; SAFECALL;
-        function Get_State: ActionCodes; SAFECALL;
-        procedure Set_State(Value: ActionCodes); SAFECALL;
-        function Get_NormalState: ActionCodes; SAFECALL;
-        procedure Set_NormalState(Value: ActionCodes); SAFECALL;
+        function Get_State: Olevariant; SAFECALL;
+        procedure Set_State(Value: Olevariant); SAFECALL;
+        function Get_NormalState: Olevariant; SAFECALL;
+        procedure Set_NormalState(Value: Olevariant); SAFECALL;
 
     end;
 
@@ -275,19 +275,21 @@ end;
 procedure TRelays.Close;
 var
     elem: TRelayObj;
+    i: Integer;
 begin
     elem := RelayClass.ElementList.Active;
-    if elem <> nil then
-        elem.PresentState := CTRL_CLOSE;
+    for i := 1 to elem.ControlledElement.NPhases do
+        elem.States[i] := CTRL_CLOSE // Close all phases
 end;
 
 procedure TRelays.Open;
 var
     elem: TRelayObj;
+    i: Integer;
 begin
     elem := RelayClass.ElementList.Active;
-    if elem <> nil then
-        elem.PresentState := CTRL_OPEN;
+    for i := 1 to elem.ControlledElement.NPhases do
+        elem.States[i] := CTRL_OPEN // Open all phases
 end;
 
 procedure TRelays.Reset;
@@ -302,8 +304,63 @@ begin
     end;
 end;
 
-function TRelays.Get_State: ActionCodes;
+function TRelays.Get_State: Olevariant;
 var
+    i: Integer;
+    pRelay: TRelayObj;
+begin
+
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            Result := VarArrayCreate([0, pRelay.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to pRelay.ControlledElement.NPhases do
+            begin
+                if pRelay.States[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
+            end;
+        end
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
+end;
+
+procedure TRelays.Set_State(Value: Olevariant);
+var
+    i: Integer;
+    Count, Low: Integer;
+    pRelay: TRelayObj;
+begin
+    if ActiveCircuit[ActiveActor] <> nil then
+    begin
+        pRelay := RelayClass.ElementList.Active;
+        if pRelay <> nil then
+        begin
+            Low := VarArrayLowBound(Value, 1);
+            Count := VarArrayHighBound(Value, 1) - Low + 1;
+            if Count > pRelay.ControlledElement.NPhases then
+                Count := pRelay.ControlledElement.NPhases;
+            for i := 1 to Count do
+            begin
+                case LowerCase(Value[i - 1 + Low])[1] of
+                    'o':
+                        pRelay.States[i] := CTRL_OPEN;
+                    'c':
+                        pRelay.States[i] := CTRL_CLOSE;
+                end;
+            end;
+
+        end
+    end;
+end;
+
+function TRelays.Get_NormalState: Olevariant;
+var
+    i: Integer;
     pRelay: TRelayObj;
 begin
     Result := dssActionNone;
@@ -312,73 +369,41 @@ begin
         pRelay := RelayClass.ElementList.Active;
         if pRelay <> nil then
         begin
-            case pRelay.PresentState of
-                CTRL_OPEN:
-                    Result := dssActionOpen;
-                CTRL_CLOSE:
-                    Result := dssActionClose;
+            Result := VarArrayCreate([0, pRelay.ControlledElement.NPhases - 1], varOleStr);
+            for i := 1 to pRelay.ControlledElement.NPhases do
+            begin
+                if pRelay.NormalStates[i] = CTRL_CLOSE then
+                    Result[i - 1] := 'closed'
+                else
+                    Result[i - 1] := 'open';
             end;
-        end
-    end;
+        end;
+    end
+    else
+        Result := VarArrayCreate([0, 0], varOleStr);
 end;
 
-procedure TRelays.Set_State(Value: ActionCodes);
+procedure TRelays.Set_NormalState(Value: Olevariant);
 var
+    i: Integer;
+    Count, Low: Integer;
     pRelay: TRelayObj;
 begin
     if ActiveCircuit[ActiveActor] <> nil then
     begin
-        pRelay := RelayClass.ElementList.Active;
-        if pRelay <> nil then
+        Low := VarArrayLowBound(Value, 1);
+        Count := VarArrayHighBound(Value, 1) - Low + 1;
+        if Count > pRelay.ControlledElement.NPhases then
+            Count := pRelay.ControlledElement.NPhases;
+        for i := 1 to Count do
         begin
-            case value of
-                dssActionOpen:
-                    pRelay.PresentState := CTRL_OPEN;
-                dssActionClose:
-                    pRelay.PresentState := CTRL_CLOSE;
+            case LowerCase(Value[i - 1 + Low])[1] of
+                'o':
+                    pRelay.NormalStates[i] := CTRL_OPEN;
+                'c':
+                    pRelay.NormalStates[i] := CTRL_CLOSE;
             end;
-
-        end
-    end;
-end;
-
-function TRelays.Get_NormalState: ActionCodes;
-var
-    pRelay: TRelayObj;
-begin
-    Result := dssActionNone;
-    if ActiveCircuit[ActiveActor] <> nil then
-    begin
-        pRelay := RelayClass.ElementList.Active;
-        if pRelay <> nil then
-        begin
-            case pRelay.NormalState of
-                CTRL_OPEN:
-                    Result := dssActionOpen;
-                CTRL_CLOSE:
-                    Result := dssActionClose;
-            end;
-        end
-    end;
-end;
-
-procedure TRelays.Set_NormalState(Value: ActionCodes);
-var
-    pRelay: TRelayObj;
-begin
-    if ActiveCircuit[ActiveActor] <> nil then
-    begin
-        pRelay := RelayClass.ElementList.Active;
-        if pRelay <> nil then
-        begin
-            case value of
-                dssActionOpen:
-                    pRelay.NormalState := CTRL_OPEN;
-                dssActionClose:
-                    pRelay.NormalState := CTRL_CLOSE;
-            end;
-
-        end
+        end;
     end;
 end;
 

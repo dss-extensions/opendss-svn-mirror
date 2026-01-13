@@ -171,7 +171,7 @@ begin
             end;
         end;
         15:
-        begin  // Reclosers.Reset                                  // TODO
+        begin  // Reclosers.Reset
             elem := RecloserClass.ElementList.Active;
             if elem <> nil then
                 elem.Reset(ActiveActor);
