@@ -146,7 +146,7 @@ Begin
                          'sets the actual state to the specified value for all phases (ganged operation).';
      PropertyHelp^[8] := '{Yes | No} If Yes, forces Reset of switch to Normal state and removes Lock independently of any internal '+
                         'reset command for mode change, etc.';
-     PropertyHelp^[9] := 'Switch continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
+     PropertyHelp^[9] := 'Switch continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.';
 
 
      ActiveProperty  := NumPropsThisClass;
