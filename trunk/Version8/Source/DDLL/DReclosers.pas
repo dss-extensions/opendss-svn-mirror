@@ -125,7 +125,7 @@ begin
           If pRecloser <> Nil Then ActiveCircuit[ActiveActor].ActiveCktElement := pRecloser;
       End;
   end;
-  15: begin  // Reclosers.Reset                                  // TODO
+  15: begin  // Reclosers.Reset
       elem := RecloserClass.ElementList.Active  ;
       if elem <> nil then elem.Reset(ActiveActor);
       end

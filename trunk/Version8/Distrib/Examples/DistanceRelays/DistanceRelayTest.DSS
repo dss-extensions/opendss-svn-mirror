@@ -10,7 +10,7 @@ new line.thev         bus1=src            bus2=mvbus          linecode=kex41 len
 // These are the shared impedance per mile settings. An overreaching relay with many reclosings.
 new relay.21src type=distance monitoredobj=line.thev monitoredterm=1 switchedterm=1 delay=0.03
 ~ Z1MAG=0.6977 Z1ANG=63.98 Z0MAG=2.0860 Z0ANG=68.23 Mphase=3.0 Mground=3.0
-~ reset=0.20 recloseintervals=[0.02,0.02,0.02] debugtrace=no
+~ resettime=0.20 recloseintervals=[0.02,0.02,0.02] debugtrace=no
 
 // A reverse-looking relay at the source line's receiving end, to test directionality
 // Set to monitoredterm=2, it looks reverse and should not trip.  Set to 1, it should trip.

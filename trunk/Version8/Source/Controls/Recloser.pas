@@ -160,7 +160,7 @@ USES
 
 CONST
 
-    NumPropsThisClass = 42;
+    NumPropsThisClass = 46;
 
     CURRENT = 0;  {Default}
     VOLTAGE = 1;
@@ -262,6 +262,10 @@ Begin
      PropertyName^[40] := 'GndSlowPickup';
      PropertyName^[41] := 'TDPhDelayed';
      PropertyName^[42] := 'TDGrDelayed';
+     PropertyName^[43] := 'Delay';
+     PropertyName^[44] := 'PhaseInst';
+     PropertyName^[45] := 'GroundInst';
+     PropertyName^[46] := 'TDGrFast';
 
 
      PropertyHelp^[1] := 'Full object name of the circuit element, typically a line, transformer, load, or generator, '+
@@ -331,6 +335,11 @@ Begin
      PropertyHelp^[40] := 'Multiplier for the ground slow TCC curve. Defaults to 1.0.';
      PropertyHelp^[41] := 'DEPRECATED. Assigned value is specified to "TDPhSlow" property for backwards compatibility. See "TDPhSlow" property.';
      PropertyHelp^[42] := 'DEPRECATED. Assigned value is specified to "TDGndSlow" property for backwards compatibility. See "TDGndSlow" property.';
+     PropertyHelp^[43] := 'DEPRECATED. See "MechanicalDelay" property.';
+     PropertyHelp^[44] := 'DEPRECATED. See "PhInst" property.';
+     PropertyHelp^[45] := 'DEPRECATED. See "GndInst" property.';
+     PropertyHelp^[46] := 'DEPRECATED. See "TDGndFast" property.';
+
 
      ActiveProperty  := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -391,14 +400,14 @@ Begin
             9, 36: GndSlowCurve  := GetTCCCurve(Param);
            10: PhFastPickup  := Parser[ActorID].Dblvalue;
            11: GndFastPickup  := Parser[ActorID].Dblvalue;
-           12: PhInst      := Parser[ActorID].Dblvalue;
-           13: GndInst     := Parser[ActorID].Dblvalue;
+           12, 44: PhInst      := Parser[ActorID].Dblvalue;
+           13, 45: GndInst     := Parser[ActorID].Dblvalue;
            14: ResetTime   := Parser[ActorID].Dblvalue;
            15: NumReclose  := Parser[ActorID].Intvalue -1 ;   // one less than number of shots
            16: NumReclose  := Parser[ActorID].ParseAsVector(4, RecloseIntervals);   // max of 4 allowed
-           17: MechanicalDelay   := Parser[ActorID].DblValue;
+           17, 43: MechanicalDelay   := Parser[ActorID].DblValue;
            19: TDPhFast    := Parser[ActorID].DblValue;
-           20: TDGndFast    := Parser[ActorID].DblValue;
+           20, 46: TDGndFast    := Parser[ActorID].DblValue;
            21, 41: TDPhSlow    := Parser[ActorID].DblValue;
            22, 42: TDGndSlow    := Parser[ActorID].DblValue;
            23: Begin
@@ -490,6 +499,7 @@ Begin
         PhInst                    := OtherRecloser.PhInst;
         GndInst                   := OtherRecloser.GndInst;
         ResetTime                 := OtherRecloser.ResetTime;
+        MechanicalDelay           := OtherRecloser.MechanicalDelay;
         NumReclose                := OtherRecloser.NumReclose;
 	      NumFast                   := OtherRecloser.NumFast;
         SinglePhTrip              := OtherRecloser.SinglePhTrip;
@@ -570,6 +580,7 @@ Begin
      TDPhFast    := 1.0;
 
      ResetTime      := 15.0;
+     MechanicalDelay := 0.0;
      NumReclose     := 3;
      NumFast	     := 1;
 
@@ -698,7 +709,7 @@ Begin
        End;
 
        // Open/Closed State of controlled element based on state assigned to the control
-       For i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) Do  // TODO --- evaluate if we need to do anything here....
+       For i := 1 to Min(RECLOSERCONTROLMAXDIM, ControlledElement.Nphases) Do
        If FPresentState^[i] = CTRL_CLOSE Then
        Begin
           ControlledElement.Closed[i,ActorID] := TRUE;
@@ -890,7 +901,14 @@ begin
                             if SinglePhTrip then
                             Begin
                               CASE FPresentState^[PhIdx] of
-                                  CTRL_CLOSE: IF Not ArmedForOpen^[PhIdx] THEN OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
+                                  CTRL_CLOSE:
+                                  Begin
+                                    IF Not ArmedForOpen^[PhIdx] THEN // Don't reset if we just rearmed
+                                    Begin
+                                      OperationCount^[PhIdx] := 1;
+                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]),ActorID);
+                                    End;
+                                  End;
                               END;
                             End
                             Else
@@ -900,7 +918,11 @@ begin
                                 CASE FPresentState^[i] of
                                   CTRL_CLOSE:
                                   Begin
-                                    IF Not ArmedForOpen^[PhIdx] THEN OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
+                                    IF Not ArmedForOpen^[PhIdx] THEN // Don't reset if we just rearmed
+                                    Begin
+                                      OperationCount^[PhIdx] := 1;
+                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
+                                    End;
                                     Break; // no need to loop at all closed phases
                                   End;
 
@@ -1340,12 +1362,16 @@ begin
       9, 36: if GndSlowCurve <> nil then Result := GndSlowCurve.Name else Result := 'none';
       10, 37: Result:= Format('%.3f',[PhFastPickup]);
       11, 38: Result:= Format('%.3f',[GndFastPickup]);
+      12, 44: Result:= Format('%.3f',[PhInst]);
+      13, 45: Result:= Format('%.3f',[GndInst]);
       15: Result := Format('%d', [NumReclose+1]);
       16: Begin
            Result := '(';
            FOR i := 1 to NumReclose Do Result := Result + Format('%-g, ' , [RecloseIntervals^[i]]);
            Result := Result + ')';
           End;
+      17, 43: Result:= Format('%.3f',[MechanicalDelay]);
+      20, 46: Result := Format('%.3f',[TDGndFast]);
       21, 41: Result := Format('%.3f',[TDPhSlow]);
       22, 42: Result := Format('%.3f',[TDGndSlow]);
       23: If ControlledElement <> Nil Then
@@ -1507,18 +1533,18 @@ begin
      PropertyValue[8]  := 'none';
      PropertyValue[9]  := 'none';
      PropertyValue[10] := '1.0';  // PhFastPickup
-     PropertyValue[11] := '1.0';  // GrFastPickup
-     PropertyValue[12] := '0';
-     PropertyValue[13] := '0';
+     PropertyValue[11] := '1.0';  // GndFastPickup
+     PropertyValue[12] := '0';    // PhInst
+     PropertyValue[13] := '0';    // GndInst
      PropertyValue[14] := '15';
      PropertyValue[15] := '4';
      PropertyValue[16] := '(0.5, 2.0, 2.0)';
      PropertyValue[17] := '0.0';
      PropertyValue[18] := ''; // action
      PropertyValue[19] := '1.0'; // TDPhFast
-     PropertyValue[20] := '1.0'; // TDGrFast
+     PropertyValue[20] := '1.0'; // TDGndFast
      PropertyValue[21] := '1.0'; // TDPhSlow
-     PropertyValue[22] := '1.0'; // TDGrSlow
+     PropertyValue[22] := '1.0'; // TDGndSlow
      PropertyValue[23] := '[closed, closed, closed]';  // normal
      PropertyValue[24] := '[closed, closed, closed]';  // state
      PropertyValue[25] := 'No';  // SinglePhTripping
@@ -1537,6 +1563,10 @@ begin
      PropertyValue[40] := '1.0';  // GndSlowPickup
      PropertyValue[41] := '1.0';  // Deprecated - TDPhDelayed -> TDPhSlow
      PropertyValue[42] := '1.0';  // Deprecated - TDGrDelayed -> TDGndSlow
+     PropertyValue[43] := '0.0';  // Deprecated - Delay -> MechanicalDelay
+     PropertyValue[44] := '0';  // Deprecated - PhaseInst -> PhInst
+     PropertyValue[45] := '0';  // Deprecated - GroundInst -> GndInst
+     PropertyValue[46] := '1.0';  // Deprecated - TDGrFast -> TDGndFast
 
   inherited  InitPropertyValues(NumPropsThisClass);
 

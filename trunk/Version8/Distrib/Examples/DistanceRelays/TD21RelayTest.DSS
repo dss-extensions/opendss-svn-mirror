@@ -9,7 +9,7 @@ new linecode.kex41 r1=0.3061 x1=0.6270 r0=0.7735 x0=1.9373 c1=0 c0=0 units=mi
 new line.thev         bus1=src            bus2=mvbus          linecode=kex41 len=0.5 units=mi
 // These are the shared impedance per mile settings. An overreaching relay with many reclosings.
 new relay.21src type=td21 monitoredobj=line.thev monitoredterm=1 switchedterm=1 delay=0.03 Mphase=3.0 Mground=3.0
-~ reset=0.20 recloseintervals=[0.02,0.02,0.02] phasetrip=400.0 debugtrace=no
+~ resettime=0.20 recloseintervals=[0.02,0.02,0.02] phasetrip=400.0 debugtrace=no
 
 // A reverse-looking relay at the source line's receiving end, to test directionality
 // Set to monitoredterm=2, it looks reverse and should not trip.  Set to 1, it should trip.
@@ -53,7 +53,7 @@ new relay.3pf_z2   like=slgf_z1 monitoredobj=line.3pf_z2_1 debugtrace=no
 new line.perm   bus1=mvbus  bus2=perm_flt  linecode=kex41 len=3.0 units=mi
 new fault.perm  bus1=perm_flt.1.2.3 phases=3 ontime=1.00 r=0.001 temporary=no
 new relay.perm type=td21 monitoredobj=line.perm delay=0.01 Mphase=3.5 Mground=3.5
-~ reset=0.20 recloseintervals=[0.04 0.04 0.04] debugtrace=no
+~ resettime=0.20 recloseintervals=[0.04 0.04 0.04] debugtrace=no
 
 new monitor.thev element=line.thev mode=32
 

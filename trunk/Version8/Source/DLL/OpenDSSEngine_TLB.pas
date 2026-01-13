@@ -12,7 +12,7 @@ unit OpenDSSengine_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 12/18/25 1:07:14 PM from Type Library described below.
+// File generated on 01/13/26 1:28:35 PM from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\OpenDSS\Version8\Source\DLL\OpenDSSengine (1)
@@ -3208,10 +3208,10 @@ type
     procedure Open; safecall;
     procedure Close; safecall;
     procedure Reset; safecall;
-    function Get_State: ActionCodes; safecall;
-    procedure Set_State(Value: ActionCodes); safecall;
-    function Get_NormalState: ActionCodes; safecall;
-    procedure Set_NormalState(Value: ActionCodes); safecall;
+    function Get_State: OleVariant; safecall;
+    procedure Set_State(Value: OleVariant); safecall;
+    function Get_NormalState: OleVariant; safecall;
+    procedure Set_NormalState(Value: OleVariant); safecall;
     property AllNames: OleVariant read Get_AllNames;
     property Count: Integer read Get_Count;
     property First: Integer read Get_First;
@@ -3222,8 +3222,8 @@ type
     property SwitchedObj: WideString read Get_SwitchedObj write Set_SwitchedObj;
     property SwitchedTerm: Integer read Get_SwitchedTerm write Set_SwitchedTerm;
     property idx: Integer read Get_idx write Set_idx;
-    property State: ActionCodes read Get_State write Set_State;
-    property NormalState: ActionCodes read Get_NormalState write Set_NormalState;
+    property State: OleVariant read Get_State write Set_State;
+    property NormalState: OleVariant read Get_NormalState write Set_NormalState;
   end;
 
 // *********************************************************************//
@@ -3246,8 +3246,8 @@ type
     procedure Open; dispid 211;
     procedure Close; dispid 212;
     procedure Reset; dispid 213;
-    property State: ActionCodes dispid 214;
-    property NormalState: ActionCodes dispid 215;
+    property State: OleVariant dispid 214;
+    property NormalState: OleVariant dispid 215;
   end;
 
 // *********************************************************************//
