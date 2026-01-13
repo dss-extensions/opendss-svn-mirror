@@ -424,7 +424,7 @@ Begin
                           'Note this locking mechanism is different from the relay automatic lockout after specifed Shots.');
      AddProperty('Reset',54, '{Yes/True | No*/False} If Yes, forces Reset of relay to Normal state and removes Lock independently of any internal '+
                           'reset command for mode change, etc.');
-     AddProperty('RatedCurrent',55, 'Controlled conducting element''s continous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.');
+     AddProperty('RatedCurrent',55, 'Controlled conducting element''s continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.');
      AddProperty('InterruptingRating',56, 'Controlled conducting element''s rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.');
 
      // Deprecated properties
