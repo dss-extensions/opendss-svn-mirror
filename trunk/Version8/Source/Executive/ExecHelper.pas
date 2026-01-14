@@ -1859,6 +1859,8 @@ Begin
              DSS_OBJECT :  IF  NOT  ActiveDSSClass[ActiveActor].SetActive(Name)
                            THEN Begin
                                Result := ActiveDSSClass[ActiveActor].NewObject(Name);
+                               if Result = 0 then Exit;
+
                                DSSObjs[ActiveActor].Add(ActiveDSSObject[ActiveActor]);  // Stick in pointer list to keep track of it
                            End;
         ELSE

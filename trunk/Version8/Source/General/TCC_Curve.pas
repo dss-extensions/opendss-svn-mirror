@@ -145,8 +145,19 @@ BEGIN
    // create a new object of this class and add to list
    With ActiveCircuit[ActiveActor] Do
    Begin
-    ActiveDSSObject[ActiveActor] := TTCC_CurveObj.Create(Self, ObjName);
-    Result := AddObjectToList(ActiveDSSObject[ActiveActor]);
+
+    if CompareText(ObjName, 'none') = 0 then
+    Begin
+      Result := 0;
+      DoErrorMsg('TCC_Curve: "' + ObjName + '"',
+                 '"none" is a reserved name that means no curve specified when referenced by circuit elements. A different name must be specified.',
+                 'Error in definition of object.', 423);
+    end
+    else
+    Begin
+      ActiveDSSObject[ActiveActor] := TTCC_CurveObj.Create(Self, ObjName);
+      Result := AddObjectToList(ActiveDSSObject[ActiveActor]);
+    End;
    End;
 END;
 
