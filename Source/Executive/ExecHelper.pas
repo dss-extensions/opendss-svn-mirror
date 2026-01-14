@@ -2010,6 +2010,9 @@ begin
                 if not ActiveDSSClass[ActiveActor].SetActive(Name) then
                 begin
                     Result := ActiveDSSClass[ActiveActor].NewObject(Name);
+                    if Result = 0 then
+                        Exit;
+
                     DSSObjs[ActiveActor].Add(ActiveDSSObject[ActiveActor]);  // Stick in pointer list to keep track of it
                 end;
         else
