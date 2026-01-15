@@ -426,6 +426,10 @@ Begin
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
+     // Override description from inherited normamps and emergamps
+     PropertyHelp^[NumPropsThisClass+1] := '(Read only) Normal rated current. Use normhkVA to specify autotrans normal rating.';
+     PropertyHelp^[NumPropsThisClass+2] := '(Read only) Maximum or emerg current. Use emerghkVA to specify autotrans emergency rating.';
+
 End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
