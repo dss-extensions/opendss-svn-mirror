@@ -235,6 +235,10 @@ void TAutoTrans::DefineProperties()
 	(PropertyHelp)[45 - 1] = "Array of flux values in per-unit. The array is expected to have the number of entries defined by \"BHpoints\". Together with \"BHcurrent\", they form the BH curve of the transformer. Informational only, used for GIC analysis.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
+
+	// Override description from inherited normamps and emergamps
+    PropertyHelp[NumPropsThisClass + 1 - 1] = "(Read only) Normal rated current. Use normhkVA to specify transformer normal rating.";
+    PropertyHelp[NumPropsThisClass + 2 - 1] = "(Read only) Maximum or emerg current. Use emerghkVA to specify transformer emergency rating.";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
