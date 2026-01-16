@@ -81,10 +81,10 @@ void TLineSpacing::DefineProperties()
 	(PropertyHelp)[4 - 1] = "Array of wire Heights.";
 	(PropertyHelp)[5 - 1] = "Units for x and h: {mi|kft|km|m|Ft|in|cm } Initial default is \"ft\", but defaults to last unit defined";
 	(PropertyHelp)[6 - 1] = "{Yes/True | No/False} Default = Yes. Determines whether the spacing uses a detailed cross-section coordinates with x and h arrays (Yes/True), or uses equivalent spacing fields (No/False). The equivalent spacing fields are EqDistPhPh, EqDistPhN, AvgPhaseHeight and AvgNeutralHeight.";
-	(PropertyHelp)[7 - 1] = "Equivalent distance between phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates. ";
-	(PropertyHelp)[8 - 1] = "Equivalent distance between phase and neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
-	(PropertyHelp)[9 - 1] = "Average height of phase conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
-	(PropertyHelp)[10 - 1] = "Average height of neutral conductors. Used for equivalent distance modeling (detailed=yes) as opposed to detailed cross-section coordinates.";
+	(PropertyHelp)[7 - 1] = "Equivalent distance between phase conductors (geometric mean distance). Used for equivalent distance modeling (detailed=no) as opposed to detailed cross-section coordinates. ";
+	(PropertyHelp)[8 - 1] = "Equivalent distance between phase and neutral conductors (geometric mean distance). Used for equivalent distance modeling (detailed=no) as opposed to detailed cross-section coordinates.";
+	(PropertyHelp)[9 - 1] = "Average height of phase conductors. Used for equivalent distance modeling (detailed=no) as opposed to detailed cross-section coordinates.";
+	(PropertyHelp)[10 - 1] = "Average height of neutral conductors. Used for equivalent distance modeling (detailed=no) as opposed to detailed cross-section coordinates.";
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
 }
