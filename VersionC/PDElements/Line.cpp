@@ -180,7 +180,9 @@ void TLine::DefineProperties()
 	PropertyHelp[19 - 1] = "Geometry code for LineGeometry Object. Supercedes any previous definition of line impedance. "
 	           "Line constants are computed for each frequency change or rho change. CAUTION: may alter number of phases. "
 	           "You cannot subsequently change the number of phases unless you change how the line impedance is defined.";
-	PropertyHelp[20 - 1] = "Length Units = {none | mi|kft|km|m|Ft|in|cm } Default is None - assumes length units match impedance units.";
+	PropertyHelp[20 - 1] = "Length Units = {none | mi|kft|km|m|Ft|in|cm } Default is None - assumes length units match impedance units. "
+						"This property is reset to its default value when impedances are specified or edited. Make sure to specify "
+						"desired value after specifying or editing any impedance property.";
 	PropertyHelp[21 - 1] = String("Reference to a LineSpacing for use in a line constants calculation.") + CRLF
 	           + "Must be used in conjunction with the Wires property."
 	           + CRLF
