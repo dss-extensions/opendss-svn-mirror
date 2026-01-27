@@ -21,7 +21,8 @@ type
     Label1: TLabel;
     LicenseText: TRichEdit;
     Image1: TImage;
-    EPRILogo: TImage;
+    Label2: TLabel;
+    Image2: TImage;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
@@ -43,12 +44,7 @@ begin
      Version.Caption := VersionString;
 
      LicenseText.Lines.Clear();
-     LicenseText.Lines.Add('This version is an homage to celebrate the work of the father of');
-     LicenseText.Lines.Add('OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work');
-     LicenseText.Lines.Add('for the electric power industry. This software is a small part of his legacy,');
-     LicenseText.Lines.Add('as well as his countless publications and other contributions to the industry.');
-     LicenseText.Lines.Add('');
-     LicenseText.Lines.Add('Copyright (c) 2008-2025, Electric Power Research Institute, Inc.');
+     LicenseText.Lines.Add('Copyright (c) 2008-2026, Electric Power Research Institute, Inc.');
      LicenseText.Lines.Add('All rights reserved.');
      LicenseText.Lines.Add('');
      LicenseText.Lines.Add('Redistribution and use in source and binary forms, with or without');

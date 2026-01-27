@@ -1,7 +1,7 @@
 unit pyControl;
 {
   ----------------------------------------------------------
-  Copyright (c) 2008-2025, Electric Power Research Institute, Inc.
+  Copyright (c) 2008-2026, Electric Power Research Institute, Inc.
   All rights reserved.
   ----------------------------------------------------------
 }
