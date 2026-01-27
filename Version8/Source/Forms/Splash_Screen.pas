@@ -9,11 +9,12 @@ uses
 
 type
   TSplashScreen = class(TForm)
-    banner: TImage;
     logo: TImage;
     LicenseText: TRichEdit;
     Label1: TLabel;
     Version: TLabel;
+    Panel1: TPanel;
+    Image1: TImage;
 
     procedure FormCreate(Sender: TObject);
   protected
@@ -45,7 +46,7 @@ begin
      Version.Caption := VersionString;
 
      LicenseText.Lines.Clear();
-     LicenseText.Lines.Add('Copyright (c) 2008-2025, Electric Power Research Institute, Inc.');
+     LicenseText.Lines.Add('Copyright (c) 2008-2026, Electric Power Research Institute, Inc.');
      LicenseText.Lines.Add('All rights reserved.');
      LicenseText.Lines.Add('');
      LicenseText.Lines.Add('Redistribution and use in source and binary forms, with or without');
