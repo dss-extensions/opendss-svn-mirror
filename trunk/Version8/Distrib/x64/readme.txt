@@ -1,15 +1,94 @@
 The Open Distribution System Simulator, OpenDSS
 
-Copyright (c) 2008-2024, Electric Power Research Institute, Inc.
+Copyright (c) 2008-2026, Electric Power Research Institute, Inc.
 All rights reserved.
 
-Version 10.1.0.1 - Columbus
+Version 11.0.0.1 - Charlottesville
 
-This version is an homage to celebrate the work of the father of OpenDSS - Roger Dugan, who is retiring in 2024 after 53 years of work for the electric power industry. This software is a small part of his legacy, as well as his countless publications and other contributions to the industry.
+This version of the program is named after the birthplace of Tom McDermott, who, together with Roger Dugan, has been instrumental in developing the core architecture of OpenDSS and advancing the program since its inception.
+
 
 Changes this version
 ====================
-- Provides better sync between actors and manin thread through queues preventing polling.
+
+Protection Elements Enhancements:
+
+- Enhanced Fuses, SwtControls, Reclosers and OC Relay Functions with new properties and improved functionality
+- Added RatedCurrent property to SwtControls, Fuses, Reclosers and Relays (for Relays, these are data points of the associated protected switch or breaker)
+- Added InterruptingRating property for Fuses, Reclosers and Relays (for Relays, these are data points of the associated protected switch or breaker)
+- Added support for unganged operation, single-phase tripping and single-phase lockout for Reclosers and OC Relay Functions
+- Standardized TCC curve behavior - no curves assigned by default ('none' is used as keyword to represent no curve specified. 'none' can also be used to specify non-existing curve setting)
+- Enhanced Recloser and OC Relay Function properties: renamed properties for consistency and to reflect terms more commonly used in the industry, all while maintaining backwards compatibility
+- Added separate pickup currents for fast and slow curves for both phase and ground elements on Reclosers
+- Improved SwtControl to support ungagged operation with single switch object
+- More informative event logging and debug tracing for Reclosers and OC Relay Functions
+
+RegControl Improvements:
+
+- Added fwdThreshold property to RegControl for uneven no-load zone bands
+- Updated revThreshold property description for better clarity on no-load band configuration
+
+BatchEdit Enhancements:
+
+- Added conditionals to BatchEdit command allowing users to focus edits on object subsets within affected classes
+
+Control Element Fixes:
+
+- Fixed StorageController synchronization issue between %kWBandLow and kWBandLow properties
+- Updates to prevent convergence issues on StorageController under very specific edge cases
+- Fixed floating-point precision issue in InvControl volt-var function affecting 64-bit version
+
+CIM Export Updates:
+
+- Fixed CIM export for PV systems and batteries to follow negative sign convention
+- Addressed missing ACLineSegmentPhase instances in low voltage circuits
+- Fixed CIM export issues for LineCode-based lines
+
+COM and DDLL Improvements:
+
+- Added missing properties and methods to DirectDLL to match COM interface. Enhanced Direct DLL DSS Properties interface to better mimic COM interface behavior.
+- Added CktElement.AllLosses property to retrieve complex losses array (total, load, and no-load losses)
+- Updated COM and DDLL interfaces for all protection element changes
+
+Bug Fixes and Stability:
+
+- Fixed bug in parser when Solve command includes option settings with equals signs and spaces
+- Fixed memory mapping bug when working with files of different sizes for pmult/qmult
+- Fixed issue in Overload reports not considering seasonal ratings when enabled
+- Fixed transformer seasonal ratings factor and updated property descriptions
+- Fixed issue rejecting negative values for PCE elements
+- Resolved progress bar synchronization issues and added guardrails for abrupt program termination
+
+Platform and Development:
+
+- Enhanced support for Linux environments including pyControl debugging with xterm
+- Added OpenDSS version checking enhancement for better error handling with internet connection issues
+
+Documentation and Examples:
+
+- Added examples for current and power calculations in DSS
+- Added example for projecting polar data into time-domain for dynamics simulation waveforms
+- Updated documentation to reflect all changes
+- Enhanced property descriptions for clarity and consistency
+
+C++:
+
+- All Delphi changes have been ported to the C++ version including protection elements, RegControl, and BatchEdit enhancements
+- Fixed C++ version issue where program would hang applying long line correction
+
+
+Changes in previous releases
+============================
+
+v 10.2.0.1
+- Fixes sync issues with load allocation routines due to lack of sync with solution actor.
+- Restores A-Diakoptics functionality that was broken in v10.1.0.1.
+- Adds RegControl idle flags (idle, idleReverse, idleForward) for controlling tap position under no-load, forward, and reverse flow conditions.
+- Introduces pyControl object allowing users to model elements in native Python with script integration into simulation.
+- Fixes DLL/COM issues including Y value retrieval, reactor pointer verification, AllowForms assignment, XYCurves, and allocation factors.
+
+v 10.1.0.1
+- Provides better sync between actors and main thread through queues preventing polling.
 - Includes the property SemiConLayer the declare the existence of a semicon layer for CNData/LineGeometry objects.
 - Improves the sync with the progress bar app.
 - Removes over estimation (Size) for IBR working in GFM mode for better exposing the short circuit features of the model.
@@ -18,10 +97,6 @@ v 10.0.0.2
 - Solves a bug found when reporting powers for generators while using NCIM solution mode.
 - Adds interfaces in COM / DLL for directly handling Storage and WindGen objects.
 
-v 10.0.0.1
-- Adds the WindGen object for modeling wind generators in QSTS and dynamics domains.
-- Introduces the NCIM solution method for handling transmission circuits that can be difficult to solve with the other methods already available in OpenDSS.
-- Implements corrections in COM / DLL for recently noticed bugs found around.
 
 The Version 8 was the first to be delivered with parallel processing capabilities in both 32-bit (X86) and 
 64-bit (X64) versions. Version 9 is the latest update. The files are still listed under the 'Version8' folder on Sourceforge.net.

@@ -1,1 +1,1 @@
-myDSSversion=10.2.0.1
+myDSSversion=11.0.0.1
