@@ -40,12 +40,21 @@ Other copies from DSS-Extensions or floating around GitHub do not contain the wh
 
 ## What's different from ...?
 
-- [electricdss-tst](https://github.com/dss-extensions/electricdss-tst) is a filtered, light-weight copy of the test cases. We also add changes, minor fixes, and new test DSS scripts there.
+- [electricdss-tst](https://github.com/dss-extensions/electricdss-tst) is a filtered, light-weight copy of the test cases. We also add changes, minor fixes, and new test DSS scripts there. Since it does include changes, it will remain a separate repository.
 
-- The branch [opendss-official-svn](https://github.com/dss-extensions/dss_capi/tree/opendss-official-svn) on the AltDSS engine/DSS C-API repository is a filtered copy that contains only the relevant Pascal source code, but no binaries.
+- The old branch `opendss-official-svn` on the AltDSS engine/DSS C-API repository is now (since 2026-02-10) hosted here.
 
 ## Where is it?
 
-See the [`svn` branch](https://github.com/dss-extensions/opendss-svn-mirror/tree/svn). We will not make it the default branch to avoid wrong expectations from first impressions.
+See the other branches on the repository.
 
-There might be some other *temporary* branches here as we test things.
+The full ["svn" branch](https://github.com/dss-extensions/opendss-svn-mirror/tree/svn) is the main aspect of this repository. 
+
+### Convenience branches
+
+Besides the ["svn" branch](https://github.com/dss-extensions/opendss-svn-mirror/tree/svn), now marked as the default branch on GitHub, there are filtered and/or reformatted source trees that contain only the relevant Pascal source code, but no binaries or extras:
+
+- [source-only](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only): attempt of full source-only branch
+- [source-only-v8](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only-v8): filtered to the v8+ folders
+- [source-only-v8-fmt](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only-v8-fmt): same as `source-only-v8`, but fully reformatted. Note: the formatter doesn't apply to broken files or constructs invalid to Free Pascal.
+- [source-only-v7](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only-v7): legacy / inactive branch with the old v7 code (single-threaded, non-PM).
