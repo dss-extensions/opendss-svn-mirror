@@ -19,6 +19,18 @@ git checkout svn
 
 This is still a large download (e.g. 830 MB), but more reasonable. The working tree in this example is around 52 MB.
 
+For quick reference, use the following to clone just the OpenDSS-C subfolder:
+
+```shell
+git clone --no-checkout --depth=100 -b svn https://github.com/dss-extensions/opendss-svn-mirror
+cd opendss-svn-mirror
+git sparse-checkout init --cone
+git sparse-checkout set trunk/VersionC
+git checkout svn
+```
+
+If you just want to check some of the source files, please see the Convenience Branches section below.
+
 ---
 
 This is a (nearly) full **unofficial** mirror of the [OpenDSS](https://sourceforge.net/p/electricdss) SVN (Subversion repository), created using [git-svn](https://git-scm.com/docs/git-svn). As such, it preserves all the history of the public OpenDSS SVN repository, [starting on September 2008](https://github.com/dss-extensions/opendss-svn-mirror/tree/53ea452892d510ffbd609aae04ea327e282996fe).
@@ -54,6 +66,7 @@ The full ["svn" branch](https://github.com/dss-extensions/opendss-svn-mirror/tre
 
 Besides the ["svn" branch](https://github.com/dss-extensions/opendss-svn-mirror/tree/svn), now marked as the default branch on GitHub, there are filtered and/or reformatted source trees that contain only the relevant Pascal source code, but no binaries or extras:
 
+- [opendssc](https://github.com/dss-extensions/opendss-svn-mirror/tree/opendssc): filtered to the OpenDSS-C (VersionC) subfolders
 - [source-only](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only): attempt of full source-only branch
 - [source-only-v8](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only-v8): filtered to the v8+ folders
 - [source-only-v8-fmt](https://github.com/dss-extensions/opendss-svn-mirror/tree/source-only-v8-fmt): same as `source-only-v8`, but fully reformatted. Note: the formatter doesn't apply to broken files or constructs invalid to Free Pascal.
