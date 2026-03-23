@@ -687,7 +687,7 @@ String TFuseObj::GetPropertyValue(int Index)
             }
             else
             {
-                result = 'none';
+                result = "none";
             }
             break;
         case 6:

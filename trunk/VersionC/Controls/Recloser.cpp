@@ -1454,7 +1454,7 @@ String TRecloserObj::GetPropertyValue(int Index)
             }
             else
             {
-                result = 'none';
+                result = "none";
             }
         break;		
 		case	7: case	34:
@@ -1464,7 +1464,7 @@ String TRecloserObj::GetPropertyValue(int Index)
             }
             else
             {
-                result = 'none';
+                result = "none";
             }
         break;		
 		case	8: case	35:
@@ -1474,7 +1474,7 @@ String TRecloserObj::GetPropertyValue(int Index)
             }
             else
             {
-                result = 'none';
+                result = "none";
             }
         break;		
 		case	9: case	36:
@@ -1484,7 +1484,7 @@ String TRecloserObj::GetPropertyValue(int Index)
             }
             else
             {
-                result = 'none';
+                result = "none";
             }
         break;		
 		case 	10: case 37:
