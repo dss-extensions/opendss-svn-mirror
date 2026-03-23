@@ -751,19 +751,19 @@ void TXfmrCodeObj::PullFromTransformer(TTransfObj* Obj)
 	}
 	for(stop = NumWindings, i = 1; i <= stop; i++)
 	{
-		WINDING_[i - 1].Connection = Obj->Get_WdgConnection(i - 1);
-		WINDING_[i - 1].kVLL = Obj->Get_BasekVLL(i - 1);
-		WINDING_[i - 1].VBase = Obj->Get_BaseVoltage(i - 1);
-		WINDING_[i - 1].kVA = Obj->Get_WdgkVA(i - 1);
-		WINDING_[i - 1].puTap = Obj->Get_PresentTap(i - 1, ActiveActor - 1);
-		WINDING_[i - 1].Rpu = Obj->Get_WdgResistance(i - 1);
-		WINDING_[i - 1].Rneut = Obj->Get_WdgRneutral(i - 1);
-		WINDING_[i - 1].Xneut = Obj->Get_WdgXneutral(i - 1);
-		WINDING_[i - 1].Y_PPM = Obj->Get_WdgYPPM(i - 1);
-		WINDING_[i - 1].TapIncrement = Obj->Get_TapIncrement(i - 1);
-		WINDING_[i - 1].MinTap = Obj->Get_MinTap(i - 1);
-		WINDING_[i - 1].MaxTap = Obj->Get_MaxTap(i - 1);
-		WINDING_[i - 1].NumTaps = Obj->Get_NumTaps(i - 1);
+		WINDING_[i - 1].Connection = Obj->Get_WdgConnection(i);
+		WINDING_[i - 1].kVLL = Obj->Get_BasekVLL(i);
+		WINDING_[i - 1].VBase = Obj->Get_BaseVoltage(i);
+		WINDING_[i - 1].kVA = Obj->Get_WdgkVA(i);
+		WINDING_[i - 1].puTap = Obj->Get_PresentTap(i, ActiveActor - 1);
+		WINDING_[i - 1].Rpu = Obj->Get_WdgResistance(i);
+		WINDING_[i - 1].Rneut = Obj->Get_WdgRneutral(i);
+		WINDING_[i - 1].Xneut = Obj->Get_WdgXneutral(i);
+		WINDING_[i - 1].Y_PPM = Obj->Get_WdgYPPM(i);
+		WINDING_[i - 1].TapIncrement = Obj->Get_TapIncrement(i);
+		WINDING_[i - 1].MinTap = Obj->Get_MinTap(i);
+		WINDING_[i - 1].MaxTap = Obj->Get_MaxTap(i);
+		WINDING_[i - 1].NumTaps = Obj->Get_NumTaps(i);
 	}
 }
 
