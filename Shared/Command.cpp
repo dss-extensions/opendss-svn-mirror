@@ -28,6 +28,11 @@ AbbrevAllowed(true)
 	}
 }
 
+TCommandList::TCommandList(std::vector<std::string> &Commands, int Commands_maxidx)
+:TCommandList(Commands.data(), Commands_maxidx)
+{
+}
+
 Command::TCommandList::~TCommandList()
 {
 	// inherited::Destroy();

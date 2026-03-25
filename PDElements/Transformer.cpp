@@ -42,8 +42,7 @@ TTransf::TTransf()
 	DefineProperties();
 
      /*Make space for transformer property list*/
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);     /*Allow property list abbreviations*/
 }
 

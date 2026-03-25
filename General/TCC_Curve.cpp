@@ -43,8 +43,7 @@ TTCC_Curve::TTCC_Curve()
 	DSSClassType = DSS_OBJECT;
 	ActiveElement = 0;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

@@ -93,7 +93,7 @@ namespace Gencls
 		Class_Name = "Gencls";
 		DSSClassType = DSSClassType + GENCLS_ELEMENT;
 		DefineProperties();
-		CommandList = TCommandList(Slice((PropertyName), NumProperties), NumProperties);
+		CommandList = TCommandList(PropertyName, NumProperties);
 		CommandList.set_AbbrevAllowed(true);
 
 	}
