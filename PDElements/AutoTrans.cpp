@@ -1479,9 +1479,15 @@ void TAutoTransObj::CalcYPrim(int ActorID)
 	if(Get_YprimInvalid(ActorID,0))
          // Reallocate YPrim if something has invalidated old allocation
 	{
-		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
-		YPrim = std::make_shared<TcMatrix>(Yorder);
+		if(YPrim_Series != nullptr)
+			delete YPrim_Series;
+		if(YPrim_Shunt != nullptr)
+			delete YPrim_Shunt;
+		if(YPrim != nullptr)
+			delete YPrim;
+		YPrim_Series = new TcMatrix(Yorder);
+		YPrim_Shunt = new TcMatrix(Yorder);
+		YPrim = new TcMatrix(Yorder);
 	}
 	else
   /*Same size as last time; just zero out to start over*/
@@ -1497,13 +1503,13 @@ void TAutoTransObj::CalcYPrim(int ActorID)
     // Check for rebuilding Y_Terminal; Only rebuild if freq is different than last time
 	if(FreqMultiplier != Y_Terminal_Freqmult)
 		CalcY_Terminal(FreqMultiplier, ActorID);
-	BuildYPrimComponent(YPrim_Series.get(), Y_Term);
-	BuildYPrimComponent(YPrim_Shunt.get(), Y_Term_NL);
+	BuildYPrimComponent(YPrim_Series, Y_Term);
+	BuildYPrimComponent(YPrim_Shunt, Y_Term_NL);
 
 
     /*Combine the two Yprim components into Yprim*/
-	YPrim->CopyFrom(YPrim_Series.get());
-	YPrim->AddFrom(YPrim_Shunt.get());
+	YPrim->CopyFrom(YPrim_Series);
+	YPrim->AddFrom(YPrim_Shunt);
 
     /*Now Account for Open Conductors*/
     /*For any conductor that is open, zero out row and column*/
