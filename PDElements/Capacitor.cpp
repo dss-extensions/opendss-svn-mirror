@@ -725,9 +725,15 @@ void TCapacitorObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))    // Reallocate YPrim if something has invalidated old allocation
 	{
-		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
-		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-		YPrim = std::make_shared<TcMatrix>(Yorder);
+		if(YPrim_Shunt != nullptr)
+			delete YPrim_Shunt; //YPrim_Shunt->~TcMatrix();
+		YPrim_Shunt = new TcMatrix(Yorder);
+		if(YPrim_Series != nullptr)
+			delete YPrim_Series; //YPrim_Series->~TcMatrix();
+		YPrim_Series = new TcMatrix(Yorder);
+		if(YPrim != nullptr)
+			delete YPrim; //YPrim->~TcMatrix();
+		YPrim = new TcMatrix(Yorder);
 	}
 	else
 	{
@@ -736,9 +742,9 @@ void TCapacitorObj::CalcYPrim(int ActorID)
 		YPrim->Clear();
 	}
 	if(IsShunt)
-		YPrimTemp = YPrim_Shunt.get();
+		YPrimTemp = YPrim_Shunt;
 	else
-		YPrimTemp = YPrim_Series.get();
+		YPrimTemp = YPrim_Series;
 	YprimWork = new TcMatrix(Yorder);
 	for(stop = FNumSteps, i = 1; i <= stop; i++)
 	{
