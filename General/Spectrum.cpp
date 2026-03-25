@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Spectrum.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;

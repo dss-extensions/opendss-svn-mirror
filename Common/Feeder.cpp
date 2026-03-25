@@ -1,6 +1,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Feeder.h"
 
 
@@ -8,7 +9,6 @@
 #include "ParserDel.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Sysutils.h"
 #include "Command.h"
@@ -22,6 +22,8 @@
 
 namespace Feeder
 {
+    using Ucomplex::complex;
+
     TFeederObj* ActiveFeederObj = NULL;
     int NumPropsThisClass = 0;
 

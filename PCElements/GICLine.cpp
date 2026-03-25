@@ -1,13 +1,13 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GICLine.h"
 
 #include "ParserDel.h"
 #include "Circuit.h"
 #include "MyDSSClassDefs.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Command.h"
 
@@ -31,6 +31,7 @@ using namespace Utilities;
 
 namespace GICLine
 {
+using Ucomplex::complex;
 
 TGICLineObj::TGICLineObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TGICLineObj::TGICLineObj(String ClassName) : inherited(ClassName) {}

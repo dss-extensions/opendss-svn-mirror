@@ -2,9 +2,8 @@
 
 #pragma hdrstop
 
-#include "Bus.h"
-
 #include "DSSGlobals.h"
+#include "Bus.h"
 
 namespace Bus
 {

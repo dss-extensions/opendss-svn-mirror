@@ -22,7 +22,7 @@ using namespace Utilities;
 
 namespace ExecOptions
 {
-
+	using Ucomplex::complex;
 	TCommandList* OptionList = nullptr;
 	std::string* ExecOption;
 	std::string* OptionHelp;

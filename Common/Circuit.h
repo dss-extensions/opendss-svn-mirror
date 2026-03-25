@@ -21,6 +21,8 @@
 
 /*$WARN UNIT_PLATFORM OFF*/
 
+#include "Ucomplex.h"
+
 
 #include "System.h"
 #include "Sysutils.h"
@@ -34,7 +36,6 @@
 #include "Bus.h"
 #include "LoadShape.h"
 #include "PriceShape.h"
-#include "Ucomplex.h"
 #include "PointerList.h"
 #include "AutoAdd.h"
 #include "EnergyMeter.h"
@@ -59,6 +60,7 @@
 
 namespace Circuit
 {
+    using Ucomplex::complex;
 
     enum TReductionStrategy {
         rsDefault,

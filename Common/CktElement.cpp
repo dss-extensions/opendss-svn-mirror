@@ -3,10 +3,10 @@
 #pragma hdrstop
 
 
+#include "DSSGlobals.h"
 #include "CktElement.h"
 
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "d2c_structures.h"
 #include <math.h>

@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "EnergyMeter.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Bus.h"
 #include "mathutil.h"
 #include "Ucmatrix.h"
@@ -54,6 +54,7 @@ using namespace Utilities;
 
 namespace EnergyMeter
 {
+using Ucomplex::complex;
 
 TEnergyMeterObj::TEnergyMeterObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass->get_myClass_name()) {}
 TEnergyMeterObj::TEnergyMeterObj(String ClassName) : inherited(ClassName) {}

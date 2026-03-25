@@ -12,6 +12,8 @@
   12-18-2002 RCD Converted Eventlog to in-memory rather than file
 */
 
+#include "DSSGlobals.h"
+
 #include <algorithm>
 //#include "Arraydef.h"
 #include "Capacitor.h"
@@ -20,7 +22,6 @@
 #include "ControlElem.h"
 #include "DSSClass.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "DSSObject.h"
 #include "Dynamics.h"
 #include "EnergyMeter.h"
@@ -45,11 +46,12 @@
 #include <string>
 #include "System.h"
 #include "Sysutils.h"
-#include "Ucomplex.h"
 #include "Ucmatrix.h"
 
 namespace Utilities
 {
+	using Ucomplex::complex;
+
 	enum LineStyle {
 		psSolid,
 		psDash,

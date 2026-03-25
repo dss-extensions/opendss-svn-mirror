@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "CNData.h"
 #include "ParserDel.h"
-#include "DSSGlobals.h"
 #include "DSSClassDefs.h"
 #include "Ucomplex.h"
 #include "Arraydef.h"

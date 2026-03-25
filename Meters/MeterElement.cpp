@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "MeterElement.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 
 
 using namespace std;

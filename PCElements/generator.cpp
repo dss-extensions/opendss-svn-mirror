@@ -2,6 +2,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "generator.h"
 
 #include "ParserDel.h"
@@ -10,7 +11,6 @@
 #include <math.h>
 #include "mathutil.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "ControlElem.h"
 #include "Solution.h"
@@ -44,6 +44,7 @@ using namespace Utilities;
 
 namespace Generator
 {
+using Ucomplex::complex;
 
 	//	Should initialize members on these constructors, that is just good practice
 TGeneratorObj::TGeneratorObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}

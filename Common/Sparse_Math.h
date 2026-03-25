@@ -22,6 +22,7 @@
 
 namespace Sparse_Math
 {
+using Ucomplex::complex;
 
 struct TCmplx_Data;
 class TSparse_Complex;

@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "UPFCControl.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "UPFC.h"
 #include "Ucmatrix.h"

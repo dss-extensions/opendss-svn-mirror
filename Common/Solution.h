@@ -39,6 +39,17 @@
 
 */
 
+#include "Ucomplex.h"
+#ifdef OPENDSSC_KLUSOLVEX
+#ifndef klusparseset_t
+typedef void* klusparseset_t;
+#endif
+#include "KLUSolveX.h"
+#else
+using Ucomplex::complex;
+#include "klusolve.h" // klusparseset_t
+#endif
+
 
 #include "System.h"
 #include "Sysutils.h"
@@ -57,7 +68,6 @@ static inline double operator-(const struct timespec &a, const struct timespec &
 }
 #endif
 
-#include "Ucomplex.h"
 #include "Arraydef.h"
 #include "Command.h"
 #include "Monitor.h"
@@ -75,15 +85,6 @@ static inline double operator-(const struct timespec &a, const struct timespec &
 #include <thread>
 #include <functional>
 
-#ifdef OPENDSSC_KLUSOLVEX
-#ifndef klusparseset_t
-typedef void* klusparseset_t;
-#endif
-#include "KLUSolveX.h"
-#else
-#include "klusolve.h" // klusparseset_t
-#endif
-
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -91,6 +92,7 @@ typedef void* klusparseset_t;
 
 namespace Solution
 {
+    using Ucomplex::complex;
 
     class EControlProblem;
     class ESolveError;

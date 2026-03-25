@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "StorageController.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Storage.h"
 #include "Ucmatrix.h"

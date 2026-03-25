@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "AutoTrans.h"
 
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "XfmrCode.h"
 
@@ -28,6 +28,7 @@ using namespace Utilities;
 
 namespace AutoTrans
 {
+using Ucomplex::complex;
 
 TAutoWinding::TAutoWinding() {}
 TAutoTransObj::TAutoTransObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}

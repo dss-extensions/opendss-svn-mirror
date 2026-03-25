@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ConductorData.h"
 
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;

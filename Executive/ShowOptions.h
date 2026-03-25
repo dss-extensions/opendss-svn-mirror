@@ -1,6 +1,7 @@
 #ifndef ShowOptionsH
 #define ShowOptionsH
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -11,7 +12,6 @@
 #include "ParserDel.h"
 #include "Monitor.h"
 #include "Utilities.h"
-#include "DSSGlobals.h"
 #include "CmdForms.h"
 #include "LineUnits.h"
 

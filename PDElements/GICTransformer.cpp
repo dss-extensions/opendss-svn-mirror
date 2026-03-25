@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GICTransformer.h"
 
 #include "ParserDel.h"
 #include "MyDSSClassDefs.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Dynamics.h"
 #include "Ucomplex.h"
 #include "mathutil.h"
@@ -35,6 +35,7 @@ using namespace Utilities;
 
 namespace GICTransformer
 {
+using Ucomplex::complex;
 
 TGICTransformerObj::TGICTransformerObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TGICTransformerObj::TGICTransformerObj(String ClassName) : inherited(ClassName) {}

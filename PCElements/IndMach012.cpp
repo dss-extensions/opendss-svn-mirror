@@ -1,10 +1,10 @@
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "IndMach012.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Command.h"
 #include "mathutil.h"
@@ -34,6 +34,7 @@ using namespace Utilities;
 
 namespace IndMach012
 {
+using Ucomplex::complex;
 
 TIndMach012Obj::TIndMach012Obj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TIndMach012Obj::TIndMach012Obj(String ClassName) : inherited(ClassName) {}

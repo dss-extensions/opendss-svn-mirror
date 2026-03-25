@@ -2,6 +2,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ExportResults.h"
 
 
@@ -11,7 +12,6 @@
 #include "Sysutils.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Ucmatrix.h"
 #include "Solution.h"
 #include "CktElement.h"
@@ -47,6 +47,8 @@
 
 namespace ExportResults
 {
+    using Ucomplex::complex;
+
     std::vector<double> Registers(67,0);
 
 

@@ -1,8 +1,8 @@
 
 #pragma hdrstop
 
-#include "TSData.h"
 #include "DSSGlobals.h"
+#include "TSData.h"
 
 using namespace std;
 

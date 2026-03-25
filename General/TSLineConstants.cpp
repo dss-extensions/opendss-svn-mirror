@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "TSLineConstants.h"
 
-#include "DSSGlobals.h"
 
 
 using namespace std;
@@ -11,6 +11,7 @@ using namespace std;
 
 namespace TSLineConstants
 {
+using Ucomplex::complex;
 
 TTSLineConstants::TTSLineConstants() {}
 

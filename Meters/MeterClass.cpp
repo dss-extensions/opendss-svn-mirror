@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "MeterClass.h"
 #include "MeterElement.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace CktElementClass;

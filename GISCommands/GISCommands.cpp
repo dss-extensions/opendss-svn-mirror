@@ -8,7 +8,7 @@
 
 namespace GISCommands
 {
-
+    using Ucomplex::complex;
 /*
 TIdTCPClient GISTCPClient;
 TIdThreadComponent GISThreadComponent;

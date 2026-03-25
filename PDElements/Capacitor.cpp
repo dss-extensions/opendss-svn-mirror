@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Capacitor.h"
 
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;
@@ -25,7 +25,7 @@ using namespace Utilities;
 
 namespace Capacitor
 {
-
+using Ucomplex::complex;
 TCapacitorObj::TCapacitorObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TCapacitorObj::TCapacitorObj(String ClassName) : inherited(ClassName) {}
 TCapacitorObj::TCapacitorObj() {}

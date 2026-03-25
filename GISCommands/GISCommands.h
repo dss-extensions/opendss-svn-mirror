@@ -9,11 +9,11 @@
 */
 
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
 #include "Command.h"
-#include "DSSGlobals.h"
 #include "djson.h"
 #include "Line.h"
 #include "Utilities.h"

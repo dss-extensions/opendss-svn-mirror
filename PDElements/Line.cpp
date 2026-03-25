@@ -2,10 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Line.h"
 
 #include "ControlElem.h"
-#include "DSSGlobals.h"
+
 #include "Utilities.h"
 #include "mathutil.h"
 #include "Circuit.h"
@@ -38,6 +39,7 @@ using namespace Utilities;
 namespace Line
 {
 
+using Ucomplex::complex;
 TLineObj::TLineObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TLineObj::TLineObj(String ClassName) : inherited(ClassName) {}
 TLineObj::TLineObj() {}

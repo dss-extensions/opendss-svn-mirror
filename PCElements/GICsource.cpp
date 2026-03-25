@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GICsource.h"
 
 #include "ParserDel.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Command.h"
 #include "Dynamics.h"
@@ -32,6 +32,7 @@ using namespace Utilities;
 
 namespace GICsource
 {
+using Ucomplex::complex;
 
 TGICSourceObj::TGICSourceObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TGICSourceObj::TGICSourceObj(String ClassName) : inherited(ClassName) {}

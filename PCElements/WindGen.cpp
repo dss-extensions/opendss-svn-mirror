@@ -2,10 +2,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "WindGen.h"
 
 #include "Circuit.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "d2c_structures.h"
 
@@ -34,7 +34,7 @@ using namespace Utilities;
 
 namespace WindGen
 {
-
+using Ucomplex::complex;
 TWindGenObj::TWindGenObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TWindGenObj::TWindGenObj(String ClassName) : inherited(ClassName) {}
 TWindGenObj::TWindGenObj() {}

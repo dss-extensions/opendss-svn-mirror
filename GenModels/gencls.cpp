@@ -1,4 +1,5 @@
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -7,7 +8,6 @@
 #include "ControlElem.h"
 #include "CktElement.h"
 #include "DSSClass.h"
-#include "DSSGlobals.h"
 #include "Arraydef.h"
 #include "Ucomplex.h"
 #include "PointerList.h"
@@ -39,6 +39,7 @@ using namespace Utilities;
 
 namespace Gencls
 {
+	using Ucomplex::complex;
 
 	TGenclsObj* ActiveGenclsObj = nullptr;
 	const int NumPropsThisClass = 4;		//	Number of properties in this class

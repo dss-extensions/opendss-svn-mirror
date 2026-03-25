@@ -1,13 +1,13 @@
 #ifndef ExecCommandsH
 #define ExecCommandsH
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
 #include "Command.h"
 #include "d2c_structures.h"
 
-#include "DSSGlobals.h"
 #include "ExecHelper.h"
 #include "Executive.h"
 #include "ExecOptions.h"

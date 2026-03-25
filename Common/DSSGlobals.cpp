@@ -38,6 +38,7 @@
 
 namespace DSSGlobals
 {
+     using Ucomplex::complex;
 
      bool DLLFirstTime;
      TTextRec DLLDebugFile;

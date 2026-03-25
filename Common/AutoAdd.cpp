@@ -1,11 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "AutoAdd.h"
-
 #include "EnergyMeter.h"
 #include "generator.h"
-#include "DSSGlobals.h"
 #include "PDElement.h"
 #include "Utilities.h"
 #include "Executive.h"

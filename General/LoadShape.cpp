@@ -1,6 +1,8 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
+
 #ifndef _WIN32
 //#include <sys/stat.h>
 //#include <fcntl.h>
@@ -11,7 +13,6 @@
 #include "LoadShape.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "mathutil.h"
 #include "Utilities.h"
 //#include "../Common/TOPExport.h"
@@ -36,6 +37,7 @@ using namespace Utilities;
 
 namespace LoadShape
 {
+using Ucomplex::complex;
 
 TLoadShapeObj::TLoadShapeObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass->get_myClass_name()) {}
 TLoadShapeObj::TLoadShapeObj(string ClassName) : inherited(ClassName) {}

@@ -1,10 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GrowthShape.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
+
 #include "Ucomplex.h"
 #include "mathutil.h"
 #include "Utilities.h"

@@ -2,8 +2,8 @@
 
 #pragma hdrstop
 
-#include "YMatrix.h"
 #include "DSSGlobals.h"
+#include "YMatrix.h"
 #include "Circuit.h"
 #include "CktElement.h"
 #include "Utilities.h"
@@ -14,6 +14,7 @@
 
 namespace YMatrix
 {
+    using Ucomplex::complex;
     //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 

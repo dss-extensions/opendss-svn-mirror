@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "VSConverter.h"
 
 #include "Circuit.h"
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace CktElement;
@@ -27,6 +27,7 @@ using namespace Utilities;
 
 namespace VSConverter
 {
+using Ucomplex::complex;
 
 TVSConverterObj::TVSConverterObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TVSConverterObj::TVSConverterObj(String ClassName) : inherited(ClassName) {}

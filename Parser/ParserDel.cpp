@@ -2,8 +2,8 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ParserDel.h"
-
 #include "CmdForms.h"
 
 using namespace std;

@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "PDClass.h"
 
 #include "PDElement.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 

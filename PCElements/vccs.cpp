@@ -2,10 +2,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "vccs.h"
 
 #include "Circuit.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Solution.h"
 
@@ -31,6 +31,7 @@ using namespace Utilities;
 
 namespace VCCS
 {
+using Ucomplex::complex;
 
 TVCCSObj::TVCCSObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TVCCSObj::TVCCSObj(String ClassName) : inherited(ClassName) {}

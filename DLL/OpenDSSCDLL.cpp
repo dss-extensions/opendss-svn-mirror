@@ -3,6 +3,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include <iostream>
 #include "OpenDSSCDLL.h"
 #include <string>
@@ -26,7 +27,6 @@
 #include "CktElement.h"
 #include "CktElementClass.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Bus.h"
 #include "PCClass.h"
 #include "PCElement.h"
@@ -1223,6 +1223,8 @@ char* LinesS(int mode, char* arg)
 //************************Structure type properties*******************************
 void LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	TLineObj* LineElem = nullptr;
 	complex		Ztemp = cmplx(0, 0);
 	double		Factor = 0.0;
@@ -2925,6 +2927,8 @@ char* BUSS(int mode, char* arg)
 //************************Structure type properties*******************************
 void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	int BusReference = 0,
 				k = 0,
 				LoadCount = 0,
@@ -4353,6 +4357,8 @@ char* CircuitS(int mode, char* arg)
 //************************Structure type properties*******************************
 void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	complex LossValue{};
 	TLineObj* pLine = nullptr;
 	complex Loss{};
@@ -4900,8 +4906,10 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the CktElement interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************CktElement Functions************************** 
-void CalcSeqCurrents(TDSSCktElement* pActiveElement, complex* i012) 
+void CalcSeqCurrents(TDSSCktElement* pActiveElement, Ucomplex::complex* i012) 
 {
+	using Ucomplex::complex;
+
 	int			Nvalues = 0,
 				i		= 0, 
 				j		= 0, 
@@ -4966,8 +4974,10 @@ void CalcSeqCurrents(TDSSCktElement* pActiveElement, complex* i012)
 	}
 }
 
-void CalcSeqVoltages(TDSSCktElement* pActiveElement, complex* V012) 
+void CalcSeqVoltages(TDSSCktElement* pActiveElement, Ucomplex::complex* V012) 
 {
+	using Ucomplex::complex;
+
 	int		Nvalues = 0, 
 			i		= 0, 
 			j		= 0, 
@@ -5036,6 +5046,8 @@ bool IsPDElement()
 // ******************************int type properties************************* 
 int CktElementI(int mode, int arg)
 {
+	using Ucomplex::complex;
+
 	int				iControl = 0,
 					result = 0,
 					i = 0,
@@ -5275,6 +5287,8 @@ int CktElementI(int mode, int arg)
 // ******************************floating point type properties************************* 
 double CktElementF(int mode, double arg)
 {
+	using Ucomplex::complex;
+
 	TDSSCktElement* ctrl = nullptr;
 	TPCElement*		pPCElem = nullptr;
 	TPDElement*		pPDElem = nullptr;
@@ -5407,6 +5421,8 @@ double CktElementF(int mode, double arg)
 //******************************String type properties****************************
 char* CktElementS(int mode, char* arg)
 {
+	using Ucomplex::complex;
+
 	TDSSCktElement* ctrl = nullptr;
 	TPCElement*		pPCElem = nullptr;
 	TPDElement*		pPDElem = nullptr;
@@ -5519,6 +5535,8 @@ char* CktElementS(int mode, char* arg)
 //************************Structure type properties*******************************
 void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	TDSSCktElement* ctrl	= nullptr;
 	TPCElement*		pPCElem = nullptr;
 	TPDElement*		pPDElem = nullptr;
@@ -6321,6 +6339,8 @@ double CmathLibF(int mode, double arg1, double arg2)
 //************************Structure type properties*******************************
 void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	complex*	pCmplx = nullptr;
 	polar*		pPolar  = nullptr;
 	double* pDbl = nullptr;
@@ -8326,6 +8346,8 @@ char* LineCodesS(int mode, char* arg)
 //************************Structure type properties*******************************
 void LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	TLineCodeObj* pLineCode = nullptr;
 	int		i = 0, 
 			j = 0, 
@@ -8770,6 +8792,8 @@ char* LoadShapeS(int mode, char* arg)
 //************************Structure type properties*******************************
 void LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	TLoadShapeObj*	elem = nullptr;
 	int				i = 0, 
 					k = 0, 
@@ -17261,6 +17285,8 @@ char* TransformersS(int mode, char* arg)
 //************************Structure type properties*******************************
 void TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
+	using Ucomplex::complex;
+
 	TTransfObj*		elem = nullptr;
 	TPointerList*	lst = nullptr;
 	int				i = 0,
@@ -19110,7 +19136,7 @@ int InitAndGetYparams(uintptr_t* hY, unsignedint* nBus, unsignedint* nNZ)
 
 /* Returns Pointers to column and row and matrix values */
 /* Call InitAndGetYparams first to factor the sparse matrix ... */
-void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, complex** cVals)
+void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, Ucomplex::complex** cVals)
 {
 	// Allocate space on the heap and put the values there
 	ReallocMem(YColumns, sizeof(int) * (nBus + 1));
@@ -19141,7 +19167,7 @@ int SystemYChanged(int mode, int arg)
 	return result;
 }
 
-int SolveSystem(complex** NodeV)
+int SolveSystem(Ucomplex::complex** NodeV)
 {
 	return ActiveCircuit[ActiveActor]->Solution->SolveSystem(*NodeV, ActiveActor);
 }
@@ -19192,12 +19218,12 @@ void ZeroInjCurr(void)
 		ActiveCircuit[ActiveActor]->Solution->ZeroInjCurr(ActiveActor);
 }
 
-void getVpointer(complex** VvectorPtr)
+void getVpointer(Ucomplex::complex** VvectorPtr)
 {
 	*VvectorPtr = ActiveCircuit[ActiveActor]->Solution->NodeV.data();
 }
 
-void getIpointer(complex** IvectorPtr)
+void getIpointer(Ucomplex::complex** IvectorPtr)
 {
 	*IvectorPtr = ActiveCircuit[ActiveActor]->Solution->Currents.data();
 }

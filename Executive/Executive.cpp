@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Executive.h"
 
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Solution.h"
 #include "CmdForms.h"

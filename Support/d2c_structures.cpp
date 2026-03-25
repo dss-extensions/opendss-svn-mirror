@@ -9,6 +9,8 @@
 
 */
 
+#include "DSSGlobals.h"
+
 #include <cstdint> // uint8_t
 #include "d2c_structures.h"
 #include "Sysutils.h"
@@ -18,7 +20,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <cstring>
-#include "DSSGlobals.h"
 
 GUID StringToGuid(const std::string& str)
 {

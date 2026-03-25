@@ -2,8 +2,8 @@
 
 #pragma hdrstop
 
-#include "LineConstants.h"
 #include "DSSGlobals.h"
+#include "LineConstants.h"
 #include "mathutil.h"
 #include <math.h>
 
@@ -18,6 +18,7 @@ using namespace mathutil;
 
 namespace LineConstants
 {
+using Ucomplex::complex;
 
 TLineConstants::TLineConstants() {}
 

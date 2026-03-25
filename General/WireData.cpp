@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "WireData.h"
 
-#include "DSSGlobals.h"
 #include <algorithm>
 
 using namespace std;

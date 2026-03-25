@@ -1,10 +1,10 @@
+#include "DSSGlobals.h"
 #include "ExportCIMXML.h"
 
 #include "Sysutils.h"
 #include "Utilities.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "CktElement.h"
 #include "PDElement.h"
 #include "PCElement.h"
@@ -46,6 +46,10 @@
 
 #include "System.h"
 #include <algorithm>
+
+namespace ExportCIMXML {
+
+using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------
@@ -4634,4 +4638,6 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
     }
 
     delete FD;
+}
+
 }

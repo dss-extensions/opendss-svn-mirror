@@ -1,6 +1,7 @@
 #ifndef ESPVLControlH
 #define ESPVLControlH
 
+#include "Ucomplex.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -10,7 +11,6 @@
 #include "CktElement.h"
 #include "DSSClass.h"
 #include "Arraydef.h"
-#include "Ucomplex.h"
 #include "PointerList.h"
 #include "LoadShape.h"
 #include "d2c_structures.h"
@@ -18,7 +18,7 @@
 
 namespace ESPVLControl
 {
-
+	using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------

@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "Utilities.h"
 #include "CNLineConstants.h"
 #include <math.h>
-#include "Utilities.h"
 
 using namespace std;
 using namespace Arraydef;
@@ -17,6 +17,7 @@ using namespace Utilities;
 
 namespace CNLineConstants
 {
+using Ucomplex::complex;
 
 TCNLineConstants::TCNLineConstants() {}
 

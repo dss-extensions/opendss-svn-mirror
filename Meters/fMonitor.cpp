@@ -1,10 +1,10 @@
 ﻿
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "fMonitor.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "CktTree.h"
 #include "CktElement.h"
@@ -55,6 +55,7 @@ using namespace Utilities;
 
 namespace Fmonitor
 {
+using Ucomplex::complex;
 
 TFMonitorObj::TFMonitorObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TFMonitorObj::TFMonitorObj(String ClassName) : inherited(ClassName) {}

@@ -19,6 +19,8 @@
 
 /*$WARN UNIT_PLATFORM OFF*/
 
+#include "Circuit.h"
+
 #include "System.h"
 #include "DSSClassDefs.h"
 #include "DSSObject.h"
@@ -30,7 +32,6 @@
 #include "Ucomplex.h"
 #include "Arraydef.h"
 #include "CktElement.h"
-#include "Circuit.h"
 #include "IniRegSave.h"
 #include "Solution.h"
 #include "Spectrum.h"
@@ -233,7 +234,7 @@ namespace DSSGlobals
     extern std::vector < int > ActiveEarthModel;
     extern String LastFileCompiled;
     extern bool LastCommandWasCompile;
-    extern complex CALPHA;  /*120-degree shift constant*/
+    extern Ucomplex::complex CALPHA;  /*120-degree shift constant*/
     extern double SQRT2;
     extern double SQRT3;
     extern double InvSQRT3;
@@ -428,7 +429,7 @@ namespace DSSGlobals
 
     extern vector<uint8_t>     myStrArray;
     extern vector<double>   myDblArray;
-    extern vector<complex>  myCmplxArray;
+    extern vector<Ucomplex::complex>  myCmplxArray;
     extern vector<polar>    myPolarArray;
     extern vector<int>      myIntArray;
     extern int		FPropIndex; // for DSSProperties API
@@ -438,7 +439,7 @@ namespace DSSGlobals
     extern unsignedint NumNZ, NumBuses;
     extern int* YColumns;
     extern int* YRows;
-    extern complex* YValues;
+    extern Ucomplex::complex* YValues;
 
 
     void WriteStr2Array(String myStr, bool DelLastSpace = false);

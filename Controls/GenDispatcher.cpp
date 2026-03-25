@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GenDispatcher.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "generator.h"
 #include "Ucmatrix.h"
@@ -33,6 +33,7 @@ using namespace Utilities;
 
 namespace GenDispatcher
 {
+using Ucomplex::complex;
 
 TGenDispatcherObj::TGenDispatcherObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TGenDispatcherObj::TGenDispatcherObj(String ClassName) : inherited(ClassName) {}

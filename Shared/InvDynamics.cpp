@@ -8,6 +8,7 @@ using namespace std;
 
 namespace InvDynamics
 {
+    using Ucomplex::complex;
 
     int NumInvDynVars = 9;
 

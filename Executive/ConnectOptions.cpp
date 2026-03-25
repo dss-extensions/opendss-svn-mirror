@@ -2,9 +2,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ConnectOptions.h"
 //#include "TCP_IP.h"
-#include "DSSGlobals.h"
 #include "ParserDel.h"
 #include "Utilities.h"
 

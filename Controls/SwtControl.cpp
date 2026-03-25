@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "SwtControl.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Utilities.h"
 #include "Solution.h"

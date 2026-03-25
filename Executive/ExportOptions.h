@@ -1,6 +1,7 @@
 #ifndef ExportOptionsH
 #define ExportOptionsH
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -11,7 +12,6 @@
 #include "Monitor.h"
 #include "EnergyMeter.h"
 #include "ParserDel.h"
-#include "DSSGlobals.h"
 #include "ExportCIMXML.h"
 #include "Utilities.h"
 #include "NamedObject.h"

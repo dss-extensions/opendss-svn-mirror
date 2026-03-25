@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Transformer.h"
 
 #include "Circuit.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "XfmrCode.h"
 
@@ -13,6 +13,7 @@ using namespace std;
 
 namespace Transformer
 {
+using Ucomplex::complex;
 
 TTransfObj::TTransfObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TTransfObj::TTransfObj(String ClassName) : inherited(ClassName) {}

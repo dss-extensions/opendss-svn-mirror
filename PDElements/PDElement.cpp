@@ -1,8 +1,8 @@
 
 #pragma hdrstop
 
-#include "PDElement.h"
 #include "DSSGlobals.h"
+#include "PDElement.h"
 #include "XYcurve.h"
 
 using namespace std;
@@ -20,6 +20,7 @@ using namespace XYCurve;
 
 namespace PDELement
 {
+using Ucomplex::complex;
 
 TPDElement::TPDElement(String ClassName) : inherited(ClassName) {}
 TPDElement::TPDElement() {}

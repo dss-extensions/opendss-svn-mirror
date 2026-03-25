@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "XfmrCode.h"
 
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;

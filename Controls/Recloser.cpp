@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Recloser.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Ucmatrix.h"
 #include "mathutil.h"
@@ -32,6 +32,7 @@ using namespace Utilities;
 
 namespace Recloser
 {
+using Ucomplex::complex;
 
 TRecloserObj::TRecloserObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TRecloserObj::TRecloserObj(String ClassName) : inherited(ClassName) {}

@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "TempShape.h"
 
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "TOPExport.h"
 

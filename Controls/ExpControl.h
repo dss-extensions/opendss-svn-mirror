@@ -16,11 +16,13 @@
 #include "PointerList.h"
 #include "d2c_structures.h"
 
+namespace ExportCIMXML {
 class TIEEE1547Controller;
+}
 
 namespace ExpControl
 {
-
+using Ucomplex::complex;
 
 
 /*
@@ -52,7 +54,7 @@ public:
 class TExpControlObj : public ControlElem::TControlElem
 {
 	friend class TExpControl;
-	friend class ::TIEEE1547Controller;	
+	friend class ExportCIMXML::TIEEE1547Controller;
 public:
 	typedef ControlElem::TControlElem inherited;	
 private:

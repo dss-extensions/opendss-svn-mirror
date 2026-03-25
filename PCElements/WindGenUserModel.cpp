@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "WindGenUserModel.h"
 
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace Arraydef;

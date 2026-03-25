@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "StoreUserModel.h"
 
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace Arraydef;
@@ -15,7 +15,7 @@ using namespace Ucomplex;
 
 namespace StoreUserModel
 {
-
+using Ucomplex::complex;
 
 
 /* TStoreUserModel */

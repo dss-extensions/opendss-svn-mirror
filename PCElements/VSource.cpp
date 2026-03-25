@@ -2,10 +2,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "VSource.h"
 
 #include "Circuit.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;
@@ -29,6 +29,7 @@ using namespace Utilities;
 
 namespace VSource
 {
+using Ucomplex::complex;
 
 TVsourceObj::TVsourceObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TVsourceObj::TVsourceObj(String ClassName) : inherited(ClassName) {}

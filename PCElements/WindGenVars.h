@@ -7,7 +7,7 @@
 
 namespace WindGenVars
 {
-
+using Ucomplex::complex;
 
 
 /*

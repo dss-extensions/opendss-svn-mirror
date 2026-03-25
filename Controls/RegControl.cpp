@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "RegControl.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "CktElement.h"
 #include "Ucmatrix.h"
@@ -34,6 +34,7 @@ using namespace Utilities;
 
 namespace RegControl
 {
+using Ucomplex::complex;
 
 TRegControlObj::TRegControlObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TRegControlObj::TRegControlObj(String ClassName) : inherited(ClassName) {}

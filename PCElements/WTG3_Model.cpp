@@ -2,9 +2,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "WTG3_Model.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 namespace WTG3_Model

@@ -3,6 +3,8 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
+
 #include <iostream>
 #include "OpenDSSC.h"
 #include <string>
@@ -26,7 +28,6 @@
 #include "CktElement.h"
 #include "CktElementClass.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Bus.h"
 #include "PCClass.h"
 #include "PCElement.h"

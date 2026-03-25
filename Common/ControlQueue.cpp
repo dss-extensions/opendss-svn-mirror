@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ControlQueue.h"
 
 
 
-#include "DSSGlobals.h"
 #include "Sysutils.h"
 #include "Utilities.h"
 #include "System.h"

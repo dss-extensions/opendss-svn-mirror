@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Diakoptics.h"
 
 #include "Circuit.h"
 #include "Solution.h"
-#include "DSSGlobals.h"
 #include "DSSClassDefs.h"
 #include "EnergyMeter.h"
 #include "SolutionAlgs.h"
@@ -162,7 +162,7 @@ void SendIdx2Actors( )
 
 void Calc_Y4( )
 {
-  complex Value;
+  Ucomplex::complex Value;
   int NumRows = 0, NumCols = 0, col = 0, idx = 0;
   TcMatrix TempMat;
 // 4 Debugging
@@ -226,7 +226,7 @@ void Calc_ZCC( int Links )
   int Row = 0, col = 0, idx3 = 0, idx2 = 0, idx = 0;
   unsigned int NNodes = 0;
   pComplexArray CVector, ZVector;
-  complex Ctemp;
+  Ucomplex::complex Ctemp;
 // 4 Debugging
 //  myFile    : TextFile;
 //  Text      : String;
@@ -238,8 +238,8 @@ void Calc_ZCC( int Links )
       col = NNodes;
       Links--;
       with0->ZCT.sparse_matrix_Cmplx( col, Links * 3 );
-      CVector = new complex[ (col + 1) ];
-      ZVector = new complex[ (col + 1) ];
+      CVector = new Ucomplex::complex[ (col + 1) ];
+      ZVector = new Ucomplex::complex[ (col + 1) ];
       idx3 = Links * 3 - 1;
       for ( int stop = idx3, idx2 = 0; idx2 <= stop; idx2++)
       {
@@ -253,7 +253,7 @@ void Calc_ZCC( int Links )
             CVector[Row] = with0->Contours.CData[idx - 1].Value;
           }
         }
-        SolveSparseSet(with0->Solution->hY,(complex*) &(ZVector[1]), (complex*) (&CVector[1]) );
+        SolveSparseSet(with0->Solution->hY,(Ucomplex::complex*) &(ZVector[1]), (Ucomplex::complex*) (&CVector[1]) );
         for ( int stop = col, idx = 1; idx <= stop; idx++)           // inserts result into the ZCT matrix
         {
           Ctemp = ZVector[idx];

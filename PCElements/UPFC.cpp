@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "UPFC.h"
 
 #include "Circuit.h"
 #include "Utilities.h"
-#include "DSSGlobals.h"
 #include "Solution.h"
 #include "UPFCControl.h"
 
@@ -36,6 +36,7 @@ using namespace Utilities;
 
 namespace UPFC
 {
+using Ucomplex::complex;
 
 TUPFCObj::TUPFCObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TUPFCObj::TUPFCObj(String ClassName) : inherited(ClassName) {}

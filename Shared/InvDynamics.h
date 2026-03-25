@@ -11,6 +11,7 @@
 
 namespace InvDynamics
 {
+    using Ucomplex::complex;
 
     /*Structure for hosting data and solving for each inverter based element*/
     struct TInvDynamicVars 

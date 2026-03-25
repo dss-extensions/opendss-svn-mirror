@@ -2,6 +2,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Storage.h"
 
 #include "ParserDel.h"
@@ -9,7 +10,6 @@
 #include "Command.h"
 #include <math.h>
 #include "mathutil.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 
 using namespace std;
@@ -38,6 +38,7 @@ using namespace Utilities;
 
 namespace Storage
 {
+using Ucomplex::complex;
 
 TStorageObj::TStorageObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TStorageObj::TStorageObj(String ClassName) : inherited(ClassName) {}

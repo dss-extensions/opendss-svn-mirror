@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "XYcurve.h"
 
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 
 using namespace std;
 

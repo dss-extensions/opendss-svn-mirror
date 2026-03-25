@@ -24,7 +24,7 @@
 
 namespace PVSystem
 {
-
+using Ucomplex::complex;
 
 
 /*

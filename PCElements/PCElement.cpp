@@ -1,8 +1,8 @@
 
 #pragma hdrstop
 
-#include "PCElement.h"
 #include "DSSGlobals.h"
+#include "PCElement.h"
 #include "MeterElement.h"
 
 using namespace DynamicExp;

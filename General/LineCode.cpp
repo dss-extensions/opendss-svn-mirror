@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "LineCode.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Ucomplex.h"
 #include "Utilities.h"
 #include "LineUnits.h"
@@ -25,6 +25,7 @@ using namespace Utilities;
 
 namespace LineCode
 {
+using Ucomplex::complex;
 
 TLineCodeObj::TLineCodeObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass->get_myClass_name()) {}
 TLineCodeObj::TLineCodeObj(String ClassName) : inherited(ClassName) {}

@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Fault.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Dynamics.h"
 #include "Ucomplex.h"
 #include "mathutil.h"
@@ -33,6 +33,7 @@ using namespace Utilities;
 
 namespace Fault
 {
+using Ucomplex::complex;
 
 TFaultObj::TFaultObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TFaultObj::TFaultObj(String ClassName) : inherited(ClassName) {}

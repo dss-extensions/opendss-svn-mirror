@@ -2,12 +2,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "CktElementClass.h"
 
 #include "CktElement.h"
 #include "ParserDel.h"
 #include "Utilities.h"
-#include "DSSGlobals.h"
 
 
 /* TCktElementClass */

@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "MemoryMap_lib.h"
 
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace DSSGlobals;

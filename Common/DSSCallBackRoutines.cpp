@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "DSSCallBackRoutines.h"
 
 
 
 #include "ParserDel.h"
-#include "DSSGlobals.h"
 #include "Executive.h"
 #include "Sysutils.h"
 #include "CktElement.h"
@@ -15,15 +15,12 @@
 
 #include "System.h"
 
-
-typedef unsigned int unsignedint;
-
-
-
-
 TDSSCallBacks CallBackRoutines;
 
+namespace DSSCallBackRoutines {
+using Ucomplex::complex;
 
+typedef unsigned int unsignedint;
 
 TParser CallBackParser;
 String CB_ParamName, CB_Param;
@@ -519,12 +516,15 @@ void __stdcall GetResultStrCallBack( char* S, unsignedint maxlen )
   StrLCopy( S, ((AnsiString) GlobalResult ).c_str(), maxlen );
 }
 
+}
+
 /*====================================================================================================================*/
 
 /*Initialize Function Interface variables for user-Written Callbacks*/
 
 void DSSCallBackRoutines_initialization()
 {
+  using namespace DSSCallBackRoutines;
   /*# with CallBackRoutines do */
   {
     auto &with0 = CallBackRoutines;

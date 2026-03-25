@@ -1,9 +1,8 @@
 #pragma hdrstop
 
-#include "CktTree.h"
-
 #include "DSSGlobals.h"
 #include "Circuit.h"
+#include "CktTree.h"
 
 using namespace std;
 

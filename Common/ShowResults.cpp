@@ -1,6 +1,7 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ShowResults.h"
 #include <iostream>
 #include <string>
@@ -14,7 +15,6 @@
 #include "Circuit.h"
 #include "DSSClass.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Ucmatrix.h"
 #include "Solution.h"
 #include "CktElement.h"
@@ -42,7 +42,7 @@
 
 namespace ShowResults
 {
-
+    using Ucomplex::complex;
 
     int MaxBusNameLength = 0;
     int MaxDeviceNameLength = 0;

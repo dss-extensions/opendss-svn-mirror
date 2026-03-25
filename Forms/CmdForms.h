@@ -15,6 +15,7 @@
  ----------------------------------------------------------
 */
 
+#include "DSSGlobals.h"
 
 #include "System.h"
 #include "Sysutils.h"
@@ -24,7 +25,6 @@
 #include "ExecOptions.h"
 #include "ShowOptions.h"
 #include "ExportOptions.h"
-#include "DSSGlobals.h"
 #include "DSSClass.h"
 #include "DSSClassDefs.h"
 #include "ParserDel.h"

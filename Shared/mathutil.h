@@ -10,7 +10,7 @@
 
 namespace mathutil
 {
-
+using Ucomplex::complex;
 
    /*Math utilities*/
 /*

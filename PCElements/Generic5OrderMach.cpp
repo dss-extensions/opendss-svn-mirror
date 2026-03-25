@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Generic5OrderMach.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Command.h"
 #include <math.h>
@@ -37,6 +37,7 @@ using namespace Utilities;
 
 namespace Generic5OrderMach
 {
+using Ucomplex::complex;
 
 TGeneric5Obj::TGeneric5Obj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TGeneric5Obj::TGeneric5Obj(String ClassName) : inherited(ClassName) {}

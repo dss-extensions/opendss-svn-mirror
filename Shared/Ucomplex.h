@@ -1,11 +1,15 @@
 #ifndef UcomplexH
 #define UcomplexH
 
-#include "System.h"
-#include "Sysutils.h"
+// #include "System.h"
+// #include "Sysutils.h"
+#include <string>
 #include <cmath>
 
-using namespace std;
+// using namespace std;
+#ifndef _COMPLEX_DEFINED
+#define _COMPLEX_DEFINED
+#endif
 
 namespace Ucomplex
 {

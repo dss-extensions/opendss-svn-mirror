@@ -27,8 +27,8 @@ struct TDSSCallBacks {
     void (__stdcall *GetActiveElementBusNames)(pUTF8Char Name1, unsignedint Len1, pUTF8Char Name2, unsignedint Len2);
     void (__stdcall *GetActiveElementVoltages)(int& NumVoltages, pComplexArray V);
     void (__stdcall *GetActiveElementCurrents)(int& NumCurrents, pComplexArray Curr, int ActorID);
-    void (__stdcall *GetActiveElementLosses)(complex& TotalLosses, complex& LoadLosses, complex& NoLoadLosses, int ActorID);
-    void (__stdcall *GetActiveElementPower)(int Terminal, complex& TotalPower);
+    void (__stdcall *GetActiveElementLosses)(Ucomplex::complex& TotalLosses, Ucomplex::complex& LoadLosses, Ucomplex::complex& NoLoadLosses, int ActorID);
+    void (__stdcall *GetActiveElementPower)(int Terminal, Ucomplex::complex& TotalPower);
     void (__stdcall *GetActiveElementNumCust)(int& Numcust, int& TotalCust);
     void (__stdcall *GetActiveElementNodeRef)(int Maxsize, pIntegerArray NodeReferenceArray);// calling program must allocate
     int (__stdcall *GetActiveElementBusRef)(int Terminal);

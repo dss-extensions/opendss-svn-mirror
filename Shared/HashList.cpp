@@ -1,8 +1,8 @@
 //#include <vcl.h>
 #pragma hdrstop
 
-#include "HashList.h"
 #include "Utilities.h"
+#include "HashList.h"
 
 using namespace std;
 

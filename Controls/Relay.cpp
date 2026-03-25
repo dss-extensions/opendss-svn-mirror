@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Relay.h"
 
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "PCElement.h"
 #include "Ucmatrix.h"
@@ -34,6 +34,7 @@ using namespace Utilities;
 
 namespace Relay
 {
+using Ucomplex::complex;
 
 TRelayObj::TRelayObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TRelayObj::TRelayObj(String ClassName) : inherited(ClassName) {}

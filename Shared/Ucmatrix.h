@@ -13,7 +13,7 @@ typedef void* klusparseset_t;
 
 namespace Ucmatrix
 {
-
+using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------

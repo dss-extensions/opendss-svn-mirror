@@ -13,7 +13,7 @@
 
 namespace Spectrum
 {
-
+using Ucomplex::complex;
 
  /*
   ----------------------------------------------------------

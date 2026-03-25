@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Equivalent.h"
 
 #include "ParserDel.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Command.h"
 
@@ -30,6 +30,7 @@ using namespace Utilities;
 
 namespace Equivalent
 {
+using Ucomplex::complex;
 
 TEquivalentObj::TEquivalentObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TEquivalentObj::TEquivalentObj(String ClassName) : inherited(ClassName) {}

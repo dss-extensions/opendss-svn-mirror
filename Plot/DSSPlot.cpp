@@ -2,13 +2,13 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "DSSPlot.h"
 
 
 
 #include "DSSGraph.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "generator.h"
 #include "EnergyMeter.h"
@@ -36,6 +36,7 @@
 
 namespace DSSPlot
 {
+    using Ucomplex::complex;
 
     TDSSPlot* DSSPlotObj = NULL;
     int SinglePhLineStyle = 0;

@@ -2,11 +2,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "DSSClass.h"
 
 #include "DSSObject.h"
 #include "CktElement.h"
-#include "DSSGlobals.h"
 
 
 namespace DSSClass

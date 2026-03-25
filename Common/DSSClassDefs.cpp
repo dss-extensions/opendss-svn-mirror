@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "DSSClassDefs.h"
 
-#include "DSSGlobals.h"
 #include "DSSObject.h"
 #include "ParserDel.h"
 #include "MyDSSClassDefs.h"

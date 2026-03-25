@@ -20,7 +20,7 @@ using namespace std;
 
 namespace Genrou
 {
-
+	using Ucomplex::complex;
 	/*
 	  ----------------------------------------------------------
 	  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.

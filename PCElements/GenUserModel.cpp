@@ -1,10 +1,10 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "GenUserModel.h"
 
 #include "generator.h"
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace Arraydef;

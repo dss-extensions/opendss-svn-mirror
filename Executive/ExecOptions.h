@@ -1,6 +1,7 @@
 #ifndef ExecOptionsH
 #define ExecOptionsH
 
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -8,7 +9,6 @@
 #include "d2c_structures.h"
 
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "ParserDel.h"
 #include <math.h>
 #include "Executive.h"

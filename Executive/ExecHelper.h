@@ -1,6 +1,8 @@
 #ifndef ExecHelperH
 #define ExecHelperH
 
+#include "Ucomplex.h"
+#include "DSSGlobals.h"
 #include "System.h"
 #include "Sysutils.h"
 
@@ -10,7 +12,6 @@
 #include "Arraydef.h"
 #include "ParserDel.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Circuit.h"
 #include "Monitor.h"
 #include "DSSClass.h"
@@ -23,7 +24,6 @@
 #include "Load.h"
 #include "PCElement.h"
 #include "CktElement.h"
-#include "Ucomplex.h"
 #include "mathutil.h"
 #include "Bus.h"
 #include "SolutionAlgs.h"
@@ -70,7 +70,7 @@
 
 namespace ExecHelper
 {
-
+using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------

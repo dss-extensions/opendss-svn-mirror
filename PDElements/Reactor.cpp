@@ -1,9 +1,8 @@
 
 #pragma hdrstop
 
-#include "Reactor.h"
-
 #include "DSSGlobals.h"
+#include "Reactor.h"
 #include "Utilities.h"
 
 using namespace std;
@@ -27,6 +26,7 @@ using namespace Utilities;
 
 namespace Reactor
 {
+using Ucomplex::complex;
 
 TReactorObj::TReactorObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TReactorObj::TReactorObj(String ClassName) : inherited(ClassName) {}

@@ -1,9 +1,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "CableData.h"
 #include "ParserDel.h"
-#include "DSSGlobals.h"
 #include "DSSClassDefs.h"
 
 #include "Ucomplex.h"

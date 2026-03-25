@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ControlElem.h"
 
 
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "PointerList.h"
 
 using namespace std;

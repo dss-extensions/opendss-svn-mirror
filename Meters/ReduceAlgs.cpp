@@ -1,11 +1,11 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "ReduceAlgs.h"
 
 #include "Line.h"
 #include "Utilities.h"
-#include "DSSGlobals.h"
 #include "DSSClassDefs.h"
 #include "Load.h"
 #include "Ucomplex.h"
@@ -31,7 +31,7 @@ using namespace Utilities;
 
 namespace ReduceAlgs
 {
-
+using Ucomplex::complex;
 
 const bool SERIESMERGE = true;
 const bool PARALLELMERGE = false;

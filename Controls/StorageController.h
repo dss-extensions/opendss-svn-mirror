@@ -17,7 +17,7 @@
 
 namespace StorageController
 {
-
+using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------

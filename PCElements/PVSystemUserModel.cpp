@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "PVSystemUserModel.h"
 
 #include "Ucomplex.h"
 #include "Arraydef.h"
 #include "PVsystem.h"
-#include "DSSGlobals.h"
 
 using namespace std;
 using namespace Arraydef;

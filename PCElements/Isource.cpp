@@ -1,12 +1,12 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Isource.h"
 
 #include "ParserDel.h"
 #include "Circuit.h"
 #include "DSSClassDefs.h"
-#include "DSSGlobals.h"
 #include "Utilities.h"
 #include "Command.h"
 #include "Dynamics.h"
@@ -32,6 +32,7 @@ using namespace Utilities;
 
 namespace ISource
 {
+using Ucomplex::complex;
 
 TIsourceObj::TIsourceObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TIsourceObj::TIsourceObj(String ClassName) : inherited(ClassName) {}

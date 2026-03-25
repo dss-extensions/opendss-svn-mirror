@@ -24,11 +24,13 @@
 #include "d2c_structures.h"
 #include <queue>
 
+namespace ExportCIMXML {
 class TIEEE1547Controller;
+}
 
 namespace InvControl
 {
-
+using Ucomplex::complex;
 
 /*
   ----------------------------------------------------------
@@ -101,7 +103,7 @@ public:
 class TInvControlObj : public ControlElem::TControlElem
 {
 	friend class TInvControl;
-	friend class ::TIEEE1547Controller;	
+	friend class ExportCIMXML::TIEEE1547Controller;	
 public:
 	typedef ControlElem::TControlElem inherited;	
 private:

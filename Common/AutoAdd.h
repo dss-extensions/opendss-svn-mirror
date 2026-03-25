@@ -37,6 +37,7 @@
 
 namespace AutoAdd
 {
+    using Ucomplex::complex;
 
     class TAutoAdd {
     private:

@@ -2,9 +2,9 @@
 
 #pragma hdrstop
 
+#include "DSSGlobals.h"
 #include "Load.h"
 
-#include "DSSGlobals.h"
 #include <cstdlib> // malloc
 
 
@@ -13,6 +13,7 @@ using namespace std;
 
 namespace Load
 {
+using Ucomplex::complex;
 
 TLoadObj::TLoadObj(DSSClass::TDSSClass* ParClass) : inherited(ParClass) {}
 TLoadObj::TLoadObj(String ClassName) : inherited(ClassName) {}

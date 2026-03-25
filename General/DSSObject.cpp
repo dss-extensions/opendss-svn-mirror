@@ -2,9 +2,9 @@
 #pragma hdrstop
 
 
+#include "Utilities.h"
 #include "DSSObject.h"
 
-#include "Utilities.h"
 
 
 using namespace std;
