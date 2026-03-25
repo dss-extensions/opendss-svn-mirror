@@ -125,7 +125,7 @@ namespace Genrou
 		Class_Name = "Genrou";
 		DSSClassType = DSSClassType + GENROU_ELEMENT;
 		DefineProperties();
-		CommandList = TCommandList(Slice((PropertyName), NumProperties), NumProperties);
+		CommandList = TCommandList(PropertyName, NumProperties);
 		CommandList.set_AbbrevAllowed(true);
 
 	}

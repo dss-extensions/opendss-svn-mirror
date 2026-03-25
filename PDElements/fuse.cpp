@@ -68,8 +68,7 @@ TFuse::TFuse()
 	Class_Name = "Fuse";
 	DSSClassType = DSSClassType + FUSE_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	TCC_CurveClass = (TDSSClass*) GetDSSClassPtr("TCC_Curve");
 	FuseClass = this;

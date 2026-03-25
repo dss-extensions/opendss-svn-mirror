@@ -53,8 +53,7 @@ TESPVLControl::TESPVLControl()
 	Class_Name = "ESPVLControl";
 	DSSClassType = DSSClassType + ESPVL_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	ESPVLControlClass = this;
 }

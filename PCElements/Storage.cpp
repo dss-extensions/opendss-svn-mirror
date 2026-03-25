@@ -134,8 +134,7 @@ TStorage::TStorage()
 	RegisterNames[4] = "Hours";
 	RegisterNames[5] = "Price($)";
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

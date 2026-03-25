@@ -59,8 +59,7 @@ TUPFC::TUPFC()
 	DSSClassType = PC_ELEMENT + UPFC_ELEMENT;  // UPFC  is PC Element
 	ActiveElement = 0;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	UPFC_class = this;
 }

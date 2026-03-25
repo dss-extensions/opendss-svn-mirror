@@ -79,8 +79,7 @@ TDSSFMonitor::TDSSFMonitor()
 	Class_Name = "FMonitor";
 	DSSClassType = DSSClassType + FMON_ELEMENT;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

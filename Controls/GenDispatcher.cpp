@@ -51,8 +51,7 @@ TGenDispatcher::TGenDispatcher()
 	Class_Name = "GenDispatcher";
 	DSSClassType = DSSClassType + GEN_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

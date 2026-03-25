@@ -52,8 +52,7 @@ TUPFCControl::TUPFCControl()
 	Class_Name = "UPFCControl";
 	DSSClassType = DSSClassType + UPFC_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

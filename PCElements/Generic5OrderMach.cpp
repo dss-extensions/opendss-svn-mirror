@@ -79,8 +79,7 @@ TGeneric5::TGeneric5()
 
      // Use the Command processor to manage property names
      // PropertyName is an array of String defined in DefineProperties
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	Generic5Class = this;
 }
