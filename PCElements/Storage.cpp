@@ -4044,7 +4044,7 @@ void TStorageObj::InitStateVars(int ActorID)
 		}
 		DynaModel->FInit(&(Vterminal[0]), &(Iterminal[0]));
 	}
-	else if(fState == STORE_DISCHARGING)
+	else
 	{
 		auto with2			= ActiveCircuit[ActorID]->Solution;
 		auto& with3			= StorageVars;
