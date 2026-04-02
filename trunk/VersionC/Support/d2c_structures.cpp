@@ -242,13 +242,6 @@ int Find(std::vector<int>* myarray, int myvalue)
 	return idx;
 }
 
-
-std::vector<std::string> Slice(const std::vector<std::string>& myArray, int mySlice)
-{
-	mySlice = std::min(myArray.size(), static_cast<std::size_t>(mySlice)); // Ensure there is enough data to slice
-	return std::vector<std::string>(myArray.cbegin(), std::next(myArray.cbegin(), mySlice));
-}
-
 wchar_t* Str2WChar(std::string s)
 {
 	wchar_t* wide_string = new wchar_t[s.length() + 1];

@@ -72,8 +72,7 @@ TRecloser::TRecloser()
 	Class_Name = "Recloser";
 	DSSClassType = DSSClassType + RECLOSER_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	TCC_CurveClass = (TDSSClass*)GetDSSClassPtr("TCC_Curve");
 	RecloserClass = this;

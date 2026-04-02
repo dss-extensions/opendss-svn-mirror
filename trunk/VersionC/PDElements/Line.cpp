@@ -64,8 +64,7 @@ TLine::TLine()
 	LineCodeClass = nullptr;
 	LineGeometryClass = nullptr;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 
