@@ -815,9 +815,15 @@ void TReactorObj::CalcYPrim(int ActorID)
 // Bus1 <> Bus 2
 	if(Get_YprimInvalid(ActorID,0))    // Reallocate YPrim if something has invalidated old allocation
 	{
-		YPrim_Shunt = std::make_shared<TcMatrix>(Yorder);
-		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-		YPrim = std::make_shared<TcMatrix>(Yorder);
+		if(YPrim_Shunt != nullptr)
+			delete YPrim_Shunt;
+		YPrim_Shunt = new TcMatrix(Yorder);
+		if(YPrim_Series != nullptr)
+			delete YPrim_Series;
+		YPrim_Series = new TcMatrix(Yorder);
+		if(YPrim != nullptr)
+			delete YPrim;
+		YPrim = new TcMatrix(Yorder);
 	}
 	else
 	{
@@ -826,9 +832,9 @@ void TReactorObj::CalcYPrim(int ActorID)
 		YPrim->Clear();
 	}
 	if(IsShunt)
-		YPrimTemp = YPrim_Shunt.get();
+		YPrimTemp = YPrim_Shunt;
 	else
-		YPrimTemp = YPrim_Series.get();
+		YPrimTemp = YPrim_Series;
 	/*# with YPrimTemp do */
 	{
 		auto with0 = YPrimTemp;
