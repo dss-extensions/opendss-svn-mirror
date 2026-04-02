@@ -2102,7 +2102,7 @@ void TPVsystemObj::WriteTraceRecord(const String s)
 			int stop = 0;
 			Append(Tracefile);
 			IOResultToException();
-			{ Write(Tracefile, Format("%-.g, %d, %-.g, ", 
+			{ Write(Tracefile, Format("%g, %d, %g, ", 
 			ActiveCircuit[ActiveActor]->Solution->DynaVars.T, ActiveCircuit[ActiveActor]->Solution->Iteration, ActiveCircuit[ActiveActor]->get_FLoadMultiplier())); 
 			Write(Tracefile, GetSolutionModeID()); Write(Tracefile, ", "); Write(Tracefile, GetLoadModel()); Write(Tracefile, ", "); 
 			Write(Tracefile, VoltageModel, 0); Write(Tracefile, ", "); Write(Tracefile, (Qnominalperphase * 3.0 / 1.0e6), 8, 2); 

@@ -1574,7 +1574,7 @@ void TGeneratorObj::WriteTraceRecord(const String s, int ActorID)
 			int stop = 0;
 			Append(Tracefile);
 			IOResultToException();
-			{ Write(Tracefile, Format("%-.g, %d, %-.g, ", 
+			{ Write(Tracefile, Format("%g, %d, %g, ", 
 				ActiveCircuit[ActorID]->Solution->DynaVars.T + ActiveCircuit[ActorID]->Solution->DynaVars.intHour * 3600.0,
 					ActiveCircuit[ActorID]->Solution->Iteration, 
 					ActiveCircuit[ActorID]->get_FLoadMultiplier()));
