@@ -1433,7 +1433,7 @@ void TRelayObj::InterpretRelayType(const String s)
 		Delay_Time = 0.0;
 		break;
 	}
-	Set_PropertyValue(24,Format("%-.g", Delay_Time));
+	Set_PropertyValue(24,Format("%g", Delay_Time));
 }
 /* Generic relays only work on PC Elements With control terminals
 */

@@ -1761,7 +1761,7 @@ namespace ExecOptions
 						AppendGlobalResult("No");
 					break;
 				case 	61:
-					AppendGlobalResult(Format("%-.g", ActiveCircuit[ActiveActor]->PctNormalFactor));
+					AppendGlobalResult(Format("%g", ActiveCircuit[ActiveActor]->PctNormalFactor));
 					break;
 				case 	62:
 					if (EnergyMeterClass[ActiveActor]->Get_DI_Verbose(ActiveActor))
