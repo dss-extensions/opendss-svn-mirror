@@ -60,8 +60,7 @@ TSensor::TSensor()
 	Class_Name = "Sensor";
 	DSSClassType = DSSClassType + SENSOR_ELEMENT;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

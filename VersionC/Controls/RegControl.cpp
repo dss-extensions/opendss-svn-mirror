@@ -58,8 +58,7 @@ TRegControl::TRegControl()
 	Class_Name = "RegControl";
 	DSSClassType = DSSClassType + REG_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 	LastChange.resize(CPU_Cores + 1);
 	for(int stop = CPU_Cores, i = 0; i <= stop; i++)

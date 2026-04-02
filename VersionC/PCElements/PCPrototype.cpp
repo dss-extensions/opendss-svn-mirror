@@ -78,7 +78,7 @@ TPCPrototype::TPCPrototype()
 
      // Use the Command processor to manage property names
      // PropertyName is an array of String defined in DefineProperties
-	CommandList = new TCommandList(SLICE((PropertyName), NumProperties));
+	CommandList = new TCommandList(PropertyName, NumProperties);
 	CommandList->set_AbbrevAllowed(true);
 }
 
