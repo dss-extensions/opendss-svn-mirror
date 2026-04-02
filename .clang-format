@@ -10,3 +10,5 @@ BreakInheritanceList: BeforeColon
 BreakConstructorInitializers: AfterColon
 SpacesInAngles: Never
 #InsertTrailingCommas: Wrapped
+LineEnding: LF
+SortIncludes: false
