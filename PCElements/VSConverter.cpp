@@ -434,8 +434,12 @@ void TVSConverterObj::CalcYPrim(int ActorID)
 // build YPrim_Series non-zero for just the AC phases, and it will be diagonal
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-		YPrim = std::make_shared<TcMatrix>(Yorder);
+		if(YPrim_Series != nullptr)
+			delete YPrim_Series;
+		YPrim_Series = new TcMatrix(Yorder);
+		if(YPrim != nullptr)
+			delete YPrim;
+		YPrim = new TcMatrix(Yorder);
 	}
 	else
 	{
@@ -461,7 +465,7 @@ void TVSConverterObj::CalcYPrim(int ActorID)
 			with0->SetElemsym(i, i + Fnphases, Value2);
 		}
 	}
-	YPrim->CopyFrom(YPrim_Series.get());
+	YPrim->CopyFrom(YPrim_Series);
 	TDSSCktElement::CalcYPrim(ActorID); // may open some conductors
 	Set_YprimInvalid(ActorID,false);
 }

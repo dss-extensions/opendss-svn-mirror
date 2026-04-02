@@ -520,8 +520,12 @@ void TUPFCObj::CalcYPrim(int ActorID)
 	int stop = 0;
 	if(Get_YprimInvalid(ActorID,0))
 	{
-		YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-		YPrim = std::make_shared<TcMatrix>(Yorder);
+		if(YPrim_Series != nullptr)
+			delete YPrim_Series;
+		YPrim_Series = new TcMatrix(Yorder);
+		if(YPrim != nullptr)
+			delete YPrim;
+		YPrim = new TcMatrix(Yorder);
 	}
 	else
 	{
@@ -568,7 +572,7 @@ void TUPFCObj::CalcYPrim(int ActorID)
 			YPrim_Series->SetElement(i + Fnphases, j, cnegate(Value));
 		}
 	}
-	YPrim->CopyFrom(YPrim_Series.get());
+	YPrim->CopyFrom(YPrim_Series);
      
      /*Now Account for Open Conductors*/
      /*For any conductor that is open, zero out row and column*/
