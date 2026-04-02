@@ -2731,7 +2731,8 @@ void TStorageObj::WriteTraceRecord(const String s, int ActorID)
 			int stop = 0;
 			Append(Tracefile);
 			IOResultToException();
-			{ Write(Tracefile, Format("%-.g, %d, %-.g, ", 
+
+			Write(Tracefile, Format("%g, %d, %g, ", 
 				ActiveCircuit[ActorID]->Solution->DynaVars.dblHour, 
 					ActiveCircuit[ActorID]->Solution->Iteration, 
 					ActiveCircuit[ActorID]->get_FLoadMultiplier())); 
@@ -2747,7 +2748,6 @@ void TStorageObj::WriteTraceRecord(const String s, int ActorID)
 			Write(Tracefile, ", "); 
 			Write(Tracefile, s); 
 			Write(Tracefile, ", "); 
-			}
 
 			for(stop = Get_NPhases(), i = 1; i <= stop; i++)
 			{
@@ -2763,7 +2763,7 @@ void TStorageObj::WriteTraceRecord(const String s, int ActorID)
 			}
 			for(stop = NumVariables(), i = 1; i <= stop; i++)
 			{
-				Write(Tracefile, Format("%-.g, ", Get_Variable(i)));
+				Write(Tracefile, Format("%g, ", Get_Variable(i)));
 			}
 
 
