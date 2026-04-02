@@ -116,13 +116,12 @@ namespace CktElement
 
 
         /*Dispose YPrims*/
-      //if ( YPrim_Series != NULL )
-       // delete YPrim_Series; //YPrim_Series->~TcMatrix();
-      //if ( YPrim_Shunt != NULL )
-       // delete YPrim_Shunt; //YPrim_Shunt->~TcMatrix();
-      //if ( YPrim != NULL )
-       // delete YPrim; // YPrim->~TcMatrix();
-      // todo check:  inherited::Destroy;
+      if ( YPrim_Series != NULL )
+        delete YPrim_Series; //YPrim_Series->~TcMatrix();
+      if ( YPrim_Shunt != NULL )
+        delete YPrim_Shunt; //YPrim_Shunt->~TcMatrix();
+      if ( YPrim != NULL )
+        delete YPrim; // YPrim->~TcMatrix();
 
       delete[] IterminalSolutionCount;
     }
@@ -640,11 +639,11 @@ namespace CktElement
     void TDSSCktElement::CalcYPrim( int ActorID )
     {
       if ( YPrim_Series != NULL )
-        DoYprimCalcs( YPrim_Series.get() );
+        DoYprimCalcs( YPrim_Series );
       if ( YPrim_Shunt != NULL )
-        DoYprimCalcs( YPrim_Shunt.get() );
+        DoYprimCalcs( YPrim_Shunt );
       if ( YPrim != NULL )
-        DoYprimCalcs( YPrim.get() );
+        DoYprimCalcs( YPrim );
 
       //Set_YprimInvalid(ActorID, false);
     }

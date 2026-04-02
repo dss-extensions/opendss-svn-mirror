@@ -301,8 +301,12 @@ namespace Feeder
          // Build only YPrim Series
         if (Get_YprimInvalid(ActorID, 0))
         {
-            YPrim_Series = std::make_shared<TcMatrix>(Yorder);
-            YPrim = std::make_shared<TcMatrix>(Yorder);
+            if (YPrim_Series != NULL)
+                delete YPrim_Series; // YPrim_Series->~TcMatrix();
+            YPrim_Series = new TcMatrix(Yorder);
+            if (YPrim != NULL)
+                delete YPrim; // YPrim->~TcMatrix();
+            YPrim = new TcMatrix(Yorder);
         }
         else
         {

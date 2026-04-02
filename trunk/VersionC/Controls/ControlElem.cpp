@@ -205,22 +205,21 @@ void TControlElem::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 void TControlElem::RemoveSelfFromControlelementList(TDSSCktElement* CktElem)
 {
 	TControlElem* Ptr = nullptr;
-	PointerList::TPointerList* TempList = nullptr;
+	PointerList::TPointerList TempList = PointerList::TPointerList(1);
 	int i = 0;
 	/*# with CktElem do */
 	{
 		auto with0 = CktElem;
          // Make a new copy of the control element list
 		int stop = 0;
-		TempList = new PointerList::TPointerList(1);
 		for(stop = with0->ControlElementList.get_myNumList(), i = 1; i <= stop; i++)
 		{
 			Ptr = ((TControlElem*) with0->ControlElementList.Get(i));
 			if(Ptr != this)
-				TempList->Add(Ptr);  // skip Self in copying list
+				TempList.Add(Ptr);  // skip Self in copying list
 		}
 		with0->ControlElementList.Clear();
-		with0->ControlElementList = *TempList;
+		std::swap(with0->ControlElementList, TempList);
 	}
 }
 

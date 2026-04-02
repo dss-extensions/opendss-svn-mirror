@@ -951,7 +951,7 @@ namespace Solution
                                 LdVolt = with0->Solution->NodeV[NodeIdx];
 
                                 if (((TLoadObj*)pElem)->FLoadModel == 2)
-                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, ((TLoadObj*)pElem)->YPrim.get());
+                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, ((TLoadObj*)pElem)->YPrim);
                                 else
                                 {
                                     if (pNodeType[NodeIdx] == PV_Node)
@@ -1005,7 +1005,7 @@ namespace Solution
                                 default:     // Constant impedance
                                 {
                                     LdVolt = with0->Solution->NodeV[NodeIdx];
-                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim.get());
+                                    DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim);
                                 }
                                 break;
                                 }
@@ -1015,7 +1015,7 @@ namespace Solution
                             {
                                 auto  with2 = (TFaultObj*)pElem;
                                 LdVolt = with0->Solution->NodeV[NodeIdx];
-                                DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim.get());
+                                DoZBusNCIM(ActorID, NodeIdx, LdVolt, with2->YPrim);
                             }
                             break;
                             default:
