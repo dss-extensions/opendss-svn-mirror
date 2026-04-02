@@ -68,8 +68,7 @@ TWindGen::TWindGen()
 	RegisterNames[5 - 1] ="Hours";
 	RegisterNames[6 - 1] ="$";
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
     WindGenClass[ActiveActor] = this;
 }

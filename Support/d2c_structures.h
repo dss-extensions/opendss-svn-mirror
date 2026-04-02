@@ -78,7 +78,6 @@ float mean(std::vector < float >* myarray);
 
 //-----------------------------------------------------------------------------------
 
-std::vector<std::string> Slice(const std::vector<std::string>& myArray, int mySlice);
 wchar_t* Str2WChar(std::string s);
 bool ASSIGNED(void* myPtr);
 double sqr(double myNumber);

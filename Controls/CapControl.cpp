@@ -56,8 +56,7 @@ TCapControl::TCapControl()
 	Class_Name = "CapControl";
 	DSSClassType = DSSClassType + CAP_CONTROL;
 	DefineProperties();
-	auto&& slc = Slice(PropertyName, NumProperties);
-	CommandList = TCommandList(slc.data(), NumProperties);
+	CommandList = TCommandList(PropertyName, NumProperties);
 	CommandList.set_AbbrevAllowed(true);
 }
 

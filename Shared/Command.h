@@ -31,6 +31,7 @@ namespace Command
 		int Get_NumCommands();
 	public:
 		TCommandList(std::string* Commands, int Commands_maxidx);
+		TCommandList(std::vector<std::string> &Commands, int Commands_maxidx);
 		virtual ~TCommandList();
 		void AddCommand(std::string cmd);
 		int Getcommand(std::string cmd);
