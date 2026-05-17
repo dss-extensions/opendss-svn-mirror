@@ -1336,7 +1336,7 @@ void TLineGeometryObj::UpdateLineGeometryData(double f)
 			FLineData->Set_X(i, FUnits[i - 1], FX[i - 1]);
 			FLineData->Set_Y(i, FUnits[i - 1], FY[i - 1] + FLineData->Get_FheightOffset() * To_Meters(FLineData->FuserHeightUnit) * From_Meters(FUnits[i - 1]));
 		}
-		FLineData->Set_radius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
+		FLineData->Set_radius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fradius());
 		FLineData->Set_Capradius(i, FWireData[i - 1]->get_FRadiusUnits(), FWireData[i - 1]->get_Fcapradius60());
 		FLineData->Set_GMR(i, FWireData[i - 1]->get_FGMRUnits(), FWireData[i - 1]->get_FGMR60());
 		FLineData->Set_Rdc(i, FWireData[i - 1]->get_FResistanceUnits(), FWireData[i - 1]->get_FRDC());
