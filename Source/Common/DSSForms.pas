@@ -308,6 +308,8 @@ begin
             HelpFormObj.BuildTreeViewList;
         RebuildHelpForm := false;
         HelpFormObj.Show;
+        if HelpFormobj.WindowState = wsMinimized then
+            HelpFormobj.WindowState := wsNormal;
         Exit;
     end;
 
