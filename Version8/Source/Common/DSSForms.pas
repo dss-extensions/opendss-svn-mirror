@@ -277,6 +277,8 @@ Begin
           If RebuildHelpForm then HelpFormObj.BuildTreeViewList;
           RebuildHelpForm := FALSE;
           HelpFormObj.Show;
+          if HelpFormobj.WindowState = wsMinimized then
+            HelpFormobj.WindowState := wsNormal;
           Exit;
      End;
 
