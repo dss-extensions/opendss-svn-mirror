@@ -2317,15 +2317,34 @@ begin
 
 end;
 
+function get_toBusRef(Local_node:TCktTreeNode):Integer;
+// Implements a general case for getting ToBusReference from TreeNode including
+// the case in which the PDE has more than 2 terminals. This prevents us from
+// having to modify more specific functions
+Begin
+  result          := Local_node.ToBusReference;
+  if result < 0 then  // Means it has more than 2 terminals (maybe transformer).
+    result          := Local_node.ToBusReference;
+End;
+
 procedure TEnergyMeterObj.InterpolateCoordinates;
 {Start at the ends of the zone and work toward the start
  interpolating between known coordinates}
 Var
-  i, BusRef,
-  FirstCoordRef, SecondCoordRef,
-  Linecount:integer;
-  PresentNode, StartNode: TCktTreeNode;
-  CktElem:TDSSCktElement;
+  i,
+  k,
+  offset,
+  FirstCoordRef,
+  SecondCoordRef,
+  Linecount       : integer;
+  j,
+  PresentNode,
+  StartNode       : TCktTreeNode;
+  CktElem         : TDSSCktElement;
+  Bfirst,
+  Bsec,
+  Bname           : String;
+  topo            : TCktTree;
 
 begin
   If Not Assigned(BranchList) Then
@@ -2336,56 +2355,152 @@ begin
   With ActiveCircuit[ActiveActor] Do
    Begin
 
-     For i := 1 to Branchlist.ZoneEndsList.NumEnds Do
-     Begin
-       Busref := Branchlist.ZoneEndsList.Get(i, PresentNode);
+     // The idea is to get the references to the buses without BusCoords only instead
+     // of going for all of the zone ends, this may save some time and provide more options
+    topo := GetTopology;
+    For i := 1 to NumBuses Do
+    Begin
+      Bname          := BusList.Get(i);
+      If (Not Buses^[i].CoordDefined) and (i > 1) Then
+      Begin
+        // This case means the bus has no coords and is not the sourcebus
+        // Here we are looking for the branch containing the bus
+        j   := topo.First;
+        while j <> Nil do
+        Begin
+          PresentNode     := topo.PresentBranch;
+          offset          := get_toBusRef(PresentNode);
+          if (offset = i) then
+            break;
+          j   := topo.GoForward;
+        End;
 
-       FirstCoordRef := BusRef;
-       SecondCoordRef :=   FirstCoordRef;  {so compiler won't issue stupid warning}
-       {Find a bus with a coordinate}
-       If Not Buses^[BusRef].CoordDefined Then
-       Begin
+        StartNode       := PresentNode;
+        CktElem         := PresentNode.CktObject;
+
+        LineCount       := 1;
+        // Here the idea is to find a PDE with Coords at both ends
+        offset          := get_toBusRef(PresentNode);
+
+        While Not Buses^[offset].CoordDefined Do
+        Begin
+          PresentNode     := PresentNode.ParentBranch;
+          If PresentNode = Nil Then Break ;
+          offset          := get_toBusRef(PresentNode);
+          inc(LineCount);
+        End;
+
+        if Not (PresentNode = Nil) then
+        Begin
+          SecondCoordRef  := get_toBusRef(PresentNode);
+          // Now check the upper node
           While Not Buses^[PresentNode.FromBusReference].CoordDefined Do
           Begin
-             PresentNode := PresentNode.ParentBranch;
-             If PresentNode=Nil Then Break;
+            PresentNode   := PresentNode.ParentBranch;
+            If PresentNode = Nil Then Break ;
+            inc(LineCount);
           End;
-          If PresentNode<> Nil then  FirstCoordRef := PresentNode.FromBusReference;
-       End;
 
-       While PresentNode <> Nil Do
-       Begin
-          {Back up until we find another Coord defined}
-          LineCount := 0;   {number of line segments in this segment}
-          StartNode := PresentNode;
-          CktElem   := PresentNode.CktObject;
-          If FirstCoordRef <> PresentNode.FromBusReference then
-            Begin   {Handle special case for end branch}
-                If  Buses^[PresentNode.FromBusReference].CoordDefined Then
-                    FirstCoordRef := PresentNode.FromBusReference
-                Else Inc(LineCount);
+          FirstCoordRef   := PresentNode.FromBusReference;
+          // Now we expect both terminals of the PDE found has coords
+          if Not (PresentNode = Nil) then
+            CalcBusCoordinates(StartNode,  FirstCoordRef, SecondCoordRef, LineCount)
+        End;
+      End
+      else
+      Begin
+        If (Not Buses^[i].CoordDefined) Then
+        Begin
+          // In this case, means that the bus is the first one and does not have buscoords, it is special,
+          // since there is nothing upstream this bus. The strategy is to assign coords close to the first bus
+          // with coords in the model for the first bus, if no coords are available, then we assign 0,0 as the reference
+          Buses^[i].x := 0.0;
+          Buses^[i].y := 0.0;
+          Buses^[i].CoordDefined  := True;
+          For k := 2 to NumBuses Do
+          Begin
+
+            if Buses^[k].CoordDefined then
+            Begin
+              Buses^[i].x := Buses^[k].x * (1.00001);
+              Buses^[i].y := Buses^[k].y * (1.00001);
+              break;
             End;
 
-          Repeat
-              CktElem.Checked := True;
-              PresentNode := PresentNode.ParentBranch;
-              If PresentNode=Nil Then Break;
-              CktElem     := PresentNode.CktObject;
-              SecondCoordRef := PresentNode.FromBusReference;
-              Inc(LineCount);
-          Until Buses^[SecondCoordRef].CoordDefined or CktElem.Checked;
+          End;
 
-          If (PresentNode<>Nil) and (LineCount>1) Then
-           IF Buses^[SecondCoordRef].CoordDefined Then
-             Begin
-               CalcBusCoordinates(StartNode,  FirstCoordRef, SecondCoordRef, LineCount);
-             End
-            Else Break; {While - went as far as we could go this way}
+        End;
 
-          FirstCoordRef := SecondCoordRef;
-       End;
+      End;  {else}
 
-     End; {For}
+    End;    {for}
+
+
+//     For i := 1 to Branchlist.ZoneEndsList.NumEnds Do
+//     Begin
+//       Busref         := Branchlist.ZoneEndsList.Get(i, PresentNode);
+//
+//       Bname          := BusList.Get(PresentNode.FromBusReference);
+//       offset         := 0;
+//       FirstCoordRef  := BusRef;
+//       SecondCoordRef :=   FirstCoordRef;  {so compiler won't issue stupid warning}
+//       {Find a bus with a coordinate}
+//       If Not Buses^[BusRef].CoordDefined Then
+//       Begin
+//          ClearNode     := PresentNode;
+//          While Not Buses^[PresentNode.FromBusReference].CoordDefined Do
+//          Begin
+//            PresentNode   := PresentNode.ParentBranch;
+//            CktElem         := PresentNode.CktObject;
+//            If PresentNode = Nil Then
+//              Break
+//            else
+////              offset  := 0;
+//              inc(offset);
+//          End;
+//          If PresentNode<> Nil then  FirstCoordRef := PresentNode.FromBusReference;
+//       End;
+//
+//       While PresentNode <> Nil Do
+//       Begin
+//          {Back up until we find another Coord defined}
+//          LineCount     := offset;   {number of line segments in this segment}
+//          if offset > 0 then
+//            StartNode   := ClearNode
+//          else
+//            StartNode     := PresentNode;
+//          CktElem       := PresentNode.CktObject;
+//          If FirstCoordRef <> PresentNode.FromBusReference then
+//          Begin   {Handle special case for end branch}
+//              If  Buses^[PresentNode.FromBusReference].CoordDefined Then
+//                  FirstCoordRef := PresentNode.FromBusReference
+//              Else Inc(LineCount);
+//          End;
+//
+//          Repeat
+//              CktElem.Checked := True;
+//              PresentNode     := PresentNode.ParentBranch;
+//              If PresentNode=Nil Then Break;
+//              CktElem         := PresentNode.CktObject;
+//              SecondCoordRef  := PresentNode.FromBusReference;
+//              Inc(LineCount);
+//          Until Buses^[SecondCoordRef].CoordDefined or CktElem.Checked;
+//
+//          Bfirst  :=  BusList.Get(FirstCoordRef);
+//          Bsec    :=  BusList.Get(SecondCoordRef);
+//
+//          If (PresentNode<>Nil) and (LineCount>1) Then
+//           IF Buses^[SecondCoordRef].CoordDefined Then
+//             Begin
+//               CalcBusCoordinates(StartNode,  FirstCoordRef, SecondCoordRef, LineCount);
+//             End
+//            Else Break; {While - went as far as we could go this way}
+//
+//          FirstCoordRef := SecondCoordRef;
+//          offset         := 0;
+//       End;
+//
+//     End; {For}
 
   End; {With}
 
@@ -2395,50 +2510,72 @@ procedure TEnergyMeterObj.CalcBusCoordinates(StartBranch:TCktTreeNode;
   FirstCoordRef,  SecondCoordref, LineCount: Integer);
 
 Var
-   X, Y, Xinc, Yinc:Double;
+  bref          : integer;
+  X,
+  Y,
+  Xinc,
+  Yinc,
+  c_max         : Double;
+  temp_b        : TCktTreeNode;
 begin
 
-     If LineCount = 1 then Exit;  {Nothing to do!}
+  If LineCount = 1 then Exit;  {Nothing to do!}
 
-     With ActiveCircuit[ActiveActor] Do
-     Begin
-       Xinc := (Buses^[FirstCoordref].X - Buses^[SecondCoordRef].X) / LineCount;
-       Yinc := (Buses^[FirstCoordref].Y - Buses^[SecondCoordRef].Y) / LineCount;
+  With ActiveCircuit[ActiveActor] Do
+  Begin
+    Xinc := (Buses^[FirstCoordref].X - Buses^[SecondCoordRef].X) / LineCount;
+    Yinc := (Buses^[FirstCoordref].Y - Buses^[SecondCoordRef].Y) / LineCount;
 
-       X := Buses^[FirstCoordref].X;
-       Y := Buses^[FirstCoordref].Y;
+    c_max  := max(abs(Xinc), abs(Yinc));
 
-       {***Debug}
-   (*    If ((X<10.0) and (y<10.0)) or
-          ((Buses^[SecondCoordRef].X<10.0) and (Buses^[SecondCoordRef].Y<10.0)) Then
-       Begin
-          X := y;  // Stopping point
-       End;
-     *)
+    if Xinc = 0 then
+    Xinc  := random(2) * c_max;
+    if Yinc = 0 then
+    Yinc  := random(2) * c_max;
+
+    X := Buses^[SecondCoordRef].X;
+    Y := Buses^[SecondCoordRef].Y;
+
+    {***Debug}
+    (*    If ((X<10.0) and (y<10.0)) or
+      ((Buses^[SecondCoordRef].X<10.0) and (Buses^[SecondCoordRef].Y<10.0)) Then
+    Begin
+      X := y;  // Stopping point
+    End;
+    *)
      
-     {Either start with the "to" end of StartNode or the "from" end;}
-       If FirstCoordRef <> StartBranch.FromBusReference Then
+    {Either start with the "to" end of StartNode or the "from" end;}
+    bref    := get_toBusRef(StartBranch);
+    if bref >= 0 then
+    Begin
+       If FirstCoordRef <> bref Then
        Begin  // Start with "to" end
-          X:= X- Xinc;
-          Y:= Y- Yinc;
-          Buses^[StartBranch.FromBusReference].X := X;
-          Buses^[StartBranch.FromBusReference].Y := Y;
-          Buses^[StartBranch.FromBusReference].CoordDefined := True;
+          X:= X - Xinc;
+          Y:= Y + Yinc;
+          Buses^[bref].X := X;
+          Buses^[bref].Y := Y;
+          Buses^[bref].CoordDefined := True;
           Dec(LineCount);
        End;
 
        While LineCount>1 Do
        Begin
-          X:= X- Xinc;
-          Y:= Y- Yinc;
+          X:= X - Xinc;
+          Y:= Y + Yinc;
           StartBranch := StartBranch.ParentBranch; // back up the tree
-          Buses^[StartBranch.FromBusReference].X := X;
-          Buses^[StartBranch.FromBusReference].Y := Y;
-          Buses^[StartBranch.FromBusReference].CoordDefined := True;
+          bref        := get_toBusRef(StartBranch);
+          if bref >= 0 then
+          Begin
+            Buses^[bref].X := X;
+            Buses^[bref].Y := Y;
+            Buses^[bref].CoordDefined := True;
+          End;
           Dec(LineCount);
        End;
 
-     End;
+    End;  //{if}
+
+  End;    //{with}
 end;
 
 
