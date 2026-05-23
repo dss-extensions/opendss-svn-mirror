@@ -2572,7 +2572,7 @@ function get_toBusRef(Local_node: TCktTreeNode): Integer;
 // having to modify more specific functions
 begin
     result := Local_node.ToBusReference;
-    if result < 0 then  // Means it has more than 2 terminals (maybe transformer).
+    while result < 0 do  // Means it has more than 2 terminals (maybe transformer).
         result := Local_node.ToBusReference;
 end;
 
