@@ -774,9 +774,10 @@ void TSwtControlObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(3,"");  //'action';
 	Set_PropertyValue(4,"n");
 	Set_PropertyValue(5,"120.0");
-	Set_PropertyValue(6,"");
-	Set_PropertyValue(7,"[closed, closed, closed]");
-	Set_PropertyValue(8,"[closed, closed, closed]");
+	Set_PropertyValue(5,"");
+	Set_PropertyValue(6,"[closed, closed, closed]");  // normal
+	Set_PropertyValue(7,"[closed, closed, closed]");  // state
+	Set_PropertyValue(8,"n");
 	Set_PropertyValue(9,"0"); // ratedcurrent
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
