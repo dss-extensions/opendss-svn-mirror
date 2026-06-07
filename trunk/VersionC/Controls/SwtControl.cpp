@@ -456,7 +456,7 @@ void TSwtControlObj::InterpretSwitchState(int ActorID, const String Param, const
     }
     else
     {	
-		if (!AuxParser[ActorID]->IsQuotedString)  // Interpret ganged specification to state and normal when not quoted
+		if (!Parser[ActorID]->IsQuotedString)  // Interpret ganged specification to state and normal when not quoted
         {
 			int stop = 0;
 			for (stop = SWTCONTROLMAXDIM, i = 1; i <= stop; i++)
