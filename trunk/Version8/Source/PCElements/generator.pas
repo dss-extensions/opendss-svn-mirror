@@ -2902,7 +2902,7 @@ begin
   If i<1 Then Exit;  // Someone goofed
   With GenVars Do
     Case i of
-       1: Speed := (Value-w0)*TwoPi;
+       1: Speed := (Value-w0/TwoPi)*TwoPi;
        2: Theta := Value/RadiansToDegrees; // deg to rad
        3: ;// meaningless to set Vd := Value * vbase; // pu to volts
        4: Pshaft := Value;
