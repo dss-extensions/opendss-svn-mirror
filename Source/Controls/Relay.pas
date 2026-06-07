@@ -1330,7 +1330,7 @@ begin
                             begin
                                 OperationCount^[PhIdx] := 1;
                                 if ShowEventLog then
-                                    AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]), ActorID);
+                                    AppendtoEventLog('Relay.' + Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]), ActorID);
                             end;
                         end;
                     end;
@@ -1347,7 +1347,7 @@ begin
                                 begin
                                     OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
                                     if ShowEventLog then
-                                        AppendtoEventLog('Recloser.' + Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
+                                        AppendtoEventLog('Relay.' + Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
                                 end;
                                 Break; // no need to loop at all closed phases
                             end;
@@ -1426,38 +1426,39 @@ begin
             end;
         end
         else // process phase by phase
-
-            AuxParser[ActorID].CmdString := param;  // Load up Parser
-
-        DataStr1 := AuxParser[ActorID].NextParam;  // ignore
-        DataStr2 := AuxParser[ActorID].StrValue;
-
-        i := 1;
-        while (Length(DataStr2) > 0) and (i < RELAYCONTROLMAXDIM) do
         begin
-
-            if (LowerCase(property_name[1]) = 's') then
-            begin  // state
-                case LowerCase(DataStr2)[1] of
-                    'o':
-                        States[i] := CTRL_OPEN;
-                    'c':
-                        States[i] := CTRL_CLOSE;
-                end;
-            end
-            else // 'normal'
-            begin
-                case LowerCase(DataStr2)[1] of
-                    'o':
-                        NormalStates[i] := CTRL_OPEN;
-                    'c':
-                        NormalStates[i] := CTRL_CLOSE;
-                end;
-            end;
+            AuxParser[ActorID].CmdString := param;  // Load up Parser
 
             DataStr1 := AuxParser[ActorID].NextParam;  // ignore
             DataStr2 := AuxParser[ActorID].StrValue;
-            inc(i);
+
+            i := 1;
+            while (Length(DataStr2) > 0) and (i < RELAYCONTROLMAXDIM) do
+            begin
+
+                if (LowerCase(property_name[1]) = 's') then
+                begin  // state
+                    case LowerCase(DataStr2)[1] of
+                        'o':
+                            States[i] := CTRL_OPEN;
+                        'c':
+                            States[i] := CTRL_CLOSE;
+                    end;
+                end
+                else // 'normal'
+                begin
+                    case LowerCase(DataStr2)[1] of
+                        'o':
+                            NormalStates[i] := CTRL_OPEN;
+                        'c':
+                            NormalStates[i] := CTRL_CLOSE;
+                    end;
+                end;
+
+                DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+                DataStr2 := AuxParser[ActorID].StrValue;
+                inc(i);
+            end;
         end;
     end;
 
@@ -1548,8 +1549,8 @@ begin
                 else
                     Result := 'none';
             7, 59:
-                if PhCurve <> nil then
-                    Result := PhCurve.Name
+                if GndCurve <> nil then
+                    Result := GndCurve.Name
                 else
                     Result := 'none';
             8, 64:

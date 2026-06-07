@@ -1090,38 +1090,39 @@ begin
             end;
         end
         else // process phase by phase
-
-            AuxParser[ActorID].CmdString := param;  // Load up Parser
-
-        DataStr1 := AuxParser[ActorID].NextParam;  // ignore
-        DataStr2 := AuxParser[ActorID].StrValue;
-
-        i := 1;
-        while (Length(DataStr2) > 0) and (i < RECLOSERCONTROLMAXDIM) do
         begin
-
-            if (LowerCase(property_name[1]) = 's') then
-            begin  // state
-                case LowerCase(DataStr2)[1] of
-                    'o':
-                        States[i] := CTRL_OPEN;
-                    'c':
-                        States[i] := CTRL_CLOSE;
-                end;
-            end
-            else // 'normal'
-            begin
-                case LowerCase(DataStr2)[1] of
-                    'o':
-                        NormalStates[i] := CTRL_OPEN;
-                    'c':
-                        NormalStates[i] := CTRL_CLOSE;
-                end;
-            end;
+            AuxParser[ActorID].CmdString := param;  // Load up Parser
 
             DataStr1 := AuxParser[ActorID].NextParam;  // ignore
             DataStr2 := AuxParser[ActorID].StrValue;
-            inc(i);
+
+            i := 1;
+            while (Length(DataStr2) > 0) and (i < RECLOSERCONTROLMAXDIM) do
+            begin
+
+                if (LowerCase(property_name[1]) = 's') then
+                begin  // state
+                    case LowerCase(DataStr2)[1] of
+                        'o':
+                            States[i] := CTRL_OPEN;
+                        'c':
+                            States[i] := CTRL_CLOSE;
+                    end;
+                end
+                else // 'normal'
+                begin
+                    case LowerCase(DataStr2)[1] of
+                        'o':
+                            NormalStates[i] := CTRL_OPEN;
+                        'c':
+                            NormalStates[i] := CTRL_CLOSE;
+                    end;
+                end;
+
+                DataStr1 := AuxParser[ActorID].NextParam;  // ignore
+                DataStr2 := AuxParser[ActorID].StrValue;
+                inc(i);
+            end;
         end;
     end;
 
