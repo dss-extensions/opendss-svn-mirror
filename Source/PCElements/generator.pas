@@ -3257,7 +3257,7 @@ begin
     with GenVars do
         case i of
             1:
-                Speed := (Value - w0) * TwoPi;
+                Speed := (Value - w0 / TwoPi) * TwoPi;
             2:
                 Theta := Value / RadiansToDegrees; // deg to rad
             3: ;// meaningless to set Vd := Value * vbase; // pu to volts
