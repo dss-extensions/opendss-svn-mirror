@@ -1193,7 +1193,7 @@ begin
                                     IF Not ArmedForOpen^[PhIdx] THEN // Don't reset if we just rearmed
                                     Begin
                                       OperationCount^[PhIdx] := 1;
-                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]),ActorID);
+                                      if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d reset (1ph reset)', [PhIdx]),ActorID);
                                     End;
                                   End;
                               END;
@@ -1209,7 +1209,7 @@ begin
                                     IF Not ArmedForOpen^[PhIdx] THEN
                                     Begin
                                       OperationCount^[PhIdx] := 1;       // Don't reset if we just rearmed
-                                      if ShowEventLog then AppendtoEventLog('Recloser.'+Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
+                                      if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, 'Phase ALL reset (3ph reset)', ActorID);
                                     End;
                                     Break; // no need to loop at all closed phases
                                   End;
@@ -1276,7 +1276,7 @@ Begin
         End;
       End
       Else // process phase by phase
-
+      Begin
         AuxParser[ActorID].CmdString := param;  // Load up Parser
 
         DataStr1 := AuxParser[ActorID].NextParam;  // ignore
@@ -1303,6 +1303,7 @@ Begin
           DataStr2 := AuxParser[ActorID].StrValue;
           inc(i);
         end;
+      End;
     End;
 
 End;
@@ -1377,7 +1378,7 @@ begin
     With ParentClass Do
       CASE Index of
         6, 63: if PhCurve <> nil then Result := PhCurve.Name else Result := 'none';
-        7, 59: if PhCurve <> nil then Result := PhCurve.Name else Result := 'none';
+        7, 59: if GndCurve <> nil then Result := GndCurve.Name else Result := 'none';
         8, 64: Result   := Format('%.3f',[PhPickup]);
         9, 60: Result   := Format('%.3f',[GndPickup]);
         10, 65: Result  := Format('%.3f',[PhInst]);

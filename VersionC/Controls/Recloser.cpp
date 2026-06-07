@@ -995,7 +995,7 @@ void TRecloserObj::InterpretRecloserState(int ActorID, const String param, const
     }
     else
     {
-        if (!AuxParser[ActorID]->IsQuotedString) // Interpret ganged specification to state and normal when not quoted
+        if (!Parser[ActorID]->IsQuotedString) // Interpret ganged specification to state and normal when not quoted
         {
             int stop = 0;
             for (stop = RECLOSERCONTROLMAXDIM, i = 1; i <= stop; i++)

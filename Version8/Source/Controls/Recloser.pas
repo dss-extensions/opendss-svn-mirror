@@ -982,7 +982,7 @@ Begin
         End;
       End
       Else // process phase by phase
-
+      Begin
         AuxParser[ActorID].CmdString := param;  // Load up Parser
 
         DataStr1 := AuxParser[ActorID].NextParam;  // ignore
@@ -1009,6 +1009,7 @@ Begin
           DataStr2 := AuxParser[ActorID].StrValue;
           inc(i);
         end;
+      End;
     End;
 
 End;
