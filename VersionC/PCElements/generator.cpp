@@ -3491,7 +3491,7 @@ void TGeneratorObj::Set_Variable(int i, double Value)
 		switch(i)
 		{
 			case 	1:
-			with0.Speed = (Value - with0.w0) * TwoPi;
+			with0.Speed = (Value - with0.w0/TwoPi) * TwoPi;
 			break;
 			case 	2:
 			with0.Theta = Value / RadiansToDegrees;
