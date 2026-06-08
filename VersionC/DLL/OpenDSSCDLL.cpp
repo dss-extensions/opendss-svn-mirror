@@ -13169,6 +13169,7 @@ int RelaysI(int mode, int arg)
 	TRelayObj*	elem = nullptr;
 	TRelayObj*	pRelay = nullptr;
 	int			result = 0;
+	int			i = 0;
 
 	switch (mode)
 	{
@@ -13194,7 +13195,7 @@ int RelaysI(int mode, int arg)
 					}
 					else
 						pElem = (TRelayObj*)RelayClass->ElementList.Get_Next();
-				} while (!(result == 1 || elem == nullptr));
+				} while (!(result == 1 || pElem == nullptr));
 			}
 		}
 		break;
@@ -13214,7 +13215,7 @@ int RelaysI(int mode, int arg)
 					}
 					else
 						pElem = (TRelayObj*)RelayClass->ElementList.Get_Next();
-				} while (!(result > 0 || elem == nullptr));
+				} while (!(result > 0 || pElem == nullptr));
 			}
 		}
 		break;
@@ -13267,14 +13268,20 @@ int RelaysI(int mode, int arg)
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			elem->set_State(CTRL_OPEN);
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				elem->set_States(i, CTRL_OPEN); // Open all phases
+			}
 		}
 		break;
 	case 10:												// Relays.Close
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
 		if (elem != nullptr)
 		{
-			elem->set_State(CTRL_CLOSE);
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				elem->set_States(i, CTRL_CLOSE); // Close all phases
+			}
 		}
 		break;
 	case 11:												// Relays.Reset
@@ -13336,63 +13343,11 @@ char* RelaysS(int mode, char* arg)
 			result = elem->ElementName;
 		}
 		break;
-	case 5:													// Relays.SwitchedObj write 
+	case 5:													// Relays.SwitchedObj write
 		elem = (TRelayObj*)RelayClass->GetActiveObj();
 		if (elem != nullptr)
 		{
 			Set_ParameterRelay("SwitchedObj", (string)arg);
-		}
-		break;
-	case 6:													// Relays.State read 
-		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem->get_State() == CTRL_CLOSE)
-		{
-			result = "closed";
-		}
-		else
-		{
-			result = "open";
-		}
-		break;
-	case 7:													// Relays.State write 
-		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			if (LowerCase((string)arg)[0] == 'c')
-			{
-				elem->set_State(CTRL_CLOSE);
-			}
-			else
-			{
-				elem->set_State(CTRL_OPEN);
-			}
-		}
-		else
-			result = "open";
-		break;
-	case 8:													// Relays.NormalState read 
-		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem->get_NormalState() == CTRL_CLOSE)
-		{
-			result = "closed";
-		}
-		else
-		{
-			result = "open";
-		}
-		break;
-	case 9:													// Relays.NormalState write 
-		elem = (TRelayObj*)RelayClass->GetActiveObj();
-		if (elem != nullptr)
-		{
-			if (LowerCase((string)arg)[0] == 'c')
-			{
-				elem->set_NormalState(CTRL_CLOSE);
-			}
-			else
-			{
-				elem->set_NormalState(CTRL_OPEN);
-			}
 		}
 		break;
 	default:
@@ -13409,6 +13364,8 @@ void RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	TRelayObj*		elem = nullptr;
 	TPointerList*	pList = nullptr;
 	int k = 0;
+	int i = 0;
+	string S = "";
 	switch (mode)
 	{
 	case 0:													// Relays.AllNames
@@ -13435,6 +13392,124 @@ void RelaysV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		*mySize = myStrArray.size();
 		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		break;
+	case 1:													// Relays.State read
+		*myType = 4; //string
+		myStrArray.resize(0);
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+			elem = (TRelayObj*)RelayClass->GetActiveObj();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_States(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				}
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 2:													// Relays.State write
+		*myType = 4; //string
+		k = 0;
+		elem = (TRelayObj*)RelayClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+					switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_States(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_States(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
+		break;
+	case 3:													// Relays.NormalState read
+		*myType = 4; //string
+		myStrArray.resize(0);
+		if (ActiveCircuit[ActiveActor] != nullptr)
+		{
+			elem = (TRelayObj*)RelayClass->GetActiveObj();
+			if (elem != nullptr)
+			{
+				for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+				{
+					if (elem->get_NormalStates(i) == CTRL_CLOSE)
+					{
+						WriteStr2Array("closed");
+					}
+					else
+					{
+						WriteStr2Array("open");
+					}
+					WriteStr2Array(Char0());
+				}
+			}
+		}
+		if (myStrArray.size() == 0)
+		{
+			WriteStr2Array("None");
+			WriteStr2Array(Char0());
+		}
+		*myPtr = (uintptr_t)(void*)&(myStrArray[0]);
+		*mySize = myStrArray.size();
+		break;
+	case 4:													// Relays.NormalState write
+		*myType = 4; //string
+		k = 0;
+		elem = (TRelayObj*)RelayClass->GetActiveObj();
+		if (elem != nullptr)
+		{
+			for (i = 1; i <= elem->FControlledElement->Fnphases; i++)
+			{
+				S = BArray2Str(myPtr, &k);
+				if (S.empty())
+				{
+					break;
+				}
+				else
+				{
+					switch (LowerCase(S)[0])
+					{
+					case 'o':
+						elem->set_NormalStates(i, CTRL_OPEN);
+						break;
+					case 'c':
+						elem->set_NormalStates(i, CTRL_CLOSE);
+						break;
+					}
+				}
+			}
+		}
+		*mySize = k;
 		break;
 	default:
 		*myType = 4; //string
