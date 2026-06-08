@@ -1126,7 +1126,7 @@ void TRecloserObj::sample(int ActorID)
         }
     }
 
-	if (DebugTrace) AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("FPresentState: %s ", this->GetPropertyValue(24)), ActorID);
+	if (DebugTrace) AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("FPresentState: %s ", this->GetPropertyValue(24).c_str()), ActorID);
 
 	for (stop = min(RECLOSERCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = stop; i >= 1; i--)
     {
