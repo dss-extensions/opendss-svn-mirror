@@ -1153,6 +1153,8 @@ namespace ShowResults
                                 S = cmulreal(S, 3.0);
                             if (Opt == 1)
                                 S = cmulreal(S, 0.001);
+                            if (S.re == 0.0) S.re = 0.0;  // suppress negative zero in display (match Delphi Format)
+                            if (S.im == 0.0) S.im = 0.0;
                             caccum(Saccum, S);
                             System::Write(F, UpperCase(FromBus)); 
                             System::Write(F, "  "); 
@@ -1211,6 +1213,8 @@ namespace ShowResults
                                 S = cmulreal(S, 3.0);
                             if (Opt == 1)
                                 S = cmulreal(S, 0.001);
+                            if (S.re == 0.0) S.re = 0.0;  // suppress negative zero in display (match Delphi Format)
+                            if (S.im == 0.0) S.im = 0.0;
                             caccum(Saccum, S);
                             System::Write(F, UpperCase(FromBus));
                             System::Write(F, "  ");
