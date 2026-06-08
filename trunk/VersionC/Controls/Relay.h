@@ -70,11 +70,15 @@ namespace Relay
 
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+const int RELAYCONTROLMAXDIM = 6;
+typedef EControlAction StateArray[6 /*# range 1..RELAYCONTROLMAXDIM*/];
+typedef StateArray* pStateArray; // 0 = open 1 = close
+
 class TRelay : public ControlClass::TControlClass
 {
 	friend class TRelayObj;
 public:
-	typedef ControlClass::TControlClass inherited;	
+	typedef ControlClass::TControlClass inherited;
 private:
 	DSSClass::TDSSClass* TCC_CurveClass;
 protected:
@@ -94,26 +98,28 @@ class TRelayObj : public ControlElem::TControlElem
 {
 	friend class TRelay;
 public:
-	typedef ControlElem::TControlElem inherited;	
+	typedef ControlElem::TControlElem inherited;
 //private:
 	int ControlType;
 
 
             /*OverCurrent Relay*/
-	TCC_Curve::TTCC_CurveObj* PhaseCurve;
-	TCC_Curve::TTCC_CurveObj* GroundCurve;
-	double PhaseTrip;
-	double GroundTrip;
-	double PhaseInst;
-	double GroundInst;
+	TCC_Curve::TTCC_CurveObj* PhCurve;
+	TCC_Curve::TTCC_CurveObj* GndCurve;
+	double PhPickup;
+	double GndPickup;
+	double PhInst;
+	double GndInst;
 	Arraydef::pDoubleArray RecloseIntervals;
 	int NumReclose;
 	double ResetTime;
-	double Delay_Time;
-	double Breaker_time;
-	double TDPhase;
-	double TDGround;
-	String RelayTarget;
+	double DefiniteTimeDelay;
+	double MechanicalDelay;
+	double TDPh;
+	double TDGnd;
+
+	pStringArray RelayTarget;
+	int IdxMultiPh; // Index used for accessing arrays for multi-phase, ganged operation
 
 
             /*over/Under Voltage Relay*/                 // Curves assumed in per unit of base voltage
@@ -154,7 +160,7 @@ public:
 	Ucomplex::pComplexArray td21_Uref; // reference (pre-fault) voltages
 	Ucomplex::pComplexArray td21_dV; // incremental voltages
 	Ucomplex::pComplexArray td21_dI; // incremental currents
-	   
+
 	/*Directional Overcurrent Relay*/
 	double DOC_TiltAngleLow;  // Tilt angle for low-current trip line
 	double DOC_TiltAngleHigh;  // Tilt angle for high-current trip line
@@ -166,21 +172,29 @@ public:
 	double DOC_TDPhaseInner; // Time Dial for DOC_PhaseTripInner
 	bool DOC_P1Blocking; // Block trip if there is no net balanced reverse active power
 
-	TTCC_CurveObj* DOC_PhaseCurveInner;  // TCC Curve for tripping in inner zone of the DOC characteristic
+	TCC_Curve::TTCC_CurveObj* DOC_PhaseCurveInner;  // TCC Curve for tripping in inner zone of the DOC characteristic
 
             /*Generic Relay*/
 	double OverTrip;
 	double UnderTrip;
-	EControlAction FPresentState;
-	EControlAction FNormalState;
-	int OperationCount;
-	bool LockedOut;
-	bool ArmedForClose;
-	bool ArmedForOpen;
-	bool ArmedForReset;
-	bool PhaseTarget;
+
+	pStateArray FPresentState;
+	pStateArray FNormalState;
+
+	pIntegerArray OperationCount;
+
+	BooleanArray LockedOut;
+	BooleanArray ArmedForClose;
+	BooleanArray ArmedForOpen;
+	BooleanArray ArmedForReset;
+	BooleanArray PhaseTarget;
+
 	bool GroundTarget;
 	bool NormalStateSet;
+	bool SinglePhTrip;
+	bool SinglePhLockout;
+	bool FLocked;
+
 	double NextTriptime;
 	int LastEventHandle;
 	int CondOffset; // Offset for monitored terminal
@@ -188,10 +202,11 @@ public:
 	Ucomplex::pComplexArray cvBuffer; // for distance and td21 voltages, using cBuffer for hte currents
 	bool DebugTrace;
 	void InterpretRelayState(int ActorID, const String Action, const String property_name);
-	EControlAction get_State();
-	void set_State(const EControlAction Value);
-	EControlAction get_NormalState();
-	void set_NormalState(const EControlAction Value);
+	EControlAction get_States(int Idx);
+	void set_States(int Idx, const EControlAction Value);
+	EControlAction get_NormalStates(int Idx);
+	void set_NormalStates(int Idx, const EControlAction Value);
+	void set_Flocked(bool Value);
 	void InterpretRelayType(const String s);
 	void OvercurrentLogic(int ActorID);
 	void VoltageLogic(int ActorID);
@@ -207,6 +222,8 @@ public:
 public:
 	String MonitoredElementName;
 	int MonitoredElementTerminal;
+	double RatedCurrent;
+	double InterruptingRating;
 	TRelayObj(DSSClass::TDSSClass* ParClass, const String RelayName);
 	virtual ~TRelayObj();
 	virtual void MakePosSequence(int ActorID);  // Make a positive Sequence Model
@@ -220,6 +237,9 @@ public:
 	virtual String GetPropertyValue(int Index);
 	virtual void InitPropertyValues(int ArrayOffset);
 	virtual void DumpProperties(System::TTextRec& f, bool Complete);
+
+	bool get_FLocked();
+
 	TRelayObj(DSSClass::TDSSClass* ParClass);
 	TRelayObj(String ClassName);
 	TRelayObj();
@@ -237,8 +257,3 @@ using namespace Relay;
 #endif
 
 #endif // RelayH
-
-
-
-
-
