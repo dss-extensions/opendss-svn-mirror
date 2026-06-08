@@ -803,9 +803,9 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 						if(OperationCount[PhIdx - 1] > NumReclose)
 						{
 							LockedOut[PhIdx - 1] = true;
-							if (SinglePhLockout and ShowEventLog) 
+							if (SinglePhLockout) 
 							{
-								AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (1ph lockout)", PhIdx, RecloserTarget[PhIdx - 1]), ActorID);
+								if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (1ph lockout)", PhIdx, RecloserTarget[PhIdx - 1]), ActorID);
 							}
 							else
 							{
