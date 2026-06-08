@@ -876,8 +876,11 @@ begin
                                 if OperationCount^[PhIdx] > NumReclose then
                                 begin
                                     LockedOut^[PhIdx] := true;
-                                    if SinglePhLockout and ShowEventLog then
-                                        AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RecloserTarget^[PhIdx]]), ActorID)
+                                    if SinglePhLockout then
+                                    begin
+                                        if ShowEventLog then
+                                            AppendtoEventLog('Recloser.' + Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RecloserTarget^[PhIdx]]), ActorID);
+                                    end
                                     else
                                     begin
                                         if ShowEventLog then
