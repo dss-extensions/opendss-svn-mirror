@@ -40,7 +40,7 @@ TRecloserObj::TRecloserObj() {}
 
 TRecloserObj* ActiveRecloserObj = nullptr;
 TRecloser* RecloserClass = nullptr;
-const int NumPropsThisClass = 42;
+const int NumPropsThisClass = 46;
 const int Current = 0;  /*Default*/
 const int VOLTAGE = 1;
 const int REVPOWER = 3;
@@ -138,6 +138,10 @@ void TRecloser::DefineProperties()
     PropertyName[40 - 1] = "GndSlowPickup";
     PropertyName[41 - 1] = "TDPhDelayed";
     PropertyName[42 - 1] = "TDGrDelayed";
+    PropertyName[43 - 1] = "Delay";
+    PropertyName[44 - 1] = "PhaseInst";
+    PropertyName[45 - 1] = "GroundInst";
+    PropertyName[46 - 1] = "TDGrFast";
 
 
 	PropertyHelp[1 - 1] = "Full object name of the circuit element, typically a line, transformer, load, or generator, "
@@ -210,6 +214,10 @@ void TRecloser::DefineProperties()
     PropertyHelp[40 - 1] = "Multiplier for the ground slow TCC curve. Defaults to 1.0.";
     PropertyHelp[41 - 1] = "DEPRECATED. Assigned value is specified to \"TDPhSlow\" property for backwards compatibility. See \"TDPhSlow\" property.";
     PropertyHelp[42 - 1] = "DEPRECATED. Assigned value is specified to \"TDGndSlow\" property for backwards compatibility. See \"TDGndSlow\" property.";
+    PropertyHelp[43 - 1] = "DEPRECATED. See \"MechanicalDelay\" property.";
+    PropertyHelp[44 - 1] = "DEPRECATED. See \"PhInst\" property.";
+    PropertyHelp[45 - 1] = "DEPRECATED. See \"GndInst\" property.";
+    PropertyHelp[46 - 1] = "DEPRECATED. See \"TDGndFast\" property.";
 	
 	
 	ActiveProperty = NumPropsThisClass - 1;
@@ -304,10 +312,10 @@ int TRecloser::Edit(int ActorID)
 				case 	11:
 				with0->GndFastPickup = Parser[ActorID]->MakeDouble_();
 				break;
-				case 	12:
+				case 	12: case 44:
 				with0->PhInst = Parser[ActorID]->MakeDouble_();
 				break;
-				case 	13:
+				case 	13: case 45:
 				with0->GndInst = Parser[ActorID]->MakeDouble_();
 				break;
 				case 	14:
@@ -319,13 +327,13 @@ int TRecloser::Edit(int ActorID)
 				case 	16:
 				with0->NumReclose = Parser[ActorID]->ParseAsVector(4, with0->RecloseIntervals);
 				break;   // max of 4 allowed
-				case 	17:
+				case 	17: case 43:
 				with0->MechanicalDelay = Parser[ActorID]->MakeDouble_();
 				break;
 				case 	19:
 				with0->TDPhFast = Parser[ActorID]->MakeDouble_();
 				break;
-				case 	20:
+				case 	20: case 46:
 				with0->TDGndFast = Parser[ActorID]->MakeDouble_();
 				break;
 				case 	21: case 41:
@@ -466,6 +474,7 @@ int TRecloser::MakeLike(const String RecloserName)
 			with0->PhInst = OtherRecloser->PhInst;
 			with0->GndInst = OtherRecloser->GndInst;
 			with0->ResetTime = OtherRecloser->ResetTime;
+			with0->MechanicalDelay = OtherRecloser->MechanicalDelay;
 			with0->NumReclose = OtherRecloser->NumReclose;
 			with0->NumFast = OtherRecloser->NumFast;
 			with0->SinglePhTrip = OtherRecloser->SinglePhTrip;
@@ -618,6 +627,7 @@ TRecloserObj::TRecloserObj(TDSSClass* ParClass, const String RecloserName)
 		RecloserTarget[i - 1] = "";
 	}
 
+	set_Flocked(false);
 	cBuffer = nullptr; // Complex buffer
 	DSSObjType = ParClass->DSSClassType;
 	InitPropertyValues(0);
@@ -701,14 +711,14 @@ void TRecloserObj::RecalcElementData(int ActorID)
 		{
 			if((*FPresentState)[i - 1] == CTRL_CLOSE)
 			{
-				get_FControlledElement()->Set_ConductorClosed(0, ActorID, true);
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, true);
 				LockedOut[i - 1] = false;
 				OperationCount[i - 1] = 1;
 				ArmedForOpen[i - 1] = false;
 			}
 			else
 			{
-				get_FControlledElement()->Set_ConductorClosed(0, ActorID, false);
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);
 				LockedOut[i - 1] = true;
 				OperationCount[i - 1] = NumReclose + 1;
 				ArmedForClose[i - 1] = false;
@@ -923,9 +933,10 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
                 switch ((*FPresentState)[PhIdx - 1])
 				{
 					case 	CTRL_CLOSE:
-					if(ArmedForOpen[PhIdx - 1]) 
+					if(!ArmedForOpen[PhIdx - 1])  // Don't reset if we just rearmed
 					{
-						OperationCount[PhIdx - 1] = 1;       // Don't reset if we just rearmed
+						OperationCount[PhIdx - 1] = 1;
+						if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d reset (1ph reset)", PhIdx), ActorID);
 					}
 					break; /*nada*/
 					default:
@@ -935,22 +946,18 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 			}
 			else
 			{
-                // Analyze each phase separately as states may not be the same
 				int stop = 0;
 				for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
 				{
-					switch((*FPresentState)[i - 1])
+					if((*FPresentState)[i - 1] == CTRL_CLOSE)
+					{
+						if(!ArmedForOpen[PhIdx - 1])  // Don't reset if we just rearmed
 						{
-							case 	CTRL_CLOSE:
-							if(ArmedForOpen[PhIdx - 1])   // ignore if we became disarmed in meantime
-							{
-								OperationCount[PhIdx - 1] = 1;       // Don't reset if we just rearmed
-							}
-							break;  // no need to loop at all closed phases
-							default:
-							  ;
-							break;
+							OperationCount[PhIdx - 1] = 1;
+							if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), "Phase ALL reset (3ph reset)", ActorID);
 						}
+						break;  // no need to loop at all closed phases
+					}
 				}
 			}
 			break;
@@ -1153,7 +1160,7 @@ void TRecloserObj::sample(int ActorID)
     {
         GroundCurve = GndSlowCurve;
         TDGround = TDGndSlow;
-        GroundCurveType = "Delayed";
+        GroundCurveType = "Slow";
 		GroundCurveMultiplier = GndSlowPickup;
     }
     else
@@ -1185,7 +1192,7 @@ void TRecloserObj::sample(int ActorID)
 		{
             Groundtime = TDGround * GroundCurve->GetTCCTime(cmag / GroundCurveMultiplier);
 			if (Groundtime > 0.0 and DebugTrace)
-                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Grnd %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType, cmag / GroundCurveMultiplier, Groundtime), ActorID);
+                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Gnd %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType, cmag / GroundCurveMultiplier, Groundtime), ActorID);
 		}
     }
     if (Groundtime > 0.0) GroundTarget = true;
@@ -1286,7 +1293,7 @@ void TRecloserObj::sample(int ActorID)
 					/*# with ActiveCircuit[ActorID] do */
 					{
 							// If current dropped below pickup, disarm trip and set for reset
-						ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
+						ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, i, this, ActorID);
 						ArmedForOpen[i - 1] = false;
 						ArmedForClose[i - 1] = false;
 						GroundTarget = false;
@@ -1312,7 +1319,7 @@ void TRecloserObj::sample(int ActorID)
 			PhaseCurveMultiplier = PhFastPickup;
 		}
 
-		if (Groundtime > 0.0) // initialize trip time for this phase
+		if (Groundtime > 0.0) // initialize trip time
             TripTime = Groundtime;
         else
             TripTime = -1.0; 
@@ -1335,17 +1342,16 @@ void TRecloserObj::sample(int ActorID)
 					TimeTest = TDPhase * PhaseCurve->GetTCCTime(cmag / PhaseCurveMultiplier);
 					if(TimeTest > 0.0)
 					{
-						PhaseTime = TimeTest;
 						if (DebugTrace)
 							if (PhaseCurve == PhFastCurve)
-								AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", "Fast", i-CondOffset, cmag / PhaseCurveMultiplier, PhaseTime), ActorID);
+								AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", "Fast", i-CondOffset, cmag / PhaseCurveMultiplier, TimeTest), ActorID);
 							else
-								AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", "Slow", i-CondOffset, cmag / PhaseCurveMultiplier, PhaseTime), ActorID);
+								AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", "Slow", i-CondOffset, cmag / PhaseCurveMultiplier, TimeTest), ActorID);
+						if (PhaseTime < 0.0)
+							PhaseTime = TimeTest;
+						else
+							PhaseTime = min(PhaseTime, TimeTest);
 					}
-					if (PhaseTime < 0.0)
-						PhaseTime = TimeTest;
-					else
-						PhaseTime = min(PhaseTime, TimeTest);
 				}
 			}
 		}
@@ -1396,7 +1402,7 @@ void TRecloserObj::sample(int ActorID)
 				/*# with ActiveCircuit[ActorID] do */
 				{
 						// If current dropped below pickup, disarm trip and set for reset
-					ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, i, this, ActorID);
+					ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
 					ArmedForOpen[IdxMultiPh - 1] = false;
 					ArmedForClose[IdxMultiPh - 1] = false;
 					GroundTarget = false;
@@ -1491,6 +1497,18 @@ String TRecloserObj::GetPropertyValue(int Index)
 		break;
 		case 	11: case 38:
 		result = Format("%.3f", GndFastPickup);
+		break;
+		case 	12: case 44:
+		result = Format("%.3f", PhInst);
+		break;
+		case 	13: case 45:
+		result = Format("%.3f", GndInst);
+		break;
+		case 	17: case 43:
+		result = Format("%.3f", MechanicalDelay);
+		break;
+		case 	20: case 46:
+		result = Format("%.3f", TDGndFast);
 		break;
 		case 	15:
 		result = Format("%d", NumReclose + 1);
@@ -1738,6 +1756,10 @@ void TRecloserObj::InitPropertyValues(int ArrayOffset)
     Set_PropertyValue(40,"1.0"); // GndSlowPickup
     Set_PropertyValue(41,"1.0"); // Deprecated - TDPhDelayed -> TDPhSlow
     Set_PropertyValue(42,"1.0"); // Deprecated - TDGrDelayed -> TDGndSlow
+    Set_PropertyValue(43,"0.0"); // Deprecated - Delay -> MechanicalDelay
+    Set_PropertyValue(44,"0");   // Deprecated - PhaseInst -> PhInst
+    Set_PropertyValue(45,"0");   // Deprecated - GroundInst -> GndInst
+    Set_PropertyValue(46,"1.0"); // Deprecated - TDGrFast -> TDGndFast
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
