@@ -42,7 +42,7 @@ TRelayObj::TRelayObj() {}
 
 TRelayObj*	ActiveRelayObj = nullptr;
 TRelay*		RelayClass = nullptr;
-const int NumPropsThisClass = 50;
+const int NumPropsThisClass = 71;
 const int Current = 0;  /*Default*/
 const int VOLTAGE = 1;
 const int REVPOWER = 3;
@@ -124,32 +124,36 @@ void TRelay::DefineProperties()
 	           + "Default is overcurrent relay (Current). "
 	           + "Specify the curve and pickup settings appropriate for each type. "
 	           + "Generic relays monitor PC Element Control variables and trip on out of over/under range in definite time.");
-	AddProperty("Phasecurve", 6, "Name of the TCC Curve object that determines the phase trip.  "
-	           "Must have been previously defined as a TCC_Curve object."
-	           " Default is none (ignored). "
-	           "For overcurrent relay, multiplying the current values in the curve by the \"phasetrip\" value gives the actual current.");
-	AddProperty("Groundcurve", 7, "Name of the TCC Curve object that determines the ground trip.  Must have been previously defined as a TCC_Curve object."
-	           " Default is none (ignored)."
-	           "For overcurrent relay, multiplying the current values in the curve by the \"groundtrip\" valuw gives the actual current.");
-	AddProperty("PhaseTrip", 8, "Multiplier or actual phase amps for the phase TCC curve.  Defaults to 1.0.");
-	AddProperty("GroundTrip", 9, "Multiplier or actual ground amps (3I0) for the ground TCC curve.  Defaults to 1.0.");
-	AddProperty("TDPhase", 28, "Time dial for Phase trip curve. Multiplier on time axis of specified curve. Default=1.0.");
-	AddProperty("TDGround", 29, "Time dial for Ground trip curve. Multiplier on time axis of specified curve. Default=1.0.");
-	AddProperty("PhaseInst", 10, "Actual  amps (Current relay) or kW (reverse power relay) for instantaneous phase trip which is assumed to happen in 0.01 sec + Delay Time. Default is 0.0, which signifies no inst trip. "
+	AddProperty("PhCurve", 6, "Name of the TCC Curve object that determines the phase trip.  "
+	           "Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored). "
+	           "Default is \"none\". "
+	           "For overcurrent relay, multiplying the current values in the curve by the \"PhPickup\" value gives the actual current.");
+	AddProperty("OC_GndCurve", 7, "Name of the TCC Curve object that determines the ground trip for overcurrent relay.  Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored). "
+	           "Default is \"none\". "
+	           "For overcurrent relay, multiplying the current values in the curve by the \"GndPickup\" value gives the actual current.");
+	AddProperty("PhPickup", 8, "Multiplier for the phase TCC curve for overcurrent relay OR actual phase amps when operating with definite time (see \"DefiniteTimeDelay\" property). Defaults to 1.0.");
+	AddProperty("OC_GndPickup", 9, "Multiplier for the ground TCC curve for overcurrent relay OR actual ground amps (3I0) when operating with definite time (see \"DefiniteTimeDelay\" property). Defaults to 1.0.");
+	AddProperty("TDPh", 28, "Time dial for Phase trip curve. Multiplier on time axis of specified curve. Default=1.0.");
+	AddProperty("OC_TDGnd", 29, "Time dial for Ground trip curve for overcurrent relay. Multiplier on time axis of specified curve. Default=1.0.");
+	AddProperty("PhInst", 10, "Actual  amps (Current relay) or kW (reverse power relay) for instantaneous phase trip which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip. "
 	           "Use this value for specifying the Reverse Power threshold (kW) for reverse power relays.");
-	AddProperty("GroundInst", 11, "Actual  amps for instantaneous ground trip which is assumed to happen in 0.01 sec + Delay Time.Default is 0.0, which signifies no inst trip.");
-	AddProperty("Reset", 12, "Reset time in sec for relay.  Default is 15. If this much time passes between the last pickup event, and the relay has not locked out, the operation counter resets.");
+	AddProperty("OC_GndInst", 11, "Actual amps for instantaneous ground trip for overcurrent relay which is assumed to happen in 0.01 sec + Mechanical Delay Time. Default is 0.0, which signifies no inst trip.");
+	AddProperty("ResetTime", 12, "Reset time in sec for relay.  Default is 15. If this much time passes between the last pickup event, and the relay has not locked out, the operation counter resets.");
 	AddProperty("Shots", 13, "Number of shots to lockout.  Default is 4. This is one more than the number of reclose intervals.");
 	AddProperty("RecloseIntervals", 14, "Array of reclose intervals. If none, specify \"NONE\". Default for overcurrent relay is (0.5, 2.0, 2.0) seconds. "
 	           "Default for a voltage relay is (5.0). In a voltage relay, this is  seconds after restoration of "
 	           "voltage that the reclose occurs. "
 	           "Reverse power relay is one shot to lockout, "
 	           "so this is ignored.  A locked out relay must be closed manually (set action=close).");
-	AddProperty("Delay", 24, "Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current, voltage and DOC relays. If >0 then this value is used instead of curves. "
-	           " Used by Generic, RevPower, 46 and 47 relays. Defaults to 0.1 s for these relays.");
-	AddProperty("Overvoltcurve", 15, "TCC Curve object to use for overvoltage relay.  Curve is assumed to be defined with per unit voltage values. "
+	AddProperty("DefiniteTimeDelay", 24, "Trip time delay (sec) for DEFINITE TIME relays. Default is 0.0 for current and DOC relays. "
+	           "For overcurrent relays, if>0 and specified pickups (ground and/or phase) are excedeed, definite time operation is used instead of curves. "
+	           "For DOC relay, if>0 definite time operation is used instead of curves. "
+	           "Used by Generic, RevPower, 46 and 47 relays. Defaults to 0.1 s for these relays.");
+	AddProperty("Voltage_OVCurve", 15, "TCC Curve object to use for overvoltage relay. Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored). "
+	           "Default is \"none\". Curve is assumed to be defined with per unit voltage values. "
 	           "Voltage base should be defined for the relay. Default is none (ignored).");
-	AddProperty("Undervoltcurve", 16, "TCC Curve object to use for undervoltage relay.  Curve is assumed to be defined with per unit voltage values. "
+	AddProperty("Voltage_UVCurve", 16, "TCC Curve object to use for undervoltage relay. Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored). "
+	           "Default is \"none\". Curve is assumed to be defined with per unit voltage values. "
 	           "Voltage base should be defined for the relay. Default is none (ignored).");
 	AddProperty("kvbase", 17, "Voltage base (kV) for the relay. Specify line-line for 3 phase devices); line-neutral for 1-phase devices.  Relay assumes "
 	           "the number of phases of the monitored element.  Default is 0.0, which results in assuming the voltage "
@@ -161,13 +165,13 @@ void TRelay::DefineProperties()
 	           "  When current exceeds this value * BaseAmps, I-squared-t calc starts.");
 	AddProperty("46isqt", 22, "Negative Sequence I-squared-t trip value for 46 relay (neg seq current)."
 	           "  Default is 1 (trips in 1 sec for 1 per unit neg seq current).  Should be 1 to 99.");
-	AddProperty("Variable", 20, "Name of variable in PC Elements being monitored.  Only applies to Generic relay.");
-	AddProperty("overtrip", 26, "Trip setting (high value) for Generic relay variable.  Relay trips in definite time if value of variable exceeds this value.");
-	AddProperty("undertrip", 27, "Trip setting (low value) for Generic relay variable.  Relay trips in definite time if value of variable is less than this value.");
-	AddProperty("Breakertime", 18, "Fixed delay time (sec) added to relay time. Default is 0.0. Designed to represent breaker time or some other delay after a trip decision is made."
+	AddProperty("Generic_Variable", 20, "Name of variable in PC Elements being monitored.  Only applies to Generic relay.");
+	AddProperty("Generic_OverTrip", 26, "Trip setting (high value) for Generic relay variable.  Relay trips in definite time if value of variable exceeds this value.");
+	AddProperty("Generic_UnderTrip", 27, "Trip setting (low value) for Generic relay variable.  Relay trips in definite time if value of variable is less than this value.");
+	AddProperty("MechanicalDelay", 18, "Fixed delay time (sec) added to relay time. Default is 0.0. Designed to represent breaker time or some other delay after a trip decision is made."
 	           "Use Delay property for setting a fixed trip time delay."
 	           "Added to trip time of current and voltage relays. Could use in combination with inst trip value to obtain a definite time overcurrent relay.");
-	AddProperty("action", 19, "DEPRECATED. See \"State\" property");
+	AddProperty("Action", 19, "DEPRECATED. See \"State\" property");
 	AddProperty("Z1mag", 30, "Positive sequence reach impedance in primary ohms for Distance and TD21 functions. Default=0.7");
 	AddProperty("Z1ang", 31, "Positive sequence reach impedance angle in degrees for Distance and TD21 functions. Default=64.0");
 	AddProperty("Z0mag", 32, "Zero sequence reach impedance in primary ohms for Distance and TD21 functions. Default=2.1");
@@ -177,11 +181,13 @@ void TRelay::DefineProperties()
 	AddProperty("EventLog", 36, "{Yes/True* | No/False} Default is Yes for Relay. Write trips, reclose and reset events to EventLog.");
 	AddProperty("DebugTrace", 37, "{Yes/True* | No/False} Default is No for Relay. Write extra details to Eventlog.");
 	AddProperty("DistReverse", 38, "{Yes/True* | No/False} Default is No; reverse direction for distance and td21 types.");
-	AddProperty("Normal", 39, "{Open | Closed} Normal state of the relay. The relay reverts to this state for reset, change of mode, etc. "
-	           "Defaults to \"State\" if not specifically declared.");
-	AddProperty("State", 40, "{Open | Closed} Actual state of the relay. Upon setting, immediately forces state of the relay, overriding the Relay control. "
-	           "Simulates manual control on relay. Defaults to Closed. \"Open\" causes the controlled element to open and lock out. \"Closed\" causes the "
-	           "controlled element to close and the relay to reset to its first operation.");
+	AddProperty("Normal", 39, "ARRAY of strings {Open | Closed} representing the Normal state of the relay in each phase of the controlled element. "
+	           "The relay reverts to this state for reset, change of mode, etc. "
+	           "Defaults to \"State\" if not specifically declared.  Setting this property to {Open | Closed} sets the normal state to the specified value for all phases (ganged operation).");
+	AddProperty("State", 40, "ARRAY of strings {Open | Closed} representing the Actual state of the relay in each phase of the controlled element. "
+	           "Upon setting, immediately forces the state of the relay. Simulates manual control on the controlled relay. Defaults to Closed for all phases. Setting this property to {Open | Closed} "
+	           "sets the actual state to the specified value for all phases (ganged operation). \"Open\" causes the controlled element or respective phase to open and lock out. \"Closed\" causes the "
+	           "controlled element or respective phase to close and the relay to reset to its first operation.");
     AddProperty("DOC_TiltAngleLow", 41, "Tilt angle for low-current trip line. Default is 90.");
     AddProperty("DOC_TiltAngleHigh", 42, "Tilt angle for high-current trip line. Default is 90.");
     AddProperty("DOC_TripSettingLow", 43, "Resistive trip setting for low-current line.  Default is 0.");
@@ -190,12 +196,39 @@ void TRelay::DefineProperties()
     AddProperty("DOC_DelayInner", 46, "Trip time delay (sec) for operation in inner region for DOC relay, defined when \"DOC_TripSettingMag\" or \"DOC_TripSettingHigh\" are activate. Default is -1.0 (deactivated), meaning that "
         "the relay characteristic is insensitive in the inner region (no trip). Set to 0 for instantaneous trip and >0 for a definite time delay. "
         "If \"DOC_PhaseCurveInner\" is specified, time delay from curve is utilized instead.");
-    AddProperty("DOC_PhaseCurveInner", 47, "Name of the TCC Curve object that determines the phase trip for operation in inner region for DOC relay. Must have been previously defined as a TCC_Curve object. "
-        "Default is none (ignored). Multiplying the current values in the curve by the \"DOC_PhaseTripInner\" value gives the actual current.");
+    AddProperty("DOC_PhaseCurveInner", 47, "Name of the TCC Curve object that determines the phase trip for operation in inner region for DOC relay. Must have been previously defined as a TCC_Curve object or specified as \"none\" (ignored). "
+        "Default is \"none\". Multiplying the current values in the curve by the \"DOC_PhaseTripInner\" value gives the actual current.");
     AddProperty("DOC_PhaseTripInner", 48, "Multiplier for the \"DOC_PhaseCurveInner\" TCC curve.  Defaults to 1.0.");
     AddProperty("DOC_TDPhaseInner", 49, "Time dial for \"DOC_PhaseCurveInner\" TCC curve. Multiplier on time axis of specified curve. Default=1.0.");
     AddProperty("DOC_P1Blocking", 50, "{Yes/True* | No/False} Blocking element that impedes relay from tripping if balanced net three-phase active power is in the forward direction (i.e., flowing into the monitored terminal). "
 		"For a delayed trip, if at any given time the reverse power flow condition stops, the tripping is reset. Default=True.");
+	AddProperty("SinglePhTrip", 51, "{Yes/True | No*/False} Enables single-phase tripping and reclosing for multi-phase controlled elements. Previously locked out phases do not operate/reclose even considering multi-phase tripping. "
+	           "Applies to overcurrent relays only (type=current). Ignored for other types.");
+	AddProperty("SinglePhLockout", 52, "{Yes/True | No*/False} Enables single-phase lockout for multi-phase controlled elements with single-phase tripping. Does not have impact if single-phase trip is not enabled.");
+	AddProperty("Lock", 53, "{Yes/True | No*/False} Controlled switch is locked in its present open / closed state or unlocked. "
+	           "When locked, the relay will not respond to either a manual state change issued by the user or a state change issued internally by OpenDSS when Reseting the control. "
+	           "Note this locking mechanism is different from the relay automatic lockout after specifed Shots.");
+	AddProperty("Reset", 54, "{Yes/True | No*/False} If Yes, forces Reset of relay to Normal state and removes Lock independently of any internal "
+	           "reset command for mode change, etc.");
+	AddProperty("RatedCurrent", 55, "Controlled conducting element's continuous rated current in Amps. Defaults to 0. Not used internally for either power flow or reporting.");
+	AddProperty("InterruptingRating", 56, "Controlled conducting element's rated interrupting current in Amps. Defaults to 0. Not used internally for either power flow or reporting.");
+
+     // Deprecated properties
+	AddProperty("Breakertime", 57, "DEPRECATED. See \"MechanicalDelay\" property.");
+	AddProperty("Delay", 58, "DEPRECATED. See \"DefiniteTimeDelay\" property.");
+	AddProperty("GroundCurve", 59, "DEPRECATED. See \"OC_GndCurve\" property.");
+	AddProperty("GroundTrip", 60, "DEPRECATED. See \"OC_GndPickup\" property.");
+	AddProperty("GroundInst", 61, "DEPRECATED. See \"OC_GndInst\" property.");
+	AddProperty("TDGround", 62, "DEPRECATED. See \"OC_TDGnd\" property.");
+	AddProperty("Phasecurve", 63, "DEPRECATED. See \"PhCurve\" property.");
+	AddProperty("PhaseTrip", 64, "DEPRECATED. See \"PhPickup\" property.");
+	AddProperty("PhaseInst", 65, "DEPRECATED. See \"PhInst\" property.");
+	AddProperty("TDPhase", 66, "DEPRECATED. See \"TDPh\" property.");
+	AddProperty("overtrip", 67, "DEPRECATED. See \"Generic_OverTrip\" property.");
+	AddProperty("undertrip", 68, "DEPRECATED. See \"Generic_UnderTrip\" property.");
+	AddProperty("Variable", 69, "DEPRECATED. See \"Generic_Variable\" property.");
+	AddProperty("Overvoltcurve", 70, "DEPRECATED. See \"Voltage_OVCurve\" property.");
+	AddProperty("Undervoltcurve", 71, "DEPRECATED. See \"Voltage_UVCurve\" property.");
 
 	ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
@@ -209,7 +242,7 @@ int TRelay::NewObject(const String ObjName)
     // Make a new Relay and add it to Relay class list
 	/*# with ActiveCircuit[ActiveActor] do */
 	{
-		
+
 		ActiveCircuit[ActiveActor]->Set_ActiveCktElement(new TRelayObj(this, ObjName));
 		result = AddObjectToList(ActiveDSSObject[ActiveActor]);
 	}
@@ -220,6 +253,8 @@ int TRelay::NewObject(const String ObjName)
 TTCC_CurveObj* TRelay::GetTccCurve(const String CurveName)
 {
 	TTCC_CurveObj* result = nullptr;
+	if(LowerCase(CurveName) == "none")
+		return result;
 	result = ((TTCC_CurveObj*) TCC_CurveClass->Find(CurveName));
 	if(result == nullptr)
 		DoSimpleMsg(String("TCC Curve object: \"") + CurveName + "\" not found.", 380);
@@ -232,6 +267,7 @@ int TRelay::Edit(int ActorID)
 {
 	int result = 0;
 	int ParamPointer = 0;
+	int i = 0;
 	String ParamName;
 	String Param;
 
@@ -285,23 +321,23 @@ int TRelay::Edit(int ActorID)
 					case 	5:
 					with0->InterpretRelayType(Param);
 					break;
-					case 	6:
-					with0->PhaseCurve = GetTccCurve(Param);
+					case 	6: case 63:
+					with0->PhCurve = GetTccCurve(Param);
 					break;
-					case 	7:
-					with0->GroundCurve = GetTccCurve(Param);
+					case 	7: case 59:
+					with0->GndCurve = GetTccCurve(Param);
 					break;
-					case 	8:
-					with0->PhaseTrip = Parser[ActorID]->MakeDouble_();
+					case 	8: case 64:
+					with0->PhPickup = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	9:
-					with0->GroundTrip = Parser[ActorID]->MakeDouble_();
+					case 	9: case 60:
+					with0->GndPickup = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	10:
-					with0->PhaseInst = Parser[ActorID]->MakeDouble_();
+					case 	10: case 65:
+					with0->PhInst = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	11:
-					with0->GroundInst = Parser[ActorID]->MakeDouble_();
+					case 	11: case 61:
+					with0->GndInst = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	12:
 					with0->ResetTime = Parser[ActorID]->MakeDouble_();
@@ -315,19 +351,19 @@ int TRelay::Edit(int ActorID)
 					else
 						with0->NumReclose = Parser[ActorID]->ParseAsVector(4, with0->RecloseIntervals);
 					break;   // max of 4 allowed
-					case 	15:
+					case 	15: case 70:
 					with0->OVcurve = GetTccCurve(Param);
 					break;
-					case 	16:
+					case 	16: case 71:
 					with0->UVCurve = GetTccCurve(Param);
 					break;
 					case 	17:
 					with0->kVBase = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	18:
-					with0->Breaker_time = Parser[ActorID]->MakeDouble_();
+					case 	18: case 57:
+					with0->MechanicalDelay = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	20:
+					case 	20: case 69:
 					with0->MonitorVariable = LowerCase(Param);
 					break;  // for pc elements
 					case 	21:
@@ -339,23 +375,23 @@ int TRelay::Edit(int ActorID)
 					case 	23:
 					with0->BaseAmps46 = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	24:
-					with0->Delay_Time = Parser[ActorID]->MakeDouble_();
+					case 	24: case 58:
+					with0->DefiniteTimeDelay = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	25:
 					with0->PctPickup47 = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	26:
+					case 	26: case 67:
 					with0->OverTrip = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	27:
+					case 	27: case 68:
 					with0->UnderTrip = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	28:
-					with0->TDPhase = Parser[ActorID]->MakeDouble_();
+					case 	28: case 66:
+					with0->TDPh = Parser[ActorID]->MakeDouble_();
 					break;
-					case 	29:
-					with0->TDGround = Parser[ActorID]->MakeDouble_();
+					case 	29: case 62:
+					with0->TDGnd = Parser[ActorID]->MakeDouble_();
 					break;
 					case 	30:
 					with0->Z1Mag = Parser[ActorID]->MakeDouble_();
@@ -424,6 +460,29 @@ int TRelay::Edit(int ActorID)
                     case 	50:
 					with0->DOC_P1Blocking = InterpretYesNo(Param);
 					break;
+                    case 	51:
+					with0->SinglePhTrip = InterpretYesNo(Param);
+					break;
+                    case 	52:
+					with0->SinglePhLockout = InterpretYesNo(Param);
+					break;
+                    case 	53:
+					with0->set_Flocked(InterpretYesNo(Param));
+					break;
+                    case 	54:
+					if(InterpretYesNo(Param))   // force a reset
+					{
+						with0->set_Flocked(false);
+						with0->Reset(ActorID);
+						with0->Set_PropertyValue(54, "n");
+					}
+					break;
+                    case 	55:
+					with0->RatedCurrent = Parser[ActorID]->MakeDouble_();
+					break;
+                    case 	56:
+					with0->InterruptingRating = Parser[ActorID]->MakeDouble_();
+					break;
            // Inherited parameters
 					default:
 					ClassEdit(ActiveRelayObj, ParamPointer - NumPropsThisClass);
@@ -470,13 +529,33 @@ int TRelay::Edit(int ActorID)
 							ParamName = AuxParser[ActorID]->GetNextParam();
 							with0->NumReclose = AuxParser[ActorID]->ParseAsVector(4, with0->RecloseIntervals);
 						}
+						// Side-effect: disable single-phase tripping and lockout.
+						switch(LowerCase(Param)[0])
+						{
+							case 	L'4': case L'g': case L't': case L'd': case L'v': case L'r':
+							{
+								with0->SinglePhTrip = false;
+								with0->SinglePhLockout = false;
+								with0->Set_PropertyValue(51, "No");
+								with0->Set_PropertyValue(52, "No");
+							}
+							break;
+							default:
+							  ;
+							break;
+						}
 					}
 					break;
 					case 	19: case 40:
 					if(!with0->NormalStateSet)
 					{
-						with0->NormalStateSet = true;  // 'normal state' defaults to 'state' only when the latter is specified for the first time
-						with0->set_NormalState(with0->FPresentState);
+						int stop = 0;
+						for(stop = ((TDSSCktElement*) with0)->Fnphases, i = 1; i <= stop; i++)
+						{
+							if(!with0->NormalStateSet)
+								(*with0->FNormalState)[i - 1] = (*with0->FPresentState)[i - 1];
+						}
+						with0->NormalStateSet = true;  // normal state will default to state only the 1st time state is specified.
 					}
 					break;
 					default:
@@ -517,30 +596,37 @@ int TRelay::MakeLike(const String RelayName)
 			with0->Set_MonitoredElement(OtherRelay->get_FMonitoredElement());  // Pointer to target circuit element
 			with0->MonitoredElementName = OtherRelay->MonitoredElementName;  // Pointer to target circuit element
 			with0->MonitoredElementTerminal = OtherRelay->MonitoredElementTerminal;  // Pointer to target circuit element
-			with0->PhaseCurve = OtherRelay->PhaseCurve;
-			with0->GroundCurve = OtherRelay->GroundCurve;
+			with0->PhCurve = OtherRelay->PhCurve;
+			with0->GndCurve = OtherRelay->GndCurve;
 			with0->OVcurve = OtherRelay->OVcurve;
 			with0->UVCurve = OtherRelay->UVCurve;
-			with0->PhaseTrip = OtherRelay->PhaseTrip;
-			with0->GroundTrip = OtherRelay->GroundTrip;
-			with0->TDPhase = OtherRelay->TDPhase;
-			with0->TDGround = OtherRelay->TDGround;
-			with0->PhaseInst = OtherRelay->PhaseInst;
-			with0->GroundInst = OtherRelay->GroundInst;
+			with0->PhPickup = OtherRelay->PhPickup;
+			with0->GndPickup = OtherRelay->GndPickup;
+			with0->TDPh = OtherRelay->TDPh;
+			with0->TDGnd = OtherRelay->TDGnd;
+			with0->PhInst = OtherRelay->PhInst;
+			with0->GndInst = OtherRelay->GndInst;
 			with0->ResetTime = OtherRelay->ResetTime;
 			with0->NumReclose = OtherRelay->NumReclose;
-			with0->Delay_Time = OtherRelay->Delay_Time;
-			with0->Breaker_time = OtherRelay->Breaker_time;
+			with0->DefiniteTimeDelay = OtherRelay->DefiniteTimeDelay;
+			with0->MechanicalDelay = OtherRelay->MechanicalDelay;
+			with0->SinglePhTrip = OtherRelay->SinglePhTrip;
+			with0->SinglePhLockout = OtherRelay->SinglePhLockout;
+			with0->RatedCurrent = OtherRelay->RatedCurrent;
+			with0->InterruptingRating = OtherRelay->InterruptingRating;
 			with0->RecloseIntervals = (pDoubleArray) realloc(with0->RecloseIntervals, sizeof(double) * 4);      // Always make a max of 4
 			for(stop = with0->NumReclose, i = 1; i <= stop; i++)
 			{
 				(with0->RecloseIntervals)[i - 1] = (OtherRelay->RecloseIntervals)[i - 1];
 			}
        // deleted... if DebugTrace then AppendToEventLog ('Relay.'+self.Name, Format ('MakeLike NumReclose=%d',[NumReclose]), ActorID);
+			with0->set_Flocked(OtherRelay->get_FLocked());
+			for(stop = min(RELAYCONTROLMAXDIM, with0->get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+			{
+				(*with0->FPresentState)[i - 1] = (*OtherRelay->FPresentState)[i - 1];
+				(*with0->FNormalState)[i - 1] = (*OtherRelay->FNormalState)[i - 1];
+			}
 			with0->kVBase = OtherRelay->kVBase;
-			with0->LockedOut = OtherRelay->LockedOut;
-			with0->FPresentState = OtherRelay->FPresentState;
-			with0->set_NormalState(OtherRelay->get_NormalState());
 			with0->ControlType = OtherRelay->ControlType;
 			with0->CondOffset = OtherRelay->CondOffset;
 
@@ -579,7 +665,6 @@ int TRelay::MakeLike(const String RelayName)
 
 
 
-
 /*==========================================================================*/
 /*                    TRelayObj                                           */
 /*==========================================================================*/
@@ -589,65 +674,10 @@ int TRelay::MakeLike(const String RelayName)
 /*--------------------------------------------------------------------------*/
 
 TRelayObj::TRelayObj(TDSSClass* ParClass, const String RelayName)
- : inherited(ParClass),
-			ControlType(0),
-			PhaseCurve(nullptr),
-			GroundCurve(nullptr),
-			PhaseTrip(0.0),
-			GroundTrip(0.0),
-			PhaseInst(0.0),
-			GroundInst(0.0),
-			RecloseIntervals(nullptr),
-			NumReclose(0),
-			ResetTime(0.0),
-			Delay_Time(0.0),
-			Breaker_time(0.0),
-			TDPhase(0.0),
-			TDGround(0.0),
-			OVcurve(nullptr),
-			UVCurve(nullptr),
-			VBase(0.0),
-			kVBase(0.0),
-			PickupAmps46(0.0),
-			PctPickup46(0.0),
-			BaseAmps46(0.0),
-			Isqt46(0.0),
-			PickupVolts47(0.0),
-			PctPickup47(0.0),
-			Z1Mag(0.0),
-			Z1Ang(0.0),
-			Z0Mag(0.0),
-			Z0Ang(0.0),
-			Mphase(0.0),
-			Mground(0.0),
-			Dist_Reverse(false),
-			td21_i(0),
-			td21_next(0),
-			td21_pt(0),
-			td21_stride(0),
-			td21_quiet(0),
-			td21_h(nullptr),
-			td21_Uref(nullptr),
-			td21_dV(nullptr),
-			td21_dI(nullptr),
-			OverTrip(0.0),
-			UnderTrip(0.0),
-			OperationCount(0),
-			LockedOut(false),
-			ArmedForClose(false),
-			ArmedForOpen(false),
-			ArmedForReset(false),
-			PhaseTarget(false),
-			GroundTarget(false),
-			NormalStateSet(false),
-			NextTriptime(0.0),
-			LastEventHandle(0),
-			CondOffset(0),
-			cBuffer(nullptr),
-			cvBuffer(nullptr),
-			DebugTrace(false),
-			MonitoredElementTerminal(0)
+ : inherited(ParClass)
 {
+	int i = 0;
+	int stop = 0;
 	Set_Name(LowerCase(RelayName));
 	DSSObjType = ParClass->DSSClassType;
 	Set_NPhases(3);  // Directly set conds and phases
@@ -660,27 +690,28 @@ TRelayObj::TRelayObj(TDSSClass* ParClass, const String RelayName)
 	MonitoredElementName = "";
 	MonitoredElementTerminal = 1;
 	Set_MonitoredElement(nullptr);
-	RelayTarget = "";
-	PhaseCurve = nullptr;
-	GroundCurve = nullptr;
+	ControlType = Current;
+	PhCurve = nullptr;
+	GndCurve = nullptr;
 	OVcurve = nullptr;
 	UVCurve = nullptr;
-	PhaseTrip = 1.0;
-	GroundTrip = 1.0;
-	TDPhase = 1.0;
-	TDGround = 1.0;
-	PhaseInst = 0.0;
-	GroundInst = 0.0;
+	PhPickup = 1.0;
+	GndPickup = 1.0;
+	TDPh = 1.0;
+	TDGnd = 1.0;
+	PhInst = 0.0;
+	GndInst = 0.0;
 	ResetTime = 15.0;
+	RatedCurrent = 0.0;
+	InterruptingRating = 0.0;
+	DefiniteTimeDelay = 0.0;
+	MechanicalDelay = 0.0;
 	NumReclose = 3;
 	RecloseIntervals = nullptr;
 	RecloseIntervals = new double[4]; // fixed allocation of 4
 	(RecloseIntervals)[1 - 1] = 0.5;
 	(RecloseIntervals)[2 - 1] = 2.0;
 	(RecloseIntervals)[3 - 1] = 2.0;
-	FPresentState = CTRL_CLOSE;
-	FNormalState = CTRL_CLOSE;
-	NormalStateSet = false;
 	Isqt46 = 1.0;
 	BaseAmps46 = 100.0;
 	PctPickup46 = 20.0;
@@ -713,13 +744,50 @@ TRelayObj::TRelayObj(TDSSClass* ParClass, const String RelayName)
     DOC_PhaseTripInner = 1.0;
     DOC_TDPhaseInner = 1.0;
     DOC_P1Blocking = true;
-	OperationCount = 1;
-	LockedOut = false;
-	ArmedForOpen = false;
-	ArmedForClose = false;
-	ArmedForReset = false;
-	PhaseTarget = false;
+
+	FPresentState = nullptr;
+	FNormalState = nullptr;
+	LockedOut.clear();
+	ArmedForOpen.clear();
+	ArmedForClose.clear();
+	ArmedForReset.clear();
 	GroundTarget = false;
+	PhaseTarget.clear();
+	OperationCount = nullptr;
+	RelayTarget = nullptr;
+	SinglePhTrip = false;
+	SinglePhLockout = false;
+	IdxMultiPh = Get_NPhases() + 1;
+
+     // Reallocate arrays  (Must be initialized to nil for first call)
+	FPresentState = (pStateArray) realloc(FPresentState, sizeof((*FPresentState)[1 - 1]) * Fnphases);
+	FNormalState = (pStateArray) realloc(FNormalState, sizeof((*FNormalState)[1 - 1]) * Fnphases);
+	LockedOut.resize(IdxMultiPh);
+	ArmedForOpen.resize(IdxMultiPh);
+	ArmedForClose.resize(IdxMultiPh);
+	ArmedForReset.resize(IdxMultiPh);
+	PhaseTarget.resize(IdxMultiPh);
+	OperationCount = (pIntegerArray) realloc(OperationCount, sizeof(long) * IdxMultiPh);
+	RelayTarget = AllocStringArray(IdxMultiPh);
+
+	for(stop = min(RELAYCONTROLMAXDIM, IdxMultiPh), i = 1; i <= stop; i++)
+	{
+		if(i <= Get_NPhases())
+		{
+			(*FPresentState)[i - 1] = CTRL_CLOSE;
+			(*FNormalState)[i - 1] = CTRL_CLOSE;  // default to present state;
+		}
+		LockedOut[i - 1] = false;
+		ArmedForOpen[i - 1] = false;
+		ArmedForClose[i - 1] = false;
+		ArmedForReset[i - 1] = false;
+		PhaseTarget[i - 1] = false;
+		OperationCount[i - 1] = 1;
+		RelayTarget[i - 1] = "";
+	}
+
+	NormalStateSet = false;
+	set_Flocked(false);
 	NextTriptime = -1.0;  // not set to trip
 	cBuffer = nullptr; // Complex buffer
 	cvBuffer = nullptr;
@@ -747,6 +815,15 @@ TRelayObj::~TRelayObj()
 		free(td21_Uref);
 	if(ASSIGNED(td21_dI))
 		free(td21_dI);
+	FPresentState = (pStateArray) realloc(FPresentState, 0);
+	FNormalState = (pStateArray) realloc(FNormalState, 0);
+	LockedOut.clear();
+	ArmedForOpen.clear();
+	ArmedForClose.clear();
+	ArmedForReset.clear();
+	PhaseTarget.clear();
+	OperationCount = (pIntegerArray) realloc(OperationCount, 0);
+	FreeStringArray(RelayTarget, IdxMultiPh);
 	// inherited::Destroy();
 }
 
@@ -756,10 +833,7 @@ TRelayObj::~TRelayObj()
 void TRelayObj::RecalcElementData(int ActorID)
 {
 	int DevIndex = 0;
-	if(DebugTrace)
-	{
-		AppendToEventLog(String("Relay.") + this->get_Name(), Format("RecalcElementData NumReclose=%d", NumReclose), ActorID);
-	}
+	int i = 0;
 	DevIndex = GetCktElementIndex(MonitoredElementName); // Global function
 	if(DevIndex > 0)
 	{
@@ -825,19 +899,25 @@ void TRelayObj::RecalcElementData(int ActorID)
 			get_FControlledElement()->HasOCPDevice = true;  // For Reliability calcs
 			get_FControlledElement()->HasAutoOCPDevice = true;  // For Reliability calcs
 		}
-		if(FPresentState == CTRL_CLOSE)    // Open/Close State of controlled element based on state assigned to the control
+
+		int stop = 0;
+		// Open/Closed State of controlled element based on state assigned to the control
+		for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
 		{
-			get_FControlledElement()->Set_ConductorClosed(0, ActorID, true);
-			LockedOut = false;
-			OperationCount = 1;
-			ArmedForOpen = false;
-		}
-		else
-		{
-			get_FControlledElement()->Set_ConductorClosed(0, ActorID, false);
-			LockedOut = true;
-			OperationCount = NumReclose + 1;
-			ArmedForClose = false;
+			if((*FPresentState)[i - 1] == CTRL_CLOSE)
+			{
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, true);
+				LockedOut[i - 1] = false;
+				OperationCount[i - 1] = 1;
+				ArmedForOpen[i - 1] = false;
+			}
+			else
+			{
+				get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);
+				LockedOut[i - 1] = true;
+				OperationCount[i - 1] = NumReclose + 1;
+				ArmedForClose[i - 1] = false;
+			}
 		}
 	}
 	else
@@ -925,14 +1005,25 @@ void TRelayObj::GetInjCurrents(pComplexArray Curr, int ActorID)
 	}
 }
 
-/*--------------------------------------------------------------------------*/
-
 void TRelayObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 {
+	int i = 0;
+	int PhIdx = 0;
+	String ph_debug;
+	if(SinglePhTrip)
+		PhIdx = ProxyHdl;
+	else
+		PhIdx = IdxMultiPh; // Proxy holds phase information for single-phase trip
 	if(DebugTrace)
 	{
-		AppendToEventLog(String("Relay.") + this->get_Name(), Format("DoPendingAction Code=%d State=%d ArmedOpen=%s Close=%s Reset=%s Count=%d NumReclose=%d",
-		Code, ( FPresentState), BoolToStr(ArmedForOpen).c_str(), BoolToStr(ArmedForClose).c_str(), BoolToStr(ArmedForReset).c_str(), OperationCount, NumReclose), ActorID);
+		if(SinglePhTrip)
+			ph_debug = IntToStr(PhIdx);
+		else
+			ph_debug = "ALL";
+		AppendToEventLog(String("Relay.") + this->get_Name(),
+		Format("Debug DoPendingAction Code=%d Phase=%s State=%s ArmedOpen=%s ArmedForClose=%s ArmedForReset=%s Count=%d NumReclose=%d",
+		Code, ph_debug.c_str(), this->GetPropertyValue(40).c_str(), BoolToStr(ArmedForOpen[PhIdx - 1], true).c_str(), BoolToStr(ArmedForClose[PhIdx - 1], true).c_str(), BoolToStr(ArmedForReset[PhIdx - 1], true).c_str(),
+		OperationCount[PhIdx - 1], NumReclose), ActorID);
 	}
 	/*# with ControlledElement do */
 	{
@@ -941,76 +1032,176 @@ void TRelayObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 		switch(Code)
 		{
 			case ( CTRL_OPEN):
-			switch(FPresentState)
+			if(SinglePhTrip)
 			{
-				case 	CTRL_CLOSE:
-				if(ArmedForOpen)   // ignore if we became disarmed in meantime
+				switch((*FPresentState)[PhIdx - 1])
 				{
-					get_FControlledElement()->Set_ConductorClosed(0, ActorID, false);   // Open all phases of active terminal
-					if(OperationCount > NumReclose)
+					case 	CTRL_CLOSE:
+					if(ArmedForOpen[PhIdx - 1])   // ignore if we became disarmed in meantime
 					{
-						LockedOut = true;
-						if(ShowEventLog)
-							AppendToEventLog(String("Relay.") + this->get_Name(), String("Opened on ") + RelayTarget + " & Locked Out ", ActorID);
+						get_FControlledElement()->Set_ConductorClosed(PhIdx, ActorID, false);   // Open phase of active terminal
+						(*FPresentState)[PhIdx - 1] = CTRL_OPEN;
+						if(OperationCount[PhIdx - 1] > NumReclose)
+						{
+							LockedOut[PhIdx - 1] = true;
+							if(SinglePhLockout)
+							{
+								if(ShowEventLog)
+									AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (1ph lockout)", PhIdx, RelayTarget[PhIdx - 1].c_str()), ActorID);
+							}
+							else
+							{
+								if(ShowEventLog)
+									AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (3ph lockout)", PhIdx, RelayTarget[PhIdx - 1].c_str()), ActorID); // 3-Phase Lockout
+								// Lockout other phases
+								int stop = 0;
+								for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+								{
+									if((i != PhIdx) && (!LockedOut[i - 1]))  // Check LockedOut[i - 1] to skip individual phase that were previously locked out
+									{
+										get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);
+										(*FPresentState)[i - 1] = CTRL_OPEN;
+										LockedOut[i - 1] = true;
+										if(ArmedForOpen[i - 1])
+											ArmedForOpen[i - 1] = false;
+										if(ShowEventLog)
+											AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened (1ph trip) & locked out (3ph lockout)", i), ActorID);
+									}
+								}
+							}
+						}
+						else if(ShowEventLog)
+							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip)", PhIdx, RelayTarget[PhIdx - 1].c_str()), ActorID);
+						ArmedForOpen[PhIdx - 1] = false;
 					}
-					else
-					{
-						if(ShowEventLog)
-							AppendToEventLog(String("Relay.") + this->get_Name(), String("Opened on ") + RelayTarget, ActorID);
-					}
-					if(PhaseTarget)
-					{
-						if(ShowEventLog)
-							AppendToEventLog(" ", "Phase Target", ActorID);
-					}
-					if(GroundTarget)
-					{
-						if(ShowEventLog)
-							AppendToEventLog(" ", "Ground Target", ActorID);
-					}
-					ArmedForOpen = false;
-					if(ControlType == TD21)
-						td21_quiet = td21_pt + 1;
+					break; /*nada*/
+					default:
+					  ;
+					break;
 				}
-				break; /*nada*/
-				default:
-				  ;
-				break;
+			}
+			else // 3-Ph Trip
+			{
+				// Analyze each phase separately even if using 3-phase trip as states may not be the same.
+				int stop = 0;
+				for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+				{
+					switch((*FPresentState)[i - 1])
+					{
+						case 	CTRL_CLOSE:
+						if(ArmedForOpen[PhIdx - 1])   // ignore if we became disarmed in meantime
+						{
+							get_FControlledElement()->Set_ConductorClosed(i, ActorID, false);   // Open phases of active terminal
+							(*FPresentState)[i - 1] = CTRL_OPEN;
+							if(OperationCount[PhIdx - 1] > NumReclose)
+							{
+								LockedOut[PhIdx - 1] = true;
+								if(ShowEventLog)
+									AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip) & locked out (3ph lockout)", i, RelayTarget[PhIdx - 1].c_str()), ActorID);
+							}
+							else if(ShowEventLog)
+								AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip)", i, RelayTarget[PhIdx - 1].c_str()), ActorID);
+						}
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+				ArmedForOpen[PhIdx - 1] = false; // Report target only once for 3ph trip.
+				if(ControlType == TD21)
+					td21_quiet = td21_pt + 1;
 			}
 			break;
 			case ( CTRL_CLOSE):
-			switch(FPresentState)
+			if(SinglePhTrip)
 			{
-				case 	CTRL_OPEN:
-				if(ArmedForClose && !LockedOut)
+				switch((*FPresentState)[PhIdx - 1])
 				{
-					get_FControlledElement()->Set_ConductorClosed(0, ActorID, true);    // Close all phases of active terminal
-					++OperationCount;
-					if(ShowEventLog)
-						AppendToEventLog(String("Relay.") + this->get_Name(), "Closed", ActorID);
-					ArmedForClose = false;
-					if(ControlType == TD21)
-						td21_quiet = (td21_pt / 2);
+					case 	CTRL_OPEN:
+					if(ArmedForClose[PhIdx - 1] && !LockedOut[PhIdx - 1])
+					{
+						get_FControlledElement()->Set_ConductorClosed(PhIdx, ActorID, true);    // Close phase of active terminal
+						(*FPresentState)[PhIdx - 1] = CTRL_CLOSE;
+						if(ShowEventLog)
+							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d closed (1ph reclosing)", PhIdx), ActorID);
+						// Count reclosing operations for each phase on single ph trip
+						++OperationCount[PhIdx - 1];
+						ArmedForClose[PhIdx - 1] = false;
+					}
+					break;
+					default:
+					  ;
+					break;
 				}
-				break; /*Nada*/
-				default:
-				  ;
-				break;
 			}
-			break;
-			case ( CTRL_RESET):
-			if(ArmedForReset && !LockedOut)
+			else // 3-Ph Trip
 			{
-				if(ShowEventLog)
-					AppendToEventLog(String("Relay.") + this->get_Name(), "Reset", ActorID);
-				Reset(ActorID);
+				int stop = 0;
+				for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+				{
+					switch((*FPresentState)[i - 1])
+					{   // Check LockedOut[i - 1] to skip individual phases that were previously locked out
+						case 	CTRL_OPEN:
+						if(ArmedForClose[PhIdx - 1] && !LockedOut[i - 1] && !LockedOut[PhIdx - 1])
+						{
+							get_FControlledElement()->Set_ConductorClosed(i, ActorID, true);    // Close phases of active terminal
+							(*FPresentState)[i - 1] = CTRL_CLOSE;
+							if(ShowEventLog)
+								AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d closed (3ph reclosing)", i), ActorID);
+						}
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+				ArmedForClose[PhIdx - 1] = false;
+				++OperationCount[PhIdx - 1];
 				if(ControlType == TD21)
 					td21_quiet = (td21_pt / 2);
 			}
-			else
-
-            /*Do Nothing */
-			;
+			break;
+			case ( CTRL_RESET):
+			if(SinglePhTrip)
+			{
+				switch((*FPresentState)[PhIdx - 1])
+				{
+					case 	CTRL_CLOSE:
+					if(!ArmedForOpen[PhIdx - 1]) // Don't reset if we just rearmed
+					{
+						OperationCount[PhIdx - 1] = 1;
+						if(ShowEventLog)
+							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d reset (1ph reset)", PhIdx), ActorID);
+					}
+					break;
+					default:
+					  ;
+					break;
+				}
+			}
+			else // 3-Phase Trip
+			{
+				int stop = 0;
+				for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+				{
+					if((*FPresentState)[i - 1] == CTRL_CLOSE)
+					{
+						if(!ArmedForOpen[PhIdx - 1])
+						{
+							OperationCount[PhIdx - 1] = 1;       // Don't reset if we just rearmed
+							if(ShowEventLog)
+								AppendToEventLog(String("Relay.") + this->get_Name(), "Phase ALL reset (3ph reset)", ActorID);
+						}
+						break;  // no need to loop at all closed phases
+					}
+				}
+				if(ArmedForReset[PhIdx - 1] && !LockedOut[PhIdx - 1])
+				{
+					if(ControlType == TD21)
+						td21_quiet = (td21_pt / 2);
+				}
+			}
 			break;
 			default:
 			  ;
@@ -1023,37 +1214,112 @@ void TRelayObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 
 void TRelayObj::InterpretRelayState(int ActorID, const String Action, const String property_name)
 {
-	if((LowerCase(property_name)[0] == 's') || (LowerCase(property_name)[0] == 'a'))  // state or action (deprecated)
-	{
-		switch(LowerCase(Action)[0])
+	int i = 0;
+	string DataStr1 = "";
+	string DataStr2 = "";
+    // Only allowed to change normal state if locked.
+	if(get_FLocked() && ((LowerCase(property_name)[0] == 'a') || (LowerCase(property_name)[0] == 's')))
+		return;
+	if(LowerCase(property_name)[0] == 'a') // Interpret ganged specification to state when using action
+	{ // action (deprecated) will be removed
+		int stop = 0;
+		for(stop = RELAYCONTROLMAXDIM, i = 1; i <= stop; i++)
 		{
-			case 	L'o':
-			 case L't':
-			FPresentState = CTRL_OPEN;
-			break;
-			case 	L'c':
-			FPresentState = CTRL_CLOSE;
-			break;
-			default:
-			  ;
-			break;
+			switch(LowerCase(Action)[0])
+			{
+				case 	L'o':
+				set_States(i, CTRL_OPEN);
+				break;
+				case 	L'c':
+				set_States(i, CTRL_CLOSE);
+				break;
+				default:
+				  ;
+				break;
+			}
 		}
 	}
 	else
- // Normal
 	{
-		switch(LowerCase(Action)[0])
+		if(!Parser[ActorID]->IsQuotedString) // Interpret ganged specification to state and normal when not quoted
 		{
-			case 	L'o':
-			 case L't':
-			FNormalState = CTRL_OPEN;
-			break;
-			case 	L'c':
-			FNormalState = CTRL_CLOSE;
-			break;
-			default:
-			  ;
-			break;
+			int stop = 0;
+			for(stop = RELAYCONTROLMAXDIM, i = 1; i <= stop; i++)
+			{
+				if(LowerCase(property_name)[0] == 's')  // state
+				{
+					switch(LowerCase(Action)[0])
+					{
+						case 	L'o':
+						set_States(i, CTRL_OPEN);
+						break;
+						case 	L'c':
+						set_States(i, CTRL_CLOSE);
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+				else // 'normal
+				{
+					switch(LowerCase(Action)[0])
+					{
+						case 	L'o':
+						set_NormalStates(i, CTRL_OPEN);
+						break;
+						case 	L'c':
+						set_NormalStates(i, CTRL_CLOSE);
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+			}
+		}
+		else // process phase by phase
+		{
+			AuxParser[ActorID]->SetCmdString(Action);  // Load up Parser
+			DataStr1 = AuxParser[ActorID]->GetNextParam();  // ignore
+			DataStr2 = AuxParser[ActorID]->MakeString_();
+			i = 1;
+			while((DataStr2.size() > 0) && (i < RELAYCONTROLMAXDIM))
+			{
+				if(LowerCase(property_name)[0] == 's')  // state
+				{
+					switch(LowerCase(DataStr2)[0])
+					{
+						case 	L'o':
+						set_States(i, CTRL_OPEN);
+						break;
+						case 	L'c':
+						set_States(i, CTRL_CLOSE);
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+				else // 'normal'
+				{
+					switch(LowerCase(DataStr2)[0])
+					{
+						case 	L'o':
+						set_NormalStates(i, CTRL_OPEN);
+						break;
+						case 	L'c':
+						set_NormalStates(i, CTRL_CLOSE);
+						break;
+						default:
+						  ;
+						break;
+					}
+				}
+				DataStr1 = AuxParser[ActorID]->GetNextParam();  // ignore
+				DataStr2 = AuxParser[ActorID]->MakeString_();
+				++i;
+			}
 		}
 	}
 }
@@ -1062,11 +1328,19 @@ void TRelayObj::InterpretRelayState(int ActorID, const String Action, const Stri
 
 void TRelayObj::sample(int ActorID)
 {
+	int i = 0;
+	int stop = 0;
 	get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);
-	if(get_FControlledElement()->Get_ConductorClosed(0, ActorID))
-		FPresentState = CTRL_CLOSE;
-	else
-		FPresentState = CTRL_OPEN;
+	// Check state of phases of active terminal as they could have changed through other mechanisms
+	for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+	{
+		if(get_FControlledElement()->Get_ConductorClosed(i, ActorID))
+			(*FPresentState)[i - 1] = CTRL_CLOSE;
+		else
+			(*FPresentState)[i - 1] = CTRL_OPEN;
+	}
+	if(DebugTrace)
+		AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("FPresentState: %s ", this->GetPropertyValue(40).c_str()), ActorID);
 	switch(ControlType)
 	{
 		case 	Current:
@@ -1102,9 +1376,121 @@ void TRelayObj::sample(int ActorID)
 	}
 }
 
-
-
 /*--------------------------------------------------------------------------*/
+
+void TRelayObj::Reset(int ActorID)
+{
+	int i = 0;
+	if(!get_FLocked() && (get_FControlledElement() != nullptr))
+	{
+		if(ShowEventLog)
+			AppendToEventLog(String("Relay.") + this->get_Name(), "Resetting", ActorID);
+		NextTriptime = -1.0;  // not set to trip
+		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
+		int stop = 0;
+		for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+		{
+			(*FPresentState)[i - 1] = (*FNormalState)[i - 1];  // reset to normal state
+			ArmedForOpen[i - 1] = false;
+			ArmedForClose[i - 1] = false;
+			ArmedForReset[i - 1] = false;
+			GroundTarget = false;
+			PhaseTarget[i - 1] = false;
+			switch((*FNormalState)[i - 1])
+			{
+				case 	CTRL_OPEN:
+				{
+					get_FControlledElement()->Set_ConductorClosed(i, ActiveActor, false); // Open all phases of active terminal
+					LockedOut[i - 1] = true;
+					OperationCount[i - 1] = NumReclose + 1;
+				}
+				break;
+           /*CTRL_CLOSE*/
+				default:
+				get_FControlledElement()->Set_ConductorClosed(i, ActiveActor, true);    // Close all phases of active terminal
+				LockedOut[i - 1] = false;
+				OperationCount[i - 1] = 1;
+				break;
+			}
+		}
+	}
+}
+
+void TRelayObj::set_Flocked(bool Value)
+{
+	FLocked = Value;
+}
+
+bool TRelayObj::get_FLocked()
+{
+	return FLocked;
+}
+
+EControlAction TRelayObj::get_States(int Idx)
+{
+	EControlAction result;
+	if(get_FControlledElement() != nullptr)
+	{
+		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
+		if(get_FControlledElement()->Get_ConductorClosed(Idx, ActiveActor))
+		{
+            /*TRUE:*/
+			(*FPresentState)[Idx - 1] = CTRL_CLOSE;
+		}
+		else
+		{
+            /* FALSE */
+			(*FPresentState)[Idx - 1] = CTRL_OPEN;
+		}
+	}
+	result = (*FPresentState)[Idx - 1];
+	return result;
+}
+
+void TRelayObj::set_States(int Idx, const EControlAction Value)
+{
+	if(get_States(Idx) != Value)
+	{
+		if(get_FControlledElement() != nullptr)
+		{
+			get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
+			switch(Value)
+			{
+				case 	CTRL_OPEN:
+				get_FControlledElement()->Set_ConductorClosed(Idx, ActiveActor, false);
+				LockedOut[Idx - 1] = true;
+				OperationCount[Idx - 1] = NumReclose + 1;
+				ArmedForClose[Idx - 1] = false;
+				ArmedForReset[Idx - 1] = false;
+				break;
+                /*CTRL_CLOSE:*/
+				default:
+				get_FControlledElement()->Set_ConductorClosed(Idx, ActiveActor, true);
+				LockedOut[Idx - 1] = false;
+				OperationCount[Idx - 1] = 1;
+				ArmedForOpen[Idx - 1] = false;
+				ArmedForReset[Idx - 1] = false;
+				break;
+			}
+		}
+		(*FPresentState)[Idx - 1] = Value;
+	}
+}
+
+EControlAction TRelayObj::get_NormalStates(int Idx)
+{
+	EControlAction result;
+	result = (*FNormalState)[Idx - 1];
+	return result;
+}
+
+void TRelayObj::set_NormalStates(int Idx, const EControlAction Value)
+{
+	if((*FNormalState)[Idx - 1] != Value)
+	{
+		(*FNormalState)[Idx - 1] = Value;
+	}
+}
 
 /*Note PropertyValue is aligned with the internal indices*/
 
@@ -1131,12 +1517,77 @@ String TRelayObj::GetPropertyValue(int Index)
 {
 	String result;
 	int i = 0;
-	result = "";
+	switch(Index)
+	{
+		case 	39: case 40:
+		result = "[";
+		break;
+		default:
+		result = "";
+		break;
+	}
 	/*# with ParentClass do */
 	{
 		auto with0 = ParentClass;
 		switch(Index)
 		{
+			case 	6: case 63:
+			if(PhCurve != nullptr)
+				result = PhCurve->get_Name();
+			else
+				result = "none";
+			break;
+			case 	7: case 59:
+			if(GndCurve != nullptr)
+				result = GndCurve->get_Name();
+			else
+				result = "none";
+			break;
+			case 	8: case 64:
+			result = Format("%.3f", PhPickup);
+			break;
+			case 	9: case 60:
+			result = Format("%.3f", GndPickup);
+			break;
+			case 	10: case 65:
+			result = Format("%.3f", PhInst);
+			break;
+			case 	11: case 61:
+			result = Format("%.3f", GndInst);
+			break;
+			case 	15: case 70:
+			if(OVcurve != nullptr)
+				result = OVcurve->get_Name();
+			else
+				result = "none";
+			break;
+			case 	16: case 71:
+			if(UVCurve != nullptr)
+				result = UVCurve->get_Name();
+			else
+				result = "none";
+			break;
+			case 	18: case 57:
+			result = Format("%.3f", MechanicalDelay);
+			break;
+			case 	20: case 69:
+			result = MonitorVariable;
+			break;
+			case 	24: case 58:
+			result = Format("%.3f", DefiniteTimeDelay);
+			break;
+			case 	26: case 67:
+			result = Format("%.3f", OverTrip);
+			break;
+			case 	27: case 68:
+			result = Format("%.3f", UnderTrip);
+			break;
+			case 	28: case 66:
+			result = Format("%.3f", TDPh);
+			break;
+			case 	29: case 62:
+			result = Format("%.3f", TDGnd);
+			break;
 			case 	13:
 			result = Format("%d", NumReclose + 1);
 			break;
@@ -1158,137 +1609,72 @@ String TRelayObj::GetPropertyValue(int Index)
 			break;
 			case 	39:
 			{
-				switch(FNormalState)
+				if(get_FControlledElement() != nullptr)
 				{
-					case 	CTRL_OPEN:
-					result = "open";
-					break;
-                    /*CTRL_CLOSE:*/
-					default:
-					result = "closed";
-					break;
+					int stop = 0;
+					for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+					{
+						switch((*FNormalState)[i - 1])
+						{
+							case 	CTRL_OPEN:
+							result = result + "open" + ", ";
+							break;
+                            /*CTRL_CLOSE:*/
+							default:
+							result = result + "closed" + ", ";
+							break;
+						}
+					}
 				}
 			}
 			break;
-			case 	19:
-			 case 40:
+			case 	40:
 			{
-				switch(FPresentState)
+				if(get_FControlledElement() != nullptr)
 				{
-					case 	CTRL_OPEN:
-					result = "open";
-					break;
-                    /*CTRL_CLOSE:*/
-					default:
-					result = "closed";
-					break;
+					int stop = 0;
+					for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
+					{
+						switch((*FPresentState)[i - 1])
+						{
+							case 	CTRL_OPEN:
+							result = result + "open" + ", ";
+							break;
+                            /*CTRL_CLOSE:*/
+							default:
+							result = result + "closed" + ", ";
+							break;
+						}
+					}
 				}
 			}
+			break;
+			case 	53:
+			if(get_FLocked())
+				result = "Yes";
+			else
+				result = "No";
+			break;
+			case 	55:
+			result = Format("%-.6g", RatedCurrent);
+			break;
+			case 	56:
+			result = Format("%-.6g", InterruptingRating);
 			break;
 			default:
 			result = inherited::GetPropertyValue(Index);
 			break;
 		}
 	}
+	switch(Index)
+	{
+		case 	39: case 40:
+		result = result + "]";
+		break;
+		default:
+		break;
+	}
 	return result;
-}
-
-void TRelayObj::Reset(int ActorID)
-{
-	if(ShowEventLog)
-		AppendToEventLog(String("Relay.") + this->get_Name(), "Resetting", ActorID);
-	FPresentState = FNormalState;
-	ArmedForOpen = false;
-	ArmedForClose = false;
-	ArmedForReset = false;
-	PhaseTarget = false;
-	GroundTarget = false;
-	NextTriptime = -1.0;  // not set to trip
-	if(get_FControlledElement() != nullptr)
-	{
-		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
-		switch(FNormalState)
-		{
-			case 	CTRL_OPEN:
-			{
-				get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, false); // Open all phases of active terminal
-				LockedOut = true;
-				OperationCount = NumReclose + 1;
-			}
-			break;
-           /*CTRL_CLOSE*/
-			default:
-			get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, true);    // Close all phases of active terminal
-			LockedOut = false;
-			OperationCount = 1;
-			break;
-		}
-	}
-}
-
-EControlAction TRelayObj::get_State()
-{
-	EControlAction result;
-	if(get_FControlledElement() != nullptr)
-	{
-		get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
-		if(get_FControlledElement()->Get_ConductorClosed(0, ActiveActor))
-		{
-            /*TRUE:*/
-			FPresentState = CTRL_CLOSE;
-			} else {
-			FPresentState = CTRL_OPEN;
-		}
-	}
-	result = FPresentState;
-	return result;
-}
-
-void TRelayObj::set_State(const EControlAction Value)
-{
-	if(get_State() != Value)
-	{
-		if(get_FControlledElement() != nullptr)
-		{
-			get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);  // Set active terminal
-			switch(Value)
-			{
-				case 	CTRL_OPEN:
-				{
-					get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, false);
-					LockedOut = true;
-					OperationCount = NumReclose + 1;
-					ArmedForClose = false;
-					ArmedForReset = false;
-				}
-				break;
-                /*CTRL_CLOSE:*/
-				default:
-				get_FControlledElement()->Set_ConductorClosed(0, ActiveActor, true);
-				LockedOut = false;
-				OperationCount = 1;
-				ArmedForOpen = false;
-				ArmedForReset = false;
-				break;
-			}
-		}
-		FPresentState = Value;
-	}
-}
-
-EControlAction TRelayObj::get_NormalState()
-{
-	EControlAction result;
-	result = FNormalState;
-	return result;
-}
-
-void TRelayObj::set_NormalState(const EControlAction Value)
-{
-	if(FNormalState != Value)
-	{
-		FNormalState = Value;
-	}
 }
 
 void TRelayObj::InitPropertyValues(int ArrayOffset)
@@ -1298,8 +1684,8 @@ void TRelayObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(3,"");
 	Set_PropertyValue(4,"1"); //'terminal';
 	Set_PropertyValue(5,"current");
-	Set_PropertyValue(6,"");
-	Set_PropertyValue(7,"");
+	Set_PropertyValue(6,"none");
+	Set_PropertyValue(7,"none");
 	Set_PropertyValue(8,"1.0");
 	Set_PropertyValue(9,"1.0");
 	Set_PropertyValue(10,"0.0");
@@ -1307,8 +1693,8 @@ void TRelayObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(12,"15");
 	Set_PropertyValue(13,"4");
 	Set_PropertyValue(14,"(0.5, 2.0, 2.0)");
-	Set_PropertyValue(15,"");
-	Set_PropertyValue(16,"");
+	Set_PropertyValue(15,"none");
+	Set_PropertyValue(16,"none");
 	Set_PropertyValue(17,"0.0");
 	Set_PropertyValue(18,"0.0");
 	Set_PropertyValue(19,"closed");
@@ -1330,18 +1716,41 @@ void TRelayObj::InitPropertyValues(int ArrayOffset)
 	Set_PropertyValue(35,"0.7");
 	if (ShowEventLog) Set_PropertyValue(36,"YES"); else Set_PropertyValue(36,"NO");
 	Set_PropertyValue(37,"No");
-	Set_PropertyValue(39,"closed");
-	Set_PropertyValue(40,"closed");
+	Set_PropertyValue(39,"[closed, closed, closed]");  // normal
+	Set_PropertyValue(40,"[closed, closed, closed]");  // state
 	Set_PropertyValue(41,"90.0");
 	Set_PropertyValue(42,"90.0");
 	Set_PropertyValue(43,"0.0");
 	Set_PropertyValue(44,"-1.0");
 	Set_PropertyValue(45,"-1.0");
 	Set_PropertyValue(46,"-1.0");
-	Set_PropertyValue(47,"");
+	Set_PropertyValue(47,"none");
 	Set_PropertyValue(48,"1.0");
 	Set_PropertyValue(49,"1.0");
-	Set_PropertyValue(50,"Yes");
+	Set_PropertyValue(50,"True"); // DOC_P1Blocking
+	Set_PropertyValue(51,"No");   // SinglePhTripping
+	Set_PropertyValue(52,"No");   // SinglePhLockout
+	Set_PropertyValue(53,"No");   // Lock
+	Set_PropertyValue(54,"n");    // Reset
+	Set_PropertyValue(55,"0");    // RatedCurrent
+	Set_PropertyValue(56,"0");    // InterruptingRating
+
+     // Deprecated Properties
+	Set_PropertyValue(57,"0");    // Breakertime -> MechanicalDelay
+	Set_PropertyValue(58,"0");    // Delay -> DefiniteTimeDelay
+	Set_PropertyValue(59,"0");    // GroundCurve -> OC_GndCurve
+	Set_PropertyValue(60,"0");    // GroundTrip -> OC_GndPickup
+	Set_PropertyValue(61,"0");    // GroundInst -> OC_GndInst
+	Set_PropertyValue(62,"0");    // TDGround -> OC_TDGnd
+	Set_PropertyValue(63,"0");    // Phasecurve -> PhCurve
+	Set_PropertyValue(64,"0");    // PhaseTrip -> PhPickup
+	Set_PropertyValue(65,"0");    // PhaseInst -> PhInst
+	Set_PropertyValue(66,"0");    // TDPhase -> TDPh
+	Set_PropertyValue(67,"0");    // overtrip -> Generic_OverTrip
+	Set_PropertyValue(68,"0");    // undertrip -> Generic_UnderTrip
+	Set_PropertyValue(69,"0");    // Variable -> Generic_Variable
+	Set_PropertyValue(70,"0");    // Overvoltcurve -> Voltage_OVCurve
+	Set_PropertyValue(71,"0");    // Undervoltcurve -> Voltage_UVCurve
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
@@ -1378,11 +1787,12 @@ void TRelayObj::InterpretRelayType(const String s)
 		case 	L'd':
 		switch(s.size() >= 2 ? LowerCase(s)[1] : '\0')
 		{
-			case 'i':
+			case 	'i':
 			ControlType = Distance;
 			break;
-			case 'o':
+			case 	'o':
 			ControlType = DOC;
+			break;
 			default:
 			break;
 		}
@@ -1399,75 +1809,74 @@ void TRelayObj::InterpretRelayType(const String s)
 	switch(LowerCase(s)[0])
 	{
 		case 	L'c':
-		Delay_Time = 0.0;
+		DefiniteTimeDelay = 0.0;
 		break;
 		case 	L'v':
-		Delay_Time = 0.0;
+		DefiniteTimeDelay = 0.0;
 		break;
 		case 	L'r':
-		Delay_Time = 0.1;
+		DefiniteTimeDelay = 0.1;
 		break;
 		case 	L'4':
-		Delay_Time = 0.1;
+		DefiniteTimeDelay = 0.1;
 		break;
 		case 	L'g':
-		Delay_Time = 0.1;
+		DefiniteTimeDelay = 0.1;
 		break;
 		case 	L'd':
 		switch(s.size() >= 2 ? LowerCase(s)[1] : '\0')
 		{
 			case 	'i':
-			Delay_Time = 0.1;
+			DefiniteTimeDelay = 0.1;
 			break;
 			case 	'o':
-			Delay_Time = 0.0;
+			DefiniteTimeDelay = 0.0;
 			break;
 			default:
 			break;
 		}
 		break;
 		case 	L't':
-		Delay_Time = 0.1;
+		DefiniteTimeDelay = 0.1;
 		break;
 		default:
-		Delay_Time = 0.0;
+		DefiniteTimeDelay = 0.0;
 		break;
 	}
-	Set_PropertyValue(24,Format("%g", Delay_Time));
+	Set_PropertyValue(24,Format("%-g", DefiniteTimeDelay));
 }
+
 /* Generic relays only work on PC Elements With control terminals
 */
 
 void TRelayObj::GenericLogic(int ActorID)
 {
-	double varValue = 0.0;
+	double VarValue = 0.0;
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
 	/*# with MonitoredElement do */
 	{
 		auto with0 = get_FMonitoredElement();
-		varValue = ((TPCElement*) get_FMonitoredElement())->Get_Variable(MonitorVarIndex);
+		VarValue = ((TPCElement*) get_FMonitoredElement())->Get_Variable(MonitorVarIndex);
 
       /*Check for Trip*/
-		if((varValue > OverTrip) || (varValue < UnderTrip))
+		if((VarValue > OverTrip) || (VarValue < UnderTrip))
 		{
-			if(!ArmedForOpen)
+			if(!ArmedForOpen[IdxMultiPh - 1])  // push the trip operation and arm to trip
 				/*# with ActiveCircuit[ActorID] do */
 				{
-					  // push the trip operation and arm to trip
-					RelayTarget = ((TPCElement*) get_FMonitoredElement())->VariableName(MonitorVarIndex);
-					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + Delay_Time + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-					OperationCount = NumReclose + 1;  // force a lockout
-					ArmedForOpen = true;
+					RelayTarget[IdxMultiPh - 1] = ((TPCElement*) get_FMonitoredElement())->VariableName(MonitorVarIndex);
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + DefiniteTimeDelay + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+					OperationCount[IdxMultiPh - 1] = NumReclose + 1;  // force a lockout
+					ArmedForOpen[IdxMultiPh - 1] = true;
 				}
 		}
-		else
-   /*Within bounds*/  /*Less Than pickup value: reset if armed*/
+		else   /*Within bounds*/  /*Less Than pickup value: reset if armed*/
 		{
-			if(ArmedForOpen)
+			if(ArmedForOpen[IdxMultiPh - 1])    // We became unarmed, so reset and disarm
 				/*# with ActiveCircuit[ActorID] do */
 				{
-					    // We became unarmed, so reset and disarm
 					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-					ArmedForOpen = false;
+					ArmedForOpen[IdxMultiPh - 1] = false;
 				}
 		}
 	}  /*With MonitoredElement*/
@@ -1484,6 +1893,7 @@ void TRelayObj::NegSeq46Logic(int ActorID)
 	double		TripTime = 0.0;
 	int			IOffset = 0;
 	complex		I012[3] = {cmplx(0,0), cmplx(0,0) ,cmplx(0,0) };
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
 	/*# with MonitoredElement do */
 	{
 		auto with0 = get_FMonitoredElement();
@@ -1494,30 +1904,27 @@ void TRelayObj::NegSeq46Logic(int ActorID)
 		NegSeqCurrentMag = cabs(I012[3 - 1]);
 		if(NegSeqCurrentMag >= PickupAmps46)
 		{
-			if(!ArmedForOpen)
+			if(!ArmedForOpen[IdxMultiPh - 1])  // push the trip operation and arm to trip
 				/*# with ActiveCircuit[ActorID] do */
 				{
-					  // push the trip operation and arm to trip
-					RelayTarget = "-Seq Curr";
+					RelayTarget[IdxMultiPh - 1] = "-Seq Curr";
               /*simple estimate of trip time assuming current will be constant*/
-					if(Delay_Time > 0.0)
-						TripTime = Delay_Time;
+					if(DefiniteTimeDelay > 0.0)
+						TripTime = DefiniteTimeDelay;
 					else
 						TripTime = Isqt46 / Sqr(NegSeqCurrentMag / BaseAmps46); // Sec
-					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-					OperationCount = NumReclose + 1;  // force a lockout
-					ArmedForOpen = true;
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+					OperationCount[IdxMultiPh - 1] = NumReclose + 1;  // force a lockout
+					ArmedForOpen[IdxMultiPh - 1] = true;
 				}
 		}
-		else
-  /*Less Than pickup value: reset if armed*/
+		else  /*Less Than pickup value: reset if armed*/
 		{
-			if(ArmedForOpen)
+			if(ArmedForOpen[IdxMultiPh - 1])    // We became unarmed, so reset and disarm
 				/*# with ActiveCircuit[ActorID] do */
 				{
-					    // We became unarmed, so reset and disarm
 					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-					ArmedForOpen = false;
+					ArmedForOpen[IdxMultiPh - 1] = false;
 				}
 		}
 	}  /*With MonitoredElement*/
@@ -1526,83 +1933,224 @@ void TRelayObj::NegSeq46Logic(int ActorID)
 void TRelayObj::OvercurrentLogic(int ActorID)
 {
 	int i = 0;
-	double cmag = 0.0;
+	double Cmag = 0.0;
 	complex Csum = {};
-	double Groundtime = 0.0;
+	int MaxOperatingCount = 0;
+	double GroundTime = 0.0;
 	double PhaseTime = 0.0;
 	double TripTime = 0.0;
 	double TimeTest = 0.0;
-	/*# with MonitoredElement do */
+	int stop = 0;
+
+     // Check largest Current of all phases of monitored element
+	get_FControlledElement()->Set_ActiveTerminal(ElementTerminal);
+	get_FMonitoredElement()->GetCurrents(cBuffer, ActorID);
+
+	for(i = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()); i >= 1; i--)
 	{
-		auto with0 = get_FMonitoredElement();
-		if(FPresentState == CTRL_CLOSE)
+		if((*FPresentState)[i - 1] == CTRL_CLOSE)
+			break; // Continue sampling if at least one phase is closed.
+		if(i == 1)
+			return;  // Exit sampling if none of the phases is closed.
+	}
+
+     // Identify number of operations.
+     // Pending to identify phase to trip for ground element when considering single-phase tripping as in modern microprocessed relays.
+	if(SinglePhTrip)
+	{
+		for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
 		{
-			TripTime = -1.0;
-			Groundtime = -1.0;
+			if(LockedOut[i - 1])
+				continue; // Skip locked out phases (includes phases that have been manually opened).
+			if(i == 1)
+				MaxOperatingCount = OperationCount[i - 1];
+			else
+				MaxOperatingCount = max(MaxOperatingCount, OperationCount[i - 1]);
+		}
+	}
+	else
+		MaxOperatingCount = OperationCount[IdxMultiPh - 1];
+
+	GroundTime = -1.0;
+     /*Check Ground Trip, if any*/
+	if(((GndCurve != nullptr) || (DefiniteTimeDelay > 0.0)) && (GndPickup > 0.0))
+	{
+		Csum = CZero;
+		for(stop = (Fnphases + CondOffset), i = (1 + CondOffset); i <= stop; i++)
+			caccum(Csum, (cBuffer)[i - 1]);
+		Cmag = cabs(Csum);
+		if((GndInst > 0.0) && (Cmag >= GndInst) && (MaxOperatingCount == 1))
+		{
+			GroundTime = 0.01;      // Inst trip on first operation
+			if(DebugTrace)
+				AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Gnd Instantaneous Trip: Mag=%.3g, Time=%.3g", Cmag, GroundTime), ActorID);
+		}
+		else
+		{
+			if(DefiniteTimeDelay > 0.0) // Definite Time Ground Relay
+			{
+				if(Cmag >= GndPickup)
+				{
+					GroundTime = DefiniteTimeDelay;
+					if(DebugTrace)
+						AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Gnd Definite Time Trip: Mag=%.3g, Time=%.3g", Cmag, GroundTime), ActorID);
+				}
+			}
+			else
+			{
+				GroundTime = TDGnd * GndCurve->GetTCCTime(Cmag / GndPickup);
+				if((GroundTime > 0.0) && DebugTrace)
+					AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Gnd Curve Trip: Mag=%.3g, Time=%.3g", Cmag / GndPickup, GroundTime), ActorID);
+			}
+		}
+	}
+
+	if(GroundTime > 0.0)
+		GroundTarget = true;
+     // If GroundTime > 0 then we have a ground trip
+
+	if(SinglePhTrip)
+	{
+		for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
+		{
+			if((*FPresentState)[i - 1] != CTRL_CLOSE)
+				continue;
+			if(GroundTime > 0.0)
+				TripTime = GroundTime;
+			else
+				TripTime = -1.0;  // initialize trip time for this phase.
+
 			PhaseTime = -1.0;  /*No trip*/
 
-           // Check largest Current of all phases of monitored element
-			get_FMonitoredElement()->GetCurrents(cBuffer, ActorID);
-
-           /*Check Ground Trip, if any*/
-			if(((GroundCurve != nullptr) || (Delay_Time > 0.0)) && (GroundTrip > 0.0))
+            /*Check Phase Trip, if any*/ // Check current at i phase of monitored element
+			if(((PhCurve != nullptr) || (DefiniteTimeDelay > 0.0)) && (PhPickup > 0.0))
 			{
-				int stop = 0;
-				Csum = CZero;
-				for(stop = (with0->Fnphases + CondOffset), i = (1 + CondOffset); i <= stop; i++)
+				Cmag = cabs((cBuffer)[i + CondOffset - 1]);
+				if((PhInst > 0.0) && (Cmag >= PhInst) && (OperationCount[i - 1] == 1))
 				{
-					caccum(Csum, (cBuffer)[i - 1]);
+					PhaseTime = 0.01;  // Inst trip on first operation
+					if(DebugTrace)
+						AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Instantaneous (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i, Cmag, PhaseTime), ActorID);
 				}
-				cmag = cabs(Csum);
-				if((GroundInst > 0.0) && (cmag >= GroundInst) && (OperationCount == 1))      // Inst trip on first operation
-					Groundtime = 0.01 + Breaker_time;
 				else
 				{
-					if(Delay_Time > 0.0) // Definite Time Ground Relay
+					if(DefiniteTimeDelay > 0.0) // Definite Time Phase Relay
 					{
-						if(cmag >= GroundTrip)
-							Groundtime = Delay_Time;
-						else
-							Groundtime = -1.0;
-					}
-					else
-					Groundtime = TDGround * GroundCurve->GetTCCTime(cmag / GroundTrip);
-				}
-				if(DebugTrace)
-					AppendToEventLog(String("Relay.") + this->get_Name(), Format("Ground Trip: Mag=%.3g, Mult=%.3g, Time=%.3g",
-					cmag, cmag / GroundTrip, Groundtime), ActorID);
-			}
-			if(Groundtime > 0.0)
-			{
-				TripTime = Groundtime;
-				GroundTarget = true;
-			}
-
-           // If GroundTime > 0 then we have a ground trip
-			
-           /*Check Phase Trip, if any*/
-			if(((PhaseCurve != nullptr) || (Delay_Time > 0.0)) && (PhaseTrip > 0.0))
-			{
-				int stop = 0;
-				for(stop = (with0->Fnphases + CondOffset), i = (1 + CondOffset); i <= stop; i++)
-				{
-					cmag = cabs((cBuffer)[i - 1]);
-					if((PhaseInst > 0.0) && (cmag >= PhaseInst) && (OperationCount == 1))
-					{
-						PhaseTime = 0.01 + Breaker_time;  // Inst trip on first operation
-						break;
-					}
-					else
-					{
-						if(Delay_Time > 0.0) // Definite Time Phase Relay
+						if(Cmag >= PhPickup)
 						{
-							if(cmag >= PhaseTrip)
-								TimeTest = Delay_Time;
-							else
-								TimeTest = -1.0;
+							TimeTest = DefiniteTimeDelay;
+							if(DebugTrace)
+								AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Definite Time (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i, Cmag, TimeTest), ActorID);
 						}
 						else
-						TimeTest = TDPhase * PhaseCurve->GetTCCTime(cmag / PhaseTrip);
+							TimeTest = -1.0;
+					}
+					else
+					{
+						TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						if((TimeTest > 0.0) && DebugTrace)
+							AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Curve (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i, Cmag / PhPickup, TimeTest), ActorID);
+					}
+					if(TimeTest > 0.0)
+						PhaseTime = TimeTest;
+				}
+			}
+
+             // If PhaseTime > 0 then we have a phase trip
+			if(PhaseTime > 0.0)
+			{
+				PhaseTarget[i - 1] = true;
+				if(TripTime > 0.0)
+					TripTime = min(TripTime, PhaseTime);
+				else
+					TripTime = PhaseTime;
+			}
+
+			if(TripTime > 0.0)
+			{
+				if(!ArmedForOpen[i - 1])
+					/*# with ActiveCircuit[ActorID] do */   // Then arm for an open operation
+					{
+						RelayTarget[i - 1] = "";
+						if(TripTime == GroundTime)
+						{
+							if(Abs(GroundTime - 0.01) < EPSILON)
+								RelayTarget[i - 1] = "Gnd Instantaneous";
+							else if(GroundTime == DefiniteTimeDelay)
+								RelayTarget[i - 1] = "Gnd Definite Time";
+							else
+								RelayTarget[i - 1] = "Gnd Curve";
+						}
+						if(TripTime == PhaseTime)
+						{
+							if(RelayTarget[i - 1] != "")
+								RelayTarget[i - 1] = RelayTarget[i - 1] + " + ";
+							if(Abs(PhaseTime - 0.01) < EPSILON)
+								RelayTarget[i - 1] = RelayTarget[i - 1] + "Ph Instantaneous";
+							else if(PhaseTime == DefiniteTimeDelay)
+								RelayTarget[i - 1] = RelayTarget[i - 1] + "Ph Definite Time";
+							else
+								RelayTarget[i - 1] = RelayTarget[i - 1] + "Ph Curve";
+						}
+						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, i, this, ActorID);
+						if(OperationCount[i - 1] <= NumReclose)
+							ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay + (RecloseIntervals)[OperationCount[i - 1] - 1], CTRL_CLOSE, i, this, ActorID);
+						ArmedForOpen[i - 1] = true;
+						ArmedForClose[i - 1] = true;
+					}
+			}
+			else
+			{
+				if(ArmedForOpen[i - 1])
+					/*# with ActiveCircuit[ActorID] do */    // If current dropped below pickup, disarm trip and set for reset
+					{
+						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, i, this, ActorID);
+						ArmedForOpen[i - 1] = false;
+						ArmedForClose[i - 1] = false;
+						GroundTarget = false;
+						PhaseTarget[i - 1] = false;
+					}
+			}
+		}
+	}
+	else // 3-Phase Trip
+	{
+		if(GroundTime > 0.0)
+			TripTime = GroundTime;
+		else
+			TripTime = -1.0;  // initialize trip time
+		PhaseTime = -1.0;
+
+        /*Check Phase Trip, if any*/
+		if(((PhCurve != nullptr) || (DefiniteTimeDelay > 0.0)) && (PhPickup > 0.0))
+		{
+			for(stop = (Fnphases + CondOffset), i = (1 + CondOffset); i <= stop; i++)
+			{
+				Cmag = cabs((cBuffer)[i - 1]);
+				if((PhInst > 0.0) && (Cmag >= PhInst) && (OperationCount[IdxMultiPh - 1] == 1))
+				{
+					PhaseTime = 0.01;  // Inst trip on first operation
+					if(DebugTrace)
+						AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Instantaneous (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i - CondOffset, Cmag, PhaseTime), ActorID);
+					break;  /*FOR - if Inst, no sense checking other phases*/
+				}
+				else
+				{
+					if(DefiniteTimeDelay > 0.0) // Definite Time Phase Relay
+					{
+						if(Cmag >= PhPickup)
+						{
+							PhaseTime = DefiniteTimeDelay;
+							if(DebugTrace)
+								AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Definite Time (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i - CondOffset, Cmag, PhaseTime), ActorID);
+							break;  /*FOR - if Definite Time, no sense checking other phases*/
+						}
+					}
+					else
+					{
+						TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						if((TimeTest > 0.0) && DebugTrace)
+							AppendToEventLog(String("Debug Sample: Relay.") + this->get_Name(), Format("Ph Curve (3-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", i - CondOffset, Cmag / PhPickup, TimeTest), ActorID);
 						if(TimeTest > 0.0)
 						{
 							if(PhaseTime < 0.0)
@@ -1611,53 +2159,66 @@ void TRelayObj::OvercurrentLogic(int ActorID)
 								PhaseTime = min(PhaseTime, TimeTest);
 						}
 					}
-					if(DebugTrace)
-						AppendToEventLog(String("Relay.") + this->get_Name(), Format("Phase %d Trip: Mag=%.3g, Mult=%.3g, Time=%.3g",
-						i - CondOffset, cmag, cmag / PhaseTrip, PhaseTime), ActorID);
 				}
 			}
-           // If PhaseTime > 0 then we have a phase trip
-			if(PhaseTime > 0.0)
-			{
-				PhaseTarget = true;
-				if(TripTime > 0.0)
-					TripTime = min(TripTime, PhaseTime);
-				else
-					TripTime = PhaseTime;
-			}
+		}
+
+        // If PhaseTime > 0 then we have a phase trip
+		if(PhaseTime > 0.0)
+		{
+			PhaseTarget[IdxMultiPh - 1] = true;
 			if(TripTime > 0.0)
-			{
-				if(!ArmedForOpen)
-					/*# with ActiveCircuit[ActorID] do */
-					{
-						   // Then arm for an open operation
-						RelayTarget = "";
-						if(PhaseTime > 0.0)
-							RelayTarget = RelayTarget + "Ph";
-						if(Groundtime > 0.0)
-							RelayTarget = RelayTarget + " Gnd";
-						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-						if(OperationCount <= NumReclose)
-							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time + (RecloseIntervals)[OperationCount - 1], CTRL_CLOSE, 0, this, ActorID);
-						ArmedForOpen = true;
-						ArmedForClose = true;
-					}
-			}
+				TripTime = min(TripTime, PhaseTime);
 			else
-			{
-				if(ArmedForOpen)
-					/*# with ActiveCircuit[ActorID] do */
+				TripTime = PhaseTime;
+		}
+
+		if(TripTime > 0.0)
+		{
+			if(!ArmedForOpen[IdxMultiPh - 1])
+				/*# with ActiveCircuit[ActorID] do */   // Then arm for an open operation
+				{
+					RelayTarget[IdxMultiPh - 1] = "";
+					if(TripTime == GroundTime)
 					{
-						    // If current dropped below pickup, disarm trip and set for reset
-						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-						ArmedForOpen = false;
-						ArmedForClose = false;
-						PhaseTarget = false;
-						GroundTarget = false;
+						if(Abs(GroundTime - 0.01) < EPSILON)
+							RelayTarget[IdxMultiPh - 1] = "Gnd Instantaneous";
+						else if(GroundTime == DefiniteTimeDelay)
+							RelayTarget[IdxMultiPh - 1] = "Gnd Definite Time";
+						else
+							RelayTarget[IdxMultiPh - 1] = "Gnd Curve";
 					}
-			}
-		}  /*IF PresentState=CLOSE*/
-	}  /*With MonitoredElement*/
+					if(TripTime == PhaseTime)
+					{
+						if(RelayTarget[IdxMultiPh - 1] != "")
+							RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + " + ";
+						if(Abs(PhaseTime - 0.01) < EPSILON)
+							RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + "Ph Instantaneous";
+						else if(PhaseTime == DefiniteTimeDelay)
+							RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + "Ph Definite Time";
+						else
+							RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + "Ph Curve";
+					}
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+					if(MaxOperatingCount <= NumReclose)
+						ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay + (RecloseIntervals)[MaxOperatingCount - 1], CTRL_CLOSE, 0, this, ActorID);
+					ArmedForOpen[IdxMultiPh - 1] = true;
+					ArmedForClose[IdxMultiPh - 1] = true;
+				}
+		}
+		else
+		{
+			if(ArmedForOpen[IdxMultiPh - 1])
+				/*# with ActiveCircuit[ActorID] do */    // If current dropped below pickup, disarm trip and set for reset
+				{
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
+					ArmedForOpen[IdxMultiPh - 1] = false;
+					ArmedForClose[IdxMultiPh - 1] = false;
+					GroundTarget = false;
+					PhaseTarget[IdxMultiPh - 1] = false;
+				}
+		}
+	}
 }
 
 void TRelayObj::DistanceLogic(int ActorID)
@@ -1676,7 +2237,8 @@ void TRelayObj::DistanceLogic(int ActorID)
 	double t_event = 0.0;
 	TStringList Targets;
 	bool PickedUp = false;
-	if(!LockedOut)
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
+	if(!LockedOut[IdxMultiPh - 1])
 		/*# with MonitoredElement do */
 		{
 			auto with0 = get_FMonitoredElement();
@@ -1722,7 +2284,7 @@ void TRelayObj::DistanceLogic(int ActorID)
 						Zloop = cdiv(Vloop, Iloop);
           // start with a very simple rectangular characteristic
 						if (DebugTrace && (ActiveCircuit[ActiveActor]->Solution->DynaVars.T > 0.043))
-							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Zloop[%d,%d]=%.4f+j%.4f", 
+							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Zloop[%d,%d]=%.4f+j%.4f",
 							i, j, Zloop.re, Zloop.im), ActorID);
 						if((Zloop.re >= 0) && (Zloop.im >= MIN_DISTANCE_REACTANCE) && (Zloop.re <= Zreach.re) && (Zloop.im <= Zreach.im))
 						{
@@ -1753,48 +2315,47 @@ void TRelayObj::DistanceLogic(int ActorID)
 				{
 					AppendToEventLog(String("Relay.") + this->get_Name(), "Picked up", ActorID);
 				}
-				if(ArmedForReset)
+				if(ArmedForReset[IdxMultiPh - 1])
 				{
 					ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);
-					ArmedForReset = false;
+					ArmedForReset[IdxMultiPh - 1] = false;
 				}
-				if(!ArmedForOpen)
+				if(!ArmedForOpen[IdxMultiPh - 1])
 					/*# with ActiveCircuit[ActorID] do */
 					{
-						
+
 						int stop = 0;
-						RelayTarget = Format("21 %.3f pu dist", min_distance);
-						t_event = ActiveCircuit[ActorID]->Solution->DynaVars.T + Delay_Time + Breaker_time;
+						RelayTarget[IdxMultiPh - 1] = Format("21 %.3f pu dist", min_distance);
+						t_event = ActiveCircuit[ActorID]->Solution->DynaVars.T + DefiniteTimeDelay + MechanicalDelay;
+						sort(Targets.begin(), Targets.end());  // Delphi keeps Targets sorted (TStringList.Sorted := True)
 						for(stop = Pred(Targets.size()), i = 0; i <= stop; i++)
 						{
-							RelayTarget = RelayTarget + " " + (Targets)[i];
+							RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + " " + (Targets)[i];
 						}
 						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event, CTRL_OPEN, 0, this, ActorID);
-						ArmedForOpen = true;
-						if(OperationCount <= NumReclose)
+						ArmedForOpen[IdxMultiPh - 1] = true;
+						if(OperationCount[IdxMultiPh - 1] <= NumReclose)
 						{
-							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event + (RecloseIntervals)[OperationCount - 1], CTRL_CLOSE, 0, this, ActorID);
-							ArmedForClose = true;
+							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event + (RecloseIntervals)[OperationCount[IdxMultiPh - 1] - 1], CTRL_CLOSE, 0, this, ActorID);
+							ArmedForClose[IdxMultiPh - 1] = true;
 						}
 					}
 				Targets.clear();
 			}
-			else
-  // not picked up; reset if necessary
+			else  // not picked up; reset if necessary
 			{
-				if((OperationCount > 1) && (ArmedForReset == false)) // this implements the reset, whether picked up or not
+				if((OperationCount[IdxMultiPh - 1] > 1) && (ArmedForReset[IdxMultiPh - 1] == false)) // this implements the reset, whether picked up or not
 				{
-					ArmedForReset = true;
+					ArmedForReset[IdxMultiPh - 1] = true;
 					/*# with ActiveCircuit[ActorID] do */
 					{
-						
 						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
 					}
 				}
-				if(ArmedForOpen) // this implements the drop-out, if picked up
+				if(ArmedForOpen[IdxMultiPh - 1]) // this implements the drop-out, if picked up
 				{
-					ArmedForOpen = false;
-					ArmedForClose = false;
+					ArmedForOpen[IdxMultiPh - 1] = false;
+					ArmedForClose[IdxMultiPh - 1] = false;
 				}
 			}
 		}  /*With MonitoredElement*/
@@ -1826,6 +2387,7 @@ void TRelayObj::TD21Logic(int ActorID)
 	int iB = 0;
 	int iv = 0;
 	int II = 0;
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
 	DT = ActiveCircuit[ActorID]->Solution->DynaVars.h;
 	if(DT > 0.0)
 	{
@@ -1847,7 +2409,7 @@ void TRelayObj::TD21Logic(int ActorID)
 				Get_NPhases(), DT, td21_pt, td21_stride * td21_pt), ActorID);
 		}
 	}
-	if(!LockedOut)
+	if(!LockedOut[IdxMultiPh - 1])
 		/*# with MonitoredElement do */
 		{
 			auto with0 = get_FMonitoredElement();
@@ -1862,7 +2424,7 @@ void TRelayObj::TD21Logic(int ActorID)
 					(cBuffer)[i + CondOffset - 1] = cnegate((cBuffer)[i + CondOffset - 1]);
 				}
 			}
-			i2fault = PhaseTrip * PhaseTrip;
+			i2fault = PhPickup * PhPickup;
 			for(stop = with0->Get_NPhases(), i = 1; i <= stop; i++)
 			{
 				I2 = cabs2((cBuffer)[i + CondOffset - 1]);
@@ -1902,22 +2464,8 @@ void TRelayObj::TD21Logic(int ActorID)
 				II = iB + with0->Get_NPhases() + j;
 				(td21_dI)[j - 1] = csub((cBuffer)[j + CondOffset - 1], (td21_h)[II - 1]);
 			}
-//    if DebugTrace then begin
-//      AppendToEventLog ('Relay.'+self.Name, Format ('Sample len=%d idx=%d next=%d', [td21_pt, td21_i, td21_next]));
-//      AppendToEventLog ('Relay.'+self.Name, Format('Vp %10.2f+j%10.2f %10.2f+j%10.2f %10.2f+j%10.2f',
-//        [cvBuffer^[1].re, cvBuffer^[1].im, cvBuffer^[2].re, cvBuffer^[2].im, cvBuffer^[3].re, cvBuffer^[3].im]));
-//      AppendToEventLog ('Relay.'+self.Name, Format('Ip %10.2f+j%10.2f %10.2f+j%10.2f %10.2f+j%10.2f',
-//        [cBuffer^[1 + CondOffset].re, cBuffer^[1 + CondOffset].im,
-//         cBuffer^[2 + CondOffset].re, cBuffer^[2 + CondOffset].im,
-//         cBuffer^[3 + CondOffset].re, cBuffer^[3 + CondOffset].im]));
-//      AppendToEventLog ('Relay.'+self.Name, Format('DV %10.2f+j%10.2f %10.2f+j%10.2f %10.2f+j%10.2f',
-//        [td21_dV^[1].re, td21_dV^[1].im, td21_dV^[2].re, td21_dV^[2].im, td21_dV^[3].re, td21_dV^[3].im]));
-//      AppendToEventLog ('Relay.'+self.Name, Format('DI %10.2f+j%10.2f %10.2f+j%10.2f %10.2f+j%10.2f',
-//        [td21_dI^[1].re, td21_dI^[1].im, td21_dI^[2].re, td21_dI^[2].im, td21_dI^[3].re, td21_dI^[3].im]));
-//    end;
     // do the relay processing
 			if(ActiveCircuit[ActorID]->Solution->DynaVars.IterationFlag < 1)
-//      if DebugTrace then AppendToEventLog ('Relay.'+self.Name, 'Advance cqueue write pointer');
 			{
 				int stop = 0;
 				iB = (td21_i - 1) * td21_stride;
@@ -2007,58 +2555,58 @@ void TRelayObj::TD21Logic(int ActorID)
 					{
 						AppendToEventLog(String("Relay.") + this->get_Name(), "Picked up", ActorID);
 					}
-					if(ArmedForReset)
+					if(ArmedForReset[IdxMultiPh - 1])
 					{
 						ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);
-						ArmedForReset = false;
+						ArmedForReset[IdxMultiPh - 1] = false;
 						if(DebugTrace)
 							AppendToEventLog(String("Relay.") + this->get_Name(), "Dropping last event.", ActorID);
 					}
-					if(!ArmedForOpen)
+					if(!ArmedForOpen[IdxMultiPh - 1])
 						/*# with ActiveCircuit[ActorID] do */
 						{
-							
+
 							int stop = 0;
-							RelayTarget = Format("TD21 %.3f pu dist", min_distance);
-							t_event = ActiveCircuit[ActorID]->Solution->DynaVars.T + Delay_Time + Breaker_time;
+							RelayTarget[IdxMultiPh - 1] = Format("TD21 %.3f pu dist", min_distance);
+							t_event = ActiveCircuit[ActorID]->Solution->DynaVars.T + DefiniteTimeDelay + MechanicalDelay;
+							sort(Targets.begin(), Targets.end());  // Delphi keeps Targets sorted (TStringList.Sorted := True)
 							for(stop = Pred(Targets.size()), i = 0; i <= stop; i++)
 							{
-								RelayTarget = RelayTarget + " " + (Targets)[i];
+								RelayTarget[IdxMultiPh - 1] = RelayTarget[IdxMultiPh - 1] + " " + (Targets)[i];
 							}
 							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event, CTRL_OPEN, 0, this, ActorID);
 							if(DebugTrace)
 								AppendToEventLog(String("Relay.") + this->get_Name(), Format("Pushing trip event for %.3f", t_event), ActorID);
-							ArmedForOpen = true;
-							if(OperationCount <= NumReclose)
+							ArmedForOpen[IdxMultiPh - 1] = true;
+							if(OperationCount[IdxMultiPh - 1] <= NumReclose)
 							{
-								LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event + (RecloseIntervals)[OperationCount - 1], CTRL_CLOSE, 0, this, ActorID);
+								LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, t_event + (RecloseIntervals)[OperationCount[IdxMultiPh - 1] - 1], CTRL_CLOSE, 0, this, ActorID);
 								if(DebugTrace)
 									AppendToEventLog(String("Relay.") + this->get_Name(), Format("Pushing reclose event for %.3f",
-									t_event + (RecloseIntervals)[OperationCount - 1]), ActorID);
-								ArmedForClose = true;
+									t_event + (RecloseIntervals)[OperationCount[IdxMultiPh - 1] - 1]), ActorID);
+								ArmedForClose[IdxMultiPh - 1] = true;
 							}
 						}
 					Targets.clear();
 				}
 				if(!FaultDetected)  // not picked up; reset if necessary
 				{
-					if((OperationCount > 1) && (ArmedForReset == false)) // this implements the reset, whether picked up or not
+					if((OperationCount[IdxMultiPh - 1] > 1) && (ArmedForReset[IdxMultiPh - 1] == false)) // this implements the reset, whether picked up or not
 					{
-						ArmedForReset = true;
+						ArmedForReset[IdxMultiPh - 1] = true;
 						/*# with ActiveCircuit[ActorID] do */
 						{
-							
 							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
 						}
 						if(DebugTrace)
 							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Pushing reset event for %.3f",
 							ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime), ActorID);
 					}
-					if(ArmedForOpen)
+					if(ArmedForOpen[IdxMultiPh - 1])
 					{
 						td21_quiet = td21_pt + 1;
-						ArmedForOpen = false;
-						ArmedForClose = false;
+						ArmedForOpen[IdxMultiPh - 1] = false;
+						ArmedForClose[IdxMultiPh - 1] = false;
 						if(DebugTrace)
 							AppendToEventLog(String("Relay.") + this->get_Name(), Format("Dropping out at %.3f", ActiveCircuit[ActorID]->Solution->DynaVars.T), ActorID);
 					}
@@ -2112,370 +2660,78 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 	complex ControlPower;
 
 	// with   MonitoredElement
-	if (FPresentState == CTRL_CLOSE)
+	for(i = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()); i >= 1; i--)
 	{
-		// Identify net balanced power flow.
-		if (DOC_P1Blocking)
-		{
-			GetControlPower(ControlPower, ActorID);
+		if((*FPresentState)[i - 1] == CTRL_CLOSE)
+			break; // Continue sampling if at least one phase is closed.
+		if(i == 1)
+			return;  // Exit sampling if none of the phases is closed.
+	}
 
-			if (ControlPower.re >= 0.0)  // Forward Power
-			{
+	// Identify net balanced power flow.
+	if (DOC_P1Blocking)
+	{
+		GetControlPower(ControlPower, ActorID);
 
-				if (ArmedForOpen)
-				// If net balanced active power is forward, disarm trip and set for reset
-				{
-					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-					ArmedForOpen = false;
-					ArmedForClose = false;
-
-					if (DebugTrace)
-						AppendToEventLog(String("Relay.") + this->get_Name(), Format("DOC - Reset on Forward Net Balanced Active Power: %.2f kW", ControlPower.re), ActorID);
-
-				}
-				else
-				{
-
-					if (DebugTrace)
-						AppendToEventLog(String("Relay.") + this->get_Name(), Format("DOC - Forward Net Balanced Active Power: %.2f kW. DOC Element blocked.", ControlPower.re), ActorID);
-
-				}
-
-				return;  // Do not evaluate trip if power is forward.
-
-			}
-		}
-
-
-		TripTime = -1.0;
-
-		auto MonitoredElement = get_FMonitoredElement();
-		MonitoredElement->GetCurrents(cBuffer, ActorID);
-		MonitoredElement->GetTermVoltages(MonitoredElementTerminal, cvBuffer, ActorID);
-
-		// Shift angle to cBuffer to be relative to cvBuffer
-		for (i = CondOffset; i < Fnphases + CondOffset; i++)
-			cBuffer[i] = pdegtocomplex(cabs(cBuffer[i]), cdang(cBuffer[i]) - cdang(cvBuffer[i - CondOffset]));
-
-		for (i = CondOffset; i < Fnphases + CondOffset; i++)
+		if (ControlPower.re >= 0.0)  // Forward Power
 		{
 
-			TimeTest = -1.0;
-			Cmag = cabs(cBuffer[i]);
-			Cangle = cdang(cBuffer[i]);
-
-			if ((DOC_TiltAngleLow == 90.0) || (DOC_TiltAngleLow == 270.0))
+			if (ArmedForOpen[IdxMultiPh - 1])
+			// If net balanced active power is forward, disarm trip and set for reset
 			{
+				LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
+				ArmedForOpen[IdxMultiPh - 1] = false;
+				ArmedForClose[IdxMultiPh - 1] = false;
 
-				if (cBuffer[i].re <= -1 * DOC_TripSetLow)
-				{
-
-					if (DOC_TripSetMag > 0.0)
-					{ // Circle Specified.
-
-						if (Cmag <= DOC_TripSetMag)
-						{ // Within the Circle
-
-							if (DOC_TripSetHigh > 0.0) // High Straight-Line Specified.
-							{
-
-								if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
-								{
-
-									if (cBuffer[i].re < -1 * DOC_TripSetHigh)
-									{ // Left-side of High Straight-Line
-
-										if (Delay_Time > 0.0)
-											TimeTest = Delay_Time;
-										else
-										if (PhaseCurve != nullptr)
-											TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-										else
-										if (Delay_Time == 0.0)
-											TimeTest = Delay_Time;
-
-									}
-									else
-									{  // Right-Side of High Straight-Line
-
-										if (DOC_DelayInner > 0.0)
-											TimeTest = DOC_DelayInner;
-										else
-										if (DOC_PhaseCurveInner != nullptr)
-											TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-										else
-										if (DOC_DelayInner == 0.0)
-											TimeTest = Delay_Time;
-
-									}
-
-								}
-								else
-								{
-
-									if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
-									{ // Left-side of High Straight-Line
-
-										if (Delay_Time > 0.0)
-											TimeTest = Delay_Time;
-										else
-										if (PhaseCurve != nullptr)
-											TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-										else
-										if (Delay_Time == 0.0)
-											TimeTest = Delay_Time;
-
-									}
-									else
-									{ // Right-Side of High Straight-Line
-
-										if (DOC_DelayInner > 0.0)
-											TimeTest = DOC_DelayInner;
-										else
-										if (DOC_PhaseCurveInner != nullptr)
-											TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-										else
-										if (DOC_DelayInner == 0.0)
-											TimeTest = Delay_Time;
-
-									}
-
-								}
-
-							}
-							else
-							{ // High Straight-Line Not Specified.
-
-								if (DOC_DelayInner > 0.0)
-									TimeTest = DOC_DelayInner;
-								else
-								if (DOC_PhaseCurveInner != nullptr)
-									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-								else
-								if (DOC_DelayInner == 0.0)
-									TimeTest = Delay_Time;
-
-							}
-
-						}
-						else
-						{ // Out of the Circle
-
-							if (Delay_Time > 0.0)
-								TimeTest = Delay_Time;
-							else
-							if (PhaseCurve != nullptr)
-								TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-							else
-							if (Delay_Time == 0.0)
-								TimeTest = Delay_Time;
-
-						}
-
-					}
-					else
-					{ // Circle not Specified
-
-						if (DOC_TripSetHigh > 0.0)
-						{ // High Straight-Line Specified.
-
-							if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
-							{
-
-								if (cBuffer[i].re < -1 * DOC_TripSetHigh)
-								{ // Left-side of High Straight-Line
-
-									if (Delay_Time > 0.0)
-										TimeTest = Delay_Time;
-									else
-									if (PhaseCurve != nullptr)
-										TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-									else
-									if (Delay_Time == 0.0)
-										TimeTest = Delay_Time;
-
-								}
-								else
-								{  // Right-Side of High Straight-Line
-
-									if (DOC_DelayInner > 0.0)
-										TimeTest = DOC_DelayInner;
-									else
-									if (DOC_PhaseCurveInner != nullptr)
-										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-									else
-									if (DOC_DelayInner == 0.0)
-										TimeTest = Delay_Time;
-
-								}
-
-							}
-							else
-							{
-
-								if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
-								{ // Left-side of High Straight-Line
-
-									if (Delay_Time > 0.0)
-										TimeTest = Delay_Time;
-									else
-									if (PhaseCurve != nullptr)
-										TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-									else
-									if (Delay_Time == 0.0)
-										TimeTest = Delay_Time;
-
-								}
-								else
-								{ // Right-Side of High Straight-Line
-
-									if (DOC_DelayInner > 0.0)
-										TimeTest = DOC_DelayInner;
-									else
-									if (DOC_PhaseCurveInner != nullptr)
-										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-									else
-									if (DOC_DelayInner == 0.0)
-										TimeTest = Delay_Time;
-
-								}
-
-							}
-
-						}
-						else
-						{  // High Straight-Line Not Specified.
-
-							if (Delay_Time > 0.0)
-								TimeTest = Delay_Time;
-							else
-							if (PhaseCurve != nullptr)
-								TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-							else
-							if (Delay_Time == 0.0)
-								TimeTest = Delay_Time;
-
-						}
-
-					}
-
-				}
+				if (DebugTrace)
+					AppendToEventLog(String("Relay.") + this->get_Name(), Format("DOC - Reset on Forward Net Balanced Active Power: %.2f kW", ControlPower.re), ActorID);
 
 			}
 			else
-			{ /*90, 270*/
+			{
 
-				if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleLow)) * (cBuffer[i].re + DOC_TripSetLow))
-				{
+				if (DebugTrace)
+					AppendToEventLog(String("Relay.") + this->get_Name(), Format("DOC - Forward Net Balanced Active Power: %.2f kW. DOC Element blocked.", ControlPower.re), ActorID);
 
-					if (DOC_TripSetMag > 0.0)
-					{ // Circle Specified.
+			}
 
-						if (Cmag <= DOC_TripSetMag)
-						{ // Within the Circle
+			return;  // Do not evaluate trip if power is forward.
 
-							if (DOC_TripSetHigh > 0.0) // High Straight-Line Specified.
-							{
+		}
+	}
 
-								if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
-								{
 
-									if (cBuffer[i].re < -1 * DOC_TripSetHigh)
-									{ // Left-side of High Straight-Line
+	TripTime = -1.0;
 
-										if (Delay_Time > 0.0)
-											TimeTest = Delay_Time;
-										else
-										if (PhaseCurve != nullptr)
-											TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-										else
-										if (Delay_Time == 0.0)
-											TimeTest = Delay_Time;
+	auto MonitoredElement = get_FMonitoredElement();
+	MonitoredElement->GetCurrents(cBuffer, ActorID);
+	MonitoredElement->GetTermVoltages(MonitoredElementTerminal, cvBuffer, ActorID);
 
-									}
-									else
-									{  // Right-Side of High Straight-Line
+	// Shift angle to cBuffer to be relative to cvBuffer
+	for (i = CondOffset; i < Fnphases + CondOffset; i++)
+		cBuffer[i] = pdegtocomplex(cabs(cBuffer[i]), cdang(cBuffer[i]) - cdang(cvBuffer[i - CondOffset]));
 
-										if (DOC_DelayInner > 0.0)
-											TimeTest = DOC_DelayInner;
-										else
-										if (DOC_PhaseCurveInner != nullptr)
-											TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-										else
-										if (DOC_DelayInner == 0.0)
-											TimeTest = Delay_Time;
+	for (i = CondOffset; i < Fnphases + CondOffset; i++)
+	{
 
-									}
+		TimeTest = -1.0;
+		Cmag = cabs(cBuffer[i]);
+		Cangle = cdang(cBuffer[i]);
 
-								}
-								else
-								{
+		if ((DOC_TiltAngleLow == 90.0) || (DOC_TiltAngleLow == 270.0))
+		{
 
-									if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
-									{ // Left-side of High Straight-Line
+			if (cBuffer[i].re <= -1 * DOC_TripSetLow)
+			{
 
-										if (Delay_Time > 0.0)
-											TimeTest = Delay_Time;
-										else
-										if (PhaseCurve != nullptr)
-											TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-										else
-										if (Delay_Time == 0.0)
-											TimeTest = Delay_Time;
+				if (DOC_TripSetMag > 0.0)
+				{ // Circle Specified.
 
-									}
-									else
-									{ // Right-Side of High Straight-Line
+					if (Cmag <= DOC_TripSetMag)
+					{ // Within the Circle
 
-										if (DOC_DelayInner > 0.0)
-											TimeTest = DOC_DelayInner;
-										else
-										if (DOC_PhaseCurveInner != nullptr)
-											TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-										else
-										if (DOC_DelayInner == 0.0)
-											TimeTest = Delay_Time;
-
-									}
-
-								}
-
-							}
-							else
-							{ // High Straight-Line Not Specified.
-
-								if (DOC_DelayInner > 0.0)
-									TimeTest = DOC_DelayInner;
-								else
-								if (DOC_PhaseCurveInner != nullptr)
-									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
-								else
-								if (DOC_DelayInner == 0.0)
-									TimeTest = Delay_Time;
-
-							}
-
-						}
-						else
-						{ // Out of the Circle
-
-							if (Delay_Time > 0.0)
-								TimeTest = Delay_Time;
-							else
-							if (PhaseCurve != nullptr)
-								TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
-							else
-							if (Delay_Time == 0.0)
-								TimeTest = Delay_Time;
-
-						}
-
-					}
-					else
-					{ // Circle not Specified
-
-						if (DOC_TripSetHigh > 0.0)
-						{ // High Straight-Line Specified.
+						if (DOC_TripSetHigh > 0.0) // High Straight-Line Specified.
+						{
 
 							if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
 							{
@@ -2483,14 +2739,14 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 								if (cBuffer[i].re < -1 * DOC_TripSetHigh)
 								{ // Left-side of High Straight-Line
 
-									if (Delay_Time > 0.0)
-										TimeTest = Delay_Time;
+									if (DefiniteTimeDelay > 0.0)
+										TimeTest = DefiniteTimeDelay;
 									else
-									if (PhaseCurve != nullptr)
-										TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
+									if (PhCurve != nullptr)
+										TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
 									else
-									if (Delay_Time == 0.0)
-										TimeTest = Delay_Time;
+									if (DefiniteTimeDelay == 0.0)
+										TimeTest = DefiniteTimeDelay;
 
 								}
 								else
@@ -2503,7 +2759,7 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
 									else
 									if (DOC_DelayInner == 0.0)
-										TimeTest = Delay_Time;
+										TimeTest = DefiniteTimeDelay;
 
 								}
 
@@ -2514,14 +2770,14 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 								if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
 								{ // Left-side of High Straight-Line
 
-									if (Delay_Time > 0.0)
-										TimeTest = Delay_Time;
+									if (DefiniteTimeDelay > 0.0)
+										TimeTest = DefiniteTimeDelay;
 									else
-									if (PhaseCurve != nullptr)
-										TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
+									if (PhCurve != nullptr)
+										TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
 									else
-									if (Delay_Time == 0.0)
-										TimeTest = Delay_Time;
+									if (DefiniteTimeDelay == 0.0)
+										TimeTest = DefiniteTimeDelay;
 
 								}
 								else
@@ -2534,7 +2790,7 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
 									else
 									if (DOC_DelayInner == 0.0)
-										TimeTest = Delay_Time;
+										TimeTest = DefiniteTimeDelay;
 
 								}
 
@@ -2542,44 +2798,71 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 
 						}
 						else
-						{  // High Straight-Line Not Specified.
+						{ // High Straight-Line Not Specified.
 
-							if (Delay_Time > 0.0)
-								TimeTest = Delay_Time;
+							if (DOC_DelayInner > 0.0)
+								TimeTest = DOC_DelayInner;
 							else
-							if (PhaseCurve != nullptr)
-								TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
+							if (DOC_PhaseCurveInner != nullptr)
+								TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
 							else
-							if (Delay_Time == 0.0)
-								TimeTest = Delay_Time;
+							if (DOC_DelayInner == 0.0)
+								TimeTest = DefiniteTimeDelay;
 
 						}
+
+					}
+					else
+					{ // Out of the Circle
+
+						if (DefiniteTimeDelay > 0.0)
+							TimeTest = DefiniteTimeDelay;
+						else
+						if (PhCurve != nullptr)
+							TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						else
+						if (DefiniteTimeDelay == 0.0)
+							TimeTest = DefiniteTimeDelay;
 
 					}
 
 				}
 				else
-				{
-					// There might be an intersection between Straight Line Low and High depending on their angles.
-					// Straight Line High takes precedence.
+				{ // Circle not Specified
+
 					if (DOC_TripSetHigh > 0.0)
-					{
+					{ // High Straight-Line Specified.
 
 						if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
 						{
+
 							if (cBuffer[i].re < -1 * DOC_TripSetHigh)
 							{ // Left-side of High Straight-Line
 
-								if (Delay_Time > 0.0)
-									TimeTest = Delay_Time;
+								if (DefiniteTimeDelay > 0.0)
+									TimeTest = DefiniteTimeDelay;
 								else
-								if (PhaseCurve != nullptr)
-									TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
+								if (PhCurve != nullptr)
+									TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
 								else
-								if (Delay_Time == 0.0)
-									TimeTest = Delay_Time;
+								if (DefiniteTimeDelay == 0.0)
+									TimeTest = DefiniteTimeDelay;
 
 							}
+							else
+							{  // Right-Side of High Straight-Line
+
+								if (DOC_DelayInner > 0.0)
+									TimeTest = DOC_DelayInner;
+								else
+								if (DOC_PhaseCurveInner != nullptr)
+									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+								else
+								if (DOC_DelayInner == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+
 						}
 						else
 						{
@@ -2587,74 +2870,343 @@ void TRelayObj::DirectionalOvercurrentLogic(int ActorID)
 							if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
 							{ // Left-side of High Straight-Line
 
-								if (Delay_Time > 0.0)
-									TimeTest = Delay_Time;
+								if (DefiniteTimeDelay > 0.0)
+									TimeTest = DefiniteTimeDelay;
 								else
-								if (PhaseCurve != nullptr)
-									TimeTest = TDPhase * PhaseCurve->GetTCCTime(Cmag / PhaseTrip);
+								if (PhCurve != nullptr)
+									TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
 								else
-								if (Delay_Time == 0.0)
-									TimeTest = Delay_Time;
+								if (DefiniteTimeDelay == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+							else
+							{ // Right-Side of High Straight-Line
+
+								if (DOC_DelayInner > 0.0)
+									TimeTest = DOC_DelayInner;
+								else
+								if (DOC_PhaseCurveInner != nullptr)
+									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+								else
+								if (DOC_DelayInner == 0.0)
+									TimeTest = DefiniteTimeDelay;
 
 							}
 
 						}
 
 					}
+					else
+					{  // High Straight-Line Not Specified.
 
+						if (DefiniteTimeDelay > 0.0)
+							TimeTest = DefiniteTimeDelay;
+						else
+						if (PhCurve != nullptr)
+							TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						else
+						if (DefiniteTimeDelay == 0.0)
+							TimeTest = DefiniteTimeDelay;
+
+					}
+
+				}
+
+			}
+
+		}
+		else
+		{ /*90, 270*/
+
+			if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleLow)) * (cBuffer[i].re + DOC_TripSetLow))
+			{
+
+				if (DOC_TripSetMag > 0.0)
+				{ // Circle Specified.
+
+					if (Cmag <= DOC_TripSetMag)
+					{ // Within the Circle
+
+						if (DOC_TripSetHigh > 0.0) // High Straight-Line Specified.
+						{
+
+							if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
+							{
+
+								if (cBuffer[i].re < -1 * DOC_TripSetHigh)
+								{ // Left-side of High Straight-Line
+
+									if (DefiniteTimeDelay > 0.0)
+										TimeTest = DefiniteTimeDelay;
+									else
+									if (PhCurve != nullptr)
+										TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+									else
+									if (DefiniteTimeDelay == 0.0)
+										TimeTest = DefiniteTimeDelay;
+
+								}
+								else
+								{  // Right-Side of High Straight-Line
+
+									if (DOC_DelayInner > 0.0)
+										TimeTest = DOC_DelayInner;
+									else
+									if (DOC_PhaseCurveInner != nullptr)
+										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+									else
+									if (DOC_DelayInner == 0.0)
+										TimeTest = DefiniteTimeDelay;
+
+								}
+
+							}
+							else
+							{
+
+								if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
+								{ // Left-side of High Straight-Line
+
+									if (DefiniteTimeDelay > 0.0)
+										TimeTest = DefiniteTimeDelay;
+									else
+									if (PhCurve != nullptr)
+										TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+									else
+									if (DefiniteTimeDelay == 0.0)
+										TimeTest = DefiniteTimeDelay;
+
+								}
+								else
+								{ // Right-Side of High Straight-Line
+
+									if (DOC_DelayInner > 0.0)
+										TimeTest = DOC_DelayInner;
+									else
+									if (DOC_PhaseCurveInner != nullptr)
+										TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+									else
+									if (DOC_DelayInner == 0.0)
+										TimeTest = DefiniteTimeDelay;
+
+								}
+
+							}
+
+						}
+						else
+						{ // High Straight-Line Not Specified.
+
+							if (DOC_DelayInner > 0.0)
+								TimeTest = DOC_DelayInner;
+							else
+							if (DOC_PhaseCurveInner != nullptr)
+								TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+							else
+							if (DOC_DelayInner == 0.0)
+								TimeTest = DefiniteTimeDelay;
+
+						}
+
+					}
+					else
+					{ // Out of the Circle
+
+						if (DefiniteTimeDelay > 0.0)
+							TimeTest = DefiniteTimeDelay;
+						else
+						if (PhCurve != nullptr)
+							TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						else
+						if (DefiniteTimeDelay == 0.0)
+							TimeTest = DefiniteTimeDelay;
+
+					}
+
+				}
+				else
+				{ // Circle not Specified
+
+					if (DOC_TripSetHigh > 0.0)
+					{ // High Straight-Line Specified.
+
+						if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
+						{
+
+							if (cBuffer[i].re < -1 * DOC_TripSetHigh)
+							{ // Left-side of High Straight-Line
+
+								if (DefiniteTimeDelay > 0.0)
+									TimeTest = DefiniteTimeDelay;
+								else
+								if (PhCurve != nullptr)
+									TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+								else
+								if (DefiniteTimeDelay == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+							else
+							{  // Right-Side of High Straight-Line
+
+								if (DOC_DelayInner > 0.0)
+									TimeTest = DOC_DelayInner;
+								else
+								if (DOC_PhaseCurveInner != nullptr)
+									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+								else
+								if (DOC_DelayInner == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+
+						}
+						else
+						{
+
+							if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
+							{ // Left-side of High Straight-Line
+
+								if (DefiniteTimeDelay > 0.0)
+									TimeTest = DefiniteTimeDelay;
+								else
+								if (PhCurve != nullptr)
+									TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+								else
+								if (DefiniteTimeDelay == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+							else
+							{ // Right-Side of High Straight-Line
+
+								if (DOC_DelayInner > 0.0)
+									TimeTest = DOC_DelayInner;
+								else
+								if (DOC_PhaseCurveInner != nullptr)
+									TimeTest = DOC_TDPhaseInner * DOC_PhaseCurveInner->GetTCCTime(Cmag / DOC_PhaseTripInner);
+								else
+								if (DOC_DelayInner == 0.0)
+									TimeTest = DefiniteTimeDelay;
+
+							}
+
+						}
+
+					}
+					else
+					{  // High Straight-Line Not Specified.
+
+						if (DefiniteTimeDelay > 0.0)
+							TimeTest = DefiniteTimeDelay;
+						else
+						if (PhCurve != nullptr)
+							TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+						else
+						if (DefiniteTimeDelay == 0.0)
+							TimeTest = DefiniteTimeDelay;
+
+					}
+
+				}
+
+			}
+			else
+			{
+				// There might be an intersection between Straight Line Low and High depending on their angles.
+				// Straight Line High takes precedence.
+				if (DOC_TripSetHigh > 0.0)
+				{
+
+					if ((DOC_TiltAngleHigh == 90.0) || (DOC_TiltAngleHigh == 270.0))
+					{
+						if (cBuffer[i].re < -1 * DOC_TripSetHigh)
+						{ // Left-side of High Straight-Line
+
+							if (DefiniteTimeDelay > 0.0)
+								TimeTest = DefiniteTimeDelay;
+							else
+							if (PhCurve != nullptr)
+								TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+							else
+							if (DefiniteTimeDelay == 0.0)
+								TimeTest = DefiniteTimeDelay;
+
+						}
+					}
+					else
+					{
+
+						if (cBuffer[i].im < tan((DEG_TO_RAD * DOC_TiltAngleHigh)) * (cBuffer[i].re + DOC_TripSetHigh))
+						{ // Left-side of High Straight-Line
+
+							if (DefiniteTimeDelay > 0.0)
+								TimeTest = DefiniteTimeDelay;
+							else
+							if (PhCurve != nullptr)
+								TimeTest = TDPh * PhCurve->GetTCCTime(Cmag / PhPickup);
+							else
+							if (DefiniteTimeDelay == 0.0)
+								TimeTest = DefiniteTimeDelay;
+
+						}
+
+					}
 
 				}
 
 
 			}
 
-			if (TimeTest >= 0.0)
-			{
-
-				if (DebugTrace)
-					AppendToEventLog(String("Relay.") + this->get_Name(), Format("Directional Overcurrent - Phase %d Trip: Mag=%.5g, Ang=%.5g, Time=%.5g", i - CondOffset, Cmag, Cangle, TimeTest), ActorID);
-
-				if (TripTime < 0.0)
-					TripTime = TimeTest;
-				else
-					TripTime = min(TripTime, TimeTest);
-
-			}
 
 		}
 
-
-		if (TripTime >= 0.0)
+		if (TimeTest >= 0.0)
 		{
-			if (!ArmedForOpen)
-			// Then arm for an open operation
-			{
-				RelayTarget = "DOC";
-				LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-				if (OperationCount <= NumReclose)
-					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time + RecloseIntervals[OperationCount - 1], CTRL_CLOSE, 0, this, ActorID);
-				ArmedForOpen = true;
-				ArmedForClose = true;
-			}
+
+			if (DebugTrace)
+				AppendToEventLog(String("Relay.") + this->get_Name(), Format("Directional Overcurrent - Phase %d Trip: Mag=%.5g, Ang=%.5g, Time=%.5g", i - CondOffset, Cmag, Cangle, TimeTest), ActorID);
+
+			if (TripTime < 0.0)
+				TripTime = TimeTest;
+			else
+				TripTime = min(TripTime, TimeTest);
+
 		}
-		else
+
+	}
+
+
+	if (TripTime >= 0.0)
+	{
+		if (!ArmedForOpen[IdxMultiPh - 1])
+		// Then arm for an open operation
 		{
-			if (ArmedForOpen)
-			// If current dropped below pickup, disarm trip and set for reset
-			{
-				LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-				ArmedForOpen = false;
-				ArmedForClose = false;
-			}
+			RelayTarget[IdxMultiPh - 1] = "DOC";
+			LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+			if (OperationCount[IdxMultiPh - 1] <= NumReclose)
+				LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay + RecloseIntervals[OperationCount[IdxMultiPh - 1] - 1], CTRL_CLOSE, 0, this, ActorID);
+			ArmedForOpen[IdxMultiPh - 1] = true;
+			ArmedForClose[IdxMultiPh - 1] = true;
 		}
-
-
-	} /*IF PresentState=CLOSE*/
+	}
+	else
+	{
+		if (ArmedForOpen[IdxMultiPh - 1])
+		// If current dropped below pickup, disarm trip and set for reset
+		{
+			LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
+			ArmedForOpen[IdxMultiPh - 1] = false;
+			ArmedForClose[IdxMultiPh - 1] = false;
+		}
+	}
 }
 
 void TRelayObj::RevPowerLogic(int ActorID)
 {
 	complex s = {};
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
 	/*# with MonitoredElement do */
 	{
 		auto with0 = get_FMonitoredElement();
@@ -2662,26 +3214,26 @@ void TRelayObj::RevPowerLogic(int ActorID)
 		s = get_FMonitoredElement()->Get_Power(MonitoredElementTerminal, ActorID);
 		if(s.re < 0.0)
 		{
-			if(Abs( s.re) > PhaseInst * 1000.0)
+			if(Abs( s.re) > PhInst * 1000.0)
 			{
-				if(!ArmedForOpen)
+				if(!ArmedForOpen[IdxMultiPh - 1])
 					/*# with ActiveCircuit[ActorID] do */
 					{
 						  // push the trip operation and arm to trip
-						RelayTarget = "Rev P";
-						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + Delay_Time + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-						OperationCount = NumReclose + 1;  // force a lockout
-						ArmedForOpen = true;
+						RelayTarget[IdxMultiPh - 1] = "Rev P";
+						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + DefiniteTimeDelay + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+						OperationCount[IdxMultiPh - 1] = NumReclose + 1;  // force a lockout
+						ArmedForOpen[IdxMultiPh - 1] = true;
 					}
 			}
 			else
 			{
-				if(ArmedForOpen)
+				if(ArmedForOpen[IdxMultiPh - 1])
 					/*# with ActiveCircuit[ActorID] do */
 					{
 						    // We became unarmed, so reset and disarm
 						LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-						ArmedForOpen = false;
+						ArmedForOpen[IdxMultiPh - 1] = false;
 					}
 			}
 		}
@@ -2692,129 +3244,143 @@ void TRelayObj::VoltageLogic(int ActorID)
 {
 	int i = 0;
 	double Vmax = 0.0;
+	double Vmax_closed = 0.0;
 	double Vmin = 0.0;
+	double Vmin_closed = 0.0;
 	double Vmag = 0.0;
 	double OVTime = 0.0;
 	double UVTime = 0.0;
 	double TripTime = 0.0;
-	if(!LockedOut)
-		/*# with MonitoredElement do */
+	int stop = 0;
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
+	if(!LockedOut[IdxMultiPh - 1])
+	{
+     /***** Fix so that fastest trip time applies *****/
+		get_FMonitoredElement()->GetTermVoltages(MonitoredElementTerminal, cBuffer, ActorID);
+		Vmin = 1.0e50;
+		Vmax = 0.0;
+		Vmin_closed = 1.0e50;
+		Vmax_closed = 0.0;
+		Vmag = -1.0;
+		for(stop = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()), i = 1; i <= stop; i++)
 		{
-			auto with0 = get_FMonitoredElement();
-   /***** Fix so that fastest trip time applies *****/
-			int stop = 0;
-			get_FMonitoredElement()->GetTermVoltages(MonitoredElementTerminal, cBuffer, ActorID);
-			Vmin = 1.0e50;
-			Vmax = 0.0;
-			for(stop = get_FMonitoredElement()->Get_NPhases(), i = 1; i <= stop; i++)
+			Vmag = cabs((cBuffer)[i - 1]);
+			if((*FPresentState)[i - 1] == CTRL_CLOSE)
 			{
-				Vmag = cabs((cBuffer)[i - 1]);
-				if(Vmag > Vmax)
-					Vmax = Vmag;
-				if(Vmag < Vmin)
-					Vmin = Vmag;
+				if(Vmag > Vmax_closed)
+					Vmax_closed = Vmag;
+				if(Vmag < Vmin_closed)
+					Vmin_closed = Vmag;
 			}
+			if(Vmag > Vmax)
+				Vmax = Vmag;
+			if(Vmag < Vmin)
+				Vmin = Vmag;
+		}
 
      /*Convert to Per Unit*/
-			Vmax = Vmax / VBase;
-			Vmin = Vmin / VBase;
-			if(FPresentState == CTRL_CLOSE)
-			{
-				TripTime = -1.0;
-				OVTime = -1.0;
-				UVTime = -1.0;
+		Vmax = Vmax / VBase;
+		Vmin = Vmin / VBase;
+		Vmax_closed = Vmax_closed / VBase;
+		Vmin_closed = Vmin_closed / VBase;
 
-
+		TripTime = -1.0;
+		OVTime = -1.0;
+		UVTime = -1.0;
 
            /*Check OverVoltage Trip, if any*/
-				if(OVcurve != nullptr)
-					OVTime = OVcurve->GetOVTime(Vmax);
-				if(OVTime > 0.0)
-				{
-					TripTime = OVTime;
-				}
+		if((OVcurve != nullptr) && (Vmag > 0.0))
+			OVTime = OVcurve->GetOVTime(Vmax_closed);
 
-           // If OVTime > 0 then we have a OV trip
-				
+         // If OVTime > 0 then we have a OV trip
+		if(OVTime > 0.0)
+		{
+			TripTime = OVTime;
+			if(DebugTrace)
+				AppendToEventLog(String("Relay.") + this->get_Name(), Format("OV (3-Phase) Trip: Mag=%.3g, Time=%.3g", Vmax_closed, OVTime), ActorID);
+		}
+
            /*Check UV Trip, if any*/
-				if(UVCurve != nullptr)
-				{
-					UVTime = UVCurve->GetUVTime(Vmin);
-				}
-
+		if((UVCurve != nullptr) && (Vmag > 0.0))
+			UVTime = UVCurve->GetUVTime(Vmin_closed);
          // If UVTime > 0 then we have a UV trip
-				if(UVTime > 0.0)
-				{
-					if(TripTime > 0.0)
-					{   // Min of UV or OV time
-						TripTime = min(TripTime, UVTime);
-					}
-					else
-					{
-						TripTime = UVTime;
-					}
-				}
-				if(TripTime > 0.0)
-					/*# with ActiveCircuit[ActorID] do */
-					{
-						
-						if(ArmedForOpen && ((ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time) < NextTriptime))
-						{
-							ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);  // Delete last event from Queue
-							ArmedForOpen = false;  // force it to go through next IF
-						}
-						if(!ArmedForOpen)  // Then arm for an open operation
-						{
-							if(TripTime == UVTime)
-							{
-								if(TripTime == OVTime)
-									RelayTarget = "UV + OV";
-								else
-									RelayTarget = "UV";
-							}
-							else
-							RelayTarget = "OV";
-							NextTriptime = ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + Breaker_time;
-							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, NextTriptime, CTRL_OPEN, 0, this, ActorID);
-							ArmedForOpen = true;
-						}
-					}
-				else
-				{
-					if(ArmedForOpen)
-						/*# with ActiveCircuit[ActorID] do */
-						{
-							    // If voltage dropped below pickup, disarm trip and set for reset
-							ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);  // Delete last event from Queue
-							NextTriptime = -1.0;
-							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-							ArmedForOpen = false;
-						}
-				}  /*IF PresentState=CLOSE*/
+
+		if(UVTime > 0.0)
+		{
+			if(TripTime > 0.0)
+			{
+				TripTime = min(TripTime, UVTime);   // Min of UV or OV time
 			}
 			else
-     /*Present state is Open, Check for Voltage and then set reclose Interval*/
 			{
-				if(OperationCount <= NumReclose)
+				TripTime = UVTime;
+			}
+			if(DebugTrace)
+				AppendToEventLog(String("Relay.") + this->get_Name(), Format("UV (3-Phase) Trip: Mag=%.3g, Time=%.3g", Vmin_closed, UVTime), ActorID);
+		}
+
+		if(TripTime > 0.0)
+			/*# with ActiveCircuit[ActorID] do */
+			{
+				if(ArmedForOpen[IdxMultiPh - 1] && ((ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay) < NextTriptime))
 				{
-					if(!ArmedForClose)
+					ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);  // Delete last event from Queue
+					ArmedForOpen[IdxMultiPh - 1] = false;  // force it to go through next IF
+				}
+				if(!ArmedForOpen[IdxMultiPh - 1])
+				{  // Then arm for an open operation
+					if(TripTime == UVTime)
 					{
-						if(Vmax > 0.9)
-							/*# with ActiveCircuit[ActorID] do */
-							{
-								  // OK if voltage > 90%
-								LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + (RecloseIntervals)[OperationCount - 1], CTRL_CLOSE, 0, this, ActorID);
-								ArmedForClose = true;
-							}
+						if(TripTime == OVTime)
+							RelayTarget[IdxMultiPh - 1] = "UV + OV";
+						else
+							RelayTarget[IdxMultiPh - 1] = "UV";
 					}
 					else
-					{
-						if(Vmax < 0.9)   /*Armed, but check to see if voltage dropped before it reclosed and cancel action*/
-							ArmedForClose = false;
-					}
+						RelayTarget[IdxMultiPh - 1] = "OV";
+					NextTriptime = ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay;
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, NextTriptime, CTRL_OPEN, 0, this, ActorID);
+					ArmedForOpen[IdxMultiPh - 1] = true;
 				}
 			}
-		}  /*With MonitoredElement*/
+		else if((TripTime < 0.0) && (ArmedForOpen[IdxMultiPh - 1]))  // if voltage dropped below pickup, disarm and set for reset
+		{
+			/*# with ActiveCircuit[ActorID] do */
+			{
+				ActiveCircuit[ActorID]->ControlQueue.Delete(LastEventHandle, ActorID);  // Delete last event from Queue
+				NextTriptime = -1.0;
+				LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
+				ArmedForOpen[IdxMultiPh - 1] = false;
+			}
+		}
+
+		// Check for reclosing - all phases must be opened.
+		for(i = min(RELAYCONTROLMAXDIM, get_FControlledElement()->Get_NPhases()); i >= 1; i--)
+		{
+			if((*FPresentState)[i - 1] == CTRL_CLOSE)
+				return;
+		}
+
+		{     /*Present state is Open, Check for Voltage and then set reclose Interval*/
+			if(OperationCount[IdxMultiPh - 1] <= NumReclose)
+			{
+				if(!ArmedForClose[IdxMultiPh - 1])
+				{
+					if(Vmax > 0.9)
+						/*# with ActiveCircuit[ActorID] do */  // OK if voltage > 90%
+						{
+							LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + (RecloseIntervals)[OperationCount[IdxMultiPh - 1] - 1], CTRL_CLOSE, 0, this, ActorID);
+							ArmedForClose[IdxMultiPh - 1] = true;
+						}
+				}
+				else  /*Armed, but check to see if voltage dropped before it reclosed and cancel action*/
+				{
+					if(Vmax < 0.9)
+						ArmedForClose[IdxMultiPh - 1] = false;
+				}
+			}
+		}
+	}
 }
 
 /*Neg Seq voltage Relay*/
@@ -2823,6 +3389,7 @@ void TRelayObj::NegSeq47Logic(int ActorID)
 {
 	double	NegSeqVoltageMag	= 0.0;
 	complex V012[3]				= { cmplx(0,0), cmplx(0,0) , cmplx(0,0) };
+  // Per-phase trip and lockout don't apply. 3-Phase trip only.
 	/*# with MonitoredElement do */
 	{
 		auto with0 = get_FMonitoredElement();
@@ -2831,25 +3398,24 @@ void TRelayObj::NegSeq47Logic(int ActorID)
 		NegSeqVoltageMag = cabs(V012[3 - 1]);
 		if(NegSeqVoltageMag >= PickupVolts47)
 		{
-			if(!ArmedForOpen)
+			if(!ArmedForOpen[IdxMultiPh - 1])
 				/*# with ActiveCircuit[ActorID] do */
 				{
 					  // push the trip operation and arm to trip
-					RelayTarget = "-Seq V";
-					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + Delay_Time + Breaker_time, CTRL_OPEN, 0, this, ActorID);
-					OperationCount = NumReclose + 1;  // force a lockout
-					ArmedForOpen = true;
+					RelayTarget[IdxMultiPh - 1] = "-Seq V";
+					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + DefiniteTimeDelay + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);
+					OperationCount[IdxMultiPh - 1] = NumReclose + 1;  // force a lockout
+					ArmedForOpen[IdxMultiPh - 1] = true;
 				}
 		}
-		else
-  /*Less Than pickup value: reset if armed*/
+		else  /*Less Than pickup value: reset if armed*/
 		{
-			if(ArmedForOpen)
+			if(ArmedForOpen[IdxMultiPh - 1])
 				/*# with ActiveCircuit[ActorID] do */
 				{
 					    // We became unarmed, so reset and disarm
 					LastEventHandle = ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + ResetTime, CTRL_RESET, 0, this, ActorID);
-					ArmedForOpen = false;
+					ArmedForOpen[IdxMultiPh - 1] = false;
 				}
 		}
 	}  /*With MonitoredElement*/
@@ -2859,8 +3425,3 @@ void TRelayObj::NegSeq47Logic(int ActorID)
 
 
 }  // namespace Relay
-
-
-
-
-
