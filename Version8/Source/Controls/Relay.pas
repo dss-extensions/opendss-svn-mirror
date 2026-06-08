@@ -1084,7 +1084,10 @@ begin
                               IF OperationCount^[PhIdx] > NumReclose THEN
                               Begin
                                   LockedOut^[PhIdx] := TRUE;
-                                  if SinglePhLockout and ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RelayTarget^[PhIdx]]),ActorID)
+                                  if SinglePhLockout then
+                                  Begin
+                                    if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (1ph lockout)', [PhIdx, RelayTarget^[PhIdx]]),ActorID);
+                                  End
                                   Else
                                   Begin
                                     if ShowEventLog then AppendtoEventLog('Relay.'+Self.Name, Format('Phase %d opened on %s (1ph trip) & locked out (3ph lockout)', [PhIdx, RelayTarget^[PhIdx]]), ActorID); // 3-Phase Lockout
@@ -1323,7 +1326,7 @@ begin
        ELSE FPresentState^[i] := CTRL_OPEN;
      End;
 
-     AppendtoEventLog('Debug Sample: Relay.'+Self.Name, Format('FPresentState: %s ', [self.GetPropertyValue(40)]), ActorID);
+     if DebugTrace then AppendtoEventLog('Debug Sample: Relay.'+Self.Name, Format('FPresentState: %s ', [self.GetPropertyValue(40)]), ActorID);
 
      CASE ControlType of
           CURRENT:     OverCurrentLogic(ActorID); {Current}
