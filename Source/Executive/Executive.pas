@@ -229,6 +229,11 @@ begin
   End
   else                 // Applies the command to the active actor
     ProcessCommand(Value);
+  // Adds the global result to the internal variable for later use. It was declared in the original
+  // version but for some reason, never implemented.
+  ParserVars.Lookup('@result');
+  ParserVars.Value :=  GlobalResult;
+
 end;
 
 procedure TExecutive.Clear;
