@@ -5,7 +5,7 @@ All rights reserved.
 
 Version 11.0.0.1 - Charlottesville
 
-This version of the program is named after the birthplace of Tom McDermott, who, together with Roger Dugan, has been instrumental in developing the core architecture of OpenDSS and advancing the program since its inception.
+This version of the program is named in honor of Tom McDermott, whose work—alongside Roger Dugan—has been fundamental to shaping the core architecture of OpenDSS and advancing its development since the project began.
 
 
 Changes this version
