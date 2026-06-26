@@ -161,10 +161,10 @@ type
     FDCkW                   : Double;  // PanelkW for PVSystem, DCkW for Storage
     FPPriority              : Boolean;
     // Active voltage regulation (AVR)
-    DQDV                   : Double;
-    Fv_setpointLimited     : Double;
-    FAvgpAVRVpuPrior       : Double;
-    PICtrl                 : TPICtrl;
+    DQDV                    : Double;
+    Fv_setpointLimited      : Double;
+    FAvgpAVRVpuPrior        : Double;
+    PICtrl                  : TPICtrl;
   end;
 
 
@@ -430,10 +430,11 @@ const
     WATTVAR   = 5;
     AVR       = 6;
     GFM       = 7;
+    VRIDE     = 8;
 
     // Modes in string type
-    myCtrlModes   : array [0..6] of string =
-    ('voltvar', 'voltwatt', 'dynamicreaccurr', 'wattpf', 'wattvar', 'avr', 'gfm');
+    myCtrlModes   : array [0..7] of string =
+    ('voltvar', 'voltwatt', 'dynamicreaccurr', 'wattpf', 'wattvar', 'avr', 'gfm', 'vride');
 
     myDERTypes    : array [0..1] of string =
     ('PVSystem', 'Storage');
@@ -518,7 +519,7 @@ procedure TInvControl.DefineProperties;
                       'No capability of hierarchical control between two controls for a single element is implemented at this time.';
 
     PropertyHelp^[2] := 'Smart inverter function in which the InvControl will control the PC elements specified in DERList, according to the options below:' +CRLF+CRLF+
-                      'Must be one of: {VOLTVAR* | VOLTWATT | DYNAMICREACCURR | WATTPF | WATTVAR | GFM} ' +CRLF+
+                      'Must be one of: {VOLTVAR* | VOLTWATT | DYNAMICREACCURR | WATTPF | WATTVAR | GFM | VRIDE} ' +CRLF+
                       'if the user desires to use modes simultaneously, then set the CombiMode property. Setting the Mode to any valid value disables combination mode.'+
 
                        CRLF+CRLF+'In volt-var mode (Default). This mode attempts to CONTROL the vars, according to one or two volt-var curves, depending on the monitored voltages, present active power output, and the capabilities of the PVSystem/Storage. ' +
@@ -526,7 +527,8 @@ procedure TInvControl.DefineProperties;
                        CRLF+CRLF+'In dynamic reactive current mode. This mode attempts to increasingly counter deviations by CONTROLLING vars, depending on the monitored voltages, present active power output, and the capabilities of the of the PVSystem/Storage.'+
                        CRLF+CRLF+'In watt-pf mode. This mode attempts to CONTROL the vars, according to a watt-pf curve, depending on the present active power output, and the capabilities of the PVSystem/Storage. '+
                        CRLF+CRLF+'In watt-var mode. This mode attempts to CONTROL the vars, according to a watt-var curve, depending on the present active power output, and the capabilities of the PVSystem/Storage. ' +
-                       CRLF+CRLF+'In GFM mode this control will trigger the GFM control routine for the DERs within the DERList. The GFM actiosn will only take place if the pointed DERs are in GFM mode. The controller parameters are locally setup at the DER. ';
+                       CRLF+CRLF+'In GFM mode this control will trigger the GFM control routine for the DERs within the DERList. The GFM actiosn will only take place if the pointed DERs are in GFM mode. The controller parameters are locally setup at the DER. ' +
+                       CRLF+CRLF+'VRIDE mode provides support for GFL IBRs to comply with the Voltage ride-through and trip requirements for certified Inverter abnormal operating  Performance-Category III (IEEE 1547) . ';
 
     PropertyHelp^[3] := 'Combination of smart inverter functions in which the InvControl will control the PC elements in DERList, according to the options below: '+CRLF+CRLF+
                       'Must be a combination of the following: {VV_VW | VV_DRC}. Default is to not set this property, in which case the single control mode in Mode is active.  ' +
@@ -718,7 +720,6 @@ procedure TInvControl.DefineProperties;
                         'Use this property for better tunning your controller and improve the controller response in terms of control iterations needed to reach the target.' + CRLF +
                         'This property alters the meaning of deltaQ_factor and deltaP_factor properties accroding to its value (Check help). The method can also be combined with the controller tolerance for improving performance.';
 
-
     ActiveProperty  := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
@@ -745,6 +746,7 @@ function TInvControl.Edit(ActorID : Integer):Integer;
     StrTemp,
     ParamName,
     Param             : String;
+    arr_temp          : pDoubleArray;
 
     NodeBuffer        : Array[1..10] of Integer;
 
@@ -2084,6 +2086,13 @@ begin
             End;
           End;
         End;
+      end
+
+//---------------------------------------------------------------------------------------------------------------------------------------//
+//    Grid forming inverter
+      else if(ControlMode = VRIDE) then
+      begin
+
       end;
 
       ActiveCircuit[ActorID].Solution.LoadsNeedUpdating := TRUE;
