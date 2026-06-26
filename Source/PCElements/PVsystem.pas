@@ -290,6 +290,7 @@ type
         procedure Set_Maxkvar(const Value: Double);
         procedure Set_Maxkvarneg(const Value: Double);
         procedure SetNominalPVSystemOuput(ActorID: Integer);
+        function check_voltage_ride_through(ActorID: Integer): Boolean;
         procedure Randomize(Opt: Integer);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
 
         procedure ResetRegisters;
@@ -421,7 +422,9 @@ const
     propGFM = 48;
     propAmpsLimit = 49;
     propAmpsError = 50;
-    NumPropsThisClass = 50; // Make this agree with the last property constant
+    propVRide = 51;
+    propVRideNorm = 52;
+    NumPropsThisClass = 52; // Make this agree with the last property constant
 
 var
     cBuffer: array[1..24] of Complex;  // Temp buffer for calcs  24-phase PVSystem element?
@@ -617,7 +620,7 @@ begin
         'Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter safe mode (OFF). For dynamic simulation. By default is 80%');
 
     AddProperty('SafeMode', propSM,
-        '(Read only) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode.');
+        '(Read/Write) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode. After entering on a safe mode, it has to be changed to normal manually. ');
     AddProperty('DynamicEq', propDynEq,
         'The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
         'if not defined, the generator dynamics will follow the built-in dynamic equation.');
@@ -635,6 +638,12 @@ begin
         'Once the IBR reaches this value, it remains there without moving into Safe Mode. This value needs to be set lower than the IBR Amps rating.');
     AddProperty('AmpLimitGain', propAmpsError,
         'Use it for fine tunning the current limiter when active, by default is 0.8, it has to be a value between 0.1 and 1. This value allows users to fine tune the IBRs current limiter to match with the user requirements.');
+    AddProperty('VRideCurve', propVRide,
+        'The name of the curve defining the IBRs Voltage ride-through and trip requirements for certified Inverter abnormal operating Performance-Category III.');
+
+    AddProperty('VRideNorm', propVRideNorm,
+        'The voltage interval (pu) for the Inverter normal operating Performance. Defaults to [0.88, 1.1].');
+
 
     ActiveProperty := NumPropsThisClass;
     inherited DefineProperties;  // Add defs of inherited properties to bottom of list
@@ -873,6 +882,11 @@ begin
                         myDynVars.CtrlTol := Parser[ActorID].DblValue / 100.0;
                     propSMT:
                         myDynVars.SMThreshold := Parser[ActorID].DblValue;
+                    propSM:
+                    begin
+                        myDynVars.SafeMode := InterpretYesNo(Param);
+                        myDynVars.vride_armed := false;
+                    end;
                     propDynEq:
                         DynamicEq := Param;
                     propDynOut:
@@ -893,7 +907,16 @@ begin
                     propAmpsLimit:
                         myDynVars.ILimit := Parser[ActorID].DblValue;
                     propAmpsError:
-                        myDynVars.VError := Parser[ActorID].DblValue
+                        myDynVars.VError := Parser[ActorID].DblValue;
+                    propVRide:
+                    begin
+                        myDynVars.vride_name := Parser[ActorID].StrValue;
+                        if (length(myDynVars.vride_name) > 0) then
+                            myDynVars.vride_curve := XYCurveClass[ActorID].Find(myDynVars.vride_name);
+                    end;
+                    propVRideNorm:
+                        Parser[ActorID].ParseAsVector(2, @(myDynVars.vride_normal[0]))
+
                 else
                   // Inherited parameters
                     ClassEdit(ActivePVSystemObj, ParamPointer - NumPropsThisClass)
@@ -1156,6 +1179,16 @@ begin
         ILimit := -1;         // No Amps limit
         IComp := 0;
         VError := 0.8;
+
+      // Initialize IBR voltage ride variables
+        vride_name := '';
+        vride_curve := nil;
+        setlength(vride_normal, 2);
+        vride_normal[0] := 0.88;
+        vride_normal[1] := 1.10;
+        vride_time := 0;
+        vride_armed := false;
+
     end;
     FpctCutIn := 20.0;
     FpctCutOut := 20.0;
@@ -1245,6 +1278,8 @@ begin
         PropertyValue[propSMT] := '80';
         PropertyValue[propSM] := 'NO';
         PropertyValue[propGFM] := 'GFL';
+        PropertyValue[propVRide] := '';
+        PropertyValue[propVRideNorm] := Format('[%-g, %-g]', [myDynVars.vride_normal[0], myDynVars.vride_normal[1]]);
     end;
     inherited  InitPropertyValues(NumPropsThisClass);
 end;
@@ -1357,6 +1392,10 @@ begin
                     Result := 'GFM'
                 else
                     Result := 'GFL';
+            propVRide:
+                Result := myDynVars.vride_name;
+            propVRideNorm:
+                Result := Format('[%-g, %-g]', [myDynVars.vride_normal[0], myDynVars.vride_normal[1]]);
         {propDEBUGTRACE = 33;}
         else  // take the generic handler
             Result := inherited GetPropertyValue(index);
@@ -1644,6 +1683,116 @@ begin
         UserModel.FUpdateModel;
 end;
 
+function TPVsystemObj.check_voltage_ride_through(ActorID: Integer): Boolean;
+  // Implements a function for checking if the IBR is under voltage ride through event at its connection terminal
+  // If so and depending on the votlage levels, the power output (PQ) will be set accordingly.
+var
+    j,
+    i: Integer;
+    edge_value,
+    trip_time,
+    lapsed_time,
+    v_phase_pu,
+    V_phase_mag,
+    pv_system_vbase,
+    emerg_time: Double;
+
+begin
+    with myDynVars do
+    begin
+  // Here we check the Voltage ride-through and trip requirements (if defined)
+        if (vride_curve <> nil) then
+        begin
+            CalcVTerminalPhase(ActorID);
+
+            pv_system_vbase := PVSystemvars.kVPVSystemBase * 1e3;
+            if FNphases > 1 then
+                pv_system_vbase := pv_system_vbase / sqrt(3);
+
+            if vride_armed then
+            begin
+                if not SafeMode then  // Means that the user needs to clear the flag after entering safe mode
+                begin
+          // The safety measures are armed, check first if we are still on emergency mode
+                    vride_armed := false;       // We assume that the emergency has cleared
+
+                    for i := 1 to FNphases do
+                    begin
+                        V_phase_mag := cabs(Vterminal[i]);
+                        v_phase_pu := V_phase_mag / (pv_system_vbase);
+                        if (v_phase_pu > vride_normal[1]) or (v_phase_pu < vride_normal[0]) then
+                        begin
+              // This means we need to enter into emergency mode
+                            vride_armed := true;
+                            vride_volt := v_phase_pu;
+                            break
+                        end;
+                    end;
+
+          // Now check if we are in emergency afte all
+                    if vride_armed then
+                    begin
+            // If still under emergency, get the operational block
+                        j := vride_curve.NumPoints;
+                        trip_time := -1;
+                        for i := 1 to j do
+                        begin
+                            edge_value := vride_curve.XValue_pt[i];
+                            if vride_curve.XValue_pt[i] > vride_volt then
+                            begin
+                                trip_time := vride_curve.YValue_pt[i];
+                                break;
+                            end;
+                        end;
+
+                        if trip_time < 0 then     // means the vpu value is out of bounds
+                            trip_time := vride_curve.YValue_pt[j];
+
+                        lapsed_time := (ActiveCircuit[ActorID].Solution.DynaVars.dblHour - vride_time) * 3600;
+
+                        if lapsed_time >= trip_time then
+                            SafeMode := true;
+
+                    end;
+
+                end;
+
+            end
+            else
+            begin
+        // Not armed yet, checking the values to determine if we need to enter into safe mode
+                for i := 1 to FNphases do
+                begin
+                    V_phase_mag := cabs(Vterminal[i]);
+                    v_phase_pu := V_phase_mag / (pv_system_vbase);
+                    if (v_phase_pu > vride_normal[1]) or (v_phase_pu < vride_normal[0]) then
+                    begin
+            // This means we need to enter into emergency mode
+                        vride_armed := true;
+                        vride_volt := v_phase_pu;
+                        break
+                    end;
+                end;
+
+        // Now check if we are in emergency afte all
+                if vride_armed then // If we entered this mode we need to setup the actual simulation time as reference
+                    vride_time := ActiveCircuit[ActorID].Solution.DynaVars.dblHour - (ActiveCircuit[ActorID].Solution.IntervalHrs)
+                else
+                begin
+                    vride_time := 0.0;     // We're good
+                    SafeMode := false;
+                end;
+
+            end;
+
+        end;
+
+    end;
+
+    result := myDynVars.SafeMode;
+
+end;
+
 procedure TPVsystemObj.SetNominalPVSystemOuput(ActorID: Integer);
 begin
     ShapeFactor := CDOUBLEONE;  // init here; changed by curve routine
@@ -1719,8 +1868,18 @@ begin
               {AUTOADDFLAG:  ; }
                 end;
             ComputekWkvar();
-            Pnominalperphase := 1000.0 * kW_out / Fnphases;
-            Qnominalperphase := 1000.0 * kvar_out / Fnphases;
+
+            if myDynVars.SafeMode then
+            begin
+                Pnominalperphase := 0.0;
+                Qnominalperphase := 0.0;
+            end
+            else
+            begin
+                Pnominalperphase := 1000.0 * kW_out / Fnphases;
+                Qnominalperphase := 1000.0 * kvar_out / Fnphases;
+            end;
+
             case VoltageModel of
             //****  Fix this when user model gets connected in
                 3: // YEQ := Cinv(cmplx(0.0, -StoreVARs.Xd))  ;  // Gets negated in CalcYPrim
@@ -2489,6 +2648,10 @@ procedure TPVsystemObj.CalcInjCurrentArray(ActorID: Integer);
   // Difference between currents in YPrim and total current
 begin
     // Now Get Injection Currents
+
+    // First, check if we are entering, in or out an alarm zone
+    check_voltage_ride_through(ActorID);
+
     if PVSystemObjSwitchOpen then
         ZeroInjCurrent
     else
@@ -2517,6 +2680,8 @@ begin
     begin
         if LoadsNeedUpdating then
             SetNominalPVSystemOuput(ActorID); // Set the nominal kW, etc for the type of solution being Done
+
+
         if not ForceInjCurr then
             CalcInjCurrentArray(ActorID);          // Difference between currents in YPrim and total terminal current
         if (DebugTrace) then
@@ -2709,7 +2874,7 @@ begin
     YprimInvalid[ActorID] := true;  // Force rebuild of YPrims
     with PVSystemVars, myDynVars do
     begin
-
+        vride_armed := false;
         if (Length(PICtrl) = 0) or (Length(PICtrl) < Fnphases) then
         begin
             setlength(PICtrl, Fnphases);
@@ -2859,8 +3024,16 @@ begin
                     ISP := ((PanelkW * 1000) / Vgrid[i].mag) / NumPhases;
                     if ISP > IMaxPPhase then
                         ISP := IMaxPPhase;
-                    if (Vgrid[i].mag < MinVS) then
-                        ISP := 0.01;                                 // turn off the inverter
+                    if vride_curve = nil then
+                    begin
+                        if (Vgrid[i].mag < MinVS) or (Vgrid[i].mag > MaxVS) then
+                            ISP := 0.01                                 // turn off the inverter
+                    end
+                    else
+                    begin
+                        if check_voltage_ride_through(ActorID) then
+                            ISP := 0.01;
+                    end;
                 end
                 else
                 begin

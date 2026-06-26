@@ -8,7 +8,8 @@ uses
     UComplex,
     mathutil,
     Utilities,
-    UcMatrix;
+    UcMatrix,
+    XYCurve;
 
 type
   {Structure for hosting data and solving for each inverter based element}
@@ -43,6 +44,12 @@ type
         ResetIBR,                                   // flag for forcing the IBR to turn OFF
         SafeMode: Boolean;            // To indicate weather the Inverter has entered into safe mode
         SfModePhase: array of Boolean;   // To identify when to restart the phase
+        vride_name: String;             // Name of the voltage ride curve for protection purposes (IEEE 1547)
+        vride_curve: TXYcurveObj;        // Pointer to the XY curve object describing the voltage ride for the inverter.
+        vride_normal: array of Double;    // Array with the interval for which the IBR operation is considered normal.
+        vride_time: Double;             // Initial time in which the voltage sag/swel was detected.
+        vride_armed: Boolean;            // Flaf to indicate tha the IBR is expose to abnormal voltage conditions.
+        vride_volt: Double;             // Reference value to estimate the voltage ride operational block
 
         function Get_InvDynValue(myindex, NumPhases: Integer): Double;
         function Get_InvDynName(myindex: Integer): String;
@@ -188,6 +195,7 @@ var
     iDelta,
     iErrorPct,
     iError: Double;
+    cond: Boolean;
 
 begin
     with ActiveCircuit[ActorID].Solution do
@@ -200,9 +208,14 @@ begin
             begin
                 iDelta := PICtrl^.SolvePI(IError);
                 myDCycle := m[i] + iDelta;
-                if (Vgrid[i].mag > MinVS) or (MinVS = 0) then
+                if length(vride_name) > 0 then
+                    cond := not SafeMode
+                else
+                    cond := (Vgrid[i].mag > MinVS) or (MinVS = 0);
+
+                if cond then
                 begin
-                    if SafeMode or SfModePhase[i] then
+                    if (SafeMode or SfModePhase[i]) then
                     begin
              //Coming back from safe operation, need to boost duty cycle
                         m[i] := ((RS * it[i]) + Vgrid[i].mag) / RatedVDC;
