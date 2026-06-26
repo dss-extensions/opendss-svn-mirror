@@ -145,6 +145,8 @@ void TExecutive::Set_Command(String Value)
 	{
 		ProcessCommand(Value);                  // Applies the command to the active actor
 	}
+    ParserVars->Lookup("@result");
+    ParserVars->Set_Value(GlobalResult);
 }
 
 void TExecutive::Clear()

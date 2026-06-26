@@ -1101,7 +1101,7 @@ namespace ParserDel
 			if (Idx > StringArraySize)
 				// resize String array
 			{
-				VarValues = (pStringArray) realloc(VarValues, sizeof(VarValues[0]) * (StringArraySize + FsizeIncrement));
+				VarValues.resize(FsizeIncrement);
 				StringArraySize += FsizeIncrement;
 			}
 		}
@@ -1111,7 +1111,7 @@ namespace ParserDel
 			VarDefinition = EncloseQuotes(varValue);
 		else
 			VarDefinition = varValue;
-		(VarValues)[Idx - 1] = VarDefinition;
+		VarValues[Idx - 1] = VarDefinition;
 		NumVariables = VarNames->Get_NumElements();
 		result = (int)Idx;
 		return result;
@@ -1141,7 +1141,7 @@ namespace ParserDel
 		NumVariables(0)
 	{
 		VarNames = new THashList(initSize);
-		VarValues = AllocStringArray((int)initSize);
+		VarValues.resize(initSize);
 		StringArraySize = initSize;
 		FsizeIncrement = initSize;
 
@@ -1168,7 +1168,7 @@ namespace ParserDel
 	TParserVar::~TParserVar()
 	{
 		delete VarNames;
-		FreeStringArray(VarValues, (int)StringArraySize);
+		VarValues.resize(StringArraySize);
 		// inherited;
 	}
 
