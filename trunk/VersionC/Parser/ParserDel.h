@@ -46,7 +46,7 @@ public:
 	unsigned int StringArraySize;
 	unsigned int FsizeIncrement;
 	Hashlist::THashList* VarNames;
-	pStringArray VarValues;
+	vector<string> VarValues;
 	std::string Get_Value();
 	void Set_Value(const std::string& Value);
 	std::string Get_VarString(unsigned int Idx);
