@@ -354,6 +354,7 @@ TYPE
         FUNCTION  Get_Variable(i: Integer): Double; Override;
         PROCEDURE Set_Variable(i: Integer; Value: Double);  Override;
         FUNCTION  VariableName(i:Integer):String ;Override;
+        FUNCTION  check_voltage_ride_through(ActorID : Integer):Boolean;
 
         FUNCTION  Get_InverterON:Boolean; Override;
         PROCEDURE Set_InverterON(const Value: Boolean); Override;
@@ -527,7 +528,9 @@ Const
   propGFM                = 59;
   propAmpsLimit          = 60;
   propAmpsError          = 61;
-  NumPropsThisClass = 61; // Make this agree with the last property constant
+  propVRide              = 62;
+  propVRideNorm          = 63;
+  NumPropsThisClass = 63; // Make this agree with the last property constant
 
 VAR
 
@@ -759,36 +762,48 @@ Begin
                                 'for each iteration.  Creates a separate file for each Storage element named "Storage_name.CSV".' );
 
     AddProperty('kVDC', propkVDC,
-                           'Indicates the rated voltage (kV) at the input of the inverter while the storage is discharging. The value is normally greater or equal to the kV base of the Storage device. It is used for dynamics simulation ONLY.');
+                           '(Dbl). Read/Write. {0.7*}. Indicates the rated voltage (kV) at the input of the inverter while the storage is discharging. The value is normally greater or equal to the kV base of the Storage device. It is used for dynamics simulation ONLY.');
 
     AddProperty('Kp', propkp,
-                           'It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode.');
+                           '(Dbl). Read/Write. {0.1*}. It is the proportional gain for the PI controller within the inverter. Use it to modify the controller response in dynamics simulation mode.');
 
     AddProperty('PITol', propCtrlTol,
-                           'It is the tolerance (%) for the closed loop controller of the inverter. For dynamics simulation mode.');
+                           '(Dbl). Read/Write. {0.01*}. It is the tolerance (%) for the closed loop controller of the inverter. For dynamics simulation mode.');
 
     AddProperty('SafeVoltage', propSMT,
-                           'Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter safe mode (OFF). For dynamic simulation. By default is 80%');
+                           '(Dbl). Read/Write. {0.8*}. Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter safe mode (OFF). For dynamic simulation. By default is 80%');
 
     AddProperty('SafeMode', propSM,
-                           '(Read only) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode.');
+                           '(Read/Write) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode. After entering on a safe mode, it has to be changed to normal manually. ');
     AddProperty('DynamicEq', propDynEq,
-                           'The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
+                           '(Str), Read/Write. {""*}. The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ' +
                                  'if not defined, the generator dynamics will follow the built-in dynamic equation.');
     AddProperty('DynOut', propDynOut,
-                            'The name of the variables within the Dynamic equation that will be used to govern the PVSystem dynamics.' +
+                            '[Str]. Read/Write. {[]*}.The name of the variables within the Dynamic equation that will be used to govern the PVSystem dynamics.' +
                                  'This PVsystem model requires 1 output from the dynamic equation: ' + CRLF + CRLF +
                                  '1. Current.' + CRLF +
                                  'The output variables need to be defined in the same order.');
     AddProperty('ControlMode', propGFM,
-                            'Defines the control mode for the inverter. It can be one of {GFM | GFL*}. By default it is GFL (Grid Following Inverter).' +
+                            '(Str). Read/Wrte. {GFL*}. Defines the control mode for the inverter. It can be one of {GFM | GFL*}. By default it is GFL (Grid Following Inverter).' +
                                  ' Use GFM (Grid Forming Inverter) for energizing islanded microgrids, but, if the device is conencted to the grid, it is highly recommended to use GFL.' + CRLF + CRLF +
                                  'GFM control mode disables any control action set by the InvControl device.');
     AddProperty('AmpLimit', propAmpsLimit,
-                            'Is the current limiter per phase for the IBR when operating in GFM mode. This limit is imposed to prevent the IBR to enter into Safe Mode when reaching the IBR power ratings.' + CRLF +
+                            '(Dbl). Read/Write. Is the current limiter per phase for the IBR when operating in GFM mode. This limit is imposed to prevent the IBR to enter into Safe Mode when reaching the IBR power ratings.' + CRLF +
                             'Once the IBR reaches this value, it remains there without moving into Safe Mode. This value needs to be set lower than the IBR Amps rating.');
     AddProperty('AmpLimitGain', propAmpsError,
-                            'Use it for fine tunning the current limiter when active, by default is 0.8, it has to be a value between 0.1 and 1. This value allows users to fine tune the IBRs current limiter to match with the user requirements.');
+                            '(Dbl). Read/Write. {0.8*}. Use it for fine tunning the current limiter when active, by default is 0.8, it has to be a value between 0.1 and 1. This value allows users to fine tune the IBRs current limiter to match with the user requirements.');
+
+    AddProperty('VRideCurve', propVRide,
+                            '(Str). Read/Write. {""*}. The name of the curve defining the IBRs Voltage ride-through and trip requirements for certified Inverter abnormal operating Performance-Category III.');
+    AddProperty('VRideAction', propVRideNorm,
+                            '[Int]. Read/Write. {""}. The actions to perform at each interval of the voltage ride-through curve. The action can be one of:' + CRLF +
+                            CRLF +
+                            '0: Continuous operation' + CRLF +
+                            '1: Mandatory operation' + CRLF +
+                            '2: Momentary cessation' + CRLF + CRLF +
+                            'If any value in this array falls outside the defined options, it is interpreted as a tripped state, requiring manual intervention to restore IBR operation (see SafeMode).' +
+                            'The number of elements in this array must match the number of points in the VRideCurve.');
+
      ActiveProperty := NumPropsThisClass;
      inherited DefineProperties;  // Add defs of inherited properties to bottom of list
 
@@ -1027,6 +1042,11 @@ Begin
                 propkp          : myDynVars.kP                := Parser[ActorID].DblValue / 1000;
                 propCtrlTol     : myDynVars.CtrlTol           := Parser[ActorID].DblValue / 100.0;
                 propSMT         : myDynVars.SMThreshold       := Parser[ActorID].DblValue;
+                propSM          : Begin
+                                    myDynVars.SafeMode          := InterpretYesNo(Param);
+                                    myDynVars.vride_cessation   := myDynVars.SafeMode;
+                                    myDynVars.vride_armed       := False;
+                                  End;
                 propDynEq       : DynamicEq                   := Param;
                 propDynOut      : SetDynOutput(Param);
                 propGFM         : Begin
@@ -1041,6 +1061,15 @@ Begin
                                   End;
                 propAmpsLimit   : myDynVars.ILimit            := Parser[ActorID].DblValue;
                 propAmpsError   : myDynVars.VError            := Parser[ActorID].DblValue;
+                propVRide       : Begin
+                                    myDynVars.vride_name      := Parser[ActorID].StrValue;
+                                    if (length(myDynVars.vride_name) > 0) then
+                                      myDynVars.vride_curve := XYCurveClass[ActorID].Find(myDynVars.vride_name);
+                                  End;
+                propVRideNorm   : Begin
+                                    Parser[ActorID].ParseAsVectorInt(length(myDynVars.vride_action),@(myDynVars.vride_action[0]))
+                                  End
+
               ELSE
                // Inherited parameters
                  ClassEdit(ActiveStorageObj, ParamPointer - NumPropsThisClass)
@@ -1279,6 +1308,7 @@ End;
 //----------------------------------------------------------------------------
 Constructor TStorageObj.Create(ParClass:TDSSClass; const SourceName:String);
 var
+  j,
   i : integer;
 Begin
 
@@ -1357,6 +1387,19 @@ Begin
         ILimit            :=  -1;         // No Amps limit
         IComp             :=  0;
         VError            :=  0.8;
+
+        // Initialize IBR voltage ride variables
+        vride_name                := '';
+        vride_curve               := Nil;
+        setlength(vride_action,20);
+
+        for j := 0 to High(vride_action) do
+          vride_action[j]           := 0;
+
+        vride_time        := 0;
+        vride_armed       := False;
+        vride_cessation   := False;
+
      End;
      setlength(PICtrl, 0);
 
@@ -1516,6 +1559,9 @@ Begin
      PropertyValue[propSM]                    := 'NO';
      PropertyValue[propGFM]                   := 'GFL';
 
+     PropertyValue[propVRide]                := '';
+     PropertyValue[propVRideNorm]            := '[]';
+
   inherited  InitPropertyValues(NumPropsThisClass);
 
 End;
@@ -1523,6 +1569,8 @@ End;
 
 //----------------------------------------------------------------------------
 FUNCTION TStorageObj.GetPropertyValue(Index: Integer): String;
+Var
+  j : Integer;
 Begin
 
       Result := '';
@@ -1591,9 +1639,164 @@ Begin
           propDynEq         : Result := DynamicEq;
           propDynOut        : GetDynOutputStr();
           propGFM           : if GFM_Mode then Result :=  'GFM' else Result :=  'GFL';
+          propVRide         : Result  := myDynVars.vride_name;
+          propVRideNorm     : Begin
+                                Result            := '[';
+                                if (myDynVars.vride_curve <> nil) then
+                                Begin
+                                  for j := 0 to (myDynVars.vride_curve.NumPoints - 1) do
+                                    Result            := Result + Format('%-d,', [myDynVars.vride_action[j]]);
+                                End;
+
+                                Result           := Result + ']';
+                              End;
+
       ELSE  // take the generic handler
            Result := Inherited GetPropertyValue(index);
       END;
+End;
+
+
+FUNCTION TStorageObj.check_voltage_ride_through(ActorID : Integer):Boolean;
+  // Implements a function for checking if the IBR is under voltage ride through event at its connection terminal
+  // If so and depending on the votlage levels, the power output (PQ) will be set accordingly.
+VAR
+  k,
+  j,
+  i           : Integer;
+  edge_value,
+  trip_time,
+  lapsed_time,
+  v_phase_pu,
+  V_phase_mag,
+  st_system_vbase,
+  temp,
+  emerg_time  : Double;
+
+Begin
+  with myDynVars do
+  Begin
+  // Here we check the Voltage ride-through and trip requirements (if defined)
+    if (vride_curve <> Nil) then
+    Begin
+      CalcVTerminalPhase(ActorID);
+
+      st_system_vbase := StorageVars.kVStorageBase * 1e3;
+      if FNphases > 1 then
+        st_system_vbase := st_system_vbase / sqrt(3);
+
+      if vride_armed then
+      Begin
+        if not SafeMode then  // Means that the user needs to clear the flag after entering safe mode
+        Begin
+          // The safety measures are armed, check first if we are still on emergency mode
+          vride_armed := False;       // We assume that the emergency has cleared
+          vride_cessation := False;
+          k           := vride_curve.NumPoints;
+          for i := 1 to FNphases do
+          Begin
+            V_phase_mag := cabs(Vterminal[i]);
+            v_phase_pu  := V_phase_mag/(st_system_vbase);
+
+            for j := 1 to k do
+            Begin
+              edge_value  := vride_curve.XValue_pt[j];
+              if edge_value > v_phase_pu then
+              Begin
+                if vride_action[j - 1] <> 0 then
+                Begin
+                  vride_armed := True;
+                  vride_volt  := v_phase_pu;
+                  vride_cessation := (vride_action[j - 1] >= 2) or (vride_action[j - 1] < 0);
+                End;
+                break;
+              End;
+            End;
+            if vride_armed then
+              break;
+          End;
+
+          // Now check if we are in emergency afte all
+          if vride_armed then
+          Begin
+            // If still under emergency, get the operational block
+            j         := vride_curve.NumPoints;
+            trip_time := -1;
+              for i := 1 to j do
+              Begin
+                edge_value  := vride_curve.XValue_pt[i];
+                if vride_curve.XValue_pt[i] > vride_volt then
+                Begin
+                  trip_time :=  vride_curve.YValue_pt[i];
+                  break;
+                End;
+              End;
+
+            if trip_time < 0 then     // means the vpu value is out of bounds
+              trip_time   := vride_curve.YValue_pt[j];
+
+            lapsed_time   := (ActiveCircuit[ActorID].Solution.DynaVars.dblHour - vride_time) * 3600;
+
+            if lapsed_time >= trip_time then
+              SafeMode    := true;
+
+          End
+          Else
+            FState      := last_bess_state;
+
+        End;
+
+      End
+      else
+      Begin
+        // Not armed yet, checking the values to determine if we need to enter into safe mode
+        k           := vride_curve.NumPoints;
+
+        for i := 1 to FNphases do
+        Begin
+          V_phase_mag := cabs(Vterminal[i]);
+          v_phase_pu  := V_phase_mag/(st_system_vbase);
+
+          for j := 1 to k do
+          Begin
+            edge_value  := vride_curve.XValue_pt[j];
+            if edge_value > v_phase_pu then
+            Begin
+              if vride_action[j - 1] <> 0 then
+              Begin
+                vride_armed := True;
+                vride_volt  := v_phase_pu;
+                vride_cessation := (vride_action[j - 1] >= 2) or (vride_action[j - 1] < 0);
+              End;
+              break;
+            End;
+          End;
+          if vride_armed then
+            break;
+
+        End;
+
+        // Now check if we are in emergency afte all
+        if vride_armed then // If we entered this mode we need to setup the actual simulation time as reference
+        Begin
+          vride_time  := ActiveCircuit[ActorID].Solution.DynaVars.dblHour - (ActiveCircuit[ActorID].Solution.IntervalHrs);
+          last_bess_state := FState;
+        End
+        else
+        Begin
+          vride_time  := 0.0;     // We're good
+          SafeMode    := false;
+          vride_cessation := false;
+        End;
+
+      End;
+
+    End;
+
+  End;
+
+  result  := myDynVars.SafeMode;
+
 End;
 
 
@@ -1785,9 +1988,15 @@ Begin
            entering the Storage element.
           }
 
-          With StorageVars Do
+          if myDynVars.SafeMode or myDynVars.vride_cessation then
           Begin
-            Pnominalperphase   := 1000.0 * kW_out  / Fnphases;
+            Pnominalperphase    := 0.0;
+            Qnominalperphase    := 0.0;
+            FState              := STORE_IDLING;
+          End
+          Else
+          Begin
+            Pnominalperphase   := 1000.0 * kW_out    / Fnphases;
             Qnominalperphase   := 1000.0 * kvar_out  / Fnphases;
           End;
 
@@ -2852,9 +3061,11 @@ End;
 PROCEDURE TStorageObj.CalcInjCurrentArray(ActorID : Integer);
 // Difference between currents in YPrim and total current
 Begin
-      // Now Get Injection Currents
-       If StorageObjSwitchOpen Then ZeroInjCurrent
-       Else CalcStorageModelContribution(ActorID);
+  // Now Get Injection Currents
+  check_voltage_ride_through(ActorID);
+
+  If StorageObjSwitchOpen Then ZeroInjCurrent
+  Else CalcStorageModelContribution(ActorID);
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - - - -
@@ -3500,6 +3711,7 @@ Begin
 
       With StorageVars, myDynVars do
       Begin
+        vride_armed := False;
         NumPhases     := Fnphases;     // set Publicdata vars
         NumConductors := Fnconds;
         Conn          := Connection;
@@ -3593,16 +3805,26 @@ Begin
             Vgrid[i]    :=  ctopolar(NodeV^[NodeRef^[i + 1]]);       // Voltage at the Inv terminals
             if not GFM_Mode then
             Begin
-              if ( Vgrid[i].mag < MinVS ) or ( Vgrid[i].mag > MaxVS ) then
-              Begin
-                ISP     :=  0.01;                 // turn off the inverter
-                FState  :=  STORE_IDLING;
-                if ( Vgrid[i].mag > MaxVS ) then Vgrid[i].mag := MaxVs;
-                  
-              End
-              else
-                ISP := ( ( kW_out * 1000 ) / Vgrid[i].mag ) / NumPhases;
+              ISP := ( ( kW_out * 1000 ) / Vgrid[i].mag ) / NumPhases;
               if ISP > IMaxPPhase then  ISP :=  IMaxPPhase;
+              if vride_curve = Nil then
+              Begin
+                  if ( Vgrid[i].mag < MinVS ) or ( Vgrid[i].mag > MaxVS ) then
+                  Begin
+                    ISP     :=  0.01;                 // turn off the inverter
+                    FState  :=  STORE_IDLING;
+                    if ( Vgrid[i].mag > MaxVS ) then Vgrid[i].mag := MaxVs;
+                  End
+              End
+              Else
+              Begin
+                if check_voltage_ride_through(ActorID) or myDynVars.vride_cessation then
+                Begin
+                  ISP  :=  0.01;
+                  FState  :=  STORE_IDLING;
+                  if ( Vgrid[i].mag > MaxVS ) then Vgrid[i].mag := MaxVs;
+                End;
+              End;
             End
             else
             Begin
