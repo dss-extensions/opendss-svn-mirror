@@ -3265,7 +3265,7 @@ namespace ShowResults
         IOResultToException();
         System::WriteLn( Ftree, "Branches and Loads in Circuit " + ActiveCircuit[ActiveActor]->Get_Name() );
         System::WriteLn( Ftree );
-        Topo = &(ActiveCircuit[ActiveActor]->GetTopology());
+        Topo = ActiveCircuit[ActiveActor]->GetTopology();
         nLoops = 0;
         nParallel = 0;
         nLevels = 0;

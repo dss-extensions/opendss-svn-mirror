@@ -356,7 +356,7 @@ public:
 	void Set_Maxkvarneg(double Value);
 
 	void SetNominalStorageOutput(int ActorID);
-
+    bool check_voltage_ride_through(int ActorID);
 	double Get_FpctkWIn();
 	void Set_pctkWIn(double myMaxkvar);
 	double Get_InverterLosses();

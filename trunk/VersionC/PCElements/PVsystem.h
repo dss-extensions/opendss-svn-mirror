@@ -322,6 +322,7 @@ public:
 	void Set_Maxkvar(double Value);
 	void Set_Maxkvarneg(double Value);
 	void SetNominalPVSystemOuput(int ActorID);
+    bool check_voltage_ride_through(int ActorID);
 	void Randomize(int Opt);   // 0 = reset to 1.0; 1 = Gaussian around mean and std Dev  ;  // 2 = uniform
 	void ResetRegisters();
 	void TakeSample(int ActorID);

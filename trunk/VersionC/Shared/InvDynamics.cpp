@@ -170,7 +170,12 @@ namespace InvDynamics
 
     void TInvDynamicVars::SolveModulation(int I, int ActorID, PPICtrl PICtrl)
     {
-        double myDCycle = 0.0, iDelta = 0.0, iErrorPct = 0.0, iError = 0.0;
+        double	myDCycle	= 0.0, 
+				iDelta		= 0.0, 
+				iErrorPct	= 0.0, 
+				iError		= 0.0;
+		bool	cond		= false;
+
         /*# with ActiveCircuit[ActorID].Solution do */
         auto with0 = ActiveCircuit[ActorID]->Solution;
         {
@@ -182,8 +187,13 @@ namespace InvDynamics
                 {
                     iDelta = PICtrl->SolvePI(iError);
                     myDCycle = m[I] + iDelta;
-                    if ((Vgrid[I].mag > MinVS) || (MinVS == 0))
-                    {
+                    if (!vride_name.empty())
+                        cond = !SafeMode;
+					else
+						cond =  ((Vgrid[I].mag > MinVS) || (MinVS == 0));
+ 
+					if (cond)
+					{
                         if (SafeMode || SfModePhase[I])
                         {
                             //Coming back from safe operation, need to boost duty cycle
