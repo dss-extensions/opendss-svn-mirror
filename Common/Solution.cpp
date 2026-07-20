@@ -2601,7 +2601,7 @@ namespace Solution
     //  Ftree       : TextFile;                           // For debugging
 
       TPDElement* pdElem;
-      TCktTree topo;
+      TCktTree* topo;
     //  TreeNm,                                           // For debugging
     //  FileRoot,                                         // For debugging
 
@@ -2636,12 +2636,12 @@ namespace Solution
 //          else
             IncMat.Reset();
           ActiveIncCell[0] = - 1;           // Activates row 1 of the incidence matrix
-          if (( topo.Get_First() != NULL ) )
+          if (( topo->Get_First() != NULL ) )
           {
-            pdElem = (TPDElement*) topo.Get_First();
+            pdElem = (TPDElement*) topo->Get_First();
             while (( pdElem != NULL ) )
             {
-              nLevels = topo.Get_Level();
+              nLevels = topo->Get_Level();
               PDE_Name = pdElem->ParentClass->get_myClass_name() + "." + pdElem->get_Name();
     //******************Gets the buses to which the PDE is connected****************
               /*# with ActiveCircuit[ActorID] do */
@@ -2694,7 +2694,7 @@ namespace Solution
                 }
               }
               ActiveIncCell[0]++;
-              pdElem = (TPDElement*) topo.Get_Forward();
+              pdElem = (TPDElement*) topo->Get_Forward();
             }
           }
     /********************************************************************************

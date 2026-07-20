@@ -330,7 +330,7 @@ namespace Circuit
         void DebugDump(Textfile& F);
 
         // Access to topology from the first source
-        TCktTree& GetTopology();
+        TCktTree* GetTopology();
         void FreeTopology();
         TAdjArray GetBusAdjacentPDLists(int ActorID);
         TAdjArray GetBusAdjacentPCLists(int ActorID);

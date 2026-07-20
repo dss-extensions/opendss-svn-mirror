@@ -603,6 +603,57 @@ namespace ParserDel
 
 	/*=======================================================================================================================*/
 
+        int TParser::ParseAsVectorInt(int ExpectedSize, pIntegerArray VectorBuffer)
+        {
+            int result = 0;
+            int ParseBufferPos = 0;
+            int NumElements = 0;
+            int i = 0;
+            String ParseBuffer;
+            String DelimSave;
+            if (FAutoIncrement)
+                GetNextParam();
+            NumElements = 0;
+            result = 0; // return 0 if none found or error occurred
+            try
+            {
+                int stop = 0;
+                for (stop = ExpectedSize, i = 1; i <= stop; i++)
+                {
+                    (VectorBuffer)[i - 1] = 0.0;
+                }
+
+                /*now Get Vector values*/
+                ParseBuffer = TokenBuffer + " ";
+                ParseBufferPos = 0;
+                DelimSave = DelimChars;
+                DelimChars = DelimChars + MatrixRowTerminator;
+                SkipWhitespace(ParseBuffer, &ParseBufferPos);
+                TokenBuffer = GetToken(ParseBuffer, &ParseBufferPos);
+                CheckforVar(TokenBuffer);
+                while (TokenBuffer.length() > 0)
+                {
+                    ++NumElements;
+                    if (NumElements <= ExpectedSize)
+                        (VectorBuffer)[NumElements - 1] = MakeInteger_();
+                    if (LastDelimiter == MatrixRowTerminator)
+                        break;
+                    TokenBuffer = GetToken(ParseBuffer, &ParseBufferPos);
+                    CheckforVar(TokenBuffer);
+                }
+                result = NumElements;
+            }
+            catch (std::exception e)
+            {
+                DSSMessageDlg("Vector Buffer in ParseAsVector Probably Too Small: " + string(e.what()), true);
+            }
+            DelimChars = DelimSave; // restore to original delimiters
+            TokenBuffer = ParseBuffer.substr(ParseBufferPos, ParseBuffer.length()); // prepare for next trip
+            return result;
+        }
+
+	/*=======================================================================================================================*/
+
 	int TParser::ParseAsVector(int ExpectedSize, pDoubleArray VectorBuffer)
 	{
 		int result = 0;
