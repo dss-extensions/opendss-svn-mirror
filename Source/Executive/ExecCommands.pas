@@ -401,7 +401,8 @@ begin
     CommandHelp[61] := '{All | MeterName}  Default is "All".  Reduce the circuit according to reduction options. ' +
         'See "Set ReduceOptions" and "Set Keeplist" options.' +
         'Energymeter objects actually perform the reduction.  "All" causes all meters to reduce their zones.';
-    CommandHelp[62] := '{All | MeterName}  Default is "All". Interpolates coordinates for missing bus coordinates in meter zone';
+    CommandHelp[62] := '{All | MeterName}  Default is "All". Interpolates coordinates for missing bus coordinates in meter zone.' + CRLF +
+        'Requires at least one energy meter in the model to work properly. If no energy meters declared in the model, this command will perform no action.';
     CommandHelp[63] := 'Alignfile [file=]filename.  Aligns DSS script files in columns for easier reading.';
     CommandHelp[64] := '[class=]{Loadshape | Tshape | Monitor  } [object=]{ALL (Loadshapes only) | objectname}. ' +
         'Send specified object to TOP.  Loadshapes and TShapes must be hourly fixed interval. ';

@@ -45,11 +45,13 @@ type
         SafeMode: Boolean;            // To indicate weather the Inverter has entered into safe mode
         SfModePhase: array of Boolean;   // To identify when to restart the phase
         vride_name: String;             // Name of the voltage ride curve for protection purposes (IEEE 1547)
-        vride_curve: TXYcurveObj;        // Pointer to the XY curve object describing the voltage ride for the inverter.
-        vride_normal: array of Double;    // Array with the interval for which the IBR operation is considered normal.
+        vride_curve: TXYcurveObj;        // Pointer to the XY curve object describing the voltage ride-through for the inverter.
+        vride_action: array of Integer;   // Array with the action to apply for each interval of the volt ride-through curve.
         vride_time: Double;             // Initial time in which the voltage sag/swel was detected.
         vride_armed: Boolean;            // Flaf to indicate tha the IBR is expose to abnormal voltage conditions.
+        vride_cessation: Boolean;            // Indicates if the IBR is under momentary cessation
         vride_volt: Double;             // Reference value to estimate the voltage ride operational block
+        last_bess_state: Integer;            // Stores the last storage state before entering in Safe or Momentary Cessation modes
 
         function Get_InvDynValue(myindex, NumPhases: Integer): Double;
         function Get_InvDynName(myindex: Integer): String;

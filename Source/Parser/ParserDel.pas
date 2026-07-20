@@ -108,6 +108,7 @@ type
         property WasQuoted: Boolean READ IsQuotedString;
         function ParseAsBusName(var NumNodes: Integer; NodeArray: pIntegerArray; actorID: Integer): String;
         function ParseAsVector(ExpectedSize: Integer; VectorBuffer: pDoubleArray): Integer;
+        function ParseAsVectorInt(ExpectedSize: Integer; VectorBuffer: pIntegerArray): Integer;
         function ParseAsStrVector(ExpectedSize: Integer; VectorBuffer: pDynStringArray): Integer;
         function ParseAsMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
         function ParseAsSymMatrix(ExpectedOrder: Integer; MatrixBuffer: pDoubleArray): Integer;
@@ -718,6 +719,61 @@ begin
             inc(NumElements);
             if NumElements <= ExpectedSize then
                 VectorBuffer^[NumElements] := MakeDouble;
+            if LastDelimiter = MatrixRowTerminator then
+                BREAK;
+            TokenBuffer := GetToken(ParseBuffer, ParseBufferPos);
+            CheckForVar(TokenBuffer);
+        end;
+
+        Result := NumElements;
+
+    except
+        On E: Exception do
+            DSSMessageDlg('Vector Buffer in ParseAsVector Probably Too Small: ' + E.Message, true);
+    end;
+
+
+    DelimChars := DelimSave;   //restore to original delimiters
+    TokenBuffer := copy(ParseBuffer, ParseBufferPos, Length(ParseBuffer));  // prepare for next trip
+
+end;
+
+{=======================================================================================================================}
+
+function TParser.ParseAsVectorInt(ExpectedSize: Integer; VectorBuffer: pIntegerArray): Integer;
+var
+    ParseBufferPos,
+    NumElements,
+    i: Integer;
+    ParseBuffer,
+    DelimSave: String;
+
+begin
+
+    if FAutoIncrement then
+        GetNextParam;
+
+    NumElements := 0;
+    Result := 0;  // return 0 if none found or error occurred
+    try
+        for i := 1 to ExpectedSize do
+            VectorBuffer^[i] := 0;
+
+     {now Get Vector values}
+        ParseBuffer := TokenBuffer + ' ';
+
+        ParseBufferPos := 1;
+        DelimSave := DelimChars;
+        DelimChars := DelimChars + MatrixRowTerminator;
+
+        SkipWhiteSpace(ParseBuffer, ParseBufferPos);
+        TokenBuffer := GetToken(ParseBuffer, ParseBufferPos);
+        CheckForVar(TokenBuffer);
+        while Length(TokenBuffer) > 0 do
+        begin
+            inc(NumElements);
+            if NumElements <= ExpectedSize then
+                VectorBuffer^[NumElements] := MakeInteger;
             if LastDelimiter = MatrixRowTerminator then
                 BREAK;
             TokenBuffer := GetToken(ParseBuffer, ParseBufferPos);
