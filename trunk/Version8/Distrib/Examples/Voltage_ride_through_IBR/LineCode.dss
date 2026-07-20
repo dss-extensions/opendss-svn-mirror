@@ -1,0 +1,7 @@
+New "LineCode.basic1" nphases=1 r1=0.001 r0=0.001 x1=0.001 x0=0.001 B1=0.001 B0=0.001 normamps=1 emergamps=1.25 units=mi
+New "LineCode.basic2" nphases=2 r1=0.001 r0=0.001 x1=0.001 x0=0.001 B1=0.001 B0=0.001 normamps=1 emergamps=1.25 units=mi
+New "LineCode.basic3" nphases=3 r1=0.001 r0=0.001 x1=0.001 x0=0.001 B1=0.001 B0=0.001 normamps=1 emergamps=1.25 units=mi
+New "LineCode.ug_1/0al_1" nphases=1 r1=0.69384 r0=0.69384 x1=0.25035 x0=0.25035 B1=20.654 B0=20.654 normamps=150 units=km
+New "LineCode.ug_1/0al_3" nphases=3 r1=0.56004 r0=0.96145 x1=0.24494 x0=0.26116 B1=25.968 B0=10.026 normamps=150 units=km
+New "LineCode.ug_350al_1" nphases=1 r1=0.31046 r0=0.31046 x1=0.19952 x0=0.19952 B1=12.432 B0=12.432 normamps=300 units=km
+New "LineCode.ug_4/0al_3" nphases=3 r1=0.28477 r0=0.68618 x1=0.21847 x0=0.23463 B1=31.431 B0=19.53 normamps=220 units=km

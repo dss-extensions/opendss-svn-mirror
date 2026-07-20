@@ -1,0 +1,10 @@
+
+New XYCurve.Eff npts=4 xarray=[.1 .2 .4 1.0] yarray=[1 1 1 1]
+
+New XYCurve.FatorPvsT npts=4 xarray=[0 25 75 100] yarray=[1 1 1 1] 
+New Tshape.Temp npts=24 interval=1 
+~ temp=[25 25 25 25 25 25 25 25 35 40 45 50 60 60 55 40 35 30 25 25 25 25 25 25]
+New XYcurve.generic npts=5 yarray=[1 1 0 -1 -1] xarray=[0.5 0.93 1.0 1.03 1.5]
+
+New InvControl.VoltVar mode=VOLTVAR voltage_curvex_ref=rated vvc_curve1=generic 
+~ deltaQ_factor=0.2 RefReactivePower=VARMAX varchangetolerance=0.0001

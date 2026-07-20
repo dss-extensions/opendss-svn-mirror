@@ -1,0 +1,5 @@
+New "LineSpacing.1ph_1" nconds=1 nphases=1 x=[0] h=[12.192] units=m
+New "LineSpacing.2ph_horiz_lg_1c_2" nconds=2 nphases=2 x=[-1.395981,1.395981] h=[11.9634,11.9634] units=m
+New "LineSpacing.2ph_vert_1c_2" nconds=2 nphases=2 x=[-1.395981,1.395981] h=[11.9634,11.9634] units=m
+New "LineSpacing.3ph_horiz_lg_1c_3" nconds=3 nphases=3 x=[-1.39598,0,1.39598] h=[12.192,12.192,12.192] units=m
+New "LineSpacing.3ph_vert_1c_3" nconds=3 nphases=3 x=[0,0,0] h=[11.683,13.1064,14.6304] units=m

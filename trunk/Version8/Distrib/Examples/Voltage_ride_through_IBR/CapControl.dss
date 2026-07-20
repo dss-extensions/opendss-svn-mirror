@@ -1,0 +1,2 @@
+New "CapControl.tyn202_x_2_077_abc29637_1" element=Line.tyn202_x_2_077_abc29637 capacitor=tyn202_x_2_077_abc29637_1 type=Voltage PTratio=60 ONsetting=112 OFFsetting=124 Delay=30
+New "CapControl.tyn202_w_5_036_abc89539_1" element=Line.tyn202_w_5_035_abc14462 capacitor=tyn202_w_5_036_abc89539_1 type=Voltage PTratio=60 ONsetting=108 OFFsetting=124 Delay=15

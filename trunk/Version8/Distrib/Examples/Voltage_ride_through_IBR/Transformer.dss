@@ -1,0 +1,3 @@
+New "Transformer.sub_tyn202_rc" phases=1 windings=2 XHL=6.971664 buses=[tyn202_reg.3, tyn202_lsb.3, ] conns=[wye, wye, ] kVs=[7.2, 7.2, ] kVAs=[10000, 10000, ] taps=[1, 1.0625, ]
+New "Transformer.sub_tyn202_rb" phases=1 windings=2 XHL=6.971664 buses=[tyn202_reg.2, tyn202_lsb.2, ] conns=[wye, wye, ] kVs=[7.2, 7.2, ] kVAs=[10000, 10000, ] taps=[1, 1.0625, ]
+New "Transformer.sub_tyn202_ra" phases=1 windings=2 XHL=6.971664 buses=[tyn202_reg.1, tyn202_lsb.1, ] conns=[wye, wye, ] kVs=[7.2, 7.2, ] kVAs=[10000, 10000, ] taps=[1, 1.06875, ]

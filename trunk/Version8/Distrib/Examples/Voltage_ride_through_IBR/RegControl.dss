@@ -1,0 +1,3 @@
+New "RegControl.tyn202_rc" transformer=sub_tyn202_rc winding=2 tapwinding=2 vreg=120 band=3 ptratio=60 R=0 X=0 delay=15
+New "RegControl.tyn202_rb" transformer=sub_tyn202_rb winding=2 tapwinding=2 vreg=120 band=3 ptratio=60 R=0 X=0 delay=15
+New "RegControl.tyn202_ra" transformer=sub_tyn202_ra winding=2 tapwinding=2 vreg=120 band=3 ptratio=60 R=0 X=0 delay=15

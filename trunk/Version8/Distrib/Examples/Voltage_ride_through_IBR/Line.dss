@@ -1,0 +1,912 @@
+New "Line.tyn202_sw" phases=3 bus1=tyn202 bus2=tyn202_reg Switch=True
+New "Line.tyn202_feeder" phases=3 bus1=tyn202_lsb.1.2.3 bus2=1147587.1.2.3 length=22.2504 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_1147588usd" phases=3 bus1=1147587.1.2.3 bus2=1147588.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6_018_abc80949" phases=3 bus1=1147588.1.2.3 bus2=80949.1.2.3 length=20.4216 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_9_262_abc64916" phases=3 bus1=80949.1.2.3 bus2=64916.1.2.3 length=90.2208 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_9_479_abc1147658" phases=3 bus1=64916.1.2.3 bus2=1147658.1.2.3 length=32.004 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_9_259_abc1147659" phases=3 bus1=1147658.1.2.3 bus2=1147659.1.2.3 length=69.1896 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_109780usd" phases=3 bus1=1147659.1.2.3 bus2=109780.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6_525_abc80939" phases=3 bus1=109780.1.2.3 bus2=80939.1.2.3 length=37.4904 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_9_101_abc75434" phases=3 bus1=80939.1.2.3 bus2=75434.1.2.3 length=98.1456 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_336_19STR AL_336_19STR AL_336_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=448 emergamps=448
+New "Line.tyn202_w_9_100_abc108913" phases=3 bus1=75434.1.2.3 bus2=108913.1.2.3 length=72.5424 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_336_19STR AL_336_19STR AL_336_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=448 emergamps=448
+New "Line.tyn202_64905usd" phases=3 bus1=108913.1.2.3 bus2=64905.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9_395_a75432" phases=1 bus1=64905.1 bus2=75432.1 length=21.336 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_9_099_abc64904" phases=3 bus1=64905.1.2.3 bus2=64904.1.2.3 length=110.6424 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_102362fuse" phases=1 bus1=64904.1 bus2=102362.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9_106_a86104" phases=1 bus1=102362.1 bus2=86104.1 length=23.1648 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_9_252_a86105" phases=1 bus1=86104.1 bus2=86105.1 length=46.0248 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_9_048_abc86108" phases=3 bus1=64904.1.2.3 bus2=86108.1.2.3 length=72.2376 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_141_abc16722" phases=3 bus1=86108.1.2.3 bus2=16722.1.2.3 length=88.392 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_140_abc16723" phases=3 bus1=16722.1.2.3 bus2=16723.1.2.3 length=45.1104 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_104_abc29631" phases=3 bus1=16723.1.2.3 bus2=29631.1.2.3 length=50.9016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_484_abc29630" phases=3 bus1=29631.1.2.3 bus2=29630.1.2.3 length=56.0832 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_102363fuse" phases=1 bus1=29630.1 bus2=102363.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8_485_a29632" phases=1 bus1=102363.1 bus2=29632.1 length=28.3464 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_9_124_a53883" phases=1 bus1=29632.1 bus2=53883.1 length=84.7344 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_125_a53886" phases=1 bus1=53883.1 bus2=53886.1 length=78.3336 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_126_a53887" phases=1 bus1=53886.1 bus2=53887.1 length=76.2 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_103_abc53884" phases=3 bus1=29630.1.2.3 bus2=53884.1.2.3 length=70.104 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_102_abc53881" phases=3 bus1=53884.1.2.3 bus2=53881.1.2.3 length=106.68 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_152_abc53892" phases=3 bus1=53881.1.2.3 bus2=53892.1.2.3 length=25.908 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_105572fuse" phases=3 bus1=53892.1.2.3 bus2=105572.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p039_abc1169726" phases=3 bus1=105572.1.2.3 bus2=1169726.1.2.3 length=152.4 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_53900elb" phases=3 bus1=1169726.1.2.3 bus2=53900.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8_101_abc53820" phases=3 bus1=53881.1.2.3 bus2=53820.1.2.3 length=80.772 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_100_abc53819" phases=3 bus1=53820.1.2.3 bus2=53819.1.2.3 length=112.4712 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_422_abc1147865" phases=3 bus1=53819.1.2.3 bus2=1147865.1.2.3 length=25.908 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_108_abc53821" phases=3 bus1=53819.1.2.3 bus2=53821.1.2.3 length=15.5448 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_105561fuse" phases=3 bus1=53821.1.2.3 bus2=105561.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_109_abc53818" phases=3 bus1=105561.1.2.3 bus2=53818.1.2.3 length=76.5048 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_110_abc53810" phases=3 bus1=53818.1.2.3 bus2=53810.1.2.3 length=74.9808 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_474_abc1077872" phases=3 bus1=53810.1.2.3 bus2=1077872.1.2.3 length=42.3672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_8_494_abc1163166" phases=3 bus1=1077872.1.2.3 bus2=1163166.1.2.3 length=42.3672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_8_275_abc53830" phases=3 bus1=1163166.1.2.3 bus2=53830.1.2.3 length=34.7472 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_8_434_abc69899" phases=3 bus1=53830.1.2.3 bus2=69899.1.2.3 length=75.5904 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_435_abc69898" phases=3 bus1=69899.1.2.3 bus2=69898.1.2.3 length=53.0352 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_250_abc69892" phases=3 bus1=69898.1.2.3 bus2=69892.1.2.3 length=10.9728 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_249_abc69891" phases=3 bus1=69892.1.2.3 bus2=69891.1.2.3 length=69.4944 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_270_abc1151753" phases=3 bus1=69891.1.2.3 bus2=1151753.1.2.3 length=12.8016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_276_ab53829" phases=2 bus1=53830.1.2 bus2=53829.1.2 length=37.7952 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1077874fuse" phases=1 bus1=1077872.3 bus2=1077874.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_111_c1077873" phases=1 bus1=1077874.3 bus2=1077873.3 length=28.3464 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_112_c53807" phases=1 bus1=1077873.3 bus2=53807.3 length=76.2 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_113_c53806" phases=1 bus1=53807.3 bus2=53806.3 length=89.3064 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_379_c53808" phases=1 bus1=53806.3 bus2=53808.3 length=60.96 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_431_c1149757" phases=1 bus1=53808.3 bus2=1149757.3 length=28.6512 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_8_115_c85915" phases=1 bus1=53806.3 bus2=85915.3 length=67.6656 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_201_c1143216" phases=1 bus1=85915.3 bus2=1143216.3 length=50.9016 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_116_c85916" phases=1 bus1=85915.3 bus2=85916.3 length=44.8056 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_157_abc53804" phases=3 bus1=53810.1.2.3 bus2=53804.1.2.3 length=89.0016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_061_abc1147959" phases=3 bus1=53804.1.2.3 bus2=1147959.1.2.3 length=59.436 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1147960fuse" phases=3 bus1=1147959.1.2.3 bus2=1147960.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p036_abc1169572" phases=3 bus1=1147960.1.2.3 bus2=1169572.1.2.3 length=75.5904 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1147961elb" phases=3 bus1=1169572.1.2.3 bus2=1147961.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8_099_abc71114" phases=3 bus1=53819.1.2.3 bus2=71114.1.2.3 length=99.3648 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_098_abc69904" phases=3 bus1=71114.1.2.3 bus2=69904.1.2.3 length=87.4776 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_097_abc69900" phases=3 bus1=69904.1.2.3 bus2=69900.1.2.3 length=86.868 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_1124205usd" phases=3 bus1=69900.1.2.3 bus2=1124205.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_096_abc69893" phases=3 bus1=1124205.1.2.3 bus2=69893.1.2.3 length=98.4504 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_108072fuse" phases=3 bus1=69893.1.2.3 bus2=108072.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8_303_abc69895" phases=3 bus1=108072.1.2.3 bus2=69895.1.2.3 length=24.9936 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_108075fuse" phases=3 bus1=69895.1.2.3 bus2=108075.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p030_abc1169739" phases=3 bus1=108075.1.2.3 bus2=1169739.1.2.3 length=39.3192 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_69902elb" phases=3 bus1=1169739.1.2.3 bus2=69902.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1124196_abc1124196" phases=3 bus1=69893.1.2.3 bus2=1124196.1.2.3 length=87.4776 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_8_504_abc1147849" phases=3 bus1=1124196.1.2.3 bus2=1147849.1.2.3 length=30.48 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1033_37STR AL_1033_37STR AL_1033_37STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=898 emergamps=898
+New "Line.tyn202_w_8_501_abc1124193" phases=3 bus1=1124196.1.2.3 bus2=1124193.1.2.3 length=32.6136 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_x_2_350_a1124195" phases=1 bus1=1124193.1 bus2=1124195.1 length=28.956 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_079_abc75650" phases=3 bus1=1124193.1.2.3 bus2=75650.1.2.3 length=60.96 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_078_abc75646" phases=3 bus1=75650.1.2.3 bus2=75646.1.2.3 length=91.44 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_108954fuse" phases=3 bus1=75646.1.2.3 bus2=108954.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2_083_abc75652" phases=3 bus1=108954.1.2.3 bus2=75652.1.2.3 length=20.7264 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_411_abc41203" phases=3 bus1=75652.1.2.3 bus2=41203.1.2.3 length=55.1688 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_085_c41204" phases=1 bus1=41203.3 bus2=41204.3 length=22.86 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_084_c1151752" phases=1 bus1=41204.3 bus2=1151752.3 length=33.2232 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1189391fuse" phases=1 bus1=41204.3 bus2=1189391.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p036_c1189392" phases=1 bus1=1189391.3 bus2=1189392.3 length=70.4088 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1189393elb" phases=1 bus1=1189392.3 bus2=1189393.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1189397elb" phases=1 bus1=1189393.3 bus2=1189397.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p037_c1189395" phases=1 bus1=1189397.3 bus2=1189395.3 length=38.4048 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1189396elb" phases=1 bus1=1189395.3 bus2=1189396.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2_077_abc29637" phases=3 bus1=75646.1.2.3 bus2=29637.1.2.3 length=80.772 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_267_abc29636" phases=3 bus1=29637.1.2.3 bus2=29636.1.2.3 length=39.9288 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_076_abc29641" phases=3 bus1=29636.1.2.3 bus2=29641.1.2.3 length=60.6552 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_075_abc29647" phases=3 bus1=29641.1.2.3 bus2=29647.1.2.3 length=81.9912 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_404_ac75627" phases=2 bus1=29647.1.3 bus2=75627.1.3 length=49.0728 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_102371fuse" phases=2 bus1=75627.1.3 bus2=102371.1.3 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_016_ac29657" phases=2 bus1=102371.1.3 bus2=29657.1.3 length=29.2608 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_017_ac29658" phases=2 bus1=29657.1.3 bus2=29658.1.3 length=47.5488 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_018_ac64745" phases=2 bus1=29658.1.3 bus2=64745.1.3 length=45.4152 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_019_ac41220" phases=2 bus1=64745.1.3 bus2=41220.1.3 length=45.4152 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_020_a41221" phases=1 bus1=41220.1 bus2=41221.1 length=48.768 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_021_a64748" phases=1 bus1=41221.1 bus2=64748.1 length=43.5864 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_022_a64749" phases=1 bus1=64748.1 bus2=64749.1 length=46.9392 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_023_a41222" phases=1 bus1=64749.1 bus2=41222.1 length=52.7304 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1143227fuse" phases=1 bus1=41222.1 bus2=1143227.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_024_a1143226" phases=1 bus1=1143227.1 bus2=1143226.1 length=55.1688 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_025_a53780" phases=1 bus1=1143226.1 bus2=53780.1 length=70.7136 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_060_a75465" phases=1 bus1=53780.1 bus2=75465.1 length=43.8912 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_062_a75450" phases=1 bus1=75465.1 bus2=75450.1 length=42.0624 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_088_a2647" phases=1 bus1=75450.1 bus2=2647.1 length=56.9976 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_089_a2648" phases=1 bus1=2647.1 bus2=2648.1 length=54.864 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_090_a2660" phases=1 bus1=2648.1 bus2=2660.1 length=47.5488 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_091_a2634" phases=1 bus1=2660.1 bus2=2634.1 length=51.816 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_092_a2621" phases=1 bus1=2634.1 bus2=2621.1 length=48.768 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_095_a2622" phases=1 bus1=2621.1 bus2=2622.1 length=54.864 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_096_a75456" phases=1 bus1=2622.1 bus2=75456.1 length=45.4152 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_097_a75463" phases=1 bus1=75456.1 bus2=75463.1 length=46.3296 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_098_a75473" phases=1 bus1=75463.1 bus2=75473.1 length=44.8056 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_099_a75481" phases=1 bus1=75473.1 bus2=75481.1 length=46.3296 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_100_a75487" phases=1 bus1=75481.1 bus2=75487.1 length=46.3296 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_113_a75493" phases=1 bus1=75487.1 bus2=75493.1 length=45.72 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1143225fuse" phases=2 bus1=41220.1.3 bus2=1143225.1.3 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_231_ac1143224" phases=2 bus1=1143225.1.3 bus2=1143224.1.3 length=16.4592 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_232_ac64747" phases=2 bus1=1143224.1.3 bus2=64747.1.3 length=73.4568 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_074_abc29655" phases=3 bus1=29647.1.2.3 bus2=29655.1.2.3 length=97.536 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_292_a64758" phases=1 bus1=29655.1 bus2=64758.1 length=19.2024 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108944fuse" phases=1 bus1=64758.1 bus2=108944.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_291_a75622" phases=1 bus1=108944.1 bus2=75622.1 length=64.3128 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_107262usd" phases=3 bus1=29655.1.2.3 bus2=107262.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_073_abc64743" phases=3 bus1=107262.1.2.3 bus2=64743.1.2.3 length=89.916 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_072_abc64744" phases=3 bus1=64743.1.2.3 bus2=64744.1.2.3 length=99.6696 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_399_abc64762" phases=3 bus1=64744.1.2.3 bus2=64762.1.2.3 length=57.3024 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_071_abc53788" phases=3 bus1=64762.1.2.3 bus2=53788.1.2.3 length=41.4528 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_401_abc53789" phases=3 bus1=53788.1.2.3 bus2=53789.1.2.3 length=48.1584 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_070_abc75470" phases=3 bus1=53789.1.2.3 bus2=75470.1.2.3 length=41.148 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_069_abc75448" phases=3 bus1=75470.1.2.3 bus2=75448.1.2.3 length=112.4712 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_068_abc16389" phases=3 bus1=75448.1.2.3 bus2=16389.1.2.3 length=106.68 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_055_abc16388" phases=3 bus1=16389.1.2.3 bus2=16388.1.2.3 length=107.2896 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_067_abc23005" phases=3 bus1=16388.1.2.3 bus2=23005.1.2.3 length=69.7992 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_5_079_abc105573" phases=3 bus1=23005.1.2.3 bus2=105573.1.2.3 length=154.2288 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_53921usd" phases=3 bus1=105573.1.2.3 bus2=53921.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_5_350_abc1147854" phases=3 bus1=53921.1.2.3 bus2=1147854.1.2.3 length=51.816 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_5_337_b53926" phases=1 bus1=53921.2 bus2=53926.2 length=50.9016 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_105580fuse" phases=1 bus1=53926.2 bus2=105580.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_5_338_b53956" phases=1 bus1=105580.2 bus2=53956.2 length=73.7616 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_5_339_b53950" phases=1 bus1=53956.2 bus2=53950.2 length=38.1 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_5_353_b53948" phases=1 bus1=53950.2 bus2=53948.2 length=50.292 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_x_5_354_b53949" phases=1 bus1=53948.2 bus2=53949.2 length=67.6656 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1093730fuse" phases=2 bus1=23005.1.2 bus2=1093730.1.2 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_5_246_ab53920" phases=2 bus1=1093730.1.2 bus2=53920.1.2 length=98.1456 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_067_ab1093729" phases=2 bus1=1093730.1.2 bus2=1093729.1.2 length=43.2816 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1012828fuse" phases=1 bus1=1093729.1 bus2=1012828.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_310_a53922" phases=1 bus1=1012828.1 bus2=53922.1 length=61.8744 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_311_a53924" phases=1 bus1=53922.1 bus2=53924.1 length=53.0352 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_054_abc16392" phases=3 bus1=16388.1.2.3 bus2=16392.1.2.3 length=20.1168 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1187660fuse" phases=3 bus1=16388.1.2.3 bus2=1187660.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_056_abc2645" phases=3 bus1=1187660.1.2.3 bus2=2645.1.2.3 length=64.008 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_273_abc2615" phases=3 bus1=2645.1.2.3 bus2=2615.1.2.3 length=67.3608 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_382_abc2616" phases=3 bus1=2615.1.2.3 bus2=2616.1.2.3 length=38.1 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_115_a16394" phases=1 bus1=2645.1 bus2=16394.1 length=48.768 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_100661fuse" phases=1 bus1=2645.2 bus2=100661.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_057_b2642" phases=1 bus1=100661.2 bus2=2642.2 length=68.58 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_058_b2626" phases=1 bus1=2642.2 bus2=2626.2 length=79.5528 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_306_b2627" phases=1 bus1=2626.2 bus2=2627.2 length=19.812 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_307_b75452" phases=1 bus1=2627.2 bus2=75452.2 length=59.7408 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_308_b53794" phases=1 bus1=75452.2 bus2=53794.2 length=75.5904 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_380_b53795" phases=1 bus1=53794.2 bus2=53795.2 length=80.772 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_423_b75625" phases=1 bus1=53795.2 bus2=75625.2 length=52.4256 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_x_2_037_b2646" phases=1 bus1=2626.2 bus2=2646.2 length=72.8472 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1151552fuse" phases=3 bus1=53789.1.2.3 bus2=1151552.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_402_abc1151551" phases=3 bus1=1151552.1.2.3 bus2=1151551.1.2.3 length=11.2776 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_132_abc53793" phases=3 bus1=1151551.1.2.3 bus2=53793.1.2.3 length=41.4528 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_408_abc53796" phases=3 bus1=53793.1.2.3 bus2=53796.1.2.3 length=12.8016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_187_abc53797" phases=3 bus1=53793.1.2.3 bus2=53797.1.2.3 length=38.1 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_188_abc53798" phases=3 bus1=53797.1.2.3 bus2=53798.1.2.3 length=52.4256 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_152_abc53801" phases=3 bus1=53797.1.2.3 bus2=53801.1.2.3 length=44.8056 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_361_abc64741" phases=3 bus1=53801.1.2.3 bus2=64741.1.2.3 length=50.292 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_150_ac64742" phases=2 bus1=64741.1.3 bus2=64742.1.3 length=40.8432 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_146_ac75620" phases=2 bus1=64742.1.3 bus2=75620.1.3 length=54.2544 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_108946fuse" phases=1 bus1=75620.1 bus2=108946.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_103_a75626" phases=1 bus1=108946.1 bus2=75626.1 length=54.5592 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_193_a75631" phases=1 bus1=75626.1 bus2=75631.1 length=61.8744 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_194_a2367" phases=1 bus1=75631.1 bus2=2367.1 length=56.9976 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_360_a2368" phases=1 bus1=2367.1 bus2=2368.1 length=34.7472 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_195_a2370" phases=1 bus1=2368.1 bus2=2370.1 length=25.2984 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_196_a2375" phases=1 bus1=2370.1 bus2=2375.1 length=57.3024 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_264_a75383" phases=1 bus1=2375.1 bus2=75383.1 length=29.8704 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_192_a64750" phases=1 bus1=75626.1 bus2=64750.1 length=49.0728 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_200_a64751" phases=1 bus1=64750.1 bus2=64751.1 length=57.912 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_201_a29643" phases=1 bus1=64751.1 bus2=29643.1 length=59.436 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_202_a29642" phases=1 bus1=29643.1 bus2=29642.1 length=60.0456 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_377_a98959" phases=1 bus1=29642.1 bus2=98959.1 length=10.9728 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_2371fuse" phases=1 bus1=98959.1 bus2=2371.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p010_a1169728" phases=1 bus1=2371.1 bus2=1169728.1 length=9.144 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_2372elb" phases=1 bus1=1169728.1 bus2=2372.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169727elb" phases=1 bus1=2372.1 bus2=1169727.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p008_a1169729" phases=1 bus1=1169727.1 bus2=1169729.1 length=92.3544 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75633elb" phases=1 bus1=1169729.1 bus2=75633.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169730elb" phases=1 bus1=75633.1 bus2=1169730.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p007_a1169731" phases=1 bus1=1169730.1 bus2=1169731.1 length=72.2376 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_108945fuse" phases=1 bus1=75620.3 bus2=108945.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_126_c75628" phases=1 bus1=108945.3 bus2=75628.3 length=59.1312 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_125_c75630" phases=1 bus1=75628.3 bus2=75630.3 length=72.2376 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_124_c2363" phases=1 bus1=75630.3 bus2=2363.3 length=67.6656 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_123_c2362" phases=1 bus1=2363.3 bus2=2362.3 length=54.2544 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_051_c2364" phases=1 bus1=2362.3 bus2=2364.3 length=22.86 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_218_c2365" phases=1 bus1=2364.3 bus2=2365.3 length=32.6136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_224_c2369" phases=1 bus1=2365.3 bus2=2369.3 length=61.5696 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_225_c2374" phases=1 bus1=2369.3 bus2=2374.3 length=73.152 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_050_c2366" phases=1 bus1=2364.3 bus2=2366.3 length=55.1688 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_438_c1124119" phases=1 bus1=2366.3 bus2=1124119.3 length=61.8744 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_045_c1149758" phases=1 bus1=1124119.3 bus2=1149758.3 length=38.4048 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1143228fuse" phases=3 bus1=64741.1.2.3 bus2=1143228.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p003_abc1169736" phases=3 bus1=1143228.1.2.3 bus2=1169736.1.2.3 length=68.2752 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1143229elb" phases=3 bus1=1169736.1.2.3 bus2=1143229.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169737elb" phases=3 bus1=1143229.1.2.3 bus2=1169737.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_3p033_abc1169748" phases=3 bus1=1169737.1.2.3 bus2=1169748.1.2.3 length=7.62 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1149302elb" phases=3 bus1=1169748.1.2.3 bus2=1149302.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_107260fuse" phases=1 bus1=53797.1 bus2=107260.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_pb_0409_a53799" phases=1 bus1=107260.1 bus2=53799.1 length=28.6512 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_x_2p004_a1169734" phases=1 bus1=53799.1 bus2=1169734.1 length=30.1752 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_53800elb" phases=1 bus1=1169734.1 bus2=53800.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169735elb" phases=1 bus1=53800.1 bus2=1169735.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p005_a1169732" phases=1 bus1=1169735.1 bus2=1169732.1 length=92.0496 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75618elb" phases=1 bus1=1169732.1 bus2=75618.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169733elb" phases=1 bus1=75618.1 bus2=1169733.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p006_a1169742" phases=1 bus1=1169733.1 bus2=1169742.1 length=17.9832 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75623elb" phases=1 bus1=1169742.1 bus2=75623.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169743elb" phases=1 bus1=75623.1 bus2=1169743.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2p007_a75624" phases=1 bus1=1169743.1 bus2=75624.1 length=69.7992 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_108948elb" phases=1 bus1=75624.1 bus2=108948.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_x_2_032_abc53791" phases=3 bus1=64744.1.2.3 bus2=53791.1.2.3 length=55.7784 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_033_abc1147850" phases=3 bus1=53791.1.2.3 bus2=1147850.1.2.3 length=41.7576 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_107265fuse" phases=3 bus1=53791.1.2.3 bus2=107265.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_435_abc64761" phases=3 bus1=107265.1.2.3 bus2=64761.1.2.3 length=12.192 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_107266fuse" phases=3 bus1=64761.1.2.3 bus2=107266.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p021_abc1169741" phases=3 bus1=107266.1.2.3 bus2=1169741.1.2.3 length=89.6112 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_64763elb" phases=3 bus1=1169741.1.2.3 bus2=64763.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1187467usd" phases=3 bus1=64744.1.2.3 bus2=1187467.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_029_abc64752" phases=3 bus1=1187467.1.2.3 bus2=64752.1.2.3 length=66.7512 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_028_abc64753" phases=3 bus1=64752.1.2.3 bus2=64753.1.2.3 length=56.9976 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_x_2_319_abc1147861" phases=3 bus1=64753.1.2.3 bus2=1147861.1.2.3 length=26.8224 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_108943fuse" phases=3 bus1=64752.1.2.3 bus2=108943.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_256_abc75619" phases=3 bus1=108943.1.2.3 bus2=75619.1.2.3 length=24.6888 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_255_abc75621" phases=3 bus1=75619.1.2.3 bus2=75621.1.2.3 length=30.7848 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108942fuse" phases=3 bus1=64743.1.2.3 bus2=108942.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_414_abc64754" phases=3 bus1=108942.1.2.3 bus2=64754.1.2.3 length=22.5552 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_x_2_415_abc64755" phases=3 bus1=64754.1.2.3 bus2=64755.1.2.3 length=22.86 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_x_2_416_c64756" phases=1 bus1=64755.3 bus2=64756.3 length=78.0288 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_107261fuse" phases=3 bus1=64755.1.2.3 bus2=107261.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p018_abc1169746" phases=3 bus1=107261.1.2.3 bus2=1169746.1.2.3 length=78.0288 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_64757elb" phases=3 bus1=1169746.1.2.3 bus2=64757.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1147822fuse" phases=3 bus1=29647.1.2.3 bus2=1147822.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_175_abc1147820" phases=3 bus1=1147822.1.2.3 bus2=1147820.1.2.3 length=15.5448 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_176_abc1147821" phases=3 bus1=1147820.1.2.3 bus2=1147821.1.2.3 length=27.7368 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_177_abc29654" phases=3 bus1=1147821.1.2.3 bus2=29654.1.2.3 length=50.5968 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_x_2_066_abc29656" phases=3 bus1=29654.1.2.3 bus2=29656.1.2.3 length=50.5968 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108950fuse" phases=3 bus1=29636.1.2.3 bus2=108950.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_371_abc29638" phases=3 bus1=108950.1.2.3 bus2=29638.1.2.3 length=24.384 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108949fuse" phases=2 bus1=29636.1.3 bus2=108949.1.3 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_104_ac29640" phases=2 bus1=108949.1.3 bus2=29640.1.3 length=20.7264 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_105_ac29649" phases=2 bus1=29640.1.3 bus2=29649.1.3 length=46.9392 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_x_2_106_c29650" phases=1 bus1=29649.3 bus2=29650.3 length=40.5384 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_199_c29651" phases=1 bus1=29650.3 bus2=29651.3 length=45.72 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_x_2_303_c41216" phases=1 bus1=29651.3 bus2=41216.3 length=57.912 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_102366fuse" phases=3 bus1=29637.1.2.3 bus2=102366.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2_082_abc41202" phases=3 bus1=102366.1.2.3 bus2=41202.1.2.3 length=18.8976 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_x_2_434_abc41206" phases=3 bus1=41202.1.2.3 bus2=41206.1.2.3 length=5.7912 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_108953fuse" phases=3 bus1=75646.1.2.3 bus2=108953.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_x_2p012_abc1169738" phases=3 bus1=108953.1.2.3 bus2=1169738.1.2.3 length=73.152 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75647elb" phases=3 bus1=1169738.1.2.3 bus2=75647.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8_370_abc1147845" phases=3 bus1=1124196.1.2.3 bus2=1147845.1.2.3 length=13.1064 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1033_37STR AL_1033_37STR AL_1033_37STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=898 emergamps=898
+New "Line.tyn202_108959fuse" phases=3 bus1=69893.1.2.3 bus2=108959.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p001_abc1169740" phases=3 bus1=108959.1.2.3 bus2=1169740.1.2.3 length=43.8912 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75665elb" phases=3 bus1=1169740.1.2.3 bus2=75665.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_111410fuse" phases=3 bus1=69904.1.2.3 bus2=111410.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_393_abc69908" phases=3 bus1=111410.1.2.3 bus2=69908.1.2.3 length=22.5552 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_108077fuse" phases=1 bus1=69904.2 bus2=108077.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_049_b69905" phases=1 bus1=108077.2 bus2=69905.2 length=33.528 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_105568fuse" phases=3 bus1=53881.1.2.3 bus2=105568.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p048_abc1169701" phases=3 bus1=105568.1.2.3 bus2=1169701.1.2.3 length=124.0536 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_53882elb" phases=3 bus1=1169701.1.2.3 bus2=53882.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_107272fuse" phases=3 bus1=16723.1.2.3 bus2=107272.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_144_abc16724" phases=3 bus1=107272.1.2.3 bus2=16724.1.2.3 length=24.384 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_9_222_abc16725" phases=3 bus1=16724.1.2.3 bus2=16725.1.2.3 length=87.7824 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_110641fuse" phases=2 bus1=86108.1.3 bus2=110641.1.3 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9_138_ac86106" phases=2 bus1=110641.1.3 bus2=86106.1.3 length=19.5072 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_199_ac86107" phases=2 bus1=86106.1.3 bus2=86107.1.3 length=45.72 units=m spacing=2PH_HORIZ_LG_1C_2 wires="CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1151550fuse" phases=1 bus1=86106.1 bus2=1151550.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9_320_a16664" phases=1 bus1=1151550.1 bus2=16664.1 length=43.5864 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_049_a16665" phases=1 bus1=16664.1 bus2=16665.1 length=18.288 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_050_a16704" phases=1 bus1=16665.1 bus2=16704.1 length=91.7448 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_9_318_a16706" phases=1 bus1=16704.1 bus2=16706.1 length=64.6176 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1143223fuse" phases=1 bus1=64904.3 bus2=1143223.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p066_c1169717" phases=1 bus1=1143223.3 bus2=1169717.3 length=117.6528 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1143222elb" phases=1 bus1=1169717.3 bus2=1143222.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169718elb" phases=1 bus1=1143222.3 bus2=1169718.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p065_c1169716" phases=1 bus1=1169718.3 bus2=1169716.3 length=33.528 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75445elb" phases=1 bus1=1169716.3 bus2=75445.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_102365fuse" phases=1 bus1=64904.3 bus2=102365.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p047_c1169713" phases=1 bus1=102365.3 bus2=1169713.3 length=121.92 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_64906elb" phases=1 bus1=1169713.3 bus2=64906.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169712elb" phases=1 bus1=64906.3 bus2=1169712.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p064_c1169715" phases=1 bus1=1169712.3 bus2=1169715.3 length=80.772 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75446elb" phases=1 bus1=1169715.3 bus2=75446.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169714elb" phases=1 bus1=75446.3 bus2=1169714.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p065_c1032361" phases=1 bus1=1169714.3 bus2=1032361.3 length=66.7512 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_108914fuse" phases=3 bus1=75434.1.2.3 bus2=108914.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9_378_abc75438" phases=3 bus1=108914.1.2.3 bus2=75438.1.2.3 length=31.6992 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_9_379_abc64912" phases=3 bus1=75438.1.2.3 bus2=64912.1.2.3 length=67.3608 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_107284fuse" phases=1 bus1=64912.2 bus2=107284.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p005_b1169645" phases=1 bus1=107284.2 bus2=1169645.2 length=36.2712 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_64913elb" phases=1 bus1=1169645.2 bus2=64913.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169646elb" phases=1 bus1=64913.2 bus2=1169646.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p006_b1169642" phases=1 bus1=1169646.2 bus2=1169642.2 length=44.5008 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1001166elb" phases=1 bus1=1169642.2 bus2=1001166.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9_380_abc75435" phases=3 bus1=64912.1.2.3 bus2=75435.1.2.3 length=75.8952 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_1032381fuse" phases=1 bus1=75435.3 bus2=1032381.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9_380_c1169654" phases=1 bus1=1032381.3 bus2=1169654.3 length=123.7488 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_86101elb" phases=1 bus1=1169654.3 bus2=86101.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169655elb" phases=1 bus1=86101.3 bus2=1169655.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p012_c1169656" phases=1 bus1=1169655.3 bus2=1169656.3 length=44.8056 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_16703elb" phases=1 bus1=1169656.3 bus2=16703.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169657elb" phases=1 bus1=16703.3 bus2=1169657.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p013_c1182093" phases=1 bus1=1169657.3 bus2=1182093.3 length=45.4152 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_9_438_a86100" phases=1 bus1=75435.1 bus2=86100.1 length=14.9352 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_1032382fuse" phases=1 bus1=86100.1 bus2=1032382.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9_438_a16701" phases=1 bus1=1032382.1 bus2=16701.1 length=118.872 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_9p038_a1169618" phases=1 bus1=16701.1 bus2=1169618.1 length=102.7176 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_16702elb" phases=1 bus1=1169618.1 bus2=16702.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169619elb" phases=1 bus1=16702.1 bus2=1169619.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p038_a1169705" phases=1 bus1=1169619.1 bus2=1169705.1 length=33.528 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_16721elb" phases=1 bus1=1169705.1 bus2=16721.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1032383fuse" phases=1 bus1=86100.1 bus2=1032383.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p037_a1187351" phases=1 bus1=1032383.1 bus2=1187351.1 length=118.872 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_9p038_a1187352" phases=1 bus1=1187351.1 bus2=1187352.1 length=94.7928 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_9p039_a1032384" phases=1 bus1=1187352.1 bus2=1032384.1 length=30.1752 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1187717fuse" phases=1 bus1=75435.2 bus2=1187717.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p011_b1187353" phases=1 bus1=1187717.2 bus2=1187353.2 length=136.2456 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_9p010_b1187354" phases=1 bus1=1187353.2 bus2=1187354.2 length=54.2544 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_86109elb" phases=1 bus1=1187354.2 bus2=86109.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169647elb" phases=1 bus1=86109.2 bus2=1169647.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p018_b1187480" phases=1 bus1=1169647.2 bus2=1187480.2 length=22.86 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1187479elb" phases=1 bus1=1187480.2 bus2=1187479.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_6_528_abc1147608" phases=3 bus1=80939.1.2.3 bus2=1147608.1.2.3 length=42.672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_w_6_526_abc1006552" phases=3 bus1=80939.1.2.3 bus2=1006552.1.2.3 length=48.768 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_556_19STR AL_556_19STR AL_556_19STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=613 emergamps=613
+New "Line.tyn202_1006554usd" phases=3 bus1=1006552.1.2.3 bus2=1006554.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6_527_abc1006553" phases=3 bus1=1006554.1.2.3 bus2=1006553.1.2.3 length=35.9664 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_9_322_c1006556" phases=1 bus1=1006553.3 bus2=1006556.3 length=20.4216 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_1006557fuse" phases=1 bus1=1006556.3 bus2=1006557.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p001_c1169658" phases=1 bus1=1006557.3 bus2=1169658.3 length=30.48 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_80942elb" phases=1 bus1=1169658.3 bus2=80942.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169659elb" phases=1 bus1=80942.3 bus2=1169659.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p002_c1169652" phases=1 bus1=1169659.3 bus2=1169652.3 length=85.9536 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_80951elb" phases=1 bus1=1169652.3 bus2=80951.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169653elb" phases=1 bus1=80951.3 bus2=1169653.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p003_c109782" phases=1 bus1=1169653.3 bus2=109782.3 length=62.1792 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_6_004_abc2670" phases=3 bus1=1006553.1.2.3 bus2=2670.1.2.3 length=46.3296 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_6_003_abc2674" phases=3 bus1=2670.1.2.3 bus2=2674.1.2.3 length=63.3984 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_6_402_abc2677" phases=3 bus1=2674.1.2.3 bus2=2677.1.2.3 length=38.7096 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_6_401_abc2681" phases=3 bus1=2677.1.2.3 bus2=2681.1.2.3 length=35.052 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_98994fuse" phases=1 bus1=2681.2 bus2=98994.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_6_149_b2689" phases=1 bus1=98994.2 bus2=2689.2 length=43.8912 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_265_b2702" phases=1 bus1=2689.2 bus2=2702.2 length=42.3672 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_280_b59962" phases=1 bus1=2702.2 bus2=59962.2 length=52.4256 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_266_b59963" phases=1 bus1=59962.2 bus2=59963.2 length=13.1064 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_267_b59964" phases=1 bus1=59963.2 bus2=59964.2 length=61.8744 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_268_b59965" phases=1 bus1=59964.2 bus2=59965.2 length=48.4632 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_274_b59966" phases=1 bus1=59965.2 bus2=59966.2 length=50.292 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_165_b59960" phases=1 bus1=59962.2 bus2=59960.2 length=60.96 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_166_b59961" phases=1 bus1=59960.2 bus2=59961.2 length=61.2648 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_163_b2701" phases=1 bus1=2689.2 bus2=2701.2 length=61.5696 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_164_b2708" phases=1 bus1=2701.2 bus2=2708.2 length=60.3504 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_9_323_c2682" phases=1 bus1=2681.3 bus2=2682.3 length=19.2024 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_98993fuse" phases=1 bus1=2682.3 bus2=98993.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p004_c1169660" phases=1 bus1=98993.3 bus2=1169660.3 length=40.2336 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_80936elb" phases=1 bus1=1169660.3 bus2=80936.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169661elb" phases=1 bus1=80936.3 bus2=1169661.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p003_c1169651" phases=1 bus1=1169661.3 bus2=1169651.3 length=85.9536 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_80938elb" phases=1 bus1=1169651.3 bus2=80938.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_098_abc2686" phases=3 bus1=2681.1.2.3 bus2=2686.1.2.3 length=31.6992 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_097_abc2690" phases=3 bus1=2686.1.2.3 bus2=2690.1.2.3 length=58.8264 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_095_abc2704" phases=3 bus1=2690.1.2.3 bus2=2704.1.2.3 length=60.6552 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_094_abc2703" phases=3 bus1=2704.1.2.3 bus2=2703.1.2.3 length=38.1 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_162_abc2710" phases=3 bus1=2703.1.2.3 bus2=2710.1.2.3 length=34.4424 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_092_abc59958" phases=3 bus1=2710.1.2.3 bus2=59958.1.2.3 length=34.1376 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_091_abc59956" phases=3 bus1=59958.1.2.3 bus2=59956.1.2.3 length=60.96 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_090_abc95844" phases=3 bus1=59956.1.2.3 bus2=95844.1.2.3 length=23.4696 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_089_abc95843" phases=3 bus1=95844.1.2.3 bus2=95843.1.2.3 length=34.7472 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_207_abc59943" phases=3 bus1=95843.1.2.3 bus2=59943.1.2.3 length=39.0144 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_256_b59952" phases=1 bus1=59943.2 bus2=59952.2 length=12.8016 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_106492fuse" phases=1 bus1=59952.2 bus2=106492.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p046_b1169707" phases=1 bus1=106492.2 bus2=1169707.2 length=62.1792 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59955elb" phases=1 bus1=1169707.2 bus2=59955.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169706elb" phases=1 bus1=59955.2 bus2=1169706.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p047_b1169649" phases=1 bus1=1169706.2 bus2=1169649.2 length=43.5864 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59953elb" phases=1 bus1=1169649.2 bus2=59953.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169650elb" phases=1 bus1=59953.2 bus2=1169650.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p048_b1169708" phases=1 bus1=1169650.2 bus2=1169708.2 length=48.768 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59954elb" phases=1 bus1=1169708.2 bus2=59954.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_087_abc95850" phases=3 bus1=59943.1.2.3 bus2=95850.1.2.3 length=36.2712 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_105_abc95851" phases=3 bus1=95850.1.2.3 bus2=95851.1.2.3 length=47.5488 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_085_abc59941" phases=3 bus1=95851.1.2.3 bus2=59941.1.2.3 length=50.9016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_083_abc95853" phases=3 bus1=59941.1.2.3 bus2=95853.1.2.3 length=53.0352 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_081_abc59939" phases=3 bus1=95853.1.2.3 bus2=59939.1.2.3 length=81.6864 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_079_abc34940" phases=3 bus1=59939.1.2.3 bus2=34940.1.2.3 length=78.9432 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_253_abc34939" phases=3 bus1=34940.1.2.3 bus2=34939.1.2.3 length=66.4464 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_103084fuse" phases=1 bus1=34939.2 bus2=103084.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_019_b34943" phases=1 bus1=103084.2 bus2=34943.2 length=105.7656 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_020_b59723" phases=1 bus1=34943.2 bus2=59723.2 length=104.2416 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_021_b59724" phases=1 bus1=59723.2 bus2=59724.2 length=98.4504 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_022_b34970" phases=1 bus1=59724.2 bus2=34970.2 length=103.9368 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_039_b34971" phases=1 bus1=34970.2 bus2=34971.2 length=66.7512 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_034_b34982" phases=1 bus1=34971.2 bus2=34982.2 length=30.48 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_033_b35007" phases=1 bus1=34982.2 bus2=35007.2 length=100.584 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_023_b34961" phases=1 bus1=34971.2 bus2=34961.2 length=39.624 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_078_b34962" phases=1 bus1=34961.2 bus2=34962.2 length=67.6656 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_086_b59744" phases=1 bus1=34962.2 bus2=59744.2 length=29.2608 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_260_b240" phases=1 bus1=34961.2 bus2=240.2 length=70.104 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_269_b241" phases=1 bus1=240.2 bus2=241.2 length=76.2 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_262_b238" phases=1 bus1=241.2 bus2=238.2 length=37.1856 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_263_b239" phases=1 bus1=238.2 bus2=239.2 length=54.864 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_8_001_abc59937" phases=3 bus1=34939.1.2.3 bus2=59937.1.2.3 length=35.6616 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_002_abc95841" phases=3 bus1=59937.1.2.3 bus2=95841.1.2.3 length=38.7096 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_252_abc95835" phases=3 bus1=95841.1.2.3 bus2=95835.1.2.3 length=38.4048 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_112297usd" phases=3 bus1=95835.1.2.3 bus2=112297.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_003_abc65099" phases=3 bus1=112297.1.2.3 bus2=65099.1.2.3 length=29.2608 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_006_abc65063" phases=3 bus1=65099.1.2.3 bus2=65063.1.2.3 length=50.9016 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_007_abc65061" phases=3 bus1=65063.1.2.3 bus2=65061.1.2.3 length=37.4904 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_008_abc65060" phases=3 bus1=65061.1.2.3 bus2=65060.1.2.3 length=32.9184 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_009_abc41188" phases=3 bus1=65060.1.2.3 bus2=41188.1.2.3 length=42.3672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_010_abc41187" phases=3 bus1=41188.1.2.3 bus2=41187.1.2.3 length=37.7952 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_011_abc41193" phases=3 bus1=41187.1.2.3 bus2=41193.1.2.3 length=35.6616 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_012_abc71051" phases=3 bus1=41193.1.2.3 bus2=71051.1.2.3 length=36.576 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_8_013_abc1147856" phases=3 bus1=71051.1.2.3 bus2=1147856.1.2.3 length=34.7472 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_1190102fuse" phases=3 bus1=41193.1.2.3 bus2=1190102.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_pb_1609_abc1190100" phases=3 bus1=1190102.1.2.3 bus2=1190100.1.2.3 length=229.2096 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_pb_1610_abc1190101" phases=3 bus1=1190100.1.2.3 bus2=1190101.1.2.3 length=147.5232 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_8p058_abc1190103" phases=3 bus1=1190101.1.2.3 bus2=1190103.1.2.3 length=243.84 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1190104elb" phases=3 bus1=1190103.1.2.3 bus2=1190104.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_107306fuse" phases=3 bus1=65060.1.2.3 bus2=107306.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_094_abc41186" phases=3 bus1=107306.1.2.3 bus2=41186.1.2.3 length=62.7888 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_122_abc41185" phases=3 bus1=41186.1.2.3 bus2=41185.1.2.3 length=62.1792 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_123_abc41192" phases=3 bus1=41185.1.2.3 bus2=41192.1.2.3 length=68.58 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_124_abc80952" phases=3 bus1=41192.1.2.3 bus2=80952.1.2.3 length=49.3776 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_125_abc80953" phases=3 bus1=80952.1.2.3 bus2=80953.1.2.3 length=49.6824 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_126_abc75437" phases=3 bus1=80953.1.2.3 bus2=75437.1.2.3 length=47.5488 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_127_abc75436" phases=3 bus1=75437.1.2.3 bus2=75436.1.2.3 length=48.1584 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_128_abc75433" phases=3 bus1=75436.1.2.3 bus2=75433.1.2.3 length=47.8536 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_134_abc75430" phases=3 bus1=75433.1.2.3 bus2=75430.1.2.3 length=49.9872 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_135_abc75429" phases=3 bus1=75430.1.2.3 bus2=75429.1.2.3 length=42.9768 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_309_abc75428" phases=3 bus1=75429.1.2.3 bus2=75428.1.2.3 length=42.0624 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_164_abc75427" phases=3 bus1=75428.1.2.3 bus2=75427.1.2.3 length=60.6552 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_129_abc64903" phases=3 bus1=75427.1.2.3 bus2=64903.1.2.3 length=65.532 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_130_abc29625" phases=3 bus1=64903.1.2.3 bus2=29625.1.2.3 length=77.1144 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_8_168_abc29626" phases=3 bus1=29625.1.2.3 bus2=29626.1.2.3 length=10.9728 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1143215fuse" phases=1 bus1=29626.2 bus2=1143215.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_169_b29627" phases=1 bus1=1143215.2 bus2=29627.2 length=77.4192 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_171_b29633" phases=1 bus1=29627.2 bus2=29633.2 length=66.7512 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_174_b29628" phases=1 bus1=29633.2 bus2=29628.2 length=30.1752 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_8_486_b29629" phases=1 bus1=29628.2 bus2=29629.2 length=87.4776 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1143214fuse" phases=1 bus1=75427.3 bus2=1143214.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_166_c1143213" phases=1 bus1=1143214.3 bus2=1143213.3 length=60.96 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_167_c29612" phases=1 bus1=1143213.3 bus2=29612.3 length=62.7888 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108915fuse" phases=1 bus1=75433.1 bus2=108915.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8p051_a1169614" phases=1 bus1=108915.1 bus2=1169614.1 length=65.8368 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_41197elb" phases=1 bus1=1169614.1 bus2=41197.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169615elb" phases=1 bus1=41197.1 bus2=1169615.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8p052_a1169616" phases=1 bus1=1169615.1 bus2=1169616.1 length=40.8432 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_41195elb" phases=1 bus1=1169616.1 bus2=41195.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169617elb" phases=1 bus1=41195.1 bus2=1169617.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_8p053_a1169613" phases=1 bus1=1169617.1 bus2=1169613.1 length=70.4088 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_41196elb" phases=1 bus1=1169613.1 bus2=41196.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_088_abc34942" phases=3 bus1=34939.1.2.3 bus2=34942.1.2.3 length=25.908 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_071_abc95862" phases=3 bus1=34942.1.2.3 bus2=95862.1.2.3 length=43.8912 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_112307usd" phases=3 bus1=95862.1.2.3 bus2=112307.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_070_abc59722" phases=3 bus1=112307.1.2.3 bus2=59722.1.2.3 length=54.5592 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_106443fuse" phases=1 bus1=59722.2 bus2=106443.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p036_b1169562" phases=1 bus1=106443.2 bus2=1169562.2 length=81.3816 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59721elb" phases=1 bus1=1169562.2 bus2=59721.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169563elb" phases=1 bus1=59721.2 bus2=1169563.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p035_b1169564" phases=1 bus1=1169563.2 bus2=1169564.2 length=60.96 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34959elb" phases=1 bus1=1169564.2 bus2=34959.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169565elb" phases=1 bus1=34959.2 bus2=1169565.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p034_b1169566" phases=1 bus1=1169565.2 bus2=1169566.2 length=50.292 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34960elb" phases=1 bus1=1169566.2 bus2=34960.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169567elb" phases=1 bus1=34960.2 bus2=1169567.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p033_b1169568" phases=1 bus1=1169567.2 bus2=1169568.2 length=72.2376 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1169561elb" phases=1 bus1=59721.2 bus2=1169561.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p037_b1169560" phases=1 bus1=1169561.2 bus2=1169560.2 length=67.9704 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59720elb" phases=1 bus1=1169560.2 bus2=59720.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169559elb" phases=1 bus1=59720.2 bus2=1169559.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p038_b1169558" phases=1 bus1=1169559.2 bus2=1169558.2 length=59.7408 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59725elb" phases=1 bus1=1169558.2 bus2=59725.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169557elb" phases=1 bus1=59725.2 bus2=1169557.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p039_b1169556" phases=1 bus1=1169557.2 bus2=1169556.2 length=80.772 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34979elb" phases=1 bus1=1169556.2 bus2=34979.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169555elb" phases=1 bus1=34979.2 bus2=1169555.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p040_b1169554" phases=1 bus1=1169555.2 bus2=1169554.2 length=57.3024 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34978elb" phases=1 bus1=1169554.2 bus2=34978.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169553elb" phases=1 bus1=34978.2 bus2=1169553.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p041_b1169552" phases=1 bus1=1169553.2 bus2=1169552.2 length=63.7032 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_269elb" phases=1 bus1=1169552.2 bus2=269.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169551elb" phases=1 bus1=269.2 bus2=1169551.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p042_b1169550" phases=1 bus1=1169551.2 bus2=1169550.2 length=54.2544 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_245elb" phases=1 bus1=1169550.2 bus2=245.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_069_abc34975" phases=3 bus1=59722.1.2.3 bus2=34975.1.2.3 length=55.1688 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_200_abc59727" phases=3 bus1=34975.1.2.3 bus2=59727.1.2.3 length=23.1648 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1151130fuse" phases=1 bus1=59727.2 bus2=1151130.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p021_b1151129" phases=1 bus1=1151130.2 bus2=1151129.2 length=50.9016 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_5p013_b1169571" phases=1 bus1=1151129.2 bus2=1169571.2 length=127.4064 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34958elb" phases=1 bus1=1169571.2 bus2=34958.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_106444fuse" phases=3 bus1=59727.1.2.3 bus2=106444.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p061_abc1169573" phases=3 bus1=106444.1.2.3 bus2=1169573.1.2.3 length=53.34 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59728elb" phases=3 bus1=1169573.1.2.3 bus2=59728.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_068_abc34974" phases=3 bus1=34975.1.2.3 bus2=34974.1.2.3 length=45.72 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_067_abc266" phases=3 bus1=34974.1.2.3 bus2=266.1.2.3 length=45.4152 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_066_abc265" phases=3 bus1=266.1.2.3 bus2=265.1.2.3 length=45.72 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_065_abc253" phases=3 bus1=265.1.2.3 bus2=253.1.2.3 length=42.672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_093_abc252" phases=3 bus1=253.1.2.3 bus2=252.1.2.3 length=45.4152 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_063_abc1032366" phases=3 bus1=252.1.2.3 bus2=1032366.1.2.3 length=60.3504 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_062_abc1032367" phases=3 bus1=1032366.1.2.3 bus2=1032367.1.2.3 length=50.292 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_061_abc74131" phases=3 bus1=1032367.1.2.3 bus2=74131.1.2.3 length=42.9768 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_133_abc74124" phases=3 bus1=74131.1.2.3 bus2=74124.1.2.3 length=35.052 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_059_abc74122" phases=3 bus1=74124.1.2.3 bus2=74122.1.2.3 length=34.7472 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_058_abc74117" phases=3 bus1=74122.1.2.3 bus2=74117.1.2.3 length=45.1104 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_057_abc74115" phases=3 bus1=74117.1.2.3 bus2=74115.1.2.3 length=46.6344 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_056_abc14448" phases=3 bus1=74115.1.2.3 bus2=14448.1.2.3 length=32.9184 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_055_abc14447" phases=3 bus1=14448.1.2.3 bus2=14447.1.2.3 length=23.4696 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_029_abc14449" phases=3 bus1=14447.1.2.3 bus2=14449.1.2.3 length=27.1272 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_028_abc14450" phases=3 bus1=14449.1.2.3 bus2=14450.1.2.3 length=51.816 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_001_abc14446" phases=3 bus1=14450.1.2.3 bus2=14446.1.2.3 length=86.868 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_287_abc14440" phases=3 bus1=14446.1.2.3 bus2=14440.1.2.3 length=34.1376 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_288_abc14443" phases=3 bus1=14440.1.2.3 bus2=14443.1.2.3 length=9.144 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_100403fuse" phases=3 bus1=14443.1.2.3 bus2=100403.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_289_abc14444" phases=3 bus1=100403.1.2.3 bus2=14444.1.2.3 length=89.6112 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_257_abc14441" phases=3 bus1=14444.1.2.3 bus2=14441.1.2.3 length=91.44 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_054_abc14442" phases=3 bus1=14441.1.2.3 bus2=14442.1.2.3 length=85.6488 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_082_abc14445" phases=3 bus1=14442.1.2.3 bus2=14445.1.2.3 length=103.3272 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_294_abc1032369" phases=3 bus1=14445.1.2.3 bus2=1032369.1.2.3 length=61.2648 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_084_c1032370" phases=1 bus1=1032369.3 bus2=1032370.3 length=10.0584 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1032371fuse" phases=3 bus1=1032369.1.2.3 bus2=1032371.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p062_abc1182246" phases=3 bus1=1032371.1.2.3 bus2=1182246.1.2.3 length=87.1728 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1182247usd" phases=3 bus1=1182246.1.2.3 bus2=1182247.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1187378fuse" phases=1 bus1=1182247.1 bus2=1187378.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_pb_0776_a1187379" phases=1 bus1=1187378.1 bus2=1187379.1 length=96.9264 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_pb_0777_a1187377" phases=1 bus1=1187379.1 bus2=1187377.1 length=5.1816 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_pb_0778_a264" phases=1 bus1=1187377.1 bus2=264.1 length=108.204 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_5p064_a1169669" phases=1 bus1=264.1 bus2=1169669.1 length=106.3752 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_244elb" phases=1 bus1=1169669.1 bus2=244.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169670elb" phases=1 bus1=244.1 bus2=1169670.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_pb_0779_a242" phases=1 bus1=1169670.1 bus2=242.1 length=76.8096 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_5p065_a1169671" phases=1 bus1=242.1 bus2=1169671.1 length=81.3816 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_243elb" phases=1 bus1=1169671.1 bus2=243.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1182248fuse" phases=3 bus1=1182247.1.2.3 bus2=1182248.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p062_abc14470" phases=3 bus1=1182248.1.2.3 bus2=14470.1.2.3 length=89.3064 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_pb_0776_abc262" phases=3 bus1=14470.1.2.3 bus2=262.1.2.3 length=4.2672 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_5p063_abc1169699" phases=3 bus1=262.1.2.3 bus2=1169699.1.2.3 length=113.6904 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_263elb" phases=3 bus1=1169699.1.2.3 bus2=263.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_002_abc14434" phases=3 bus1=14440.1.2.3 bus2=14434.1.2.3 length=62.484 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_003_abc14432" phases=3 bus1=14434.1.2.3 bus2=14432.1.2.3 length=59.1312 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_005_abc14429" phases=3 bus1=14432.1.2.3 bus2=14429.1.2.3 length=57.6072 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_006_abc14423" phases=3 bus1=14429.1.2.3 bus2=14423.1.2.3 length=43.2816 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_5_011_abc14421" phases=3 bus1=14423.1.2.3 bus2=14421.1.2.3 length=36.2712 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_031_abc14417" phases=3 bus1=14421.1.2.3 bus2=14417.1.2.3 length=69.4944 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_022_abc14416" phases=3 bus1=14417.1.2.3 bus2=14416.1.2.3 length=55.4736 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_021_abc14415" phases=3 bus1=14416.1.2.3 bus2=14415.1.2.3 length=62.484 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_036_abc57938" phases=3 bus1=14415.1.2.3 bus2=57938.1.2.3 length=68.58 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_017_abc57937" phases=3 bus1=57938.1.2.3 bus2=57937.1.2.3 length=67.3608 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_015_abc57936" phases=3 bus1=57937.1.2.3 bus2=57936.1.2.3 length=57.6072 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_001_abc57929" phases=3 bus1=57936.1.2.3 bus2=57929.1.2.3 length=36.8808 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_009_abc57928" phases=3 bus1=57929.1.2.3 bus2=57928.1.2.3 length=36.8808 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_w_2_007_abc74056" phases=3 bus1=57928.1.2.3 bus2=74056.1.2.3 length=63.7032 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_4/0_7STR AL_4/0_7STR AL_4/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=334 emergamps=334
+New "Line.tyn202_108689fuse" phases=3 bus1=57928.1.2.3 bus2=108689.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_2_003_abc57926" phases=3 bus1=108689.1.2.3 bus2=57926.1.2.3 length=39.624 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_2_011_abc57927" phases=3 bus1=57926.1.2.3 bus2=57927.1.2.3 length=45.72 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_106160fuse" phases=3 bus1=57938.1.2.3 bus2=106160.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_2_035_abc57939" phases=3 bus1=106160.1.2.3 bus2=57939.1.2.3 length=100.584 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_1143480fuse" phases=3 bus1=14421.1.2.3 bus2=1143480.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_007_abc1143479" phases=3 bus1=1143480.1.2.3 bus2=1143479.1.2.3 length=53.6448 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_295_abc1039377" phases=3 bus1=1143479.1.2.3 bus2=1039377.1.2.3 length=25.6032 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_267_c1039378" phases=1 bus1=1039377.3 bus2=1039378.3 length=82.296 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1103357fuse" phases=1 bus1=1039378.3 bus2=1103357.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_268_c1103356" phases=1 bus1=1103357.3 bus2=1103356.3 length=42.9768 units=m spacing=1PH_1 wires="ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_5_010_c14437" phases=1 bus1=1103356.3 bus2=14437.3 length=42.672 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_051_c14438" phases=1 bus1=14437.3 bus2=14438.3 length=100.8888 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_012_c14439" phases=1 bus1=14438.3 bus2=14439.3 length=54.2544 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1042168fuse" phases=3 bus1=14423.1.2.3 bus2=1042168.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_013_abc1042169" phases=3 bus1=1042168.1.2.3 bus2=1042169.1.2.3 length=49.0728 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_014_abc14420" phases=3 bus1=1042169.1.2.3 bus2=14420.1.2.3 length=33.528 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_w_2_097_abc14418" phases=3 bus1=14420.1.2.3 bus2=14418.1.2.3 length=40.2336 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1042170fuse" phases=1 bus1=14418.1 bus2=1042170.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5_143_a14419" phases=1 bus1=1042170.1 bus2=14419.1 length=32.6136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_296_abc1042171" phases=3 bus1=14418.1.2.3 bus2=1042171.1.2.3 length=65.8368 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1042174fuse" phases=3 bus1=1042171.1.2.3 bus2=1042174.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p091_abc1169612" phases=3 bus1=1042174.1.2.3 bus2=1169612.1.2.3 length=38.7096 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1042173elb" phases=3 bus1=1169612.1.2.3 bus2=1042173.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_100406fuse" phases=1 bus1=14450.1 bus2=100406.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_027_a14453" phases=1 bus1=100406.1 bus2=14453.1 length=22.2504 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_026_a14454" phases=1 bus1=14453.1 bus2=14454.1 length=28.0416 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_025_a14455" phases=1 bus1=14454.1 bus2=14455.1 length=46.0248 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_047_a14456" phases=1 bus1=14455.1 bus2=14456.1 length=57.6072 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_024_a14435" phases=1 bus1=14456.1 bus2=14435.1 length=27.7368 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_112_a14431" phases=1 bus1=14435.1 bus2=14431.1 length=52.7304 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_016_a14428" phases=1 bus1=14431.1 bus2=14428.1 length=53.0352 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_156_a14425" phases=1 bus1=14428.1 bus2=14425.1 length=36.8808 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_044_a14426" phases=1 bus1=14425.1 bus2=14426.1 length=44.5008 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_107_a89543" phases=1 bus1=14426.1 bus2=89543.1 length=79.5528 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_110_a89546" phases=1 bus1=89543.1 bus2=89546.1 length=47.244 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_108_a89541" phases=1 bus1=89543.1 bus2=89541.1 length=56.9976 units=m spacing=1PH_1 wires="CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_1187375fuse" phases=1 bus1=89541.1 bus2=1187375.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p060_a1187374" phases=1 bus1=1187375.1 bus2=1187374.1 length=160.9344 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1187376elb" phases=1 bus1=1187374.1 bus2=1187376.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1012832fuse" phases=1 bus1=14426.1 bus2=1012832.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_128_a14427" phases=1 bus1=1012832.1 bus2=14427.1 length=75.8952 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1012831fuse" phases=1 bus1=14425.1 bus2=1012831.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_157_a14424" phases=1 bus1=1012831.1 bus2=14424.1 length=72.5424 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_100405fuse" phases=3 bus1=14447.1.2.3 bus2=100405.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_030_abc14463" phases=3 bus1=100405.1.2.3 bus2=14463.1.2.3 length=23.1648 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_031_abc14451" phases=3 bus1=14463.1.2.3 bus2=14451.1.2.3 length=34.4424 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_032_abc14452" phases=3 bus1=14451.1.2.3 bus2=14452.1.2.3 length=45.4152 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_074_abc14457" phases=3 bus1=14452.1.2.3 bus2=14457.1.2.3 length=17.0688 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_102_abc14460" phases=3 bus1=14457.1.2.3 bus2=14460.1.2.3 length=27.1272 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_103_abc14461" phases=3 bus1=14460.1.2.3 bus2=14461.1.2.3 length=42.672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_035_abc14462" phases=3 bus1=14461.1.2.3 bus2=14462.1.2.3 length=32.6136 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_036_abc89539" phases=3 bus1=14462.1.2.3 bus2=89539.1.2.3 length=31.6992 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_037_abc89534" phases=3 bus1=89539.1.2.3 bus2=89534.1.2.3 length=29.8704 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_038_abc89532" phases=3 bus1=89534.1.2.3 bus2=89532.1.2.3 length=36.576 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_104_abc33484" phases=3 bus1=89532.1.2.3 bus2=33484.1.2.3 length=46.6344 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_106_abc33468" phases=3 bus1=33484.1.2.3 bus2=33468.1.2.3 length=58.8264 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_102861fuse" phases=3 bus1=33468.1.2.3 bus2=102861.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_043_abc33462" phases=3 bus1=102861.1.2.3 bus2=33462.1.2.3 length=40.5384 units=m spacing=3PH_HORIZ_LG_1C_3 wires="CU_#6_1STR CU_#6_1STR CU_#6_1STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=112 emergamps=112
+New "Line.tyn202_w_5_050_abc33461" phases=3 bus1=33462.1.2.3 bus2=33461.1.2.3 length=48.4632 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_041_abc33460" phases=3 bus1=33461.1.2.3 bus2=33460.1.2.3 length=53.9496 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_046_abc33459" phases=3 bus1=33460.1.2.3 bus2=33459.1.2.3 length=16.764 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_220_abc33457" phases=3 bus1=33459.1.2.3 bus2=33457.1.2.3 length=60.96 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_221_abc33458" phases=3 bus1=33457.1.2.3 bus2=33458.1.2.3 length=70.7136 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_244_abc45716" phases=3 bus1=33458.1.2.3 bus2=45716.1.2.3 length=15.24 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_1/0_7STR AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_102858fuse" phases=1 bus1=33462.1 bus2=102858.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p066_a1169605" phases=1 bus1=102858.1 bus2=1169605.1 length=41.148 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33463elb" phases=1 bus1=1169605.1 bus2=33463.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169606elb" phases=1 bus1=33463.1 bus2=1169606.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p067_a1169607" phases=1 bus1=1169606.1 bus2=1169607.1 length=37.1856 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33466elb" phases=1 bus1=1169607.1 bus2=33466.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169608elb" phases=1 bus1=33466.1 bus2=1169608.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p068_a1169581" phases=1 bus1=1169608.1 bus2=1169581.1 length=37.1856 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33474elb" phases=1 bus1=1169581.1 bus2=33474.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169582elb" phases=1 bus1=33474.1 bus2=1169582.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p069_a1169583" phases=1 bus1=1169582.1 bus2=1169583.1 length=40.8432 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33480elb" phases=1 bus1=1169583.1 bus2=33480.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169584elb" phases=1 bus1=33480.1 bus2=1169584.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p070_a1169585" phases=1 bus1=1169584.1 bus2=1169585.1 length=40.5384 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33488elb" phases=1 bus1=1169585.1 bus2=33488.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169586elb" phases=1 bus1=33488.1 bus2=1169586.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p071_a1169610" phases=1 bus1=1169586.1 bus2=1169610.1 length=50.9016 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45704elb" phases=1 bus1=1169610.1 bus2=45704.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169611elb" phases=1 bus1=45704.1 bus2=1169611.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p072_a1169587" phases=1 bus1=1169611.1 bus2=1169587.1 length=76.8096 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45705elb" phases=1 bus1=1169587.1 bus2=45705.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169588elb" phases=1 bus1=45705.1 bus2=1169588.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p073_a1169589" phases=1 bus1=1169588.1 bus2=1169589.1 length=37.1856 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45708elb" phases=1 bus1=1169589.1 bus2=45708.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169590elb" phases=1 bus1=45708.1 bus2=1169590.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p074_a1169591" phases=1 bus1=1169590.1 bus2=1169591.1 length=37.1856 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45712elb" phases=1 bus1=1169591.1 bus2=45712.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169592elb" phases=1 bus1=45712.1 bus2=1169592.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p075_a1169593" phases=1 bus1=1169592.1 bus2=1169593.1 length=34.4424 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45714elb" phases=1 bus1=1169593.1 bus2=45714.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169594elb" phases=1 bus1=45714.1 bus2=1169594.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p076_a1169599" phases=1 bus1=1169594.1 bus2=1169599.1 length=50.292 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45711elb" phases=1 bus1=1169599.1 bus2=45711.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169600elb" phases=1 bus1=45711.1 bus2=1169600.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p077_a1169595" phases=1 bus1=1169600.1 bus2=1169595.1 length=35.9664 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45706elb" phases=1 bus1=1169595.1 bus2=45706.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169596elb" phases=1 bus1=45706.1 bus2=1169596.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p078_a1169597" phases=1 bus1=1169596.1 bus2=1169597.1 length=64.008 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45702elb" phases=1 bus1=1169597.1 bus2=45702.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169598elb" phases=1 bus1=45702.1 bus2=1169598.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p079_a1169603" phases=1 bus1=1169598.1 bus2=1169603.1 length=36.8808 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45689elb" phases=1 bus1=1169603.1 bus2=45689.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169604elb" phases=1 bus1=45689.1 bus2=1169604.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p080_a1169602" phases=1 bus1=1169604.1 bus2=1169602.1 length=81.6864 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_45690elb" phases=1 bus1=1169602.1 bus2=45690.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_100404fuse" phases=1 bus1=14452.3 bus2=100404.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_232_c14458" phases=1 bus1=100404.3 bus2=14458.3 length=24.0792 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_233_c14459" phases=1 bus1=14458.3 bus2=14459.3 length=60.3504 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108708fuse" phases=3 bus1=74115.1.2.3 bus2=108708.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_116_abc74116" phases=3 bus1=108708.1.2.3 bus2=74116.1.2.3 length=67.9704 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_099_abc74118" phases=3 bus1=74116.1.2.3 bus2=74118.1.2.3 length=37.7952 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1143206fuse" phases=3 bus1=74124.1.2.3 bus2=1143206.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_189_abc74126" phases=3 bus1=1143206.1.2.3 bus2=74126.1.2.3 length=58.2168 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_191_abc74129" phases=3 bus1=74126.1.2.3 bus2=74129.1.2.3 length=36.2712 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_135_abc74130" phases=3 bus1=74129.1.2.3 bus2=74130.1.2.3 length=70.4088 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_136_abc89547" phases=3 bus1=74130.1.2.3 bus2=89547.1.2.3 length=67.9704 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_218_abc89535" phases=3 bus1=89547.1.2.3 bus2=89535.1.2.3 length=42.3672 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_219_abc89536" phases=3 bus1=89535.1.2.3 bus2=89536.1.2.3 length=42.9768 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_137_abc33482" phases=3 bus1=89535.1.2.3 bus2=33482.1.2.3 length=56.0832 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_139_abc33464" phases=3 bus1=33482.1.2.3 bus2=33464.1.2.3 length=93.2688 units=m spacing=3PH_HORIZ_LG_1C_3 wires="AL_#2_7STR AL_#2_7STR AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_102859fuse" phases=1 bus1=33464.1 bus2=102859.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_192_a33465" phases=1 bus1=102859.1 bus2=33465.1 length=56.388 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_140_a33470" phases=1 bus1=33465.1 bus2=33470.1 length=32.6136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_141_a34998" phases=1 bus1=33470.1 bus2=34998.1 length=121.6152 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1149164fuse" phases=1 bus1=34998.1 bus2=1149164.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p010_a1169634" phases=1 bus1=1149164.1 bus2=1169634.1 length=21.0312 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34991elb" phases=1 bus1=1169634.1 bus2=34991.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169635elb" phases=1 bus1=34991.1 bus2=1169635.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p009_a1169704" phases=1 bus1=1169635.1 bus2=1169704.1 length=144.78 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34963elb" phases=1 bus1=1169704.1 bus2=34963.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169703elb" phases=1 bus1=34963.1 bus2=1169703.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p017_a1169709" phases=1 bus1=1169703.1 bus2=1169709.1 length=94.488 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34964elb" phases=1 bus1=1169709.1 bus2=34964.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169702elb" phases=1 bus1=34963.1 bus2=1169702.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p008_a1169621" phases=1 bus1=1169702.1 bus2=1169621.1 length=48.768 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_35011elb" phases=1 bus1=1169621.1 bus2=35011.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169620elb" phases=1 bus1=35011.1 bus2=1169620.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p007_a98724" phases=1 bus1=1169620.1 bus2=98724.1 length=142.6464 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_102860fuse" phases=1 bus1=33465.1 bus2=102860.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p005_a1169637" phases=1 bus1=102860.1 bus2=1169637.1 length=30.48 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_33478elb" phases=1 bus1=1169637.1 bus2=33478.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169636elb" phases=1 bus1=33478.1 bus2=1169636.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p004_a1169580" phases=1 bus1=1169636.1 bus2=1169580.1 length=81.9912 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_89533elb" phases=1 bus1=1169580.1 bus2=89533.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169579elb" phases=1 bus1=89533.1 bus2=1169579.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p003_a1143209" phases=1 bus1=1169579.1 bus2=1143209.1 length=122.2248 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_111205fuse" phases=1 bus1=89547.1 bus2=111205.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_178_a74113" phases=1 bus1=111205.1 bus2=74113.1 length=24.0792 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_108710fuse" phases=1 bus1=74126.1 bus2=108710.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p001_a1169668" phases=1 bus1=108710.1 bus2=1169668.1 length=62.484 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_260elb" phases=1 bus1=1169668.1 bus2=260.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169667elb" phases=1 bus1=260.1 bus2=1169667.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p002_a1169576" phases=1 bus1=1169667.1 bus2=1169576.1 length=72.8472 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_259elb" phases=1 bus1=1169576.1 bus2=259.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169577elb" phases=1 bus1=259.1 bus2=1169577.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p003_a1169578" phases=1 bus1=1169577.1 bus2=1169578.1 length=56.388 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_261elb" phases=1 bus1=1169578.1 bus2=261.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1147828fuse" phases=1 bus1=74131.3 bus2=1147828.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p049_c1169697" phases=1 bus1=1147828.3 bus2=1169697.3 length=37.4904 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74133elb" phases=1 bus1=1169697.3 bus2=74133.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169698elb" phases=1 bus1=74133.3 bus2=1169698.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p050_c1169685" phases=1 bus1=1169698.3 bus2=1169685.3 length=49.9872 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74134elb" phases=1 bus1=1169685.3 bus2=74134.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169686elb" phases=1 bus1=74134.3 bus2=1169686.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p051_c1169687" phases=1 bus1=1169686.3 bus2=1169687.3 length=36.576 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74128elb" phases=1 bus1=1169687.3 bus2=74128.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169688elb" phases=1 bus1=74128.3 bus2=1169688.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p052_c1169721" phases=1 bus1=1169688.3 bus2=1169721.3 length=74.0664 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74127elb" phases=1 bus1=1169721.3 bus2=74127.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169723elb" phases=1 bus1=74127.3 bus2=1169723.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p053_c1169692" phases=1 bus1=1169723.3 bus2=1169692.3 length=39.624 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74125elb" phases=1 bus1=1169692.3 bus2=74125.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169693elb" phases=1 bus1=74125.3 bus2=1169693.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p054_c1169690" phases=1 bus1=1169693.3 bus2=1169690.3 length=54.2544 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74121elb" phases=1 bus1=1169690.3 bus2=74121.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169691elb" phases=1 bus1=74121.3 bus2=1169691.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p055_c1169719" phases=1 bus1=1169691.3 bus2=1169719.3 length=58.8264 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_14464elb" phases=1 bus1=1169719.3 bus2=14464.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169720elb" phases=1 bus1=14464.3 bus2=1169720.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p056_c1169694" phases=1 bus1=1169720.3 bus2=1169694.3 length=36.8808 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_14465elb" phases=1 bus1=1169694.3 bus2=14465.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169695elb" phases=1 bus1=14465.3 bus2=1169695.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p057_c1169744" phases=1 bus1=1169695.3 bus2=1169744.3 length=37.4904 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_14466elb" phases=1 bus1=1169744.3 bus2=14466.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169745elb" phases=1 bus1=14466.3 bus2=1169745.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p058_c1169696" phases=1 bus1=1169745.3 bus2=1169696.3 length=39.0144 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_14467elb" phases=1 bus1=1169696.3 bus2=14467.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169722elb" phases=1 bus1=74127.3 bus2=1169722.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p059_c1169689" phases=1 bus1=1169722.3 bus2=1169689.3 length=62.484 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_74132elb" phases=1 bus1=1169689.3 bus2=74132.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1032368fuse" phases=1 bus1=1032366.2 bus2=1032368.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p030_b1169673" phases=1 bus1=1032368.2 bus2=1169673.2 length=59.1312 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_251elb" phases=1 bus1=1169673.2 bus2=251.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169674elb" phases=1 bus1=251.2 bus2=1169674.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p029_b1169675" phases=1 bus1=1169674.2 bus2=1169675.2 length=64.008 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_249elb" phases=1 bus1=1169675.2 bus2=249.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169676elb" phases=1 bus1=249.2 bus2=1169676.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p045_b1169677" phases=1 bus1=1169676.2 bus2=1169677.2 length=71.628 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_248elb" phases=1 bus1=1169677.2 bus2=248.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169678elb" phases=1 bus1=248.2 bus2=1169678.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p044_b1169679" phases=1 bus1=1169678.2 bus2=1169679.2 length=67.056 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_247elb" phases=1 bus1=1169679.2 bus2=247.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169680elb" phases=1 bus1=247.2 bus2=1169680.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p043_b1169682" phases=1 bus1=1169680.2 bus2=1169682.2 length=62.7888 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_246elb" phases=1 bus1=1169682.2 bus2=246.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169681elb" phases=1 bus1=246.2 bus2=1169681.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p042_b1157611" phases=1 bus1=1169681.2 bus2=1157611.2 length=58.8264 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1169672elb" phases=1 bus1=251.2 bus2=1169672.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p031_b1169684" phases=1 bus1=1169672.2 bus2=1169684.2 length=67.9704 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_250elb" phases=1 bus1=1169684.2 bus2=250.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169683elb" phases=1 bus1=250.2 bus2=1169683.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p032_b1169570" phases=1 bus1=1169683.2 bus2=1169570.2 length=53.34 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_267elb" phases=1 bus1=1169570.2 bus2=267.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169569elb" phases=1 bus1=267.2 bus2=1169569.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p033_b268" phases=1 bus1=1169569.2 bus2=268.2 length=53.6448 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_98723elb" phases=1 bus1=268.2 bus2=98723.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_98720fuse" phases=1 bus1=252.1 bus2=98720.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_190_a254" phases=1 bus1=98720.1 bus2=254.1 length=14.9352 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_98721fuse" phases=1 bus1=254.1 bus2=98721.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p006_a1169724" phases=1 bus1=98721.1 bus2=1169724.1 length=46.0248 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_255elb" phases=1 bus1=1169724.1 bus2=255.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169725elb" phases=1 bus1=255.1 bus2=1169725.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p007_a1169622" phases=1 bus1=1169725.1 bus2=1169622.1 length=75.2856 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_270elb" phases=1 bus1=1169622.1 bus2=270.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_103090fuse" phases=1 bus1=266.2 bus2=103090.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_201_b35014" phases=1 bus1=103090.2 bus2=35014.2 length=13.4112 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_103091fuse" phases=1 bus1=35014.2 bus2=103091.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p011_b1169574" phases=1 bus1=103091.2 bus2=1169574.2 length=44.8056 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34990elb" phases=1 bus1=1169574.2 bus2=34990.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169575elb" phases=1 bus1=34990.2 bus2=1169575.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p012_b1169548" phases=1 bus1=1169575.2 bus2=1169548.2 length=77.4192 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34957elb" phases=1 bus1=1169548.2 bus2=34957.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169549elb" phases=1 bus1=34957.2 bus2=1169549.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p013_b106446" phases=1 bus1=1169549.2 bus2=106446.2 length=66.1416 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_103083fuse" phases=1 bus1=34940.1 bus2=103083.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_319_a59938" phases=1 bus1=103083.1 bus2=59938.1 length=27.7368 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_320_a95847" phases=1 bus1=59938.1 bus2=95847.1 length=75.2856 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_112301fuse" phases=1 bus1=59941.1 bus2=112301.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p015_a34935" phases=1 bus1=112301.1 bus2=34935.1 length=82.9056 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_w_5p016_a1169623" phases=1 bus1=34935.1 bus2=1169623.1 length=70.4088 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34936elb" phases=1 bus1=1169623.1 bus2=34936.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169624elb" phases=1 bus1=34936.1 bus2=1169624.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p017_a112308" phases=1 bus1=1169624.1 bus2=112308.1 length=101.8032 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_106491fuse" phases=3 bus1=59943.1.2.3 bus2=106491.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p020_abc1169700" phases=3 bus1=106491.1.2.3 bus2=1169700.1.2.3 length=152.0952 units=m linecode=ug_1/0al_3 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59944elb" phases=3 bus1=1169700.1.2.3 bus2=59944.1.2.3 length=1.524 units=m linecode=basic3 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_112302fuse" phases=1 bus1=95844.3 bus2=112302.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_144_c95858" phases=1 bus1=112302.3 bus2=95858.3 length=81.0768 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1151544fuse" phases=1 bus1=59956.1 bus2=1151544.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p023_a1169638" phases=1 bus1=1151544.1 bus2=1169638.1 length=71.3232 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59957elb" phases=1 bus1=1169638.1 bus2=59957.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169639elb" phases=1 bus1=59957.1 bus2=1169639.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p024_a1169625" phases=1 bus1=1169639.1 bus2=1169625.1 length=49.0728 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59949elb" phases=1 bus1=1169625.1 bus2=59949.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169626elb" phases=1 bus1=59949.1 bus2=1169626.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p025_a1169627" phases=1 bus1=1169626.1 bus2=1169627.1 length=46.6344 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_59942elb" phases=1 bus1=1169627.1 bus2=59942.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_106494fuse" phases=1 bus1=59958.1 bus2=106494.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5_197_a59959" phases=1 bus1=106494.1 bus2=59959.1 length=10.0584 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_198_a59947" phases=1 bus1=59959.1 bus2=59947.1 length=100.2792 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_172_a59940" phases=1 bus1=59947.1 bus2=59940.1 length=92.0496 units=m spacing=1PH_1 wires="AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_5_173_a34941" phases=1 bus1=59940.1 bus2=34941.1 length=80.1624 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_174_a34952" phases=1 bus1=34941.1 bus2=34952.1 length=77.724 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_175_a1148618" phases=1 bus1=34952.1 bus2=1148618.1 length=45.72 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_297_a1148619" phases=1 bus1=1148618.1 bus2=1148619.1 length=38.7096 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_176_a34950" phases=1 bus1=1148619.1 bus2=34950.1 length=46.6344 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_177_a34945" phases=1 bus1=34950.1 bus2=34945.1 length=70.7136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_226_a34938" phases=1 bus1=34945.1 bus2=34938.1 length=70.7136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_160_a34937" phases=1 bus1=34938.1 bus2=34937.1 length=28.6512 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_208_a34927" phases=1 bus1=34937.1 bus2=34927.1 length=60.6552 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_209_a34928" phases=1 bus1=34927.1 bus2=34928.1 length=63.0936 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_210_a59936" phases=1 bus1=34928.1 bus2=59936.1 length=60.6552 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_211_a59971" phases=1 bus1=59936.1 bus2=59971.1 length=63.0936 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_344_a90763" phases=1 bus1=59971.1 bus2=90763.1 length=28.0416 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_212_a90764" phases=1 bus1=90763.1 bus2=90764.1 length=51.816 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_225_a34933" phases=1 bus1=34938.1 bus2=34933.1 length=40.5384 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_224_a34934" phases=1 bus1=34933.1 bus2=34934.1 length=10.9728 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_223_a59946" phases=1 bus1=34934.1 bus2=59946.1 length=64.9224 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_222_a59950" phases=1 bus1=59946.1 bus2=59950.1 length=55.1688 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_167_a59951" phases=1 bus1=59950.1 bus2=59951.1 length=45.72 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_168_a59945" phases=1 bus1=59951.1 bus2=59945.1 length=54.5592 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_169_a34931" phases=1 bus1=59945.1 bus2=34931.1 length=39.0144 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_5_170_a34932" phases=1 bus1=34931.1 bus2=34932.1 length=32.6136 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1143208fuse" phases=1 bus1=34941.1 bus2=1143208.1 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_5p027_a1169630" phases=1 bus1=1143208.1 bus2=1169630.1 length=58.5216 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34929elb" phases=1 bus1=1169630.1 bus2=34929.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169632elb" phases=1 bus1=34929.1 bus2=1169632.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p026_a1169628" phases=1 bus1=1169632.1 bus2=1169628.1 length=48.768 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_34930elb" phases=1 bus1=1169628.1 bus2=34930.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169629elb" phases=1 bus1=34930.1 bus2=1169629.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p025_a1143210" phases=1 bus1=1169629.1 bus2=1143210.1 length=51.2064 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1169631elb" phases=1 bus1=34929.1 bus2=1169631.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_5p028_a1169633" phases=1 bus1=1169631.1 bus2=1169633.1 length=72.5424 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_95863elb" phases=1 bus1=1169633.1 bus2=95863.1 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_106495fuse" phases=1 bus1=2710.3 bus2=106495.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_8_228_c41194" phases=1 bus1=106495.3 bus2=41194.3 length=15.8496 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_229_c2675" phases=1 bus1=41194.3 bus2=2675.3 length=69.7992 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_8_230_c2676" phases=1 bus1=2675.3 bus2=2676.3 length=51.816 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_1187465fuse" phases=2 bus1=2670.1.3 bus2=1187465.1.3 length=1.524 units=m spacing=2PH_HORIZ_LG_1C_2 wires="BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6_261_ac2683" phases=2 bus1=1187465.1.3 bus2=2683.1.3 length=55.7784 units=m spacing=2PH_HORIZ_LG_1C_2 wires="AL_1/0_7STR AL_1/0_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=216 emergamps=216
+New "Line.tyn202_w_6_263_a2684" phases=1 bus1=2683.1 bus2=2684.1 length=47.8536 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_264_a2695" phases=1 bus1=2684.1 bus2=2695.1 length=48.768 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_270_a2709" phases=1 bus1=2695.1 bus2=2709.1 length=64.3128 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_271_a59967" phases=1 bus1=2709.1 bus2=59967.1 length=82.296 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_272_a59968" phases=1 bus1=59967.1 bus2=59968.1 length=38.7096 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_273_a59969" phases=1 bus1=59968.1 bus2=59969.1 length=39.9288 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_262_c2685" phases=1 bus1=2683.3 bus2=2685.3 length=61.2648 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_281_c2696" phases=1 bus1=2685.3 bus2=2696.3 length=61.2648 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_282_c2712" phases=1 bus1=2696.3 bus2=2712.3 length=39.9288 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_283_c59970" phases=1 bus1=2712.3 bus2=59970.3 length=51.5112 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_284_c90761" phases=1 bus1=59970.3 bus2=90761.3 length=71.3232 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_w_6_285_c90762" phases=1 bus1=90761.3 bus2=90762.3 length=57.912 units=m spacing=1PH_1 wires="AL_#2_7STR ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=162 emergamps=162
+New "Line.tyn202_111417fuse" phases=1 bus1=90761.3 bus2=111417.3 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6p008_c1169662" phases=1 bus1=111417.3 bus2=1169662.3 length=89.3064 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_2711elb" phases=1 bus1=1169662.3 bus2=2711.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169663elb" phases=1 bus1=2711.3 bus2=1169663.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_6p016_c1169664" phases=1 bus1=1169663.3 bus2=1169664.3 length=59.436 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_1187483elb" phases=1 bus1=1169664.3 bus2=1187483.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169665elb" phases=1 bus1=1187483.3 bus2=1169665.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_6p021_c1169666" phases=1 bus1=1169665.3 bus2=1169666.3 length=74.9808 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_2698elb" phases=1 bus1=1169666.3 bus2=2698.3 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1032385fuse" phases=3 bus1=1006553.1.2.3 bus2=1032385.1.2.3 length=1.524 units=m spacing=3PH_HORIZ_LG_1C_3 wires="BUSBAR BUSBAR BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_6_518_abc1151521" phases=3 bus1=1032385.1.2.3 bus2=1151521.1.2.3 length=21.9456 units=m spacing=3PH_HORIZ_LG_1C_3 wires="ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1 ACSR_1/0_6/1" Seasons=1 Ratings=[400,] normamps=255 emergamps=255
+New "Line.tyn202_1147657fuse" phases=1 bus1=64916.2 bus2=1147657.2 length=1.524 units=m spacing=1PH_1 wires="BUSBAR BUSBAR" Seasons=1 Ratings=[400,] normamps=2000 emergamps=2000
+New "Line.tyn202_w_9p009_b1169710" phases=1 bus1=1147657.2 bus2=1169710.2 length=37.7952 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_64917elb" phases=1 bus1=1169710.2 bus2=64917.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169711elb" phases=1 bus1=64917.2 bus2=1169711.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p008_b1169643" phases=1 bus1=1169711.2 bus2=1169643.2 length=39.3192 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75439elb" phases=1 bus1=1169643.2 bus2=75439.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169644elb" phases=1 bus1=75439.2 bus2=1169644.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p007_b1169641" phases=1 bus1=1169644.2 bus2=1169641.2 length=28.0416 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
+New "Line.tyn202_75440elb" phases=1 bus1=1169641.2 bus2=75440.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_1169640elb" phases=1 bus1=75440.2 bus2=1169640.2 length=1.524 units=m linecode=basic1 Seasons=1 Ratings=[400,] Normamps=400 emergamps=600 
+New "Line.tyn202_w_9p006_b1001167" phases=1 bus1=1169640.2 bus2=1001167.2 length=53.9496 units=m linecode=ug_1/0al_1 Seasons=1 Ratings=[400,] normamps=150 emergamps=600
