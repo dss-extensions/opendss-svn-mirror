@@ -3189,6 +3189,7 @@ int DoBusCoordsCmd(bool SwapXY, int CoordType)
     /*Get next parameter on command line*/
 	ParamName = Parser[ActiveActor]->GetNextParam();
 	Param = Parser[ActiveActor]->MakeString_();
+	auto Ckt = ActiveCircuit[ActiveActor];		
 	try
 	{
 		iLine = -1;
@@ -3209,7 +3210,7 @@ int DoBusCoordsCmd(bool SwapXY, int CoordType)
 					with35->SetCmdString(s);
 					dummy = with35->GetNextParam();
 					Busname = with35->MakeString_();
-					iB = ActiveCircuit[ActiveActor]->BusList.Find(Busname);
+					iB = Ckt->BusList.Find(Busname);
 					if(iB > 0)
 					{
 						/*# with ActiveCircuit[ActiveActor]->Buses^[iB] do */
@@ -3219,24 +3220,24 @@ int DoBusCoordsCmd(bool SwapXY, int CoordType)
 							{
 								dummy = with35->GetNextParam();
 								if(SwapXY)
-									ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->y = with35->MakeDouble_();
+									Ckt->Buses[iB - 1]->y = with35->MakeDouble_();
 								else
-									ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->x = with35->MakeDouble_();
+									Ckt->Buses[iB - 1]->x = with35->MakeDouble_();
 								dummy = with35->GetNextParam();
 								if(SwapXY)
-									ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->x = with35->MakeDouble_();
+									Ckt->Buses[iB - 1]->x = with35->MakeDouble_();
 								else
-									ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->y = with35->MakeDouble_();
-								ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->CoordDefined = true;
+									Ckt->Buses[iB - 1]->y = with35->MakeDouble_();
+								Ckt->Buses[iB - 1]->CoordDefined = true;
 							}
 							else
                                                    // GIS coords
 							{
 								dummy = with35->GetNextParam();
-								ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->lat = with35->MakeDouble_();
+								Ckt->Buses[iB - 1]->lat = with35->MakeDouble_();
 								dummy = with35->GetNextParam();
-								ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->longitude = with35->MakeDouble_();
-								ActiveCircuit[ActiveActor]->Buses[static_cast<size_t>(iB) - 1]->GISCoordDefined = true;
+								Ckt->Buses[iB - 1]->longitude = with35->MakeDouble_();
+								Ckt->Buses[iB - 1]->GISCoordDefined = true;
 							}
 						}
 					}

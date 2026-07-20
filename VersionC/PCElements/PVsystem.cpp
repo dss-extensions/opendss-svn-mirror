@@ -102,7 +102,9 @@ const int propDynOut			= 47;
 const int propGFM				= 48;
 const int propAmpsLimit			= 49;
 const int propAmpsError			= 50;
-const int NumPropsThisClass		= 50; // Make this agree with the last property constant
+const int propVRide				= 51;
+const int propVRideNorm			= 52;
+const int NumPropsThisClass		= 52; // Make this agree with the last property constant
 complex cBuffer[25/*# range 1..24*/];  // Temp buffer for calcs  24-phase PVSystem element?
 complex CDoubleOne = {};  // Creates superstructure for all PVSystem elements
 
@@ -254,7 +256,7 @@ void TPVSystem::DefineProperties()
 		"Indicates the voltage level (%) respect to the base voltage level for which the Inverter will operate. If this threshold is violated, the Inverter will enter safe mode (OFF). For dynamic simulation. By default is 80%");
 
 	AddProperty("SafeMode", propSM,
-		"(Read only) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode.");
+		"(Read/Write) Indicates whether the inverter entered (Yes) or not (No) into Safe Mode. After entering on a safe mode, it has to be changed to normal manually.");
 	AddProperty("DynamicEq", propDynEq,
 		string("The name of the dynamic equation (DinamicExp) that will be used for defining the dynamic behavior of the generator. ") +
 		"if not defined, the generator dynamics will follow the built-in dynamic equation.");
@@ -272,8 +274,16 @@ void TPVSystem::DefineProperties()
         "Once the IBR reaches this value, it remains there without moving into Safe Mode. This value needs to be set lower than the IBR Amps rating.");
     AddProperty("AmpLimitGain", propAmpsError,
         "Use it for fine tunning the current limiter when active, by default is 0.8, it has to be a value between 0.1 and 1. This value allows users to fine tune the IBRs current limiter to match with the user requirements.");
-	
-	ActiveProperty = NumPropsThisClass - 1;
+    AddProperty("VRideCurve", propVRide,
+        "The name of the curve defining the IBRs Voltage ride-through and trip requirements for certified Inverter abnormal operating Performance-Category III.");
+    AddProperty("VRideAction", propVRideNorm,
+        "[Int]. Read/Write. {""}. The actions to perform at each interval of the voltage ride-through curve. The action can be one of:" + CRLF + CRLF + 
+		"0: Continuous operation" + CRLF + 
+		"1: Mandatory operation" + CRLF + 
+		"2: Momentary cessation" + CRLF + CRLF + 
+		"If any value in this array falls outside the defined options, it is interpreted as a tripped state, requiring manual intervention to restore IBR operation (see SafeMode)." + 
+		"The number of elements in this array must match the number of points in the VRideCurve.");
+    ActiveProperty = NumPropsThisClass - 1;
 	inherited::DefineProperties();  // Add defs of inherited properties to bottom of list
     // Override default help string
 	PropertyHelp[NumPropsThisClass + 1 - 1] = "Name of harmonic voltage or current spectrum for this PVSystem element. "
@@ -600,6 +610,13 @@ int TPVSystem::Edit(int ActorID)
 					case	propSMT:
 						with0->myDynVars.SMThreshold = Parser[ActorID]->MakeDouble_();
 						break;
+					case	propSM:
+					{
+						with0->myDynVars.SafeMode = InterpretYesNo(Param);
+						with0->myDynVars.vride_cessation = with0->myDynVars.SafeMode;
+						with0->myDynVars.vride_armed = false;
+					}
+						break;
 					case	propDynEq:
 						with0->DynamicEq = Param;
 						break;
@@ -627,7 +644,17 @@ int TPVSystem::Edit(int ActorID)
                     case	propAmpsError:
                         with0->myDynVars.VError = Parser[ActorID]->MakeDouble_();
 						break;
-                  // Inherited parameters
+					case propVRide:
+                    {
+						with0->myDynVars.vride_name = Parser[ActorID]->MakeString_();
+                        if (!with0->myDynVars.vride_name.empty())
+							with0->myDynVars.vride_curve = (TXYcurveObj*)XYCurveClass[ActorID]->Find(with0->myDynVars.vride_name);
+                    }			
+						break;
+					case propVRideNorm:
+                        Parser[ActorID]->ParseAsVectorInt(with0->myDynVars.vride_action.size(), &(with0->myDynVars.vride_action[0]));
+					break;
+                // Inherited parameters
 					default:
 					inherited::ClassEdit(ActivePVsystemObj, ParamPointer - NumPropsThisClass);
 					break;
@@ -913,7 +940,7 @@ TPVsystemObj::TPVsystemObj(TDSSClass* ParClass, const String SourceName)
 			VoltageModel(0),
 			PFNominal(0.0)
 {
-	int i;
+	int i = 0;
 
 	Set_Name(LowerCase(SourceName));
 	DSSObjType = ParClass->DSSClassType; // + PVSystem_ELEMENT;  // In both PCelement and PVSystemelement list
@@ -987,6 +1014,16 @@ TPVsystemObj::TPVsystemObj(TDSSClass* ParClass, const String SourceName)
 		with1.ILimit			= -1; // No Amps limit
 		with1.IComp				= 0;
 		with1.VError			= 0.8;
+
+		// Initialize IBR voltage ride variables
+		with1.vride_name		= "";
+		with1.vride_curve		= nullptr;
+        with1.vride_action.resize(20);
+		for (i = 0; i < with1.vride_action.size(); i++)
+            with1.vride_action[i] = 0;
+		with1.vride_time		= 0;
+		with1.vride_armed		= false; 
+		with1.vride_cessation	= false;
 	}
 	FpctCutIn = 20.0;
 	FpctCutOut = 20.0;
@@ -1035,7 +1072,8 @@ void TPVsystemObj::InitPropertyValues(int ArrayOffset)
 {
 	/*# with PVSystemVars do */
 	{
-		auto& with0 = PVSystemVars;
+		auto with0 = PVSystemVars;
+		auto with1 = myDynVars;
 		Set_PropertyValue(1,"3");         //'phases';
 		Set_PropertyValue(2,GetBus(1));   //'bus1';
 		Set_PropertyValue(propKV,Format("%-g", with0.kVPVSystemBase));
@@ -1079,14 +1117,16 @@ void TPVsystemObj::InitPropertyValues(int ArrayOffset)
         Set_PropertyValue(propSMT,"80");
         Set_PropertyValue(propSM,"NO");
         Set_PropertyValue(propGFM,"GFL");
-
+        Set_PropertyValue(propVRide, "");
+        Set_PropertyValue(propVRideNorm, "[]");
 	}
 	inherited::InitPropertyValues(NumPropsThisClass);
 }
 
 String TPVsystemObj::GetPropertyValue(int Index)
 {
-	String result = "";
+	String result	= "";
+	int		j		= 0;
 
 	/*# with PVSystemVars do */
 	{
@@ -1232,6 +1272,20 @@ String TPVsystemObj::GetPropertyValue(int Index)
 			case 	propGFM:
 				result = (GFM_Mode) ? "GFM" : "GFL";
 				break;
+			case 	propVRide:
+				result = myDynVars.vride_name;
+				break;
+			case 	propVRideNorm:
+            {
+				result = "[";
+                if (myDynVars.vride_curve != nullptr)
+				{
+                    for (j = 0; j < myDynVars.vride_curve->get_FNumPoints(); j++)
+                                        result = result + Format("%-d,", myDynVars.vride_action[j]);
+				}            
+				result = result + "]";
+			}
+			break;
         /*propDEBUGTRACE = 33;*/  // take the generic handler
 			default:
 			result = inherited::GetPropertyValue(Index);
@@ -1539,6 +1593,147 @@ void TPVsystemObj::RecalcElementData(int ActorID)
 		UserModel->FUpdateModel();
 }
 
+bool TPVsystemObj::check_voltage_ride_through(int ActorID)
+{
+	// Implements a function for checking if the IBR is under voltage ride through event at its connection terminal
+	// If so and depending on the votlage levels, the power output (PQ) will be set accordingly.
+	int k		= 0,
+		j		= 0,
+		i		= 0;
+	double	edge_value	= 0.0,
+			trip_time	= 0.0,
+			lapsed_time	= 0.0,
+			v_phase_pu	= 0.0,
+			V_phase_mag	= 0.0,
+			pv_system_vbase	= 0.0,
+			emerg_time	= 0.0;
+	bool	result		= false;
+
+	auto& dynv	= myDynVars;
+	{
+
+		// Here we check the Voltage ride-through and trip requirements (if defined)
+		if (dynv.vride_curve != nullptr) 
+		{
+            CalcVTerminalPhase(ActorID);
+
+			pv_system_vbase = PVSystemVars.kVPVSystemBase * 1e3;
+			if (Fnphases > 1)
+				pv_system_vbase = pv_system_vbase / sqrt(3);
+
+			if (dynv.vride_armed)
+            {
+				if (!dynv.SafeMode) // Means that the user needs to clear the flag after entering safe mode
+                {
+                
+					// The safety measures are armed, check first if we are still on emergency mode
+					dynv.vride_armed = false; // We assume that the emergency has cleared
+					dynv.vride_cessation = false;
+                    k = dynv.vride_curve->get_FNumPoints();
+
+					for (i = 0; i < Fnphases; i++)
+                    {
+						V_phase_mag		= cabs(Vterminal[i]);
+						v_phase_pu		= V_phase_mag / pv_system_vbase;
+
+						for (j = 1; j <= k; j++)
+						{
+							edge_value	= dynv.vride_curve->Get_XValue(j);
+							if (edge_value > v_phase_pu)
+							{
+								if (dynv.vride_action[j - 1] != 0)
+								{
+									dynv.vride_armed	= true;
+									dynv.vride_volt		= v_phase_pu;
+									dynv.vride_cessation= (dynv.vride_action[j - 1] >= 2) || (dynv.vride_action[j - 1] < 0);
+								}
+								break;
+							}
+						}
+						if (dynv.vride_armed)
+							break;
+					}
+					 
+					// Now check if we are in emergency afte all
+					if (dynv.vride_armed)
+					{
+						// If still under emergency, get the operational block
+						j			= dynv.vride_curve->get_FNumPoints();
+						trip_time	= -1;
+						for (i = 1; i <= j; i++)
+						{
+							edge_value = dynv.vride_curve->Get_XValue(i);
+							if (dynv.vride_curve->Get_XValue(i) > dynv.vride_volt)
+							{
+								trip_time = dynv.vride_curve->Get_YValue(i);
+								break;
+							}
+						}
+
+						if (trip_time < 0) // means the vpu value is out of bounds
+							trip_time = dynv.vride_curve->Get_YValue(j);
+
+						lapsed_time = (ActiveCircuit[ActorID]->Solution->DynaVars.dblHour - dynv.vride_time) * 3600;
+
+						if (lapsed_time	>= trip_time)
+							dynv.SafeMode = true;
+
+					}
+
+				}
+
+			}
+			else
+            {
+				// Not armed yet, checking the values to determine if we need to enter into safe mode
+				k	= dynv.vride_curve->get_FNumPoints();
+				
+				for (i = 0; i < Fnphases; i++)
+				{
+					V_phase_mag = cabs(Vterminal[i]);
+					v_phase_pu  = V_phase_mag / (pv_system_vbase);
+
+					for (j = 1; j <= k; j++)
+                    {
+						edge_value	= dynv.vride_curve->Get_XValue(j);
+                        if (edge_value > v_phase_pu)
+                        {
+                            edge_value = dynv.vride_curve->Get_XValue(j);
+                            if (dynv.vride_action[j - 1] != 0)
+                            {
+								dynv.vride_armed	= true;
+								dynv.vride_volt		= v_phase_pu;
+								dynv.vride_cessation= (dynv.vride_action[j - 1] >= 2) || (dynv.vride_action[j - 1] < 0);
+                            }
+							break;
+                        }
+                    }
+                    if (dynv.vride_armed)
+						break;
+				}
+
+				  // Now check if we are in emergency afte all
+				if (dynv.vride_armed) // If we entered this mode we need to setup the actual simulation time as reference
+                {
+					dynv.vride_time = ActiveCircuit[ActorID]->Solution->DynaVars.dblHour - (ActiveCircuit[ActorID]->Solution->IntervalHrs); 
+				}
+				else 
+				{
+					dynv.vride_time	= 0.0; // We're good
+					dynv.SafeMode	= false;
+					dynv.vride_cessation = false;
+				}
+			}
+		}
+
+	}
+
+	result = myDynVars.SafeMode;
+
+	return result;
+}
+
+
 void TPVsystemObj::SetNominalPVSystemOuput(int ActorID)
 {
 	ShapeFactor = CDoubleOne;  // init here; changed by curve routine
@@ -1633,8 +1828,17 @@ void TPVsystemObj::SetNominalPVSystemOuput(int ActorID)
 				}
 			}
 			ComputekWkvar();
-			Pnominalperphase = 1000.0 * kW_out / Fnphases;
-			Qnominalperphase = 1000.0 * kvar_out / Fnphases;
+
+			if (myDynVars.SafeMode || myDynVars.vride_cessation)
+            {
+                Pnominalperphase = 0.0;
+                Qnominalperphase = 0.0;
+            }
+			else
+            {
+				Pnominalperphase = 1000.0 * kW_out / Fnphases;
+				Qnominalperphase = 1000.0 * kvar_out / Fnphases;
+			}
 			switch(VoltageModel)
 			{
 				case 	3:
@@ -2531,6 +2735,10 @@ void TPVsystemObj::CalcInjCurrentArray(int ActorID)
 {
 
     // Now Get Injection Currents
+
+    // First, check if we are entering, in or out an alarm zone
+    check_voltage_ride_through(ActorID);
+
 	if(PVsystemObjSwitchOpen)
 		ZeroInjCurrent();
 	else
@@ -2876,6 +3084,7 @@ void TPVsystemObj::InitStateVars(int ActorID)
 			j		= 0;
 
 	Set_YprimInvalid(ActorID,true);  // Force rebuild of YPrims
+	myDynVars.vride_armed	= false;
 	if (PICtrl.empty() || (PICtrl.size() < Fnphases))
 	{
 		PICtrl.resize(Fnphases);
@@ -3018,8 +3227,16 @@ void TPVsystemObj::IntegrateStates(int ActorID)
 				wDynV.ISP = ((wSV.PanelkW * 1000) / wDynV.Vgrid[i].mag) / wSV.NumPhases;
 				if (wDynV.ISP > wDynV.iMaxPPhase)
 					wDynV.ISP = wDynV.iMaxPPhase;
-				if ((wDynV.Vgrid[i].mag < wDynV.MinVS) || (wDynV.Vgrid[i].mag > wDynV.MaxVS))
-					wDynV.ISP = 0.01;
+				if (wDynV.vride_curve == nullptr)
+				{
+					if ((wDynV.Vgrid[i].mag < wDynV.MinVS) || (wDynV.Vgrid[i].mag > wDynV.MaxVS))
+						wDynV.ISP = 0.01;
+				}
+				else
+                {
+					if (check_voltage_ride_through(ActorID) || wDynV.vride_cessation)
+						wDynV.ISP = 0.01;
+                }
 			}
 			else
 			{

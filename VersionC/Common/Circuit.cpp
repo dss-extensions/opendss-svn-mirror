@@ -2485,7 +2485,7 @@ namespace Circuit
     }
 
 
-    TCktTree& TDSSCircuit::GetTopology()
+    TCktTree* TDSSCircuit::GetTopology()
     {
         int i = 0;
         TDSSCktElement* elem;
@@ -2505,7 +2505,7 @@ namespace Circuit
                 Buses[static_cast<size_t>(i) - 1]->BusChecked = false;
             Branch_List = GetIsolatedSubArea((TDSSCktElement*)Sources.Get_First(), true);  // calls back to build adjacency lists
         }
-        return *Branch_List;
+        return Branch_List;
     }
 
 

@@ -16440,7 +16440,7 @@ TCktTree* ActiveTree()
 	TCktTree* result = nullptr;
 	if (ActiveCircuit[ActiveActor] != nullptr)
 	{
-		result =&(ActiveCircuit[ActiveActor]->GetTopology());
+		result =ActiveCircuit[ActiveActor]->GetTopology();
 	}
 	return result;
 }

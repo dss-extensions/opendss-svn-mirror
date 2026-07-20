@@ -101,6 +101,7 @@ public:
 	TParser();
 	virtual ~TParser();
 	String ParseAsBusName(int& NumNodes, Arraydef::pIntegerArray NodeArray, int ActorID);
+    int ParseAsVectorInt(int ExpectedSize, Arraydef::pIntegerArray VectorBuffer);
 	int ParseAsVector(int ExpectedSize, Arraydef::pDoubleArray VectorBuffer);
     int ParseAsStrVector(int ExpectedSize, pDynStringArray VectorBuffer);
 	int ParseAsMatrix(int ExpectedOrder, Arraydef::pDoubleArray MatrixBuffer);

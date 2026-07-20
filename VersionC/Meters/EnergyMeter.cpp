@@ -2372,19 +2372,42 @@ void TEnergyMeterObj::ReduceZone(int ActorID)
     If HasFeeder Then FeederObj.InitializeFeeder (Branchlist);
 */
 }
+
+int get_toBusRef(TCktTreeNode* Local_node)
+{
+    // Implements a general case for getting ToBusReference from TreeNode including
+    // the case in which the PDE has more than 2 terminals. This prevents us from
+    // having to modify more specific functions
+    int result = Local_node->Get_ToBusReference();
+    while (result < 0)
+    {
+        result = Local_node->Get_ToBusReference();
+    }
+	return result;
+}
+
 /*Start at the ends of the zone and work toward the start
  interpolating between known coordinates*/
 
 void TEnergyMeterObj::InterpolateCoordinates()
 {
-	int i = 0;
-	int BusRef = 0;
-	int FirstCoordRef = 0;
-	int SecondCoordRef = 0;
-	int LineCount = 0;
-	TCktTreeNode* PresentNode = nullptr;
-	TCktTreeNode* StartNode = nullptr;
-	TDSSCktElement* CktElem = nullptr;
+	int i						= 0,
+		k						= 0,
+		offset					= 0,
+        FirstCoordRef			= 0,
+		SecondCoordRef			= 0,
+		LineCount				= 0;		
+	int BusRef					= 0;
+
+	TCktTreeNode* j				= nullptr; 
+	TCktTreeNode*  PresentNode	= nullptr;
+    TCktTreeNode* StartNode		= nullptr;
+	TDSSCktElement* CktElem		= nullptr;
+	string		Bfirst			= "",
+				Bsec			= "",
+				Bname			= "";
+	TCktTree* topo				= nullptr;
+
 	if(!ASSIGNED(BranchList))
 	{
 		DoSimpleMsg("Meter Zone Lists need to be built. Do Solve or Makebuslist first!", 529);
@@ -2392,80 +2415,180 @@ void TEnergyMeterObj::InterpolateCoordinates()
 	}
 	/*# with ActiveCircuit[ActiveActor] do */
 	{
-		
-		int stop = 0;
-		for(stop = BranchList->ZoneEndsList->NumEnds, i = 1; i <= stop; i++)
+	
+     // The idea is to get the references to the buses without BusCoords only instead
+     // of going for all of the zone ends, this may save some time and provide more options
+		auto with0 = ActiveCircuit[ActiveActor];
+		topo = with0->GetTopology();
+		for (i = 1; i <= with0->NumBuses; i++)
 		{
-			BusRef = BranchList->ZoneEndsList->Get(i, PresentNode);
-			FirstCoordRef = BusRef;
-			SecondCoordRef = FirstCoordRef;  /*so compiler won't issue stupid warning*/
-       /*Find a bus with a coordinate*/
-			if(!ActiveCircuit[ActiveActor]->Buses[BusRef - 1]->CoordDefined)
+			Bname = with0->BusList.Get(i);
+            if ((!with0->Buses[i - 1]->CoordDefined) && (i > 0))
 			{
-				while(!ActiveCircuit[ActiveActor]->Buses[PresentNode->FromBusReference - 1]->CoordDefined)
+                // This case means the bus has no coords and is not the sourcebus
+                // Here we are looking for the branch containing the bus
+				j = (TCktTreeNode*)topo->Get_First();
+                while (j != nullptr)
 				{
-					PresentNode = PresentNode->Get_Parent();
-					if(PresentNode == nullptr)
+					PresentNode = topo->PresentBranch;
+					offset		= get_toBusRef(PresentNode);
+					if (offset == i)
 						break;
+					j  = (TCktTreeNode*)topo->Get_Forward();
 				}
-				if(PresentNode != nullptr)
-					FirstCoordRef = PresentNode->FromBusReference;
-			}
-			while(PresentNode != nullptr)
+				
+				StartNode	= PresentNode;
+				CktElem		= (TDSSCktElement*)(PresentNode->CktObject);	
 
-          /*Back up until we find another Coord defined*/
-			{
-				LineCount = 0;   /*number of line segments in this segment*/
-				StartNode = PresentNode;
-				CktElem = ((TDSSCktElement*) PresentNode->CktObject);
-				if(FirstCoordRef != PresentNode->FromBusReference)   /*Handle special case for end branch*/
-				{
-					if(ActiveCircuit[ActiveActor]->Buses[PresentNode->FromBusReference - 1]->CoordDefined)
-						FirstCoordRef = PresentNode->FromBusReference;
-					else
-						++LineCount;
-				}
-				do
-				{
-					CktElem->Checked = true;
-					PresentNode = PresentNode->Get_Parent();
-					if(PresentNode == nullptr)
+				LineCount	= 1;
+                // Here the idea is to find a PDE with Coords at both ends
+				offset		= get_toBusRef(PresentNode);
+				
+				while (!(with0->Buses[offset - 1]->CoordDefined))
+                {
+					PresentNode	= PresentNode->Get_Parent();
+					if (PresentNode == nullptr)
 						break;
-					CktElem = ((TDSSCktElement*) PresentNode->CktObject);
-					SecondCoordRef = PresentNode->FromBusReference;
-					++LineCount;
-				}
-				while(!(ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->CoordDefined || CktElem->Checked));
-				if((PresentNode != nullptr) && (LineCount > 1))
-				{
-					if(ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->CoordDefined)
+					offset		= get_toBusRef(PresentNode);
+					LineCount++;
+                }
+
+				if (!(PresentNode == nullptr))
+                {
+					SecondCoordRef	= get_toBusRef(PresentNode);
+                    // Now check the upper node
+					while(!(with0->Buses[PresentNode->FromBusReference - 1]->CoordDefined))
 					{
-						CalcBusCoordinates(StartNode, FirstCoordRef, SecondCoordRef, LineCount);
+						PresentNode		= PresentNode->Get_Parent();
+						if (PresentNode == nullptr)
+							break;
+						LineCount++;
 					}
-					else
-					break; /*While - went as far as we could go this way*/
+				
+					FirstCoordRef	= PresentNode->FromBusReference;
+					// Now we expect both terminals of the PDE found has coords
+					if (PresentNode != nullptr)
+						CalcBusCoordinates(StartNode, FirstCoordRef, SecondCoordRef, LineCount);
 				}
-				FirstCoordRef = SecondCoordRef;
-			}
-		} /*For*/
+			}			
+			else
+            {
+				if (!(with0->Buses[i - 1]->CoordDefined))
+                {
+                    // In this case, means that the bus is the first one and does not have buscoords, it is special,
+                    // since there is nothing upstream this bus. The strategy is to assign coords close to the first bus
+                    // with coords in the model for the first bus, if no coords are available, then we assign 0,0 as the reference
+                    with0->Buses[i - 1]->x	= 0.0;
+                    with0->Buses[i - 1]->y	= 0.0;
+                    with0->Buses[i - 1]->CoordDefined = true;
+                    for (k = 1; k <= NumBuses; k++)
+                    {
+                        if (with0->Buses[k - 1]->CoordDefined)
+                        {
+							with0->Buses[i - 1]->x	= with0->Buses[k - 1]->x * 1.00001;
+							with0->Buses[i - 1]->y	= with0->Buses[k - 1]->y * 1.00001;
+						}  
+                    }
+					
+                }	
+            } //else
+		} // for
+	
+	//	int stop = 0;
+	//	for(stop = BranchList->ZoneEndsList->NumEnds, i = 1; i <= stop; i++)
+	//	{
+	//		BusRef = BranchList->ZoneEndsList->Get(i, PresentNode);
+	//		FirstCoordRef = BusRef;
+	//		SecondCoordRef = FirstCoordRef;  /*so compiler won't issue stupid warning*/
+ //      /*Find a bus with a coordinate*/
+	//		if(!ActiveCircuit[ActiveActor]->Buses[BusRef - 1]->CoordDefined)
+	//		{
+	//			while(!ActiveCircuit[ActiveActor]->Buses[PresentNode->FromBusReference - 1]->CoordDefined)
+	//			{
+	//				PresentNode = PresentNode->Get_Parent();
+	//				if(PresentNode == nullptr)
+	//					break;
+	//			}
+	//			if(PresentNode != nullptr)
+	//				FirstCoordRef = PresentNode->FromBusReference;
+	//		}
+	//		while(PresentNode != nullptr)
+
+ //         /*Back up until we find another Coord defined*/
+	//		{
+	//			LineCount = 0;   /*number of line segments in this segment*/
+	//			StartNode = PresentNode;
+	//			CktElem = ((TDSSCktElement*) PresentNode->CktObject);
+	//			if(FirstCoordRef != PresentNode->FromBusReference)   /*Handle special case for end branch*/
+	//			{
+	//				if(ActiveCircuit[ActiveActor]->Buses[PresentNode->FromBusReference - 1]->CoordDefined)
+	//					FirstCoordRef = PresentNode->FromBusReference;
+	//				else
+	//					++LineCount;
+	//			}
+	//			do
+	//			{
+	//				CktElem->Checked = true;
+	//				PresentNode = PresentNode->Get_Parent();
+	//				if(PresentNode == nullptr)
+	//					break;
+	//				CktElem = ((TDSSCktElement*) PresentNode->CktObject);
+	//				SecondCoordRef = PresentNode->FromBusReference;
+	//				++LineCount;
+	//			}
+	//			while(!(ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->CoordDefined || CktElem->Checked));
+	//			if((PresentNode != nullptr) && (LineCount > 1))
+	//			{
+	//				if(ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->CoordDefined)
+	//				{
+	//					CalcBusCoordinates(StartNode, FirstCoordRef, SecondCoordRef, LineCount);
+	//				}
+	//				else
+	//				break; /*While - went as far as we could go this way*/
+	//			}
+	//			FirstCoordRef = SecondCoordRef;
+	//		}
+	//	} /*For*/
 	} /*With*/
+}
+
+double generate_random(int range)
+{
+	double result = 0;
+	// Returns a random number (double) within the given range
+    int ranged_random = (rand() % (101));
+	result		= (((double)ranged_random) * range) /100;
+	
+	return result;
 }
 
 void TEnergyMeterObj::CalcBusCoordinates(TCktTreeNode* StartBranch, int FirstCoordRef, int SecondCoordRef, int LineCount)
 {
-	double X = 0.0;
-	double Y = 0.0;
-	double Xinc = 0.0;
-	double Yinc = 0.0;
+	double	X		= 0.0,
+			Y		= 0.0,
+			Xinc	= 0.0,
+			Yinc	= 0.0,
+			c_max	= 0.0;
+	int		bref	= 0;
+
 	if(LineCount == 1)
 		return;  /*Nothing to do!*/
 	/*# with ActiveCircuit[ActiveActor] do */
+    auto Ckt = ActiveCircuit[ActiveActor];
 	{
-		
-		Xinc = (ActiveCircuit[ActiveActor]->Buses[FirstCoordRef - 1]->x - ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->x) / LineCount;
-		Yinc = (ActiveCircuit[ActiveActor]->Buses[FirstCoordRef - 1]->y - ActiveCircuit[ActiveActor]->Buses[SecondCoordRef - 1]->y) / LineCount;
-		X = ActiveCircuit[ActiveActor]->Buses[FirstCoordRef - 1]->x;
-		Y = ActiveCircuit[ActiveActor]->Buses[FirstCoordRef - 1]->y;
+
+		Xinc = (Ckt->Buses[FirstCoordRef - 1]->x - Ckt->Buses[SecondCoordRef - 1]->x) / LineCount;
+        Yinc = (Ckt->Buses[FirstCoordRef - 1]->y - Ckt->Buses[SecondCoordRef - 1]->y) / LineCount;
+
+		c_max = max(abs(Xinc), abs(Yinc));
+
+		if (Xinc == 0)
+            Xinc = generate_random(2) * c_max;
+        if (Yinc == 0)
+            Yinc = generate_random(2) * c_max;
+
+        X = Ckt->Buses[SecondCoordRef - 1]->x;
+        Y = Ckt->Buses[SecondCoordRef - 1]->y;
 
        /****Debug*/
    /*    If ((X<10.0) and (y<10.0)) or
@@ -2476,26 +2599,34 @@ void TEnergyMeterObj::CalcBusCoordinates(TCktTreeNode* StartBranch, int FirstCoo
      */
      
      /*Either start with the "to" end of StartNode or the "from" end;*/
-		if(FirstCoordRef != StartBranch->FromBusReference)  // Start with "to" end
-		{
-			X = X - Xinc;
-			Y = Y - Yinc;
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->x = X;
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->y = Y;
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->CoordDefined = true;
-			--LineCount;
-		}
-		while(LineCount > 1)
-		{
-			X = X - Xinc;
-			Y = Y - Yinc;
-			StartBranch = StartBranch->Get_Parent(); // back up the tree
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->x = X;
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->y = Y;
-			ActiveCircuit[ActiveActor]->Buses[StartBranch->FromBusReference - 1]->CoordDefined = true;
-			--LineCount;
-		}
-	}
+        bref	= get_toBusRef(StartBranch);
+        if (bref >= 0)
+        {
+			if(FirstCoordRef != bref)  // Start with "to" end
+			{
+				X = X - Xinc;
+				Y = Y - Yinc;
+				Ckt->Buses[bref - 1]->x = X;
+				Ckt->Buses[bref - 1]->y = Y;
+				Ckt->Buses[bref - 1]->CoordDefined = true;
+				LineCount--;
+			}
+			while(LineCount > 1)
+			{
+				X = X - Xinc;
+				Y = Y + Yinc;
+				StartBranch = StartBranch->Get_Parent(); // back up the tree
+                bref = get_toBusRef(StartBranch);
+                if (bref >= 0)
+                {
+                    Ckt->Buses[bref - 1]->x = X;
+                    Ckt->Buses[bref - 1]->y = Y;
+                    Ckt->Buses[bref - 1]->CoordDefined = true;
+				}
+				LineCount--;
+			}
+		} // if
+	} // with
 }
 
 

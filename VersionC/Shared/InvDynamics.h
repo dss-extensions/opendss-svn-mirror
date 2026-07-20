@@ -7,6 +7,7 @@
 #include "Ucomplex.h"
 #include "mathutil.h"
 #include "Ucmatrix.h"
+#include "XYcurve.h"
 
 
 namespace InvDynamics
@@ -40,12 +41,22 @@ namespace InvDynamics
                 ILimit      = 0.0,          // Created for limiting the output current without entering into safe mode
                 ISP         = 0.0,          // Current setpoint according to the actual DER kW
                 IComp       = 0.0,          // For storing the compensation value when the Amps limiter is active
-                VError      = 0.0;          // Stores the systemic error correction factor for current limiting
-          
+                VError      = 0.0,          // Stores the systemic error correction factor for current limiting
+				vride_volt  = 0.0,			// Reference value to estimate the voltage ride operational block
+				vride_time  = 0.0;			// Initial time in which the voltage sag/swel was detected.      
         bool    Discharging = false,        // To verify if the storage device is discharging
                 ResetIBR    = false,        // flag for forcing the IBR to turn OFF
-                SafeMode    = false;        // To indicate weather the Inverter has entered into safe mode
+                SafeMode    = false,        // To indicate weather the Inverter has entered into safe mode
+				vride_armed = false,		// Flag to indicate tha the IBR is expose to abnormal voltage conditions.
+				vride_cessation = false;	// Indicates if the IBR is under momentary cessation
+		int		last_bess_state = 0;		// Stores the last storage state before entering in Safe or Momentary Cessation modes
+
         std::vector< bool > SfModePhase;    // To identify when to restart the phase
+
+		string	vride_name	= "";			// Name of the voltage ride curve for protection purposes (IEEE 1547)
+		std::vector<int> vride_action;		// Array with the action to apply for each interval of the volt ride-through curve.
+		TXYcurveObj* vride_curve = nullptr;	// Pointer to the XY curve object describing the voltage ride for the inverter.
+
 
         double Get_InvDynValue(int myindex, int NumPhases);
         std::string Get_InvDynName(int myindex);
