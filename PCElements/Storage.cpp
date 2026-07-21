@@ -2179,7 +2179,11 @@ void TStorageObj::SetNominalStorageOutput(int ActorID)
            the Storage supplies the idling losses. When charging, the idling losses are subtracting from the amount
            entering the Storage element.
           */
-			if (myDynVars.SafeMode || myDynVars.vride_cessation)
+
+			if (myDynVars.vride_cessation)
+				fState = STORE_IDLING;
+
+			if (myDynVars.SafeMode)
 			{
                 Pnominalperphase	= 0.0;
                 Qnominalperphase	= 0.0;
