@@ -1988,7 +1988,10 @@ Begin
            entering the Storage element.
           }
 
-          if myDynVars.SafeMode or myDynVars.vride_cessation then
+          if myDynVars.vride_cessation then
+            FState              := STORE_IDLING;
+
+          if myDynVars.SafeMode then
           Begin
             Pnominalperphase    := 0.0;
             Qnominalperphase    := 0.0;
