@@ -1253,6 +1253,12 @@ procedure TInvControlObj.RecalcElementData(ActorID : Integer);
         Begin
           // User ControlledElement[] as the pointer to the PVSystem/Storage elements
           ControlledElement :=  TPCElement(FDERPointerList.Get(i));  // pointer to i-th PVSystem/Storage element
+
+          // Skip DERs that are missing or disabled (e.g., disabled after InvControl was created).
+          // FDERPointerList already excludes DERs that were disabled at MakeDERList time, but a
+          // DER may have been disabled later; treat that the same way here.
+          if (ControlledElement = nil) or (not ControlledElement.Enabled) then Continue;
+
           SetLength(cBuffer, SizeOF(Complex) * ControlledElement.Yorder );
 
 
@@ -2287,12 +2293,17 @@ begin
   // if list is not defined, go make one from all PVSystem/Storage in circuit
   if FDERPointerList.ListSize=0 then   RecalcElementData(ActorID);
 
-  if (FListSize>0) then
+  if (FDERPointerList.ListSize > 0) then
   begin
     // if an InvControl controls more than one PVSystem/Storage, control each one
     // separately based on the PVSystem/Storage's terminal voltages, etc.
     for i := 1 to FDERPointerList.ListSize do
     begin
+      // Skip DERs that are missing or have been disabled (either at InvControl definition
+      // time, in which case they were not added to FDERPointerList, or after the fact).
+      // This keeps the InvControl in the model but idle for its disabled DERs.
+      if (CtrlVars[i].ControlledElement = nil) or (not CtrlVars[i].ControlledElement.Enabled) then Continue;
+
       UpdateDERParameters(i);
       with CtrlVars[i] do
       Begin
@@ -2856,42 +2867,34 @@ begin
 
   if FListSize > 0 then
   begin    // Name list is defined - Use it
-
-    SetLength(CtrlVars,FListSize+1);
-
     for i := 1 to FListSize do
     begin
-      with CtrlVars[i] do
-      Begin
-        setlength( FVpuSolution,3 );
-        setlength( cBuffer, 7 );
-        if StripExtension(LowerCase(FDERNameList.Strings[i-1])) = 'pvsystem' then
-        begin
-          PVSys := PVSysClass.Find(StripClassName(FDERNameList.Strings[i-1]));
+      if StripExtension(LowerCase(FDERNameList.Strings[i-1])) = 'pvsystem' then
+      begin
+        PVSys := PVSysClass.Find(StripClassName(FDERNameList.Strings[i-1]));
 
-          If Assigned(PVSys) Then Begin
-              If PVSys.Enabled Then FDERPointerList.New := PVSys
-          End
-          Else Begin
-              DoSimpleMsg('Error: PVSystem Element "' + FDERNameList.Strings[i-1] + '" not found.', 14403);
-              Exit;
-          End;
+        If Assigned(PVSys) Then Begin
+            If PVSys.Enabled Then FDERPointerList.New := PVSys
+        End
+        Else Begin
+            DoSimpleMsg('Error: PVSystem Element "' + FDERNameList.Strings[i-1] + '" not found.', 14403);
+            Exit;
+        End;
 
-        end
-        else if StripExtension(LowerCase(FDERNameList.Strings[i-1])) = 'storage' then
-        begin
-          Storage := StorageClass.Find(StripClassName(FDERNameList.Strings[i-1]));
+      end
+      else if StripExtension(LowerCase(FDERNameList.Strings[i-1])) = 'storage' then
+      begin
+        Storage := StorageClass.Find(StripClassName(FDERNameList.Strings[i-1]));
 
-          If Assigned(Storage) Then Begin
-              If Storage.Enabled Then FDERPointerList.New := Storage
-          End
-          Else Begin
-              DoSimpleMsg('Error: Storage Element "' + FDERNameList.Strings[i-1] + '" not found.', 14403);
-              Exit;
-          End;
+        If Assigned(Storage) Then Begin
+            If Storage.Enabled Then FDERPointerList.New := Storage
+        End
+        Else Begin
+            DoSimpleMsg('Error: Storage Element "' + FDERNameList.Strings[i-1] + '" not found.', 14403);
+            Exit;
+        End;
 
-        end
-      End;
+      end;
     end;
 
   end
@@ -2902,39 +2905,45 @@ begin
     for i := 1 to PVSysClass.ElementCount do
       begin
         PVSys :=  PVSysClass.ElementList.Get(i);
-        if PVSys.Enabled then FDERPointerList.New := PVSys;
-        FDERNameList.Add(PVSys.QualifiedName);
+        if PVSys.Enabled then
+        begin
+          FDERPointerList.New := PVSys;
+          FDERNameList.Add(PVSys.QualifiedName);
+        end;
       end;
     // Adding Storage elements
     for i := 1 to StorageClass.ElementCount do
       begin
         Storage :=  StorageClass.ElementList.Get(i);
-        if Storage.Enabled then FDERPointerList.New := Storage;
-        FDERNameList.Add(Storage.QualifiedName);
+        if Storage.Enabled then
+        begin
+          FDERPointerList.New := Storage;
+          FDERNameList.Add(Storage.QualifiedName);
+        end;
       end;
 
     FListSize := FDERPointerList.ListSize;
 
-    SetLength(CtrlVars,FListSize+1);
-
   end;  {else}
+
+  // initialise CtrlVars in lockstep with FDERPointerList (enabled DERs only).
+  SetLength(CtrlVars, FDERPointerList.ListSize + 1);
 
   //Initialize arrays
 
-  for i := 1 to FlistSize do
+  for i := 1 to FDERPointerList.ListSize do
   begin
 
-    if StripExtension(LowerCase(FDERNameList.Strings[i-1])) = 'pvsystem' then
+    DERElem := TPCElement(FDERPointerList.Get(i));
+    if DERElem.DSSClassName = 'PVSystem' then
     begin
-      PVSys := PVSysClass.Find(StripClassName(FDERNameList.Strings[i-1]));
-      if (PVSys <> nil) then
-         DERElem := TPCElement(PVSys)
+      PVSys   := TPVSystemObj(DERElem);
+      Storage := nil;
     end
     else
     begin
-      Storage := StorageClass.Find(StripClassName(FDERNameList.Strings[i-1]));
-      if (Storage <> nil) then
-         DERElem := TPCElement(Storage)
+      PVSys   := nil;
+      Storage := TStorageObj(DERElem);
     end;
 
     with CtrlVars[i] do
@@ -2960,8 +2969,9 @@ begin
       QDesiredWV                            := 0.0;
       QOld                                  := -1.0;
       QOldVV                                := -1.0;
-      if PVSys = nil then QOldAVR           := 0.0
-      else                QOldAVR           := - PVSys.kvarLimitNeg / 2.0;
+      if      PVSys   <> nil then QOldAVR := - PVSys.kvarLimitNeg   / 2.0
+      else if Storage <> nil then QOldAVR := - Storage.kvarLimitNeg / 2.0
+      else                        QOldAVR := 0.0;
       QOldDRC                               := -1.0;
       QOldVVDRC                             := -1.0;
       QDesiredDRC                           := 0.0;
@@ -3044,7 +3054,6 @@ begin
     end; {with}
   end; {for}
 
-  RecalcElementData(ActiveActor);
   if FDERPointerList.ListSize>0 then Result := TRUE;
 end;
 
