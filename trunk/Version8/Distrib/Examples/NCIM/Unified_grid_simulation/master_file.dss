@@ -1,0 +1,38 @@
+Clear
+
+set DefaultBaseFrequency=60
+
+New Circuit.ieee118bus
+~ basekv=138.0 phases=3 pu=1.005 angle=39.69 frequency=60.0 baseMVA=728.5374813610073 puZ1=[0.001, 0.2] !Model=ideal
+~ bus1=89_clinchrv
+!~ basekv=138.0 phases=3 pu=1.0162276665500547 angle=49.136995333567725 frequency=60.0 baseMVA=7280000.5374813610073 puZ1=[0.001, 0.2] !Model=ideal
+!/**** Conversion from PSS/E RAW data file ****/
+
+!/**** Circuit elements definition ****/
+
+!/*** ---- Choose either generators.dss or gens_as_vsrcs.dss ***/
+redirect generators_tx.dss              ! definitions for generators
+
+redirect lines_tx.dss                   ! definitions for lines
+redirect transformers_tx.dss            ! definitions for transformers
+redirect loads_tx.dss                   ! definitions for loads
+redirect shunts_tx.dss                  ! definitions for reactors and capacitors
+
+redirect master_ckt5.dss
+
+new monitor.dxsub element=Transformer.MDV_SUB_1 terminal=1 mode=1 ppolar=No
+
+Set VoltageBases = [138.0, 12.47, 4.16, 0.48, 0.415, 0.208]
+Calcv
+redirect confirm_kv_bases_tx.dss
+
+set algorithm=NCIM IgnoreGenQLimits=Yes
+
+!/*
+set maxcontroliter=100 maxiterations=50
+set mode=snap
+
+set loadmult=0.8
+
+Solve 
+
